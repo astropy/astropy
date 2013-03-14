@@ -60,18 +60,26 @@ class Fitter(object):
     __metaclass__ = abc.ABCMeta
     
     def __init__(self, model):
-        self.model = model
+        self._model = model
         self._validate_constraints()
         if any(self.model.constraints._fixed.values()) or \
            any(self.model.constraints._tied.values()):
             self._fitpars = self.model.constraints.fitpars[:]
         else:
             self._fitpars = self.model._parameters[:]
-        if self.model.deriv is None:
+        if self._model.deriv is None:
             self.dfunc = None
         else:
             self.dfunc = self._wrap_deriv
         self._weights = None
+        
+    @property
+    def model(self):
+        return self._model
+    
+    @model.setter
+    def model(self, val):
+        self._model = val
         
     @property
     def fitpars(self):
@@ -232,7 +240,7 @@ class LinearLSQFitter(Fitter):
         ModelLinearityError
             A nonlinear model is passed to a linear fitter
         """
-        self.model = model
+        super(LinearLSQFitter, self).__init__(model)
         if not self.model.linear:
             raise ModelLinearityError('Model is not linear in parameters, '
                                     'linear fit methods should not be used.')
@@ -241,7 +249,7 @@ class LinearLSQFitter(Fitter):
                          'singular_values': None,
                          'pars': None
                         }
-        super(LinearLSQFitter, self).__init__(model)
+        
         
     def _deriv_with_constraints(self, x, y=None):
         if y is None:

@@ -42,14 +42,22 @@ class RotateNative2Celestial(Model):
             Euler angles in deg
                         
         """
-        self.ndim = 2
-        self.outdim = 2
+        self._ndim = 2
+        self._outdim = 2
         self._phi = _Parameter('phi', np.deg2rad(phi), self, 1)
         self._theta = _Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = _Parameter('psi', np.deg2rad(psi), self, 1)
         super(RotateNative2Celestial, self).__init__(parnames=[])
         self.has_inverse = True
 
+    @property
+    def ndim(self):
+        return self._ndim
+
+    @property
+    def outdim(self,):
+        return self._outdim
+    
     @property
     def phi(self):
         return np.rad2deg(self._phi)
@@ -107,8 +115,8 @@ class RotateCelestial2Native(Model):
             Euler angles in deg
              
         """
-        self.ndim = 2
-        self.outdim = 2
+        self._ndim = 2
+        self._outdim = 2
         self._phi = _Parameter('phi', np.deg2rad(phi), self, 1)
         self._theta = _Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = _Parameter('psi', np.deg2rad(psi), self, 1)
@@ -116,6 +124,14 @@ class RotateCelestial2Native(Model):
         
         self.has_inverse = True
 
+    @property
+    def ndim(self):
+        return self._ndim
+
+    @property
+    def outdim(self,):
+        return self._outdim
+    
     @property
     def phi(self):
         return np.rad2deg(self._phi)
@@ -193,10 +209,18 @@ class MatrixRotation2D(Model):
             self.parnames = ['angle']
             self._rotmat = _Parameter('rotmat', self._compute_matrix(angle),
                                       self, 1)
-        self.ndim = self._rotmat[0].shape[0]
-        self.outdim = self.ndim
+        self._ndim = self._rotmat[0].shape[0]
+        self._outdim = self.ndim
         self._parcheck = {'rotmat': self._validate_rotmat,
                                      'angle': self._validate_angle}
+    
+    @property
+    def ndim(self):
+        return self._ndim
+
+    @property
+    def outdim(self,):
+        return self._outdim
     
     @property
     def angle(self):

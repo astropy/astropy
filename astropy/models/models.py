@@ -169,9 +169,9 @@ class Model(object):
     parnames = []
 
     def __init__(self, parnames, paramdim=1):
-        self.paramdim = paramdim
+        self._paramdim = paramdim
         self.has_inverse = False
-        self.parnames = parnames
+        self._parnames = parnames
         #_parcheck is a dictionary to register parameter validation funcitons
         #key: value pairs are parameter_name: parameter_validation_function_name
         #see projections.AZP for example
@@ -181,6 +181,23 @@ class Model(object):
                                                   getpar(self, par),
                                                   lambda self, value, par=par: 
                                                   setpar(self, par, value)))
+                                                
+    @property
+    def paramdim(self):
+        return self._paramdim
+    
+    @paramdim.setter
+    def paramdim(self, val):
+        self._paramdim = val
+    
+    @property
+    def parnames(self):
+        return self._parnames
+    
+    @parnames.setter
+    def parnames(self, val):
+        self._parnames = val
+        
     def __repr__(self):
         fmt = "{0}(".format(self.__class__.__name__)
         for i in range(len(self.parnames)):

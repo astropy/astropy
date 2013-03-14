@@ -40,13 +40,25 @@ class Projection(Model):
             parameter names
         """
         super(Projection, self).__init__(parnames)
-        self.ndim = 2
-        self.outdim = 2
-        self.pdim = 1
+        self._ndim = 2
+        self._outdim = 2
+        self._pdim = 1
         # the radius of the projection sphere, by which x,y are scaled
         # not sure if it's necessary to make this a user parameter
         self.r0 = 180/np.pi
         
+    @property
+    def ndim(self):
+        return self._ndim
+    
+    @property
+    def outdim(self):
+        return self._outdim
+    
+    @property
+    def pdim(self):
+        return self._pdim
+    
 class Zenithal(Projection):
     """
     Base class for all Zenithal projections
