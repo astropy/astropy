@@ -5,6 +5,8 @@ Some code taken from numpy.lib.recfunctions.join_by().
 Redistribution license restrictions apply.
 """
 
+import collections
+
 import numpy as np
 import numpy.ma as ma
 import cyjoin
@@ -27,38 +29,62 @@ def common_dtype(col0, col1):
     return arr_common.dtype.str
 
 
-def get_merge_descrs(left, right, keys, uniq_col_name, table_names):
+def get_merge_descrs(left, right, keys, uniq_col_name='{col_name}_{table_name}',
+                     table_names=['1', '2']):
     """
     Find the dtypes descrs resulting from merging the left and right dtypes,
     assuming the names in `keys` are common in the output.
+
+    Return a list of descrs for the output and a dict mapping
+    each output column name to the input(s).  This takes the form
+    { outname : (left_col_name, right_col_name), ... }.
+    For key columns both the left and right input names will be
+    present, while for the other non-key columns the value will
+    be either (left_col_name, None) or (None, right_col_name).
     """
 
     out_descrs = []
-    for array, other, table_name in ((left, right, table_names[0]),
-                                   (right, left, table_names[1])):
+    col_name_map = collections.defaultdict(lambda: list([None, None]))
+
+    # TODO: should probably refactor this into one routine that determines
+    # col_name_map and a second that gets the merged descrs.
+
+    for array, other in ((left, right),
+                         (right, left)):
+        idx = (0 if array is left else 1)
+        table_name = table_names[idx]
         for descr in array.dtype.descr:
             name = descr[0]
             shape = array[name].shape[1:]
             out_descr = [name, descr[1], shape]
 
             if name in keys:
+                out_name = name  # note: in future there may be diff keys for left / right
                 if array is right:
-                    # Skip over keys for the right array, already done with left
+                    col_name_map[out_name][1] = name
+                    # Skip over keys for the right array, already was done for the left
                     continue
+                else:
+                    col_name_map[out_name][0] = name
                 if shape != other[name].shape[1:]:
                     raise ValueError('Key columns {0!r} have different shape'.format(name))
                 out_descr[1] = common_dtype(array[name], other[name])
             elif name in other.dtype.names:
                 out_descr[0] = uniq_col_name.format(table_name=table_name, col_name=name)
 
+            col_name_map[out_descr[0]][idx] = name
             out_descrs.append(tuple(out_descr))
 
-    return out_descrs
+    # Convert col_name_map to a regular dict with tuple (immutable) values
+    col_name_map = dict((key, tuple(val)) for key, val in col_name_map.items())
+
+    return out_descrs, col_name_map
 
 
 def join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
-         table_names=['1', '2']):
+         table_names=['1', '2'],
+         col_name_map=None):
     """
     Perform a join of the left and right numpy structured array on specified keys.
 
@@ -79,7 +105,9 @@ def join(left, right, keys=None, join_type='inner',
     table_names : list of str or None
         Two-element list of table names used when generating unique output 
         column names.  The default is ['1', '2'].
-
+    col_name_map : empty dict or None
+        If passed as a dict then it will be updated in-place with the
+        mapping of output to input column names.
     """
 
     if join_type not in ('inner', 'outer', 'left', 'right'):
@@ -109,7 +137,10 @@ def join(left, right, keys=None, join_type='inner',
     left_names, right_names = left.dtype.names, right.dtype.names
 
     # Joined array dtype as a list of descr (name, type_str, shape) tuples
-    out_descrs = get_merge_descrs(left, right, keys, uniq_col_name, table_names)
+    out_descrs, _col_name_map = get_merge_descrs(left, right, keys, uniq_col_name, table_names)
+    # If col_name_map supplied as a dict input, then update.
+    if isinstance(col_name_map, dict):
+        col_name_map.update(_col_name_map)
 
     # Make an array with just the key columns
     aux_dtype = [descr for descr in out_descrs if descr[0] in keys]
@@ -135,24 +166,21 @@ def join(left, right, keys=None, join_type='inner',
     else:
         out = np.empty(n_out, dtype=out_descrs)
 
-    out_names = out.dtype.names
-
-    for array, array_out, array_mask, table_name in [
-            (left, left_out, left_mask, table_names[0]),
-            (right, right_out, right_mask, table_names[1])]:
-        names = (name for name in array.dtype.names if name not in keys)
-        for name in names:
-            # TODO: return the mapping of input to output col names when generating
-            # dtype to avoid repeating the logic here.
-            if name not in out_names:
-                out_name = uniq_col_name.format(table_name=table_name, col_name=name)
-            else:
-                out_name = name
-            out[out_name] = array[name].take(array_out)
-            if masked and name not in keys:
-                out[out_name].mask = array_mask
-
-    for name in keys:
-        out[name] = np.where(right_mask, left[name].take(left_out), right[name].take(right_out))
+    for out_name, left_right_names in _col_name_map.items():
+        left_name, right_name = left_right_names
+        if left_name and right_name:  # this is a key which comes from left and right
+            out[out_name] = np.where(right_mask,
+                                     left[left_name].take(left_out),
+                                     right[right_name].take(right_out))
+            continue
+        elif left_name:  # out_name came from the left table
+            name, array, array_out, array_mask = left_name, left, left_out, left_mask
+        elif right_name:
+            name, array, array_out, array_mask = right_name, right, right_out, right_mask
+        else:
+            raise ValueError('Unexpected column names (maybe one is ""?)')
+        out[out_name] = array[name].take(array_out)
+        if masked:
+            out[out_name].mask = array_mask
 
     return out
