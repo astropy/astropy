@@ -2,8 +2,9 @@
 from __future__ import division
 
 import numpy as np
-from numpy.testing import assert_equal, assert_almost_equal, assert_allclose
+from numpy.testing import assert_equal, assert_almost_equal
 from ...tests.helper import pytest
+from ...tests.compat import assert_allclose
 
 from .. import funcs
 from ...utils.misc import NumpyRNGContext
