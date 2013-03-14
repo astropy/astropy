@@ -726,11 +726,8 @@ class BaseOutputter(object):
 
 
 class TableOutputter(BaseOutputter):
-    """Output the table as an astropy.table.Table object.
-
-    Missing or bad data values are not presently handled and raise an
-    exception.  This will be changed, but in the meantime use the
-    NumpyOutputter.
+    """
+    Output the table as an astropy.table.Table object.
     """
 
     default_converters = [convert_numpy(numpy.int),
