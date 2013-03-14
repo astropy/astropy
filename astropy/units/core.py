@@ -814,7 +814,8 @@ class NamedUnit(UnitBase):
                 if st in self._namespace:
                     raise ValueError(
                         "Object with name {0!r} already exists "
-                        "in namespace".format(st))
+                        "in namespace ({1})".format(
+                            st, self._namespace[st].__doc__))
                 self._namespace[st] = self
 
             self._registry[st] = self
