@@ -59,7 +59,7 @@ class _Parameter(list):
         paramdim : int
             parameter dimension      
         """
-        self.paramdim = paramdim
+        self._paramdim = paramdim
         #NumberType covers scalars and numpy arrays
         if operator.isNumberType(val):
             if self.paramdim == 1:
@@ -83,12 +83,36 @@ class _Parameter(list):
         else:
             raise InputParameterError(
                 "Parameter {0} is not a number".format(name))
-        self.mclass = mclass
-        self.name = name
+        self._mclass = mclass
+        self._name = name
         self._fixed = fixed
         self._tied = tied
         self._min = minvalue
         self._max = maxvalue
+        
+    @property
+    def paramdim(self):
+        return self._paramdim
+    
+    @paramdim.setter
+    def model(self, val):
+        self._paramdim = val
+        
+    @property
+    def mclass(self):
+        return self._mclass
+    
+    @mclass.setter
+    def model(self, val):
+        self._mclass = val
+        
+    @property
+    def name(self):
+        return self._name
+    
+    @name.setter
+    def name(self, val):
+        self._name = val
         
     @property
     def fixed(self):

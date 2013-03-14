@@ -14,7 +14,8 @@ class Constraints(object):
         """
         Parameters
         ----------
-        fitter : object which supports fitting
+        model : an instance of a subclass of 
+            `~astropy.models.models.ParametricModel` 
         fixed : dict
             {parameter_name: True| False}
             Specify parameters which should be kept fixed during fitting.
@@ -75,7 +76,7 @@ class Constraints(object):
         True
 
         """
-        self.model = model
+        self._model = model
         
         self._fixed = fixed
         self._tied = tied
@@ -87,6 +88,14 @@ class Constraints(object):
             self._fitpars = self._model_to_fit_pars()
         else:
             self._fitpars = self.model._parameters[:]
+    
+    @property
+    def model(self):
+        return self._model
+    
+    @model.setter
+    def model(self, val):
+        self._model = val
         
     def __str__(self):
         fmt = ""
