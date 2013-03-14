@@ -213,3 +213,14 @@ def test_integer_overflow():
         None, name='c', datatype='int', config=config)
     c = converters.get_converter(field, config=config)
     c.parse('-2208988800', config=config)
+
+
+def test_float_default_precision():
+    config = {'pedantic': True}
+
+    field = tree.Field(
+        None, name='c', datatype='float', arraysize="4",
+        config=config)
+    c = converters.get_converter(field, config=config)
+    assert (c.output([1, 2, 3, 8.999999], [False, False, False, False]) ==
+            u'1 2 3 8.999999')

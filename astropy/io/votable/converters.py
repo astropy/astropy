@@ -568,7 +568,7 @@ class FloatingPoint(Numeric):
             format_parts.append(unicode(width))
 
         if precision is None:
-            format_parts.append(u'g')
+            format_parts.append(u's')
         elif precision.startswith("E"):
             format_parts.append(u'.%dg' % int(precision[1:]))
         elif precision.startswith("F"):
@@ -619,7 +619,11 @@ class FloatingPoint(Numeric):
         if mask:
             return self._null_output
         if np.isfinite(value):
-            return self._output_format % value
+            result = self._output_format % value
+            if (self._output_format[-1] == u's' and
+                result.endswith(u'.0')):
+                result = result[:-2]
+            return result
         elif np.isnan(value):
             return u'NaN'
         elif np.isposinf(value):
@@ -863,8 +867,6 @@ class Complex(FloatingPoint, Array):
         FloatingPoint.__init__(self, field, config, pos)
         Array.__init__(self, field, config, pos)
 
-        self._output_format = self._output_format + " " + self._output_format
-
     def parse(self, value, config={}, pos=None):
         if value.strip() == '':
             return np.nan, True
@@ -886,7 +888,14 @@ class Complex(FloatingPoint, Array):
                 return u'NaN'
             else:
                 value = self.null
-        return self._output_format % (value.real, value.imag)
+        real = self._output_format % value.real
+        imag = self._output_format % value.imag
+        if self._output_format[-1] == u's':
+            if real.endswith(u'.0'):
+                real = real[:-2]
+            if imag.endswith(u'.0'):
+                imag = imag[:-2]
+        return real + u' ' + imag
 
 
 class FloatComplex(Complex):
