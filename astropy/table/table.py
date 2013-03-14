@@ -16,6 +16,7 @@ from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabco
 from ..utils.console import color_print
 from ..config import ConfigurationItem
 from  ..io import registry as io_registry
+from . import np_utils
 
 # Python 2 and 3 source compatibility
 try:
@@ -1709,3 +1710,29 @@ class Table(object):
 
     read = classmethod(io_registry.read)
     write = io_registry.write
+
+    def join(self, right, keys=None, join_type='inner', left_fix='_L', right_fix='_R'):
+        """
+        Perform a join of this (left) table with the right table on specified keys.
+
+        Parameters
+        ----------
+        right : Table object or a value that will initialize a Table object
+            The right side table in the join
+
+        keys : str or list of str
+            Column(s) used to match rows of left and right tables.  Default
+            is to use all columns which are common to both tables.
+
+        join_type : str
+            Join type ('inner' | 'outer' | 'left' | 'right'), default is 'inner'
+
+        left_fix : str
+            String to append to left table column names which occur in right table
+
+        right_fix : str
+            String to append to right table column names which occur in left table
+        """
+        right = Table(right)
+        out = np_utils.join(self._data, right._data, keys, join_type, left_fix, right_fix)
+        return Table(out)
