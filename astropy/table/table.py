@@ -1711,28 +1711,30 @@ class Table(object):
     read = classmethod(io_registry.read)
     write = io_registry.write
 
-    def join(self, right, keys=None, join_type='inner', left_fix='_L', right_fix='_R'):
+    def join(self, right, keys=None, join_type='inner',
+             uniq_col_name='{col_name}_{table_name}',
+             table_names=['1', '2']):
         """
         Perform a join of this (left) table with the right table on specified keys.
 
         Parameters
         ----------
         right : Table object or a value that will initialize a Table object
-            The right side table in the join
-
+            Right side table in the join
         keys : str or list of str
             Column(s) used to match rows of left and right tables.  Default
             is to use all columns which are common to both tables.
-
         join_type : str
             Join type ('inner' | 'outer' | 'left' | 'right'), default is 'inner'
-
-        left_fix : str
-            String to append to left table column names which occur in right table
-
-        right_fix : str
-            String to append to right table column names which occur in left table
+        uniq_col_name : str or None
+            String generate a unique output column name in case of a conflict.  
+            The default is '{col_name}_{table_name}'.
+        table_names : list of str or None
+            Two-element list of table names used when generating unique output 
+            column names.  The default is ['1', '2'].
+            
         """
-        right = Table(right)
-        out = np_utils.join(self._data, right._data, keys, join_type, left_fix, right_fix)
-        return Table(out)
+        if not isinstance(right, Table):
+            right = self.__class__(right)
+        out = np_utils.join(self._data, right._data, keys, join_type, uniq_col_name, table_names)
+        return self.__class__(out)

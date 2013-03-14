@@ -27,15 +27,15 @@ def common_dtype(col0, col1):
     return arr_common.dtype.str
 
 
-def get_merge_descrs(left, right, keys, left_fix, right_fix):
+def get_merge_descrs(left, right, keys, uniq_col_name, table_names):
     """
     Find the dtypes descrs resulting from merging the left and right dtypes,
     assuming the names in `keys` are common in the output.
     """
 
     out_descrs = []
-    for array, other, name_fix in ((left, right, left_fix),
-                                   (right, left, right_fix)):
+    for array, other, table_name in ((left, right, table_names[0]),
+                                   (right, left, table_names[1])):
         for descr in array.dtype.descr:
             name = descr[0]
             shape = array[name].shape[1:]
@@ -49,19 +49,43 @@ def get_merge_descrs(left, right, keys, left_fix, right_fix):
                     raise ValueError('Key columns {0!r} have different shape'.format(name))
                 out_descr[1] = common_dtype(array[name], other[name])
             elif name in other.dtype.names:
-                out_descr[0] = name + name_fix
+                out_descr[0] = uniq_col_name.format(table_name=table_name, col_name=name)
 
             out_descrs.append(tuple(out_descr))
 
     return out_descrs
 
 
-def join(left, right, keys=None, jointype='inner', left_fix='_l', right_fix='_r'):
-    # Check jointype
-    if jointype not in ('inner', 'outer', 'left', 'right'):
-        raise ValueError("The 'jointype' argument should be in 'inner', "
+def join(left, right, keys=None, join_type='inner',
+         uniq_col_name='{col_name}_{table_name}',
+         table_names=['1', '2']):
+    """
+    Perform a join of the left and right numpy structured array on specified keys.
+
+    Parameters
+    ----------
+    left : structured ndarray
+        Left side table in the join
+    right : structured ndarray
+        Right side table in the join
+    keys : str or list of str
+        Column(s) used to match rows of left and right tables.  Default
+        is to use all columns which are common to both tables.
+    join_type : str
+        Join type ('inner' | 'outer' | 'left' | 'right'), default is 'inner'
+    uniq_col_name : str or None
+        String generate a unique output column name in case of a conflict.  
+        The default is '{col_name}_{table_name}'.
+    table_names : list of str or None
+        Two-element list of table names used when generating unique output 
+        column names.  The default is ['1', '2'].
+
+    """
+
+    if join_type not in ('inner', 'outer', 'left', 'right'):
+        raise ValueError("The 'join_type' argument should be in 'inner', "
                          "'outer', 'left' or 'right' (got '{0}' instead)".
-                         format(jointype))
+                         format(join_type))
 
     # If we have a single key, put it in a tuple
     if keys is None:
@@ -85,7 +109,7 @@ def join(left, right, keys=None, jointype='inner', left_fix='_l', right_fix='_r'
     left_names, right_names = left.dtype.names, right.dtype.names
 
     # Joined array dtype as a list of descr (name, type_str, shape) tuples
-    out_descrs = get_merge_descrs(left, right, keys, left_fix, right_fix)
+    out_descrs = get_merge_descrs(left, right, keys, uniq_col_name, table_names)
 
     # Make an array with just the key columns
     aux_dtype = [descr for descr in out_descrs if descr[0] in keys]
@@ -102,9 +126,9 @@ def join(left, right, keys=None, jointype='inner', left_fix='_l', right_fix='_r'
 
     # Main inner loop in Cython to compute the cartesion product
     # indices for the given join type
-    int_jointype = {'inner': 0, 'outer': 1, 'left': 2, 'right': 3}[jointype]
+    int_join_type = {'inner': 0, 'outer': 1, 'left': 2, 'right': 3}[join_type]
     masked, n_out, left_out, left_mask, right_out, right_mask = \
-        cyjoin.join_inner(idxs, idx_sort, len_left, int_jointype)
+        cyjoin.join_inner(idxs, idx_sort, len_left, int_join_type)
 
     if masked:
         out = ma.empty(n_out, dtype=out_descrs)
@@ -113,12 +137,17 @@ def join(left, right, keys=None, jointype='inner', left_fix='_l', right_fix='_r'
 
     out_names = out.dtype.names
 
-    for array, array_out, array_mask, name_fix in [
-            (left, left_out, left_mask, left_fix),
-            (right, right_out, right_mask, right_fix)]:
+    for array, array_out, array_mask, table_name in [
+            (left, left_out, left_mask, table_names[0]),
+            (right, right_out, right_mask, table_names[1])]:
         names = (name for name in array.dtype.names if name not in keys)
         for name in names:
-            out_name = (name if name in out_names else name + name_fix)
+            # TODO: return the mapping of input to output col names when generating
+            # dtype to avoid repeating the logic here.
+            if name not in out_names:
+                out_name = uniq_col_name.format(table_name=table_name, col_name=name)
+            else:
+                out_name = name
             out[out_name] = array[name].take(array_out)
             if masked and name not in keys:
                 out[out_name].mask = array_mask
