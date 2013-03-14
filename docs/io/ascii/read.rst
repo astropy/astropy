@@ -114,11 +114,7 @@ Parameters for ``read()``
   This converts the raw data tables value into the
   output object that gets returned by |read|.  The default is
   :class:`~astropy.io.ascii.core.TableOutputter`, which returns a
-  :class:`~astropy.table.Table` object.  The other option is
-  :class:`~astropy.io.ascii.core.NumpyOutputter` which returns a `numpy` record
-  array.  If ``fill_values`` are specified then
-  :class:`~astropy.io.ascii.core.NumpyOutputter` is used and a masked array
-  is returned.
+  :class:`~astropy.table.Table` object.
 
 **Inputter**: Inputter class
   This is generally not specified.
@@ -181,11 +177,8 @@ given directly with fill_values::
 Here, the empty value ``''`` in column ``no2`` is replaced by ``nan``, but the ``text``
 column remains unaltered. 
 
-When ``fill_values`` is specified then |read| returns a `NumPy masked array
-<http://docs.scipy.org/doc/numpy/reference/maskedarray.html>`_ instead of the
-default `~astropy.table.Table` object.  See the description of the
-:class:`~astropy.io.ascii.core.NumpyOutputter` class for information on disabling
-masked arrays.
+If any table elements match the fill specification then |read| returns a masked
+`~astropy.table.Table` object with the corresponding elements masked out.
 
 Guess table format
 ^^^^^^^^^^^^^^^^^^^^^^
