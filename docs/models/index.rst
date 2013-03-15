@@ -6,6 +6,11 @@ Models  (`astropy.models`)
 
 Introduction
 ============
+`~astropy.models` provides a framework for representing models and 
+performing model evaluation and fitting. This is a work in progress. 
+The current focus is on implementing functionality needed for a generalized
+WCS library. Future plans include extending this to astrophysical models.
+
 The `~astropy.models.models` and `~astropy.models.fitting` modules described
 here are designed to work as peers with each other. The goal is to be able to
 add models without explicit reference to fitting algorithms (though exceptions are
