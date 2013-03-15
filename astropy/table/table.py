@@ -10,7 +10,7 @@ from numpy import ma
 
 from ..units import Unit
 from .. import log
-from ..utils import OrderedDict, isiterable
+from ..utils import OrderedDict, isiterable, meta
 from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
 from ..utils.console import color_print
@@ -1711,6 +1711,32 @@ class Table(object):
     read = classmethod(io_registry.read)
     write = io_registry.write
 
+    def merge_col_meta(self, left, right, col_name_map):
+        # Set column meta
+        attrs = ('units', 'format', 'description')
+        for out_col in self.columns.values():
+            left_name, right_name = col_name_map[out_col.name]
+            left_col = (left[left_name] if left_name else None)
+            right_col = (right[right_name] if right_name else None)
+
+            if left_name and right_name:
+                out_col.meta = meta.merge(left_col.meta, right_col.meta)
+                for attr in attrs:
+                    setattr(out_col, attr, getattr(left_col, attr) or getattr(right_col, attr))
+            elif left_name:
+                out_col.meta = deepcopy(left_col.meta)
+                for attr in attrs:
+                    setattr(out_col, attr, getattr(left_col, attr))
+            elif right_name:
+                out_col.meta = deepcopy(right_col.meta)
+                for attr in attrs:
+                    setattr(out_col, attr, getattr(right_col, attr))
+            else:
+                raise ValueError('Unexpected column names')
+
+    def merge_table_meta(self, left, right):
+        self.meta = meta.merge(left.meta, right.meta)
+
     def join(self, right, keys=None, join_type='inner',
              uniq_col_name='{col_name}_{table_name}',
              table_names=['1', '2']):
@@ -1736,5 +1762,16 @@ class Table(object):
         """
         if not isinstance(right, Table):
             right = self.__class__(right)
-        out = np_utils.join(self._data, right._data, keys, join_type, uniq_col_name, table_names)
-        return self.__class__(out)
+        col_name_map = {}
+        out_data = np_utils.join(self._data, right._data, keys, join_type,
+                                 uniq_col_name, table_names, col_name_map)
+        # Create the output (Table or subclass of Table)
+        out = self.__class__(out_data)
+
+        # Merge the column and table meta data.  In this context 'self' is
+        # just the left input table.  Table subclasses might override these
+        # methods for custom merge behavior.
+        out.merge_col_meta(self, right, col_name_map)
+        out.merge_table_meta(self, right)
+        
+        return out
