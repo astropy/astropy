@@ -170,8 +170,10 @@ class Model(object):
     
     parnames = []
 
-    def __init__(self, parnames, paramdim=1):
+    def __init__(self, parnames, ndim, outdim, paramdim=1):
         self._paramdim = paramdim
+        self._ndim = ndim
+        self._outdim = outdim
         self.has_inverse = False
         self._parnames = parnames
         #_parcheck is a dictionary to register parameter validation funcitons
@@ -180,7 +182,15 @@ class Model(object):
         self._parcheck = {}
         for par in self.parnames:
             setattr(self.__class__, par, _ParameterProperty(par))
-                                                
+    
+    @property 
+    def ndim(self):
+        return self._ndim
+
+    @property
+    def outdim(self):
+        return self._outdim
+    
     @property
     def paramdim(self):
         return self._paramdim
@@ -288,10 +298,10 @@ class ParametricModel(Model):
     """
     __metaclass__ = abc.ABCMeta
     
-    def __init__(self, parnames, paramdim=1, fittable=True,
+    def __init__(self, parnames, ndim, outdim, paramdim=1, fittable=True,
                  fixed={}, tied={}, bounds={}, eqcons=[], ineqcons=[]):
         self.linear = True
-        super(ParametricModel, self).__init__(parnames, paramdim=paramdim)
+        super(ParametricModel, self).__init__(parnames, ndim, outdim, paramdim=paramdim)
         self.fittable = fittable
         self._parameters = parameters.Parameters(self, self.parnames,
                                                  paramdim=paramdim)
@@ -406,11 +416,10 @@ class PModel(ParametricModel):
     default values, names and ordering.
     
     """
-    def __init__(self, degree, ndim=1, paramdim=1, **pars):
+    def __init__(self, degree, ndim=1, outdim=1, paramdim=1, **pars):
         self.deg = degree
-        self.ndim = ndim
-        self._order = self.get_numcoeff()
-        self.parnames = self._generate_coeff_names()
+        self._order = self.get_numcoeff(ndim)
+        self.parnames = self._generate_coeff_names(ndim)
         if not pars:
             self.set_coeff(pardim=paramdim)
         else:
@@ -424,7 +433,8 @@ class PModel(ParametricModel):
                 paramdim = lenpars
             self._validate_pars(**pars)  
             self.set_coeff(pardim=paramdim, **pars)
-        super(PModel, self).__init__(self.parnames, paramdim=paramdim)
+        super(PModel, self).__init__(self.parnames, ndim=ndim, outdim=outdim, 
+                                                        paramdim=paramdim)
     
     def _invlex(self):
         c = []
@@ -435,10 +445,10 @@ class PModel(ParametricModel):
                     c.append((j, i))
         return c[::-1]
     
-    def _generate_coeff_names(self):
-        ncoeff = self.get_numcoeff()
+    def _generate_coeff_names(self, ndim):
+        ncoeff = self._order
         names = []
-        if self.ndim == 1:
+        if ndim == 1:
             for n in range(ncoeff):
                 names.append('c{0}'.format(n))
         else:
@@ -453,7 +463,7 @@ class PModel(ParametricModel):
         return names
         
     def _validate_pars(self, **pars):
-        numcoeff = self.get_numcoeff()
+        numcoeff = self._order
         assert(len(pars) == numcoeff)
     
     def set_coeff(self, pardim=1, **pars):
@@ -475,7 +485,7 @@ class PModel(ParametricModel):
                 self.__setattr__(uname, parameters._Parameter(
                                           name, pars[name], self, pardim))
              
-    def get_numcoeff(self):
+    def get_numcoeff(self, ndim):
         """
         Return the number of coefficients in one parameter set
         """
@@ -483,11 +493,11 @@ class PModel(ParametricModel):
             raise ValueError("Degree of polynomial must be 1< deg < 16")
         # deg+1 is used to account for the difference between iraf using 
         # degree and numpy using exact degree
-        if self.ndim != 1:
-            nmixed = comb(self.deg, self.ndim)
+        if ndim != 1:
+            nmixed = comb(self.deg, ndim)
         else: 
             nmixed = 0
-        numc = self.deg*self.ndim + nmixed + 1
+        numc = self.deg * ndim + nmixed + 1
         return numc
 
     def set_domain(self, x, y=None):
@@ -545,8 +555,6 @@ class IModel(ParametricModel):
         **pars : dict
             {keyword: value} pairs, representing {parameter_name: value}
         """
-        self.ndim = 2
-        self.outdim = 1
         self.xdeg = xdeg
         self.ydeg = ydeg
         self._order = self.get_numcoeff()
@@ -570,7 +578,8 @@ class IModel(ParametricModel):
                 paramdim = lenpars
             self._validate_pars(**pars)  
             self.set_coeff(pardim=paramdim, **pars)        
-        super(IModel, self).__init__(self.parnames, paramdim=paramdim)
+        super(IModel, self).__init__(self.parnames, ndim=2, outdim=1,
+                                                        paramdim=paramdim)
     
     def _generate_coeff_names(self):
         names = []
@@ -705,10 +714,9 @@ class ChebyshevModel(PModel):
         """
         self.domain = domain
         self.window = window
-        super(ChebyshevModel, self).__init__(degree, ndim=1,
+        super(ChebyshevModel, self).__init__(degree, ndim=1, outdim=1,
                                              paramdim=paramdim, **pars)
-        self.outdim = 1
-            
+                                            
     def clenshaw(self, x, coeff):
         if isinstance(x, tuple) or isinstance(x, list) :
             x = np.asarray(x)
@@ -785,9 +793,8 @@ class LegendreModel(PModel):
         """
         self.domain = domain
         self.window = window
-        super(LegendreModel, self).__init__(degree, ndim=1,
+        super(LegendreModel, self).__init__(degree, ndim=1, outdim=1,
                                             paramdim=paramdim, **pars)
-        self.outdim = 1
            
     def clenshaw(self, x, coeff):
         if isinstance(x, tuple) or isinstance(x, list) :
@@ -866,9 +873,8 @@ class Poly1DModel(PModel):
         """
         self.domain = domain
         self.window = window
-        super(Poly1DModel, self).__init__(degree, ndim=1,
+        super(Poly1DModel, self).__init__(degree, ndim=1, outdim=1,
                                           paramdim=paramdim, **pars)
-        self.outdim = 1
             
     def deriv(self, x):
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
@@ -938,10 +944,8 @@ class Poly2DModel(PModel):
         model : Poly2DModel
             2D polynomial model
         """
-        self.ndim = 2
-        self.outdim = 1
-        super(Poly2DModel, self).__init__(degree, ndim=self.ndim,
-                                          paramdim=paramdim, **pars)
+        super(Poly2DModel, self).__init__(degree, ndim=2, outdim=1,
+                                                                paramdim=paramdim, **pars)
         self.xdomain = xdomain
         self.ydomain = ydomain
         self.xwindow = xwindow
@@ -1310,17 +1314,14 @@ class Gauss1DModel(ParametricModel):
                 xsigmaval = [0.42466 * n for n in fwhm]
         self._xsigma = parameters._Parameter('xsigma', xsigmaval, self, 1)
         self._xcen = parameters._Parameter('xcen', xcen, self, 1)
-        self.ndim = 1
-        self.outdim = 1
-        
         try:
             paramdim = len(self._amplitude)
             assert (len(amplitude) == len(xsigmaval) == len(xcen) ), \
              "Input parameters do not have the same dimension"
         except TypeError:
             paramdim = 1
-        super(Gauss1DModel, self).__init__(self.parnames, paramdim=paramdim,
-                                                                    **cons)
+        super(Gauss1DModel, self).__init__(self.parnames, ndim=1, outdim=1,
+                                                                    paramdim=paramdim, **cons)
         self.linear = False
         if fjac:
             self.deriv = fjac
@@ -1413,9 +1414,6 @@ class Gauss2DModel(ParametricModel):
         self._xcen = parameters._Parameter('xcen', xcen, self, 1)
         self._ycen = parameters._Parameter('ycen', ycen, self, 1)
         self._theta = parameters._Parameter('theta', theta, self, 1)
-        
-        self.ndim = 2
-        self.outdim = 1
         try:
             paramdim = len(self._amplitude)
             assert (len(self._amplitude) == len(self._xsigma) == \
@@ -1424,7 +1422,8 @@ class Gauss2DModel(ParametricModel):
                             "Input parameters do not have the same dimension"
         except TypeError:
             paramdim = 1
-        super(Gauss2DModel, self).__init__(self.parnames, paramdim=paramdim)
+        super(Gauss2DModel, self).__init__(self.parnames, ndim=2, outdim=1,
+                                                                    paramdim=paramdim)
         self.linear = False
         if fjac:
             self.deriv = fjac
@@ -1473,15 +1472,13 @@ class ShiftModel(Model):
         model : ShiftModel
             A model representing offset
         """
-        self.ndim = 1
-        self.outdim = 1
-        
         if not operator.isSequenceType(offsets):
             paramdim = 1
         else:
             paramdim = len(offsets)
         self._offsets = parameters._Parameter('offsets', offsets, self, paramdim)
-        super(ShiftModel, self).__init__(self.parnames, paramdim=paramdim)
+        super(ShiftModel, self).__init__(self.parnames, ndim=1, outdim=1,
+                                                            paramdim=paramdim)
 
     def __call__(self, x):
         """
@@ -1510,15 +1507,13 @@ class ScaleModel(Model):
             Model representing scaling 
             
         """
-        self.ndim = 1
-        self.outdim = 1
-        
         if not operator.isSequenceType(factors):
             paramdim = 1
         else:
             paramdim = len(factors)
         self._factors = parameters._Parameter('factors', factors, self, paramdim)
-        super(ScaleModel, self).__init__(self.parnames, paramdim=paramdim)
+        super(ScaleModel, self).__init__(self.parnames, ndim=1, outdim=1,
+                                                            paramdim=paramdim)
     
     def __call__(self, x):
         """
@@ -1538,8 +1533,6 @@ class _SIP1D(Model):
     """
     def __init__(self, order, coeffname='a', paramdim=1, **pars):
         self.order = order
-        self.ndim = 2
-        self.outdim = 1
         self.coeffname = coeffname.lower()
         self.parnames = self._generate_coeff_names(coeffname)
         
@@ -1554,20 +1547,19 @@ class _SIP1D(Model):
             if paramdim != lenpars:
                 print("Creating a model with {0} parameter sets\n".format(lenpars))
                 paramdim = lenpars
-            self._validate_pars(**pars)  
+            self._validate_pars(ndim=2, **pars)  
             self.set_coeff(pardim=paramdim, **pars)
         
-        super(_SIP1D, self).__init__(self.parnames, paramdim=paramdim)
+        super(_SIP1D, self).__init__(self.parnames, ndim=2, outdim=1,
+                                                        paramdim=paramdim)
        
     def __repr__(self):
         fmt = """
         Model: {0}
-        Dim:   {1}
-        Order: {2}
-        Parameter sets: {3}
+        Order: {1}
+        Parameter sets: {2}
         """.format(
               self.__class__.__name__,
-              self.ndim,
               self.order,
               self.paramdim
                 )
@@ -1576,14 +1568,12 @@ class _SIP1D(Model):
     def __str__(self):
         fmt = """
         Model: {0}
-        Dim:   {1}
-        Order: {2}
-        Parameter sets: {3}
+        Order: {1}
+        Parameter sets: {2}
         Parameters: 
-                   {4}
+                   {3}
         """.format(
               self.__class__.__name__,
-              self.ndim,
               self.order,
               self.paramdim,
               "\n                   ".join(i+':  ' + str(getattr(self,i)) for
@@ -1591,14 +1581,14 @@ class _SIP1D(Model):
                 )
         return fmt
     
-    def get_numcoeff(self):
+    def get_numcoeff(self, ndim):
         """
         Return the number of coefficients in one parset
         """
         if self.order < 2  or self.order > 9:
             raise ValueError("Degree of polynomial must be 2< deg < 9")
-        nmixed = comb(self.order-1, self.ndim)
-        numc = self.order * self.ndim + nmixed + 1
+        nmixed = comb(self.order-1, ndim)
+        numc = self.order * ndim + nmixed + 1
         return numc
     
     def _generate_coeff_names(self, coeffname):
@@ -1630,8 +1620,8 @@ class _SIP1D(Model):
                                  parameters._Parameter(name, pars[name],
                                                        self, pardim))
                 
-    def _validate_pars(self, **pars):
-        numcoeff = self.get_numcoeff()
+    def _validate_pars(self, ndim, **pars):
+        numcoeff = self.get_numcoeff(ndim)
         assert(len(pars) == numcoeff)
  
     def _coef_matrix(self, coeffname):

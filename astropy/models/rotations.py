@@ -42,22 +42,12 @@ class RotateNative2Celestial(Model):
             Euler angles in deg
                         
         """
-        self._ndim = 2
-        self._outdim = 2
         self._phi = _Parameter('phi', np.deg2rad(phi), self, 1)
         self._theta = _Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = _Parameter('psi', np.deg2rad(psi), self, 1)
-        super(RotateNative2Celestial, self).__init__(parnames=[])
+        super(RotateNative2Celestial, self).__init__(parnames=[], ndim=2, outdim=2)
         self.has_inverse = True
-
-    @property
-    def ndim(self):
-        return self._ndim
-
-    @property
-    def outdim(self,):
-        return self._outdim
-    
+            
     @property
     def phi(self):
         return np.rad2deg(self._phi)
@@ -115,22 +105,12 @@ class RotateCelestial2Native(Model):
             Euler angles in deg
              
         """
-        self._ndim = 2
-        self._outdim = 2
         self._phi = _Parameter('phi', np.deg2rad(phi), self, 1)
         self._theta = _Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = _Parameter('psi', np.deg2rad(psi), self, 1)
-        super(RotateCelestial2Native, self).__init__(parnames=[])
+        super(RotateCelestial2Native, self).__init__(parnames=[], ndim=2, outdim=2)
         
         self.has_inverse = True
-
-    @property
-    def ndim(self):
-        return self._ndim
-
-    @property
-    def outdim(self,):
-        return self._outdim
     
     @property
     def phi(self):
@@ -200,12 +180,13 @@ class MatrixRotation2D(Model):
             self._validate_rotmat(rotmat)
             self._rotmat = _Parameter('rotmat', np.asarray(rotmat) + 0.,
                                       self, 1)
-            super(MatrixRotation2D, self).__init__(parnames=['rotmat'],
-                                                   paramdim=1)
+            super(MatrixRotation2D, self).__init__(parnames=['rotmat'], ndim=1,
+                                                                                outdim=1, paramdim=1)
         else:
             self._validate_angle(angle)
             self._angle = _Parameter('angle', np.deg2rad(angle), self, 1)
-            super(MatrixRotation2D, self).__init__(parnames=[], paramdim=1)
+            super(MatrixRotation2D, self).__init__(parnames=[], ndim=1,
+                                                                            outdim=1,paramdim=1)
             self.parnames = ['angle']
             self._rotmat = _Parameter('rotmat', self._compute_matrix(angle),
                                       self, 1)
@@ -215,17 +196,8 @@ class MatrixRotation2D(Model):
                                      'angle': self._validate_angle}
     
     @property
-    def ndim(self):
-        return self._ndim
-
-    @property
-    def outdim(self,):
-        return self._outdim
-    
-    @property
     def angle(self):
         return _Parameter('angle', np.rad2deg(self._angle), self, paramdim=1)
-        #return self._angle
     
     @angle.setter
     def angle(self, val):

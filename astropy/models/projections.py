@@ -39,9 +39,7 @@ class Projection(Model):
         parnames : list of strings
             parameter names
         """
-        super(Projection, self).__init__(parnames)
-        self._ndim = 2
-        self._outdim = 2
+        super(Projection, self).__init__(parnames, ndim=2, outdim=2)
         self._pdim = 1
         # the radius of the projection sphere, by which x,y are scaled
         # not sure if it's necessary to make this a user parameter
