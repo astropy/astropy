@@ -432,3 +432,10 @@ def test_endian_independence():
                 # a unicode dtype is passed.
                 x = np.array([1,2,3], dtype=(endian + ntype + byte).encode('ascii'))
                 u.m.to(u.cm, x)
+
+
+def test_radian_base():
+    """
+    Issue #863
+    """
+    assert (1 * u.degree).si.unit == u.rad
