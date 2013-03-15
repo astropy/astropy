@@ -460,12 +460,34 @@ class FITS_rec(np.recarray):
             if _number and (_scale or _zero):
 
                 # only do the scaling the first time and store it in _convert
-                self._convert[indx] = np.array(dummy, dtype=np.float64)
+                #self._convert[indx] = np.array(dummy, dtype=np.float64)
+                if bzero == 2**15 and 'I' in self._coldefs.formats[indx]:
+                    self._convert[indx] = np.array(dummy, dtype=np.uint16)
+                elif bzero == 2**31 and 'J' in self._coldefs.formats[indx]:
+                    self._convert[indx] = np.array(dummy, dtype=np.uint32)
+                elif bzero == 2**63 and 'K' in self._coldefs.formats[indx]:
+                    self._convert[indx] = np.array(dummy, dtype=np.uint64)
+                    bzero64 = np.uint64(2**63)
+                else:
+                    self._convert[indx] = np.array(dummy, dtype=np.float64)
                 if _scale:
                     np.multiply(self._convert[indx], bscale,
                                 self._convert[indx])
                 if _zero:
-                    self._convert[indx] += bzero
+                    #self._convert[indx] += bzero
+                    if 'K' in self._coldefs.formats[indx]:
+                        #
+                        # There is a chance of overflow, so be careful
+                        #
+                        test_overflow = self._convert[indx].copy()
+                        try:
+                            test_overflow += bzero64
+                            self._convert[indx] = test_overflow
+                        except OverflowError:
+                            print("Overflow Detected!")
+                            self._convert[indx] = dummy
+                    else:
+                        self._convert[indx] += bzero
             elif _bool and dummy.dtype != bool:
                 self._convert[indx] = np.equal(dummy, ord('T'))
             elif _str:
