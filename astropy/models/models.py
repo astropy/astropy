@@ -112,44 +112,46 @@ def _convert_output(x, fmt):
     else:
         raise ValueError("Unrecognized output conversion format")
 
-def getpar(self, name):
+class _ParameterProperty(object):
     """
-    Create a getter property for a class attribute
-
+    Create a property for this parameter.
     """
-    par = getattr(self, '_'+name)
-    return par
+    def __init__(self, name):
+        self.aname = '_'+name
+        self.name = name
+        
+    def __get__(self, obj, objtype):
+        par = getattr(obj, self.aname)
+        return par
     
-def setpar(self,  name, val):
-    """
-    Create a setter property for a class attribute
-    
-    """ 
-    if name in self._parcheck:
-        self._parcheck[name](val)
-    if isinstance(self, ParametricModel):
-        if not self._parameters._changed:
-            par = parameters._Parameter(name, val, self, self.paramdim)
-            if not getattr(self, name).parshape == par.parshape:
+    def __set__(self, obj, val):
+        if self.name in obj._parcheck:
+            obj._parcheck[self.name](val)
+        if isinstance(obj, ParametricModel):
+            if not obj._parameters._changed:
+                par = parameters._Parameter(self.name, val, obj, obj.paramdim)
+                oldpar = getattr(obj, self.name)
+                if oldpar is not None and oldpar.parshape != par.parshape:
+                    raise InputParameterError(
+                        "Input parameter {0} does not "
+                        "have the required shape".format(self.name))
+                else:
+                    setattr(obj, self.aname, par)
+                obj._parameters = parameters.Parameters(obj, 
+                                                        obj.parnames,
+                                                         paramdim=obj.paramdim)
+            else:
+                setattr(obj, self.aname, val)
+        else:
+            par = parameters._Parameter(self.name, val, obj, obj.paramdim)
+            oldpar = getattr(obj, self.name)
+            if oldpar is not None and oldpar.parshape != par.parshape:
                 raise InputParameterError(
                     "Input parameter {0} does not "
-                    "have the required shape".format(name))
+                    "have the required shape".format(self.name))
             else:
-                setattr(self, '_'+name, par)
-            self._parameters = parameters.Parameters(self, 
-                                                     self.parnames,
-                                                     paramdim=self.paramdim)
-        else:
-            setattr(self, '_'+name, val)
-    else:
-        par = parameters._Parameter(name, val, self, self.paramdim)
-        if not getattr(self, name).parshape == par.parshape:
-            raise InputParameterError(
-                "Input parameter {0} does not "
-                "have the required shape".format(name))
-        else:
-            setattr(self, '_'+name, par)
-            
+                setattr(obj, self.aname, par)
+                
 class Model(object):
     """
     Base class for all models
@@ -177,10 +179,7 @@ class Model(object):
         #see projections.AZP for example
         self._parcheck = {}
         for par in self.parnames:
-            setattr(self.__class__, par, property(lambda self, par=par: 
-                                                  getpar(self, par),
-                                                  lambda self, value, par=par: 
-                                                  setpar(self, par, value)))
+            setattr(self.__class__, par, _ParameterProperty(par))
                                                 
     @property
     def paramdim(self):
