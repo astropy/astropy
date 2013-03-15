@@ -143,16 +143,16 @@ def join(left, right, keys=None, join_type='inner',
         col_name_map.update(_col_name_map)
 
     # Make an array with just the key columns
-    aux_dtype = [descr for descr in out_descrs if descr[0] in keys]
-    aux = np.empty(len_left + len_right, dtype=aux_dtype)
+    out_keys_dtype = [descr for descr in out_descrs if descr[0] in keys]
+    out_keys = np.empty(len_left + len_right, dtype=out_keys_dtype)
     for key in keys:
-        aux[key][:len_left] = left[key]
-        aux[key][len_left:] = right[key]
-    idx_sort = aux.argsort(order=keys)
-    aux = aux[idx_sort]
+        out_keys[key][:len_left] = left[key]
+        out_keys[key][len_left:] = right[key]
+    idx_sort = out_keys.argsort(order=keys)
+    out_keys = out_keys[idx_sort]
 
     # Get all keys
-    diffs = np.concatenate(([True], aux[1:] != aux[:-1], [True]))
+    diffs = np.concatenate(([True], out_keys[1:] != out_keys[:-1], [True]))
     idxs = np.flatnonzero(diffs)
 
     # Main inner loop in Cython to compute the cartesion product
@@ -160,6 +160,10 @@ def join(left, right, keys=None, join_type='inner',
     int_join_type = {'inner': 0, 'outer': 1, 'left': 2, 'right': 3}[join_type]
     masked, n_out, left_out, left_mask, right_out, right_mask = \
         cyjoin.join_inner(idxs, idx_sort, len_left, int_join_type)
+
+    # If either of the inputs are masked then the output is masked
+    if any(isinstance(array, ma.MaskedArray) for array in (left, right)):
+        masked = True
 
     if masked:
         out = ma.empty(n_out, dtype=out_descrs)
@@ -181,6 +185,8 @@ def join(left, right, keys=None, join_type='inner',
             raise ValueError('Unexpected column names (maybe one is ""?)')
         out[out_name] = array[name].take(array_out)
         if masked:
+            if isinstance(array, ma.MaskedArray):
+                array_mask = array_mask | array[name].mask.take(array_out)
             out[out_name].mask = array_mask
 
     return out
