@@ -110,6 +110,11 @@ def join(left, right, keys=None, join_type='inner',
         mapping of output to input column names.
     """
 
+    # This function improves on np.lib.recfunctions.join_by():
+    #   key values do not have to be unique (ok with cartesion join)
+    #   key columns do not have to be in the same order
+    #   key columns can have non-trivial shape
+
     if join_type not in ('inner', 'outer', 'left', 'right'):
         raise ValueError("The 'join_type' argument should be in 'inner', "
                          "'outer', 'left' or 'right' (got '{0}' instead)".
@@ -170,8 +175,18 @@ def join(left, right, keys=None, join_type='inner',
     else:
         out = np.empty(n_out, dtype=out_descrs)
 
+    # If either input array was zero length then stub a new version
+    # with one row.  In this case the corresponding left_out or right_out
+    # will contain all zeros with mask set to true.  This allows the
+    # take(*_out) method calls to work as expected.
+    if len(left) == 0:
+        left = left.__class__(1, dtype=left.dtype)
+    if len(right) == 0:
+        right = right.__class__(1, dtype=right.dtype)
+
     for out_name, left_right_names in _col_name_map.items():
         left_name, right_name = left_right_names
+
         if left_name and right_name:  # this is a key which comes from left and right
             out[out_name] = np.where(right_mask,
                                      left[left_name].take(left_out),
