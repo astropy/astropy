@@ -482,9 +482,9 @@ class FITS_rec(np.recarray):
                         test_overflow = self._convert[indx].copy()
                         try:
                             test_overflow += bzero64
-                            self._convert[indx] = test_overflow
+                            #test_overflow += bzero
                         except OverflowError:
-                            print("Overflow Detected!")
+                            warnings.warn("Overflow detected while applying TZERO{0:d}.  Returning unscaled data.".format(indx))
                             self._convert[indx] = dummy
                     else:
                         self._convert[indx] += bzero
