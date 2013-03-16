@@ -9,12 +9,7 @@ import collections
 
 import numpy as np
 import numpy.ma as ma
-import cyjoin
-
-
-# np.lib.recfunctions.join_by() limitations:
-#   key columns must be in the same order
-#   key columns cannot have non-trivial shape
+import _np_utils
 
 def common_dtype(col0, col1):
     """
@@ -164,7 +159,7 @@ def join(left, right, keys=None, join_type='inner',
     # indices for the given join type
     int_join_type = {'inner': 0, 'outer': 1, 'left': 2, 'right': 3}[join_type]
     masked, n_out, left_out, left_mask, right_out, right_mask = \
-        cyjoin.join_inner(idxs, idx_sort, len_left, int_join_type)
+        _np_utils.join_inner(idxs, idx_sort, len_left, int_join_type)
 
     # If either of the inputs are masked then the output is masked
     if any(isinstance(array, ma.MaskedArray) for array in (left, right)):

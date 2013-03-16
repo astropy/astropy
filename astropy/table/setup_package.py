@@ -6,12 +6,12 @@ ROOT = os.path.relpath(os.path.dirname(__file__))
 
 
 def get_extensions():
-    sources = [os.path.join(ROOT, "cyjoin.pyx")]
+    sources = [os.path.join(ROOT, "_np_utils.pyx")]
     include_dirs = ['numpy']
     libraries = []
 
     table_ext = Extension(
-        name="astropy.table.cyjoin",
+        name="astropy.table._np_utils",
         sources=sources,
         include_dirs=include_dirs,
         libraries=libraries,)
