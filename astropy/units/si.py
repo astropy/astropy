@@ -49,12 +49,10 @@ def_unit(['deg', 'degree'], _numpy.pi / 180.0 * rad, register=True,
 def_unit(['arcmin', 'arcminute'], 1.0 / 60.0 * deg, register=True,
          doc="arc minute: angular measurement",
          format={'latex': r'\prime', 'unicode': '′'})
-def_unit(['arcsec', 'arcsecond'], 1.0 / 3600.0 * deg, register=True,
+def_unit(['as', 'arcsec', 'arcsecond'], 1.0 / 3600.0 * deg, register=True,
+         prefixes=True, exclude_prefixes=['d'],
          doc="arc second: angular measurement",
          format={'latex': r'\second', 'unicode': '″'})
-def_unit(['mas'], 1.0 / 3600000 * deg, register=True,
-         doc="milliarc second: angular measurement",
-         format={'latex': r'\third', 'unicode': '‴'})
 
 def_unit(['sr', 'steradian'], rad ** 2, register=True, prefixes=True,
          doc="steradian: unit of solid angle in SI")
@@ -64,6 +62,7 @@ def_unit(['sr', 'steradian'], rad ** 2, register=True, prefixes=True,
 # TIME
 
 def_unit(['s', 'second'], register=True, prefixes=True,
+         exclude_prefixes=['a'],
          doc="second: base unit of time in SI.")
 
 def_unit(['min', 'minute'], 60 * s, register=True)
