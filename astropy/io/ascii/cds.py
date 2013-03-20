@@ -279,12 +279,9 @@ class Cds(core.BaseReader):
 
     Caveats:
 
-    * Format, Units, and Explanations are available in the ``Reader.cols`` attribute.
-    * All of the other metadata defined by this format is ignored.
-
-    Code contribution to enhance the parsing to include metadata in a Reader.meta
-    attribute would be welcome.
-
+    * The Units and Explanations are available in the column ``units`` and
+      ``description`` attributes, respectively.
+    * The other metadata defined by this format is not available in the output table.
     """
     def __init__(self, readme=None):
         core.BaseReader.__init__(self)
