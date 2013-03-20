@@ -879,6 +879,8 @@ class TimeAstropyTime(TimeUnique):
             raise TypeError('Input values for {0} class must be datetime objects'
                             .format(cls.name))
 
+        if scale is None:
+            scale = val1[0].scale
         jd1 = np.concatenate([getattr(val, scale)._time.jd1 for val in val1])
         jd2 = np.concatenate([getattr(val, scale)._time.jd2 for val in val1])
         OutTimeFormat = val1[0]._time.__class__
