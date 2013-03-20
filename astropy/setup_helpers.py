@@ -492,8 +492,16 @@ def generate_build_ext_command(release):
                 f.write('# Generated file; do not modify\n')
                 f.write('cython_version = {0!r}\n'.format(self.uses_cython))
 
-            self.copy_file(cython_py, os.path.join(self.build_lib, cython_py),
-                           preserve_mode=False)
+
+            new_cython_py = os.path.join(self.build_lib, cython_py)
+            new_cython_py_dir = os.path.split(new_cython_py)[0]
+            # note: new_cython_py_dir != self.build_lib because cython_py may
+            # have a directory component
+
+            #make the directory if it is not already present
+            if not os.path.isdir(new_cython_py_dir):
+                os.makedirs(new_cython_py_dir)
+            self.copy_file(cython_py, new_cython_py, preserve_mode=False)
 
         if orig_run is not None:
             # This should always be the case for a correctly implemented
