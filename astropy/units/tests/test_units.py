@@ -439,3 +439,10 @@ def test_radian_base():
     Issue #863
     """
     assert (1 * u.degree).si.unit == u.rad
+
+
+def test_no_as():
+    # We don't define 'as', since it is a keyword, but we
+    # do want to define the long form (`attosecond`).
+    assert not hasattr(u, 'as')
+    assert hasattr(u, 'attosecond')
