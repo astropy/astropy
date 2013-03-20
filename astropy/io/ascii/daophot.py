@@ -70,7 +70,7 @@ class Daophot(core.BaseReader):
       MERGERAD INDEF scaleunit %-23.7g
       IRAF NOAO/IRAFV2.10EXPORT version %-23s
       USER  name %-23s
-      < etc >
+      ...
 
     The units and formats are available in the output table columns::
 
@@ -81,7 +81,7 @@ class Daophot(core.BaseReader):
       ID None %-9d
       XCENTER pixels %-10.3f
       YCENTER pixels %-10.3f
-      < etc >
+      ...
 
     Any column values of INDEF are interpreted as a missing value and will be
     masked out in the resultant table.
