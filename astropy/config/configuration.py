@@ -300,20 +300,20 @@ class ConfigurationItem(object):
         baseobj[self.name] = newobj[self.name]
 
     def __repr__(self):
-        out = '<{0}: name={1} value={2} at 0x{3:x}>'.format(
-            self.__class__.__name__, repr(self.name), repr(self.value), id(self))
+        out = '<{0}: name={1!r} value={2!r} at 0x{3:x}>'.format(
+            self.__class__.__name__, self.name, self(), id(self))
         return out
 
     def __str__(self):
         out = '\n'.join(('{0}: {1}',
-                         '  cfgtype={2}',
-                         '  defaultvalue={3}',
-                         '  description={4}',
+                         '  cfgtype={2!r}',
+                         '  defaultvalue={3!r}',
+                         '  description={4!r}',
                          '  module={5}',
-                         '  value={6}'))
-        out = out.format(self.__class__.__name__, repr(self.name), repr(self.cfgtype),
-                         repr(self.defaultvalue), repr(self.description), self.module,
-                         repr(self.value))
+                         '  value={6!r}'))
+        out = out.format(self.__class__.__name__, self.name, self.cfgtype,
+                         self.defaultvalue, self.description, self.module,
+                         self())
         return out
 
     def __call__(self):

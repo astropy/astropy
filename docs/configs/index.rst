@@ -52,7 +52,31 @@ want to see your changes immediately in your current Astropy session, just do::
 Using `config`
 ==============
 
-Changing Values at Run-time
+Accessing Values
+----------------
+
+The value of a configuration object can be accessed by calling the
+object as a function.  For instance to get the default URL for
+astropy remote data do::
+
+    >>> from astropy.utils.data import DATAURL
+    >>> DATAURL()
+    'http://data.astropy.org/'
+
+To interactively see more information about a configuration object there are
+two options::
+
+    >>> DATAURL
+    <ConfigurationItem: name='dataurl' value='http://data.astropy.org/' at 0x1032c4290>
+    >>> print DATAURL
+    ConfigurationItem: dataurl
+      cfgtype='string'
+      defaultvalue='http://data.astropy.org/'
+      description='URL for astropy remote data site.'
+      module=astropy.utils.data
+      value='http://data.astropy.org/'
+
+ Changing Values at Run-time
 ---------------------------
 
 The configuration system is most conveniently used by modifying
