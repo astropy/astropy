@@ -31,6 +31,9 @@ ipac.py:
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import re
+from ...utils import OrderedDict
+
 from . import core
 from . import fixedwidth
 
@@ -51,6 +54,22 @@ class Ipac(core.BaseReader):
       |-----ra---|----dec---|---sao---|------v---|----sptype--------|
         2.09708   29.09056     73765    2.06000   B8IVpMnHg
 
+    The comments and keywords defined in the header are available via the output
+    table ``meta`` attribute::
+
+      >>> from astropy.io import ascii
+      >>> filename = os.path.join(ascii.__path__[0], 'tests/t/ipac.dat')
+      >>> data = ascii.read(filename)
+      >>> print data.meta['comments']
+      ['This is an example of a valid comment']
+      >>> for name, keyword in data.meta['keywords'].items():
+      ...     print name, keyword['value']
+      ...     
+      intval 1
+      floatval 2300.0
+      date Wed Sp 20 09:48:36 1995
+      key_continue IPAC keywords can continue across lines
+
     Parameters
     ----------
     definition : str, optional
@@ -60,18 +79,6 @@ class Ipac(core.BaseReader):
           * 'ignore' - Any character beneath a pipe symbol is ignored (default)
           * 'right' - Character is associated with the column to the right
           * 'left' - Character is associated with the column to the left
-
-    Notes
-    -----
-    Caveats:
-
-    * Data type, Units, and Null value specifications are ignored.
-    * Keywords are ignored.
-    * The IPAC spec requires the first two header lines but this reader only
-      requires the initial column name definition line
-
-    Overcoming these limitations would not be difficult, code contributions
-    welcome from motivated users.
 
     """
     def __init__(self, definition='ignore'):
@@ -86,7 +93,7 @@ class Ipac(core.BaseReader):
 
 class IpacHeader(core.BaseHeader):
     """IPAC table header"""
-    comment = r'\\'
+    comment = '\\'
     splitter_class = core.BaseSplitter
     col_type_map = {'int': core.IntType,
                     'integer': core.IntType,
@@ -121,6 +128,67 @@ class IpacHeader(core.BaseHeader):
             if line.startswith(delim) and line.endswith(delim):
                 yield line.strip(delim)
 
+    def update_meta(self, lines, meta):
+        """
+        Extract table-level comments and keywords for IPAC table.  See:
+        http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html#kw
+        """
+        def process_keyword_value(val):
+            """
+            Take a string value and convert to float, int or str, and strip quotes
+            as needed.
+            """
+            val = val.strip()
+            try:
+                val = int(val)
+            except:
+                try:
+                    val = float(val)
+                except:
+                    # Strip leading/trailing quote.  The spec says that a matched pair
+                    # of quotes is required, but this code will allow a non-quoted value.
+                    for quote in ('"', "'"):
+                        if val.startswith(quote) and val.endswith(quote):
+                            val = val[1:-1]
+                            break
+            return val
+
+        table_meta = meta['table']
+        table_meta['comments'] = []
+        table_meta['keywords'] = OrderedDict()
+        keywords = table_meta['keywords']
+
+        re_keyword = re.compile(r'\\'
+                                r'(?P<name> \w+)'
+                                r'\s* = (?P<value> .+) $',
+                                re.VERBOSE)
+        for line in lines:
+            # Keywords and comments start with "\".  Once the first non-slash
+            # line is seen then bail out.
+            if not line.startswith('\\'):
+                break
+
+            m = re_keyword.match(line)
+            if m:
+                name = m.group('name')
+                val = process_keyword_value(m.group('value'))
+
+                # IPAC allows for continuation keywords, e.g.
+                # \SQL     = 'WHERE '
+                # \SQL     = 'SELECT (25 column names follow in next row.)'
+                if name in keywords and isinstance(val, basestring):
+                    prev_val = keywords[name]['value']
+                    if isinstance(prev_val, basestring):
+                        val = prev_val + val
+
+                table_meta['keywords'][name] = {'value': val}
+            else:
+                # Comment is required to start with "\ "
+                if line.startswith('\\ '):
+                    val = line[2:].strip()
+                    if val:
+                        table_meta['comments'].append(val)
+
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
 
@@ -135,7 +203,8 @@ class IpacHeader(core.BaseHeader):
         header_lines = self.process_lines(lines)  # generator returning valid header lines
         header_vals = [vals for vals in self.splitter(header_lines)]
         if len(header_vals) == 0:
-            raise ValueError('At least one header line beginning and ending with delimiter required')
+            raise ValueError('At least one header line beginning and ending with '
+                             'delimiter required')
         elif len(header_vals) > 4:
             raise ValueError('More than four header lines were found')
 
