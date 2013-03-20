@@ -15,7 +15,7 @@ from __future__ import division, print_function
 import abc
 import numpy as np
 from numpy import linalg
-
+import warnings
 from .util import pmapdomain
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter', 
@@ -408,8 +408,8 @@ class NonLinearLSQFitter(Fitter):
                         
         super(NonLinearLSQFitter, self).__init__(model)
         if self.model.linear:
-            raise ModelLinearityError('Model is linear in parameters, '
-                            'consider using linear fitting methods.')
+            warnings.warning('Model is linear in parameters, '
+                                'consider using linear fitting methods.')
             
     def errorfunc(self, fps,  *args):
         self.fitpars = fps
@@ -526,7 +526,7 @@ class SLSQPFitter(Fitter):
         """
         super(SLSQPFitter, self).__init__(model)
         if self.model.linear:
-            raise ModelLinearityError('Model is linear in parameters, '
+            warnings.warning('Model is linear in parameters, '
                          'consider using linear fitting methods.')
         
         self.fit_info = {'final_func_val': None,
