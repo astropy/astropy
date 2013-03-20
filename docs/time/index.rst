@@ -265,8 +265,16 @@ In most situations one also needs to specify the `time scale`_ via the
 ``scale`` argument.  The |Time| class will never guess the `time scale`_,
 so a simple example would be::
 
-  >>> t = Time('2010-01-01 00:00:00', scale='utc')
-  >>> t2 = Time(50100.0, format='mjd', scale='tt')
+  >>> t1 = Time(50100.0, scale='tt', format='mjd')
+  >>> t2 = Time('2010-01-01 00:00:00', scale='utc')
+
+It is possible to create a new |Time| object from one or more existing time
+objects.  In this case the format and scale will be inferred from the
+first object unless explicitly specified.
+::
+
+  >>> Time([t1, t2])
+  <Time object: scale='tt' format='mjd' vals=[ 50100.  55197.00076602]>
 
 val2
 ^^^^^^^^^^^

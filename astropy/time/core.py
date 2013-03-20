@@ -152,7 +152,8 @@ class Time(object):
                                   .format(repr(scale), sorted(self.SCALES)))
 
         # Parse / convert input values into internal jd1, jd2 based on format
-        self._format, self._time = self._get_time_fmt(val, val2, format, scale)
+        self._time = self._get_time_fmt(val, val2, format, scale)
+        self._format = self._time.name
 
     def _get_time_fmt(self, val, val2, format, scale):
         """
@@ -181,8 +182,8 @@ class Time(object):
 
         for format, FormatClass in formats:
             try:
-                return format, FormatClass(val, val2, scale, self.precision,
-                                           self.in_subfmt, self.out_subfmt)
+                return FormatClass(val, val2, scale, self.precision,
+                                   self.in_subfmt, self.out_subfmt)
             except (ValueError, TypeError):
                 pass
         else:
@@ -856,6 +857,36 @@ class TimeUnique(TimeFormat):
     nothing but provide inheritance to identify a class as unique.
     """
     pass
+
+
+class TimeAstropyTime(TimeUnique):
+    """
+    Instantiate date from an Astropy Time object (or list thereof).
+
+    This is purely for instantiating from a Time object.  The output
+    format is the same as the first time instance.
+    """
+    name = 'astropy_time'
+
+    def __new__(cls, val1, val2, scale, precision,
+                 in_subfmt, out_subfmt, from_jd=False):
+        """
+        Use __new__ instead of __init__ to output a class instance that
+        is the same as the class of the first Time object in the list.
+        """
+
+        if not all(isinstance(val, Time) for val in val1):
+            raise TypeError('Input values for {0} class must be datetime objects'
+                            .format(cls.name))
+
+        if scale is None:
+            scale = val1[0].scale
+        jd1 = np.concatenate([getattr(val, scale)._time.jd1 for val in val1])
+        jd2 = np.concatenate([getattr(val, scale)._time.jd2 for val in val1])
+        OutTimeFormat = val1[0]._time.__class__
+        self = OutTimeFormat(jd1, jd2, scale, precision, in_subfmt, out_subfmt, from_jd=True)
+
+        return self
 
 
 class TimeDatetime(TimeUnique):
