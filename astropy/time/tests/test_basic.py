@@ -217,6 +217,37 @@ class TestBasic():
         t1 = Time('2012-07-01 00:00:00', scale='utc')
         assert np.allclose((t1 - t0).sec, 2.0)
 
+    def test_init_from_time_objects(self):
+        """Initialize from one or more Time objects"""
+        t1 = Time('2007:001', scale='tai')
+        t2 = Time(['2007-01-02', '2007-01-03'], scale='utc')
+        # Init from a list of Time objects without an explicit scale
+        t3 = Time([t1, t2])
+        # Test that init appropriately combines a scalar (t1) and list (t2)
+        # and that scale and format are same as first element.
+        assert len(t3) == 3
+        assert t3.scale == t1.scale
+        assert t3.format == t1.format  # t1 format is yday
+        assert np.all(t3.vals == np.concatenate([[t1.yday], t2.tai.yday]))
+
+        # Init from a single Time object without a scale
+        t3 = Time(t1)
+        assert len(t1) == 1
+        assert t3.scale == t1.scale
+        assert t3.format == t1.format
+        assert np.all(t3.vals == t1.vals)
+
+        # Init from a single Time object with scale specified
+        t3 = Time(t1, scale='utc')
+        assert t3.scale == 'utc'
+        assert np.all(t3.vals == t1.utc.vals)
+
+        # Init from a list of Time object with scale specified
+        t3 = Time([t1, t2], scale='tt')
+        assert t3.scale == 'tt'
+        assert t3.format == t1.format  # yday
+        assert np.all(t3.vals == np.concatenate([[t1.tt.yday], t2.tt.yday]))
+
 
 class TestVal2():
     """Tests related to val2"""
