@@ -492,8 +492,16 @@ def generate_build_ext_command(release):
                 f.write('# Generated file; do not modify\n')
                 f.write('cython_version = {0!r}\n'.format(self.uses_cython))
 
-            self.copy_file(cython_py, os.path.join(self.build_lib, cython_py),
-                           preserve_mode=False)
+
+            new_cython_py = os.path.join(self.build_lib, cython_py)
+            new_cython_py_dir = os.path.split(new_cython_py)[0]
+            # note: new_cython_py_dir != self.build_lib because cython_py may
+            # have a directory component
+
+            #make the directory if it is not already present
+            if not os.path.isdir(new_cython_py_dir):
+                os.makedirs(new_cython_py_dir)
+            self.copy_file(cython_py, new_cython_py, preserve_mode=False)
 
         if orig_run is not None:
             # This should always be the case for a correctly implemented
@@ -505,13 +513,22 @@ def generate_build_ext_command(release):
             # after extension modules are built as some extension modules include
             # config items.  We only do this if it's not pure python, though,
             # because if it is, we already did it in build_py
+            acceptfailure = {}
             default_cfg = generate_default_config(os.path.abspath(self.build_lib),
-                                                  self.distribution.packages[0])
+                                                  self.distribution.packages[0],
+                                                  acceptfailure=acceptfailure)
+
             if default_cfg:
                 default_cfg = os.path.relpath(default_cfg)
                 self.copy_file(default_cfg,
                                os.path.join(self.build_lib, default_cfg),
                                preserve_mode=False)
+            else:  # failed, but acceptfailure has the reason
+                msg = ('Generation of default configuuration failed. This may '
+                       'be fine if you intentionally are running build_ext '
+                       'before build_py. Stdout and stderr are shown below.\n'
+                       'Stdout:\n{stdout}\nStderr:\n{stderr}')
+                log.warn(msg.format(**acceptfailure))
 
     attrs['run'] = run
     attrs['finalize_options'] = finalize_options
@@ -539,7 +556,7 @@ class AstropyBuildPy(SetuptoolsBuildPy):
                                preserve_mode=False)
 
 
-def generate_default_config(build_lib, package):
+def generate_default_config(build_lib, package, acceptfailure=False):
     config_path = os.path.relpath(package)
     filename = os.path.join(config_path, package + '.cfg')
 
@@ -567,11 +584,19 @@ def generate_default_config(build_lib, package):
     if proc.returncode == 0 and os.path.exists(filename):
         return filename
     else:
-        msg = ('Generation of default configuration item failed! Stdout '
-               'and stderr are shown below.\n'
-               'Stdout:\n{stdout}\nStderr:\n{stderr}')
-        log.error(msg.format(stdout=stdout.decode('UTF-8'),
-                             stderr=stderr.decode('UTF-8')))
+        output = {'stdout': stdout.decode('UTF-8'),
+                  'stderr': stderr.decode('UTF-8')}
+
+        #acceptfailure can be an empty dictionary that should be filled with 'stdout' and 'stderr'
+        if acceptfailure or hasattr(acceptfailure, 'update'):
+            if hasattr(acceptfailure, 'update'):
+                acceptfailure.update(output)
+            return False
+        else:
+            msg = ('Generation of default configuration item failed! Stdout '
+                   'and stderr are shown below.\n'
+                   'Stdout:\n{stdout}\nStderr:\n{stderr}')
+            log.error(msg.format(**output))
 
 
 def add_command_option(command, name, doc, is_bool=False):
