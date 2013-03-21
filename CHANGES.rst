@@ -1,7 +1,11 @@
 0.2.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+Bug Fixes
+^^^^^^^^^
+
+Fixed a minor issue when installing with ``./setup.py develop`` on a fresh git
+clone.  This is likely only of interest to developers on Astropy. [#725]
 
 
 0.2 (2013-02-19)
