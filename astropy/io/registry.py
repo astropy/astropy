@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import sys
+
 from ..utils import OrderedDict
 
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
@@ -171,7 +173,7 @@ def read(cls, *args, **kwargs):
                 "reader should return a {0:s} instance".format(cls.__name__))
     finally:
         if ctx is not None:
-            ctx.__exit__(None, None, None)
+            ctx.__exit__(*sys.exc_info())
 
     return table
 
