@@ -36,7 +36,7 @@ def_unit(['pc', 'parsec'], _si.pc.value * si.m, register=True, prefixes=True,
 def_unit(['solRad', 'R_sun'], _si.R_sun.value * si.m, register=True,
          doc="Solar radius",
          format={'latex': r'R_{\odot}', 'unicode': 'R⊙'})
-def_unit(['lyr', 'lightyear'], 9.460730e15 * si.m, register=True,
+def_unit(['lyr', 'lightyear'], _si.c.value * si.yr.to(si.s) * si.m, register=True,
          doc="Light year")
 
 

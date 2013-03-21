@@ -73,9 +73,9 @@ def_unit(['sday'], 86164.09053 * s, register=True,
 def_unit(['wk', 'week'], 7 * day, register=True)
 def_unit(['fortnight'], 2 * wk, register=True)
 
-def_unit(['a', 'annum'], 3.1556926e7 * s, register=True, prefixes=True,
+def_unit(['a', 'annum'], 365.25 * d, register=True, prefixes=True,
          exclude_prefixes=['P'])
-def_unit(['yr', 'year'], 3.1556926e7 * s, register=True, prefixes=True)
+def_unit(['yr', 'year'], 365.25 * d, register=True, prefixes=True)
 
 
 ###########################################################################
