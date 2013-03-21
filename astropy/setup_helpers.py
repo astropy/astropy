@@ -480,6 +480,11 @@ def generate_build_ext_command(release):
                                                       extension.name))
                             raise IOError(errno.ENOENT, msg, cfn)
 
+        if orig_run is not None:
+            # This should always be the case for a correctly implemented
+            # distutils command.
+            orig_run(self)
+
         # Update cython_version.py if building with Cython
         try:
             from .version import cython_version
@@ -492,21 +497,22 @@ def generate_build_ext_command(release):
                 f.write('# Generated file; do not modify\n')
                 f.write('cython_version = {0!r}\n'.format(self.uses_cython))
 
-            self.copy_file(cython_py, os.path.join(self.build_lib, cython_py),
-                           preserve_mode=False)
+            if os.path.isdir(self.build_lib):
+                # The build/lib directory may not exist if the build_py command
+                # was not previously run, which may sometimes be the case
+                self.copy_file(cython_py,
+                               os.path.join(self.build_lib, cython_py),
+                               preserve_mode=False)
 
-        if orig_run is not None:
-            # This should always be the case for a correctly implemented
-            # distutils command.
-            orig_run(self)
 
-        if not self.distribution.is_pure():
+        if not self.distribution.is_pure() and os.path.isdir(self.build_lib):
             # Finally, generate the default astropy.cfg; this can only be done
-            # after extension modules are built as some extension modules include
-            # config items.  We only do this if it's not pure python, though,
-            # because if it is, we already did it in build_py
-            default_cfg = generate_default_config(os.path.abspath(self.build_lib),
-                                                  self.distribution.packages[0])
+            # after extension modules are built as some extension modules
+            # include config items.  We only do this if it's not pure python,
+            # though, because if it is, we already did it in build_py
+            default_cfg = generate_default_config(
+                    os.path.abspath(self.build_lib),
+                    self.distribution.packages[0])
             if default_cfg:
                 default_cfg = os.path.relpath(default_cfg)
                 self.copy_file(default_cfg,
