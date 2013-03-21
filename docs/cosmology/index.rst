@@ -160,16 +160,19 @@ current cosmology or using the `cosmo=` keyword you see the following
 message:
 
   >>> from astropy import cosmology
-  >>> cosmology.lookback_time(1)          # lookback time in Gyr at z=1
+  >>> cosmology.lookback_time(1) # lookback time in Gyr at z=1
   WARNING: No default cosmology has been specified, using 7-year WMAP.
   [astropy.cosmology.core]
-  7.787767002228743
+  7.787766946
 
-The 9-year WMAP cosmology is also available
+The 9-year WMAP and Planck 2013 cosmologies are also available
 
   >>> from astropy.cosmology import WMAP9   # WMAP 9-year
   >>> WMAP9.lookback_time(2)                # lookback time in Gyr at z=2
-  10.444367272683863
+  10.442114507
+  >>> from astropy.cosmology import Planck13  # Planck 2013
+  >>> Planck13.lookback_time(2)             # lookback time in Gyr at z=2
+  10.522149614
 
 .. note::
 
