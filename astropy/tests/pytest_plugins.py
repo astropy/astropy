@@ -32,6 +32,10 @@ def pytest_addoption(parser):
             help="enable running doctests with additional features not "
                  "found in the normal doctest plugin")
 
+    parser.addini("doctest_norecursedirs",
+                  "like the norecursedirs option but applies only to doctest "
+                  "collection", type="args", default=())
+
 
 def pytest_configure(config):
     global DocTestModulePlus
@@ -280,6 +284,14 @@ class DocTestFinderPlus(doctest.DocTestFinder):
             tests = filter(test_filter, tests)
 
         return tests
+
+
+def pytest_ignore_collect(path, config):
+    """Skip paths that match any of the doctest_norecursedirs patterns."""
+
+    for pattern in config.getini("doctest_norecursedirs"):
+        if path.check(fnmatch=pattern):
+            return True
 
 
 def pytest_collect_file(path, parent):
