@@ -96,8 +96,8 @@ Obtaining the source packages
 Source packages
 ^^^^^^^^^^^^^^^
 
-Source tarballs of past releases and the current development branch of
-astropy can be downloaded from https://github.com/astropy/astropy/downloads
+The latest stable source package for Astropy can be `downloaded here
+<https://pypi.python.org/pypi/astropy>`_.
 
 Development repository
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -130,6 +130,35 @@ To build Astropy (from the root of the source tree)::
 To install Astropy (from the root of the source tree)::
 
     python setup.py install
+
+Troubleshooting
+---------------
+
+If you get an error mentioning that you do not have the correct permissions to
+install Astropy into the default ``site-packages`` directory, you can try
+installing with::
+
+    python setup.py install --user
+
+which will install into a default directory in your home directory. If this
+does not work, you can try installing with e.g.::
+
+    python setup.py install --prefix=$HOME/usr
+
+to install Astropy inside the ``usr`` folder in your home directory. You may
+get an error explaining that the directory you are trying to install to is not
+in the ``$PYTHONPATH`` variable::
+
+    You are attempting to install a package to a directory that is not
+    on PYTHONPATH and which Python does not read ".pth" files from.  The
+    installation directory you specified (via --install-dir, --prefix, or
+    the distutils default setting) was:
+
+        <some_path>
+
+If you get this, follow the instructions - usually, the easiest way to solve
+this will be to add the path mentioned to your ``$PYTHONPATH`` environment
+variable.
 
 External C libraries
 ^^^^^^^^^^^^^^^^^^^^
