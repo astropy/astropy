@@ -103,8 +103,8 @@ class _BaseDiff(object):
             >>> headera, headerb = Header(), Header()
             >>> fd = FITSDiff(hdul1, hdul2, ignore_keywords=['*'])
             >>> hd = HeaderDiff.fromdiff(fd, headera, headerb)
-            >>> hd.ignore_keywords
-            set(['*'])
+            >>> list(hd.ignore_keywords)
+            ['*']
         """
 
         args, _, _, _ = inspect.getargspec(cls.__init__)
