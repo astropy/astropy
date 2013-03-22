@@ -19,8 +19,6 @@ def itersubclasses(cls, _seen=None):
 
     Generator over all subclasses of a given class, in depth first order.
 
-    >>> list(itersubclasses(int))
-    [<type 'bool'>...]
     >>> class A(object): pass
     >>> class B(A): pass
     >>> class C(A): pass
@@ -34,7 +32,7 @@ def itersubclasses(cls, _seen=None):
     E
     C
     >>> # get ALL (new-style) classes currently defined
-    >>> [cls.__name__ for cls in itersubclasses(object)]  # doctest: +ELLIPSIS
+    >>> [cls.__name__ for cls in itersubclasses(object)]
     ['type', ...'tuple', ...]
 
     From http://code.activestate.com/recipes/576949/
