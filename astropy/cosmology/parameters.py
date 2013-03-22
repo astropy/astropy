@@ -24,9 +24,8 @@ Each cosmology has the following parameters defined:
 The list of cosmologies available are given by the tuple
 `available`. Current cosmologies available:
 
-Planck13 parameters from Planck Collaboration 2013, Paper XVI,
- Table 5 (Planck + WP + lensing + highL + BAO), available from
- the Planck Legacy Archive
+Planck13 parameters from Planck Collaboration 2013, arXiv:1303.5076
+ (Paper XVI), Table 5 (Planck + WP + lensing + highL + BAO)
 
 WMAP 9 year parameters from Hinshaw et al. 2012, arXiv 1212.5226.
  Table 4 (WMAP9 + eCMB + BAO + H0)
@@ -45,14 +44,14 @@ Planck13 = dict(
     Om0 = 0.30712,
     H0 = 67.77,
     n = 0.9611,
-    sigma8 = 0.826,
+    sigma8 = 0.8288,
     tau = 0.0952,
     z_reion = 11.52,
     t0 = 13.7965,
     Tcmb0 = 2.7255,
     Neff = 3.046,
     flat = True,
-    reference = ("Planck Collaboration 2013, Paper XVI, Planck Legacy Archive"
+    reference = ("Planck Collaboration 2013, Paper XVI, arXiv:1303.5076"
                  " Table 5 (Planck + WP + lensing + highL + BAO)")
     )
 
