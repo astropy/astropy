@@ -236,3 +236,45 @@ class TestJoin():
         t1['b_1'] = 1  # Add a new column b_1 that will conflict with auto-rename
         with pytest.raises(np_utils.TableMergeError):
             t1.join(t2, keys='a')
+
+    def test_col_meta_merge(self):
+        t1 = self.t1
+        t2 = self.t2
+        t2.rename_column('d', 'c')  # force col conflict and renaming
+        meta1 = OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)])
+        meta2 = OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)])
+
+        # Key col 'a', should first value ('cm')
+        t1['a'].units = 'cm'
+        t2['a'].units = 'm'
+        # Key col 'b', take first value 't1_b'
+        t1['b'].description = 't1_b'
+        # Key col 'b', take first non-empty value 't1_b'
+        t2['b'].format = '%6s'
+        # Key col 'a', should be merged meta
+        t1['a'].meta = meta1
+        t2['a'].meta = meta2
+        # Key col 'b', should be meta2
+        t2['b'].meta = meta2
+
+        # All these should pass through
+        t1['c'].units = 'cm'
+        t1['c'].format = '%3s'
+        t1['c'].description = 't1_c'
+
+        t2['c'].units = 'm'
+        t2['c'].format = '%6s'
+        t2['c'].description = 't2_c'
+
+        t12 = t1.join(t2, keys=['a', 'b'])
+        assert t12['a'].units == 'cm'
+        assert t12['b'].description == 't1_b'
+        assert t12['b'].format == '%6s'
+        assert t12['a'].meta == self.meta_merge
+        assert t12['b'].meta == meta2
+        assert t12['c_1'].units == 'cm'
+        assert t12['c_1'].format == '%3s'
+        assert t12['c_1'].description == 't1_c'
+        assert t12['c_2'].units == 'm'
+        assert t12['c_2'].format == '%6s'
+        assert t12['c_2'].description == 't2_c'
