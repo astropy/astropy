@@ -6,6 +6,7 @@ from ...tests.helper import pytest
 from ... import table
 from ...io import ascii
 from ...utils import OrderedDict
+from .. import np_utils
 
 NUMPY_LT_1P5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
@@ -202,7 +203,24 @@ class TestJoin():
                                    '  1 bar  -- foo  R2',
                                    '  2 bar  L4 bar  --']
 
-    def test_rename_conflict(self):
-        """Auto-column rename fails because of a conflict with an existing column"""
-        pass
+    def test_col_rename(self):
+        """
+        Test auto col renaming when there is a conflict.  Use
+        non-default values of uniq_col_name and table_names.
+        """
+        t1 = self.t1
+        t2 = self.t2
+        t12 = t1.join(t2, uniq_col_name='x_{table_name}_{col_name}_y',
+                      table_names=['L', 'R'], keys='a')
+        assert t12.colnames == ['a', 'x_L_b_y', 'c', 'x_R_b_y', 'd']
 
+    def test_rename_conflict(self):
+        """
+        Test that auto-column rename fails because of a conflict
+        with an existing column
+        """
+        t1 = self.t1
+        t2 = self.t2
+        t1['b_1'] = 1  # Add a new column b_1 that will conflict with auto-rename
+        with pytest.raises(np_utils.TableMergeError):
+            t1.join(t2, keys='a')
