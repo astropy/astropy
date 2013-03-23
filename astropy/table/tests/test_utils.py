@@ -34,7 +34,7 @@ class TestJoin():
                                        ('d', 1),
                                        ('a', 1)])
         
-    def test_both_unmasked(self):
+    def test_both_unmasked_inner(self):
         t1 = self.t1
         t2 = self.t2
 
@@ -49,6 +49,11 @@ class TestJoin():
 
         # Table meta merged properly
         assert t12.meta == self.meta_merge
+
+    @pytest.mark.xfail('NUMPY_LT_1P5')
+    def test_both_unmasked_left_right_outer(self):
+        t1 = self.t1
+        t2 = self.t2
 
         # Left join
         t12 = t1.join(t2, join_type='left')
@@ -88,7 +93,7 @@ class TestJoin():
         t12b = t1.join(t2, join_type='outer', keys=['a', 'b'])
         assert np.all(t12a._data == t12b._data)
 
-    def test_both_unmasked_single_key(self):
+    def test_both_unmasked_single_key_inner(self):
         t1 = self.t1
         t2 = self.t2
 
@@ -102,6 +107,11 @@ class TestJoin():
                                  '  1 bar  L3 foo  R1',
                                  '  1 bar  L3 foo  R2',
                                  '  2 bar  L4 bar  R3']
+
+    @pytest.mark.xfail('NUMPY_LT_1P5')
+    def test_both_unmasked_single_key_left_right_outer(self):
+        t1 = self.t1
+        t2 = self.t2
 
         # Left join
         t12 = t1.join(t2, join_type='left', keys='a')
@@ -141,6 +151,7 @@ class TestJoin():
                                  '  4  --  -- bar  R4']
 
 
+    @pytest.mark.xfail('NUMPY_LT_1P5')
     def test_masked_unmasked(self):
         t1 = self.t1
         t1m = table.Table(self.t1, masked=True)
@@ -175,6 +186,7 @@ class TestJoin():
                                   '  1 foo  R1 bar  --',
                                   '  2 bar  R3 bar  L4']
 
+    @pytest.mark.xfail('NUMPY_LT_1P5')
     def test_masked_masked(self):
         """Two masked tables"""
         t1 = self.t1
