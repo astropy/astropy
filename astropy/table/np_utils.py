@@ -11,6 +11,10 @@ import numpy as np
 import numpy.ma as ma
 import _np_utils
 
+class TableMergeError(ValueError):
+    pass
+
+
 def common_dtype(col0, col1):
     """
     Use numpy to find the common dtype for two structured ndarray columns.
@@ -69,6 +73,14 @@ def get_merge_descrs(left, right, keys, uniq_col_name='{col_name}_{table_name}',
 
             col_name_map[out_descr[0]][idx] = name
             out_descrs.append(tuple(out_descr))
+
+    # Check for duplicate output column names
+    col_name_count = collections.Counter(descr[0] for descr in out_descrs)
+    repeated_names = [name for name, count in col_name_count.items() if count > 1]
+    if repeated_names:
+        raise TableMergeError('Merging column names resulted in duplicates: {0:s}.  '
+                              'Change uniq_col_name or table_names args to fix this.'
+                              .format(repeated_names))
 
     # Convert col_name_map to a regular dict with tuple (immutable) values
     col_name_map = dict((key, tuple(val)) for key, val in col_name_map.items())
