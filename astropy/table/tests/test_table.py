@@ -5,7 +5,7 @@ import numpy as np
 from ...tests.helper import pytest
 from ... import table
 
-numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
+NUMPY_LT_1P5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
 # Dummy init of Table, DATA for pyflakes and to be sure test fixture is working
 Table = None
@@ -20,7 +20,7 @@ class MaskedTable(table.Table):
 
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
-@pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
+@pytest.fixture(params=[False] if NUMPY_LT_1P5 else [False, True])
 def set_global_Table(request):
     global Table, Column
 
@@ -736,3 +736,5 @@ class TestConvertNumpyArray():
 
         with pytest.raises(ValueError):
             np_data = np.array(d, dtype=[('c', 'i8'), ('d', 'i8')])
+
+
