@@ -147,6 +147,37 @@ class TestInitFromListOfLists(BaseInitFromListLike):
 
 
 @pytest.mark.usefixtures('set_global_Table')
+class TestInitFromListOfDicts(BaseInitFromListLike):
+    
+    def setup_method(self, method):
+        self.data = [{'a': 1, 'b': 2, 'c': 3},
+                     {'a': 3, 'b': 4, 'c': 5}]
+                     
+    def test_basic_init(self):
+        t = Table(self.data)
+        # Dicts aren't guaranteed to have columns in same order
+        assert all(colname in set(['a', 'b', 'c']) for colname in t.colnames)
+        assert np.all(t['a'] == np.array([1, 3]))
+        assert np.all(t['b'] == np.array([2, 4]))
+        assert np.all(t['c'] == np.array([3, 5]))
+        assert all(t[name].name == name for name in t.colnames)
+
+    @pytest.mark.xfail
+    def test_set_dtypes(self):
+        # Can't specify dtypes with list-of-dicts initialization
+        pass
+    
+    def test_names(self):
+        t = Table(self.data)
+        assert all(colname in set(['a', 'b', 'c']) for colname in t.colnames)
+    
+    def test_bad_data(self):
+        with pytest.raises(ValueError):
+            Table([{'a': 1, 'b': 2, 'c': 3},
+                   {'a': 2, 'b': 4}])
+
+
+@pytest.mark.usefixtures('set_global_Table')
 class TestInitFromColsList(BaseInitFromListLike):
 
     def setup_method(self, method):
