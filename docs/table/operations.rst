@@ -1,20 +1,19 @@
-.. _table_utilities:
-
 .. include:: references.txt
+.. |join| replace:: :func:`~astropy.table.table.Table.join`
+
+.. _table_operations:
 
 Table operations
 -----------------
 
-In this section we describe higher-level operations that can be used to generate a new table from two or more input tables.
+In this section we describe higher-level operations that can be used to generate a new table from one or more input tables.
 
 Join
 ^^^^^^^^^^^^^^
 
-The |Table| class supports the `database join <wikipedia ref>`_ operation.  This
-provides a flexible and powerful way to combine tables based on the 
-values in one or more key columns.
+The |Table| class supports the `database join <http://en.wikipedia.org/wiki/Join_(SQL)>`_ operation.  This provides a flexible and powerful way to combine tables based on the values in one or more key columns.
 
-For example, suppose two tables of observations, the first with B and V magnitudes and the second with X-ray luminosities of an overlapping (but not identical) sample::
+For example, suppose one has two tables of observations, the first with B and V magnitudes and the second with X-ray luminosities of an overlapping (but not identical) sample::
 
   >>> from astropy.io import ascii
   >>> optical = ascii.read("""name    obs_date    mag_b  mag_v
@@ -27,15 +26,15 @@ For example, suppose two tables of observations, the first with B and V magnitud
                               M31     1999-01-05  43.1
                               M82     2012-10-29  45.0""")
 
-The '~astropy.table.table.join` method allows one to merge these two tables into a single table based on matching values in the "key columns".  By default the key columns are the set of columns that are common to both tables.  In this case the key columns are``name`` and ``obs_date``.  We can find all the observations of the same object on the same date as follows::
+The |join| method allows one to merge these two tables into a single table based on matching values in the "key columns".  By default the key columns are the set of columns that are common to both tables.  In this case the key columns are ``name`` and ``obs_date``.  We can find all the observations of the same object on the same date as follows::
 
-  >>> print optical.join(xray)
+  >>> opt_xray = optical.join(xray)
+  >>> print opt_xray
   name  obs_date  mag_b mag_v logLx
   ---- ---------- ----- ----- -----
    M82 2012-10-29  16.2  15.2  45.0
 
-If the observations do not need to be simultaneous then we can choose to match
-only by ``name`` by providing the ``keys`` argument::
+We can perform the match only by ``name`` by providing the ``keys`` argument, which can be either a single column name or a list of column names::
 
   >>> print optical.join(xray, keys='name')
   name obs_date_1 mag_b mag_v obs_date_2 logLx
@@ -85,27 +84,28 @@ Identical keys
 The |Table| join operation works even if there are multiple rows with identical key values.  For example the following tables have multiple rows for the key column ``x``::
 
   >>> from astropy.table import Table
-  >>> left = Table([[0, 1, 1, 2], ['L1', 'L2', 'L3', 'L4']], names=('x', 'y'))
-  >>> right = Table([[1, 1, 2, 4], ['R1', 'R2', 'R3', 'R4']], names=('x', 'z'))
+  >>> left = Table([[0, 1, 1, 2], ['L1', 'L2', 'L3', 'L4']], names=('key', 'L'))
+  >>> right = Table([[1, 1, 2, 4], ['R1', 'R2', 'R3', 'R4']], names=('key', 'R'))
   >>> print left
-   x   y 
+  key  L 
   --- ---
     0  L1
     1  L2
     1  L3
     2  L4
   >>> print right
-   x   z 
+  key  R 
   --- ---
     1  R1
     1  R2
     2  R3
     4  R4
 
-Doing an outer join on these tables shows that what is really happening is a "cartesian" join.  For each matching key, every combination of the left and right tables is represented.  When there is no match in either the left or right table, the corresponding column values are designated as missing.
+Doing an outer join on these tables shows that what is really happening is a 
+`Cartesian product <http://en.wikipedia.org/wiki/Cartesian_product>`_.  For each matching key, every combination of the left and right tables is represented.  When there is no match in either the left or right table, the corresponding column values are designated as missing.
 
   >>> print left.join(right, join_type='outer')
-   x   y   z 
+  key  L   R 
   --- --- ---
     0  L1  --
     1  L2  R1
@@ -118,10 +118,57 @@ Doing an outer join on these tables shows that what is really happening is a "ca
 An inner join is the same but only returns rows where there is a key match in both the left and right tables::
 
   >>> print left.join(right, join_type='inner')
-   x   y   z 
+  key  L   R 
   --- --- ---
     1  L2  R1
     1  L2  R2
     1  L3  R1
     1  L3  R2
     2  L4  R3
+
+
+Column renaming
+~~~~~~~~~~~~~~~~~
+
+In cases where the two tables have conflicting column names in the non-key columns,
+the |join| method provides a mechanism to generate unique output column names.  There
+are two keyword arguments that control the renaming behavior:
+
+``table_names``
+    Two-element list of strings that provide a name for the two tables being joined.
+    By default this is ``['1', '2']``.
+
+``uniq_col_name``
+    String format specifier with a default value of ``'{col_name}_{table_name}'``.
+        
+This is most easily understood by example using the ``optical`` and ``xray`` tables defined
+above::
+
+  >>> print optical.join(xray, keys='name', 
+                         table_names=['OPTICAL', 'XRAY'],
+                         uniq_col_name='{table_name}__{col_name}')
+  name OPTICAL__obs_date mag_b mag_v XRAY__obs_date logLx
+  ---- ----------------- ----- ----- -------------- -----
+   M31        2012-01-02  17.0  16.0     1999-01-05  43.1
+   M82        2012-10-29  16.2  15.2     2012-10-29  45.0
+
+
+Metadata
+~~~~~~~~~~
+
+The |join| method also merges the metadata associated with the input tables.  Because
+the metadata can be arbitrarily complex there is no unique way to do the merge.
+The current implementation uses a simple recursive algorithm with four rules:
+
+- Dict elements are merged by keys
+- Conflicting list or tuple elements are concatenated 
+- Conflicting dict elements are merged by recursively calling the merge function
+- Conflicting elements that are not both list, tuple, or dict results in an exception
+
+In addition to the table and column ``meta`` attributes, the column attributes ``units``,
+``format``, and ``description`` are merged using the Python ``or`` operator on the two
+corresponding values.  For example::
+
+  out_col.units = left_col.units or right_col.units
+
+If the left ``units`` are defined that will take precedence over the right side ``units``. 
