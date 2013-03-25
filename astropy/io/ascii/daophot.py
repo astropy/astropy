@@ -8,7 +8,7 @@ daophot.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-## 
+##
 ## Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##     * Redistributions of source code must retain the above copyright
@@ -19,7 +19,7 @@ daophot.py:
 ##     * Neither the name of the Smithsonian Astrophysical Observatory nor the
 ##       names of its contributors may be used to endorse or promote products
 ##       derived from this software without specific prior written permission.
-## 
+##
 ## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ## ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 ## WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -28,7 +28,7 @@ daophot.py:
 ## (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 ## LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ## ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS  
+## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
@@ -42,31 +42,32 @@ class Daophot(core.BaseReader):
     """Read a DAOphot file.
     Example::
 
-      #K MERGERAD   = INDEF                   scaleunit  %-23.7g  
+      #K MERGERAD   = INDEF                   scaleunit  %-23.7g
       #K IRAF = NOAO/IRAFV2.10EXPORT version %-23s
       #K USER = davis name %-23s
       #K HOST = tucana computer %-23s
       #
       #N ID    XCENTER   YCENTER   MAG         MERR          MSKY           NITER    \\
       #U ##    pixels    pixels    magnitudes  magnitudes    counts         ##       \\
-      #F %-9d  %-10.3f   %-10.3f   %-12.3f     %-14.3f       %-15.7g        %-6d     
-      #                                                                              
+      #F %-9d  %-10.3f   %-10.3f   %-12.3f     %-14.3f       %-15.7g        %-6d
+      #
       #N         SHARPNESS   CHI         PIER  PERROR                                \\
       #U         ##          ##          ##    perrors                               \\
-      #F         %-23.3f     %-12.3f     %-6d  %-13s                                 
-      #                                                                              
+      #F         %-23.3f     %-12.3f     %-6d  %-13s
+      #
       14       138.538     INDEF   15.461      0.003         34.85955       4        \\
-                  -0.032      0.802       0     No_error                             
+                  -0.032      0.802       0     No_error
 
     The keywords defined in the #K records are available via the output table
     ``meta`` attribute::
 
+      >>> import os
       >>> from astropy.io import ascii
       >>> filename = os.path.join(ascii.__path__[0], 'tests/t/daophot.dat')
       >>> data = ascii.read(filename)
       >>> for name, keyword in data.meta['keywords'].items():
       ...     print name, keyword['value'], keyword['units'], keyword['format']
-      ...     
+      ...
       MERGERAD INDEF scaleunit %-23.7g
       IRAF NOAO/IRAFV2.10EXPORT version %-23s
       USER  name %-23s
@@ -77,7 +78,7 @@ class Daophot(core.BaseReader):
       >>> for colname in data.colnames:
       ...     col = data[colname]
       ...     print colname, col.units, col.format
-      ...     
+      ...
       ID None %-9d
       XCENTER pixels %-10.3f
       YCENTER pixels %-10.3f
@@ -142,9 +143,9 @@ class DaophotHeader(core.BaseHeader):
         # Parse a series of column defintion lines like below.  There may be several
         # such blocks in a single file (where continuation characters have already been
         # stripped).
-        # #N ID    XCENTER   YCENTER   MAG         MERR          MSKY           NITER    
-        # #U ##    pixels    pixels    magnitudes  magnitudes    counts         ##       
-        # #F %-9d  %-10.3f   %-10.3f   %-12.3f     %-14.3f       %-15.7g        %-6d     
+        # #N ID    XCENTER   YCENTER   MAG         MERR          MSKY           NITER
+        # #U ##    pixels    pixels    magnitudes  magnitudes    counts         ##
+        # #F %-9d  %-10.3f   %-10.3f   %-12.3f     %-14.3f       %-15.7g        %-6d
         coldef_lines = ['', '', '']
         starts = ('#N ', '#U ', '#F ')
         col_width = []
