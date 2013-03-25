@@ -18,6 +18,7 @@ from .helper import pytest
 PY3K = sys.version_info[0] >= 3
 
 DocTestModulePlus = None
+doctest_plus_enabled = False
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
@@ -33,6 +34,9 @@ def pytest_addoption(parser):
             help="enable running doctests with additional features not "
                  "found in the normal doctest plugin")
 
+    parser.addini("doctest_plus", "enable running doctests with additional "
+                  "features not found in the normal doctest plugin")
+
     parser.addini("doctest_norecursedirs",
                   "like the norecursedirs option but applies only to doctest "
                   "collection", type="args", default=())
@@ -40,11 +44,16 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     global DocTestModulePlus
+    global doctest_plus_enabled
 
     doctest_plugin = config.pluginmanager.getplugin('doctest')
 
     if doctest_plugin is None:
         return
+
+    if (not config.option.doctestmodules and
+            (config.getini('doctest_plus') or config.option.doctest_plus)):
+        doctest_plus_enabled = True
 
     class DocTestModulePlus(doctest_plugin.DoctestModule):
         def runtest(self):
@@ -348,7 +357,5 @@ def pytest_collect_file(path, parent):
     config = parent.config
     if path.ext == '.py':
         # Don't override the built-in doctest plugin
-        if (DocTestModulePlus is not None and
-                not config.option.doctestmodules and
-                config.option.doctest_plus):
+        if doctest_plus_enabled:
             return DocTestModulePlus(path, parent)
