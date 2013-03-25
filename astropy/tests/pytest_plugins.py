@@ -6,6 +6,7 @@ into conftest.py in the root directory.
 
 import doctest
 import fnmatch
+import imp
 import io
 import locale
 import math
@@ -263,11 +264,15 @@ class DocTestFinderPlus(doctest.DocTestFinder):
     ``__doctest_skip`` magic.  See `pytest_collect_file` for more details.
     """
 
+    # Caches the results of import attempts
+    _import_cache = {}
+
     def find(self, obj, name=None, module=None, globs=None,
              extraglobs=None):
         tests = doctest.DocTestFinder.find(self, obj, name, module, globs,
                                            extraglobs)
-        if hasattr(obj, '__doctest_skip__'):
+        if (hasattr(obj, '__doctest_skip__') or
+                hasattr(obj, '__doctests_require__')):
             if name is None and hasattr(obj, '__name__'):
                 name = obj.__name__
             else:
@@ -276,9 +281,28 @@ class DocTestFinderPlus(doctest.DocTestFinder):
                                 (type(obj),))
 
             def test_filter(test):
-                for pat in obj.__doctest_skip__:
+                for pat in getattr(obj, '__doctest_skip__', []):
                     if fnmatch.fnmatch(test.name, '.'.join((name, pat))):
                         return False
+
+                reqs = getattr(obj, '__doctests_require__', {})
+                for pats, mods in reqs.items():
+                    if not isinstance(pats, tuple):
+                        pats = (pats,)
+                    for pat in pats:
+                        if not fnmatch.fnmatch(test.name,
+                                               '.'.join((name, pat))):
+                            continue
+                        for mod in mods:
+                            if mod in self._import_cache:
+                                return self._import_cache[mod]
+                            try:
+                                imp.find_module(mod)
+                            except ImportError:
+                                self._import_cache[mod] = False
+                                return False
+                            else:
+                                self._import_cache[mod] = True
                 return True
 
             tests = filter(test_filter, tests)
@@ -298,7 +322,8 @@ def pytest_collect_file(path, parent):
     """Implements an enhanced version of the doctest module from py.test
     (specifically, as enabled by the --doctest-modules option) which supports
     skipping all doctests in a specific docstring by way of a special
-    ``__doctest_skip__`` module-level variable.
+    ``__doctest_skip__`` module-level variable.  It can also skip tests that
+    have special requirements by way of ``__doctest_requires__``.
 
     ``__doctest_skip__`` should be a list of functions, classes, or class
     methods whose docstrings should be ignored when collecting doctests.
@@ -308,6 +333,15 @@ def pytest_collect_file(path, parent):
     level:
 
         __doctest_skip__ = ['ClassName.*']
+
+    ``__doctests_require__`` should be a dictionary mapping wildcard patterns
+    (in the same format as ``__doctest_skip__`` to a list of one or more
+    modules that should be *importable* in order for the tests to run.  For
+    example, if some tests require the scipy module to work they will be
+    skipped unless ``import scipy`` is possible.  It is also possible to use a
+    tuple of wildcard patterns as a key in this dict:
+
+        __doctests_require__ = {('func1', 'func2'): ['scipy']}
 
     """
 

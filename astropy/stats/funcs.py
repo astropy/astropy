@@ -17,6 +17,7 @@ __all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion',
 
 
 __doctest_skip__ = ['binned_binom_proportion']
+__doctests_require__ = {'binom_conf_interval': ['scipy.special']}
 
 
 def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,

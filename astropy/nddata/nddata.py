@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the base NDData class.
 
-__all__ = ['NDData']
-
 import numpy as np
 
 from ..units import Unit
@@ -13,6 +11,13 @@ from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
 from ..io import registry as io_registry
 from ..config import ConfigurationItem
+
+
+__all__ = ['NDData']
+
+
+__doctest_skip__ = ['NDData']
+
 
 WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
     'warn_unsupported_correlated', True,
@@ -99,7 +104,7 @@ class NDData(object):
         >>> from astropy.nddata import NDData
         >>> from matplotlib import pyplot as plt
         >>> x = NDData([[1,2,3], [4,5,6]])
-        >>> # plt.imshow(x)
+        >>> plt.imshow(x)
 
     """
 
