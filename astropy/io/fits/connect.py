@@ -5,9 +5,17 @@ from __future__ import print_function
 import os
 
 from ...utils import OrderedDict
-from ...table import io_registry, Table
+from .. import registry as io_registry
+from ...table import Table
+
 from . import HDUList, TableHDU, BinTableHDU
 from . import open as fits_open
+
+
+# FITS file signature as per RFC 4047
+FITS_SIGNATURE = (b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"
+                  b"\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20"
+                  b"\x20\x54")
 
 
 def is_fits(origin, args, kwargs):
@@ -24,13 +32,24 @@ def is_fits(origin, args, kwargs):
     is_fits : bool
         Returns `True` if the given file is a FITS file.
     """
-    if isinstance(origin, basestring):
-        if origin.lower().endswith(('.fits', '.fits.gz', '.fit', '.fit.gz')):
+    if isinstance(args[0], basestring):
+        if args[0].lower().endswith(('.fits', '.fits.gz', '.fit', '.fit.gz')):
             return True
         else:
-            return False
+            f = open(args[0], 'rb')
+            sig = f.read(30)
+            f.close()
+            return sig == FITS_SIGNATURE
+    elif hasattr(args[0], 'read'):
+        pos = args[0].tell()
+        sig = args[0].read(30)
+        args[0].seek(pos)
+        return sig == FITS_SIGNATURE
+    elif isinstance(args[0], (HDUList, TableHDU, BinTableHDU)):
+        return True
     else:
         return False
+
 
 def read_table_fits(input, hdu_id=None):
     """
@@ -38,15 +57,16 @@ def read_table_fits(input, hdu_id=None):
 
     Parameters
     ----------
-    input : str or `~astropy.io.fits.hdu.table.TableHDU` or `~astropy.io.fits.hdu.table.BinTableHDU` or `~astropy.io.fits.hdu.hdulist.HDUList`
-        If a string, the filename to read the table from. If a
-        :class:`~astropy.io.fits.hdu.table.TableHDU` or
+    input : str or fileobj or `~astropy.io.fits.hdu.table.TableHDU` or `~astropy.io.fits.hdu.table.BinTableHDU` or `~astropy.io.fits.hdu.hdulist.HDUList`
+        If a string, the filename to read the table from. If a file object, or
+        a :class:`~astropy.io.fits.hdu.table.TableHDU` or
         :class:`~astropy.io.fits.hdu.table.BinTableHDU` or
-        :class:`~astropy.io.fits.hdu.hdulist.HDUList`, the object to extract
-        the table from.
+        :class:`~astropy.io.fits.hdu.hdulist.HDUList` instance, the object to
+        extract the table from.
     hdu_id : str, optional
         The HDU to read the table from
     """
+
     if isinstance(input, basestring):
         input = fits_open(input)
 
@@ -75,7 +95,13 @@ def read_table_fits(input, hdu_id=None):
             raise ValueError("No table found")
 
     # Convert to an astropy.table.Table object
-    return Table(table.data)
+    t = Table(table.data)
+
+    # TODO: deal properly with unsigned integers
+
+    # TODO: read in metadata
+
+    return t
 
 
 def write_table_fits(input, output, overwrite=False):
@@ -105,7 +131,9 @@ def write_table_fits(input, output, overwrite=False):
     # Write out file
     table_hdu.writeto(output)
 
+    # TODO: write out metadata
 
-io_registry.register_reader('fits', read_table_fits)
-io_registry.register_writer('fits', write_table_fits)
-io_registry.register_identifier('fits', is_fits)
+
+io_registry.register_reader('fits', Table, read_table_fits)
+io_registry.register_writer('fits', Table, write_table_fits)
+io_registry.register_identifier('fits', Table, is_fits)
