@@ -42,7 +42,7 @@ In all these cases the output has the same shape as the input.
 from __future__ import division, print_function
 import operator
 import abc
-from ..utils.compat import OrderedDict
+from ..utils.compat.odict import OrderedDict
 import numpy as np
 from . import parameters
 from . import constraints
