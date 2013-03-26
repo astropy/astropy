@@ -11,7 +11,8 @@ import collections
 
 import numpy as np
 import numpy.ma as ma
-import _np_utils
+
+from . import _np_utils
 
 
 class TableMergeError(ValueError):
