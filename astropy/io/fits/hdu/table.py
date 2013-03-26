@@ -171,7 +171,55 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 cards.extend(hcopy.cards)
 
             self._header = Header(cards)
-            self.data = data
+
+            if isinstance(data, np.ndarray) and data.dtype.fields is not None:
+                # self._data_type is FITS_rec.
+                if isinstance(data, self._data_type):
+                    self.data = data
+                else:
+                    #self.data = data.view(self._data_type)
+                    # Naively creating this view screws with unsigned columns.
+                    update_coldefs = dict()
+                    if 'u' in [data.dtype[k].kind for k in data.dtype.names]:
+                        bzeros = {2:np.uint16(2**15),4:np.uint32(2**31),8:np.uint64(2**63)}
+                        new_dtype = [(k,data.dtype[k].kind.replace('u','i')+str(data.dtype[k].itemsize))
+                            for k in data.dtype.names]
+                        new_data = np.zeros(data.shape,dtype=new_dtype)
+                        for k in data.dtype.fields:
+                            if data.dtype[k].kind == 'u':
+                                new_data[k] = data[k] - bzeros[data.dtype[k].itemsize]
+                                update_coldefs[k] = bzeros[data.dtype[k].itemsize]
+                        self.data = new_data.view(self._data_type)
+                    else:
+                        self.data = data.view(self._data_type)
+                    for k in update_coldefs:
+                        self.data._coldefs.change_attrib(k,'bzero',update_coldefs[k])
+
+                self._header['NAXIS1'] = self.data.itemsize
+                self._header['NAXIS2'] = self.data.shape[0]
+                self._header['TFIELDS'] = len(self.data._coldefs)
+
+                self.columns = self.data._coldefs
+                self.update()
+
+                try:
+                   # Make the ndarrays in the Column objects of the ColDefs
+                   # object of the HDU reference the same ndarray as the HDU's
+                   # FITS_rec object.
+                    for idx in range(len(self.columns)):
+                        self.columns[idx].array = self.data.field(idx)
+
+                    # Delete the _arrays attribute so that it is recreated to
+                    # point to the new data placed in the column objects above
+                    del self.columns._arrays
+                except (TypeError, AttributeError), e:
+                    # This shouldn't happen as long as self.columns._arrays
+                    # is a lazyproperty
+                    pass
+            elif data is None:
+                pass
+            else:
+                raise TypeError('Table data has incorrect type.')
 
         if not (isinstance(self._header[0], basestring) and
                 self._header[0].rstrip() == self._extension):

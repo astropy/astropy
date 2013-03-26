@@ -37,6 +37,10 @@ NUMPY2FITS = dict([(val, key) for key, val in FITS2NUMPY.items()])
 # Normally booleans are represented as ints in pyfits, but if passed in a numpy
 # boolean array, that should be supported
 NUMPY2FITS['b1'] = 'L'
+# Add unsigned types, which will be stored as signed ints with a TZERO card.
+NUMPY2FITS['u2'] = 'I'
+NUMPY2FITS['u4'] = 'J'
+NUMPY2FITS['u8'] = 'K'
 
 # This is the order in which values are converted to FITS types
 # Note that only double precision floating point/complex are supported
@@ -479,8 +483,21 @@ class ColDefs(object):
                     dim = repr(dim).replace(' ', '')
                 else:
                     dim = None
-
-                c = Column(name=cname, format=format,
+                # Check for unsigned ints.
+                if 'I' in format and ftype == np.dtype('uint16'):
+                    c = Column(name=cname, format=format,
+                           array=input.view(np.ndarray)[cname],
+                           dim=dim, bzero=np.uint16(2**15))
+                elif 'J' in format and ftype == np.dtype('uint32'):
+                    c = Column(name=cname, format=format,
+                           array=input.view(np.ndarray)[cname],
+                           dim=dim, bzero=np.uint32(2**31))
+                elif 'K' in format and ftype == np.dtype('uint64'):
+                    c = Column(name=cname, format=format,
+                           array=input.view(np.ndarray)[cname],
+                           dim=dim, bzero=np.uint64(2**63))
+                else:
+                    c = Column(name=cname, format=format,
                            array=input.view(np.ndarray)[cname], dim=dim)
                 self.columns.append(c)
 
