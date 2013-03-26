@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import os
+import re
 
 from ...utils import OrderedDict
 from .. import registry as io_registry
@@ -17,6 +18,25 @@ from . import open as fits_open
 FITS_SIGNATURE = (b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"
                   b"\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20"
                   b"\x20\x54")
+
+# Keywords to remove for all tables that are read in
+REMOVE_KEYWORDS = ['XTENSION', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2', 'PCOUNT', 'GCOUNT', 'TFIELDS']
+
+# Column-specific keywords
+COLUMN_KEYWORDS = ['TTYPE[0-9]+',
+                   'TUNIT[0-9]+',
+                   'TFORM[0-9]+',
+                   'TSCAL[0-9]+',
+                   'TZERO[0-9]+',
+                   'TNULL[0-9]+',
+                   'TDISP[0-9]+']
+
+
+def is_column_keyword(keyword):
+    for c in COLUMN_KEYWORDS:
+        if re.match(c, keyword) is not None:
+            return True
+    return False
 
 
 def is_fits(origin, args, kwargs):
@@ -115,11 +135,22 @@ def read_table_fits(input, hdu_id=None):
             else:
                 t.meta[key] = [t.meta[key], value]
 
+        elif is_column_keyword(key):
+
+            # TODO: remove column keywords that aren't needed
+
+            column_id = int(key[5:]) - 1
+            t.columns[t.colnames[column_id]].meta[key] = value
+
+        elif key in REMOVE_KEYWORDS:
+
+            pass
+
         else:
 
             t.meta[key] = value
 
-    # TODO: move column-specific meta-data to columns, and remove standard FITS keywords that will get re-generated.
+    # TODO: implement masking
 
     return t
 
