@@ -1,7 +1,9 @@
 """
-Perform a database join of two numpy ndarrays.
+Utilities for numpy structured arrays.
 
-Some code taken from numpy.lib.recfunctions.join_by().
+join():  Perform a database join of two numpy ndarrays.
+
+Some code and inspriration taken from numpy.lib.recfunctions.join_by().
 Redistribution license restrictions apply.
 """
 
@@ -10,6 +12,7 @@ import collections
 import numpy as np
 import numpy.ma as ma
 import _np_utils
+
 
 class TableMergeError(ValueError):
     pass
@@ -107,10 +110,10 @@ def join(left, right, keys=None, join_type='inner',
     join_type : str
         Join type ('inner' | 'outer' | 'left' | 'right'), default is 'inner'
     uniq_col_name : str or None
-        String generate a unique output column name in case of a conflict.  
+        String generate a unique output column name in case of a conflict.
         The default is '{col_name}_{table_name}'.
     table_names : list of str or None
-        Two-element list of table names used when generating unique output 
+        Two-element list of table names used when generating unique output
         column names.  The default is ['1', '2'].
     col_name_map : empty dict or None
         If passed as a dict then it will be updated in-place with the

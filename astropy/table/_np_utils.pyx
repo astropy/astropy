@@ -1,9 +1,8 @@
 """
-Perform a database join of two numpy ndarrays.
+Cython utilities for numpy structured arrays.
 
-Some of the code, in particular the "Building the new description
-of the output array" is copied from numpy.lib.recfunctions.join_by().
-Redistribution license restrictions apply.
+join_inner():  Do the inner-loop cartesian product for np_utils.join() processing.
+               (The "inner" is about the inner loop, not inner join).
 """
 
 import numpy as np
@@ -21,6 +20,10 @@ def join_inner(np.ndarray[DTYPE_t, ndim=1] idxs,
                np.ndarray[DTYPE_t, ndim=1] idx_sort,
                int len_left,
                int jointype):
+    """
+    Do the inner-loop cartesian product for np_utils.join() processing.
+    (The "inner" is about the inner loop, not inner join).
+    """
     cdef int n_out = 0
     cdef int max_key_idxs = 0
     cdef DTYPE_t ii, key_idxs, n_left, n_right, idx0, idx1, idx, i
