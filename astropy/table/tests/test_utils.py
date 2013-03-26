@@ -10,6 +10,11 @@ from .. import np_utils
 
 NUMPY_LT_1P5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
+
+def sort_eq(list1, list2):
+    return sorted(list1) == sorted(list2)
+
+
 class TestJoin():
 
     def setup_method(self, method):
@@ -33,7 +38,7 @@ class TestJoin():
                                        ('c', {'a': 1, 'b': 1}),
                                        ('d', 1),
                                        ('a', 1)])
-        
+
     def test_both_unmasked_inner(self):
         t1 = self.t1
         t2 = self.t2
@@ -41,11 +46,11 @@ class TestJoin():
         # Basic join with default parameters (inner join on common keys)
         t12 = t1.join(t2)
         assert t12.masked is False
-        assert t12.pformat() == [' a   b   c   d ',
-                                 '--- --- --- ---',
-                                 '  1 foo  L2  R1',
-                                 '  1 foo  L2  R2',
-                                 '  2 bar  L4  R3']
+        assert sort_eq(t12.pformat(), [' a   b   c   d ',
+                                       '--- --- --- ---',
+                                       '  1 foo  L2  R1',
+                                       '  1 foo  L2  R2',
+                                       '  2 bar  L4  R3'])
 
         # Table meta merged properly
         assert t12.meta == self.meta_merge
@@ -58,35 +63,35 @@ class TestJoin():
         # Left join
         t12 = t1.join(t2, join_type='left')
         assert t12.masked is True
-        assert t12.pformat() == [' a   b   c   d ',
-                                 '--- --- --- ---',
-                                 '  0 foo  L1  --',
-                                 '  1 bar  L3  --',
-                                 '  1 foo  L2  R1',
-                                 '  1 foo  L2  R2',
-                                 '  2 bar  L4  R3']
+        assert sort_eq(t12.pformat(), [' a   b   c   d ',
+                                       '--- --- --- ---',
+                                       '  0 foo  L1  --',
+                                       '  1 bar  L3  --',
+                                       '  1 foo  L2  R1',
+                                       '  1 foo  L2  R2',
+                                       '  2 bar  L4  R3'])
 
         # Right join
         t12 = t1.join(t2, join_type='right')
         assert t12.masked is True
-        assert t12.pformat() == [' a   b   c   d ',
-                                 '--- --- --- ---',
-                                 '  1 foo  L2  R1',
-                                 '  1 foo  L2  R2',
-                                 '  2 bar  L4  R3',
-                                 '  4 bar  --  R4']
+        assert sort_eq(t12.pformat(), [' a   b   c   d ',
+                                       '--- --- --- ---',
+                                       '  1 foo  L2  R1',
+                                       '  1 foo  L2  R2',
+                                       '  2 bar  L4  R3',
+                                       '  4 bar  --  R4'])
 
         # Outer join
         t12 = t1.join(t2, join_type='outer')
         assert t12.masked is True
-        assert t12.pformat() == [' a   b   c   d ',
-                                 '--- --- --- ---',
-                                 '  0 foo  L1  --',
-                                 '  1 bar  L3  --',
-                                 '  1 foo  L2  R1',
-                                 '  1 foo  L2  R2',
-                                 '  2 bar  L4  R3',
-                                 '  4 bar  --  R4']
+        assert sort_eq(t12.pformat(), [' a   b   c   d ',
+                                       '--- --- --- ---',
+                                       '  0 foo  L1  --',
+                                       '  1 bar  L3  --',
+                                       '  1 foo  L2  R1',
+                                       '  1 foo  L2  R2',
+                                       '  2 bar  L4  R3',
+                                       '  4 bar  --  R4'])
 
         # Check that the common keys are 'a', 'b'
         t12a = t1.join(t2, join_type='outer')
@@ -100,13 +105,13 @@ class TestJoin():
         # Inner join on 'a' column
         t12 = t1.join(t2, keys='a')
         assert t12.masked is False
-        assert t12.pformat() == [' a  b_1  c  b_2  d ',
-                                 '--- --- --- --- ---',
-                                 '  1 foo  L2 foo  R1',
-                                 '  1 foo  L2 foo  R2',
-                                 '  1 bar  L3 foo  R1',
-                                 '  1 bar  L3 foo  R2',
-                                 '  2 bar  L4 bar  R3']
+        assert sort_eq(t12.pformat(), [' a  b_1  c  b_2  d ',
+                                       '--- --- --- --- ---',
+                                       '  1 foo  L2 foo  R1',
+                                       '  1 foo  L2 foo  R2',
+                                       '  1 bar  L3 foo  R1',
+                                       '  1 bar  L3 foo  R2',
+                                       '  2 bar  L4 bar  R3'])
 
     @pytest.mark.xfail('NUMPY_LT_1P5')
     def test_both_unmasked_single_key_left_right_outer(self):
@@ -116,40 +121,39 @@ class TestJoin():
         # Left join
         t12 = t1.join(t2, join_type='left', keys='a')
         assert t12.masked is True
-        assert t12.pformat() == [' a  b_1  c  b_2  d ',
-                                 '--- --- --- --- ---',
-                                 '  0 foo  L1  --  --',
-                                 '  1 foo  L2 foo  R1',
-                                 '  1 foo  L2 foo  R2',
-                                 '  1 bar  L3 foo  R1',
-                                 '  1 bar  L3 foo  R2',
-                                 '  2 bar  L4 bar  R3']
+        assert sort_eq(t12.pformat(), [' a  b_1  c  b_2  d ',
+                                       '--- --- --- --- ---',
+                                       '  0 foo  L1  --  --',
+                                       '  1 foo  L2 foo  R1',
+                                       '  1 foo  L2 foo  R2',
+                                       '  1 bar  L3 foo  R1',
+                                       '  1 bar  L3 foo  R2',
+                                       '  2 bar  L4 bar  R3'])
 
         # Right join
         t12 = t1.join(t2, join_type='right', keys='a')
         assert t12.masked is True
-        assert t12.pformat() == [' a  b_1  c  b_2  d ',
-                                 '--- --- --- --- ---',
-                                 '  1 foo  L2 foo  R1',
-                                 '  1 foo  L2 foo  R2',
-                                 '  1 bar  L3 foo  R1',
-                                 '  1 bar  L3 foo  R2',
-                                 '  2 bar  L4 bar  R3',
-                                 '  4  --  -- bar  R4']
+        assert sort_eq(t12.pformat(), [' a  b_1  c  b_2  d ',
+                                       '--- --- --- --- ---',
+                                       '  1 foo  L2 foo  R1',
+                                       '  1 foo  L2 foo  R2',
+                                       '  1 bar  L3 foo  R1',
+                                       '  1 bar  L3 foo  R2',
+                                       '  2 bar  L4 bar  R3',
+                                       '  4  --  -- bar  R4'])
 
         # Outer join
         t12 = t1.join(t2, join_type='outer', keys='a')
         assert t12.masked is True
-        assert t12.pformat() == [' a  b_1  c  b_2  d ',
-                                 '--- --- --- --- ---',
-                                 '  0 foo  L1  --  --',
-                                 '  1 foo  L2 foo  R1',
-                                 '  1 foo  L2 foo  R2',
-                                 '  1 bar  L3 foo  R1',
-                                 '  1 bar  L3 foo  R2',
-                                 '  2 bar  L4 bar  R3',
-                                 '  4  --  -- bar  R4']
-
+        assert sort_eq(t12.pformat(), [' a  b_1  c  b_2  d ',
+                                       '--- --- --- --- ---',
+                                       '  0 foo  L1  --  --',
+                                       '  1 foo  L2 foo  R1',
+                                       '  1 foo  L2 foo  R2',
+                                       '  1 bar  L3 foo  R1',
+                                       '  1 bar  L3 foo  R2',
+                                       '  2 bar  L4 bar  R3',
+                                       '  4  --  -- bar  R4'])
 
     @pytest.mark.xfail('NUMPY_LT_1P5')
     def test_masked_unmasked(self):
@@ -160,31 +164,31 @@ class TestJoin():
         # Result should be masked even though not req'd by inner join
         t1m2 = t1m.join(t2, join_type='inner')
         assert t1m2.masked is True
-        
+
         # Result should match non-masked result
         t12 = t1.join(t2)
         assert np.all(t12._data == np.array(t1m2._data))
 
         # Mask out some values in left table and make sure they propagate
         t1m['b'].mask[1] = True
-        t1m['c'].mask[2] = True        
+        t1m['c'].mask[2] = True
         t1m2 = t1m.join(t2, join_type='inner', keys='a')
-        assert t1m2.pformat() == [' a  b_1  c  b_2  d ',
-                                  '--- --- --- --- ---',
-                                  '  1  --  L2 foo  R1',
-                                  '  1  --  L2 foo  R2',
-                                  '  1 bar  -- foo  R1',
-                                  '  1 bar  -- foo  R2',
-                                  '  2 bar  L4 bar  R3']
+        assert sort_eq(t1m2.pformat(), [' a  b_1  c  b_2  d ',
+                                        '--- --- --- --- ---',
+                                        '  1  --  L2 foo  R1',
+                                        '  1  --  L2 foo  R2',
+                                        '  1 bar  -- foo  R1',
+                                        '  1 bar  -- foo  R2',
+                                        '  2 bar  L4 bar  R3'])
 
         t21m = t2.join(t1m, join_type='inner', keys='a')
-        assert t21m.pformat() == [' a  b_1  d  b_2  c ',
-                                  '--- --- --- --- ---',
-                                  '  1 foo  R2  --  L2',
-                                  '  1 foo  R2 bar  --',
-                                  '  1 foo  R1  --  L2',
-                                  '  1 foo  R1 bar  --',
-                                  '  2 bar  R3 bar  L4']
+        assert sort_eq(t21m.pformat(), [' a  b_1  d  b_2  c ',
+                                        '--- --- --- --- ---',
+                                        '  1 foo  R2  --  L2',
+                                        '  1 foo  R2 bar  --',
+                                        '  1 foo  R1  --  L2',
+                                        '  1 foo  R1 bar  --',
+                                        '  2 bar  R3 bar  L4'])
 
     @pytest.mark.xfail('NUMPY_LT_1P5')
     def test_masked_masked(self):
@@ -197,23 +201,23 @@ class TestJoin():
         # Result should be masked even though not req'd by inner join
         t1m2m = t1m.join(t2m, join_type='inner')
         assert t1m2m.masked is True
-        
+
         # Result should match non-masked result
         t12 = t1.join(t2)
         assert np.all(t12._data == np.array(t1m2m._data))
 
         # Mask out some values in both tables and make sure they propagate
         t1m['b'].mask[1] = True
-        t1m['c'].mask[2] = True        
-        t2m['d'].mask[2] = True        
+        t1m['c'].mask[2] = True
+        t2m['d'].mask[2] = True
         t1m2m = t1m.join(t2m, join_type='inner', keys='a')
-        assert t1m2m.pformat() == [' a  b_1  c  b_2  d ',
-                                   '--- --- --- --- ---',
-                                   '  1  --  L2 foo  R1',
-                                   '  1  --  L2 foo  R2',
-                                   '  1 bar  -- foo  R1',
-                                   '  1 bar  -- foo  R2',
-                                   '  2 bar  L4 bar  --']
+        assert sort_eq(t1m2m.pformat(), [' a  b_1  c  b_2  d ',
+                                         '--- --- --- --- ---',
+                                         '  1  --  L2 foo  R1',
+                                         '  1  --  L2 foo  R2',
+                                         '  1 bar  -- foo  R1',
+                                         '  1 bar  -- foo  R2',
+                                         '  2 bar  L4 bar  --'])
 
     def test_col_rename(self):
         """
