@@ -21,7 +21,14 @@ It accepts the following options:
         This option results in the
         specified object being skipped, that is the object will *not* be
         included in the generated documentation. This option may appear
-        any number of times to skip multiple objects.
+        any number of times to skip multiple objects. Cannot be used if
+        ``:include:`` is used.
+
+    * ``:include: str``
+        This option results in only the specified objects being included, that
+        is only objects specified by :include: will be included in the
+        generated documentation. This option may appear any number of times to
+        include multiple objects. Cannot be used if ``:skip:`` is used.
 
     * ``:no-main-docstr:``
         If present, the docstring for the module/package will not be generated.
@@ -70,7 +77,7 @@ Classes
 .. automodsumm:: {modname}
     :classes-only:
     {toctree}
-    {skips}
+    {skips_or_includes}
 """
 
 automod_templ_funcs = """
@@ -80,7 +87,7 @@ Functions
 .. automodsumm:: {modname}
     :functions-only:
     {toctree}
-    {skips}
+    {skips_or_includes}
 """
 
 automod_templ_inh = """
@@ -164,6 +171,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
 
             #initialize default options
             toskip = []
+            toinclude = []
             inhdiag = maindocstr = True
             hds = '-^'
 
@@ -172,6 +180,8 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
             for opname, args in _automodapiargsrex.findall(spl[grp * 3 + 2]):
                 if opname == 'skip':
                     toskip.append(args.strip())
+                elif opname == 'include':
+                    toinclude.append(args.strip())
                 elif opname == 'no-inheritance-diagram':
                     inhdiag = False
                 elif opname == 'no-main-docstr':
@@ -180,6 +190,10 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                     hds = args
                 else:
                     unknownops.append(opname)
+
+            # Check that skip and include were not both used
+            if toskip and toinclude:
+                raise ValueError("Cannot use both :skip: and :include: in an automodapi directive")
 
             # get the two heading chars
             if len(hds) < 2:
@@ -196,7 +210,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 if warnings:
                     app.warn(msg, location)
 
-            ispkg, hascls, hasfuncs = _mod_info(modnm, toskip)
+            ispkg, hascls, hasfuncs = _mod_info(modnm, toskip, toinclude)
 
             #add automodule directive only if no-main-docstr isn't present
             if maindocstr:
@@ -210,17 +224,24 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 pkgormodhds=h1 * (8 if ispkg else 7),
                 automoduleline=automodline))
 
+            if toskip:
+                skips_or_includes = ':skip: ' + ','.join(toskip)
+            elif toinclude:
+                skips_or_includes = ':include: ' + ','.join(toinclude)
+            else:
+                skips_or_includes = None
+
             if hasfuncs:
                 newstrs.append(automod_templ_funcs.format(modname=modnm,
                     funchds=h2 * 9,
                     toctree=toctreestr,
-                    skips=':skip: ' + ','.join(toskip) if toskip else ''))
+                    skips_or_includes=skips_or_includes))
 
             if hascls:
                 newstrs.append(automod_templ_classes.format(modname=modnm,
                     clshds=h2 * 7,
                     toctree=toctreestr,
-                    skips=':skip: ' + ','.join(toskip) if toskip else ''))
+                    skips_or_includes=skips_or_includes))
 
             if inhdiag and hascls:
                 # add inheritance diagram if any classes are in the module
@@ -233,7 +254,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
         return sourcestr
 
 
-def _mod_info(modname, toskip=[]):
+def _mod_info(modname, toskip=[], toinclude=[]):
     """
     Determines if a module is a module or a package and whether or not
     it has classes or functions.
@@ -247,7 +268,9 @@ def _mod_info(modname, toskip=[]):
     hascls = hasfunc = False
 
     for localnm, fqnm, obj in zip(*find_mod_objs(modname, onlylocals=True)):
-        if localnm not in toskip:
+        if (toskip and localnm not in toskip) or \
+           (toinclude and localnm in toinclude) or \
+           (not toskip and not toinclude):
             hascls = hascls or isclass(obj)
             hasfunc = hasfunc or isfunction(obj)
             if hascls and hasfunc:
