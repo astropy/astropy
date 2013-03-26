@@ -79,7 +79,8 @@ def _is_inside(path, parent_path):
         or os.path.realpath(path).startswith(os.path.realpath(parent_path))
 
 @contextlib.contextmanager
-def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
+def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
+                         show_progress=True):
     """
     Given a filename or a readable file-like object, return a context
     manager that yields a readable file-like object.
@@ -121,6 +122,14 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
 
     cache : bool, optional
         Whether to cache the contents of remote URLs.
+
+    show_progress : bool, optional
+        Whether to display a progress bar if the file is downloaded
+        from a remote server.  Default is `True`.
+
+    Returns
+    -------
+    file : readable file-like object
     """
     import tempfile
 
@@ -136,7 +145,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
     # Get a file object to the content
     if isinstance(name_or_obj, basestring):
         if _is_url(name_or_obj):
-            name_or_obj = download_file(name_or_obj, cache=cache)
+            name_or_obj = download_file(
+                name_or_obj, cache=cache, show_progress=show_progress)
         if PY3K:
             fileobj = io.FileIO(name_or_obj, 'r')
         else:
@@ -371,7 +381,7 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
                                     cache=cache)
 
 
-def get_pkg_data_filename(data_name):
+def get_pkg_data_filename(data_name, show_progress=True):
     """
     Retrieves a data file from the standard locations for the package and
     provides a local filename for the data.
@@ -400,6 +410,10 @@ def get_pkg_data_filename(data_name):
               e.g. 'hash/395dd6493cc584df1e78b474fb150840'.  The hash
               will first be searched for locally, and if not found,
               the Astropy data server will be queried.
+
+    show_progress : bool, optional
+        Whether to display a progress bar if the file is downloaded
+        from a remote server.  Default is `True`.
 
     Raises
     ------
@@ -446,7 +460,9 @@ def get_pkg_data_filename(data_name):
         # first try looking for a local version if a hash is specified
         hashfn = _find_hash_fn(data_name[5:])
         if hashfn is None:
-            return download_file(DATAURL() + data_name, cache=True)
+            return download_file(
+                DATAURL() + data_name, cache=True,
+                show_progress=show_progress)
         else:
             return hashfn
     else:
@@ -457,7 +473,9 @@ def get_pkg_data_filename(data_name):
         elif os.path.isfile(datafn):  # local file
             return datafn
         else:  # remote file
-            return download_file(DATAURL() + data_name, cache=True)
+            return download_file(
+                DATAURL() + data_name, cache=True,
+                show_progress=show_progress)
 
 
 def get_pkg_data_contents(data_name, encoding=None, cache=True):
@@ -773,7 +791,7 @@ def check_free_space_in_dir(path, size):
                 path, human_file_size(size)))
 
 
-def download_file(remote_url, cache=False):
+def download_file(remote_url, cache=False, show_progress=True):
     """
     Accepts a URL, downloads and optionally caches the result
     returning the filename, with a name determined by the file's MD5
@@ -784,8 +802,18 @@ def download_file(remote_url, cache=False):
     ----------
     remote_url : str
         The URL of the file to download
+
     cache : bool, optional
         Whether to use the cache
+
+    show_progress : bool, optional
+        Whether to display a progress bar during the download (default
+        is `True`)
+
+    Returns
+    -------
+    local_path : str
+        Returns the local path that the file was download to.
     """
 
     import hashlib
@@ -832,8 +860,13 @@ def download_file(remote_url, cache=False):
                 if cache:
                     check_free_space_in_dir(dldir, size)
 
+            if show_progress:
+                progress_stream = sys.stdout
+            else:
+                progress_stream = io.BytesIO()
+
             dlmsg = "Downloading {0}".format(remote_url)
-            with ProgressBarOrSpinner(size, dlmsg) as p:
+            with ProgressBarOrSpinner(size, dlmsg, file=progress_stream) as p:
                 with NamedTemporaryFile(delete=False) as f:
                     try:
                         bytes_read = 0
@@ -882,15 +915,10 @@ def download_file(remote_url, cache=False):
 
 
 def _do_download_files_in_parallel(args):
-    orig_stdout = sys.stdout
-    sys.stdout = io.BytesIO()
-    try:
-        return download_file(*args)
-    finally:
-        sys.stdout = orig_stdout
+    return download_file(*args, show_progress=False)
 
 
-def download_files_in_parallel(urls, cache=False):
+def download_files_in_parallel(urls, cache=False, show_progress=True):
     """
     Downloads multiple files in parallel from the given URLs.  Blocks until
     all files have downloaded.  The result is a list of local file paths
@@ -904,6 +932,10 @@ def download_files_in_parallel(urls, cache=False):
     cache : bool, optional
         Whether to use the cache
 
+    show_progress : bool, optional
+        Whether to display a progress bar during the download (default
+        is `True`)
+
     Returns
     -------
     paths : list of str
@@ -911,11 +943,17 @@ def download_files_in_parallel(urls, cache=False):
     """
     from .console import ProgressBar
 
+    if show_progress:
+        progress = sys.stdout
+    else:
+        progress = io.BytesIO()
+
     # Combine duplicate URLs
     combined_urls = list(set(urls))
     combined_paths = ProgressBar.map(
         _do_download_files_in_parallel,
         [(x, cache) for x in combined_urls],
+        file=progress,
         multiprocess=True)
     paths = []
     for url in urls:
