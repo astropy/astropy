@@ -87,7 +87,7 @@ def get_merge_descrs(arrays, keys, uniq_col_name='{col_name}_{table_name}',
 
                 uniq_shapes = set(arr[name].shape[1:] for arr in arrays)
                 if len(uniq_shapes) != 1:
-                    raise ValueError('Key columns {0!r} have different shape'.format(name))
+                    raise TableMergeError('Key columns {0!r} have different shape'.format(name))
 
                 out_descr[1] = common_dtype(arrays, name)
             elif any(name in other.dtype.names for other in arrays if other is not array):
@@ -153,16 +153,19 @@ def join(left, right, keys=None, join_type='inner',
     if keys is None:
         keys = tuple(name for name in left.dtype.names if name in right.dtype.names)
         if len(keys) == 0:
-            raise ValueError('No keys in common between left and right tables')
+            raise TableMergeError('No keys in common between left and right tables')
     elif isinstance(keys, basestring):
         keys = (keys,)
 
-    # Check the keys
-    for name in keys:
-        if name not in left.dtype.names:
-            raise ValueError('left does not have key field %s' % name)
-        if name not in right.dtype.names:
-            raise ValueError('right does not have key field %s' % name)
+    # Check the key columns
+    for arr, arr_label in ((left, 'Left'), (right, 'Right')):
+        for name in keys:
+            if name not in arr.dtype.names:
+                raise TableMergeError('{0} table does not have key column {1!r}'
+                                      .format(arr_label, name))
+            if hasattr(arr[name], 'mask') and np.any(arr[name].mask):
+                raise TableMergeError('{0} key column {1!r} has missing values'
+                                 .format(arr_label, name))
 
     # Make sure we work with ravelled arrays
     left = left.ravel()
@@ -226,7 +229,7 @@ def join(left, right, keys=None, join_type='inner',
         elif right_name:
             name, array, array_out, array_mask = right_name, right, right_out, right_mask
         else:
-            raise ValueError('Unexpected column names (maybe one is ""?)')
+            raise TableMergeError('Unexpected column names (maybe one is ""?)')
         out[out_name] = array[name].take(array_out)
         if masked:
             if isinstance(array, ma.MaskedArray):

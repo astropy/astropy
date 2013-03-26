@@ -241,6 +241,40 @@ class TestJoin():
         with pytest.raises(np_utils.TableMergeError):
             t1.join(t2, keys='a')
 
+    def test_missing_keys(self):
+        """Merge on a key column that doesn't exist"""
+        t1 = self.t1
+        t2 = self.t2
+        with pytest.raises(np_utils.TableMergeError):
+            t1.join(t2, keys=['a', 'not there'])
+
+    def test_bad_join_type(self):
+        """Bad join_type input"""
+        t1 = self.t1
+        t2 = self.t2
+        with pytest.raises(ValueError):
+            t1.join(t2, join_type='illegal value')
+
+    def test_no_common_keys(self):
+        """Merge tables with no common keys"""
+        t1 = self.t1
+        t2 = self.t2
+        del t1['a']
+        del t1['b']
+        del t2['a']
+        del t2['b']
+        with pytest.raises(np_utils.TableMergeError):
+            t1.join(t2)
+
+    def test_masked_key_column(self):
+        """Merge on a key column that has a masked element"""
+        t1 = self.t1
+        t2 = table.Table(self.t2, masked=True)
+        t1.join(t2)  # OK
+        t2['a'].mask[0] = True
+        with pytest.raises(np_utils.TableMergeError):
+            t1.join(t2)
+
     def test_col_meta_merge(self):
         t1 = self.t1
         t2 = self.t2
