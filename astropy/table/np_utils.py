@@ -18,42 +18,46 @@ class TableMergeError(ValueError):
     pass
 
 
-def common_dtype(col0, col1):
+def common_dtype(arrays, name):
     """
     Use numpy to find the common dtype for two structured ndarray columns.
     """
-    arr0 = np.empty(1, dtype=col0.dtype)
-    arr1 = np.empty(1, dtype=col1.dtype)
-    for arr in (arr0, arr1):
+    arrs = [np.empty(1, dtype=array[name].dtype) for array in arrays]
+
+    # For string-type arrays need to explicitly fill in non-zero
+    # values or the final arr_common = .. step is unpredictable.
+    for arr in arrs:
         if arr.dtype.kind in ('S', 'U'):
             arr[0] = '0' * arr.itemsize
-    arr_common = np.array([arr0[0], arr1[0]])
+
+    arr_common = np.array([arr[0] for arr in arrs])
     return arr_common.dtype.str
 
 
-def get_merge_descrs(left, right, keys, uniq_col_name='{col_name}_{table_name}',
-                     table_names=['1', '2']):
+def get_merge_descrs(arrays, keys, uniq_col_name='{col_name}_{table_name}',
+                     table_names=None):
     """
-    Find the dtypes descrs resulting from merging the left and right dtypes,
+    Find the dtypes descrs resulting from merging the list of arrays' dtypes,
     assuming the names in `keys` are common in the output.
 
     Return a list of descrs for the output and a dict mapping
     each output column name to the input(s).  This takes the form
-    { outname : (left_col_name, right_col_name), ... }.
-    For key columns both the left and right input names will be
+    { outname : (col_name_0, col_name_1, ...), ... }.
+    For key columns all of input names will be
     present, while for the other non-key columns the value will
-    be either (left_col_name, None) or (None, right_col_name).
+    be (col_name_0, None, ..) or (None, col_name_1, ..) etc.
     """
 
     out_descrs = []
     col_name_map = collections.defaultdict(lambda: list([None, None]))
 
+    if table_names is None:
+        table_names = [str(ii + 1) for ii in range(len(arrays))]
+
     # TODO: should probably refactor this into one routine that determines
     # col_name_map and a second that gets the merged descrs.
 
-    for array, other in ((left, right),
-                         (right, left)):
-        idx = (0 if array is left else 1)
+    for idx, array in enumerate(arrays):
         table_name = table_names[idx]
         for descr in array.dtype.descr:
             name = descr[0]
@@ -62,16 +66,19 @@ def get_merge_descrs(left, right, keys, uniq_col_name='{col_name}_{table_name}',
 
             if name in keys:
                 out_name = name  # note: in future there may be diff keys for left / right
-                if array is right:
+                if idx != 0:
                     col_name_map[out_name][1] = name
                     # Skip over keys for the right array, already was done for the left
                     continue
                 else:
                     col_name_map[out_name][0] = name
-                if shape != other[name].shape[1:]:
+
+                uniq_shapes = set(arr[name].shape[1:] for arr in arrays)
+                if len(uniq_shapes) != 1:
                     raise ValueError('Key columns {0!r} have different shape'.format(name))
-                out_descr[1] = common_dtype(array[name], other[name])
-            elif name in other.dtype.names:
+
+                out_descr[1] = common_dtype(arrays, name)
+            elif any(name in other.dtype.names for other in arrays if other is not array):
                 out_descr[0] = uniq_col_name.format(table_name=table_name, col_name=name)
 
             col_name_map[out_descr[0]][idx] = name
@@ -152,7 +159,7 @@ def join(left, right, keys=None, join_type='inner',
     left_names, right_names = left.dtype.names, right.dtype.names
 
     # Joined array dtype as a list of descr (name, type_str, shape) tuples
-    out_descrs, _col_name_map = get_merge_descrs(left, right, keys, uniq_col_name, table_names)
+    out_descrs, _col_name_map = get_merge_descrs([left, right], keys, uniq_col_name, table_names)
     # If col_name_map supplied as a dict input, then update.
     if isinstance(col_name_map, dict):
         col_name_map.update(_col_name_map)
