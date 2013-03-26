@@ -47,12 +47,19 @@ def_unit(['deg', 'degree'], _numpy.pi / 180.0 * rad, register=True,
          doc="degree: angular measurement 1/360 of full rotation",
          format={'latex': r'{}^{\circ}', 'unicode': '°'})
 def_unit(['arcmin', 'arcminute'], 1.0 / 60.0 * deg, register=True,
+         prefixes=True,
          doc="arc minute: angular measurement",
          format={'latex': r'\prime', 'unicode': '′'})
-def_unit(['as', 'arcsec', 'arcsecond'], 1.0 / 3600.0 * deg, register=True,
-         prefixes=True, exclude_prefixes=['d'],
+def_unit(['arcsec', 'arcsecond'], 1.0 / 3600.0 * deg, register=True,
+         prefixes=True,
          doc="arc second: angular measurement",
          format={'latex': r'\second', 'unicode': '″'})
+def_unit(['mas'], 0.001 * arcsec, register=True,
+         doc="arc second: angular measurement",
+         format={'latex': r'\third', 'unicode': '‴'})
+def_unit(['uas'], 0.000001 * arcsec, register=True,
+         doc="arc second: angular measurement",
+         format={'latex': r'\mu as', 'unicode': 'μas'})
 
 def_unit(['sr', 'steradian'], rad ** 2, register=True, prefixes=True,
          doc="steradian: unit of solid angle in SI")
@@ -91,7 +98,7 @@ def_unit(['Hz', 'Hertz', 'hertz'], 1 / s, register=True, prefixes=True,
 def_unit(['kg', 'kilogram'], register=True,
          doc="kilogram: base unit of mass in SI.")
 def_unit(['g', 'gram'], 1.0e-3 * kg, register=True, prefixes=True,
-         exclude_prefixes=['k'])
+         exclude_prefixes=['k', 'kilo'])
 
 def_unit(['t', 'tonne'], 1000 * kg, register=True,
          doc="Metric tonne")
