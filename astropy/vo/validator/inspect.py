@@ -139,7 +139,7 @@ class ConeSearchResults(object):
 
         for typ in self.dbtypes:
             if key in self.catkeys[typ]:
-                str_list += [repr(self.dbs[typ].get_catalog(key)),
+                str_list += [self.dbs[typ].get_catalog(key).dumps(),
                              '\nFound in {0}'.format(typ)]
 
                 # Only has one match, so quits when it is found

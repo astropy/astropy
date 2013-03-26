@@ -41,10 +41,6 @@ class VOSCatalog(object):
     def __init__(self, tree):
         self._tree = tree
 
-    def __repr__(self):
-        """Pretty print."""
-        return json.dumps(self._tree, sort_keys=True, indent=4)
-
     def __getattr__(self, what):
         """Expose dictionary attributes."""
         return getattr(self._tree, what)
@@ -52,6 +48,24 @@ class VOSCatalog(object):
     def __getitem__(self, what):
         """Expose dictionary key look-up."""
         return self._tree[what]
+
+    def __str__(self):  # pragma: no cover
+        """Show the most important and unique things about a catalog."""
+        keys = ('title', 'url')
+        out_str = '\n'.join(['{0}: {1}'.format(key, self._tree[key])
+                             for key in keys if key in self._tree])
+        return out_str
+
+    def dumps(self):  # pragma: no cover
+        """Dump the contents into a string.
+
+        Returns
+        -------
+        s : str
+            Contents as JSON string dump.
+
+        """
+        return json.dumps(self._tree, sort_keys=True, indent=4)
 
 
 class VOSDatabase(VOSCatalog):
@@ -77,6 +91,10 @@ class VOSDatabase(VOSCatalog):
             raise VOSError("Invalid VO service catalog database")
 
         self._catalogs = tree['catalogs']
+
+    def __str__(self):
+        """Show the most important and unique things about a database."""
+        return '\n'.join(sorted(self._catalogs.keys()))
 
     def get_catalogs(self):
         """Iterator to get all catalogs."""
