@@ -1287,16 +1287,12 @@ def _add_prefixes(u, excludes=[], register=False):
         namespace.  Default is `False`.
     """
     for short, long, factor in si_prefixes:
-        exclude = False
-        for prefix in short:
-            if prefix in excludes:
-                exclude = True
-        if exclude:
-            continue
-
         names = []
         format = {}
         for prefix in short:
+            if prefix in excludes:
+                continue
+
             for alias in [u.name] + [x for x in u.aliases if len(x) <= 2]:
                 names.append(prefix + alias)
 
@@ -1310,12 +1306,16 @@ def _add_prefixes(u, excludes=[], register=False):
                     format.setdefault(key, prefix + val)
 
         for prefix in long:
+            if prefix in excludes:
+                continue
+
             for alias in u.aliases:
                 if len(alias) > 2:
                     names.append(prefix + alias)
 
-        PrefixUnit(names, CompositeUnit(factor, [u], [1]), register=register,
-                   format=format)
+        if len(names):
+            PrefixUnit(names, CompositeUnit(factor, [u], [1]),
+                       register=register, format=format)
 
 
 def def_unit(s, represents=None, register=None, doc=None,
