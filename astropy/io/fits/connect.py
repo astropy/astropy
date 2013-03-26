@@ -7,6 +7,7 @@ import os
 from ...utils import OrderedDict
 from .. import registry as io_registry
 from ...table import Table
+from ... import log
 
 from . import HDUList, TableHDU, BinTableHDU
 from . import open as fits_open
@@ -81,7 +82,7 @@ def read_table_fits(input, hdu_id=None):
             if hdu_id is None:
                 raise ValueError(
                     "Multiple tables found: HDU id should be set via "
-                    "the hdu= argument. The available tables HDUs are " +
+                    "the hdu_id= argument. The available tables HDUs are " +
                     ', '.join([str(x) for x in tables.keys()]))
             else:
                 if hdu_id in tables:
@@ -99,7 +100,26 @@ def read_table_fits(input, hdu_id=None):
 
     # TODO: deal properly with unsigned integers
 
-    # TODO: read in metadata
+    for key, value, comment in table.header.cards:
+
+        if key in ['COMMENT', 'HISTORY']:
+            if key in t.meta:
+                t.meta[key].append(value)
+            else:
+                t.meta[key] = [value]
+
+        elif key in t.meta:  # key is duplicate
+
+            if type(t.meta[key]) == list:
+                t.meta[key].append(value)
+            else:
+                t.meta[key] = [t.meta[key], value]
+
+        else:
+
+            t.meta[key] = value
+
+    # TODO: move column-specific meta-data to columns, and remove standard FITS keywords that will get re-generated.
 
     return t
 
@@ -131,7 +151,21 @@ def write_table_fits(input, output, overwrite=False):
     # Write out file
     table_hdu.writeto(output)
 
-    # TODO: write out metadata
+    for key, value in input.meta.items():
+
+        if type(value) == list:
+            for item in value:
+                try:
+                    table_hdu.header.append((key, value))
+                except ValueError:
+                    log.warn("Attribute `{0}` of type {1} cannot be written to "
+                             "FITS files - skipping".format(key, type(value)))
+        else:
+            try:
+                table_hdu.header[key] = value
+            except ValueError:
+                log.warn("Attribute `{0}` of type {1} cannot be written to "
+                         "FITS files - skipping".format(key, type(value)))
 
 
 io_registry.register_reader('fits', Table, read_table_fits)
