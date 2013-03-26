@@ -76,7 +76,7 @@ two options::
       module=astropy.utils.data
       value='http://data.astropy.org/'
 
- Changing Values at Run-time
+Changing Values at Run-time
 ---------------------------
 
 The configuration system is most conveniently used by modifying
