@@ -31,6 +31,7 @@ class Fits(generic.Generic):
 
     @staticmethod
     def _generate_unit_names():
+        import keyword
         from ... import units as u
         names = {}
         deprecated_names = set()
@@ -49,6 +50,8 @@ class Fits(generic.Generic):
         for base in bases + deprecated_bases:
             for prefix in prefixes:
                 key = prefix + base
+                if keyword.iskeyword(key):
+                    continue
                 names[key] = getattr(u, key)
         for base in deprecated_bases:
             for prefix in prefixes:
