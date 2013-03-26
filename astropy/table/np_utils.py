@@ -19,6 +19,17 @@ class TableMergeError(ValueError):
     pass
 
 
+def _counter(iterable):
+    """
+    Count instances of each unique value in ``iterable``.  Returns a dict
+    with the counts.  Would use collections.Counter but this isn't available in 2.6.
+    """
+    counts = collections.defaultdict(int)
+    for val in iterable:
+        counts[val] += 1
+    return counts
+
+
 def common_dtype(arrays, name):
     """
     Use numpy to find the common dtype for two structured ndarray columns.
@@ -86,7 +97,7 @@ def get_merge_descrs(arrays, keys, uniq_col_name='{col_name}_{table_name}',
             out_descrs.append(tuple(out_descr))
 
     # Check for duplicate output column names
-    col_name_count = collections.Counter(descr[0] for descr in out_descrs)
+    col_name_count = _counter(descr[0] for descr in out_descrs)
     repeated_names = [name for name, count in col_name_count.items() if count > 1]
     if repeated_names:
         raise TableMergeError('Merging column names resulted in duplicates: {0:s}.  '
