@@ -700,7 +700,7 @@ def test_distances():
         Distance(12)
 
     # standard units are pre-defined
-    npt.assert_almost_equal(distance.lyr, 39.13876728075561)
+    npt.assert_almost_equal(distance.lyr, 39.138765325702551)
     npt.assert_almost_equal(distance.km, 370281309776063.0)
 
     # Coordinate objects can be assigned a distance object, giving them a full
