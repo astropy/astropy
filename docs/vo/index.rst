@@ -39,7 +39,8 @@ critical warnings or exceptions are used by :ref:`vo-sec-client-scs` by
 default.
 
 If you are a Cone Search service provider and would like to include your
-service in the list above, please contact ``help[at]stsci.edu``.
+service in the list above, please open a
+`GitHub issue on Astropy <https://github.com/astropy/astropy/issues>`_.
 
 
 Caching
