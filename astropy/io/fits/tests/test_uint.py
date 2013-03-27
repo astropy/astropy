@@ -138,7 +138,7 @@ class TestUintFunctions(FitsTestCase):
         #
         uint_array = np.array(zip(i,j,k),dtype=[('uint16',np.uint16),('uint32',np.uint32),('uint64',np.uint64)])
         fits.writeto(self.temp('tempfile2.fits'),uint_array)
-        with fits.open(self.temp('tempfile2.fits')) as hdulist3
+        with fits.open(self.temp('tempfile2.fits')) as hdulist3:
             hdudata3 = hdulist3[1].data
             assert (hdudata3.base['uint16'] == table.data.base['uint16']).all()
             assert (hdudata3['uint16'] == table.data['uint16']).all()
