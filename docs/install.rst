@@ -140,25 +140,7 @@ installing with::
 
     python setup.py install --user
 
-which will install into a default directory in your home directory. If this
-does not work, you can try installing with e.g.::
-
-    python setup.py install --prefix=$HOME/usr
-
-to install Astropy inside the ``usr`` folder in your home directory. You may
-get an error explaining that the directory you are trying to install to is not
-in the ``$PYTHONPATH`` variable::
-
-    You are attempting to install a package to a directory that is not
-    on PYTHONPATH and which Python does not read ".pth" files from.  The
-    installation directory you specified (via --install-dir, --prefix, or
-    the distutils default setting) was:
-
-        <some_path>
-
-If you get this, follow the instructions - usually, the easiest way to solve
-this will be to add the path mentioned to your ``$PYTHONPATH`` environment
-variable.
+which will install into a default directory in your home directory.
 
 External C libraries
 ^^^^^^^^^^^^^^^^^^^^
