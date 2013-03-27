@@ -180,7 +180,7 @@ class VOSDatabase(VOSCatalog):
         return out_arr
 
 
-def get_remote_catalog_db(dbname, cache=True):
+def get_remote_catalog_db(dbname, cache=True, verbose=True):
     """Get a database of VO services (which is a JSON file) from a remote
     location.
 
@@ -195,6 +195,9 @@ def get_remote_catalog_db(dbname, cache=True):
         websites referenced by the database still needs internet
         connection.
 
+    verbose : bool
+        Show download progress bars.
+
     Returns
     -------
     obj : `VOSDatabase` object
@@ -202,13 +205,14 @@ def get_remote_catalog_db(dbname, cache=True):
 
     """
     with get_readable_fileobj(BASEURL() + dbname + '.json',
-                              encoding='utf8', cache=cache) as fd:
+                              encoding='utf8', cache=cache,
+                              show_progress=verbose) as fd:
         tree = json.load(fd)
 
     return VOSDatabase(tree)
 
 
-def _vo_service_request(url, pedantic, kwargs):
+def _vo_service_request(url, pedantic, kwargs, verbose=False):
     if len(kwargs) and not (url.endswith('?') or url.endswith('&')):
         raise VOSError("url should already end with '?' or '&'")
 
@@ -218,7 +222,8 @@ def _vo_service_request(url, pedantic, kwargs):
             urllib.quote(key), urllib.quote_plus(str(value))))
 
     parsed_url = url + '&'.join(query)
-    with get_readable_fileobj(parsed_url, encoding='binary') as req:
+    with get_readable_fileobj(parsed_url, encoding='binary',
+                              show_progress=verbose) as req:
         tab = table.parse(req, filename=parsed_url, pedantic=pedantic)
 
     return vo_tab_parse(tab, url, kwargs)
@@ -345,7 +350,8 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
 
     """
     if catalog_db is None:
-        catalog_db = get_remote_catalog_db(service_type, cache=cache)
+        catalog_db = get_remote_catalog_db(service_type, cache=cache,
+                                           verbose=verbose)
         catalogs = catalog_db.get_catalogs()
     elif isinstance(catalog_db, VOSDatabase):
         catalogs = catalog_db.get_catalogs()
@@ -368,7 +374,8 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
             if catalog.startswith("http"):
                 url = catalog
             else:
-                remote_db = get_remote_catalog_db(service_type, cache=cache)
+                remote_db = get_remote_catalog_db(service_type, cache=cache,
+                                                  verbose=verbose)
                 catalog = remote_db.get_catalog(catalog)
                 url = catalog['url']
         else:
@@ -378,14 +385,14 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
             color_print('Trying {0}'.format(url), 'green')
 
         try:
-            return _vo_service_request(url, pedantic, kwargs)
+            return _vo_service_request(url, pedantic, kwargs, verbose=verbose)
         except Exception as e:
             vo_warn(W25, (url, str(e)))
 
     raise VOSError('None of the available catalogs returned valid results.')
 
 
-def list_catalogs(service_type, cache=True, **kwargs):
+def list_catalogs(service_type, cache=True, verbose=True, **kwargs):
     """List the catalogs available for the given service type.
 
     Parameters
@@ -396,6 +403,9 @@ def list_catalogs(service_type, cache=True, **kwargs):
     cache : bool
         See :func:`get_remote_catalog_db`.
 
+    verbose : bool
+        Show download progress bars.
+
     kwargs : keywords for :func:`VOSDatabase.list_catalogs`
 
     Returns
@@ -404,5 +414,5 @@ def list_catalogs(service_type, cache=True, **kwargs):
         List of catalog names.
 
     """
-    return get_remote_catalog_db(service_type,
-                                 cache=cache).list_catalogs(**kwargs)
+    return get_remote_catalog_db(service_type, cache=cache,
+                                 verbose=verbose).list_catalogs(**kwargs)

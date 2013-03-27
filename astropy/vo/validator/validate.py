@@ -144,7 +144,8 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
                 log.info('Existing file {0} deleted'.format(db_file[key]))
 
     # Get all Cone Search sites
-    with get_readable_fileobj(CS_MSTR_LIST(), encoding='binary') as fd:
+    with get_readable_fileobj(CS_MSTR_LIST(), encoding='binary',
+                              show_progress=verbose) as fd:
         tab_all = votable.parse_single_table(fd, pedantic=False)
     arr_cone = tab_all.array.data[np.where(
         tab_all.array['capabilityClass'] == b'ConeSearch')]

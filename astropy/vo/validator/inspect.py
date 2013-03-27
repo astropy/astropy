@@ -27,6 +27,9 @@ class ConeSearchResults(object):
     catkeys : dict
         Stores sorted catalog keys for each ``dbtypes``.
 
+    verbose : bool
+        Show download progress bars.
+
     Parameters
     ----------
     cache : bool
@@ -34,14 +37,14 @@ class ConeSearchResults(object):
        Default is `False` to ensure the latest data are read.
 
     """
-    def __init__(self, cache=False):
+    def __init__(self, cache=False, verbose=True):
         self.dbtypes = ['good', 'warn', 'exception', 'error']
         self.dbs = {}
         self.catkeys = {}
 
         for typ in self.dbtypes:
             self.dbs[typ] = get_remote_catalog_db(
-                'conesearch_' + typ, cache=cache)
+                'conesearch_' + typ, cache=cache, verbose=verbose)
             self.catkeys[typ] = self.dbs[typ].list_catalogs()
 
     def tally(self, fout=sys.stdout):
