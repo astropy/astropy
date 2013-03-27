@@ -114,6 +114,9 @@ Other Changes and Additions
 - ``ConfigurationItem``\s now have a more useful and informative ``__repr__``
   and improved documentation for how to use them. [#855]
 
+- Added a friendlier error message when trying to import astropy from a source
+  checkout without first building the extension modules inplace. [#864]
+
 - ``py.test`` now outputs more system information for help in debugging issues
   from users. [#869]
 

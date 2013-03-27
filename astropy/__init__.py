@@ -121,7 +121,23 @@ if not _ASTROPY_SETUP_:
     from . import config
 
     import os
+    import sys
     from warnings import warn
+
+    try:
+        from .utils import _compiler
+    except ImportError:
+        if os.path.exists('setup.py'):
+            log.error('You appear to be trying to import astropy from within '
+                      'a source checkout; please run `./setup.py develop` or '
+                      '`./setup.py --inplace` first so that extension '
+                      'modules can be compiled and made importable.')
+            sys.exit(1)
+        else:
+            # Outright broken installation; don't be nice.
+            raise
+
+
 
     # add these here so we only need to cleanup the namespace at the end
     config_dir = None
