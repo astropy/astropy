@@ -42,7 +42,7 @@ class ConeSearchResults(object):
         for typ in self.dbtypes:
             self.dbs[typ] = get_remote_catalog_db(
                 'conesearch_' + typ, cache=cache)
-            self.catkeys[typ] = self.dbs[typ].list_catalogs(sort=True)
+            self.catkeys[typ] = self.dbs[typ].list_catalogs()
 
     def tally(self, fout=sys.stdout):
         """

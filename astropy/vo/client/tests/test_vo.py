@@ -38,7 +38,7 @@ def test_basic_db():
     assert basic_db['content'] == ['A', 'B', 'C']
 
     assert basic_db.list_catalogs() == ['foo']
-    assert basic_db.list_catalogs(pattern='whatever', sort=True) == []
+    assert basic_db.list_catalogs(pattern='whatever') == []
 
     foo_cat1 = basic_db.get_catalog('foo')
     for k, v in basic_db.get_catalogs():
@@ -89,9 +89,9 @@ class TestConeSearch(object):
         self.pedantic = False
 
     def test_cat_listing(self):
-        assert (conesearch.list_catalogs(sort=True) ==
+        assert (conesearch.list_catalogs() ==
                 ['BROKEN', 'USNO ACT', 'USNO NOMAD', 'USNO-A2', 'USNO-B1'])
-        assert (conesearch.list_catalogs(pattern='usno*a', sort=True) ==
+        assert (conesearch.list_catalogs(pattern='usno*a') ==
                 ['USNO ACT', 'USNO NOMAD', 'USNO-A2'])
 
     def test_one_search(self):

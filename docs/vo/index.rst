@@ -126,7 +126,7 @@ If you get timeout error, you need to use a custom timeout as follows:
 
 Find catalog names containing 'usno*a2':
 
->>> my_db.list_catalogs(pattern='usno*a2', sort=True)
+>>> my_db.list_catalogs(pattern='usno*a2')
 [u'The USNO-A2.0 Catalogue (Monet+ 1998) 1', u'USNO-A2 Catalogue 1']
 
 Get information for a catalog titled 'USNO-A2 Catalogue 1':
@@ -262,7 +262,7 @@ Examples
 Shows a sorted list of Cone Search services to be searched
 (to inspect them in detail, see :ref:`vo-sec-client-vos`):
 
->>> conesearch.list_catalogs(sort=True)
+>>> conesearch.list_catalogs()
 [u'Guide Star Catalog 2.3 1',
  u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 1',
  u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 2',
@@ -436,7 +436,7 @@ and only perform Cone Search using those services. As the first catalog in
 the list to successfully return non-zero results is used, the order of
 catalog names given in ``catalog_db`` is important:
 
->>> gsc_cats = conesearch.list_catalogs(pattern='guide*star', sort=True)
+>>> gsc_cats = conesearch.list_catalogs(pattern='guide*star')
 >>> gsc_cats
 [u'Guide Star Catalog 2.3 1',
  u'The HST Guide Star Catalog, Version 1.1 (Lasker+ 1992) 1',
@@ -495,7 +495,7 @@ to use another database, 'conesearch_warn.json', containing sites with
 validation warnings. One should use these sites with caution:
 
 >>> conesearch.CONESEARCH_DBNAME.set('conesearch_warn')
->>> conesearch.list_catalogs(sort=True)
+>>> conesearch.list_catalogs()
 Downloading http://stsdas.stsci.edu/astrolib/vo_databases/conesearch_warn.json
 |============================================|  94/ 94k (100.00%)        00s
 [u'2MASS All-Sky Catalog of Point Sources (Cutri+ 2003) 1',

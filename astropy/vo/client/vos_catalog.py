@@ -142,7 +142,7 @@ class VOSDatabase(VOSCatalog):
             raise VOSError("No catalog with URL '{0}' found.".format(url))
         return out_cat
 
-    def list_catalogs(self, pattern=None, sort=False):
+    def list_catalogs(self, pattern=None, sort=True):
         """List catalog names.
 
         Parameters
