@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from distutils import version
 import numpy as np
+import warnings
 
 from ...tests.helper import pytest
 from ... import table
 from ...io import ascii
-from ...utils import OrderedDict
+from ...utils import OrderedDict, meta
 from .. import np_utils
 
 NUMPY_LT_1P5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
@@ -304,7 +305,12 @@ class TestJoin():
         t2['c'].format = '%6s'
         t2['c'].description = 't2_c'
 
-        t12 = t1.join(t2, keys=['a', 'b'])
+        with warnings.catch_warnings(record=True) as warning_lines:
+            warnings.resetwarnings()
+            warnings.simplefilter("always", meta.MergeConflictWarning, append=True)
+
+            t12 = t1.join(t2, keys=['a', 'b'])
+
         assert t12['a'].units == 'cm'
         assert t12['b'].description == 't1_b'
         assert t12['b'].format == '%6s'
@@ -316,3 +322,7 @@ class TestJoin():
         assert t12['c_2'].units == 'm'
         assert t12['c_2'].format == '%6s'
         assert t12['c_2'].description == 't2_c'
+
+        assert warning_lines[0].category ==  meta.MergeConflictWarning
+        assert ('Left and right column units attributes do not match (cm != m)'
+                in str(warning_lines[0].message))

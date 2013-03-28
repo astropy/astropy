@@ -84,7 +84,15 @@ def _merge_col_meta(out, left, right, col_name_map):
         if left_name and right_name:
             out_col.meta = meta.merge(left_col.meta, right_col.meta)
             for attr in attrs:
-                setattr(out_col, attr, getattr(left_col, attr) or getattr(right_col, attr))
+                left_attr = getattr(left_col, attr)
+                right_attr = getattr(right_col, attr)
+                merge_attr = left_attr or right_attr
+                setattr(out_col, attr, merge_attr)
+                if left_attr and right_attr and left_attr != right_attr:
+                    warnings.warn('Left and right column {0} attributes do not match '
+                                  '({1} != {2}) using left for merged output'
+                                  .format(attr, left_attr, right_attr),
+                                  meta.MergeConflictWarning)
         elif left_name:
             out_col.meta = deepcopy(left_col.meta)
             for attr in attrs:
@@ -1772,12 +1780,12 @@ class Table(object):
         join_type : str
             Join type ('inner' | 'outer' | 'left' | 'right'), default is 'inner'
         uniq_col_name : str or None
-            String generate a unique output column name in case of a conflict.  
+            String generate a unique output column name in case of a conflict.
             The default is '{col_name}_{table_name}'.
         table_names : list of str or None
-            Two-element list of table names used when generating unique output 
+            Two-element list of table names used when generating unique output
             column names.  The default is ['1', '2'].
-            
+
         """
         # In "t1.join(t2)" self (i.e. t1) is the left table.
         left = self
@@ -1797,5 +1805,5 @@ class Table(object):
         # methods for custom merge behavior.
         _merge_col_meta(out, left, right, col_name_map)
         _merge_table_meta(out, left, right)
-        
+
         return out

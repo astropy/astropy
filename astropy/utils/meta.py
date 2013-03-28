@@ -4,16 +4,23 @@ This module contains helper functions for handling metadata.
 """
 
 from copy import deepcopy
-from . import OrderedDict
+
 
 class MergeConflictError(TypeError):
     pass
 
+
+class MergeConflictWarning(Warning):
+    pass
+
+
 def take_left(left, right):
     return left
 
+
 def take_right(left, right):
     return left
+
 
 def concat(left, right):
     """
@@ -47,11 +54,11 @@ def merge(left, right, merge_func=concat):
 
     This is a simplistic and limited implemenation at this point.
     """
-    if not _both_isinstance(left, right, dict): 
+    if not _both_isinstance(left, right, dict):
         raise MergeConflictError('Can only merge two dict-based objects')
 
     out = left.__class__()
-    
+
     for key, val in left.items():
         out[key] = deepcopy(val)
 
