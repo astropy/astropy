@@ -635,6 +635,15 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         BaseColumn.__array_finalize__(self, obj)
         ma.MaskedArray.__array_finalize__(self, obj)
 
+    def _set_name(self, val):
+        super(MaskedColumn,self)._set_name(val)
+
+        if self.parent_table is not None:
+            table = self.parent_table
+            table._mask.dtype.names = table.columns.keys()
+        
+    name = property(BaseColumn._get_name, _set_name)
+
     def _fix_fill_value(self, val):
         """Fix a fill value (if needed) to work around a bug with setting the fill
         value of a string array in MaskedArray with Python 3.x.  See

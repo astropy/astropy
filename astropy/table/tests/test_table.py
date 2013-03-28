@@ -635,6 +635,8 @@ class TestRename(SetupData):
         t.rename_column('b', 'a')
         assert t.columns.keys() == ['c', 'a']
         assert t._data.dtype.names == ('c', 'a')
+        if t.masked:
+            assert t._data.mask.dtype.names == ('c', 'a') 
         assert np.all(t['c'] == np.array([1, 2, 3]))
         assert np.all(t['a'] == np.array([4, 5, 6]))
 
@@ -736,3 +738,9 @@ class TestConvertNumpyArray():
 
         with pytest.raises(ValueError):
             np_data = np.array(d, dtype=[('c', 'i8'), ('d', 'i8')])
+
+@pytest.mark.usefixtures('set_global_Table')
+class TestReturnTypes():
+    def test_return_type(self):
+        tab = table.Table({'a':[1,2,3]})
+        assert type(tab['a']) == table.Column

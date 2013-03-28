@@ -328,3 +328,14 @@ class TestAddRow(object):
         assert np.all(t['a'].mask == np.array([0,0,0], bool))
         assert np.all(np.array(t['b']) == np.array([4,5,6]))
         assert np.all(t['b'].mask == np.array([0,0,1], bool))
+
+
+@pytest.mark.xfail('numpy_lt_1p5')
+class TestReturnTypes():
+    def test_return_type(self):
+        tab = Table({'a':[1,2,3]})
+        tab.add_column(MaskedColumn(name='b', dtype=np.float, length=3))
+        assert type(tab['a']) == MaskedColumn
+        assert type(tab['b']) == MaskedColumn
+        
+        
