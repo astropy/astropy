@@ -635,6 +635,19 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         BaseColumn.__array_finalize__(self, obj)
         ma.MaskedArray.__array_finalize__(self, obj)
 
+    def _set_name(self, val):
+        print 1 ,val
+        super(MaskedColumn,self)._set_name(val)
+
+        if self.parent_table is not None:
+            table = self.parent_table
+            print table._mask.dtype
+            print table.columns.keys()
+            table._mask.dtype.names = table.columns.keys()
+            print table._mask.dtype
+
+    name = property(BaseColumn._get_name, _set_name)
+
     def _fix_fill_value(self, val):
         """Fix a fill value (if needed) to work around a bug with setting the fill
         value of a string array in MaskedArray with Python 3.x.  See
@@ -1407,6 +1420,11 @@ class Table(object):
             self._column_class = MaskedColumn
         else:
             self._column_class = Column
+        # If this operation caused _column_slass to change, we need to rebuild
+        # unless we are at the first stage of initializing
+        # before self._data has any entries at all
+        if self._data is not None:
+            self._rebuild_table_column_views()
 
     @property
     def ColumnClass(self):
