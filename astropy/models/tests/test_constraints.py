@@ -4,6 +4,7 @@ from .. import models, fitting
 import numpy as np
 from scipy import optimize
 from numpy.testing import utils
+from numpy.random import RandomState
 
 class TestNonLinearConstraints(object):
     def setup_class(self):
@@ -12,9 +13,10 @@ class TestNonLinearConstraints(object):
         self.x = np.arange(10, 20, .1)
         self.y1 = self.g1(self.x)
         self.y2 = self.g2(self.x)
-        n = np.random.randn(100)
-        self.ny1 = self.y1 + 2*n
-        self.ny2 = self.y2 + 2*n
+        rsn = RandomState(1234567890)
+        self.n = rsn.randn(100)
+        self.ny1 = self.y1 + 2*self.n
+        self.ny2 = self.y2 + 2*self.n
         
     def testFixedPar(self):
         g1 = models.Gauss1DModel(10, 14.9, xsigma=.3, fixed={'amplitude':True})
@@ -24,7 +26,7 @@ class TestNonLinearConstraints(object):
         fitpar, s = optimize.leastsq(errf, p0, args=(self.x, self.ny1))
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.x, self.ny1)
-        utils.assert_allclose(g1.parameters, fitpar, rtol=5*10**(-3))
+        assert g1.amplitude == 10
         
     def testTiedPar(self):
         
@@ -61,19 +63,6 @@ class TestNonLinearConstraints(object):
         utils.assert_allclose(jf.fitpars, fitpars, rtol=10**(-5))
         utils.assert_allclose(g1.amplitude, g2.amplitude)
         
-    def testNoConstraints(self):
-        g1 = models.Gauss1DModel(9.9, 14.5, xsigma=.3)
-        func = lambda p, x: p[0]* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
-        errf = lambda p, x, y: func(p, x) - y
-        p0 = [9.9, 14.5, 0.3]
-        y = g1(self.x)
-        n = np.random.randn(100)
-        ny = y + n
-        fitpar, s = optimize.leastsq(errf, p0, args=(self.x, n+y))
-        fitter = fitting.NonLinearLSQFitter(g1)
-        fitter(self.x, n+y)
-        utils.assert_allclose(g1.parameters, fitpar, rtol=5*10**(-3))
-        
 class TestLinearConstraints(object):
     def setup_class(self):
         self.p1 = models.Poly1DModel(4)
@@ -82,8 +71,9 @@ class TestLinearConstraints(object):
         self.p1.window = [0., 9.]
         self.x = np.arange(10)
         self.y = self.p1(self.x)
-        n = np.random.randn(10)
-        self.ny = self.y + n
+        rsn = RandomState(1234567890)
+        self.n = rsn.randn(10)
+        self.ny = self.y + self.n
         
     def test(self):
         self.p1.c0.fixed = True

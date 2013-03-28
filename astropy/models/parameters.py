@@ -6,8 +6,9 @@ unless they define their own models.
 
 """
 from __future__ import division, print_function
+import numbers
 import numpy as np
-import operator
+from ..utils import misc
 from .util import InputParameterError
 
 __all__ = []
@@ -17,22 +18,24 @@ def _tofloat(value):
     Convert a parameter to float or float array
    
     """
-    if operator.isSequenceType(value):
+    if misc.isiterable(value):
         try:
             _value = np.array(value, dtype=np.float)
-        except Exception: 
+        except (TypeError, ValueError): 
             #catch arrays with strings or user errors like different 
             # types of parameters in a parameter set
             raise InputParameterError(
-                "Parameter could not be converted to float")
+                "Parameter of {0} could not be converted to "
+                "float".format(type(value)))
     elif isinstance(value, bool):
         raise InputParameterError(
             "Expected parameter to be of numerical type, not boolean")
-    elif operator.isNumberType(value):
+    elif isinstance(value, numbers.Number):
         _value = np.array(value, dtype=np.float)
     else:
         raise InputParameterError(
-            "Don't know how to convert parameter to float")
+            "Don't know how to convert parameter of {0} to "
+            "float".format(type(value)))
     return _value
     
 class _Parameter(list):
@@ -60,8 +63,7 @@ class _Parameter(list):
             parameter dimension      
         """
         self._paramdim = paramdim
-        #NumberType covers scalars and numpy arrays
-        if operator.isNumberType(val):
+        if isinstance(val, numbers.Number):
             if self.paramdim == 1:
                 val = _tofloat(val)[()]
                 super(_Parameter, self).__init__([val])
@@ -70,8 +72,10 @@ class _Parameter(list):
                 val = [_tofloat(val)[()]]
                 super(_Parameter, self).__init__(val)
                 self.parshape = val[0].shape
-        # SequenceType covers lists
-        elif operator.isSequenceType(val):
+        # colections.Sequence covers lists but not ndarrays
+        # which are checked for in _tofloat()
+        # misc.iterable allows dict which is failed in _tofloat()
+        elif misc.isiterable(val):
             if paramdim == 1:
                 val = [_tofloat(value)[()] for value in val]
                 super(_Parameter, self).__init__(val)
@@ -142,7 +146,7 @@ class _Parameter(list):
     
     @min.setter
     def min(self, val):
-        assert operator.isNumberType(val), "Min value must be a number"
+        assert isinstance(val, numbers.Number), "Min value must be a number"
         self._min = float(val)
         self.mclass.constraints.set_range({self.name: (val, self.max or 1E12)})
         
@@ -152,7 +156,7 @@ class _Parameter(list):
     
     @max.setter
     def max(self, val):
-        assert operator.isNumberType(val), "Max value must be a number"
+        assert isinstance(val, numbers.Number), "Max value must be a number"
         self._max = float(val)
         self.mclass.constraints.set_range({self.name: (self.min or -1E12, val)})
 

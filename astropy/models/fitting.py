@@ -173,12 +173,6 @@ class Fitter(object):
                 return self.model.deriv(pars, x, y)
             else:
                 return self.model.deriv(pars, x, y, z)
-
-        if z is None:
-            res = self.model.deriv(pars, x, y)
-        else:
-            res = self.model.deriv(pars, x, y, z)
-        return res
      
     def _validate_constraints(self):
         fname = self.__class__.__name__
@@ -482,7 +476,7 @@ class NonLinearLSQFitter(Fitter):
         if z is None:
             if x.shape[0] != y.shape[0]:
                 raise ValueError("x and y should have the same shape")
-            meas = np.asarray(y) +0.0
+            meas = np.asarray(y, dtype=np.float)
             farg = (meas, x)
         else:
             if x.shape != z.shape:

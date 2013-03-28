@@ -40,7 +40,7 @@ In all these cases the output has the same shape as the input.
  
 """
 from __future__ import division, print_function
-import operator
+import collections
 import abc
 from ..utils.compat.odict import OrderedDict
 import numpy as np
@@ -424,7 +424,7 @@ class PModel(ParametricModel):
             self.set_coeff(pardim=paramdim)
         else:
             p = pars.get('c0', pars.get('c0_0'))
-            if operator.isSequenceType(p):
+            if isinstance(p, collections.Sequence):
                 lenpars = len(p)
             else:
                 lenpars = 1
@@ -569,7 +569,7 @@ class IModel(ParametricModel):
         
         else:
             p = pars.get('c0_0')
-            if operator.isSequenceType(p):
+            if isinstance(p, collections.Sequence):
                 lenpars = len(p)
             else:
                 lenpars = 1
@@ -1291,10 +1291,12 @@ class Gauss1DModel(ParametricModel):
         xsigma : float
             igma of the gaussian
             Either fwhm or xsigma must be specified
-        fjac : callable or None
+        fjac : callable, 'estimated' or None
             if callable - a function to compute the Jacobian of 
             func with derivatives across the rows.
-            if None - the Jacobian will be estimated
+            if 'estimated' - the Jacobian will be estimated
+            if None - if the model has a deriv method, it will be used,
+            if not the Jacobian will be estimated.
         
         Returns
         -------
@@ -1323,14 +1325,18 @@ class Gauss1DModel(ParametricModel):
         super(Gauss1DModel, self).__init__(self.parnames, ndim=1, outdim=1,
                                                                     paramdim=paramdim, **cons)
         self.linear = False
-        if fjac:
+        if fjac is 'estimated':
+            self.deriv = None
+        elif callable(fjac):
             self.deriv = fjac
+        else:
+            self.deriv = self.gderiv
             
     def eval(self, x, params):
         return params[0] * np.exp((-(1/(params[2]**2)) * 
                                                 (x-params[1])**2))
  
-    def deriv(self, p, x, y):
+    def gderiv(self, p, x, y):
         amplitude, xcen, xsigma = p
         deriv_dict = {}
         deriv_dict['amplitude'] = np.exp((-(1/(xsigma**2)) * (x-xcen)**2))
@@ -1472,7 +1478,7 @@ class ShiftModel(Model):
         model : ShiftModel
             A model representing offset
         """
-        if not operator.isSequenceType(offsets):
+        if not isinstance(offsets, collections.Sequence):
             paramdim = 1
         else:
             paramdim = len(offsets)
@@ -1507,7 +1513,7 @@ class ScaleModel(Model):
             Model representing scaling 
             
         """
-        if not operator.isSequenceType(factors):
+        if not isinstance(factors, collections.Sequence):
             paramdim = 1
         else:
             paramdim = len(factors)
@@ -1540,7 +1546,7 @@ class _SIP1D(Model):
             self.set_coeff(pardim=paramdim)
         else:
             p = pars.get('{0}02'.format(coeffname, None))
-            if operator.isSequenceType(p):
+            if isinstance(p, collections.Sequence):
                 lenpars = len(p)
             else:
                 lenpars = 1
@@ -1816,11 +1822,11 @@ class SCompositeModel(_CompositeModel):
     --------
     Apply a 2D rotation followed by a shift in x and y
     
-    >>> from fitting import rotations
+    >>> from models import rotations
     >>> rot = rotations.MatrixRotation2D(angle=23.5)
     >>> offx = ShiftModel(-4.23)
     >>> offy = ShiftModel(2)
-    >>> linp = LabeledInput([x,y], ["x", "y"]
+    >>> linp = LabeledInput([x, y], ["x", "y"]
     >>> scomptr = SCompositeModel([rot, offx, offy], 
                                   inmap=[['x', 'y'], ['x'], ['y']],
                                   outmap=[['x', 'y'], ['x'], ['y']])
