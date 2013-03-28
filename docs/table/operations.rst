@@ -19,16 +19,16 @@ values in one or more key columns.
 For example, suppose one has two tables of observations, the first with B and V magnitudes
 and the second with X-ray luminosities of an overlapping (but not identical) sample::
 
-  >>> from astropy.io import ascii
-  >>> optical = ascii.read("""name    obs_date    mag_b  mag_v
+  >>> from astropy.table import Table
+  >>> optical = Table.read("""name    obs_date    mag_b  mag_v
                               M31     2012-01-02  17.0   16.0
                               M82     2012-10-29  16.2   15.2
-                              M101    2012-10-31  15.1   15.5""")
+                              M101    2012-10-31  15.1   15.5""", format='ascii')
 
-  >>> xray = ascii.read("""   name    obs_date    logLx
+  >>> xray = Table.read("""   name    obs_date    logLx
                               NGC3516 2011-11-11  42.1
                               M31     1999-01-05  43.1
-                              M82     2012-10-29  45.0""")
+                              M82     2012-10-29  45.0""", format='ascii')
 
 The |join| method allows one to merge these two tables into a single table based on
 matching values in the "key columns".  By default the key columns are the set of columns
