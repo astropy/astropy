@@ -57,7 +57,13 @@ class Latex(base.Base):
     def to_string(self, unit):
         from .. import core
 
-        if isinstance(unit, core.CompositeUnit):
+        latex_name = None
+        if hasattr(unit, '_format'):
+            latex_name = unit._format.get('latex')
+
+        if latex_name is not None:
+            s = latex_name
+        elif isinstance(unit, core.CompositeUnit):
             if unit.scale != 1:
                 s = self._format_exponential_notation(unit.scale) + r'\ '
             else:
@@ -77,6 +83,6 @@ class Latex(base.Base):
                     positives = self._format_unit_list(positives)
                     s += positives
         elif isinstance(unit, core.NamedUnit):
-            s = self._get_unit_name(unit)
+            s = self._latex_escape(unit.name)
 
         return r'$\mathrm{{{0}}}$'.format(s)
