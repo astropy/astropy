@@ -5,9 +5,8 @@ Fitting
 *******
 
 This module provides wrappers, called Fitters, around some Numpy and Scipy 
-fitting functions. All Fitters take an instance of
-`models.ParametricModel` as input and define a `__call__` method
-which fits the model to the data and changes `model.parameters
+fitting functions. All Fitters can be called as funcitons. They take an instance of 
+`models.ParametricModel` as input and modily `model.parameters`
 attribute. The idea is to make this extensible and allow users to easily add 
 other fitters.
 

@@ -8,6 +8,7 @@ from . import irafutil
 import numpy as np
 from numpy import linalg
 from numpy.testing import utils
+from numpy.random import RandomState
 from scipy import optimize
 from ...utils.data import get_pkg_data_filename
 
@@ -20,8 +21,9 @@ class TestFitters(object):
         self.g11 = models.Gauss1DModel(10, 14.9000, xsigma=.3)
         self.x = np.arange(10, 20, .1)
         self.y = self.g1(self.x)
-        n = np.random.randn(100)
-        self.ny = self.y+2*n
+        rsn = RandomState(1234567890)
+        self.n = rsn.randn(100)
+        self.ny = self.y + self.n
         
     def test_LSQ_SLSQP(self):
         fslsqp = fitting.SLSQPFitter(self.g1)

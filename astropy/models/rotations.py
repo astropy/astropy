@@ -17,7 +17,7 @@ References
 """
 from __future__ import division, print_function
 import math
-import operator
+import numbers
 import numpy as np
 from .models import Model
 from .parameters import _Parameter
@@ -208,7 +208,7 @@ class MatrixRotation2D(Model):
                     
     def _validate_angle(self, angle):
         a = np.asarray(angle)
-        assert operator.isNumberType(a), \
+        assert isinstance(a, numbers.Number), \
                     "Expected angle to be a number"
         assert a.ndim == 0, \
                     "Expected angle to be a number"

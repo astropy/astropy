@@ -16,7 +16,7 @@ The goal of this package is, when possible, to allow simultaneous model evaluati
 and fitting with multiple parameter sets. Because of this, all models have a `psets`
 attribute, an array of shape `(len(parnames), paramdim)`, where `paramdim` is the number of 
 parameter sets. Typically the array is of type float but can become an object array in 
-some cases. `Psets` is used for model evaluation.
+some cases. `psets` is used for model evaluation.
 
 In addition, all models maintain an attribute, `parameters`, an instance of
 `~astropy.parameters.Parameters`. This is a flat list of 
@@ -26,7 +26,7 @@ and models.
 Individual parameters, `psets` and the flat list of parameter values are kept in sync. 
 Single parameters are updated through properties. An update to a single parameter 
 trigers an update to `psets` and `parameters`. Single parameters are updated 
-after a change to `parameters`. `Psets` are always constructed on demand from single 
+after a change to `parameters`. `psets` are always constructed on demand from single 
 parameters and cannot be updated directly.
 
 Parameters Examples

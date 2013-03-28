@@ -8,8 +8,7 @@ The base class of all models is `~astropy.models.models.Model`, however fittable
 models should subclass `~astropy.models.models.ParametricModel`. Parametric 
 models can be linear or nonlinear in a regression analysis sense.
 
-All models provide a `__call__` method which performs the transformation in a 
-purely mathematical way, i.e. the models are unitless. In addition, when possible the 
+To evaluate a model, it is called like a function. When possible the 
 transformation is done using multiple parameter sets, `psets`.
 The number of parameter sets is stored in an attribute `paramdim`. 
 
