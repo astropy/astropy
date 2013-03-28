@@ -231,22 +231,10 @@ text_clear(IterParser *self)
 static inline PyObject*
 make_pos(const IterParser *self)
 {
-    PyObject* tuple;
-    PyObject* line_obj;
-    PyObject* col_obj;
-
-    tuple = PyTuple_New(2);
-    if (tuple == NULL) {
-        return NULL;
-    }
-
-    line_obj = PyLong_FromSize_t((size_t)self->last_line);
-    col_obj = PyLong_FromSize_t((size_t)self->last_col);
-
-    PyTuple_SetItem(tuple, 0, line_obj);
-    PyTuple_SetItem(tuple, 1, col_obj);
-
-    return tuple;
+    return Py_BuildValue(
+            "(nn)",
+            (size_t)self->last_line,
+            (size_t)self->last_col);
 }
 
 /*
