@@ -973,3 +973,44 @@ class TestImageFunctions(FitsTestCase):
             assert (data == fits.compression.decompress_hdu(hdu)).all()
         finally:
             fits.compression.compress_hdu = old_compress_hdu
+
+    def test_lossless_gzip_compression(self):
+        """Regression test for #198."""
+
+        noise = np.random.normal(size=(100, 100))
+
+        chdu1 = fits.CompImageHDU(data=noise, compressionType='GZIP_1')
+        # First make a test image with lossy compression and make sure it
+        # wasn't compressed perfectly.  This shouldn't happen ever, but just to
+        # make sure the test non-trivial.
+        chdu1.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as h:
+            assert np.abs(noise - h[1].data).max() > 0.0
+
+        chdu2 = fits.CompImageHDU(data=noise, compressionType='GZIP_1',
+                                    quantizeLevel=0.0)  # No quantization
+        with ignore_warnings():
+            chdu2.writeto(self.temp('test.fits'), clobber=True)
+
+        with fits.open(self.temp('test.fits')) as h:
+            assert (noise == h[1].data).all()
+
+    def test_compression_column_tforms(self):
+        """Regression test for #199."""
+
+        # Some interestingly tiled data so that some of it is quantized and
+        # some of it ends up just getting gzip-compressed
+        data2 = ((np.arange(1, 8, dtype=np.float32) * 10)[:, np.newaxis] +
+                np.arange(1, 7))
+        np.random.seed(1337)
+        data1 = np.random.uniform(size=(6 * 4, 7 * 4))
+        data1[:data2.shape[0], :data2.shape[1]] = data2
+        chdu = fits.CompImageHDU(data1, compressionType='RICE_1',
+                                   tileSize=(6, 7))
+        chdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits'),
+                         disable_image_compression=True) as h:
+            assert h[1].header['TFORM1'] == '1PB(30)'
+            assert h[1].header['TFORM2'] == '1PB(359)'

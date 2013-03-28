@@ -510,6 +510,7 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     char* zname;
     int znaxis;
     char* tmp;
+    float version;
 
     unsigned int idx;
 
@@ -639,11 +640,32 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
         } else if (Fptr->zbitpix < 0 && 0 == strcmp(zname, "NOISEBIT")) {
              get_header_float(header, keyword, &(Fptr->quantize_level),
                               DEFAULT_QUANTIZE_LEVEL);
+             if (Fptr->quantize_level == 0.0) {
+                 /* NOISEBIT == 0 is equivalent to no quantize */
+                 Fptr->quantize_level = NO_QUANTIZE;
+             }
         }
 
         idx++;
     }
 
+    /* The ZQUANTIZ keyword determines the quantization algorithm; NO_QUANTIZE
+       implies lossless compression */
+    if (0 == get_header_string(header, "ZQUANTIZ", &tmp, "")) {
+        /* Ugh; the fact that cfitsio defines its version as a float makes
+           preprocessor comparison impossible */
+        fits_get_version(&version);
+        if ((version >= CFITSIO_LOSSLESS_COMP_SUPPORTED_VERS) &&
+                (0 == strcmp(tmp, "NONE"))) {
+            Fptr->quantize_level = NO_QUANTIZE;
+        } else if (0 == strcmp(tmp, "SUBTRACTIVE_DITHER_1")) {
+            Fptr->quantize_dither = SUBTRACTIVE_DITHER_1;
+        } else {
+            Fptr->quantize_dither = 0;
+        }
+    } else {
+        Fptr->quantize_dither = 0;
+    }
 
     Fptr->compressimg = 1;
     Fptr->maxelem = imcomp_calc_max_elem(Fptr->compress_type,

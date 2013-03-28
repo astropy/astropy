@@ -29,6 +29,27 @@ Bug Fixes
   - Fixed encoding errors that could occur when formatting coordinate objects
     in code using ``from __future__ import unicode_literals``. [#817]
 
+- ``astropy.io.fits``
+
+  - Properly supports the ZQUANTIZ keyword used to support quantization
+    level--this includes working support for lossless GZIP compression of
+    images.
+
+  - Fixed support for opening gzipped FITS files in a writeable mode. [#256]
+
+  - Added a more helpful exception message when trying to read invalid values
+    from a table when the required ``TNULLn`` keyword is missing. [#309]
+
+  - Fixed malformatting of the ``TFORMn`` keywords when writing compressed
+    image tables (they ommitted the max array length parameter from the
+    variable-length array format).
+
+  - Fixed a crash that could occur when writing a table containing multi-
+    dimensional array columns from an existing file into a new file.
+
+  - Fixed a bug in fitsdiff that reported two header keywords contaning NaN
+    as having different values.
+
 - ``astropy.io.votable``
 
   - Fixed links to the ``astropy.io.votable`` documentation in the VOTable
