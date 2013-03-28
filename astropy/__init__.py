@@ -6,7 +6,7 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
-#this indicates whether or not we are in astropy's setup.py
+# this indicates whether or not we are in astropy's setup.py
 try:
     _ASTROPY_SETUP_
 except NameError:
@@ -28,6 +28,9 @@ try:
 except ImportError:
     # TODO: Issue a warning using the logging framework
     __githash__ = ''
+
+
+import logging
 
 
 # The location of the online documentation for astropy
@@ -114,10 +117,13 @@ def test(package=None, test_path=None, args=None, plugins=None,
         coverage=coverage, open_files=open_files)
 
 
+# Use the root logger as a dummy log before initilizing Astropy's logger
+log = logging.getLogger()
+
 # if we are *not* in setup mode, import the logger and possibly populate the
 # configuration file with the defaults
 if not _ASTROPY_SETUP_:
-    from .logger import log
+    from .logger import _init_log
     from . import config
 
     import os
@@ -142,14 +148,15 @@ if not _ASTROPY_SETUP_:
     # add these here so we only need to cleanup the namespace at the end
     config_dir = None
 
-    if not os.environ.get('ASTROPY_SKIP_CONFIG_UPDATE', False):
-        config_dir = os.path.dirname(__file__)
-        try:
-            config.configuration.update_default_config(__package__, config_dir)
-        except config.configuration.ConfigurationDefaultMissingError as e:
-            wmsg = (e.args[0] + " Cannot install default profile. If you are "
-                    "importing from source, this is expected.")
-            warn(config.configuration.ConfigurationDefaultMissingWarning(wmsg))
-            del e
+    log = _init_log()
 
-    del os, warn, config_dir  # clean up namespace
+    config_dir = os.path.dirname(__file__)
+    try:
+        config.configuration.update_default_config(__package__, config_dir)
+    except config.configuration.ConfigurationDefaultMissingError as e:
+        wmsg = (e.args[0] + " Cannot install default profile. If you are "
+                "importing from source, this is expected.")
+        warn(config.configuration.ConfigurationDefaultMissingWarning(wmsg))
+        del e
+
+    del _init_log, os, warn, config_dir  # clean up namespace

@@ -48,6 +48,9 @@ except ImportError:
     HAVE_SPHINX = False
 
 
+PY3 = sys.version_info[0] >= 3
+
+
 _adjusted_compiler = False
 def adjust_compiler(package):
     """
@@ -536,8 +539,9 @@ class AstropyBuildPy(SetuptoolsBuildPy):
         if self.distribution.is_pure():
             # Generate the default astropy.cfg - we only do this here if it's
             # pure python.  Otherwise, it'll happen at the end of build_exp
-            default_cfg = generate_default_config(os.path.abspath(self.build_lib),
-                                                  self.distribution.packages[0])
+            default_cfg = generate_default_config(
+                    os.path.abspath(self.build_lib),
+                    self.distribution.packages[0])
             if default_cfg:
                 default_cfg = os.path.relpath(default_cfg)
                 self.copy_file(default_cfg,
@@ -554,20 +558,24 @@ def generate_default_config(build_lib, package):
     else:
         log.info('generating default {0}.cfg file'.format(package))
 
-    env = os.environ.copy()
-    env['ASTROPY_SKIP_CONFIG_UPDATE'] = 'True'
+    if PY3:
+        builtins = 'builtins'
+    else:
+        builtins = '__builtin__'
 
     subproccode = (
+        'import {builtins};{builtins}._ASTROPY_SETUP_ = True;'
         'from astropy.config.configuration import generate_all_config_items;'
         'generate_all_config_items({pkgnm!r}, True, filename={filenm!r})')
-    subproccode = subproccode.format(pkgnm=package,
+    subproccode = subproccode.format(builtins=builtins,
+                                     pkgnm=package,
                                      filenm=os.path.abspath(filename))
 
     # Note that cwd=build_lib--we're importing astropy from the build/ dir
     # but using the astropy/ source dir as the config directory
     proc = subprocess.Popen([sys.executable, '-c', subproccode],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                             cwd=build_lib, env=env)
+                             cwd=build_lib)
     stdout, stderr = proc.communicate()
 
     if proc.returncode == 0 and os.path.exists(filename):
@@ -1457,7 +1465,8 @@ def filter_packages(packagenames):
     Removes some packages from the package list that shouldn't be
     installed on the current version of Python.
     """
-    if sys.version_info[0] >= 3:
+
+    if PY3:
         exclude = '_py2'
     else:
         exclude = '_py3'

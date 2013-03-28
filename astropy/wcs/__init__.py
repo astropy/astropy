@@ -22,7 +22,9 @@ a standard pipeline.
 
 from __future__ import division  # confidence high
 
-if not _ASTROPY_SETUP_:
+try:
+    # Not guaranteed available at setup time
     from .wcs import *
-
-    pass
+except ImportError:
+    if not _ASTROPY_SETUP_:
+        raise

@@ -14,7 +14,7 @@ import numpy as np
 # LOCAL
 from . import OrderedDict
 from .. import units as u
-from ..logger import log
+from .. import log
 
 
 __all__ = ['timefunc', 'RunTimePredictor']
