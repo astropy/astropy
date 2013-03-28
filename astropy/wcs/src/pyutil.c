@@ -683,6 +683,7 @@ get_pscards(
   Py_ssize_t i         = 0;
 
   if (nps < 0) {
+    PyErr_SetString(PyExc_ValueError, "Object as no pscards");
     return NULL;
   }
 
@@ -787,6 +788,11 @@ get_pvcards(
   PyObject*  result    = NULL;
   PyObject*  subresult = NULL;
   Py_ssize_t i         = 0;
+
+  if (npv < 0) {
+    PyErr_SetString(PyExc_ValueError, "Object as no pvcards");
+    return NULL;
+  }
 
   result = PyList_New((Py_ssize_t)npv);
   if (result == NULL) {
