@@ -635,6 +635,8 @@ class TestRename(SetupData):
         t.rename_column('b', 'a')
         assert t.columns.keys() == ['c', 'a']
         assert t._data.dtype.names == ('c', 'a')
+        if t.masked:
+            assert t._data.mask.dtype.names == ('c', 'a')
         assert np.all(t['c'] == np.array([1, 2, 3]))
         assert np.all(t['a'] == np.array([4, 5, 6]))
 
