@@ -117,9 +117,37 @@ if SUPPORTS_OPEN_FILE_DETECTION:
 
 
 def pytest_report_header(config):
+
     from .. import __version__
+
     s = "\nRunning tests with Astropy version {0}.\n".format(__version__)
-    s += "Running tests in {0}.\n".format(" ".join(config.args))
+    s += "Running tests in {0}.\n\n".format(" ".join(config.args))
+
+    from platform import platform
+    s += "Platform: {0}\n\n".format(platform())
+    s += "Executable: {0}\n\n".format(sys.executable)
+    s += "Full Python Version: \n{0}\n\n".format(sys.version)
+
+    import numpy
+    s += "Numpy: {0}\n".format(numpy.__version__)
+
+    try:
+        import scipy
+        s += "Scipy: {0}\n".format(scipy.__version__)
+    except:
+        s += "Scipy: not available\n"
+
+    try:
+        import matplotlib
+        s += "Matplotlib: {0}\n".format(matplotlib.__version__)
+    except:
+        s += "Matplotlib: not available\n"
+
+    try:
+        import h5py
+        s += "h5py: {0}\n".format(h5py.__version__)
+    except:
+        s += "h5py: not available\n"
 
     special_opts = ["remote_data", "pep8"]
     opts = []
