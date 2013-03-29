@@ -24,8 +24,101 @@
 Bug Fixes
 ^^^^^^^^^
 
-Fixed a minor issue when installing with ``./setup.py develop`` on a fresh git
-clone.  This is likely only of interest to developers on Astropy. [#725]
+- ``coordinates``
+
+  - Fixed encoding errors that could occur when formatting coordinate objects
+    in code using ``from __future__ import unicode_literals``. [#817]
+
+- ``io.votable``
+
+  - Fixed links to the ``astropy.io.votable`` documentation in the VOTable
+    validator output. [#806]
+
+  - When reading VOTables containing integers that are out of range for their
+    column type, display a warning rather than raising an exception. [#825]
+
+  - Changed the default string format for floating point values for better
+    round-tripping. [#856]
+
+- ``table``
+
+  - Fixed silent failure to assign values to a row on multiple columns. [#764]
+
+  - Fixed various buggy behavior when viewing a table after sorting by one of
+    its columns. [#829]
+
+  - Fixed using ``np.where()`` with table indexing. [#838]
+
+  - Fixed a bug where ``MaskedColumn`` no longer worked if the column being
+    masked is renamed. [#916]
+
+- ``units``
+
+  - Added missing capability for array ``Quantity``s to be initializable by
+    a list of ``Quantity``s. [#835]
+
+  - Fixed the definition of year and lightyear to be in terms of Julian year
+    per the IAU definition. [#861]
+
+  - "degree" was removed from the list of SI base units. [#863]
+
+- ``wcs``
+
+  - Fixed ``TypeError`` when calling ``WCS.to_header_string()``. [#822]
+
+- Misc
+
+  - Fixed a minor issue when installing with ``./setup.py develop`` on a fresh
+    git clone.  This is likely only of interest to developers on Astropy.
+    [#725]
+
+  - Fixed an exception when creating a ``ProgressBar`` with a "total" of 0.
+    [#752]
+
+  - Added better documentation of behavior that can occur when trying to import
+    the astropy package from within a source checkout without first building
+    the extension modules. [#795]
+
+  - Added link to the installation instructions in the README. [#797]
+
+  - Catches segfaults in xmllint which can occur sometimes and is otherwise out
+    of our control. [#803]
+
+  - Fixed a minor exception handling bug in ``download_file()``. [#808]
+
+  - Added cleanup of any temporary files if an error occurs in
+    ``download_file()``. [#857]
+
+  - Filesystem free space is checked for before attempting to download a file
+    with ``download_file()``. [#858]
+
+  - Fixed package data locating to work across symlinks--required to work with
+    some OS packaging layouts. [#827]
+
+  - Fixed a bug when building Cython extensions where hidden files containing
+    ``.pyx`` extensions could cause the build to crash. This can be an issue
+    with software and filesystems that autogenerate hidden files. [#834]
+
+  - Fixed bug that could cause a "script" called README.rst to be installed
+    in a bin directory. [#852]
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Upgraded included version libexpat to 2.1.0. [#781]
+
+- ~25% performance improvement in unit composition/decomposition. [#836]
+
+- Added previously missing LaTeX formatting for ``L_sun`` and ``R_sun``. [#841]
+
+- ``ConfigurationItem``s now have a more useful and informative ``__repr__``
+  and improved documentation for how to use them. [#855]
+
+- ``py.test`` now outputs more system information for help in debugging issues
+  from users. [#869]
+
+- Added unit definitions "mas" and "uas" for "milliarcsecond" and
+  "microarcsecond" respectively. [#892]
 
 
 0.2 (2013-02-19)
