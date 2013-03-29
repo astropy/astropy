@@ -176,3 +176,7 @@ def test_console_out():
     Issue #436.
     """
     u.Jy.decompose().to_string('console')
+
+
+def test_flexible_float():
+    assert u.min._represents.to_string('latex') == u'$\\mathrm{60\\ s}$'
