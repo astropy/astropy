@@ -6,44 +6,45 @@ It adds links associated with each docstring that go to the
 corresponding view source page on Github.  From there, the user can
 push the "Edit" button, edit the docstring, and submit a pull request.
 
-It has the following configuration parameters:
+It has the following configuration options (to be set in the project's
+``conf.py``):
 
-edit_on_github_project:
+* `edit_on_github_project`
     The name of the github project, in the form
     "username/projectname".
 
-edit_on_github_branch:
+* `edit_on_github_branch`
     The name of the branch to edit.  If this is a released version,
     this should be a git tag referring to that version.  For a
     dev version, it often makes sense for it to be "master".  It
     may also be a git hash.
 
-edit_on_github_source_root:
+* `edit_on_github_source_root`
     The location within the source tree of the root of the
     Python package.  Defaults to "lib".
 
-edit_on_github_doc_root:
+* `edit_on_github_doc_root`
     The location within the source tree of the root of the
     documentation source.  Defaults to "doc", but it may make sense to
     set it to "doc/source" if the project uses a separate source
     directory.
 
-edit_on_github_docstring_message:
+* `edit_on_github_docstring_message`
     The phrase displayed in the links to edit a docstring.  Defaults
     to "[edit on github]".
 
-edit_on_github_page_message:
+* `edit_on_github_page_message`
     The phrase displayed in the links to edit a RST page.  Defaults
     to "[edit this page on github]".
 
-edit_on_github_help_message:
+* `edit_on_github_help_message`
     The phrase displayed as a tooltip on the edit links.  Defaults to
     "Push the Edit button on the next page"
 
-edit_on_github_skip_regex:
+* `edit_on_github_skip_regex`
     When the path to the .rst file matches this regular expression,
-    no "edit this page on github" link will be added.  Default to
-    "_.*".
+    no "edit this page on github" link will be added.  Defaults to
+   ``"_.*"``.
 """
 import inspect
 import os
