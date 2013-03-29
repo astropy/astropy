@@ -265,6 +265,13 @@ def fileobj_mode(f):
                 mode = mode.replace('a', 'r')
             else:
                 mode = mode.replace('a', 'w')
+
+        # I've noticed that sometimes Python can produce modes like 'r+b' which
+        # I would consider kind of a bug--mode strings should be normalized.
+        # Let's normalize it for them:
+        if '+' in mode:
+            mode = mode.replace('+', '')
+            mode += '+'
     else:
         # If mode still turned out to be something other than a string, it's
         # not the droid we were looking for, and we should just toss it
