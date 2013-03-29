@@ -8,7 +8,7 @@ Introduction
 ============
 `~astropy.models` provides a framework for representing models and 
 performing model evaluation and fitting. It supports 1D and 2D models 
-parameter constraints.
+and fitting with parameter constraints.
 
 It is `designed`_ to be easily extensible and flexible.
 Models do not reference fitting algorithms explicitely
@@ -21,7 +21,7 @@ The goal is to eventually provide a rich toolset of models and fitters
 such that most users will not need to define new model classes, nor
 special purpose fitting routines (but not making that hard to do if it is necessary).
 
-This is a work in progress but the main infrastructure is in place and usable 
+This is a work in progress but the basic framework is in place and usable 
 in many ways now.
 
 Getting Started

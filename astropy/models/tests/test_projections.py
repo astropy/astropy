@@ -17,8 +17,7 @@ class TestProjections(object):
     """
     def setup_class(self):
         self.w = wcs.WCS()
-        test_file = get_pkg_data_filename('data/1904-66_AZP.fits')
-        print test_file
+        test_file = get_pkg_data_filename(os.path.join('data', '1904-66_AZP.fits'))
         hdr = fits.getheader(test_file)
         self.wazp = wcs.WCS(hdr)
         self.wazp.wcs.crpix = np.array([0., 0.])
