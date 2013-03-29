@@ -98,8 +98,10 @@ testing guidelines.
    development/codeguide
    development/docguide
    development/testguide
-   development/building_packaging
    development/scripts
+   development/building
+   development/ccython
+   development/releasing
    development/vision
    changelog
 
