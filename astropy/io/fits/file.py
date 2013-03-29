@@ -91,84 +91,11 @@ class _File(object):
 
         # Initialize the internal self.__file object
         if isfile(fileobj) or isinstance(fileobj, gzip.GzipFile):
-            closed = fileobj_closed(fileobj)
-            fmode = fileobj_mode(fileobj) or PYTHON_MODES[mode]
-
-            if not closed:
-                # In some cases (like on Python 3) a file opened for
-                # appending still shows a mode of 'r+', hence the extra
-                # check for the append case
-                if ((mode == 'append' and fmode not in ('ab+', 'rb+')) or
-                    (mode != 'append' and PYTHON_MODES[mode] != fmode)):
-                    raise ValueError(
-                        "Input mode '%s' (%s) does not match mode of the "
-                        "input file (%s)." % (mode, PYTHON_MODES[mode], fmode))
-                self.__file = fileobj
-            elif isfile(fileobj):
-                self.__file = fileobj_open(self.name, PYTHON_MODES[mode])
-                # Return to the beginning of the file--in Python 3 when
-                # opening in append mode the file pointer is at the end of
-                # the file
-                self.__file.seek(0)
-            else:
-                self.__file = gzip.open(self.name, PYTHON_MODES[mode])
+            self._open_fileobj(fileobj, mode)
         elif isinstance(fileobj, basestring):
-            if os.path.exists(self.name):
-                with fileobj_open(self.name, 'rb') as f:
-                    magic = f.read(4)
-            else:
-                magic = ''.encode('raw-unicode-escape')
-            ext = os.path.splitext(self.name)[1]
-            if ext == '.gz' or magic.startswith(GZIP_MAGIC):
-                # Handle gzip files
-                if mode in ['update', 'append']:
-                    raise IOError(
-                          "Writing to gzipped fits files is not currently "
-                          "supported")
-                self.__file = gzip.open(self.name)
-                self.compression = 'gzip'
-            elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
-                # Handle zip files
-                if mode in ['update', 'append']:
-                    raise IOError(
-                          "Writing to zipped fits files is not currently "
-                          "supported")
-                zfile = zipfile.ZipFile(self.name)
-                namelist = zfile.namelist()
-                if len(namelist) != 1:
-                    raise IOError(
-                      "Zip files with multiple members are not supported.")
-                self.__file = tempfile.NamedTemporaryFile(suffix='.fits')
-                self.__file.write(zfile.read(namelist[0]))
-                zfile.close()
-                self.compression = 'zip'
-            else:
-                self.__file = fileobj_open(self.name, PYTHON_MODES[mode])
-                # Make certain we're back at the beginning of the file
-            self.__file.seek(0)
+            self._open_filename(fileobj, mode)
         else:
-            # We are dealing with a file like object.
-            # Assume it is open.
-            self.file_like = True
-            self.__file = fileobj
-
-            # If there is not seek or tell methods then set the mode to
-            # output streaming.
-            if (not hasattr(self.__file, 'seek') or
-                not hasattr(self.__file, 'tell')):
-                self.mode = mode = 'ostream'
-
-            if (self.mode in ('copyonwrite', 'update', 'append') and
-                not hasattr(self.__file, 'write')):
-                raise IOError("File-like object does not have a 'write' "
-                              "method, required for mode '%s'."
-                              % self.mode)
-
-            if (self.mode in ('readonly', 'denywrite') and
-                not hasattr(self.__file, 'read')):
-                raise IOError("File-like object does not have a 'read' "
-                              "method, required for mode %r."
-                              % self.mode)
+            self._open_filelike(fileobj, mode)
 
         if isinstance(fileobj, gzip.GzipFile):
             self.compression = 'gzip'
@@ -342,3 +269,86 @@ class _File(object):
             self.__file.close()
 
         self.closed = True
+
+    def _open_fileobj(self, fileobj, mode):
+        """Open a FITS file from a file object or a GzipFile object."""
+
+        closed = fileobj_closed(fileobj)
+        fmode = fileobj_mode(fileobj) or PYTHON_MODES[mode]
+
+        if not closed:
+            # In some cases (like on Python 3) a file opened for appending
+            # still shows a mode of 'r+', hence the extra check for the append
+            # case
+            if ((mode == 'append' and fmode not in ('ab+', 'rb+')) or
+                (mode != 'append' and PYTHON_MODES[mode] != fmode)):
+                raise ValueError(
+                    "Input mode '%s' (%s) does not match mode of the "
+                    "input file (%s)." % (mode, PYTHON_MODES[mode], fmode))
+            self.__file = fileobj
+        elif isfile(fileobj):
+            self.__file = fileobj_open(self.name, PYTHON_MODES[mode])
+            # Return to the beginning of the file--in Python 3 when opening in
+            # append mode the file pointer is at the end of the file
+            self.__file.seek(0)
+        else:
+            self.__file = gzip.open(self.name, PYTHON_MODES[mode])
+
+    def _open_filelike(self, fileobj, mode):
+        """Open a FITS file from a file-like object, i.e. one that has
+        read and/or write methods.
+        """
+
+        self.file_like = True
+        self.__file = fileobj
+
+        # If there is not seek or tell methods then set the mode to
+        # output streaming.
+        if (not hasattr(self.__file, 'seek') or
+            not hasattr(self.__file, 'tell')):
+            self.mode = mode = 'ostream'
+
+        if (self.mode in ('copyonwrite', 'update', 'append') and
+            not hasattr(self.__file, 'write')):
+            raise IOError("File-like object does not have a 'write' "
+                          "method, required for mode '%s'."
+                          % self.mode)
+
+        if (self.mode in ('readonly', 'denywrite') and
+            not hasattr(self.__file, 'read')):
+            raise IOError("File-like object does not have a 'read' "
+                          "method, required for mode %r."
+                          % self.mode)
+
+    def _open_filename(self, filename, mode):
+        """Open a FITS file from a filename string."""
+
+        if os.path.exists(self.name):
+            with fileobj_open(self.name, 'rb') as f:
+                magic = f.read(4)
+        else:
+            magic = ''.encode('raw-unicode-escape')
+        ext = os.path.splitext(self.name)[1]
+        if ext == '.gz' or magic.startswith(GZIP_MAGIC):
+            # Handle gzip files
+            self.__file = gzip.open(self.name, PYTHON_MODES[mode])
+            self.compression = 'gzip'
+        elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
+            # Handle zip files
+            if mode in ['update', 'append']:
+                raise IOError(
+                      "Writing to zipped fits files is not currently "
+                      "supported")
+            zfile = zipfile.ZipFile(self.name)
+            namelist = zfile.namelist()
+            if len(namelist) != 1:
+                raise IOError(
+                  "Zip files with multiple members are not supported.")
+            self.__file = tempfile.NamedTemporaryFile(suffix='.fits')
+            self.__file.write(zfile.read(namelist[0]))
+            zfile.close()
+            self.compression = 'zip'
+        else:
+            self.__file = fileobj_open(self.name, PYTHON_MODES[mode])
+            # Make certain we're back at the beginning of the file
+        self.__file.seek(0)

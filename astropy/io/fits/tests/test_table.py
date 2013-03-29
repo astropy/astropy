@@ -1714,6 +1714,40 @@ class TestTableFunctions(FitsTestCase):
         assert t.field(1).dtype.str[-1] == '5'
         assert t.field(1).shape == (3, 4, 3)
 
+    def test_string_array_round_trip(self):
+        """Regression test for #201."""
+
+        data = [['abc', 'def', 'ghi'],
+                ['jkl', 'mno', 'pqr'],
+                ['stu', 'vwx', 'yz ']]
+
+        recarr = np.rec.array([(data,), (data,)], formats=['(3,3)S3'])
+
+        t = fits.BinTableHDU(data=recarr)
+        t.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as h:
+            assert 'TDIM1' in h[1].header
+            assert h[1].header['TDIM1'] == '(3,3,3)'
+            assert len(h[1].data) == 2
+            assert len(h[1].data[0]) == 1
+            assert (h[1].data.field(0)[0] ==
+                    recarr.field(0)[0].decode('ascii')).all()
+
+        with fits.open(self.temp('test.fits')) as h:
+            # Access the data; I think this is necessary to exhibit the bug
+            # reported in #201
+            h[1].data[:]
+            h.writeto(self.temp('test2.fits'))
+
+        with fits.open(self.temp('test2.fits')) as h:
+            assert 'TDIM1' in h[1].header
+            assert h[1].header['TDIM1'] == '(3,3,3)'
+            assert len(h[1].data) == 2
+            assert len(h[1].data[0]) == 1
+            assert (h[1].data.field(0)[0] ==
+                    recarr.field(0)[0].decode('ascii')).all()
+
     def test_slicing(self):
         """Regression test for #52."""
 
@@ -1886,3 +1920,28 @@ class TestTableFunctions(FitsTestCase):
         with fits.open(self.temp('table.fits')) as hdul:
             assert (hdul[1].data['F1'] == [True, True]).all()
             assert (hdul[1].data['F2'] == [True, True]).all()
+
+    def test_missing_tnull(self):
+        """Regression test for #197."""
+
+        c = fits.Column('F1', 'A3', null='---',
+                          array=np.array(['1.0', '2.0', '---', '3.0']))
+        table = fits.new_table([c], tbtype='TableHDU')
+        table.writeto(self.temp('test.fits'))
+
+        # Now let's delete the TNULL1 keyword, making this essentially
+        # unreadable
+        with fits.open(self.temp('test.fits'), mode='update') as h:
+            h[1].header['TFORM1'] = 'E3'
+            del h[1].header['TNULL1']
+
+        with fits.open(self.temp('test.fits')) as h:
+            pytest.raises(ValueError, lambda: h[1].data['F1'])
+
+        try:
+            with fits.open(self.temp('test.fits')) as h:
+                h[1].data['F1']
+        except ValueError, e:
+            assert str(e).endswith(
+                         "the header may be missing the necessary TNULL1 "
+                         "keyword or the table contains invalid data")

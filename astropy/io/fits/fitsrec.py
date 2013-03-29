@@ -433,7 +433,13 @@ class FITS_rec(np.recarray):
                                       'E'.encode('ascii'))
                 dummy = np.where(dummy.strip() == nullval, str(ASCIITNULL),
                                  dummy)
-                dummy = np.array(dummy, dtype=_type)
+                try:
+                    dummy = np.array(dummy, dtype=_type)
+                except ValueError, e:
+                    raise ValueError(
+                        '%s; the header may be missing the necessary TNULL%d '
+                        'keyword or the table contains invalid data' %
+                        (e, indx + 1))
 
                 self._convert[indx] = dummy
             else:
@@ -667,9 +673,20 @@ class FITS_rec(np.recarray):
                         for idx in xrange(len(dummy)):
                             val = dummy[idx]
                             dummy[idx] = val + (pad * (itemsize - len(val)))
-                    if dummy.dtype != field.dtype:
-                        dummy = dummy.astype(field.dtype)
-                    field[:] = dummy
+
+                        # Encode *after* handling the padding byte or else
+                        # Numpy will complain about trying to append bytes to
+                        # an array
+                        if dummy.dtype.kind == 'U':
+                            dummy = dummy.encode('ascii')
+
+                    if field.shape == dummy.shape:
+                        field[:] = dummy
+                    else:
+                        # Reshaping the data is necessary in cases where the
+                        # TDIMn keyword was used to shape a column's entries
+                        # into arrays
+                        field[:] = dummy.ravel().view(field.dtype)
 
                 del dummy
 

@@ -377,13 +377,6 @@ class TestFileFunctions(FitsTestCase):
         with ignore_warnings():
             assert len(fits.open(self._make_gzip_file('test0.fz'))) == 5
 
-    def test_open_gzipped_writeable(self):
-        """Opening gzipped files in a writeable mode should fail."""
-
-        gf = self._make_gzip_file()
-        pytest.raises(IOError, fits.open, gf, 'update')
-        pytest.raises(IOError, fits.open, gf, 'append')
-
     def test_open_zipped(self):
         with ignore_warnings():
             assert len(fits.open(self._make_zip_file())) == 5
@@ -438,6 +431,17 @@ class TestFileFunctions(FitsTestCase):
             assert len(fits.open(gf)) == 5
         finally:
             gf.close()
+
+    def test_open_gzip_file_for_writing(self):
+        """Regression test for #195."""
+
+        gf = self._make_gzip_file()
+        with fits.open(gf, mode='update') as h:
+            h[0].header['EXPFLAG'] = 'ABNORMAL'
+        with fits.open(gf) as h:
+            # Just to make sur ethe update worked; if updates work
+            # normal writes should work too...
+            assert h[0].header['EXPFLAG'] == 'ABNORMAL'
 
     def test_read_file_like_object(self):
         """Test reading a FITS file from a file-like object."""

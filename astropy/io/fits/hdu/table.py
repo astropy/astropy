@@ -294,8 +294,9 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             for idx in range(self.data._nfields):
                 format = self.data._coldefs.formats[idx]
                 if isinstance(format, _FormatP):
-                    max = self.data.field(idx).max
-                    format = _FormatP(format, repeat=format.repeat, max=max)
+                    _max = self.data.field(idx).max
+                    format = _FormatP(format.dtype, repeat=format.repeat,
+                                      max=_max)
                     self._header['TFORM' + str(idx + 1)] = format.tform
         return super(_TableBaseHDU, self)._prewriteto(checksum, inplace)
 

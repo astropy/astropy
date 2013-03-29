@@ -22,8 +22,42 @@ Astropy.
   system-installed version of CFITSIO.  Earlier versions may work, but nothing
   earlier than 3.28 has been tested yet. (#169)
 
+- The new compression code also adds support for the ZQUANTIZ keyword added in
+  more recent versions of this FITS Tile Compression spec. This includes
+  support for lossless compression with GZIP. (#198)
 
-3.1.1 (unreleased)
+
+3.1.2 (unreleased)
+------------------
+
+- Fixed support for opening gzipped FITS files by filename in a writeable mode
+  (PyFITS has supported writing to gzip files for some time now, but only
+  enabled it when GzipFile objects were passed to ``pyfits.open()`` due to
+  some legacy code preventing full gzip support. (#195)
+
+- Added a more helpful error message in the case of malformatted FITS files
+  that contain non-float NULL values in an ASCII table but are missing the
+  required TNULLn keywords in the header. (#197)
+
+- Fixed an (apparently long-standing) issue where writing compressed images
+  did not correctly write the TFORMn keywords for variable-length array
+  columns (they ommitted the max array length parameter of the format). (#199)
+
+- Fixed a bug that could occur when opening a table containing
+  multi-dimensional columns (i.e. via the TDIMn keyword) and then writing it
+  out to a new file. (#201)
+
+- Fixed a bug in fitsdiff that reported two header keywords containing NaN
+  as value as different. (#204)
+
+
+3.0.11 (unreleased)
+-------------------
+
+- Nothing changed yet.
+
+
+3.1.1 (2013-01-02)
 ------------------
 
 This is a bug fix release for the 3.1.x series.
@@ -105,7 +139,7 @@ Bug Fixes
   (#194)
 
 
-3.0.10 (unreleased)
+3.0.10 (2013-01-02)
 -------------------
 
 This is a bug fix release for the 3.0.x series.
