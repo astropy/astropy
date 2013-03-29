@@ -1,14 +1,14 @@
 0.3 (unreleased)
 ----------------
 
-- ``io.votable``
+- ``astropy.io.votable``
 
   - The format of the units in the VOTable file can be specified using
     the `unit_format` parameter.  Note that units are still always
     written out using the CDS format, to ensure compatibility with the
     standard.
 
-- ``time``
+- ``astropy.time``
 
   - Add ``datetime`` format (:class:`~astropy.time.core.TimeDatetime`) which
     allows converting to and from standard library `~datetime.datetime` objects.
@@ -24,12 +24,12 @@
 Bug Fixes
 ^^^^^^^^^
 
-- ``coordinates``
+- ``astropy.coordinates``
 
   - Fixed encoding errors that could occur when formatting coordinate objects
     in code using ``from __future__ import unicode_literals``. [#817]
 
-- ``io.votable``
+- ``astropy.io.votable``
 
   - Fixed links to the ``astropy.io.votable`` documentation in the VOTable
     validator output. [#806]
@@ -40,19 +40,19 @@ Bug Fixes
   - Changed the default string format for floating point values for better
     round-tripping. [#856]
 
-- ``table``
+- ``astropy.table``
 
   - Fixed silent failure to assign values to a row on multiple columns. [#764]
 
   - Fixed various buggy behavior when viewing a table after sorting by one of
     its columns. [#829]
 
-  - Fixed using ``np.where()`` with table indexing. [#838]
+  - Fixed using ``numpy.where()`` with table indexing. [#838]
 
   - Fixed a bug where ``MaskedColumn`` no longer worked if the column being
     masked is renamed. [#916]
 
-- ``units``
+- ``astropy.units``
 
   - Added missing capability for array ``Quantity``s to be initializable by
     a list of ``Quantity``s. [#835]
@@ -62,7 +62,7 @@ Bug Fixes
 
   - "degree" was removed from the list of SI base units. [#863]
 
-- ``wcs``
+- ``astropy.wcs``
 
   - Fixed ``TypeError`` when calling ``WCS.to_header_string()``. [#822]
 
