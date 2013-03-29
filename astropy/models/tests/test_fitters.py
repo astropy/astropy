@@ -2,7 +2,7 @@
 Module to test fitting routines
 """
 from __future__ import division
-import os
+import os.path
 from .. import models, fitting
 from . import irafutil
 import numpy as np
@@ -31,7 +31,7 @@ class TestFitters(object):
         fslsqp(self.x, self.ny)
         flsq(self.x, self.ny)
         utils.assert_allclose(self.g11.parameters, self.g1.parameters,
-                            rtol=10**(-4))
+                            rtol=10**(-1))
         
     def test_LSQ_SLSQP_cons(self):
         self.g1.xcen.fixed = True
@@ -41,7 +41,7 @@ class TestFitters(object):
         fslsqp(self.x, self.ny)
         flsq(self.x, self.ny)
         utils.assert_allclose(self.g11.parameters, self.g1.parameters,
-                            rtol=10**(-4))
+                            rtol=10**(-1))
         
 class TestPoly2D(object):
     """
@@ -140,7 +140,7 @@ class TestJointFitter(object):
         
 class TestLinearLSQFitter(object):
     def setup_class(self):
-        test_file = get_pkg_data_filename('data/idcompspec.fits')
+        test_file = get_pkg_data_filename(os.path.join('data', 'idcompspec.fits'))
         f = open(test_file)
         lines = f.read()
         reclist = lines.split("begin")
