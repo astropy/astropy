@@ -1158,8 +1158,9 @@ def diff_values(a, b, tolerance=0.0):
     within the given relative tolerance.
     """
 
-    # TODO: Handle ifs and nans
     if isinstance(a, float) and isinstance(b, float):
+        if np.isnan(a) and np.isnan(b):
+            return False
         return not np.allclose(a, b, tolerance, 0.0)
     else:
         return a != b

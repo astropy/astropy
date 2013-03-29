@@ -536,3 +536,54 @@ class TestDiff(FitsTestCase):
         for y in range(10):
             assert 'Data differs at [%d, 1]' % (y + 1) in report
         assert '100 different pixels found (100.00% different).' in report
+
+    def test_diff_nans(self):
+        """Regression test for #204."""
+
+        # First test some arrays that should be equivalent....
+        arr = np.empty((10, 10), dtype=np.float64)
+        arr[:5] = 1.0
+        arr[5:] = np.nan
+        arr2 = arr.copy()
+
+        table = np.rec.array([(1.0, 2.0), (3.0, np.nan), (np.nan, np.nan)],
+                             names=['cola', 'colb']).view(fits.FITS_rec)
+        table2 = table.copy()
+
+        assert ImageDataDiff(arr, arr2).identical
+        assert TableDataDiff(table, table2).identical
+
+        # Now let's introduce some differences, where there are nans and where
+        # there are not nans
+        arr2[0][0] = 2.0
+        arr2[5][0] = 2.0
+        table2[0][0] = 2.0
+        table2[1][1] = 2.0
+
+        diff = ImageDataDiff(arr, arr2)
+        assert not diff.identical
+        assert diff.diff_pixels[0] == ((0, 0), (1.0, 2.0))
+        assert diff.diff_pixels[1][0] == (5, 0)
+        assert np.isnan(diff.diff_pixels[1][1][0])
+        assert diff.diff_pixels[1][1][1] == 2.0
+
+        diff = TableDataDiff(table, table2)
+        assert not diff.identical
+        assert diff.diff_values[0] == (('cola', 0), (1.0, 2.0))
+        assert diff.diff_values[1][0] == ('colb', 1)
+        assert np.isnan(diff.diff_values[1][1][0])
+        assert diff.diff_values[1][1][1] == 2.0
+
+        # What about in Headers?
+
+        h = fits.Header([('A', 1), ('B', np.nan)])
+        h2 = h.copy()
+
+        assert HeaderDiff(h, h2).identical
+
+        h2['B'] = 1.0
+
+        diff = HeaderDiff(h, h2)
+        assert not diff.identical
+        assert np.isnan(diff.diff_keyword_values['B'][0][0])
+        assert diff.diff_keyword_values['B'][0][1] == 1.0
