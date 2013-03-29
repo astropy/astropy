@@ -44,7 +44,7 @@ It has the following configuration options (to be set in the project's
 * `edit_on_github_skip_regex`
     When the path to the .rst file matches this regular expression,
     no "edit this page on github" link will be added.  Defaults to
-   ``"_.*"``.
+    ``"_.*"``.
 """
 import inspect
 import os
