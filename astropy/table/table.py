@@ -175,6 +175,8 @@ class BaseColumn(object):
             table = self.parent_table
             table.columns._rename_column(self.name, val)
             table._data.dtype.names = table.columns.keys()
+            if table.masked:
+                table._data.mask.dtype.names = table.columns.keys()
 
         self._name = val
 
