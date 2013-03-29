@@ -231,19 +231,10 @@ text_clear(IterParser *self)
 static inline PyObject*
 make_pos(const IterParser *self)
 {
-    PyObject* tuple;
-    PyObject* line_obj;
-    PyObject* col_obj;
-
-    tuple = PyTuple_New(2);
-
-    line_obj = PyLong_FromSize_t((size_t)self->last_line);
-    col_obj = PyLong_FromSize_t((size_t)self->last_col);
-
-    PyTuple_SetItem(tuple, 0, line_obj);
-    PyTuple_SetItem(tuple, 1, col_obj);
-
-    return tuple;
+    return Py_BuildValue(
+            "(nn)",
+            (size_t)self->last_line,
+            (size_t)self->last_col);
 }
 
 /*
@@ -289,6 +280,7 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
     PyObject*        tuple = NULL;
     PyObject*        key = NULL;
     PyObject*        val = NULL;
+    PyObject*        pos = NULL;
 
     /* If we've already had an error in a previous call, don't make
        things worse. */
@@ -301,8 +293,7 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
     if (self->queue_write_idx < self->queue_size) {
         tuple = PyTuple_New(4);
         if (tuple == NULL) {
-            XML_StopParser(self->parser, 0);
-            return;
+            goto fail;
         }
 
         Py_INCREF(Py_True);
@@ -322,19 +313,16 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
 
             pyname = PyUnicode_FromString(name_start);
             if (pyname == NULL) {
-                Py_DECREF(tuple);
-                XML_StopParser(self->parser, 0);
-                return;
+                goto fail;
             }
             PyTuple_SetItem(tuple, 1, pyname);
+            pyname = NULL;
         }
 
         if (*att_ptr) {
             pyatts = PyDict_New();
             if (pyatts == NULL) {
-                Py_DECREF(tuple);
-                XML_StopParser(self->parser, 0);
-                return;
+                goto fail;
             }
             do {
                 if (*(*(att_ptr + 1)) != 0) {
@@ -352,27 +340,21 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
                     key = PyUnicode_FromString(*att_ptr);
                     #endif
                     if (key == NULL) {
-                        Py_DECREF(tuple);
-                        XML_StopParser(self->parser, 0);
-                        return;
+                        goto fail;
                     }
                     val = PyUnicode_FromString(*(att_ptr + 1));
                     if (val == NULL) {
                         Py_DECREF(key);
-                        Py_DECREF(tuple);
-                        XML_StopParser(self->parser, 0);
-                        return;
+                        goto fail;
                     }
                     if (PyDict_SetItem(pyatts, key, val)) {
-                        Py_DECREF(pyatts);
-                        Py_DECREF(tuple);
                         Py_DECREF(key);
                         Py_DECREF(val);
-                        XML_StopParser(self->parser, 0);
-                        return;
+                        goto fail;
                     }
                     Py_DECREF(key);
                     Py_DECREF(val);
+                    key = val = NULL;
                 }
                 att_ptr += 2;
             } while (*att_ptr);
@@ -382,12 +364,19 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
         }
 
         PyTuple_SetItem(tuple, 2, pyatts);
+        pyatts = NULL;
 
         self->last_line = (unsigned long)XML_GetCurrentLineNumber(
             self->parser);
         self->last_col = (unsigned long)XML_GetCurrentColumnNumber(
             self->parser);
-        PyTuple_SetItem(tuple, 3, make_pos(self));
+
+        pos = make_pos(self);
+        if (pos == NULL) {
+            goto fail;
+        }
+        PyTuple_SetItem(tuple, 3, pos);
+        pos = NULL;
 
         text_clear(self);
 
@@ -398,7 +387,15 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
         PyErr_SetString(
             PyExc_RuntimeError,
             "XML queue overflow in startElement.  This most likely indicates an internal bug.");
+        goto fail;
     }
+
+    return;
+
+ fail:
+    Py_XDECREF(tuple);
+    Py_XDECREF(pyatts);
+    XML_StopParser(self->parser, 0);
 }
 
 /*
@@ -412,6 +409,7 @@ endElement(IterParser *self, const XML_Char *name)
     PyObject*       pytext     = NULL;
     const XML_Char* name_start = NULL;
     XML_Char*       end;
+    PyObject*       pos        = NULL;
 
     /* If we've already had an error in a previous call, don't make
        things worse. */
@@ -424,8 +422,7 @@ endElement(IterParser *self, const XML_Char *name)
     if (self->queue_write_idx < self->queue_size) {
         tuple = PyTuple_New(4);
         if (tuple == NULL) {
-            XML_StopParser(self->parser, 0);
-            return;
+            goto fail;
         }
 
         Py_INCREF(Py_False);
@@ -445,11 +442,10 @@ endElement(IterParser *self, const XML_Char *name)
 
             pyname = PyUnicode_FromString(name_start);
             if (pyname == NULL) {
-                Py_DECREF(tuple);
-                XML_StopParser(self->parser, 0);
-                return;
+                goto fail;
             }
             PyTuple_SetItem(tuple, 1, pyname);
+            pyname = NULL;
         }
 
         /* Cut whitespace off the end of the string */
@@ -458,15 +454,20 @@ endElement(IterParser *self, const XML_Char *name)
             --end;
             --self->text_size;
         }
+
         pytext = PyUnicode_FromStringAndSize(self->text, self->text_size);
         if (pytext == NULL) {
-            Py_DECREF(tuple);
-            XML_StopParser(self->parser, 0);
-            return;
+            goto fail;
         }
         PyTuple_SetItem(tuple, 2, pytext);
+        pytext = NULL;
 
-        PyTuple_SetItem(tuple, 3, make_pos(self));
+        pos = make_pos(self);
+        if (pos == NULL) {
+            goto fail;
+        }
+        PyTuple_SetItem(tuple, 3, pos);
+        pos = NULL;
 
         self->keep_text = 0;
 
@@ -475,7 +476,14 @@ endElement(IterParser *self, const XML_Char *name)
         PyErr_SetString(
             PyExc_RuntimeError,
             "XML queue overflow in endElement.  This most likely indicates an internal bug.");
+        goto fail;
     }
+
+    return;
+
+ fail:
+    Py_XDECREF(tuple);
+    XML_StopParser(self->parser, 0);
 }
 
 /*
@@ -514,53 +522,89 @@ xmlDecl(IterParser *self, const XML_Char *version,
     PyObject* xml_str      = NULL;
     PyObject* attrs        = NULL;
     PyObject* encoding_str = NULL;
-    PyObject* version_str = NULL;
+    PyObject* version_str  = NULL;
+    PyObject* pos          = NULL;
 
     if (self->queue_write_idx < self->queue_size) {
         tuple = PyTuple_New(4);
         if (tuple == NULL) {
-            XML_StopParser(self->parser, 0);
-            return;
+            goto fail;
         }
 
         Py_INCREF(Py_True);
         PyTuple_SET_ITEM(tuple, 0, Py_True);
 
         xml_str = PyUnicode_FromString("xml");
+        if (xml_str == NULL) {
+            goto fail;
+        }
         PyTuple_SET_ITEM(tuple, 1, xml_str);
+        xml_str = NULL;
 
         attrs = PyDict_New();
+        if (attrs == NULL) {
+            goto fail;
+        }
 
         if (encoding) {
             encoding_str = PyUnicode_FromString(encoding);
         } else {
             encoding_str = PyUnicode_FromString("");
         }
-        PyDict_SetItemString(attrs, "encoding", encoding_str);
+        if (encoding_str == NULL) {
+            goto fail;
+        }
+        if (PyDict_SetItemString(attrs, "encoding", encoding_str)) {
+            Py_DECREF(encoding_str);
+            goto fail;
+        }
         Py_DECREF(encoding_str);
+        encoding_str = NULL;
 
         if (version) {
             version_str = PyUnicode_FromString(version);
         } else {
             version_str = PyUnicode_FromString("");
         }
-        PyDict_SetItemString(attrs, "version", version_str);
+        if (version_str == NULL) {
+            goto fail;
+        }
+        if (PyDict_SetItemString(attrs, "version", version_str)) {
+            Py_DECREF(version_str);
+            goto fail;
+        }
         Py_DECREF(version_str);
+        version_str = NULL;
 
         PyTuple_SET_ITEM(tuple, 2, attrs);
+        attrs = NULL;
 
         self->last_line = (unsigned long)XML_GetCurrentLineNumber(
             self->parser);
         self->last_col = (unsigned long)XML_GetCurrentColumnNumber(
             self->parser);
-        PyTuple_SET_ITEM(tuple, 3, make_pos(self));
+
+        pos = make_pos(self);
+        if (pos == NULL) {
+            goto fail;
+        }
+        PyTuple_SetItem(tuple, 3, pos);
+        pos = NULL;
 
         self->queue[self->queue_write_idx++] = tuple;
     } else {
         PyErr_SetString(
             PyExc_RuntimeError,
             "XML queue overflow in xmlDecl.  This most likely indicates an internal bug.");
+        goto fail;
     }
+
+    return;
+
+ fail:
+    Py_XDECREF(tuple);
+    Py_XDECREF(attrs);
+    XML_StopParser(self->parser, 0);
 }
 
 /*
@@ -836,6 +880,7 @@ IterParser_dealloc(IterParser* self)
 /*
  * Initialize the memory for an IterParser object
  */
+
 static PyObject *
 IterParser_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
@@ -939,12 +984,7 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
     }
     text_clear(self);
 
-    #if PY_VERSION_HEX < 0x02060500
-    /* Due to Python issue #7249 */
-    self->read_args = PyTuple_Pack(1, PyInt_FromSsize_t(buffersize));
-    #else
-    self->read_args = PyTuple_Pack(1, PyLong_FromSsize_t(buffersize));
-    #endif
+    self->read_args = Py_BuildValue("(n)", buffersize);
     if (self->read_args == NULL) {
         goto fail;
     }
@@ -1088,8 +1128,7 @@ static const char* escapes[] = {
  * Unicode string is passed in, a Unicode string is returned.
  */
 static PyObject*
-_escape_xml(PyObject* self, PyObject *args, PyObject *kwds,
-            const char** escapes)
+_escape_xml(PyObject* self, PyObject *args, const char** escapes)
 {
     PyObject* input_obj;
     PyObject* output_obj;
@@ -1214,15 +1253,15 @@ _escape_xml(PyObject* self, PyObject *args, PyObject *kwds,
 }
 
 static PyObject*
-escape_xml(PyObject* self, PyObject *args, PyObject *kwds)
+escape_xml(PyObject* self, PyObject *args)
 {
-    return _escape_xml(self, args, kwds, escapes);
+    return _escape_xml(self, args, escapes);
 }
 
 static PyObject*
-escape_xml_cdata(PyObject* self, PyObject *args, PyObject *kwds)
+escape_xml_cdata(PyObject* self, PyObject *args)
 {
-    return _escape_xml(self, args, kwds, escapes_cdata);
+    return _escape_xml(self, args, escapes_cdata);
 }
 
 /******************************************************************************
