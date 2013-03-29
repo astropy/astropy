@@ -255,19 +255,21 @@ Wcs_all_pix2world(
 
   if (status == 0 || status == 8) {
     return (PyObject*)world;
-  } else if (status == -1) {
-    PyErr_SetString(
-      PyExc_ValueError,
-      "Wrong number of dimensions in input array.  Expected 2.");
-    return NULL;
   } else {
-    Py_DECREF(world);
+    Py_XDECREF(world);
     if (status == -1) {
-      /* exception already set */
+      PyErr_SetString(
+        PyExc_ValueError,
+        "Wrong number of dimensions in input array.  Expected 2.");
       return NULL;
     } else {
-      wcserr_to_python_exc(self->x.err);
-      return NULL;
+      if (status == -1) {
+        /* exception already set */
+        return NULL;
+      } else {
+        wcserr_to_python_exc(self->x.err);
+        return NULL;
+      }
     }
   }
 }
