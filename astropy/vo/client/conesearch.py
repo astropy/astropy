@@ -101,7 +101,8 @@ class AsyncConeSearch(object):
 
         Returns
         -------
-        result : see :func:`conesearch`
+        result : `astropy.io.votable.tree.Table` object
+            First table from first successful VO service request.
 
         Raises
         ------
@@ -151,16 +152,58 @@ def conesearch(ra, dec, sr, verb=1, **kwargs):
         If not supported, the service should ignore the parameter
         and always return the same columns for every request.
 
-    kwargs : keywords for :func:`astropy.vo.client.vos_catalog.call_vo_service`
+    catalog_db
+        May be one of the following, in order from easiest to
+        use to most control:
+
+            - `None`: A database of
+              ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``
+              catalogs is downloaded from
+              ``astropy.vo.client.vos_catalog.BASEURL``.  The first
+              catalog in the database to successfully return a result is used.
+
+            - *catalog name*: A name in the database of
+              ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``
+              catalogs at ``astropy.vo.client.vos_catalog.BASEURL`` is used.
+              For a list of acceptable names, see :func:`list_catalogs`.
+
+            - *url*: The prefix of a URL to a IVOA Service for
+              ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``.
+              Must end in either '?' or '&'.
+
+            - `VOSCatalog` object: A specific catalog manually downloaded and
+              selected from the database (see :ref:`vo-sec-client-vos`).
+
+            - Any of the above 3 options combined in a list, in which case
+              they are tried in order.
+
+    pedantic : bool or `None`
+        When `True`, raise an error when the file violates the spec,
+        otherwise issue a warning.  Warnings may be controlled using
+        :py:mod:`warnings` module.
+        When not provided, uses the configuration setting
+        ``astropy.io.votable.table.PEDANTIC``, which defaults to `True`.
+
+    verbose : bool
+        Verbose output.
+
+    cache : bool
+        Use caching for VO Service database. Access to actual VO
+        websites referenced by the database still needs internet
+        connection.
 
     Returns
     -------
-    obj : see :func:`astropy.vo.client.vos_catalog.call_vo_service`
+    obj : `astropy.io.votable.tree.Table` object
+        First table from first successful VO service request.
 
     Raises
     ------
     ConeSearchError
         When invalid inputs are passed into Cone Search.
+
+    VOSError
+        If VO service request fails.
 
     """
     # Validate arguments
@@ -184,11 +227,28 @@ def list_catalogs(**kwargs):
 
     Parameters
     ----------
-    kwargs : keywords for :func:`astropy.vo.client.vos_catalog.list_catalogs`
+    cache : bool
+        Use caching for VO Service database. Access to actual VO
+        websites referenced by the database still needs internet
+        connection.
+
+    verbose : bool
+        Show download progress bars.
+
+    pattern : str or `None`
+        If given string is anywhere in a catalog name, it is
+        considered a matching catalog. It accepts patterns as
+        in :py:mod:`fnmatch` and is case-insensitive.
+        By default, all catalogs are returned.
+
+    sort : bool
+        Sort output in alphabetical order. If not sorted, the
+        order depends on dictionary hashing. Default is `True`.
 
     Returns
     -------
-    obj : see :func:`astropy.vo.client.vos_catalog.list_catalogs`
+    arr : list of str
+        List of catalog names.
 
     """
     return vos_catalog.list_catalogs(CONESEARCH_DBNAME(), **kwargs)
@@ -246,11 +306,14 @@ def predict_search(url, *args, **kwargs):
 
     Raises
     ------
+    AssertionError
+        If prediction fails.
+
     ConeSearchError
         If input paramters are invalid.
 
-    AssertionError
-        If prediction fails.
+    VOSError
+        If VO service request fails.
 
     """
     if len(args) != 3 or args[2] <= 0:  # pragma: no cover
@@ -334,7 +397,8 @@ def conesearch_timer(*args, **kwargs):
     t : float
         Run time in seconds.
 
-    obj : see :func:`conesearch`
+    obj : `astropy.io.votable.tree.Table` object
+        First table from first successful VO service request.
 
     """
     return conesearch(*args, **kwargs)

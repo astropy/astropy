@@ -155,7 +155,7 @@ class VOSDatabase(VOSCatalog):
 
         sort : bool
             Sort output in alphabetical order. If not sorted, the
-            order depends on dictionary hashing.
+            order depends on dictionary hashing. Default is `True`.
 
         Returns
         -------
@@ -325,13 +325,19 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
               they are tried in order.
 
     pedantic : bool or `None`
-        See  :func:`astropy.io.votable.table.parse`.
+        When `True`, raise an error when the file violates the spec,
+        otherwise issue a warning.  Warnings may be controlled using
+        :py:mod:`warnings` module.
+        When not provided, uses the configuration setting
+        ``astropy.io.votable.table.PEDANTIC``, which defaults to `True`.
 
     verbose : bool
         Verbose output.
 
     cache : bool
-        See :func:`get_remote_catalog_db`.
+        Use caching for VO Service database. Access to actual VO
+        websites referenced by the database still needs internet
+        connection.
 
     kwargs : dictionary
         Keyword arguments to pass to the catalog service.
@@ -401,12 +407,22 @@ def list_catalogs(service_type, cache=True, verbose=True, **kwargs):
         Name of the type of service, e.g., 'conesearch_good'.
 
     cache : bool
-        See :func:`get_remote_catalog_db`.
+        Use caching for VO Service database. Access to actual VO
+        websites referenced by the database still needs internet
+        connection.
 
     verbose : bool
         Show download progress bars.
 
-    kwargs : keywords for :func:`VOSDatabase.list_catalogs`
+    pattern : str or `None`
+        If given string is anywhere in a catalog name, it is
+        considered a matching catalog. It accepts patterns as
+        in :py:mod:`fnmatch` and is case-insensitive.
+        By default, all catalogs are returned.
+
+    sort : bool
+        Sort output in alphabetical order. If not sorted, the
+        order depends on dictionary hashing. Default is `True`.
 
     Returns
     -------
