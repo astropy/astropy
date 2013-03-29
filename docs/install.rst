@@ -96,8 +96,8 @@ Obtaining the source packages
 Source packages
 ^^^^^^^^^^^^^^^
 
-Source tarballs of past releases and the current development branch of
-astropy can be downloaded from https://github.com/astropy/astropy/downloads
+The latest stable source package for Astropy can be `downloaded here
+<https://pypi.python.org/pypi/astropy>`_.
 
 Development repository
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -130,6 +130,17 @@ To build Astropy (from the root of the source tree)::
 To install Astropy (from the root of the source tree)::
 
     python setup.py install
+
+Troubleshooting
+---------------
+
+If you get an error mentioning that you do not have the correct permissions to
+install Astropy into the default ``site-packages`` directory, you can try
+installing with::
+
+    python setup.py install --user
+
+which will install into a default directory in your home directory.
 
 External C libraries
 ^^^^^^^^^^^^^^^^^^^^
