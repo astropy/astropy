@@ -35,6 +35,9 @@ module, as well as the standard Astropy docstring format.
 * Configuration options using the :mod:`astropy.config` mechanisms must be
   explicitly mentioned in the documentation.
 
+
+The detalis of the docstring format are described on a separate page:
+
 .. toctree::
     docrules
 
@@ -100,13 +103,15 @@ edit_on_github Extension
 .. automodule:: astropy.sphinx.ext.edit_on_github
 
 
-Numpydoc Extension
+numpydoc Extension
 ^^^^^^^^^^^^^^^^^^
-This extension and its related is a port of the
-`numpydoc <http://pypi.python.org/pypi/numpydoc/0.3.1>`_ extentension written by
-the `numpy <http://numpy.scipy.org/>`_ and `scipy <http://scipy.org/>`_
-projects, with some tweaks for Astropy.  See the code for details, as it
-is quite complex and includes a variety of interrelated extensions.
+This extension (and some related extensions) are a port of the
+`numpydoc <http://pypi.python.org/pypi/numpydoc/0.3.1>`_ extentension 
+written by the NumPy_ and SciPy_, projects, with some tweaks for 
+Astropy.  Its main purposes is to reprocess docstrings from code into
+a form sphinx understands. Generally, there's no need to interact with
+it directly, as docstrings following the doc:`docrules` will be 
+processed automatically.
 
 
 Other Extensions
