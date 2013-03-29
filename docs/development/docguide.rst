@@ -75,6 +75,50 @@ editing `astropy/astropy/sphinx/setup_package.py` to include the theme
 (so that it is installed).
 
 
+
+Sphinx extensions
+-----------------
+
+Astropy includes a number of sphinx extensions that are used in astropy
+and its affiliated packages to facilitate easily documenting code in
+a homogenous and readable way.
+
+automodapi Extension
+^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: astropy.sphinx.ext.automodapi
+
+
+automodsumm Extension
+^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: astropy.sphinx.ext.automodsumm
+
+edit_on_github Extension
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: astropy.sphinx.ext.edit_on_github
+
+
+Numpydoc Extension
+^^^^^^^^^^^^^^^^^^
+This extension and its related is a port of the
+`numpydoc <http://pypi.python.org/pypi/numpydoc/0.3.1>`_ extentension written by
+the `numpy <http://numpy.scipy.org/>`_ and `scipy <http://scipy.org/>`_
+projects, with some tweaks for Astropy.  See the code for details, as it
+is quite complex and includes a variety of interrelated extensions.
+
+
+Other Extensions
+^^^^^^^^^^^^^^^^
+`astropy.spinx.ext` includes a few other extensions that are primarily 
+helpers for the other extensions or workarounds for undesired behavior.
+Their APIs are note included here because we may change them in the
+future.
+
+
+
+
 .. _NumPy: http://numpy.scipy.org/
 .. _numpydoc: http://pypi.python.org/pypi/numpydoc/0.3.1
 .. _Matplotlib: http://matplotlib.sourceforge.net/

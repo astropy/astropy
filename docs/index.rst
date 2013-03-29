@@ -101,7 +101,6 @@ testing guidelines.
    development/testguide
    development/building_packaging
    development/scripts
-   development/sphinxext
    changelog
 
 ******************
