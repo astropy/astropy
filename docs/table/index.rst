@@ -21,6 +21,7 @@ notable features of this package are:
 * Specify a description, units and output formatting for columns.
 * Interactively scroll through long tables similar to using ``more``.
 * Create a new table by selecting rows or columns from a table.
+* Create a new table by joining two tables on specified key columns.
 * Full support for multidimensional columns.
 * Create a table by referencing (not copying) an existing `numpy` table.
 
@@ -176,6 +177,7 @@ The details of using `astropy.table` are provided in the following sections:
    construct_table.rst
    access_table.rst
    modify_table.rst
+   operations.rst
    masking.rst
    io.rst
 
