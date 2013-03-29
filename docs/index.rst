@@ -94,13 +94,13 @@ testing guidelines.
 .. toctree::
    :maxdepth: 1
 
-   development/vision
    development/workflow/index
    development/codeguide
    development/docguide
    development/testguide
    development/building_packaging
    development/scripts
+   development/vision
    changelog
 
 ******************

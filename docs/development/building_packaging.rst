@@ -1,6 +1,6 @@
-============================================
-Building, Cython/C Extensions, and Releasing
-============================================
+====================================================
+Building Astropy, Cython/C Extensions, and Releasing
+====================================================
 
 The build process currently uses the
 `Distribute <http://packages.python.org/distribute/>`_ package to build and
