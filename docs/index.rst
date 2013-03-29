@@ -23,7 +23,7 @@ and astrophysics with Python.
 User Documentation
 ******************
 
-:ref:`whatsnew-0.2`
+:ref:`whatsnew-0.3`
 ===================
 
 
