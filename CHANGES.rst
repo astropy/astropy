@@ -54,8 +54,8 @@ Bug Fixes
 
 - ``astropy.units``
 
-  - Added missing capability for array ``Quantity``s to be initializable by
-    a list of ``Quantity``s. [#835]
+  - Added missing capability for array ``Quantity``\s to be initializable by
+    a list of ``Quantity``\s. [#835]
 
   - Fixed the definition of year and lightyear to be in terms of Julian year
     per the IAU definition. [#861]
@@ -111,7 +111,7 @@ Other Changes and Additions
 
 - Added previously missing LaTeX formatting for ``L_sun`` and ``R_sun``. [#841]
 
-- ``ConfigurationItem``s now have a more useful and informative ``__repr__``
+- ``ConfigurationItem``\s now have a more useful and informative ``__repr__``
   and improved documentation for how to use them. [#855]
 
 - ``py.test`` now outputs more system information for help in debugging issues
