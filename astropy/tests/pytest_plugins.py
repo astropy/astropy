@@ -138,6 +138,12 @@ def pytest_report_header(config):
         s += "Scipy: not available\n"
 
     try:
+        import matplotlib
+        s += "Matplotlib: {0}\n".format(matplotlib.__version__)
+    except:
+        s += "Matplotlib: not available\n"
+
+    try:
         import h5py
         s += "h5py: {0}\n".format(h5py.__version__)
     except:
