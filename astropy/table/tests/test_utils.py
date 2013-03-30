@@ -6,7 +6,7 @@ import warnings
 from ...tests.helper import pytest
 from ... import table
 from ...io import ascii
-from ...utils import OrderedDict, meta
+from ...utils import OrderedDict, metadata
 from .. import np_utils
 
 NUMPY_LT_1P5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
@@ -307,7 +307,7 @@ class TestJoin():
 
         with warnings.catch_warnings(record=True) as warning_lines:
             warnings.resetwarnings()
-            warnings.simplefilter("always", meta.MergeConflictWarning, append=True)
+            warnings.simplefilter("always", metadata.MergeConflictWarning, append=True)
 
             t12 = t1.join(t2, keys=['a', 'b'])
 
@@ -323,6 +323,6 @@ class TestJoin():
         assert t12['c_2'].format == '%6s'
         assert t12['c_2'].description == 't2_c'
 
-        assert warning_lines[0].category ==  meta.MergeConflictWarning
+        assert warning_lines[0].category ==  metadata.MergeConflictWarning
         assert ('Left and right column units attributes do not match (cm != m)'
                 in str(warning_lines[0].message))

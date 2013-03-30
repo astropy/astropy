@@ -10,7 +10,7 @@ from numpy import ma
 
 from ..units import Unit
 from .. import log
-from ..utils import OrderedDict, isiterable, meta
+from ..utils import OrderedDict, isiterable, metadata
 from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
 from ..utils.console import color_print
@@ -82,7 +82,7 @@ def _merge_col_meta(out, left, right, col_name_map):
         right_col = (right[right_name] if right_name else None)
 
         if left_name and right_name:
-            out_col.meta = meta.merge(left_col.meta, right_col.meta)
+            out_col.meta = metadata.merge(left_col.meta, right_col.meta)
             for attr in attrs:
                 left_attr = getattr(left_col, attr)
                 right_attr = getattr(right_col, attr)
@@ -92,7 +92,7 @@ def _merge_col_meta(out, left, right, col_name_map):
                     warnings.warn('Left and right column {0} attributes do not match '
                                   '({1} != {2}) using left for merged output'
                                   .format(attr, left_attr, right_attr),
-                                  meta.MergeConflictWarning)
+                                  metadata.MergeConflictWarning)
         elif left_name:
             out_col.meta = deepcopy(left_col.meta)
             for attr in attrs:
@@ -106,7 +106,7 @@ def _merge_col_meta(out, left, right, col_name_map):
 
 
 def _merge_table_meta(out, left, right):
-    out.meta = meta.merge(left.meta, right.meta)
+    out.meta = metadata.merge(left.meta, right.meta)
 
 
 class TableColumns(OrderedDict):
