@@ -260,3 +260,70 @@ def join(left, right, keys=None, join_type='inner',
             out[out_name].mask = array_mask
 
     return out
+
+
+def vstack(arrays, join_type='inner', require_match=False,
+           uniq_col_name='{col_name}_{table_name}', table_names=None):
+
+    if table_names is None:
+        table_names = ['_{0}'.format(ii + 1) for ii in range(len(arrays))]
+
+    if len(arrays) == 0:
+        raise ValueError('Must supply at least one array')
+    if len(arrays) == 1:
+        return arrays[0]
+    if len(arrays) != len(table_names):
+        raise ValueError('Number of arrays must match number of table_names')
+
+    if join_type not in ('inner', 'outer'):
+        raise ValueError("join_type arg must be either 'inner' or 'outer'")
+
+    # Start by assuming an outer match where all names go to output
+    names = set(chain(*[arr.dtype.names for arr in arrays]))
+    col_name_map = get_col_name_map(arrays, names, uniq_col_name, table_names)
+
+    # If require_match is True then the output must have exactly the same
+    # number of columns as each input array
+    if require_match:
+        for names in col_name_map.values():
+            if any(x is None for x in names):
+                raise ValueError('Inconsistent columns in inputs arrays '
+                                 '(use require_match=False to allow non-matching columns)')
+
+    # For an inner join, keep only columns where all input arrays have that column
+    if join_type == 'inner':
+        col_name_map = OrderedDict((name, in_names) for name, in_names in col_name_map.items()
+                                   if all(x is not None for x in in_names))
+        if len(col_name_map) == 0:
+            raise ValueError('Input arrays have no columns in common')
+
+    # If there are any output columns where one or more input arrays are missing
+    # then the output must be masked.  If any input arrays are masked then
+    # output is masked.
+    masked = any(isinstance(arr, ma.MaskedArray) for arr in arrays)
+    for names in col_name_map.values():
+        if any(x is None for x in names):
+            masked = True
+            break
+
+    lens = [len(arr) for arr in arrays]
+    n_rows = sum(lens)
+    out_descrs = get_descrs(arrays, col_name_map)
+    if masked:
+        out = ma.empty(n_rows, dtype=out_descrs)
+    else:
+        out = np.empty(n_rows, dtype=out_descrs)
+
+    for out_name, in_names in col_name_map.items():
+        idx0 = 0
+        for name, array in izip(in_names, arrays):
+            idx1 = idx0 + len(array)
+            if name in array.dtype.names:
+                out[out_name][idx0:idx1] = array[name]
+                if isinstance(array, ma.MaskedArray):
+                    out[out_name].mask[idx0:idx1] = array[name].mask
+            else:
+                out[out_name].mask[idx0:idx1] = True
+            idx0 = idx1
+
+    return out

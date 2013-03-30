@@ -4,6 +4,8 @@ import sys
 from copy import deepcopy
 import functools
 import warnings
+import collections
+import itertools
 
 import numpy as np
 from numpy import ma
@@ -1829,5 +1831,28 @@ class Table(object):
         # methods for custom merge behavior.
         _merge_col_meta(out, left, right, col_name_map)
         _merge_table_meta(out, left, right)
+
+        return out
+
+    def vstack(self, tables, join_type='inner', require_match=False,
+               uniq_col_name='{col_name}_{table_name}', table_names=None):
+        """
+        Stack tables vertically (by rows)
+        """
+        if join_type not in ('inner', 'outer'):
+            raise ValueError("join_type arg must be either 'inner' or 'outer'")
+
+        if isinstance(tables, Table):
+            tables = [tables]
+        elif isinstance(tables, collections.Sequence):
+            if any(not isinstance(x, Table) for x in tables):
+                raise TypeError('All input tables must be a Table object')
+        else:
+            raise TypeError('Input tables must a Table or sequence of Tables')
+
+        arrays = [table._data for table in itertools.chain([self], tables)]
+        out_data = np_utils.vstack(arrays, join_type, require_match, uniq_col_name, table_names)
+
+        out = self.__class__(out_data)
 
         return out
