@@ -7,12 +7,14 @@ Some code and inspriration taken from numpy.lib.recfunctions.join_by().
 Redistribution license restrictions apply.
 """
 
+from itertools import izip, chain
 import collections
 
 import numpy as np
 import numpy.ma as ma
 
 from . import _np_utils
+from ..utils import OrderedDict
 
 
 class TableMergeError(ValueError):
@@ -28,6 +30,86 @@ def _counter(iterable):
     for val in iterable:
         counts[val] += 1
     return counts
+
+
+def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name}',
+                     table_names=None):
+    """
+    Find the names mapping
+    """
+
+    col_name_map = collections.defaultdict(lambda: [None for x in arrays])
+    col_name_list = []
+
+    if table_names is None:
+        table_names = [str(ii + 1) for ii in range(len(arrays))]
+
+    for idx, array in enumerate(arrays):
+        table_name = table_names[idx]
+        for name in array.dtype.names:
+            out_name = name
+
+            if name in common_names:
+                # If name is in the list of common_names then insert into
+                # the column name list, but just once.
+                if name not in col_name_list:
+                    col_name_list.append(name)
+            else:
+                # If name is not one of the common column outputs, and it collides
+                # with the names in one of the other arrays, then rename
+                others = (x for x in arrays if x is not array)
+                if any(name in other.dtype.names for other in others):
+                    out_name = uniq_col_name.format(table_name=table_name, col_name=name)
+                col_name_list.append(out_name)
+
+            col_name_map[out_name][idx] = name
+
+    # Check for duplicate output column names
+    col_name_count = _counter(col_name_list)
+    repeated_names = [name for name, count in col_name_count.items() if count > 1]
+    if repeated_names:
+        raise TableMergeError('Merging column names resulted in duplicates: {0:s}.  '
+                              'Change uniq_col_name or table_names args to fix this.'
+                              .format(repeated_names))
+
+    # Convert col_name_map to a regular dict with tuple (immutable) values
+    col_name_map = OrderedDict((name, col_name_map[name]) for name in col_name_list)
+
+    return col_name_map
+
+
+
+def get_descrs(arrays, col_name_map):
+    """
+    Find the dtypes descrs resulting from merging the list of arrays' dtypes,
+    assuming the names in `keys` are common in the output.
+
+    Return a list of descrs for the output and a dict mapping
+    each output column name to the input(s).  This takes the form
+    { outname : (col_name_0, col_name_1, ...), ... }.
+    For key columns all of input names will be
+    present, while for the other non-key columns the value will
+    be (col_name_0, None, ..) or (None, col_name_1, ..) etc.
+    """
+
+    out_descrs = []
+
+    for out_name, in_names in col_name_map.items():
+        # List of input arrays that contribute to this output column
+        in_arrays = [arr for arr, name in izip(arrays, in_names) if name is not None]
+
+        # Output dtype is the superset of all dtypes in in_arrays
+        dtype = common_dtype(in_arrays, name)
+
+        # Make sure all input shapes are the same
+        uniq_shapes = set(arr[name].shape[1:] for arr in in_arrays)
+        if len(uniq_shapes) != 1:
+            raise TableMergeError('Key columns {0!r} have different shape'.format(name))
+        shape = uniq_shapes.pop()
+
+        out_descrs.append((out_name, dtype, shape))
+
+    return out_descrs
 
 
 def common_dtype(arrays, name):
