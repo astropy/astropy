@@ -460,7 +460,6 @@ class FITS_rec(np.recarray):
             if _number and (_scale or _zero):
 
                 # only do the scaling the first time and store it in _convert
-                #self._convert[indx] = np.array(dummy, dtype=np.float64)
                 if bzero == 2**15 and 'I' in self._coldefs.formats[indx]:
                     self._convert[indx] = np.array(dummy, dtype=np.uint16)
                 elif bzero == 2**31 and 'J' in self._coldefs.formats[indx]:
@@ -474,7 +473,6 @@ class FITS_rec(np.recarray):
                     np.multiply(self._convert[indx], bscale,
                                 self._convert[indx])
                 if _zero:
-                    #self._convert[indx] += bzero
                     if 'K' in self._coldefs.formats[indx]:
                         #
                         # There is a chance of overflow, so be careful

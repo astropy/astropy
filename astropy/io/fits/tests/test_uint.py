@@ -6,6 +6,7 @@ import numpy as np
 
 from ....io import fits
 from . import FitsTestCase
+from ....tests.helper import pytest
 
 
 class TestUintFunctions(FitsTestCase):
@@ -82,39 +83,30 @@ class TestUintFunctions(FitsTestCase):
                 #assert_equal(hdul[1].section[:1].dtype.name, 'uint32')
                 #assert_true((hdul[1].section[:1] == hdul[1].data[:1]).all())
 
-    def test_uint_columns(self):
+    @pytest.mark.parametrize(('dtype',),[('u2',),('u4',),('u8',)])
+    def test_uint_columns(self,dtype):
         #
-        # Construct arrays
+        # Construct array
         #
-        bzero16 = np.uint16(2**15)
-        bzero32 = np.uint32(2**31)
-        bzero64 = np.uint64(2**63)
-        one64 = np.uint64(1)
-        i0 = 2**np.arange(17,dtype=np.uint16) - 1
-        i = np.concatenate((i0,i0[::-1],i0,i0[::-1]))[0:65]
-        ii = np.array(np.array(i,dtype=np.int32) - np.int32(2**15),dtype=np.int16)
-        j0 = 2**np.arange(33,dtype=np.uint32) - 1
-        j = np.concatenate((j0,j0[::-1]))[0:65]
-        jj = np.array(np.array(j,dtype=np.int64) - np.int64(2**31),dtype=np.int32)
-        k0 = np.arange(65,dtype=np.uint64)
-        k = np.zeros(k0.shape,dtype=k0.dtype)
-        k[0:63] = 2**k0[0:63] - 1
-        k[63] = bzero64 - one64
-        k[64] = k[63] + k[63] + one64
-        kk = (k - bzero64).view(np.int64)
+        dtype_map = {'u2':np.uint16,'u4':np.uint32,'u8':np.uint64}
+        itype_map = {'u2':np.int16,'u4':np.int32,'u8':np.int64}
+        format_map = {'u2':'I','u4':'J','u8':'K'}
+        bits = 8*int(dtype[1])
+        bzero = dtype_map[dtype](2**(bits-1))
+        one = dtype_map[dtype](1)
+        u0 = np.arange(bits+1,dtype=dtype_map[dtype])
+        u = 2**u0 - one
+        if bits == 64:
+            u[63] = bzero - one
+            u[64] = u[63] + u[63] + one
+        uu = (u - bzero).view(itype_map[dtype])
         #
-        # Construct a table from explicit columns
+        # Construct a table from explicit column
         #
-        col1 = fits.Column(name='uint16',array=i,format='I',bzero=bzero16)
-        col2 = fits.Column(name='uint32',array=j,format='J',bzero=bzero32)
-        col3 = fits.Column(name='uint64',array=k,format='K',bzero=bzero64)
-        table = fits.new_table([col1,col2,col3])
-        assert (table.data['uint16'] == i).all()
-        assert (table.data['uint32'] == j).all()
-        assert (table.data['uint64'] == k).all()
-        assert (table.data.base['uint16'] == ii).all()
-        assert (table.data.base['uint32'] == jj).all()
-        assert (table.data.base['uint64'] == kk).all()
+        col = fits.Column(name=dtype,array=u,format=format_map[dtype],bzero=bzero)
+        table = fits.new_table([col])
+        assert (table.data[dtype] == u).all()
+        assert (table.data.base[dtype] == uu).all()
         hdu0 = fits.PrimaryHDU()
         hdulist = fits.HDUList([hdu0,table])
         hdulist.writeto(self.temp('tempfile.fits'))
@@ -124,28 +116,16 @@ class TestUintFunctions(FitsTestCase):
         del hdulist
         with fits.open(self.temp('tempfile.fits')) as hdulist2:
             hdudata = hdulist2[1].data
-            assert (hdudata['uint16'] == i).all()
-            assert (hdudata['uint16'].dtype == np.uint16)
-            assert (hdudata['uint32'] == j).all()
-            assert (hdudata['uint32'].dtype == np.uint32)
-            assert (hdudata['uint64'] == k).all()
-            assert (hdudata['uint64'].dtype == np.uint64)
-            assert (hdudata.base['uint16'] == ii).all()
-            assert (hdudata.base['uint32'] == jj).all()
-            assert (hdudata.base['uint64'] == kk).all()
+            assert (hdudata[dtype] == u).all()
+            assert (hdudata[dtype].dtype == dtype_map[dtype])
+            assert (hdudata.base[dtype] == uu).all()
         #
-        # Construc recarray then write out that.
+        # Construct recarray then write out that.
         #
-        uint_array = np.array(zip(i,j,k),dtype=[('uint16',np.uint16),('uint32',np.uint32),('uint64',np.uint64)])
-        fits.writeto(self.temp('tempfile2.fits'),uint_array)
+        v = u.view(dtype=[(dtype,dtype_map[dtype])])
+        fits.writeto(self.temp('tempfile2.fits'),v)
         with fits.open(self.temp('tempfile2.fits')) as hdulist3:
             hdudata3 = hdulist3[1].data
-            assert (hdudata3.base['uint16'] == table.data.base['uint16']).all()
-            assert (hdudata3['uint16'] == table.data['uint16']).all()
-            assert (hdudata3['uint16'] == i).all()
-            assert (hdudata3.base['uint32'] == table.data.base['uint32']).all()
-            assert (hdudata3['uint32'] == table.data['uint32']).all()
-            assert (hdudata3['uint32'] == j).all()
-            assert (hdudata3.base['uint64'] == table.data.base['uint64']).all()
-            assert (hdudata3['uint64'] == table.data['uint64']).all()
-            assert (hdudata3['uint64'] == k).all()
+            assert (hdudata3.base[dtype] == table.data.base[dtype]).all()
+            assert (hdudata3[dtype] == table.data[dtype]).all()
+            assert (hdudata3[dtype] == u).all()

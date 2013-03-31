@@ -177,12 +177,13 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 if isinstance(data, self._data_type):
                     self.data = data
                 else:
-                    #self.data = data.view(self._data_type)
-                    # Naively creating this view screws with unsigned columns.
+                    # Just doing a view on the input data screws up unsigned
+                    # columns, so treat those more carefully.
                     update_coldefs = dict()
                     if 'u' in [data.dtype[k].kind for k in data.dtype.names]:
-                        bzeros = {2:np.uint16(2**15),4:np.uint32(2**31),8:np.uint64(2**63)}
-                        new_dtype = [(k,data.dtype[k].kind.replace('u','i')+str(data.dtype[k].itemsize))
+                        bzeros = { 2:np.uint16(2**15), 4:np.uint32(2**31), 8:np.uint64(2**63)}
+                        new_dtype = [(k, data.dtype[k].kind.replace('u','i') +
+                            str(data.dtype[k].itemsize))
                             for k in data.dtype.names]
                         new_data = np.zeros(data.shape,dtype=new_dtype)
                         for k in data.dtype.fields:
