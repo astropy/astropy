@@ -21,26 +21,29 @@ class TestUintFunctions(FitsTestCase):
         [('u2',False),('u4',False),('u8',False),('u2',True),('u4',True),('u8',True)])
     def test_uint(self,utype,compressed):
         bits = 8*int(utype[1])
-        if compressed:
-            hdu = fits.CompImageHDU(np.array([-3, -2, -1, 0, 1, 2, 3]))
-        else:
-            hdu = fits.PrimaryHDU(np.array([-3, -2, -1, 0, 1, 2, 3]))
-        hdu.scale('int{0:d}'.format(bits), '', bzero=2 ** (bits-1))
-        hdu.writeto(self.temp('tempfile.fits'))
-        with fits.open(self.temp('tempfile.fits'), uint=True) as hdul:
-            assert hdul[0].data.dtype == self.utype_map[utype]
-            assert np.all(hdul[0].data == np.array(
-                [(2 ** bits) - 3, (2 ** bits) - 2, (2 ** bits) - 1,
-                0, 1, 2, 3],
-                dtype=self.utype_map[utype]))
-            hdul.writeto(self.temp('tempfile1.fits'))
-            with fits.open(self.temp('tempfile1.fits'), uint16=True) as hdul1:
-                assert (hdul[0].data == hdul1[0].data).all()
-                if not compressed:
-                    # TODO: Enable these lines if CompImageHDUs ever grow .section
-                    # support
-                    assert hdul[0].section[:1].dtype.name == 'uint{0:d}'.format(bits)
-                    assert (hdul[0].section[:1] == hdul[0].data[:1]).all()
+        if platform.architecture()[0] == '64bit' or bits != 64:
+            if compressed:
+                hdu = fits.CompImageHDU(np.array([-3, -2, -1, 0, 1, 2, 3]))
+                hdu_number = 1
+            else:
+                hdu = fits.PrimaryHDU(np.array([-3, -2, -1, 0, 1, 2, 3]))
+                hdu_number = 0
+            hdu.scale('int{0:d}'.format(bits), '', bzero=2 ** (bits-1))
+            hdu.writeto(self.temp('tempfile.fits'))
+            with fits.open(self.temp('tempfile.fits'), uint=True) as hdul:
+                assert hdul[hdu_number].data.dtype == self.utype_map[utype]
+                assert (hdul[hdu_number].data == np.array(
+                    [(2 ** bits) - 3, (2 ** bits) - 2, (2 ** bits) - 1,
+                    0, 1, 2, 3],
+                    dtype=self.utype_map[utype])).all()
+                hdul.writeto(self.temp('tempfile1.fits'))
+                with fits.open(self.temp('tempfile1.fits'), uint16=True) as hdul1:
+                    assert (hdul[hdu_number].data == hdul1[hdu_number].data).all()
+                    if not compressed:
+                        # TODO: Enable these lines if CompImageHDUs ever grow .section
+                        # support
+                        assert hdul[hdu_number].section[:1].dtype.name == 'uint{0:d}'.format(bits)
+                        assert (hdul[hdu_number].section[:1] == hdul[hdu_number].data[:1]).all()
 
     @pytest.mark.parametrize(('utype',),[('u2',),('u4',),('u8',)])
     def test_uint_columns(self,utype):
@@ -48,40 +51,41 @@ class TestUintFunctions(FitsTestCase):
         # Construct array
         #
         bits = 8*int(utype[1])
-        bzero = self.utype_map[utype](2**(bits-1))
-        one = self.utype_map[utype](1)
-        u0 = np.arange(bits+1,dtype=self.utype_map[utype])
-        u = 2**u0 - one
-        if bits == 64:
-            u[63] = bzero - one
-            u[64] = u[63] + u[63] + one
-        uu = (u - bzero).view(self.itype_map[utype])
-        #
-        # Construct a table from explicit column
-        #
-        col = fits.Column(name=utype,array=u,format=self.format_map[utype],bzero=bzero)
-        table = fits.new_table([col])
-        assert (table.data[utype] == u).all()
-        assert (table.data.base[utype] == uu).all()
-        hdu0 = fits.PrimaryHDU()
-        hdulist = fits.HDUList([hdu0,table])
-        hdulist.writeto(self.temp('tempfile.fits'))
-        #
-        # Test write of unsigned int
-        #
-        del hdulist
-        with fits.open(self.temp('tempfile.fits')) as hdulist2:
-            hdudata = hdulist2[1].data
-            assert (hdudata[utype] == u).all()
-            assert (hdudata[utype].dtype == self.utype_map[utype])
-            assert (hdudata.base[utype] == uu).all()
-        #
-        # Construct recarray then write out that.
-        #
-        v = u.view(dtype=[(utype,self.utype_map[utype])])
-        fits.writeto(self.temp('tempfile2.fits'),v)
-        with fits.open(self.temp('tempfile2.fits')) as hdulist3:
-            hdudata3 = hdulist3[1].data
-            assert (hdudata3.base[utype] == table.data.base[utype]).all()
-            assert (hdudata3[utype] == table.data[utype]).all()
-            assert (hdudata3[utype] == u).all()
+        if platform.architecture()[0] == '64bit' or bits != 64:
+            bzero = self.utype_map[utype](2**(bits-1))
+            one = self.utype_map[utype](1)
+            u0 = np.arange(bits+1,dtype=self.utype_map[utype])
+            u = 2**u0 - one
+            if bits == 64:
+                u[63] = bzero - one
+                u[64] = u[63] + u[63] + one
+            uu = (u - bzero).view(self.itype_map[utype])
+            #
+            # Construct a table from explicit column
+            #
+            col = fits.Column(name=utype,array=u,format=self.format_map[utype],bzero=bzero)
+            table = fits.new_table([col])
+            assert (table.data[utype] == u).all()
+            assert (table.data.base[utype] == uu).all()
+            hdu0 = fits.PrimaryHDU()
+            hdulist = fits.HDUList([hdu0,table])
+            hdulist.writeto(self.temp('tempfile.fits'))
+            #
+            # Test write of unsigned int
+            #
+            del hdulist
+            with fits.open(self.temp('tempfile.fits')) as hdulist2:
+                hdudata = hdulist2[1].data
+                assert (hdudata[utype] == u).all()
+                assert (hdudata[utype].dtype == self.utype_map[utype])
+                assert (hdudata.base[utype] == uu).all()
+            #
+            # Construct recarray then write out that.
+            #
+            v = u.view(dtype=[(utype,self.utype_map[utype])])
+            fits.writeto(self.temp('tempfile2.fits'),v)
+            with fits.open(self.temp('tempfile2.fits')) as hdulist3:
+                hdudata3 = hdulist3[1].data
+                assert (hdudata3.base[utype] == table.data.base[utype]).all()
+                assert (hdudata3[utype] == table.data[utype]).all()
+                assert (hdudata3[utype] == u).all()
