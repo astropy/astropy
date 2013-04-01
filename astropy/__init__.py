@@ -130,8 +130,8 @@ if not _ASTROPY_SETUP_:
         if os.path.exists('setup.py'):
             log.error('You appear to be trying to import astropy from within '
                       'a source checkout; please run `./setup.py develop` or '
-                      '`./setup.py --inplace` first so that extension '
-                      'modules can be compiled and made importable.')
+                      '`./setup.py build_ext --inplace` first so that '
+                      'extension modules can be compiled and made importable.')
             sys.exit(1)
         else:
             # Outright broken installation; don't be nice.
