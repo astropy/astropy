@@ -98,7 +98,7 @@ Bug Fixes
 
   - Added better documentation of behavior that can occur when trying to import
     the astropy package from within a source checkout without first building
-    the extension modules. [#795]
+    the extension modules. [#795, #864]
 
   - Added link to the installation instructions in the README. [#797]
 
@@ -122,6 +122,9 @@ Bug Fixes
 
   - Fixed bug that could cause a "script" called README.rst to be installed
     in a bin directory. [#852]
+
+  - Fixed some miscellaneous and mostly rare reference leaks caught by
+    cpychecker. [#914]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
