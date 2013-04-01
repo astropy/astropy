@@ -45,7 +45,7 @@ module, as well as the standard Astropy docstring format.
   explicitly mentioned in the documentation.
 
 
-The detalis of the docstring format are described on a separate page:
+The details of the docstring format are described on a separate page:
 
 .. toctree::
     docrules
@@ -115,7 +115,7 @@ edit_on_github Extension
 numpydoc Extension
 ^^^^^^^^^^^^^^^^^^
 This extension (and some related extensions) are a port of the
-`numpydoc <http://pypi.python.org/pypi/numpydoc/0.3.1>`_ extentension 
+`numpydoc <http://pypi.python.org/pypi/numpydoc/0.3.1>`_ extension 
 written by the NumPy_ and SciPy_, projects, with some tweaks for 
 Astropy.  Its main purposes is to reprocess docstrings from code into
 a form sphinx understands. Generally, there's no need to interact with
@@ -127,7 +127,7 @@ Other Extensions
 ^^^^^^^^^^^^^^^^
 `astropy.spinx.ext` includes a few other extensions that are primarily 
 helpers for the other extensions or workarounds for undesired behavior.
-Their APIs are note included here because we may change them in the
+Their APIs are not included here because we may change them in the
 future.
 
 
