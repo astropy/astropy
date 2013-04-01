@@ -24,6 +24,7 @@ from ..util import _is_int, _str_to_num
 
 from ....extern.six import string_types
 from ....utils import deprecated, lazyproperty
+from ....utils.compat import ignored
 from ....utils.exceptions import AstropyUserWarning
 
 
@@ -233,7 +234,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 self.columns = self.data._coldefs
                 self.update()
 
-                try:
+                with ignored(TypeError, AttributeError):
                    # Make the ndarrays in the Column objects of the ColDefs
                    # object of the HDU reference the same ndarray as the HDU's
                    # FITS_rec object.
@@ -243,10 +244,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                     # Delete the _arrays attribute so that it is recreated to
                     # point to the new data placed in the column objects above
                     del self.columns._arrays
-                except (TypeError, AttributeError) as e:
-                    # This shouldn't happen as long as self.columns._arrays
-                    # is a lazyproperty
-                    pass
             elif data is None:
                 pass
             else:
@@ -327,7 +324,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             self.columns = self.data.columns
             self.update()
 
-            try:
+            with ignored(TypeError, AttributeError):
                # Make the ndarrays in the Column objects of the ColDefs
                # object of the HDU reference the same ndarray as the HDU's
                # FITS_rec object.
@@ -337,10 +334,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 # Delete the _arrays attribute so that it is recreated to
                 # point to the new data placed in the column objects above
                 del self.columns._arrays
-            except (TypeError, AttributeError):
-                # This shouldn't happen as long as self.columns._arrays
-                # is a lazyproperty
-                pass
         elif data is None:
             pass
         else:

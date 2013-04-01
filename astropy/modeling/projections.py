@@ -23,6 +23,8 @@ import numpy as np
 from .core import Model
 from .parameters import Parameter, InputParameterError
 
+from ..utils.compat import ignored
+
 
 projcodes = ['TAN', 'AZP', 'SZP', 'STG', 'SIN', 'ARC', 'ZPN', 'ZEA', 'AIR',
                     'CYP', 'CEA', 'MER']
@@ -327,23 +329,19 @@ class Pix2Sky_CYP(Cylindrical):
     """
 
     def _validate_mu(mu, model):
-        try:
+        with ignored(AttributeError):
+            # An attribute error can occur if model.lam has not been set yet
             if mu == -model.lam:
                 raise ValueError(
                     "CYP projection is not defined for mu=-lambda")
-        except AttributeError:
-            # An attribute error can occur if model.lam has not been set yet
-            pass
         return mu
 
     def _validate_lam(lam, model):
-        try:
+        with ignored(AttributeError):
+            # An attribute error can occur if model.lam has not been set yet
             if lam == -model.mu:
                 raise ValueError(
                     "CYP projection is not defined for mu=-lambda")
-        except AttributeError:
-            # An attribute error can occur if model.lam has not been set yet
-            pass
         return lam
 
     mu = Parameter(setter=_validate_mu)
@@ -372,21 +370,17 @@ class Sky2Pix_CYP(Cylindrical):
 
     # TODO: Eliminate duplication on these
     def _validate_mu(mu, model):
-        try:
+        with ignored(AttributeError):
             if mu == -model.lam:
                 raise ValueError(
                     "CYP projection is not defined for mu=-lambda")
-        except AttributeError:
-            pass
         return mu
 
     def _validate_lam(lam, model):
-        try:
+        with ignored(AttributeError):
             if lam == -model.mu:
                 raise ValueError(
                     "CYP projection is not defined for mu=-lambda")
-        except AttributeError:
-            pass
         return lam
 
     mu = Parameter(setter=_validate_mu)

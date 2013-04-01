@@ -433,7 +433,6 @@ class UnitsError(Exception):
     """
     The base class for unit-specific exceptions.
     """
-    pass
 
 
 # deprecated alias.  Remove in astropy 0.4
@@ -444,7 +443,6 @@ class UnitsWarning(AstropyWarning):
     """
     The base class for unit-specific exceptions.
     """
-    pass
 
 
 @six.add_metaclass(InheritDocstrings)
@@ -1855,7 +1853,6 @@ class PrefixUnit(Unit):
 
     The constructor is the same as for `Unit`.
     """
-    pass
 
 
 class CompositeUnit(UnitBase):

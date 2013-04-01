@@ -215,35 +215,30 @@ class VOTableChangeWarning(VOWarning, SyntaxWarning):
     """
     A change has been made to the input XML file.
     """
-    pass
 
 
 class VOTableSpecWarning(VOWarning, SyntaxWarning):
     """
     The input XML file violates the spec, but there is an obvious workaround.
     """
-    pass
 
 
 class UnimplementedWarning(VOWarning, SyntaxWarning):
     """
     A feature of the VOTABLE_ spec is not implemented.
     """
-    pass
 
 
 class IOWarning(VOWarning, RuntimeWarning):
     """
     A network or IO error occurred, but was recovered using the cache.
     """
-    pass
 
 
 class VOTableSpecError(VOWarning, ValueError):
     """
     The input XML file violates the spec and there is no good workaround.
     """
-    pass
 
 
 class W01(VOTableSpecWarning):

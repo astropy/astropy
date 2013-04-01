@@ -60,7 +60,6 @@ class CosmologyError(Exception):
 class Cosmology(object):
     """ Placeholder for when a more general Cosmology class is
     implemented. """
-    pass
 
 
 @six.add_metaclass(ABCMeta)
@@ -596,7 +595,7 @@ class FLRW(Cosmology):
             curr_nu_y = self._nu_y / (1. + np.expand_dims(z, axis=-1))
             rel_mass_per = (1. + (0.3173 * curr_nu_y) ** p) ** invp
             rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
-            
+
         return prefac * self._neff_per_nu * rel_mass
 
     def _w_integrand(self, ln1pz):
@@ -1110,7 +1109,7 @@ class FLRW(Cosmology):
         """
 
         # Remember that the luminosity distance is in Mpc
-        # Abs is necessary because in certain obscure closed cosmologies 
+        # Abs is necessary because in certain obscure closed cosmologies
         #  the distance modulus can be negative -- which is okay because
         #  it enters as the square.
         val = 5. * np.log10(abs(self.luminosity_distance(z).value)) + 25.0

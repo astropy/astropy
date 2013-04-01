@@ -12,6 +12,9 @@ Includes the following fixes:
   alias to `inspect.getmodule` if the stdlib version is correct, but for
   versions of python with the bug, it uses an internal patched version.
 
+* The `ignored` context manager, not actually in any released version of Python
+  yet (but it will be in `contextlib` eventually).
+
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -24,8 +27,8 @@ import sys
 from functools import wraps
 
 
-__all__ = [
-    'inspect_getmodule', 'invalidate_caches', 'override__dir__']
+__all__ = ['inspect_getmodule', 'invalidate_caches', 'override__dir__',
+           'ignored']
 
 
 def _patched_getmodule(object, _filename=None):
@@ -143,3 +146,30 @@ def override__dir__(f):
             return sorted(members)
 
     return override__dir__wrapper
+
+
+try:
+    from contextlib import ignored
+except ImportError:
+    from contextlib import contextmanager
+    @contextmanager
+    def ignored(*exceptions):
+        """A context manager for ignoring exceptions.  Equivalent to::
+
+            try:
+                <body>
+            except exceptions:
+                pass
+
+        Example::
+
+            >>> import os
+            >>> with ignored(OSError):
+            ...     os.remove('file-that-does-not-exist')
+
+        """
+
+        try:
+            yield
+        except exceptions:
+            pass

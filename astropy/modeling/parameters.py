@@ -17,6 +17,7 @@ import numbers
 import numpy as np
 
 from ..utils import isiterable
+from ..utils.compat import ignored
 from ..extern import six
 
 __all__ = ['Parameter', 'InputParameterError']
@@ -141,12 +142,10 @@ class Parameter(object):
             self._setter = None
 
         if model is not None:
-            try:
+            with ignored(AttributeError):
+                # This can only work if the paramter's value has been set by
+                # the model
                 _, self._shape = self._validate_value(model, self.value)
-            except AttributeError:
-                # This could occur early in the model initialization if the
-                # parameter values haven't been set yet.
-                pass
         else:
             # Only Parameters declared as class-level descriptors require
             # and ordering ID

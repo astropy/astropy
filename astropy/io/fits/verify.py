@@ -11,7 +11,6 @@ class VerifyError(Exception):
     """
     Verify exception class.
     """
-    pass
 
 
 class VerifyWarning(AstropyUserWarning):

@@ -24,6 +24,7 @@ from ...extern.six.moves import cStringIO as StringIO
 from ...utils.exceptions import AstropyWarning
 
 from ...table import Table
+from ...utils.compat import ignored
 from ...utils.data import get_readable_fileobj
 from ...utils import OrderedDict
 from . import connect
@@ -35,11 +36,10 @@ FORMAT_CLASSES = {}
 class InconsistentTableError(ValueError):
     """
     Indicates that an input table is inconsistent in some way.
-    
+
     The default behavior of ``BaseReader`` is to throw an instance of
     this class if a data row doesn't match the header.
     """
-    pass
 
 class OptionalTableImportError(ImportError):
     """
@@ -49,7 +49,6 @@ class OptionalTableImportError(ImportError):
     with certain required dependencies cannot operate because of
     an ImportError.
     """
-    pass
 
 
 class NoType(object):
@@ -59,35 +58,30 @@ class NoType(object):
     This class is the default type of ``Column`` and provides a base
     class for other data types.
     """
-    pass
 
 
 class StrType(NoType):
     """
     Indicates that a column consists of text data.
     """
-    pass
 
 
 class NumType(NoType):
     """
     Indicates that a column consists of numerical data.
     """
-    pass
 
 
 class FloatType(NumType):
     """
     Describes floating-point data.
     """
-    pass
 
 
 class IntType(NumType):
     """
     Describes integer data.
     """
-    pass
 
 
 class AllType(StrType, FloatType, IntType):
@@ -97,7 +91,6 @@ class AllType(StrType, FloatType, IntType):
     This type is returned by ``convert_numpy`` if the given numpy
     type does not match ``StrType``, ``FloatType``, or ``IntType``.
     """
-    pass
 
 
 class Column(object):
@@ -369,7 +362,6 @@ class BaseHeader(object):
         the table ``lines`` and update the OrderedDict ``meta`` in place.  This base
         method does nothing.
         """
-        pass
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
@@ -515,12 +507,12 @@ class BaseData(object):
                     col.fill_values = {}
 
             # if input is only one <fill_spec>, then make it a list
-            try:
+            with ignored(TypeError):
                 self.fill_values[0] + ''
                 self.fill_values = [self.fill_values]
-            except TypeError:
-                pass
-            # Step 1: Set the default list of columns which are affected by fill_values
+
+            # Step 1: Set the default list of columns which are affected by
+            # fill_values
             colnames = set(self.header.colnames)
             if self.fill_include_names is not None:
                 colnames.intersection_update(self.fill_include_names)
@@ -718,11 +710,9 @@ class MetaBaseReader(type):
 
 
 def _is_number(x):
-    try:
+    with ignored(ValueError):
         x = float(x)
         return True
-    except ValueError:
-        pass
     return False
 
 
@@ -829,12 +819,10 @@ class BaseReader(object):
         # If ``table`` is a file then store the name in the ``data``
         # attribute. The ``table`` is a "file" if it is a string
         # without the new line specific to the OS.
-        try:
+        with ignored(TypeError):
+            # Strings only
             if os.linesep not in table + '':
                 self.data.table_name = os.path.basename(table)
-        except TypeError:
-            # Not a string.
-            pass
 
         # Same from __init__.  ??? Do these need to be here?
         self.data.header = self.header
