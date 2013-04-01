@@ -24,6 +24,9 @@ Each cosmology has the following parameters defined:
 The list of cosmologies available are given by the tuple
 `available`. Current cosmologies available:
 
+Planck13 parameters from Planck Collaboration 2013, arXiv:1303.5076
+ (Paper XVI), Table 5 (Planck + WP + lensing + highL + BAO)
+
 WMAP 9 year parameters from Hinshaw et al. 2012, arXiv 1212.5226.
  Table 4 (WMAP9 + eCMB + BAO + H0)
 
@@ -33,6 +36,25 @@ WMAP 7 year parameters from Komatsu et al. 2011, ApJS, 192, 18. Table
 WMAP 5 year parameters from Komatsu et al. 2009, ApJS, 180, 330. Table
 1 (WMAP + BAO + SN ML).
 """
+
+# Ade et al. Planck 2013 paper XVI Table 5 penultimate column (best fit)
+Planck13 = dict(
+    Oc0 = 0.25886,
+    Ob0 = 0.048252,
+    Om0 = 0.30712,
+    H0 = 67.77,
+    n = 0.9611,
+    sigma8 = 0.8288,
+    tau = 0.0952,
+    z_reion = 11.52,
+    t0 = 13.7965,
+    Tcmb0 = 2.7255,
+    Neff = 3.046,
+    flat = True,
+    reference = ("Planck Collaboration 2013, Paper XVI, arXiv:1303.5076"
+                 " Table 5 (Planck + WP + lensing + highL + BAO)")
+    )
+
 
 # Hinshaw et al. 2012, WMAP9 + eCMB + BAO + H0 (Table 4, last column)
 WMAP9 = dict(
@@ -49,7 +71,7 @@ WMAP9 = dict(
     Neff = 3.04,
     flat = True,
     reference = ("Hinshaw et al. 2012, arXiv 1212.5226."
-                 "Table 4 (WMAP + eCMB + BAO + H0)")
+                 " Table 4 (WMAP + eCMB + BAO + H0)")
     )
 
 # Komatsu et al. 2011, WMAP + BAO + H0 ML (table 1).
@@ -68,7 +90,7 @@ WMAP7 = dict(
     Neff = 3.04,
     flat = True,
     reference = ("Komatsu et al. 2011, ApJS, 192, 18. "
-                 "Table 1 (WMAP + BAO + H0 ML)")
+                 " Table 1 (WMAP + BAO + H0 ML)")
     )
 
 # Komatsu et al. 2009 WMAP + BAO + SN ML (table 1).
@@ -87,7 +109,7 @@ WMAP5 = dict(
     Neff = 3.04,
     flat = True,
     reference = ("Komatsu et al. 2009, ApJS, 180, 330. "
-                 "Table 1 (WMAP + BAO + SN ML)")
+                 " Table 1 (WMAP + BAO + SN ML)")
     )
 
 available = tuple(k for k in locals() if not k.startswith('_'))
