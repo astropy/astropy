@@ -350,6 +350,8 @@ def test_current():
     assert core.get_current() == core.WMAP5
     core.set_current('WMAP9')
     assert core.get_current() == core.WMAP9
+    core.set_current('Planck13')
+    assert core.get_current() == core.Planck13
     core.set_current(cosmo)
     assert core.get_current() == cosmo
 
