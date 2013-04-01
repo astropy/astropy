@@ -863,7 +863,7 @@ def download_file(remote_url, cache=False, show_progress=True):
             if show_progress:
                 progress_stream = sys.stdout
             else:
-                progress_stream = io.BytesIO()
+                progress_stream = io.StringIO()
 
             dlmsg = "Downloading {0}".format(remote_url)
             with ProgressBarOrSpinner(size, dlmsg, file=progress_stream) as p:

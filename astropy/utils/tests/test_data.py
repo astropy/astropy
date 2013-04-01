@@ -22,6 +22,12 @@ def test_download_nocache():
 
 
 @remote_data
+def test_download_noprogress():
+    fnout = download_file(TESTURL, show_progress=False)
+    assert os.path.isfile(fnout)
+
+
+@remote_data
 def test_download_cache():
 
     from ..data import download_file, clear_download_cache
