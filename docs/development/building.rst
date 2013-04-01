@@ -24,11 +24,11 @@ process:
     (possibly including wildcards) relative to the path of the package's source
     code.  e.g. if the source distribution has a needed data file
     ``astropy/wcs/tests/data/3d_cd.hdr``, this function should return
-    ``{'astropy.wcs.tests:'['data/3d_cd.hdr']}``. See the ``package_data``
+    ``{'astropy.wcs.tests':['data/3d_cd.hdr']}``. See the ``package_data``
     option of the  :func:`distutils.core.setup` function.
 
-    It is recommended that all such data be in a directory named "data" inside
-    the package within which it is supposed to be used, and package data should
+    It is recommended that all such data be in a directory named ``data`` inside
+    the package within which it is supposed to be used.  This package data should
     be accessed via the `astropy.utils.data.get_data_filename` and
     `astropy.utils.data.get_data_fileobj` functions.
 
@@ -78,15 +78,3 @@ function which automatically searches the given source path for
 ``setup_package.py`` modules and calls each of the above functions, if they
 exist.  This makes it easy for affiliated packages to use this machinery in
 their own ``setup.py``.
-
-
-Future directions
------------------
-
-We plan to switch to a newer packaging scheme when it's more stable, the
-upcoming standard library `packaging` module, derived from the
-`distutils2 <http://packages.python.org/Distutils2/library/distutils2.html>`_
-project.  Until it's working right, however, we will be using `distribute` and
-`distutils`.
-
-
