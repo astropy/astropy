@@ -93,14 +93,14 @@ Select a 2MASS catalog from the list above that is to be searched:
 
 >>> my_catname = 'Two Micron All Sky Survey (2MASS) 1'
 
-Query the selected 2MASS catalog around M31 with a 0.1-deg search radius:
+Query the selected 2MASS catalog around M31 with a 0.1-degree search radius:
 
 >>> from astropy import coordinates as coord
 >>> c = coord.ICRSCoordinates.from_name('M31')
 >>> c.ra, c.dec
 (<RA 10.68471 deg>, <Dec 41.26875 deg>)
->>> result = conesearch.conesearch(c.ra.degrees, c.dec.degrees, 0.1,
-...                                catalog_db=my_catname)
+>>> result = conesearch.conesearch(
+...     c.ra.degrees, c.dec.degrees, 0.1, catalog_db=my_catname)
 Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
 Downloading ...
 WARNING: W06: ... UCD has invalid character '?' in '??' [...]
@@ -337,8 +337,9 @@ in :ref:`vo-sec-scs-config` below. Here are the available options:
 In the default setting, it searches the good Cone Search services one by one,
 stops at the first one that gives non-zero match(es), and returns the result.
 Since the list of services are extracted from a Python dictionary, the search
-order might differ from call to call. :ref:`vo-sec-scs-examples` below also
-show how to use non-default search behaviors.
+order might differ from call to call. :ref:`vo-sec-scs-examples` below show
+how to use non-default search behaviors, where the user has more control of
+which catalog(s) to search.
 
 .. note::
 
@@ -390,24 +391,29 @@ Shows a sorted list of Cone Search services to be searched
  u'USNO-A2 Catalogue 1',
  u'USNO-A2.0 1']
 
+Select a catalog to search:
+
+>>> my_catname = 'The PMM USNO-A1.0 Catalogue (Monet 1997) 1'
+
 By default, pedantic is `False`:
 
 >>> from astropy.io.votable.table import PEDANTIC
 >>> PEDANTIC()
 False
 
-Perform cone search for :math:`0.5^{\circ}` radius around 47 Tucanae
-(RA :math:`6.088^{\circ}`, DEC :math:`-72.086^{\circ}`) with minimum verbosity,
-if supported. The first catalog in the database to
-successfully return a result is used. If running this for
-the first time, a copy of the catalogs database will be
+Perform Cone Search in the selected catalog above for 0.5 degree radius
+around 47 Tucanae with minimum verbosity, if supported.
+The ``catalog_db`` keyword gives control over which catalog(s) to use.
+If running this for the first time, a copy of the catalogs database will be
 downloaded to local cache. To run this again without
 using cached data, set ``cache=False``:
 
->>> result = conesearch.conesearch(6.088, -72.086, 0.5)
-Trying http://wfaudata.roe.ac.uk/sdssdr7-dsa/DirectCone?DSACAT=SDSS_DR7&...
-WARNING: W25: ... failed with: timed out [...]
-# ...
+>>> from astropy import coordinates as coord
+>>> c = coord.ICRSCoordinates.from_name('47 Tuc')
+>>> c
+<ICRSCoordinates RA=6.02233 deg, Dec=-72.08144 deg>
+>>> result = conesearch.conesearch(
+...     c.ra.degrees, c.dec.degrees, 0.5, catalog_db=my_catname)
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/243/out&
 Downloading ...
 WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
@@ -417,50 +423,53 @@ To run the command above using custom timeout of
 
 >>> from astropy.utils.data import REMOTE_TIMEOUT
 >>> with REMOTE_TIMEOUT.set_temp(30):
-...     result = conesearch.conesearch(6.088, -72.086, 0.5)
+...     result = conesearch.conesearch(
+...         c.ra.degrees, c.dec.degrees, 0.5, catalog_db=my_catname)
 
 To suppress *all* the screen outputs (not recommended):
 
 >>> import warnings
 >>> with warnings.catch_warnings():
 ...     warnings.simplefilter('ignore')
-...     result = conesearch.conesearch(6.088, -72.086, 0.5, verbose=False)
+...     result = conesearch.conesearch(
+...         c.ra.degrees, c.dec.degrees, 0.5, catalog_db=my_catname,
+...         verbose=False)
 
 Extract Numpy array containing the matched objects. See
 `numpy` for available operations:
 
 >>> cone_arr = result.array.data
 >>> cone_arr
-array([(0.499227, 4.465375, -72.106348, '0150-00089898'),
-       (0.499716, 4.468892, -72.050834, '0150-00089994'),
-       (0.498522, 4.469573, -72.120406, '0150-00090016'), ...,
-       (0.499753, 7.709364, -72.059581, '0150-00229066'),
-       (0.499739, 7.710762, -72.067145, '0150-00229140'),
-       (0.49931, 7.71077, -72.107684, '0150-00229141')],
+array([(0.499298, 4.403473, -72.124045, '0150-00088188'),
+       (0.499075, 4.403906, -72.122762, '0150-00088198'),
+       (0.499528, 4.404531, -72.045198, '0150-00088210'), ...,
+       (0.4988, 7.641731, -72.113156, '0150-00225965'),
+       (0.499554, 7.645489, -72.103167, '0150-00226134'),
+       (0.499917, 7.6474, -72.0876, '0150-00226223')], 
       dtype=[('_r', '<f8'), ('_RAJ2000', '<f8'), ('_DEJ2000', '<f8'),
              ('USNO-A1.0', '|S13')])
 >>> cone_arr.dtype.names
 ('_r', '_RAJ2000', '_DEJ2000', 'USNO-A1.0')
 >>> cone_arr.size
-36386
+36184
 >>> ra_list = cone_arr['_RAJ2000']
 >>> ra_list
-array([ 4.465375,  4.468892,  4.469573, ...,  7.709364,  7.710762,  7.71077 ])
+array([ 4.403473,  4.403906,  4.404531, ...,  7.641731,  7.645489,  7.6474  ])
 >>> cone_arr[0]  # First row
-(0.499227, 4.465375, -72.106348, '0150-00089898')
+(0.499298, 4.403473, -72.124045, '0150-00088188')
 >>> cone_arr[-1]  # Last row
-(0.49931, 7.71077, -72.107684, '0150-00229141')
+(0.499917, 7.6474, -72.0876, '0150-00226223')
 >>> cone_arr[:10]  # First 10 rows
-array([(0.499227, 4.465375, -72.106348, '0150-00089898'),
-       (0.499716, 4.468892, -72.050834, '0150-00089994'),
-       (0.498522, 4.469573, -72.120406, '0150-00090016'),
-       (0.497264, 4.471928, -72.077298, '0150-00090076'),
-       (0.49791, 4.472681, -72.059362, '0150-00090094'),
-       (0.496641, 4.473367, -72.085139, '0150-00090125'),
-       (0.496347, 4.474137, -72.092803, '0150-00090146'),
-       (0.49673, 4.474284, -72.072045, '0150-00090153'),
-       (0.4963, 4.474306, -72.094837, '0150-00090154'),
-       (0.496058, 4.475092, -72.094639, '0150-00090173')],
+array([(0.499298, 4.403473, -72.124045, '0150-00088188'),
+       (0.499075, 4.403906, -72.122762, '0150-00088198'),
+       (0.499528, 4.404531, -72.045198, '0150-00088210'),
+       (0.497252, 4.406078, -72.095045, '0150-00088245'),
+       (0.499739, 4.406462, -72.139545, '0150-00088254'),
+       (0.496312, 4.410623, -72.110492, '0150-00088372'),
+       (0.49473, 4.415053, -72.071217, '0150-00088494'),
+       (0.494171, 4.415939, -72.087512, '0150-00088517'),
+       (0.493722, 4.417678, -72.0972, '0150-00088572'),
+       (0.495147, 4.418262, -72.047142, '0150-00088595')],
       dtype=[('_r', '<f8'), ('_RAJ2000', '<f8'), ('_DEJ2000', '<f8'),
              ('USNO-A1.0', '|S13')])
 
@@ -470,12 +479,12 @@ Sort the matched objects by angular separation in ascending order:
 >>> sep = cone_arr['_r']
 >>> i_sorted = np.argsort(sep)
 >>> cone_arr[i_sorted]
-array([(0.069463, 6.311239, -72.09662, '0150-00163075'),
-       (0.074441, 6.328667, -72.093992, '0150-00163906'),
-       (0.074641, 6.330117, -72.09117, '0150-00163971'), ...,
-       (0.499953, 6.769789, -72.541034, '0150-00186705'),
-       (0.499986, 7.664375, -71.970134, '0150-00227015'),
-       (0.499991, 7.211106, -72.4507, '0150-00207032')],
+array([(0.081971, 5.917787, -72.006075, '0150-00145335'),
+       (0.083181, 6.020339, -72.164623, '0150-00149799'),
+       (0.089166, 5.732798, -72.077698, '0150-00137181'), ...,
+       (0.499981, 7.024962, -72.477503, '0150-00198745'),
+       (0.499987, 6.423773, -71.597364, '0150-00168596'),
+       (0.499989, 6.899589, -72.5043, '0150-00192872')], 
       dtype=[('_r', '<f8'), ('_RAJ2000', '<f8'), ('_DEJ2000', '<f8'),
              ('USNO-A1.0', '|S13')])
 
@@ -490,8 +499,8 @@ u'Right ascension (FK5, Equinox=J2000.0) (computed by VizieR, ...)'
 >>> ra_field.unit
 Unit("deg")
 >>> ra_field.unit.to(u.arcsec) * ra_list
-array([ 16075.35  ,  16088.0112,  16090.4628, ...,  27753.7104,
-        27758.7432,  27758.772 ])
+array([ 15852.5028,  15854.0616,  15856.3116, ...,  27510.2316,
+        27523.7604,  27530.64  ])
 
 Perform the same Cone Search as above but asynchronously using
 `~astropy.vo.client.conesearch.AsyncConeSearch`.
@@ -500,7 +509,8 @@ Queries to individual Cone Search services are still governed by
 to run in silent mode asynchronously, but warnings are still
 controlled by :py:mod:`warnings`:
 
->>> async_search = conesearch.AsyncConeSearch(6.088, -72.086, 0.5)
+>>> async_search = conesearch.AsyncConeSearch(
+...     c.ra.degrees, c.dec.degrees, 0.5, catalog_db=my_catname)
 
 Check asynchronous search status:
 
@@ -520,7 +530,7 @@ completion:
 >>> async_result = async_search.get(timeout=30)
 >>> cone_arr = async_result.array.data
 >>> cone_arr.size
-36386
+36184
 
 Estimate the execution time and the number of objects for
 the Cone Search service URL from above. The prediction naively
@@ -533,19 +543,22 @@ timeout of 30 seconds and runs silently (except for warnings):
 u'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/243/out&'
 >>> with REMOTE_TIMEOUT.set_temp(30):
 ...     t_est, n_est = conesearch.predict_search(
-...         result.url, 6.088, -72.086, 0.5, verbose=False, plot=True)
+...         result.url, c.ra.degrees, c.dec.degrees, 0.5,
+...         verbose=False, plot=True)
+WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
+# ...
 >>> t_est  # Predicted execution time
-15.109336715274392
+19.272144977377838
 >>> n_est  # Predicted number of objects
-33277
+37340
 
 .. image:: images/client_predict_search_t.png
     :width: 450px
-    :alt: Example plot from conesearch.predict_search (t)
+    :alt: Example plot from conesearch.predict_search() for t_est
 
 .. image:: images/client_predict_search_n.png
     :width: 450px
-    :alt: Example plot from conesearch.predict_search (n)
+    :alt: Example plot from conesearch.predict_search() for n_est
 
 For debugging purpose, one can obtain the actual execution time
 and number of objects, and compare them with the predicted values
@@ -554,20 +567,18 @@ Keep in mind that running this for every prediction
 would defeat the purpose of the prediction itself:
 
 >>> t_real, tab = conesearch.conesearch_timer(
-...     6.088, -72.086, 0.5, catalog_db=result.url, verbose=False)
-INFO: conesearch_timer took 9.04488611221 s on AVERAGE for 1 call(s). [...]
+...     c.ra.degrees, c.dec.degrees, 0.5, catalog_db=result.url, verbose=False)
+INFO: conesearch_timer took 11.5103080273 s on AVERAGE for 1 call(s). [...]
 >>> t_real  # Actual execution time
-9.044886112213135
+11.510308027267456
 >>> tab.array.size  # Actual number of objects
-36386
+36184
 
-For better control of which Cone Search service to use, one can
-utilize the ``catalog_db`` keyword in
-:func:`~astropy.vo.client.conesearch.conesearch`.
-In this example, we look for those containing 'guide*star' in their titles
-and only perform Cone Search using those services. As the first catalog in
-the list to successfully return non-zero results is used, the order of
-catalog names given in ``catalog_db`` is important:
+One can also search in a list of catalogs instead of a single one.
+In this example, we look for all catalogs containing 'guide*star' in their
+titles and only perform Cone Search using those services.
+The first catalog in the list to successfully return non-zero result is used.
+Therefore, the order of catalog names given in ``catalog_db`` is important:
 
 >>> gsc_cats = conesearch.list_catalogs(pattern='guide*star')
 >>> gsc_cats
@@ -575,13 +586,15 @@ catalog names given in ``catalog_db`` is important:
  u'The HST Guide Star Catalog, Version 1.1 (Lasker+ 1992) 1',
  u'The HST Guide Star Catalog, Version 1.2 (Lasker+ 1996) 1',
  u'The HST Guide Star Catalog, Version GSC-ACT (Lasker+ 1996-99) 1']
->>> gsc_result = conesearch.conesearch(6.088, -72.086, 0.5, catalog_db=gsc_cats)
+>>> gsc_result = conesearch.conesearch(
+...     c.ra.degrees, c.dec.degrees, 0.5, catalog_db=gsc_cats)
 Trying http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&
+WARNING: W25: ... failed with: timed out [...]
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/220/out&
 Downloading ...
 WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
 >>> gsc_result.array.size
-2985
+2997
 >>> gsc_result.url
 u'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/220/out&'
 
@@ -595,29 +608,14 @@ different order:
  u'The HST Guide Star Catalog, Version 1.2 (Lasker+ 1996) 1',
  u'Guide Star Catalog 2.3 1']
 >>> gsc_result = conesearch.conesearch(
-...     6.088, -72.086, 0.5, catalog_db=gsc_cats_reordered)
+...     c.ra.degrees, c.dec.degrees, 0.5, catalog_db=gsc_cats_reordered)
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/255/out&
 Downloading ...
 WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
 >>> gsc_result.array.size
-2985
+2997
 >>> gsc_result.url
 u'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/255/out&'
-
-One can also specify exactly which Cone Search service to use instead
-of using a list. In this example, we only use the Cone Search service
-titled 'The HST Guide Star Catalog, Version 1.2 (Lasker+ 1996) 1':
-
->>> gsc_result = conesearch.conesearch(
-...     6.088, -72.086, 0.5,
-...     catalog_db='The HST Guide Star Catalog, Version 1.2 (Lasker+ 1996) 1')
-Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/254/out&
-Downloading ...
-WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
->>> gsc_result.array.size
-2986
->>> gsc_result.url
-u'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/254/out&'
 
 If one is unable to obtain any results using the default
 Cone Search database, 'conesearch_good.json', that only contains
@@ -628,12 +626,20 @@ validation warnings. One should use these sites with caution:
 >>> conesearch.CONESEARCH_DBNAME.set('conesearch_warn')
 >>> conesearch.list_catalogs()
 Downloading http://stsdas.stsci.edu/astrolib/vo_databases/conesearch_warn.json
-|============================================|  94/ 94k (100.00%)        00s
+|===========================================|  87k/ 87k (100.00%)        00s
 [u'2MASS All-Sky Catalog of Point Sources (Cutri+ 2003) 1',
  u'2MASS All-Sky Point Source Catalog 1',
  u'Data release 7 of Sloan Digital Sky Survey catalogs 1',
  u'Data release 7 of Sloan Digital Sky Survey catalogs 2',
- u'Data release 7 of Sloan Digital Sky Survey catalogs 3', ...,
+ u'Data release 7 of Sloan Digital Sky Survey catalogs 3',
+ u'Data release 7 of Sloan Digital Sky Survey catalogs 4',
+ u'Data release 7 of Sloan Digital Sky Survey catalogs 5',
+ u'Data release 7 of Sloan Digital Sky Survey catalogs 6',
+ u'The 2MASS All-Sky Catalog 1',
+ u'The 2MASS All-Sky Catalog 2',
+ u'The USNO-B1.0 Catalog (Monet+ 2003) 1',
+ u'The USNO-B1.0 Catalog 1',
+ u'USNO-A V2.0, A Catalog of Astrometric Standards 1',
  u'USNO-B1 Catalogue 1']
 
 

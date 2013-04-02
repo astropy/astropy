@@ -52,7 +52,9 @@ class AsyncConeSearch(object):
 
     Examples
     --------
-    >>> async_search = conesearch.AsyncConeSearch(6.088, -72.086, 0.5)
+    >>> async_search = conesearch.AsyncConeSearch(
+    ...     6.0223, -72.0814, 0.5,
+    ...     catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1')
 
     Check search status:
 
@@ -60,7 +62,6 @@ class AsyncConeSearch(object):
     True
     >>> async_search.done()
     False
-
 
     Get search results after a 30-second wait (not to be
     confused with ``astropy.utils.data.REMOTE_TIMEOUT`` that
@@ -73,7 +74,7 @@ class AsyncConeSearch(object):
     >>> async_result = async_search.get(timeout=30)
     >>> cone_arr = async_result.array.data
     >>> cone_arr.size
-    36386
+    36184
 
     """
     def __init__(self, *args, **kwargs):
