@@ -49,8 +49,11 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False):
         :class:`~astropy.io.votable.tree.Table` object, the object to extract
         the table from.
 
-    table_id : str, optional
-        The ID of the table to read in.
+    table_id : str or int, optional
+        The table to read in.  If a `str`, it is an ID corresponding
+        to the ID of the table in the file (not all VOTable files
+        assign IDs to their tables).  If an `int`, it is the index of
+        the table in the file, starting at 0.
 
     use_names_over_ids : boolean, optional
         When `True` use the `name` attributes of columns as the names
@@ -63,11 +66,13 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False):
         input = parse(input, table_id=table_id)
 
     # Parse all table objects
-    tables = OrderedDict()
+    table_id_mapping = dict()
+    tables = []
     if isinstance(input, VOTableFile):
         for table in input.iter_tables():
             if table.ID is not None:
-                tables[table.ID] = table
+                table_id_mapping[table.ID] = table
+            tables.append(table)
 
         if len(tables) > 1:
             if table_id is None:
@@ -75,14 +80,22 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False):
                     "Multiple tables found: table id should be set via "
                     "the table_id= argument. The available tables are " +
                     ', '.join(tables.keys()))
-            else:
-                if table_id in tables:
-                    table = tables[table_id]
+            elif isinstance(table_id, basestring):
+                if table_id in table_id_mapping:
+                    table = table_id_mapping[table_id]
                 else:
                     raise ValueError(
                         "No tables with id={0} found".format(table_id))
+            elif isinstance(table_id, (int, long)):
+                if table_id < len(tables):
+                    table = tables[table_id]
+                else:
+                    raise IndexError(
+                        "Table index {0} is out of range. "
+                        "{1} tables found".format(
+                            table_id, len(tables)))
         elif len(tables) == 1:
-            table = tables[tables.keys()[0]]
+            table = tables[0]
         else:
             raise ValueError("No table found")
     elif isinstance(input, VOTable):
