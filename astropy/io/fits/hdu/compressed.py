@@ -1206,8 +1206,6 @@ class CompImageHDU(BinTableHDU):
         Compress the image data so that it may be written to a file.
         """
 
-        tilesizes = []
-
         # Check to see that the image_header matches the image data
         image_bitpix = _ImageBaseHDU.ImgCode[self.data.dtype.name]
 
@@ -1217,12 +1215,6 @@ class CompImageHDU(BinTableHDU):
             self._header.get('ZBITPIX', 0) != image_bitpix or
             self.shape != self.data.shape):
             self.updateHeaderData(self.header)
-
-        # Create lists to hold the number of pixels along each axis of
-        # the image data and the number of pixels in each tile of the
-        # compressed image.
-        for idx in range(self._header['ZNAXIS']):
-            tilesizes.append(self._header['ZTILE' + str(idx + 1)])
 
         # put data in machine native byteorder on little endian machines
         # for handing off to the compression code
@@ -1249,32 +1241,8 @@ class CompImageHDU(BinTableHDU):
         if should_swap:
             self.data.byteswap(True)
 
-        # Estimate memory needed for the compressed data and allocate it;
-        # CFITSIO will handle growing allocated memory if necessary, after
-        # which the pyfits.compression module will updating self.compData to
-        # use the newly reallocated buffer
-        if self._header['ZCMPTYPE'] == 'RICE_1':
-            rice_blocksize = self._header['ZVAL1']
-        else:
-            rice_blocksize = 0
-        maxtilelen = reduce(operator.mul, tilesizes, 1)
         nrows = self._header['NAXIS2']
         tbsize = self._header['NAXIS1'] * nrows
-        max_elem = compression.calc_max_elem(self._header['ZCMPTYPE'],
-                                             maxtilelen,
-                                             self._header['ZBITPIX'],
-                                             rice_blocksize)
-        dataspan = tbsize + (nrows * max_elem)
-        if dataspan < BLOCK_SIZE:
-            # We must a full FITS block at a minimum
-            dataspan = BLOCK_SIZE
-        else:
-            # Still make sure to pad out to a multiple of 2880 byte blocks
-            # otherwise CFITSIO can get read errors when it tries to read
-            # a partial block that goes past the end of the file
-            dataspan += _pad_length(dataspan)
-        self.compData = np.empty((dataspan,), dtype=np.byte)
-        self.compData[:tbsize] = 0
 
         self._header['PCOUNT'] = 0
         if 'THEAP' in self._header:
@@ -1288,7 +1256,7 @@ class CompImageHDU(BinTableHDU):
             # self.compData, and writes directly to it
             # compress_hdu returns the size of the heap for the written
             # compressed image table
-            heapsize = compression.compress_hdu(self)
+            heapsize, self.compData = compression.compress_hdu(self)
         finally:
             # if data was byteswapped return it to its original order
             if should_swap:
