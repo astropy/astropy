@@ -71,6 +71,16 @@ Bug Fixes
   - Fixed opening VOTables through the ``Table.read()`` interface for tables
     that have no names. [#927]
 
+  - Fixed creation of VOTables from an Astropy table that does not have a data
+    mask. [#928]
+
+  - Minor documentation fixes. [#932]
+
+- ``astropy.nddata.convolution``
+
+  - Added better handling of ``inf`` values to the ``convolve_fft`` family of
+    functions. [#893]
+
 - ``astropy.table``
 
   - Fixed silent failure to assign values to a row on multiple columns. [#764]
@@ -79,6 +89,9 @@ Bug Fixes
     its columns. [#829]
 
   - Fixed using ``numpy.where()`` with table indexing. [#838]
+
+  - Fixed a bug where opening a remote table with ``Table.read()`` could cause
+    the entire table to be downloaded twice. [#845]
 
   - Fixed a bug where ``MaskedColumn`` no longer worked if the column being
     masked is renamed. [#916]
@@ -119,6 +132,8 @@ Bug Fixes
   - Catches segfaults in xmllint which can occur sometimes and is otherwise out
     of our control. [#803]
 
+  - Minor changes to the documentation template. [#805]
+
   - Fixed a minor exception handling bug in ``download_file()``. [#808]
 
   - Added cleanup of any temporary files if an error occurs in
@@ -142,6 +157,8 @@ Bug Fixes
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added logo and branding for Windows binary installers. [#741]
 
 - Upgraded included version libexpat to 2.1.0. [#781]
 
