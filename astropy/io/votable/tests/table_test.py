@@ -121,3 +121,15 @@ def test_names_over_ids():
         'Name', 'GLON', 'GLAT', 'RAdeg', 'DEdeg', 'Jmag', 'Hmag', 'Kmag',
         'G3.6mag', 'G4.5mag', 'G5.8mag', 'G8.0mag', '4.5mag', '8.0mag',
         'Emag', '24mag', 'f_Name']
+
+
+def test_table_read_with_unnamed_tables():
+    """
+    Issue #927
+    """
+    from ....table import Table
+
+    with get_pkg_data_fileobj('data/names.xml', encoding='binary') as fd:
+        t = Table.read(fd, format='votable')
+
+    assert len(t) == 1
