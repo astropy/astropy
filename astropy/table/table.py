@@ -895,7 +895,7 @@ class Table(object):
         if isinstance(data, (list, tuple)):
             init_func = self._init_from_list
             if data and all(isinstance(row, dict) for row in data):
-                n_cols = len(data[0].keys())
+                n_cols = len(data[0])
             else:
                 n_cols = len(data)
 
@@ -1056,18 +1056,20 @@ class Table(object):
         def_names = _auto_names(n_cols)
 
         if data and all(isinstance(row, dict) for row in data):
-            names = set()
+            names_from_data = set()
             for row in data:
-                names.update(row.keys())
+                names_from_data.update(row)
             
             cols = {}
-            for name in names:
+            for name in names_from_data:
                 cols[name] = []
                 for i, row in enumerate(data):
                     try:
                         cols[name].append(row[name])
                     except KeyError:
                         raise ValueError('Row {0} has no value for column {1}'.format(i, name))
+            if all(name is None for name in names):
+                names = sorted(names_from_data)
             self._init_from_dict(cols, names, dtypes, n_cols, copy)
             return
                 

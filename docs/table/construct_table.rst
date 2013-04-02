@@ -396,11 +396,11 @@ for the ``data`` argument.
     Similar to Python's builtin ``csv.DictReader``, each item in the 
     ``data`` list provides a row of data values and must be a dict.  The
     key values in each dict define the column names and each row must
-    have identical column names.  As the column names are specified by each
-    row, if the ``names`` argument is supplied, it will be ignored.  The
-    ``dtypes`` list (optional) may be specified, but as vanilla dicts are
-    unordered, your columns are not guaranteed to have the right type
-    unless an OrderedDict_ is used.
+    have identical column names.  The ``names`` argument may be supplied
+    to specify colum ordering.  If it is not provided, the column order will
+    default to alphabetical.  The ``dtypes`` list may be specified, and must
+    correspond to the order of output columns.  If any row's keys do no match
+    the rest of the rows, a ValueError will be thrown.
     
 
 **None**
