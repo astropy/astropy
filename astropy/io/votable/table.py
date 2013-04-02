@@ -60,7 +60,7 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         the standard Python mechanisms.  See the `warnings`
         module in the Python standard library for more information.
         When not provided, uses the configuration setting
-        `astropy.io.votable.pedantic`, which defaults to True.
+        `astropy.io.votable.pedantic`, which defaults to False.
 
     chunk_size : int, optional
         The number of rows to read before converting to an array.
