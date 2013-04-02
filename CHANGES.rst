@@ -40,6 +40,10 @@ Bug Fixes
   - Added a more helpful exception message when trying to read invalid values
     from a table when the required ``TNULLn`` keyword is missing. [#309]
 
+  - More refactoring of the tile compression handling to work around a
+    potential memory access violation that was particularly prevalent on
+    Windows. [#507]
+
   - Fixed an integer size mismatch in the compression module that could affect
     32-bit systems. [#786]
 
