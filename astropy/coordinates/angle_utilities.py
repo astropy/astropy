@@ -104,8 +104,9 @@ def parse_degrees(degrees, output_dms=False):
         if not string_parsed:
             try:
                 elems = _dms_regex.search(x).groups()
+                # We need to convert elems[0] to float to preserve sign for -0.0
                 parsed_degrees = dms_to_degrees(
-                    int(elems[0]), int(elems[1]), float(elems[2]))
+                    float(elems[0]), int(elems[1]), float(elems[2]))
                 string_parsed = True
             except AttributeError:
                 # regular expression did not match - try again below
@@ -115,8 +116,9 @@ def parse_degrees(degrees, output_dms=False):
         if not string_parsed:
             try:
                 elems = _dm_regex.search(x).groups()
+                # We need to convert elems[0] to float to preserve sign for -0.0
                 parsed_degrees = dms_to_degrees(
-                    int(elems[0]), int(elems[1]), 0.0)
+                    float(elems[0]), int(elems[1]), 0.0)
                 string_parsed = True
             except AttributeError:
                 # regular expression did not match - try again below
@@ -336,7 +338,7 @@ def dms_to_degrees(d, m, s):
     _check_minute_range(m)
     _check_second_range(s)
 
-   # determine sign
+    # determine sign
     sign = math.copysign(1.0, d)
 
     try:
@@ -356,16 +358,19 @@ def hms_to_hours(h, m, s):
 
     check_hms_ranges(h, m, s)
 
+    # determine sign
+    sign = math.copysign(1.0, h)
+
     try:
-        h = int(h)
-        m = int(m)
-        s = float(s)
+        h = int(abs(h))
+        m = int(abs(m))
+        s = float(abs(s))
     except ValueError:
         raise ValueError(format_exception(
             "{func}: HMS values ({1[0]},{2[1]},{3[2]}) could not be "
             "converted to numbers.", h, m, s))
 
-    return h + m / 60. + s / 3600.
+    return sign * (h + m / 60. + s / 3600.)
 
 
 def hms_to_degrees(h, m, s):
