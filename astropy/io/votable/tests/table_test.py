@@ -121,6 +121,7 @@ def test_from_table_without_mask():
     t.write(output, format='votable')
 
 
+@pytest.mark.xfail('numpy_lt_1p5')
 def test_table_read_with_unnamed_tables():
     """
     Issue #927
