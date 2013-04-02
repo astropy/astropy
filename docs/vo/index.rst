@@ -54,6 +54,82 @@ keyword that can be set to `False`.
 Getting Started
 ===============
 
+This section only contains minimal examples showing how to perform
+basic Cone Search.
+
+>>> from astropy.vo.client import conesearch
+
+List the available Cone Search catalogs:
+
+>>> conesearch.list_catalogs()
+[u'Guide Star Catalog 2.3 1',
+ u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 1',
+ u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 2',
+ u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 3',
+ u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 4',
+ u'SDSS DR8 - Sloan Digital Sky Survey Data Release 8 1',
+ u'SDSS DR8 - Sloan Digital Sky Survey Data Release 8 2',
+ u'The HST Guide Star Catalog, Version 1.1 (Lasker+ 1992) 1',
+ u'The HST Guide Star Catalog, Version 1.2 (Lasker+ 1996) 1',
+ u'The HST Guide Star Catalog, Version GSC-ACT (Lasker+ 1996-99) 1',
+ u'The PMM USNO-A1.0 Catalogue (Monet 1997) 1',
+ u'The USNO-A2.0 Catalogue (Monet+ 1998) 1',
+ u'Two Micron All Sky Survey (2MASS) 1',
+ u'Two Micron All Sky Survey (2MASS) 2',
+ u'USNO-A2 Catalogue 1',
+ u'USNO-A2.0 1']
+
+Select a 2MASS catalog from the list above that is to be searched:
+
+>>> my_catname = 'Two Micron All Sky Survey (2MASS) 1'
+
+Query the selected 2MASS catalog around M31 with a 0.1-deg search radius:
+
+>>> from astropy import coordinates as coord
+>>> c = coord.ICRSCoordinates.from_name('M31')
+>>> c.ra, c.dec
+(<RA 10.68471 deg>, <Dec 41.26875 deg>)
+>>> result = conesearch.conesearch(c.ra.degrees, c.dec.degrees, 0.1,
+...                                catalog_db=my_catname)
+Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
+Downloading ...
+WARNING: W06: ... UCD has invalid character '?' in '??' [...]
+WARNING: W50: ... Invalid unit string 'yyyy-mm-dd' [...]
+WARNING: W50: ... Invalid unit string 'Julian days' [...]
+>>> result
+<astropy.io.votable.tree.Table at 0x41e8610>
+>>> result.url
+u'http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&DSATAB=twomass_psc&'
+
+Get the number of matches and returned column names:
+
+>>> result.array.size
+2008
+>>> result.array.dtype.names
+('cx',
+ 'cy',
+ 'cz',
+ 'htmID',
+ 'ra',
+ 'dec', ...,
+ 'coadd_key',
+ 'coadd')
+
+Extract RA and DEC of the matches:
+
+>>> result.array['ra']
+masked_array(data = [10.620983 10.672264 10.651166 ..., 10.805599],
+             mask = [False False False ..., False],
+       fill_value = 1e+20)
+>>> result.array['dec']
+masked_array(data = [41.192303 41.19426 41.19445 ..., 41.262123],
+             mask = [False False False ..., False],
+       fill_value = 1e+20)
+
+
+Using ``astropy.vo``
+====================
+
 This package has four main components across two subpackages:
 
     * ``astropy.vo.client``:
@@ -280,8 +356,19 @@ Shows a sorted list of Cone Search services to be searched
 [u'Guide Star Catalog 2.3 1',
  u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 1',
  u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 2',
- u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 3', ...,
- u'USNO-A2 Catalogue 1']
+ u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 3',
+ u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 4',
+ u'SDSS DR8 - Sloan Digital Sky Survey Data Release 8 1',
+ u'SDSS DR8 - Sloan Digital Sky Survey Data Release 8 2',
+ u'The HST Guide Star Catalog, Version 1.1 (Lasker+ 1992) 1',
+ u'The HST Guide Star Catalog, Version 1.2 (Lasker+ 1996) 1',
+ u'The HST Guide Star Catalog, Version GSC-ACT (Lasker+ 1996-99) 1',
+ u'The PMM USNO-A1.0 Catalogue (Monet 1997) 1',
+ u'The USNO-A2.0 Catalogue (Monet+ 1998) 1',
+ u'Two Micron All Sky Survey (2MASS) 1',
+ u'Two Micron All Sky Survey (2MASS) 2',
+ u'USNO-A2 Catalogue 1',
+ u'USNO-A2.0 1']
 
 By default, pedantic is `False`:
 
@@ -302,7 +389,7 @@ Trying http://wfaudata.roe.ac.uk/sdssdr7-dsa/DirectCone?DSACAT=SDSS_DR7&...
 WARNING: W25: ... failed with: timed out [...]
 # ...
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/243/out&
-Downloading ... [Done]
+Downloading ...
 WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
 
 To run the command above using custom timeout of
@@ -378,6 +465,8 @@ In this example, we convert RA values from degree to arcsec:
 
 >>> from astropy import units as u
 >>> ra_field = result.get_field_by_id('_RAJ2000')
+>>> ra_field.title
+u'Right ascension (FK5, Equinox=J2000.0) (computed by VizieR, ...)'
 >>> ra_field.unit
 Unit("deg")
 >>> ra_field.unit.to(u.arcsec) * ra_list
