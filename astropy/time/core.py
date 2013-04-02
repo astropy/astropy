@@ -21,8 +21,12 @@ __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TIME_FORMATS', 'TIME_DELTA_FORMATS', 'TIME_SCALES',
            'TIME_DELTA_SCALES']
 
-if not _ASTROPY_SETUP_:
+try:
+    # Not guaranteed available at setup time
     from . import sofa_time
+except ImportError:
+    if not _ASTROPY_SETUP_:
+        raise
 
 MJD_ZERO = 2400000.5
 SECS_PER_DAY = 86400

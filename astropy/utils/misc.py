@@ -292,7 +292,7 @@ class lazyproperty(object):
         args = [self._fget, self._fset, self._fdel, self.__doc__]
         args[arg] = f
         cls_ns = sys._getframe(1).f_locals
-        for k, v in cls_ns.iteritems():
+        for k, v in cls_ns.items():
             if v is self:
                 property_name = k
                 break

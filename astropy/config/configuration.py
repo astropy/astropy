@@ -17,6 +17,7 @@ from contextlib import contextmanager
 
 from ..extern.configobj import configobj, validate
 
+
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
            'ConfigurationMissingWarning', 'get_config', 'save_config',
            'reload_config']
@@ -416,22 +417,25 @@ def get_config(packageormod=None, reload=False):
     cobj = _cfgobjs.get(rootname, None)
 
     if cobj is None:
-        try:
-            cfgfn = join(get_config_dir(), rootname + '.cfg')
-            cobj = configobj.ConfigObj(cfgfn, interpolation=False)
-            _cfgobjs[rootname] = cobj
-
-        except (IOError, OSError) as e:
-            msg1 = 'Configuration defaults will be used, and configuration '
-            msg2 = 'cannot be saved due to '
-            errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
-            wmsg = msg1 + msg2 + e.__class__.__name__ + errstr
-            warn(ConfigurationMissingWarning(wmsg))
-
-            # This caches the object, so if the file becomes accessible, this
-            # function won't see it unless the module is reloaded
+        if _ASTROPY_SETUP_:
+            # There's no reason to use anything but the default config
             cobj = configobj.ConfigObj(interpolation=False)
-            _cfgobjs[rootname] = cobj
+        else:
+            try:
+                cfgfn = join(get_config_dir(), rootname + '.cfg')
+                cobj = configobj.ConfigObj(cfgfn, interpolation=False)
+            except (IOError, OSError) as e:
+                msg = ('Configuration defaults will be used, and '
+                       'configuration cannot be saved due to ')
+                errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
+                msg += e.__class__.__name__ + errstr
+                warn(ConfigurationMissingWarning(msg))
+
+                # This caches the object, so if the file becomes accessible, this
+                # function won't see it unless the module is reloaded
+                cobj = configobj.ConfigObj(interpolation=False)
+
+        _cfgobjs[rootname] = cobj
 
     if secname:  # not the root package
         if secname not in cobj:

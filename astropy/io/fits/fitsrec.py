@@ -435,7 +435,7 @@ class FITS_rec(np.recarray):
                                  dummy)
                 try:
                     dummy = np.array(dummy, dtype=_type)
-                except ValueError, e:
+                except ValueError as e:
                     raise ValueError(
                         '%s; the header may be missing the necessary TNULL%d '
                         'keyword or the table contains invalid data' %
