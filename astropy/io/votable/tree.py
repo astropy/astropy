@@ -2669,7 +2669,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             column = table[colname]
             new_table.fields.append(Field.from_table_column(votable, column))
 
-        new_table.array = ma.array(np.asarray(table), mask=table.mask)
+        if table.mask is None:
+            new_table.array = ma.array(np.asarray(table))
+        else:
+            new_table.array = ma.array(np.asarray(table), mask=table.mask)
 
         return new_table
 

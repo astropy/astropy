@@ -3,6 +3,7 @@
 Test the conversion to/from astropy.table
 """
 
+import io
 import os
 import shutil
 import tempfile
@@ -108,3 +109,13 @@ def test_read_through_table_interface2():
         t = Table.read(fd, format='votable', table_id='last_table')
 
     assert len(t) == 0
+
+
+@pytest.mark.xfail('numpy_lt_1p5')
+def test_from_table_without_mask():
+    from ....table import Table, Column
+    t = Table()
+    c = Column(data=[1,2,3], name='a')
+    t.add_column(c)
+    output = io.BytesIO()
+    t.write(output, format='votable')
