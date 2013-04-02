@@ -35,16 +35,16 @@ given type::
   >>> u.g.find_equivalent_units()
     Primary name | Unit definition | Aliases
   [
-    M_e          | 9.109383e-31 kg |            ,
-    M_p          | 1.672622e-27 kg |            ,
-    g            | 1.000000e-03 kg | gram       ,
+    M_e          | 9.10938e-31 kg  |            ,
+    M_p          | 1.67262e-27 kg  |            ,
+    g            | 0.001 kg        | gram       ,
     kg           | irreducible     | kilogram   ,
-    lb           | 4.535924e-01 kg | pound      ,
-    oz           | 2.834952e-02 kg | ounce      ,
-    solMass      | 1.989100e+30 kg |            ,
-    t            | 1.000000e+03 kg | tonne      ,
-    ton          | 9.071847e+02 kg |            ,
-    u            | 1.660539e-27 kg | Da, Dalton ,
+    lb           | 0.453592 kg     | pound      ,
+    oz           | 0.0283495 kg    | ounce      ,
+    solMass      | 1.9891e+30 kg   | M_sun      ,
+    t            | 1000 kg         | tonne      ,
+    ton          | 907.185 kg      |            ,
+    u            | 1.66054e-27 kg  | Da, Dalton ,
   ]
 
 The dimensionless unit

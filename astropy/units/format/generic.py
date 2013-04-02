@@ -273,7 +273,7 @@ class Generic(Base):
 
         if isinstance(unit, core.CompositeUnit):
             if unit.scale != 1 and self._show_scale:
-                s = '{0:e} '.format(unit.scale)
+                s = '{0:g} '.format(unit.scale)
             else:
                 s = ''
 

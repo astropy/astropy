@@ -19,7 +19,7 @@ Getting Started
   >>> from astropy import units as u
   >>> # Convert from parsec to meter
   >>> u.pc.to(u.m)
-  3.0856776e+16
+  30856775814671916.0
   >>> cms = u.cm / u.s
   >>> mph = u.mile / u.hour
   >>> cms.to(mph, 1)
@@ -42,7 +42,7 @@ knows about::
 And it can convert between unit systems::
 
   >>> u.Pa.to_system(u.cgs)
-  [Unit("1.000000e+01 Ba")]
+  [Unit("10 Ba")]
 
 `astropy.units` also handles equivalencies, such as that between wavelength
 and frequency. To use that feature, equivalence objects are passed to the
