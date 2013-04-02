@@ -677,42 +677,90 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
 }
 
 
-void open_from_hdu(fitsfile** fileptr, void** buf, size_t* bufsize,
-                   PyObject* hdu, tcolumn* columns) {
-    PyObject* header = NULL;
-    PyArrayObject* data = NULL;
-    PyArrayObject* base;
-    PyArrayObject* tmp;
-    FITSfile* Fptr;
+void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
+    // Determines a good size for the output data buffer and allocates
+    // memory for it, returning the address and size of the allocated
+    // membory in to **buf and *bufsize respectively.
 
-    int status = 0;
+    PyObject* header = NULL;
+    char keyword[9];
+    char* tmp;
+    int znaxis;
+    int idx;
+    int compress_type;
+    int zbitpix;
+    int rice_blocksize = 0;
     long long rowlen;
     long long nrows;
-    long long heapsize;
-    long long theap;
+    long maxelem;
+    long tilelen;
+    unsigned long maxtilelen = 1;
 
     header = PyObject_GetAttrString(hdu, "_header");
     if (header == NULL) {
         goto fail;
     }
 
-    data = (PyArrayObject*) PyObject_GetAttrString(hdu, "compData");
-    if (data == NULL) {
+    if (0 != get_header_int(header, "ZNAXIS", &znaxis, 0)) {
         goto fail;
     }
 
+    for (idx = 1; idx <= znaxis; idx++) {
+        snprintf(keyword, 9, "ZTILE%u", idx);
+        get_header_long(header, keyword, &tilelen, 1);
+        maxtilelen *= tilelen;
+    }
+
+    get_header_string(header, "ZCMPTYPE", &tmp, DEFAULT_COMPRESSION_TYPE);
+    compress_type = compress_type_from_string(tmp);
+    if (compress_type == RICE_1) {
+        get_header_int(header, "ZVAL1", &rice_blocksize, 0);
+    }
 
     get_header_longlong(header, "NAXIS1", &rowlen, 0);
     get_header_longlong(header, "NAXIS2", &nrows, 0);
 
-    // The PCOUNT keyword contains the number of bytes in the table heap
-    get_header_longlong(header, "PCOUNT", &heapsize, 0);
+    // Get the ZBITPIX header value; if this is missing we're in trouble
+    if (0 != get_header_int(header, "ZBITPIX", &zbitpix, 0)) {
+        goto fail;
+    }
 
-    // The THEAP keyword gives the offset of the heap from the beginning of
-    // the HDU data portion; normally this offset is 0 but it can be set
-    // to something else with THEAP
-    get_header_longlong(header, "THEAP", &theap, 0);
+    maxelem = imcomp_calc_max_elem(compress_type, maxtilelen, zbitpix,
+                                   rice_blocksize);
 
+    *bufsize = ((size_t) (rowlen * nrows) + (nrows * maxelem));
+
+    if (*bufsize < IOBUFLEN) {
+        // We must have a full FITS block at a minimum
+        *bufsize = IOBUFLEN;
+    } else if (*bufsize % IOBUFLEN != 0) {
+        // Still make sure to pad out to a multiple of 2880 byte blocks
+        // otherwise CFITSIO can get read errors when it tries to read
+        // a partial block that goes past the end of the file
+        *bufsize += ((size_t) (IOBUFLEN - (*bufsize % IOBUFLEN)));
+    }
+
+    // TODO: Add error handling here
+    *buf = calloc(*bufsize, sizeof(char));
+fail:
+    Py_XDECREF(header);
+    return;
+}
+
+
+void get_hdu_data_base(PyObject* hdu, void** buf, size_t* bufsize) {
+    // Given a pointer to an HDU object, returns a pointer to the deepest base
+    // array of that HDU's data array into **buf, and the size of that array
+    // into *bufsize.
+
+    PyArrayObject* data = NULL;
+    PyArrayObject* base;
+    PyArrayObject* tmp;
+
+    data = (PyArrayObject*) PyObject_GetAttrString(hdu, "compData");
+    if (data == NULL) {
+        goto fail;
+    }
 
     // Walk the array data bases until we find the lowest ndarray base; for
     // CompImageHDUs there should always be at least one contiguous byte array
@@ -734,9 +782,41 @@ void open_from_hdu(fitsfile** fileptr, void** buf, size_t* bufsize,
     }
 
     *buf = PyArray_DATA(base);
+fail:
+    Py_XDECREF(data);
+    return;
+}
 
-    fits_create_memfile(fileptr, buf, bufsize, 0, compression_realloc,
-                        &status);
+
+void open_from_hdu(fitsfile** fileptr, void** buf, size_t* bufsize,
+                   PyObject* hdu, tcolumn* columns) {
+    PyObject* header = NULL;
+    FITSfile* Fptr;
+
+    int status = 0;
+    long long rowlen;
+    long long nrows;
+    long long heapsize;
+    long long theap;
+
+    header = PyObject_GetAttrString(hdu, "_header");
+    if (header == NULL) {
+        goto fail;
+    }
+
+    get_header_longlong(header, "NAXIS1", &rowlen, 0);
+    get_header_longlong(header, "NAXIS2", &nrows, 0);
+
+    // The PCOUNT keyword contains the number of bytes in the table heap
+    get_header_longlong(header, "PCOUNT", &heapsize, 0);
+
+    // The THEAP keyword gives the offset of the heap from the beginning of
+    // the HDU data portion; normally this offset is 0 but it can be set
+    // to something else with THEAP
+    get_header_longlong(header, "THEAP", &theap, 0);
+
+    fits_create_memfile(fileptr, buf, bufsize, 0, realloc, &status);
+
     if (status != 0) {
         process_status_err(status);
         goto fail;
@@ -774,7 +854,6 @@ void open_from_hdu(fitsfile** fileptr, void** buf, size_t* bufsize,
 
 fail:
     Py_XDECREF(header);
-    Py_XDECREF(data);
     return;
 }
 
@@ -786,8 +865,6 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     PyObject* retval = NULL;
     tcolumn* columns = NULL;
 
-    void* orig_outbuf;
-    size_t orig_outbufsize;
     void* outbuf;
     size_t outbufsize;
 
@@ -812,12 +889,11 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     // too much confusion to Astropy's internal book keeping.
     // We just need to get the compressed bytes and Astropy will handle the
     // writing of them.
+    init_output_buffer(hdu, &outbuf, &outbufsize);
     open_from_hdu(&fileptr, &outbuf, &outbufsize, hdu, columns);
     if (PyErr_Occurred()) {
         return NULL;
     }
-    orig_outbuf = outbuf;
-    orig_outbufsize = outbufsize;
 
     bitpix_to_datatypes(fileptr->Fptr->zbitpix, &datatype, &npdatatype);
     if (PyErr_Occurred()) {
@@ -839,24 +915,14 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
         goto fail;
     }
 
-    // It's possible that between calls to fits_write_img and fits_flush_buffer
-    // the size of the output buffer was insufficient and the buffer had to be
-    // reallocated.  The address and size of the new buffer should be in
-    // outbuf and outbufsize.  We need to create a new PyArrayObject using the
-    // new buffer and size
-    if (orig_outbuf != outbuf || orig_outbufsize != outbufsize) {
-        // It's possible, albeit unlikely, that realloc can return a block of
-        // memory with the same address but different size.
-        znaxis = (long) outbufsize;  // The output array is just one dimension.
-        tmp = (PyArrayObject*) PyArray_SimpleNewFromData(1, &znaxis, NPY_UBYTE,
-                                                         outbuf);
-        PyObject_SetAttrString(hdu, "compData", (PyObject*) tmp);
-        Py_DECREF(tmp);
-    }
+    znaxis = (long) outbufsize;  // The output array is just one dimension.
+    tmp = (PyArrayObject*) PyArray_SimpleNewFromData(1, &znaxis, NPY_UBYTE,
+                                                     outbuf);
 
     heapsize = (unsigned long long) fileptr->Fptr->heapsize;
 
-    retval = PyLong_FromUnsignedLongLong(heapsize);
+    // Leaves refcount of tmp untouched, so its refcount should remain as 1
+    retval = Py_BuildValue("KN", heapsize, tmp);
 
 fail:
     if (fileptr != NULL) {
@@ -905,6 +971,9 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
         PyErr_SetString(PyExc_TypeError, "Couldn't parse arguments");
         return NULL;
     }
+
+    // Grab a pointer to the input data from the HDU's compData attribute
+    get_hdu_data_base(hdu, &inbuf, &inbufsize);
 
     open_from_hdu(&fileptr, &inbuf, &inbufsize, hdu, columns);
     if (PyErr_Occurred()) {
@@ -957,24 +1026,6 @@ fail:
 }
 
 
-PyObject* compression_calc_max_elem(PyObject* self, PyObject* args) {
-    char* zcmptype;
-    long maxtilelen;
-    int zbitpix;
-    int rice_blocksize;
-
-    if (!PyArg_ParseTuple(args, "slii:compression.calc_max_elem", &zcmptype,
-                          &maxtilelen, &zbitpix, &rice_blocksize)) {
-        PyErr_SetString(PyExc_TypeError, "Couldn't parse arguments");
-        return NULL;
-    }
-
-    return PyLong_FromLong(
-        (long) imcomp_calc_max_elem(compress_type_from_string(zcmptype),
-                                    maxtilelen, zbitpix, rice_blocksize));
-}
-
-
 /* CFITSIO version float as returned by fits_get_version() */
 static double cfitsio_version;
 
@@ -1006,7 +1057,6 @@ static PyMethodDef compression_methods[] =
 {
    {"compress_hdu", compression_compress_hdu, METH_VARARGS},
    {"decompress_hdu", compression_decompress_hdu, METH_VARARGS},
-   {"calc_max_elem", compression_calc_max_elem, METH_VARARGS},
    {NULL, NULL}
 };
 
