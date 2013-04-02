@@ -68,6 +68,9 @@ Bug Fixes
   - Changed the default string format for floating point values for better
     round-tripping. [#856]
 
+  - Fixed opening VOTables through the ``Table.read()`` interface for tables
+    that have no names. [#927]
+
 - ``astropy.table``
 
   - Fixed silent failure to assign values to a row on multiple columns. [#764]
