@@ -119,3 +119,15 @@ def test_from_table_without_mask():
     t.add_column(c)
     output = io.BytesIO()
     t.write(output, format='votable')
+
+
+def test_table_read_with_unnamed_tables():
+    """
+    Issue #927
+    """
+    from ....table import Table
+
+    with get_pkg_data_fileobj('data/names.xml', encoding='binary') as fd:
+        t = Table.read(fd, format='votable')
+
+    assert len(t) == 1
