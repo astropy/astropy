@@ -20,6 +20,9 @@ Bug Fixes
   - Added a more helpful exception message when trying to read invalid values
     from a table when the required ``TNULLn`` keyword is missing. [#309]
 
+  - Fixed an integer size mismatch in the compression module that could affect
+    32-bit systems. [#786]
+
   - Fixed malformatting of the ``TFORMn`` keywords when writing compressed
     image tables (they ommitted the max array length parameter from the
     variable-length array format).
