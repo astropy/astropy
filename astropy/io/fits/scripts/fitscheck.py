@@ -134,7 +134,7 @@ def verify_checksums(filename):
     errors = 0
     try:
         hdulist = fits.open(filename, checksum=OPTIONS.checksum_kind)
-    except UserWarning, w:
+    except UserWarning as w:
         remainder = '.. ' + ' '.join(str(w).split(' ')[1:]).strip()
         # if "Checksum" in str(w) or "Datasum" in str(w):
         log.warn('BAD %r %s' % (filename, remainder))
@@ -160,7 +160,7 @@ def verify_compliance(filename):
     hdulist = fits.open(filename)
     try:
         hdulist.verify('exception')
-    except fits.VerifyError, e:
+    except fits.VerifyError as e:
         log.warn('NONCOMPLIANT %r .. %s' %
                  (filename), str(e).replace('\n',' '))
         return 1
@@ -200,7 +200,7 @@ def process_file(filename):
         if OPTIONS.write_file and checksum_errors == 0 or OPTIONS.force:
             update(filename)
         return checksum_errors + compliance_errors
-    except Exception, e:
+    except Exception as e:
         log.error('EXCEPTION %r .. %s' % (filename, e))
         return 1
 

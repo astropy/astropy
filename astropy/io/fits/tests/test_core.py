@@ -187,7 +187,7 @@ class TestCore(FitsTestCase):
             del hdu.header['NAXIS']
             try:
                 hdu.verify('ignore')
-            except Exception, e:
+            except Exception as e:
                 self.fail('An exception occurred when the verification error '
                           'should have been ignored: %s' % e)
         # Make sure the error wasn't fixed either, silently or otherwise

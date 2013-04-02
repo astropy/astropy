@@ -555,7 +555,7 @@ class TestHeaderFunctions(FitsTestCase):
         # Test the exception message
         try:
             header['NAXIS']
-        except KeyError, e:
+        except KeyError as e:
             assert e.args[0] == "Keyword 'NAXIS' not found."
 
     def test_hierarch_card_lookup(self):
@@ -1953,7 +1953,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         # Test the exception message
         try:
             self._test_header['DP1.AXIS.3']
-        except KeyError, e:
+        except KeyError as e:
             assert e.args[0] == "Keyword 'DP1.AXIS.3' not found."
 
     def test_update_rvkc(self):
