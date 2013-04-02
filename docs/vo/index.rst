@@ -36,7 +36,17 @@ catalogs below:
 This subset undergoes daily validations hosted by STScI using
 :ref:`vo-sec-validator-validate`. Those that pass without
 critical warnings or exceptions are used by :ref:`vo-sec-client-scs` by
-default.
+default. They are controlled by
+``astropy.vo.client.conesearch.CONESEARCH_DBNAME``):
+
+    #. 'conesearch_good'
+           Default. Passed validation without critical warnings and exceptions.
+    #. 'conesearch_warn'
+           Has critical warnings but no exceptions. Use at your own risk.
+    #. 'conesearch_exception'
+           Has some exceptions. *Never* use this.
+    #. 'conesearch_error'
+           Has network connection error. *Never* use this.
 
 If you are a Cone Search service provider and would like to include your
 service in the list above, please open a
@@ -179,8 +189,9 @@ Examples
 
 >>> from astropy.vo.client import vos_catalog
 
-Get all catalogs from a database named 'conesearch_good'
-(also see :ref:`Cone Search Examples <vo-sec-scs-examples>`):
+Get all catalogs from a database named 'conesearch_good' (this contains
+Cone Search services that cleanly passed daily validations;
+also see :ref:`Cone Search Examples <vo-sec-scs-examples>`):
 
 >>> my_db = vos_catalog.get_remote_catalog_db('conesearch_good')
 Downloading http://stsdas.stsci.edu/astrolib/vo_databases/conesearch_good.json
@@ -310,12 +321,21 @@ Simple Cone Search
 `astropy.vo.client.conesearch` supports VO Simple Cone Search capabilities.
 
 Available databases are generated on the server-side hosted by STScI using
-:ref:`vo-sec-validator-validate`. The default database
-(``astropy.vo.client.conesearch.CONESEARCH_DBNAME``), which can be changed
-in :ref:`vo-sec-scs-config` below, is 'conesearch_good.json'.
+:ref:`vo-sec-validator-validate`. The database used is controlled by
+``astropy.vo.client.conesearch.CONESEARCH_DBNAME``, which can be changed
+in :ref:`vo-sec-scs-config` below. Here are the available options:
+
+    #. 'conesearch_good'
+           Default. Passed validation without critical warnings and exceptions.
+    #. 'conesearch_warn'
+           Has critical warnings but no exceptions. Use at your own risk.
+    #. 'conesearch_exception'
+           Has some exceptions. *Never* use this.
+    #. 'conesearch_error'
+           Has network connection error. *Never* use this.
 
 In the default setting, it searches the good Cone Search services one by one,
-stops at the first one that gives non-zero matches, and returns the results.
+stops at the first one that gives non-zero match(es), and returns the result.
 Since the list of services are extracted from a Python dictionary, the search
 order might differ from call to call. :ref:`vo-sec-scs-examples` below also
 show how to use non-default search behaviors.
