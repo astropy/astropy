@@ -259,7 +259,7 @@ class LinearLSQFitter(Fitter):
         res = d[:, ind]
         return res
         
-    def __call__(self, x, y, z=None, w=None, rcond=None):
+    def __call__(self, x, y, z=None, weights=None, rcond=None):
         """
         Fit data to this model.
         
@@ -271,7 +271,7 @@ class LinearLSQFitter(Fitter):
             input coordinates
         z : array (optional)
             input coordinates
-        w : array (optional)
+        weights : array (optional)
             weights
         rcond :  float, optional
             Cut-off ratio for small singular values of `a`.
@@ -336,16 +336,16 @@ class LinearLSQFitter(Fitter):
             else:
                 rhs = z.flatten()
 
-        if w is not None:
-            w = np.asarray(w, dtype=np.float)
+        if weights is not None:
+            weights = np.asarray(weights, dtype=np.float)
             if len(x) != len(y):
-                raise ValueError("x and w should have the same length")
+                raise ValueError("x and weights should have the same length")
             if rhs.ndim == 2:
-                lhs *= w[:, np.newaxis]
-                rhs *= w[:, np.newaxis]
+                lhs *= weights[:, np.newaxis]
+                rhs *= weights[:, np.newaxis]
             else:
-                lhs *= w[:, np.newaxis]
-                rhs *= w
+                lhs *= weights[:, np.newaxis]
+                rhs *= weights
 
         if not multiple and self.model._parameters.paramdim > 1:
             raise ValueError("Attempting to fit a 1D data set to a model "
@@ -441,7 +441,7 @@ class NonLinearLSQFitter(Fitter):
             print("Could not construct a covariance matrix")
             return None
 
-    def __call__(self, x, y, z=None, w=None, maxiter=MAXITER, epsilon=EPS):
+    def __call__(self, x, y, z=None, weights=None, maxiter=MAXITER, epsilon=EPS):
         """
         Fit data to this model.
         
@@ -453,7 +453,7 @@ class NonLinearLSQFitter(Fitter):
            input coordinates
         z : array (optional)
            input coordinates
-        w : array (optional
+        weights : array (optional
            weights
         maxiter : int
             maximum number of iterations
@@ -467,7 +467,7 @@ class NonLinearLSQFitter(Fitter):
         """
         from scipy import optimize
         x = np.asarray(x, dtype=np.float)
-        self.weights  = w
+        self.weights  = weights
         if self.model._parameters.paramdim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit one "
@@ -543,12 +543,12 @@ class SLSQPFitter(Fitter):
         meas = args[0]
         self.fitpars = fps
         res = self.model(*args[1:]) - meas
-        if self._weights is None:
+        if self.weights is None:
             return np.sum(res**2)
         else:
             return np.sum(self.weights * res**2)
             
-    def __call__(self, x, y , z=None, w=None, verblevel=0, 
+    def __call__(self, x, y , z=None, weights=None, verblevel=0, 
                  maxiter=MAXITER, epsilon=EPS):
         """
         Fit data to this model.
@@ -561,7 +561,7 @@ class SLSQPFitter(Fitter):
             input coordinates
         z : array (optional)
             input coordinates
-        w : array (optional)
+        weights : array (optional)
             weights
         verblevel : int
             0-silent
