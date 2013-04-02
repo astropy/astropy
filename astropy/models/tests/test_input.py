@@ -1,13 +1,12 @@
-from __future__ import division
-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module tests fitting and model evaluation with various inputs
 """
 from __future__ import division
-import pytest
 import numpy as np
 from .. import models, fitting
 from numpy.testing import utils
+from ...tests.helper import pytest
 
 class TestFitting(object):
     """

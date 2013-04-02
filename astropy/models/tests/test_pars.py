@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Tests models.parameters
 """
@@ -5,10 +6,10 @@ import os.path
 from .. import models, fitting
 from . import irafutil
 from ..util import InputParameterError
-import pytest
 import numpy as np
 from numpy.testing import utils
 from ...utils.data import get_pkg_data_filename
+from ...tests.helper import pytest
 
 class TestParameters(object):
     def setup_class(self):
