@@ -2,7 +2,9 @@
 
 import sys
 
-if sys.version_info[0] >= 3:  # pragma: py3
+PY3 = sys.version_info[0] >= 3
+
+if PY3:  # pragma: py3
     # Stuff to do if Python 3
     import builtins
     import io
@@ -41,6 +43,16 @@ if sys.version_info[0] >= 3:  # pragma: py3
             return ns
         return s
     util.decode_ascii = decode_ascii
+
+    # Replacements for b and u marks on strings
+    def b(s):
+        return s.encode('latin-1')
+
+    def u(s):
+        return s
+
+    util.b = b
+    util.u = u
 
     # See the docstring for astropy.io.fits.util.fileobj_open for why we need
     # to replace this function
@@ -190,3 +202,12 @@ else:
     import string
     from . import util
     util.maketrans = string.maketrans
+
+    def b(s):
+        return s
+
+    def u(s):
+        return unicode(s, 'unicode_escape')
+
+    util.b = b
+    util.u = u

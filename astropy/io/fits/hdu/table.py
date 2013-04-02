@@ -192,7 +192,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                     # Delete the _arrays attribute so that it is recreated to
                     # point to the new data placed in the column objects above
                     del self.columns._arrays
-                except (TypeError, AttributeError), e:
+                except (TypeError, AttributeError) as e:
                     # This shouldn't happen as long as self.columns._arrays
                     # is a lazyproperty
                     pass
