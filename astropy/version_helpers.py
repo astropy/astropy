@@ -194,6 +194,7 @@ def generate_version_py(packagename, version, release=None, debug=None):
     """Regenerate the version.py module if necessary."""
 
     from .setup_helpers import is_distutils_display_option
+    from .utils.compat.misc import invalidate_caches
     from distutils import log
     import imp
     import os
@@ -242,6 +243,8 @@ def generate_version_py(packagename, version, release=None, debug=None):
         with open(version_py, 'w') as f:
             # This overwrites the actual version.py
             f.write(_get_version_py_str(packagename, version, release, debug))
+
+        invalidate_caches()
 
         if version_module:
             imp.reload(version_module)

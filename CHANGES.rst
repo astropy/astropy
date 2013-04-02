@@ -80,6 +80,10 @@ Bug Fixes
     git clone.  This is likely only of interest to developers on Astropy.
     [#725]
 
+  - Fixes a crash with ``ImportError: No module named 'astropy.version'`` when
+    running setup.py from a source checkout for the first time on OSX with
+    Python 3.3. [#820]
+
   - Fixed an exception when creating a ``ProgressBar`` with a "total" of 0.
     [#752]
 

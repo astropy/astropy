@@ -30,6 +30,7 @@ from setuptools.command.register import register as SetuptoolsRegister
 
 from .tests.helper import astropy_test
 from .utils import silence
+from .utils.compat.misc import invalidate_caches
 from .utils.misc import walk_skip_hidden
 
 
@@ -504,6 +505,7 @@ def generate_build_ext_command(release):
                                os.path.join(self.build_lib, cython_py),
                                preserve_mode=False)
 
+            invalidate_caches()
 
         if not self.distribution.is_pure() and os.path.isdir(self.build_lib):
             # Finally, generate the default astropy.cfg; this can only be done
