@@ -329,7 +329,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
         otherwise issue a warning.  Warnings may be controlled using
         :py:mod:`warnings` module.
         When not provided, uses the configuration setting
-        ``astropy.io.votable.table.PEDANTIC``, which defaults to `True`.
+        ``astropy.io.votable.table.PEDANTIC``, which defaults to `False`.
 
     verbose : bool
         Verbose output.

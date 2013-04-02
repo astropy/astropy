@@ -21,7 +21,8 @@ def parse_cs(id):
         'id={0}&format=xml'.format(id)
     tqp = ['ra', 'dec', 'sr']
     d = OrderedDict()
-    with get_readable_fileobj(url, encoding='binary') as fd:
+    with get_readable_fileobj(url, encoding='binary',
+                              show_progress=False) as fd:
         dom = minidom.parse(fd)
     tq = dom.getElementsByTagName('testQuery')
     for key in tqp:
