@@ -175,6 +175,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     `convolve_fft` differs from `scipy.signal.fftconvolve` in a few ways:
 
     * It can treat NaN's as zeros or interpolate over them.
+    * `inf` values are treated as `NaN`
     * (optionally) It pads to the nearest 2^n size to improve FFT speed.
     * Its only valid `mode` is 'same' (i.e., the same shape array is returned)
     * It lets you use your own fft, e.g.,
@@ -325,10 +326,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         kernel = np.array(kernel)
         kernel[mask] = np.nan
 
-    # NAN catching
-    nanmaskarray = np.isnan(array)
+    # NAN and inf catching
+    nanmaskarray = np.isnan(array) + np.isinf(array)
     array[nanmaskarray] = 0
-    nanmaskkernel = np.isnan(kernel)
+    nanmaskkernel = np.isnan(kernel) + np.isinf(kernel)
     kernel[nanmaskkernel] = 0
     if ((nanmaskarray.sum() > 0 or nanmaskkernel.sum() > 0) and not interpolate_nan
             and not quiet):
