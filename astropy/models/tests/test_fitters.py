@@ -2,6 +2,7 @@
 Module to test fitting routines
 """
 from __future__ import division
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os.path
 from .. import models, fitting
 from . import irafutil
@@ -11,37 +12,7 @@ from numpy.testing import utils
 from numpy.random import RandomState
 from scipy import optimize
 from ...utils.data import get_pkg_data_filename
-
-class TestFitters(object):
-    """
-    Tests non-linear least squares fitting and the SLSQP algorithm
-    """
-    def setup_class(self):
-        self.g1 = models.Gauss1DModel(10, 14.9000, xsigma=.3)
-        self.g11 = models.Gauss1DModel(10, 14.9000, xsigma=.3)
-        self.x = np.arange(10, 20, .1)
-        self.y = self.g1(self.x)
-        rsn = RandomState(1234567890)
-        self.n = rsn.randn(100)
-        self.ny = self.y + self.n
-        
-    def test_LSQ_SLSQP(self):
-        fslsqp = fitting.SLSQPFitter(self.g1)
-        flsq = fitting.NonLinearLSQFitter(self.g11)
-        fslsqp(self.x, self.ny)
-        flsq(self.x, self.ny)
-        utils.assert_allclose(self.g11.parameters, self.g1.parameters,
-                            rtol=10**(-1))
-        
-    def test_LSQ_SLSQP_cons(self):
-        self.g1.xcen.fixed = True
-        self.g11.xcen.fixed = True
-        fslsqp = fitting.SLSQPFitter(self.g1)#, fixed=['xcen'])
-        flsq = fitting.NonLinearLSQFitter(self.g11)#, fixed=['xcen'])
-        fslsqp(self.x, self.ny)
-        flsq(self.x, self.ny)
-        utils.assert_allclose(self.g11.parameters, self.g1.parameters,
-                            rtol=10**(-1))
+from ...tests.helper import pytest
         
 class TestPoly2D(object):
     """

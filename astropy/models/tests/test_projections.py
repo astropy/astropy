@@ -1,15 +1,16 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Test sky projections defined in WCS Paper II
 """
 from __future__ import division
 import os.path
-import pytest
 import numpy as np
 from numpy.testing import utils
 from .. import projections
 from ...io import fits
 from ... import wcs
 from ...utils.data import get_pkg_data_filename
+from ...tests.helper import pytest
 
 class TestProjections(object):
     """

@@ -1,13 +1,14 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 from __future__ import division
 import os.path
-import pytest
 from .. import models, fitting
 import numpy as np
 from numpy.testing import utils
+from ...tests.helper import pytest
 
 class TestSComposite(object):
     """

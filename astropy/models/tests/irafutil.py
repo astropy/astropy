@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module provides functions to help with testing against iraf tasks
 """

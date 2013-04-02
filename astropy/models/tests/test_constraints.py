@@ -1,10 +1,11 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import division
-
 from .. import models, fitting
 import numpy as np
 from scipy import optimize
 from numpy.testing import utils
 from numpy.random import RandomState
+from ...tests.helper import pytest
 
 class TestNonLinearConstraints(object):
     def setup_class(self):
