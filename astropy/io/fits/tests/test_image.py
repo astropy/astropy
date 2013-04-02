@@ -945,39 +945,10 @@ class TestImageFunctions(FitsTestCase):
                 hdul2[0].data[0] = 0
                 assert (hdul[1].data == hdul2[0].data).all()
 
-    @pytest.mark.skipif("sys.platform.startswith('win')")
-    def test_insufficient_compression_allocation(self):
-        """
-        Test the scenario where not enough space is allocated to hold the
-        compressed data, and a realloc is necessary.
-
-        For some reason this test *sometimes* breaks Jenkins when run on
-        Windows. It passes when the test suite is run outside Jenkins. I intend
-        to track down the cause of this but in the meantime it's disabled on
-        Windows.  See Astropy #507.
-        """
-
-        data = np.arange(10000, dtype='int32').reshape(100, 100)
-        hdu = fits.CompImageHDU(data=data)
-        old_compress_hdu = fits.compression.compress_hdu
-
-        def hacked_compress_hdu(hdu):
-            # Long enough to hold the table, but not enough for the full heap
-            hdu.compData = np.zeros((2880,), dtype=np.uint8)
-            return old_compress_hdu(hdu)
-
-        fits.compression.compress_hdu = hacked_compress_hdu
-
-        try:
-            hdu.updateCompressedData()
-            assert (data == fits.compression.decompress_hdu(hdu)).all()
-        finally:
-            fits.compression.compress_hdu = old_compress_hdu
-
     def test_lossless_gzip_compression(self):
         """Regression test for #198."""
 
-        noise = np.random.normal(size=(100, 100))
+        noise = np.random.normal(size=(1000, 1000))
 
         chdu1 = fits.CompImageHDU(data=noise, compressionType='GZIP_1')
         # First make a test image with lossy compression and make sure it
