@@ -56,7 +56,7 @@ def _hdu_class_from_header(cls, header):
                     break
             except NotImplementedError:
                 continue
-            except Exception, e:
+            except Exception as e:
                 warnings.warn(
                     'An exception occurred matching an HDU header to the '
                     'appropriate HDU type: %s' % unicode(e))

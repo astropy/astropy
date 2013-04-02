@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+from __future__ import print_function
+
 import gzip
 import os
 import shutil
@@ -550,7 +552,7 @@ class HDUList(list, _Verify):
                               (filename, backup))
                 try:
                     shutil.copy(filename, backup)
-                except IOError, e:
+                except IOError as e:
                     raise IOError('Failed to save backup to destination %s: '
                                   '%s' % (filename, str(e)))
 
@@ -570,7 +572,7 @@ class HDUList(list, _Verify):
                     try:
                         hdu._writeto(self.__file)
                         if verbose:
-                            print 'append HDU', hdu.name, extver
+                            print('append HDU', hdu.name, extver)
                         hdu._new = False
                     finally:
                         hdu._postwriteto()
@@ -803,7 +805,7 @@ class HDUList(list, _Verify):
                             hdu = _BaseHDU.readfrom(ffo, **kwargs)
                         except EOFError:
                             break
-                        except IOError, err:
+                        except IOError as err:
                             if ffo.writeonly:
                                 break
                             else:
@@ -819,7 +821,7 @@ class HDUList(list, _Verify):
                         hdu._output_checksum = kwargs['checksum']
                 # check in the case there is extra space after the last HDU or
                 # corrupted HDU
-                except (VerifyError, ValueError), err:
+                except (VerifyError, ValueError) as err:
                     warnings.warn(
                         'Error validating header for HDU #%d (note: PyFITS '
                         'uses zero-based indexing).\n%s\n'
@@ -1045,7 +1047,7 @@ class HDUList(list, _Verify):
                     self._resize = True
                     self._truncate = False
                     if verbose:
-                        print 'One or more header is resized.'
+                        print('One or more header is resized.')
                     break
 
                 # Data:
@@ -1058,7 +1060,7 @@ class HDUList(list, _Verify):
                     self._resize = True
                     self._truncate = False
                     if verbose:
-                        print 'One or more data area is resized.'
+                        print('One or more data area is resized.')
                     break
 
             if self._truncate:
