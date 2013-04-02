@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# Test initalization of angles not already covered by the API
+# Test initalization of angles not already covered by the API tests
 
 from ..angles import Angle
 from ...tests.compat import assert_allclose
