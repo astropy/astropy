@@ -136,16 +136,21 @@ class TestConvolve1D(object):
         # ASSERT equality to better than 16 bit but worse than 32 bit precision
         assert np.all(np.abs(z - np.array([1., 0., 3.])) < 1e-14)
 
-    @pytest.mark.parametrize(option_names, options)
+    inputs = (np.array([1., np.nan, 3.], dtype='float64'), 
+              np.array([1., np.inf, 3.], dtype='float64')) 
+    outputs = (np.array([1., 0., 3.], dtype='float64'), 
+              np.array([1., 0., 3.], dtype='float64')) 
+    options_unity1withnan = list(itertools.product(BOUNDARY_OPTIONS, (True, False), (True, False), (True, False), inputs, outputs))
+    @pytest.mark.parametrize(option_names + ('inval','outval'), options_unity1withnan)
     def test_unity_1_withnan(self, boundary, interpolate_nan, normalize_kernel,
-            ignore_edge_zeros):
+            ignore_edge_zeros, inval, outval):
         '''
         Test that a unit kernel with three elements returns the same array
         (except when boundary is None). This version includes a NaN value in
         the original array.
         '''
 
-        x = np.array([1., np.nan, 3.], dtype='float64')
+        x = inval
 
         y = np.array([1.], dtype='float64')
 
@@ -157,7 +162,7 @@ class TestConvolve1D(object):
         # for whatever reason, numpy's fft has very limited precision, and
         # the comparison fails unless you cast the float64 to a float16
         # np1.4 incompatible assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16), np.array([1.,0.,3.], dtype=np.float16), 10)
-        assert np.all(np.abs(z - np.array([1., 0., 3.])) < 1e-14)
+        assert np.all(np.abs(z - outval) < 1e-14)
 
     @pytest.mark.parametrize(option_names, options)
     def test_uniform_3_withnan(self, boundary, interpolate_nan,
