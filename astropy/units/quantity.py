@@ -67,7 +67,7 @@ def _validate_value(value):
     return value_obj
 
 
-class Quantity(object):
+class Quantity(np.ndarray):
     """ A `Quantity` represents a number with some associated unit.
 
     Parameters
@@ -97,18 +97,31 @@ class Quantity(object):
     # Constants can not initialize properly
     _equivalencies = []
 
-    def __init__(self, value, unit, equivalencies=[]):
+    def __new__(cls, value, unit=None, dtype=None, equivalencies=[]):
+
         from ..utils.misc import isiterable
 
+        if isinstance(value, Quantity):
+            _value = _validate_value(value.to(self._unit).value)
+        elif isiterable(value) and all(isinstance(v, Quantity) for v in value):
+            _value = _validate_value([q.to(self._unit).value for q in value])
+        else:
+            _value = _validate_value(value)
+
+        self = np.asarray(_value, dtype=dtype).view(cls)
         self._unit = Unit(unit)
         self._equivalencies = Unit._normalize_equivalencies(equivalencies)
 
-        if isinstance(value, Quantity):
-            self._value = _validate_value(value.to(self._unit).value)
-        elif isiterable(value) and all(isinstance(v, Quantity) for v in value):
-            self._value = _validate_value([q.to(self._unit).value for q in value])
-        else:
-            self._value = _validate_value(value)
+        return self
+
+    def __array_finalize__(self, obj):
+        if obj is None:
+            return
+        if isinstance(obj, Quantity):
+            self._unit = obj._unit
+
+    def __array_wrap__(self, out_arr, context=None):
+        return np.ndarray.__array_wrap__(self, out_arr, context)
 
     def to(self, unit, equivalencies=None):
         """ Returns a new `Quantity` object with the specified units.
@@ -136,7 +149,7 @@ class Quantity(object):
     def value(self):
         """ The numerical value of this quantity. """
 
-        return self._value
+        return self.view(np.ndarray)
 
     @property
     def unit(self):
@@ -197,7 +210,7 @@ class Quantity(object):
     def copy(self):
         """ Return a copy of this `Quantity` instance """
 
-        return self.__class__(self.value, unit=self.unit)
+        return self.__class__(self.value.copy(), unit=self.unit)
 
     @override__dir__
     def __dir__(self):
@@ -493,15 +506,6 @@ class Quantity(object):
             warnings.warn("Converting Quantity object in units '{0}' to a "
                           "Python scalar".format(self.unit))
         return long(self.value)
-
-    # Array types
-    def __array__(self):
-        # We show a warning unless the unit is equivalent to unity (i.e. not
-        # just dimensionless, but also with a scale of 1)
-        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            warnings.warn("Converting Quantity object in units '{0}' to a "
-                          "Numpy array".format(self.unit))
-        return np.array(self.value)
 
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
