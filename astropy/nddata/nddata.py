@@ -6,7 +6,7 @@ __all__ = ['NDData']
 import numpy as np
 
 from ..units import Unit
-from ..logger import log
+from .. import log
 
 from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty

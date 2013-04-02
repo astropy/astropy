@@ -16,7 +16,7 @@ from numpy import memmap as Memmap
 
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
-                   _array_to_file, _write_string)
+                   _array_to_file, _write_string, b)
 from ...utils import deprecated
 
 
@@ -39,8 +39,8 @@ MEMMAP_MODES = {'readonly': 'c', 'copyonwrite': 'c', 'update': 'r+',
 # that would generate too many warnings for too many users.  If nothing else,
 # wait until the new logging system is in place.
 
-GZIP_MAGIC = u'\x1f\x8b\x08'.encode('raw-unicode-escape')
-PKZIP_MAGIC = u'\x50\x4b\x03\x04'.encode('raw-unicode-escape')
+GZIP_MAGIC = b('\x1f\x8b\x08')
+PKZIP_MAGIC = b('\x50\x4b\x03\x04')
 
 
 class _File(object):
@@ -327,7 +327,7 @@ class _File(object):
             with fileobj_open(self.name, 'rb') as f:
                 magic = f.read(4)
         else:
-            magic = ''.encode('raw-unicode-escape')
+            magic = b('')
         ext = os.path.splitext(self.name)[1]
         if ext == '.gz' or magic.startswith(GZIP_MAGIC):
             # Handle gzip files

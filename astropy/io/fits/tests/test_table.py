@@ -1941,7 +1941,7 @@ class TestTableFunctions(FitsTestCase):
         try:
             with fits.open(self.temp('test.fits')) as h:
                 h[1].data['F1']
-        except ValueError, e:
+        except ValueError as e:
             assert str(e).endswith(
                          "the header may be missing the necessary TNULL1 "
                          "keyword or the table contains invalid data")

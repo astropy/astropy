@@ -12,6 +12,10 @@ from .nddata import *
 from .nduncertainty import *
 from .flag_collection import *
 
-if not _ASTROPY_SETUP_:
+try:
+    # Not guaranteed available at setup time
     from .convolution.convolve import convolve,convolve_fft
     from .convolution.make_kernel import make_kernel
+except ImportError:
+    if not _ASTROPY_SETUP_:
+        raise

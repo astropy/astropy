@@ -1314,7 +1314,7 @@ def _int_or_float(s):
     except (ValueError, TypeError):
         try:
             return float(s)
-        except (ValueError, TypeError), e:
+        except (ValueError, TypeError) as e:
             raise ValueError(str(e))
 
 

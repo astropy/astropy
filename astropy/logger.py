@@ -19,6 +19,10 @@ from .utils.misc import find_current_module
 __all__ = ['log', 'AstropyLogger', 'LoggingError']
 
 
+# Initialize by calling _init_log()
+log = None
+
+
 class LoggingError(Exception):
     """
     This exception is for various errors that occur in the astropy logger,
@@ -71,61 +75,23 @@ LOG_FILE_FORMAT = ConfigurationItem('log_file_format', "%(asctime)r, "
                                     "Format for log file entries")
 
 
-# The following function is copied from the source code of Python 2.7 and 3.2.
-# This function is not included in Python 2.6 and 3.1, so we have to include it
-# here to provide uniform behavior across versions.
+def _init_log():
+    """Initializes the Astropy log--in most circumstances this is called
+    automatically when importing astropy.
+    """
 
+    global log
 
-def _checkLevel(level):
-    '''
-    '''
-    if isinstance(level, int):
-        rv = level
-    elif str(level) == level:
-        if level not in logging._levelNames:
-            raise ValueError("Unknown level: %r" % level)
-        rv = logging._levelNames[level]
-    else:
-        raise TypeError("Level not an integer or a valid string: %r" % level)
-    return rv
+    orig_logger_cls = logging.getLoggerClass()
+    logging.setLoggerClass(AstropyLogger)
+    try:
+        log = logging.getLogger('astropy')
+        log._set_defaults()
+    finally:
+        logging.setLoggerClass(orig_logger_cls)
 
+    return log
 
-# We now have to be sure that we overload the setLevel in FileHandler, again
-# for compatibility with Python 2.6 and 3.1.
-
-
-class FileHandler(logging.FileHandler):
-    def setLevel(self, level):
-        """
-        Set the logging level of this handler.
-        """
-        self.level = _checkLevel(level)
-
-
-class FilterOrigin(object):
-    '''A filter for the record origin'''
-    def __init__(self, origin):
-        self.origin = origin
-
-    def filter(self, record):
-        return record.origin.startswith(self.origin)
-
-
-class ListHandler(logging.Handler):
-    '''A handler that can be used to capture the records in a list'''
-
-    def __init__(self, filter_level=None, filter_origin=None):
-        logging.Handler.__init__(self)
-        self.log_list = []
-
-    def emit(self, record):
-        self.log_list.append(record)
-
-    def setLevel(self, level):
-        """
-        Set the logging level of this handler.
-        """
-        self.level = _checkLevel(level)
 
 Logger = logging.getLoggerClass()
 
@@ -535,12 +501,56 @@ class AstropyLogger(Logger):
             self.enable_exception_logging()
 
 
-# Set up the class and initialize logger
-_orig_logger_cls = logging.getLoggerClass()
-logging.setLoggerClass(AstropyLogger)
-try:
-    log = logging.getLogger('astropy')
-    log._set_defaults()
-finally:
-    logging.setLoggerClass(_orig_logger_cls)
-    del _orig_logger_cls
+# The following function is copied from the source code of Python 2.7 and 3.2.
+# This function is not included in Python 2.6 and 3.1, so we have to include it
+# here to provide uniform behavior across versions.
+def _checkLevel(level):
+    '''
+    '''
+    if isinstance(level, int):
+        rv = level
+    elif str(level) == level:
+        if level not in logging._levelNames:
+            raise ValueError("Unknown level: %r" % level)
+        rv = logging._levelNames[level]
+    else:
+        raise TypeError("Level not an integer or a valid string: %r" % level)
+    return rv
+
+
+# We now have to be sure that we overload the setLevel in FileHandler, again
+# for compatibility with Python 2.6 and 3.1.
+
+
+class FileHandler(logging.FileHandler):
+    def setLevel(self, level):
+        """
+        Set the logging level of this handler.
+        """
+        self.level = _checkLevel(level)
+
+
+class FilterOrigin(object):
+    '''A filter for the record origin'''
+    def __init__(self, origin):
+        self.origin = origin
+
+    def filter(self, record):
+        return record.origin.startswith(self.origin)
+
+
+class ListHandler(logging.Handler):
+    '''A handler that can be used to capture the records in a list'''
+
+    def __init__(self, filter_level=None, filter_origin=None):
+        logging.Handler.__init__(self)
+        self.log_list = []
+
+    def emit(self, record):
+        self.log_list.append(record)
+
+    def setLevel(self, level):
+        """
+        Set the logging level of this handler.
+        """
+        self.level = _checkLevel(level)
