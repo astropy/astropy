@@ -43,7 +43,8 @@ To install Astropy with `pip`, simply run::
 Binary installers
 -----------------
 
-No binary installers are available at this time.
+Binary installers are available on Windows for Python 2.6, 2.7, 3.1, and 3.2
+at `PyPI <https://pypi.python.org/pypi/astropy>`_.
 
 Testing an installed Astropy
 ----------------------------
