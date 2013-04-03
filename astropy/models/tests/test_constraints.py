@@ -2,11 +2,16 @@
 from __future__ import division
 from .. import models, fitting
 import numpy as np
-from scipy import optimize
 from numpy.testing import utils
 from numpy.random import RandomState
 from ...tests.helper import pytest
 
+try:
+    from scipy import optimize
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+    
 class TestNonLinearConstraints(object):
     def setup_class(self):
         self.g1 = models.Gauss1DModel(10, 14.9, xsigma=.3)
@@ -19,6 +24,7 @@ class TestNonLinearConstraints(object):
         self.ny1 = self.y1 + 2*self.n
         self.ny2 = self.y2 + 2*self.n
         
+    @pytest.mark.skipif('not HAS_SCIPY')
     def testFixedPar(self):
         g1 = models.Gauss1DModel(10, 14.9, xsigma=.3, fixed={'amplitude':True})
         func = lambda p, x: 10* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
@@ -28,7 +34,8 @@ class TestNonLinearConstraints(object):
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.x, self.ny1)
         assert g1.amplitude == 10
-        
+    
+    @pytest.mark.skipif('not HAS_SCIPY')
     def testTiedPar(self):
         
         def tied(model):
@@ -38,7 +45,8 @@ class TestNonLinearConstraints(object):
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.x, self.ny1)
         utils.assert_allclose(g1.xcen, 50*g1.xsigma[0], rtol=10**(-5))
-        
+    
+    @pytest.mark.skipif('not HAS_SCIPY')
     def testJointFitter(self):
         g1 = models.Gauss1DModel(10, 14.9, xsigma=.3)
         g2 = models.Gauss1DModel(10, 13, xsigma=.4)

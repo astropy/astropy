@@ -10,10 +10,15 @@ import numpy as np
 from numpy import linalg
 from numpy.testing import utils
 from numpy.random import RandomState
-from scipy import optimize
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
         
+try:
+    from scipy import optimize
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+
 class TestPoly2D(object):
     """
     Tests for 2D polynomail fitting
@@ -63,7 +68,8 @@ class TestICheb2D(object):
         self.fitter(self.x, self.y, self.z)
         z1 = self.ichb(self.x, self.y)
         utils.assert_almost_equal(self.z, z1)
-        
+
+@pytest.mark.skipif('not HAS_SCIPY')
 class TestJointFitter(object):
     """
     Tests the joint fitting routine using 2 gaussian models
