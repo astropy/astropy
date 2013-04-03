@@ -1093,7 +1093,7 @@ def _convert_fits2record(format):
             # format spec, i.e. A7 in ASCII table is the same as 7A in
             # binary table, so both will produce 'a7'.
             if format.lstrip()[0] == 'A' and option != '':
-                 # make sure option is integer
+                # make sure option is integer
                 output_format = FITS2NUMPY[dtype] + str(int(option))
         else:
             repeat_str = ''

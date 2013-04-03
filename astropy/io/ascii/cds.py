@@ -86,9 +86,9 @@ class CdsHeader(core.BaseHeader):
                 if in_header:
                     lines.append(line)
                     if line.startswith('------') or line.startswith('======='):
-                         comment_lines += 1
-                         if comment_lines == 3:
-                             break
+                        comment_lines += 1
+                        if comment_lines == 3:
+                            break
                 else:
                     match = re.match(r'Byte-by-byte Description of file: (?P<name>.+)$',
                             line, re.IGNORECASE)
