@@ -108,7 +108,7 @@ def test_complex_array_vararray2():
     assert len(x[0]) == 0
 
 
-def test_complex_array_vararray():
+def test_complex_array_vararray3():
     config = {'pedantic': True}
     field = tree.Field(
         None, name='c', datatype='doubleComplex', arraysize='2x3*',

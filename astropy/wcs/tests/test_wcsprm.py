@@ -363,7 +363,7 @@ def test_imgpix_matrix():
 
 
 @raises(AttributeError)
-def test_imgpix_matrix():
+def test_imgpix_matrix2():
     w = _wcs.Wcsprm()
     w.imgpix_matrix = None
 
@@ -516,7 +516,7 @@ def test_piximg_matrix():
 
 
 @raises(AttributeError)
-def test_piximg_matrix():
+def test_piximg_matrix2():
     w = _wcs.Wcsprm()
     w.piximg_matrix = None
 
