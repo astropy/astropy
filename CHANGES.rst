@@ -29,6 +29,9 @@ Bug Fixes
   - Fixed encoding errors that could occur when formatting coordinate objects
     in code using ``from __future__ import unicode_literals``. [#817]
 
+  - Fixed a bug where the minus sign was dropped when string formatting dms
+    coordinates with -0 degrees. [#875]
+
 - ``astropy.io.fits``
 
   - Properly supports the ZQUANTIZ keyword used to support quantization
@@ -119,6 +122,12 @@ Bug Fixes
   - Fixes a crash with ``ImportError: No module named 'astropy.version'`` when
     running setup.py from a source checkout for the first time on OSX with
     Python 3.3. [#820]
+
+  - Fixed an installation issue where running ``./setup.py install`` or when
+    installing with pip the ``.astropy`` directory gets created in the home
+    directory of the user running the command.  The user's ``.astropy``
+    directory should only be created when they use astropy, not when they
+    install it. [#867]
 
   - Fixed an exception when creating a ``ProgressBar`` with a "total" of 0.
     [#752]
