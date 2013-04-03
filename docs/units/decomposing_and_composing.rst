@@ -35,59 +35,59 @@ may be multiple equally good results, a list is always returned::
   >>> x = u.Ry.decompose()
   >>> x.compose()
   [Unit("1 Ry"),
-   Unit("13.6057 eV"),
+   Unit("5.21002e-22 kcal"),
    Unit("2.06612e-21 BTU"),
-   Unit("2.17987e-11 erg"),
-   Unit("2.17987e-18 J"),
    Unit("5.21002e-19 cal"),
-   Unit("5.21002e-22 kcal")]
+   Unit("2.17987e-18 J"),
+   Unit("2.17987e-11 erg"),
+   Unit("13.6057 eV")]
 
 Some other interesting examples::
 
    >>> (u.s ** -1).compose()
    [Unit("Hz"),
     Unit("1 / (s)"),
-    Unit("1.2096e+06  / (fortnight)"),
-    Unit("3.15576e+07  / (a)"),
-    Unit("3.15576e+07  / (yr)"),
-    Unit("3600  / (h)"),
     Unit("60  / (min)"),
-    Unit("604800  / (wk)"),
+    Unit("3600  / (h)"),
     Unit("86164.1  / (sday)"),
-    Unit("86400  / (d)")]
+    Unit("86400  / (d)"),
+    Unit("604800  / (wk)"),
+    Unit("1.2096e+06  / (fortnight)"),
+    Unit("3.15576e+07  / (yr)"),
+    Unit("3.15576e+07  / (a)")]
 
 Composition can be combined with :ref:`unit_equivalencies`::
 
    >>> (u.s ** -1).compose(equivalencies=u.spectral())
-   [Unit("Hz"),
+   [Unit("m"),
+    Unit("Hz"),
     Unit("J"),
-    Unit("m"),
     Unit("1 / (s)"),
+    Unit("3.24078e-17 pc"),
+    Unit("1.057e-16 lyr"),
+    Unit("6.68459e-12 AU"),
+    Unit("1.4378e-09 solRad"),
     Unit("0.000239006 kcal"),
     Unit("0.000621371 mi"),
     Unit("0.000947817 BTU"),
     Unit("0.239006 cal"),
-    Unit("1.057e-16 lyr"),
     Unit("1.09361 yd"),
-    Unit("1.4378e-09 solRad"),
+    Unit("3.28084 ft"),
+    Unit("39.3701 inch"),
     Unit("100 cm"),
     Unit("1e+06 micron"),
     Unit("1e+07 erg"),
     Unit("1e+10 Angstrom"),
-    Unit("3.24078e-17 pc"),
-    Unit("3.28084 ft"),
-    Unit("39.3701 inch"),
     Unit("4.58743e+17 Ry"),
     Unit("6.24151e+18 eV"),
-    Unit("6.68459e-12 AU"),
+    Unit("60  / (min)"),
+    Unit("3600  / (h)"),
+    Unit("86164.1  / (sday)"),
+    Unit("86400  / (d)"),
+    Unit("604800  / (wk)"),
     Unit("1.2096e+06  / (fortnight)"),
     Unit("3.15576e+07  / (a)"),
-    Unit("3.15576e+07  / (yr)"),
-    Unit("3600  / (h)"),
-    Unit("60  / (min)"),
-    Unit("604800  / (wk)"),
-    Unit("86164.1  / (sday)"),
-    Unit("86400  / (d)")]
+    Unit("3.15576e+07  / (yr)")]
 
 Obviously a name doesn't exist for every arbitrary derived unit
 imaginable.  In that case, the system will do its best to reduce the

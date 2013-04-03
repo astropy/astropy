@@ -404,7 +404,7 @@ class UnitBase(object):
             # be given to results where the sum of powers is positive
             # and the scale is exactly equal to 1.0
             results = list(results)
-            results.sort(key=lambda x: str(x))
+            results.sort(key=lambda x: np.abs(x.scale))
             results.sort(key=lambda x: np.sum(np.abs(x.powers)))
             results.sort(key=lambda x: np.sum(x.powers) < 0.0)
             results.sort(key=lambda x: not np.allclose(x.scale, 1.0))
