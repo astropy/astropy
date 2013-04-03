@@ -446,3 +446,13 @@ class TestCopyReplicate():
         t2._time.jd1 += 100.0
         assert t.yday != t2.yday
         assert t.yday == t_yday  # prove that it did not change
+
+def test_python_builtin_copy():
+    import copy
+
+    t = Time('2000:001', format='yday', scale='tai')
+    t2 = copy.copy(t)
+    t3 = copy.deepcopy(t)
+
+    assert t.jd == t2.jd
+    assert t.jd == t3.jd
