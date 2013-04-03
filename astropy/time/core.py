@@ -354,6 +354,20 @@ class Time(object):
         """
         return self.replicate(format, copy=True)
 
+    def __copy__(self):
+        """
+        Overrides the default behavior of the `copy.copy` function in
+        the python stdlib to behave like `Time.copy`.
+        """
+        return self.copy()
+
+    def __deepcopy__(self, memo):
+        """
+        Overrides the default behavior of the `copy.deepcopy` function
+        in the python stdlib to behave like `Time.copy`.
+        """
+        return self.copy()
+
     def replicate(self, format=None, copy=False):
         """
         Return a replica of the Time object, optionally changing the format.
