@@ -5,15 +5,15 @@
 
 :tocdepth: 2
 
-###################################
-Welcome to Astropy's Documentation!
-###################################
+##################################
+Astropy Core Package Documentation
+##################################
 
 .. image:: astropy_banner_96.png
     :width: 485px
     :height: 96px
 
-Astropy is a community-driven package intended to contain much of the
+`astropy` is a community-driven package intended to contain much of the
 core functionality and some common tools needed for performing astronomy
 and astrophysics with Python.
 
