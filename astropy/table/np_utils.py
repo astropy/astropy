@@ -287,7 +287,7 @@ def vstack(arrays, join_type='inner', require_match=False,
     if require_match:
         for names in col_name_map.values():
             if any(x is None for x in names):
-                raise ValueError('Inconsistent columns in inputs arrays '
+                raise ValueError('Inconsistent columns in input arrays '
                                  '(use require_match=False to allow non-matching columns)')
 
     # For an inner join, keep only columns where all input arrays have that column
@@ -325,5 +325,57 @@ def vstack(arrays, join_type='inner', require_match=False,
             else:
                 out[out_name].mask[idx0:idx1] = True
             idx0 = idx1
+
+    return out
+
+
+def hstack(arrays, join_type='outer', require_match=False,
+           uniq_col_name='{col_name}_{table_name}', table_names=None):
+
+    if table_names is None:
+        table_names = ['_{0}'.format(ii + 1) for ii in range(len(arrays))]
+
+    if len(arrays) == 0:
+        raise ValueError('Must supply at least one array')
+    if len(arrays) == 1:
+        return arrays[0]
+    if len(arrays) != len(table_names):
+        raise ValueError('Number of arrays must match number of table_names')
+
+    if join_type not in ('inner', 'outer'):
+        raise ValueError("join_type arg must be either 'inner' or 'outer'")
+
+    col_name_map = get_col_name_map(arrays, [], uniq_col_name, table_names)
+
+    # If require_match is True then all input arrays must have the same length
+    arr_lens = [len(arr) for arr in arrays]
+    if require_match:
+        if len(set(arr_lens)) > 1:
+            raise ValueError('Inconsistent number of rows in input arrays '
+                             '(use require_match=False to allow non-matching columns)')
+
+    # For an inner join, keep only columns where all input arrays have that column
+    if join_type == 'inner':
+        min_arr_len = min(arr_lens)
+        arrays = [arr[:min_arr_len] for arr in arrays]
+        arr_lens = [min_arr_len for arr in arrays]
+
+    # If there are any output rows where one or more input arrays are missing
+    # then the output must be masked.  If any input arrays are masked then
+    # output is masked.
+    masked = (any(isinstance(arr, ma.MaskedArray) for arr in arrays) or
+              len(set(arr_lens)) > 1)
+
+    n_rows = max(arr_lens)
+    out_descrs = get_descrs(arrays, col_name_map)
+    if masked:
+        out = ma.masked_all(n_rows, dtype=out_descrs)
+    else:
+        out = np.empty(n_rows, dtype=out_descrs)
+
+    for out_name, in_names in col_name_map.items():
+        for name, array, arr_len in izip(in_names, arrays, arr_lens):
+            if name is not None:
+                out[out_name][:arr_len] = array[name]
 
     return out
