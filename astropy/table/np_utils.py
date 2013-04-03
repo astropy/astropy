@@ -329,11 +329,10 @@ def vstack(arrays, join_type='inner', require_match=False,
     return out
 
 
-def hstack(arrays, join_type='outer', require_match=False,
-           uniq_col_name='{col_name}_{table_name}', table_names=None):
+def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}', table_names=None):
 
     if table_names is None:
-        table_names = ['_{0}'.format(ii + 1) for ii in range(len(arrays))]
+        table_names = ['{0}'.format(ii + 1) for ii in range(len(arrays))]
 
     if len(arrays) == 0:
         raise ValueError('Must supply at least one array')
@@ -342,17 +341,18 @@ def hstack(arrays, join_type='outer', require_match=False,
     if len(arrays) != len(table_names):
         raise ValueError('Number of arrays must match number of table_names')
 
-    if join_type not in ('inner', 'outer'):
-        raise ValueError("join_type arg must be either 'inner' or 'outer'")
+    if join_type not in ('inner', 'exact', 'outer'):
+        raise ValueError("join_type arg must be either 'inner', 'exact' or 'outer'")
 
     col_name_map = get_col_name_map(arrays, [], uniq_col_name, table_names)
 
     # If require_match is True then all input arrays must have the same length
     arr_lens = [len(arr) for arr in arrays]
-    if require_match:
+    if join_type == 'exact':
         if len(set(arr_lens)) > 1:
-            raise ValueError('Inconsistent number of rows in input arrays '
-                             '(use require_match=False to allow non-matching columns)')
+            raise TableMergeError('Inconsistent number of rows in input arrays '
+                                  "(use 'inner' or 'outer' join_type to allow non-matching columns)")
+        join_type = 'outer'
 
     # For an inner join, keep only columns where all input arrays have that column
     if join_type == 'inner':
