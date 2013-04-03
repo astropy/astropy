@@ -18,7 +18,13 @@
     dates with matplotlib via the `~matplotlib.pyplot.plot_date` function.
 
 
-0.2.1 (unreleased)
+0.2.2 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
+0.2.1 (2013-04-03)
 ------------------
 
 Bug Fixes
