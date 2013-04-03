@@ -92,7 +92,7 @@ class VOSDatabase(VOSCatalog):
 
         self._catalogs = tree['catalogs']
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         """Show the most important and unique things about a database."""
         return '\n'.join(sorted(self._catalogs.keys()))
 
