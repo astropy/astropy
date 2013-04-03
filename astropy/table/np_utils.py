@@ -102,7 +102,7 @@ def get_descrs(arrays, col_name_map):
         in_cols = [arr[name] for arr, name in izip(arrays, in_names) if name is not None]
 
         # Output dtype is the superset of all dtypes in in_arrays
-        dtype = common_dtype(in_cols, name)
+        dtype = common_dtype(in_cols)
 
         # Make sure all input shapes are the same
         uniq_shapes = set(col.shape[1:] for col in in_cols)
@@ -115,7 +115,7 @@ def get_descrs(arrays, col_name_map):
     return out_descrs
 
 
-def common_dtype(cols, name):
+def common_dtype(cols):
     """
     Use numpy to find the common dtype for a list of structured ndarray columns.
     """
