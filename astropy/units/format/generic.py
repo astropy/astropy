@@ -283,10 +283,10 @@ class Generic(Base):
                 if len(positives):
                     s += self._format_unit_list(positives)
                 elif s == '':
-                    s = '1'
+                    s = '1 '
 
                 if len(negatives):
-                    s += ' / ({0})'.format(self._format_unit_list(negatives))
+                    s += '/ ({0})'.format(self._format_unit_list(negatives))
         elif isinstance(unit, core.NamedUnit):
             s = self._get_unit_name(unit)
 

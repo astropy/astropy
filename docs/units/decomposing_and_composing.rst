@@ -47,14 +47,14 @@ Some other interesting examples::
    >>> (u.s ** -1).compose()
    [Unit("Hz"),
     Unit("1 / (s)"),
-    Unit("60  / (min)"),
-    Unit("3600  / (h)"),
-    Unit("86164.1  / (sday)"),
-    Unit("86400  / (d)"),
-    Unit("604800  / (wk)"),
-    Unit("1.2096e+06  / (fortnight)"),
-    Unit("3.15576e+07  / (yr)"),
-    Unit("3.15576e+07  / (a)")]
+    Unit("60 / (min)"),
+    Unit("3600 / (h)"),
+    Unit("86164.1 / (sday)"),
+    Unit("86400 / (d)"),
+    Unit("604800 / (wk)"),
+    Unit("1.2096e+06 / (fortnight)"),
+    Unit("3.15576e+07 / (yr)"),
+    Unit("3.15576e+07 / (a)")]
 
 Composition can be combined with :ref:`unit_equivalencies`::
 
@@ -80,14 +80,14 @@ Composition can be combined with :ref:`unit_equivalencies`::
     Unit("1e+10 Angstrom"),
     Unit("4.58743e+17 Ry"),
     Unit("6.24151e+18 eV"),
-    Unit("60  / (min)"),
-    Unit("3600  / (h)"),
-    Unit("86164.1  / (sday)"),
-    Unit("86400  / (d)"),
-    Unit("604800  / (wk)"),
-    Unit("1.2096e+06  / (fortnight)"),
-    Unit("3.15576e+07  / (a)"),
-    Unit("3.15576e+07  / (yr)")]
+    Unit("60 / (min)"),
+    Unit("3600 / (h)"),
+    Unit("86164.1 / (sday)"),
+    Unit("86400 / (d)"),
+    Unit("604800 / (wk)"),
+    Unit("1.2096e+06 / (fortnight)"),
+    Unit("3.15576e+07 / (a)"),
+    Unit("3.15576e+07 / (yr)")]
 
 Obviously a name doesn't exist for every arbitrary derived unit
 imaginable.  In that case, the system will do its best to reduce the
