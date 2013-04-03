@@ -32,7 +32,6 @@ class TestParameters(object):
         self.model = models.ChebyshevModel(order-1)
         self.gmodel = models.Gauss1DModel(2, 3, xsigma=4)
         self.linear_fitter = fitting.LinearLSQFitter(self.model)
-        self.non_linear_fitter = fitting.NonLinearLSQFitter(self.gmodel)
         self.x = record.x
         self.y = record.z
         self.yy = np.array([record.z, record.z])

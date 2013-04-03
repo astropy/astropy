@@ -8,6 +8,12 @@ from .. import models, fitting
 from numpy.testing import utils
 from ...tests.helper import pytest
 
+try:
+    from scipy import optimize
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+    
 class TestFitting(object):
     """
     test various input options to fitting routines
@@ -110,7 +116,8 @@ class TestFitting(object):
         pfit = fitting.LinearLSQFitter(p1)
         pfit(self.x1, y1)
         utils.assert_allclose(p1.psets, expected, atol=10**(-7))
-        
+    
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_1set_1d(self):
         """
         1 set 1D x, 1 set 1D y, 1 pset NonLinearFitter
@@ -121,7 +128,7 @@ class TestFitting(object):
         gfit(self.x1, y1)
         utils.assert_allclose(g1.parameters, [10, 3, .084932])
     
-    #@raises(ValueError)
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_Nset_1d(self):
         """
         1 set 1D x, 1 set 1D y, 2 psets, NonLinearFitter
@@ -132,7 +139,7 @@ class TestFitting(object):
             gfit = fitting.NonLinearLSQFitter(g1)
             gfit(self.x1, y1)
         
-        
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_1set_2d(self):
         """
         1 set 2d x, 1set 2D y, 1 pset, NonLinearFitter
@@ -143,7 +150,7 @@ class TestFitting(object):
         gfit(self.x, self.y, z)
         utils.assert_allclose(g2.parameters, [10, 3, 4, .3, .2, 0])
         
-    #@raises(ValueError)
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_Nset_2d(self):
         """
          1 set 2d x, 1set 2D y, 2 psets, NonLinearFitter
