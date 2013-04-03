@@ -38,6 +38,8 @@ distribute-*.tar.gz
 .tox
 .*.swp
 *~
+.project
+.pydevproject
 .coverage
 cover
 htmlcov
