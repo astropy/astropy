@@ -12,6 +12,9 @@ from ... import wcs
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 
+def b(s):
+    return s.encode('ascii')
+
 class TestProjections(object):
     """
     Test composite models evaluation in series
