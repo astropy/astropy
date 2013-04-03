@@ -262,8 +262,7 @@ def join(left, right, keys=None, join_type='inner',
     return out
 
 
-def vstack(arrays, join_type='inner', require_match=False,
-           uniq_col_name='{col_name}_{table_name}', table_names=None):
+def vstack(arrays, join_type='inner', uniq_col_name='{col_name}_{table_name}', table_names=None):
 
     if table_names is None:
         table_names = ['_{0}'.format(ii + 1) for ii in range(len(arrays))]
@@ -275,8 +274,8 @@ def vstack(arrays, join_type='inner', require_match=False,
     if len(arrays) != len(table_names):
         raise ValueError('Number of arrays must match number of table_names')
 
-    if join_type not in ('inner', 'outer'):
-        raise ValueError("join_type arg must be either 'inner' or 'outer'")
+    if join_type not in ('inner', 'exact', 'outer'):
+        raise ValueError("join_type arg must be either 'inner', 'exact' or 'outer'")
 
     # Start by assuming an outer match where all names go to output
     names = set(chain(*[arr.dtype.names for arr in arrays]))
@@ -284,18 +283,20 @@ def vstack(arrays, join_type='inner', require_match=False,
 
     # If require_match is True then the output must have exactly the same
     # number of columns as each input array
-    if require_match:
+    if join_type == 'exact':
         for names in col_name_map.values():
             if any(x is None for x in names):
-                raise ValueError('Inconsistent columns in input arrays '
-                                 '(use require_match=False to allow non-matching columns)')
+                raise TableMergeError('Inconsistent columns in input arrays '
+                                      "(use 'inner' or 'outer' join_type to "
+                                      "allow non-matching columns)")
+        join_type = 'outer'
 
     # For an inner join, keep only columns where all input arrays have that column
     if join_type == 'inner':
         col_name_map = OrderedDict((name, in_names) for name, in_names in col_name_map.items()
                                    if all(x is not None for x in in_names))
         if len(col_name_map) == 0:
-            raise ValueError('Input arrays have no columns in common')
+            raise TableMergeError('Input arrays have no columns in common')
 
     # If there are any output columns where one or more input arrays are missing
     # then the output must be masked.  If any input arrays are masked then
