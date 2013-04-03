@@ -46,7 +46,7 @@ If you attempt to convert to a incompatible unit, an exception will result:
 
   >>> cms.to(u.mile)
   ...
-  UnitsException: 'cm / (s)' (speed) and 'mi' (length) are not convertible
+  UnitsException: 'cm / s' (speed) and 'mi' (length) are not convertible
 
 You can check whether a particular conversion is possible using the
 `~astropy.units.core.UnitBase.is_equivalent` method::

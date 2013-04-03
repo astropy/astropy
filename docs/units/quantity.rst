@@ -14,19 +14,19 @@ m/s:
 
     >>> import astropy.units as u
     >>> 15 * u.m / u.s
-    <Quantity 15 m / (s)>
+    <Quantity 15 m / s>
 
 or 1.14/s:
 
     >>> 1.14 / u.s
-    <Quantity 1.14 1 / (s)>
+    <Quantity 1.14 1 / s>
 
 You can also create instances using the
 :class:`~astropy.units.quantity.Quantity` constructor directly, by specifying
 a value and unit:
 
     >>> u.Quantity(15, u.m / u.s)
-    <Quantity 15 m / (s)>
+    <Quantity 15 m / s>
 
 :class:`~astropy.units.quantity.Quantity` objects can also be created
 automatically from Numpy arrays:
@@ -48,7 +48,7 @@ Finally, the current unit and value can be accessed via the ``unit`` and
 
     >>> q = 2.3 * u.m / u.s
     >>> q.unit
-    Unit("m / (s)")
+    Unit("m / s")
     >>> q.value
     2.3
 
@@ -60,16 +60,16 @@ different units using the :meth:`~astropy.units.quantity.Quantity.to` method::
 
     >>> q = 2.3 * u.m / u.s
     >>> q.to(u.km / u.h)
-    <Quantity 8.28 km / (h)>
+    <Quantity 8.28 km / h>
 
 For convenience, the `si` and `cgs` attributes can be used to convert the
 :class:`~astropy.units.quantity.Quantity` to base S.I. or c.g.s units:
 
     >>> q = 2.4 * u.m / u.s
     >>> q.si
-    <Quantity 2.4 m / (s)>
+    <Quantity 2.4 m / s>
     >>> q.cgs
-    <Quantity 240.0 cm / (s)>
+    <Quantity 240.0 cm / s>
 
 Arithmetic
 ----------
@@ -118,9 +118,9 @@ numeric types. For these operations between objects with equivalent units, the
     >>> 140.3 * u.cm * 1.1 * u.m
     <Quantity 154.33 cm m>
     >>> 1. * u.m / (20. * u.cm)
-    <Quantity 0.05 m / (cm)>
+    <Quantity 0.05 m / cm>
     >>> 20. * u.cm / (1. * u.m)
-    <Quantity 20.0 cm / (m)>
+    <Quantity 20.0 cm / m>
 
 For multiplication, you can change how to represent the resulting object by
 using the :meth:`~astropy.units.quantity.Quantity.to` method:
@@ -142,7 +142,7 @@ This method is also useful for more complicated arithmetic:
     >>> 15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms)
     <Quantity 0.341950972779 cm kg m / (ms s)>
     >>> (15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms)).decompose()
-    <Quantity 3.41950972779 kg m2 / (s2)>
+    <Quantity 3.41950972779 kg m2 / s2>
 
 Converting to Python or Numpy types
 -----------------------------------
@@ -153,17 +153,17 @@ Python scalars or Numpy arrays, either by explicitly using :func:`float`,
 
     >>> q = 2.5 * u.m / u.s
     >>> float(q)
-    WARNING: Converting Quantity object in units 'm / (s)' to a Python scalar
+    WARNING: Converting Quantity object in units 'm / s' to a Python scalar
     2.5
     >>> np.array(q)
-    WARNING: Converting Quantity object in units 'm / (s)' to a Numpy array
+    WARNING: Converting Quantity object in units 'm / s' to a Numpy array
     array(2.5)
 
 or by using them directly in e.g. Numpy functions:
 
     >>> q = 10. * u.km / u.h
     >>> np.log10(q)
-    WARNING: Converting Quantity object in units 'km / (h)' to a Numpy array
+    WARNING: Converting Quantity object in units 'km / h' to a Numpy array
     1.0
 
 but note that in all cases, a warning is emitted to indicate that the
@@ -173,7 +173,7 @@ to a different or simpler set of units. For example, in the following case::
 
     >>> q = 100. * u.cm / u.m
     >>> np.log10(q)
-    WARNING: Converting Quantity object in units 'cm / (m)' to a Numpy array
+    WARNING: Converting Quantity object in units 'cm / m' to a Numpy array
     2.0
 
 The result is ``2.`` because the quantity is 100 cm/m, and so the numerical
@@ -202,5 +202,3 @@ which then gives e.g.:
 
 without a warning. As for all configuration items, one can also directly set
 the ``warn_implicit_numeric_conversion`` item in ``astropy.cfg``.
-
-

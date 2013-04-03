@@ -66,9 +66,9 @@ numbers and :class:`~astropy.units.quantity.Quantity` objects and preserve
 their units::
 
    >>> 15.1 * u.meter / (32.0 * u.second)
-   <Quantity 0.471875 m / (s)>
+   <Quantity 0.471875 m / s>
    >>> 3.0 * u.kilometer / (130.51 * u.meter / u.second)
-   <Quantity 0.0229867443108 km s / (m)>
+   <Quantity 0.0229867443108 km s / m>
    >>> (3.0 * u.kilometer / (130.51 * u.meter / u.second)).decompose()
    <Quantity 22.9867443108 s>
 

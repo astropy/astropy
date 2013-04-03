@@ -11,7 +11,7 @@ A unit can be decomposed into its irreducible parts using the
   >>> u.Ry
   Unit("Ry")
   >>> u.Ry.decompose()
-  Unit("2.17987e-18 m2 kg / (s2)")
+  Unit("2.17987e-18 m2 kg / s2")
 
 You can limit the selection of units that you want to decompose to
 using the `bases` keyword argument::
@@ -23,7 +23,7 @@ This is also useful to decompose to a particular system.  For example,
 to decompose the Rydberg unit in terms of CGS units::
 
   >>> u.Ry.decompose(bases=u.cgs.bases)
-  Unit("2.17987e-11 cm2 g / (s2)")
+  Unit("2.17987e-11 cm2 g / s2")
 
 Automatically composing a unit into more complex units
 ------------------------------------------------------
@@ -46,15 +46,15 @@ Some other interesting examples::
 
    >>> (u.s ** -1).compose()
    [Unit("Hz"),
-    Unit("1 / (s)"),
-    Unit("60 / (min)"),
-    Unit("3600 / (h)"),
-    Unit("86164.1 / (sday)"),
-    Unit("86400 / (d)"),
-    Unit("604800 / (wk)"),
-    Unit("1.2096e+06 / (fortnight)"),
-    Unit("3.15576e+07 / (yr)"),
-    Unit("3.15576e+07 / (a)")]
+    Unit("1 / s"),
+    Unit("60 / min"),
+    Unit("3600 / h"),
+    Unit("86164.1 / sday"),
+    Unit("86400 / d"),
+    Unit("604800 / wk"),
+    Unit("1.2096e+06 / fortnight"),
+    Unit("3.15576e+07 / yr"),
+    Unit("3.15576e+07 / a")]
 
 Composition can be combined with :ref:`unit_equivalencies`::
 
@@ -62,7 +62,7 @@ Composition can be combined with :ref:`unit_equivalencies`::
    [Unit("m"),
     Unit("Hz"),
     Unit("J"),
-    Unit("1 / (s)"),
+    Unit("1 / s"),
     Unit("3.24078e-17 pc"),
     Unit("1.057e-16 lyr"),
     Unit("6.68459e-12 AU"),
@@ -80,14 +80,14 @@ Composition can be combined with :ref:`unit_equivalencies`::
     Unit("1e+10 Angstrom"),
     Unit("4.58743e+17 Ry"),
     Unit("6.24151e+18 eV"),
-    Unit("60 / (min)"),
-    Unit("3600 / (h)"),
-    Unit("86164.1 / (sday)"),
-    Unit("86400 / (d)"),
-    Unit("604800 / (wk)"),
-    Unit("1.2096e+06 / (fortnight)"),
-    Unit("3.15576e+07 / (a)"),
-    Unit("3.15576e+07 / (yr)")]
+    Unit("60 / min"),
+    Unit("3600 / h"),
+    Unit("86164.1 / sday"),
+    Unit("86400 / d"),
+    Unit("604800 / wk"),
+    Unit("1.2096e+06 / fortnight"),
+    Unit("3.15576e+07 / a"),
+    Unit("3.15576e+07 / yr")]
 
 Obviously a name doesn't exist for every arbitrary derived unit
 imaginable.  In that case, the system will do its best to reduce the
