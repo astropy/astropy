@@ -132,16 +132,21 @@ False
 To call a given VO service; In this case, a Cone Search
 (also see :ref:`Cone Search Examples <vo-sec-scs-examples>`):
 
+>>> from astropy import coordinates as coord
+>>> c = coord.ICRSCoordinates.from_name('47 Tuc')
+>>> c
+<ICRSCoordinates RA=6.02233 deg, Dec=-72.08144 deg>
 >>> result = vos_catalog.call_vo_service(
-...     'conesearch_good', kwargs={'RA':6.088, 'DEC':-72.086, 'SR':0.5})
-Trying http://wfaudata.roe.ac.uk/sdssdr7-dsa/DirectCone?DSACAT=SDSS_DR7&...
-WARNING: W25: ... failed with: timed out [...]
-# ...
+...     'conesearch_good',
+...     kwargs={'RA': c.ra.degrees, 'DEC': c.dec.degrees, 'SR': 0.5},
+...     catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1')
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/243/out&
-Downloading ... [Done]
+Downloading ...
 WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
+WARNING: W03: ... Implictly generating an ID from a name 'RA(ICRS)'...
+WARNING: W03: ... Implictly generating an ID from a name 'DE(ICRS)'...
 >>> result
-<astropy.io.votable.tree.Table at 0x6311f50>
+<astropy.io.votable.tree.Table at 0x3cc4850>
 
 To repeat the above and suppress *all* the screen outputs (not recommended):
 
@@ -149,7 +154,9 @@ To repeat the above and suppress *all* the screen outputs (not recommended):
 >>> with warnings.catch_warnings():
 ...     warnings.simplefilter('ignore')
 ...     result = vos_catalog.call_vo_service(
-...         'conesearch_good', kwargs={'RA':6.088, 'DEC':-72.086, 'SR':0.5},
+...         'conesearch_good',
+...         kwargs={'RA': c.ra.degrees, 'DEC': c.dec.degrees, 'SR': 0.5},
+...         catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1',
 ...         verbose=False)
 
 
@@ -458,9 +465,9 @@ WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
 u'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/255/out&'
 
 If one is unable to obtain any results using the default
-Cone Search database, 'conesearch_good.json', that only contains
+Cone Search database, 'conesearch_good', that only contains
 sites that cleanly passed validation, one can use :ref:`astropy_config`
-to use another database, 'conesearch_warn.json', containing sites with
+to use another database, 'conesearch_warn', containing sites with
 validation warnings. One should use these sites with caution:
 
 >>> conesearch.CONESEARCH_DBNAME.set('conesearch_warn')

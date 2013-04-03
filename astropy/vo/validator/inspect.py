@@ -27,14 +27,14 @@ class ConeSearchResults(object):
     catkeys : dict
         Stores sorted catalog keys for each ``dbtypes``.
 
-    verbose : bool
-        Show download progress bars.
-
     Parameters
     ----------
     cache : bool
        Read from cache, if available.
        Default is `False` to ensure the latest data are read.
+
+    verbose : bool
+        Show download progress bars.
 
     """
     def __init__(self, cache=False, verbose=True):

@@ -313,7 +313,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
 
             - *catalog name*: A name in the database of ``service_type``
               catalogs at ``astropy.vo.client.vos_catalog.BASEURL`` is used.
-              For a list of acceptable names, see :func:`list_catalogs`.
+              For a list of acceptable names, use :func:`list_catalogs`.
 
             - *url*: The prefix of a URL to a IVOA Service for
               ``service_type``. Must end in either '?' or '&'.

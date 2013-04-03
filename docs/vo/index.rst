@@ -37,7 +37,7 @@ This subset undergoes daily validations hosted by STScI using
 :ref:`vo-sec-validator-validate`. Those that pass without
 critical warnings or exceptions are used by :ref:`vo-sec-client-scs` by
 default. They are controlled by
-``astropy.vo.client.conesearch.CONESEARCH_DBNAME``):
+``astropy.vo.client.conesearch.CONESEARCH_DBNAME``:
 
     #. 'conesearch_good'
            Default. Passed validation without critical warnings and exceptions.
@@ -142,12 +142,11 @@ Using ``astropy.vo``
 
 This package has four main components across two subpackages:
 
-    * ``astropy.vo.client``:
-          * :ref:`vo-sec-client-vos` (``astropy.vo.client.vos_catalog``)
-          * :ref:`vo-sec-client-scs` (``astropy.vo.client.conesearch``)
-    * ``astropy.vo.validator``:
-          * :ref:`vo-sec-validator-validate` (``astropy.vo.validator.validate``)
-          * :ref:`vo-sec-validator-inspect` (``astropy.vo.validator.inspect``)
+.. toctree::
+   :maxdepth: 2
+
+   client
+   validator
 
 They are designed to be used in a work flow as illustrated below:
 
@@ -157,13 +156,6 @@ They are designed to be used in a work flow as illustrated below:
 
 The one that a typical user needs is the :ref:`vo-sec-client-scs` component
 (see :ref:`Cone Search Examples <vo-sec-scs-examples>`).
-
-
-.. toctree::
-   :maxdepth: 2
-
-   client
-   validator
 
 
 See Also

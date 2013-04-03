@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Support basic VO Cone Search capabilities."""
+"""Support VO Simple Cone Search capabilities."""
 from __future__ import print_function, division
 
 # THIRD-PARTY
@@ -165,7 +165,7 @@ def conesearch(ra, dec, sr, verb=1, **kwargs):
             - *catalog name*: A name in the database of
               ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``
               catalogs at ``astropy.vo.client.vos_catalog.BASEURL`` is used.
-              For a list of acceptable names, see :func:`list_catalogs`.
+              For a list of acceptable names, use :func:`list_catalogs`.
 
             - *url*: The prefix of a URL to a IVOA Service for
               ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``.
@@ -310,7 +310,7 @@ def predict_search(url, *args, **kwargs):
         If prediction fails.
 
     ConeSearchError
-        If input paramters are invalid.
+        If input parameters are invalid.
 
     VOSError
         If VO service request fails.
@@ -386,7 +386,7 @@ def predict_search(url, *args, **kwargs):
 @timefunc(1)
 def conesearch_timer(*args, **kwargs):
     """Time a single Cone Search using `astropy.utils.timer.timefunc`
-    with single try and verbose timer.
+    with a single try and a verbose timer.
 
     Parameters
     ----------

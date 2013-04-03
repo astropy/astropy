@@ -192,7 +192,8 @@ WARNING: W20: None:2:0: W20: No version number specified in file...
  'http://archive.stsci.edu/kepler/confirmed_planets/search.php?']
 
 Validate only the URLs found above without verbose
-outputs or multiprocessing, and write results in
+outputs (except warnings that are controlled by :py:mod:`warnings`)
+or multiprocessing, and write results in
 'subset' sub-directory instead of the current directory:
 
 >>> with REMOTE_TIMEOUT.set_temp(30):
