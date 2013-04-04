@@ -91,24 +91,24 @@ def comparerecords(a, b):
 
 class TestTableFunctions(FitsTestCase):
     def test_constructor_copies_header(self):
-       """
-       Regression test for #153.  Ensure that a header from one HDU is copied
-       when used to initialize new HDU.
+        """
+        Regression test for #153.  Ensure that a header from one HDU is copied
+        when used to initialize new HDU.
 
-       This is like the test of the same name in test_image, but tests this for
-       tables as well.
-       """
+        This is like the test of the same name in test_image, but tests this for
+        tables as well.
+        """
 
-       ifd = fits.HDUList([fits.PrimaryHDU(), fits.BinTableHDU()])
-       thdr = ifd[1].header
-       thdr['FILENAME'] = 'labq01i3q_rawtag.fits'
+        ifd = fits.HDUList([fits.PrimaryHDU(), fits.BinTableHDU()])
+        thdr = ifd[1].header
+        thdr['FILENAME'] = 'labq01i3q_rawtag.fits'
 
-       thdu = fits.BinTableHDU(header=thdr)
-       ofd = fits.HDUList(thdu)
-       ofd[0].header['FILENAME'] = 'labq01i3q_flt.fits'
+        thdu = fits.BinTableHDU(header=thdr)
+        ofd = fits.HDUList(thdu)
+        ofd[0].header['FILENAME'] = 'labq01i3q_flt.fits'
 
-       # Original header should be unchanged
-       assert thdr['FILENAME'] == 'labq01i3q_rawtag.fits'
+        # Original header should be unchanged
+        assert thdr['FILENAME'] == 'labq01i3q_rawtag.fits'
 
     def test_open(self):
         # open some existing FITS files:
