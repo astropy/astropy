@@ -1052,26 +1052,6 @@ class TestHeaderFunctions(FitsTestCase):
         assert len(hdu.header) == 5
         assert hdu.header[-1] == 'some val'
 
-    def test_header_extend_unique(self):
-        """
-        Test extending the header with and without unique=True.
-        """
-        hdu = fits.PrimaryHDU()
-        hdu2 = fits.ImageHDU()
-        hdu.header['MYKEY'] = ('some val', 'some comment')
-        hdu2.header['MYKEY'] = ('some other val', 'some other comment')
-        hdu.header.extend(hdu2.header)
-        assert len(hdu.header) == 6
-        assert hdu.header[-2] == 'some val'
-        assert hdu.header[-1] == 'some other val'
-
-        hdu = fits.PrimaryHDU()
-        hdu2 = fits.ImageHDU()
-        hdu.header['MYKEY'] = ('some val', 'some comment')
-        hdu.header.extend(hdu2.header, unique=True)
-        assert len(hdu.header) == 5
-        assert hdu.header[-1] == 'some val'
-
     def test_header_extend_update(self):
         """
         Test extending the header with and without update=True.

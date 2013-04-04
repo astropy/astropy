@@ -89,7 +89,7 @@ def test_create_angles():
     a15 = Angle("5h4m3s") # single digits, no decimal
 
     #ensure the above angles that should match do
-    a1 == a2 == a3 == a4 == a5 == a6 == a7
+    assert a1 == a2 == a3 == a4 == a5 == a6 == a7
     npt.assert_almost_equal(a1.radians, a2.radians)
     npt.assert_almost_equal(a2.degrees, a3.degrees)
     npt.assert_almost_equal(a3.radians, a4.radians)
@@ -148,11 +148,11 @@ def test_angle_ops():
     with raises(NotImplementedError):
         a1 * a2
 
-    (a1 * 2).hours == 2 * 3.60827466667
-    (a1 / 3.123456).hours == 3.60827466667 / 3.123456
+    assert (a1 * 2).hours == 2 * 3.60827466667
+    assert abs((a1 / 3.123456).hours - 3.60827466667 / 3.123456) < 1e-10
 
     # commutativity
-    (2 * a1).hours == (a1 * 2).hours
+    assert (2 * a1).hours == (a1 * 2).hours
 
     a3 = Angle(a1)  # makes a *copy* of the object, but identical content as a1
     npt.assert_almost_equal(a1.radians, a3.radians)
@@ -204,10 +204,10 @@ def test_angle_bounds():
     # no BoundsError because while 390>75, 30 is within the bounds
 
     a5 = Angle(390, unit=u.degree, bounds=(-720, 720))
-    a5.degrees == 390
+    assert a5.degrees == 390
 
     a6 = Angle(1020, unit=u.degree, bounds=None)
-    a6.degrees == 1020
+    assert abs(a6.degrees - 1020) < 1e-10
 
     # bounds and operations
 
@@ -233,7 +233,7 @@ def test_angle_bounds():
 
     # bounds of None can also be operated on without complaint
     a10 = a6 - a6
-    a10.degrees == 0
+    assert a10.degrees == 0
 
     with raises(AttributeError):
         a10.bounds = (0,34)

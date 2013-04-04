@@ -110,7 +110,7 @@ def test_names():
 
     # First check that sesame is up
     if urllib.urlopen("http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame").getcode() != 200:
-    	pytest.skip("SESAME appears to be down, skipping test_name_resolve.py:test_names()...")
+        pytest.skip("SESAME appears to be down, skipping test_name_resolve.py:test_names()...")
 
     with pytest.raises(NameResolveError):
         get_icrs_coordinates("m87h34hhh")
@@ -140,7 +140,7 @@ def test_database_specify():
 
     # First check that sesame is up
     if urllib.urlopen("http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame").getcode() != 200:
-    	pytest.skip("SESAME appears to be down, skipping test_database_specify.py:test_names()...")
+        pytest.skip("SESAME appears to be down, skipping test_database_specify.py:test_names()...")
 
     name = "ngc 3642"
     for db in ["simbad", "vizier", "all"]:

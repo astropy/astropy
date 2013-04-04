@@ -39,21 +39,21 @@ class TestImageFunctions(FitsTestCase):
         assert hdu.header['EXTNAME'] == 'FOO'
 
     def test_constructor_copies_header(self):
-       """
-       Regression test for #153.  Ensure that a header from one HDU is copied
-       when used to initialize new HDU.
-       """
+        """
+        Regression test for #153.  Ensure that a header from one HDU is copied
+        when used to initialize new HDU.
+        """
 
-       ifd = fits.HDUList(fits.PrimaryHDU())
-       phdr = ifd[0].header
-       phdr['FILENAME'] = 'labq01i3q_rawtag.fits'
+        ifd = fits.HDUList(fits.PrimaryHDU())
+        phdr = ifd[0].header
+        phdr['FILENAME'] = 'labq01i3q_rawtag.fits'
 
-       primary_hdu = fits.PrimaryHDU(header=phdr)
-       ofd = fits.HDUList(primary_hdu)
-       ofd[0].header['FILENAME'] = 'labq01i3q_flt.fits'
+        primary_hdu = fits.PrimaryHDU(header=phdr)
+        ofd = fits.HDUList(primary_hdu)
+        ofd[0].header['FILENAME'] = 'labq01i3q_flt.fits'
 
-       # Original header should be unchanged
-       assert phdr['FILENAME'] == 'labq01i3q_rawtag.fits'
+        # Original header should be unchanged
+        assert phdr['FILENAME'] == 'labq01i3q_rawtag.fits'
 
     @raises(ValueError)
     def test_open(self):

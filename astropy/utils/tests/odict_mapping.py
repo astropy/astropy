@@ -228,7 +228,7 @@ class BasicTestMappingProtocol(unittest.TestCase):
 
         d.clear()
 
-        class FailingUserDict:
+        class FailingUserDict2:
             def keys(self):
                 class BogonIter:
                     def __init__(self):
@@ -243,9 +243,9 @@ class BasicTestMappingProtocol(unittest.TestCase):
                 return BogonIter()
             def __getitem__(self, key):
                 return key
-        self.assertRaises(Exc, d.update, FailingUserDict())
+        self.assertRaises(Exc, d.update, FailingUserDict2())
 
-        class FailingUserDict:
+        class FailingUserDict3:
             def keys(self):
                 class BogonIter:
                     def __init__(self):
@@ -261,7 +261,7 @@ class BasicTestMappingProtocol(unittest.TestCase):
                 return BogonIter()
             def __getitem__(self, key):
                 raise Exc
-        self.assertRaises(Exc, d.update, FailingUserDict())
+        self.assertRaises(Exc, d.update, FailingUserDict3())
 
         d = self._empty_mapping()
         class badseq(object):

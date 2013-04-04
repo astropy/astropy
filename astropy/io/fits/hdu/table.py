@@ -183,9 +183,9 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 self.update()
 
                 try:
-                   # Make the ndarrays in the Column objects of the ColDefs
-                   # object of the HDU reference the same ndarray as the HDU's
-                   # FITS_rec object.
+                    # Make the ndarrays in the Column objects of the ColDefs
+                    # object of the HDU reference the same ndarray as the HDU's
+                    # FITS_rec object.
                     for idx in range(len(self.columns)):
                         self.columns[idx].array = self.data.field(idx)
 

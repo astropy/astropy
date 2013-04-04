@@ -124,8 +124,8 @@ def test_header_from_readme():
         from .common import isnan
         for i, val in enumerate(table.field('Q')):
             if isnan(val):
-                assert Q[i] == -9.999  # text value for a missing value in that
-                                       # table
+                # text value for a missing value in that table
+                assert Q[i] == -9.999
             else:
                 assert val == Q[i]
 
