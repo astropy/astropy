@@ -62,7 +62,7 @@ else:  # pragma: py2
 
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'DistortionLookupTable', 'Sip', 'Tabprm', 'UnitConverter',
-           'Wcsprm']
+           'Wcsprm', 'WCSBase']
 
 
 if _wcs is not None:
