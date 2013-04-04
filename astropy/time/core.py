@@ -357,14 +357,16 @@ class Time(object):
     def __copy__(self):
         """
         Overrides the default behavior of the `copy.copy` function in
-        the python stdlib to behave like `Time.copy`.
+        the python stdlib to behave like `Time.copy`. Does *not* make a
+        copy of the JD arrays - only copies by reference.
         """
-        return self.copy()
+        return self.replicate()
 
     def __deepcopy__(self, memo):
         """
         Overrides the default behavior of the `copy.deepcopy` function
-        in the python stdlib to behave like `Time.copy`.
+        in the python stdlib to behave like `Time.copy`. Does make a
+        copy of the JD arrays.
         """
         return self.copy()
 
