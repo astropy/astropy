@@ -913,8 +913,11 @@ class Poly2DModel(PModel):
     
     Represents a general polynomial of degree n:
      
-    .. math:: P(x,y) = c_{0_0} + c_{1_0}x + ...+ c_{n_0}x^n + c_{0_1}y + ...+ c_{0_n}y^n + 
-    c_{1_1}xy + c_{1_2}xy^2 + ... + c_{1_(n-1)}xy^{n-1}+ ... + c_{(n-1)_1}x^{n-1}y
+    .. math:: 
+    
+    P(x,y) = c_{0_0} + c_{1_0}x + ...+ c_{n_0}x^n + c_{0_1}y + ...+ c_{0_n}y^n \\
+    + c_{1_1}xy + c_{1_2}xy^2 + ... + c_{1_(n-1)}xy^{n-1}+ ... + \\
+    c_{(n-1)_1}x^{n-1}y
         
     """
     def __init__(self, degree, xdomain=[-1, 1], ydomain=[-1, 1], 

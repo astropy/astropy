@@ -125,21 +125,19 @@ Parameters:
 [0.6354845, 2.016544, 3.0035796, 4.0907439, 4.989999, 6.000127]
 
 
-
 Using `models`
 ==============
 
 
 .. toctree::
-    :maxdepth: 1
-    parameters
-    models
-    fitting
-    new
-    algorithms
+   :maxdepth: 1
 
-
-
+   parameters
+   models
+   fitting
+   new
+   algorithms
+   design
 
 Reference/API
 =============
