@@ -354,22 +354,6 @@ class Time(object):
         """
         return self.replicate(format, copy=True)
 
-    def __copy__(self):
-        """
-        Overrides the default behavior of the `copy.copy` function in
-        the python stdlib to behave like `Time.copy`. Does *not* make a
-        copy of the JD arrays - only copies by reference.
-        """
-        return self.replicate()
-
-    def __deepcopy__(self, memo):
-        """
-        Overrides the default behavior of the `copy.deepcopy` function
-        in the python stdlib to behave like `Time.copy`. Does make a
-        copy of the JD arrays.
-        """
-        return self.copy()
-
     def replicate(self, format=None, copy=False):
         """
         Return a replica of the Time object, optionally changing the format.
@@ -436,6 +420,22 @@ class Time(object):
         tm._format = format
 
         return tm
+
+    def __copy__(self):
+        """
+        Overrides the default behavior of the `copy.copy` function in
+        the python stdlib to behave like `Time.copy`. Does *not* make a
+        copy of the JD arrays - only copies by reference.
+        """
+        return self.replicate()
+
+    def __deepcopy__(self, memo):
+        """
+        Overrides the default behavior of the `copy.deepcopy` function
+        in the python stdlib to behave like `Time.copy`. Does make a
+        copy of the JD arrays.
+        """
+        return self.copy()
 
     def _getAttributeNames(self):
         """
