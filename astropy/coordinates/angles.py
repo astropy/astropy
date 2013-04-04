@@ -662,20 +662,20 @@ class AngularSeparation(Angle):
 
     Parameters
     ----------
-    lat1 : float
-        The value of the first latitudinal/elevation angle.
     lon1 : float
         The value of the first longitudinal/azimuthal angle.
-    lat2 : float
-        The value of the second latitudinal/elevation angle.
+    lat1 : float
+        The value of the first latitudinal/elevation angle.
     lon2 : float
         The value of the second longitudinal/azimuthal angle.
+    lat2 : float
+        The value of the second latitudinal/elevation angle.
     units : `~astropy.units`
         The units of the given angles.
 
 
     """
-    def __init__(self, lat1, lon1, lat2, lon2, units):
+    def __init__(self, lon1, lat1, lon2, lat2, units):
 
         units = u.Unit(units)
         lat1 = units.to(u.radian, lat1)
