@@ -131,10 +131,10 @@ Using `models`
 
 
 .. toctree::
+    :maxdepth: 1
     parameters
     models
     fitting
-    util
     new
     algorithms
 
@@ -144,9 +144,4 @@ Using `models`
 Reference/API
 =============
 
-.. automodapi:: astropy.models.models
-.. automodapi:: astropy.models.projections
-.. automodapi:: astropy.models.rotations
-.. automodapi:: astropy.models.fitting
-.. automodapi:: astropy.models.parameters
-
+.. automodapi:: astropy.models
