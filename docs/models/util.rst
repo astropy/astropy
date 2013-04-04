@@ -4,8 +4,6 @@
  Utilities
 **************************************
 
-.. py:currentmodule:: fitting.util
-
-.. automodule:: fitting.util
+.. automodule:: astropy.models.util
     :members:
     

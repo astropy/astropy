@@ -1,4 +1,4 @@
-.. _design.rst
+.. _design:
 
 ************
 Design Goals
