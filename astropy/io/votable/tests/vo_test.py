@@ -389,6 +389,7 @@ class TestParse:
     def test_bitarray(self):
         assert issubclass(self.array['bitarray'].dtype.type,
                           np.bool_)
+        assert self.array['bitarray'].shape == (5, 3, 2)
         assert_array_equal(self.array['bitarray'],
                            [[[ True, False],
                              [ True,  True],
