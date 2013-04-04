@@ -15,7 +15,7 @@ def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
         kernel
     kernelwidth : float
         Width of kernel in pixels  (see definitions under `kerneltype`)
-    kerneltype : {'gaussian', 'boxcar', 'tophat', 'brickwall', 'airy', 'trapezoid'}
+    kerneltype : {'gaussian', 'boxcar', 'tophat', 'airy', 'trapezoid'}
         Defines the type of kernel to be generated. The following types are
         available:
 
@@ -28,9 +28,9 @@ def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
         * 'tophat'
             A flat circle  with radius = `kernelwidth`,
             i.e., kernel = (r < `kernelwidth`)
-        * 'brickwall' or 'airy'
+        * 'airy'
             A kernel using the airy function from optics. It requires
-            `scipy.special` for the bessel function. See e.g.,
+            `scipy.special` for the Bessel function. See e.g.,
             http://en.wikipedia.org/wiki/Airy_disk.
         * 'trapezoid'
             A kernel like 'tophat' but with sloped edges. It is
@@ -85,7 +85,6 @@ def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
         rr = np.sum([(x-(x.max()+1)//2)**2 for x in np.indices(kernelshape)],axis=0)**0.5
         kernel = np.exp(-(rr**2)/(2.*kernelwidth**2))
         kernel /= normalize_kernel(kernel) #/ (kernelwidth**2 * (2*np.pi))
-
     elif kerneltype == 'boxcar':
         kernel = np.zeros(kernelshape,dtype='float64')
         kernelslices = []
@@ -100,7 +99,7 @@ def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
         kernel[rr<kernelwidth] = 1.0
         # normalize
         kernel /= normalize_kernel(kernel)
-    elif kerneltype in ('brickwall','airy'):
+    elif kerneltype == 'airy':
         try:
             import scipy.special
         except ImportError:
