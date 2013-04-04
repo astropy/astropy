@@ -91,7 +91,7 @@ class SphericalCoordinatesBase(object):
             `unit` must be a single unit with dimensions of length"""
 
     def _initialize_latlon(self, lonname, latname, useradec, initargs,
-        initkwargs, anglebounds=None):
+        initkwargs, anglebounds=None, relax=False):
         """
         Subclasses should use this to initialize standard lat/lon-style
         coordinates.
@@ -148,6 +148,7 @@ class SphericalCoordinatesBase(object):
         x = initkwargs.pop('x', None)
         y = initkwargs.pop('y', None)
         z = initkwargs.pop('z', None)
+        relax = initkwargs.pop('relax', False)
 
         if len(initkwargs) > 0:
             raise TypeError('{0} got unexpected keyword argument'
@@ -213,15 +214,15 @@ class SphericalCoordinatesBase(object):
 
             # now actually create the angle objects
             if useradec:
-                lonang = RA(lonval, unit=units[0])
-                latang = Dec(latval, unit=units[1])
+                lonang = RA(lonval, unit=units[0], relax=relax)
+                latang = Dec(latval, unit=units[1], relax=relax)
             else:
                 if isinstance(lonval, RA):
                     raise TypeError('Cannot provide an RA object to non-RA/Dec system {0}'.format(sclsnm))
                 if isinstance(latval, Dec):
                     raise TypeError('Cannot provide a Dec object to non-RA/Dec system {0}'.format(sclsnm))
-                lonang = Angle(lonval, unit=units[0])
-                latang = Angle(latval, unit=units[1])
+                lonang = Angle(lonval, unit=units[0], relax=relax)
+                latang = Angle(latval, unit=units[1], relax=relax)
 
             dist = None if distval is None else Distance(distval)  # copy
 
@@ -245,11 +246,11 @@ class SphericalCoordinatesBase(object):
             r, latval, lonval = cartesian_to_spherical(x, y, z)
 
             if useradec:
-                lonang = RA(lonval, unit=u.radian)
-                latang = Dec(latval, unit=u.radian)
+                lonang = RA(lonval, unit=u.radian, relax=relax)
+                latang = Dec(latval, unit=u.radian, relax=relax)
             else:
-                lonang = Angle(lonval, unit=u.radian)
-                latang = Angle(latval, unit=u.radian)
+                lonang = Angle(lonval, unit=u.radian, relax=relax)
+                latang = Angle(latval, unit=u.radian, relax=relax)
 
             dist = None if unit is None else Distance(r, unit)
 
@@ -261,8 +262,8 @@ class SphericalCoordinatesBase(object):
 
         #add in the bounds, if relevant
         if anglebounds is not None and not useradec:
-            lonang = Angle(lonang.degrees, u.degree, bounds=anglebounds[0])
-            latang = Angle(latang.degrees, u.degree, bounds=anglebounds[1])
+            lonang = Angle(lonang.degrees, u.degree, bounds=anglebounds[0], relax=relax)
+            latang = Angle(latang.degrees, u.degree, bounds=anglebounds[1], relax=relax)
 
         # now actually set the values
         setattr(self, lonname, lonang)

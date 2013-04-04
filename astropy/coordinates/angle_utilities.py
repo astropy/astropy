@@ -12,35 +12,48 @@ from __future__ import unicode_literals
 import re
 import math
 import inspect # NB: get the function name with: inspect.stack()[0][3]
+from warnings import warn
 
 from .errors import *
 from ..utils import format_exception
 
 
-def _check_hour_range(hrs):
+def _check_hour_range(hrs, relax=False):
     ''' Checks that the given value is in the range (-24,24). '''
     if not -24. < hrs < 24.:
-        raise IllegalHourError(hrs)
+        ex = IllegalHourError(hrs)
+        if relax:
+            warn(ex.message)
+        else:
+            raise ex
 
 
-def _check_minute_range(min):
+def _check_minute_range(min, relax=False):
     ''' Checks that the given value is in the range [0,60). '''
     if not 0. <= min < 60.:
         # "Error: minutes not in range [0,60) ({0}).".format(min))
-        raise IllegalMinuteError(min)
+        ex = IllegalMinuteError(min)
+        if relax:
+            warn(ex.message)
+        else:
+            raise ex
 
 
-def _check_second_range(sec):
+def _check_second_range(sec, relax=False):
     ''' Checks that the given value is in the range [0,60). '''
     if not 0. <= sec < 60.:
         # "Error: seconds not in range [0,60) ({0}).".format(sec))
-        raise IllegalSecondError(sec)
+        ex = IllegalSecondError(sec)
+        if relax:
+            warn(ex.message)
+        else:
+            raise ex
 
 
-def check_hms_ranges(h, m, s):
-    _check_hour_range(h)
-    _check_minute_range(m)
-    _check_second_range(s)
+def check_hms_ranges(h, m, s, relax=False):
+    _check_hour_range(h, relax=relax)
+    _check_minute_range(m, relax=relax)
+    _check_second_range(s, relax=relax)
     return None
 
 # these regexes are used in parse_degrees
@@ -55,7 +68,7 @@ _dm_regex = re.compile('^([+-]{0,1}\d{1,3})' + _dms_div_regex_str +
                        '(\d{1,2})' + '[Mm]{0,1}' + '$')
 
 
-def parse_degrees(degrees, output_dms=False):
+def parse_degrees(degrees, output_dms=False, relax=False):
     """
     Parses an input "degrees" value into decimal degrees or a
     degree,arcminute,arcsecond tuple.
@@ -106,7 +119,7 @@ def parse_degrees(degrees, output_dms=False):
                 elems = _dms_regex.search(x).groups()
                 # We need to convert elems[0] to float to preserve sign for -0.0
                 parsed_degrees = dms_to_degrees(
-                    float(elems[0]), int(elems[1]), float(elems[2]))
+                    float(elems[0]), int(elems[1]), float(elems[2]), relax=relax)
                 string_parsed = True
             except AttributeError:
                 # regular expression did not match - try again below
@@ -118,7 +131,7 @@ def parse_degrees(degrees, output_dms=False):
                 elems = _dm_regex.search(x).groups()
                 # We need to convert elems[0] to float to preserve sign for -0.0
                 parsed_degrees = dms_to_degrees(
-                    float(elems[0]), int(elems[1]), 0.0)
+                    float(elems[0]), int(elems[1]), 0.0, relax=relax)
                 string_parsed = True
             except AttributeError:
                 # regular expression did not match - try again below
@@ -143,7 +156,7 @@ def parse_degrees(degrees, output_dms=False):
         parsed_degrees = x.degrees
 
     elif isinstance(x, tuple):
-        parsed_degrees = dms_to_degrees(*x)
+        parsed_degrees = dms_to_degrees(*x, relax=relax)
 
     else:
         raise ValueError(format_exception(
@@ -164,7 +177,7 @@ _hm_regex = re.compile('^([+-]{0,1}\d{1,2})' + _hms_div_regex_str +
                        '(\d{1,2})' + '[Mm]{0,1}' + '$')
 
 
-def parse_hours(hours, output_hms=False):
+def parse_hours(hours, output_hms=False, relax=False):
     """
     Returns an hour value (as a decimal or HMS tuple) from the integer, float,
     or string provided.
@@ -198,14 +211,14 @@ def parse_hours(hours, output_hms=False):
 
     if isinstance(x, float) or isinstance(x, int):
         parsed_hours = x
-        parsed_hms = hours_to_hms(parsed_hours)
+        parsed_hms = hours_to_hms(parsed_hours, relax=relax)
 
     elif isinstance(x, basestring):
         x = x.strip()
 
         try:
             parsed_hours = float(x)
-            parsed_hms = hours_to_hms(parsed_hours)
+            parsed_hms = hours_to_hms(parsed_hours, relax=relax)
         except ValueError:
 
             string_parsed = False
@@ -218,7 +231,7 @@ def parse_hours(hours, output_hms=False):
 
             if string_parsed:
                 h, m, s = float(elems[0]), int(elems[1]), float(elems[2])
-                parsed_hours = hms_to_hours(h, m, s)
+                parsed_hours = hms_to_hours(h, m, s, relax=relax)
                 parsed_hms = (h, m, s)
 
             else:
@@ -230,12 +243,12 @@ def parse_hours(hours, output_hms=False):
                         "{func}: Invalid input string, can't parse to "
                         "HMS. ({0})", x))
                 h, m, s = float(elems[0]), int(elems[1]), 0.0
-                parsed_hours = hms_to_hours(h, m, s)
+                parsed_hours = hms_to_hours(h, m, s, relax=relax)
                 parsed_hms = (h, m, s)
 
     elif isinstance(x, Angle):
         parsed_hours = x.hours
-        parsed_hms = hours_to_hms(parsed_hours)
+        parsed_hms = hours_to_hms(parsed_hours, relax=relax)
 
     #TODO: make a decision as to whether or not to allow datetime objects
     #elif isinstance(x, py_datetime.datetime):
@@ -244,7 +257,7 @@ def parse_hours(hours, output_hms=False):
 
     elif isinstance(x, tuple):
         if len(x) == 3:
-            parsed_hours = hms_to_hours(*x)
+            parsed_hours = hms_to_hours(*x, relax=relax)
             parsed_hms = x
         else:
             raise ValueError(format_exception(
@@ -262,12 +275,12 @@ def parse_hours(hours, output_hms=False):
                     "{filename}:{func}: Array values ([h,m,s] expected) "
                     "could not be coerced into floats. {0}", x))
 
-            parsed_hours = hms_to_hours(h, m, s)
+            parsed_hours = hms_to_hours(h, m, s, relax=relax)
             parsed_hms = (h, m, s)
             if output_hms:
                 return (h, m, s)
             else:
-                return hms_to_hours(h, m, s)
+                return hms_to_hours(h, m, s, relax=relax)
 
         else:
             raise ValueError(format_exception(
@@ -315,7 +328,7 @@ def parse_radians(radians):
             "{func}: could not parse value of type {0}.", type(x).__name__))
 
 
-def degrees_to_dms(d):
+def degrees_to_dms(d, relax=False):
     """
     Convert any parseable degree value (see: parse_degrees) into a
     ``(degree, arcminute, arcsecond)`` tuple.
@@ -326,19 +339,19 @@ def degrees_to_dms(d):
     (mf, m) = math.modf(df * 60.)  # (minute fraction, minute)
     s = mf * 60.
 
-    _check_minute_range(m)
-    _check_second_range(s)
+    _check_minute_range(m, relax=relax)
+    _check_second_range(s, relax=relax)
 
     return (float(sign * d), int(sign * m), sign * s)
 
 
-def dms_to_degrees(d, m, s):
+def dms_to_degrees(d, m, s, relax=False):
     """ Convert degrees, arcminute, arcsecond to a float degrees value. """
 
-    _check_minute_range(m)
-    _check_second_range(s)
+    _check_minute_range(m, relax=relax)
+    _check_second_range(s, relax=relax)
 
-    # determine sign
+   # determine sign
     sign = math.copysign(1.0, d)
 
     try:
@@ -353,10 +366,10 @@ def dms_to_degrees(d, m, s):
     return sign * (d + m / 60. + s / 3600.)
 
 
-def hms_to_hours(h, m, s):
+def hms_to_hours(h, m, s, relax=False):
     """ Convert hour, minute, second to a float hour value. """
 
-    check_hms_ranges(h, m, s)
+    check_hms_ranges(h, m, s, relax=relax)
 
     # determine sign
     sign = math.copysign(1.0, h)
@@ -373,33 +386,33 @@ def hms_to_hours(h, m, s):
     return sign * (h + m / 60. + s / 3600.)
 
 
-def hms_to_degrees(h, m, s):
+def hms_to_degrees(h, m, s, relax=False):
     """ Convert hour, minute, second to a float degrees value. """
 
-    return hms_to_hours(h, m, s) * 15.
+    return hms_to_hours(h, m, s, relax=relax) * 15.
 
 
-def hms_to_radians(h, m, s):
+def hms_to_radians(h, m, s, relax=False):
     """ Convert hour, minute, second to a float radians value. """
 
-    return math.radians(hms_to_degrees(h, m, s))
+    return math.radians(hms_to_degrees(h, m, s, relax=relax))
 
 
-def hms_to_dms(h, m, s):
+def hms_to_dms(h, m, s, relax=False):
     """
     Convert degrees, arcminutes, arcseconds to an ``(hour, minute, second)``
     tuple.
     """
 
-    return degrees_to_dms(hms_to_degrees(h, m, s))
+    return degrees_to_dms(hms_to_degrees(h, m, s, relax=relax), relax=relax)
 
 
-def hours_to_decimal(h):
+def hours_to_decimal(h, relax=False):
     """
     Convert any parseable hour value (see: parse_hours) into a float value.
     """
 
-    return parse_hours(h, output_hms=False)
+    return parse_hours(h, output_hms=False, relax=relax)
 
 
 def hours_to_radians(h):
@@ -408,7 +421,7 @@ def hours_to_radians(h):
     return math.radians(h * 15.)
 
 
-def hours_to_hms(h):
+def hours_to_hms(h, relax=False):
     """
     Convert any parseable hour value (see: parse_hours) into an
     ``(hour, minute, second)`` tuple.
@@ -420,7 +433,7 @@ def hours_to_hms(h):
     (mf, m) = math.modf(hf * 60.0)  # (minute fraction, minute)
     s = mf * 60.0
 
-    check_hms_ranges(h, m, s)  # throws exception if out of range
+    check_hms_ranges(h, m, s, relax=relax)  # throws exception if out of range
 
     return (float(sign * h), int(sign * m), sign * s)
 
@@ -444,11 +457,11 @@ def radians_to_hours(r):
     return radians_to_degrees(r) / 15.
 
 
-def radians_to_hms(r):
+def radians_to_hms(r, relax=False):
     """ Convert an angle in Radians to an hour,minute,second tuple """
 
     hours = radians_to_hours(r)
-    return hours_to_hms(hours)
+    return hours_to_hms(hours, relax=relax)
 
 
 def radians_to_dms(r):
@@ -458,7 +471,7 @@ def radians_to_dms(r):
     return degrees_to_dms(degrees)
 
 
-def hours_to_string(h, precision=5, pad=False, sep=('h', 'm', 's')):
+def hours_to_string(h, precision=5, pad=False, sep=('h', 'm', 's'), relax=False):
     """
     Takes a decimal hour value and returns a string formatted as hms with
     separator specified by the 'sep' parameter.
@@ -489,12 +502,12 @@ def hours_to_string(h, precision=5, pad=False, sep=('h', 'm', 's')):
 
     literal = ('{0:0{pad}.0f}{sep[0]}{1:02d}{sep[1]}{2:0{width}.{precision}f}'
                '{sep[2]}')
-    h, m, s = hours_to_hms(h)
+    h, m, s = hours_to_hms(h, relax=relax)
     return literal.format(h, abs(m), abs(s), sep=sep, pad=pad,
                           width=(precision + 3), precision=precision)
 
 
-def degrees_to_string(d, precision=5, pad=False, sep=':'):
+def degrees_to_string(d, precision=5, pad=False, sep=':', relax=False):
     """
     Takes a decimal hour value and returns a string formatted as dms with
     separator specified by the 'sep' parameter.
@@ -521,7 +534,7 @@ def degrees_to_string(d, precision=5, pad=False, sep=':'):
 
     literal = ('{0:0{pad}.0f}{sep[0]}{1:02d}{sep[1]}{2:0{width}.{precision}f}'
                '{sep[2]}')
-    d, m, s = degrees_to_dms(d)
+    d, m, s = degrees_to_dms(d, relax=relax)
     return literal.format(d, abs(m), abs(s), sep=sep, pad=pad,
                           width=(precision + 3), precision=precision)
 

@@ -70,7 +70,7 @@ class Angle(object):
 
     """
 
-    def __init__(self, angle, unit=None, bounds=(-360, 360)):
+    def __init__(self, angle, unit=None, bounds=(-360, 360), relax=False):
         from ..utils import isiterable
 
         self._bounds = bounds
@@ -113,14 +113,14 @@ class Angle(object):
                         if unitStr in a:
                             a_unit = u.radian
                             a = angle.replace(unitStr, "")
-                            angle[idx] = math.radians(util.parse_degrees(a))
+                            angle[idx] = math.radians(util.parse_degrees(a, relax=relax))
                             break
                     if unit is None:
                         for unitStr in ["hours", "hour", "hr"]:
                             if unitStr in a:
                                 a_unit = u.radian
                                 a = angle.replace(unitStr, "")
-                                angle[idx] = math.radians(util.parse_hours(a) * 15.)
+                                angle[idx] = math.radians(util.parse_hours(a, relax=relax) * 15., relax=relax)
                                 break
                     if unit is None:
                         for unitStr in ["radians", "radian", "rad"]:
@@ -178,11 +178,11 @@ class Angle(object):
             pass  # already performed conversions to radians above
         else:
             if unit is u.degree:
-                self._radians = math.radians(util.parse_degrees(angle))
+                self._radians = math.radians(util.parse_degrees(angle, relax=relax))
             elif unit is u.radian:
                 self._radians = float(angle)
             elif unit is u.hour:
-                self._radians = util.hours_to_radians(util.parse_hours(angle))
+                self._radians = util.hours_to_radians(util.parse_hours(angle, relax=relax))
             else:
                 raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
 
@@ -490,8 +490,8 @@ class RA(Angle):
         If a unit is not provided or it is not hour, radian, or degree.
     """
 
-    def __init__(self, angle, unit=None):
-        super(RA, self).__init__(angle, unit=unit, bounds=(0, 360))
+    def __init__(self, angle, unit=None, relax=False):
+        super(RA, self).__init__(angle, unit=unit, bounds=(0, 360), relax=relax)
 
     # The initializer as originally conceived allowed the unit to be unspecified
     # if it's bigger  than 24, because hours typically aren't past 24.
@@ -637,8 +637,8 @@ class Dec(Angle):
         `~astropy.coordinates.errors.UnitsError`
             If a unit is not provided or it is not hour, radian, or degree.
     """
-    def __init__(self, angle, unit=None):
-        super(Dec, self).__init__(angle, unit=unit, bounds=(-90, 90))
+    def __init__(self, angle, unit=None, relax=False):
+        super(Dec, self).__init__(angle, unit=unit, bounds=(-90, 90), relax=relax)
 
     # TODO: do here whatever is decided for the "smart" RA initializer above
     #
