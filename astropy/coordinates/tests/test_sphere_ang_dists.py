@@ -74,3 +74,16 @@ def test_2dseparations(coord, correctsep, dfunc):
             pytest.xfail('Small angle approximation fails for large angles')
 
     assert fabs(sep - correctsep) < correctness_margin
+
+
+def test_fk5_seps():
+    """
+    This tests if `separation` works for FK5Coordinate objects.
+
+    This is a regression test for github issue #891
+    """
+    from astropy.coordinates import FK5Coordinates
+
+    a = FK5Coordinates(1., 1., unit=('deg', 'deg'))
+    b = FK5Coordinates(2., 2., unit=('deg', 'deg'))
+    a.separation(b)
