@@ -75,7 +75,7 @@ class TestUintFunctions(FitsTestCase):
             # Test write of unsigned int
             #
             del hdulist
-            with fits.open(self.temp('tempfile.fits')) as hdulist2:
+            with fits.open(self.temp('tempfile.fits'),uint=True) as hdulist2:
                 hdudata = hdulist2[1].data
                 assert (hdudata[utype] == u).all()
                 assert (hdudata[utype].dtype == self.utype_map[utype])
@@ -85,7 +85,7 @@ class TestUintFunctions(FitsTestCase):
             #
             v = u.view(dtype=[(utype,self.utype_map[utype])])
             fits.writeto(self.temp('tempfile2.fits'),v)
-            with fits.open(self.temp('tempfile2.fits')) as hdulist3:
+            with fits.open(self.temp('tempfile2.fits'),uint=True) as hdulist3:
                 hdudata3 = hdulist3[1].data
                 assert (hdudata3.base[utype] == table.data.base[utype]).all()
                 assert (hdudata3[utype] == table.data[utype]).all()

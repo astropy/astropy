@@ -123,7 +123,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     FITS table extension base HDU class.
     """
 
-    def __init__(self, data=None, header=None, name=None):
+    def __init__(self, data=None, header=None, name=None, uint=False):
         """
         Parameters
         ----------
@@ -135,6 +135,9 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
         name : str
             name to be populated in ``EXTNAME`` keyword
+
+        uint : bool, optional
+            set to ``True`` if the table contains unsigned integer columns.
         """
 
         super(_TableBaseHDU, self).__init__(data=data, header=header,
@@ -142,7 +145,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
         if header is not None and not isinstance(header, Header):
             raise ValueError('header must be a Header object.')
-
+        self._uint = uint
         if data is DELAYED:
             # this should never happen
             if header is None:
