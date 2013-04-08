@@ -675,7 +675,18 @@ class AngularSeparation(Angle):
 
 
     """
-    def __init__(self, lon1, lat1, lon2, lat2, units):
+    def __init__(self, lon1, lat1, lon2, lat2, units,
+        _supresslatlonswap_warning=False):  # TODO: remove this parameter in v0.4
+        # TODO: remove this warning in v0.4
+        if not _supresslatlonswap_warning:
+            from warnings import warn
+            from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
+            warn(AstropyBackwardsIncompatibleChangeWarning('The ordering of '
+                ' the AngularSeparation initializer angles was changed in '
+                'from lat1, lon1, lat2, lon2 in v0.2 to "lon1, lat1, lon2, '
+                'lat2" in v0.3.  You MUST update your code to swap lat/lon '
+                'if you are not using keywords, or you will get the wrong '
+                'result.'))
 
         units = u.Unit(units)
         lat1 = units.to(u.radian, lat1)
@@ -689,6 +700,8 @@ class AngularSeparation(Angle):
             sepval = util.vincenty_sphere_dist(lon1, lat1, lon2, lat2)
 
         super(AngularSeparation, self).__init__(sepval, u.radian)
+
+
 
     def __add__(self, other):
         raise TypeError('+ is ambiguous for AngularSeparation objects; not supported')
