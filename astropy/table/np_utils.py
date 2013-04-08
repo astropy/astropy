@@ -118,7 +118,17 @@ def get_descrs(arrays, col_name_map):
 def common_dtype(cols):
     """
     Use numpy to find the common dtype for a list of structured ndarray columns.
+
+    Only allow columns within the following fundamental numpy data types:
+    np.bool_, np.object_, np.number, np.character, np.void
     """
+    np_types = (np.bool_, np.object_, np.number, np.character, np.void)
+    uniq_types = set(tuple(issubclass(col.dtype.type, np_type) for np_type in np_types)
+                     for col in cols)
+    if len(uniq_types) > 1:
+        raise TableMergeError('Columns have incompatible types {0}'
+                              .format([col.dtype.name for col in cols]))
+
     arrs = [np.empty(1, dtype=col.dtype) for col in cols]
 
     # For string-type arrays need to explicitly fill in non-zero
