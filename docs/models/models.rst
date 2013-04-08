@@ -17,13 +17,13 @@ Parametric models also store a flat list of all parameters as an instance of
 modified by a subclass of `~astropy.fitting.fitting.Fitter`. When fitting nonlinear models,
 the values of the parameters are used as initial guesses by the fitting class.
 
-Models have dimensions, `ndim` attribute, which show how many coordinates the 
+Models have an `ndim` attribute, which shows how many coordinates the 
 model expects as an input. All models expect coordinates as separate arguments.
 For example a 2D model expects x and y to be passed separately, 
 e.g. as two arrays or two lists. When a model has multiple parameter sets and x, y are 
 2D arrays, the model is evaluated with each of the parameter sets and the same x, y as 
-input. The shape of the  output array is (paramdim, xsh, ysh) where paramdim is the number 
-of parameter sets and xsh, ysh is the shape of the input array.
+input. The shape of the output array is (paramdim, x_shape, y_shape) where paramdim is the number 
+of parameter sets and x_shape, y_shape is the shape of the input array.
 In all other cases the shape of the output array is the same as the shape of the 
 input arrays. 
 
@@ -41,10 +41,10 @@ Models Examples
 
 - Create a 1D Gaussian with 2 parameter sets
 
->>> x=np.arange(1,10,.1)
+>>> x = np.arange(1, 10, .1)
 >>>models.Gauss1DModel.parnames
 ['amplitude', 'xcen', 'xsigma']
->>> g1=models.Gauss1DModel(amplitude=[10, 9], xcen=[2,3], fwhm=[.3,.2])
+>>> g1 = models.Gauss1DModel(amplitude=[10, 9], xcen=[2,3], fwhm=[.3,.2])
 >>> g1.psets
 array([[ 10.      ,   9.      ],
        [  2.      ,   3.      ],
@@ -58,7 +58,7 @@ Evaluate the model on one data set
 
 or two data sets (any other number would be an error)
 
->>> y=g1(np.array([x,x]).T)
+>>> y = g1(np.array([x, x]).T)
 >>> print y.shape
 (90, 2)
 
@@ -70,7 +70,7 @@ or two data sets (any other number would be an error)
 >>> p1 = models.Poly1DModel(1, paramdim=5)
 >>> len(p1.parameters)
 10
->>> p1.c1=[0, 1, 2, 3, 4]
+>>> p1.c1 = [0, 1, 2, 3, 4]
 >>> p1.psets
 array([[ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  1.,  2.,  3.,  4.]])
@@ -102,8 +102,8 @@ array([[ 0.,  1.,  2.,  3.,  4.],
 >>> x = np.arange(1,10,.1)
 >>> p1 = models.Poly1DModel(1)
 >>> g1 = models.Gauss1DModel(10., xsigma=2.1, xcen=4.2)
->>> pcomptr = models.PCompositeModel([g1, p1])
->>> y = pcomptr(x)
+>>> parallel_composite_model = models.PCompositeModel([g1, p1])
+>>> y = parallel_composite_model(x)
 
 This is equivalent to applying the two models in parallel:
 
@@ -114,14 +114,14 @@ In more complex cases the input and output may be mapped to transformations:
 >>> x, y = np.mgrid[:5, :5]
 >>> off = models.ShiftModel(-3.2)
 >>> poly2 = models.Poly2DModel(2)
->>> scomptr = models.SCompositeModel([off, poly2], inmap=[['x'], ['x', 'y']], outmap=[['x'], ['z']])
+>>> serial_composite_model = models.SCompositeModel([off, poly2], inmap=[['x'], ['x', 'y']], outmap=[['x'], ['z']])
 
 The above composite transform will apply an inplace shift to x, followed by a 2D 
 polynomial and will save the result in an array, labeled 'z'.
 To evaluate this model use a LabeledInput object
 
->>> ado = models.LabeledInput([x, y], ['x', 'y'])
->>> result = scomptr(ado)
+>>> labeled_data = models.LabeledInput([x, y], ['x', 'y'])
+>>> result = serial_composite_model(labeled_data)
 
 The output is also a LabeledInput object and the result is stored in label 'z'.
 

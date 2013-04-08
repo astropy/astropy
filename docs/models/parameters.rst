@@ -25,7 +25,7 @@ and models.
 
 Individual parameters, `psets` and the flat list of parameter values are kept in sync. 
 Single parameters are updated through properties. An update to a single parameter 
-trigers an update to `psets` and `parameters`. Single parameters are updated 
+triggers an update to `psets` and `parameters`. Single parameters are updated 
 after a change to `parameters`. `psets` are always constructed on demand from single 
 parameters and cannot be updated directly.
 
@@ -34,21 +34,21 @@ Parameters Examples
 
 - Polynomial models are created by default with all coefficients set to 0.
 
->>> p1=models.Poly1DModel(degree=4)
+>>> p1 = models.Poly1DModel(degree=4)
 >>> p1.parnames
 ['c0', 'c1', 'c2', 'c3', 'c4']
 >>> p1.parameters
 [0.0, 0.0, 0.0, 0.0, 0.0]
 
-- Coefficients can be set using the **`parameters`** attribute
+- Coefficients can be set using the `parameters` attribute
 
 >>> p1.parameters = [0, 1, 2, 3, 4]
 >>> p1.parameters
 [0.0, 1.0, 2.0, 3.0, 4.0]
 
-- It is possible to set the coefficients passing a dictionary to the `pars` keyword
+- It is possible to set the coefficients passing the parameters in a dictionary
 
->>> ch2 = models.ICheb2DModel(xdeg=2,ydeg=3, paramdim=2)
+>>> ch2 = models.ICheb2DModel(xdeg=2, ydeg=3, paramdim=2)
 >>> coeff = {}
 >>> for i, j in zip(ch2.parnames, range(len(ch2.parnames))):
         coeff[i] = [j, j+10]
@@ -60,12 +60,12 @@ array([[ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11],
 
 - or directly, using keyword arguments
 
->>> ch2 = models.ICheb2DModel(xdeg=2, ydeg=3, 'c0_0'=[0, 10], 'c0_1'=[3, 13],
-        ...                                       'c0_2'=[6, 16], 'c0_3'=[9, 19],
-        ...                                       'c1_0'=[1, 11], 'c1_1'=[4, 14],
-        ...                                       'c1_2'=[7, 17], 'c1_3'=[10, 20,],
-        ...                                       'c2_0'=[2, 12], 'c2_1'=[5, 15],
-        ...                                       'c2_2'=[8, 18], 'c2_3'=[11, 21])
+>>> ch2 = models.ICheb2DModel(xdeg=2, ydeg=3, c0_0=[0, 10], c0_1=[3, 13],
+        ...                                       c0_2=[6, 16], c0_3=[9, 19],
+        ...                                       c1_0=[1, 11], c1_1=[4, 14],
+        ...                                       c1_2=[7, 17], c1_3=[10, 20,],
+        ...                                       c2_0=[2, 12], c2_1=[5, 15],
+        ...                                       c2_2=[8, 18], c2_3=[11, 21])
 
 
 - It is possible to change a single parameter

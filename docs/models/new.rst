@@ -29,19 +29,17 @@ As a minimum the __init__ method takes all parameters and the number of paramete
 
 ::
 
-    def __init__(self, amplitude, xcen, xsigma, paramdim=1)
+    def __init__(self, amplitude, xcen, xsigma, paramdim=1):
         self.linear = False
-        self.ndim = 1
-        self.outdim = 1
         self._amplitude = parameters._Parameter(name='amplitude', val=amplitude, mclass=self, paramdim=paramdim)
         self._xsigma = parameters._Parameter(name='xsigma', val=xsigma, mclass=self, paramdim=paramdim)
         self._xcen = parameters._Parameter(name='xcen', val=xcen, mclass=self, paramdim=paramdim)
-        ParametricModel.__init__(self, self.parnames, paramdim=paramdim)
+        ParametricModel.__init__(self, self.parnames, ndim=1, outdim=1, paramdim=paramdim)
     
 Parametric models can be linear or nonlinear in a regression sense. The default 
 value of the linear attribute is True. 
-The `ndim` attribute (int value) stores the number of input coordinates.
-The `outdim` attribute (int) stores the number of output coordinates.
+The `ndim` attribute stores the number of input coordinates.
+The `outdim` attribute stores the number of output coordinates.
 These two attributes are used with composite models.
 Each parameter must be defined as a private attribute of the model class. 
 Parameters are instances of `parameters._Parameter` class which takes as

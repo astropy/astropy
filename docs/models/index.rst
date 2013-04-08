@@ -37,6 +37,7 @@ Working with 1D models
 
 Fit a data set with a gaussian model.
 
+>>> x = np.arange(1, 10, .1)
 >>> g1 = models.Gauss1DModel(10., xsigma=2.1, xcen=4.2)
 >>> g1
 <Gauss1DModel(amplitude= [10.0],xcen= [4.2000000000000002],xsigma= [2.1000000000000001],paramdim=1)>
@@ -57,11 +58,10 @@ Parameters:
          
 Create data using 1D Chebyshev model
 
->>> x = np.arange(1,10,.1)
 >>> ch1 = models.ChebyshevModel(3, domain=[x.min(), x.max()])
 >>> ch1.parameters
 [0.0, 0.0, 0.0, 0.0]
->>> ch1.parameters = [1,2,3,4]
+>>> ch1.parameters = [1, 2, 3, 4]
 >>> ch1.parameters
 [1.0, 2.0, 3.0, 4.0]
 >>> print ch1
@@ -78,7 +78,7 @@ Parameters:
 
 Add some noise
 
->>> n=np.random.randn(90)
+>>> n = np.random.randn(90)
 >>> ny = y + n 
 
 Fit a Chebyshev polynomial to the data
@@ -117,10 +117,10 @@ Parameters:
            c0_1:  [0.0]
            c0_2:  [0.0]
            c1_1:  [0.0]
->>>pfit = fitting.LinearLSQFitter(p2)
->>>n = np.random.randn(100)
->>>n.shape = (10, 10)
->>>pfit(x, y, z+n)
+>>> pfit = fitting.LinearLSQFitter(p2)
+>>> n = np.random.randn(100)
+>>> n.shape = (10, 10)
+>>> pfit(x, y, z+n)
 >>> p2.parameters
 [0.6354845, 2.016544, 3.0035796, 4.0907439, 4.989999, 6.000127]
 
