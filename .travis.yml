@@ -16,7 +16,7 @@ matrix:
     include:
         # Check for sphinx doc build warnings - we do this first because it runs for a long time
         - python: 2.7
-          # opdeps needed because the matplotlib sphinx extension requires them
+          # OPTIONAL_DEPS needed because the plot_directive in sphinx needs them
           env: NUMPY_VERSION=1.7.0 SETUP_CMD='build_sphinx -w -n' OPTIONAL_DEPS=true
         
         # try all python versions with the latest numpy
@@ -40,21 +40,40 @@ matrix:
 
 
 before_install:
-   # We do this to make sure we get the dependencies so pip works below
+   # install the pip that supports wheel - this should be set to the first pip  *release* that supports wheel, whenever that is
+   - pip install -e git+https://github.com/pypa/pip#egg=pip
+   - pip install wheel
+   
+   # We do this to make sure we get dependencies so pip works below
+   # Note that travis does *not* use python packages installed via apt - it does all the building in an isolated virtualenv
    - sudo apt-get update -qq
    - if [[ $SETUP_CMD != egg_info ]]; then sudo apt-get install -qq python-numpy cython libatlas-dev liblapack-dev gfortran; fi
    - if $OPTIONAL_DEPS; then sudo apt-get install -qq python-scipy libhdf5-serial-1.8.4 libhdf5-serial-dev; fi
    - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install -qq python-sphinx graphviz texlive-latex-extra dvipng python-matplotlib; fi
+   
 
 install:
    - export PYTHONIOENCODING=UTF8 # just in case
-   - if [[ $SETUP_CMD != egg_info ]]; then pip install --upgrade "numpy==$NUMPY_VERSION" -q --use-mirrors; fi
-   - if $OPTIONAL_DEPS; then pip install scipy --use-mirrors; fi # this can't be quiet because it takes so long that travis times out
+   - export WHEELURL="http://www.mpia-hd.mpg.de/~robitaille/python"
+   - export PYVERS=${TRAVIS_PYTHON_VERSION/./""} # strips the '.' as needed in the wheel file names
+   
+   # install numpy and Cython from wheels, and scipy if OPTIONAL_DEPS requested
+   - pip install $WHEELURL/numpy-$NUMPY_VERSION-cp$PYVERS-none-linux_x86_64.whl
+   - pip install $WHEELURL/Cython-0.18-cp$PYVERS-none-linux_x86_64.whl
+   - if $OPTIONAL_DEPS; $WHEELURL/scipy-0.11.0-cp$PYVERS-none-linux_x86_64.whl; fi
+   
+   # this is how you would build numpy,scipy, and Cython if we don't have wheels.
+   #- pip install --upgrade "numpy==$NUMPY_VERSION" -q --use-mirrors
+   #- if [[ $SETUP_CMD != egg_info ]]; then pip -q install Cython --use-mirrors; fi
+   #- if $OPTIONAL_DEPS; then pip install scipy --use-mirrors; fi # this can't be quiet because it takes so long that travis times out
+   
+   # now the remaining optional dependencies
    - if $OPTIONAL_DEPS; then pip install h5py -q --use-mirrors; fi
+   
+   # build_sphinx needs sphinx and matplotlib (for plot_directive)
    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip -q install sphinx==1.1.3 --use-mirrors; fi
    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip -q install matplotlib --use-mirrors; fi #this matplotlib will *not* work with py 3.x, but our sphinx build is currently 2.7, so that's fine
-   - if [[ $SETUP_CMD != egg_info ]]; then pip -q install Cython --use-mirrors; fi
-
+   
 script:
    - export OPEN_FILES=""
    - if [[ $TRAVIS_PYTHON_VERSION == "2.7" ]] || [[ $TRAVIS_PYTHON_VERSION == "3.2" ]] && [[ $NUMPY_VERSION == "1.6.2" ]] && [[ $SETUP_CMD == "test" ]]; then export OPEN_FILES=--open-files; fi
