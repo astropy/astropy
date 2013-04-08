@@ -190,9 +190,9 @@ get_string(
     const char* value) {
 
   #if PY3K
-  return PyBytes_FromString(value);
+  return PyUnicode_FromString(value);
   #else
-  return PyString_FromString(value);
+  return PyBytes_FromString(value);
   #endif
 }
 

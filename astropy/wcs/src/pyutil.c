@@ -363,20 +363,29 @@ set_string(
 
   char*      buffer;
   Py_ssize_t len;
+  PyObject*  ascii_obj = NULL;
+  int        result = -1;
 
   if (check_delete(propname, value)) {
     return -1;
   }
 
-  #if PY3K
-  if (PyBytes_AsStringAndSize(value, &buffer, &len) == -1) {
-    return -1;
+  if (PyUnicode_Check(value)) {
+    ascii_obj = PyUnicode_AsASCIIString(value);
+    if (ascii_obj == NULL) {
+      goto end;
+    }
+    if (PyBytes_AsStringAndSize(ascii_obj, &buffer, &len) == -1) {
+      goto end;
+    }
+  } else if (PyBytes_Check(value)) {
+    if (PyBytes_AsStringAndSize(value, &buffer, &len) == -1) {
+      goto end;
+    }
+  } else {
+    PyErr_SetString(PyExc_TypeError, "value must be bytes or unicode");
+    goto end;
   }
-  #else
-  if (PyString_AsStringAndSize(value, &buffer, &len) == -1) {
-    return -1;
-  }
-  #endif
 
   if (len > maxlen) {
     PyErr_Format(
@@ -384,12 +393,17 @@ set_string(
         "'%s' must be less than %u characters",
         propname,
         (unsigned int)maxlen);
-    return -1;
+    goto end;
   }
 
   strncpy(dest, buffer, (size_t)maxlen);
 
-  return 0;
+  result = 0;
+
+ end:
+  Py_XDECREF(ascii_obj);
+
+  return result;
 }
 
 /* get_bool is inlined */
@@ -550,8 +564,6 @@ set_int_array(
 
 /* get_str_list is inlined */
 
-/* set_str_list is inlined */
-
 int
 set_str_list(
     const char* propname,
@@ -561,8 +573,7 @@ set_str_list(
     char (*dest)[72]) {
 
   PyObject*  str      = NULL;
-  char*      str_char = NULL;
-  Py_ssize_t str_len  = 0;
+  Py_ssize_t input_len;
   Py_ssize_t i        = 0;
 
   if (check_delete(propname, value)) {
@@ -600,36 +611,24 @@ set_str_list(
       return -1;
     }
 
-    #if PY3K
-    if (!PyBytes_CheckExact(str)) {
-    #else
-    if (!PyString_CheckExact(str)) {
-    #endif
+    if (!(PyBytes_CheckExact(str) || PyUnicode_CheckExact(str))) {
       PyErr_Format(
           PyExc_TypeError,
-          #if PY3K
-          "'%s' must be a sequence of bytes",
-          #else
-          "'%s' must be a sequence of strings",
-          #endif
+          "'%s' must be a sequence of bytes or strings",
           propname);
       Py_DECREF(str);
       return -1;
     }
 
-    #if PY3K
-    if (PyBytes_Size(str) > maxlen) {
-    #else
-    if (PyString_Size(str) > maxlen) {
-    #endif
+    input_len = PySequence_Size(str);
+    if (input_len > maxlen) {
       PyErr_Format(
           PyExc_TypeError,
-          #if PY3K
-          "Each bytes in '%s' must be less than %u characters",
-          #else
-          "Each string in '%s' must be less than %u characters",
-          #endif
+          "Each entry in '%s' must be less than %u characters",
           propname, (unsigned int)maxlen);
+      Py_DECREF(str);
+      return -1;
+    } else if (input_len == -1) {
       Py_DECREF(str);
       return -1;
     }
@@ -642,28 +641,21 @@ set_str_list(
     if (str == NULL) {
       /* Theoretically, something has gone really wrong here, since
          we've already verified the list. */
+      PyErr_Clear();
       PyErr_Format(
           PyExc_RuntimeError,
           "Input values have changed underneath us.  Something is seriously wrong.");
       return -1;
     }
 
-    /* We already know its a string of the correct length */
-    #if PY3K
-    if (PyBytes_AsStringAndSize(str, &str_char, &str_len)) {
-    #else
-    if (PyString_AsStringAndSize(str, &str_char, &str_len)) {
-    #endif
-      /* Theoretically, something has gone really wrong here, since
-         we've already verified the list. */
+    if (set_string(propname, str, dest[i], maxlen)) {
+      PyErr_Clear();
       PyErr_Format(
           PyExc_RuntimeError,
           "Input values have changed underneath us.  Something is seriously wrong.");
       Py_DECREF(str);
       return -1;
     }
-
-    strncpy(dest[i], str_char, (size_t)maxlen);
 
     Py_DECREF(str);
   }
