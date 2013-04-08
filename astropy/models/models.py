@@ -211,7 +211,7 @@ class Model(object):
         fmt = "{0}(".format(self.__class__.__name__)
         for i in range(len(self.parnames)):
             fmt1 = """
-            {0}= {1},
+            {0}={1},
             """.format(self.parnames[i], getattr(self, self.parnames[i]))
             fmt += fmt1
         fmt += ")"
@@ -228,7 +228,7 @@ class Model(object):
         """.format(
               self.__class__.__name__,
               self.paramdim,
-              "\n                   ".join(i+':  ' + 
+              "\n                   ".join(i+': ' + 
                 str(self.__getattribute__(i)) for i in self.parnames)
                 )
             
@@ -344,7 +344,7 @@ class ParametricModel(Model):
             fmt = "<{0}(".format(self.__class__.__name__)
         for i in range(len(self.parnames)):
             fmt1 = """
-            {0}= {1},
+            {0}={1},
             """.format(self.parnames[i], getattr(self, self.parnames[i]))
             fmt += fmt1.strip()
         if paramdim:
@@ -369,7 +369,7 @@ class ParametricModel(Model):
               self.ndim,
               degree,
               self.paramdim,
-              "\n                   ".join(i+':  ' + 
+              "\n                   ".join(i+': ' + 
                 str(self.__getattribute__(i)) for i in self.parnames)
                 )
             

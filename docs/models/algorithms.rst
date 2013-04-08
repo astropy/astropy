@@ -7,9 +7,9 @@ Algorithms
 Univariate Polynomial Evaluation
 ################################
 
-* The evaluation of 1D polynomial uses Horner's algorithm.
+* The evaluation of 1D polynomials uses Horner's algorithm.
 
-* The evaluation of 1D Chebyshev and Legendre polynomials uses Clenshaw algorithm.
+* The evaluation of 1D Chebyshev and Legendre polynomials uses Clenshaw's algorithm.
 
 Multivariate Polynomial Evaluation
 ##################################
@@ -49,7 +49,9 @@ Multivariate Polynomial Evaluation
 * The evaluation of multivariate Chebyshev and Legendre polynomials uses a 
   variation of the above Horner's scheme, in which every Legendre or Chebyshev 
   function is considered a separate variable. In this case the length 
-  of the :math:`\alpha` indices tuple is equal to the number of functions in x plus teh number of functions in y.  In addition the Chebyshev and Legendre functions are cached for efficiency.
+  of the :math:`\alpha` indices tuple is equal to the number of functions in x plus 
+  the number of functions in y. In addition the Chebyshev and Legendre functions are 
+  cached for efficiency.
 
 
 
