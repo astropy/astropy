@@ -1834,10 +1834,10 @@ class Table(object):
 
         return out
 
-    def vstack(self, tables, join_type='exact',
-               uniq_col_name='{col_name}_{table_name}', table_names=None):
+    def stack_rows(self, tables, join_type='exact',
+                   uniq_col_name='{col_name}_{table_name}', table_names=None):
         """
-        Stack tables vertically by rows (aka append or concatentate)
+        Stack tables by rows (vertically)
 
         A ``join_type`` of 'exact' (default) means that the tables must all
         have exactly the same columns (though the order can vary).  If
@@ -1866,7 +1866,7 @@ class Table(object):
         ----------
 
         tables : Table or list of Table objects
-            Table(s) to stack vertically (by rows) with the current table
+            Table(s) to stack by rows (vertically) with the current table
         join_type : str
             Join type ('inner' | 'exact' | 'outer'), default is 'exact'
         uniq_col_name : str or None
@@ -1886,16 +1886,16 @@ class Table(object):
             raise TypeError('Input tables must a Table or sequence of Tables')
 
         arrays = [table._data for table in itertools.chain([self], tables)]
-        out_data = np_utils.vstack(arrays, join_type, uniq_col_name, table_names)
+        out_data = np_utils.stack_rows(arrays, join_type, uniq_col_name, table_names)
 
         out = self.__class__(out_data)
 
         return out
 
-    def hstack(self, tables, join_type='exact',
-               uniq_col_name='{col_name}_{table_name}', table_names=None):
+    def stack_columns(self, tables, join_type='exact',
+                      uniq_col_name='{col_name}_{table_name}', table_names=None):
         """
-        Stack tables horizontally (by columns)
+        Stack tables by columns (horizontally)
 
         A ``join_type`` of 'exact' (default) means that the tables must all
         have exactly the same number of row.  If ``join_type`` is 'inner' then
@@ -1921,7 +1921,7 @@ class Table(object):
         ----------
 
         tables : Table or list of Table objects
-            Table(s) to stack horizontally (by columns) with the current table
+            Table(s) to stack by columns (horizontally) with the current table
         join_type : str
             Join type ('inner' | 'exact' | 'outer'), default is 'exact'
         uniq_col_name : str or None
@@ -1940,7 +1940,7 @@ class Table(object):
             raise TypeError('Input tables must a Table or sequence of Tables')
 
         arrays = [table._data for table in itertools.chain([self], tables)]
-        out_data = np_utils.hstack(arrays, join_type, uniq_col_name, table_names)
+        out_data = np_utils.stack_columns(arrays, join_type, uniq_col_name, table_names)
 
         out = self.__class__(out_data)
 

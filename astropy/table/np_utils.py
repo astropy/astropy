@@ -262,8 +262,8 @@ def join(left, right, keys=None, join_type='inner',
     return out
 
 
-def vstack(arrays, join_type='inner', uniq_col_name='{col_name}_{table_name}', table_names=None):
-
+def stack_rows(arrays, join_type='inner', uniq_col_name='{col_name}_{table_name}',
+               table_names=None):
     if table_names is None:
         table_names = ['_{0}'.format(ii + 1) for ii in range(len(arrays))]
 
@@ -330,8 +330,8 @@ def vstack(arrays, join_type='inner', uniq_col_name='{col_name}_{table_name}', t
     return out
 
 
-def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}', table_names=None):
-
+def stack_columns(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
+                  table_names=None):
     if table_names is None:
         table_names = ['{0}'.format(ii + 1) for ii in range(len(arrays))]
 
@@ -351,8 +351,9 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}', t
     arr_lens = [len(arr) for arr in arrays]
     if join_type == 'exact':
         if len(set(arr_lens)) > 1:
-            raise TableMergeError('Inconsistent number of rows in input arrays '
-                                  "(use 'inner' or 'outer' join_type to allow non-matching columns)")
+            raise TableMergeError("Inconsistent number of rows in input arrays "
+                                  "(use 'inner' or 'outer' join_type to allow "
+                                  "non-matching columns)")
         join_type = 'outer'
 
     # For an inner join, keep only columns where all input arrays have that column
