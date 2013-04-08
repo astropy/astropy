@@ -4,7 +4,7 @@ import numpy as np
 import warnings
 
 from ...tests.helper import pytest
-from ... import table
+from ...table import Table
 from ...io import ascii
 from ...utils import OrderedDict, metadata
 from .. import np_utils
@@ -159,7 +159,7 @@ class TestJoin():
     @pytest.mark.xfail('NUMPY_LT_1P5')
     def test_masked_unmasked(self):
         t1 = self.t1
-        t1m = table.Table(self.t1, masked=True)
+        t1m = Table(self.t1, masked=True)
         t2 = self.t2
 
         # Result should be masked even though not req'd by inner join
@@ -195,9 +195,9 @@ class TestJoin():
     def test_masked_masked(self):
         """Two masked tables"""
         t1 = self.t1
-        t1m = table.Table(self.t1, masked=True)
+        t1m = Table(self.t1, masked=True)
         t2 = self.t2
-        t2m = table.Table(self.t2, masked=True)
+        t2m = Table(self.t2, masked=True)
 
         # Result should be masked even though not req'd by inner join
         t1m2m = t1m.join(t2m, join_type='inner')
@@ -270,7 +270,7 @@ class TestJoin():
     def test_masked_key_column(self):
         """Merge on a key column that has a masked element"""
         t1 = self.t1
-        t2 = table.Table(self.t2, masked=True)
+        t2 = Table(self.t2, masked=True)
         t1.join(t2)  # OK
         t2['a'].mask[0] = True
         with pytest.raises(np_utils.TableMergeError):
@@ -323,6 +323,52 @@ class TestJoin():
         assert t12['c_2'].format == '%6s'
         assert t12['c_2'].description == 't2_c'
 
-        assert warning_lines[0].category ==  metadata.MergeConflictWarning
+        assert warning_lines[0].category == metadata.MergeConflictWarning
         assert ('Left and right column units attributes do not match (cm != m)'
                 in str(warning_lines[0].message))
+
+
+class TestStackRows():
+
+    def setup_method(self, method):
+        self.t1 = Table.read([' a   b',
+                              ' 0 foo',
+                              ' 1 bar'], format='ascii')
+
+        self.t2 = Table.read([' a   b   c',
+                              ' 2  pez  4',
+                              ' 3  sez  5'], format='ascii')
+
+        self.t3 = Table.read([' a   b',
+                              ' 4   7',
+                              ' 5   8',
+                              ' 6   9'], format='ascii')
+        self.t1.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
+        self.t2.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+        self.meta_merge = OrderedDict([('b', [1, 2, 3, 4]),
+                                       ('c', {'a': 1, 'b': 1}),
+                                       ('d', 1),
+                                       ('a', 1)])
+
+    def test_bad_input_type(self):
+        pass
+
+    def test_stack_two(self):
+        t1 = self.t1
+        t2 = self.t2
+        t3 = self.t3
+
+        t12 = t1.stack_rows(t2, join_type='inner')
+        assert t12.masked is False
+        assert t12.pformat() == [' a   b ',
+                                 '--- ---',
+                                 '  0 foo',
+                                 '  1 bar',
+                                 '  2 pez',
+                                 '  3 sez']
+
+        t12_list = t1.stack_rows([t2], join_type='inner')
+        assert t12.pformat() == t12_list.pformat()
+
+        t13 = t1.stack_rows(t3, join_type='inner')
+        assert t13.pformat() == ['']
