@@ -242,7 +242,7 @@ def test_convertible_exception2():
     try:
         u.m.to(u.s)
     except u.UnitsException as e:
-        assert 'time' not in str(e)
+        assert "length" in str(e)
 
 
 @raises(TypeError)

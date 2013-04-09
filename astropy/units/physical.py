@@ -92,6 +92,7 @@ for unit, name in [
     (si.m, 'length'),
     (si.m ** 2, 'area'),
     (si.m ** 3, 'volume'),
+    (si.s, 'time'),
     (si.rad, 'angle'),
     (si.sr, 'solid angle'),
     (si.m / si.s, 'speed'),
