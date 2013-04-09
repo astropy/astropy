@@ -58,12 +58,12 @@ install:
    - export PYVERS=${TRAVIS_PYTHON_VERSION/./""} # strips the '.' as needed in the wheel file names
    
    # install numpy and Cython from wheels, and scipy if OPTIONAL_DEPS requested
-   - pip install $WHEELURL/numpy-$NUMPY_VERSION-cp$PYVERS-none-linux_x86_64.whl
-   - pip install $WHEELURL/Cython-0.18-cp$PYVERS-none-linux_x86_64.whl
+   - if [[ $SETUP_CMD != egg_info ]]; then pip install $WHEELURL/numpy-$NUMPY_VERSION-cp$PYVERS-none-linux_x86_64.whl; fi
+   - if [[ $SETUP_CMD != egg_info ]]; then pip install $WHEELURL/Cython-0.18-cp$PYVERS-none-linux_x86_64.whl; fi
    - if $OPTIONAL_DEPS; $WHEELURL/scipy-0.11.0-cp$PYVERS-none-linux_x86_64.whl; fi
    
    # this is how you would build numpy,scipy, and Cython if we don't have wheels.
-   #- pip install --upgrade "numpy==$NUMPY_VERSION" -q --use-mirrors
+   #- if [[ $SETUP_CMD != egg_info ]]; then pip install --upgrade "numpy==$NUMPY_VERSION" -q --use-mirrors; fi
    #- if [[ $SETUP_CMD != egg_info ]]; then pip -q install Cython --use-mirrors; fi
    #- if $OPTIONAL_DEPS; then pip install scipy --use-mirrors; fi # this can't be quiet because it takes so long that travis times out
    
