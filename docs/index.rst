@@ -89,19 +89,20 @@ Developer Documentation
 
 The developer documentation contains instructions for how to contribute to
 Astropy or affiliated packages, as well as coding, documentation, and
-testing guidelines.
+testing guidelines. For the guiding vision of this process and the project
+as a whole, see :doc:`development/vision`.
 
 .. toctree::
    :maxdepth: 1
 
-   development/vision
    development/workflow/index
    development/codeguide
    development/docguide
    development/testguide
-   development/building_packaging
    development/scripts
-   development/sphinxext
+   development/building
+   development/ccython
+   development/releasing
    changelog
 
 ******************
