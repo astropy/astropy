@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 import sys
+import inspect
 from itertools import izip
 
 from .. import log
@@ -77,29 +78,38 @@ def _get_pprint_size(max_lines=None, max_width=None):
 
 def _auto_format_func(format_, val):
     """Format ``val`` according to ``format_`` for both old- and new-
-    style format specifications.  More importantly, determine and cache
-    (in _format_funcs) a function that will do this subsequently.  In
-    this way this complicated logic is only done for the first value.
+    style format specifications or using a user supplied function.
+    More importantly, determine and cache (in _format_funcs) a function
+    that will do this subsequently.  In this way this complicated logic is
+    only done for the first value.
 
     Returns the formatted value.
     """
-    try:
-        # Convert val to Python object with tolist().  See
-        # https://github.com/astropy/astropy/issues/148#issuecomment-3930809
-        out = format_.format(val.tolist())
-        # Require that the format statement actually did something
-        if out == format_:
-            raise ValueError
-        format_func = lambda format_, val: format_.format(val.tolist())
-    except:  # Not sure what exceptions might be raised
+    if inspect.isfunction(format_):
+        format_func = lambda format_, val: str(format_(val.tolist()))
+        try:                            
+            out = format_func(format_, val)
+        except:  # Depending on the function, different exceptions might be raised
+            raise ValueError('{0} should have been formated with a user supplied \
+                              function, but this function failed'.format(val))
+    else:
         try:
-            out = format_ % val
+            # Convert val to Python object with tolist().  See
+            # https://github.com/astropy/astropy/issues/148#issuecomment-3930809
+            out = format_.format(val.tolist())
+            # Require that the format statement actually did something
             if out == format_:
                 raise ValueError
-            format_func = lambda format_, val: format_ % val
-        except:
-            raise ValueError('Unable to parse format string {0}'
-                             .format(format_))
+            format_func = lambda format_, val: format_.format(val.tolist())
+        except:  # Not sure what exceptions might be raised
+            try:
+                out = format_ % val
+                if out == format_:
+                    raise ValueError
+                format_func = lambda format_, val: format_ % val
+            except:
+                raise ValueError('Unable to parse format string {0}'
+                                 .format(format_))
     _format_funcs[format_] = format_func
     return out
 
