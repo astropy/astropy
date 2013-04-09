@@ -65,7 +65,10 @@ that will not be available in the source tree.  In this case,
 ``astropy/foo/__init__.py`` would probably want to check the value of
 `_ASTROPY_SETUP_` before importing the C extension::
 
-    if not _ASTROPY_SETUP_:
+    try:
         from . import process
+    except ImportError:
+        if not _ASTROPY_SETUP_:
+            raise
 
     from . import version
