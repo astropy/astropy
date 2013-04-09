@@ -238,13 +238,6 @@ def test_convertible_exception():
         assert "length" in str(e)
 
 
-def test_convertible_exception2():
-    try:
-        u.m.to(u.s)
-    except u.UnitsException as e:
-        assert 'time' not in str(e)
-
-
 @raises(TypeError)
 def test_invalid_type():
     class A(object):
