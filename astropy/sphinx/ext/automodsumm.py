@@ -51,8 +51,8 @@ This directive requires a single argument that must be a module or
 package. It accepts no options.
 
 .. note::
-    Like 'inheritance-diagram', 'automod-diagram' requires graphviz to
-    generate the inheritance diagram.
+    Like 'inheritance-diagram', 'automod-diagram' requires
+    `graphviz <http://www.graphviz.org/>`_ to generate the inheritance diagram.
 
 """
 import re

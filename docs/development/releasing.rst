@@ -1,157 +1,6 @@
-============================================
-Building, Cython/C Extensions, and Releasing
-============================================
-
-The build process currently uses the
-`Distribute <http://packages.python.org/distribute/>`_ package to build and
-install the astropy core (and any affiliated packages that use the template).
-The user doesn't necessarily need to have `distribute` installed, as it will
-automatically bootstrap itself using the ``distribute_setup.py`` file in the
-source distribution if it isn't installed for the user.
-
-Customizing setup/build for subpackages
----------------------------------------
-
-As is typical, there is a single ``setup.py`` file that is used for the whole
-`astropy` package.  To customize setup parameters for a given sub-package, a
-``setup_package.py`` file can be defined inside a package, and if it is present,
-the setup process will look for the following functions to customize the build
-process:
-
-* :func:`get_package_data`
-    This function, if defined, should return a dictionary mapping the name of
-    the subpackage(s) that need package data to a list of data file paths
-    (possibly including wildcards) relative to the path of the package's source
-    code.  e.g. if the source distribution has a needed data file
-    ``astropy/wcs/tests/data/3d_cd.hdr``, this function should return
-    ``{'astropy.wcs.tests:'['data/3d_cd.hdr']}``. See the ``package_data``
-    option of the  :func:`distutils.core.setup` function.
-
-    It is recommended that all such data be in a directory named "data" inside
-    the package within which it is supposed to be used, and package data should
-    be accessed via the `astropy.utils.data.get_data_filename` and
-    `astropy.utils.data.get_data_fileobj` functions.
-
-* :func:`get_extensions`
-    This provides information for building C or Cython extensions. If defined,
-    it should return a list of `distutils.core.Extension` objects controlling
-    the Cython/C build process (see below for more detail).
-
-* :func:`get_legacy_alias`
-    This function allows for the creation of `shims` that allow a
-    subpackage to be imported under another name.  For example,
-    `astropy.io.fits` used to be available under the namespace
-    `pyfits`.  For backward compatibility, it is helpful to have it
-    still importable under the old name.  Under most circumstances,
-    this function should call `astropy.setup_helpers.add_legacy_alias`
-    to generate a legacy module and then return what it returns.
-
-* :func:`get_build_options`
-    This function allows a package to add extra build options.  It
-    should return a list of tuples, where each element has:
-
-    - *name*: The name of the option as it would appear on the
-      commandline or in the `setup.cfg` file.
-
-    - *doc*: A short doc string for the option, displayed by
-      `setup.py build --help`.
-
-    - *is_bool* (optional): When `True`, the option is a boolean
-      option and doesn't have an associated value.
-
-    Once an option has been added, its value can be looked up using
-    `astropy.setup_helpers.get_distutils_build_option`.
-
-* :func:`get_external_libraries`
-    This function declares that the package uses libraries that are
-    included in the astropy distribution that may also be distributed
-    elsewhere on the users system.  It should return a list of library
-    names.  For each library, a new build option is created,
-    `--use-system-X` which allows the user to request to use the
-    system's copy of the library.  The package would typically call
-    `astropy.setup_helpers.use_system_library` from its
-    `get_extensions` function to determine if the package should use
-    the system library or the included one.
-
-The `astropy.setup_helpers` modules includes a :func:`update_package_files`
-function which automatically searches the given source path for
-``setup_package.py`` modules and calls each of the above functions, if they
-exist.  This makes it easy for affiliated packages to use this machinery in
-their own ``setup.py``.
-
-.. _building-c-or-cython-extensions:
-
-C or Cython Extensions
-----------------------
-
-Astropy supports using C extensions for wrapping C libraries and Cython for
-speeding up computationally-intensive calculations. Both Cython and C extension
-building can be customized using the :func:`get_extensions` function of the
-``setup_package.py`` file. If defined, this function must return a list of
-`distutils.core.Extension` objects. The creation process is left to the
-subpackage designer, and can be customized however is relevant for the
-extensions in the subpackage.
-
-While C extensions must always be defined through the :func:`get_extensions`
-mechanism, Cython files (ending in ``.pyx``) are automatically located and
-loaded in separate extensions if they are not in :func:`get_extensions`. For
-Cython extensions located in this way, headers for numpy C functions are
-included in the build, but no other external headers are included. ``.pyx``
-files present in the extensions returned by :func:`get_extensions` are not
-included in the list of extensions automatically generated extensions. Note
-that this allows disabling a Cython file by providing an extension that
-includes the Cython file, but giving it the special `name` 'cython_skip'. Any
-extension with this package name will not be built by ``setup.py``.
-
-.. note::
-
-    If an :class:`~distutils.core.Extension` object is provided for Cython
-    source files using the :func:`get_extensions` mechanism, it is very
-    important that the ``.pyx`` files be given as the `source`, rather than the
-    ``.c`` files generated by Cython.
-
-Installing C header files
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If your C extension needs to be linked from other third-party C code,
-you probably want to install its header files along side the Python module.
-
-    1) Create an `include` directory inside of your package for
-       all of the header files.
-
-    2) Use the :func:`get_package_data` hook in `setup_package.py` to
-       install those header files.  For example, the `astropy.wcs`
-       package has this::
-
-           def get_package_data():
-               return {'astropy.wcs': ['include/*.h']}
-
-Preventing importing at build time
-----------------------------------
-
-In rare cases, some packages may need to be imported at build time.
-Unfortunately, anything that requires a C or Cython extension or
-processing through 2to3 will fail to import until the build phase has
-completed.  In those cases, the `_ASTROPY_SETUP_` variable can be used
-to determine if the package is being imported as part of the build and
-choose to not import problematic modules.  `_ASTROPY_SETUP_` is
-inserted into the builtins, and is `True` when inside of astropy's
-`setup.py` script, and `False` otherwise.
-
-For example, suppose there is a subpackage ``foo`` that needs to
-import a module called ``version.py`` at build time in order to set
-some version information, and also has a C extension, ``process``,
-that will not be available in the source tree.  In this case,
-``astropy/foo/__init__.py`` would probably want to check the value of
-`_ASTROPY_SETUP_` before importing the C extension::
-
-    if not _ASTROPY_SETUP_:
-        from . import process
-
-    from . import version
-
-Release
--------
+==================
+Release Procedures
+==================
 
 The current release procedure for Astropy involves a combination of an
 automated release script and some manual steps.  Future versions will automate
@@ -171,7 +20,7 @@ after the tag has been created.  But only one "0.1" will be signed by one of
 the Astropy project coordinators and will be verifiable with their public key.
 
 Creating a GPG Signing Key and a Signed Tag
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------
 
 Git uses GPG to created signed tags, so in order to perform an Astropy release
 you will need GPG installed and will have to generated a signing key pair.
@@ -209,7 +58,7 @@ a trusted online encrypted storage, though some might not find that secure
 enough--it's up to you and what you're comfortable with.
 
 Add your public key to a keyserver
-""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Now that you have a public key, you can publish this anywhere you like--in your
 e-mail, in a public code repository, etc.  You can also upload it to a
 dedicated public OpenPGP keyserver.  This will store the public key
@@ -240,7 +89,7 @@ come configured with a sensible default keyserver, so you shouldn't have to
 specify any more than that.
 
 Create a tag
-""""""""""""
+^^^^^^^^^^^^
 Now test creating a signed tag in git.  It's safe to experiment with this--you
 can always delete the tag before pushing it to a remote repository::
 
@@ -276,7 +125,7 @@ that for you.  You can delete this tag by doing::
     $ git tag -d v0.1
 
 Release Procedure
-^^^^^^^^^^^^^^^^^
+-----------------
 
 The automated portion of the Astropy release procedure uses `zest.releaser`_
 to create the tag and update the version.  zest.releaser is extendable through
@@ -418,13 +267,8 @@ procedure is that ensures a consistent release process each time.
      that should be backported to the bug fix branch.
 
 
-.. _signed tags: http://git-scm.com/book/en/Git-Basics-Tagging#Signed-Tags
-.. _zest.releaser: http://pypi.python.org/pypi/zest.releaser
-.. _virtualenv: http://pypi.python.org/pypi/virtualenv
-.. _cython: http://www.cython.org/
-
 Creating a MacOS X Installer on a DMG
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------
 
 The ``bdist_dmg`` command can be used to create a ``.dmg`` disk image for
 MacOS X with a ``.pkg`` installer. In order to do this, you will need to
@@ -450,11 +294,9 @@ Before distributing, you should test out an installation of Python, Numpy, and
 Astropy from scratch using the ``.dmg`` installers, preferably on a clean
 virtual machine.
 
-Future directions
------------------
 
-We plan to switch to a newer packaging scheme when it's more stable, the
-upcoming standard library `packaging` module, derived from the
-`distutils2 <http://packages.python.org/Distutils2/library/distutils2.html>`_
-project.  Until it's working right, however, we will be using `distribute` and
-`distutils`.
+
+.. _signed tags: http://git-scm.com/book/en/Git-Basics-Tagging#Signed-Tags
+.. _zest.releaser: http://pypi.python.org/pypi/zest.releaser
+.. _virtualenv: http://pypi.python.org/pypi/virtualenv
+.. _cython: http://www.cython.org/
