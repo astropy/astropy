@@ -1,0 +1,4 @@
+#!/usr/bin/env python
+import astropy.vo.samp.core as sampy
+sampy.main()
+
