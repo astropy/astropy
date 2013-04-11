@@ -90,7 +90,7 @@ def _auto_format_func(format_, val):
         try:                            
             out = format_func(format_, val)
         except:  # Depending on the function, different exceptions might be raised
-            raise ValueError('{0} should have been formated with a user supplied \
+            raise ValueError('{0} should have been formatted with a user supplied \
                               function, but this function failed'.format(val))
     else:
         try:
