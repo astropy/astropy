@@ -1,8 +1,8 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Module to test fitting routines
 """
 from __future__ import division
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os.path
 from .. import models, fitting
 from . import irafutil

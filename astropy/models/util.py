@@ -1,9 +1,12 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module provides utility functions for the models package
 """
 from __future__ import division, print_function
 import numpy as np
 
+__all__ = ['pmapdomain', 'comb', 'InputParameterError']
+          
 class InputParameterError(Exception):
     """
     Called when there's a problem with input parameters.
@@ -14,8 +17,6 @@ class InputParameterError(Exception):
     def __str__(self):
         return self._message 
 
-__all__ = ['pmapdomain', 'comb', 'InputParameterError']
-          
 
 def pmapdomain(oldx, domain, window):
     """
