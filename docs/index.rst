@@ -63,7 +63,6 @@ User Documentation
 
    cosmology/index
    stats/index
-   utils/index
 
 **Nuts and bolts of Astropy**
 
@@ -73,6 +72,7 @@ User Documentation
    configs/index
    io/registry
    logging
+   utils/index
 
 **Astropy project details**
 
