@@ -64,7 +64,7 @@ def releaser_middle(data):
             cmd.append('git svn tag -m "%s" %s' % (msg, version))
         return cmd
 
-    # Similarly copied from zer.releaser to support use of 'v' in front
+    # Similarly copied from zest.releaser to support use of 'v' in front
     # of the version number
     def _my_make_tag(self):
         from zest.releaser import utils
