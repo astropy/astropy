@@ -2,7 +2,6 @@
 """
 Tests models.parameters
 """
-import os.path
 from .. import models, fitting
 from . import irafutil
 from ..util import InputParameterError

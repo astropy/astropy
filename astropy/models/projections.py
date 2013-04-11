@@ -291,7 +291,6 @@ class Pix2Sky_SIN(Zenithal):
     def __call__(self, x, y):
         x = np.asarray(x) + 0.
         y = np.asarray(y) + 0.
-        phi = np.rad2deg(np.arctan2(x, -y))
         rtheta = self._compute_rtheta(x, y)
         theta = np.rad2deg(np.arccos(rtheta / self.r0))
         phi = np.rad2deg(np.arctan2(x, -y))
@@ -409,7 +408,7 @@ class Pix2Sky_CEA(Cylindrical):
     
     def __call__(self, x, y):
         phi = np.rad2deg(x)
-        lam = np.asarray(lam)
+        lam = np.asarray(self._lam)
         theta = np.rad2deg(np.arcsin(self.r0 * lam * y))
         return phi, theta
     

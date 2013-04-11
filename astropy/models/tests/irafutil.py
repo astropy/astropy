@@ -6,9 +6,9 @@ from __future__ import division, print_function
 import numpy as np
 
 iraf_models_map = {1.: 'Chebyshev',
-                      2.: 'Legendre',
-                      3.: 'Spline3',
-                      4.: 'Spline1'}
+                   2.: 'Legendre',
+                   3.: 'Spline3',
+                   4.: 'Spline1'}
 
 def get_records(fname):
     """
@@ -26,7 +26,6 @@ def get_records(fname):
     f = open(fname)
     dtb = f.read()
     f.close()
-    records = []
     recs = dtb.split('begin')[1:]
     records = [Record(r) for r in recs]
     return records
@@ -70,7 +69,7 @@ class Record(object):
     def aslist(self):
         reclist = self.recstr.split('\n')
         reclist = [l.strip() for l in reclist]
-        out = [reclist.remove(l) for l in reclist if len(l)==0]
+        [reclist.remove(l) for l in reclist if len(l)==0]
         return reclist
     
     def get_fields(self):

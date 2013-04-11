@@ -1026,7 +1026,7 @@ class Poly2DModel(PModel):
         See the module docstring for rules for model evaluation. 
         """
         invcoeff = self.invlex_coeff()
-        x, fmt = _convert_input(x, self.paramdim)
+        x, _ = _convert_input(x, self.paramdim)
         y, fmt = _convert_input(y, self.paramdim)
         assert x.shape == y.shape, \
                "Expected input arrays to have the same shape"
@@ -1107,8 +1107,6 @@ class ICheb2DModel(IModel):
         y = y.flatten()
         xderiv = self._chebderiv1d(x, self.xdeg+1).T
         yderiv = self._chebderiv1d(y, self.ydeg+1).T
-        n = (self.xdeg+1)*(self.ydeg+1)
-        v = np.empty((n, len(x)), dtype=x.dtype)
     
         ij = []
         for i in range(self.ydeg+1):
@@ -1148,7 +1146,7 @@ class ICheb2DModel(IModel):
         assert x.shape == y.shape, \
                "Expected input arrays to have the same shape"
         invcoeff = self.invlex_coeff()
-        x, fmt = _convert_input(x, self.paramdim)
+        x, _ = _convert_input(x, self.paramdim)
         y, fmt = _convert_input(y, self.paramdim)
         result = self.imhorner(x, y, invcoeff)
         return _convert_output(result, fmt)
@@ -1226,8 +1224,6 @@ class ILegend2DModel(IModel):
         y = y.flatten()
         xderiv = self._legendderiv1d(x, self.xdeg+1).T
         yderiv = self._legendderiv1d(y, self.ydeg+1).T
-        n = (self.xdeg+1)*(self.ydeg+1)
-        v = np.empty((n, len(x)), dtype=x.dtype)
     
         ij = []
         for i in range(self.ydeg+1):
@@ -1268,7 +1264,7 @@ class ILegend2DModel(IModel):
         assert x.shape == y.shape, \
                "Expected input arrays to have the same shape"
         invcoeff = self.invlex_coeff()
-        x, fmt = _convert_input(x, self.paramdim)
+        x, _ = _convert_input(x, self.paramdim)
         y, fmt = _convert_input(y, self.paramdim)
         result = self.imhorner(x, y, invcoeff)
         return _convert_output(result, fmt)
@@ -1456,7 +1452,7 @@ class Gauss2DModel(ParametricModel):
         
         Note: See the module docstring for rules for model evaluation. 
         """
-        x, fmt = _convert_input(x, self.paramdim)
+        x, _ = _convert_input(x, self.paramdim)
         y, fmt = _convert_input(y, self.paramdim)
         result = self.eval(x, y, self.psets)
         return _convert_output(result, fmt)
@@ -1898,7 +1894,6 @@ class SCompositeModel(_CompositeModel):
         if lendata == 1:
             if not isinstance(x, LabeledInput):
                 data = np.asarray(x, dtype=np.float64)
-                shape = data.shape
                 self._verify_no_mapper_input(data)
                 result = data
                 for tr in self:
@@ -1971,7 +1966,6 @@ class PCompositeModel(_CompositeModel):
             self[tr] = [inmap, outmap]
 
     def _verify_no_mapper_input(self, *data):
-        lendata = len(data)
         ndim = self.keys()[0].ndim
         for tr in self.keys():
             if tr.ndim != ndim:

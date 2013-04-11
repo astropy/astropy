@@ -27,10 +27,6 @@ class TestNonLinearConstraints(object):
     @pytest.mark.skipif('not HAS_SCIPY')
     def testFixedPar(self):
         g1 = models.Gauss1DModel(10, 14.9, xsigma=.3, fixed={'amplitude':True})
-        func = lambda p, x: 10* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
-        errf = lambda p, x, y: func(p, x)-y
-        p0 = [10, 14.5, 0.3]
-        fitpar, s = optimize.leastsq(errf, p0, args=(self.x, self.ny1))
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.x, self.ny1)
         assert g1.amplitude == 10
@@ -68,7 +64,7 @@ class TestNonLinearConstraints(object):
         errf = lambda p, x1, y1, x2, y2: np.ravel(
             np.r_[compmodel(p[0], p[1:3], x1) - y1, 
                   compmodel(p[0], p[3:], x2) - y2])
-        fitpars, s = optimize.leastsq(errf, p, args=(x, ny1, x, ny2))
+        fitpars, _ = optimize.leastsq(errf, p, args=(x, ny1, x, ny2))
         utils.assert_allclose(jf.fitpars, fitpars, rtol=10**(-5))
         utils.assert_allclose(g1.amplitude, g2.amplitude)
         

@@ -703,7 +703,7 @@ class JointFitter(object):
         """
         from scipy import optimize
         assert(len(args) == reduce(lambda x, y: x+1 + y+1, self.modeldims))
-        self.fitpars[:], s = optimize.leastsq(self.errorfunc, self.fitpars, 
+        self.fitpars[:], _ = optimize.leastsq(self.errorfunc, self.fitpars, 
                                               args=args) 
         
         fpars = self.fitpars[:]

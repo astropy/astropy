@@ -11,7 +11,7 @@ import numpy as np
 from ..utils import misc
 from .util import InputParameterError
 
-__all__ = []
+__all__ = ['Parameters']
 
 def _tofloat(value):
     """
