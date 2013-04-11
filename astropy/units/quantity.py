@@ -209,7 +209,11 @@ class Quantity(object):
         extra_members = set()
         for equivalent in self.unit._get_units_with_same_physical_type(
                 self._equivalencies):
-            extra_members.update(equivalent.names)
+            if len(equivalent.aliases):
+                name = equivalent.aliases[0]
+            else:
+                name = equivalent.name
+            extra_members.add(name)
         return extra_members
 
     def __getattr__(self, attr):
@@ -217,20 +221,33 @@ class Quantity(object):
         Quantities are able to directly convert to other units that
         have the same physical type.
         """
-        try:
-            to_unit = Unit(attr)
-        except ValueError:
-            raise AttributeError(
-                "{0} instance has no attribute '{1}'".format(
-                    self.__class__.__name__, attr))
+        def get_virtual_unit_attribute():
+            try:
+                to_unit = Unit(attr)
+            except ValueError:
+                return None
 
-        try:
-            return self.unit.to(
-                to_unit, self.value, equivalencies=self.equivalencies)
-        except UnitsException:
+            if len(to_unit.aliases):
+                if to_unit.aliases[0] != attr:
+                    return None
+            else:
+                if to_unit.name != attr:
+                    return None
+
+            try:
+                return self.unit.to(
+                    to_unit, self.value, equivalencies=self.equivalencies)
+            except UnitsException:
+                return None
+
+        value = get_virtual_unit_attribute()
+
+        if value is None:
             raise AttributeError(
                 "{0} instance has no attribute '{1}'".format(
                     self.__class__.__name__, attr))
+        else:
+            return value
 
     # Arithmetic operations
     def __add__(self, other):

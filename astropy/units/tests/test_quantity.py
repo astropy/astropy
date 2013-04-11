@@ -507,8 +507,8 @@ def test_quantity_invalid_unit_string2():
 def test_implicit_conversion():
     q = u.Quantity(1.0, u.meter)
     assert_allclose(q.inch, 39.370078740157474)
-    assert_allclose(q.cm, 100)
-    assert_allclose(q.pc, 3.240779289469756e-17)
+    assert_allclose(q.centimeter, 100)
+    assert_allclose(q.parsec, 3.240779289469756e-17)
 
 
 def test_implicit_conversion_autocomplete():
@@ -517,8 +517,8 @@ def test_implicit_conversion_autocomplete():
 
     attrs = dir(q)
     assert 'inch' in attrs
-    assert 'cm' in attrs
-    assert 'pc' in attrs
+    assert 'centimeter' in attrs
+    assert 'parsec' in attrs
     assert 'foo' in attrs
     assert 'to' in attrs
     assert 'value' in attrs
