@@ -43,21 +43,32 @@ def get_grouped_by_powers(bases, powers):
 def split_mantissa_exponent(v):
     """
     Given a number, split it into its mantissa and base 10 exponent
-    parts, each as strings.
+    parts, each as strings.  If the exponent is too small, it may be
+    returned as the empty string.
+
+    The precise rules are based on Python's "general purpose" (`g`)
+    formatting.
+
+    Parameters
+    ----------
+    v : float
+
+    Returns
+    -------
+    mantissa, exponent : tuple of strings
     """
-    x = "{0:.4e}".format(v).split('e')
+    x = "{0:.8g}".format(v).split('e')
     if x[0] != '1.' + '0' * (len(x[0]) - 2):
         m = x[0]
-        if '.' in m:
-            m = m.rstrip('0')
     else:
         m = ''
 
-    m = m.rstrip('.')
-
-    ex = x[1].lstrip("0+")
-    if len(ex) > 0 and ex[0] == '-':
-        ex = '-' + ex[1:].lstrip('0')
+    if len(x) == 2:
+        ex = x[1].lstrip("0+")
+        if len(ex) > 0 and ex[0] == '-':
+            ex = '-' + ex[1:].lstrip('0')
+    else:
+        ex = ''
 
     return m, ex
 

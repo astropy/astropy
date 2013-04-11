@@ -137,7 +137,7 @@ def test_cds_units_available():
 
 def test_latex():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
-    assert fluxunit.to_string('latex') == r'$\mathrm{\frac{erg}{s\ cm^{2}}}$'
+    assert fluxunit.to_string('latex') == r'$\mathrm{\frac{erg}{s\,cm^{2}}}$'
 
 
 def test_wcs_parse():
@@ -176,3 +176,7 @@ def test_console_out():
     Issue #436.
     """
     u.Jy.decompose().to_string('console')
+
+
+def test_flexible_float():
+    assert u.min._represents.to_string('latex') == ur'$\mathrm{60\,s}$'

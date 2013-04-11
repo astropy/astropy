@@ -41,7 +41,7 @@ class Latex(base.Base):
             else:
                 out.append('{0}^{{{1}}}'.format(
                     self._get_unit_name(base), power))
-        return r'\ '.join(out)
+        return r'\,'.join(out)
 
     def _format_exponential_notation(self, val):
         m, ex = utils.split_mantissa_exponent(val)
@@ -65,7 +65,7 @@ class Latex(base.Base):
             s = latex_name
         elif isinstance(unit, core.CompositeUnit):
             if unit.scale != 1:
-                s = self._format_exponential_notation(unit.scale) + r'\ '
+                s = self._format_exponential_notation(unit.scale) + r'\,'
             else:
                 s = ''
 

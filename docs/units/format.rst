@@ -17,7 +17,9 @@ class::
    penalty if units are created using strings.  Thus, it is much
    faster to use unit objects directly (e.g., ``unit = u.degree /
    u.minute``) instead of via string parsing (``unit =
-   u.Unit('deg/min')``).
+   u.Unit('deg/min')``).  This parser is very useful, however, if your
+   unit definitions are coming from a file format such as FITS or
+   VOTable.
 
 Units can be converted to strings using the
 `~astropy.units.core.UnitBase.to_string` method::
@@ -73,7 +75,7 @@ following formats:
 
     .. math::
 
-       \mathrm{\frac{erg}{s\ cm^{2}}}
+       \mathrm{\frac{erg}{s\,cm^{2}}}
 
   - ``"console"``: Writes a multi-line representation of the unit
     useful for display in a text console::
