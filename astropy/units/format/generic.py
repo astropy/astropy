@@ -272,25 +272,30 @@ class Generic(Base):
         from .. import core
 
         if isinstance(unit, core.CompositeUnit):
+            parts = []
+
             if unit.scale != 1 and self._show_scale:
-                s = '{0:e} '.format(unit.scale)
-            else:
-                s = ''
+                parts.append('{0:g}'.format(unit.scale))
 
             if len(unit.bases):
                 positives, negatives = utils.get_grouped_by_powers(
                     unit.bases, unit.powers)
                 if len(positives):
-                    s += self._format_unit_list(positives)
-                elif s == '':
-                    s = '1'
+                    parts.append(self._format_unit_list(positives))
+                elif len(parts) == 0:
+                    parts.append('1')
 
                 if len(negatives):
-                    s += ' / ({0})'.format(self._format_unit_list(negatives))
-        elif isinstance(unit, core.NamedUnit):
-            s = self._get_unit_name(unit)
+                    parts.append('/')
+                    unit_list = self._format_unit_list(negatives)
+                    if len(negatives) == 1:
+                        parts.append('{0}'.format(unit_list))
+                    else:
+                        parts.append('({0})'.format(unit_list))
 
-        return s
+            return ' '.join(parts)
+        elif isinstance(unit, core.NamedUnit):
+            return self._get_unit_name(unit)
 
 
 class Unscaled(Generic):
