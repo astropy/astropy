@@ -57,7 +57,6 @@ class TestProjections(object):
         utils.assert_almost_equal(np.asarray(theta), wcs_theta)
 
     def test_AZP_s2p(self):
-        azp = projections.Pix2Sky_AZP(mu=2, gamma=30)
         wcslibout = self.wazp.wcs.p2s([[-10, 30]],1)
         wcs_pix = self.wazp.wcs.s2p(wcslibout['world'], 1)['pixcrd']
         azpinv = projections.Sky2Pix_AZP(mu=2, gamma=30)

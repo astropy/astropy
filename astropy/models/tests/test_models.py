@@ -4,8 +4,7 @@ Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 from __future__ import division
-import os.path
-from .. import models, fitting
+from .. import models
 import numpy as np
 from numpy.testing import utils
 from ...tests.helper import pytest
