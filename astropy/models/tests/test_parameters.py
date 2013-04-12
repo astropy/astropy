@@ -4,7 +4,7 @@ Tests models.parameters
 """
 from .. import models, fitting
 from . import irafutil
-from ..util import InputParameterError
+from ..utils import InputParameterError
 import numpy as np
 from numpy.testing import utils
 from ...utils.data import get_pkg_data_filename

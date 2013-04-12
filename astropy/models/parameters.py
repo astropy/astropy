@@ -99,7 +99,7 @@ class Parameter(list):
         return self._paramdim
     
     @paramdim.setter
-    def model(self, val):
+    def paramdim(self, val):
         self._paramdim = val
         
     @property
@@ -107,7 +107,7 @@ class Parameter(list):
         return self._mclass
     
     @mclass.setter
-    def model(self, val):
+    def mclass(self, val):
         self._mclass = val
         
     @property
