@@ -51,6 +51,7 @@ User Documentation
 .. toctree::
    :maxdepth: 1
 
+   io/unified
    io/fits/index
    io/ascii/index
    io/votable/index
