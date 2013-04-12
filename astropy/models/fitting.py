@@ -576,7 +576,7 @@ class SLSQPFitter(Fitter):
         from scipy import optimize
         x = np.asarray(x, dtype=np.float)
         
-        self._weights = weights
+        self.weights = weights
         if self.model._parameters.paramdim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit "
