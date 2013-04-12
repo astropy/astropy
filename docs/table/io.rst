@@ -1,3 +1,4 @@
+.. _read_write_tables:
 
 Reading and writing Table objects
 ===================================
