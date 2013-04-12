@@ -129,12 +129,17 @@ class UnitBase(object):
             return CompositeUnit(1, [self, m], [1, -1])._simplify()
         elif isinstance(m, Quantity):
             return Quantity(1, self) / m
+        elif isinstance(m, basestring):
+            return self / Unit(m)
         else:
             return Quantity(1. / m, self)
 
     def __rdiv__(self, m):
         from .quantity import Quantity
-        return Quantity(m, CompositeUnit(1.0, [self], [-1])._simplify())
+        if isinstance(m, basestring):
+            return Unit(m) / Quantity(1, self)
+        else:
+            return Quantity(m, CompositeUnit(1.0, [self], [-1])._simplify())
 
     def __truediv__(self, m):
         return self.__div__(m)
@@ -148,12 +153,17 @@ class UnitBase(object):
             return CompositeUnit(1, [self, m], [1, 1])._simplify()
         elif isinstance(m, Quantity):
             return Quantity(1, self) * m
+        elif isinstance(m, basestring):
+            return self * Unit(m)
         else:
             return Quantity(m, self)
 
     def __rmul__(self, m):
         from .quantity import Quantity
-        return Quantity(m, self)
+        if isinstance(m, basestring):
+            return Unit(m) * Quantity(1, self)
+        else:
+            return Quantity(m, self)
 
     if sys.version_info[0] >= 3:
         def __hash__(self):

@@ -214,6 +214,8 @@ class Quantity(object):
         if isinstance(other, Quantity):
             return Quantity(self.value * other.value,
                             unit=self.unit * other.unit)
+        elif isinstance(other, basestring):
+            return Quantity(self.value, unit=Unit(other) * self.unit)
         elif isinstance(other, UnitBase):
             return Quantity(self.value, unit=other * self.unit)
         else:
@@ -237,6 +239,8 @@ class Quantity(object):
         if isinstance(other, Quantity):
             return Quantity(self.value / other.value,
                             unit=self.unit / other.unit)
+        elif isinstance(other, basestring):
+            return Quantity(self.value, unit=self.unit / Unit(other))
         elif isinstance(other, UnitBase):
             return Quantity(self.value, unit=self.unit / other)
         else:
@@ -253,6 +257,8 @@ class Quantity(object):
         if isinstance(other, Quantity):
             return Quantity(other.value / self.value,
                             unit=other.unit / self.unit)
+        elif isinstance(other, basestring):
+            return Quantity(self.value, unit=Unit(other) / self.unit)
         elif isinstance(other, UnitBase):
             return Quantity(1. / self.value, unit=other / self.unit)
         else:
