@@ -23,9 +23,7 @@ and astrophysics with Python.
 User Documentation
 ******************
 
-:ref:`whatsnew-0.2`
-===================
-
+**Astropy at a glance**
 
 .. toctree::
    :maxdepth: 1
@@ -33,23 +31,55 @@ User Documentation
    overview
    install
    getting_started
+   whatsnew/0.2
+
+**Core data structures and transformations**
+
+.. toctree::
+   :maxdepth: 1
+
    constants/index
-   nddata/index
    units/index
+   nddata/index
+   table/index
    time/index
    coordinates/index
-   table/index
-   cosmology/index
+   wcs/index
+
+**Connecting up: Files and I/O**
+
+.. toctree::
+   :maxdepth: 1
+
+   io/unified
    io/fits/index
    io/ascii/index
    io/votable/index
    io/misc
-   wcs/index
+
+**Astronomy computations and utilities**
+
+.. toctree::
+   :maxdepth: 1
+
+   cosmology/index
    stats/index
-   utils/index
+
+**Nuts and bolts of Astropy**
+
+.. toctree::
+   :maxdepth: 1
+
    configs/index
    io/registry
    logging
+   utils/index
+
+**Astropy project details**
+
+.. toctree::
+   :maxdepth: 1
+
    stability
    whatsnew/index
    known_issues
