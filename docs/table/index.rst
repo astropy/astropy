@@ -23,7 +23,7 @@ notable features of this package are:
 * Create a new table by selecting rows or columns from a table.
 * Create a new table by joining two tables on specified key columns.
 * Full support for multidimensional columns.
-* Create a table by referencing (not copying) an existing `numpy` table.
+* Methods for :ref:`read_write_tables` to files
 
 Currently `astropy.table` is used when reading an ASCII table using
 `astropy.io.ascii`.  Future releases of AstroPy are expected to use
