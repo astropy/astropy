@@ -46,7 +46,7 @@ from ..utils.compat.odict import OrderedDict
 import numpy as np
 from . import parameters
 from . import constraints
-from .util import pmapdomain, InputParameterError, comb
+from .utils import pmapdomain, InputParameterError, comb
  
 __all__ = ['ChebyshevModel', 'Gauss1DModel', 'Gauss2DModel', 'ICheb2DModel', 
            'ILegend2DModel', 'LegendreModel', 'Poly1DModel', 'Poly2DModel', 
@@ -129,7 +129,7 @@ class _ParameterProperty(object):
             obj._parcheck[self.name](val)
         if isinstance(obj, ParametricModel):
             if not obj._parameters._changed:
-                par = parameters._Parameter(self.name, val, obj, obj.paramdim)
+                par = parameters.Parameter(self.name, val, obj, obj.paramdim)
                 oldpar = getattr(obj, self.name)
                 if oldpar is not None and oldpar.parshape != par.parshape:
                     raise InputParameterError(
@@ -143,7 +143,7 @@ class _ParameterProperty(object):
             else:
                 setattr(obj, self.aname, val)
         else:
-            par = parameters._Parameter(self.name, val, obj, obj.paramdim)
+            par = parameters.Parameter(self.name, val, obj, obj.paramdim)
             oldpar = getattr(obj, self.name)
             if oldpar is not None and oldpar.parshape != par.parshape:
                 raise InputParameterError(
@@ -474,15 +474,15 @@ class PModel(ParametricModel):
             for name in self.parnames:
                 uname = '_'+name
                 if pardim == 1:
-                    self.__setattr__(uname, parameters._Parameter(
+                    self.__setattr__(uname, parameters.Parameter(
                                         name, 0., self, pardim))
                 else:
-                    self.__setattr__(uname, parameters._Parameter(
+                    self.__setattr__(uname, parameters.Parameter(
                                         name, [0.]*pardim, self, pardim))
         else:
             for name in self.parnames:
                 uname = '_'+name
-                self.__setattr__(uname, parameters._Parameter(
+                self.__setattr__(uname, parameters.Parameter(
                                           name, pars[name], self, pardim))
              
     def get_numcoeff(self, ndim):
@@ -592,12 +592,12 @@ class IModel(ParametricModel):
         if not pars:
             for name in self.parnames:
                 uname = '_'+name
-                self.__setattr__(uname, parameters._Parameter(
+                self.__setattr__(uname, parameters.Parameter(
                                  name, [0.]*pardim, self, pardim))
         else:
             for name in self.parnames:
                 uname = '_'+name
-                self.__setattr__(uname, parameters._Parameter(
+                self.__setattr__(uname, parameters.Parameter(
                     name, pars[name], self, pardim))
     
     def get_numcoeff(self):
@@ -1302,7 +1302,7 @@ class Gauss1DModel(ParametricModel):
         model : Gauss1DModel
             1D Gaussian
         """
-        self._amplitude = parameters._Parameter('amplitude', amplitude, self, 1)
+        self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
         if xsigma is None and fwhm is None:
             raise InputParameterError(
                 "Either fwhm or xsigma must be specified")
@@ -1313,8 +1313,8 @@ class Gauss1DModel(ParametricModel):
                 xsigmaval  = 0.42466 * fwhm
             except TypeError:
                 xsigmaval = [0.42466 * n for n in fwhm]
-        self._xsigma = parameters._Parameter('xsigma', xsigmaval, self, 1)
-        self._xcen = parameters._Parameter('xcen', xcen, self, 1)
+        self._xsigma = parameters.Parameter('xsigma', xsigmaval, self, 1)
+        self._xcen = parameters.Parameter('xcen', xcen, self, 1)
         try:
             paramdim = len(self._amplitude)
             assert (len(amplitude) == len(xsigmaval) == len(xcen) ), \
@@ -1409,16 +1409,16 @@ class Gauss2DModel(ParametricModel):
         elif xsigma is None and fwhm is None:
             raise InputParameterError(
                 "Either fwhm or xsigma must be specified")
-        self._amplitude = parameters._Parameter('amplitude', amplitude, self, 1)
+        self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
         if xsigma is None:
             xsigma = 0.42466 * fwhm
-        self._xsigma = parameters._Parameter('xsigma', xsigma, self, 1)
+        self._xsigma = parameters.Parameter('xsigma', xsigma, self, 1)
         if ysigma is None:
             ysigma = ratio * self._xsigma
-        self._ysigma = parameters._Parameter('ysigma', ysigma, self, 1)
-        self._xcen = parameters._Parameter('xcen', xcen, self, 1)
-        self._ycen = parameters._Parameter('ycen', ycen, self, 1)
-        self._theta = parameters._Parameter('theta', theta, self, 1)
+        self._ysigma = parameters.Parameter('ysigma', ysigma, self, 1)
+        self._xcen = parameters.Parameter('xcen', xcen, self, 1)
+        self._ycen = parameters.Parameter('ycen', ycen, self, 1)
+        self._theta = parameters.Parameter('theta', theta, self, 1)
         try:
             paramdim = len(self._amplitude)
             assert (len(self._amplitude) == len(self._xsigma) == \
@@ -1481,7 +1481,7 @@ class ShiftModel(Model):
             paramdim = 1
         else:
             paramdim = len(offsets)
-        self._offsets = parameters._Parameter('offsets', offsets, self, paramdim)
+        self._offsets = parameters.Parameter('offsets', offsets, self, paramdim)
         super(ShiftModel, self).__init__(self.parnames, ndim=1, outdim=1,
                                                             paramdim=paramdim)
 
@@ -1516,7 +1516,7 @@ class ScaleModel(Model):
             paramdim = 1
         else:
             paramdim = len(factors)
-        self._factors = parameters._Parameter('factors', factors, self, paramdim)
+        self._factors = parameters.Parameter('factors', factors, self, paramdim)
         super(ScaleModel, self).__init__(self.parnames, ndim=1, outdim=1,
                                                             paramdim=paramdim)
     
@@ -1614,15 +1614,15 @@ class _SIP1D(Model):
             for name in self.parnames:
                 if pardim == 1:
                     self.__setattr__('_'+name, 
-                                     parameters._Parameter(name, 0, self, 1))
+                                     parameters.Parameter(name, 0, self, 1))
                 else:
                     self.__setattr__('_'+name, 
-                                     parameters._Parameter(name, [0]*pardim,
+                                     parameters.Parameter(name, [0]*pardim,
                                                            self, pardim))
         else:
             for name in self.parnames:
                 self.__setattr__('_'+name, 
-                                 parameters._Parameter(name, pars[name],
+                                 parameters.Parameter(name, pars[name],
                                                        self, pardim))
                 
     def _validate_pars(self, ndim, **pars):

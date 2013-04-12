@@ -16,7 +16,7 @@ import abc
 import numpy as np
 from numpy import linalg
 import warnings
-from .util import pmapdomain
+from .utils import pmapdomain
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter', 
            'JointFitter']

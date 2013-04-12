@@ -9,9 +9,9 @@ from __future__ import division, print_function
 import numbers
 import numpy as np
 from ..utils import misc
-from .util import InputParameterError
+from .utils import InputParameterError
 
-__all__ = ['Parameters']
+__all__ = ['Parameters', 'Parameter']
 
 def _tofloat(value):
     """
@@ -38,7 +38,7 @@ def _tofloat(value):
             "float".format(type(value)))
     return _value
     
-class _Parameter(list):
+class Parameter(list):
     """
     Wraps individual parameters.
     
@@ -46,7 +46,7 @@ class _Parameter(list):
     sense). To support multiple parameter sets, a 
     parameter has a dimension (paramdim). To support some level
     of validation a parameter has also a shape (parshape).
-    _Parameter objects behave like numbers.
+    Parameter objects behave like numbers.
 
     """
     def __init__(self, name, val, mclass, paramdim, fixed=False, tied=False, 
@@ -66,11 +66,11 @@ class _Parameter(list):
         if isinstance(val, numbers.Number):
             if self.paramdim == 1:
                 val = _tofloat(val)[()]
-                super(_Parameter, self).__init__([val])
+                super(Parameter, self).__init__([val])
                 self.parshape = val.shape
             else:
                 val = [_tofloat(val)[()]]
-                super(_Parameter, self).__init__(val)
+                super(Parameter, self).__init__(val)
                 self.parshape = val[0].shape
         # colections.Sequence covers lists but not ndarrays
         # which are checked for in _tofloat()
@@ -78,11 +78,11 @@ class _Parameter(list):
         elif misc.isiterable(val):
             if paramdim == 1:
                 val = [_tofloat(value)[()] for value in val]
-                super(_Parameter, self).__init__(val)
+                super(Parameter, self).__init__(val)
                 self.parshape = _tofloat(val).shape
             else:
                 val = [_tofloat(value)[()] for value in val]
-                super(_Parameter, self).__init__(val)
+                super(Parameter, self).__init__(val)
                 self.parshape = _tofloat(val[0]).shape
         else:
             raise InputParameterError(
@@ -161,11 +161,11 @@ class _Parameter(list):
         self.mclass.constraints.set_range({self.name: (self.min or -1E12, val)})
 
     def __setslice__(self, i, j, val):
-        super(_Parameter, self).__setslice__(i, j, val)
+        super(Parameter, self).__setslice__(i, j, val)
         setattr(self.mclass, self.name, self)
         
     def __setitem__(self, i, val):
-        super(_Parameter, self).__setitem__(i, val)
+        super(Parameter, self).__setitem__(i, val)
         setattr(self.mclass, self.name, self)
     
     def __add__(self, val):
@@ -280,9 +280,9 @@ class Parameters(list):
             sl = self.parinfo[key][0]
             par = self[sl]
             if len(par) == 1:
-                par = _Parameter(key, par[0], self.mobj, self.mobj.paramdim)
+                par = Parameter(key, par[0], self.mobj, self.mobj.paramdim)
             else:
-                par = _Parameter(key, par, self.mobj, self.mobj.paramdim)
+                par = Parameter(key, par, self.mobj, self.mobj.paramdim)
             setattr(self.mobj, key, par)
         self._changed = False
 
