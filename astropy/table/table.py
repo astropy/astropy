@@ -1679,11 +1679,17 @@ class Table(object):
 
         newlen = len(self._data) + 1
 
+        if vals is None:
+            vals = np.zeros(1, dtype=self._data.dtype)[0]
+
         if mask is not None and not self.masked:
             self._set_masked(True)
 
         if self.masked:
-            self._data = ma.resize(self._data, (newlen,))
+            if newlen == 1:
+                self._data = ma.empty(1, dtype=self._data.dtype)
+            else:
+                self._data = ma.resize(self._data, (newlen,))
         else:
             self._data.resize((newlen,), refcheck=False)
 
@@ -1735,7 +1741,7 @@ class Table(object):
 
                 self._data.mask[-1] = mask
 
-        elif vals is not None:
+        else:
             raise TypeError('Vals must be an iterable or mapping or None')
 
         self._rebuild_table_column_views()
