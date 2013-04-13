@@ -67,6 +67,20 @@ class TestNonLinearConstraints(object):
         fitpars, _ = optimize.leastsq(errf, p, args=(x, ny1, x, ny2))
         utils.assert_allclose(jf.fitpars, fitpars, rtol=10**(-5))
         utils.assert_allclose(g1.amplitude, g2.amplitude)
+    
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_no_constraints(self):
+        g1 = models.Gauss1DModel(9.9, 14.5, xsigma=.3)
+        func = lambda p, x: p[0]* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
+        errf = lambda p, x, y: func(p, x) - y
+        p0 = [9.9, 14.5, 0.3]
+        y = g1(self.x)
+        n = np.random.randn(100)
+        ny = y + n
+        fitpar, s = optimize.leastsq(errf, p0, args=(self.x, n+y))
+        fitter = fitting.NonLinearLSQFitter(g1)
+        fitter(self.x, n+y)
+        utils.assert_allclose(g1.parameters, fitpar, rtol=5*10**(-3))
         
 class TestLinearConstraints(object):
     def setup_class(self):

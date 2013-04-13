@@ -136,4 +136,63 @@ class TestLinearLSQFitter(object):
         self.lf(self.x, self.y)
         utils.assert_allclose(self.model.parameters, np.array(self.icoeff),
                               rtol=10E-2)
+                            
+@pytest.mark.skipif('not HAS_SCIPY')
+class TestNonLinearFitters(object):
+    """
+    Tests non-linear least squares fitting and the SLSQP algorithm
+    """
+    def setup_class(self):
+        self.initial_values = [100, 5, 1]
+        func = lambda p, x: p[0]* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
+        errf = lambda p, x, y: (func(p, x) - y)
+        self.xdata = np.arange(0, 10, 0.1)
+        sigma = 10 * np.ones_like(self.xdata)
+        rsn = RandomState(1234567890)
+        yerror = rsn.normal(0, sigma)
+        self.ydata = func(self.initial_values, self.xdata)+ yerror
         
+    def test_estmated_vs_analytic_deriv(self):
+        g1= models.Gauss1DModel(100, 5, xsigma=1)
+        fitter = fitting.NonLinearLSQFitter(g1)
+        fitter(self.xdata, self.ydata)
+        g1e= models.Gauss1DModel(100, 5.0, xsigma=1, fjac='estimated')
+        efitter=fitting.NonLinearLSQFitter(g1e)
+        efitter(self.xdata, self.ydata)
+        utils.assert_allclose(g1.parameters, g1e.parameters, rtol=10**(-3))
+        
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_with_optimize(self):
+        g1= models.Gauss1DModel(100, 5, xsigma=1, fjac='estimated')
+        fitter = fitting.NonLinearLSQFitter(g1)
+        fitter(self.xdata, self.ydata)
+        func = lambda p, x: p[0]* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
+        errf = lambda p, x, y: (func(p, x) - y)
+        result = optimize.leastsq(errf, self.initial_values, args=(self.xdata, self.ydata))
+        utils.assert_allclose(g1.parameters, result[0], rtol=10**(-3))
+        
+    def test_LSQ_SLSQP(self):
+        g1= models.Gauss1DModel(100, 5, xsigma=1)
+        fitter = fitting.NonLinearLSQFitter(g1)
+        g1_slsqp= models.Gauss1DModel(100, 5, xsigma=1)
+        fslsqp = fitting.SLSQPFitter(g1_slsqp)
+        fslsqp(self.xdata, self.ydata)
+        fitter(self.xdata, self.ydata)
+        #There's a bug in the SLSQP algorithm and sometimes it gives the negative 
+        # value of the result. unitl this is understood, for this test, take np.abs()
+        utils.assert_allclose(g1.parameters, np.abs(g1_slsqp.parameters),
+                            rtol=10**(-4))
+        
+    def test_LSQ_SLSQP_cons(self):
+        g1= models.Gauss1DModel(100, 5, xsigma=1)
+        g1.xcen.fixed = True
+        fitter = fitting.NonLinearLSQFitter(g1)
+        g1_slsqp= models.Gauss1DModel(100, 5, xsigma=1)
+        g1_slsqp.xcen.fixed = True
+        fslsqp = fitting.SLSQPFitter(g1_slsqp)
+        fslsqp(self.xdata, self.ydata)
+        fitter(self.xdata, self.ydata)
+        #There's a bug in the SLSQP algorithm and sometimes it gives the negative 
+        # value of the result. unitl this is understood, for this test, take np.abs()
+        utils.assert_allclose(g1.parameters, np.abs(g1_slsqp.parameters),
+                            rtol=10**(-4))

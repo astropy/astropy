@@ -168,7 +168,7 @@ class Fitter(object):
             res = fullderiv[:, ind]
             return res
         else:
-            pars = self.model._parameters
+            pars = p[:]
             if z is None:
                 return self.model.deriv(pars, x, y)
             else:
@@ -407,11 +407,11 @@ class NonLinearLSQFitter(Fitter):
             
     def errorfunc(self, fps,  *args):
         self.fitpars = fps
-        meas = args[0]
+        meas = args[-1]
         if self.weights is None:
-            return np.ravel(self.model(*args[1:]) - meas)
+            return np.ravel(self.model(*args[: -1]) - meas)
         else:
-            return np.ravel(self.weights * (self.model(*args[1:]) - meas))
+            return np.ravel(self.weights * (self.model(*args[: -1]) - meas))
     
     def _set_bounds(self, fitpars):
         for c in self.model.constraints.bounds.values():
@@ -477,18 +477,17 @@ class NonLinearLSQFitter(Fitter):
             if x.shape[0] != y.shape[0]:
                 raise ValueError("x and y should have the same shape")
             meas = np.asarray(y, dtype=np.float)
-            farg = (meas, x)
+            farg = (x, meas)
         else:
             if x.shape != z.shape:
                 raise ValueError("x, y and z should have the same shape")
             y = np.asarray(y, np.float)
             meas = np.asarray(z, dtype=np.float)
-            farg = (meas, x, y)
+            farg = (x, y, meas)
  
         self.fitpars, status, dinfo, mess, ierr = optimize.leastsq(
                     self.errorfunc, self.fitpars, args=farg, Dfun=self.dfunc,
                     maxfev=maxiter, epsfcn=epsilon, full_output=True)
-        
         self.fit_info.update(dinfo)
         self.fit_info['status'] = status
         self.fit_info['message'] = mess
@@ -540,9 +539,9 @@ class SLSQPFitter(Fitter):
         args : list
             input coordinates
         """
-        meas = args[0]
+        meas = args[-1]
         self.fitpars = fps
-        res = self.model(*args[1:]) - meas
+        res = self.model(*args[:-1]) - meas
         if self.weights is None:
             return np.sum(res**2)
         else:
@@ -586,13 +585,13 @@ class SLSQPFitter(Fitter):
             if x.shape[0] != y.shape[0]:
                 raise ValueError("x and y should have the same shape")
             meas = np.asarray(y, dtype=np.float) 
-            fargs = (meas, x)
+            fargs = (x, meas)
         else:
             if x.shape != z.shape:
                 raise ValueError("x, y and z should have the same shape")
             y = np.asarray(y, dtype=np.float)
             meas = np.asarray(z, dtype=np.float)
-            fargs = (meas, x, y)
+            fargs = (x, y, meas)
         p0 = self.model._parameters[:]
         bounds = [self.model.constraints.bounds[par] for
                   par in self.model.parnames]
