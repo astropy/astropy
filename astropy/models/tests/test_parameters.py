@@ -28,7 +28,7 @@ class TestParameters(object):
         record = irafutil.IdentifyRecord(reclist[1])
         self.icoeff = record.coeff
         order = int(record.fields['order'])
-        self.model = models.ChebyshevModel(order-1)
+        self.model = models.Chebyshev1DModel(order-1)
         self.gmodel = models.Gauss1DModel(2, 3, xsigma=4)
         self.linear_fitter = fitting.LinearLSQFitter(self.model)
         self.x = record.x

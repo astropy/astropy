@@ -55,7 +55,7 @@ class TestFitting(object):
         1 pset, 1 set 1D x, 1 set 1D y, Chebyshev 1D polynomial
         """
         expected = np.array([[2817.2499999999995, 4226.6249999999991, 1680.7500000000009,  273.37499999999926]]).T
-        ch1 = models.ChebyshevModel(3)
+        ch1 = models.Chebyshev1DModel(3)
         ch1.parameters = [0,1,2,3]
         y1 = ch1(self.x1)
         pfit = fitting.LinearLSQFitter(ch1)
@@ -67,7 +67,7 @@ class TestFitting(object):
         1 pset, 1 set 1D x, 1 set 1D y, Legendre 1D polynomial
         """
         expected = np.array([[1925.5000000000011, 3444.7500000000005, 1883.2500000000014, 364.4999999999996]]).T
-        leg1 = models.LegendreModel(3)
+        leg1 = models.Legendre1DModel(3)
         leg1.parameters = [1,2,3,4]
         y1 = leg1(self.x1)
         pfit = fitting.LinearLSQFitter(leg1)

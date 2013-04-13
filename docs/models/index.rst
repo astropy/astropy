@@ -58,14 +58,14 @@ Parameters:
          
 Create data using 1D Chebyshev model
 
->>> ch1 = models.ChebyshevModel(3, domain=[x.min(), x.max()])
+>>> ch1 = models.Chebyshev1DModel(3, domain=[x.min(), x.max()])
 >>> ch1.parameters
 [0.0, 0.0, 0.0, 0.0]
 >>> ch1.parameters = [1, 2, 3, 4]
 >>> ch1.parameters
 [1.0, 2.0, 3.0, 4.0]
 >>> print ch1
-Model: ChebyshevModel
+Model: Chebyshev1DModel
 Dim:   1
 Degree: 3
 Parameter sets: 1
@@ -83,7 +83,7 @@ Add some noise
 
 Fit a Chebyshev polynomial to the data
 
->>> ch2 = models.ChebyshevModel(3)
+>>> ch2 = models.Chebyshev1DModel(3)
 >>> chfit = fitting.LinearLSQFitter(ch2)
 >>> chfit(x, ny)
 >>> ch2.parameters

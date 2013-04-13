@@ -53,20 +53,20 @@ class TestICheb2D(object):
         self.pmodel = models.Poly2DModel(2)
         self.x, self.y = np.mgrid[:5, :5]
         self.z = self.pmodel(self.x, self.y)
-        self.ichb = models.ICheb2DModel(2, 2)
-        self.fitter = fitting.LinearLSQFitter(self.ichb)
+        self.cheb2 = models.Chebyshev2DModel(2, 2)
+        self.fitter = fitting.LinearLSQFitter(self.cheb2)
         
     def test_default_pars(self):
-        self.ichb.parameters = np.arange(9)
+        self.cheb2.parameters = np.arange(9)
         p = np.array([ 1344.,  1772.,   400.,  1860.,  2448.,   552.,   432.,   568.,
          128.])
-        z = self.ichb(self.x, self.y)
+        z = self.cheb2(self.x, self.y)
         self.fitter(self.x, self.y, z)
-        utils.assert_almost_equal(self.ichb.parameters, p)
+        utils.assert_almost_equal(self.cheb2.parameters, p)
         
-    def test_poly2D_icheb2D(self):
+    def test_poly2D_cheb2D(self):
         self.fitter(self.x, self.y, self.z)
-        z1 = self.ichb(self.x, self.y)
+        z1 = self.cheb2(self.x, self.y)
         utils.assert_almost_equal(self.z, z1)
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -125,7 +125,7 @@ class TestLinearLSQFitter(object):
         record = irafutil.IdentifyRecord(reclist[1])
         self.icoeff = record.coeff
         order = int(record.fields['order'])
-        self.model = models.ChebyshevModel(order-1)
+        self.model = models.Chebyshev1DModel(order-1)
         self.model.domain = record.get_range()
         self.lf = fitting.LinearLSQFitter(self.model)
         self.x = record.x

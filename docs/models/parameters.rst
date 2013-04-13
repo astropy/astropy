@@ -48,11 +48,11 @@ Parameters Examples
 
 - It is possible to set the coefficients passing the parameters in a dictionary
 
->>> ch2 = models.ICheb2DModel(xdeg=2, ydeg=3, paramdim=2)
+>>> ch2 = models.Chebyshev2DModel(xdeg=2, ydeg=3, paramdim=2)
 >>> coeff = {}
 >>> for i, j in zip(ch2.parnames, range(len(ch2.parnames))):
         coeff[i] = [j, j+10]
->>> ch2 = models.ICheb2DModel(xdeg=2, ydeg=3, **coeff)
+>>> ch2 = models.Chebyshev2DModel(xdeg=2, ydeg=3, **coeff)
 >>> ch2.psets
 array([[ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11],
        [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]])
@@ -60,7 +60,7 @@ array([[ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11],
 
 - or directly, using keyword arguments
 
->>> ch2 = models.ICheb2DModel(xdeg=2, ydeg=3, c0_0=[0, 10], c0_1=[3, 13],
+>>> ch2 = models.Chebyshev2DModel(xdeg=2, ydeg=3, c0_0=[0, 10], c0_1=[3, 13],
         ...                                       c0_2=[6, 16], c0_3=[9, 19],
         ...                                       c1_0=[1, 11], c1_1=[4, 14],
         ...                                       c1_2=[7, 17], c1_3=[10, 20,],

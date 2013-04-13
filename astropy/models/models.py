@@ -48,8 +48,8 @@ from . import parameters
 from . import constraints
 from .utils import pmapdomain, InputParameterError, comb
  
-__all__ = ['ChebyshevModel', 'Gauss1DModel', 'Gauss2DModel', 'ICheb2DModel', 
-           'ILegend2DModel', 'LegendreModel', 'Poly1DModel', 'Poly2DModel', 
+__all__ = ['Chebyshev1DModel', 'Gauss1DModel', 'Gauss2DModel', 'Chebyshev2DModel', 
+           'Legendre2DModel', 'Legendre1DModel', 'Poly1DModel', 'Poly2DModel', 
            'ScaleModel', 'ShiftModel', 'SIPModel', 
            'PCompositeModel', 'SCompositeModel', 'LabeledInput']
 
@@ -524,12 +524,12 @@ class PModel(ParametricModel):
             ynew = pmapdomain(x, self.ydomain, self.ywindow)
             return xnew, ynew
             
-class IModel(ParametricModel):
+class OrthogPolyBase(ParametricModel):
     """
     
-    This is a base class for IRAF style 2D Chebyshev and Legendre models.
+    This is a base class for the 2D Chebyshev and Legendre models.
     
-    These are polynomials which have a maximum degree in x and y.
+    The polynomials implemented here require a maximum degree in x and y.
 
     """
     def __init__(self, xdeg, ydeg, xdomain=None, xwindow=None, ydomain=None, 
@@ -578,7 +578,7 @@ class IModel(ParametricModel):
                 paramdim = lenpars
             self._validate_pars(**pars)  
             self.set_coeff(pardim=paramdim, **pars)        
-        super(IModel, self).__init__(self.parnames, ndim=2, outdim=1,
+        super(OrthogPolyBase, self).__init__(self.parnames, ndim=2, outdim=1,
                                                         paramdim=paramdim)
     
     def _generate_coeff_names(self):
@@ -685,7 +685,7 @@ class IModel(ParametricModel):
         """
         raise NotImplementedError("Subclasses should implement this")
 
-class ChebyshevModel(PModel):
+class Chebyshev1DModel(PModel):
     """
     
     1D Chebyshev polynomial
@@ -708,13 +708,13 @@ class ChebyshevModel(PModel):
             
         Returns
         -------
-        model : ChebyshevModel
+        model : Chebyshev1DModel
             1D Chebyshev model
             
         """
         self.domain = domain
         self.window = window
-        super(ChebyshevModel, self).__init__(degree, ndim=1, outdim=1,
+        super(Chebyshev1DModel, self).__init__(degree, ndim=1, outdim=1,
                                              paramdim=paramdim, **pars)
                                             
     def clenshaw(self, x, coeff):
@@ -764,7 +764,7 @@ class ChebyshevModel(PModel):
         result = self.clenshaw(x, self.psets)
         return _convert_output(result, fmt)
         
-class LegendreModel(PModel):
+class Legendre1DModel(PModel):
     """
     
     1D Legendre polynomial
@@ -787,13 +787,13 @@ class LegendreModel(PModel):
             
         Returns
         -------
-        model : LegendreModel
+        model : Legendre1DModel
             1D Legendre model
             
         """
         self.domain = domain
         self.window = window
-        super(LegendreModel, self).__init__(degree, ndim=1, outdim=1,
+        super(Legendre1DModel, self).__init__(degree, ndim=1, outdim=1,
                                             paramdim=paramdim, **pars)
            
     def clenshaw(self, x, coeff):
@@ -1034,7 +1034,7 @@ class Poly2DModel(PModel):
         result = self.mhorner(x, y, invcoeff)
         return _convert_output(result, fmt)
         
-class ICheb2DModel(IModel):
+class Chebyshev2DModel(OrthogPolyBase):
     """
     Chebyshev 2D polynomial:
     
@@ -1067,10 +1067,10 @@ class ICheb2DModel(IModel):
             
         Returns
         -------
-        model : ICheb2DModel
+        model : Chebyshev2DModel
             2D Chebyshev model
         """
-        super(ICheb2DModel, self).__init__(xdeg, ydeg,
+        super(Chebyshev2DModel, self).__init__(xdeg, ydeg,
                                            xdomain=xdomain, ydomain=ydomain, 
                                            xwindow=xwindow, ywindow=ywindow,
                                            paramdim=paramdim, **pars)
@@ -1151,7 +1151,7 @@ class ICheb2DModel(IModel):
         result = self.imhorner(x, y, invcoeff)
         return _convert_output(result, fmt)
     
-class ILegend2DModel(IModel):
+class Legendre2DModel(OrthogPolyBase):
     """
     Legendre 2D polynomial
     
@@ -1184,17 +1184,17 @@ class ILegend2DModel(IModel):
             
         Returns
         -------
-        model : ILegendModel
+        model : Legendre2DModel
             2D Legendre model
         """
-        super(ILegend2DModel, self).__init__(xdeg, ydeg,
+        super(Legendre2DModel, self).__init__(xdeg, ydeg,
                                              xdomain=xdomain, ydomain=ydomain, 
                                              xwindow=xwindow, ywindow=ywindow,
                                              paramdim=paramdim, **pars)
 
     def _fcache(self, x, y):
         """
-        Calculate the individual Chebyshev functions once
+        Calculate the individual Legendre functions once
         and store them in a dictionary to be reused.
         """
         xterms = self.xdeg+1
