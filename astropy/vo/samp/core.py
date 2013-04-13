@@ -4763,8 +4763,8 @@ def main(timeout=0):
 
   except KeyboardInterrupt:
     hub.stop()
-  except IOError, (errno, strerror):
-    print "[SAMP] Error: I/O error(%s): %s" % (errno, strerror)
+  except IOError as e:
+    print "[SAMP] Error: I/O error(%s): %s" % (e.errno, e.strerror)
   except SAMPHubError:
     pass
   except SystemExit:
