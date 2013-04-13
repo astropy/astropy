@@ -234,11 +234,7 @@ __doc__ = \
         """
 
 
-import os
-import sys
-import re
 import stat
-import xmlrpclib
 import threading
 
 import datetime, time
@@ -257,7 +253,6 @@ import urllib
 import urllib2
 import urlparse
 
-import traceback
 import StringIO
 
 try:
@@ -294,7 +289,6 @@ except ImportError:
 from SimpleHTTPServer import *
 from SimpleXMLRPCServer import *
 from SocketServer import ThreadingMixIn, BaseServer
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
 #: General constant for samp.ok status string
 SAMP_STATUS_OK = "samp.ok"
@@ -4496,7 +4490,6 @@ class SAMPIntegratedClient(object):
 
 def main(timeout=0):
 
-  import signal
   from optparse import OptionParser, OptionGroup
   parser = OptionParser(version="%prog " + __release__)
 
