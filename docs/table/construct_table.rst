@@ -107,6 +107,30 @@ of different data types to initialize a table::
 
 Notice that in the third column the existing column name ``'axis'`` is used.
 
+
+**Use row data instead of column data**
+
+You can also initialize a table with row values.  This is constructed as a
+list of dict objects.  The keys determine the column names::
+  
+  >>> data = [{'a': 5, 'b': 10}, {'a': 15, 'b': 20}]
+  >>> Table(data)
+  <Table rows=2 names=('a','b')>
+  array([(5, 10), (15, 30)], 
+        dtype=[('a', '<i8'), ('b', '<i8')])
+
+Every row must have the same set of keys or a ValueError will be thrown::
+
+  >>> t = Table([{'a': 5, 'b': 10}, {'a': 15, 'b': 30, 'c': 50}])
+  ERROR: ValueError: Row 0 is has no value for column 'c' [astropy.table.table]
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "astropy/table/table.py", line 944, in __init__
+      init_func(data, names, dtypes, n_cols, copy)
+    File "astropy/table/table.py", line 1070, in _init_from_list
+      raise ValueError('Row {0} has no value for column {1!r}'.format(i, name))
+  ValueError: Row 0 is has no value for column 'c'
+
 Dictionary input
 """"""""""""""""
 A dictionary of column data can be used to initialize a |Table|.
@@ -359,7 +383,7 @@ for the ``data`` argument.
     the existing or default data types.
 
 **list-like**
-    Each item in the ``data`` list provides a column of data values and can
+    Each item in the ``data`` list provides a column of data values and
     can be a Column object, numpy array, or list-like object.  The
     ``names`` list defines the name of each column.  The names will be
     auto-generated if not provided (either from the ``names`` argument or
@@ -367,6 +391,17 @@ for the ``data`` argument.
     number of items in the ``data`` list.  The optional ``dtypes`` list
     will override the existing or default data types and must match
     ``names`` in length.
+
+**list-of-dicts**
+    Similar to Python's builtin ``csv.DictReader``, each item in the 
+    ``data`` list provides a row of data values and must be a dict.  The
+    key values in each dict define the column names and each row must
+    have identical column names.  The ``names`` argument may be supplied
+    to specify colum ordering.  If it is not provided, the column order will
+    default to alphabetical.  The ``dtypes`` list may be specified, and must
+    correspond to the order of output columns.  If any row's keys do no match
+    the rest of the rows, a ValueError will be thrown.
+    
 
 **None**
     Initialize a zero-length table.  If ``names`` and optionally ``dtypes``
