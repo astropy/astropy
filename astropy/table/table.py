@@ -950,7 +950,10 @@ class Table(object):
 
         if isinstance(data, (list, tuple)):
             init_func = self._init_from_list
-            n_cols = len(data)
+            if data and all(isinstance(row, dict) for row in data):
+                n_cols = len(data[0])
+            else:
+                n_cols = len(data)
 
         elif isinstance(data, np.ndarray):
             if data.dtype.names:
@@ -1107,6 +1110,25 @@ class Table(object):
 
         cols = []
         def_names = _auto_names(n_cols)
+
+        if data and all(isinstance(row, dict) for row in data):
+            names_from_data = set()
+            for row in data:
+                names_from_data.update(row)
+            
+            cols = {}
+            for name in names_from_data:
+                cols[name] = []
+                for i, row in enumerate(data):
+                    try:
+                        cols[name].append(row[name])
+                    except KeyError:
+                        raise ValueError('Row {0} has no value for column {1}'.format(i, name))
+            if all(name is None for name in names):
+                names = sorted(names_from_data)
+            self._init_from_dict(cols, names, dtypes, n_cols, copy)
+            return
+                
         for col, name, def_name, dtype in zip(data, names, def_names, dtypes):
             if isinstance(col, (Column, MaskedColumn)):
                 col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype)
