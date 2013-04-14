@@ -5,9 +5,18 @@
 
 :tocdepth: 2
 
+.. the "raw" directive below is used to hide the title in favor of just the logo being visible
+.. raw:: html
+
+    <style media="screen" type="text/css">
+      h1 { display:none; }
+    </style>
+
 ##################################
 Astropy Core Package Documentation
 ##################################
+
+
 
 .. image:: astropy_banner_96.png
     :width: 485px
