@@ -130,6 +130,8 @@ if not _ASTROPY_SETUP_:
     import sys
     from warnings import warn
 
+    log = _init_log()
+
     try:
         from .utils import _compiler
     except ImportError:
@@ -143,14 +145,10 @@ if not _ASTROPY_SETUP_:
             # Outright broken installation; don't be nice.
             raise
 
-
-
     # add these here so we only need to cleanup the namespace at the end
     config_dir = None
-
-    log = _init_log()
-
     config_dir = os.path.dirname(__file__)
+
     try:
         config.configuration.update_default_config(__package__, config_dir)
     except config.configuration.ConfigurationDefaultMissingError as e:

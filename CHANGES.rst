@@ -1,7 +1,13 @@
 0.2.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+Bug Fixes
+^^^^^^^^^
+
+- Fixed an unrelated error message that could occur when trying to import
+  astropy from a source checkout without having build the extension modules
+  first. This issue was claimed to be fixed in v0.2.1, but the fix itself had
+  a bug. [#971]
 
 
 0.2.1 (2013-04-03)
