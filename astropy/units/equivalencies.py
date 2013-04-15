@@ -16,13 +16,14 @@ __all__ = ['parallax', 'spectral', 'spectral_density']
 
 def parallax():
     """
-    Returns a list of equivalence pairs that handle seconds of arc
-    and length equivalences as they relate to parallax.
+    Returns a list of equivalence pairs that handle the conversion
+    between parallax angle and distance.
     """
     
     return [
         (si.arcsecond, astrophys.parsec, lambda x: 1 / x)
     ]
+
 
 def spectral():
     """
