@@ -239,7 +239,7 @@ class NDData(object):
     def correlated_set(self, value):
         if value is not None:
             if isinstance(value, UUID):
-                self._correlated_set = {value}
+                self._correlated_set = set([value])
             elif isinstance(value, set):
                 self._correlated_set = value
             else:
