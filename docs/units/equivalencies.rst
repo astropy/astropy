@@ -20,6 +20,28 @@ or `~astropy.units.core.UnitBase.get_converter` methods.
 Built-in equivalencies
 ----------------------
 
+Parallax Units
+^^^^^^^^^^^^^^
+`~astropy.units.equivalencies.parallax` is a function that returns an
+equivalency list to handle conversions between degrees of arc and
+units of length.
+
+Length and degrees are not normally convertible, so
+`~astropy.units.core.UnitBase.to` raises an exception::
+
+  >>> from astropy import units as u
+  >>> u.arcsec.to(u.parsec, 8)
+  UnitsException: 'arcsec' (angle) and 'pc' (length) are not convertible
+
+However, when passing the result of `~astropy.units.equivalencies.parallax`
+as the third argument to the `~astropy.units.core.UnitBase.to` method,
+degrees of arc and length can be converted.
+
+    >>> u.arcsec.to(u.parsec, 8, equivalencies=u.parallax())
+    0.125
+    >>> u.AU.to(u.arcminute, 1, equivalencies=u.parallax())
+    3437.7467707580054
+
 Spectral Units
 ^^^^^^^^^^^^^^
 
@@ -34,9 +56,10 @@ Length and frequency are not normally convertible, so
   >>> u.nm.to(u.Hz, [1000, 2000])
   UnitsException: 'nm' (length) and 'Hz' (frequency) are not convertible
 
-However, when passing the result of `~astropy.units.equivalencies.spectral`
-as the third argument to the `~astropy.units.core.UnitBase.to` method,
-wavelength, frequency and energy can be converted.
+As mentioned above with parallax units, we simply pass the proper conversion
+function (in this case `~astropy.units.equivalencies.spectral`) as the third
+argument to the `~astropy.units.core.UnitBase.to` method and wavelength,
+frequency and energy can be converted.
 
   >>> u.nm.to(u.Hz, [1000, 2000], equivalencies=u.spectral())
   array([  2.99792458e+14,   1.49896229e+14])
