@@ -23,10 +23,9 @@ Built-in equivalencies
 Parallax Units
 ^^^^^^^^^^^^^^
 `~astropy.units.equivalencies.parallax` is a function that returns an
-equivalency list to handle conversions between degrees of arc and
-units of length.
+equivalency list to handle conversions between angles and length.
 
-Length and degrees are not normally convertible, so
+Length and angles are not normally convertible, so
 `~astropy.units.core.UnitBase.to` raises an exception::
 
   >>> from astropy import units as u
@@ -35,7 +34,7 @@ Length and degrees are not normally convertible, so
 
 However, when passing the result of `~astropy.units.equivalencies.parallax`
 as the third argument to the `~astropy.units.core.UnitBase.to` method,
-degrees of arc and length can be converted.
+angles can be converted into units of length (and vice versa).
 
     >>> u.arcsec.to(u.parsec, 8, equivalencies=u.parallax())
     0.125
