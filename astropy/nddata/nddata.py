@@ -105,7 +105,7 @@ class NDData(object):
     """
 
     def __init__(self, data, uncertainty=None, mask=None, flags=None, wcs=None,
-                 meta=None, unit=None, clist=None):
+                 meta=None, unit=None, cset=None):
 
         if isinstance(data, self.__class__):
             self.data = np.array(data.data, subok=True, copy=False)
@@ -114,9 +114,9 @@ class NDData(object):
                 self.uncertainty = uncertainty
                 log.info("Overwriting NDData's current uncertainty being overwritten with specified uncertainty")
 
-            if clist is not None:
-                self.correlated_list = clist
-                log.info("Overwriting NDData's current correlated list being overwritten with specified correlated list")
+            if cset is not None:
+                self.correlated_set = cset
+                log.info("Overwriting NDData's current correlated set being overwritten with specified correlated set")
 
             if mask is not None:
                 self.mask = mask
@@ -158,7 +158,7 @@ class NDData(object):
             self.meta = meta
             self.unit = unit
             self.uid = uuid4()
-            self.correlated_list = self.uid
+            self.correlated_set = self.uid
 
     @property
     def mask(self):
@@ -232,20 +232,20 @@ class NDData(object):
             self._uid = value
 
     @property
-    def correlated_list(self):
-        return self._correlated_list
+    def correlated_set(self):
+        return self._correlated_set
 
-    @correlated_list.setter
-    def correlated_list(self, value):
+    @correlated_set.setter
+    def correlated_set(self, value):
         if value is not None:
             if isinstance(value, UUID):
-                self._correlated_list = [value]
-            elif isinstance(value, list):
-                self._correlated_list = value
+                self._correlated_set = {value}
+            elif isinstance(value, set):
+                self._correlated_set = value
             else:
-                raise TypeError("Correlated_list must be an instance of a list of UUID objects")
+                raise TypeError("Correlated_set must be an instance of a set of UUID objects")
         else:
-            self._correlated_list = value
+            self._correlated_set = value
 
     @property
     def meta(self):
@@ -404,7 +404,7 @@ class NDData(object):
                          "propagation of correlated errors, so uncertainties"
                          " will be propagated assuming they are uncorrelated")
             if WARN_UNSUPPORTED_CORRELATED() and \
-                len(set(self.correlated_list).intersection(set(operand.correlated_list))) > 0:
+                len(self.correlated_set.intersection(operand.correlated_set)) > 0:
                 log.info("Correlated uncertainty in self and operand")
             try:
                 method = getattr(self.uncertainty, propagate_uncertainties)
@@ -430,7 +430,7 @@ class NDData(object):
         result.wcs = self.wcs
         result.meta = None
         result.unit = self.unit
-        result.correlated_list = self.correlated_list + operand.correlated_list
+        result.correlated_set = self.correlated_set.union(operand.correlated_set)
 
         return result
 
