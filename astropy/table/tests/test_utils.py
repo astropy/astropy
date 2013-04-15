@@ -358,7 +358,7 @@ class TestStackRows():
         t2 = self.t2
         t3 = self.t3
 
-        t12 = t1.stack_rows(t2, join_type='inner')
+        t12 = t1.vstack(t2, join_type='inner')
         assert t12.masked is False
         assert t12.pformat() == [' a   b ',
                                  '--- ---',
@@ -367,8 +367,8 @@ class TestStackRows():
                                  '  2 pez',
                                  '  3 sez']
 
-        t12_list = t1.stack_rows([t2], join_type='inner')
+        t12_list = t1.vstack([t2], join_type='inner')
         assert t12.pformat() == t12_list.pformat()
 
-        t13 = t1.stack_rows(t3, join_type='inner')
+        t13 = t1.vstack(t3, join_type='inner')
         assert t13.pformat() == ['']

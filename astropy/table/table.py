@@ -1834,7 +1834,7 @@ class Table(object):
 
         return out
 
-    def stack_rows(self, tables, join_type='exact',
+    def vstack(self, tables, join_type='exact',
                    uniq_col_name='{col_name}_{table_name}', table_names=None):
         """
         Stack tables by rows (vertically)
@@ -1886,13 +1886,13 @@ class Table(object):
             raise TypeError('Input tables must a Table or sequence of Tables')
 
         arrays = [table._data for table in itertools.chain([self], tables)]
-        out_data = np_utils.stack_rows(arrays, join_type, uniq_col_name, table_names)
+        out_data = np_utils.vstack(arrays, join_type, uniq_col_name, table_names)
 
         out = self.__class__(out_data)
 
         return out
 
-    def stack_columns(self, tables, join_type='exact',
+    def hstack(self, tables, join_type='exact',
                       uniq_col_name='{col_name}_{table_name}', table_names=None):
         """
         Stack tables by columns (horizontally)
@@ -1940,7 +1940,7 @@ class Table(object):
             raise TypeError('Input tables must a Table or sequence of Tables')
 
         arrays = [table._data for table in itertools.chain([self], tables)]
-        out_data = np_utils.stack_columns(arrays, join_type, uniq_col_name, table_names)
+        out_data = np_utils.hstack(arrays, join_type, uniq_col_name, table_names)
 
         out = self.__class__(out_data)
 

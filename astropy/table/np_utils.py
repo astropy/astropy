@@ -272,7 +272,7 @@ def join(left, right, keys=None, join_type='inner',
     return out
 
 
-def stack_rows(arrays, join_type='inner', uniq_col_name='{col_name}_{table_name}',
+def vstack(arrays, join_type='inner', uniq_col_name='{col_name}_{table_name}',
                table_names=None):
     if table_names is None:
         table_names = ['_{0}'.format(ii + 1) for ii in range(len(arrays))]
@@ -340,7 +340,7 @@ def stack_rows(arrays, join_type='inner', uniq_col_name='{col_name}_{table_name}
     return out
 
 
-def stack_columns(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
+def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
                   table_names=None):
     if table_names is None:
         table_names = ['{0}'.format(ii + 1) for ii in range(len(arrays))]
