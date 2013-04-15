@@ -87,8 +87,8 @@ file::
 
   >>> x = np.array([1, 2, 3])
   >>> y = x ** 2
-  >>> data = Table()
-  >>> ascii.write([x, y], names=['x', 'y'], 'values.dat')
+  >>> data = Table([x, y], names=['x', 'y'])
+  >>> ascii.write(data, 'values.dat')
 
 The ``values.dat`` file will then contain::
 
