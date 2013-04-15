@@ -769,7 +769,10 @@ if HAVE_SPHINX:
             from distutils.cmd import DistutilsOptionError
             from subprocess import Popen, PIPE, STDOUT
             from inspect import getsourcelines
-            from urllib import pathname2url
+            if sys.version_info[:3] >= (3, 0, 0):
+                from urllib.request import pathname2url
+            else:
+                from urllib import pathname2url
 
             # If possible, create the _static dir
             if self.build_dir is not None:
