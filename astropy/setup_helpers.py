@@ -769,7 +769,7 @@ if HAVE_SPHINX:
             from distutils.cmd import DistutilsOptionError
             from subprocess import Popen, PIPE, STDOUT
             from inspect import getsourcelines
-            if sys.version_info[:3] >= (3, 0, 0):
+            if PY3:
                 from urllib.request import pathname2url
             else:
                 from urllib import pathname2url
