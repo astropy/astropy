@@ -54,6 +54,8 @@ def test_is_equivalent():
     assert not (u.Hz.is_equivalent(u.J))
     assert u.Hz.is_equivalent(u.J, u.spectral())
     assert u.J.is_equivalent(u.Hz, u.spectral())
+    assert u.pc.is_equivalent(u.arcsecond, u.parallax())
+    assert u.arcminute.is_equivalent(u.au, u.parallax())
 
 
 def test_composite():
@@ -72,6 +74,23 @@ def test_str():
 def test_repr():
     assert repr(u.cm) == 'Unit("cm")'
 
+
+def test_parallax():
+    a = u.arcsecond.to(u.pc, 10, u.parallax())
+    assert_allclose(a, 0.10)
+    b = u.pc.to(u.arcsecond, a, u.parallax())
+    assert_allclose(b, 10)
+    
+    a = u.arcminute.to(u.au, 1, u.parallax())
+    assert_allclose(a, 3437.7467916)
+    b = u.au.to(u.arcminute, a, u.parallax())
+    assert_allclose(b, 1)
+
+
+def test_parallax2():
+    a = u.arcsecond.to(u.pc, [0.1, 2.5], u.parallax())
+    assert_allclose(a, [10, 0.4])
+    
 
 def test_spectral():
     a = u.AA.to(u.Hz, 1, u.spectral())
