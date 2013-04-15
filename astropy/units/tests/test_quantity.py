@@ -282,6 +282,15 @@ def test_quantity_conversion_with_equiv():
     q1 = u.Quantity(0.1, unit=u.meter)
     q2 = q1.to(u.Hz, equivalencies=u.spectral())
     assert_allclose(q2.value, 2997924580.0)
+    
+    q1 = u.Quantity(0.4, unit=u.arcsecond)
+    q2 = q1.to(u.au, equivalencies=u.parallax())
+    q3 = q2.to(u.arcminute, equivalencies=u.parallax())
+    
+    assert_allclose(q2.value, 515662.015)
+    assert q2.unit == u.au
+    assert_allclose(q3.value, 0.0066666667)
+    assert q3.unit == u.arcminute
 
 
 def test_si():
