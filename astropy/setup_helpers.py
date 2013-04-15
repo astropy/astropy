@@ -585,7 +585,9 @@ def generate_default_config(build_lib, package):
     else:
         msg = ('Generation of default configuration item failed! Stdout '
                'and stderr are shown below.\n'
-               'Stdout:\n{stdout}\nStderr:\n{stderr}').decode('UTF-8')
+               'Stdout:\n{stdout}\nStderr:\n{stderr}')
+        if isinstance(msg, bytes):
+            msg = msg.decode('UTF-8')
         log.error(msg.format(stdout=stdout.decode('UTF-8'),
                              stderr=stderr.decode('UTF-8')))
 
