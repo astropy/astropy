@@ -5,7 +5,6 @@ import warnings
 
 from ...tests.helper import pytest
 from ...table import Table
-from ...io import ascii
 from ...utils import OrderedDict, metadata
 from .. import np_utils
 
@@ -20,19 +19,17 @@ class TestJoin():
 
     def setup_method(self, method):
         lines1 = [' a   b   c ',
-                  '--- --- ---',
                   '  0 foo  L1',
                   '  1 foo  L2',
                   '  1 bar  L3',
                   '  2 bar  L4']
         lines2 = [' a   b   d ',
-                  '--- --- ---',
                   '  1 foo  R1',
                   '  1 foo  R2',
                   '  2 bar  R3',
                   '  4 bar  R4']
-        self.t1 = ascii.read(lines1, Reader=ascii.FixedWidthTwoLine)
-        self.t2 = ascii.read(lines2, Reader=ascii.FixedWidthTwoLine)
+        self.t1 = Table.read(lines1, format='ascii')
+        self.t2 = Table.read(lines2, format='ascii')
         self.t1.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
         self.t2.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
         self.meta_merge = OrderedDict([('b', [1, 2, 3, 4]),
@@ -328,7 +325,7 @@ class TestJoin():
                 in str(warning_lines[0].message))
 
 
-class TestStackRows():
+class TestVStack():
 
     def setup_method(self, method):
         self.t1 = Table.read([' a   b',
@@ -343,6 +340,8 @@ class TestStackRows():
                               ' 4   7',
                               ' 5   8',
                               ' 6   9'], format='ascii')
+        self.t4 = Table(self.t1, copy=True, masked=True)
+
         self.t1.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
         self.t2.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
         self.meta_merge = OrderedDict([('b', [1, 2, 3, 4]),
@@ -353,10 +352,10 @@ class TestStackRows():
     def test_bad_input_type(self):
         pass
 
-    def test_stack_two(self):
+    def test_stack_basic(self):
         t1 = self.t1
         t2 = self.t2
-        t3 = self.t3
+        t4 = self.t4
 
         t12 = t1.vstack(t2, join_type='inner')
         assert t12.masked is False
@@ -367,8 +366,54 @@ class TestStackRows():
                                  '  2 pez',
                                  '  3 sez']
 
+        # stacking as a list gives same result
         t12_list = t1.vstack([t2], join_type='inner')
         assert t12.pformat() == t12_list.pformat()
 
-        t13 = t1.vstack(t3, join_type='inner')
-        assert t13.pformat() == ['']
+        t12 = t1.vstack(t2, join_type='outer')
+        assert t12.pformat() == [' a   b   c ',
+                                 '--- --- ---',
+                                 '  0 foo  --',
+                                 '  1 bar  --',
+                                 '  2 pez   4',
+                                 '  3 sez   5']
+
+        t124 = t1.vstack([t2, t4], join_type='outer')
+        assert t124.pformat() == [' a   b   c ',
+                                  '--- --- ---',
+                                  '  0 foo  --',
+                                  '  1 bar  --',
+                                  '  2 pez   4',
+                                  '  3 sez   5',
+                                  '  0 foo  --',
+                                  '  1 bar  --']
+
+        t124 = t1.vstack([t2, t4], join_type='inner')
+        assert t124.pformat() == [' a   b ',
+                                  '--- ---',
+                                  '  0 foo',
+                                  '  1 bar',
+                                  '  2 pez',
+                                  '  3 sez',
+                                  '  0 foo',
+                                  '  1 bar']
+
+    def test_stack_incompatible(self):
+        with pytest.raises(np_utils.TableMergeError):
+            self.t1.vstack(self.t3, join_type='inner')
+
+        # Default join_type is exact, which will fail here
+        with pytest.raises(np_utils.TableMergeError):
+            self.t1.vstack(self.t2)
+
+    def test_vstack_one_masked(self):
+        t1 = self.t1
+        t2 = Table(t1, copy=True, masked=True)
+        t2['b'].mask[1] = True
+        assert t1.vstack(t2).pformat() == [' a   b ',
+                                           '--- ---',
+                                           '  0 foo',
+                                           '  1 bar',
+                                           '  0 foo',
+                                           '  1  --']
+
