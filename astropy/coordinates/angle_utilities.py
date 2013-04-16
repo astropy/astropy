@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 import re
 import math
 import inspect # NB: get the function name with: inspect.stack()[0][3]
+from warnings import warn
 
 from .errors import *
 from ..utils import format_exception
@@ -24,15 +25,21 @@ def _check_hour_range(hrs):
 
 
 def _check_minute_range(min):
-    ''' Checks that the given value is in the range [0,60). '''
-    if not 0. <= min < 60.:
+    ''' Checks that the given value is in the range [0,60].
+    If the value is equal to 60, then a warning is raised. '''
+    if min == 60.:
+        warn(str(IllegalMinuteError(min)))
+    elif not 0. <= min < 60.:
         # "Error: minutes not in range [0,60) ({0}).".format(min))
         raise IllegalMinuteError(min)
 
 
 def _check_second_range(sec):
-    ''' Checks that the given value is in the range [0,60). '''
-    if not 0. <= sec < 60.:
+    ''' Checks that the given value is in the range [0,60].
+    If the value is equal to 60, then a warning is raised. '''
+    if sec == 60.:
+        warn(str(IllegalSecondError(sec)))
+    elif not 0. <= sec < 60.:
         # "Error: seconds not in range [0,60) ({0}).".format(sec))
         raise IllegalSecondError(sec)
 
