@@ -21,7 +21,7 @@ def parallax():
     """
     
     return [
-        (si.arcsecond, astrophys.parsec, lambda x: 1 / x)
+        (si.arcsecond, astrophys.parsec, lambda x: 1. / x)
     ]
 
 
