@@ -10,8 +10,19 @@ from __future__ import (absolute_import, division, print_function,
 from ..constants import si as _si
 from . import si
 from . import cgs
+from . import astrophys
 
-__all__ = ['spectral', 'spectral_density']
+__all__ = ['parallax', 'spectral', 'spectral_density']
+
+def parallax():
+    """
+    Returns a list of equivalence pairs that handle the conversion
+    between parallax angle and distance.
+    """
+    
+    return [
+        (si.arcsecond, astrophys.parsec, lambda x: 1 / x)
+    ]
 
 
 def spectral():
