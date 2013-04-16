@@ -10,20 +10,6 @@
 ##
 ##   Copyright (C) 2008  INAF-IASF Milano
 ##
-##   This program is free software; you can redistribute it and/or
-##   modify it under the terms of the GNU General Public License
-##   as published by the Free Software Foundation; either version 2
-##   of the License, or (at your option) any later version.
-##
-##   This program is distributed in the hope that it will be useful,
-##   but WITHOUT ANY WARRANTY; without even the implied warranty of
-##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-##   GNU General Public License for more details.
-##
-##   You should have received a copy of the GNU General Public License
-##   along with this program; if not, write to the Free Software
-##   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-##   MA 02110-1301, USA.
 ##
 ##   Authors:
 ##
@@ -34,15 +20,6 @@
 ##   Via Bassini 15, I-20133 Milano, Italy
 ##   E-mail: luigi at iasf-milano.inaf.it
 ##   Site  : http://www.iasf-milano.inaf.it/
-##
-################################################################################
-##
-##   Automatic keywords:
-##   $Date: 2013-04-08 15:20:13 +0200 (Mon, 08 Apr 2013) $
-##   $Revision: 1140 $
-##   $Author: luigi $
-##   $HeadURL: http://cosmos.lambrate.inaf.it/svn/fase/trunks/sampy/sampy.py $
-##   $Id: sampy.py 1140 2013-04-08 13:20:13Z luigi $
 ##
 ################################################################################
 
@@ -75,8 +52,8 @@ instantiate a persistent Hub. In order to have a full description of
 """
 __status__ = "release"
 __release__ = "1.3.0"
-__revision__ = "$Revision: 1140 $"
-__date__ = "$Date: 2013-04-08 15:20:13 +0200 (Mon, 08 Apr 2013) $"
+__revision__ = ""
+__date__ = ""
 __profile_version__ = "1.3"
 
 __all__ = ["SAMPHubServer",
