@@ -821,6 +821,18 @@ class NamedUnit(UnitBase):
             self._registry[st] = self
 
 
+def _recreate_irreducible_unit(names, registered):
+    """
+    This is used to reconstruct units when passed around by
+    multiprocessing.
+    """
+    namespace = UnitBase._get_namespace()
+    if names[0] in namespace:
+        return namespace[names[0]]
+    else:
+        return IrreducibleUnit(names, register=registered)
+
+
 class IrreducibleUnit(NamedUnit):
     """
     Irreducible units are the units that all other units are defined
@@ -829,6 +841,18 @@ class IrreducibleUnit(NamedUnit):
     Examples are meters, seconds, kilograms, amperes, etc.  There is
     only once instance of such a unit per type.
     """
+    def __reduce__(self):
+        # When IrreducibleUnit objects are passed to other processes
+        # over multiprocessing, they need to be recreated to be the
+        # ones already in the subprocesses' namespace, not new
+        # objects, or they will be considered "unconvertible".
+        # Therefore, we have a custom pickler/unpickler that
+        # understands how to recreate the Unit on the other side.
+        namespace = UnitBase._get_namespace()
+        return (_recreate_irreducible_unit,
+                (self.names, self.names[0] in namespace),
+                self.__dict__)
+
     @property
     def scale(self):
         """
