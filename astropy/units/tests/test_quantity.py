@@ -487,3 +487,8 @@ def test_quantity_string_unit():
 @raises(ValueError)
 def test_quantity_invalid_unit_string():
     "foo" * u.m
+
+
+@raises(ValueError)
+def test_quantity_invalid_unit_string2():
+    "15" * u.m
