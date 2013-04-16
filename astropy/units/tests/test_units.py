@@ -465,3 +465,19 @@ def test_no_as():
     # do want to define the long form (`attosecond`).
     assert not hasattr(u, 'as')
     assert hasattr(u, 'attosecond')
+
+
+def test_pickling():
+    import cPickle
+
+    p = cPickle.dumps(u.m)
+    other = cPickle.loads(p)
+
+    assert other is u.m
+
+    new_unit = u.IrreducibleUnit(['foo'], register=False, format={'baz': 'bar'})
+    p = cPickle.dumps(new_unit)
+    new_unit_copy = cPickle.loads(p)
+    assert new_unit is not new_unit_copy
+    assert new_unit_copy.names == ['foo']
+    assert new_unit_copy.get_format_name('baz') == 'bar'
