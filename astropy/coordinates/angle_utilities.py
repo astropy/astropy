@@ -540,10 +540,10 @@ def small_angle_sphere_dist(lon1, lat1, lon2, lat2):
     Inputs must be in radians.
     """
 
-    from math import cos
+    from numpy import cos
 
     dlat = lat2 - lat1
-    dlon = (lon2 - lon1) * cos((lat1 + lat2) / 2.)
+    dlon = (lon2 - lon1) * cos((lat1 + lat2) * 0.5)
 
     return (dlat ** 2 + dlon ** 2) ** 0.5
 
@@ -556,11 +556,10 @@ def simple_sphere_dist(lon1, lat1, lon2, lat2):
     Inputs must be in radians.
     """
 
-    # FIXME: array: use numpy functions
-    from math import acos, sin, cos
+    from numpy import sin, cos, arccos
 
     cdlon = cos(lon2 - lon1)
-    return acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(-lat2) * cdlon)
+    return arccos(sin(lat1) * sin(lat2) + cos(lat1) * cos(-lat2) * cdlon)
 
 
 def haversine_sphere_dist(lon1, lat1, lon2, lat2):
@@ -570,14 +569,13 @@ def haversine_sphere_dist(lon1, lat1, lon2, lat2):
     Inputs must be in radians.
     """
 
-    # FIXME: array: use numpy functions
-    from math import asin, sin, cos
+    from numpy import sin, cos, arcsin
 
-    sdlat = sin((lat2 - lat1) / 2)
-    sdlon = sin((lon2 - lon1) / 2)
+    sdlat = sin((lat2 - lat1) * 0.5)
+    sdlon = sin((lon2 - lon1) * 0.5)
     coslats = cos(lat1) * cos(lat2)
 
-    return 2 * asin((sdlat ** 2 + coslats * sdlon ** 2) ** 0.5)
+    return 2 * arcsin((sdlat ** 2 + coslats * sdlon ** 2) ** 0.5)
 
 
 def haversine_atan_sphere_dist(lon1, lat1, lon2, lat2):
@@ -589,16 +587,15 @@ def haversine_atan_sphere_dist(lon1, lat1, lon2, lat2):
     Inputs must be in radians.
     """
 
-    # FIXME: array: use numpy functions
-    from math import atan2, sin, cos
+    from numpy import sin, cos, arctan2
 
-    sdlat = sin((lat2 - lat1) / 2)
-    sdlon = sin((lon2 - lon1) / 2)
+    sdlat = sin((lat2 - lat1) * 0.5)
+    sdlon = sin((lon2 - lon1) * 0.5)
     coslats = cos(lat1) * cos(lat2)
 
     numerator = sdlat ** 2 + coslats * sdlon ** 2
 
-    return 2 * atan2(numerator ** 0.5, (1 - numerator) ** 0.5)
+    return 2 * arctan2(numerator ** 0.5, (1 - numerator) ** 0.5)
 
 
 def vincenty_sphere_dist(lon1, lat1, lon2, lat2):
@@ -612,8 +609,8 @@ def vincenty_sphere_dist(lon1, lat1, lon2, lat2):
 
     Inputs must be in radians.
     """
-    #FIXME: array: use numpy functions
-    from math import atan2, sin, cos
+
+    from numpy import sin, cos, arctan2
 
     sdlon = sin(lon2 - lon1)
     cdlon = cos(lon2 - lon1)
@@ -626,4 +623,5 @@ def vincenty_sphere_dist(lon1, lat1, lon2, lat2):
     num2 = clat1 * slat2 - slat1 * clat2 * cdlon
     denominator = slat1 * slat2 + clat1 * clat2 * cdlon
 
-    return atan2((num1 ** 2 + num2 ** 2) ** 0.5, denominator)
+    return arctan2((num1 ** 2 + num2 ** 2) ** 0.5, 
+                    denominator)
