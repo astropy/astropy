@@ -23,23 +23,23 @@ def b(s):
 
 def test_alt():
     w = _wcs.Wcsprm()
-    assert w.alt == b(" ")
-    w.alt = b("X")
-    assert w.alt == b("X")
+    assert w.alt == " "
+    w.alt = "X"
+    assert w.alt == "X"
     del w.alt
-    assert w.alt == b(" ")
+    assert w.alt == " "
 
 
 @raises(ValueError)
 def test_alt_invalid1():
     w = _wcs.Wcsprm()
-    w.alt = b("$")
+    w.alt = "$"
 
 
 @raises(ValueError)
 def test_alt_invalid2():
     w = _wcs.Wcsprm()
-    w.alt = b("  ")
+    w.alt = "  "
 
 
 def test_axis_types():
@@ -113,10 +113,10 @@ def test_cname():
     w = _wcs.Wcsprm()
     # Test that this works as an iterator
     for x in w.cname:
-        assert x == b('')
-    assert list(w.cname) == [b(''), b('')]
-    w.cname = [b('foo'), b('bar')]
-    assert list(w.cname) == [b('foo'), b('bar')]
+        assert x == ''
+    assert list(w.cname) == ['', '']
+    w.cname = [b('foo'), 'bar']
+    assert list(w.cname) == ['foo', 'bar']
 
 
 @raises(TypeError)
@@ -215,21 +215,21 @@ def test_csyer():
 
 def test_ctype():
     w = _wcs.Wcsprm()
-    assert list(w.ctype) == [b(''), b('')]
-    w.ctype = [b('RA---TAN'), b('DEC--TAN')]
+    assert list(w.ctype) == ['', '']
+    w.ctype = [b('RA---TAN'), 'DEC--TAN']
     assert_array_equal(w.axis_types, [2200, 2201])
     assert w.lat == 1
     assert w.lng == 0
-    assert w.lattyp == b('DEC')
-    assert w.lngtyp == b('RA')
-    assert list(w.ctype) == [b('RA---TAN'), b('DEC--TAN')]
-    w.ctype = [b('foo'), b('bar')]
+    assert w.lattyp == 'DEC'
+    assert w.lngtyp == 'RA'
+    assert list(w.ctype) == ['RA---TAN', 'DEC--TAN']
+    w.ctype = ['foo', 'bar']
     assert_array_equal(w.axis_types, [0, 0])
-    assert list(w.ctype) == [b('foo'), b('bar')]
+    assert list(w.ctype) == ['foo', 'bar']
     assert w.lat == -1
     assert w.lng == -1
-    assert w.lattyp == b('DEC')
-    assert w.lngtyp == b('RA')
+    assert w.lattyp == 'DEC'
+    assert w.lngtyp == 'RA'
 
 
 def test_cubeface():
@@ -278,21 +278,21 @@ def test_cylfix():
 
 def test_dateavg():
     w = _wcs.Wcsprm()
-    assert w.dateavg == b('')
+    assert w.dateavg == ''
     # TODO: When dateavg is verified, check that it works
 
 
 def test_dateobs():
     w = _wcs.Wcsprm()
-    assert w.dateobs == b('')
+    assert w.dateobs == ''
     # TODO: When dateavg is verified, check that it works
 
 
 def test_datfix():
     w = _wcs.Wcsprm()
-    w.dateobs = b('31/12/99')
+    w.dateobs = '31/12/99'
     assert w.datfix() == 0
-    assert w.dateobs == b('1999-12-31')
+    assert w.dateobs == '1999-12-31'
     assert w.mjdobs == 51543.0
 
 
@@ -318,7 +318,7 @@ def test_fix():
 
 def test_fix2():
     w = _wcs.Wcsprm()
-    w.dateobs = b('31/12/99')
+    w.dateobs = '31/12/99'
     assert w.fix() == {
         'cdfix': 'No change',
         'cylfix': 'No change',
@@ -326,13 +326,13 @@ def test_fix2():
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change'}
-    assert w.dateobs == b('1999-12-31')
+    assert w.dateobs == '1999-12-31'
     assert w.mjdobs == 51543.0
 
 
 def test_fix3():
     w = _wcs.Wcsprm()
-    w.dateobs = b('31/12/F9')
+    w.dateobs = '31/12/F9'
     assert w.fix() == {
         'cdfix': 'No change',
         'cylfix': 'No change',
@@ -340,7 +340,7 @@ def test_fix3():
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change'}
-    assert w.dateobs == b('31/12/F9')
+    assert w.dateobs == '31/12/F9'
     assert np.isnan(w.mjdobs)
 
 
@@ -396,7 +396,7 @@ def test_latpole():
 def test_lattyp():
     w = _wcs.Wcsprm()
     print(repr(w.lattyp))
-    assert w.lattyp == b("    ")
+    assert w.lattyp == "    "
 
 
 @raises(AttributeError)
@@ -418,7 +418,7 @@ def test_lng_set():
 
 def test_lngtyp():
     w = _wcs.Wcsprm()
-    assert w.lngtyp == b("    ")
+    assert w.lngtyp == "    "
 
 
 @raises(AttributeError)
@@ -456,9 +456,9 @@ def test_mjdobs():
 
 def test_name():
     w = _wcs.Wcsprm()
-    assert w.name == b('')
-    w.name = b('foo')
-    assert w.name == b('foo')
+    assert w.name == ''
+    w.name = 'foo'
+    assert w.name == 'foo'
 
 
 def test_naxis():
@@ -530,9 +530,9 @@ def test_print_contents():
 
 def test_radesys():
     w = _wcs.Wcsprm()
-    assert w.radesys == b('')
-    w.radesys = b('foo')
-    assert w.radesys == b('foo')
+    assert w.radesys == ''
+    w.radesys = 'foo'
+    assert w.radesys == 'foo'
 
 
 def test_restfrq():
@@ -595,9 +595,9 @@ def test_spec_set():
 
 def test_specsys():
     w = _wcs.Wcsprm()
-    assert w.specsys == b('')
-    w.specsys = b('foo')
-    assert w.specsys == b('foo')
+    assert w.specsys == ''
+    w.specsys = 'foo'
+    assert w.specsys == 'foo'
 
 
 def test_sptr():
@@ -607,16 +607,16 @@ def test_sptr():
 
 def test_ssysobs():
     w = _wcs.Wcsprm()
-    assert w.ssysobs == b('')
-    w.ssysobs = b('foo')
-    assert w.ssysobs == b('foo')
+    assert w.ssysobs == ''
+    w.ssysobs = 'foo'
+    assert w.ssysobs == 'foo'
 
 
 def test_ssyssrc():
     w = _wcs.Wcsprm()
-    assert w.ssyssrc == b('')
-    w.ssyssrc = b('foo')
-    assert w.ssyssrc == b('foo')
+    assert w.ssyssrc == ''
+    w.ssyssrc = 'foo'
+    assert w.ssyssrc == 'foo'
 
 
 def test_tab():
@@ -699,7 +699,7 @@ def test_header_parse():
             'data/header_newlines.fits', encoding='binary') as test_file:
         hdulist = fits.open(test_file)
         w = wcs.WCS(hdulist[0].header)
-    assert w.wcs.ctype[0] == b'RA---TAN-SIP'
+    assert w.wcs.ctype[0] == 'RA---TAN-SIP'
 
 
 def test_locale():
@@ -717,3 +717,9 @@ def test_locale():
         assert re.search("[0-9]+,[0-9]*", w.to_header()) is None
     finally:
         locale.setlocale(locale.LC_NUMERIC, orig_locale)
+
+
+@raises(UnicodeEncodeError)
+def test_unicode():
+    w = _wcs.Wcsprm()
+    w.alt = u"\u2030"

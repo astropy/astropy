@@ -118,11 +118,7 @@ PyStrListProxy_getitem(
     return NULL;
   }
 
-  #if PY3K
-  return PyBytes_FromString(self->array[index]);
-  #else
-  return PyString_FromString(self->array[index]);
-  #endif
+  return get_string("string", self->array[index]);
 }
 
 static int
@@ -139,23 +135,7 @@ PyStrListProxy_setitem(
     return -1;
   }
 
-  #if PY3K
-  if (PyBytes_AsStringAndSize(arg, &value, &value_length)) {
-  #else
-  if (PyString_AsStringAndSize(arg, &value, &value_length)) {
-  #endif
-      return -1;
-  }
-
-  if (value_length >= self->maxsize) {
-    PyErr_Format(PyExc_ValueError,
-                 "string must be less than %zd characters", self->maxsize);
-    return -1;
-  }
-
-  strncpy(self->array[index], value, self->maxsize);
-
-  return 0;
+  return set_string("string", arg, self->array[index], self->maxsize);
 }
 
 /*@null@*/ PyObject*
