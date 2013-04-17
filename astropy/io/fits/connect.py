@@ -57,9 +57,8 @@ def is_fits(origin, *args, **kwargs):
         if args[0].lower().endswith(('.fits', '.fits.gz', '.fit', '.fit.gz')):
             return True
         else:
-            f = open(args[0], 'rb')
-            sig = f.read(30)
-            f.close()
+            with open(args[0], 'rb') as f:
+                sig = f.read(30)
             return sig == FITS_SIGNATURE
     elif hasattr(args[0], 'read'):
         pos = args[0].tell()
