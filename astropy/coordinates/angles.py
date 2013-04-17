@@ -689,11 +689,11 @@ class AngularSeparation(Angle):
                 'result.'))
 
         units = u.Unit(units)
-        lat1 = units.to(u.radian, lat1)
-        if 0 == lon1 == lat2 == lon2:
-            sepval = lat1
+        lon1 = units.to(u.radian, lon1)
+        if 0 == lat1 == lat2 == lon2:
+            sepval = lon1
         else:
-            lon1 = units.to(u.radian, lon1)
+            lat1 = units.to(u.radian, lat1)
             lon2 = units.to(u.radian, lon2)
             lat2 = units.to(u.radian, lat2)
 
