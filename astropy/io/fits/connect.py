@@ -6,6 +6,8 @@ import os
 import re
 import warnings
 
+import numpy as np
+
 from ...utils import OrderedDict
 from .. import registry as io_registry
 from ...table import Table
@@ -124,6 +126,16 @@ def read_table_fits(input, hdu=None):
     # Convert to an astropy.table.Table object
     t = Table(table.data)
 
+    # Check if table is masked
+    for col in table.get_coldefs():
+        if col.null is not None:
+            t.masked = True
+
+    # Copy over null values if needed
+    if t.masked:
+        for col in table.get_coldefs():
+            t[col.name].set_fill_value(col.null)
+
     # TODO: deal properly with unsigned integers
 
     for key, value, comment in table.header.cards:
@@ -176,7 +188,12 @@ def write_table_fits(input, output, overwrite=False):
             raise IOError("File exists: {0}".format(output))
 
     # Create a new HDU object
-    table_hdu = BinTableHDU(input._data)
+    if input.masked:
+        table_hdu = BinTableHDU(np.array(input.filled()))
+        for col in table_hdu.get_coldefs():
+            col.null = input[col.name].get_fill_value()
+    else:
+        table_hdu = BinTableHDU(np.array(input))
 
     # Write out file
     table_hdu.writeto(output)
