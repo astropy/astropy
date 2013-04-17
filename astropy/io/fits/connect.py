@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import os
 import re
+import warnings
 
 from ...utils import OrderedDict
 from .. import registry as io_registry
@@ -11,7 +12,7 @@ from ...table import Table
 from ... import log
 
 from . import HDUList, TableHDU, BinTableHDU
-from . import open as fits_open
+from .hdu.hdulist import fitsopen as fits_open
 
 
 # FITS file signature as per RFC 4047
@@ -71,7 +72,7 @@ def is_fits(origin, *args, **kwargs):
         return False
 
 
-def read_table_fits(input, hdu_id=None):
+def read_table_fits(input, hdu=None):
     """
     Read a Table object from an FITS file
 
@@ -83,8 +84,8 @@ def read_table_fits(input, hdu_id=None):
         :class:`~astropy.io.fits.hdu.table.BinTableHDU` or
         :class:`~astropy.io.fits.hdu.hdulist.HDUList` instance, the object to
         extract the table from.
-    hdu_id : str, optional
-        The HDU to read the table from
+    hdu : int or str, optional
+        The HDU to read the table from.
     """
 
     if isinstance(input, basestring):
@@ -93,22 +94,25 @@ def read_table_fits(input, hdu_id=None):
     # Parse all table objects
     tables = OrderedDict()
     if isinstance(input, HDUList):
-        for ihdu, hdu in enumerate(input):
-            if isinstance(hdu, (TableHDU, BinTableHDU)):
-                tables[ihdu] = hdu
+        for ihdu, hdu_item in enumerate(input):
+            if isinstance(hdu_item, (TableHDU, BinTableHDU)):
+                tables[ihdu] = hdu_item
 
         if len(tables) > 1:
-            if hdu_id is None:
-                raise ValueError(
-                    "Multiple tables found: HDU id should be set via "
-                    "the hdu_id= argument. The available tables HDUs are " +
-                    ', '.join([str(x) for x in tables.keys()]))
+
+            if hdu is None:
+                warnings.warn("hdu= was not specified but multiple tables are present, reading in first available table (hdu={0})".format(tables.keys()[0]))
+                hdu = tables.keys()[0]
+
+            # hdu might not be an integer, so we first need to convert it to
+            # the correct HDU index
+            hdu = input.index_of(hdu)
+
+            if hdu in tables:
+                table = tables[hdu]
             else:
-                if hdu_id in tables:
-                    table = tables[hdu_id]
-                else:
-                    raise ValueError(
-                        "No tables with hdu_id={0} found".format(hdu_id))
+                raise ValueError("No table found in hdu={0}".format(hdu))
+
         elif len(tables) == 1:
             table = tables[tables.keys()[0]]
         else:
