@@ -24,13 +24,16 @@ FITS_SIGNATURE = (b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"
 REMOVE_KEYWORDS = ['XTENSION', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2', 'PCOUNT', 'GCOUNT', 'TFIELDS']
 
 # Column-specific keywords
-COLUMN_KEYWORDS = ['TTYPE[0-9]+',
-                   'TUNIT[0-9]+',
-                   'TFORM[0-9]+',
+COLUMN_KEYWORDS = ['TFORM[0-9]+',
+                   'TBCOL[0-9]+',
                    'TSCAL[0-9]+',
                    'TZERO[0-9]+',
                    'TNULL[0-9]+',
-                   'TDISP[0-9]+']
+                   'TTYPE[0-9]+',
+                   'TUNIT[0-9]+',
+                   'TDISP[0-9]+',
+                   'TDIM[0-9]+',
+                   'THEAP']
 
 
 def is_column_keyword(keyword):
@@ -138,14 +141,7 @@ def read_table_fits(input, hdu=None):
             else:
                 t.meta[key] = [t.meta[key], value]
 
-        elif is_column_keyword(key):
-
-            # TODO: remove column keywords that aren't needed
-
-            column_id = int(key[5:]) - 1
-            t.columns[t.colnames[column_id]].meta[key] = value
-
-        elif key in REMOVE_KEYWORDS:
+        elif is_column_keyword(key) or key in REMOVE_KEYWORDS:
 
             pass
 
