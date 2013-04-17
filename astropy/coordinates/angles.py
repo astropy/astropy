@@ -65,7 +65,7 @@ class Angle(object):
 
     Raises
     ------
-    `~astropy.coordinates.errors.UnitsError`
+    `~astropy.units.core.UnitsException`
         If a unit is not provided or it is not hour, radian, or degree.
 
     """
@@ -104,8 +104,9 @@ class Angle(object):
                         # If units are not specified as a parameter, the only chance
                         # to determine them is in a string value - if it's not a string,
                         # then there's not enough information to create an Angle.
-                        raise UnitsError("Could not parse an angle value in the array provided"
-                                         "- units could not be determined.".format(angle[idx]))
+                        raise u.UnitsException("Could not parse an angle value "
+                                        "in the array provided - units could "
+                                        "not be determined.".format(angle[idx]))
                 for idx, a in enumerate(angle):
                     a_unit = None
                     # order is important here - longest name first
@@ -130,8 +131,9 @@ class Angle(object):
                                 angle[idx] = util.parse_radians(a)
                                 break
                     if a_unit is None:
-                        raise UnitsError('Could not parse the angle value "{0}" '
-                                         '- units could not be determined.'.format(angle[idx]))
+                        raise u.UnitsException('Could not parse the angle value '
+                                         '"{0}" - units could not be determined.'
+                                         .format(angle[idx]))
                 unit = u.radian
 
             else:  # single value
@@ -158,18 +160,18 @@ class Angle(object):
                                 raise ValueError('Unrecognized tostr... this should never happen!')
                             break
                     else:
-                        raise UnitsError('Could not infer Angle units '
+                        raise u.UnitsException('Could not infer Angle units '
                             'from provided string "{0}"'.format(inputangle))
 
 
 
         else:
-            raise UnitsError('Requested unit "{0}" for Angle, which could not be '
+            raise u.UnitsException('Requested unit "{0}" for Angle, which could not be '
                 'interpreted as a unit - should be a string or astropy.units '
                 'unit object'.format(unit))
 
         if unit is None:
-            raise UnitsError("No unit was specified in Angle initializer; the "
+            raise u.UnitsException("No unit was specified in Angle initializer; the "
                 "unit parameter should be an object from the  astropy.units "
                 "module (e.g. 'from astropy import units as u', then use "
                 "'u.degree').")
@@ -184,7 +186,7 @@ class Angle(object):
             elif unit is u.hour:
                 self._radians = util.hours_to_radians(util.parse_hours(angle))
             else:
-                raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
+                raise u.UnitsException("The unit value provided was not one of u.degree, u.hour, u.radian'.")
 
         # ---------------
         # bounds checking
@@ -320,7 +322,7 @@ class Angle(object):
                     sep = 'hms'
                 res = util.hours_to_string(self.hours, precision=precision, sep=sep, pad=pad)
         else:
-            raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
+            raise u.UnitsException("The unit value provided was not one of u.degree, u.hour, u.radian'.")
 
         if alwayssign and not res.startswith('-'):
             return '+' + res
@@ -486,7 +488,7 @@ class RA(Angle):
 
     Raises
     ------
-    `~astropy.coordinates.errors.UnitsError`
+    `~astropy.coordinates.errors.UnitsException`
         If a unit is not provided or it is not hour, radian, or degree.
     """
 
@@ -530,7 +532,7 @@ class RA(Angle):
     #             if angle > 24:
     #                 unit = u.degree
     #             else:
-    #                 raise UnitsError("No units were specified, and the angle value was ambiguous between hours and degrees.")
+    #                 raise u.UnitsException("No units were specified, and the angle value was ambiguous between hours and degrees.")
     #         elif isinstance(angle, basestring):
     #             # Try to deduce the units from hints in the string.
     #             # Further, enforce absolute bounds here, i.e. don't let
@@ -553,19 +555,19 @@ class RA(Angle):
     #                 if decimal_value > 24:
     #                     unit = u.degree
     #                 elif 0 <= decimal_value <= 24.0:
-    #                     raise UnitsError("No units were specified, and the angle value was ambiguous between hours and degrees.")
+    #                     raise u.UnitsException("No units were specified, and the angle value was ambiguous between hours and degrees.")
     #                 elif decimal_value < 0:
     #                     raise RangeError("No units were specified; could not assume any since the value was less than zero.")
     #         elif isinstance(angle, tuple):
     #             if len(angle) == 3 and 0 <= angle[0] < 24.0:
-    #                 raise UnitsError("No units were specified, and the angle value was ambiguous between hours and degrees.")
+    #                 raise u.UnitsException("No units were specified, and the angle value was ambiguous between hours and degrees.")
     #             else:
     #                 unit = u.degree
     #         else:
     #             raise ValueError("Angle values of type {0} not supported.".format(type(angle).__name__))
     #
     #     if unit is None:
-    #         raise UnitsError("Units must be specified for RA, one of u.degree, u.hour, or u.radian.")
+    #         raise u.UnitsException("Units must be specified for RA, one of u.degree, u.hour, or u.radian.")
     #
     #     # By here, the unit should be defined.
     #     super(RA, self).__init__(angle, unit=unit, bounds=(0, 360))
@@ -634,7 +636,7 @@ class Dec(Angle):
 
         Raises
         ------
-        `~astropy.coordinates.errors.UnitsError`
+        `~astropy.units.core.UnitsException`
             If a unit is not provided or it is not hour, radian, or degree.
     """
     def __init__(self, angle, unit=None):
