@@ -32,7 +32,7 @@ def empty_writer(table, *args, **kwargs):
     pass
 
 
-def empty_identifier(args, kwargs):
+def empty_identifier(*args, **kwargs):
     return True
 
 

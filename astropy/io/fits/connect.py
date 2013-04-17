@@ -39,7 +39,7 @@ def is_column_keyword(keyword):
     return False
 
 
-def is_fits(origin, args, kwargs):
+def is_fits(origin, *args, **kwargs):
     """
     Determine whether `origin` is a FITS file.
 
