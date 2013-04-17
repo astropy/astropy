@@ -442,9 +442,9 @@ def test_radec():
     ra = RA((56, 14, 52.52), unit=u.degree)      # can accept tuples
     #TODO: again, fix based on >24 behavior
     #ra = RA((56,14,52.52))
-    with raises(ValueError):
+    with raises(u.UnitsException):
         ra = RA((56, 14, 52.52))
-    with raises(ValueError):
+    with raises(u.UnitsException):
         ra = RA((12, 14, 52))  # ambiguous w/o units
     ra = RA((12, 14, 52), unit=u.hour)
 
@@ -512,7 +512,7 @@ def test_create_coordinate():
     npt.assert_almost_equal(dec.degrees, -41.137545095)
 
     # We should be really robust in what we accept.
-    with raises(ValueError):
+    with raises(u.UnitsException):
         c = ICRSCoordinates("12 34 56  -56 23 21") # ambiguous
 
     with raises(TypeError):
