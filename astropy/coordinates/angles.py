@@ -682,20 +682,20 @@ class AngularSeparation(Angle):
             from warnings import warn
             from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
             warn(AstropyBackwardsIncompatibleChangeWarning('The ordering of '
-                ' the AngularSeparation initializer angles was changed in '
+                ' the AngularSeparation initializer angles was changed '
                 'from lat1, lon1, lat2, lon2 in v0.2 to "lon1, lat1, lon2, '
                 'lat2" in v0.3.  You MUST update your code to swap lat/lon '
                 'if you are not using keywords, or you will get the wrong '
                 'result.'))
 
         units = u.Unit(units)
-        lon1 = units.to(u.radian, lon1)
+        lat1 = units.to(u.radian, lat1)
         if 0 == lon1 == lat2 == lon2:
             sepval = lat1
         else:
             lon1 = units.to(u.radian, lon1)
-            lat2 = units.to(u.radian, lat2)
             lon2 = units.to(u.radian, lon2)
+            lat2 = units.to(u.radian, lat2)
 
             sepval = util.vincenty_sphere_dist(lon1, lat1, lon2, lat2)
 
