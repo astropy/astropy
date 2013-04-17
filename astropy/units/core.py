@@ -1006,7 +1006,7 @@ def _recreate_irreducible_unit(names, registered):
     This is used to reconstruct units when passed around by
     multiprocessing.
     """
-    namespace = UnitBase._get_namespace()
+    namespace = _UnitRegistry().namespace
     if names[0] in namespace:
         return namespace[names[0]]
     else:
@@ -1028,9 +1028,9 @@ class IrreducibleUnit(NamedUnit):
         # objects, or they will be considered "unconvertible".
         # Therefore, we have a custom pickler/unpickler that
         # understands how to recreate the Unit on the other side.
-        namespace = UnitBase._get_namespace()
+        namespace = _UnitRegistry().namespace
         return (_recreate_irreducible_unit,
-                (self.names, self.names[0] in namespace),
+                (list(self.names), self.name in namespace),
                 self.__dict__)
 
     @property
