@@ -3,7 +3,7 @@
 
 ''' This module defines custom errors and exceptions used in astropy.coordinates.
 
-    Note: Recently switched from a custom definted UnitsError to
+    Note: Recently switched from a custom defined UnitsError to
     astropy.units.core.UnitsException. This will be renamed to
     astropy.units.core.UnitsError, and we'll have to rename
     everything in astropy.coordinates again...
