@@ -5,6 +5,7 @@ __all__ = ['NDData']
 
 import numpy as np
 from uuid import UUID, uuid4
+from warnings import warn
 
 from ..units import Unit
 from .. import log
@@ -227,7 +228,7 @@ class NDData(object):
             if isinstance(value, UUID):
                 self._uid = value
             else:
-                raise TypeError("Uid must be an instance of a UUID object")
+                raise TypeError("uid must be an instance of a UUID object")
         else:
             self._uid = value
 
@@ -405,7 +406,7 @@ class NDData(object):
                          " will be propagated assuming they are uncorrelated")
             if WARN_UNSUPPORTED_CORRELATED() and \
                 len(self.correlated_set.intersection(operand.correlated_set)) > 0:
-                log.info("Correlated uncertainty in self and operand")
+                warn('Correlated uncertainty in self and operand', RuntimeWarning)
             try:
                 method = getattr(self.uncertainty, propagate_uncertainties)
                 result.uncertainty = method(operand, result.data)
