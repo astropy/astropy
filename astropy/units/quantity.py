@@ -88,6 +88,25 @@ class Quantity(object):
         string unit.
     """
 
+    @classmethod
+    def parse_string(cls, quantity_string):
+        """
+        Parses a Quantity string like "5 km/s" and returns a Quantity
+
+        Parameters
+        ----------
+        quantity_string : str
+            Quantity string like "5 km/s"
+
+        Returns
+        -------
+
+        a Quantity object
+        """
+        value, unit = quantity_string.split()
+        return cls(float(value), unit)
+
+
     def __init__(self, value, unit):
         from ..utils.misc import isiterable
 
