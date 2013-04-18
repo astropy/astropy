@@ -79,8 +79,8 @@ class TestCore(FitsTestCase):
         hdulist.writeto(self.temp('test.fits'), clobber=True)
         with fits.open(self.temp('test.fits')) as hdulist:
             table = hdulist[1]
-            assert table.data.dtype.names == ('c1', 'c2', 'c3')
-            assert table.columns.names == ['c1', 'c2', 'c3']
+            assert table.data.dtype.names == ('c2', 'c4', 'foo')
+            assert table.columns.names == ['c2', 'c4', 'foo']
 
     def test_update_header_card(self):
         """A very basic test for the Header.update method--I'd like to add a

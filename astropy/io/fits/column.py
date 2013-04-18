@@ -501,13 +501,14 @@ class ColDefs(object):
 
         cname = name[:-1]
         if cname in KEYWORD_ATTRIBUTES and name[-1] == 's':
-            attr = [''] * len(self)
-            for idx in range(len(self)):
-                val = getattr(self[idx], cname)
+            attr = []
+            for col in self:
+                val = getattr(col, cname)
                 if val is not None:
-                    attr[idx] = val
-            self.__dict__[name] = attr
-            return self.__dict__[name]
+                    attr.append(val)
+                else:
+                    attr.append('')
+            return attr
         raise AttributeError(name)
 
     @property
@@ -765,11 +766,11 @@ class _ASCIIColDefs(ColDefs):
         # a field may not be the column right after the last field
         end = 0
         spans = [0] * len(self)
-        for idx in range(len(self)):
-            format, width = _convert_ascii_format(self.formats[idx])
-            if not self.starts[idx]:
-                self.starts[idx] = end + 1
-            end = self.starts[idx] + width - 1
+        for idx, col in enumerate(self):
+            format, width = _convert_ascii_format(col.format)
+            if not col.start:
+                col.start = end + 1
+            end = col.start + width - 1
             spans[idx] = width
         self._width = end
         return spans
