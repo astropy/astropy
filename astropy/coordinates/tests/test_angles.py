@@ -29,3 +29,39 @@ def test_negative_zero_hm():
     # Test for HM parser
     a = Angle('-00:10', u.hour)
     assert_allclose(a.hours, -10. / 60.)
+
+
+def test_negative_sixty_hm():
+    # Test for HM parser
+    a = Angle('-00:60', u.hour)
+    assert_allclose(a.hours, -1.)
+
+
+def test_plus_sixty_hm():
+    # Test for HM parser
+    a = Angle('00:60', u.hour)
+    assert_allclose(a.hours, 1.)
+
+
+def test_negative_fifty_nine_sixty_dms():
+    # Test for DMS parser
+    a = Angle('-00:59:60', u.deg)
+    assert_allclose(a.degrees, -1.)
+
+
+def test_plus_fifty_nine_sixty_dms():
+    # Test for DMS parser
+    a = Angle('+00:59:60', u.deg)
+    assert_allclose(a.degrees, 1.)
+
+
+def test_negative_sixty_dms():
+    # Test for DMS parser
+    a = Angle('-00:00:60', u.deg)
+    assert_allclose(a.degrees, -1. / 60.)
+
+
+def test_plus_sixty_dms():
+    # Test for DMS parser
+    a = Angle('+00:00:60', u.deg)
+    assert_allclose(a.degrees, 1. / 60.)
