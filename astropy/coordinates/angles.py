@@ -690,18 +690,16 @@ class AngularSeparation(Angle):
 
         units = u.Unit(units)
         lon1 = units.to(u.radian, lon1)
-        if 0 == lat1 == lat2 == lon2:
-            sepval = lon1
-        else:
+        if lat1 or lat2 or lon2:
             lat1 = units.to(u.radian, lat1)
             lon2 = units.to(u.radian, lon2)
             lat2 = units.to(u.radian, lat2)
 
             sepval = util.vincenty_sphere_dist(lon1, lat1, lon2, lat2)
+        else:  # this is the case where lat1, lat2, and lon2 are all 0 or None or False
+            sepval = lon1
 
         super(AngularSeparation, self).__init__(sepval, u.radian)
-
-
 
     def __add__(self, other):
         raise TypeError('+ is ambiguous for AngularSeparation objects; not supported')
