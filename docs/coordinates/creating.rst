@@ -18,7 +18,7 @@ system and a number for the two angles.  For example::
 Note that if you do not provide units explicitly, this will fail::
 
     >>> ICRSCoordinates(23, 1)
-    UnitsError: No unit was specified in Angle initializer; the unit parameter should be an object from the  astropy.units module (e.g. 'from astropy import units as u', then use 'u.degree').
+    UnitsException: No unit was specified in Angle initializer; the unit parameter should be an object from the  astropy.units module (e.g. 'from astropy import units as u', then use 'u.degree').
 
 While the above example uses python numerical types, you can also provide strings to create coordinates.
 If the `unit` parameter is ``(None, None)`` (the default), strings will be interpreted using the `Angle` 
@@ -33,7 +33,7 @@ specifying an angle. For the exact rules for how each string is parsed, see the
     >>> ICRSCoordinates("14.12412 hours", "-41:08:15.162342 degrees")
     <ICRSCoordinates RA=211.86180 deg, Dec=-41.13755 deg>
     >>> ICRSCoordinates("14.12412 -41:08:15.162342")
-    UnitsError: Could not infer Angle units from provided string 14.12412
+    UnitsException: Could not infer Angle units from provided string 14.12412
 
 You can also directly specify the units for both to resolve ambiguities in parsing the angle strings::
 

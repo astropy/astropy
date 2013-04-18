@@ -77,7 +77,7 @@ def test_create_angles():
 
     Angle(0.944644098745, unit=u.radian)
 
-    with raises(UnitsError):
+    with raises(u.UnitsException):
         Angle(54.12412)
         #raises an exception because this is ambiguous
 
@@ -412,9 +412,9 @@ def test_radec():
     Angle class is to be used for other coordinate systems.
     '''
 
-    with raises(UnitsError):
+    with raises(u.UnitsException):
         ra = RA("4:08:15.162342")  # error - hours or degrees?
-    with raises(UnitsError):
+    with raises(u.UnitsException):
         ra = RA("-4:08:15.162342")
 
     # the "smart" initializer allows >24 to automatically do degrees, but the
@@ -423,14 +423,14 @@ def test_radec():
 
     #ra = RA("26:34:15.345634")  # unambiguous b/c hours don't go past 24
     #npt.assert_almost_equal(ra.degrees, 26.570929342)
-    with raises(UnitsError):
+    with raises(u.UnitsException):
         ra = RA("26:34:15.345634")
 
     #ra = RA(68)
-    with raises(UnitsError):
+    with raises(u.UnitsException):
         ra = RA(68)
 
-    with raises(UnitsError):
+    with raises(u.UnitsException):
         ra = RA(12)
 
     with raises(ValueError):
@@ -442,9 +442,9 @@ def test_radec():
     ra = RA((56, 14, 52.52), unit=u.degree)      # can accept tuples
     #TODO: again, fix based on >24 behavior
     #ra = RA((56,14,52.52))
-    with raises(ValueError):
+    with raises(u.UnitsException):
         ra = RA((56, 14, 52.52))
-    with raises(ValueError):
+    with raises(u.UnitsException):
         ra = RA((12, 14, 52))  # ambiguous w/o units
     ra = RA((12, 14, 52), unit=u.hour)
 
@@ -458,7 +458,7 @@ def test_radec():
     ## Where RA values are commonly found in hours or degrees, declination is
     ## nearly always specified in degrees, so this is the default.
     #dec = Dec("-41:08:15.162342")
-    with raises(UnitsError):
+    with raises(u.UnitsException):
         dec = Dec("-41:08:15.162342")
     dec = Dec("-41:08:15.162342", unit=u.degree)  # same as above
 
@@ -512,7 +512,7 @@ def test_create_coordinate():
     npt.assert_almost_equal(dec.degrees, -41.137545095)
 
     # We should be really robust in what we accept.
-    with raises(ValueError):
+    with raises(u.UnitsException):
         c = ICRSCoordinates("12 34 56  -56 23 21") # ambiguous
 
     with raises(TypeError):
@@ -696,7 +696,7 @@ def test_distances():
     d3 = Distance(value=5, unit=u.kpc)
 
     # need to provide a unit
-    with raises(UnitsError):
+    with raises(u.UnitsException):
         Distance(12)
 
     # standard units are pre-defined
