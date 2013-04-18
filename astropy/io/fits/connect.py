@@ -62,7 +62,7 @@ def is_fits(origin, *args, **kwargs):
     if isinstance(args[0], basestring):
         if args[0].lower().endswith(('.fits', '.fits.gz', '.fit', '.fit.gz')):
             return True
-        else:
+        elif origin == 'read':
             with open(args[0], 'rb') as f:
                 sig = f.read(30)
             return sig == FITS_SIGNATURE
@@ -122,6 +122,14 @@ def read_table_fits(input, hdu=None):
             table = tables[tables.keys()[0]]
         else:
             raise ValueError("No table found")
+
+    elif isinstance(input, (TableHDU, BinTableHDU)):
+
+        table = input
+
+    else:
+
+        raise ValueError("Input should be a string, an HDUList object, or a TableHDU instance or BinTableHDU instance")
 
     # Convert to an astropy.table.Table object
     t = Table(table.data)
