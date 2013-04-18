@@ -9,7 +9,6 @@ from abc import ABCMeta, abstractproperty, abstractmethod
 import numpy as np
 
 from .angles import RA, Dec, Angle, AngularSeparation
-from .errors import UnitsError
 from .. import units as u
 from .. import cosmology
 
@@ -45,7 +44,7 @@ class Distance(object):
 
     Raises
     ------
-    UnitsError
+    astropy.units.core.UnitsException
         If the `unit` is not a distance.
 
     Examples
@@ -97,10 +96,10 @@ class Distance(object):
             if value is None:
                 raise ValueError('A value for the distance must be provided')
             if unit is None:
-                raise UnitsError('A unit must be provided for distance.')
+                raise u.UnitsException('A unit must be provided for distance.')
 
             if not unit.is_equivalent(u.m):
-                raise UnitsError('provided unit for Distance is not a length')
+                raise u.UnitsException('provided unit for Distance is not a length')
             self._value = value
             self._unit = unit
 

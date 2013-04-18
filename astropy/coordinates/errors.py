@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-''' This module defines custom errors and exceptions used in astropy.coordinates. '''
+''' This module defines custom errors and exceptions used in astropy.coordinates.
 
-__all__ = ['RangeError', 'BoundsError', 'UnitsError', 'IllegalHourError',
+    Note: Recently switched from a custom defined UnitsError to
+    astropy.units.core.UnitsException. This will be renamed to
+    astropy.units.core.UnitsError, and we'll have to rename
+    everything in astropy.coordinates again...
+'''
+
+__all__ = ['RangeError', 'BoundsError', 'IllegalHourError',
            'IllegalMinuteError', 'IllegalSecondError', 'ConvertError']
 
 
@@ -75,13 +81,6 @@ class IllegalSecondError(RangeError):
 
     def __str__(self):
         return "An invalid value for 'second' was found ('{0}'); must be in the range [0,60).".format(self.second)
-
-
-# TODO: consider if this should be used to `units`?
-class UnitsError(ValueError):
-    """
-    Raised if units are missing or invalid.
-    """
 
 
 class ConvertError(Exception):
