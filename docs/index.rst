@@ -71,9 +71,8 @@ User Documentation
    :maxdepth: 1
 
    cosmology/index
-   wcs/index
-   vo/index
    stats/index
+   vo/index
 
 **Nuts and bolts of Astropy**
 
