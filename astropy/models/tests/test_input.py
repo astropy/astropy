@@ -4,7 +4,8 @@ This module tests fitting and model evaluation with various inputs
 """
 from __future__ import division
 import numpy as np
-from .. import models, fitting
+from .. import builtin_models as models
+from .. import fitting
 from numpy.testing import utils
 from ...tests.helper import pytest
 

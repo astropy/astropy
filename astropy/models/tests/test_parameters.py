@@ -2,7 +2,7 @@
 """
 Tests models.parameters
 """
-from .. import models, fitting
+from .. import builtin_models as models, fitting
 from . import irafutil
 from ..utils import InputParameterError
 import numpy as np

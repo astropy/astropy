@@ -4,12 +4,12 @@ Fitting Models to data
 
 This module provides wrappers, called Fitters, around some Numpy and Scipy 
 fitting functions. All Fitters can be called as functions. They take an instance of 
-`~astropy.models.models.ParametricModel` as input and modify 
-`~astropy.models.models.ParametricModel.parameters`
+`~astropy.models.core.ParametricModel` as input and modify 
+`~astropy.models.core.ParametricModel.parameters`
 attribute. The idea is to make this extensible and allow users to easily add 
 other fitters.
 
-Linear fitting is done using Numpy's ~numpy.linalg.lstsq` function.
+Linear fitting is done using Numpy's `~numpy.linalg.lstsq` function.
 There are currently two non-linear fitters which use `~scipy.optimize.leastsq`
 and `~scipy.optimize.slsqp`.
 
@@ -33,7 +33,7 @@ Fitting Examples
 - Fitting simultaneously a polynomial model to multiple data sets
 
 
->>> p1 = models.Poly1DModel(3)
+>>> p1 = builtin_models.Poly1DModel(3)
 >>> p1.c0 = 1
 >>> p1.c1 = 2
 >>> p1.parameters
@@ -41,7 +41,7 @@ Fitting Examples
 >>> x = np.arange(10)
 >>> y = p1(x)
 >>> yy = np.array([y, y]).T
->>> p2 = models.Poly1DModel(3, paramdim=2)
+>>> p2 = builtin_models.Poly1DModel(3, paramdim=2)
 >>> pfit = fitting.LinearLSQFitter(p2)
 >>> pfit(x,yy)
 >>> print p2.psets
@@ -61,7 +61,7 @@ polynomial without that term will be fitted to the data. For example, fixing
 c0 in a polynomial model will fit a polynomial with the zero-th order term missing.
 
 >>> x = np.arange(1, 10, .1)
->>> p1 = models.Poly1DModel(2, paramdim=2)
+>>> p1 = builtin_models.Poly1DModel(2, paramdim=2)
 >>> p1.parameters = [1, 1, 2, 2, 3, 3]
 >>> p1.psets
 array([[ 1.,  1.],
@@ -83,11 +83,11 @@ array([[ 5.50225913,  5.50225913],
 >>> def tiedfunc(g1):
     ...    xcen = 3 * g1.xsigma[0]
     ...    return xcen
->>> g1 = models.Gauss1DModel(amplitude=10., xcen=3, xsigma=.5, tied={'xcen': tiedfunc})
+>>> g1 = builtin_models.Gauss1DModel(amplitude=10., xcen=3, xsigma=.5, tied={'xcen': tiedfunc})
 
 or
 
->>> g1 = models.Gauss1DModel(amplitude=10., xcen=3, xsigma=.5)
+>>> g1 = builtin_models.Gauss1DModel(amplitude=10., xcen=3, xsigma=.5)
 >>> g1.xcen.tied = tiedfunc
 >>> gfit = fitting.NonLinearLSQFitter(g1)
 

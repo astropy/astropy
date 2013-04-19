@@ -2,22 +2,22 @@
 Creating and Evaluating Models
 ******************************
 
-The base class of all models is `~astropy.models.models.Model`, however fittable
-models should subclass `~astropy.models.models.ParametricModel`. Parametric 
+The base class of all models is `~astropy.models.core.Model`, however fittable
+models should subclass `~astropy.models.core.ParametricModel`. Parametric 
 models can be linear or nonlinear in a regression analysis sense.
 
 To evaluate a model, it is called like a function. When possible the 
 transformation is done using multiple parameter sets,
-`~astropy.models.models.Model.psets`.
+`~astropy.models.core.Model.psets`.
 The number of parameter sets is stored in an attribute
-`~astropy.models.models.Model.paramdim`. 
+`~astropy.models.core.Model.paramdim`. 
 
 Parametric models also store a flat list of all parameters as an instance of 
 `~astropy.models.parameters.Parameters`. When fitting, this list-like object is
 modified by a subclass of `~astropy.models.fitting.Fitter`. When fitting nonlinear models,
 the values of the parameters are used as initial guesses by the fitting class.
 
-Models have an `~astropy.models.models.Model.ndim` attribute, which shows
+Models have an `~astropy.models.core.Model.ndim` attribute, which shows
 how many coordinates the 
 model expects as an input. All models expect coordinates as separate arguments.
 For example a 2D model expects x and y to be passed separately, 
@@ -28,25 +28,29 @@ of parameter sets and x_shape, y_shape is the shape of the input array.
 In all other cases the shape of the output array is the same as the shape of the 
 input arrays. 
 
-Models also have an attribute `~astropy.models.models.Model.outdim`, which shows
-the number of output coordinates. The `~astropy.models.models.Model.ndim` and
-`~astropy.models.models.Model.outdim` attributes are used to chain transforms by
-adding models in series, `~astropy.models.models.SCompositeModel`, or in parallel,
-`~astropy.models.models.PCompositeModel`. Because composite models can 
+Models also have an attribute `~astropy.models.core.Model.outdim`, which shows
+the number of output coordinates. The `~astropy.models.core.Model.ndim` and
+`~astropy.models.core.Model.outdim` attributes are used to chain transforms by
+adding models in series, `~astropy.models.core.SCompositeModel`, or in parallel,
+`~astropy.models.core.PCompositeModel`. Because composite models can 
 be nested within other composite models, creating 
 theoretically infinetely complex models, a mechanism to map input data to models 
 is needed. In this case the input may be wrapped in a
-`~astropy.models.models.LabeledInput` object - a dict like object whose items are {label: data} pairs.
+`~astropy.models.core.LabeledInput` object - a dict like object whose items are {label: data} pairs.
 
 Models Examples
 ---------------
 
+The examples here assume this import statement was executed:
+
+>>> from astropy.models import *
+
 - Create a 1D Gaussian with 2 parameter sets
 
 >>> x = np.arange(1, 10, .1)
->>>models.Gauss1DModel.parnames
+>>> builtin_models.Gauss1DModel.parnames
 ['amplitude', 'xcen', 'xsigma']
->>> g1 = models.Gauss1DModel(amplitude=[10, 9], xcen=[2,3], fwhm=[.3,.2])
+>>> g1 = builtin_models.Gauss1DModel(amplitude=[10, 9], xcen=[2,3], fwhm=[.3,.2])
 >>> g1.psets
 array([[ 10.      ,   9.      ],
        [  2.      ,   3.      ],
@@ -68,9 +72,9 @@ or two data sets (any other number would be an error)
 
   import matplotlib.pyplot as plt
   import numpy as np
-  from astropy.models import models, fitting
+  from astropy.models import builtin_models, fitting
   x = np.arange(1, 10, .1)
-  g1 = models.Gauss1DModel(amplitude=[10, 9], xcen=[2,3], fwhm=[.3,.2])
+  g1 = builtin_models.Gauss1DModel(amplitude=[10, 9], xcen=[2,3], fwhm=[.3,.2])
   y = g1(x)
   plt.plot(x, y)
   plt.title('Evaluate a Gauss1DModel with 2 parameter sets and 1 set of input data')
@@ -80,9 +84,9 @@ or two data sets (any other number would be an error)
 
   import matplotlib.pyplot as plt
   import numpy as np
-  from astropy.models import models, fitting
+  from astropy.models import builtin_models, fitting
   x = np.arange(1, 10, .1)
-  g1 = models.Gauss1DModel(amplitude=[10, 9], xcen=[2,3], fwhm=[.3,.2])
+  g1 = builtin_models.Gauss1DModel(amplitude=[10, 9], xcen=[2,3], fwhm=[.3,.2])
   y = g1(np.array([x, x]).T)
   plt.plot(x, y)
   plt.title('Evaluating a Gauss1DModel with 2 parameter sets and 2 sets of input data')
@@ -91,7 +95,7 @@ or two data sets (any other number would be an error)
   
 - Evaluating polynomial models with multiple parameter sets with one input data set creates multiple output data sets
 
->>> p1 = models.Poly1DModel(1, paramdim=5)
+>>> p1 = builtin_models.Poly1DModel(1, paramdim=5)
 >>> len(p1.parameters)
 10
 >>> p1.c1 = [0, 1, 2, 3, 4]
@@ -105,9 +109,9 @@ array([[ 0.,  0.,  0.,  0.,  0.],
 
   import matplotlib.pyplot as plt
   import numpy as np
-  from astropy.models import models, fitting
+  from astropy.models import builtin_models, fitting
   x = np.arange(1, 10, .1)
-  p1 = models.Poly1DModel(1, paramdim=5)
+  p1 = builtin_models.Poly1DModel(1, paramdim=5)
   p1.c1 = [0, 1, 2, 3, 4]
   y = p1(x)
   plt.plot(x, y)
@@ -135,9 +139,9 @@ array([[ 0.,  1.,  2.,  3.,  4.],
 - Create and evaluate a parallel composite model
 
 >>> x = np.arange(1,10,.1)
->>> p1 = models.Poly1DModel(1)
->>> g1 = models.Gauss1DModel(10., xsigma=2.1, xcen=4.2)
->>> parallel_composite_model = models.PCompositeModel([g1, p1])
+>>> p1 = builtin_models.Poly1DModel(1)
+>>> g1 = builtin_models.Gauss1DModel(10., xsigma=2.1, xcen=4.2)
+>>> parallel_composite_model = PCompositeModel([g1, p1])
 >>> y = parallel_composite_model(x)
 
 This is equivalent to applying the two models in parallel:
@@ -147,15 +151,15 @@ This is equivalent to applying the two models in parallel:
 In more complex cases the input and output may be mapped to transformations:
 
 >>> x, y = np.mgrid[:5, :5]
->>> off = models.ShiftModel(-3.2)
->>> poly2 = models.Poly2DModel(2)
->>> serial_composite_model = models.SCompositeModel([off, poly2], inmap=[['x'], ['x', 'y']], outmap=[['x'], ['z']])
+>>> off = builtin_models.ShiftModel(-3.2)
+>>> poly2 = builtin_models.Poly2DModel(2)
+>>> serial_composite_model = SCompositeModel([off, poly2], inmap=[['x'], ['x', 'y']], outmap=[['x'], ['z']])
 
 The above composite transform will apply an inplace shift to x, followed by a 2D 
 polynomial and will save the result in an array, labeled 'z'.
 To evaluate this model use a LabeledInput object
 
->>> labeled_data = models.LabeledInput([x, y], ['x', 'y'])
+>>> labeled_data = LabeledInput([x, y], ['x', 'y'])
 >>> result = serial_composite_model(labeled_data)
 
 The output is also a LabeledInput object and the result is stored in label 'z'.

@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import division
-from .. import models, fitting
+from .. import builtin_models as models
+from .. import fitting
 import numpy as np
 from numpy.testing import utils
 from numpy.random import RandomState

@@ -16,7 +16,7 @@ Models do not reference fitting algorithms explicitely
 algorithms may be added without changing the existing models.
 In addition models can be combined in different ways using a machinery 
 that allows assigning outputs from one model into the appropriate input 
-of another in a flexible way, `~astropy.models.models.LabeledInput`.
+of another in a flexible way, `~astropy.models.core.LabeledInput`.
 The goal is to eventually provide a rich toolset of models and fitters
 such that most users will not need to define new model classes, nor
 special purpose fitting routines (but not making that hard to do if it is necessary).
@@ -25,10 +25,11 @@ special purpose fitting routines (but not making that hard to do if it is necess
 Getting Started
 ===============
 
-All examples assume the following modules have been imported
+The examples here use the predefined models and assume the following modules
+have been imported.
 
 >>> import numpy as np
->>> from astropy.models import models, fitting
+>>> from astropy.models import builtin_models, fitting
 
 Working with 1D models
 ======================
@@ -36,7 +37,7 @@ Working with 1D models
 Fit a data set with a gaussian model.
 
 >>> x = np.arange(1, 10, .1)
->>> g1 = models.Gauss1DModel(10., xsigma=2.1, xcen=4.2)
+>>> g1 = builtin_models.Gauss1DModel(10., xsigma=2.1, xcen=4.2)
 >>> g1
 <Gauss1DModel(amplitude= [10.0],xcen= [4.2000000000000002],xsigma= [2.1000000000000001],paramdim=1)>
 >>> y = g1(x)
@@ -56,7 +57,7 @@ Parameters:
          
 Create data using 1D Chebyshev model
 
->>> ch1 = models.Chebyshev1DModel(3, domain=[x.min(), x.max()])
+>>> ch1 = builtin_models.Chebyshev1DModel(3, domain=[x.min(), x.max()])
 >>> ch1.parameters
 [0.0, 0.0, 0.0, 0.0]
 >>> ch1.parameters = [1, 2, 3, 4]
@@ -81,7 +82,7 @@ Add some noise
 
 Fit a Chebyshev polynomial to the data
 
->>> ch2 = models.Chebyshev1DModel(3)
+>>> ch2 = builtin_models.Chebyshev1DModel(3)
 >>> chfit = fitting.LinearLSQFitter(ch2)
 >>> chfit(x, ny)
 >>> ch2.parameters
@@ -91,14 +92,14 @@ Fit a Chebyshev polynomial to the data
 
   import matplotlib.pyplot as plt
   import numpy as np
-  from astropy.models import models, fitting
+  from astropy.models import builtin_models, fitting
   x = np.arange(1, 10, .1)
-  ch1 = models.Chebyshev1DModel(3, domain=[x.min(), x.max()])
+  ch1 = builtin_models.Chebyshev1DModel(3, domain=[x.min(), x.max()])
   ch1.parameters = [1, 2, 3, 4]
   y = ch1(x)
   n = np.random.randn(90)
   ny = y + n
-  ch2 = models.Chebyshev1DModel(3)
+  ch2 = builtin_models.Chebyshev1DModel(3)
   chfit = fitting.LinearLSQFitter(ch2)
   chfit(x, ny)
   plt.plot(x, y, label='y - Chebyshev polynomial')
@@ -119,7 +120,7 @@ First create some data to be fitted with a 2D polynomial
 
 Fit a 2D polynomial to the data
 
->>> p2 = models.Poly2DModel(2)
+>>> p2 = builtin_models.Poly2DModel(2)
 >>> print p2
 Model: Poly2DModel
 Dim:   2
@@ -159,7 +160,5 @@ Reference/API
 .. automodapi:: astropy.models
 .. automodapi:: astropy.models.constraints
 .. automodapi:: astropy.models.fitting
-.. automodapi:: astropy.models.models
+.. automodapi:: astropy.models.builtin_models
 .. automodapi:: astropy.models.parameters
-.. automodapi:: astropy.models.projections
-.. automodapi:: astropy.models.rotations

@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module provides wrappers, called Fitters, around some Numpy and Scipy
-fitting functions. All Fitters take an instance of `~astropy.models.models.ParametricModel` as input
+fitting functions. All Fitters take an instance of `~astropy.models.core.ParametricModel` as input
 and define a __call__ method which fits the model to the data and changes the
 model's parameters attribute. The idea is to make this extensible and allow
 users to easily add other fitters.
@@ -232,7 +232,7 @@ class LinearLSQFitter(Fitter):
     
     Parameters
     ----------
-    model : an instance of `fitting.models.ParametricModel`
+    model : an instance of `~astropy.models.core.ParametricModel`
     
     Raises
     ------
@@ -386,7 +386,7 @@ class NonLinearLSQFitter(Fitter):
     
     Parameters
     ----------
-    model : a fittable :class: `models.ParametricModel`
+    model : a fittable :class: `~astropy.models.core.ParametricModel`
         model to fit to data
     
     Raises
@@ -522,10 +522,6 @@ class SLSQPFitter(Fitter):
     
     """
     def __init__(self, model):
-        """
-        
-            
-        """
         super(SLSQPFitter, self).__init__(model)
         if self.model.linear:
             warnings.warn('Model is linear in parameters, '

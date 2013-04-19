@@ -4,10 +4,10 @@ Implements sky projections defined in WCS Paper II [1]_
 
 All angles are set and reported in deg but internally the code works and 
 keeps all angles in radians. For this to work, the mechanism of setting Model's 
-properties is bypassed by passing an empty parlist to Model.__init__. This also
-has the effect of not creating Projection.parameters. Projection.parnames is 
-created within the Projection class. 
-For an example see AZP
+properties is bypassed by passing an empty parlist to `~astropy.models.core.Model.__init__`.
+This also has the effect of not creating Projection.parameters. 
+Projection.parnames is created within the Projection class. 
+For an example see the AZP classes.
       
 References
 ----------
@@ -15,7 +15,7 @@ References
 
 """
 from __future__ import division, print_function
-from .models import Model
+from .core import Model
 from . import parameters
 import numpy as np
 

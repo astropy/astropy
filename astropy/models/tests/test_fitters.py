@@ -4,7 +4,8 @@ Module to test fitting routines
 """
 from __future__ import division
 import os.path
-from .. import models, fitting
+from .. import builtin_models as models
+from .. import fitting
 from . import irafutil
 import numpy as np
 from numpy import linalg

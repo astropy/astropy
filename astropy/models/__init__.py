@@ -8,9 +8,10 @@ and fitting routines.
 
 """
 
-from .models import *
-from .fitting import *
+from . import builtin_models
+from .core import *
+from . import fitting
 from .parameters import *
-from .projections import *
-from .rotations import *
+
+
 
