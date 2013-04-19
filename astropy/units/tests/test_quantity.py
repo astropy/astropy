@@ -475,3 +475,20 @@ def test_quantity_initialized_with_quantity():
     q3 = u.Quantity([q1, q2], u.second)
     assert q3[0].value == 60
     assert q3[1].value == 60
+
+def test_quantity_string_unit():
+    q1 = "m" / u.s
+    assert q1.value == 1
+    assert q1.unit == (u.m / u.s)
+
+    q2 = q1 * "m"
+    assert q2.unit == ((u.m * u.m) / u.s)
+
+@raises(ValueError)
+def test_quantity_invalid_unit_string():
+    "foo" * u.m
+
+
+@raises(ValueError)
+def test_quantity_invalid_unit_string2():
+    "15" * u.m
