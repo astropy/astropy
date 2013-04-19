@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import sys
+
 from distutils import version
 import numpy as np
 
@@ -62,7 +64,10 @@ class TestRow():
         assert row.columns is table.columns
         with pytest.raises(IndexError):
             row[2]
-        assert str(row.dtype) == "[('a', '<i8'), ('b', '<i8')]"
+        if sys.byteorder == 'little':
+            assert str(row.dtype) == "[('a', '<i8'), ('b', '<i8')]"
+        else:
+            assert str(row.dtype) == "[('a', '>i8'), ('b', '>i8')]"
 
     def test_ref(self):
         """Row is a reference into original table data"""
