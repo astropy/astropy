@@ -2111,6 +2111,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         self.links.append(link)
         link.parse(iterator, config)
 
+    def _add_info(self, iterator, tag, data, config, pos):
+        if not config.get('version_1_2_or_later'):
+            warn_or_raise(W26, W26, ('INFO', 'TABLE', '1.2'), config, pos)
+        info = Info(config=config, pos=pos, **data)
+        self.infos.append(info)
+        info.parse(iterator, config)
+
     def parse(self, iterator, config):
         columns = config.get('columns')
 
@@ -2159,6 +2166,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 'PARAM'       : self._add_param,
                 'GROUP'       : self._add_group,
                 'LINK'        : self._add_link,
+                'INFO'        : self._add_info,
                 'DESCRIPTION' : self._ignore_add}
 
             for start, tag, data, pos in iterator:
