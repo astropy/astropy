@@ -181,7 +181,7 @@ class TestErrorResponse(object):
 
     def conesearch_compare(self, xmlfile, msg):
         """Bypassing Cone Search query and just imitating the reply,
-        then check if appropriate error message is catched.
+        then check if appropriate error message is caught.
 
         """
         # conesearch_error4.xml is a wont-fix for now
