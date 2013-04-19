@@ -350,7 +350,12 @@ class TestVStack():
                                        ('a', 1)])
 
     def test_bad_input_type(self):
-        pass
+        with pytest.raises(TypeError):
+            self.t1.vstack(1)
+        with pytest.raises(TypeError):
+            self.t1.vstack([self.t2, 1])
+        with pytest.raises(ValueError):
+            self.t1.vstack(self.t2, join_type='invalid join type')
 
     def test_stack_basic(self):
         t1 = self.t1
@@ -416,4 +421,3 @@ class TestVStack():
                                            '  1 bar',
                                            '  0 foo',
                                            '  1  --']
-

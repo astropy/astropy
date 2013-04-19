@@ -111,6 +111,23 @@ def _merge_table_meta(out, left, right):
     out.meta = metadata.merge(left.meta, right.meta)
 
 
+def _get_sequence_of_tables(tables):
+    """
+    Check that tables is a Table or sequence of Tables.  Returns the
+    corresponding list of Tables.
+    """
+    err = '`tables` arg must be a Table or sequence of Tables'
+    if isinstance(tables, Table):
+        tables = [tables]
+    elif isinstance(tables, collections.Sequence):
+        if any(not isinstance(x, Table) for x in tables):
+            raise TypeError(err)
+    else:
+        raise TypeError(err)
+
+    return tables
+
+
 class TableColumns(OrderedDict):
     """OrderedDict subclass for a set of columns.
 
@@ -1834,13 +1851,12 @@ class Table(object):
 
         return out
 
-    def vstack(self, tables, join_type='exact',
-                   uniq_col_name='{col_name}_{table_name}', table_names=None):
+    def vstack(self, tables, join_type='exact'):
         """
-        Stack tables by rows (vertically)
+        Stack tables vertically (by rows)
 
         A ``join_type`` of 'exact' (default) means that the tables must all
-        have exactly the same columns (though the order can vary).  If
+        have exactly the same column names (though the order can vary).  If
         ``join_type`` is 'inner' then the intersection of common columns will
         be output.  A value of 'outer' means the output will have the union of
         all columns, with table values being masked where no common values are
@@ -1852,8 +1868,8 @@ class Table(object):
         To stack two tables by rows do::
 
           >>> from astropy.table import Table
-          >>> t1 = Table([[1, 2], [3, 4]], names=('a', 'b'))
-          >>> t2 = Table([[5, 6], [7, 8]], names=('a', 'b'))
+          >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
+          >>> t2 = Table({'a': [5, 6], 'b': [7, 8]}, names=('a', 'b'))
           >>> print t1.vstack(t2)
            a   b
           --- ---
@@ -1869,31 +1885,17 @@ class Table(object):
             Table(s) to stack by rows (vertically) with the current table
         join_type : str
             Join type ('inner' | 'exact' | 'outer'), default is 'exact'
-        uniq_col_name : str or None
-            String generate a unique output column name in case of a conflict.
-            The default is '{col_name}_{table_name}'.
-        table_names : list of str or None
-            Two-element list of table names used when generating unique output
-            column names.  The default is ['1', '2', ..].
-
         """
-        if isinstance(tables, Table):
-            tables = [tables]
-        elif isinstance(tables, collections.Sequence):
-            if any(not isinstance(x, Table) for x in tables):
-                raise TypeError('All input tables must be a Table object')
-        else:
-            raise TypeError('Input tables must a Table or sequence of Tables')
-
+        tables = _get_sequence_of_tables(tables)
         arrays = [table._data for table in itertools.chain([self], tables)]
-        out_data = np_utils.vstack(arrays, join_type, uniq_col_name, table_names)
+        out_data = np_utils.vstack(arrays, join_type)
 
         out = self.__class__(out_data)
 
         return out
 
     def hstack(self, tables, join_type='exact',
-                      uniq_col_name='{col_name}_{table_name}', table_names=None):
+               uniq_col_name='{col_name}_{table_name}', table_names=None):
         """
         Stack tables by columns (horizontally)
 
@@ -1906,11 +1908,11 @@ class Table(object):
         Example
         -------
 
-        To stack two tables by columns do::
+        To stack two tables horizontally (by columns) do::
 
           >>> from astropy.table import Table
-          >>> t1 = Table([[1, 2], [3, 4]], names=('a', 'b'))
-          >>> t2 = Table([[5, 6], [7, 8]], names=('c', 'd'))
+          >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
+          >>> t2 = Table({'c': [5, 6], 'd': [7, 8]}, names=('c', 'd'))
           >>> print t1.hstack(t2)
            a   b   c   d
           --- --- --- ---
@@ -1931,14 +1933,7 @@ class Table(object):
             Two-element list of table names used when generating unique output
             column names.  The default is ['1', '2', ..].
         """
-        if isinstance(tables, Table):
-            tables = [tables]
-        elif isinstance(tables, collections.Sequence):
-            if any(not isinstance(x, Table) for x in tables):
-                raise TypeError('All input tables must be a Table object')
-        else:
-            raise TypeError('Input tables must a Table or sequence of Tables')
-
+        tables = _get_sequence_of_tables(tables)
         arrays = [table._data for table in itertools.chain([self], tables)]
         out_data = np_utils.hstack(arrays, join_type, uniq_col_name, table_names)
 
