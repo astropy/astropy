@@ -428,6 +428,53 @@ class TestVStack():
                                            '  0 foo',
                                            '  1  --']
 
+    def test_col_meta_merge(self):
+        t1 = self.t1
+        t2 = self.t2
+        t4 = self.t4
+
+        # Key col 'a', should first value ('cm')
+        t1['a'].units = 'cm'
+        t2['a'].units = 'm'
+        t4['a'].units = 'km'
+        # Key col 'b', take first value 't1_b'
+        t1['b'].description = 't1_b'
+        # Key col 'b', take first non-empty value '%6s'
+        t4['b'].format = '%6s'
+        # Key col 'a', should be merged meta
+        self.t1['a'].meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
+        self.t2['a'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+        self.t4['a'].meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
+        # Key col 'b', should be meta2
+        t2['b'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+
+        # All these should pass through
+        t2['c'].units = 'm'
+        t2['c'].format = '%6s'
+        t2['c'].description = 't2_c'
+
+        with warnings.catch_warnings(record=True) as warning_lines:
+            warnings.resetwarnings()
+            warnings.simplefilter("always", metadata.MergeConflictWarning, append=True)
+
+            out = t1.vstack([t2, t4], join_type='outer')
+
+        assert out['a'].units == 'cm'
+        assert out['b'].description == 't1_b'
+        assert out['b'].format == '%6s'
+        assert out['a'].meta == self.meta_merge
+        assert out['b'].meta == OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)])
+        assert out['c'].units == 'm'
+        assert out['c'].format == '%6s'
+        assert out['c'].description == 't2_c'
+
+        assert warning_lines[0].category == metadata.MergeConflictWarning
+        assert ("In merged column 'a' the 'units' attribute does not match (cm != m)"
+                in str(warning_lines[0].message))
+        assert warning_lines[1].category == metadata.MergeConflictWarning
+        assert ("In merged column 'a' the 'units' attribute does not match (cm != km)"
+                in str(warning_lines[1].message))
+
 
 class TestHStack():
 
