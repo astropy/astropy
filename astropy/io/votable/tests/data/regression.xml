@@ -26,6 +26,7 @@ The VOTable format is an XML standard for the interchange of data represented as
 <DESCRIPTION>
   This describes the table.
 </DESCRIPTION>
+<INFO name="Error" value="One might expect to find some INFO here, too..."/>
 <GROUP>
   <PARAMref ref="awesome"/>
 </GROUP>
