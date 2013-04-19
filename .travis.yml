@@ -54,13 +54,13 @@ before_install:
 
 install:
    - export PYTHONIOENCODING=UTF8 # just in case
-   - export WHEELURL="http://www.mpia-hd.mpg.de/~robitaille/python"
+   - export WHEELURL="http://www.astro.yale.edu/etollerud/wheelhouse"
    - export PYVERS=${TRAVIS_PYTHON_VERSION/./""} # strips the '.' as needed in the wheel file names
    
    # install numpy and Cython from wheels, and scipy if OPTIONAL_DEPS requested
    - if [[ $SETUP_CMD != egg_info ]]; then pip install $WHEELURL/numpy-$NUMPY_VERSION-cp$PYVERS-none-linux_x86_64.whl; fi
    - if [[ $SETUP_CMD != egg_info ]]; then pip install $WHEELURL/Cython-0.18-cp$PYVERS-none-linux_x86_64.whl; fi
-   - if $OPTIONAL_DEPS; then pip install  $WHEELURL/scipy-0.11.0-cp$PYVERS-none-linux_x86_64.whl; fi
+   - if $OPTIONAL_DEPS; then pip install  $WHEELURL/scipy-0.12.0-cp$PYVERS-none-linux_x86_64.whl; fi
    
    # this is how you would build numpy,scipy, and Cython if we don't have wheels.
    #- if [[ $SETUP_CMD != egg_info ]]; then pip install --upgrade "numpy==$NUMPY_VERSION" -q --use-mirrors; fi
