@@ -421,3 +421,96 @@ class TestVStack():
                                            '  1 bar',
                                            '  0 foo',
                                            '  1  --']
+
+
+class TestHStack():
+
+    def setup_method(self, method):
+        self.t1 = Table.read([' a   b',
+                              ' 0 foo',
+                              ' 1 bar'], format='ascii')
+
+        self.t2 = Table.read([' a   b   c',
+                              ' 2  pez  4',
+                              ' 3  sez  5'], format='ascii')
+
+        self.t3 = Table.read([' d   e',
+                              ' 4   7',
+                              ' 5   8',
+                              ' 6   9'], format='ascii')
+        self.t4 = Table(self.t1, copy=True, masked=True)
+        self.t4['a'].name = 'f'
+        self.t4['b'].name = 'g'
+
+        self.t1.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
+        self.t2.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+        self.meta_merge = OrderedDict([('b', [1, 2, 3, 4]),
+                                       ('c', {'a': 1, 'b': 1}),
+                                       ('d', 1),
+                                       ('a', 1)])
+
+    def test_bad_input_type(self):
+        with pytest.raises(TypeError):
+            self.t1.hstack(1)
+        with pytest.raises(TypeError):
+            self.t1.hstack([self.t2, 1])
+        with pytest.raises(ValueError):
+            self.t1.hstack(self.t2, join_type='invalid join type')
+
+    def test_stack_basic(self):
+        t1 = self.t1
+        t2 = self.t2
+        t3 = self.t3
+        t4 = self.t4
+
+        out = t1.hstack(t2, join_type='inner')
+        assert out.masked is False
+        assert out.pformat() == ['a_1 b_1 a_2 b_2  c ',
+                                 '--- --- --- --- ---',
+                                 '  0 foo   2 pez   4',
+                                 '  1 bar   3 sez   5']
+
+        # stacking as a list gives same result
+        out_list = t1.hstack([t2], join_type='inner')
+        assert out.pformat() == out_list.pformat()
+
+        out = t1.hstack(t2, join_type='outer')
+        assert out.pformat() == out_list.pformat()
+
+        out = t1.hstack([t2, t3, t4], join_type='outer')
+        assert out.pformat() == ['a_1 b_1 a_2 b_2  c   d   e   f   g ',
+                                 '--- --- --- --- --- --- --- --- ---',
+                                 '  0 foo   2 pez   4   4   7   0 foo',
+                                 '  1 bar   3 sez   5   5   8   1 bar',
+                                 ' --  --  --  --  --   6   9  --  --']
+
+        out = t1.hstack([t2, t3, t4], join_type='inner')
+        assert out.pformat() == ['a_1 b_1 a_2 b_2  c   d   e   f   g ',
+                                 '--- --- --- --- --- --- --- --- ---',
+                                 '  0 foo   2 pez   4   4   7   0 foo',
+                                 '  1 bar   3 sez   5   5   8   1 bar']
+
+    def test_stack_incompatible(self):
+        # Default join_type is exact, which will fail here because n_rows
+        # does not match
+        with pytest.raises(np_utils.TableMergeError):
+            self.t1.hstack(self.t3)
+
+    def test_hstack_one_masked(self):
+        t1 = self.t1
+        t2 = Table(t1, copy=True, masked=True)
+        t2['b'].mask[1] = True
+        assert t1.hstack(t2).pformat() == ['a_1 b_1 a_2 b_2',
+                                           '--- --- --- ---',
+                                           '  0 foo   0 foo',
+                                           '  1 bar   1  --']
+
+    def test_hstack_col_rename(self):
+        out = self.t1.hstack(self.t2, join_type='inner',
+                             uniq_col_name='{table_name}_{col_name}',
+                             table_names=('left', 'right'))
+        assert out.masked is False
+        assert out.pformat() == ['left_a left_b right_a right_b  c ',
+                                 '------ ------ ------- ------- ---',
+                                 '     0    foo       2     pez   4',
+                                 '     1    bar       3     sez   5']
