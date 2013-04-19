@@ -18,12 +18,16 @@ Running from ``astropy/vo/client/tests`` directory::
     py.test test_vo.py --remote-data
 
 """
+# STDLIB
+import os
+
 # THIRD-PARTY
 import numpy as np
 
 # LOCAL
 from .. import conesearch, vos_catalog
 from ....tests.helper import pytest, remote_data
+from ....utils.data import get_pkg_data_filename
 from ....utils.data import REMOTE_TIMEOUT
 
 
@@ -155,3 +159,44 @@ class TestConeSearch(object):
     def teardown_class(self):
         conesearch.CONESEARCH_DBNAME.set(
             conesearch.CONESEARCH_DBNAME.defaultvalue)
+
+
+class TestErrorResponse(object):
+    """Test Cone Search error response handling.
+
+    This is defined in Section 2.3 of Simple Cone Search Version 1.03,
+    IVOA Recommendation, 22 February 2008.
+
+    Also see https://github.com/astropy/astropy/issues/1001
+
+    """
+    def setup_class(self):
+        self.datadir = 'data'
+        self.pedantic = False
+        self.conesearch_errmsg = {
+            'conesearch_error1.xml': 'Error in input RA value: as3f',
+            'conesearch_error2.xml': 'Error in input RA value: as3f',
+            'conesearch_error3.xml': 'Invalid data type: text/html',
+            'conesearch_error4.xml': 'Invalid data type: text/html'}
+
+    def conesearch_compare(self, xmlfile, msg):
+        """Bypassing Cone Search query and just imitating the reply,
+        then check if appropriate error message is catched.
+
+        """
+        # conesearch_error4.xml is a wont-fix for now
+        if xmlfile == 'conesearch_error4.xml':
+            pytest.xfail('Currently not supported, '
+                         'see astropy.io.votable.exceptions.W22')
+
+        url = get_pkg_data_filename(os.path.join(self.datadir, xmlfile))
+        try:
+            r = vos_catalog._vo_service_request(url, self.pedantic, {})
+        except vos_catalog.VOSError as e:
+            assert msg in str(e)
+
+    @pytest.mark.parametrize(('id'), [1, 2, 3, 4])
+    def test_conesearch_response(self, id):
+        xml = 'conesearch_error{0}.xml'.format(id)
+        msg = self.conesearch_errmsg[xml]
+        self.conesearch_compare(xml, msg)
