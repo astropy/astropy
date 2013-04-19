@@ -79,7 +79,7 @@ A Full Example of a LineModel
     from astropy.models import models, parameters
     import numpy as np
     
-    class Line(models.PModel):
+    class Line(models.PolynomialModel):
         parnames = ['slope', 'intercept']
     
     def init(self, slope, intercept, paramdim=1):

@@ -468,7 +468,7 @@ class ParametricModel(Model):
         """
         self.joint = jpars
 
-class PModel(ParametricModel):
+class PolynomialModel(ParametricModel):
     """
     Base class for all polynomial models.
     
@@ -494,7 +494,7 @@ class PModel(ParametricModel):
                 paramdim = lenpars
             self._validate_pars(**pars)  
             self.set_coeff(pardim=paramdim, **pars)
-        super(PModel, self).__init__(self.parnames, ndim=ndim, outdim=outdim, 
+        super(PolynomialModel, self).__init__(self.parnames, ndim=ndim, outdim=outdim, 
                                                         paramdim=paramdim)
     
     def _invlex(self):
@@ -744,7 +744,7 @@ class OrthogPolyBase(ParametricModel):
         """
         raise NotImplementedError("Subclasses should implement this")
 
-class Chebyshev1DModel(PModel):
+class Chebyshev1DModel(PolynomialModel):
     """
     
     1D Chebyshev polynomial of the 1st kind.
@@ -820,7 +820,7 @@ class Chebyshev1DModel(PModel):
         result = self.clenshaw(x, self.psets)
         return _convert_output(result, fmt)
         
-class Legendre1DModel(PModel):
+class Legendre1DModel(PolynomialModel):
     """
     
     1D Legendre polynomial.
@@ -892,7 +892,7 @@ class Legendre1DModel(PModel):
         result = self.clenshaw(x, self.psets)
         return _convert_output(result, fmt)
         
-class Poly1DModel(PModel):
+class Poly1DModel(PolynomialModel):
     """
     
     1D Polynomial model.
@@ -949,7 +949,7 @@ class Poly1DModel(PModel):
         result = self.horner(x, self.psets)
         return _convert_output(result, fmt)
             
-class Poly2DModel(PModel):
+class Poly2DModel(PolynomialModel):
     """
     2D Polynomial  model.
     
