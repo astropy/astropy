@@ -14,3 +14,4 @@ For installation instructions, see the `online documentation <http://docs.astrop
 or  ``docs/install.rst`` in this source distribution.
 
 .. image:: http://jenkins.shiningpanda-ci.com/astropy/job/astropy-master-debian-multiconfig/badge/icon
+.. image:: https://travis-ci.org/astropy/astropy.png
