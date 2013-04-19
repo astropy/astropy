@@ -442,9 +442,9 @@ class TestVStack():
         # Key col 'b', take first non-empty value '%6s'
         t4['b'].format = '%6s'
         # Key col 'a', should be merged meta
-        self.t1['a'].meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
-        self.t2['a'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
-        self.t4['a'].meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
+        t1['a'].meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
+        t2['a'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+        t4['a'].meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
         # Key col 'b', should be meta2
         t2['b'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
 
@@ -574,3 +574,38 @@ class TestHStack():
                                  '------ ------ ------- ------- ---',
                                  '     0    foo       2     pez   4',
                                  '     1    bar       3     sez   5']
+
+    def test_col_meta_merge(self):
+        t1 = self.t1
+        t3 = self.t3
+        t4 = self.t4
+
+        # Just set a bunch of meta and make sure it is the same in output
+        meta1 = OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)])
+        t1['a'].units = 'cm'
+        t1['b'].description = 't1_b'
+        t4['f'].format = '%6s'
+        t1['b'].meta.update(meta1)
+        t3['d'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+        t4['g'].meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
+        t3['e'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+        t3['d'].units = 'm'
+        t3['d'].format = '%6s'
+        t3['d'].description = 't3_c'
+
+        with warnings.catch_warnings(record=True) as warning_lines:
+            warnings.resetwarnings()
+            warnings.simplefilter("always", metadata.MergeConflictWarning, append=True)
+
+            out = t1.vstack([t3, t4], join_type='outer')
+
+        for table in [t1, t3, t4]:
+            for name in table.colnames:
+                for attr in ('meta', 'units', 'format', 'description'):
+                    assert getattr(out[name], attr) == getattr(table[name], attr)
+
+        assert len(warning_lines) == 0
+
+        # Make sure we got a copy of meta, not ref
+        t1['b'].meta['b'] = None
+        assert out['b'].meta['b'] == [1, 2]
