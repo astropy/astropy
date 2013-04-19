@@ -1,33 +1,34 @@
-.. _new:
+****************************
+Defining a New Type of Model
+****************************
 
-********************
-Creating a New Model
-********************
+This document describes how to add a model to the package or to define a
+user model. In short, one needs to define all model parameters and write
+an eval function which evaluates the model. If the model is fittable,
+a function to compute the derivatives is required if linear fitting
+algorithm is to be used and optional if a non-liner fitter is to be used.
 
-This document describes how to add a model to the package. 
-In short, one needs to define all model parameters and write an eval function
-which evaluates the model. If the model is fittable, a function to compute the 
-derivatives may be provided as well.
+A Step by Step Definition of a 1D Gaussian Model
+------------------------------------------------
 
 The details are explained below with a 1D gaussian model as an example.
 There are two base classes for models. If the model is fittable, it 
-should inherit from `models.ParametricModel`,
-if not it should subclass `models.Model`. If the model takes parameters, 
-their names are stored in a list as a class attribute named `parnames`.
-Pass the list of parameter names and the number of parameter sets to the base 
-class. Note, that if the method which evaluates the model cannot work
-with multiple parameter sets, `paramdim` should not be given as an argument
-in the __init__ method. The default for `paramdim` is set in the base class to 1.
-
-::
+should inherit from `~astropy.models.models.ParametricModel`,
+if not it should subclass `~astropy.models.models.Model`. If the model
+takes parameters, their names are stored in a list as a class attribute
+named `~astropy.models.models.Model.parnames`. Pass the list of parameter
+names and the number of parameter sets to the base class. Note, that if
+the method which evaluates the model cannot work with multiple parameter sets,
+`~astropy.models.models.Model.paramdim` should not be given
+as an argument in the __init__ method. The default for
+`~astropy.models.models.Model.paramdim` is set in the base class to 1.::
 
     class Gauss1DModel(ParametricModel):
         parnames = ['amplitude', 'xcen', 'xsigma']
 
 
-As a minimum the __init__ method takes all parameters and the number of parameter sets, `paramdim`:
-
-::
+As a minimum the __init__ method takes all parameters and the number of
+parameter sets, `~astropy.models.models.Model.paramdim`::
 
     def __init__(self, amplitude, xcen, xsigma, paramdim=1):
         self.linear = False
@@ -37,20 +38,19 @@ As a minimum the __init__ method takes all parameters and the number of paramete
         ParametricModel.__init__(self, self.parnames, ndim=1, outdim=1, paramdim=paramdim)
     
 Parametric models can be linear or nonlinear in a regression sense. The default 
-value of the linear attribute is True. 
-The `ndim` attribute stores the number of input coordinates.
-The `outdim` attribute stores the number of output coordinates.
+value of the `~astropy.models.models.Model.linear` attribute is True. 
+The `~astropy.models.models.Model.ndim` attribute stores the number of input
+variables the model expects.. The `~astropy.models.models.Model.outdim` attribute
+stores the number of output variables returned after evaluating the model.
 These two attributes are used with composite models.
 Each parameter must be defined as a private attribute of the model class. 
-Parameters are instances of `parameters._Parameter` class which takes as
+Parameters are instances of `~astropy.models.parameters.Parameter` class which takes as
 arguments the name of the parameter, its value, the instance of the class 
 and the number of parameter sets.
 
-Next, provide a method, called `eval,  to evaluate the model and a method,
+Next, provide a method, called eval to evaluate the model and a method,
 called `deriv`,  to compute its derivatives. The evaluation method takes all
-input coordinates as separate arguments and a parameter set. For this example:
-
-::
+input coordinates as separate arguments and a parameter set. For this example::
 
     def eval(self, x, params):
         return params[0] * np.exp((-(1/(params[2]**2)) * (x-params[1])**2))
@@ -61,30 +61,59 @@ There is an option to compute numerical derivatives for nonlinear models
 in which case the `deriv` method should return None.
 
 Finally, the __call__ method takes input coordinates as separate arguments.
-It reformats them (if necessary) and calls the `eval` method to perform the 
+It reformats them (if necessary) and calls the eval method to perform the 
 model evaluation using model.psets as parameters. 
-The reason there is a separate `eval` method is to allow fitters to call the `eval`
-method with different parameters which is necessary for fitting with constraints.
-
-::
+The reason there is a separate eval method is to allow fitters to call the eval
+method with different parameters which is necessary for fitting with constraints.::
 
     def __call__(self, x):
         x, format = _convert_input(x, self.paramdim)
         result = self.eval(x, self.psets)
         return _convert_output(result, format)
     
-*********************
-Creating a New Fitter
-*********************
+A Full Example of a LineModel
+-----------------------------
+
+::
+
+    from astropy.models import models, parameters
+    import numpy as np
+    
+    class Line(models.PModel):
+        parnames = ['slope', 'intercept']
+    
+    def init(self, slope, intercept, paramdim=1):
+        self.linear = True 
+        self._slope = parameters._Parameter(name='slope', val=slope, mclass=self, paramdim=paramdim)
+        self._intercept = parameters._Parameter(name='intercept', val=intercept, mclass=self, paramdim=paramdim)
+        models.ParametricModel.__init__(self, self.parnames, ndim=1, outdim=1, paramdim=paramdim)
+        self.domain = [-1, 1]
+        self.window = [-1, 1]
+        self._order = 2
+    
+    def eval(self, x, params):
+        return params[0] * x + params[1]
+    
+    def call(self, x):
+        x, format = models._convert_input(x, self.paramdim)
+        result = self.eval(x, self.psets)
+        return models._convert_output(result, format)
+    
+    def deriv(self, x):
+        res = np.ones((len(x), 2))
+        res[:, 1] = x.copy()
+        return res
+
+*****************************
+Creating a New Type of Fitter
+*****************************
 
 This document describes how to add a new nonlinear fitting algorithm
 to this package. In short, one needs to define an error function and a __call__
 method and define the types of constraints which work with this fitter (if any).
 
 The details are described below using scipy's SLSQP algorithm as an example.
-The base class for all fitters is `fitting.Fitter`. 
-
-::
+The base class for all fitters is `~astropy.models.fitting.Fitter`.::
 
     class SLSQPFitter(Fitter):
         def __init__(self, model, fixed=None, tied=None, bounds=None,
@@ -103,9 +132,7 @@ different types of constraints.
 Next, the error function takes a list of parameters returned by an iteration of the 
 fitting algorithm and input coordinates, evaluates the model with them and 
 returns some type of a measure for the fit. In the example the sum of the 
-squared residuals is used as a measure of fitting.
-
-::
+squared residuals is used as a measure of fitting.::
 
     def errorfunc(self, fps, *args):
         meas = args[0]
@@ -114,9 +141,7 @@ squared residuals is used as a measure of fitting.
         return np.sum(res**2)
     
 The __call__ method performs the fitting. As a minimum it takes all coordinates 
-as separate arguments. Additional arguments are passed as necessary.
-
-::
+as separate arguments. Additional arguments are passed as necessary.::
 
     def __call__(self, x, y , maxiter=MAXITER, epsilon=EPS):
         self.fitpars = optimize.fmin_slsqp(self.errorfunc, p0=self.model.parameters[:], args=(y, x), 

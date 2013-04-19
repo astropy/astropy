@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Implements spherical rotations, defined in WCS Paper II [7]_
+Implements spherical rotations, defined in WCS Paper II [1]_
 
 RotateNative2Celestial and RotateCelestial2Native follow the convention 
 in WCS paper II to rotate to/from a native sphere and the celestial sphere.
@@ -9,10 +9,10 @@ The user interface uses angles in deg but internally radians are used.
 This is managed through properties. To bypass the use of Model's properties, 
 an empty parnames list is passed to Model.__init__ and the properties are 
 defined in the rotations classes.
-
+      
 References
 ----------
-.. [7] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
+.. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 
 """
 from __future__ import division, print_function
@@ -28,20 +28,17 @@ __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial',
 
 class RotateNative2Celestial(Model):
     """
-    Transformation from Native to Celestial Spherical Coordinates
+    Transformation from Native to Celestial Spherical Coordinates.
     
+    Defines a ZXZ rotation.
+        
+    Parameters
+    ----------
+    phi, theta, psi : float
+        Euler angles in deg
     """
     parnames = ['phi', 'theta', 'psi']
     def __init__(self, phi, theta, psi):
-        """
-        Defines a ZXZ rotation 
-        
-        Parameters
-        ----------
-        phi, theta, psi : float
-            Euler angles in deg
-                        
-        """
         self._phi = Parameter('phi', np.deg2rad(phi), self, 1)
         self._theta = Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = Parameter('psi', np.deg2rad(psi), self, 1)
@@ -91,20 +88,17 @@ class RotateNative2Celestial(Model):
     
 class RotateCelestial2Native(Model):
     """
-    Transformation from Celestial to Native to Spherical Coordinates
+    Transformation from Celestial to Native to Spherical Coordinates.
     
+    Defines a ZXZ rotation.
+        
+    Parameters
+    ----------
+    phi, theta, psi : float
+        Euler angles in deg
     """
     parnames = ['phi', 'theta', 'psi']
     def __init__(self, phi, theta, psi):
-        """
-        Defines a ZXZ rotation
-        
-        Parameters
-        ----------
-        phi, theta, psi : float
-            Euler angles in deg
-             
-        """
         self._phi = Parameter('phi', np.deg2rad(phi), self, 1)
         self._theta = Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = Parameter('psi', np.deg2rad(psi), self, 1)
@@ -155,24 +149,19 @@ class RotateCelestial2Native(Model):
     
 class MatrixRotation2D(Model):
     """
-    A 2D rotation tarnsformation using a matrix
+    Perform a clockwise 2D matrix rotation given either an angle or a 
+    rotation matrix.
     
+    If both rotmat and angle are given, angle will be ignored.
+    
+    Parameters
+    ----------
+    rotmat : ndarray
+        rotation matrix
+    angle : float
+        angle of rotation in deg
     """
     def __init__(self, rotmat=None, angle=None):
-        """
-        Perform a clockwise 2D matrix rotation given either an angle or a 
-        rotation matrix
-        
-        If both rotmat and angle are given, angle will be ignored.
-        
-        Parameters
-        ----------
-        rotmat : ndarray
-            rotation matrix
-        angle : float
-            angle of rotation in deg
-                  
-        """
         if rotmat is None and angle is None:
             raise InputParameterError("Expected at least one argument - " 
                                            "a rotation matrix or an angle")

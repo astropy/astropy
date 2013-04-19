@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module defines base classes for all models.
-The base class of all models is `Model`.
-`ParametricModel` is the base class for all fittable models. Parametric 
+The base class of all models is `~astropy.models.models.Model`.
+`~astropy.models.models.ParametricModel` is the base class for all fittable models. Parametric 
 models can be linear or nonlinear in a regression analysis sense.
 
 All models provide a `__call__` method which performs the transformation in a
@@ -11,10 +11,10 @@ possible the transformation is done using multiple parameter sets, `psets`.
 The number of parameter sets is stored in an attribute `paramdim`. 
 
 Parametric models also store a flat list of all parameters as an instance of
-`parameters.Parameters`. When fitting, this list-like object is modified by a
-subclass of `fitting.Fitter`. When fitting nonlinear models, the values of the
+`~astropy.models.parameters.Parameters`. When fitting, this list-like object is modified by a
+subclass of `~astropy.models.fitting.Fitter`. When fitting nonlinear models, the values of the
 parameters are used as initial guesses by the fitting class. Normally users
-will not have to use the `parameters` module directly.
+will not have to use the `~astropy.models.parameters` module directly.
 
 Input Format For Model Evaluation and Fitting
 
@@ -25,18 +25,18 @@ The evaluation depends on the input dimensions and the number of parameter
 sets but in general normal broadcasting rules apply.
 For example:
 
--A model with one parameter set works with input in any dimensionality
+- A model with one parameter set works with input in any dimensionality
 
--A model with N parameter sets works with 2D arrays of shape (M, N)
-A parameter set is applied to each column.
- 
--A model with N parameter sets works with multidimensional arrays if the
-shape of the input array is (N, M, P). A parameter set is applied to each plane.
+- A model with N parameter sets works with 2D arrays of shape (M, N).
+  A parameter set is applied to each column.
+
+- A model with N parameter sets works with multidimensional arrays if the
+  shape of the input array is (N, M, P). A parameter set is applied to each plane.
   
 In all these cases the output has the same shape as the input.
 
--A model with N parameter sets works with 1D input arrays. The shape 
- of the output is (M, N)
+- A model with N parameter sets works with 1D input arrays. The shape 
+  of the output is (M, N)
  
 """
 from __future__ import division, print_function
@@ -50,7 +50,7 @@ from .utils import pmapdomain, InputParameterError, comb
  
 __all__ = ['Chebyshev1DModel', 'Gauss1DModel', 'Gauss2DModel', 'Chebyshev2DModel', 
            'Legendre2DModel', 'Legendre1DModel', 'Poly1DModel', 'Poly2DModel', 
-           'ScaleModel', 'ShiftModel', 'SIPModel', 
+           'ScaleModel', 'ShiftModel', 'SIPModel', 'Model', 'ParametricModel',
            'PCompositeModel', 'SCompositeModel', 'LabeledInput']
 
 def _convert_input(x, pdim):
@@ -114,7 +114,13 @@ def _convert_output(x, fmt):
 
 class _ParameterProperty(object):
     """
-    Create a property for this parameter.
+    Create a property for a parameter.
+    
+    Parameters
+    ----------
+    name: string
+        the name of the parameter
+        
     """
     def __init__(self, name):
         self.aname = '_'+name
@@ -154,7 +160,7 @@ class _ParameterProperty(object):
                 
 class Model(object):
     """
-    Base class for all models
+    Base class for all models.
     
     This is an abstract class and should not be instanciated.
     
@@ -185,14 +191,23 @@ class Model(object):
     
     @property 
     def ndim(self):
+        """
+        Number of input variables in model evaluation.
+        """
         return self._ndim
 
     @property
     def outdim(self):
+        """
+        Number of output valiables returned when a model is evaluated.
+        """
         return self._outdim
     
     @property
     def paramdim(self):
+        """
+        Number of parameter sets in a model.
+        """
         return self._paramdim
     
     @paramdim.setter
@@ -201,6 +216,9 @@ class Model(object):
     
     @property
     def parnames(self):
+        """
+        A list of names of the parameters defining a model.
+        """
         return self._parnames
     
     @parnames.setter
@@ -237,7 +255,8 @@ class Model(object):
     @property
     def psets(self):
         """
-        Return parameters as a pset
+        Return parameters as a pset.
+        This is an array where each column represents one parameter set.
         """
         psets = np.asarray([getattr(self, attr) for attr in self.parnames])
         psets.shape = (len(self.parnames), self.paramdim)
@@ -286,15 +305,53 @@ class Model(object):
     
 class ParametricModel(Model):
     """
-    Base class for all fittable models
+    Base class for all fittable models.
     
     Notes
     -----
     All models which can be fit to data and provide a `deriv` method
     should subclass this class.
     
-    Sets the parameters attributes
+    Sets the parameters attributes.
     
+    Parameters
+    ----------
+    parnames: list
+        parameter names
+    ndim: int
+        model dimensions (number of inputs)
+    outdim: int
+        number of output quantities
+    paramdim: int
+        number of parameter sets
+    fittable: boolean
+        indicator if the model is fittable
+    fixed: a dict
+        a dictionary {parameter_name: boolean} of parameters to not be
+        varied during fitting. True means the parameter is held fixed.
+        Alternatively the `~astropy.models.parameters.Parameter.fixed`
+        property of a parameter may be used.
+    tied: dict
+        a dictionary {parameter_name: callable} of parameters which are
+        linked to some other parameter. The dictionary values are callables
+        providing the linking relationship. 
+        Alternatively the `~astropy.models.parameters.Parameter.tied`
+        property of a parameter may be used.
+    bounds: dict
+        a dictionary {parameter_name: boolean} of lower and upper bounds of
+        parameters. Keys  are parameter names. Values  are a list of length 
+        2 giving the desired range for the parameter. 
+        Alternatively the `~astropy.models.parameters.Parameter.min` and 
+        `~astropy.models.parameters.Parameter.max` properties of a parameter 
+        may be used.
+    eqcons: list
+        A list of functions of length n such that
+        eqcons[j](x0,*args) == 0.0 in a successfully optimized
+        problem.
+    ineqcons : list
+        A list of functions of length n such that
+        ieqcons[j](x0,*args) >= 0.0 is a successfully optimized
+        problem.
     """
     __metaclass__ = abc.ABCMeta
     
@@ -377,6 +434,10 @@ class ParametricModel(Model):
     
     @property
     def parameters(self):
+        """
+        An instance of `~astropy.models.parameters.Parameters`.
+        Fittable parameters maintain this list and fitters modify it.
+        """
         return self._parameters
     
     @parameters.setter
@@ -531,30 +592,28 @@ class OrthogPolyBase(ParametricModel):
     
     The polynomials implemented here require a maximum degree in x and y.
 
+    Parameters
+    ----------
+    
+    xdeg : int
+        degree in x
+    ydeg : int
+        degree in y
+    xdomain : list or None
+        domain of the x independent variable
+    ydomain : list or None
+        domain of the y independent variable
+    xwindow : list or None
+        range of the x independent variable
+    ywindow : list or None
+        range of the y independent variable
+    paramdim : int
+        number of parameter sets
+    **pars : dict
+        {keyword: value} pairs, representing {parameter_name: value}
     """
     def __init__(self, xdeg, ydeg, xdomain=None, xwindow=None, ydomain=None, 
                             ywindow=None, paramdim=1, **pars):
-        """
-        Parameters
-        ----------
-        
-        xdeg : int
-            degree in x
-        ydeg : int
-            degree in y
-        xdomain : list or None
-            domain of the x independent variable
-        ydomain : list or None
-            domain of the y independent variable
-        xwindow : list or None
-            range of the x independent variable
-        ywindow : list or None
-            range of the y independent variable
-        paramdim : int
-            number of parameter sets
-        **pars : dict
-            {keyword: value} pairs, representing {parameter_name: value}
-        """
         self.xdeg = xdeg
         self.ydeg = ydeg
         self._order = self.get_numcoeff()
@@ -688,30 +747,27 @@ class OrthogPolyBase(ParametricModel):
 class Chebyshev1DModel(PModel):
     """
     
-    1D Chebyshev polynomial
+    1D Chebyshev polynomial of the 1st kind.
     
+    Parameters
+    ----------
+    degree : int
+        degree of the series
+    domain : list or None
+    window : list or None
+        If None, it is set to [-1,1]
+        Fitters will remap the domain to this window
+    paramdim : int
+        number of parameter sets
+    **pars : dict
+        keyword : value pairs, representing parameter_name: value
+        
+    Returns
+    -------
+    model : Chebyshev1DModel
+        1D Chebyshev model
     """
     def __init__(self, degree, domain=None, window=[-1, 1], paramdim=1, **pars):
-        """
-        Parameters
-        ----------
-        degree : int
-            degree of the series
-        domain : list or None
-        window : list or None
-            If None, it is set to [-1,1]
-            Fitters will remap the domain to this window
-        paramdim : int
-            number of parameter sets
-        **pars : dict
-            keyword : value pairs, representing parameter_name: value
-            
-        Returns
-        -------
-        model : Chebyshev1DModel
-            1D Chebyshev model
-            
-        """
         self.domain = domain
         self.window = window
         super(Chebyshev1DModel, self).__init__(degree, ndim=1, outdim=1,
@@ -767,30 +823,23 @@ class Chebyshev1DModel(PModel):
 class Legendre1DModel(PModel):
     """
     
-    1D Legendre polynomial
+    1D Legendre polynomial.
+    
+    Parameters
+    ----------
+    degree : int
+        degree of the series
+    domain : list or None
+    window : list or None
+        If None, it is set to [-1,1]
+        Fitters will remap the domain to this window
+    paramdim : int
+        number of parameter sets
+    **pars : dict
+        keyword: value pairs, representing parameter_name: value
 
     """
     def __init__(self, degree, domain=None, window=[-1, 1], paramdim=1, **pars):
-        """
-        Parameters
-        ----------
-        degree : int
-            degree of the series
-        domain : list or None
-        window : list or None
-            If None, it is set to [-1,1]
-            Fitters will remap the domain to this window
-        paramdim : int
-            number of parameter sets
-        **pars : dict
-            keyword: value pairs, representing parameter_name: value
-            
-        Returns
-        -------
-        model : Legendre1DModel
-            1D Legendre model
-            
-        """
         self.domain = domain
         self.window = window
         super(Legendre1DModel, self).__init__(degree, ndim=1, outdim=1,
@@ -846,31 +895,24 @@ class Legendre1DModel(PModel):
 class Poly1DModel(PModel):
     """
     
-    1D Polynomial model
+    1D Polynomial model.
     
+    Parameters
+    ----------
+    degree : int
+        degree of the series
+    domain : list or None
+    window : list or None
+        If None, it is set to [-1,1]
+        Fitters will remap the domain to this window
+    paramdim : int
+        number of parameter sets
+    **pars : dict
+        keyword: value pairs, representing parameter_name: value
     """ 
     def __init__(self, degree,
                  domain=[-1, 1], window=[-1, 1],
                  paramdim=1, **pars):
-        """
-        Parameters
-        ----------
-        degree : int
-            degree of the series
-        domain : list or None
-        window : list or None
-            If None, it is set to [-1,1]
-            Fitters will remap the domain to this window
-        paramdim : int
-            number of parameter sets
-        **pars : dict
-            keyword: value pairs, representing parameter_name: value
-            
-        Returns
-        -------
-        model : Poly1DModel
-            1D polynomial model
-        """
         self.domain = domain
         self.window = window
         super(Poly1DModel, self).__init__(degree, ndim=1, outdim=1,
@@ -909,7 +951,7 @@ class Poly1DModel(PModel):
             
 class Poly2DModel(PModel):
     """
-    2D Polynomial  model
+    2D Polynomial  model.
     
     Represents a general polynomial of degree n:
      
@@ -919,34 +961,28 @@ class Poly2DModel(PModel):
     + c_{1_1}xy + c_{1_2}xy^2 + ... + c_{1_(n-1)}xy^{n-1}+ ... + \\
     c_{(n-1)_1}x^{n-1}y
         
+    Parameters
+    ----------
+    degree : int
+        highest power of the polynomial, the number of terms 
+        are degree+1
+    xdomain : list or None
+        domain of the x independent variable
+    ydomain : list or None
+        domain of the y independent variable
+    xwindow : list or None
+        range of the x independent variable
+    ywindow : list or None
+        range of the y independent variable
+    paramdim : int
+        number of parameter sets
+    pars : dict
+        keyword: value pairs, representing parameter_name: value
+            
     """
     def __init__(self, degree, xdomain=[-1, 1], ydomain=[-1, 1], 
                             xwindow=[-1, 1], ywindow=[-1,1], 
                             paramdim=1, **pars):
-        """       
-        Parameters
-        ----------
-        degree : int
-            highest power of the polynomial, the number of terms 
-            are degree+1
-        xdomain : list or None
-            domain of the x independent variable
-        ydomain : list or None
-            domain of the y independent variable
-        xwindow : list or None
-            range of the x independent variable
-        ywindow : list or None
-            range of the y independent variable
-        paramdim : int
-            number of parameter sets
-        pars : dict
-            keyword: value pairs, representing parameter_name: value
-            
-        Returns
-        -------
-        model : Poly2DModel
-            2D polynomial model
-        """
         super(Poly2DModel, self).__init__(degree, ndim=2, outdim=1,
                                                                 paramdim=paramdim, **pars)
         self.xdomain = xdomain
@@ -1036,40 +1072,35 @@ class Poly2DModel(PModel):
         
 class Chebyshev2DModel(OrthogPolyBase):
     """
-    Chebyshev 2D polynomial:
+    2D Chebyshev polynomial of the 1st kind.
     
-    It is defined the same way as in IRAF.
+    It is defined as
+    
     .. math:: P_{n_m}(x,y) = \sum C_{n_m}  T_n(x) T_m(y)
+
+    Parameters
+    ----------
+    
+    xdeg : int
+        degree in x
+    ydeg : int
+        degree in y
+    xdomain : list or None
+        domain of the x independent variable
+    ydomain : list or None
+        domain of the y independent variable
+    xwindow : list or None
+        range of the x independent variable
+    ywindow : list or None
+        range of the y independent variable
+    paramdim : int
+        number of parameter sets
+    pars : dict
+        keyword: value pairs, representing parameter_name: value
+            
     """
     def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1, 1], 
-                            ydomain=None, ywindow=[-1,1], paramdim=1, **pars):
-        
-        """
-        Parameters
-        ----------
-        
-        xdeg : int
-            degree in x
-        ydeg : int
-            degree in y
-        xdomain : list or None
-            domain of the x independent variable
-        ydomain : list or None
-            domain of the y independent variable
-        xwindow : list or None
-            range of the x independent variable
-        ywindow : list or None
-            range of the y independent variable
-        paramdim : int
-            number of parameter sets
-        pars : dict
-            keyword: value pairs, representing parameter_name: value
-            
-        Returns
-        -------
-        model : Chebyshev2DModel
-            2D Chebyshev model
-        """
+                 ydomain=None, ywindow=[-1,1], paramdim=1, **pars):
         super(Chebyshev2DModel, self).__init__(xdeg, ydeg,
                                            xdomain=xdomain, ydomain=ydomain, 
                                            xwindow=xwindow, ywindow=ywindow,
@@ -1153,40 +1184,35 @@ class Chebyshev2DModel(OrthogPolyBase):
     
 class Legendre2DModel(OrthogPolyBase):
     """
-    Legendre 2D polynomial
+    Legendre 2D polynomial.
     
     Defined as:
     .. math:: P_{nm}(x,y) = C_{n_m}  L_n(x ) L_m(y)
 
+    
+    Parameters
+    ----------
+    
+    xdeg : int
+        degree in x
+    ydeg : int
+        degree in y
+    xdomain : list or None
+        domain of the x independent variable
+    ydomain : list or None
+        domain of the y independent variable
+    xwindow : list or None
+        range of the x independent variable
+    ywindow : list or None
+        range of the y independent variable
+    paramdim : int
+        number of parameter sets
+    pars : dict
+        keyword: value pairs, representing parameter_name: value
+            
     """
     def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1, 1], 
                             ydomain=None, ywindow=[-1, 1], paramdim=1, **pars):
-        """
-        Parameters
-        ----------
-        
-        xdeg : int
-            degree in x
-        ydeg : int
-            degree in y
-        xdomain : list or None
-            domain of the x independent variable
-        ydomain : list or None
-            domain of the y independent variable
-        xwindow : list or None
-            range of the x independent variable
-        ywindow : list or None
-            range of the y independent variable
-        paramdim : int
-            number of parameter sets
-        pars : dict
-            keyword: value pairs, representing parameter_name: value
-            
-        Returns
-        -------
-        model : Legendre2DModel
-            2D Legendre model
-        """
         super(Legendre2DModel, self).__init__(xdeg, ydeg,
                                              xdomain=xdomain, ydomain=ydomain, 
                                              xwindow=xwindow, ywindow=ywindow,
@@ -1272,36 +1298,30 @@ class Legendre2DModel(OrthogPolyBase):
 class Gauss1DModel(ParametricModel):
     """
     
-    Implements 1D Gaussian model
+    Implements 1D Gaussian model.
 
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude of the gaussian
+    xcen : float
+        Center of the gaussian
+    fwhm : float
+        FWHM
+    xsigma : float
+        igma of the gaussian
+        Either fwhm or xsigma must be specified
+    fjac : callable, 'estimated' or None
+        if callable - a function to compute the Jacobian of 
+        func with derivatives across the rows.
+        if 'estimated' - the Jacobian will be estimated
+        if None - if the model has a deriv method, it will be used,
+        if not the Jacobian will be estimated.
+        
     """
     parnames = ['amplitude', 'xcen', 'xsigma']
     def __init__(self, amplitude, xcen, fwhm=None, xsigma=None,
                             fjac=None, **cons):
-        """
-        Parameters
-        ----------
-        amplitude : float
-            Amplitude of the gaussian
-        xcen : float
-            Center of the gaussian
-        fwhm : float
-            FWHM
-        xsigma : float
-            igma of the gaussian
-            Either fwhm or xsigma must be specified
-        fjac : callable, 'estimated' or None
-            if callable - a function to compute the Jacobian of 
-            func with derivatives across the rows.
-            if 'estimated' - the Jacobian will be estimated
-            if None - if the model has a deriv method, it will be used,
-            if not the Jacobian will be estimated.
-        
-        Returns
-        -------
-        model : Gauss1DModel
-            1D Gaussian
-        """
         self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
         if xsigma is None and fwhm is None:
             raise InputParameterError(
@@ -1365,44 +1385,37 @@ class Gauss1DModel(ParametricModel):
 class Gauss2DModel(ParametricModel):
     """
     
-    2D Gaussian
+    2D Gaussian.
     
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude of the gaussian
+    xcen : float
+        Center of the gaussian in x
+    ycen : float
+        Center of the gaussian in y
+    fwhm : float
+        FWHM
+    xsigma : float
+        sigma of the gaussian in x
+        Either fwhm or xsigma must be specified
+    ysigma : float
+        sigma of the gaussian in y
+        Either ysigma or ratio should be given
+    ratio : float
+        ysigma/xsigma 
+    fjac : callable or None
+        if callable - a function to compute the Jacobian of 
+        func with derivatives across the rows.
+        if None - the Jacobian will be estimated
+    theta : float 
+        rotation angle in radians
     """
     parnames = ['amplitude', 'xcen', 'ycen', 'xsigma', 'ysigma', 'theta']
     
     def __init__(self, amplitude, xcen, ycen, fwhm=None, xsigma=None,
                  ysigma=None, ratio=None, theta=0.0, fjac=None, **cons):
-        """
-        Parameters
-        ----------
-        amplitude : float
-            Amplitude of the gaussian
-        xcen : float
-            Center of the gaussian in x
-        ycen : float
-            Center of the gaussian in y
-        fwhm : float
-            FWHM
-        xsigma : float
-            sigma of the gaussian in x
-            Either fwhm or xsigma must be specified
-        ysigma : float
-            sigma of the gaussian in y
-            Either ysigma or ratio should be given
-        ratio : float
-            ysigma/xsigma 
-        fjac : callable or None
-            if callable - a function to compute the Jacobian of 
-            func with derivatives across the rows.
-            if None - the Jacobian will be estimated
-        theta : float 
-            rotation angle in radians
-        
-        Returns
-        -------
-        model : Gauss2DModel
-            2D Gaussian
-        """
         if ysigma is None and ratio is None:
             raise InputParameterError(
                 "Either ysigma or ratio must be specified")
@@ -1459,24 +1472,18 @@ class Gauss2DModel(ParametricModel):
 
 class ShiftModel(Model):
     """
-    Shift a coordinate
+    Shift a coordinate.
 
+    Parameters
+    ----------
+    offsets : float or a list of floats
+        offsets to be applied to a coordinate
+        if a list - each value in the list is an offset to be applied to a
+        column in the input coordinate array
+            
     """
     parnames = ['offsets']
-    def __init__(self, offsets): #, multiple=False):
-        """
-        Parameters
-        ----------
-        offsets : float or a list of floats
-            offsets to be applied to a coordinate
-            if a list - each value in the list is an offset to be applied to a
-            column in the input coordinate array
-            
-        Returns
-        -------
-        model : ShiftModel
-            A model representing offset
-        """
+    def __init__(self, offsets):
         if not isinstance(offsets, collections.Sequence):
             paramdim = 1
         else:
@@ -1496,22 +1503,16 @@ class ShiftModel(Model):
 class ScaleModel(Model):
     """
     
-    Scale a coordinate
+    Multiply a model by a factor.
 
+    Parameters
+    ---------------
+    factors : float or a list of floats
+        scale for a coordinate
+        
     """
     parnames = ['factors']
     def __init__(self, factors):
-        """
-        Parameters
-        ---------------
-        factors : float or a list of floats
-            scale for a coordinate
-        Returns
-        -------
-        model : ScaleModel
-            Model representing scaling 
-            
-        """
         if not isinstance(factors, collections.Sequence):
             paramdim = 1
         else:
@@ -1661,10 +1662,23 @@ class _SIP1D(Model):
 
 class LabeledInput(dict):
     """
-    Create a container with all input data arrays, assigning labels for each one.
+    Create a container with all input data arrays, assigning labels for
+    each one.
     
     Used by CompositeModel to choose input data using labels
     
+    Parameters
+    ----------
+    data : list 
+        a list of all input data
+    labels : list of strings
+        names matching each coordinate in data
+    
+    Returns
+    -------
+    data : LabeledData
+        a dict of input data and their assigned labels
+        
     Examples
     --------
     >>> x,y = np.mgrid[:10, :10]
@@ -1685,19 +1699,6 @@ class LabeledInput(dict):
         
     """
     def __init__(self,  data, labels):
-        """
-        Parameters
-        ----------
-        data : list 
-            a list of all input data
-        labels : list of strings
-            names matching each coordinate in data
-        
-        Returns
-        -------
-        data : LabeledData
-            a dict of input data and their assigned labels
-       """
         dict.__init__(self)
         assert len(labels) == len(data)
         self.labels = [l.strip() for l in labels]
@@ -1766,7 +1767,7 @@ class LabeledInput(dict):
 class _CompositeModel(OrderedDict):
     def __init__(self, transforms, inmap=None, outmap=None):
         """
-        A Base class for all composite models
+        A Base class for all composite models.
 
         """
         OrderedDict.__init__(self)
@@ -1810,7 +1811,25 @@ class _CompositeModel(OrderedDict):
 class SCompositeModel(_CompositeModel):
     """
     
-    Execute models in series
+    Execute models in series.
+    
+    Parameters
+    ----------
+    transforms : list
+        a list of transforms in the order to be executed
+    inmap : list of lists or None
+        labels in an input instance of LabeledInput
+        if None, the number of input coordinates is exactly what
+        the transforms expect 
+    outmap : list or None
+        labels in an input instance of LabeledInput
+        if None, the number of output coordinates is exactly what 
+        the transforms expect
+    
+    Returns
+    -------
+    model : SCompositeModel
+        Composite model which executes the comprising models in series
     
     Notes
     -----
@@ -1833,26 +1852,6 @@ class SCompositeModel(_CompositeModel):
         
     """
     def __init__(self, transforms, inmap=None, outmap=None):
-        """
-        
-        Parameters
-        ----------
-        transforms : list
-            a list of transforms in the order to be executed
-        inmap : list of lists or None
-            labels in an input instance of LabeledInput
-            if None, the number of input coordinates is exactly what
-            the transforms expect 
-        outmap : list or None
-            labels in an input instance of LabeledInput
-            if None, the number of output coordinates is exactly what 
-            the transforms expect
-        
-        Returns
-        -------
-        model : SCompositeModel
-            Composite model which executes the comprising models in series
-        """
         super(SCompositeModel, self).__init__(transforms, inmap, outmap)
         if transforms and inmap and outmap:
             assert len(transforms) == len(inmap) == len(outmap), \
@@ -1930,29 +1929,28 @@ class SCompositeModel(_CompositeModel):
 class PCompositeModel(_CompositeModel):
     """
     
-    Execute models in parallel
+    Execute models in parallel.
     
+    Parameters
+    --------------
+    transforms : list
+        transforms to be executed in parallel
+    inmap : list or None
+        labels in an input instance of LabeledInput
+        if None, the number of input coordinates is exactly what the
+        transforms expect 
+        
+    Returns
+    -------
+    model : PCompositeModel
+        Composite model which executes the comprising models in parallel
+        
     Notes
     -----
     Models are applied to input data separately and the deltas are summed.
     
     """
     def __init__(self, transforms, inmap=None, outmap=None):
-        """
-        Parameters
-        --------------
-        transforms : list
-            transforms to be executed in parallel
-        inmap : list or None
-            labels in an input instance of LabeledInput
-            if None, the number of input coordinates is exactly what the
-            transforms expect 
-            
-        Returns
-        -------
-        model : PCompositeModel
-            Composite model which executes the comprising models in parallel
-        """
         super(PCompositeModel, self).__init__(transforms,
                                               inmap=None, outmap=None)
         self._init_comptr(transforms, inmap, outmap)
@@ -2021,43 +2019,40 @@ class PCompositeModel(_CompositeModel):
 class SIPModel(SCompositeModel):
     """
     
-    Simple Imaging Protocol (SIP) model [1]_
+    Simple Imaging Protocol (SIP) model [1]_ .
+    
+    Parameters
+    ----------
+    crpix : list or ndarray of length(2)
+        CRPIX values
+    order : int
+        SIP polynomial order
+    coeff : dict
+        SIP coefficients
+    coeffname : string: 'a', 'b', 'A' or 'B'
+        SIP coefficient preffix
+    aporder : int
+        order for the inverse transformation
+    apcoeff : dict
+        coefficients for the inverse transform
+    paramdim : int
+        number of parameter sets
+    multiple : boolean
+        when input is 2D array, if True (default) it is to be 
+        treated as multiple 1D arrays
+        
+    Returns
+    -------
+    model : SIPModel
+        A model representing the Simple Imaging Protocol
     
     References
-    ----------
-    .. [1] David Shupe, et al, "The SIP Convention of Representing Distortion
-       In FITS Image Headers",  Astronomical Data Analysis Software And Systems, 
-       ASP Conference Series, Vol. 347, 2005
-       
+    ==========
+    .. [1] David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005 
+
     """
     def __init__(self, crpix, order, coeff, coeffname='a', 
                             aporder=None, apcoeff=None, paramdim=1):
-        """
-        Parameters
-        ----------
-        crpix : list or ndarray of length(2)
-            CRPIX values
-        order : int
-            SIP polynomial order
-        coeff : dict
-            SIP coefficients
-        coeffname : string: 'a', 'b', 'A' or 'B'
-            SIP coefficient preffix
-        aporder : int
-            order for the inverse transformation
-        apcoeff : dict
-            coefficients for the inverse transform
-        paramdim : int
-            number of parameter sets
-        multiple : boolean
-            when input is 2D array, if True (default) it is to be 
-            treated as multiple 1D arrays
-            
-        Returns
-        -------
-        model : SIPModel
-            A model representing the Simple Imaging Protocol
-        """
         self.ndim = 2
         self.outdim = 1
         self.shifta = ShiftModel(crpix[0])

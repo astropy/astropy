@@ -1,8 +1,8 @@
-**************************************
-Models  And Fitting (`astropy.models`)
-**************************************
+.. _astropy-models:
 
-.. _designed: design.rst
+**************************************
+Models And Fitting (`astropy.models`)
+**************************************
 
 Introduction
 ============
@@ -10,7 +10,7 @@ Introduction
 performing model evaluation and fitting. It supports 1D and 2D models 
 and fitting with parameter constraints.
 
-It is `designed`_ to be easily extensible and flexible.
+It is :ref:`designed <models-design>` to be easily extensible and flexible.
 Models do not reference fitting algorithms explicitely
 (though exceptions are sometimes necessary) and new fitting 
 algorithms may be added without changing the existing models.
@@ -21,8 +21,6 @@ The goal is to eventually provide a rich toolset of models and fitters
 such that most users will not need to define new model classes, nor
 special purpose fitting routines (but not making that hard to do if it is necessary).
 
-This is a work in progress but the basic framework is in place and usable 
-in many ways now.
 
 Getting Started
 ===============
@@ -89,8 +87,25 @@ Fit a Chebyshev polynomial to the data
 >>> ch2.parameters
 [0.957, 1.931, 3.029, 4.305]
 
-.. figure:: images/cheb_fit.png
-    :scale: 25 %
+.. plot::
+
+  import matplotlib.pyplot as plt
+  import numpy as np
+  from astropy.models import models, fitting
+  x = np.arange(1, 10, .1)
+  ch1 = models.Chebyshev1DModel(3, domain=[x.min(), x.max()])
+  ch1.parameters = [1, 2, 3, 4]
+  y = ch1(x)
+  n = np.random.randn(90)
+  ny = y + n
+  ch2 = models.Chebyshev1DModel(3)
+  chfit = fitting.LinearLSQFitter(ch2)
+  chfit(x, ny)
+  plt.plot(x, y, label='y - Chebyshev polynomial')
+  plt.plot(x, ny, label='ny - Chebyshev polynomial with noise')
+  plt.plot(x, ch2(x), label='ch2(x) - Fitted model')
+  plt.legend()
+  plt.show()
 
 Working with 2D models
 ======================
@@ -138,8 +153,13 @@ Using `models`
    new
    algorithms
    design
-
+   
 Reference/API
 =============
-
 .. automodapi:: astropy.models
+.. automodapi:: astropy.models.constraints
+.. automodapi:: astropy.models.fitting
+.. automodapi:: astropy.models.models
+.. automodapi:: astropy.models.parameters
+.. automodapi:: astropy.models.projections
+.. automodapi:: astropy.models.rotations

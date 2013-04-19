@@ -48,20 +48,26 @@ class Parameter(list):
     of validation a parameter has also a shape (parshape).
     Parameter objects behave like numbers.
 
+    Parameters
+    ----------
+    name : string
+        parameter name
+    val :  number or an iterable of numbers
+    mclass : object
+        an instance of a Model class
+    paramdim : int
+        parameter dimension  
+    fixed: boolean
+        if True the parameter is not varied during fitting
+    tied: callable or False
+        if callable is suplplied it provides a way to link to another parameter
+    minvalue: float
+        the lower bound of a parameter
+    maxvalue: float
+        the upper bound of a parameter
     """
     def __init__(self, name, val, mclass, paramdim, fixed=False, tied=False, 
                  minvalue=None, maxvalue=None):
-        """
-        Parameters
-        ----------
-        name : string
-            parameter name
-        val :  number or an iterable of numbers
-        mclass : object
-            an instance of a Model class
-        paramdim : int
-            parameter dimension      
-        """
         self._paramdim = paramdim
         if isinstance(val, numbers.Number):
             if self.paramdim == 1:
@@ -96,6 +102,9 @@ class Parameter(list):
         
     @property
     def paramdim(self):
+        """
+        Number of parameter sets
+        """
         return self._paramdim
     
     @paramdim.setter
@@ -104,6 +113,9 @@ class Parameter(list):
         
     @property
     def mclass(self):
+        """
+        An instance of `~astropy.models.models.ParametricModel`
+        """
         return self._mclass
     
     @mclass.setter
@@ -112,6 +124,9 @@ class Parameter(list):
         
     @property
     def name(self):
+        """
+        Parameter name
+        """
         return self._name
     
     @name.setter
@@ -120,6 +135,10 @@ class Parameter(list):
         
     @property
     def fixed(self):
+        """
+        Boolean indicating if the parameter is kept fixed during fitting.
+        
+        """
         return self._fixed
     
     @fixed.setter
@@ -131,6 +150,10 @@ class Parameter(list):
         
     @property
     def tied(self):
+        """
+        Indicates that this parameter is linked to another one.
+        A callable which provides the relationship of the two parameters.
+        """
         return self._tied
     
     @tied.setter
@@ -142,6 +165,9 @@ class Parameter(list):
         
     @property
     def min(self):
+        """
+        A value used as a lower bound when fitting a parameter.
+        """
         return self._min
     
     @min.setter
@@ -152,6 +178,9 @@ class Parameter(list):
         
     @property
     def max(self):
+        """
+        A value used as an upper bound when fitting a parameter.
+        """
         return self._max
     
     @max.setter
@@ -229,27 +258,25 @@ class Parameters(list):
     """
     Store model parameters as a flat list of floats.
     
-    The `Parameters` class is a list-like object which
-    stores model parameters. Only  instances of ParametricModel 
+    The `~astropy.models.models.Parameters` class is a list-like object which
+    stores model parameters. Only  instances of 
+    `~astropy.models.models.ParametricModel`
     keep an instance of this class as an attribute. The list of parameters
-    can be modified by the user or by an instance of `fitting.Fitter`. 
+    can be modified by the user or by an instance of `~astropy.models.fitting.Fitter`. 
     This list of parameters is kept in sync with single model parameter attributes.
-    When more than one dimensional, a `fitting.Fitter` treats each
+    When more than one dimensional, a `~astropy.models.fitting.Fitter` treats each
     set of parameters as belonging to the same model but different set of data.
     
+    Parameters
+    ----------
+    mobj : object
+        an instance of a subclass of `fitting.ParametricModel`
+    parnames : list of strings
+        parameter names
+    paramdim : int
+        Number of parameter sets
     """
     def __init__(self, mobj, parnames, paramdim=1):
-        """
-        Parameters
-        ----------
-        mobj : object
-            an instance of a subclass of `fitting.ParametricModel`
-        parnames : list of strings
-            parameter names
-        paramdim : int
-            Number of parameter sets
-              
-        """
         self.mobj = mobj
         self.paramdim = paramdim
         # A flag set to True by a fitter to indicate that the flat 

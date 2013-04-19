@@ -1,23 +1,24 @@
-.. _models:
-
-******
-Models
-******
+******************************
+Creating and Evaluating Models
+******************************
 
 The base class of all models is `~astropy.models.models.Model`, however fittable
 models should subclass `~astropy.models.models.ParametricModel`. Parametric 
 models can be linear or nonlinear in a regression analysis sense.
 
 To evaluate a model, it is called like a function. When possible the 
-transformation is done using multiple parameter sets, `psets`.
-The number of parameter sets is stored in an attribute `paramdim`. 
+transformation is done using multiple parameter sets,
+`~astropy.models.models.Model.psets`.
+The number of parameter sets is stored in an attribute
+`~astropy.models.models.Model.paramdim`. 
 
 Parametric models also store a flat list of all parameters as an instance of 
 `~astropy.models.parameters.Parameters`. When fitting, this list-like object is
-modified by a subclass of `~astropy.fitting.fitting.Fitter`. When fitting nonlinear models,
+modified by a subclass of `~astropy.models.fitting.Fitter`. When fitting nonlinear models,
 the values of the parameters are used as initial guesses by the fitting class.
 
-Models have an `ndim` attribute, which shows how many coordinates the 
+Models have an `~astropy.models.models.Model.ndim` attribute, which shows
+how many coordinates the 
 model expects as an input. All models expect coordinates as separate arguments.
 For example a 2D model expects x and y to be passed separately, 
 e.g. as two arrays or two lists. When a model has multiple parameter sets and x, y are 
@@ -27,10 +28,11 @@ of parameter sets and x_shape, y_shape is the shape of the input array.
 In all other cases the shape of the output array is the same as the shape of the 
 input arrays. 
 
-Models also have an attribute  `outdim`, which shows the number of output 
-coordinates. The `ndim` and `outdim` attributes are used to chain transforms by
-adding models (in series or in  parallel), to form an 
-instance of `~astropy.models.models._CompositeModel`.  Because composite models can 
+Models also have an attribute `~astropy.models.models.Model.outdim`, which shows
+the number of output coordinates. The `~astropy.models.models.Model.ndim` and
+`~astropy.models.models.Model.outdim` attributes are used to chain transforms by
+adding models in series, `~astropy.models.models.SCompositeModel`, or in parallel,
+`~astropy.models.models.PCompositeModel`. Because composite models can 
 be nested within other composite models, creating 
 theoretically infinetely complex models, a mechanism to map input data to models 
 is needed. In this case the input may be wrapped in a
@@ -62,9 +64,31 @@ or two data sets (any other number would be an error)
 >>> print y.shape
 (90, 2)
 
-.. figure:: images/gauss1D_eval_psets.png
-   :scale: 25 %
+.. plot::
 
+  import matplotlib.pyplot as plt
+  import numpy as np
+  from astropy.models import models, fitting
+  x = np.arange(1, 10, .1)
+  g1 = models.Gauss1DModel(amplitude=[10, 9], xcen=[2,3], fwhm=[.3,.2])
+  y = g1(x)
+  plt.plot(x, y)
+  plt.title('Evaluate a Gauss1DModel with 2 parameter sets and 1 set of input data')
+  plt.show()
+  
+.. plot::
+
+  import matplotlib.pyplot as plt
+  import numpy as np
+  from astropy.models import models, fitting
+  x = np.arange(1, 10, .1)
+  g1 = models.Gauss1DModel(amplitude=[10, 9], xcen=[2,3], fwhm=[.3,.2])
+  y = g1(np.array([x, x]).T)
+  plt.plot(x, y)
+  plt.title('Evaluating a Gauss1DModel with 2 parameter sets and 2 sets of input data')
+  plt.show()
+  
+  
 - Evaluating polynomial models with multiple parameter sets with one input data set creates multiple output data sets
 
 >>> p1 = models.Poly1DModel(1, paramdim=5)
@@ -76,9 +100,20 @@ array([[ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  1.,  2.,  3.,  4.]])
 >>> y = p1(x)
 
-.. image:: images/p1d_5psets.png
-   :scale: 25 %
 
+.. plot::
+
+  import matplotlib.pyplot as plt
+  import numpy as np
+  from astropy.models import models, fitting
+  x = np.arange(1, 10, .1)
+  p1 = models.Poly1DModel(1, paramdim=5)
+  p1.c1 = [0, 1, 2, 3, 4]
+  y = p1(x)
+  plt.plot(x, y)
+  plt.title("Poly1DModel with 5 parameter sets")
+  plt.show()
+  
 - When passed a 2D array, the same polynomial will map parameter sets to array columns
 
 >>> x = np.ones((10,5))

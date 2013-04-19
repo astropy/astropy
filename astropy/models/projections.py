@@ -1,18 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Implements sky projections defined in WCS Paper II [2]_
+Implements sky projections defined in WCS Paper II [1]_
 
 All angles are set and reported in deg but internally the code works and 
 keeps all angles in radians. For this to work, the mechanism of setting Model's 
 properties is bypassed by passing an empty parlist to Model.__init__. This also
 has the effect of not creating Projection.parameters. Projection.parnames is 
 created within the Projection class. 
-For an example see AZP 
-
+For an example see AZP
+      
 References
 ----------
-.. [2] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
-              
+.. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
+
 """
 from __future__ import division, print_function
 from .models import Model
@@ -30,15 +30,14 @@ __all__ = ['Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
 
 class Projection(Model):
     """
-    Base class for all sky projections
+    Base class for all sky projections.
+    
+    Parameters
+    ----------
+    parnames : list of strings
+        parameter names
     """
     def __init__(self, parnames):        
-        """
-        Parameters
-        ----------
-        parnames : list of strings
-            parameter names
-        """
         super(Projection, self).__init__(parnames, ndim=2, outdim=2)
         self._pdim = 1
         # the radius of the projection sphere, by which x,y are scaled
@@ -59,15 +58,14 @@ class Projection(Model):
     
 class Zenithal(Projection):
     """
-    Base class for all Zenithal projections
+    Base class for all Zenithal projections.
+    
+    Parameters
+    ----------
+    parnames : list of strings
+        parameter names
     """
     def __init__(self, parnames):
-        """
-        Parameters
-        ----------
-        parnames : list of strings
-            parameter names
-        """
         self.phi0 = 0.
         self.theta0 = 90.
         super(Zenithal, self).__init__(parnames)
@@ -82,20 +80,19 @@ class Zenithal(Projection):
         
 class Pix2Sky_AZP(Zenithal):
     """
-    AZP : Zenital perspective projection - pixel to sky
+    AZP : Zenital perspective projection - pixel to sky.
+    
+    Parameters
+    --------------
+    mu : float
+        distance from point of projection to center of sphere
+        in spherical radii, default is 0.
+    gamma : float
+        look angle in deg, default is 0.
     
     """
     parnames = ['mu', 'gamma']
     def __init__(self, mu=0., gamma=0.):
-        """
-        Parameters
-        --------------
-        mu : float
-            distance from point of projection to center of sphere
-            in spherical radii, default is 0.
-        gamma : float
-            look angle in deg, default is 0.
-        """
         if mu == -1:
             raise ValueError("AZP projection is not defined for mu=-1")
         # units : mu - in spherical radii, gamma - in deg
@@ -142,21 +139,19 @@ class Pix2Sky_AZP(Zenithal):
  
 class Sky2Pix_AZP(Zenithal):
     """
-    AZP : Zenital perspective projection - sky to pixel
+    AZP : Zenital perspective projection - sky to pixel.
     
+    Parameters
+    --------------
+    mu : float
+        distance from point of projection to center of sphere
+        in spherical radii, default is 0.
+    gamma : float
+        look angle in deg, default is 0.
+
     """
     parnames = ['mu', 'gamma']
     def __init__(self, mu=0., gamma=0.):
-        """
-        Parameters
-        --------------
-        mu : float
-            distance from point of projection to center of sphere
-            in spherical radii, default is 0.
-        gamma : float
-            look angle in deg, default is 0.
-
-        """
         if mu == -1:
             raise ValueError("AZP projections is not defined for mu=-1")
         self._mu = parameters.Parameter('mu', mu, self, 1)
@@ -188,7 +183,7 @@ class Sky2Pix_AZP(Zenithal):
     
 class Pix2Sky_TAN(Zenithal):
     """
-    TAN : Gnomonic projection - pixel to sky
+    TAN : Gnomonic projection - pixel to sky.
     
     """
     def __init__(self):
@@ -210,7 +205,7 @@ class Pix2Sky_TAN(Zenithal):
 
 class Sky2Pix_TAN(Zenithal):
     """
-    TAN : Gnomonic Projection - sky to pixel
+    TAN : Gnomonic Projection - sky to pixel.
     
     """
     def __init__(self):
@@ -232,7 +227,7 @@ class Sky2Pix_TAN(Zenithal):
         
 class Pix2Sky_STG(Zenithal):
     """
-    STG : Stereographic Projection - pixel to sky
+    STG : Stereographic Projection - pixel to sky.
     
     """
     def __init__(self):
@@ -254,7 +249,7 @@ class Pix2Sky_STG(Zenithal):
 
 class Sky2Pix_STG(Zenithal):
     """
-    STG : Stereographic Projection - sky to pixel
+    STG : Stereographic Projection - sky to pixel.
 
     """
     def __init__(self):
@@ -276,7 +271,7 @@ class Sky2Pix_STG(Zenithal):
        
 class Pix2Sky_SIN(Zenithal):
     """
-    SIN : Slant orthographic projection - pixel to sky
+    SIN : Slant orthographic projection - pixel to sky.
     
     """
     def __init__(self):
@@ -298,7 +293,7 @@ class Pix2Sky_SIN(Zenithal):
     
 class Sky2Pix_SIN(Zenithal):
     """
-    SIN : Slant othographic projection - sky to pixel
+    SIN : Slant othographic projection - sky to pixel.
     
     """
     def __init__(self):
@@ -320,7 +315,7 @@ class Sky2Pix_SIN(Zenithal):
     
 class Cylindrical(Projection):
     """
-    Base class for Cylindrical projections
+    Base class for Cylindrical projections.
     
     """
     ##TODO: define parnames
@@ -338,7 +333,7 @@ class Cylindrical(Projection):
     
 class Pix2Sky_CYP(Cylindrical):
     """
-    CYP : Cylindrical perspective - pixel to sky
+    CYP : Cylindrical perspective - pixel to sky.
     
     """
     parnames = ['mu', 'lam']
@@ -367,7 +362,7 @@ class Pix2Sky_CYP(Cylindrical):
     
 class Sky2Pix_CYP(Cylindrical):
     """
-    CYP : Cylindrical Perspective - sky to pixel
+    CYP : Cylindrical Perspective - sky to pixel.
     
     """
     parnames = ['mu', 'lam']
@@ -395,7 +390,7 @@ class Sky2Pix_CYP(Cylindrical):
     
 class Pix2Sky_CEA(Cylindrical):
     """
-    CEA : Cylindrical equal area projection - pixel to sky
+    CEA : Cylindrical equal area projection - pixel to sky.
     
     """
     parnames = ['lam']
@@ -414,7 +409,7 @@ class Pix2Sky_CEA(Cylindrical):
     
 class Sky2Pix_CEA(Cylindrical):
     """
-    CEA: Cylindrical equal area projection - sky to pixel
+    CEA: Cylindrical equal area projection - sky to pixel.
     
     """
     parnames = ['lam']
@@ -434,7 +429,7 @@ class Sky2Pix_CEA(Cylindrical):
     
 class Pix2Sky_CAR(Cylindrical):
     """
-    CAR: Plate carree projection - pixel to sky
+    CAR: Plate carree projection - pixel to sky.
     
     """
     def __init__(self):
@@ -450,7 +445,7 @@ class Pix2Sky_CAR(Cylindrical):
     
 class Sky2Pix_CAR(Cylindrical):
     """
-    CAR: Plate carree projection - sky to pixel
+    CAR: Plate carree projection - sky to pixel.
     
     """
     def __init__(self):
@@ -466,7 +461,7 @@ class Sky2Pix_CAR(Cylindrical):
     
 class Pix2Sky_MER(Cylindrical):
     """
-    MER: Mercator - pixel to sky
+    MER: Mercator - pixel to sky.
     
     """
     def __init__(self):
@@ -482,7 +477,7 @@ class Pix2Sky_MER(Cylindrical):
     
 class Sky2Pix_MER(Cylindrical):
     """
-    MER: Mercator - sky to pixel
+    MER: Mercator - sky to pixel.
     
     """
     def __init__(self):
@@ -499,21 +494,19 @@ class Sky2Pix_MER(Cylindrical):
     
 class Conic(Projection):
     """
-    Base class for conic projections
+    Base class for conic projections.
+    
+    Parameters
+    ----------
+    thetaA : float
+        angle in deg
+    eta : float
+    
+    parnames : list of strings
+        parameter names
     
     """
     def __init__(self, thetaA, eta, parnames):
-        """
-        Parameters
-        ----------
-        thetaA : float
-            angle in deg
-        eta : float
-        
-        parnames : list of strings
-            parameter names
-                  
-        """
         self._phi0 = 0.0
         theta1 = thetaA - eta
         theta2 = thetaA + eta
@@ -542,7 +535,7 @@ class Conic(Projection):
     
 class Pix2Sky_COP(Conic):
     """
-    COP: Conic perspective - pixel to sky
+    COP: Conic perspective - pixel to sky.
     
     """
     def __init__(self, thetaA, eta):
@@ -564,7 +557,7 @@ class Pix2Sky_COP(Conic):
     
 class Sky2Pix_COP(Conic):
     """
-    COP: Conic perspective - sky to pixel
+    COP: Conic perspective - sky to pixel.
     
     """
     def __init__(self, thetaA, eta):

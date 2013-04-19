@@ -1,8 +1,8 @@
-.. _designed:
+.. _models-design:
 
-************
-Design Goals
-************
+*******************
+Models Design Goals
+*******************
 
 The `~astropy.models.models` and `~astropy.models.fitting` modules described
 here are designed to work as peers with each other. The goal is to be able to
@@ -16,10 +16,10 @@ the existing suites of models and fitters.
 
 Furthermore, the models are designed to be combined in many ways. It
 is possible, for example, to combine models serially
-`~astropy.models.SCompositeModel`, so that the output values of one model are
+`~astropy.models.models.SCompositeModel`, so that the output values of one model are
 used as input values to another. It is also possible to form a new model by
 combining models in parallel (each model is evaluated separately with the
-original input and the deltas are summed), `~astropy.models.PCompositeModel`.
+original input and the deltas are summed), `~astropy.models.models.PCompositeModel`.
 Since models may have multiple input values, machinery is provided that allows
 assigning outputs from one model into the appropriate input of another in a
 flexible way, `~astropy.models.models.LabeledInput`. Finally, it is permitted

@@ -1,14 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module provides wrappers, called Fitters, around some Numpy and Scipy
-fitting functions. All Fitters take an instance of `ParametricModel` as input
+fitting functions. All Fitters take an instance of `~astropy.models.models.ParametricModel` as input
 and define a __call__ method which fits the model to the data and changes the
 model's parameters attribute. The idea is to make this extensible and allow
 users to easily add other fitters.
 
-Linear fitting is done using Numpy's linalg.lstsq function.
-There are currently two non-linear fitters which use leastsq and slsqp functions
-in scipy.optimize.
+Linear fitting is done using Numpy's `~numpy.linalg.lstsq` function.
+There are currently two non-linear fitters which use `~scipy.optimize.leastsq` and `~scipy.optimize.slsqp` functions in scipy.optimize.
 
 """
 from __future__ import division, print_function
@@ -19,7 +18,7 @@ import warnings
 from .utils import pmapdomain
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter', 
-           'JointFitter']
+           'JointFitter', 'Fitter']
 
 MAXITER = 100
 EPS = np.sqrt(np.finfo(float).eps)
@@ -32,7 +31,7 @@ constraintsdef = {'NonLinearLSQFitter': ['fixed', 'tied', 'bounds'],
 
 class ModelsError(Exception):
     """
-    Base Error class
+    Base Error class.
     """
     def __init__(self, message):
         self._message = message
@@ -48,6 +47,9 @@ class ModelLinearityError(ModelsError):
         super(ModelLinearityError, self).__init__(message)
         
 class UnsupportedConstraintError(ModelsError):
+    """
+    Raised when a fitter does not support a type of constraint.
+    """
     def __init__(self, message):
         super(UnsupportedConstraintError, self).__init__(message)
         
@@ -55,7 +57,7 @@ class Fitter(object):
     """
     Base class for all fitters.
     
-    The purpose of this class is to manage constraints
+    The purpose of this class is to manage constraints.
     """
     __metaclass__ = abc.ABCMeta
     
@@ -124,7 +126,7 @@ class Fitter(object):
 
     def _set_bounds(self, pars):
         """
-        This method is to be implemented by subcclasses of Fitter if necessary
+        This method is to be implemented by subcclasses of Fitter if necessary.
         
         Diferent fitting algorithms deal with bounds in a different way.
         For example, the SLSQP algorithm accepts bounds as input while 
@@ -137,7 +139,7 @@ class Fitter(object):
     def _wrap_deriv(self, p, x, y, z=None):
         """
         Wraps the method calculating the Jacobian of the function to
-        account for model constraints
+        account for model constraints.
         
         Currently the only fitter that uses a derivative is the
         `NonLinearLSQFitter`. This wrapper may neeed to be revised
@@ -212,28 +214,33 @@ class Fitter(object):
         
     @abc.abstractmethod
     def __call__(self):
+        """
+        Fitters implement this method.
+        It performs the actual fitting and modifies the
+        parameter list of a model.
+        
+        """
         raise NotImplementedError("Subclasses should implement this")
 
 class LinearLSQFitter(Fitter):
     """
-    A class representing a linear least square fitting
+    A class performing a linear least square fitting.
     
-    Uses numpy.linalg.lstsq to do the fitting.
+    Uses `numpy.linalg.lstsq` to do the fitting.
     Given a model and data, fits the model to the data and changes the
     model's parameters. Keeps a dictionary of auxiliary fitting information.
     
+    Parameters
+    ----------
+    model : an instance of `fitting.models.ParametricModel`
+    
+    Raises
+    ------
+    ModelLinearityError
+        A nonlinear model is passed to a linear fitter
+        
     """
     def __init__(self, model):
-        """
-        Parameters
-        ----------
-        model : an instance of `fitting.models.ParametricModel`
-        
-        Raises
-        ------
-        ModelLinearityError
-            A nonlinear model is passed to a linear fitter
-        """
         super(LinearLSQFitter, self).__init__(model)
         if not self.model.linear:
             raise ModelLinearityError('Model is not linear in parameters, '
@@ -374,23 +381,22 @@ class LinearLSQFitter(Fitter):
         
 class NonLinearLSQFitter(Fitter):
     """
-    A wrapper around scipy.optimize.leastsq
-    Supports tied and frozen parameters.
+    A class performing non-linear least squares fitting using the
+    Levenberg-Marquardt algorithm implemented in `scipy.optimize.leastsq`.
     
+    Parameters
+    ----------
+    model : a fittable :class: `models.ParametricModel`
+        model to fit to data
+    
+    Raises
+    ------
+    ModelLinearityError
+        A linear model is passed to a nonlinear fitter
+        
     """
     def __init__(self, model):
-        """
-        Parameters
-        ----------
-        model : a fittable :class: `models.ParametricModel`
-            model to fit to data
         
-        Raises
-        ------
-        ModelLinearityError
-            A linear model is passed to a nonlinear fitter
-            
-        """
         self.fit_info = {'nfev': None,
                          'fvec': None,
                          'fjac': None,
@@ -495,26 +501,29 @@ class NonLinearLSQFitter(Fitter):
 
 class SLSQPFitter(Fitter):
     """
-    Sequential Least Squares Programming optimization algorithm [6]_
+    Sequential Least Squares Programming optimization algorithm [1]_ .
     
-    Supports tied and frozen parameters, as well as bounds
+    Supports tied and fixed parameters, as well as bounded constraints.
+    Uses `scipy.optimize.slsqp`.
+    
+    Parameters
+    ----------
+    model : a fittable :class: `models.ParametricModel`
+        model to fit to data
+    
+    Raises
+    ------
+    ModelLinearityError
+        A linear model is passed to a nonlinear fitter
     
     References
     ----------
-    .. [6] http://www.netlib.org/toms/733
+    .. [1] http://www.netlib.org/toms/733
     
     """
     def __init__(self, model):
         """
-        Parameters
-        ----------
-        model : a fittable :class: `models.ParametricModel`
-            model to fit to data
         
-        Raises
-        ------
-        ModelLinearityError
-            A linear model is passed to a nonlinear fitter
             
         """
         super(SLSQPFitter, self).__init__(model)
@@ -607,22 +616,21 @@ class SLSQPFitter(Fitter):
         
 class JointFitter(object):
     """
-    Fit models which share a parameter
+    Fit models which share a parameter.
     
     For example, fit two gaussians to two data sets but keep 
     the FWHM the same.
+    
+    Parameters
+    ----------
+    models : list
+        a list of model instances
+    jointparameters : list
+        a list of joint parameters
+    initvals : list
+        a list of initial values
     """
     def __init__(self, models, jointparameters, initvals):
-        """
-        Parameters
-        ----------
-        models : list
-            a list of model instances
-        jointparameters : list
-            a list of joint parameters
-        initvals : list
-            a list of initial values
-        """
         self.models = list(models)
         self.initvals = list(initvals)
         self.jointpars = jointparameters

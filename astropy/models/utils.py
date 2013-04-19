@@ -20,7 +20,7 @@ class InputParameterError(Exception):
 
 def pmapdomain(oldx, domain, window):
     """
-    Map domain into window by shifting and scaling
+    Map domain into window by shifting and scaling.
     
     Parameters
     ----------

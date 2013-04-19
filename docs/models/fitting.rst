@@ -1,12 +1,11 @@
-.. _fitting:
-
-*******
-Fitting
-*******
+**********************
+Fitting Models to data
+**********************
 
 This module provides wrappers, called Fitters, around some Numpy and Scipy 
 fitting functions. All Fitters can be called as functions. They take an instance of 
-`models.ParametricModel` as input and modify `model.parameters`
+`~astropy.models.models.ParametricModel` as input and modify 
+`~astropy.models.models.ParametricModel.parameters`
 attribute. The idea is to make this extensible and allow users to easily add 
 other fitters.
 
@@ -51,9 +50,11 @@ array([[  1.00000000e+00,   1.00000000e+00],
        [  3.91115939e-16,   3.91115939e-16],
        [ -2.99676984e-17,  -2.99676984e-17]])
 
-Fitters support constraint fitting through `~models.constraints.Constraints`.
+Fitters support constraint fitting through `~astropy.models.constraints.Constraints`.
 
-- All fitters support fixed (frozen) parameters through the **fixed** argument to models or setting the fixed attribute directly on a parameter.
+- All fitters support fixed (frozen) parameters through the `fixed`
+  argument to models or setting the `~astropy.models.parameters.Parameter.fixed`
+  attribute directly on a parameter.
 
 For linear fitters freezing a polynomial coefficient means that a 
 polynomial without that term will be fitted to the data. For example, fixing
@@ -76,7 +77,8 @@ array([[ 5.50225913,  5.50225913],
        [ 3.17551299,  3.17551299]])
 
        
-- Parameters can be tied. This can be done in two ways:
+- A parameter can be `~astropy.models.parameters.Parameter.tied`
+  (linked to another parameter). This can be done in two ways:
 
 >>> def tiedfunc(g1):
     ...    xcen = 3 * g1.xsigma[0]
