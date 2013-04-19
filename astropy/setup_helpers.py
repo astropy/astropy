@@ -858,7 +858,7 @@ if HAVE_SPHINX:
 
             else:
                 proc = Popen([sys.executable], stdin=PIPE)
-                proc.communicate(subproccode)
+                proc.communicate(subproccode.encode('utf-8'))
 
             if proc.returncode == 0:
                 if self.open_docs_in_browser:
