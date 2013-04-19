@@ -58,7 +58,7 @@ class IllegalHourWarning(Warning):
         self.hour = hour
 
     def __str__(self):
-        return "'hour' was found  to be'{0}';It is best to in the range [0,24).".format(self.minute)
+        return "'hour' was found  to be '{0}';It is best to in the range [0,24).".format(self.minute)
 
 
 class IllegalMinuteError(RangeError):
@@ -92,7 +92,7 @@ class IllegalMinuteWarning(Warning):
         self.minute = minute
 
     def __str__(self):
-        return "'minute' was found  to be'{0}';It is best to in the range [0,60).".format(self.minute)
+        return "'minute' was found  to be '{0}';It is best to in the range [0,60).".format(self.minute)
 
 
 class IllegalSecondError(RangeError):
@@ -126,7 +126,7 @@ class IllegalSecondWarning(Warning):
         self.second = second
 
     def __str__(self):
-        return "'second' was found  to be'{0}';It is best to in the range [0,60).".format(self.second)
+        return "'second' was found  to be '{0}';It is best to in the range [0,60).".format(self.second)
 
 
 # TODO: consider if this should be used to `units`?
