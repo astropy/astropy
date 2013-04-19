@@ -5,7 +5,6 @@ from copy import deepcopy
 import functools
 import warnings
 import collections
-import itertools
 
 import numpy as np
 from numpy import ma
@@ -97,7 +96,7 @@ def _merge_table_meta(out, tables):
     out.meta.update(out_meta)
 
 
-def _get_sequence_of_tables(tables):
+def _get_list_of_tables(tables):
     """
     Check that tables is a Table or sequence of Tables.  Returns the
     corresponding list of Tables.
@@ -111,7 +110,7 @@ def _get_sequence_of_tables(tables):
     else:
         raise TypeError(err)
 
-    return tables
+    return list(tables)
 
 
 class TableColumns(OrderedDict):
@@ -1823,7 +1822,8 @@ class Table(object):
         # that has the same class as left.
         if not isinstance(right, Table):
             right = left.__class__(right)
-        col_name_map = {}
+
+        col_name_map = OrderedDict()
         out_data = np_utils.join(left._data, right._data, keys, join_type,
                                  uniq_col_name, table_names, col_name_map)
         # Create the output (Table or subclass of Table)
@@ -1871,11 +1871,16 @@ class Table(object):
         join_type : str
             Join type ('inner' | 'exact' | 'outer'), default is 'exact'
         """
-        tables = _get_sequence_of_tables(tables)
-        arrays = [table._data for table in itertools.chain([self], tables)]
-        out_data = np_utils.vstack(arrays, join_type)
+        tables = [self] + _get_list_of_tables(tables)
+        arrays = [table._data for table in tables]
+        col_name_map = OrderedDict()
 
+        out_data = np_utils.vstack(arrays, join_type, col_name_map)
         out = self.__class__(out_data)
+
+        # Merge column and table metadata
+        _merge_col_meta(out, tables, col_name_map)
+        _merge_table_meta(out, tables)
 
         return out
 
@@ -1917,11 +1922,19 @@ class Table(object):
         table_names : list of str or None
             Two-element list of table names used when generating unique output
             column names.  The default is ['1', '2', ..].
+        col_name_map : empty dict or None
+            If passed as a dict then it will be updated in-place with the
+            mapping of output to input column names.
         """
-        tables = _get_sequence_of_tables(tables)
-        arrays = [table._data for table in itertools.chain([self], tables)]
-        out_data = np_utils.hstack(arrays, join_type, uniq_col_name, table_names)
+        tables = [self] + _get_list_of_tables(tables)
+        arrays = [table._data for table in tables]
+        col_name_map = OrderedDict()
 
+        out_data = np_utils.hstack(arrays, join_type, uniq_col_name, table_names,
+                                   col_name_map)
         out = self.__class__(out_data)
+
+        _merge_col_meta(out, tables, col_name_map)
+        _merge_table_meta(out, tables)
 
         return out

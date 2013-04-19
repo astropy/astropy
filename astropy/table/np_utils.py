@@ -169,11 +169,8 @@ def join(left, right, keys=None, join_type='inner',
         If passed as a dict then it will be updated in-place with the
         mapping of output to input column names.
     """
-
-    # This function improves on np.lib.recfunctions.join_by():
-    #   key values do not have to be unique (ok with cartesion join)
-    #   key columns do not have to be in the same order
-    #   key columns can have non-trivial shape
+    # Store user-provided col_name_map until the end
+    _col_name_map = col_name_map
 
     if join_type not in ('inner', 'outer', 'left', 'right'):
         raise ValueError("The 'join_type' argument should be in 'inner', "
@@ -205,12 +202,8 @@ def join(left, right, keys=None, join_type='inner',
     left_names, right_names = left.dtype.names, right.dtype.names
 
     # Joined array dtype as a list of descr (name, type_str, shape) tuples
-    _col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
-    out_descrs = get_descrs([left, right], _col_name_map)
-
-    # If col_name_map supplied as a dict input, then update.
-    if isinstance(col_name_map, dict):
-        col_name_map.update(_col_name_map)
+    col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
+    out_descrs = get_descrs([left, right], col_name_map)
 
     # Make an array with just the key columns
     out_keys_dtype = [descr for descr in out_descrs if descr[0] in keys]
@@ -249,7 +242,7 @@ def join(left, right, keys=None, join_type='inner',
     if len(right) == 0:
         right = right.__class__(1, dtype=right.dtype)
 
-    for out_name, left_right_names in _col_name_map.items():
+    for out_name, left_right_names in col_name_map.items():
         left_name, right_name = left_right_names
 
         if left_name and right_name:  # this is a key which comes from left and right
@@ -269,6 +262,10 @@ def join(left, right, keys=None, join_type='inner',
                 array_mask = array_mask | array[name].mask.take(array_out)
             out[out_name].mask = array_mask
 
+    # If col_name_map supplied as a dict input, then update.
+    if isinstance(_col_name_map, collections.Mapping):
+        _col_name_map.update(col_name_map)
+
     return out
 
 
@@ -284,7 +281,7 @@ def _check_for_sequence_of_structured_arrays(arrays):
         raise ValueError('`arrays` arg must include at least one array')
 
 
-def vstack(arrays, join_type='inner'):
+def vstack(arrays, join_type='inner', col_name_map=None):
     """
     Stack structured arrays vertically (by rows)
 
@@ -319,7 +316,12 @@ def vstack(arrays, join_type='inner'):
         Table(s) to stack by rows (vertically) with the current table
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'exact'
+    col_name_map : empty dict or None
+        If passed as a dict then it will be updated in-place with the
+        mapping of output to input column names.
     """
+    # Store user-provided col_name_map until the end
+    _col_name_map = col_name_map
 
     # Input validation
     if join_type not in ('inner', 'exact', 'outer'):
@@ -333,12 +335,16 @@ def vstack(arrays, join_type='inner'):
 
     # Start by assuming an outer match where all names go to output
     names = set(chain(*[arr.dtype.names for arr in arrays]))
-    col_name_map = get_col_name_map(arrays, names)
+    _col_name_map = get_col_name_map(arrays, names)
+
+    # If col_name_map supplied as a dict input, then update.
+    if isinstance(col_name_map, dict):
+        col_name_map.update(_col_name_map)
 
     # If require_match is True then the output must have exactly the same
     # number of columns as each input array
     if join_type == 'exact':
-        for names in col_name_map.values():
+        for names in _col_name_map.values():
             if any(x is None for x in names):
                 raise TableMergeError('Inconsistent columns in input arrays '
                                       "(use 'inner' or 'outer' join_type to "
@@ -381,11 +387,15 @@ def vstack(arrays, join_type='inner'):
                 out[out_name].mask[idx0:idx1] = True
             idx0 = idx1
 
+    # If col_name_map supplied as a dict input, then update.
+    if isinstance(_col_name_map, collections.Mapping):
+        _col_name_map.update(col_name_map)
+
     return out
 
 
 def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
-           table_names=None):
+           table_names=None, col_name_map=None):
     """
     Stack tables by horizontally (by columns)
 
@@ -424,6 +434,8 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
         Two-element list of table names used when generating unique output
         column names.  The default is ['1', '2', ..].
     """
+    # Store user-provided col_name_map until the end
+    _col_name_map = col_name_map
 
     # Input validation
     if join_type not in ('inner', 'exact', 'outer'):
@@ -473,5 +485,9 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
         for name, array, arr_len in izip(in_names, arrays, arr_lens):
             if name is not None:
                 out[out_name][:arr_len] = array[name]
+
+    # If col_name_map supplied as a dict input, then update.
+    if isinstance(_col_name_map, collections.Mapping):
+        _col_name_map.update(col_name_map)
 
     return out

@@ -344,10 +344,16 @@ class TestVStack():
 
         self.t1.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
         self.t2.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
-        self.meta_merge = OrderedDict([('b', [1, 2, 3, 4]),
-                                       ('c', {'a': 1, 'b': 1}),
+        self.t4.meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
+        self.meta_merge = OrderedDict([('b', [1, 2, 3, 4, 5, 6]),
+                                       ('c', {'a': 1, 'b': 1, 'c': 1}),
                                        ('d', 1),
-                                       ('a', 1)])
+                                       ('a', 1),
+                                       ('e', 1)])
+
+    def test_table_meta_merge(self):
+        out = self.t1.vstack([self.t2, self.t4], join_type='inner')
+        assert out.meta == self.meta_merge
 
     def test_bad_input_type(self):
         with pytest.raises(TypeError):
@@ -413,9 +419,9 @@ class TestVStack():
 
     def test_vstack_one_masked(self):
         t1 = self.t1
-        t2 = Table(t1, copy=True, masked=True)
-        t2['b'].mask[1] = True
-        assert t1.vstack(t2).pformat() == [' a   b ',
+        t4 = self.t4
+        t4['b'].mask[1] = True
+        assert t1.vstack(t4).pformat() == [' a   b ',
                                            '--- ---',
                                            '  0 foo',
                                            '  1 bar',
@@ -444,10 +450,16 @@ class TestHStack():
 
         self.t1.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
         self.t2.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
-        self.meta_merge = OrderedDict([('b', [1, 2, 3, 4]),
-                                       ('c', {'a': 1, 'b': 1}),
+        self.t4.meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
+        self.meta_merge = OrderedDict([('b', [1, 2, 3, 4, 5, 6]),
+                                       ('c', {'a': 1, 'b': 1, 'c': 1}),
                                        ('d', 1),
-                                       ('a', 1)])
+                                       ('a', 1),
+                                       ('e', 1)])
+
+    def test_table_meta_merge(self):
+        out = self.t1.hstack([self.t2, self.t4], join_type='inner')
+        assert out.meta == self.meta_merge
 
     def test_bad_input_type(self):
         with pytest.raises(TypeError):
@@ -499,6 +511,7 @@ class TestHStack():
     def test_hstack_one_masked(self):
         t1 = self.t1
         t2 = Table(t1, copy=True, masked=True)
+        t2.meta.clear()
         t2['b'].mask[1] = True
         assert t1.hstack(t2).pformat() == ['a_1 b_1 a_2 b_2',
                                            '--- --- --- ---',
