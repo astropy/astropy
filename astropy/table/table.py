@@ -1836,14 +1836,14 @@ class Table(object):
 
         return out
 
-    def vstack(self, tables, join_type='exact'):
+    def vstack(self, tables, join_type='outer'):
         """
         Stack tables vertically (by rows)
 
-        A ``join_type`` of 'exact' (default) means that the tables must all
+        A ``join_type`` of 'exact' means that the tables must all
         have exactly the same column names (though the order can vary).  If
         ``join_type`` is 'inner' then the intersection of common columns will
-        be output.  A value of 'outer' means the output will have the union of
+        be output.  A value of 'outer' (default) means the output will have the union of
         all columns, with table values being masked where no common values are
         available.
 
@@ -1884,14 +1884,14 @@ class Table(object):
 
         return out
 
-    def hstack(self, tables, join_type='exact',
+    def hstack(self, tables, join_type='outer',
                uniq_col_name='{col_name}_{table_name}', table_names=None):
         """
         Stack tables by columns (horizontally)
 
-        A ``join_type`` of 'exact' (default) means that the tables must all
+        A ``join_type`` of 'exact' means that the tables must all
         have exactly the same number of row.  If ``join_type`` is 'inner' then
-        the intersection of rows will be output.  A value of 'outer' means
+        the intersection of rows will be output.  A value of 'outer' (default) means
         the output will have the union of all rows, with table values being
         masked where no common values are available.
 
@@ -1915,7 +1915,7 @@ class Table(object):
         tables : Table or list of Table objects
             Table(s) to stack by columns (horizontally) with the current table
         join_type : str
-            Join type ('inner' | 'exact' | 'outer'), default is 'exact'
+            Join type ('inner' | 'exact' | 'outer'), default is 'outer'
         uniq_col_name : str or None
             String generate a unique output column name in case of a conflict.
             The default is '{col_name}_{table_name}'.

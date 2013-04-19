@@ -413,9 +413,8 @@ class TestVStack():
         with pytest.raises(np_utils.TableMergeError):
             self.t1.vstack(self.t3, join_type='inner')
 
-        # Default join_type is exact, which will fail here
         with pytest.raises(np_utils.TableMergeError):
-            self.t1.vstack(self.t2)
+            self.t1.vstack(self.t2, join_type='exact')
 
     def test_vstack_one_masked(self):
         t1 = self.t1
@@ -550,10 +549,10 @@ class TestHStack():
                                  '  1 bar   3 sez   5   5   8   1 bar']
 
     def test_stack_incompatible(self):
-        # Default join_type is exact, which will fail here because n_rows
+        # For join_type exact, which will fail here because n_rows
         # does not match
         with pytest.raises(np_utils.TableMergeError):
-            self.t1.hstack(self.t3)
+            self.t1.hstack(self.t3, join_type='exact')
 
     def test_hstack_one_masked(self):
         t1 = self.t1
