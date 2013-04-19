@@ -321,7 +321,7 @@ class TestJoin():
         assert t12['c_2'].description == 't2_c'
 
         assert warning_lines[0].category == metadata.MergeConflictWarning
-        assert ('Left and right column units attributes do not match (cm != m)'
+        assert ("In merged column 'a' the 'units' attribute does not match (cm != m)"
                 in str(warning_lines[0].message))
 
 

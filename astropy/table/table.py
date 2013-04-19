@@ -58,57 +58,43 @@ def _auto_names(n_cols):
     return [AUTO_COLNAME().format(i) for i in range(n_cols)]
 
 
-def _merge_col_meta(out, left, right, col_name_map):
+def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1):
     """
     Merge column meta data for the ``out`` table.
 
     This merges column meta, which includes attributes units, format,
     and description, as well as the actual `meta` atttribute.  It is
-    assumed that the ``out`` table was created by merging ``left``
-    and ``right`` (e.g. by joining).  The ``col_name_map`` provides
-    the mapping from col name in ``out`` back to the original name
-    (which may be different).
-
-    If a column was derived from both left and right tables (e.g.
-    a key column in a join) then ``meta`` values are merged.  The
-    attributes (units, format, description) are set from the logical
-    "or" of the left and right values, e.g. (left.units or right.units).
-    This selects the first non-trivial value, and does not check for
-    conflicts.
+    assumed that the ``out`` table was created by merging ``tables``.
+    The ``col_name_map`` provides the mapping from col name in ``out``
+    back to the original name (which may be different).
     """
     # Set column meta
     attrs = ('units', 'format', 'description')
     for out_col in out.columns.values():
-        left_name, right_name = col_name_map[out_col.name]
-        left_col = (left[left_name] if left_name else None)
-        right_col = (right[right_name] if right_name else None)
+        for idx_table, table in enumerate(tables):
+            left_col = out_col
+            right_name = col_name_map[out_col.name][idx_table]
 
-        if left_name and right_name:
-            out_col.meta = metadata.merge(left_col.meta, right_col.meta)
-            for attr in attrs:
-                left_attr = getattr(left_col, attr)
-                right_attr = getattr(right_col, attr)
-                merge_attr = left_attr or right_attr
-                setattr(out_col, attr, merge_attr)
-                if left_attr and right_attr and left_attr != right_attr:
-                    warnings.warn('Left and right column {0} attributes do not match '
-                                  '({1} != {2}) using left for merged output'
-                                  .format(attr, left_attr, right_attr),
-                                  metadata.MergeConflictWarning)
-        elif left_name:
-            out_col.meta = deepcopy(left_col.meta)
-            for attr in attrs:
-                setattr(out_col, attr, getattr(left_col, attr))
-        elif right_name:
-            out_col.meta = deepcopy(right_col.meta)
-            for attr in attrs:
-                setattr(out_col, attr, getattr(right_col, attr))
-        else:
-            raise ValueError('Unexpected column names')
+            if right_name:
+                right_col = table[right_name]
+                out_col.meta = metadata.merge(left_col.meta, right_col.meta)
+                for attr in attrs:
+                    left_attr = getattr(left_col, attr)
+                    right_attr = getattr(right_col, attr)
+                    merge_attr = left_attr or right_attr
+                    setattr(out_col, attr, merge_attr)
+                    if left_attr and right_attr and left_attr != right_attr:
+                        warnings.warn('In merged column {0!r} the {1!r} attribute does not match '
+                                      '({2} != {3}).  Using {2} for merged output'
+                                      .format(out_col.name, attr, left_attr, right_attr),
+                                      metadata.MergeConflictWarning)
 
 
-def _merge_table_meta(out, left, right):
-    out.meta = metadata.merge(left.meta, right.meta)
+def _merge_table_meta(out, tables):
+    out_meta = deepcopy(tables[0].meta)
+    for table in tables[1:]:
+        out_meta = metadata.merge(out_meta, table.meta)
+    out.meta.update(out_meta)
 
 
 def _get_sequence_of_tables(tables):
@@ -1843,11 +1829,10 @@ class Table(object):
         # Create the output (Table or subclass of Table)
         out = left.__class__(out_data)
 
-        # Merge the column and table meta data.  In this context 'self' is
-        # just the left input table.  Table subclasses might override these
-        # methods for custom merge behavior.
-        _merge_col_meta(out, left, right, col_name_map)
-        _merge_table_meta(out, left, right)
+        # Merge the column and table meta data. Table subclasses might override
+        # these methods for custom merge behavior.
+        _merge_col_meta(out, [left, right], col_name_map)
+        _merge_table_meta(out, [left, right])
 
         return out
 
