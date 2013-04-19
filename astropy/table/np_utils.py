@@ -272,24 +272,68 @@ def join(left, right, keys=None, join_type='inner',
     return out
 
 
-def vstack(arrays, join_type='inner', uniq_col_name='{col_name}_{table_name}',
-               table_names=None):
-    if table_names is None:
-        table_names = ['_{0}'.format(ii + 1) for ii in range(len(arrays))]
-
+def _check_for_sequence_of_structured_arrays(arrays):
+    err = '`arrays` arg must be a sequence (e.g. list) of structured arrays'
+    if not isinstance(arrays, collections.Sequence):
+        raise TypeError(err)
+    for array in arrays:
+        # Must be structured array
+        if not isinstance(array, np.ndarray) or array.dtype.names is None:
+            raise TypeError(err)
     if len(arrays) == 0:
-        raise ValueError('Must supply at least one array')
+        raise ValueError('`arrays` arg must include at least one array')
+
+
+def vstack(arrays, join_type='inner'):
+    """
+    Stack structured arrays vertically (by rows)
+
+    A ``join_type`` of 'exact' (default) means that the tables must all
+    have exactly the same column names (though the order can vary).  If
+    ``join_type`` is 'inner' then the intersection of common columns will
+    be output.  A value of 'outer' means the output will have the union of
+    all columns, with table values being masked where no common values are
+    available.
+
+    Example
+    -------
+
+    To stack two structured arrays by rows do::
+
+      >>> from astropy.table import np_utils
+      >>> t1 = np.array([(1, 2),
+                         (3, 4)], dtype=[('a', 'i4'), ('b', 'i4')])
+      >>> t2 = np.array([(5, 6),
+                         (7, 8)], dtype=[('a', 'i4'), ('b', 'i4')])
+      >>> np_utils.vstack([t1, t2])
+      array([(1, 2),
+             (3, 4),
+             (5, 6),
+             (7, 8)],
+            dtype=[('a', '<i4'), ('b', '<i4')])
+
+    Parameters
+    ----------
+
+    tables : Table or list of Table objects
+        Table(s) to stack by rows (vertically) with the current table
+    join_type : str
+        Join type ('inner' | 'exact' | 'outer'), default is 'exact'
+    """
+
+    # Input validation
+    if join_type not in ('inner', 'exact', 'outer'):
+        raise ValueError("`join_type` arg must be one of 'inner', 'exact' or 'outer'")
+
+    _check_for_sequence_of_structured_arrays(arrays)
+
+    # Trivial case of one input array
     if len(arrays) == 1:
         return arrays[0]
-    if len(arrays) != len(table_names):
-        raise ValueError('Number of arrays must match number of table_names')
-
-    if join_type not in ('inner', 'exact', 'outer'):
-        raise ValueError("join_type arg must be either 'inner', 'exact' or 'outer'")
 
     # Start by assuming an outer match where all names go to output
     names = set(chain(*[arr.dtype.names for arr in arrays]))
-    col_name_map = get_col_name_map(arrays, names, uniq_col_name, table_names)
+    col_name_map = get_col_name_map(arrays, names)
 
     # If require_match is True then the output must have exactly the same
     # number of columns as each input array
@@ -341,19 +385,59 @@ def vstack(arrays, join_type='inner', uniq_col_name='{col_name}_{table_name}',
 
 
 def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
-                  table_names=None):
+           table_names=None):
+    """
+    Stack tables by horizontally (by columns)
+
+    A ``join_type`` of 'exact' (default) means that the tables must all
+    have exactly the same number of row.  If ``join_type`` is 'inner' then
+    the intersection of rows will be output.  A value of 'outer' means
+    the output will have the union of all rows, with table values being
+    masked where no common values are available.
+
+    Example
+    -------
+
+    To stack two tables horizontally (by columns) do::
+
+      >>> from astropy.table import np_utils
+      >>> t1 = np.array([(1, 2),
+                         (3, 4)], dtype=[('a', 'i4'), ('b', 'i4')])
+      >>> t2 = np.array([(5, 6),
+                         (7, 8)], dtype=[('c', 'i4'), ('d', 'i4')])
+      >>> np_utils.hstack([t1, t2])
+      array([(1, 2, 5, 6),
+             (3, 4, 7, 8)],
+            dtype=[('a', '<i4'), ('b', '<i4'), ('c', '<i4'), ('d', '<i4')])
+
+    Parameters
+    ----------
+
+    tables : Table or list of Table objects
+        Table(s) to stack by columns (horizontally) with the current table
+    join_type : str
+        Join type ('inner' | 'exact' | 'outer'), default is 'exact'
+    uniq_col_name : str or None
+        String generate a unique output column name in case of a conflict.
+        The default is '{col_name}_{table_name}'.
+    table_names : list of str or None
+        Two-element list of table names used when generating unique output
+        column names.  The default is ['1', '2', ..].
+    """
+
+    # Input validation
+    if join_type not in ('inner', 'exact', 'outer'):
+        raise ValueError("join_type arg must be either 'inner', 'exact' or 'outer'")
+    _check_for_sequence_of_structured_arrays(arrays)
+
     if table_names is None:
         table_names = ['{0}'.format(ii + 1) for ii in range(len(arrays))]
-
-    if len(arrays) == 0:
-        raise ValueError('Must supply at least one array')
-    if len(arrays) == 1:
-        return arrays[0]
     if len(arrays) != len(table_names):
         raise ValueError('Number of arrays must match number of table_names')
 
-    if join_type not in ('inner', 'exact', 'outer'):
-        raise ValueError("join_type arg must be either 'inner', 'exact' or 'outer'")
+    # Trivial case of one input arrays
+    if len(arrays) == 1:
+        return arrays[0]
 
     col_name_map = get_col_name_map(arrays, [], uniq_col_name, table_names)
 
