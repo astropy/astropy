@@ -662,11 +662,11 @@ def find_api_page(obj, version='dev', openinbrowser=True, timeout=None):
 
     resurl = None
 
-    for l in oistr.strip().split('\n'):
+    for l in oistr.strip().splitlines():
         ls = l.split()
         name = ls[0]
         loc = ls[3]
-        if loc.endswith('$'):
+        if loc.endswith(b'$'):
             loc = loc[:-1] + name
 
         if name == obj:
