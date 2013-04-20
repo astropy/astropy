@@ -1847,8 +1847,8 @@ class Table(object):
         all columns, with table values being masked where no common values are
         available.
 
-        Example
-        -------
+        Examples
+        --------
 
         To stack two tables by rows do::
 
@@ -1895,8 +1895,8 @@ class Table(object):
         the output will have the union of all rows, with table values being
         masked where no common values are available.
 
-        Example
-        -------
+        Examples
+        --------
 
         To stack two tables horizontally (by columns) do::
 

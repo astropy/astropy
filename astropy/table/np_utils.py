@@ -459,7 +459,7 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
         if len(set(arr_lens)) > 1:
             raise TableMergeError("Inconsistent number of rows in input arrays "
                                   "(use 'inner' or 'outer' join_type to allow "
-                                  "non-matching columns)")
+                                  "non-matching rows)")
         join_type = 'outer'
 
     # For an inner join, keep only columns where all input arrays have that column

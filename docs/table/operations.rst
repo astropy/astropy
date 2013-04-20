@@ -9,6 +9,147 @@ Table operations
 In this section we describe higher-level operations that can be used to generate a new
 table from one or more input tables.
 
+Stacking vertically
+^^^^^^^^^^^^^^^^^^^^
+
+The |Table| class supports stacking tables vertically with the
+`~astropy.table.table.Table.vstack` method.  This process is also commonly known as
+concatenating or appending tables in the row direction.  It corresponds roughly
+to the `numpy.vstack` function.
+
+For example, suppose one has two tables of observations with several
+column names in common::
+
+  >>> from astropy.table import Table
+  >>> obs1 = Table.read("""name    obs_date    mag_b  logLx
+                           M31     2012-01-02  17.0   42.5
+                           M82     2012-10-29  16.2   43.5
+                           M101    2012-10-31  15.1   44.5""", format='ascii')
+
+  >>> obs2 = Table.read("""name    obs_date    logLx
+                           NGC3516 2011-11-11  42.1
+                           M31     1999-01-05  43.1
+                           M82     2012-10-30  45.0""", format='ascii')
+
+Now we can stack these two tables::
+
+  >>> print obs1.vstack(obs2)
+    name   obs_date  mag_b logLx
+  ------- ---------- ----- -----
+      M31 2012-01-02  17.0  42.5
+      M82 2012-10-29  16.2  43.5
+     M101 2012-10-31  15.1  44.5
+  NGC3516 2011-11-11    --  42.1
+      M31 1999-01-05    --  43.1
+      M82 2012-10-30    --  45.0
+
+Notice that the ``obs2`` table is missing the ``mag_b`` column, so in the stacked output
+table those values are marked as missing.  This is the default behavior and corresponds to
+``join_type='outer'``.  There are two other allowed values for the ``join_type`` argument,
+``'inner'`` and ``'exact'``::
+
+  >>> print obs1.vstack(obs2, join_type='inner')
+    name   obs_date  logLx
+  ------- ---------- -----
+      M31 2012-01-02  42.5
+      M82 2012-10-29  43.5
+     M101 2012-10-31  44.5
+  NGC3516 2011-11-11  42.1
+      M31 1999-01-05  43.1
+      M82 2012-10-30  45.0
+
+  >>> print obs1.vstack(obs2, join_type='exact')
+  ...
+  TableMergeError: Inconsistent columns in input arrays (use 'inner' or
+  'outer' join_type to allow non-matching columns)
+
+In the case of ``join_type='inner'`, only the common columns (the intersection) are
+present in the output table.  When ``join_type='exact'`` is specified then
+`~astropy.table.table.Table.vstack` requires that all the input tables
+have exactly the same column names.
+
+More than two tables can be stacked by supplying a list of table objects::
+
+  >>> obs3 = Table.read("""name    obs_date    mag_b  logLx
+                           M45     2012-02-03  15.0   40.5""", format='ascii')
+  >>> print obs1.vstack([obs2, obs3])
+    name   obs_date  mag_b logLx
+  ------- ---------- ----- -----
+      M31 2012-01-02  17.0  42.5
+      M82 2012-10-29  16.2  43.5
+     M101 2012-10-31  15.1  44.5
+  NGC3516 2011-11-11    --  42.1
+      M31 1999-01-05    --  43.1
+      M82 2012-10-30    --  45.0
+      M45 2012-02-03  15.0  40.5
+
+See also the sections on `Merging metadata`_ and `Merging column
+attributes`_ for details on how these characteristics of the input tables are merged in
+the single output table.
+
+Stacking horizontally
+^^^^^^^^^^^^^^^^^^^^^
+
+The |Table| class supports stacking tables horizontally (in the column-wise direction) with the
+`~astropy.table.table.Table.hstack` method.    It corresponds roughly
+to the `numpy.hstack` function.
+
+For example, suppose one has the following two tables::
+
+  >>> from astropy.table import Table
+  >>> t1 = Table.read("""a   b    c
+                         1   foo  1.4
+                         2   bar  2.1
+                         3   baz  2.8""", format='ascii')
+
+  >>> t2 = Table.read("""d     e
+                         ham   eggs
+                         spam  toast""", format='ascii')
+
+Now we can stack these two tables horizontally::
+
+  >>> print t1.hstack(t2)
+   a   b   c   d     e
+  --- --- --- ---- -----
+    1 foo 1.4  ham  eggs
+    2 bar 2.1 spam toast
+    3 baz 2.8   --    --
+
+As with `~astropy.table.table.Table.vstack`, there is an optional ``join_type`` argument
+that can take values `'inner'``, ``'exact'``, and ``'outer'``.  The default is
+``'outer'``, which effectively takes the union of available rows and masks out any missing
+values.  This is illustrated in the example above.  The other options give the
+intersection of rows, where ``'exact'`` requires that all tables have exactly the same
+number of rows::
+
+  >>> print t1.hstack(t2, join_type='inner')
+   a   b   c   d     e
+  --- --- --- ---- -----
+    1 foo 1.4  ham  eggs
+    2 bar 2.1 spam toast
+
+  >>> print t1.hstack(t2, join_type='exact')
+  ...
+  TableMergeError: Inconsistent number of rows in input arrays (use 'inner' or
+  'outer' join_type to allow non-matching columns)
+
+More than two tables can be stacked by supplying a list of table objects.  The example
+below also illustrates the behavior when there is a conflict in the input column names
+(see the section on `Column renaming`_ for details)::
+
+  >>> t3 = Table.read("""a    b
+                         M45  2012-02-03""", format='ascii')
+  >>> print t1.hstack([t2, t3])
+  a_1 b_1  c   d     e   a_3    b_3
+  --- --- --- ---- ----- --- ----------
+    1 foo 1.4  ham  eggs M45 2012-02-03
+    2 bar 2.1 spam toast  --         --
+    3 baz 2.8   --    --  --         --
+
+
+The metadata from the input tables is merged by the process described in the `Merging
+metadata`_ section.
+
 Join
 ^^^^^^^^^^^^^^
 
@@ -156,49 +297,82 @@ left and right tables::
     1  L3  R2
     2  L4  R3
 
+Conflicts in the input table names are handled by the process described in the section on
+`Column renaming`_.  See also the sections on `Merging metadata`_ and `Merging column
+attributes`_ for details on how these characteristics of the input tables are merged in
+the single output table.
+
+Merging details
+^^^^^^^^^^^^^^^^^^^^
+
+When combining two or more tables there is the need to merge certain
+characteristics in the inputs and potentially resolve conflicts.  This
+section describes the process.
 
 Column renaming
 ~~~~~~~~~~~~~~~~~
 
-In cases where the two tables have conflicting column names in the non-key columns, the
-|join| method provides a mechanism to generate unique output column names.  There are two
+
+In cases where the input tables have conflicting column names, there
+is a mechanism to generate unique output column names.  There are two
 keyword arguments that control the renaming behavior:
 
 ``table_names``
-    Two-element list of strings that provide a name for the two tables being joined.
-    By default this is ``['1', '2']``.
+    Two-element list of strings that provide a name for the tables being joined.
+    By default this is ``['1', '2', ...]``, where the numbers correspond to
+    the input tables.
 
 ``uniq_col_name``
     String format specifier with a default value of ``'{col_name}_{table_name}'``.
 
 This is most easily understood by example using the ``optical`` and ``xray`` tables
-defined above::
+in the |join| example defined previously::
 
   >>> print optical.join(xray, keys='name',
                          table_names=['OPTICAL', 'XRAY'],
-                         uniq_col_name='{table_name}__{col_name}')
-  name OPTICAL__obs_date mag_b mag_v XRAY__obs_date logLx
-  ---- ----------------- ----- ----- -------------- -----
-   M31        2012-01-02  17.0  16.0     1999-01-05  43.1
-   M82        2012-10-29  16.2  15.2     2012-10-29  45.0
+                         uniq_col_name='{table_name}_{col_name}')
+  name OPTICAL_obs_date mag_b mag_v XRAY_obs_date logLx
+  ---- ---------------- ----- ----- ------------- -----
+   M31       2012-01-02  17.0  16.0    1999-01-05  43.1
+   M82       2012-10-29  16.2  15.2    2012-10-29  45.0
 
 
-Metadata
-~~~~~~~~~~
+Merging metadata
+~~~~~~~~~~~~~~~~~~~
 
-The |join| method also merges the metadata associated with the input tables.  Because the
-metadata can be arbitrarily complex there is no unique way to do the merge.  The current
-implementation uses a simple recursive algorithm with four rules:
+|Table| objects can have associated metadata:
+
+- ``Table.meta``: table-level metadata as an ordered dictionary
+- ``Column.meta``: per-column metadata as an ordered dictionary
+
+The table operations described here handle the task of merging the metadata in the input
+tables into a single output structure.  Because the metadata can be arbitrarily complex
+there is no unique way to do the merge.  The current implementation uses a simple
+recursive algorithm with four rules:
 
 - Dict elements are merged by keys
 - Conflicting list or tuple elements are concatenated
 - Conflicting dict elements are merged by recursively calling the merge function
 - Conflicting elements that are not both list, tuple, or dict results in an exception
 
+Merging column attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 In addition to the table and column ``meta`` attributes, the column attributes ``units``,
-``format``, and ``description`` are merged using the Python ``or`` operator on the two
-corresponding values.  For example::
+``format``, and ``description`` are merged by going through the input tables in
+order and taking the first value which is defined (i.e. is not None).  For example::
 
-  out_col.units = left_col.units or right_col.units
+  >>> from table import Column, Table
+  >>> col1 = Column([1], name='a')
+  >>> col2 = Column([2], name='a', units='cm')
+  >>> col3 = Column([3], name='a', units='m')
+  >>> t1 = Table([col1])
+  >>> t2 = Table([col2])
+  >>> t3 = Table([col3])
+  >>> out = t1.vstack([t2, t3])
+  WARNING: MergeConflictWarning: In merged column 'a' the 'units' attribute does
+  not match (cm != m).  Using cm for merged output [astropy.table.table]
+  >>> out['a'].units
+  Unit("cm")
 
-If the left ``units`` are defined that will take precedence over the right side ``units``.
+In this case there was a conflict so a warning is shown.
