@@ -1421,7 +1421,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
         if self.description is not None:
             self.title = " ".join(x.strip() for x in
-                                  self.description.split("\n"))
+                                  self.description.splitlines())
         else:
             self.title = self.name
 
