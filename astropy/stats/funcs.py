@@ -488,22 +488,27 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     return bin_ctr, bin_halfwidth, p, perr
     
 
-def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix):
+def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix, gain=1.0):
     """
     Computes the signal to noise ratio for source being observed in the 
-    optical/IR using a CCD
+    optical/IR using a CCD.
     
     Parameters
     ----------
     t : float or numpy.ndarray
         CCD integration time in seconds
     source_eps : float
-        Number of counts (photons) per second in the aperture from the source. 
-        Note that this should already have been scaled by the filter 
-        transmission and the quantum efficiency of the CCD
+        Number of electrons (photons) or DN per second in the aperture from the 
+        source. Note that this should already have been scaled by the filter 
+        transmission and the quantum efficiency of the CCD. If the input is in
+        DN, then be sure to set the gain to the proper value for the CCD.
+        If the input is in electrons per second, then keep the gain as its 
+        default of 1.0.
     sky_eps : float
-        Number of counts (photons) per second per pixel from the sky background. Should
-        already be scaled by filter transmission and QE.
+        Number of electrons (photons) or DN per second per pixel from the sky 
+        background. Should already be scaled by filter transmission and QE.
+        This must be in the same units as source_eps for the calculation to 
+        make sense.
     dark_eps : float
         Number of thermal electrons per second per pixel. If this is given in
         DN or ADU, then multipy by the gain to get the value in electrons.
@@ -512,14 +517,16 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix):
         DN or ADU, then multipy by the gain to get the value in electrons.
     npix : float
         Size of the aperture in pixels
+    gain : float
+        Gain of the CCD. In units of electrons per DN.
         
     Returns
     ----------
     SNR : float or numpy.ndarray
         Signal to noise ratio calculated from the inputs
     """
-    signal = t*source_eps
-    noise = np.sqrt(t*(source_eps + npix*(sky_eps + dark_eps)) + npix*rd**2 )
+    signal = t*source_eps*gain
+    noise = np.sqrt(t*(source_eps*gain + npix*(sky_eps*gain + dark_eps)) + npix*rd**2 )
     return signal / noise
      
     
