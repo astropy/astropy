@@ -129,3 +129,20 @@ def test_signal_to_noise_oir_ccd():
     
     result = funcs.signal_to_noise_oir_ccd(1,25,0,0,0,1)
     assert 5.0 == result
+    #check to make sure gain works
+    result = funcs.signal_to_noise_oir_ccd(1,5,0,0,0,1,5)
+    assert 5.0 == result
+    
+    #now add in sky, dark current, and read noise 
+    #make sure the snr goes down
+    result = funcs.signal_to_noise_oir_ccd(1,25,1,0,0,1)
+    assert result < 5.0
+    result = funcs.signal_to_noise_oir_ccd(1,25,0,1,0,1)
+    assert result < 5.0
+    result = funcs.signal_to_noise_oir_ccd(1,25,0,0,1,1)
+    assert result < 5.0
+    
+    #make sure snr increases with time
+    result = funcs.signal_to_noise_oir_ccd(2,25,0,0,0,1)
+    assert result > 5.0
+    
