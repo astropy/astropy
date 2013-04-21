@@ -124,3 +124,8 @@ def test_binned_binom_proportion():
     bin_ctr, bin_hw, p, perr = funcs.binned_binom_proportion(x, success,
                                                              bins=nbins)
     assert (p == 0.).all()
+    
+def test_signal_to_noise_oir_ccd():
+    
+    result = funcs.signal_to_noise_oir_ccd(1,25,0,0,0,1)
+    assert 5.0 == result
