@@ -9,25 +9,25 @@ python:
     # do the latter first because they take the longest.  Testing of all other versions (without
     # optional dependencies) happens in the "include" section below
 env:
-    - NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=true
-    - NUMPY_VERSION=1.7.0 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
+    - NUMPY_VERSION=1.7.1 SETUP_CMD='test' OPTIONAL_DEPS=true
+    - NUMPY_VERSION=1.7.1 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
 
 matrix:
     include:
         # Check for sphinx doc build warnings - we do this first because it runs for a long time
         - python: 2.7
           # OPTIONAL_DEPS needed because the plot_directive in sphinx needs them
-          env: NUMPY_VERSION=1.7.0 SETUP_CMD='build_sphinx -w -n' OPTIONAL_DEPS=true
+          env: NUMPY_VERSION=1.7.1 SETUP_CMD='build_sphinx -w -n' OPTIONAL_DEPS=true
         
         # try all python versions with the latest numpy
         - python: 2.7
-          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.7.1 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 2.6
-          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.7.1 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 3.3
-          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.7.1 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 3.2
-          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.7.1 SETUP_CMD='test' OPTIONAL_DEPS=false
         
         # try alternate numpy versions
         - python: 2.7
@@ -60,7 +60,7 @@ install:
    # install numpy and Cython from wheels, and scipy if OPTIONAL_DEPS requested
    - if [[ $SETUP_CMD != egg_info ]]; then pip install $WHEELURL/numpy-$NUMPY_VERSION-cp$PYVERS-none-linux_x86_64.whl; fi
    - if [[ $SETUP_CMD != egg_info ]]; then pip install $WHEELURL/Cython-0.18-cp$PYVERS-none-linux_x86_64.whl; fi
-   - if $OPTIONAL_DEPS; then pip install  $WHEELURL/scipy-0.12.0-cp$PYVERS-none-linux_x86_64.whl; fi
+   - if $OPTIONAL_DEPS; then pip install  $WHEELURL/scipy-0.11.0-cp$PYVERS-none-linux_x86_64.whl; fi
    
    # this is how you would build numpy,scipy, and Cython if we don't have wheels.
    #- if [[ $SETUP_CMD != egg_info ]]; then pip install --upgrade "numpy==$NUMPY_VERSION" -q --use-mirrors; fi
