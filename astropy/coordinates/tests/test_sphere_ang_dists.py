@@ -13,19 +13,22 @@ distance_funcs = [angle_utilities.small_angle_sphere_dist,
                   angle_utilities.vincenty_sphere_dist,
                  ]
 
-# lat1, lon1, lat2, lon2 in degrees
-coords = [(0, 0, 1, 0),
-          (0, 0, 0, 10),
-          (0, 0, 0, 90),
-          (0, 0, 0, 180),
-          (45, 0, -45, 0),
-          (60, 0, -30, 0),
-          (-15, -135, 15, 45),
-          (-89, 100, 89, -80),
+# lon1, lat1, lon2, lat2 in degrees
+coords = [(1, 0, 0, 0),
+          (0, 1, 0, 0),
+          (0, 0, 1, 0),
+          (0, 0, 0, 1),
+          (0, 0, 10, 0),
+          (0, 0, 90, 0),
+          (0, 0, 180, 0),
+          (0, 45, 0, -45),
+          (0, 60, 0, -30),
+          (-135, -15, 45, 15),
+          (100, -89, -80, 89),
           (0, 0, 0, 0),
-          (0, 0, 1. / 60., 1. / 60.)
+          (0, 0, 1. / 60., 1. / 60.),
          ]
-correct_seps = [1, 10, 90, 180, 90, 90, 180, 180, 0, 0.023570225877234643]
+correct_seps = [1, 1, 1, 1, 10, 90, 180, 90, 90, 180, 180, 0, 0.023570225877234643]
 correctness_margin = 2e-10
 
 # set this to a numer to run the timing tests and trigger a failure so stdout is
@@ -47,7 +50,7 @@ def test_2dseparations(coord, correctsep, dfunc):
     from time import time
     from math import fabs, radians, degrees
 
-    lat1, lon1, lat2, lon2 = coord
+    lon1, lat1, lon2, lat2 = coord
 
     print('distance function', dfunc)
     print('({0},{1}) - ({2},{3})'.format(lon1, lat1, lon2, lat2))
@@ -70,7 +73,7 @@ def test_2dseparations(coord, correctsep, dfunc):
 
     #a few cases are known to fail because of bad approximations - let them fail
     if dfunc is angle_utilities.small_angle_sphere_dist:
-        if fabs(lat2 - lat1) > 1 and fabs(lon2 - lon1) > 1:  # radians
+        if fabs(lon2 - lon1) > 1 and fabs(lat2 - lat1) > 1:  # radians
             pytest.xfail('Small angle approximation fails for large angles')
 
     assert fabs(sep - correctsep) < correctness_margin
@@ -87,3 +90,17 @@ def test_fk5_seps():
     a = FK5Coordinates(1., 1., unit=('deg', 'deg'))
     b = FK5Coordinates(2., 2., unit=('deg', 'deg'))
     a.separation(b)
+
+def test_angsep():
+    """
+    Tests that the angular separation object also behaves correctly.
+    """
+    from math import fabs
+
+    from ... import units as u
+    from ..angles import AngularSeparation
+
+    for (lon1, lat1, lon2, lat2), corrsep in zip(coords, correct_seps):
+        angsep = AngularSeparation(lon1=lon1, lat1=lat1, lon2=lon2, lat2=lat2,
+                                   units=u.deg, _supresslatlonswap_warning=True)
+        assert fabs(angsep.degrees - corrsep) < correctness_margin

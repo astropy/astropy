@@ -388,11 +388,13 @@ class SphericalCoordinatesBase(object):
         """
         other_in_self_system = other.transform_to(self.__class__)
 
-        lat1 = self.latangle.radians
-        lat2 = other_in_self_system.latangle.radians
         lon1 = self.lonangle.radians
+        lat1 = self.latangle.radians
         lon2 = other_in_self_system.lonangle.radians
-        return AngularSeparation(lat1, lon1, lat2, lon2, u.radian)
+        lat2 = other_in_self_system.latangle.radians
+
+        return AngularSeparation(lon1, lat1, lon2, lat2, u.radian,
+            _supresslatlonswap_warning=True)  # TODO: remove _supresslatlonswap_warning in v0.4
 
     def separation_3d(self, other):
         """

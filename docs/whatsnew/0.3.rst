@@ -12,3 +12,19 @@ non-standard WCS keywords that were fixed up to become standard
 compliant.
 
 The included version of `wcslib` has been upgraded to version 4.17.
+
+Backwards-Incompatible Changes
+------------------------------
+
+* The `coordinates.angles.AngularSeparation`'s initializer argument order
+  has been changed from ``lat1, lon1, lat2, lon2`` to 
+  ``lon1, lat1, lon2, lat2``.  A warning will be shown in this version 
+  indicating that the change occurred, but this will be removed in the 
+  next version.  
+
+
+Warnings about backwards incompatible changes can be disabled by doing::
+
+    import warnings
+    from astropy.utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
+    warnings.simplefilter('ignore', AstropyBackwardsIncompatibleChangeWarning)
