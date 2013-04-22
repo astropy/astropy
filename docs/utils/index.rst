@@ -36,6 +36,9 @@ Reference/API
 .. automodapi:: astropy.utils.misc
     :no-inheritance-diagram:
 
+.. automodapi:: astropy.utils.exceptions
+    :no-inheritance-diagram:
+
 .. automodapi:: astropy.utils.collections
     :no-inheritance-diagram:
 

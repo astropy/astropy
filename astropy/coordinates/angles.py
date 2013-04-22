@@ -664,31 +664,42 @@ class AngularSeparation(Angle):
 
     Parameters
     ----------
-    lat1 : float
-        The value of the first latitudinal/elevation angle.
     lon1 : float
         The value of the first longitudinal/azimuthal angle.
-    lat2 : float
-        The value of the second latitudinal/elevation angle.
+    lat1 : float
+        The value of the first latitudinal/elevation angle.
     lon2 : float
         The value of the second longitudinal/azimuthal angle.
+    lat2 : float
+        The value of the second latitudinal/elevation angle.
     units : `~astropy.units`
         The units of the given angles.
 
 
     """
-    def __init__(self, lat1, lon1, lat2, lon2, units):
+    def __init__(self, lon1, lat1, lon2, lat2, units,
+        _supresslatlonswap_warning=False):  # TODO: remove this parameter in v0.4
+        # TODO: remove this warning in v0.4
+        if not _supresslatlonswap_warning:
+            from warnings import warn
+            from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
+            warn(AstropyBackwardsIncompatibleChangeWarning('The ordering of '
+                ' the AngularSeparation initializer angles was changed '
+                'from lat1, lon1, lat2, lon2 in v0.2 to "lon1, lat1, lon2, '
+                'lat2" in v0.3.  You MUST update your code to swap lat/lon '
+                'if you are not using keywords, or you will get the wrong '
+                'result.'))
 
         units = u.Unit(units)
-        lat1 = units.to(u.radian, lat1)
-        if 0 == lon1 == lat2 == lon2:
-            sepval = lat1
-        else:
-            lon1 = units.to(u.radian, lon1)
-            lat2 = units.to(u.radian, lat2)
+        lon1 = units.to(u.radian, lon1)
+        if lat1 or lat2 or lon2:
+            lat1 = units.to(u.radian, lat1)
             lon2 = units.to(u.radian, lon2)
+            lat2 = units.to(u.radian, lat2)
 
             sepval = util.vincenty_sphere_dist(lon1, lat1, lon2, lat2)
+        else:  # this is the case where lat1, lat2, and lon2 are all 0 or None or False
+            sepval = lon1
 
         super(AngularSeparation, self).__init__(sepval, u.radian)
 
