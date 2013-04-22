@@ -19,7 +19,9 @@ from ..utils import format_exception
 
 def _check_hour_range(hrs):
     ''' Checks that the given value is in the range (-24,24). '''
-    if not -24. < hrs < 24.:
+    if math.fabs(hrs) == 24.:
+        warn(IllegalHourWarning(hrs, 'Treating as 24 hr'))
+    elif not -24. < hrs < 24.:
         raise IllegalHourError(hrs)
 
 
@@ -27,7 +29,7 @@ def _check_minute_range(min):
     ''' Checks that the given value is in the range [0,60].
     If the value is equal to 60, then a warning is raised. '''
     if min == 60.:
-        warn(str(IllegalMinuteError(min)))
+        warn(IllegalMinuteWarning(min, 'Treating as 0 min, +1 hr/deg'))
     elif not 0. <= min < 60.:
         # "Error: minutes not in range [0,60) ({0}).".format(min))
         raise IllegalMinuteError(min)
@@ -37,7 +39,7 @@ def _check_second_range(sec):
     ''' Checks that the given value is in the range [0,60].
     If the value is equal to 60, then a warning is raised. '''
     if sec == 60.:
-        warn(str(IllegalSecondError(sec)))
+        warn(IllegalSecondWarning(sec, 'Treating as 0 sec, +1 min'))
     elif not 0. <= sec < 60.:
         # "Error: seconds not in range [0,60) ({0}).".format(sec))
         raise IllegalSecondError(sec)
