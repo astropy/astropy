@@ -160,5 +160,7 @@ Reference/API
 .. automodapi:: astropy.models
 .. automodapi:: astropy.models.constraints
 .. automodapi:: astropy.models.fitting
-.. automodapi:: astropy.models.builtin_models
-.. automodapi:: astropy.models.parameters
+.. automodapi:: astropy.models.functional_models
+.. automodapi:: astropy.models.polynomial
+.. automodapi:: astropy.models.projections
+.. automodapi:: astropy.models.rotations
