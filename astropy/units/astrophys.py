@@ -17,11 +17,11 @@ from __future__ import (absolute_import, division, print_function,
 
 from . import si
 from ..constants import si as _si
-from .core import UnitBase, def_unit
+from .core import UnitBase, def_unit, _UnitRegistry
 
 import numpy as _numpy
 
-UnitBase._set_namespace(globals())
+_UnitRegistry().namespace = globals()
 
 ###########################################################################
 # LENGTH

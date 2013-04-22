@@ -10,10 +10,10 @@ available in the `astropy.units` namespace.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from .core import UnitBase, def_unit
+from .core import UnitBase, def_unit, _UnitRegistry
 from . import si
 
-UnitBase._set_namespace(globals())
+_UnitRegistry().namespace = globals()
 
 ###########################################################################
 # LENGTH

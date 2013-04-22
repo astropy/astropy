@@ -71,6 +71,20 @@ For convenience, the `si` and `cgs` attributes can be used to convert the
     >>> q.cgs
     <Quantity 240.0 cm / s>
 
+The value of converting to another unit can also be obtained, by
+specifying the desired unit as an attribute::
+
+    >>> q = 180.0 * u.degree
+    >>> q.radian
+    3.141592653589793
+    >>> # The above is shorthand for...
+    >>> q.to(u.radian).value
+    3.141592653589793
+
+In code, it is considered best practice to use the `q.SOME_UNIT`
+rather than `q.value`, because then the value will always be in the
+requested unit.
+
 Arithmetic
 ----------
 
