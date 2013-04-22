@@ -178,9 +178,10 @@ class Generic(Base):
     @classmethod
     @utils._trace
     def _parse_unit(cls, s, loc, toks):
-        from ..core import UnitBase
-        if toks[0] in UnitBase._registry:
-            return UnitBase._registry[toks[0]]
+        from ..core import _UnitRegistry
+        registry = _UnitRegistry().registry
+        if toks[0] in registry:
+            return registry[toks[0]]
         raise p.ParseException(
             s, loc, "{0!r} is not a recognized unit".format(toks[0]))
 

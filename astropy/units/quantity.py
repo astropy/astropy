@@ -16,9 +16,11 @@ import numbers
 import numpy as np
 
 # AstroPy
-from .core import Unit, UnitBase, CompositeUnit
+from .core import Unit, UnitBase, CompositeUnit, UnitsException
 from .. import log
 from ..config import ConfigurationItem
+from ..utils.compat.misc import override__dir__
+
 
 WARN_IMPLICIT_NUMERIC_CONVERSION = ConfigurationItem(
                                           "warn_implicit_numeric_conversion",
@@ -71,13 +73,17 @@ class Quantity(object):
     Parameters
     ----------
     value : number, `Quantity` object, or sequence of `Quantity` objects.
-        The numerical value of this quantity in the units given by unit.
-        If a `Quantity` or sequence of them, creates a new `Quantity`
-        object, converting to `unit` units as needed.
+        The numerical value of this quantity in the units given by
+        unit.  If a `Quantity` or sequence of them, creates a new
+        `Quantity` object, converting to `unit` units as needed.
+
     unit : `~astropy.units.UnitBase` instance, str
         An object that represents the unit associated with the input value.
         Must be an `~astropy.units.UnitBase` object or a string parseable by
         the `units` package.
+
+    equivalencies : list of equivalence pairs, optional
+        A list of equivalence pairs. See :ref:`unit_equivalencies`.
 
     Raises
     ------
@@ -87,11 +93,15 @@ class Quantity(object):
         If the unit provided is not either a `Unit` object or a parseable
         string unit.
     """
+    # Need to set a class-level default for _equivalencies, or
+    # Constants can not initialize properly
+    _equivalencies = []
 
-    def __init__(self, value, unit):
+    def __init__(self, value, unit, equivalencies=[]):
         from ..utils.misc import isiterable
 
         self._unit = Unit(unit)
+        self._equivalencies = Unit._normalize_equivalencies(equivalencies)
 
         if isinstance(value, Quantity):
             self._value = _validate_value(value.to(self._unit).value)
@@ -100,7 +110,7 @@ class Quantity(object):
         else:
             self._value = _validate_value(value)
 
-    def to(self, unit, equivalencies=[]):
+    def to(self, unit, equivalencies=None):
         """ Returns a new `Quantity` object with the specified units.
 
         Parameters
@@ -112,9 +122,12 @@ class Quantity(object):
 
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`unit_equivalencies`.
+            directly convertible.  See :ref:`unit_equivalencies`.  If
+            not provided, the equivalencies that were provided in the
+            constructor will be used.
         """
-
+        if equivalencies is None:
+            equivalencies = self._equivalencies
         new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
         new_unit = Unit(unit)
         return Quantity(new_val, new_unit)
@@ -133,6 +146,15 @@ class Quantity(object):
         """
 
         return self._unit
+
+    @property
+    def equivalencies(self):
+        """
+        A list of equivalencies that will be applied implicitly during
+        unit conversions.
+        """
+
+        return self._equivalencies
 
     @property
     def si(self):
@@ -176,6 +198,56 @@ class Quantity(object):
         """ Return a copy of this `Quantity` instance """
 
         return self.__class__(self.value, unit=self.unit)
+
+    @override__dir__
+    def __dir__(self):
+        """
+        Quantities are able to directly convert to other units that
+        have the same physical type.  This function is implemented in
+        order to make autocompletion still work correctly in IPython.
+        """
+        extra_members = set()
+        for equivalent in self.unit._get_units_with_same_physical_type(
+                self._equivalencies):
+            if len(equivalent.aliases):
+                name = equivalent.aliases[0]
+            else:
+                name = equivalent.name
+            extra_members.add(name)
+        return extra_members
+
+    def __getattr__(self, attr):
+        """
+        Quantities are able to directly convert to other units that
+        have the same physical type.
+        """
+        def get_virtual_unit_attribute():
+            try:
+                to_unit = Unit(attr)
+            except ValueError:
+                return None
+
+            if len(to_unit.aliases):
+                if to_unit.aliases[0] != attr:
+                    return None
+            else:
+                if to_unit.name != attr:
+                    return None
+
+            try:
+                return self.unit.to(
+                    to_unit, self.value, equivalencies=self.equivalencies)
+            except UnitsException:
+                return None
+
+        value = get_virtual_unit_attribute()
+
+        if value is None:
+            raise AttributeError(
+                "{0} instance has no attribute '{1}'".format(
+                    self.__class__.__name__, attr))
+        else:
+            return value
 
     # Arithmetic operations
     def __add__(self, other):

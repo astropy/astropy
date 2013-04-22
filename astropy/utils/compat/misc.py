@@ -16,9 +16,10 @@ Includes the following fixes:
 
 from __future__ import absolute_import
 
+from functools import wraps
 from sys import version_info
 
-__all__ = ['inspect_getmodule', 'invalidate_caches']
+__all__ = ['inspect_getmodule', 'invalidate_caches', 'override__dir__']
 
 
 def _patched_getmodule(object, _filename=None):
@@ -100,3 +101,39 @@ if version_info[:2] >= (3, 3):
     from importlib import invalidate_caches
 else:
     invalidate_caches = lambda: None
+
+
+def override__dir__(f):
+    """
+    When overriding a __dir__ method on an object, you often want to
+    include the "standard" members on the object as well.  This
+    decorator takes care of that automatically, and all the wrapped
+    function needs to do is return a list of the "special" members
+    that wouldn't be found by the normal Python means.
+
+    Example
+    -------
+
+    @override__dir__
+    def __dir__(self):
+        return ['special_method1', 'special_method2']
+    """
+    if version_info[:2] < (3, 3):
+        # There was no straightforward way to do this until Python 3.3, so
+        # we have this complex monstrosity
+        @wraps(f)
+        def override__dir__wrapper(self):
+            members = set()
+            for cls in self.__class__.mro():
+                members.update(dir(cls))
+            members.update(self.__dict__.iterkeys())
+            members.update(f(self))
+            return sorted(members)
+    else:
+        @wraps(f)
+        def override__dir__wrapper(self):
+            members = set(super(self.__class__, self).__dir__())
+            members.update(f(self))
+            return sorted(members)
+
+    return override__dir__wrapper

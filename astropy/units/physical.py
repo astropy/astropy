@@ -23,29 +23,6 @@ __all__ = ['def_physical_type', 'get_physical_type']
 _physical_unit_mapping = {}
 
 
-def _tuple_repr(unit):
-    """
-    Creates a canonical representation of a (possibly compound)
-    unit that can be used as a dictionary key.  This makes looking
-    up other units with the same signature easy.
-
-    Parameters
-    ----------
-    unit : `~astropy.units.UnitBase` instance
-        The unit to create a tuple for.
-
-    Returns
-    -------
-    canonical : tuple
-        A canonical, hashable representation of the unit.
-    """
-    unit = unit.decompose()
-    r = zip([unicode(x) for x in unit.bases], unit.powers)
-    r.sort()
-    r = tuple(r)
-    return r
-
-
 def def_physical_type(unit, name):
     """
     Adds a new physical unit mapping.
@@ -58,7 +35,7 @@ def def_physical_type(unit, name):
     name : str
         The physical name of the unit.
     """
-    r = _tuple_repr(unit)
+    r = unit._get_physical_type_id()
     if r in _physical_unit_mapping:
         raise ValueError(
             "{0!r} already defined as {1!r}".format(
@@ -83,7 +60,7 @@ def get_physical_type(unit):
         The name of the physical quantity, or unknown if not
         known.
     """
-    r = _tuple_repr(unit)
+    r = unit._get_physical_type_id()
     return _physical_unit_mapping.get(r, 'unknown')
 
 

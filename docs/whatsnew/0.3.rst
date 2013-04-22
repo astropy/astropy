@@ -12,3 +12,13 @@ non-standard WCS keywords that were fixed up to become standard
 compliant.
 
 The included version of `wcslib` has been upgraded to version 4.17.
+
+Units
+-----
+
+Quantities can now conveniently get their values in a requested unit,
+simply by using `quantity.SOME_UNIT`, for example::
+
+    >>> q = 180.0 * u.degree
+    >>> q.radian
+    3.141592653589793

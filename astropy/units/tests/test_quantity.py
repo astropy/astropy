@@ -282,11 +282,11 @@ def test_quantity_conversion_with_equiv():
     q1 = u.Quantity(0.1, unit=u.meter)
     q2 = q1.to(u.Hz, equivalencies=u.spectral())
     assert_allclose(q2.value, 2997924580.0)
-    
+
     q1 = u.Quantity(0.4, unit=u.arcsecond)
     q2 = q1.to(u.au, equivalencies=u.parallax())
     q3 = q2.to(u.arcminute, equivalencies=u.parallax())
-    
+
     assert_allclose(q2.value, 515662.015)
     assert q2.unit == u.au
     assert_allclose(q3.value, 0.0066666667)
@@ -466,6 +466,7 @@ def test_inverse_quantity():
     assert toq.value == 0.5
     assert toq.unit == (u.second / u.meter)
 
+
 def test_quantity_mutability():
     q = u.Quantity(9.8, u.meter / u.second / u.second)
 
@@ -474,6 +475,7 @@ def test_quantity_mutability():
 
     with pytest.raises(AttributeError):
         q.unit = u.kg
+
 
 def test_quantity_initialized_with_quantity():
     q1 = u.Quantity(60, u.second)
@@ -501,3 +503,24 @@ def test_quantity_invalid_unit_string():
 @raises(ValueError)
 def test_quantity_invalid_unit_string2():
     "15" * u.m
+
+def test_implicit_conversion():
+    q = u.Quantity(1.0, u.meter)
+    assert_allclose(q.inch, 39.370078740157474)
+    assert_allclose(q.centimeter, 100)
+    assert_allclose(q.parsec, 3.240779289469756e-17)
+
+
+def test_implicit_conversion_autocomplete():
+    q = u.Quantity(1.0, u.meter)
+    q.foo = 42
+
+    attrs = dir(q)
+    assert 'inch' in attrs
+    assert 'centimeter' in attrs
+    assert 'parsec' in attrs
+    assert 'foo' in attrs
+    assert 'to' in attrs
+    assert 'value' in attrs
+    # Something from the base class, object
+    assert '__setattr__' in attrs
