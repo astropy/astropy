@@ -3,21 +3,19 @@ import abc
 import sys
 from copy import deepcopy
 import functools
-import warnings
-import collections
 
 import numpy as np
 from numpy import ma
 
 from ..units import Unit
 from .. import log
-from ..utils import OrderedDict, isiterable, metadata
+from ..utils import OrderedDict, isiterable
 from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
 from ..utils.console import color_print
 from ..config import ConfigurationItem
 from  ..io import registry as io_registry
-from . import np_utils
+from . import operations
 
 # Python 2 and 3 source compatibility
 try:
@@ -55,62 +53,6 @@ def _check_column_new_args(func):
 
 def _auto_names(n_cols):
     return [AUTO_COLNAME().format(i) for i in range(n_cols)]
-
-
-def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1):
-    """
-    Merge column meta data for the ``out`` table.
-
-    This merges column meta, which includes attributes units, format,
-    and description, as well as the actual `meta` atttribute.  It is
-    assumed that the ``out`` table was created by merging ``tables``.
-    The ``col_name_map`` provides the mapping from col name in ``out``
-    back to the original name (which may be different).
-    """
-    # Set column meta
-    attrs = ('units', 'format', 'description')
-    for out_col in out.columns.values():
-        for idx_table, table in enumerate(tables):
-            left_col = out_col
-            right_name = col_name_map[out_col.name][idx_table]
-
-            if right_name:
-                right_col = table[right_name]
-                out_col.meta = metadata.merge(left_col.meta, right_col.meta)
-                for attr in attrs:
-                    left_attr = getattr(left_col, attr)
-                    right_attr = getattr(right_col, attr)
-                    merge_attr = left_attr or right_attr
-                    setattr(out_col, attr, merge_attr)
-                    if left_attr and right_attr and left_attr != right_attr:
-                        warnings.warn('In merged column {0!r} the {1!r} attribute does not match '
-                                      '({2} != {3}).  Using {2} for merged output'
-                                      .format(out_col.name, attr, left_attr, right_attr),
-                                      metadata.MergeConflictWarning)
-
-
-def _merge_table_meta(out, tables):
-    out_meta = deepcopy(tables[0].meta)
-    for table in tables[1:]:
-        out_meta = metadata.merge(out_meta, table.meta)
-    out.meta.update(out_meta)
-
-
-def _get_list_of_tables(tables):
-    """
-    Check that tables is a Table or sequence of Tables.  Returns the
-    corresponding list of Tables.
-    """
-    err = '`tables` arg must be a Table or sequence of Tables'
-    if isinstance(tables, Table):
-        tables = [tables]
-    elif isinstance(tables, collections.Sequence):
-        if any(not isinstance(x, Table) for x in tables):
-            raise TypeError(err)
-    else:
-        raise TypeError(err)
-
-    return list(tables)
 
 
 class TableColumns(OrderedDict):
@@ -1815,25 +1757,8 @@ class Table(object):
             column names.  The default is ['1', '2'].
 
         """
-        # In "t1.join(t2)" self (i.e. t1) is the left table.
-        left = self
-
-        # If right isn't a table, use right as the data for a new Table
-        # that has the same class as left.
-        if not isinstance(right, Table):
-            right = left.__class__(right)
-
-        col_name_map = OrderedDict()
-        out_data = np_utils.join(left._data, right._data, keys, join_type,
-                                 uniq_col_name, table_names, col_name_map)
-        # Create the output (Table or subclass of Table)
-        out = left.__class__(out_data)
-
-        # Merge the column and table meta data. Table subclasses might override
-        # these methods for custom merge behavior.
-        _merge_col_meta(out, [left, right], col_name_map)
-        _merge_table_meta(out, [left, right])
-
+        out = operations.join(self, right, keys=keys, join_type=join_type,
+                              uniq_col_name=uniq_col_name, table_names=table_names)
         return out
 
     def vstack(self, tables, join_type='outer'):
@@ -1871,16 +1796,8 @@ class Table(object):
         join_type : str
             Join type ('inner' | 'exact' | 'outer'), default is 'exact'
         """
-        tables = [self] + _get_list_of_tables(tables)
-        arrays = [table._data for table in tables]
-        col_name_map = OrderedDict()
-
-        out_data = np_utils.vstack(arrays, join_type, col_name_map)
-        out = self.__class__(out_data)
-
-        # Merge column and table metadata
-        _merge_col_meta(out, tables, col_name_map)
-        _merge_table_meta(out, tables)
+        tables = [self] + operations._get_list_of_tables(tables)
+        out = operations.vstack(tables, join_type=join_type)
 
         return out
 
@@ -1926,15 +1843,8 @@ class Table(object):
             If passed as a dict then it will be updated in-place with the
             mapping of output to input column names.
         """
-        tables = [self] + _get_list_of_tables(tables)
-        arrays = [table._data for table in tables]
-        col_name_map = OrderedDict()
-
-        out_data = np_utils.hstack(arrays, join_type, uniq_col_name, table_names,
-                                   col_name_map)
-        out = self.__class__(out_data)
-
-        _merge_col_meta(out, tables, col_name_map)
-        _merge_table_meta(out, tables)
+        tables = [self] + operations._get_list_of_tables(tables)
+        out = operations.hstack(tables, join_type=join_type, uniq_col_name=uniq_col_name,
+                                table_names=table_names)
 
         return out

@@ -1,7 +1,9 @@
 """
-Utilities for numpy structured arrays.
+High-level operations for numpy structured arrays.
 
 join():  Perform a database join of two numpy ndarrays.
+hstack(): Horizontally stack a list of numpy ndarrays.
+vstack(): Vertically stack a list of numpy ndarrays.
 
 Some code and inspriration taken from numpy.lib.recfunctions.join_by().
 Redistribution license restrictions apply.
