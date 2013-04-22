@@ -10,7 +10,8 @@
 '''
 
 __all__ = ['RangeError', 'BoundsError', 'IllegalHourError',
-           'IllegalMinuteError', 'IllegalSecondError', 'ConvertError']
+           'IllegalMinuteError', 'IllegalSecondError', 'ConvertError',
+           'IllegalHourWarning', 'IllegalMinuteWarning', 'IllegalSecondWarning']
 
 
 class RangeError(ValueError):
@@ -45,9 +46,28 @@ class IllegalHourError(RangeError):
         return "An invalid value for 'hours' was found ('{0}'); must be in the range [0,24).".format(self.hour)
 
 
+class IllegalHourWarning(Warning):
+    """
+    Raised when an hour value is 24.
+
+    Parameters
+    ----------
+    hour : int, float
+    """
+    def __init__(self, hour, alternativeactionstr=None):
+        self.hour = hour
+        self.alternativeactionstr = alternativeactionstr
+
+    def __str__(self):
+        message = "'hour' was found  to be '{0}', which is not in range (-24, 24).".format(self.hour)
+        if self.alternativeactionstr is not None:
+            message += ' ' + self.alternativeactionstr
+        return message
+
+
 class IllegalMinuteError(RangeError):
     """
-    Raised when an minute value is not in the range [0,60).
+    Raised when an minute value is not in the range [0,60].
 
     Usage:
         if not 0 <= min < 60:
@@ -61,12 +81,31 @@ class IllegalMinuteError(RangeError):
         self.minute = minute
 
     def __str__(self):
-        return "An invalid value for 'minute' was found ('{0}'); must be in the range [0,60).".format(self.minute)
+        return "An invalid value for 'minute' was found ('{0}'); should be in the range [0,60).".format(self.minute)
+
+
+class IllegalMinuteWarning(Warning):
+    """
+    Raised when a minute value is 60.
+
+    Parameters
+    ----------
+    minute : int, float
+    """
+    def __init__(self, minute, alternativeactionstr=None):
+        self.minute = minute
+        self.alternativeactionstr = alternativeactionstr
+
+    def __str__(self):
+        message = "'minute' was found  to be '{0}', which is not in range [0,60).".format(self.minute)
+        if self.alternativeactionstr is not None:
+            message += ' ' + self.alternativeactionstr
+        return message
 
 
 class IllegalSecondError(RangeError):
     """
-    Raised when an second value (time) is not in the range [0,60).
+    Raised when an second value (time) is not in the range [0,60].
 
     Usage:
         if not 0 <= sec < 60:
@@ -80,7 +119,33 @@ class IllegalSecondError(RangeError):
         self.second = second
 
     def __str__(self):
-        return "An invalid value for 'second' was found ('{0}'); must be in the range [0,60).".format(self.second)
+        return "An invalid value for 'second' was found ('{0}'); should be in the range [0,60).".format(self.second)
+
+
+class IllegalSecondWarning(Warning):
+    """
+    Raised when a second value is 60.
+
+    Parameters
+    ----------
+    second : int, float
+    """
+    def __init__(self, second, alternativeactionstr=None):
+        self.second = second
+        self.alternativeactionstr = alternativeactionstr
+
+    def __str__(self):
+        message = "'second' was found  to be '{0}', which is not in range [0,60).".format(self.second)
+        if self.alternativeactionstr is not None:
+            message += ' ' + self.alternativeactionstr
+        return message
+
+
+# TODO: consider if this should be used to `units`?
+class UnitsError(ValueError):
+    """
+    Raised if units are missing or invalid.
+    """
 
 
 class ConvertError(Exception):
