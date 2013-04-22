@@ -756,12 +756,16 @@ if HAVE_SPHINX:
             SphinxBuildDoc.finalize_options(self)
 
         def run(self):
+            import webbrowser
+
             from os.path import split, join, abspath
             from distutils.cmd import DistutilsOptionError
             from subprocess import Popen, PIPE
             from inspect import getsourcelines
-            from urllib import pathname2url
-            import webbrowser
+            if PY3:
+                from urllib.request import pathname2url
+            else:
+                from urllib import pathname2url
 
             # If possible, create the _static dir
             if self.build_dir is not None:
@@ -825,7 +829,7 @@ if HAVE_SPHINX:
                       '[CODE END])'.format(sys.executable, subproccode))
 
             proc = Popen([sys.executable], stdin=PIPE)
-            proc.communicate(subproccode)
+            proc.communicate(subproccode.encode('utf-8'))
             if proc.returncode == 0:
                 if self.open_docs_in_browser:
                     if self.builder == 'html':
