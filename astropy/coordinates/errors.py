@@ -54,11 +54,12 @@ class IllegalHourWarning(Warning):
     ----------
     hour : int, float
     """
-    def __init__(self, hour):
+    def __init__(self, hour, alternativeactionstr):
         self.hour = hour
+        self.alternativeactionstr = alternativeactionstr
 
     def __str__(self):
-        return "'hour' was found  to be '{0}'; it is best to in the range [0,24).".format(self.minute)
+        return "'hour' was found  to be '{0}'; {1}.".format(self.minute, self.alternativeactionstr)
 
 
 class IllegalMinuteError(RangeError):
@@ -88,11 +89,12 @@ class IllegalMinuteWarning(Warning):
     ----------
     minute : int, float
     """
-    def __init__(self, minute):
+    def __init__(self, minute, alternativeactionstr):
         self.minute = minute
+        self.alternativeactionstr = alternativeactionstr
 
     def __str__(self):
-        return "'minute' was found  to be '{0}'; it is best to in the range [0,60).".format(self.minute)
+        return "'minute' was found  to be '{0}'; {1}.".format(self.minute, self.alternativeactionstr)
 
 
 class IllegalSecondError(RangeError):
@@ -122,11 +124,12 @@ class IllegalSecondWarning(Warning):
     ----------
     second : int, float
     """
-    def __init__(self, second):
+    def __init__(self, second, alternativeactionstr):
         self.second = second
+        self.alternativeactionstr = alternativeactionstr
 
     def __str__(self):
-        return "'second' was found  to be '{0}'; it is best to in the range [0,60).".format(self.second)
+        return "'second' was found  to be '{0}'; {1}.".format(self.second, self.alternativeactionstr)
 
 
 # TODO: consider if this should be used to `units`?
