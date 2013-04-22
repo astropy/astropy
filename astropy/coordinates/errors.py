@@ -59,7 +59,7 @@ class IllegalHourWarning(Warning):
         self.alternativeactionstr = alternativeactionstr
 
     def __str__(self):
-        return "'hour' was found  to be '{0}'; {1}.".format(self.minute, self.alternativeactionstr)
+        return "'hour' was found  to be '{0}'; {1}.".format(self.hour, self.alternativeactionstr)
 
 
 class IllegalMinuteError(RangeError):
