@@ -29,7 +29,7 @@ specific sub-packages, for example::
 
     >>> from astropy import units as u
     >>> from astropy import coordinates as coord
-    >>> coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=(u.degree, u.degree)))
+    >>> coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=(u.degree, u.degree))
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
 
 Finally, in some cases, most of the required functionality is contained in a
