@@ -11,7 +11,8 @@ from __future__ import division
 
 import numpy as np
 
-__all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion']
+__all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion',
+'signal_to_noise_oir_ccd']
 
 
 def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
@@ -485,3 +486,47 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     perr = np.abs(bounds - p)
 
     return bin_ctr, bin_halfwidth, p, perr
+    
+
+def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix, gain=1.0):
+    """
+    Computes the signal to noise ratio for source being observed in the 
+    optical/IR using a CCD.
+    
+    Parameters
+    ----------
+    t : float or numpy.ndarray
+        CCD integration time in seconds
+    source_eps : float
+        Number of electrons (photons) or DN per second in the aperture from the 
+        source. Note that this should already have been scaled by the filter 
+        transmission and the quantum efficiency of the CCD. If the input is in
+        DN, then be sure to set the gain to the proper value for the CCD.
+        If the input is in electrons per second, then keep the gain as its 
+        default of 1.0.
+    sky_eps : float
+        Number of electrons (photons) or DN per second per pixel from the sky 
+        background. Should already be scaled by filter transmission and QE.
+        This must be in the same units as source_eps for the calculation to 
+        make sense.
+    dark_eps : float
+        Number of thermal electrons per second per pixel. If this is given in
+        DN or ADU, then multipy by the gain to get the value in electrons.
+    rd : float
+        Read noise of the CCD in electrons. If this is given in
+        DN or ADU, then multipy by the gain to get the value in electrons.
+    npix : float
+        Size of the aperture in pixels
+    gain : float
+        Gain of the CCD. In units of electrons per DN.
+        
+    Returns
+    ----------
+    SNR : float or numpy.ndarray
+        Signal to noise ratio calculated from the inputs
+    """
+    signal = t*source_eps*gain
+    noise = np.sqrt(t*(source_eps*gain + npix*(sky_eps*gain + dark_eps)) + npix*rd**2 )
+    return signal / noise
+     
+    
