@@ -20,7 +20,7 @@ from ..utils import format_exception
 def _check_hour_range(hrs):
     ''' Checks that the given value is in the range (-24,24). '''
     if math.fabs(hrs) == 24.:
-        warn(IllegalHourWarning(hrs, 'Treating as 0 hr'))
+        warn(IllegalHourWarning(hrs, 'Treating as 24 hr'))
     elif not -24. < hrs < 24.:
         raise IllegalHourError(hrs)
 

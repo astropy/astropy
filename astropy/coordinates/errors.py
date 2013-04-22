@@ -59,7 +59,7 @@ class IllegalHourWarning(Warning):
         self.alternativeactionstr = alternativeactionstr
 
     def __str__(self):
-        return "'hour' was found  to be '{0}'; {1}.".format(self.hour, self.alternativeactionstr)
+        return "'hour' was found  to be '{0}', which is not in range (-24, 24); {1}.".format(self.hour, self.alternativeactionstr)
 
 
 class IllegalMinuteError(RangeError):
@@ -94,7 +94,7 @@ class IllegalMinuteWarning(Warning):
         self.alternativeactionstr = alternativeactionstr
 
     def __str__(self):
-        return "'minute' was found  to be '{0}'; {1}.".format(self.minute, self.alternativeactionstr)
+        return "'minute' was found  to be '{0}', which is not in range [0,60); {1}.".format(self.minute, self.alternativeactionstr)
 
 
 class IllegalSecondError(RangeError):
@@ -129,7 +129,7 @@ class IllegalSecondWarning(Warning):
         self.alternativeactionstr = alternativeactionstr
 
     def __str__(self):
-        return "'second' was found  to be '{0}'; {1}.".format(self.second, self.alternativeactionstr)
+        return "'second' was found  to be '{0}', which is not in range [0,60); {1}.".format(self.second, self.alternativeactionstr)
 
 
 # TODO: consider if this should be used to `units`?
