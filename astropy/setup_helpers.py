@@ -771,7 +771,10 @@ if HAVE_SPHINX:
             from distutils.cmd import DistutilsOptionError
             from subprocess import Popen, PIPE, STDOUT
             from inspect import getsourcelines
-            from urllib import pathname2url
+            if PY3:
+                from urllib.request import pathname2url
+            else:
+                from urllib import pathname2url
 
             # If possible, create the _static dir
             if self.build_dir is not None:
@@ -857,7 +860,7 @@ if HAVE_SPHINX:
 
             else:
                 proc = Popen([sys.executable], stdin=PIPE)
-                proc.communicate(subproccode)
+                proc.communicate(subproccode.encode('utf-8'))
 
             if proc.returncode == 0:
                 if self.open_docs_in_browser:
