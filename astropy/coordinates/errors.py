@@ -54,12 +54,15 @@ class IllegalHourWarning(Warning):
     ----------
     hour : int, float
     """
-    def __init__(self, hour, alternativeactionstr):
+    def __init__(self, hour, alternativeactionstr=None):
         self.hour = hour
         self.alternativeactionstr = alternativeactionstr
 
     def __str__(self):
-        return "'hour' was found  to be '{0}', which is not in range (-24, 24); {1}.".format(self.hour, self.alternativeactionstr)
+        message = "'hour' was found  to be '{0}', which is not in range (-24, 24).".format(self.hour)
+        if self.alternativeactionstr is not None:
+            message += ' ' + self.alternativeactionstr
+        return message
 
 
 class IllegalMinuteError(RangeError):
@@ -89,12 +92,15 @@ class IllegalMinuteWarning(Warning):
     ----------
     minute : int, float
     """
-    def __init__(self, minute, alternativeactionstr):
+    def __init__(self, minute, alternativeactionstr=None):
         self.minute = minute
         self.alternativeactionstr = alternativeactionstr
 
     def __str__(self):
-        return "'minute' was found  to be '{0}', which is not in range [0,60); {1}.".format(self.minute, self.alternativeactionstr)
+        message = "'minute' was found  to be '{0}', which is not in range [0,60).".format(self.minute)
+        if self.alternativeactionstr is not None:
+            message += ' ' + self.alternativeactionstr
+        return message
 
 
 class IllegalSecondError(RangeError):
@@ -124,12 +130,15 @@ class IllegalSecondWarning(Warning):
     ----------
     second : int, float
     """
-    def __init__(self, second, alternativeactionstr):
+    def __init__(self, second, alternativeactionstr=None):
         self.second = second
         self.alternativeactionstr = alternativeactionstr
 
     def __str__(self):
-        return "'second' was found  to be '{0}', which is not in range [0,60); {1}.".format(self.second, self.alternativeactionstr)
+        message = "'second' was found  to be '{0}', which is not in range [0,60).".format(self.second)
+        if self.alternativeactionstr is not None:
+            message += ' ' + self.alternativeactionstr
+        return message
 
 
 # TODO: consider if this should be used to `units`?
