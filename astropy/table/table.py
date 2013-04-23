@@ -558,7 +558,6 @@ class Column(BaseColumn, np.ndarray):
         return Column(name=self.name, data=data, units=self.units, format=self.format,
                       description=self.description, meta=deepcopy(self.meta))
 
-
 class MaskedColumn(BaseColumn, ma.MaskedArray):
     """Define a masked data column for use in a Table object.
 
@@ -937,7 +936,7 @@ class Table(object):
         self._data = None
         self._set_masked(masked)
         self.columns = TableColumns()
-        self.meta = OrderedDict() if meta is None else deepcopy(meta)
+        self._meta = OrderedDict() if meta is None else deepcopy(meta)
 
         # Must copy if dtypes are changing
         if not copy and dtypes is not None:
@@ -1831,3 +1830,7 @@ class Table(object):
         _merge_table_meta(out, left, right)
 
         return out
+
+    @property
+    def meta(self):
+        return self._meta
