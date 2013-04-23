@@ -212,10 +212,12 @@ class BaseColumn(object):
         else:
             return out_arr.view(np.ndarray)[()]
 
-    def _get_name(self):
+    @property
+    def name(self):
         return self._name
 
-    def _set_name(self, val):
+    @name.setter
+    def name(self, val):
         if self.parent_table is not None:
             table = self.parent_table
             table.columns._rename_column(self.name, val)
@@ -224,8 +226,6 @@ class BaseColumn(object):
                 table._data.mask.dtype.names = table.columns.keys()
 
         self._name = val
-
-    name = property(_get_name, _set_name)
 
     @property
     def descr(self):
@@ -1115,7 +1115,7 @@ class Table(object):
             names_from_data = set()
             for row in data:
                 names_from_data.update(row)
-            
+
             cols = {}
             for name in names_from_data:
                 cols[name] = []
@@ -1128,7 +1128,7 @@ class Table(object):
                 names = sorted(names_from_data)
             self._init_from_dict(cols, names, dtypes, n_cols, copy)
             return
-                
+
         for col, name, def_name, dtype in zip(data, names, def_names, dtypes):
             if isinstance(col, (Column, MaskedColumn)):
                 col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype)
