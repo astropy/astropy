@@ -24,10 +24,19 @@
 Bug Fixes
 ^^^^^^^^^
 
-- Fixed an unrelated error message that could occur when trying to import
-  astropy from a source checkout without having build the extension modules
-  first. This issue was claimed to be fixed in v0.2.1, but the fix itself had
-  a bug. [#971]
+- ``astropy.units``
+
+  - Fixed an issue where the ``isiterable()`` utility returned ``True`` for
+    quantities with scalar values.  Added an ``__iter__`` method for the
+    ``Quantity`` class and fixed ``isiterable()`` to catch false positives.
+    [#878]
+
+- Misc
+
+  - Fixed an unrelated error message that could occur when trying to import
+    astropy from a source checkout without having build the extension modules
+    first. This issue was claimed to be fixed in v0.2.1, but the fix itself had
+    a bug. [#971]
 
 
 0.2.1 (2013-04-03)
