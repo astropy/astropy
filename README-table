@@ -1,0 +1,5 @@
+Fix for issue 809
+
+    @property
+    def meta(self):
+        return self._meta
