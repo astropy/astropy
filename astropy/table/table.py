@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import abc
+import collections
 import sys
 from copy import deepcopy
 import functools
@@ -897,6 +898,9 @@ class Row(object):
     def __repr__(self):
         return "<Row {0} of table\n values={1!r}\n dtype={2}>".format(
             self.index, self.data, self.dtype)
+
+
+collections.Sequence.register(Row)
 
 
 class Table(object):
