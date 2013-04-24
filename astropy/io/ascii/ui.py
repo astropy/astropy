@@ -50,6 +50,8 @@ from ...table import Table
 
 # Default setting for guess parameter in read()
 _GUESS = True
+# Default setting for fill_values parameter in read()
+#fill_values = True
 def set_guess(guess):
     """Set the default value of the ``guess`` parameter for read()
 
@@ -118,6 +120,8 @@ def read(table, guess=None, **kwargs):
 
     # Provide a simple way to choose between the two common outputters.  If an
     # Outputter is supplied in kwargs that will take precedence.
+    if 'fill_values' not in kwargs:
+        kwargs['fill_values']=[('','0')]
     new_kwargs = {}
     new_kwargs['Outputter'] = core.TableOutputter
     new_kwargs.update(kwargs)
