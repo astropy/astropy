@@ -7,7 +7,55 @@ Table operations
 -----------------
 
 In this section we describe higher-level operations that can be used to generate a new
-table from one or more input tables.
+table from two or more input tables.  This includes:
+
+=======================
+
+.. list-table::
+   :header-rows: 1
+   :widths: 24 40 22 14
+
+   * - Documentation
+     - Description
+     - Object method
+     - Function
+   * - `Stacking vertically`_
+     - Concatenate rows of input tables
+     - `~astropy.table.table.Table.vstack`
+     - `~astropy.table.operations.vstack`
+   * - `Stacking horizontally`_
+     - Concatenate columns of input tables
+     - `~astropy.table.table.Table.hstack`
+     - `~astropy.table.operations.hstack`
+   * - `Join`_
+     - Database-style join of two tables
+     - `~astropy.table.table.Table.join`
+     - `~astropy.table.operations.join`
+
+
+Methods versus functions
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order to accomodate different use cases, each of the table operations can be
+called in two ways.  The first is using a |Table| object *method*, and the second
+is using a *function* within the `~astropy.table` sub-package.  For example::
+
+  >>> from astropy.table import Table, vstack, hstack, join
+  >>> t1 = Table([[1], [2]], names=('a', 'b'))
+  >>> t2 = Table([[3], [4]], names=('a', 'b'))
+  >>> t3 = Table([[5], [6]], names=('a', 'b'))
+
+  >>> t1.hstack(t2)  # Append t2 to the right of t1
+  >>> hstack([t1, t2])  # Horizontally stack t1 and t2
+
+  >>> t1.vstack([t2, t3])  # Append t2 and t3 to the bottom of t1
+  >>> vstack([t1, t2, t3])  # Vertically stack t1, t2, and t3
+
+  >>> t1.join(t2, keys=['a'])  # Join t2 to t1
+  >>> join(t1, t2, keys=['a'])  # Join t2 to t1 (list input not allowed)
+
+The examples in subsequent sections all use the |Table| method version, but
+it is always possible to use the  `~astropy.table` function syntax as well.
 
 Stacking vertically
 ^^^^^^^^^^^^^^^^^^^^
