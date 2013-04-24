@@ -11,7 +11,7 @@ from __future__ import division
 
 import numpy as np
 
-__all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion', 'median_absolute_deviation', 'biweight_locater', 'biweight_scale']
+__all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion', 'median_absolute_deviation', 'biweight_location', 'biweight_midvariance']
 
 
 def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
