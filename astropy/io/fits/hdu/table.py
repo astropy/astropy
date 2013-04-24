@@ -290,6 +290,9 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             if pcount > 0:
                 self.header['PCOUNT'] = pcount
 
+            # update the other T****n keywords
+            self._populate_table_keywords()
+
             # update TFORM for variable length columns
             for idx in range(self.data._nfields):
                 format = self.data._coldefs.formats[idx]
@@ -365,14 +368,13 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """Populate the new table definition keywords from the header."""
 
         cols = self.columns
-        append = self._header.append
 
         for idx, col in enumerate(cols):
             for attr, keyword in zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES):
                 val = getattr(cols, attr + 's')[idx]
                 if val:
                     keyword = keyword + str(idx + 1)
-                    append((keyword, val))
+                    self._header[keyword] = val
 
 
 class TableHDU(_TableBaseHDU):
@@ -610,7 +612,6 @@ class BinTableHDU(_TableBaseHDU):
         """Populate the new table definition keywords from the header."""
 
         cols = self.columns
-        append = self._header.append
 
         for idx, col in enumerate(cols):
             for attr, keyword in zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES):
@@ -624,8 +625,16 @@ class BinTableHDU(_TableBaseHDU):
                         elif isinstance(val, _FormatP):
                             val = val.tform
                         else:
+                            # There are some cases where the original TFORM and
+                            # the one generated from the recformat can have the
+                            # same meaning but different string representation;
+                            # make sure to use the original representation in
+                            # this case
+                            orig_val = cols.formats[idx]
                             val = _convert_format(val, reverse=True)
-                    append((keyword, val))
+                            if _parse_tformat(orig_val) == _parse_tformat(val):
+                                val = orig_val
+                    self._header[keyword] = val
 
     _tdump_file_format = textwrap.dedent("""
 

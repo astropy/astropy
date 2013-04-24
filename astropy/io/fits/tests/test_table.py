@@ -799,6 +799,35 @@ class TestTableFunctions(FitsTestCase):
         t2.close()
         hdul.close()
 
+    def test_modify_column_attributes(self):
+        """Regression test for https://github.com/astropy/astropy/issues/996
+
+        This just tests one particular use case, but it should apply pretty
+        well to other similar cases.
+        """
+
+        NULLS = {}
+        NULLS['a'] = 2
+        NULLS['b'] = 'b'
+        NULLS['c'] = 2.3
+
+        data = np.array(list(zip([1, 2, 3, 4],
+                                 ['a', 'b', 'c', 'd'],
+                                 [2.3, 4.5, 6.7, 8.9])),
+                        dtype=[('a', int), ('b', 'S1'), ('c', float)])
+
+        b = fits.BinTableHDU(data=data)
+        for col in b.columns:
+            col.null = NULLS[col.name]
+
+        b.writeto(self.temp('test.fits'), clobber=True)
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            header = hdul[1].header
+            assert header['TNULL1'] == 2
+            assert header['TNULL2'] == 'b'
+            assert header['TNULL3'] == 2.3
+
     def test_mask_array(self):
         t = fits.open(self.data('table.fits'))
         tbdata = t[1].data
