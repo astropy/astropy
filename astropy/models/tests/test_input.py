@@ -123,7 +123,7 @@ class TestFitting(object):
         """
         1 set 1D x, 1 set 1D y, 1 pset NonLinearFitter
         """
-        g1 = models.Gauss1DModel(10, 3, .2)
+        g1 = models.Gaussian1DModel(10, 3, .2)
         y1 = g1(self.x1)
         gfit = fitting.NonLinearLSQFitter(g1)
         gfit(self.x1, y1)
@@ -135,7 +135,7 @@ class TestFitting(object):
         1 set 1D x, 1 set 1D y, 2 psets, NonLinearFitter
         """
         with pytest.raises(ValueError):
-            g1 = models.Gauss1DModel([10.2, 10], [3,3.2], [.23,.2])
+            g1 = models.Gaussian1DModel([10.2, 10], [3,3.2], [.23,.2])
             y1 = g1(self.x1)
             gfit = fitting.NonLinearLSQFitter(g1)
             gfit(self.x1, y1)
@@ -145,7 +145,7 @@ class TestFitting(object):
         """
         1 set 2d x, 1set 2D y, 1 pset, NonLinearFitter
         """
-        g2=models.Gauss2DModel(10, 3, 4, xsigma=.3, ysigma=.2, theta=0)
+        g2=models.Gaussian2DModel(10, 3, 4, x_sigma=.3, y_sigma=.2, theta=0)
         z = g2(self.x, self.y)
         gfit = fitting.NonLinearLSQFitter(g2)
         gfit(self.x, self.y, z)
@@ -157,8 +157,8 @@ class TestFitting(object):
          1 set 2d x, 1set 2D y, 2 psets, NonLinearFitter
         """
         with pytest.raises(ValueError):
-            g2=models.Gauss2DModel([10,10], [3,3],[4,4], xsigma=[.3,.3], 
-                ysigma=[.2,.2], theta=[0,0])
+            g2=models.Gaussian2DModel([10,10], [3,3],[4,4], x_sigma=[.3,.3], 
+                y_sigma=[.2,.2], theta=[0,0])
             z = g2(self.x.flatten(), self.y.flatten())
             gfit = fitting.NonLinearLSQFitter(g2)
             gfit(self.x, self.y, z)
@@ -178,7 +178,7 @@ class TestEvaluation(object):
         This case covers:
             N parsets , 1 set 1D x --> N 1D y data
         """
-        g1 = models.Gauss1DModel([10, 10], [3,3], [.2,.2])
+        g1 = models.Gaussian1DModel([10, 10], [3,3], [.2,.2])
         y1 = g1(self.x1)
         utils.assert_equal((y1[:,0]-y1[:,1]).nonzero(), (np.array([]),))
         
@@ -186,7 +186,7 @@ class TestEvaluation(object):
         """
         This case covers: N parsets , N sets 1D x --> N N sets 1D y data
         """
-        g1 = models.Gauss1DModel([10, 10], [3,3], [.2,.2])
+        g1 = models.Gaussian1DModel([10, 10], [3,3], [.2,.2])
         xx = np.array([self.x1, self.x1])
         y1 = g1(xx.T)
         utils.assert_allclose(y1[:,0], y1[:,1], atol=10**(-12))
