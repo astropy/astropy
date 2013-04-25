@@ -7,7 +7,7 @@ models can be linear or nonlinear in a regression analysis sense.
 
 All models provide a `__call__` method which performs the transformation in a
 purely mathematical way, i.e. the models are unitless. In addition, when 
-possible the transformation is done using multiple parameter sets, `psets`.
+possible the transformation is done using multiple parameter sets, `param_sets`.
 The number of parameter sets is stored in an attribute `param_dim`. 
 
 Parametric models also store a flat list of all parameters as an instance of
@@ -251,14 +251,14 @@ class Model(object):
         return fmt
 
     @property
-    def psets(self):
+    def param_sets(self):
         """
         Return parameters as a pset.
         This is an array where each column represents one parameter set.
         """
-        psets = np.asarray([getattr(self, attr) for attr in self.param_names])
-        psets.shape = (len(self.param_names), self.param_dim)
-        return psets
+        param_sets = np.asarray([getattr(self, attr) for attr in self.param_names])
+        param_sets.shape = (len(self.param_names), self.param_dim)
+        return param_sets
     
     def inverse(self):
         """

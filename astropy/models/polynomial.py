@@ -362,7 +362,7 @@ class Chebyshev1DModel(PolynomialModel):
         if self.domain is not None:
             x = self.set_domain(x)
         x, fmt = _convert_input(x, self.param_dim)
-        result = self.clenshaw(x, self.psets)
+        result = self.clenshaw(x, self.param_sets)
         return _convert_output(result, fmt)
 
 class Legendre1DModel(PolynomialModel):
@@ -434,7 +434,7 @@ class Legendre1DModel(PolynomialModel):
         if self.domain is not None:
             x = self.set_domain(x)
         x, fmt = _convert_input(x, self.param_dim)
-        result = self.clenshaw(x, self.psets)
+        result = self.clenshaw(x, self.param_sets)
         return _convert_output(result, fmt)
 
 class Poly1DModel(PolynomialModel):
@@ -491,7 +491,7 @@ class Poly1DModel(PolynomialModel):
         Rules for model evaluation are described in the module docstring
         """
         x, fmt = _convert_input(x, self.param_dim)
-        result = self.horner(x, self.psets)
+        result = self.horner(x, self.param_sets)
         return _convert_output(result, fmt)
 
 class Poly2DModel(PolynomialModel):

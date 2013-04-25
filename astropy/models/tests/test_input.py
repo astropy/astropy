@@ -37,7 +37,7 @@ class TestFitting(object):
         
     def test_linear_fitter_Nset(self):
         """
-        1 set 1D x, 2 sets 1D y, 2 psets
+        1 set 1D x, 2 sets 1D y, 2 param_sets
         """
         expected = np.array([[ 0, 0], [1, 1], [2, 2], [3, 3]])
         p1 = models.Poly1DModel(3, param_dim=2)
@@ -49,7 +49,7 @@ class TestFitting(object):
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter(p1)
         pfit(self.x1, y1)
-        utils.assert_allclose(p1.psets, expected, atol=10**(-7))
+        utils.assert_allclose(p1.param_sets, expected, atol=10**(-7))
         
     def test_linear_fitter_1dcheb(self):
         """
@@ -61,7 +61,7 @@ class TestFitting(object):
         y1 = ch1(self.x1)
         pfit = fitting.LinearLSQFitter(ch1)
         pfit(self.x1, y1)
-        utils.assert_allclose(ch1.psets, expected, atol=10**(-2))
+        utils.assert_allclose(ch1.param_sets, expected, atol=10**(-2))
         
     def test_linear_fitter_1dlegend(self):
         """
@@ -73,7 +73,7 @@ class TestFitting(object):
         y1 = leg1(self.x1)
         pfit = fitting.LinearLSQFitter(leg1)
         pfit(self.x1, y1)
-        utils.assert_allclose(leg1.psets, expected, atol=10**(-12))
+        utils.assert_allclose(leg1.param_sets, expected, atol=10**(-12))
 
     def test_linear_fitter_1set2d(self):
         p2 = models.Poly2DModel(2)
@@ -116,7 +116,7 @@ class TestFitting(object):
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter(p1)
         pfit(self.x1, y1)
-        utils.assert_allclose(p1.psets, expected, atol=10**(-7))
+        utils.assert_allclose(p1.param_sets, expected, atol=10**(-7))
     
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_1set_1d(self):
@@ -132,7 +132,7 @@ class TestFitting(object):
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_Nset_1d(self):
         """
-        1 set 1D x, 1 set 1D y, 2 psets, NonLinearFitter
+        1 set 1D x, 1 set 1D y, 2 param_sets, NonLinearFitter
         """
         with pytest.raises(ValueError):
             g1 = models.Gaussian1DModel([10.2, 10], [3,3.2], [.23,.2])
@@ -154,7 +154,7 @@ class TestFitting(object):
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_Nset_2d(self):
         """
-         1 set 2d x, 1set 2D y, 2 psets, NonLinearFitter
+         1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter
         """
         with pytest.raises(ValueError):
             g2=models.Gaussian2DModel([10,10], [3,3],[4,4], x_sigma=[.3,.3], 
@@ -202,7 +202,7 @@ class TestEvaluation(object):
 
     def test_p1_nset_npset(self):
         """
-        N data sets, N psets, Poly1D
+        N data sets, N param_sets, Poly1D
         """
         p1 = models.Poly1DModel(4, param_dim=2)
         y1 = p1(np.array([self.x1, self.x1]).T)
@@ -219,7 +219,7 @@ class TestEvaluation(object):
     
     def test_p2_nset_npset(self):
         """
-        N psets, N 2D data sets, Poly2d
+        N param_sets, N 2D data sets, Poly2d
         """
         p2 = models.Poly2DModel(5, param_dim=2)
         xx = np.array([self.x, self.x])

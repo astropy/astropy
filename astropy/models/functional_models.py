@@ -95,7 +95,7 @@ class Gaussian1DModel(ParametricModel):
         See the module docstring for rules for model evaluation. 
         """
         x, fmt = _convert_input(x, self.param_dim)
-        result = self.eval(x, self.psets)
+        result = self.eval(x, self.param_sets)
         return _convert_output(result, fmt)
     
 class Gaussian2DModel(ParametricModel):
@@ -183,7 +183,7 @@ class Gaussian2DModel(ParametricModel):
         """
         x, _ = _convert_input(x, self.param_dim)
         y, fmt = _convert_input(y, self.param_dim)
-        result = self.eval(x, y, self.psets)
+        result = self.eval(x, y, self.param_sets)
         return _convert_output(result, fmt)
 
 class ShiftModel(Model):
