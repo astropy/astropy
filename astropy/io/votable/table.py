@@ -251,7 +251,7 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
             w = exceptions.parse_vowarning(warning)
 
             if not w['is_something']:
-                output.write(warning)
+                output.write(w['message'])
                 output.write(u'\n\n')
             else:
                 line = xml_lines[w['nline'] - 1]
