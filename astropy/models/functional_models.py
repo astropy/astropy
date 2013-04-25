@@ -131,12 +131,14 @@ class Gaussian2DModel(ParametricModel):
     def __init__(self, amplitude, x_mu, y_mu, x_fwhm=None, y_fwhm=None, 
                  x_sigma=None, y_sigma=None, theta=0.0, cov_matrix=None,
                  jacobian_func=None, **cons):
-        if y_sigma is None and y_fwhm is None:
+        if y_sigma is None and y_fwhm is None and cov_matrix is None:
             raise InputParameterError(
-                "Either y_fwhm or y_sigma must be specified")
-        elif x_sigma is None and x_fwhm is None:
+                "Either y_fwhm or y_sigma must be specified, or a "
+                "covariance matrix.")
+        elif x_sigma is None and x_fwhm is None and cov_matrix is None:
             raise InputParameterError(
-                "Either x_fwhm or x_sigma must be specified")
+                "Either x_fwhm or x_sigma must be specified, or a "
+                "covariance matrix.")
                 
         self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
         
@@ -151,7 +153,7 @@ class Gaussian2DModel(ParametricModel):
             cov_matrix = np.array(cov_matrix)
             assert cov_matrix.shape == (2,2), "Covariance matrix must be 2D"
             
-            eig_vals, eig_vecs = np.linalg.eig(cov)
+            eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
             x_sigma, y_sigma = np.sqrt(eig_vals)
             y_vec = eig_vecs[:,0]
             theta = np.arctan2(y_vec[1],y_vec[0])
