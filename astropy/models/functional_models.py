@@ -119,8 +119,6 @@ class Gaussian2DModel(ParametricModel):
     y_sigma : float
         Standard deviation of the gaussian in y
         Either y_sigma or ratio should be given
-    ratio : float
-        y_sigma/x_sigma 
     jacobian_func : callable or None
         if callable - a function to compute the Jacobian of 
         func with derivatives across the rows.
@@ -130,24 +128,30 @@ class Gaussian2DModel(ParametricModel):
     """
     param_names = ['amplitude', 'x_mu', 'y_mu', 'x_sigma', 'y_sigma', 'theta']
     
-    def __init__(self, amplitude, x_mu, y_mu, fwhm=None, x_sigma=None,
-                 y_sigma=None, ratio=None, theta=0.0, jacobian_func=None, **cons):
-        if y_sigma is None and ratio is None:
+    def __init__(self, amplitude, x_mu, y_mu, x_fwhm=None, y_fwhm=None, 
+                 x_sigma=None, y_sigma=None, theta=0.0, 
+                 jacobian_func=None, **cons):
+        if y_sigma is None and y_fwhm is None:
             raise InputParameterError(
-                "Either y_sigma or ratio must be specified")
-        elif x_sigma is None and fwhm is None:
+                "Either y_fwhm or y_sigma must be specified")
+        elif x_sigma is None and x_fwhm is None:
             raise InputParameterError(
-                "Either fwhm or x_sigma must be specified")
+                "Either x_fwhm or x_sigma must be specified")
+                
         self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
+        
         if x_sigma is None:
-            x_sigma = 0.42466 * fwhm
+            x_sigma = 0.42466 * x_fwhm
         self._x_sigma = parameters.Parameter('x_sigma', x_sigma, self, 1)
+        
         if y_sigma is None:
-            y_sigma = ratio * self._x_sigma
+            y_sigma = 0.42466 * y_fwhm
         self._y_sigma = parameters.Parameter('y_sigma', y_sigma, self, 1)
+        
         self._x_mu = parameters.Parameter('x_mu', x_mu, self, 1)
         self._y_mu = parameters.Parameter('y_mu', y_mu, self, 1)
         self._theta = parameters.Parameter('theta', theta, self, 1)
+        
         try:
             param_dim = len(self._amplitude)
             assert (len(self._amplitude) == len(self._x_sigma) == \
@@ -157,7 +161,7 @@ class Gaussian2DModel(ParametricModel):
         except TypeError:
             param_dim = 1
         super(Gaussian2DModel, self).__init__(self.param_names, ndim=2, outdim=1,
-                                                                    param_dim=param_dim)
+                                              param_dim=param_dim)
         self.linear = False
         if jacobian_func:
             self.deriv = jacobian_func
