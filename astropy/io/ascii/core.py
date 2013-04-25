@@ -297,7 +297,7 @@ class DefaultSplitter(BaseSplitter):
 
         if self.csv_writer is None:
             self.csv_writer = csv.writer(self.csv_writer_out,
-                                         delimiter = self.delimiter,
+                                         delimiter = delimiter,
                                          doublequote = self.doublequote,
                                          escapechar = self.escapechar,
                                          quotechar = self.quotechar,
