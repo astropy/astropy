@@ -8,6 +8,7 @@ from __future__ import division, absolute_import
 
 # STDLIB
 import re
+import sys
 from struct import unpack as struct_unpack
 from struct import pack as struct_pack
 
@@ -39,6 +40,18 @@ files in the wild use them.
 _zero_int = b'\0\0\0\0'
 _empty_bytes = b''
 _zero_byte = b'\0'
+
+
+if sys.byteorder == 'little':
+    def _ensure_bigendian(x):
+        if x.dtype.byteorder != '>':
+            return x.byteswap()
+        return x
+else:
+    def _ensure_bigendian(x):
+        if x.dtype.byteorder == '<':
+            return x.byteswap()
+        return x
 
 
 def _make_masked_array(data, mask):
@@ -517,8 +530,7 @@ class NumericArray(Array):
 
     def binoutput(self, value, mask):
         filtered = self._base.filter_array(value, mask)
-        if filtered.dtype.byteorder != '>':
-            filtered = filtered.byteswap()
+        filtered = _ensure_bigendian(filtered)
         return filtered.tostring()
 
 
@@ -637,8 +649,7 @@ class FloatingPoint(Numeric):
         if mask:
             return self._null_binoutput
 
-        if value.dtype.byteorder != '>':
-            value = value.byteswap()
+        value = _ensure_bigendian(value)
         return value.tostring()
 
     def _filter_nan(self, value, mask):
@@ -721,8 +732,8 @@ class Integer(Numeric):
                 vo_raise(W31)
             else:
                 value = self.null
-        if value.dtype.byteorder != '>':
-            value = value.byteswap()
+
+        value = _ensure_bigendian(value)
         return value.tostring()
 
     def filter_array(self, value, mask):
