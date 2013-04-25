@@ -52,13 +52,13 @@ class Gaussian1DModel(ParametricModel):
         self._sigma = parameters.Parameter('sigma', sigmaval, self, 1)
         self._mu = parameters.Parameter('mu', mu, self, 1)
         try:
-            paramdim = len(self._amplitude)
+            param_dim = len(self._amplitude)
             assert (len(amplitude) == len(sigmaval) == len(mu) ), \
              "Input parameters do not have the same dimension"
         except TypeError:
-            paramdim = 1
+            param_dim = 1
         super(Gaussian1DModel, self).__init__(self.parnames, ndim=1, outdim=1,
-                                                                    paramdim=paramdim, **cons)
+                                                                    param_dim=param_dim, **cons)
         self.linear = False
         if jacobian_func is 'estimated':
             self.deriv = None
@@ -94,7 +94,7 @@ class Gaussian1DModel(ParametricModel):
         -----
         See the module docstring for rules for model evaluation. 
         """
-        x, fmt = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.param_dim)
         result = self.eval(x, self.psets)
         return _convert_output(result, fmt)
     
@@ -149,15 +149,15 @@ class Gaussian2DModel(ParametricModel):
         self._y_mu = parameters.Parameter('y_mu', y_mu, self, 1)
         self._theta = parameters.Parameter('theta', theta, self, 1)
         try:
-            paramdim = len(self._amplitude)
+            param_dim = len(self._amplitude)
             assert (len(self._amplitude) == len(self._x_sigma) == \
                             len(self._x_mu) == len(self._y_mu) == \
                             len(self._theta) ), \
                             "Input parameters do not have the same dimension"
         except TypeError:
-            paramdim = 1
+            param_dim = 1
         super(Gaussian2DModel, self).__init__(self.parnames, ndim=2, outdim=1,
-                                                                    paramdim=paramdim)
+                                                                    param_dim=param_dim)
         self.linear = False
         if jacobian_func:
             self.deriv = jacobian_func
@@ -181,8 +181,8 @@ class Gaussian2DModel(ParametricModel):
         
         Note: See the module docstring for rules for model evaluation. 
         """
-        x, _ = _convert_input(x, self.paramdim)
-        y, fmt = _convert_input(y, self.paramdim)
+        x, _ = _convert_input(x, self.param_dim)
+        y, fmt = _convert_input(y, self.param_dim)
         result = self.eval(x, y, self.psets)
         return _convert_output(result, fmt)
 
@@ -201,18 +201,18 @@ class ShiftModel(Model):
     parnames = ['offsets']
     def __init__(self, offsets):
         if not isinstance(offsets, collections.Sequence):
-            paramdim = 1
+            param_dim = 1
         else:
-            paramdim = len(offsets)
-        self._offsets = parameters.Parameter('offsets', offsets, self, paramdim)
+            param_dim = len(offsets)
+        self._offsets = parameters.Parameter('offsets', offsets, self, param_dim)
         super(ShiftModel, self).__init__(self.parnames, ndim=1, outdim=1,
-                                                            paramdim=paramdim)
+                                                            param_dim=param_dim)
 
     def __call__(self, x):
         """
         Transforms data using this model.
         """
-        x, fmt = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.param_dim)
         result = x + self.offsets
         return _convert_output(result, fmt)
  
@@ -230,17 +230,17 @@ class ScaleModel(Model):
     parnames = ['factors']
     def __init__(self, factors):
         if not isinstance(factors, collections.Sequence):
-            paramdim = 1
+            param_dim = 1
         else:
-            paramdim = len(factors)
-        self._factors = parameters.Parameter('factors', factors, self, paramdim)
+            param_dim = len(factors)
+        self._factors = parameters.Parameter('factors', factors, self, param_dim)
         super(ScaleModel, self).__init__(self.parnames, ndim=1, outdim=1,
-                                                            paramdim=paramdim)
+                                                            param_dim=param_dim)
     
     def __call__(self, x):
         """
         Transforms data using this model.
         """
-        x, fmt = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.param_dim)
         result = x * self.factors
         return _convert_output(result, fmt)

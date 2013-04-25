@@ -127,7 +127,7 @@ class TestParameters(object):
         utils.assert_equal(p1.parameters, [11, 12, 13, 14])
         
     def test_poly1d_multiple_sets(self):
-        p1=models.Poly1DModel(3, paramdim=3) 
+        p1=models.Poly1DModel(3, param_dim=3) 
         utils.assert_equal(p1.parameters, [0.0, 0.0, 0.0, 0, 0, 0,
                                            0, 0, 0, 0, 0, 0])
         utils.assert_equal(p1.c0, [0., 0, 0])
@@ -139,7 +139,7 @@ class TestParameters(object):
         """
         Test assigning to a parameter slice  
         """
-        p1=models.Poly1DModel(3, paramdim=3)
+        p1=models.Poly1DModel(3, param_dim=3)
         p1.c0[:2] = [10,10]
         utils.assert_equal(p1.parameters, [10.0, 10.0, 0.0, 0, 0,
                                            0, 0, 0, 0, 0, 0, 0])

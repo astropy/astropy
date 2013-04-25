@@ -22,25 +22,25 @@ class PolynomialModel(ParametricModel):
     default values, names and ordering.
 
     """
-    def __init__(self, degree, ndim=1, outdim=1, paramdim=1, **pars):
+    def __init__(self, degree, ndim=1, outdim=1, param_dim=1, **pars):
         self.deg = degree
         self._order = self.get_numcoeff(ndim)
         self.parnames = self._generate_coeff_names(ndim)
         if not pars:
-            self.set_coeff(pardim=paramdim)
+            self.set_coeff(pardim=param_dim)
         else:
             p = pars.get('c0', pars.get('c0_0'))
             if isinstance(p, collections.Sequence):
                 lenpars = len(p)
             else:
                 lenpars = 1
-            if paramdim != lenpars:
+            if param_dim != lenpars:
                 print("Creating a model with {0} parameter sets\n".format(lenpars))
-                paramdim = lenpars
+                param_dim = lenpars
             self._validate_pars(**pars)
-            self.set_coeff(pardim=paramdim, **pars)
+            self.set_coeff(pardim=param_dim, **pars)
         super(PolynomialModel, self).__init__(self.parnames, ndim=ndim, outdim=outdim,
-                                                        paramdim=paramdim)
+                                                        param_dim=param_dim)
 
     def _invlex(self):
         c = []
@@ -152,13 +152,13 @@ class OrthogPolyBase(ParametricModel):
         range of the x independent variable
     ywindow : list or None
         range of the y independent variable
-    paramdim : int
+    param_dim : int
         number of parameter sets
     **pars : dict
         {keyword: value} pairs, representing {parameter_name: value}
     """
     def __init__(self, xdeg, ydeg, xdomain=None, xwindow=None, ydomain=None,
-                            ywindow=None, paramdim=1, **pars):
+                            ywindow=None, param_dim=1, **pars):
         self.xdeg = xdeg
         self.ydeg = ydeg
         self._order = self.get_numcoeff()
@@ -169,7 +169,7 @@ class OrthogPolyBase(ParametricModel):
         self.parnames = self._generate_coeff_names()
 
         if not pars:
-            self.set_coeff(pardim=paramdim)
+            self.set_coeff(pardim=param_dim)
 
         else:
             p = pars.get('c0_0')
@@ -177,13 +177,13 @@ class OrthogPolyBase(ParametricModel):
                 lenpars = len(p)
             else:
                 lenpars = 1
-            if paramdim != lenpars:
+            if param_dim != lenpars:
                 print("Creating a model with {0} parameter sets\n".format(lenpars))
-                paramdim = lenpars
+                param_dim = lenpars
             self._validate_pars(**pars)
-            self.set_coeff(pardim=paramdim, **pars)
+            self.set_coeff(pardim=param_dim, **pars)
         super(OrthogPolyBase, self).__init__(self.parnames, ndim=2, outdim=1,
-                                                        paramdim=paramdim)
+                                                        param_dim=param_dim)
 
     def _generate_coeff_names(self):
         names = []
@@ -302,7 +302,7 @@ class Chebyshev1DModel(PolynomialModel):
     window : list or None
         If None, it is set to [-1,1]
         Fitters will remap the domain to this window
-    paramdim : int
+    param_dim : int
         number of parameter sets
     **pars : dict
         keyword : value pairs, representing parameter_name: value
@@ -312,11 +312,11 @@ class Chebyshev1DModel(PolynomialModel):
     model : Chebyshev1DModel
         1D Chebyshev model
     """
-    def __init__(self, degree, domain=None, window=[-1, 1], paramdim=1, **pars):
+    def __init__(self, degree, domain=None, window=[-1, 1], param_dim=1, **pars):
         self.domain = domain
         self.window = window
         super(Chebyshev1DModel, self).__init__(degree, ndim=1, outdim=1,
-                                             paramdim=paramdim, **pars)
+                                             param_dim=param_dim, **pars)
 
     def clenshaw(self, x, coeff):
         if isinstance(x, tuple) or isinstance(x, list) :
@@ -361,7 +361,7 @@ class Chebyshev1DModel(PolynomialModel):
         """
         if self.domain is not None:
             x = self.set_domain(x)
-        x, fmt = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.param_dim)
         result = self.clenshaw(x, self.psets)
         return _convert_output(result, fmt)
 
@@ -378,17 +378,17 @@ class Legendre1DModel(PolynomialModel):
     window : list or None
         If None, it is set to [-1,1]
         Fitters will remap the domain to this window
-    paramdim : int
+    param_dim : int
         number of parameter sets
     **pars : dict
         keyword: value pairs, representing parameter_name: value
 
     """
-    def __init__(self, degree, domain=None, window=[-1, 1], paramdim=1, **pars):
+    def __init__(self, degree, domain=None, window=[-1, 1], param_dim=1, **pars):
         self.domain = domain
         self.window = window
         super(Legendre1DModel, self).__init__(degree, ndim=1, outdim=1,
-                                            paramdim=paramdim, **pars)
+                                            param_dim=param_dim, **pars)
 
     def clenshaw(self, x, coeff):
         if isinstance(x, tuple) or isinstance(x, list) :
@@ -433,7 +433,7 @@ class Legendre1DModel(PolynomialModel):
         """
         if self.domain is not None:
             x = self.set_domain(x)
-        x, fmt = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.param_dim)
         result = self.clenshaw(x, self.psets)
         return _convert_output(result, fmt)
 
@@ -450,18 +450,18 @@ class Poly1DModel(PolynomialModel):
     window : list or None
         If None, it is set to [-1,1]
         Fitters will remap the domain to this window
-    paramdim : int
+    param_dim : int
         number of parameter sets
     **pars : dict
         keyword: value pairs, representing parameter_name: value
     """
     def __init__(self, degree,
                  domain=[-1, 1], window=[-1, 1],
-                 paramdim=1, **pars):
+                 param_dim=1, **pars):
         self.domain = domain
         self.window = window
         super(Poly1DModel, self).__init__(degree, ndim=1, outdim=1,
-                                          paramdim=paramdim, **pars)
+                                          param_dim=param_dim, **pars)
 
     def deriv(self, x):
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
@@ -490,7 +490,7 @@ class Poly1DModel(PolynomialModel):
         -----
         Rules for model evaluation are described in the module docstring
         """
-        x, fmt = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.param_dim)
         result = self.horner(x, self.psets)
         return _convert_output(result, fmt)
 
@@ -519,7 +519,7 @@ class Poly2DModel(PolynomialModel):
         range of the x independent variable
     ywindow : list or None
         range of the y independent variable
-    paramdim : int
+    param_dim : int
         number of parameter sets
     pars : dict
         keyword: value pairs, representing parameter_name: value
@@ -527,9 +527,9 @@ class Poly2DModel(PolynomialModel):
     """
     def __init__(self, degree, xdomain=[-1, 1], ydomain=[-1, 1],
                             xwindow=[-1, 1], ywindow=[-1,1],
-                            paramdim=1, **pars):
+                            param_dim=1, **pars):
         super(Poly2DModel, self).__init__(degree, ndim=2, outdim=1,
-                                                                paramdim=paramdim, **pars)
+                                                                param_dim=param_dim, **pars)
         self.xdomain = xdomain
         self.ydomain = ydomain
         self.xwindow = xwindow
@@ -607,8 +607,8 @@ class Poly2DModel(PolynomialModel):
         See the module docstring for rules for model evaluation.
         """
         invcoeff = self.invlex_coeff()
-        x, _ = _convert_input(x, self.paramdim)
-        y, fmt = _convert_input(y, self.paramdim)
+        x, _ = _convert_input(x, self.param_dim)
+        y, fmt = _convert_input(y, self.param_dim)
         assert x.shape == y.shape, \
                "Expected input arrays to have the same shape"
 
@@ -638,18 +638,18 @@ class Chebyshev2DModel(OrthogPolyBase):
         range of the x independent variable
     ywindow : list or None
         range of the y independent variable
-    paramdim : int
+    param_dim : int
         number of parameter sets
     pars : dict
         keyword: value pairs, representing parameter_name: value
 
     """
     def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1, 1],
-                 ydomain=None, ywindow=[-1,1], paramdim=1, **pars):
+                 ydomain=None, ywindow=[-1,1], param_dim=1, **pars):
         super(Chebyshev2DModel, self).__init__(xdeg, ydeg,
                                            xdomain=xdomain, ydomain=ydomain,
                                            xwindow=xwindow, ywindow=ywindow,
-                                           paramdim=paramdim, **pars)
+                                           param_dim=param_dim, **pars)
 
 
     def _fcache(self, x, y):
@@ -722,8 +722,8 @@ class Chebyshev2DModel(OrthogPolyBase):
         assert x.shape == y.shape, \
                "Expected input arrays to have the same shape"
         invcoeff = self.invlex_coeff()
-        x, _ = _convert_input(x, self.paramdim)
-        y, fmt = _convert_input(y, self.paramdim)
+        x, _ = _convert_input(x, self.param_dim)
+        y, fmt = _convert_input(y, self.param_dim)
         result = self.imhorner(x, y, invcoeff)
         return _convert_output(result, fmt)
 
@@ -751,18 +751,18 @@ class Legendre2DModel(OrthogPolyBase):
         range of the x independent variable
     ywindow : list or None
         range of the y independent variable
-    paramdim : int
+    param_dim : int
         number of parameter sets
     pars : dict
         keyword: value pairs, representing parameter_name: value
 
     """
     def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1, 1],
-                            ydomain=None, ywindow=[-1, 1], paramdim=1, **pars):
+                            ydomain=None, ywindow=[-1, 1], param_dim=1, **pars):
         super(Legendre2DModel, self).__init__(xdeg, ydeg,
                                              xdomain=xdomain, ydomain=ydomain,
                                              xwindow=xwindow, ywindow=ywindow,
-                                             paramdim=paramdim, **pars)
+                                             param_dim=param_dim, **pars)
 
     def _fcache(self, x, y):
         """
@@ -836,8 +836,8 @@ class Legendre2DModel(OrthogPolyBase):
         assert x.shape == y.shape, \
                "Expected input arrays to have the same shape"
         invcoeff = self.invlex_coeff()
-        x, _ = _convert_input(x, self.paramdim)
-        y, fmt = _convert_input(y, self.paramdim)
+        x, _ = _convert_input(x, self.param_dim)
+        y, fmt = _convert_input(y, self.param_dim)
         result = self.imhorner(x, y, invcoeff)
         return _convert_output(result, fmt)
 
@@ -850,27 +850,27 @@ class _SIP1D(Model):
     and SIPModel should be used instead.
 
     """
-    def __init__(self, order, coeffname='a', paramdim=1, **pars):
+    def __init__(self, order, coeffname='a', param_dim=1, **pars):
         self.order = order
         self.coeffname = coeffname.lower()
         self.parnames = self._generate_coeff_names(coeffname)
 
         if not pars:
-            self.set_coeff(pardim=paramdim)
+            self.set_coeff(pardim=param_dim)
         else:
             p = pars.get('{0}02'.format(coeffname, None))
             if isinstance(p, collections.Sequence):
                 lenpars = len(p)
             else:
                 lenpars = 1
-            if paramdim != lenpars:
+            if param_dim != lenpars:
                 print("Creating a model with {0} parameter sets\n".format(lenpars))
-                paramdim = lenpars
+                param_dim = lenpars
             self._validate_pars(ndim=2, **pars)
-            self.set_coeff(pardim=paramdim, **pars)
+            self.set_coeff(pardim=param_dim, **pars)
 
         super(_SIP1D, self).__init__(self.parnames, ndim=2, outdim=1,
-                                                        paramdim=paramdim)
+                                                        param_dim=param_dim)
 
     def __repr__(self):
         fmt = """
@@ -880,7 +880,7 @@ class _SIP1D(Model):
         """.format(
               self.__class__.__name__,
               self.order,
-              self.paramdim
+              self.param_dim
                 )
         return fmt
 
@@ -894,7 +894,7 @@ class _SIP1D(Model):
         """.format(
               self.__class__.__name__,
               self.order,
-              self.paramdim,
+              self.param_dim,
               "\n                   ".join(i+':  ' + str(getattr(self,i)) for
                                            i in self.parnames)
                 )
@@ -994,7 +994,7 @@ class SIPModel(SCompositeModel):
         order for the inverse transformation
     apcoeff : dict
         coefficients for the inverse transform
-    paramdim : int
+    param_dim : int
         number of parameter sets
     multiple : boolean
         when input is 2D array, if True (default) it is to be
@@ -1011,13 +1011,13 @@ class SIPModel(SCompositeModel):
 
     """
     def __init__(self, crpix, order, coeff, coeffname='a',
-                            aporder=None, apcoeff=None, paramdim=1):
+                            aporder=None, apcoeff=None, param_dim=1):
         self.ndim = 2
         self.outdim = 1
         self.shifta = ShiftModel(crpix[0])
         self.shiftb = ShiftModel(crpix[1])
         self.sip1d = _SIP1D(order, coeffname=coeffname,
-                            paramdim=paramdim, **coeff)
+                            param_dim=param_dim, **coeff)
         if aporder is not None and apcoeff is not None:
             self.inverse = Poly1DModel(aporder, **apcoeff)
         else:

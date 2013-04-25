@@ -40,12 +40,12 @@ class TestFitting(object):
         1 set 1D x, 2 sets 1D y, 2 psets
         """
         expected = np.array([[ 0, 0], [1, 1], [2, 2], [3, 3]])
-        p1 = models.Poly1DModel(3, paramdim=2)
+        p1 = models.Poly1DModel(3, param_dim=2)
         p1.parameters=[0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0]
         pars = {}
         for i in range(4):
             pars[p1.parnames[i]] = [i, i]
-        p1 = models.Poly1DModel(3, paramdim=2, **pars)
+        p1 = models.Poly1DModel(3, param_dim=2, **pars)
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter(p1)
         pfit(self.x1, y1)
@@ -94,7 +94,7 @@ class TestFitting(object):
         with pytest.raises(ValueError):
             p1 = models.Poly1DModel(5)
             y1 = p1(self.x1)
-            p1 = models.Poly1DModel(5, paramdim=2)
+            p1 = models.Poly1DModel(5, param_dim=2)
             pfit = fitting.LinearLSQFitter(p1)
             pfit(self.x1, y1)
             
@@ -108,11 +108,11 @@ class TestFitting(object):
                              [1, 3],
                              [1, 4],
                              [1, 5]])
-        p1 = models.Poly1DModel(5, paramdim=2)
+        p1 = models.Poly1DModel(5, param_dim=2)
         pars = {}
         for i in range(6):
             pars[p1.parnames[i]] = [1, i]
-        p1 = models.Poly1DModel(5, paramdim=2, **pars)
+        p1 = models.Poly1DModel(5, param_dim=2, **pars)
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter(p1)
         pfit(self.x1, y1)
@@ -204,7 +204,7 @@ class TestEvaluation(object):
         """
         N data sets, N psets, Poly1D
         """
-        p1 = models.Poly1DModel(4, paramdim=2)
+        p1 = models.Poly1DModel(4, param_dim=2)
         y1 = p1(np.array([self.x1, self.x1]).T)
         assert y1.shape == (20,2)
         utils.assert_allclose(y1[:,0], y1[:,1], atol=10**(-12))
@@ -221,7 +221,7 @@ class TestEvaluation(object):
         """
         N psets, N 2D data sets, Poly2d
         """
-        p2 = models.Poly2DModel(5, paramdim=2)
+        p2 = models.Poly2DModel(5, param_dim=2)
         xx = np.array([self.x, self.x])
         yy = np.array([self.y, self.y])
         z = p2(xx, yy)
@@ -235,7 +235,7 @@ class TestEvaluation(object):
         xx[0,0] = 100
         xx[1,0] = 100
         xx[2,0] = 99
-        p1 = models.Poly1DModel(5, paramdim=2)
+        p1 = models.Poly1DModel(5, param_dim=2)
         yy = p1(xx)
         x1 = xx[:, 0]
         x2 = xx[:, 1]

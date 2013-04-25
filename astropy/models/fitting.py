@@ -296,7 +296,7 @@ class LinearLSQFitter(Fitter):
             if x.shape[0] != y.shape[0]:
                 raise ValueError("Expected measured and model data to have the same size")
             if y.ndim == 2:
-                assert y.shape[1] == self.model._parameters.paramdim, (
+                assert y.shape[1] == self.model._parameters.param_dim, (
                     "Number of data sets (Y array is expected to equal "
                     "the number of parameter sets")
             # map domain into window
@@ -354,7 +354,7 @@ class LinearLSQFitter(Fitter):
                 lhs *= weights[:, np.newaxis]
                 rhs *= weights
 
-        if not multiple and self.model._parameters.paramdim > 1:
+        if not multiple and self.model._parameters.param_dim > 1:
             raise ValueError("Attempting to fit a 1D data set to a model "
                              "with multiple parameter sets")
         if rcond is None:
@@ -372,7 +372,7 @@ class LinearLSQFitter(Fitter):
         # of several 1D arrays. Otherwise the model is 2D.
         #if y.ndim > self.model.ndim:
         if multiple:
-            self.model._parameters.paramdim = multiple
+            self.model._parameters.param_dim = multiple
         lacoef = (lacoef.T/scl).T
         self.fit_info['pars'] = lacoef
         if rank != self.model._order:
@@ -474,7 +474,7 @@ class NonLinearLSQFitter(Fitter):
         from scipy import optimize
         x = np.asarray(x, dtype=np.float)
         self.weights  = weights
-        if self.model._parameters.paramdim != 1:
+        if self.model._parameters.param_dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit one "
                              "data set at a time")
@@ -582,7 +582,7 @@ class SLSQPFitter(Fitter):
         x = np.asarray(x, dtype=np.float)
 
         self.weights = weights
-        if self.model._parameters.paramdim != 1:
+        if self.model._parameters.param_dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit "
                              "one data set at a time")
