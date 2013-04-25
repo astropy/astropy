@@ -1699,11 +1699,13 @@ class Table(object):
             attrs = ('__getitem__', '__len__', '__iter__', 'keys', 'values', 'items')
             return all(hasattr(obj, attr) for attr in attrs)
 
+	# the length gets calculated [durga2112]
         newlen = len(self._data) + 1
 
         if mask is not None and not self.masked:
             self._set_masked(True)
 
+	# the length actually gets increased here [durga2112]
         if self.masked:
             self._data = ma.resize(self._data, (newlen,))
         else:
