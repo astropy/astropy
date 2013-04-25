@@ -50,8 +50,6 @@ from ...table import Table
 
 # Default setting for guess parameter in read()
 _GUESS = True
-# Default setting for fill_values parameter in read()
-#fill_values = True
 def set_guess(guess):
     """Set the default value of the ``guess`` parameter for read()
 
