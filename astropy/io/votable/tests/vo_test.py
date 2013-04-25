@@ -97,7 +97,7 @@ def _test_regression(_python_based=False):
         _debug_python_based_parser=_python_based)
     table = votable.get_first_table()
 
-    assert table.array.dtype == [
+    dtypes = [
         (('string test', 'string_test'), '|O8'),
         (('fixed string test', 'string_test_2'), '|S10'),
         ('unicode_test', '|O8'),
@@ -127,6 +127,14 @@ def _test_regression(_python_based=False):
         ('doublearray', '|O8'),
         ('bitarray2', '|b1', (16,))
         ]
+    if sys.byteorder == 'big':
+        new_dtypes = []
+        for dtype in dtypes:
+            dtype = list(dtype)
+            dtype[1] = dtype[1].replace('<', '>')
+            new_dtypes.append(tuple(dtype))
+        dtypes = new_dtypes
+    assert table.array.dtype == dtypes
 
     votable.to_xml(join(TMP_DIR, "regression.tabledata.xml"),
                    _debug_python_based_parser=_python_based)
