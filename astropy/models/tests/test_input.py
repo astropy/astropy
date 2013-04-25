@@ -243,3 +243,9 @@ class TestEvaluation(object):
         utils.assert_allclose(p1(x1), yy[:,0], atol=10**(-12))
         p1 = models.Poly1DModel(5)
         utils.assert_allclose(p1(x2), yy[:,1], atol=10**(-12))
+    
+    def test_evaluate_gauss2d(self):
+        cov = np.array([[1., 0.8], [0.8, 3]])
+        g = models.Gaussian2DModel(1., 5., 4., cov_matrix=cov)
+        x, y = np.mgrid[:10, :10]
+        g(x, y)
