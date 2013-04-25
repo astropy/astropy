@@ -1216,13 +1216,6 @@ class CompImageHDU(BinTableHDU):
             self.shape != self.data.shape):
             self.updateHeaderData(self.header)
 
-        # put data in machine native byteorder on little endian machines
-        # for handing off to the compression code
-        if sys.byteorder == 'little':
-            swap_types = ('>',)
-        else:
-            swap_types = ('>', '=')
-
         # TODO: This is copied right out of _ImageBaseHDU._writedata_internal;
         # it would be cool if we could use an internal ImageHDU and use that to
         # write to a buffer for compression or something. See ticket #88
@@ -1232,24 +1225,23 @@ class CompImageHDU(BinTableHDU):
             # Convert the unsigned array to signed
             self.data = np.array(
                 self.data - _unsigned_zero(self.data.dtype),
-                dtype='<i%d' % self.data.dtype.itemsize)
+                dtype='=i%d' % self.data.dtype.itemsize)
             should_swap = False
         else:
-            byteorder = self.data.dtype.str[0]
-            should_swap = (byteorder in swap_types)
+            should_swap = not self.data.dtype.isnative
 
         if should_swap:
             self.data.byteswap(True)
 
-        nrows = self._header['NAXIS2']
-        tbsize = self._header['NAXIS1'] * nrows
-
-        self._header['PCOUNT'] = 0
-        if 'THEAP' in self._header:
-            del self._header['THEAP']
-        self._theap = tbsize
-
         try:
+            nrows = self._header['NAXIS2']
+            tbsize = self._header['NAXIS1'] * nrows
+
+            self._header['PCOUNT'] = 0
+            if 'THEAP' in self._header:
+                del self._header['THEAP']
+            self._theap = tbsize
+
             # Compress the data.
             # The current implementation of compress_hdu assumes the empty
             # compressed data table has already been initialized in
