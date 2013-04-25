@@ -493,7 +493,7 @@ def median_absolute_deviation(a, axis=None):
     """Compute the median absolute deviation
 
     Returns the median absolute deviation  of the array elements.  The MAD is
-    defined as median( |a - median (a)| ).
+    defined as :math `median( \|a - median (a)\| )`.
 
     Parameters
     ----------
@@ -549,14 +549,20 @@ def biweight_location(a, c=6.0, M=None):
     is a robust statistic for determining the central location of a
     distribution.
 
-    The biweight location is given by the follow equation::
-    ..math::
-        C_{bl}= M+\frac{\Sigma_{|u_i|<1} (x_i-M)(1-u_i^2)^2}
-        {\Sigma_{|u_i|<1} (1-u_i^2)^2}
+    The biweight location is given by the follow equation
+
+    .. math::
+
+        C_{bl}= M+\\frac{\Sigma_{\|u_i\|<1} (x_i-M)(1-u_i^2)^2}
+        {\Sigma_{\|u_i\|<1} (1-u_i^2)^2}
+
     where M is the sample mean or if run iterative the initial guess,
-    and u_i is given by::
-    ..math::a
-        u_{i} = \frac{(x_i-M)}{cMAD}
+    and u_i is given by
+
+    .. math::
+
+      u_{i} = \\frac{(x_i-M)}{cMAD}
+
     where MAD is the median absolute deviation.
 
     For more details, see Beers, Flynn, and Gebhardt, 1990, AJ, 100, 32B
@@ -618,13 +624,19 @@ def biweight_midvariance(a, c=9.0, M=None):
     midvariance is a robust statistic for determining the midvariance (ie. the
     standard deviation) of a distribution.
 
-    The biweight location is given by the follow equation::
-    ..math::
-        C_{bl}= n^{1/2} \frac{[\Sigma_{|u_i|<1} (x_i-M)**2(1-u_i^2)^4]^{0.5}}
-        {|\Sigma_{|u_i|<1} (1-u_i^2)(1-5u_i^2)|}
+    The biweight location is given by the follow equation
+
+    .. math::
+
+      C_{bl}= n^{1/2} \\frac{[\Sigma_{|u_i|<1} (x_i-M)**2(1-u_i^2)^4]^{0.5}}
+      {|\Sigma_{|u_i|<1} (1-u_i^2)(1-5u_i^2)|}
+
     where  u_i is given by::
-    ..math::
-        u_{i} = \frac{(x_i-M)}{cMAD}
+
+    .. math::
+
+      u_{i} = \\frac{(x_i-M)}{cMAD}
+
     where MAD is the median absolute deviation.  For the midvariance
     parameter, c is typically uses a value of 9.0.
 
