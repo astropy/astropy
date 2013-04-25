@@ -9,9 +9,9 @@ from . import parameters
 from .core import *
 from .utils import InputParameterError
  
-__all__ = ['Gauss1DModel', 'Gauss2DModel',  'ScaleModel', 'ShiftModel']
+__all__ = ['Gaussian1DModel', 'Gaussian2DModel',  'ScaleModel', 'ShiftModel']
         
-class Gauss1DModel(ParametricModel):
+class Gaussian1DModel(ParametricModel):
     """
     
     Implements 1D Gaussian model.
@@ -20,14 +20,14 @@ class Gauss1DModel(ParametricModel):
     ----------
     amplitude : float
         Amplitude of the gaussian
-    xcen : float
-        Center of the gaussian
+    mu : float
+        Mean of the gaussian
     fwhm : float
         FWHM
-    xsigma : float
-        igma of the gaussian
-        Either fwhm or xsigma must be specified
-    fjac : callable, 'estimated' or None
+    sigma : float
+        Standard deviation of the gaussian
+        Either fwhm or sigma must be specified
+    jacobian_func : callable, 'estimated' or None
         if callable - a function to compute the Jacobian of 
         func with derivatives across the rows.
         if 'estimated' - the Jacobian will be estimated
@@ -35,35 +35,35 @@ class Gauss1DModel(ParametricModel):
         if not the Jacobian will be estimated.
         
     """
-    parnames = ['amplitude', 'xcen', 'xsigma']
-    def __init__(self, amplitude, xcen, fwhm=None, xsigma=None,
-                            fjac=None, **cons):
+    parnames = ['amplitude', 'mu', 'sigma']
+    def __init__(self, amplitude, mu, fwhm=None, sigma=None,
+                            jacobian_func=None, **cons):
         self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
-        if xsigma is None and fwhm is None:
+        if sigma is None and fwhm is None:
             raise InputParameterError(
-                "Either fwhm or xsigma must be specified")
-        if xsigma is not None:
-            xsigmaval = xsigma
+                "Either fwhm or sigma must be specified")
+        if sigma is not None:
+            sigmaval = sigma
         else:
             try:
-                xsigmaval  = 0.42466 * fwhm
+                sigmaval  = 0.42466 * fwhm
             except TypeError:
-                xsigmaval = [0.42466 * n for n in fwhm]
-        self._xsigma = parameters.Parameter('xsigma', xsigmaval, self, 1)
-        self._xcen = parameters.Parameter('xcen', xcen, self, 1)
+                sigmaval = [0.42466 * n for n in fwhm]
+        self._sigma = parameters.Parameter('sigma', sigmaval, self, 1)
+        self._mu = parameters.Parameter('mu', mu, self, 1)
         try:
             paramdim = len(self._amplitude)
-            assert (len(amplitude) == len(xsigmaval) == len(xcen) ), \
+            assert (len(amplitude) == len(sigmaval) == len(mu) ), \
              "Input parameters do not have the same dimension"
         except TypeError:
             paramdim = 1
-        super(Gauss1DModel, self).__init__(self.parnames, ndim=1, outdim=1,
+        super(Gaussian1DModel, self).__init__(self.parnames, ndim=1, outdim=1,
                                                                     paramdim=paramdim, **cons)
         self.linear = False
-        if fjac is 'estimated':
+        if jacobian_func is 'estimated':
             self.deriv = None
-        elif callable(fjac):
-            self.deriv = fjac
+        elif callable(jacobian_func):
+            self.deriv = jacobian_func
         else:
             self.deriv = self.gderiv
             
@@ -72,13 +72,13 @@ class Gauss1DModel(ParametricModel):
                                                 (x-params[1])**2))
  
     def gderiv(self, p, x, y):
-        amplitude, xcen, xsigma = p
+        amplitude, mu, sigma = p
         deriv_dict = {}
-        deriv_dict['amplitude'] = np.exp((-(1/(xsigma**2)) * (x-xcen)**2))
-        deriv_dict['xcen'] = 2 * amplitude * np.exp((-(1/(xsigma**2)) *
-                                (x-xcen)**2)) * (x-xcen)/(xsigma**2)
-        deriv_dict['xsigma'] = 2 * amplitude * np.exp((-(1/(xsigma**2)) *
-                                (x-xcen)**2)) * ((x-xcen)**2)/(xsigma**3)
+        deriv_dict['amplitude'] = np.exp((-(1/(sigma**2)) * (x-mu)**2))
+        deriv_dict['mu'] = 2 * amplitude * np.exp((-(1/(sigma**2)) *
+                                (x-mu)**2)) * (x-mu)/(sigma**2)
+        deriv_dict['sigma'] = 2 * amplitude * np.exp((-(1/(sigma**2)) *
+                                (x-mu)**2)) * ((x-mu)**2)/(sigma**3)
         derivval = [deriv_dict[par] for par in self.parnames]
         return np.array(derivval).T
                                     
@@ -98,7 +98,7 @@ class Gauss1DModel(ParametricModel):
         result = self.eval(x, self.psets)
         return _convert_output(result, fmt)
     
-class Gauss2DModel(ParametricModel):
+class Gaussian2DModel(ParametricModel):
     """
     
     2D Gaussian.
@@ -107,60 +107,60 @@ class Gauss2DModel(ParametricModel):
     ----------
     amplitude : float
         Amplitude of the gaussian
-    xcen : float
-        Center of the gaussian in x
-    ycen : float
-        Center of the gaussian in y
+    x_mu : float
+        Mean of the gaussian in x
+    y_mu : float
+        Mean of the gaussian in y
     fwhm : float
-        FWHM
-    xsigma : float
-        sigma of the gaussian in x
-        Either fwhm or xsigma must be specified
-    ysigma : float
-        sigma of the gaussian in y
-        Either ysigma or ratio should be given
+        Full width at half maximum
+    x_sigma : float
+        Standard deviation of the gaussian in x
+        Either fwhm or x_sigma must be specified
+    y_sigma : float
+        Standard deviation of the gaussian in y
+        Either y_sigma or ratio should be given
     ratio : float
-        ysigma/xsigma 
-    fjac : callable or None
+        y_sigma/x_sigma 
+    jacobian_func : callable or None
         if callable - a function to compute the Jacobian of 
         func with derivatives across the rows.
         if None - the Jacobian will be estimated
     theta : float 
         rotation angle in radians
     """
-    parnames = ['amplitude', 'xcen', 'ycen', 'xsigma', 'ysigma', 'theta']
+    parnames = ['amplitude', 'x_mu', 'y_mu', 'x_sigma', 'y_sigma', 'theta']
     
-    def __init__(self, amplitude, xcen, ycen, fwhm=None, xsigma=None,
-                 ysigma=None, ratio=None, theta=0.0, fjac=None, **cons):
-        if ysigma is None and ratio is None:
+    def __init__(self, amplitude, x_mu, y_mu, fwhm=None, x_sigma=None,
+                 y_sigma=None, ratio=None, theta=0.0, jacobian_func=None, **cons):
+        if y_sigma is None and ratio is None:
             raise InputParameterError(
-                "Either ysigma or ratio must be specified")
-        elif xsigma is None and fwhm is None:
+                "Either y_sigma or ratio must be specified")
+        elif x_sigma is None and fwhm is None:
             raise InputParameterError(
-                "Either fwhm or xsigma must be specified")
+                "Either fwhm or x_sigma must be specified")
         self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
-        if xsigma is None:
-            xsigma = 0.42466 * fwhm
-        self._xsigma = parameters.Parameter('xsigma', xsigma, self, 1)
-        if ysigma is None:
-            ysigma = ratio * self._xsigma
-        self._ysigma = parameters.Parameter('ysigma', ysigma, self, 1)
-        self._xcen = parameters.Parameter('xcen', xcen, self, 1)
-        self._ycen = parameters.Parameter('ycen', ycen, self, 1)
+        if x_sigma is None:
+            x_sigma = 0.42466 * fwhm
+        self._x_sigma = parameters.Parameter('x_sigma', x_sigma, self, 1)
+        if y_sigma is None:
+            y_sigma = ratio * self._x_sigma
+        self._y_sigma = parameters.Parameter('y_sigma', y_sigma, self, 1)
+        self._x_mu = parameters.Parameter('x_mu', x_mu, self, 1)
+        self._y_mu = parameters.Parameter('y_mu', y_mu, self, 1)
         self._theta = parameters.Parameter('theta', theta, self, 1)
         try:
             paramdim = len(self._amplitude)
-            assert (len(self._amplitude) == len(self._xsigma) == \
-                            len(self._xcen) == len(self._ycen) == \
+            assert (len(self._amplitude) == len(self._x_sigma) == \
+                            len(self._x_mu) == len(self._y_mu) == \
                             len(self._theta) ), \
                             "Input parameters do not have the same dimension"
         except TypeError:
             paramdim = 1
-        super(Gauss2DModel, self).__init__(self.parnames, ndim=2, outdim=1,
+        super(Gaussian2DModel, self).__init__(self.parnames, ndim=2, outdim=1,
                                                                     paramdim=paramdim)
         self.linear = False
-        if fjac:
-            self.deriv = fjac
+        if jacobian_func:
+            self.deriv = jacobian_func
         else:
             self.deriv = None
             
