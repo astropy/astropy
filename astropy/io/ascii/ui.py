@@ -110,7 +110,7 @@ def read(table, guess=None, **kwargs):
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param fill_values: specification of fill values for bad or missing table values
+    :param fill_values: specification of fill values for bad or missing table values (default=('','0'))
     :param fill_include_names: list of names to include in fill_values (default=None selects all names)
     :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
 

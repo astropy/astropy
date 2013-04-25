@@ -148,7 +148,8 @@ subject to filtering by ``fill_include_names`` and ``fill_exclude_names`` (see
 below).
 
 The ``fill_values`` parameter in |read| takes a single ``<fill_spec>`` or a
-list of ``<fill_spec>`` tuples.  If several ``<fill_spec>`` apply to a single
+list of ``<fill_spec>`` tuples.  The defaule value is ('','0'), this can be disabled by setting the parameter to False. 
+If several ``<fill_spec>`` apply to a single
 occurence of ``<old>`` then the first one determines the ``<new>`` value.  For
 instance the following will replace an empty data value in the ``x`` or ``y``
 columns with "1e38" while empty values in any other column will get "-999"::
