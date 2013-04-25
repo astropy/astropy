@@ -79,6 +79,13 @@ class TestSetTableColumn(SetupData):
         assert t['b'][0] == 4
         assert t['b'][1] == 21
         assert t['b'][2] == 6
+    
+    def test_set_row_existing(self):
+        """Set a row from another existing row"""
+        t = Table([self.a, self.b])
+        t[0] = t[1]
+        assert t[0][0] == 2
+        assert t[0][1] == 5
 
     def test_set_row_fail_1(self):
         """Set a row from an incorrectly-sized set of values"""
