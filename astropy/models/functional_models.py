@@ -35,7 +35,7 @@ class Gaussian1DModel(ParametricModel):
         if not the Jacobian will be estimated.
         
     """
-    parnames = ['amplitude', 'mu', 'sigma']
+    param_names = ['amplitude', 'mu', 'sigma']
     def __init__(self, amplitude, mu, fwhm=None, sigma=None,
                             jacobian_func=None, **cons):
         self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
@@ -57,7 +57,7 @@ class Gaussian1DModel(ParametricModel):
              "Input parameters do not have the same dimension"
         except TypeError:
             param_dim = 1
-        super(Gaussian1DModel, self).__init__(self.parnames, ndim=1, outdim=1,
+        super(Gaussian1DModel, self).__init__(self.param_names, ndim=1, outdim=1,
                                                                     param_dim=param_dim, **cons)
         self.linear = False
         if jacobian_func is 'estimated':
@@ -79,7 +79,7 @@ class Gaussian1DModel(ParametricModel):
                                 (x-mu)**2)) * (x-mu)/(sigma**2)
         deriv_dict['sigma'] = 2 * amplitude * np.exp((-(1/(sigma**2)) *
                                 (x-mu)**2)) * ((x-mu)**2)/(sigma**3)
-        derivval = [deriv_dict[par] for par in self.parnames]
+        derivval = [deriv_dict[par] for par in self.param_names]
         return np.array(derivval).T
                                     
     def __call__(self, x):
@@ -128,7 +128,7 @@ class Gaussian2DModel(ParametricModel):
     theta : float 
         rotation angle in radians
     """
-    parnames = ['amplitude', 'x_mu', 'y_mu', 'x_sigma', 'y_sigma', 'theta']
+    param_names = ['amplitude', 'x_mu', 'y_mu', 'x_sigma', 'y_sigma', 'theta']
     
     def __init__(self, amplitude, x_mu, y_mu, fwhm=None, x_sigma=None,
                  y_sigma=None, ratio=None, theta=0.0, jacobian_func=None, **cons):
@@ -156,7 +156,7 @@ class Gaussian2DModel(ParametricModel):
                             "Input parameters do not have the same dimension"
         except TypeError:
             param_dim = 1
-        super(Gaussian2DModel, self).__init__(self.parnames, ndim=2, outdim=1,
+        super(Gaussian2DModel, self).__init__(self.param_names, ndim=2, outdim=1,
                                                                     param_dim=param_dim)
         self.linear = False
         if jacobian_func:
@@ -198,14 +198,14 @@ class ShiftModel(Model):
         column in the input coordinate array
             
     """
-    parnames = ['offsets']
+    param_names = ['offsets']
     def __init__(self, offsets):
         if not isinstance(offsets, collections.Sequence):
             param_dim = 1
         else:
             param_dim = len(offsets)
         self._offsets = parameters.Parameter('offsets', offsets, self, param_dim)
-        super(ShiftModel, self).__init__(self.parnames, ndim=1, outdim=1,
+        super(ShiftModel, self).__init__(self.param_names, ndim=1, outdim=1,
                                                             param_dim=param_dim)
 
     def __call__(self, x):
@@ -227,14 +227,14 @@ class ScaleModel(Model):
         scale for a coordinate
         
     """
-    parnames = ['factors']
+    param_names = ['factors']
     def __init__(self, factors):
         if not isinstance(factors, collections.Sequence):
             param_dim = 1
         else:
             param_dim = len(factors)
         self._factors = parameters.Parameter('factors', factors, self, param_dim)
-        super(ScaleModel, self).__init__(self.parnames, ndim=1, outdim=1,
+        super(ScaleModel, self).__init__(self.param_names, ndim=1, outdim=1,
                                                             param_dim=param_dim)
     
     def __call__(self, x):

@@ -142,7 +142,7 @@ class _ParameterProperty(object):
                 else:
                     setattr(obj, self.aname, par)
                 obj._parameters = parameters.Parameters(obj, 
-                                                        obj.parnames,
+                                                        obj.param_names,
                                                          param_dim=obj.param_dim)
             else:
                 setattr(obj, self.aname, val)
@@ -172,19 +172,19 @@ class Model(object):
     """
     __metaclass__ = abc.ABCMeta
     
-    parnames = []
+    param_names = []
 
-    def __init__(self, parnames, ndim, outdim, param_dim=1):
+    def __init__(self, param_names, ndim, outdim, param_dim=1):
         self._param_dim = param_dim
         self._ndim = ndim
         self._outdim = outdim
         self.has_inverse = False
-        self._parnames = parnames
+        self._param_names = param_names
         #_parcheck is a dictionary to register parameter validation funcitons
         #key: value pairs are parameter_name: parameter_validation_function_name
         #see projections.AZP for example
         self._parcheck = {}
-        for par in self.parnames:
+        for par in self.param_names:
             setattr(self.__class__, par, _ParameterProperty(par))
     
     @property 
@@ -213,22 +213,22 @@ class Model(object):
         self._param_dim = val
     
     @property
-    def parnames(self):
+    def param_names(self):
         """
         A list of names of the parameters defining a model.
         """
-        return self._parnames
+        return self._param_names
     
-    @parnames.setter
-    def parnames(self, val):
-        self._parnames = val
+    @param_names.setter
+    def param_names(self, val):
+        self._param_names = val
         
     def __repr__(self):
         fmt = "{0}(".format(self.__class__.__name__)
-        for i in range(len(self.parnames)):
+        for i in range(len(self.param_names)):
             fmt1 = """
             {0}={1},
-            """.format(self.parnames[i], getattr(self, self.parnames[i]))
+            """.format(self.param_names[i], getattr(self, self.param_names[i]))
             fmt += fmt1
         fmt += ")"
         
@@ -245,7 +245,7 @@ class Model(object):
               self.__class__.__name__,
               self.param_dim,
               "\n                   ".join(i+': ' + 
-                str(self.__getattribute__(i)) for i in self.parnames)
+                str(self.__getattribute__(i)) for i in self.param_names)
                 )
             
         return fmt
@@ -256,8 +256,8 @@ class Model(object):
         Return parameters as a pset.
         This is an array where each column represents one parameter set.
         """
-        psets = np.asarray([getattr(self, attr) for attr in self.parnames])
-        psets.shape = (len(self.parnames), self.param_dim)
+        psets = np.asarray([getattr(self, attr) for attr in self.param_names])
+        psets.shape = (len(self.param_names), self.param_dim)
         return psets
     
     def inverse(self):
@@ -314,7 +314,7 @@ class ParametricModel(Model):
     
     Parameters
     ----------
-    parnames: list
+    param_names: list
         parameter names
     ndim: int
         model dimensions (number of inputs)
@@ -353,16 +353,16 @@ class ParametricModel(Model):
     """
     __metaclass__ = abc.ABCMeta
     
-    def __init__(self, parnames, ndim, outdim, param_dim=1, fittable=True,
+    def __init__(self, param_names, ndim, outdim, param_dim=1, fittable=True,
                  fixed={}, tied={}, bounds={}, eqcons=[], ineqcons=[]):
         self.linear = True
-        super(ParametricModel, self).__init__(parnames, ndim, outdim, param_dim=param_dim)
+        super(ParametricModel, self).__init__(param_names, ndim, outdim, param_dim=param_dim)
         self.fittable = fittable
-        self._parameters = parameters.Parameters(self, self.parnames,
+        self._parameters = parameters.Parameters(self, self.param_names,
                                                  param_dim=param_dim)
-        _fixed = {}.fromkeys(self.parnames, False)
-        _tied = {}.fromkeys(self.parnames, False)
-        _bounds = {}.fromkeys(self.parnames, [-1.E12, 1.E12])
+        _fixed = {}.fromkeys(self.param_names, False)
+        _tied = {}.fromkeys(self.param_names, False)
+        _bounds = {}.fromkeys(self.param_names, [-1.E12, 1.E12])
         self.constraints = constraints.Constraints(self, fixed=_fixed,
                                                    tied=_tied, 
                                                    bounds=_bounds,
@@ -397,10 +397,10 @@ class ParametricModel(Model):
             fmt = "<{0}({1},".format(self.__class__.__name__, repr(self.deg))
         else:
             fmt = "<{0}(".format(self.__class__.__name__)
-        for i in range(len(self.parnames)):
+        for i in range(len(self.param_names)):
             fmt1 = """
             {0}={1},
-            """.format(self.parnames[i], getattr(self, self.parnames[i]))
+            """.format(self.param_names[i], getattr(self, self.param_names[i]))
             fmt += fmt1.strip()
         if param_dim:
             fmt += "param_dim={0})>".format(self.param_dim)
@@ -425,7 +425,7 @@ class ParametricModel(Model):
               degree,
               self.param_dim,
               "\n                   ".join(i+': ' + 
-                str(self.__getattribute__(i)) for i in self.parnames)
+                str(self.__getattribute__(i)) for i in self.param_names)
                 )
             
         return fmt

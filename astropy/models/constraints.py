@@ -197,7 +197,7 @@ class Constraints(object):
         """
         fitpars = list(fp[:])
         mpars = []
-        for par in self.model.parnames:
+        for par in self.model.param_names:
             if self.fixed[par]:
                 mpars.extend(getattr(self.model, par))
             elif self.tied[par]:
@@ -216,7 +216,7 @@ class Constraints(object):
         of them are held constant or tied.
         """
         pars = self.model._parameters[:]
-        for item in self.model.parnames:
+        for item in self.model.param_names:
             if self._fixed[item] or self.tied[item]:
                 sl = self.model._parameters.parinfo[item][0]
                 del pars[sl]

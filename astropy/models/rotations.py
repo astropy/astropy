@@ -7,7 +7,7 @@ in WCS paper II to rotate to/from a native sphere and the celestial sphere.
 
 The user interface uses angles in deg but internally radians are used. 
 This is managed through properties. To bypass the use of Model's properties, 
-an empty parnames list is passed to Model.__init__ and the properties are 
+an empty param_names list is passed to Model.__init__ and the properties are 
 defined in the rotations classes.
       
 References
@@ -37,12 +37,12 @@ class RotateNative2Celestial(Model):
     phi, theta, psi : float
         Euler angles in deg
     """
-    parnames = ['phi', 'theta', 'psi']
+    param_names = ['phi', 'theta', 'psi']
     def __init__(self, phi, theta, psi):
         self._phi = Parameter('phi', np.deg2rad(phi), self, 1)
         self._theta = Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = Parameter('psi', np.deg2rad(psi), self, 1)
-        super(RotateNative2Celestial, self).__init__(parnames=[], ndim=2, outdim=2)
+        super(RotateNative2Celestial, self).__init__(param_names=[], ndim=2, outdim=2)
         self.has_inverse = True
             
     @property
@@ -97,12 +97,12 @@ class RotateCelestial2Native(Model):
     phi, theta, psi : float
         Euler angles in deg
     """
-    parnames = ['phi', 'theta', 'psi']
+    param_names = ['phi', 'theta', 'psi']
     def __init__(self, phi, theta, psi):
         self._phi = Parameter('phi', np.deg2rad(phi), self, 1)
         self._theta = Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = Parameter('psi', np.deg2rad(psi), self, 1)
-        super(RotateCelestial2Native, self).__init__(parnames=[], ndim=2, outdim=2)
+        super(RotateCelestial2Native, self).__init__(param_names=[], ndim=2, outdim=2)
         
         self.has_inverse = True
     
@@ -169,14 +169,14 @@ class MatrixRotation2D(Model):
             self._validate_rotmat(rotmat)
             self._rotmat = Parameter('rotmat', np.asarray(rotmat) + 0.,
                                       self, 1)
-            super(MatrixRotation2D, self).__init__(parnames=['rotmat'], ndim=1,
+            super(MatrixRotation2D, self).__init__(param_names=['rotmat'], ndim=1,
                                                                                 outdim=1, param_dim=1)
         else:
             self._validate_angle(angle)
             self._angle = Parameter('angle', np.deg2rad(angle), self, 1)
-            super(MatrixRotation2D, self).__init__(parnames=[], ndim=1,
+            super(MatrixRotation2D, self).__init__(param_names=[], ndim=1,
                                                                             outdim=1,param_dim=1)
-            self.parnames = ['angle']
+            self.param_names = ['angle']
             self._rotmat = Parameter('rotmat', self._compute_matrix(angle),
                                       self, 1)
         self._ndim = self._rotmat[0].shape[0]

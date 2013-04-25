@@ -44,7 +44,7 @@ class TestFitting(object):
         p1.parameters=[0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0]
         pars = {}
         for i in range(4):
-            pars[p1.parnames[i]] = [i, i]
+            pars[p1.param_names[i]] = [i, i]
         p1 = models.Poly1DModel(3, param_dim=2, **pars)
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter(p1)
@@ -111,7 +111,7 @@ class TestFitting(object):
         p1 = models.Poly1DModel(5, param_dim=2)
         pars = {}
         for i in range(6):
-            pars[p1.parnames[i]] = [1, i]
+            pars[p1.param_names[i]] = [1, i]
         p1 = models.Poly1DModel(5, param_dim=2, **pars)
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter(p1)

@@ -25,7 +25,7 @@ class PolynomialModel(ParametricModel):
     def __init__(self, degree, ndim=1, outdim=1, param_dim=1, **pars):
         self.deg = degree
         self._order = self.get_numcoeff(ndim)
-        self.parnames = self._generate_coeff_names(ndim)
+        self.param_names = self._generate_coeff_names(ndim)
         if not pars:
             self.set_coeff(pardim=param_dim)
         else:
@@ -39,7 +39,7 @@ class PolynomialModel(ParametricModel):
                 param_dim = lenpars
             self._validate_pars(**pars)
             self.set_coeff(pardim=param_dim, **pars)
-        super(PolynomialModel, self).__init__(self.parnames, ndim=ndim, outdim=outdim,
+        super(PolynomialModel, self).__init__(self.param_names, ndim=ndim, outdim=outdim,
                                                         param_dim=param_dim)
 
     def _invlex(self):
@@ -77,7 +77,7 @@ class PolynomialModel(ParametricModel):
         Set default values for coefficients
         """
         if not pars:
-            for name in self.parnames:
+            for name in self.param_names:
                 uname = '_'+name
                 if pardim == 1:
                     self.__setattr__(uname, parameters.Parameter(
@@ -86,7 +86,7 @@ class PolynomialModel(ParametricModel):
                     self.__setattr__(uname, parameters.Parameter(
                                         name, [0.]*pardim, self, pardim))
         else:
-            for name in self.parnames:
+            for name in self.param_names:
                 uname = '_'+name
                 self.__setattr__(uname, parameters.Parameter(
                                           name, pars[name], self, pardim))
@@ -166,7 +166,7 @@ class OrthogPolyBase(ParametricModel):
         self.ydomain = ydomain
         self.xwindow = xwindow
         self.ywindow = ywindow
-        self.parnames = self._generate_coeff_names()
+        self.param_names = self._generate_coeff_names()
 
         if not pars:
             self.set_coeff(pardim=param_dim)
@@ -182,7 +182,7 @@ class OrthogPolyBase(ParametricModel):
                 param_dim = lenpars
             self._validate_pars(**pars)
             self.set_coeff(pardim=param_dim, **pars)
-        super(OrthogPolyBase, self).__init__(self.parnames, ndim=2, outdim=1,
+        super(OrthogPolyBase, self).__init__(self.param_names, ndim=2, outdim=1,
                                                         param_dim=param_dim)
 
     def _generate_coeff_names(self):
@@ -194,12 +194,12 @@ class OrthogPolyBase(ParametricModel):
 
     def set_coeff(self, pardim=1, **pars):
         if not pars:
-            for name in self.parnames:
+            for name in self.param_names:
                 uname = '_'+name
                 self.__setattr__(uname, parameters.Parameter(
                                  name, [0.]*pardim, self, pardim))
         else:
-            for name in self.parnames:
+            for name in self.param_names:
                 uname = '_'+name
                 self.__setattr__(uname, parameters.Parameter(
                     name, pars[name], self, pardim))
@@ -853,7 +853,7 @@ class _SIP1D(Model):
     def __init__(self, order, coeffname='a', param_dim=1, **pars):
         self.order = order
         self.coeffname = coeffname.lower()
-        self.parnames = self._generate_coeff_names(coeffname)
+        self.param_names = self._generate_coeff_names(coeffname)
 
         if not pars:
             self.set_coeff(pardim=param_dim)
@@ -869,7 +869,7 @@ class _SIP1D(Model):
             self._validate_pars(ndim=2, **pars)
             self.set_coeff(pardim=param_dim, **pars)
 
-        super(_SIP1D, self).__init__(self.parnames, ndim=2, outdim=1,
+        super(_SIP1D, self).__init__(self.param_names, ndim=2, outdim=1,
                                                         param_dim=param_dim)
 
     def __repr__(self):
@@ -896,7 +896,7 @@ class _SIP1D(Model):
               self.order,
               self.param_dim,
               "\n                   ".join(i+':  ' + str(getattr(self,i)) for
-                                           i in self.parnames)
+                                           i in self.param_names)
                 )
         return fmt
 
@@ -925,7 +925,7 @@ class _SIP1D(Model):
     def set_coeff(self, pardim=1, **pars):
         if not pars:
             # default values
-            for name in self.parnames:
+            for name in self.param_names:
                 if pardim == 1:
                     self.__setattr__('_'+name,
                                      parameters.Parameter(name, 0, self, 1))
@@ -934,7 +934,7 @@ class _SIP1D(Model):
                                      parameters.Parameter(name, [0]*pardim,
                                                            self, pardim))
         else:
-            for name in self.parnames:
+            for name in self.param_names:
                 self.__setattr__('_'+name,
                                  parameters.Parameter(name, pars[name],
                                                        self, pardim))

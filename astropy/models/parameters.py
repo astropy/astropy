@@ -271,20 +271,20 @@ class Parameters(list):
     ----------
     mobj : object
         an instance of a subclass of `~astropy.models.core.ParametricModel`
-    parnames : list of strings
+    param_names : list of strings
         parameter names
     param_dim : int
         Number of parameter sets
     """
-    def __init__(self, mobj, parnames, param_dim=1):
+    def __init__(self, mobj, param_names, param_dim=1):
         self.mobj = mobj
         self.param_dim = param_dim
         # A flag set to True by a fitter to indicate that the flat 
         # list of parameters has been changed.
         self._changed = False
         self.parinfo = {}
-        parlist = [getattr(mobj, attr) for attr in parnames]
-        flat = self._flatten(parnames, parlist)
+        parlist = [getattr(mobj, attr) for attr in param_names]
+        flat = self._flatten(param_names, parlist)
         super(Parameters, self).__init__(flat)
 
     def __setitem__(self, ind, value):
@@ -323,13 +323,13 @@ class Parameters(list):
         parsize = _tofloat(newpars).size
         return parsize == self.__len__()
 
-    def _flatten(self, parnames, parlist):
+    def _flatten(self, param_names, parlist):
         """
         Create a list of model parameters
         """
         flatpars = []
         start = 0
-        for (name, par) in zip(parnames, parlist):
+        for (name, par) in zip(param_names, parlist):
             pararr = np.array(par)
             fpararr = pararr.flatten()
 

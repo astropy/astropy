@@ -162,9 +162,9 @@ class Fitter(object):
                 fullderiv = self.model.deriv(pars, x, y)
             else:
                 fullderiv = self.model.deriv(pars, x, y, z)
-            ind = range(len(self.model.parnames))
+            ind = range(len(self.model.param_names))
             for name in fixed_and_tied:
-                index = self.model.parnames.index(name)
+                index = self.model.param_names.index(name)
                 ind.remove(index)
             res = np.empty((fullderiv.shape[0], fullderiv.shape[1]-len(ind)))
             res = fullderiv[:, ind]
@@ -259,9 +259,9 @@ class LinearLSQFitter(Fitter):
             d = self.model.deriv(x, y)
         fixed = [name for name in self.model.constraints.fixed if
                  self.model.constraints.fixed[name]]
-        ind = range(len(self.model.parnames))
+        ind = range(len(self.model.param_names))
         for name in fixed:
-            index = self.model.parnames.index(name)
+            index = self.model.param_names.index(name)
             ind.remove(index)
         res = d[:, ind]
         return res
@@ -423,8 +423,8 @@ class NonLinearLSQFitter(Fitter):
         for c in self.model.constraints.bounds.values():
             if c !=  (-1E12, 1E12):
                 bounds = [self.model.constraints.bounds[par] for
-                                    par in self.model.parnames]
-                for name, par, b in zip(self.model.parnames, fitpars, bounds):
+                                    par in self.model.param_names]
+                for name, par, b in zip(self.model.param_names, fitpars, bounds):
                     setattr(self.model, name, par if par>b[0] else b[0])
                     setattr(self.model, name, par if par<b[1] else b[1])
 
@@ -600,7 +600,7 @@ class SLSQPFitter(Fitter):
             fargs = (x, y, meas)
         p0 = self.model._parameters[:]
         bounds = [self.model.constraints.bounds[par] for
-                  par in self.model.parnames]
+                  par in self.model.param_names]
         self.fitpars, final_func_val, numiter, exit_mode, mess = optimize.fmin_slsqp(
             self.errorfunc, p0, args=fargs, disp=verblevel, full_output=1,
             bounds=bounds, eqcons=self.model.constraints.eqcons,
@@ -679,7 +679,7 @@ class JointFitter(object):
             del fitpars[:numfp]
             #recreate the model parameters
             mpars = []
-            for pname in model.parnames:
+            for pname in model.param_names:
                 if pname in model.joint:
                     index = model.joint.index(pname)
                     # should do this with slices in case the
@@ -724,7 +724,7 @@ class JointFitter(object):
             del fpars[:numfp]
             # recreate the model parameters
             mpars = []
-            for pname in model.parnames:
+            for pname in model.param_names:
                 if pname in model.joint:
                     index = model.joint.index(pname)
                     # should do this with slices in case the parameter
