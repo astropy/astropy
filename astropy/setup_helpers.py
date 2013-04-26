@@ -378,6 +378,8 @@ def register_commands(package, version, release):
 
     if HAVE_SPHINX:
         _registered_commands['build_sphinx'] = AstropyBuildSphinx
+    else: 
+         _registered_commands['build_sphinx'] = FakeBuildSphinx
 
     # Need to override the __name__ here so that the commandline options are
     # presented as being related to the "build" command, for example; normally
@@ -1621,3 +1623,27 @@ class bdist_dmg(Command):
 
         # Remove temporary disk image
         os.remove(dmg_path_tmp)
+
+
+class FakeBuildSphinx(Command):
+    """
+    A dummy build_sphinx command that is called if Sphinx is not
+    installed and displays a relevant error message
+    """
+    #attributes required in Command subclass
+    user_options = []
+
+    #define methods required in Command subclass
+    def initialize_options(self):
+        self.all_files = 1
+        self.source_dir = None
+        self.build_dir = None
+        self.finalized = False
+
+    def finalize_options(self):
+        self.finalized = True
+
+    def run(self):
+        log.error('error: Sphinx must be installed for build_sphinx option')
+        sys.exit(1)
+
