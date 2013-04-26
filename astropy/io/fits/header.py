@@ -1964,6 +1964,10 @@ class Header(object):
                 prev_key += 1
 
 
+collections.MutableSequence.register(Header)
+collections.MutableMapping.register(Header)
+
+
 class _CardAccessor(object):
     """
     This is a generic class for wrapping a Header in such a way that you can
@@ -2018,6 +2022,10 @@ class _CardAccessor(object):
                 self[idx] = val
             return True
         return False
+
+
+collections.Mapping.register(_CardAccessor)
+collections.Sequence.register(_CardAccessor)
 
 
 class _HeaderComments(_CardAccessor):

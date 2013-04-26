@@ -34,6 +34,13 @@ Bug Fixes
   - Improved round-tripping and preservation of manually assigned column
     attributes (``TNULLn``, ``TSCALn``, etc.) in table HDU headers. [#996]
 
+- ``astropy.units``
+
+  - Fixed an issue where the ``isiterable()`` utility returned ``True`` for
+    quantities with scalar values.  Added an ``__iter__`` method for the
+    ``Quantity`` class and fixed ``isiterable()`` to catch false positives.
+    [#878]
+
 - Misc
 
   - Fixed an unrelated error message that could occur when trying to import
