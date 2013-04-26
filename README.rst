@@ -10,5 +10,13 @@ Releases are `registered on PyPI <http://pypi.python.org/pypi/astropy>`_,
 and development is occuring at the
 `project's github page <http://github.com/astropy/astropy>`_.
 
-For installation instructions, see the `online documentation <http://docs.astropy.org/>`_ 
+For installation instructions, see the `online documentation <http://docs.astropy.org/>`_
 or  ``docs/install.rst`` in this source distribution.
+
+Jenkins Build Status
+--------------------
+.. image:: https://jenkins.shiningpanda-ci.com/astropy/job/astropy-master-debian-multiconfig/badge/icon
+
+Travis Build Status
+-------------------
+.. image:: https://travis-ci.org/astropy/astropy.png
