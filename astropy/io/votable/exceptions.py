@@ -156,6 +156,9 @@ def parse_vowarning(line):
         result['is_exception'] = False
         result['is_other'] = False
         result['is_something'] = False
+        if not isinstance(line, unicode):
+            line = line.decode('utf-8')
+        result['message'] = line
 
     return result
 
