@@ -2,40 +2,45 @@ language: python
 
 
 python:
+    - 2.6
     - 2.7
     - 3.2
-    # Note that these are *only* for the "default" versions - somthing from python 2.x and 3.x
-    # for each we do an 'egg_info' build and a build with all the optional dependencies.  We
-    # do the latter first because they take the longest.  Testing of all other versions (without
-    # optional dependencies) happens in the "include" section below
+    - 3.3
+    # This is just for "egg_info".  All other builds are explicitly given in the matrix
 env:
-    - NUMPY_VERSION=1.7.1 SETUP_CMD='test' OPTIONAL_DEPS=true
-    - NUMPY_VERSION=1.7.1 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
+    - SETUP_CMD='egg_info' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
+    # OPTIONAL_DEPS most importantly means scipy
 
 matrix:
     include:
         # Check for sphinx doc build warnings - we do this first because it runs for a long time
         - python: 2.7
-          # OPTIONAL_DEPS needed because the plot_directive in sphinx needs them
-          env: NUMPY_VERSION=1.7.1 SETUP_CMD='build_sphinx -w -n' OPTIONAL_DEPS=true
+          env: SETUP_CMD='build_sphinx -w -n' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true
+               # OPTIONAL_DEPS needed because the plot_directive in sphinx needs them
 
         # try all python versions with the latest numpy
-        - python: 2.7
-          env: NUMPY_VERSION=1.7.1 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 2.6
-          env: NUMPY_VERSION=1.7.1 SETUP_CMD='test' OPTIONAL_DEPS=false
-        - python: 3.3
-          env: NUMPY_VERSION=1.7.1 SETUP_CMD='test' OPTIONAL_DEPS=false
+          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
+        - python: 2.7
+          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
         - python: 3.2
-          env: NUMPY_VERSION=1.7.1 SETUP_CMD='test' OPTIONAL_DEPS=false
+          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
+        - python: 3.3
+          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
+
+        # now try do scipy on 2.7 and an appropriate 3.x build (with latest numpy)
+        - python: 2.7
+          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true
+        - python: 3.2
+          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true
 
         # try alternate numpy versions
         - python: 2.7
           env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
-        - python: 2.7
-          env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 3.2
           env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
+        - python: 2.7
+          env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
         # numpy < 1.6 does not work on py 3.x
 
 
