@@ -1700,7 +1700,8 @@ class Table(object):
             return all(hasattr(obj, attr) for attr in attrs)
 
 	# the length gets calculated [durga2112]
-        newlen = len(self._data) + 1
+	oldlen = len(self._data)
+        newlen = oldlen + 1
 
         if mask is not None and not self.masked:
             self._set_masked(True)
@@ -1742,7 +1743,15 @@ class Table(object):
                 raise TypeError("Mismatch between type of vals and mask")
 
             if len(self.columns) != len(vals):
-                raise ValueError('Mismatch between number of vals and columns')
+	# this eliminates the junk row [durga2112]
+            	#self._data.resize((oldlen,), refcheck=False)
+        	if self.masked:
+			self._data = ma.resize(self._data, (oldlen,))
+        	else:
+            		self._data.resize((oldlen,), refcheck=False)
+		self._rebuild_table_column_views()
+		sys.stdout.write("Revert to the old size\n")
+                raise ValueError('Mismatch between number of values and columns')
 
             if not isinstance(vals, tuple):
                 vals = tuple(vals)
