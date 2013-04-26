@@ -353,6 +353,19 @@ class Quantity(object):
     def __hash__(self):
         return hash(self.value) ^ hash(self.unit)
 
+    def __iter__(self):
+        if self.isscalar:
+            raise TypeError(
+                "'{cls}' object with a scalar value is not iterable"
+                .format(cls=self.__class__.__name__))
+
+        # Otherwise return a generator
+        def quantity_iter():
+            for val in self.value:
+                yield Quantity(val, unit=self.unit)
+
+        return quantity_iter()
+
     def __getitem__(self, key):
         if self.isscalar:
             raise TypeError(

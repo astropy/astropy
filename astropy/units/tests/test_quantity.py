@@ -10,14 +10,15 @@ from __future__ import (absolute_import, unicode_literals, division,
 import pytest
 import numpy as np
 
-from ...tests.helper import raises
 from ...tests.compat import assert_allclose
+from ...tests.helper import raises
+from ...utils import isiterable
 from ... import units as u
 
 """ The Quantity class will represent a number + unit + uncertainty """
 
 
-class TestQuantityCreation():
+class TestQuantityCreation(object):
 
     def test_1(self):
         # create objects through operations with Unit objects:
@@ -65,7 +66,7 @@ class TestQuantityCreation():
             q1.unit = u.centimeter
 
 
-class TestQuantityOperations():
+class TestQuantityOperations(object):
     q1 = u.Quantity(11.42, u.meter)
     q2 = u.Quantity(8.0, u.centimeter)
 
@@ -316,7 +317,7 @@ def test_cgs():
     assert q.cgs.unit == u.barye
 
 
-class TestQuantityComparison():
+class TestQuantityComparison(object):
     def test_quantity_equality(self):
         assert u.Quantity(1000, unit='m') == u.Quantity(1, unit='km')
         assert not (u.Quantity(1, unit='m') == u.Quantity(1, unit='km'))
@@ -352,7 +353,7 @@ class TestQuantityComparison():
             assert u.Quantity(1100, unit=u.meter) != u.Quantity(1, unit=u.second)
 
 
-class TestQuantityDisplay():
+class TestQuantityDisplay(object):
 
     def test_quantity_str(self):
         q1 = u.Quantity(1, unit='m')
@@ -476,6 +477,7 @@ def test_quantity_initialized_with_quantity():
     assert q3[0].value == 60
     assert q3[1].value == 60
 
+
 def test_quantity_string_unit():
     q1 = "m" / u.s
     assert q1.value == 1
@@ -483,6 +485,7 @@ def test_quantity_string_unit():
 
     q2 = q1 * "m"
     assert q2.unit == ((u.m * u.m) / u.s)
+
 
 @raises(ValueError)
 def test_quantity_invalid_unit_string():
@@ -492,3 +495,19 @@ def test_quantity_invalid_unit_string():
 @raises(ValueError)
 def test_quantity_invalid_unit_string2():
     "15" * u.m
+
+
+def test_quantity_iterability():
+    """Regressiont est for issue #878.
+
+    Scalar quantities should not be iterable and should raise a type error on
+    iteration.
+    """
+
+    q1 = [15.0, 17.0] * u.m
+    assert isiterable(q1)
+
+    q2 = iter(q1).next()
+    assert q2 == 15.0 * u.m
+    assert not isiterable(q2)
+    pytest.raises(TypeError, iter, q2)

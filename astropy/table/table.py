@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import abc
+import collections
 import sys
 from copy import deepcopy
 import functools
@@ -167,10 +168,12 @@ class BaseColumn(object):
         else:
             return out_arr.view(np.ndarray)[()]
 
-    def _get_name(self):
+    @property
+    def name(self):
         return self._name
 
-    def _set_name(self, val):
+    @name.setter
+    def name(self, val):
         if self.parent_table is not None:
             table = self.parent_table
             table.columns._rename_column(self.name, val)
@@ -179,8 +182,6 @@ class BaseColumn(object):
                 table._data.mask.dtype.names = table.columns.keys()
 
         self._name = val
-
-    name = property(_get_name, _set_name)
 
     @property
     def descr(self):
@@ -852,6 +853,9 @@ class Row(object):
     def __repr__(self):
         return "<Row {0} of table\n values={1!r}\n dtype={2}>".format(
             self.index, self.data, self.dtype)
+
+
+collections.Sequence.register(Row)
 
 
 class Table(object):
