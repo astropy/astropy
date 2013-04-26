@@ -1420,6 +1420,9 @@ class Table(object):
 
             # Now add new column to the table
             self.add_column(new_column)
+        elif isinstance(value, Row):
+            # Value is another row
+            self._data[item] = value.data
         else:
             # Otherwise just delegate to the numpy item setter.
             self._data[item] = value
