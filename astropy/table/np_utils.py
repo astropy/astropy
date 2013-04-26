@@ -373,7 +373,11 @@ def vstack(arrays, join_type='inner', col_name_map=None):
     n_rows = sum(lens)
     out_descrs = get_descrs(arrays, col_name_map)
     if masked:
-        out = ma.empty(n_rows, dtype=out_descrs)
+        # Make a masked array with all values initially masked.  Note
+        # that setting an array value automatically unmasks it.
+        # See comment in hstack for heritage of this code.
+        out = ma.masked_array(np.zeros(n_rows, out_descrs),
+                              mask=np.ones(n_rows, ma.make_mask_descr(out_descrs)))
     else:
         out = np.empty(n_rows, dtype=out_descrs)
 
@@ -383,10 +387,6 @@ def vstack(arrays, join_type='inner', col_name_map=None):
             idx1 = idx0 + len(array)
             if name in array.dtype.names:
                 out[out_name][idx0:idx1] = array[name]
-                if isinstance(array, ma.MaskedArray):
-                    out[out_name].mask[idx0:idx1] = array[name].mask
-            else:
-                out[out_name].mask[idx0:idx1] = True
             idx0 = idx1
 
     # If col_name_map supplied as a dict input, then update.
@@ -479,7 +479,11 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     n_rows = max(arr_lens)
     out_descrs = get_descrs(arrays, col_name_map)
     if masked:
-        out = ma.masked_all(n_rows, dtype=out_descrs)
+        # Adapted from ma.all_masked() code.  Here the array is filled with
+        # zeros instead of empty.  This avoids the bug reported here:
+        # https://github.com/numpy/numpy/issues/3276
+        out = ma.masked_array(np.zeros(n_rows, out_descrs),
+                              mask=np.ones(n_rows, ma.make_mask_descr(out_descrs)))
     else:
         out = np.empty(n_rows, dtype=out_descrs)
 
