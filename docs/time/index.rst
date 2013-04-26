@@ -548,7 +548,7 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
 Reference/API
 =============
 
-.. automodapi:: astropy.time.core
+.. automodapi:: astropy.time
 
 
 Acknowledgments and Licenses
