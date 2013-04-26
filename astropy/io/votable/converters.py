@@ -481,9 +481,8 @@ class NumericArray(Array):
         self._memsize = np.dtype(self.format).itemsize
         self._bigendian_format = '>' + self.format
 
-        self.default = (
-            np.ones(arraysize, dtype=self._base.format) *
-            self._base.default)
+        self.default = np.empty(arraysize, dtype=self._base.format)
+        self.default[...] = self._base.default
 
     def parse(self, value, config={}, pos=None):
         parts = self._splitter(value, config, pos)
