@@ -16,7 +16,10 @@ or  ``docs/install.rst`` in this source distribution.
 Jenkins Build Status
 --------------------
 .. image:: https://jenkins.shiningpanda-ci.com/astropy/job/astropy-master-debian-multiconfig/badge/icon
-
+    :target: https://jenkins.shiningpanda-ci.com/astropy/job/astropy-master-debian-multiconfig/
+    
 Travis Build Status
 -------------------
 .. image:: https://travis-ci.org/astropy/astropy.png
+    :target: https://travis-ci.org/astropy/astropy
+
