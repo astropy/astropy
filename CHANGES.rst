@@ -17,6 +17,11 @@
     allows converting to and from the date representation used when plotting
     dates with matplotlib via the `~matplotlib.pyplot.plot_date` function.
 
+- ``astropy.stats``
+
+  - Added robust statistics functions `~astropy.stats.funcs.median_absolute_deviation`, 
+    `~astropy.stats.funcs.biweight_location`, and 
+    `~astropy.stats.funcs.biweight_midvariance`.
 
 0.2.2 (unreleased)
 ------------------
