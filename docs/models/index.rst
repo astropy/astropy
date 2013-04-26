@@ -1,8 +1,8 @@
 .. _astropy-models:
 
-**************************************
+*************************************
 Models And Fitting (`astropy.models`)
-**************************************
+*************************************
 
 Introduction
 ============
@@ -151,7 +151,8 @@ Using `models`
    parameters
    models
    fitting
-   new
+   new_models
+   new_fitters
    algorithms
    design
    

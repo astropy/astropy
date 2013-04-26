@@ -73,79 +73,9 @@ method with different parameters which is necessary for fitting with constraints
         result = self.eval(x, self.psets)
         return _convert_output(result, format)
     
-A Full Example of a LineModel
------------------------------
+A Full Example of a line model
+------------------------------
 
-::
-
-    from astropy.models import builtin_models, parameters
-    import numpy as np
-    
-    class Line(builtin_models.PolynomialModel):
-        parnames = ['slope', 'intercept']
-    
-    def init(self, slope, intercept, paramdim=1):
-        self.linear = True 
-        self._slope = parameters.Parameter(name='slope', val=slope, mclass=self, paramdim=paramdim)
-        self._intercept = parameters.Parameter(name='intercept', val=intercept, mclass=self, paramdim=paramdim)
-        models.ParametricModel.__init__(self, self.parnames, ndim=1, outdim=1, paramdim=paramdim)
-        self.domain = [-1, 1]
-        self.window = [-1, 1]
-        self._order = 2
-    
-    def eval(self, x, params):
-        return params[0] * x + params[1]
-    
-    def call(self, x):
-        x, format = models._convert_input(x, self.paramdim)
-        result = self.eval(x, self.psets)
-        return models._convert_output(result, format)
-    
-    def deriv(self, x):
-        res = np.ones((len(x), 2))
-        res[:, 1] = x.copy()
-        return res
-
-*****************************
-Creating a New Type of Fitter
-*****************************
-
-This document describes how to add a new nonlinear fitting algorithm
-to this package. In short, one needs to define an error function and a __call__
-method and define the types of constraints which work with this fitter (if any).
-
-The details are described below using scipy's SLSQP algorithm as an example.
-The base class for all fitters is `~astropy.models.fitting.Fitter`.::
-
-    class SLSQPFitter(Fitter):
-        def __init__(self, model, fixed=None, tied=None, bounds=None,
-                            eqcons=None, ineqcons=None):
-            Fitter.__init__(self, model, fixed=fixed, tied=tied, bounds=bounds, 
-                                      eqcons=eqcons, ineqcons=ineqcons)
-            if self.model.linear:
-                raise ModelLinearityException('Model is linear in parameters, '
-                             'non-linear fitting methods should not be used.')
-
-All fitters take a model (their __call__ method modifies the model's parameters).
-If the fitter does not support constraint fitting, this may be the only argument 
-passed to the constructor. In our example the rest of the arguments represent 
-different types of constraints.
-
-Next, the error function takes a list of parameters returned by an iteration of the 
-fitting algorithm and input coordinates, evaluates the model with them and 
-returns some type of a measure for the fit. In the example the sum of the 
-squared residuals is used as a measure of fitting.::
-
-    def errorfunc(self, fps, *args):
-        meas = args[0]
-        self.fitpars = fps
-        res = self.model(*args[1:]) - meas
-        return np.sum(res**2)
-    
-The __call__ method performs the fitting. As a minimum it takes all coordinates 
-as separate arguments. Additional arguments are passed as necessary.::
-
-    def __call__(self, x, y , maxiter=MAXITER, epsilon=EPS):
-        self.fitpars = optimize.fmin_slsqp(self.errorfunc, p0=self.model.parameters[:], args=(y, x), 
-            bounds=self.constraints._bounds, eqcons=self.constraints.eqcons, 
-            ieqcons=self.constraints.ineqcons)
+.. literalinclude:: new_model.py
+   :language: python
+   :linenos:
