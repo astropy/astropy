@@ -375,7 +375,7 @@ class UnitBase(object):
         return self.to(
             other, value=value, equivalencies=equivalencies)
 
-    def decompose(self, bases=[]):
+    def decompose(self, bases=set()):
         """
         Return a unit object composed of only irreducible units.
 
@@ -884,9 +884,7 @@ class IrreducibleUnit(NamedUnit):
         """
         return [1.0]
 
-    def decompose(self, bases=[]):
-        bases = set(bases)
-
+    def decompose(self, bases=set()):
         if len(bases) and not self in bases:
             for base in bases:
                 if self.is_equivalent(base):
@@ -1124,7 +1122,7 @@ class Unit(NamedUnit):
         NamedUnit.__init__(self, st, register=register, doc=doc,
                            format=format)
 
-    def decompose(self, bases=[]):
+    def decompose(self, bases=set()):
         return self._represents.decompose(bases=bases)
     decompose.__doc__ = UnitBase.decompose.__doc__
 
@@ -1170,6 +1168,7 @@ class CompositeUnit(UnitBase):
                 raise TypeError("bases must be sequence of UnitBase instances")
         self._bases = bases
         self._powers = powers
+        self._decomposed_cache = None
 
     def __repr__(self):
         if len(self._bases):
@@ -1207,7 +1206,7 @@ class CompositeUnit(UnitBase):
         """
         return self._powers
 
-    def _expand_and_gather(self, decompose=False, bases=[]):
+    def _expand_and_gather(self, decompose=False, bases=set()):
         def add_unit(unit, power, scale):
             if len(bases) and unit not in bases:
                 for base in bases:
@@ -1216,7 +1215,10 @@ class CompositeUnit(UnitBase):
                         unit = base
                         break
 
-            new_parts[unit] = power + new_parts.get(unit, 0)
+            if unit in new_parts:
+                new_parts[unit] += power
+            else:
+                new_parts[unit] = power
             return scale
 
         new_parts = {}
@@ -1227,13 +1229,13 @@ class CompositeUnit(UnitBase):
                 b = b.decompose(bases=bases)
 
             if isinstance(b, CompositeUnit):
-                scale *= b.scale ** p
-                for b_sub, p_sub in zip(b.bases, b.powers):
+                scale *= b._scale ** p
+                for b_sub, p_sub in zip(b._bases, b._powers):
                     scale = add_unit(b_sub, p_sub * p, scale)
             else:
                 scale = add_unit(b, p, scale)
 
-        new_parts = [(b, p) for (b, p) in new_parts.items() if p != 0]
+        new_parts = [x for x in new_parts.items() if x[1] != 0]
         new_parts.sort(key=lambda x: x[1], reverse=True)
 
         self._bases = [x[0] for x in new_parts]
@@ -1251,16 +1253,23 @@ class CompositeUnit(UnitBase):
         return self
     _simplify.__doc__ = UnitBase._simplify.__doc__
 
-    def decompose(self, bases=[]):
+    def decompose(self, bases=set()):
+        if len(bases) == 0 and self._decomposed_cache is not None:
+            return self._decomposed_cache
+
         for base in self.bases:
             if (not isinstance(base, IrreducibleUnit) or
                     (len(bases) and base not in bases)):
                 break
         else:
+            if len(bases) == 0:
+                self._decomposed_cache = self
             return self
 
         x = CompositeUnit(self.scale, self.bases, self.powers)
         x._expand_and_gather(True, bases=bases)
+        if len(bases) == 0:
+            self._decomposed_cache = x
         return x
     decompose.__doc__ = UnitBase.decompose.__doc__
 
