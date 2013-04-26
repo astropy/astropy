@@ -259,15 +259,17 @@ def vo_tab_parse(tab, url, kwargs):
     """
     for param in tab.iter_fields_and_params():
         if param.ID is not None and param.ID.lower() == 'error':
+            if hasattr(param, 'value'):
+                e = param.value
+            else:  # pragma: no cover
+                e = ''
             raise VOSError("Catalog server '{0}' returned error '{1}'".format(
-                url, param.value))
-        break
+                url, e))
 
     for info in tab.infos:
         if info.name is not None and info.name.lower() == 'error':
             raise VOSError("Catalog server '{0}' returned error '{1}'".format(
                 url, info.value))
-        break
 
     if tab.resources == []:  # pragma: no cover
         vo_raise(E19)
@@ -281,7 +283,6 @@ def vo_tab_parse(tab, url, kwargs):
                 long_descr = ''
             raise VOSError("Catalog server '{0}' returned status "
                            "'{1}'{2}".format(url, info.value, long_descr))
-        break
 
     out_tab = tab.get_first_table()
 

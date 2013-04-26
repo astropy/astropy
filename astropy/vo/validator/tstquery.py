@@ -9,6 +9,7 @@ from __future__ import print_function, division
 from xml.dom import minidom
 
 # LOCAL
+from ...logger import log
 from ...utils import OrderedDict  # For 2.6 compatibility
 from ...utils.data import get_readable_fileobj
 
@@ -25,7 +26,13 @@ def parse_cs(id):
                               show_progress=False) as fd:
         dom = minidom.parse(fd)
     tq = dom.getElementsByTagName('testQuery')
-    for key in tqp:
-        d[key.upper()] = \
-            tq[0].getElementsByTagName(key)[0].firstChild.nodeValue.strip()
+
+    # If no testQuery found, use RA=0 DEC=0 SR=1
+    if tq:
+        for key in tqp:
+            d[key.upper()] = \
+                tq[0].getElementsByTagName(key)[0].firstChild.nodeValue.strip()
+    else:  # pragma: no cover
+        d = OrderedDict({'RA': '0', 'DEC': '0', 'SR': '1'})
+        log.info('No testQuery found for {0}, using default'.format(id))
     return d

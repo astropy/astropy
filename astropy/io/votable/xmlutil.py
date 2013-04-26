@@ -113,7 +113,7 @@ def validate_schema(filename, version='1.2'):
         Returns the returncode from xmllint and the stdout and stderr
         as strings
     """
-    assert version in ('1.0', '1.1', '1.2')
+    assert version in ('1.0', '1.1', '1.2'), 'No schema for version {0}'.format(version)
 
     if version in ('1.1', '1.2'):
         schema_path = data.get_pkg_data_filename(

@@ -181,9 +181,15 @@ class Result:
         if 'xmllint' not in self:
             # Now check the VO schema based on the version in
             # the file.
-            success, stdout, stderr = xmlutil.validate_schema(path, version)
-            self['xmllint'] = (success == 0)
-            self['xmllint_content'] = stderr
+            try:
+                success, stdout, stderr = xmlutil.validate_schema(path, version)
+            except AssertionError as e:  # pragma: no cover
+                # Rare occasion when VOTABLE version is invalid
+                self['xmllint'] = False
+                self['xmllint_content'] = str(e)
+            else:
+                self['xmllint'] = (success == 0)
+                self['xmllint_content'] = stderr
 
         warning_types = set()
         for line in lines:

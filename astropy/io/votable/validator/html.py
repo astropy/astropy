@@ -9,6 +9,7 @@ import os
 import re
 
 # ASTROPY
+from ....logger import log
 from ....utils.xml.writer import XMLWriter, xml_escape
 from .... import online_docs_root
 
@@ -99,7 +100,12 @@ def write_warning(w, line, xml_lines):
             msg = msg.decode('utf-8')
         w.write(xml_escape(msg))
         w.write(u'\n')
-        write_source_line(w, xml_lines[warning['nline'] - 1], warning['nchar'])
+        try:
+            write_source_line(
+                w, xml_lines[warning['nline'] - 1], warning['nchar'])
+        except IndexError as e:
+            log.warn(
+                'write_source_line failed for {} with {}'.format(line, str(e)))
 
 
 def write_votlint_warning(w, line, xml_lines):

@@ -28,6 +28,8 @@ a user-defined list of services or all of them.
 
 All Cone Search queries are done using RA, DEC, and SR given by
 ``<testQuery>`` XML tag in the registry, and maximum verbosity.
+In an uncommon case where ``<testQuery>`` is not defined for a service,
+it uses a default search for ``RA=0&DEC=0&SR=1``.
 
 The results are separated into 4 groups below. Each group
 is stored as a JSON database:
