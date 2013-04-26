@@ -75,6 +75,4 @@ install:
       # this matplotlib will *not* work with py 3.x, but our sphinx build is currently 2.7, so that's fine
 
 script:
-   - export OPEN_FILES=""
-   - if [[ $TRAVIS_PYTHON_VERSION == "2.7" ]] || [[ $TRAVIS_PYTHON_VERSION == "3.2" ]] && [[ $NUMPY_VERSION == "1.6.2" ]] && [[ $SETUP_CMD == "test" ]]; then export OPEN_FILES=--open-files; fi
-   - python setup.py $SETUP_CMD $OPEN_FILES
+    - python setup.py $SETUP_CMD
