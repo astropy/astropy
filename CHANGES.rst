@@ -1,23 +1,23 @@
 0.3 (unreleased)
 ----------------
 
-- ``astropy.io.votable``
+- `astropy.io.votable`
 
-  - The format of the units in the VOTable file can be specified using
+  - The format of the units of a VOTable file can be specified using
     the `unit_format` parameter.  Note that units are still always
     written out using the CDS format, to ensure compatibility with the
     standard.
 
-- ``astropy.time``
+- `astropy.time`
 
   - Add ``datetime`` format (:class:`~astropy.time.core.TimeDatetime`) which
     allows converting to and from standard library `~datetime.datetime` objects.
 
-  - Add ``plot_date`` format (:class:`~astropy.time.core.TimePlotDate``) which
+  - Add ``plot_date`` format (:class:`~astropy.time.core.TimePlotDate`) which
     allows converting to and from the date representation used when plotting
     dates with matplotlib via the `~matplotlib.pyplot.plot_date` function.
 
-- ``astropy.stats``
+- `astropy.stats`
 
   - Added robust statistics functions `~astropy.stats.funcs.median_absolute_deviation`, 
     `~astropy.stats.funcs.biweight_location`, and 
