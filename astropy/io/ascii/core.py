@@ -297,12 +297,12 @@ class DefaultSplitter(BaseSplitter):
 
         if self.csv_writer is None:
             self.csv_writer = csv.writer(self.csv_writer_out,
-                                         delimiter = delimiter,
-                                         doublequote = self.doublequote,
-                                         escapechar = self.escapechar,
-                                         quotechar = self.quotechar,
-                                         quoting = self.quoting,
-                                         lineterminator = '',
+                                         delimiter=delimiter,
+                                         doublequote=self.doublequote,
+                                         escapechar=self.escapechar,
+                                         quotechar=self.quotechar,
+                                         quoting=self.quoting,
+                                         lineterminator='',
                                          )
         self.csv_writer_out.seek(0)
         self.csv_writer_out.truncate()
