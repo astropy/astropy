@@ -1631,13 +1631,65 @@ class FakeBuildSphinx(Command):
     installed and displays a relevant error message
     """
     #attributes required in Command subclass
-    user_options = []
+    #user options inherited from sphinx.setup_command.BuildDoc
+    user_options = [
+        ('fresh-env', 'E', 'discard saved environment'),
+        ('all-files', 'a', 'build all files'),
+        ('source-dir=', 's', 'Source directory'),
+        ('build-dir=', None, 'Build directory'),
+        ('config-dir=', 'c', 'Location of the configuration directory'),
+        ('builder=', 'b', 'The builder to use. Defaults to "html"'),
+        ('project=', None, 'The documented project\'s name'),
+        ('version=', None, 'The short X.Y version'),
+        ('release=', None, 'The full version, including alpha/beta/rc tags'),
+        ('today=', None, 'How to format the current date, used as the '
+         'replacement for |today|'),
+        ('link-index', 'i', 'Link index.html to the master doc'),
+    ]
+
+    #user options appended in astropy.setup_helpers.AstropyBuildSphinx
+    user_options.append(('warnings-returncode', 'w',
+                             'Parses the sphinx output and sets the return '
+                             'code to 1 if there are any warnings. Note that '
+                             'this will cause the sphinx log to only update '
+                             'when it completes, rather than continuously as '
+                             'is normally the case.'))
+    user_options.append(('clean-docs', 'l',
+                             'Completely clean previous builds, including '
+                             'automodapi-generated files before building new '
+                             'ones'))
+    user_options.append(('no-intersphinx', 'n',
+                             'Skip intersphinx, even if conf.py says to use '
+                             'it'))
+    user_options.append(('open-docs-in-browser', 'o',
+                             'Open the docs in a browser (using the '
+                             'webbrowser module) if the build finishes '
+                             'successfully.'))
+
+    #boolean options inherited from sphinx.setup_command.BuildDoc
+    boolean_options = ['fresh-env', 'all-files', 'link-index']
+
+    #boolean options appended in astropy.setup_helpers.AstropyBuildSphinx
+    boolean_options.append('warnings-returncode')
+    boolean_options.append('clean-docs')
+    boolean_options.append('no-intersphinx')
+    boolean_options.append('open-docs-in-browser')
 
     #define methods required in Command subclass
     def initialize_options(self):
-        self.all_files = 1
-        self.source_dir = None
-        self.build_dir = None
+        self.fresh_env = self.all_files = False
+        self.source_dir = self.build_dir = None
+        self.builder = 'html'
+        self.project = ''
+        self.version = ''
+        self.release = ''
+        self.today = ''
+        self.config_dir = None
+        self.link_index = False
+        self.clean_docs = False
+        self.no_intersphinx = False
+        self.open_docs_in_browser = False
+        self.warnings_returncode = False
         self.finalized = False
 
     def finalize_options(self):
