@@ -100,12 +100,7 @@ def write_warning(w, line, xml_lines):
             msg = msg.decode('utf-8')
         w.write(xml_escape(msg))
         w.write(u'\n')
-        try:
-            write_source_line(
-                w, xml_lines[warning['nline'] - 1], warning['nchar'])
-        except IndexError as e:
-            log.warn(
-                'write_source_line failed for {} with {}'.format(line, str(e)))
+        write_source_line(w, xml_lines[warning['nline'] - 1], warning['nchar'])
 
 
 def write_votlint_warning(w, line, xml_lines):

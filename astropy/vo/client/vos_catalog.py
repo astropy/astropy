@@ -8,7 +8,7 @@ import urllib
 
 # LOCAL
 from ...config.configuration import ConfigurationItem
-from ...io.votable import table
+from ...io.votable import table, tree
 from ...io.votable.exceptions import vo_raise, vo_warn, E19, W24, W25
 from ...utils.console import color_print
 from ...utils.data import get_readable_fileobj
@@ -259,7 +259,7 @@ def vo_tab_parse(tab, url, kwargs):
     """
     for param in tab.iter_fields_and_params():
         if param.ID is not None and param.ID.lower() == 'error':
-            if hasattr(param, 'value'):
+            if isinstance(param, tree.Param):
                 e = param.value
             else:  # pragma: no cover
                 e = ''
