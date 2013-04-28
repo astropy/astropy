@@ -16,8 +16,6 @@ import textwrap
 import traceback
 import warnings
 
-import numpy as np
-
 
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'deprecated_attribute', 'silence', 'format_exception',
@@ -778,6 +776,7 @@ class JsonCustomEncoder(json.JSONEncoder):
 
     """
     def default(self, obj):
+        import numpy as np
         if isinstance(obj, (np.ndarray, np.number)):
             return obj.tolist()
         elif isinstance(obj, (complex, np.complex)):
