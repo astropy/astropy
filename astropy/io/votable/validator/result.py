@@ -100,7 +100,7 @@ class Result:
         def fail(reason):
             reason = str(reason)
             with open(path, 'wb') as fd:
-                fd.write('FAILED: {}\n'.format(reason).encode('utf-8'))
+                fd.write('FAILED: {0}\n'.format(reason).encode('utf-8'))
             self['network_error'] = reason
 
         r = None
