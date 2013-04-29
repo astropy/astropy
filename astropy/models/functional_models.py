@@ -20,13 +20,13 @@ class Gaussian1DModel(ParametricModel):
     ----------
     amplitude : float
         Amplitude of the gaussian
-    mu : float
+    mean : float
         Mean of the gaussian
     fwhm : float
         FWHM
-    sigma : float
+    stddev : float
         Standard deviation of the gaussian
-        Either fwhm or sigma must be specified
+        Either fwhm or stddev must be specified
     jacobian_func : callable, 'estimated' or None
         if callable - a function to compute the Jacobian of 
         func with derivatives across the rows.
@@ -35,25 +35,25 @@ class Gaussian1DModel(ParametricModel):
         if not the Jacobian will be estimated.
         
     """
-    param_names = ['amplitude', 'mu', 'sigma']
-    def __init__(self, amplitude, mu, fwhm=None, sigma=None,
+    param_names = ['amplitude', 'mean', 'stddev']
+    def __init__(self, amplitude, mean, fwhm=None, stddev=None,
                             jacobian_func=None, **cons):
         self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
-        if sigma is None and fwhm is None:
+        if stddev is None and fwhm is None:
             raise InputParameterError(
-                "Either fwhm or sigma must be specified")
-        if sigma is not None:
-            sigmaval = sigma
+                "Either fwhm or stddev must be specified")
+        if stddev is not None:
+            stddev_val = stddev
         else:
             try:
-                sigmaval  = 0.42466 * fwhm
+                stddev_val  = 0.42466 * fwhm
             except TypeError:
-                sigmaval = [0.42466 * n for n in fwhm]
-        self._sigma = parameters.Parameter('sigma', sigmaval, self, 1)
-        self._mu = parameters.Parameter('mu', mu, self, 1)
+                stddev_val = [0.42466 * n for n in fwhm]
+        self._stddev = parameters.Parameter('stddev', stddev_val, self, 1)
+        self._mean = parameters.Parameter('mean', mean, self, 1)
         try:
             param_dim = len(self._amplitude)
-            assert (len(amplitude) == len(sigmaval) == len(mu) ), \
+            assert (len(amplitude) == len(stddev_val) == len(mean) ), \
              "Input parameters do not have the same dimension"
         except TypeError:
             param_dim = 1
@@ -72,13 +72,13 @@ class Gaussian1DModel(ParametricModel):
                                                 (x-params[1])**2))
  
     def gderiv(self, p, x, y):
-        amplitude, mu, sigma = p
+        amplitude, mean, stddev = p
         deriv_dict = {}
-        deriv_dict['amplitude'] = np.exp((-(1/(sigma**2)) * (x-mu)**2))
-        deriv_dict['mu'] = 2 * amplitude * np.exp((-(1/(sigma**2)) *
-                                (x-mu)**2)) * (x-mu)/(sigma**2)
-        deriv_dict['sigma'] = 2 * amplitude * np.exp((-(1/(sigma**2)) *
-                                (x-mu)**2)) * ((x-mu)**2)/(sigma**3)
+        deriv_dict['amplitude'] = np.exp((-(1/(stddev**2)) * (x-mean)**2))
+        deriv_dict['mean'] = 2 * amplitude * np.exp((-(1/(stddev**2)) *
+                                (x-mean)**2)) * (x-mean)/(stddev**2)
+        deriv_dict['stddev'] = 2 * amplitude * np.exp((-(1/(stddev**2)) *
+                                (x-mean)**2)) * ((x-mean)**2)/(stddev**3)
         derivval = [deriv_dict[par] for par in self.param_names]
         return np.array(derivval).T
                                     
@@ -107,68 +107,69 @@ class Gaussian2DModel(ParametricModel):
     ----------
     amplitude : float
         Amplitude of the gaussian
-    x_mu : float
+    x_mean : float
         Mean of the gaussian in x
-    y_mu : float
+    y_mean : float
         Mean of the gaussian in y
     fwhm : float
         Full width at half maximum
-    x_sigma : float
+    x_stddev : float
         Standard deviation of the gaussian in x
-        Either fwhm or x_sigma must be specified
-    y_sigma : float
+        Either fwhm or x_stddev must be specified
+    y_stddev : float
         Standard deviation of the gaussian in y
-        Either y_sigma or ratio should be given
+        Either y_stddev or ratio should be given
     jacobian_func : callable or None
         if callable - a function to compute the Jacobian of 
         func with derivatives across the rows.
         if None - the Jacobian will be estimated
     theta : float 
-        rotation angle in radians
+        Rotation angle in radians. Note: increases clockwise.
     """
-    param_names = ['amplitude', 'x_mu', 'y_mu', 'x_sigma', 'y_sigma', 'theta']
+    param_names = ['amplitude', 'x_mean', 'y_mean', \
+                   'x_stddev', 'y_stddev', 'theta']
     
-    def __init__(self, amplitude, x_mu, y_mu, x_fwhm=None, y_fwhm=None, 
-                 x_sigma=None, y_sigma=None, theta=0.0, cov_matrix=None,
+    def __init__(self, amplitude, x_mean, y_mean, x_fwhm=None, y_fwhm=None, 
+                 x_stddev=None, y_stddev=None, theta=0.0, cov_matrix=None,
                  jacobian_func=None, **cons):
-        if y_sigma is None and y_fwhm is None and cov_matrix is None:
+        if y_stddev is None and y_fwhm is None and cov_matrix is None:
             raise InputParameterError(
-                "Either y_fwhm or y_sigma must be specified, or a "
+                "Either y_fwhm or y_stddev must be specified, or a "
                 "covariance matrix.")
-        elif x_sigma is None and x_fwhm is None and cov_matrix is None:
+        elif x_stddev is None and x_fwhm is None and cov_matrix is None:
             raise InputParameterError(
-                "Either x_fwhm or x_sigma must be specified, or a "
+                "Either x_fwhm or x_stddev must be specified, or a "
                 "covariance matrix.")
                 
         self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
         
         if cov_matrix is None:
-            if x_sigma is None:
-                x_sigma = 0.42466 * x_fwhm
+            if x_stddev is None:
+                x_stddev = 0.42466 * x_fwhm
             
-            if y_sigma is None:
-                y_sigma = 0.42466 * y_fwhm
+            if y_stddev is None:
+                y_stddev = 0.42466 * y_fwhm
         
         else:
             cov_matrix = np.array(cov_matrix)
             assert cov_matrix.shape == (2,2), "Covariance matrix must be 2D"
             
             eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
-            x_sigma, y_sigma = np.sqrt(eig_vals)
+            x_stddev, y_stddev = np.sqrt(eig_vals)
             y_vec = eig_vecs[:,0]
             theta = np.arctan2(y_vec[1],y_vec[0])
             
-        self._x_sigma = parameters.Parameter('x_sigma', x_sigma, self, 1)
-        self._y_sigma = parameters.Parameter('y_sigma', y_sigma, self, 1)
+        self._x_stddev = parameters.Parameter('x_stddev', x_stddev, self, 1)
+        self._y_stddev = parameters.Parameter('y_stddev', y_stddev, self, 1)
         
-        self._x_mu = parameters.Parameter('x_mu', x_mu, self, 1)
-        self._y_mu = parameters.Parameter('y_mu', y_mu, self, 1)
+        self._x_mean = parameters.Parameter('x_mean', x_mean, self, 1)
+        self._y_mean = parameters.Parameter('y_mean', y_mean, self, 1)
         self._theta = parameters.Parameter('theta', theta, self, 1)
         
         try:
             param_dim = len(self._amplitude)
-            assert (len(self._amplitude) == len(self._x_sigma) == \
-                            len(self._x_mu) == len(self._y_mu) == \
+            assert (len(self._amplitude) == len(self._x_stddev) == \
+                            len(self._x_mean) == len(self._y_mean) == \
                             len(self._theta) ), \
                             "Input parameters do not have the same dimension"
         except TypeError:
