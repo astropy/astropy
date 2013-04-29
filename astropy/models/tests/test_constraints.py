@@ -15,8 +15,8 @@ except ImportError:
     
 class TestNonLinearConstraints(object):
     def setup_class(self):
-        self.g1 = models.Gaussian1DModel(10, 14.9, sigma=.3)
-        self.g2 = models.Gaussian1DModel(10, 13, sigma=.4)
+        self.g1 = models.Gaussian1DModel(10, 14.9, stddev=.3)
+        self.g2 = models.Gaussian1DModel(10, 13, stddev=.4)
         self.x = np.arange(10, 20, .1)
         self.y1 = self.g1(self.x)
         self.y2 = self.g2(self.x)
@@ -27,7 +27,7 @@ class TestNonLinearConstraints(object):
         
     @pytest.mark.skipif('not HAS_SCIPY')
     def testFixedPar(self):
-        g1 = models.Gaussian1DModel(10, 14.9, sigma=.3, fixed={'amplitude':True})
+        g1 = models.Gaussian1DModel(10, mean=14.9, stddev=.3, fixed={'amplitude':True})
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.x, self.ny1)
         assert g1.amplitude == 10
@@ -36,17 +36,17 @@ class TestNonLinearConstraints(object):
     def testTiedPar(self):
         
         def tied(model):
-            mu = 50*model.sigma[0]
-            return mu
-        g1 = models.Gaussian1DModel(10, 14.9, sigma=.3, tied={'mu':tied})
+            mean = 50*model.stddev[0]
+            return mean
+        g1 = models.Gaussian1DModel(10, mean=14.9, stddev=.3, tied={'mean':tied})
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.x, self.ny1)
-        utils.assert_allclose(g1.mu, 50*g1.sigma[0], rtol=10**(-5))
+        utils.assert_allclose(g1.mean, 50*g1.stddev[0], rtol=10**(-5))
     
     @pytest.mark.skipif('not HAS_SCIPY')
     def testJointFitter(self):
-        g1 = models.Gaussian1DModel(10, 14.9, sigma=.3)
-        g2 = models.Gaussian1DModel(10, 13, sigma=.4)
+        g1 = models.Gaussian1DModel(10, 14.9, stddev=.3)
+        g2 = models.Gaussian1DModel(10, 13, stddev=.4)
         jf = fitting.JointFitter([g1, g2], {g1:['amplitude'], 
                                          g2:['amplitude']}, [9.8])
         x = np.arange(10, 20, .1)
@@ -71,7 +71,7 @@ class TestNonLinearConstraints(object):
     
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_no_constraints(self):
-        g1 = models.Gaussian1DModel(9.9, 14.5, sigma=.3)
+        g1 = models.Gaussian1DModel(9.9, 14.5, stddev=.3)
         func = lambda p, x: p[0]* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
         errf = lambda p, x, y: func(p, x) - y
         p0 = [9.9, 14.5, 0.3]

@@ -29,7 +29,7 @@ class TestParameters(object):
         self.icoeff = record.coeff
         order = int(record.fields['order'])
         self.model = models.Chebyshev1DModel(order-1)
-        self.gmodel = models.Gaussian1DModel(2, 3, sigma=4)
+        self.gmodel = models.Gaussian1DModel(2, mean=3, stddev=4)
         self.linear_fitter = fitting.LinearLSQFitter(self.model)
         self.x = record.x
         self.y = record.z
