@@ -1699,14 +1699,21 @@ class Table(object):
             attrs = ('__getitem__', '__len__', '__iter__', 'keys', 'values', 'items')
             return all(hasattr(obj, attr) for attr in attrs)
 
-	# the length gets calculated [durga2112]
-	oldlen = len(self._data)
+        def _revert_table():
+            """In case of an error, revert the table back to its previous state"""
+            print "Reverting table to previous state"
+            if self.masked:
+                self._data = ma.resize(self._data, (oldlen,))
+            else:
+                self._data.resize((oldlen,), refcheck=False)
+            self._rebuild_table_column_views()
+
+        oldlen = len(self._data)
         newlen = oldlen + 1
 
         if mask is not None and not self.masked:
             self._set_masked(True)
 
-	# the length actually gets increased here [durga2112]
         if self.masked:
             self._data = ma.resize(self._data, (newlen,))
         else:
@@ -1743,14 +1750,7 @@ class Table(object):
                 raise TypeError("Mismatch between type of vals and mask")
 
             if len(self.columns) != len(vals):
-	# this eliminates the junk row [durga2112]
-            	#self._data.resize((oldlen,), refcheck=False)
-        	if self.masked:
-			self._data = ma.resize(self._data, (oldlen,))
-        	else:
-            		self._data.resize((oldlen,), refcheck=False)
-		self._rebuild_table_column_views()
-		sys.stdout.write("Revert to the old size\n")
+                _revert_table()
                 raise ValueError('Mismatch between number of values and columns')
 
             if not isinstance(vals, tuple):
@@ -1761,6 +1761,7 @@ class Table(object):
             if mask is not None:
 
                 if len(self.columns) != len(mask):
+                    _revert_table()
                     raise ValueError('Mismatch between number of masks and columns')
 
                 if not isinstance(mask, tuple):
