@@ -123,11 +123,11 @@ class TestFitting(object):
         """
         1 set 1D x, 1 set 1D y, 1 pset NonLinearFitter
         """
-        g1 = models.Gaussian1DModel(10, 3, .2)
+        g1 = models.Gaussian1DModel(10, mean=3, stddev=.2)
         y1 = g1(self.x1)
         gfit = fitting.NonLinearLSQFitter(g1)
         gfit(self.x1, y1)
-        utils.assert_allclose(g1.parameters, [10, 3, .084932])
+        utils.assert_allclose(g1.parameters, [10, 3, .2])
     
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_Nset_1d(self):
@@ -135,7 +135,7 @@ class TestFitting(object):
         1 set 1D x, 1 set 1D y, 2 param_sets, NonLinearFitter
         """
         with pytest.raises(ValueError):
-            g1 = models.Gaussian1DModel([10.2, 10], [3,3.2], [.23,.2])
+            g1 = models.Gaussian1DModel([10.2, 10], mean=[3,3.2], stddev=[.23,.2])
             y1 = g1(self.x1)
             gfit = fitting.NonLinearLSQFitter(g1)
             gfit(self.x1, y1)
@@ -145,7 +145,7 @@ class TestFitting(object):
         """
         1 set 2d x, 1set 2D y, 1 pset, NonLinearFitter
         """
-        g2=models.Gaussian2DModel(10, 3, 4, x_sigma=.3, y_sigma=.2, theta=0)
+        g2=models.Gaussian2DModel(10, x_mean=3, y_mean=4, x_stddev=.3, y_stddev=.2, theta=0)
         z = g2(self.x, self.y)
         gfit = fitting.NonLinearLSQFitter(g2)
         gfit(self.x, self.y, z)
@@ -157,8 +157,8 @@ class TestFitting(object):
          1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter
         """
         with pytest.raises(ValueError):
-            g2=models.Gaussian2DModel([10,10], [3,3],[4,4], x_sigma=[.3,.3], 
-                y_sigma=[.2,.2], theta=[0,0])
+            g2=models.Gaussian2DModel([10,10], [3,3],[4,4], x_stddev=[.3,.3], 
+                y_stddev=[.2,.2], theta=[0,0])
             z = g2(self.x.flatten(), self.y.flatten())
             gfit = fitting.NonLinearLSQFitter(g2)
             gfit(self.x, self.y, z)
