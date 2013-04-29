@@ -534,6 +534,22 @@ def generate_build_ext_command(release):
 
 class AstropyBuildPy(SetuptoolsBuildPy):
 
+    def finalize_options(self):
+        # Update build_lib settings from the build command to always put
+        # build files in platform-specific subdirectories of build/, even
+        # for projects with only pure-Python source (this is desirable
+        # specifically for support of multiple Python version).
+        build_cmd = self.get_finalized_command('build')
+        plat_specifier = '.{0}-{1}'.format(build_cmd.plat_name,
+                                           sys.version[0:3])
+        # Do this unconditionally
+        build_purelib = os.path.join(build_cmd.build_base,
+                                     'lib' + plat_specifier)
+        build_cmd.build_purelib = build_purelib
+        build_cmd.build_lib = build_purelib
+        self.build_lib = build_purelib
+        SetuptoolsBuildPy.finalize_options(self)
+
     def run(self):
         # first run the normal build_py
         SetuptoolsBuildPy.run(self)
