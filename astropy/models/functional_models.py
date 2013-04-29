@@ -111,8 +111,10 @@ class Gaussian2DModel(ParametricModel):
         Mean of the gaussian in x
     y_mean : float
         Mean of the gaussian in y
-    fwhm : float
-        Full width at half maximum
+    x_fwhm : float
+        Full width at half maximum in x
+    y_fwhm : float
+        Full width at half maximum in y
     x_stddev : float
         Standard deviation of the gaussian in x
         Either fwhm or x_stddev must be specified
@@ -125,6 +127,8 @@ class Gaussian2DModel(ParametricModel):
         if None - the Jacobian will be estimated
     theta : float 
         Rotation angle in radians. Note: increases clockwise.
+    cov_matrix : ndarray
+        A 2x2 covariance matrix. 
     """
     param_names = ['amplitude', 'x_mean', 'y_mean', \
                    'x_stddev', 'y_stddev', 'theta']
