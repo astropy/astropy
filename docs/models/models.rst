@@ -48,7 +48,7 @@ The examples here assume this import statement was executed:
 - Create a 1D Gaussian with 2 parameter sets
 
 >>> x = np.arange(1, 10, .1)
->>> builtin_models.Gauss1DModel.parnames
+>>> builtin_models.Gauss1DModel.param_names
 ['amplitude', 'xcen', 'xsigma']
 >>> g1 = builtin_models.Gauss1DModel(amplitude=[10, 9], xcen=[2,3], fwhm=[.3,.2])
 >>> g1.param_sets

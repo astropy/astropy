@@ -5,7 +5,7 @@ Parameters
 Parameters are used in three different contexts within this package: 
 communicating with fitters, model evaluation and getting values to/from users. 
 
-Models maintain a list of parameter names, `~astropy.models.core.Model.parnames`. 
+Models maintain a list of parameter names, `~astropy.models.core.Model.param_names`. 
 Single parameters are list-like objects, instances of `~astropy.models.parameters.Parameter`.
 Simple mathematical operations can be performed with them. The preferred way for users to
 interact with models is through individual parameters.
@@ -13,7 +13,7 @@ interact with models is through individual parameters.
 The goal of this package is, when possible, to allow simultaneous model evaluation 
 and fitting with multiple parameter sets. Because of this, all models have a 
 `~astropy.models.core.Model.param_sets`
-attribute, an array of shape `(len(parnames), paramdim)`, where
+attribute, an array of shape `(len(param_names), paramdim)`, where
 `~astropy.models.core.Model.paramdim` is the number of 
 parameter sets. Typically the array is of type float but can become an object array in
 some cases. `~astropy.models.core.Model.param_sets` is used for model evaluation.
@@ -38,7 +38,7 @@ Parameters Examples
 
 >>> from astropy.models import *
 >>> p1 = builtin_models.Poly1DModel(degree=4)
->>> p1.parnames
+>>> p1.param_names
 ['c0', 'c1', 'c2', 'c3', 'c4']
 >>> p1.parameters
 [0.0, 0.0, 0.0, 0.0, 0.0]
@@ -53,7 +53,7 @@ Parameters Examples
 
 >>> ch2 = builtin_models.Chebyshev2DModel(xdeg=2, ydeg=3, paramdim=2)
 >>> coeff = {}
->>> for i, j in zip(ch2.parnames, range(len(ch2.parnames))):
+>>> for i, j in zip(ch2.param_names, range(len(ch2.param_names))):
         coeff[i] = [j, j+10]
 >>> ch2 = builtin_models.Chebyshev2DModel(xdeg=2, ydeg=3, **coeff)
 >>> ch2.param_sets

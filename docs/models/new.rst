@@ -16,7 +16,7 @@ There are two base classes for models. If the model is fittable, it
 should inherit from `~astropy.models.core.ParametricModel`,
 if not it should subclass `~astropy.models.core.Model`. If the model
 takes parameters, their names are stored in a list as a class attribute
-named `~astropy.models.core.Model.parnames`. Pass the list of parameter
+named `~astropy.models.core.Model.param_names`. Pass the list of parameter
 names and the number of parameter sets to the base class. Note, that if
 the method which evaluates the model cannot work with multiple parameter sets,
 `~astropy.models.core.Model.paramdim` should not be given
@@ -26,7 +26,7 @@ as an argument in the __init__ method. The default for
     from astropy.models import *
     
     class Gauss1DModel(ParametricModel):
-        parnames = ['amplitude', 'xcen', 'xsigma']
+        param_names = ['amplitude', 'xcen', 'xsigma']
 
 
 As a minimum the __init__ method takes all parameters and the number of
@@ -37,7 +37,7 @@ parameter sets, `~astropy.models.Model.paramdim`::
         self._amplitude = Parameter(name='amplitude', val=amplitude, mclass=self, paramdim=paramdim)
         self._xsigma = Parameter(name='xsigma', val=xsigma, mclass=self, paramdim=paramdim)
         self._xcen = Parameter(name='xcen', val=xcen, mclass=self, paramdim=paramdim)
-        ParametricModel.__init__(self, self.parnames, ndim=1, outdim=1, paramdim=paramdim)
+        ParametricModel.__init__(self, self.param_names, ndim=1, outdim=1, paramdim=paramdim)
     
 Parametric models can be linear or nonlinear in a regression sense. The default 
 value of the `~astropy.models.core.Model.linear` attribute is True. 
@@ -82,13 +82,13 @@ A Full Example of a LineModel
     import numpy as np
     
     class Line(builtin_models.PolynomialModel):
-        parnames = ['slope', 'intercept']
+        param_names = ['slope', 'intercept']
     
     def init(self, slope, intercept, paramdim=1):
         self.linear = True 
         self._slope = parameters.Parameter(name='slope', val=slope, mclass=self, paramdim=paramdim)
         self._intercept = parameters.Parameter(name='intercept', val=intercept, mclass=self, paramdim=paramdim)
-        models.ParametricModel.__init__(self, self.parnames, ndim=1, outdim=1, paramdim=paramdim)
+        models.ParametricModel.__init__(self, self.param_names, ndim=1, outdim=1, paramdim=paramdim)
         self.domain = [-1, 1]
         self.window = [-1, 1]
         self._order = 2
