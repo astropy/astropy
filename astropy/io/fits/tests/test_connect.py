@@ -40,7 +40,6 @@ class TestSingleTable(object):
         t2 = Table.read(filename)
         assert equal_data(t1, t2)
 
-    @pytest.mark.xfail
     def test_with_units(self, tmpdir):
         filename = str(tmpdir.join('test_with_units.fits'))
         t1 = Table(self.data)

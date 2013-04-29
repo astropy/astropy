@@ -12,6 +12,7 @@ from ...utils import OrderedDict
 from .. import registry as io_registry
 from ...table import Table
 from ... import log
+from ... import units as u
 
 from . import HDUList, TableHDU, BinTableHDU
 from .hdu.hdulist import fitsopen as fits_open
@@ -133,7 +134,7 @@ def read_table_fits(input, hdu=None):
 
     # Check if table is masked
     masked = False
-    for col in table.get_coldefs():
+    for col in table.columns:
         if col.null is not None:
             masked = True
             break
@@ -143,9 +144,14 @@ def read_table_fits(input, hdu=None):
 
     # Copy over null values if needed
     if masked:
-        for col in table.get_coldefs():
+        for col in table.columns:
             t[col.name].set_fill_value(col.null)
             t[col.name].mask[t[col.name] == col.null] = True
+
+    # Copy over units
+    for col in table.columns:
+        if col.unit is not None:
+            t[col.name].units = u.Unit(col.unit, format='fits')
 
     # TODO: deal properly with unsigned integers
 
@@ -201,10 +207,15 @@ def write_table_fits(input, output, overwrite=False):
     # Create a new HDU object
     if input.masked:
         table_hdu = BinTableHDU(np.array(input.filled()))
-        for col in table_hdu.get_coldefs():
+        for col in table_hdu.columns:
             col.null = input[col.name].get_fill_value()
     else:
         table_hdu = BinTableHDU(np.array(input))
+
+    # Set units for output HDU
+    for col in table_hdu.columns:
+        if input[col.name].units is not None:
+            col.unit = input[col.name].units.to_string(format='fits')
 
     # Write out file
     table_hdu.writeto(output)
