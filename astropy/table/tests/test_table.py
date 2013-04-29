@@ -66,6 +66,43 @@ class SetupData(object):
 
 
 @pytest.mark.usefixtures('set_global_Table')
+class TestSetTableColumn(SetupData):
+
+    def test_set_row(self):
+        """Set a row from a tuple of values"""
+        t = Table([self.a, self.b])
+        t[1] = (20, 21)
+        assert t['a'][0] == 1
+        assert t['a'][1] == 20
+        assert t['a'][2] == 3
+        assert t['b'][0] == 4
+        assert t['b'][1] == 21
+        assert t['b'][2] == 6
+
+    def test_set_row_existing(self):
+        """Set a row from another existing row"""
+        t = Table([self.a, self.b])
+        t[0] = t[1]
+        assert t[0][0] == 2
+        assert t[0][1] == 5
+
+    def test_set_row_fail_1(self):
+        """Set a row from an incorrectly-sized set of values"""
+        t = Table([self.a, self.b])
+        with pytest.raises(ValueError):
+            t[1] = (20, 21, 22)
+        with pytest.raises(TypeError):
+            t[1] = 0
+
+    def test_set_row_fail_2(self):
+        """Set a row from an incorrectly-typed tuple of values"""
+        t = Table([self.a, self.b])
+        with pytest.raises(ValueError):
+            t[1] = ('abc', 'def')
+
+
+
+@pytest.mark.usefixtures('set_global_Table')
 class TestEmptyData():
 
     def test_1(self):

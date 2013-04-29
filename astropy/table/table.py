@@ -1324,8 +1324,13 @@ class Table(object):
 
     def __setitem__(self, item, value):
         try:
-            self._data[item] = value
-        except (ValueError, KeyError, TypeError):
+            if isinstance(value, Row):
+                # Value is another row
+                self._data[item] = value.data
+            else:
+                # Otherwise just delegate to the numpy item setter.
+                self._data[item] = value
+        except KeyError:
             raise KeyError("Column {0} does not exist".format(item))
         except:
             raise
