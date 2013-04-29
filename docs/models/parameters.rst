@@ -12,23 +12,23 @@ interact with models is through individual parameters.
 
 The goal of this package is, when possible, to allow simultaneous model evaluation 
 and fitting with multiple parameter sets. Because of this, all models have a 
-`~astropy.models.core.Model.psets`
+`~astropy.models.core.Model.param_sets`
 attribute, an array of shape `(len(parnames), paramdim)`, where
 `~astropy.models.core.Model.paramdim` is the number of 
 parameter sets. Typically the array is of type float but can become an object array in
-some cases. `~astropy.models.core.Model.psets` is used for model evaluation.
+some cases. `~astropy.models.core.Model.param_sets` is used for model evaluation.
 
 In addition, all models maintain an attribute, `~astropy.models.core.ParametricModel.parameters`,
 an instance of `~astropy.models.parameters.Parameters`. This is a flat list of 
 parameter values which fitters update. It serves as a communication tool between fitters
 and models.
 
-Individual parameters, `~astropy.models.core.Models.psets` and the flat list of parameters
+Individual parameters, `~astropy.models.core.Models.param_sets` and the flat list of parameters
 values are kept in sync. Single parameters are updated through properties. An update to
-a single parameter triggers an update to `~astropy.models.core.Model.psets` and
+a single parameter triggers an update to `~astropy.models.core.Model.param_sets` and
 `~astropy.models.core.Model.parameters`. Single parameters are updated 
 after a change to `~astropy.models.core.ParametricModel.parameters`.
-`~astropy.models.core.Model.psets` are always constructed on demand from single 
+`~astropy.models.core.Model.param_sets` are always constructed on demand from single 
 parameters and cannot be updated directly.
 
 Parameters Examples
@@ -56,7 +56,7 @@ Parameters Examples
 >>> for i, j in zip(ch2.parnames, range(len(ch2.parnames))):
         coeff[i] = [j, j+10]
 >>> ch2 = builtin_models.Chebyshev2DModel(xdeg=2, ydeg=3, **coeff)
->>> ch2.psets
+>>> ch2.param_sets
 array([[ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11],
        [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]])
 

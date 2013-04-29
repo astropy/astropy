@@ -8,7 +8,7 @@ models can be linear or nonlinear in a regression analysis sense.
 
 To evaluate a model, it is called like a function. When possible the 
 transformation is done using multiple parameter sets,
-`~astropy.models.core.Model.psets`.
+`~astropy.models.core.Model.param_sets`.
 The number of parameter sets is stored in an attribute
 `~astropy.models.core.Model.paramdim`. 
 
@@ -51,7 +51,7 @@ The examples here assume this import statement was executed:
 >>> builtin_models.Gauss1DModel.parnames
 ['amplitude', 'xcen', 'xsigma']
 >>> g1 = builtin_models.Gauss1DModel(amplitude=[10, 9], xcen=[2,3], fwhm=[.3,.2])
->>> g1.psets
+>>> g1.param_sets
 array([[ 10.      ,   9.      ],
        [  2.      ,   3.      ],
        [  0.127398,   0.084932]])
@@ -99,7 +99,7 @@ or two data sets (any other number would be an error)
 >>> len(p1.parameters)
 10
 >>> p1.c1 = [0, 1, 2, 3, 4]
->>> p1.psets
+>>> p1.param_sets
 array([[ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  1.,  2.,  3.,  4.]])
 >>> y = p1(x)

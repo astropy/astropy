@@ -64,13 +64,13 @@ in which case the "deriv" method should return None.
 
 Finally, the __call__ method takes input coordinates as separate arguments.
 It reformats them (if necessary) and calls the eval method to perform the 
-model evaluation using model.psets as parameters. 
+model evaluation using model.param_sets as parameters. 
 The reason there is a separate eval method is to allow fitters to call the eval
 method with different parameters which is necessary for fitting with constraints.::
 
     def __call__(self, x):
         x, format = _convert_input(x, self.paramdim)
-        result = self.eval(x, self.psets)
+        result = self.eval(x, self.param_sets)
         return _convert_output(result, format)
     
 A Full Example of a LineModel
@@ -98,7 +98,7 @@ A Full Example of a LineModel
     
     def call(self, x):
         x, format = models._convert_input(x, self.paramdim)
-        result = self.eval(x, self.psets)
+        result = self.eval(x, self.param_sets)
         return models._convert_output(result, format)
     
     def deriv(self, x):
