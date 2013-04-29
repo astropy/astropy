@@ -131,18 +131,21 @@ def read_table_fits(input, hdu=None):
 
         raise ValueError("Input should be a string, an HDUList object, or a TableHDU instance or BinTableHDU instance")
 
-    # Convert to an astropy.table.Table object
-    t = Table(table.data)
-
     # Check if table is masked
+    masked = False
     for col in table.get_coldefs():
         if col.null is not None:
-            t.masked = True
+            masked = True
+            break
+
+    # Convert to an astropy.table.Table object
+    t = Table(table.data, masked=masked)
 
     # Copy over null values if needed
-    if t.masked:
+    if masked:
         for col in table.get_coldefs():
             t[col.name].set_fill_value(col.null)
+            t[col.name].mask[t[col.name] == col.null] = True
 
     # TODO: deal properly with unsigned integers
 

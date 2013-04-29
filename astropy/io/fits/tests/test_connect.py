@@ -52,7 +52,6 @@ class TestSingleTable(object):
         assert t2['a'].units == u.m
         assert t2['c'].units == u.km / u.s
 
-    @pytest.mark.xfail
     def test_masked(self, tmpdir):
         filename = str(tmpdir.join('test_masked.fits'))
         t1 = Table(self.data, masked=True)
