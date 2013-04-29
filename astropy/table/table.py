@@ -1701,7 +1701,6 @@ class Table(object):
 
         def _revert_table():
             """In case of an error, revert the table back to its previous state"""
-            print "Reverting table to previous state"
             if self.masked:
                 self._data = ma.resize(self._data, (oldlen,))
             else:
