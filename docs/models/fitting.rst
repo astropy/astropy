@@ -81,14 +81,14 @@ array([[ 5.50225913,  5.50225913],
   (linked to another parameter). This can be done in two ways:
 
 >>> def tiedfunc(g1):
-    ...    xcen = 3 * g1.xsigma[0]
-    ...    return xcen
->>> g1 = builtin_models.Gaussian1DModel(amplitude=10., xcen=3, xsigma=.5, tied={'xcen': tiedfunc})
+    ...    mean = 3 * g1.xsigma[0]
+    ...    return mean
+>>> g1 = builtin_models.Gaussian1DModel(amplitude=10., mean=3, xsigma=.5, tied={'mean': tiedfunc})
 
 or
 
->>> g1 = builtin_models.Gaussian1DModel(amplitude=10., xcen=3, xsigma=.5)
->>> g1.xcen.tied = tiedfunc
+>>> g1 = builtin_models.Gaussian1DModel(amplitude=10., mean=3, xsigma=.5)
+>>> g1.mean.tied = tiedfunc
 >>> gfit = fitting.NonLinearLSQFitter(g1)
 
 

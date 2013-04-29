@@ -26,17 +26,17 @@ as an argument in the __init__ method. The default for
     from astropy.models import *
     
     class Gaussian1DModel(ParametricModel):
-        param_names = ['amplitude', 'xcen', 'xsigma']
+        param_names = ['amplitude', 'mean', 'xsigma']
 
 
 As a minimum the __init__ method takes all parameters and the number of
 parameter sets, `~astropy.models.Model.param_dim`::
 
-    def __init__(self, amplitude, xcen, xsigma, param_dim=1):
+    def __init__(self, amplitude, mean, xsigma, param_dim=1):
         self.linear = False
         self._amplitude = Parameter(name='amplitude', val=amplitude, mclass=self, param_dim=param_dim)
         self._xsigma = Parameter(name='xsigma', val=xsigma, mclass=self, param_dim=param_dim)
-        self._xcen = Parameter(name='xcen', val=xcen, mclass=self, param_dim=param_dim)
+        self._mean = Parameter(name='mean', val=mean, mclass=self, param_dim=param_dim)
         ParametricModel.__init__(self, self.param_names, ndim=1, outdim=1, param_dim=param_dim)
     
 Parametric models can be linear or nonlinear in a regression sense. The default 
