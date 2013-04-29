@@ -37,9 +37,9 @@ Working with 1D models
 Fit a data set with a gaussian model.
 
 >>> x = np.arange(1, 10, .1)
->>> g1 = builtin_models.Gaussian1DModel(10., xsigma=2.1, mean=4.2)
+>>> g1 = builtin_models.Gaussian1DModel(10., stddev=2.1, mean=4.2)
 >>> g1
-<Gaussian1DModel(amplitude= [10.0],mean= [4.2000000000000002],xsigma= [2.1000000000000001],param_dim=1)>
+<Gaussian1DModel(amplitude= [10.0],mean= [4.2000000000000002],stddev= [2.1000000000000001],param_dim=1)>
 >>> y = g1(x)
 >>> n = np.random.randn(90)
 >>> ny = y + n
@@ -53,7 +53,7 @@ Parameter sets: 1
 Parameters: 
            amplitude:  [10.141697966089579]
            mean:  [4.2140429078454309]
-           xsigma:  [2.0780002458907352]
+           stddev:  [2.0780002458907352]
          
 Create data using 1D Chebyshev model
 

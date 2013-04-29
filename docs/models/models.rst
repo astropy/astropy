@@ -49,7 +49,7 @@ The examples here assume this import statement was executed:
 
 >>> x = np.arange(1, 10, .1)
 >>> builtin_models.Gaussian1DModel.param_names
-['amplitude', 'mean', 'xsigma']
+['amplitude', 'mean', 'stddev']
 >>> g1 = builtin_models.Gaussian1DModel(amplitude=[10, 9], mean=[2,3], fwhm=[.3,.2])
 >>> g1.param_sets
 array([[ 10.      ,   9.      ],
@@ -140,7 +140,7 @@ array([[ 0.,  1.,  2.,  3.,  4.],
 
 >>> x = np.arange(1,10,.1)
 >>> p1 = builtin_models.Poly1DModel(1)
->>> g1 = builtin_models.Gaussian1DModel(10., xsigma=2.1, mean=4.2)
+>>> g1 = builtin_models.Gaussian1DModel(10., stddev=2.1, mean=4.2)
 >>> parallel_composite_model = PCompositeModel([g1, p1])
 >>> y = parallel_composite_model(x)
 
