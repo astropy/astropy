@@ -128,7 +128,8 @@ class Gaussian2DModel(ParametricModel):
     theta : float 
         Rotation angle in radians. Note: increases clockwise.
     cov_matrix : ndarray
-        A 2x2 covariance matrix. 
+        A 2x2 covariance matrix. If specified, overrides stddev, fwhm, and 
+        theta specification.
     """
     param_names = ['amplitude', 'x_mean', 'y_mean', \
                    'x_stddev', 'y_stddev', 'theta']
