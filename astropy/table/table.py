@@ -448,10 +448,12 @@ class Column(BaseColumn, np.ndarray):
         Full description of column
     units : str or None
         Physical units
-    format : str or None
+    format : str or None or function
         Format string for outputting column values.  This can be an
         "old-style" (``format % value``) or "new-style" (`str.format`)
-        format specification string.
+        format specification string or a function that accepts a single
+        value and returns a string (or something that can be cast to
+        with `str()`).
     meta : dict-like or None
         Meta-data associated with the column
 
@@ -583,10 +585,12 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         Full description of column
     units : str or None
         Physical units
-    format : str or None
+    format : str or None or function
         Format string for outputting column values.  This can be an
         "old-style" (``format % value``) or "new-style" (`str.format`)
-        format specification string.
+        format specification string or a function that accepts a single
+        value and returns a string (or something that can be cast to
+        with `str()`).
     meta : dict-like or None
         Meta-data associated with the column
 
