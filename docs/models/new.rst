@@ -25,7 +25,7 @@ as an argument in the __init__ method. The default for
 
     from astropy.models import *
     
-    class Gauss1DModel(ParametricModel):
+    class Gaussian1DModel(ParametricModel):
         param_names = ['amplitude', 'xcen', 'xsigma']
 
 

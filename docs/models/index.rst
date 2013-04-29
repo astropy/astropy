@@ -37,16 +37,16 @@ Working with 1D models
 Fit a data set with a gaussian model.
 
 >>> x = np.arange(1, 10, .1)
->>> g1 = builtin_models.Gauss1DModel(10., xsigma=2.1, xcen=4.2)
+>>> g1 = builtin_models.Gaussian1DModel(10., xsigma=2.1, xcen=4.2)
 >>> g1
-<Gauss1DModel(amplitude= [10.0],xcen= [4.2000000000000002],xsigma= [2.1000000000000001],param_dim=1)>
+<Gaussian1DModel(amplitude= [10.0],xcen= [4.2000000000000002],xsigma= [2.1000000000000001],param_dim=1)>
 >>> y = g1(x)
 >>> n = np.random.randn(90)
 >>> ny = y + n
 >>> gfit = fitting.NonLinearLSQFitter(g1)
 >>> gfit(x, ny)
 >>> print g1
-Model: Gauss1DModel
+Model: Gaussian1DModel
 Dim:   1
 Degree: N/A
 Parameter sets: 1
