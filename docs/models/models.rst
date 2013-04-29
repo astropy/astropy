@@ -10,7 +10,7 @@ To evaluate a model, it is called like a function. When possible the
 transformation is done using multiple parameter sets,
 `~astropy.models.core.Model.param_sets`.
 The number of parameter sets is stored in an attribute
-`~astropy.models.core.Model.paramdim`. 
+`~astropy.models.core.Model.param_dim`. 
 
 Parametric models also store a flat list of all parameters as an instance of 
 `~astropy.models.parameters.Parameters`. When fitting, this list-like object is
@@ -23,7 +23,7 @@ model expects as an input. All models expect coordinates as separate arguments.
 For example a 2D model expects x and y to be passed separately, 
 e.g. as two arrays or two lists. When a model has multiple parameter sets and x, y are 
 2D arrays, the model is evaluated with each of the parameter sets and the same x, y as 
-input. The shape of the output array is (paramdim, x_shape, y_shape) where paramdim is the number 
+input. The shape of the output array is (param_dim, x_shape, y_shape) where param_dim is the number 
 of parameter sets and x_shape, y_shape is the shape of the input array.
 In all other cases the shape of the output array is the same as the shape of the 
 input arrays. 
@@ -95,7 +95,7 @@ or two data sets (any other number would be an error)
   
 - Evaluating polynomial models with multiple parameter sets with one input data set creates multiple output data sets
 
->>> p1 = builtin_models.Poly1DModel(1, paramdim=5)
+>>> p1 = builtin_models.Poly1DModel(1, param_dim=5)
 >>> len(p1.parameters)
 10
 >>> p1.c1 = [0, 1, 2, 3, 4]
@@ -111,7 +111,7 @@ array([[ 0.,  0.,  0.,  0.,  0.],
   import numpy as np
   from astropy.models import builtin_models, fitting
   x = np.arange(1, 10, .1)
-  p1 = builtin_models.Poly1DModel(1, paramdim=5)
+  p1 = builtin_models.Poly1DModel(1, param_dim=5)
   p1.c1 = [0, 1, 2, 3, 4]
   y = p1(x)
   plt.plot(x, y)

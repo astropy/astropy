@@ -13,8 +13,8 @@ interact with models is through individual parameters.
 The goal of this package is, when possible, to allow simultaneous model evaluation 
 and fitting with multiple parameter sets. Because of this, all models have a 
 `~astropy.models.core.Model.param_sets`
-attribute, an array of shape `(len(param_names), paramdim)`, where
-`~astropy.models.core.Model.paramdim` is the number of 
+attribute, an array of shape `(len(param_names), param_dim)`, where
+`~astropy.models.core.Model.param_dim` is the number of 
 parameter sets. Typically the array is of type float but can become an object array in
 some cases. `~astropy.models.core.Model.param_sets` is used for model evaluation.
 
@@ -51,7 +51,7 @@ Parameters Examples
 
 - It is possible to set the coefficients passing the parameters in a dictionary
 
->>> ch2 = builtin_models.Chebyshev2DModel(xdeg=2, ydeg=3, paramdim=2)
+>>> ch2 = builtin_models.Chebyshev2DModel(xdeg=2, ydeg=3, param_dim=2)
 >>> coeff = {}
 >>> for i, j in zip(ch2.param_names, range(len(ch2.param_names))):
         coeff[i] = [j, j+10]
@@ -79,7 +79,7 @@ array([[ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11],
 >>> ch2.c0_0
 [-34.2, 10]
 
-- The number of parameter sets is stored in an attribute `~astropy.models.core.Model.paramdim`.
+- The number of parameter sets is stored in an attribute `~astropy.models.core.Model.param_dim`.
 
->>> ch2.paramdim
+>>> ch2.param_dim
 2

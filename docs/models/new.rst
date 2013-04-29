@@ -19,9 +19,9 @@ takes parameters, their names are stored in a list as a class attribute
 named `~astropy.models.core.Model.param_names`. Pass the list of parameter
 names and the number of parameter sets to the base class. Note, that if
 the method which evaluates the model cannot work with multiple parameter sets,
-`~astropy.models.core.Model.paramdim` should not be given
+`~astropy.models.core.Model.param_dim` should not be given
 as an argument in the __init__ method. The default for
-`~astropy.models.core.Model.paramdim` is set in the base class to 1.::
+`~astropy.models.core.Model.param_dim` is set in the base class to 1.::
 
     from astropy.models import *
     
@@ -30,14 +30,14 @@ as an argument in the __init__ method. The default for
 
 
 As a minimum the __init__ method takes all parameters and the number of
-parameter sets, `~astropy.models.Model.paramdim`::
+parameter sets, `~astropy.models.Model.param_dim`::
 
-    def __init__(self, amplitude, xcen, xsigma, paramdim=1):
+    def __init__(self, amplitude, xcen, xsigma, param_dim=1):
         self.linear = False
-        self._amplitude = Parameter(name='amplitude', val=amplitude, mclass=self, paramdim=paramdim)
-        self._xsigma = Parameter(name='xsigma', val=xsigma, mclass=self, paramdim=paramdim)
-        self._xcen = Parameter(name='xcen', val=xcen, mclass=self, paramdim=paramdim)
-        ParametricModel.__init__(self, self.param_names, ndim=1, outdim=1, paramdim=paramdim)
+        self._amplitude = Parameter(name='amplitude', val=amplitude, mclass=self, param_dim=param_dim)
+        self._xsigma = Parameter(name='xsigma', val=xsigma, mclass=self, param_dim=param_dim)
+        self._xcen = Parameter(name='xcen', val=xcen, mclass=self, param_dim=param_dim)
+        ParametricModel.__init__(self, self.param_names, ndim=1, outdim=1, param_dim=param_dim)
     
 Parametric models can be linear or nonlinear in a regression sense. The default 
 value of the `~astropy.models.core.Model.linear` attribute is True. 
@@ -69,7 +69,7 @@ The reason there is a separate eval method is to allow fitters to call the eval
 method with different parameters which is necessary for fitting with constraints.::
 
     def __call__(self, x):
-        x, format = _convert_input(x, self.paramdim)
+        x, format = _convert_input(x, self.param_dim)
         result = self.eval(x, self.param_sets)
         return _convert_output(result, format)
     
@@ -84,11 +84,11 @@ A Full Example of a LineModel
     class Line(builtin_models.PolynomialModel):
         param_names = ['slope', 'intercept']
     
-    def init(self, slope, intercept, paramdim=1):
+    def init(self, slope, intercept, param_dim=1):
         self.linear = True 
-        self._slope = parameters.Parameter(name='slope', val=slope, mclass=self, paramdim=paramdim)
-        self._intercept = parameters.Parameter(name='intercept', val=intercept, mclass=self, paramdim=paramdim)
-        models.ParametricModel.__init__(self, self.param_names, ndim=1, outdim=1, paramdim=paramdim)
+        self._slope = parameters.Parameter(name='slope', val=slope, mclass=self, param_dim=param_dim)
+        self._intercept = parameters.Parameter(name='intercept', val=intercept, mclass=self, param_dim=param_dim)
+        models.ParametricModel.__init__(self, self.param_names, ndim=1, outdim=1, param_dim=param_dim)
         self.domain = [-1, 1]
         self.window = [-1, 1]
         self._order = 2
@@ -97,7 +97,7 @@ A Full Example of a LineModel
         return params[0] * x + params[1]
     
     def call(self, x):
-        x, format = models._convert_input(x, self.paramdim)
+        x, format = models._convert_input(x, self.param_dim)
         result = self.eval(x, self.param_sets)
         return models._convert_output(result, format)
     
