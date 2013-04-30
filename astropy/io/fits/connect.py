@@ -101,91 +101,95 @@ def read_table_fits(input, hdu=None):
     else:
         to_close = None
 
-    # Parse all table objects
-    tables = OrderedDict()
-    if isinstance(input, HDUList):
-        for ihdu, hdu_item in enumerate(input):
-            if isinstance(hdu_item, (TableHDU, BinTableHDU, GroupsHDU)):
-                tables[ihdu] = hdu_item
+    try:
 
-        if len(tables) > 1:
+        # Parse all table objects
+        tables = OrderedDict()
+        if isinstance(input, HDUList):
+            for ihdu, hdu_item in enumerate(input):
+                if isinstance(hdu_item, (TableHDU, BinTableHDU, GroupsHDU)):
+                    tables[ihdu] = hdu_item
 
-            if hdu is None:
-                warnings.warn("hdu= was not specified but multiple tables are present, reading in first available table (hdu={0})".format(tables.keys()[0]))
-                hdu = tables.keys()[0]
+            if len(tables) > 1:
 
-            # hdu might not be an integer, so we first need to convert it to
-            # the correct HDU index
-            hdu = input.index_of(hdu)
+                if hdu is None:
+                    warnings.warn("hdu= was not specified but multiple tables are present, reading in first available table (hdu={0})".format(tables.keys()[0]))
+                    hdu = tables.keys()[0]
 
-            if hdu in tables:
-                table = tables[hdu]
+                # hdu might not be an integer, so we first need to convert it to
+                # the correct HDU index
+                hdu = input.index_of(hdu)
+
+                if hdu in tables:
+                    table = tables[hdu]
+                else:
+                    raise ValueError("No table found in hdu={0}".format(hdu))
+
+            elif len(tables) == 1:
+                table = tables[tables.keys()[0]]
             else:
-                raise ValueError("No table found in hdu={0}".format(hdu))
+                raise ValueError("No table found")
 
-        elif len(tables) == 1:
-            table = tables[tables.keys()[0]]
+        elif isinstance(input, (TableHDU, BinTableHDU, GroupsHDU)):
+
+            table = input
+
         else:
-            raise ValueError("No table found")
 
-    elif isinstance(input, (TableHDU, BinTableHDU, GroupsHDU)):
+            raise ValueError("Input should be a string, an HDULis, TableHDU, BinTableHDU, or GroupsHDU instance")
 
-        table = input
-
-    else:
-
-        raise ValueError("Input should be a string, an HDULis, TableHDU, BinTableHDU, or GroupsHDU instance")
-
-    # Check if table is masked
-    masked = False
-    for col in table.columns:
-        if col.null is not None:
-            masked = True
-            break
-
-    # Convert to an astropy.table.Table object
-    t = Table(table.data, masked=masked)
-
-    # Copy over null values if needed
-    if masked:
+        # Check if table is masked
+        masked = False
         for col in table.columns:
-            t[col.name].set_fill_value(col.null)
-            t[col.name].mask[t[col.name] == col.null] = True
+            if col.null is not None:
+                masked = True
+                break
 
-    # Copy over units
-    for col in table.columns:
-        if col.unit is not None:
-            t[col.name].units = u.Unit(col.unit, format='fits')
+        # Convert to an astropy.table.Table object
+        t = Table(table.data, masked=masked)
 
-    # TODO: deal properly with unsigned integers
+        # Copy over null values if needed
+        if masked:
+            for col in table.columns:
+                t[col.name].set_fill_value(col.null)
+                t[col.name].mask[t[col.name] == col.null] = True
 
-    for key, value, comment in table.header.cards:
+        # Copy over units
+        for col in table.columns:
+            if col.unit is not None:
+                t[col.name].units = u.Unit(col.unit, format='fits')
 
-        if key in ['COMMENT', 'HISTORY']:
-            if key in t.meta:
-                t.meta[key].append(value)
+        # TODO: deal properly with unsigned integers
+
+        for key, value, comment in table.header.cards:
+
+            if key in ['COMMENT', 'HISTORY']:
+                if key in t.meta:
+                    t.meta[key].append(value)
+                else:
+                    t.meta[key] = [value]
+
+            elif key in t.meta:  # key is duplicate
+
+                if isinstance(t.meta[key], list):
+                    t.meta[key].append(value)
+                else:
+                    t.meta[key] = [t.meta[key], value]
+
+            elif is_column_keyword(key) or key in REMOVE_KEYWORDS:
+
+                pass
+
             else:
-                t.meta[key] = [value]
 
-        elif key in t.meta:  # key is duplicate
+                t.meta[key] = value
 
-            if isinstance(t.meta[key], list):
-                t.meta[key].append(value)
-            else:
-                t.meta[key] = [t.meta[key], value]
+        # TODO: implement masking
 
-        elif is_column_keyword(key) or key in REMOVE_KEYWORDS:
+    finally:
 
-            pass
-
-        else:
-
-            t.meta[key] = value
-
-    # TODO: implement masking
-
-    if to_close is not None:
-        to_close.close()
+        if to_close is not None:
+            to_close.close()
 
     return t
 
