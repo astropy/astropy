@@ -14,7 +14,7 @@ from ...table import Table
 from ... import log
 from ... import units as u
 
-from . import HDUList, TableHDU, BinTableHDU
+from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .hdu.hdulist import fitsopen as fits_open
 
 
@@ -72,7 +72,7 @@ def is_fits(origin, *args, **kwargs):
         sig = args[0].read(30)
         args[0].seek(pos)
         return sig == FITS_SIGNATURE
-    elif isinstance(args[0], (HDUList, TableHDU, BinTableHDU)):
+    elif isinstance(args[0], (HDUList, TableHDU, BinTableHDU, GroupsHDU)):
         return True
     else:
         return False
@@ -84,10 +84,11 @@ def read_table_fits(input, hdu=None):
 
     Parameters
     ----------
-    input : str or fileobj or `~astropy.io.fits.hdu.table.TableHDU` or `~astropy.io.fits.hdu.table.BinTableHDU` or `~astropy.io.fits.hdu.hdulist.HDUList`
+    input : str or fileobj or `~astropy.io.fits.hdu.table.TableHDU` or `~astropy.io.fits.hdu.table.BinTableHDU` or `~astropy.io.fits.hdu.table.GroupsHDU` or `~astropy.io.fits.hdu.hdulist.HDUList`
         If a string, the filename to read the table from. If a file object, or
         a :class:`~astropy.io.fits.hdu.table.TableHDU` or
         :class:`~astropy.io.fits.hdu.table.BinTableHDU` or
+        :class:`~astropy.io.fits.hdu.table.GroupsHDU` or
         :class:`~astropy.io.fits.hdu.hdulist.HDUList` instance, the object to
         extract the table from.
     hdu : int or str, optional
@@ -104,7 +105,7 @@ def read_table_fits(input, hdu=None):
     tables = OrderedDict()
     if isinstance(input, HDUList):
         for ihdu, hdu_item in enumerate(input):
-            if isinstance(hdu_item, (TableHDU, BinTableHDU)):
+            if isinstance(hdu_item, (TableHDU, BinTableHDU, GroupsHDU)):
                 tables[ihdu] = hdu_item
 
         if len(tables) > 1:
@@ -127,13 +128,13 @@ def read_table_fits(input, hdu=None):
         else:
             raise ValueError("No table found")
 
-    elif isinstance(input, (TableHDU, BinTableHDU)):
+    elif isinstance(input, (TableHDU, BinTableHDU, GroupsHDU)):
 
         table = input
 
     else:
 
-        raise ValueError("Input should be a string, an HDUList object, or a TableHDU instance or BinTableHDU instance")
+        raise ValueError("Input should be a string, an HDULis, TableHDU, BinTableHDU, or GroupsHDU instance")
 
     # Check if table is masked
     masked = False
