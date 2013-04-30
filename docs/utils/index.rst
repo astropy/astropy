@@ -67,6 +67,10 @@ The ``astropy.utils.xml.*`` modules provide various
     :no-inheritance-diagram:
     :headings: ^"
 
+.. automodapi:: astropy.utils.xml.unescaper
+    :no-inheritance-diagram:
+    :headings: ^"
+
 .. automodapi:: astropy.utils.xml.validate
     :no-inheritance-diagram:
     :headings: ^"

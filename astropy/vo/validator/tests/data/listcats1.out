@@ -1,0 +1,10 @@
+HST Guide Star Catalog 2.3 1
+http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&
+W48,W50
+./results/0b/1a/daefc22180f34be9334262a5d8c5/vo.xml:136:0: W50: Invalid unit string 'pixel'
+./results/0b/1a/daefc22180f34be9334262a5d8c5/vo.xml:155:0: W48: Unknown attribute 'nrows' on TABLEDATA
+
+The USNO-A2.0 Catalogue (Monet+ 1998) 1
+http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/252/out&
+W22
+./results/f7/bb/d44fbd316338550aed4e1c1a8fc6/vo.xml:13:0: W22: The DEFINITIONS element is deprecated in VOTable 1.1.  Ignoring

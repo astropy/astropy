@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!DOCTYPE VOTABLE SYSTEM "http://us-vo.org/xml/VOTable.dtd">
+<VOTABLE version="1.0">
+<DESCRIPTION>MAST Simple Cone Search Service</DESCRIPTION>
+<DEFINITIONS>
+<PARAM ID="Error" name="Error" datatype="char" arraysize="*"
+    value="Invalid data type: text/html"/>
+</DEFINITIONS>
+</VOTABLE>
