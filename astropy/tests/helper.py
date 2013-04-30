@@ -95,7 +95,7 @@ class TestRunner(object):
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
-                  pdb=False, coverage=False, open_files=False):
+                  pdb=False, coverage=False, open_files=False, parallel=0):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
@@ -194,6 +194,25 @@ class TestRunner(object):
 
             print("Checking for unclosed files")
 
+        if parallel != 0:
+            try:
+                import xdist
+            except ImportError:
+                raise ImportError(
+                    'Parallel testing requires the pytest-xdist plugin '
+                    'https://pypi.python.org/pypi/pytest-xdist')
+
+            try:
+                parallel = int(parallel)
+            except ValueError:
+                raise ValueError(
+                    "parallel must be an int, got {0}".format(parallel))
+
+            if parallel < 0:
+                import multiprocessing
+                parallel = multiprocessing.cpu_count()
+            all_args += ' -n {0}'.format(parallel)
+
         try:
             all_args = shlex.split(
                 all_args, posix=not sys.platform.startswith('win'))
@@ -235,7 +254,12 @@ class astropy_test(Command, object):
          'Same as specifying `--pdb` in `args`.'),
         ('coverage', 'c', 'Create a coverage report. Requires the pytest-cov '
          'plugin is installed'),
-        ('open-files', 'o', 'Fail if any tests leave files open')
+        ('open-files', 'o', 'Fail if any tests leave files open'),
+        ('parallel=', 'n',  'Run the tests in parallel on the specified '
+         'number of CPUs.  If parallel is negative, it will use the all '
+         'the cores on the machine.  Requires the `pytest-xdist` plugin '
+         'is installed.')
+
     ]
 
     package_name = None
@@ -252,6 +276,7 @@ class astropy_test(Command, object):
         self.pdb = False
         self.coverage = False
         self.open_files = False
+        self.parallel = 0
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -297,7 +322,8 @@ class astropy_test(Command, object):
                    'pep8={1.pep8!r}, '
                    'pdb={1.pdb!r}, '
                    'coverage={1.coverage!r}, '
-                   'open_files={1.open_files!r}))')
+                   'open_files={1.open_files!r}, '
+                   'parallel={1.parallel!r}))')
             cmd = cmd.format(set_flag, self)
 
             # override the config locations to not make a new directory nor use

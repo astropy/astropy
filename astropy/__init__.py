@@ -49,7 +49,7 @@ def _get_test_runner():
 
 def test(package=None, test_path=None, args=None, plugins=None,
          verbose=False, pastebin=None, remote_data=False, pep8=False,
-         pdb=False, coverage=False, open_files=False):
+         pdb=False, coverage=False, open_files=False, parallel=0):
     """
     Run Astropy tests using py.test. A proper set of arguments is
     constructed and passed to `pytest.main`.
@@ -104,6 +104,12 @@ def test(package=None, test_path=None, args=None, plugins=None,
         this adds extra run time to the test suite.  Works only on
         platforms with a working `lsof` command.
 
+    parallel : int, optional
+        When provided, run the tests in parallel on the specified
+        number of CPUs.  If parallel is negative, it will use the all
+        the cores on the machine.  Requires the `pytest-xdist` plugin
+        is installed.
+
     See Also
     --------
     pytest.main : py.test function wrapped by `run_tests`.
@@ -114,7 +120,8 @@ def test(package=None, test_path=None, args=None, plugins=None,
         package=package, test_path=test_path, args=args,
         plugins=plugins, verbose=verbose, pastebin=pastebin,
         remote_data=remote_data, pep8=pep8, pdb=pdb,
-        coverage=coverage, open_files=open_files)
+        coverage=coverage, open_files=open_files,
+        parallel=parallel)
 
 
 # Use the root logger as a dummy log before initilizing Astropy's logger
