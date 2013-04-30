@@ -167,6 +167,7 @@ def test_flatten_to_known():
     finally:
         myunit.deregister()
 
+
 @raises(ValueError)
 def test_flatten_impossible():
     myunit = u.def_unit("FOOBAR")
