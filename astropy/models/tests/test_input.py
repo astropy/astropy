@@ -37,19 +37,19 @@ class TestFitting(object):
         
     def test_linear_fitter_Nset(self):
         """
-        1 set 1D x, 2 sets 1D y, 2 psets
+        1 set 1D x, 2 sets 1D y, 2 param_sets
         """
         expected = np.array([[ 0, 0], [1, 1], [2, 2], [3, 3]])
-        p1 = models.Poly1DModel(3, paramdim=2)
+        p1 = models.Poly1DModel(3, param_dim=2)
         p1.parameters=[0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0]
         pars = {}
         for i in range(4):
-            pars[p1.parnames[i]] = [i, i]
-        p1 = models.Poly1DModel(3, paramdim=2, **pars)
+            pars[p1.param_names[i]] = [i, i]
+        p1 = models.Poly1DModel(3, param_dim=2, **pars)
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter(p1)
         pfit(self.x1, y1)
-        utils.assert_allclose(p1.psets, expected, atol=10**(-7))
+        utils.assert_allclose(p1.param_sets, expected, atol=10**(-7))
         
     def test_linear_fitter_1dcheb(self):
         """
@@ -61,7 +61,7 @@ class TestFitting(object):
         y1 = ch1(self.x1)
         pfit = fitting.LinearLSQFitter(ch1)
         pfit(self.x1, y1)
-        utils.assert_allclose(ch1.psets, expected, atol=10**(-2))
+        utils.assert_allclose(ch1.param_sets, expected, atol=10**(-2))
         
     def test_linear_fitter_1dlegend(self):
         """
@@ -73,7 +73,7 @@ class TestFitting(object):
         y1 = leg1(self.x1)
         pfit = fitting.LinearLSQFitter(leg1)
         pfit(self.x1, y1)
-        utils.assert_allclose(leg1.psets, expected, atol=10**(-12))
+        utils.assert_allclose(leg1.param_sets, expected, atol=10**(-12))
 
     def test_linear_fitter_1set2d(self):
         p2 = models.Poly2DModel(2)
@@ -94,7 +94,7 @@ class TestFitting(object):
         with pytest.raises(ValueError):
             p1 = models.Poly1DModel(5)
             y1 = p1(self.x1)
-            p1 = models.Poly1DModel(5, paramdim=2)
+            p1 = models.Poly1DModel(5, param_dim=2)
             pfit = fitting.LinearLSQFitter(p1)
             pfit(self.x1, y1)
             
@@ -108,34 +108,34 @@ class TestFitting(object):
                              [1, 3],
                              [1, 4],
                              [1, 5]])
-        p1 = models.Poly1DModel(5, paramdim=2)
+        p1 = models.Poly1DModel(5, param_dim=2)
         pars = {}
         for i in range(6):
-            pars[p1.parnames[i]] = [1, i]
-        p1 = models.Poly1DModel(5, paramdim=2, **pars)
+            pars[p1.param_names[i]] = [1, i]
+        p1 = models.Poly1DModel(5, param_dim=2, **pars)
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter(p1)
         pfit(self.x1, y1)
-        utils.assert_allclose(p1.psets, expected, atol=10**(-7))
+        utils.assert_allclose(p1.param_sets, expected, atol=10**(-7))
     
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_1set_1d(self):
         """
         1 set 1D x, 1 set 1D y, 1 pset NonLinearFitter
         """
-        g1 = models.Gauss1DModel(10, 3, .2)
+        g1 = models.Gaussian1DModel(10, mean=3, stddev=.2)
         y1 = g1(self.x1)
         gfit = fitting.NonLinearLSQFitter(g1)
         gfit(self.x1, y1)
-        utils.assert_allclose(g1.parameters, [10, 3, .084932])
+        utils.assert_allclose(g1.parameters, [10, 3, .2])
     
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_Nset_1d(self):
         """
-        1 set 1D x, 1 set 1D y, 2 psets, NonLinearFitter
+        1 set 1D x, 1 set 1D y, 2 param_sets, NonLinearFitter
         """
         with pytest.raises(ValueError):
-            g1 = models.Gauss1DModel([10.2, 10], [3,3.2], [.23,.2])
+            g1 = models.Gaussian1DModel([10.2, 10], mean=[3,3.2], stddev=[.23,.2])
             y1 = g1(self.x1)
             gfit = fitting.NonLinearLSQFitter(g1)
             gfit(self.x1, y1)
@@ -145,7 +145,7 @@ class TestFitting(object):
         """
         1 set 2d x, 1set 2D y, 1 pset, NonLinearFitter
         """
-        g2=models.Gauss2DModel(10, 3, 4, xsigma=.3, ysigma=.2, theta=0)
+        g2=models.Gaussian2DModel(10, x_mean=3, y_mean=4, x_stddev=.3, y_stddev=.2, theta=0)
         z = g2(self.x, self.y)
         gfit = fitting.NonLinearLSQFitter(g2)
         gfit(self.x, self.y, z)
@@ -154,11 +154,11 @@ class TestFitting(object):
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_Nset_2d(self):
         """
-         1 set 2d x, 1set 2D y, 2 psets, NonLinearFitter
+         1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter
         """
         with pytest.raises(ValueError):
-            g2=models.Gauss2DModel([10,10], [3,3],[4,4], xsigma=[.3,.3], 
-                ysigma=[.2,.2], theta=[0,0])
+            g2=models.Gaussian2DModel([10,10], [3,3],[4,4], x_stddev=[.3,.3], 
+                y_stddev=[.2,.2], theta=[0,0])
             z = g2(self.x.flatten(), self.y.flatten())
             gfit = fitting.NonLinearLSQFitter(g2)
             gfit(self.x, self.y, z)
@@ -178,7 +178,7 @@ class TestEvaluation(object):
         This case covers:
             N parsets , 1 set 1D x --> N 1D y data
         """
-        g1 = models.Gauss1DModel([10, 10], [3,3], [.2,.2])
+        g1 = models.Gaussian1DModel([10, 10], [3,3], [.2,.2])
         y1 = g1(self.x1)
         utils.assert_equal((y1[:,0]-y1[:,1]).nonzero(), (np.array([]),))
         
@@ -186,7 +186,7 @@ class TestEvaluation(object):
         """
         This case covers: N parsets , N sets 1D x --> N N sets 1D y data
         """
-        g1 = models.Gauss1DModel([10, 10], [3,3], [.2,.2])
+        g1 = models.Gaussian1DModel([10, 10], [3,3], [.2,.2])
         xx = np.array([self.x1, self.x1])
         y1 = g1(xx.T)
         utils.assert_allclose(y1[:,0], y1[:,1], atol=10**(-12))
@@ -202,9 +202,9 @@ class TestEvaluation(object):
 
     def test_p1_nset_npset(self):
         """
-        N data sets, N psets, Poly1D
+        N data sets, N param_sets, Poly1D
         """
-        p1 = models.Poly1DModel(4, paramdim=2)
+        p1 = models.Poly1DModel(4, param_dim=2)
         y1 = p1(np.array([self.x1, self.x1]).T)
         assert y1.shape == (20,2)
         utils.assert_allclose(y1[:,0], y1[:,1], atol=10**(-12))
@@ -219,9 +219,9 @@ class TestEvaluation(object):
     
     def test_p2_nset_npset(self):
         """
-        N psets, N 2D data sets, Poly2d
+        N param_sets, N 2D data sets, Poly2d
         """
-        p2 = models.Poly2DModel(5, paramdim=2)
+        p2 = models.Poly2DModel(5, param_dim=2)
         xx = np.array([self.x, self.x])
         yy = np.array([self.y, self.y])
         z = p2(xx, yy)
@@ -235,7 +235,7 @@ class TestEvaluation(object):
         xx[0,0] = 100
         xx[1,0] = 100
         xx[2,0] = 99
-        p1 = models.Poly1DModel(5, paramdim=2)
+        p1 = models.Poly1DModel(5, param_dim=2)
         yy = p1(xx)
         x1 = xx[:, 0]
         x2 = xx[:, 1]
@@ -243,3 +243,9 @@ class TestEvaluation(object):
         utils.assert_allclose(p1(x1), yy[:,0], atol=10**(-12))
         p1 = models.Poly1DModel(5)
         utils.assert_allclose(p1(x2), yy[:,1], atol=10**(-12))
+    
+    def test_evaluate_gauss2d(self):
+        cov = np.array([[1., 0.8], [0.8, 3]])
+        g = models.Gaussian2DModel(1., 5., 4., cov_matrix=cov)
+        x, y = np.mgrid[:10, :10]
+        g(x, y)

@@ -44,7 +44,7 @@ class Parameter(list):
     
     This class represents a model's parameter (in a somewhat broad
     sense). To support multiple parameter sets, a 
-    parameter has a dimension (paramdim). To support some level
+    parameter has a dimension (param_dim). To support some level
     of validation a parameter has also a shape (parshape).
     Parameter objects behave like numbers.
 
@@ -55,7 +55,7 @@ class Parameter(list):
     val :  number or an iterable of numbers
     mclass : object
         an instance of a Model class
-    paramdim : int
+    param_dim : int
         parameter dimension  
     fixed: boolean
         if True the parameter is not varied during fitting
@@ -66,11 +66,11 @@ class Parameter(list):
     maxvalue: float
         the upper bound of a parameter
     """
-    def __init__(self, name, val, mclass, paramdim, fixed=False, tied=False, 
+    def __init__(self, name, val, mclass, param_dim, fixed=False, tied=False, 
                  minvalue=None, maxvalue=None):
-        self._paramdim = paramdim
+        self._param_dim = param_dim
         if isinstance(val, numbers.Number):
-            if self.paramdim == 1:
+            if self.param_dim == 1:
                 val = _tofloat(val)[()]
                 super(Parameter, self).__init__([val])
                 self.parshape = val.shape
@@ -82,7 +82,7 @@ class Parameter(list):
         # which are checked for in _tofloat()
         # misc.iterable allows dict which is failed in _tofloat()
         elif misc.isiterable(val):
-            if paramdim == 1:
+            if param_dim == 1:
                 val = [_tofloat(value)[()] for value in val]
                 super(Parameter, self).__init__(val)
                 self.parshape = _tofloat(val).shape
@@ -101,15 +101,15 @@ class Parameter(list):
         self._max = maxvalue
         
     @property
-    def paramdim(self):
+    def param_dim(self):
         """
         Number of parameter sets
         """
-        return self._paramdim
+        return self._param_dim
     
-    @paramdim.setter
-    def paramdim(self, val):
-        self._paramdim = val
+    @param_dim.setter
+    def param_dim(self, val):
+        self._param_dim = val
         
     @property
     def mclass(self):
@@ -271,20 +271,20 @@ class Parameters(list):
     ----------
     mobj : object
         an instance of a subclass of `~astropy.models.core.ParametricModel`
-    parnames : list of strings
+    param_names : list of strings
         parameter names
-    paramdim : int
+    param_dim : int
         Number of parameter sets
     """
-    def __init__(self, mobj, parnames, paramdim=1):
+    def __init__(self, mobj, param_names, param_dim=1):
         self.mobj = mobj
-        self.paramdim = paramdim
+        self.param_dim = param_dim
         # A flag set to True by a fitter to indicate that the flat 
         # list of parameters has been changed.
         self._changed = False
         self.parinfo = {}
-        parlist = [getattr(mobj, attr) for attr in parnames]
-        flat = self._flatten(parnames, parlist)
+        parlist = [getattr(mobj, attr) for attr in param_names]
+        flat = self._flatten(param_names, parlist)
         super(Parameters, self).__init__(flat)
 
     def __setitem__(self, ind, value):
@@ -307,9 +307,9 @@ class Parameters(list):
             sl = self.parinfo[key][0]
             par = self[sl]
             if len(par) == 1:
-                par = Parameter(key, par[0], self.mobj, self.mobj.paramdim)
+                par = Parameter(key, par[0], self.mobj, self.mobj.param_dim)
             else:
-                par = Parameter(key, par, self.mobj, self.mobj.paramdim)
+                par = Parameter(key, par, self.mobj, self.mobj.param_dim)
             setattr(self.mobj, key, par)
         self._changed = False
 
@@ -323,13 +323,13 @@ class Parameters(list):
         parsize = _tofloat(newpars).size
         return parsize == self.__len__()
 
-    def _flatten(self, parnames, parlist):
+    def _flatten(self, param_names, parlist):
         """
         Create a list of model parameters
         """
         flatpars = []
         start = 0
-        for (name, par) in zip(parnames, parlist):
+        for (name, par) in zip(param_names, parlist):
             pararr = np.array(par)
             fpararr = pararr.flatten()
 
