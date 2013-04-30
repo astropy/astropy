@@ -1652,19 +1652,61 @@ class Table(object):
 
     def rename_column(self, name, new_name):
         '''
-        Rename a column.
-
-        This can also be done directly with by setting the ``name`` attribute
-        for a column::
-
-          table[name].name = new_name
-
-        Parameters
-        ----------
-        name : str
-            The current name of the column.
-        new_name : str
-            The new name for the column
+            Rename a column.
+            
+            
+            Parameters
+            ----------
+            name : str
+                The current name of the column.
+            new_name : str
+                The new name for the column
+            
+            
+            
+                Example
+                ----------
+                
+                >>> t = Table([[5,2], [3,4], [1,1]])
+                >>> print t
+                col0 col1 col2
+                ---- ---- ----
+                5    3    1
+                2    4    1
+                >>> t.rename_column('col1', 'new_name')
+                >>> print t
+                col0 new_name col2
+                ---- -------- ----
+                5        3    1
+                2        4    1
+                
+                
+            
+            This can also be done directly with by setting the ``name`` attribute
+            for a column::
+            
+            table[name].name = new_name
+            
+                Example
+                ----------
+                >>> t['col0'].name = 'new_column_name'
+                >>> print t
+                new_column_name col1 col2
+                --------------- ---- ----
+                5    3    1
+                2    4    1
+                >>> t = Table([[5,2], [3,4], [1,1]])
+                >>> print t
+                col0 col1 col2
+                ---- ---- ----
+                5    3    1
+                2    4    1
+                >>> t['col0'].name = 'new_column_name'
+                >>> print t
+                new_column_name col1 col2
+                --------------- ---- ----
+                5    3    1
+                2    4    1
         '''
 
         if name not in self.keys():
@@ -1673,32 +1715,84 @@ class Table(object):
         self.columns[name].name = new_name
 
     def add_row(self, vals=None, mask=None):
-        """Add a new row to the end of the table.
-
-        The ``vals`` argument can be:
-
+        """
+        add_row(vals=None, mask=None)
+        
+        Add a new row to the end of the table.
+        
+        
+        Parameters
+        ----------
+        vals : tuple, list, dict or None
+            Use the specified values in the new row
+        
+        
+        The 'vals' argument can be:
+        
         sequence (e.g. tuple or list)
             Column values in the same order as table columns.
+            
+            Example:
+            ----------
+            #Set a table
+            >>> t = Table([[5,2,1], [3,4,5]])
+            >>> print t
+            col0 col1
+            ---- ----
+            5    3
+            2    4
+            1    5
+            >>> t.add_row([6,6])
+            >>> print t
+            col0 col1
+            ---- ----
+            5    3
+            2    4
+            1    5
+            6    6
+        
+        
         mapping (e.g. dict)
             Keys corresponding to column names.  Missing values will be
             filled with np.zeros for the column dtype.
+            
+            Example:
+            ----------
+            
+            >>> t.add_row({'col0': 9})
+            >>> print t
+            col0 col1
+            ---- ----
+            5    3
+            2    4
+            1    5
+            9    0
+            
         None
             All values filled with np.zeros for the column dtype.
-
+            
+            Example:
+            ----------
+            >>> t.add_row()
+            >>> print t
+            col0 col1
+            ---- ----
+            5    3
+            2    4
+            1    5
+            9    0
+            0    0
+            
         This method requires that the Table object "owns" the underlying array
         data.  In particular one cannot add a row to a Table that was
         initialized with copy=False from an existing array.
-
+        
         The ``mask`` attribute should give (if desired) the mask for the
         values. The type of the mask should match that of the values, i.e. if
         ``vals`` is an iterable, then ``mask`` should also be an iterable
         with the same length, and if ``vals`` is a mapping, then ``mask``
         should be a dictionary.
-
-        Parameters
-        ----------
-        vals : tuple, list, dict or None
-            Use the specified values in the new row
+        
         """
 
         def _is_mapping(obj):
@@ -1773,11 +1867,51 @@ class Table(object):
         '''
         Sort the table according to one or more keys. This operates
         on the existing table and does not return a new table.
-
+        
         Parameters
         ----------
         keys : str or list of str
             The key(s) to order the table by
+        
+        
+            Examples:
+            ----------
+            #Set a table
+            >>> t = Table([[5,2,1], [3,4,5], [7,9,7]])
+            >>> print t
+            col0 col1 col2
+            ---- ---- ----
+            5    3    7
+            2    4    9
+            1    5    7
+            
+            
+            #Choose a column to sort along. Using only one key as an argument
+            sorts the existing table in ascending order
+            
+            >>> t.sort('col0')
+            >>> print t
+            col0 col1 col2
+            ---- ---- ----
+            1    5    7
+            2    4    9
+            5    3    7
+            
+        
+            Adding list of arguments, gives the order sorting should take place:
+            
+            
+            >>> t.sort(['col2','col0'])
+            >>> print t
+            col0 col1 col2
+            ---- ---- ----
+            1    5    7
+            5    3    7
+            2    4    9
+            
+        
+        To have the same table in descending order, one should rather use Table.reverse()
+            
         '''
         if type(keys) is not list:
             keys = [keys]
@@ -1788,6 +1922,27 @@ class Table(object):
         '''
         Reverse the row order of table rows.  The table is reversed
         in place and there are no function arguments.
+        
+        
+            Example:
+            ----------
+            #Set a table
+            >>> t = Table([[5,2,1], [3,4,5], [7,9,7]])
+            >>> print t
+            col0 col1 col2
+            ---- ---- ----
+            5    3    7
+            2    4    9
+            1    5    7
+            
+            >>> t.reverse()
+            >>> print t
+            col0 col1 col2
+            ---- ---- ----
+            1    5    7
+            2    4    9
+            5    3    7
+            
         '''
         self._data[:] = self._data[::-1].copy()
         self._rebuild_table_column_views()
