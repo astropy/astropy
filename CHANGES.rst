@@ -31,6 +31,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed an obscure issue that can occur on systems that don't have flush to
+    memory-mapped files implemented (namely GNU Hurd). [#968]
+
   - Improved round-tripping and preservation of manually assigned column
     attributes (``TNULLn``, ``TSCALn``, etc.) in table HDU headers. [#996]
 
