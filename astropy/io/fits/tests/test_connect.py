@@ -2,10 +2,10 @@ import pytest
 import numpy as np
 import warnings
 
-from astropy.io.fits import HDUList, PrimaryHDU, BinTableHDU
-from astropy.table import Table
-from astropy import units as u
-from astropy import log
+from .. import HDUList, PrimaryHDU, BinTableHDU
+from ....table import Table
+from .... import units as u
+from .... import log
 
 
 def equal_data(a, b):
