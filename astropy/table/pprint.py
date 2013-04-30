@@ -86,7 +86,7 @@ def _auto_format_func(format_, val):
     Returns the formatted value.
     """
     if inspect.isfunction(format_):
-        format_func = lambda format_, val: str(format_(val.tolist()))
+        format_func = lambda format_, val: format_(val.tolist())
         try:                            
             out = format_func(format_, val)
         except:  # Depending on the function, different exceptions might be raised
