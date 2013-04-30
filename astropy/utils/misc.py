@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import collections
 import contextlib
 import functools
+import json
 import os
 import sys
 import textwrap
@@ -19,7 +20,7 @@ import warnings
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'deprecated_attribute', 'silence', 'format_exception',
            'NumpyRNGContext', 'find_api_page', 'is_path_hidden',
-           'walk_skip_hidden']
+           'walk_skip_hidden', 'JsonCustomEncoder']
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -752,3 +753,36 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
         dirs[:] = [d for d in dirs if not is_path_hidden(d)]
         files[:] = [f for f in files if not is_path_hidden(f)]
         yield root, dirs, files
+
+
+class JsonCustomEncoder(json.JSONEncoder):
+    """Support for data types that JSON default encoder
+    does not do.
+
+    This includes:
+
+        * Numpy array or number
+        * Complex number
+        * Set
+        * Bytes (Python 3)
+
+    Examples
+    --------
+    >>> import json
+    >>> import numpy as np
+    >>> from astropy.utils.misc import JsonCustomEncoder
+    >>> json.dumps(np.arange(3), cls=JsonCustomEncoder)
+    '[0, 1, 2]'
+
+    """
+    def default(self, obj):
+        import numpy as np
+        if isinstance(obj, (np.ndarray, np.number)):
+            return obj.tolist()
+        elif isinstance(obj, (complex, np.complex)):
+            return [obj.real, obj.imag]
+        elif isinstance(obj, set):
+            return list(obj)
+        elif isinstance(obj, bytes):  # pragma: py3
+            return obj.decode()
+        return json.JSONEncoder.default(self, obj)
