@@ -21,7 +21,7 @@ class TestSingleTable(object):
         self.data = np.array(list(zip([1, 2, 3, 4],
                                       ['a', 'b', 'c', 'd'],
                                       [2.3, 4.5, 6.7, 8.9])),
-                             dtype=[('a', int), ('b', 'S1'), ('c', float)])
+                             dtype=[('a', int), ('b', 'U1'), ('c', float)])
 
     def test_simple(self, tmpdir):
         filename = str(tmpdir.join('test_simple.fits'))
@@ -90,7 +90,7 @@ class TestMultipleHDU(object):
         self.data1 = np.array(list(zip([1, 2, 3, 4],
                                        ['a', 'b', 'c', 'd'],
                                        [2.3, 4.5, 6.7, 8.9])),
-                              dtype=[('a', int), ('b', 'S1'), ('c', float)])
+                              dtype=[('a', int), ('b', 'U1'), ('c', float)])
         self.data2 = np.array(list(zip([1.4, 2.3, 3.2, 4.7],
                                        [2.3, 4.5, 6.7, 8.9])),
                               dtype=[('p', float), ('q', float)])

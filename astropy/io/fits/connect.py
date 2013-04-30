@@ -96,6 +96,9 @@ def read_table_fits(input, hdu=None):
 
     if isinstance(input, basestring):
         input = fits_open(input)
+        to_close = input
+    else:
+        to_close = None
 
     # Parse all table objects
     tables = OrderedDict()
@@ -180,6 +183,9 @@ def read_table_fits(input, hdu=None):
 
     # TODO: implement masking
 
+    if to_close is not None:
+        to_close.close()
+
     return t
 
 
@@ -208,7 +214,10 @@ def write_table_fits(input, output, overwrite=False):
     if input.masked:
         table_hdu = BinTableHDU(np.array(input.filled()))
         for col in table_hdu.columns:
-            col.null = input[col.name].get_fill_value()
+            # The astype is necessary because if the string column is less
+            # than one character, the fill value will be N/A by default which
+            # is too long, and so no values will get masked.
+            col.null = input[col.name].get_fill_value().astype(input[col.name].dtype)
     else:
         table_hdu = BinTableHDU(np.array(input))
 
