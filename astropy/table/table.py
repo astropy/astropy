@@ -1706,15 +1706,11 @@ class Table(object):
             attrs = ('__getitem__', '__len__', '__iter__', 'keys', 'values', 'items')
             return all(hasattr(obj, attr) for attr in attrs)
 
+        new_data = (ma.zeros if self.masked else np.zeros)(1, dtype=self._data.dtype)
         newlen = len(self._data) + 1
 
         if mask is not None and not self.masked:
             self._set_masked(True)
-
-        if self.masked:
-            self._data = ma.resize(self._data, (newlen,))
-        else:
-            self._data.resize((newlen,), refcheck=False)
 
         if _is_mapping(vals):
 
@@ -1730,16 +1726,16 @@ class Table(object):
                 # We set the mask to True regardless of whether a mask value
                 # is specified or not - that is, any cell where a new row
                 # value is not specified should be treated as missing.
-                self._data.mask[-1] = (True,) * len(self._data.dtype)
+                new_data.mask[-1] = (True,) * len(new_data.dtype)
 
             # First we copy the values
             for name, val in vals.items():
                 try:
-                    self._data[name][-1] = val
+                    new_data[name][-1] = val
                 except IndexError:
                     raise ValueError("No column {0} in table".format(name))
                 if mask:
-                    self._data[name].mask[-1] = mask[name]
+                    new_data[name].mask[-1] = mask[name]
 
         elif isiterable(vals):
 
@@ -1752,7 +1748,7 @@ class Table(object):
             if not isinstance(vals, tuple):
                 vals = tuple(vals)
 
-            self._data[-1] = vals
+            new_data[-1] = vals
 
             if mask is not None:
 
@@ -1762,10 +1758,17 @@ class Table(object):
                 if not isinstance(mask, tuple):
                     mask = tuple(mask)
 
-                self._data.mask[-1] = mask
+                new_data.mask[-1] = mask
 
         elif vals is not None:
             raise TypeError('Vals must be an iterable or mapping or None')
+
+        if self.masked:
+            self._data = ma.resize(self._data, (newlen,))
+        else:
+            self._data.resize((newlen,), refcheck=False)
+
+	self._data[-1] = new_data[-1]
 
         self._rebuild_table_column_views()
 
