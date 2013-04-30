@@ -9,9 +9,9 @@ from . import parameters
 from .core import *
 from .utils import InputParameterError
  
-__all__ = ['Gauss1DModel', 'Gauss2DModel',  'ScaleModel', 'ShiftModel']
+__all__ = ['Gaussian1DModel', 'Gaussian2DModel',  'ScaleModel', 'ShiftModel']
         
-class Gauss1DModel(ParametricModel):
+class Gaussian1DModel(ParametricModel):
     """
     
     Implements 1D Gaussian model.
@@ -20,14 +20,14 @@ class Gauss1DModel(ParametricModel):
     ----------
     amplitude : float
         Amplitude of the gaussian
-    xcen : float
-        Center of the gaussian
+    mean : float
+        Mean of the gaussian
     fwhm : float
         FWHM
-    xsigma : float
-        igma of the gaussian
-        Either fwhm or xsigma must be specified
-    fjac : callable, 'estimated' or None
+    stddev : float
+        Standard deviation of the gaussian
+        Either fwhm or stddev must be specified
+    jacobian_func : callable, 'estimated' or None
         if callable - a function to compute the Jacobian of 
         func with derivatives across the rows.
         if 'estimated' - the Jacobian will be estimated
@@ -35,35 +35,35 @@ class Gauss1DModel(ParametricModel):
         if not the Jacobian will be estimated.
         
     """
-    parnames = ['amplitude', 'xcen', 'xsigma']
-    def __init__(self, amplitude, xcen, fwhm=None, xsigma=None,
-                            fjac=None, **cons):
+    param_names = ['amplitude', 'mean', 'stddev']
+    def __init__(self, amplitude, mean, fwhm=None, stddev=None,
+                            jacobian_func=None, **cons):
         self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
-        if xsigma is None and fwhm is None:
+        if stddev is None and fwhm is None:
             raise InputParameterError(
-                "Either fwhm or xsigma must be specified")
-        if xsigma is not None:
-            xsigmaval = xsigma
+                "Either fwhm or stddev must be specified")
+        if stddev is not None:
+            stddev_val = stddev
         else:
             try:
-                xsigmaval  = 0.42466 * fwhm
+                stddev_val  = 0.42466 * fwhm
             except TypeError:
-                xsigmaval = [0.42466 * n for n in fwhm]
-        self._xsigma = parameters.Parameter('xsigma', xsigmaval, self, 1)
-        self._xcen = parameters.Parameter('xcen', xcen, self, 1)
+                stddev_val = [0.42466 * n for n in fwhm]
+        self._stddev = parameters.Parameter('stddev', stddev_val, self, 1)
+        self._mean = parameters.Parameter('mean', mean, self, 1)
         try:
-            paramdim = len(self._amplitude)
-            assert (len(amplitude) == len(xsigmaval) == len(xcen) ), \
+            param_dim = len(self._amplitude)
+            assert (len(amplitude) == len(stddev_val) == len(mean) ), \
              "Input parameters do not have the same dimension"
         except TypeError:
-            paramdim = 1
-        super(Gauss1DModel, self).__init__(self.parnames, ndim=1, outdim=1,
-                                                                    paramdim=paramdim, **cons)
+            param_dim = 1
+        super(Gaussian1DModel, self).__init__(self.param_names, ndim=1, outdim=1,
+                                                                    param_dim=param_dim, **cons)
         self.linear = False
-        if fjac is 'estimated':
+        if jacobian_func is 'estimated':
             self.deriv = None
-        elif callable(fjac):
-            self.deriv = fjac
+        elif callable(jacobian_func):
+            self.deriv = jacobian_func
         else:
             self.deriv = self.gderiv
             
@@ -72,14 +72,14 @@ class Gauss1DModel(ParametricModel):
                                                 (x-params[1])**2))
  
     def gderiv(self, p, x, y):
-        amplitude, xcen, xsigma = p
+        amplitude, mean, stddev = p
         deriv_dict = {}
-        deriv_dict['amplitude'] = np.exp((-(1/(xsigma**2)) * (x-xcen)**2))
-        deriv_dict['xcen'] = 2 * amplitude * np.exp((-(1/(xsigma**2)) *
-                                (x-xcen)**2)) * (x-xcen)/(xsigma**2)
-        deriv_dict['xsigma'] = 2 * amplitude * np.exp((-(1/(xsigma**2)) *
-                                (x-xcen)**2)) * ((x-xcen)**2)/(xsigma**3)
-        derivval = [deriv_dict[par] for par in self.parnames]
+        deriv_dict['amplitude'] = np.exp((-(1/(stddev**2)) * (x-mean)**2))
+        deriv_dict['mean'] = 2 * amplitude * np.exp((-(1/(stddev**2)) *
+                                (x-mean)**2)) * (x-mean)/(stddev**2)
+        deriv_dict['stddev'] = 2 * amplitude * np.exp((-(1/(stddev**2)) *
+                                (x-mean)**2)) * ((x-mean)**2)/(stddev**3)
+        derivval = [deriv_dict[par] for par in self.param_names]
         return np.array(derivval).T
                                     
     def __call__(self, x):
@@ -94,11 +94,11 @@ class Gauss1DModel(ParametricModel):
         -----
         See the module docstring for rules for model evaluation. 
         """
-        x, fmt = _convert_input(x, self.paramdim)
-        result = self.eval(x, self.psets)
+        x, fmt = _convert_input(x, self.param_dim)
+        result = self.eval(x, self.param_sets)
         return _convert_output(result, fmt)
     
-class Gauss2DModel(ParametricModel):
+class Gaussian2DModel(ParametricModel):
     """
     
     2D Gaussian.
@@ -107,60 +107,83 @@ class Gauss2DModel(ParametricModel):
     ----------
     amplitude : float
         Amplitude of the gaussian
-    xcen : float
-        Center of the gaussian in x
-    ycen : float
-        Center of the gaussian in y
-    fwhm : float
-        FWHM
-    xsigma : float
-        sigma of the gaussian in x
-        Either fwhm or xsigma must be specified
-    ysigma : float
-        sigma of the gaussian in y
-        Either ysigma or ratio should be given
-    ratio : float
-        ysigma/xsigma 
-    fjac : callable or None
+    x_mean : float
+        Mean of the gaussian in x
+    y_mean : float
+        Mean of the gaussian in y
+    x_fwhm : float
+        Full width at half maximum in x
+    y_fwhm : float
+        Full width at half maximum in y
+    x_stddev : float
+        Standard deviation of the gaussian in x
+        Either fwhm or x_stddev must be specified
+    y_stddev : float
+        Standard deviation of the gaussian in y
+        Either y_stddev or ratio should be given
+    jacobian_func : callable or None
         if callable - a function to compute the Jacobian of 
         func with derivatives across the rows.
         if None - the Jacobian will be estimated
     theta : float 
-        rotation angle in radians
+        Rotation angle in radians. Note: increases clockwise.
+    cov_matrix : ndarray
+        A 2x2 covariance matrix. If specified, overrides stddev, fwhm, and 
+        theta specification.
     """
-    parnames = ['amplitude', 'xcen', 'ycen', 'xsigma', 'ysigma', 'theta']
+    param_names = ['amplitude', 'x_mean', 'y_mean', \
+                   'x_stddev', 'y_stddev', 'theta']
     
-    def __init__(self, amplitude, xcen, ycen, fwhm=None, xsigma=None,
-                 ysigma=None, ratio=None, theta=0.0, fjac=None, **cons):
-        if ysigma is None and ratio is None:
+    def __init__(self, amplitude, x_mean, y_mean, x_fwhm=None, y_fwhm=None, 
+                 x_stddev=None, y_stddev=None, theta=0.0, cov_matrix=None,
+                 jacobian_func=None, **cons):
+        if y_stddev is None and y_fwhm is None and cov_matrix is None:
             raise InputParameterError(
-                "Either ysigma or ratio must be specified")
-        elif xsigma is None and fwhm is None:
+                "Either y_fwhm or y_stddev must be specified, or a "
+                "covariance matrix.")
+        elif x_stddev is None and x_fwhm is None and cov_matrix is None:
             raise InputParameterError(
-                "Either fwhm or xsigma must be specified")
+                "Either x_fwhm or x_stddev must be specified, or a "
+                "covariance matrix.")
+                
         self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
-        if xsigma is None:
-            xsigma = 0.42466 * fwhm
-        self._xsigma = parameters.Parameter('xsigma', xsigma, self, 1)
-        if ysigma is None:
-            ysigma = ratio * self._xsigma
-        self._ysigma = parameters.Parameter('ysigma', ysigma, self, 1)
-        self._xcen = parameters.Parameter('xcen', xcen, self, 1)
-        self._ycen = parameters.Parameter('ycen', ycen, self, 1)
+        
+        if cov_matrix is None:
+            if x_stddev is None:
+                x_stddev = 0.42466 * x_fwhm
+            
+            if y_stddev is None:
+                y_stddev = 0.42466 * y_fwhm
+        
+        else:
+            cov_matrix = np.array(cov_matrix)
+            assert cov_matrix.shape == (2,2), "Covariance matrix must be 2D"
+            
+            eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
+            x_stddev, y_stddev = np.sqrt(eig_vals)
+            y_vec = eig_vecs[:,0]
+            theta = np.arctan2(y_vec[1],y_vec[0])
+            
+        self._x_stddev = parameters.Parameter('x_stddev', x_stddev, self, 1)
+        self._y_stddev = parameters.Parameter('y_stddev', y_stddev, self, 1)
+        
+        self._x_mean = parameters.Parameter('x_mean', x_mean, self, 1)
+        self._y_mean = parameters.Parameter('y_mean', y_mean, self, 1)
         self._theta = parameters.Parameter('theta', theta, self, 1)
+        
         try:
-            paramdim = len(self._amplitude)
-            assert (len(self._amplitude) == len(self._xsigma) == \
-                            len(self._xcen) == len(self._ycen) == \
+            param_dim = len(self._amplitude)
+            assert (len(self._amplitude) == len(self._x_stddev) == \
+                            len(self._x_mean) == len(self._y_mean) == \
                             len(self._theta) ), \
                             "Input parameters do not have the same dimension"
         except TypeError:
-            paramdim = 1
-        super(Gauss2DModel, self).__init__(self.parnames, ndim=2, outdim=1,
-                                                                    paramdim=paramdim)
+            param_dim = 1
+        super(Gaussian2DModel, self).__init__(self.param_names, ndim=2, outdim=1,
+                                              param_dim=param_dim)
         self.linear = False
-        if fjac:
-            self.deriv = fjac
+        if jacobian_func:
+            self.deriv = jacobian_func
         else:
             self.deriv = None
             
@@ -181,9 +204,9 @@ class Gauss2DModel(ParametricModel):
         
         Note: See the module docstring for rules for model evaluation. 
         """
-        x, _ = _convert_input(x, self.paramdim)
-        y, fmt = _convert_input(y, self.paramdim)
-        result = self.eval(x, y, self.psets)
+        x, _ = _convert_input(x, self.param_dim)
+        y, fmt = _convert_input(y, self.param_dim)
+        result = self.eval(x, y, self.param_sets)
         return _convert_output(result, fmt)
 
 class ShiftModel(Model):
@@ -198,21 +221,21 @@ class ShiftModel(Model):
         column in the input coordinate array
             
     """
-    parnames = ['offsets']
+    param_names = ['offsets']
     def __init__(self, offsets):
         if not isinstance(offsets, collections.Sequence):
-            paramdim = 1
+            param_dim = 1
         else:
-            paramdim = len(offsets)
-        self._offsets = parameters.Parameter('offsets', offsets, self, paramdim)
-        super(ShiftModel, self).__init__(self.parnames, ndim=1, outdim=1,
-                                                            paramdim=paramdim)
+            param_dim = len(offsets)
+        self._offsets = parameters.Parameter('offsets', offsets, self, param_dim)
+        super(ShiftModel, self).__init__(self.param_names, ndim=1, outdim=1,
+                                                            param_dim=param_dim)
 
     def __call__(self, x):
         """
         Transforms data using this model.
         """
-        x, fmt = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.param_dim)
         result = x + self.offsets
         return _convert_output(result, fmt)
  
@@ -227,20 +250,20 @@ class ScaleModel(Model):
         scale for a coordinate
         
     """
-    parnames = ['factors']
+    param_names = ['factors']
     def __init__(self, factors):
         if not isinstance(factors, collections.Sequence):
-            paramdim = 1
+            param_dim = 1
         else:
-            paramdim = len(factors)
-        self._factors = parameters.Parameter('factors', factors, self, paramdim)
-        super(ScaleModel, self).__init__(self.parnames, ndim=1, outdim=1,
-                                                            paramdim=paramdim)
+            param_dim = len(factors)
+        self._factors = parameters.Parameter('factors', factors, self, param_dim)
+        super(ScaleModel, self).__init__(self.param_names, ndim=1, outdim=1,
+                                                            param_dim=param_dim)
     
     def __call__(self, x):
         """
         Transforms data using this model.
         """
-        x, fmt = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.param_dim)
         result = x * self.factors
         return _convert_output(result, fmt)

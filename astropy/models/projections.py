@@ -6,7 +6,7 @@ All angles are set and reported in deg but internally the code works and
 keeps all angles in radians. For this to work, the mechanism of setting Model's 
 properties is bypassed by passing an empty parlist to `~astropy.models.core.Model.__init__`.
 This also has the effect of not creating Projection.parameters. 
-Projection.parnames is created within the Projection class. 
+Projection.param_names is created within the Projection class. 
 For an example see the AZP classes.
       
 References
@@ -34,11 +34,11 @@ class Projection(Model):
     
     Parameters
     ----------
-    parnames : list of strings
+    param_names : list of strings
         parameter names
     """
-    def __init__(self, parnames):        
-        super(Projection, self).__init__(parnames, ndim=2, outdim=2)
+    def __init__(self, param_names):        
+        super(Projection, self).__init__(param_names, ndim=2, outdim=2)
         self._pdim = 1
         # the radius of the projection sphere, by which x,y are scaled
         # not sure if it's necessary to make this a user parameter
@@ -62,13 +62,13 @@ class Zenithal(Projection):
     
     Parameters
     ----------
-    parnames : list of strings
+    param_names : list of strings
         parameter names
     """
-    def __init__(self, parnames):
+    def __init__(self, param_names):
         self.phi0 = 0.
         self.theta0 = 90.
-        super(Zenithal, self).__init__(parnames)
+        super(Zenithal, self).__init__(param_names)
         self.has_inverse = True
 
     def _compute_rtheta(self):
@@ -91,7 +91,7 @@ class Pix2Sky_AZP(Zenithal):
         look angle in deg, default is 0.
     
     """
-    parnames = ['mu', 'gamma']
+    param_names = ['mu', 'gamma']
     def __init__(self, mu=0., gamma=0.):
         if mu == -1:
             raise ValueError("AZP projection is not defined for mu=-1")
@@ -100,7 +100,7 @@ class Pix2Sky_AZP(Zenithal):
         self._gamma = parameters.Parameter('gamma', np.deg2rad(gamma), self, 1)
         # bypass initialization of self.parameters
         self.parcheck = {'mu': self.check_mu}
-        super(Pix2Sky_AZP, self).__init__(parnames=self.parnames)
+        super(Pix2Sky_AZP, self).__init__(param_names=self.param_names)
     
     
     def check_mu(self, val):
@@ -150,14 +150,14 @@ class Sky2Pix_AZP(Zenithal):
         look angle in deg, default is 0.
 
     """
-    parnames = ['mu', 'gamma']
+    param_names = ['mu', 'gamma']
     def __init__(self, mu=0., gamma=0.):
         if mu == -1:
             raise ValueError("AZP projections is not defined for mu=-1")
         self._mu = parameters.Parameter('mu', mu, self, 1)
         self._gamma = parameters.Parameter('gamma', np.deg2rad(gamma), self, 1)
         self.parcheck = {'mu': self.check_mu}
-        super(Sky2Pix_AZP, self).__init__(parnames=self.parnames)       
+        super(Sky2Pix_AZP, self).__init__(param_names=self.param_names)       
     
     def check_mu(self, val):
         if   val == -1:
@@ -187,7 +187,7 @@ class Pix2Sky_TAN(Zenithal):
     
     """
     def __init__(self):
-        super(Pix2Sky_TAN, self).__init__(parnames=[])
+        super(Pix2Sky_TAN, self).__init__(param_names=[])
     
     def _compute_rtheta(self, x, y):
         return np.sqrt(x**2 + y**2)
@@ -209,7 +209,7 @@ class Sky2Pix_TAN(Zenithal):
     
     """
     def __init__(self):
-        super(Sky2Pix_TAN, self).__init__(parnames=[])
+        super(Sky2Pix_TAN, self).__init__(param_names=[])
             
     def _compute_rtheta(self, theta):
         return 1/ np.tan(theta)
@@ -231,7 +231,7 @@ class Pix2Sky_STG(Zenithal):
     
     """
     def __init__(self):
-        super(Pix2Sky_STG, self).__init__(parnames=[])
+        super(Pix2Sky_STG, self).__init__(param_names=[])
         
     def _compute_rtheta(self, x, y):
         return np.sqrt(x**2 + y**2)
@@ -253,7 +253,7 @@ class Sky2Pix_STG(Zenithal):
 
     """
     def __init__(self):
-        super(Sky2Pix_STG, self).__init__(parnames=[])
+        super(Sky2Pix_STG, self).__init__(param_names=[])
             
     def inverse(self):
         return Pix2Sky_STG()
@@ -318,11 +318,11 @@ class Cylindrical(Projection):
     Base class for Cylindrical projections.
     
     """
-    ##TODO: define parnames
-    def __init__(self, parnames):
+    ##TODO: define param_names
+    def __init__(self, param_names):
         self.phi0 = 0.0
         self.theta0 = 0.0
-        super(Cylindrical, self).__init__(parnames)
+        super(Cylindrical, self).__init__(param_names)
         self.has_inverse = True
         
     def inverse(self):
@@ -336,13 +336,13 @@ class Pix2Sky_CYP(Cylindrical):
     CYP : Cylindrical perspective - pixel to sky.
     
     """
-    parnames = ['mu', 'lam']
+    param_names = ['mu', 'lam']
     def __init__(self, mu, lam):
         if mu == -lam:
             ValueError("CYP projection is not defined for mu=-lambda")
         self._mu = parameters.Parameter('mu', mu, self, 1)
         self._lam = parameters.Parameter('lam', lam, self, 1)
-        super(Pix2Sky_CYP, self).__init__(parnames=self.parnames)
+        super(Pix2Sky_CYP, self).__init__(param_names=self.param_names)
         
     def check_mu(self, val):
         if   val == -1:
@@ -365,13 +365,13 @@ class Sky2Pix_CYP(Cylindrical):
     CYP : Cylindrical Perspective - sky to pixel.
     
     """
-    parnames = ['mu', 'lam']
+    param_names = ['mu', 'lam']
     def __init__(self, mu, lam):
         if mu == -lam:
             ValueError("CYP projection is not defined for mu=-lambda")
         self._mu = parameters.Parameter('mu', mu, self, 1)
         self._lam = parameters.Parameter('lam', lam, self, 1)
-        super(Sky2Pix_CYP, self).__init__(parnames=self.parnames)
+        super(Sky2Pix_CYP, self).__init__(param_names=self.param_names)
         
     def check_mu(self, val):
         if   val == -1:
@@ -393,10 +393,10 @@ class Pix2Sky_CEA(Cylindrical):
     CEA : Cylindrical equal area projection - pixel to sky.
     
     """
-    parnames = ['lam']
+    param_names = ['lam']
     def __init__(self, lam=1):
         self._lam = parameters.Parameter('lam', lam, self, 1)
-        super(Pix2Sky_CEA, self).__init__(parnames=self.parnames)
+        super(Pix2Sky_CEA, self).__init__(param_names=self.param_names)
         
     def inverse(self):
         return Sky2Pix_CEA(self.lam[0])
@@ -412,10 +412,10 @@ class Sky2Pix_CEA(Cylindrical):
     CEA: Cylindrical equal area projection - sky to pixel.
     
     """
-    parnames = ['lam']
+    param_names = ['lam']
     def __init__(self, lam=1):
         self._lam = parameters.Parameter('lam', lam, self, 1)
-        super(Sky2Pix_CEA, self).__init__(parnames=self.parnames)
+        super(Sky2Pix_CEA, self).__init__(param_names=self.param_names)
         
     def inverse(self):
         return Pix2Sky_CEA(self.lam[0])
@@ -502,11 +502,11 @@ class Conic(Projection):
         angle in deg
     eta : float
     
-    parnames : list of strings
+    param_names : list of strings
         parameter names
     
     """
-    def __init__(self, thetaA, eta, parnames):
+    def __init__(self, thetaA, eta, param_names):
         self._phi0 = 0.0
         theta1 = thetaA - eta
         theta2 = thetaA + eta
@@ -520,7 +520,7 @@ class Conic(Projection):
         self._theta2 = np.deg2rad(theta2)
         self._thetaA = np.deg2rad(thetaA)
         self._eta = np.deg2rad(eta)
-        super(Conic, self).__init__(parnames)
+        super(Conic, self).__init__(param_names)
         self.has_inverse = True
         
     def inverse(self):
@@ -539,7 +539,7 @@ class Pix2Sky_COP(Conic):
     
     """
     def __init__(self, thetaA, eta):
-        super(Pix2Sky_COP, self).__init__(thetaA, eta, parnames=[])
+        super(Pix2Sky_COP, self).__init__(thetaA, eta, param_names=[])
         
     def _compute_rtheta(self, x, y, Y0):
         return np.sign(self._thetaA) * np.sqrt(x**2 + (Y0 - y)**2)
@@ -561,7 +561,7 @@ class Sky2Pix_COP(Conic):
     
     """
     def __init__(self, thetaA, eta):
-        super(Sky2Pix_COP, self).__init__(thetaA, eta, parnames=[])
+        super(Sky2Pix_COP, self).__init__(thetaA, eta, param_names=[])
         
     def _compute_rtheta(self, theta):
         return self.r0 * np.cos(self._eta) * \

@@ -162,9 +162,9 @@ class Fitter(object):
                 fullderiv = self.model.deriv(pars, x, y)
             else:
                 fullderiv = self.model.deriv(pars, x, y, z)
-            ind = range(len(self.model.parnames))
+            ind = range(len(self.model.param_names))
             for name in fixed_and_tied:
-                index = self.model.parnames.index(name)
+                index = self.model.param_names.index(name)
                 ind.remove(index)
             res = np.empty((fullderiv.shape[0], fullderiv.shape[1]-len(ind)))
             res = fullderiv[:, ind]
@@ -259,9 +259,9 @@ class LinearLSQFitter(Fitter):
             d = self.model.deriv(x, y)
         fixed = [name for name in self.model.constraints.fixed if
                  self.model.constraints.fixed[name]]
-        ind = range(len(self.model.parnames))
+        ind = range(len(self.model.param_names))
         for name in fixed:
-            index = self.model.parnames.index(name)
+            index = self.model.param_names.index(name)
             ind.remove(index)
         res = d[:, ind]
         return res
@@ -296,7 +296,7 @@ class LinearLSQFitter(Fitter):
             if x.shape[0] != y.shape[0]:
                 raise ValueError("Expected measured and model data to have the same size")
             if y.ndim == 2:
-                assert y.shape[1] == self.model._parameters.paramdim, (
+                assert y.shape[1] == self.model._parameters.param_dim, (
                     "Number of data sets (Y array is expected to equal "
                     "the number of parameter sets")
             # map domain into window
@@ -354,7 +354,7 @@ class LinearLSQFitter(Fitter):
                 lhs *= weights[:, np.newaxis]
                 rhs *= weights
 
-        if not multiple and self.model._parameters.paramdim > 1:
+        if not multiple and self.model._parameters.param_dim > 1:
             raise ValueError("Attempting to fit a 1D data set to a model "
                              "with multiple parameter sets")
         if rcond is None:
@@ -372,7 +372,7 @@ class LinearLSQFitter(Fitter):
         # of several 1D arrays. Otherwise the model is 2D.
         #if y.ndim > self.model.ndim:
         if multiple:
-            self.model._parameters.paramdim = multiple
+            self.model._parameters.param_dim = multiple
         lacoef = (lacoef.T/scl).T
         self.fit_info['pars'] = lacoef
         if rank != self.model._order:
@@ -423,8 +423,8 @@ class NonLinearLSQFitter(Fitter):
         for c in self.model.constraints.bounds.values():
             if c !=  (-1E12, 1E12):
                 bounds = [self.model.constraints.bounds[par] for
-                                    par in self.model.parnames]
-                for name, par, b in zip(self.model.parnames, fitpars, bounds):
+                                    par in self.model.param_names]
+                for name, par, b in zip(self.model.param_names, fitpars, bounds):
                     setattr(self.model, name, par if par>b[0] else b[0])
                     setattr(self.model, name, par if par<b[1] else b[1])
 
@@ -474,7 +474,7 @@ class NonLinearLSQFitter(Fitter):
         from scipy import optimize
         x = np.asarray(x, dtype=np.float)
         self.weights  = weights
-        if self.model._parameters.paramdim != 1:
+        if self.model._parameters.param_dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit one "
                              "data set at a time")
@@ -582,7 +582,7 @@ class SLSQPFitter(Fitter):
         x = np.asarray(x, dtype=np.float)
 
         self.weights = weights
-        if self.model._parameters.paramdim != 1:
+        if self.model._parameters.param_dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit "
                              "one data set at a time")
@@ -600,7 +600,7 @@ class SLSQPFitter(Fitter):
             fargs = (x, y, meas)
         p0 = self.model._parameters[:]
         bounds = [self.model.constraints.bounds[par] for
-                  par in self.model.parnames]
+                  par in self.model.param_names]
         self.fitpars, final_func_val, numiter, exit_mode, mess = optimize.fmin_slsqp(
             self.errorfunc, p0, args=fargs, disp=verblevel, full_output=1,
             bounds=bounds, eqcons=self.model.constraints.eqcons,
@@ -679,7 +679,7 @@ class JointFitter(object):
             del fitpars[:numfp]
             #recreate the model parameters
             mpars = []
-            for pname in model.parnames:
+            for pname in model.param_names:
                 if pname in model.joint:
                     index = model.joint.index(pname)
                     # should do this with slices in case the
@@ -724,7 +724,7 @@ class JointFitter(object):
             del fpars[:numfp]
             # recreate the model parameters
             mpars = []
-            for pname in model.parnames:
+            for pname in model.param_names:
                 if pname in model.joint:
                     index = model.joint.index(pname)
                     # should do this with slices in case the parameter

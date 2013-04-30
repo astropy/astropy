@@ -81,8 +81,8 @@ class TestJointFitter(object):
         Create a fitter for the two models keeping the amplitude parameter
         common for the two models.
         """
-        self.g1 = models.Gauss1DModel(10, 14.9, .3)
-        self.g2 = models.Gauss1DModel(10, 13, .4)
+        self.g1 = models.Gaussian1DModel(10, mean=14.9, stddev=.3)
+        self.g2 = models.Gaussian1DModel(10, mean=13, stddev=.4)
         self.jf = fitting.JointFitter([self.g1, self.g2], 
                 {self.g1:['amplitude'], self.g2:['amplitude']}, [9.8])
         self.x = np.arange(10, 20, .1)
@@ -154,17 +154,17 @@ class TestNonLinearFitters(object):
         self.ydata = func(self.initial_values, self.xdata)+ yerror
         
     def test_estmated_vs_analytic_deriv(self):
-        g1= models.Gauss1DModel(100, 5, xsigma=1)
+        g1= models.Gaussian1DModel(100, 5, stddev=1)
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.xdata, self.ydata)
-        g1e= models.Gauss1DModel(100, 5.0, xsigma=1, fjac='estimated')
+        g1e= models.Gaussian1DModel(100, 5.0, stddev=1, jacobian_func='estimated')
         efitter=fitting.NonLinearLSQFitter(g1e)
         efitter(self.xdata, self.ydata)
         utils.assert_allclose(g1.parameters, g1e.parameters, rtol=10**(-3))
         
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_with_optimize(self):
-        g1= models.Gauss1DModel(100, 5, xsigma=1, fjac='estimated')
+        g1= models.Gaussian1DModel(100, 5, stddev=1, jacobian_func='estimated')
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.xdata, self.ydata)
         func = lambda p, x: p[0]* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
@@ -173,9 +173,9 @@ class TestNonLinearFitters(object):
         utils.assert_allclose(g1.parameters, result[0], rtol=10**(-3))
         
     def test_LSQ_SLSQP(self):
-        g1= models.Gauss1DModel(100, 5, xsigma=1)
+        g1= models.Gaussian1DModel(100, 5, stddev=1)
         fitter = fitting.NonLinearLSQFitter(g1)
-        g1_slsqp= models.Gauss1DModel(100, 5, xsigma=1)
+        g1_slsqp= models.Gaussian1DModel(100, 5, stddev=1)
         fslsqp = fitting.SLSQPFitter(g1_slsqp)
         fslsqp(self.xdata, self.ydata)
         fitter(self.xdata, self.ydata)
@@ -185,11 +185,11 @@ class TestNonLinearFitters(object):
                             rtol=10**(-4))
         
     def test_LSQ_SLSQP_cons(self):
-        g1= models.Gauss1DModel(100, 5, xsigma=1)
-        g1.xcen.fixed = True
+        g1= models.Gaussian1DModel(100, 5, stddev=1)
+        g1.mean.fixed = True
         fitter = fitting.NonLinearLSQFitter(g1)
-        g1_slsqp= models.Gauss1DModel(100, 5, xsigma=1)
-        g1_slsqp.xcen.fixed = True
+        g1_slsqp= models.Gaussian1DModel(100, 5, stddev=1)
+        g1_slsqp.mean.fixed = True
         fslsqp = fitting.SLSQPFitter(g1_slsqp)
         fslsqp(self.xdata, self.ydata)
         fitter(self.xdata, self.ydata)

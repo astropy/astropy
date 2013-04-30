@@ -69,4 +69,3 @@ class TestPComposite(object):
         utils.assert_almost_equal(xx, presult.x)
 
 
-        

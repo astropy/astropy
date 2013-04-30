@@ -41,10 +41,10 @@ Fitting Examples
 >>> x = np.arange(10)
 >>> y = p1(x)
 >>> yy = np.array([y, y]).T
->>> p2 = builtin_models.Poly1DModel(3, paramdim=2)
+>>> p2 = builtin_models.Poly1DModel(3, param_dim=2)
 >>> pfit = fitting.LinearLSQFitter(p2)
 >>> pfit(x,yy)
->>> print p2.psets
+>>> print p2.param_sets
 array([[  1.00000000e+00,   1.00000000e+00],
        [  2.00000000e+00,   2.00000000e+00],
        [  3.91115939e-16,   3.91115939e-16],
@@ -61,9 +61,9 @@ polynomial without that term will be fitted to the data. For example, fixing
 c0 in a polynomial model will fit a polynomial with the zero-th order term missing.
 
 >>> x = np.arange(1, 10, .1)
->>> p1 = builtin_models.Poly1DModel(2, paramdim=2)
+>>> p1 = builtin_models.Poly1DModel(2, param_dim=2)
 >>> p1.parameters = [1, 1, 2, 2, 3, 3]
->>> p1.psets
+>>> p1.param_sets
 array([[ 1.,  1.],
        [ 2.,  2.],
        [ 3.,  3.]])
@@ -71,7 +71,7 @@ array([[ 1.,  1.],
 >>> p1.c1.fixed = True
 >>> pfit = fitting.LinearLSQFitter(p1)
 >>> pfit(x, y)
->>> p1.psets
+>>> p1.param_sets
 array([[ 5.50225913,  5.50225913],
        [ 2.        ,  2.        ],
        [ 3.17551299,  3.17551299]])
@@ -81,14 +81,14 @@ array([[ 5.50225913,  5.50225913],
   (linked to another parameter). This can be done in two ways:
 
 >>> def tiedfunc(g1):
-    ...    xcen = 3 * g1.xsigma[0]
-    ...    return xcen
->>> g1 = builtin_models.Gauss1DModel(amplitude=10., xcen=3, xsigma=.5, tied={'xcen': tiedfunc})
+    ...    mean = 3 * g1.stddev[0]
+    ...    return mean
+>>> g1 = builtin_models.Gaussian1DModel(amplitude=10., mean=3, stddev=.5, tied={'mean': tiedfunc})
 
 or
 
->>> g1 = builtin_models.Gauss1DModel(amplitude=10., xcen=3, xsigma=.5)
->>> g1.xcen.tied = tiedfunc
+>>> g1 = builtin_models.Gaussian1DModel(amplitude=10., mean=3, stddev=.5)
+>>> g1.mean.tied = tiedfunc
 >>> gfit = fitting.NonLinearLSQFitter(g1)
 
 
