@@ -4,6 +4,7 @@ from __future__ import division
 from __future__ import with_statement
 
 import gzip
+import mmap
 import os
 import sys
 import tempfile
@@ -47,6 +48,9 @@ class _File(object):
     """
     Represents a FITS file on disk (or in some other file-like object).
     """
+
+    # See self._test_mmap
+    _mmap_available = None
 
     def __init__(self, fileobj=None, mode='readonly', memmap=False):
         if fileobj is None:
@@ -123,8 +127,13 @@ class _File(object):
             self.size = self.__file.tell()
             self.__file.seek(pos)
 
-        if self.memmap and not isfile(self.__file):
-            self.memmap = False
+        if self.memmap:
+            if not isfile(self.__file):
+                self.memmap = False
+            elif not self.readonly and not self._test_mmap():
+                # Test mmap.flush--see
+                # https://github.com/astropy/astropy/issues/968
+                self.memmap = False
 
     def __repr__(self):
         return '<%s.%s %s>' % (self.__module__, self.__class__.__name__,
@@ -352,3 +361,43 @@ class _File(object):
             self.__file = fileobj_open(self.name, PYTHON_MODES[mode])
             # Make certain we're back at the beginning of the file
         self.__file.seek(0)
+
+    def _test_mmap(self):
+        """Tests that mmap, and specifically mmap.flush works.  This may
+        be the case on some uncommon platforms (see
+        https://github.com/astropy/astropy/issues/968).
+
+        If mmap.flush is found not to work, ``self.memmap = False`` is
+        se and a warning is issued.
+        """
+
+        if self._mmap_available is not None:
+            return self._mmap_available
+
+        tmpfd, tmpname = tempfile.mkstemp()
+        try:
+            # Windows does not allow mappings on empty files
+            os.write(tmpfd, ' ')
+            os.fsync(tmpfd)
+            try:
+                mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
+            except mmap.error, e:
+                warnings.warn('Failed to create mmap: %s; mmap use will be '
+                              'disabled' % str(e))
+                _File._mmap_available = False
+                return False
+            try:
+                mm.flush()
+            except mmap.error:
+                warnings.warn('mmap.flush is unavailable on this platform; '
+                              'using mmap in writeable mode will be disabled')
+                _File._mmap_available = False
+                return False
+            finally:
+                mm.close()
+        finally:
+            os.close(tmpfd)
+            os.remove(tmpname)
+
+        _File._mmap_available = True
+        return True
