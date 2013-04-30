@@ -211,8 +211,9 @@ table using one of several methods:
   or column as a list of fixed-width strings.  This could be used as a quick
   way to save a table.
 
-These methods use column format specifications if available and
-strive to make the output readable.  By default, table and column printing will
+These methods use :ref:`table_format_string`
+if available and strive to make the output readable.  
+By default, table and column printing will
 not print the table larger than the available interactive screen size.  If the
 screen size cannot be determined (in a non-interactive environment or on
 Windows) then a default size of 25 rows by 80 columns is used.  If a table is
