@@ -30,6 +30,24 @@ class TestSingleTable(object):
         t2 = Table.read(filename)
         assert equal_data(t1, t2)
 
+    def test_simple_meta(self, tmpdir):
+        filename = str(tmpdir.join('test_simple.fits'))
+        t1 = Table(self.data)
+        t1.meta['A'] = 1
+        t1.meta['B'] = 2.3
+        t1.meta['C'] = 'spam'
+        t1.meta['COMMENT'] = ['this', 'is', 'a', 'long', 'comment']
+        t1.meta['HISTORY'] = ['first', 'second', 'third']
+        t1.write(filename, overwrite=True)
+        t2 = Table.read(filename)
+        assert equal_data(t1, t2)
+        for key in t1.meta:
+            if isinstance(t1.meta, list):
+                for i in range(len(t1.meta[key])):
+                    assert t1.meta[key][i] == t2.meta[key][i]
+            else:
+                assert t1.meta[key] == t2.meta[key]
+
     def test_simple_noextension(self, tmpdir):
         """
         Test that file type is recognized without extension

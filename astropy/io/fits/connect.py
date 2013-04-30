@@ -165,7 +165,7 @@ def read_table_fits(input, hdu=None):
 
         elif key in t.meta:  # key is duplicate
 
-            if type(t.meta[key]) == list:
+            if isinstance(t.meta[key], list):
                 t.meta[key].append(value)
             else:
                 t.meta[key] = [t.meta[key], value]
@@ -217,15 +217,12 @@ def write_table_fits(input, output, overwrite=False):
         if input[col.name].units is not None:
             col.unit = input[col.name].units.to_string(format='fits')
 
-    # Write out file
-    table_hdu.writeto(output)
-
     for key, value in input.meta.items():
 
-        if type(value) == list:
+        if isinstance(value, list):
             for item in value:
                 try:
-                    table_hdu.header.append((key, value))
+                    table_hdu.header.append((key, item))
                 except ValueError:
                     log.warn("Attribute `{0}` of type {1} cannot be written to "
                              "FITS files - skipping".format(key, type(value)))
@@ -236,6 +233,8 @@ def write_table_fits(input, output, overwrite=False):
                 log.warn("Attribute `{0}` of type {1} cannot be written to "
                          "FITS files - skipping".format(key, type(value)))
 
+    # Write out file
+    table_hdu.writeto(output)
 
 io_registry.register_reader('fits', Table, read_table_fits)
 io_registry.register_writer('fits', Table, write_table_fits)
