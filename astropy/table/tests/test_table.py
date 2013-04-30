@@ -7,10 +7,6 @@ from ... import table
 
 NUMPY_LT_1P5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
-# Dummy init of Table, DATA for pyflakes and to be sure test fixture is working
-Table = None
-Column = None
-
 
 class MaskedTable(table.Table):
     def __init__(self, *args, **kwargs):
@@ -21,57 +17,65 @@ class MaskedTable(table.Table):
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
 @pytest.fixture(params=[False] if NUMPY_LT_1P5 else [False, True])
-def set_global_Table(request):
-    global Table, Column
-
-    Table = MaskedTable if request.param else table.Table
-    Column = table.MaskedColumn if request.param else table.Column
+def table_types(request):
+    class TableTypes:
+        def __init__(self, request):
+            self.Table = MaskedTable if request.param else table.Table
+            self.Column = table.MaskedColumn if request.param else table.Column
+    return TableTypes(request)
 
 
 class SetupData(object):
+    def _setup(self, table_types):
+        self._table_type = table_types.Table
+        self._column_type = table_types.Column
+
     @property
     def a(self):
-        if Column is not None:
+        if self._column_type is not None:
             if not hasattr(self, '_a'):
-                self._a = Column(name='a', data=[1, 2, 3], format='%d',
-                                 meta={'aa': [0, 1, 2, 3, 4]})
+                self._a = self._column_type(
+                    name='a', data=[1, 2, 3], format='%d',
+                    meta={'aa': [0, 1, 2, 3, 4]})
             return self._a
 
     @property
     def b(self):
-        if Column is not None:
+        if self._column_type is not None:
             if not hasattr(self, '_b'):
-                self._b = Column(name='b', data=[4, 5, 6], format='%d', meta={'aa': 1})
+                self._b = self._column_type(
+                    name='b', data=[4, 5, 6], format='%d', meta={'aa': 1})
             return self._b
 
     @property
     def c(self):
-        if Column is not None:
+        if self._column_type is not None:
             if not hasattr(self, '_c'):
-                self._c = Column(name='c', data=[7, 8, 9])
+                self._c = self._column_type(name='c', data=[7, 8, 9])
             return self._c
 
     @property
     def d(self):
-        if Column is not None:
+        if self._column_type is not None:
             if not hasattr(self, '_d'):
-                self._d = Column(name='d', data=[7, 8, 7])
+                self._d = self._column_type(name='d', data=[7, 8, 7])
             return self._d
 
     @property
     def t(self):
-        if Table is not None:
+        if self._table_type is not None:
             if not hasattr(self, '_t'):
-                self._t = Table([self.a, self.b])
+                self._t = self._table_type([self.a, self.b])
             return self._t
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestSetTableColumn(SetupData):
 
-    def test_set_row(self):
+    def test_set_row(self, table_types):
         """Set a row from a tuple of values"""
-        t = Table([self.a, self.b])
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
         t[1] = (20, 21)
         assert t['a'][0] == 1
         assert t['a'][1] == 20
@@ -80,38 +84,43 @@ class TestSetTableColumn(SetupData):
         assert t['b'][1] == 21
         assert t['b'][2] == 6
 
-    def test_set_row_existing(self):
+    def test_set_row_existing(self, table_types):
         """Set a row from another existing row"""
-        t = Table([self.a, self.b])
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
         t[0] = t[1]
         assert t[0][0] == 2
         assert t[0][1] == 5
 
-    def test_set_row_fail_1(self):
+    def test_set_row_fail_1(self, table_types):
         """Set a row from an incorrectly-sized set of values"""
-        t = Table([self.a, self.b])
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
         with pytest.raises(ValueError):
             t[1] = (20, 21, 22)
         with pytest.raises(TypeError):
             t[1] = 0
 
-    def test_set_row_fail_2(self):
+    def test_set_row_fail_2(self, table_types):
         """Set a row from an incorrectly-typed tuple of values"""
-        t = Table([self.a, self.b])
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
         with pytest.raises(ValueError):
             t[1] = ('abc', 'def')
 
-    def test_set_new_col_new_table(self):
+    def test_set_new_col_new_table(self, table_types):
         """Create a new column in empty table using the item access syntax"""
-        t = Table()
+        self._setup(table_types)
+        t = table_types.Table()
         t['aa'] = self.a
         # Test that the new column name is 'aa' and that the values match
         assert np.all(t['aa'] == self.a)
         assert t.colnames == ['aa']
 
-    def test_set_new_col_existing_table(self):
+    def test_set_new_col_existing_table(self, table_types):
         """Create a new column in an existing table using the item access syntax"""
-        t = Table([self.a])
+        self._setup(table_types)
+        t = table_types.Table([self.a])
 
         # Add a column
         t['bb'] = self.b
@@ -128,7 +137,7 @@ class TestSetTableColumn(SetupData):
         assert t['c'].format == t['a'].format
 
         # Add a multi-dimensional column
-        t['d'] = Column(np.arange(12).reshape(3, 2, 2))
+        t['d'] = table_types.Column(np.arange(12).reshape(3, 2, 2))
         assert t['d'].shape == (3, 2, 2)
         assert t['d'][0, 0, 1] == 1
 
@@ -144,107 +153,110 @@ class TestSetTableColumn(SetupData):
         t['f'] = 10
         assert np.all(t['f'] == 10)
 
-    def test_set_new_unmasked_col_existing_table(self):
+    def test_set_new_unmasked_col_existing_table(self, table_types):
         """Create a new column in an existing table using the item access syntax"""
-        t = Table([self.a])  # masked or unmasked
+        self._setup(table_types)
+        t = table_types.Table([self.a])  # masked or unmasked
         b = table.Column(name='b', data=[1, 2, 3])  # unmasked
         t['b'] = b
         assert np.all(t['b'] == b)
 
-    def test_set_new_masked_col_existing_table(self):
+    def test_set_new_masked_col_existing_table(self, table_types):
         """Create a new column in an existing table using the item access syntax"""
-        t = Table([self.a])  # masked or unmasked
+        self._setup(table_types)
+        t = table_types.Table([self.a])  # masked or unmasked
         b = table.MaskedColumn(name='b', data=[1, 2, 3])  # masked
         t['b'] = b
         assert np.all(t['b'] == b)
 
-    def test_set_new_col_existing_table_fail(self):
+    def test_set_new_col_existing_table_fail(self, table_types):
         """Generate failure when creating a new column using the item access syntax"""
-        t = Table([self.a])
+        self._setup(table_types)
+        t = table_types.Table([self.a])
         # Wrong size
         with pytest.raises(ValueError):
             t['b'] = [1, 2]
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestEmptyData():
 
-    def test_1(self):
-        t = Table()
-        t.add_column(Column(name='a', dtype=int, length=100))
+    def test_1(self, table_types):
+        t = table_types.Table()
+        t.add_column(table_types.Column(name='a', dtype=int, length=100))
         assert len(t['a']) == 100
 
-    def test_2(self):
-        t = Table()
-        t.add_column(Column(name='a', dtype=int, shape=(3, ), length=100))
+    def test_2(self, table_types):
+        t = table_types.Table()
+        t.add_column(table_types.Column(name='a', dtype=int, shape=(3, ), length=100))
         assert len(t['a']) == 100
 
-    def test_3(self):
-        t = Table()  # length is not given
-        t.add_column(Column(name='a', dtype=int))
+    def test_3(self, table_types):
+        t = table_types.Table()  # length is not given
+        t.add_column(table_types.Column(name='a', dtype=int))
         assert len(t['a']) == 0
 
-    def test_4(self):
-        t = Table()  # length is not given
-        t.add_column(Column(name='a', dtype=int, shape=(3, 4)))
+    def test_4(self, table_types):
+        t = table_types.Table()  # length is not given
+        t.add_column(table_types.Column(name='a', dtype=int, shape=(3, 4)))
         assert len(t['a']) == 0
 
-    def test_5(self):
-        t = Table()
-        t.add_column(Column(name='a'))  # dtype is not specified
+    def test_5(self, table_types):
+        t = table_types.Table()
+        t.add_column(table_types.Column(name='a'))  # dtype is not specified
         assert len(t['a']) == 0
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestNewFromColumns():
 
-    def test_simple(self):
-        cols = [Column(name='a', data=[1, 2, 3]),
-                Column(name='b', data=[4, 5, 6], dtype=np.float32)]
-        t = Table(cols)
+    def test_simple(self, table_types):
+        cols = [table_types.Column(name='a', data=[1, 2, 3]),
+                table_types.Column(name='b', data=[4, 5, 6], dtype=np.float32)]
+        t = table_types.Table(cols)
         assert np.all(t['a'].data == np.array([1, 2, 3]))
         assert np.all(t['b'].data == np.array([4, 5, 6], dtype=np.float32))
         assert type(t['b'][1]) == np.float32
 
-    def test_from_np_array(self):
-        cols = [Column(name='a', data=np.array([1, 2, 3], dtype=np.int64),
+    def test_from_np_array(self, table_types):
+        cols = [table_types.Column(name='a', data=np.array([1, 2, 3], dtype=np.int64),
                        dtype=np.float64),
-                Column(name='b', data=np.array([4, 5, 6], dtype=np.float32))]
-        t = Table(cols)
+                table_types.Column(name='b', data=np.array([4, 5, 6], dtype=np.float32))]
+        t = table_types.Table(cols)
         assert np.all(t['a'] == np.array([1, 2, 3], dtype=np.float64))
         assert np.all(t['b'] == np.array([4, 5, 6], dtype=np.float32))
         assert type(t['a'][1]) == np.float64
         assert type(t['b'][1]) == np.float32
 
-    def test_size_mismatch(self):
-        cols = [Column(name='a', data=[1, 2, 3]),
-                Column(name='b', data=[4, 5, 6, 7])]
+    def test_size_mismatch(self, table_types):
+        cols = [table_types.Column(name='a', data=[1, 2, 3]),
+                table_types.Column(name='b', data=[4, 5, 6, 7])]
         with pytest.raises(ValueError):
-            Table(cols)
+            table_types.Table(cols)
 
-    def test_name_none(self):
+    def test_name_none(self, table_types):
         """Column with name=None can init a table IFF names are supplied"""
-        c = Column(data=[1, 2])
-        Table([c], names=('c',))
+        c = table_types.Column(data=[1, 2])
+        table_types.Table([c], names=('c',))
         with pytest.raises(TypeError):
-            Table([c])
+            table_types.Table([c])
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestReverse():
 
-    def test_reverse(self):
-        t = Table([[1, 2, 3],
+    def test_reverse(self, table_types):
+        t = table_types.Table([[1, 2, 3],
                    ['a', 'b', 'cc']])
         t.reverse()
         assert np.all(t['col0'] == np.array([3, 2, 1]))
         assert np.all(t['col1'] == np.array(['cc', 'b', 'a']))
 
-        t2 = Table(t, copy=False)
+        t2 = table_types.Table(t, copy=False)
         assert np.all(t2['col0'] == np.array([3, 2, 1]))
         assert np.all(t2['col1'] == np.array(['cc', 'b', 'a']))
 
-        t2 = Table(t, copy=True)
+        t2 = table_types.Table(t, copy=True)
         assert np.all(t2['col0'] == np.array([3, 2, 1]))
         assert np.all(t2['col1'] == np.array(['cc', 'b', 'a']))
 
@@ -252,94 +264,106 @@ class TestReverse():
         assert np.all(t2['col0'] == np.array([1, 2, 3]))
         assert np.all(t2['col1'] == np.array(['a', 'b', 'cc']))
 
-    def test_reverse_big(self):
+    def test_reverse_big(self, table_types):
         x = np.arange(10000)
         y = x + 1
-        t = Table([x, y], names=('x', 'y'))
+        t = table_types.Table([x, y], names=('x', 'y'))
         t.reverse()
         assert np.all(t['x'] == x[::-1])
         assert np.all(t['y'] == y[::-1])
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestColumnAccess():
 
-    def test_1(self):
-        t = Table()
+    def test_1(self, table_types):
+        t = table_types.Table()
         with pytest.raises(KeyError):
             t['a']
 
-    def test_2(self):
-        t = Table()
-        t.add_column(Column(name='a', data=[1, 2, 3]))
+    def test_2(self, table_types):
+        t = table_types.Table()
+        t.add_column(table_types.Column(name='a', data=[1, 2, 3]))
         assert np.all(t['a'] == np.array([1, 2, 3]))
         with pytest.raises(KeyError):
             t['b']  # column does not exist
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestAddLength(SetupData):
 
-    def test_right_length(self):
-        t = Table([self.a])
+    def test_right_length(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a])
         t.add_column(self.b)
 
-    def test_too_long(self):
-        t = Table([self.a])
+    def test_too_long(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a])
         with pytest.raises(ValueError):
-            t.add_column(Column(name='b', data=[4, 5, 6, 7]))  # data too long
+            t.add_column(table_types.Column(name='b', data=[4, 5, 6, 7]))  # data too long
 
-    def test_too_short(self):
-        t = Table([self.a])
+    def test_too_short(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a])
         with pytest.raises(ValueError):
-            t.add_column(Column(name='b', data=[4, 5]))  # data too short
+            t.add_column(table_types.Column(name='b', data=[4, 5]))  # data too short
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestAddPosition(SetupData):
 
-    def test_1(self):
-        t = Table()
+    def test_1(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table()
         t.add_column(self.a, 0)
 
-    def test_2(self):
-        t = Table()
+    def test_2(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table()
         t.add_column(self.a, 1)
 
-    def test_3(self):
-        t = Table()
+    def test_3(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table()
         t.add_column(self.a, -1)
 
-    def test_5(self):
-        t = Table()
+    def test_5(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table()
         with pytest.raises(ValueError):
             t.index_column('b')
 
-    def test_6(self):
-        t = Table()
+    def test_6(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table()
         t.add_column(self.a)
         t.add_column(self.b)
         assert t.columns.keys() == ['a', 'b']
 
-    def test_7(self):
-        t = Table([self.a])
+    def test_7(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a])
         t.add_column(self.b, t.index_column('a'))
         assert t.columns.keys() == ['b', 'a']
 
-    def test_8(self):
-        t = Table([self.a])
+    def test_8(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a])
         t.add_column(self.b, t.index_column('a') + 1)
         assert t.columns.keys() == ['a', 'b']
 
-    def test_9(self):
-        t = Table()
+    def test_9(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table()
         t.add_column(self.a)
         t.add_column(self.b, t.index_column('a') + 1)
         t.add_column(self.c, t.index_column('b'))
         assert t.columns.keys() == ['a', 'c', 'b']
 
-    def test_10(self):
-        t = Table()
+    def test_10(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table()
         t.add_column(self.a)
         ia = t.index_column('a')
         t.add_column(self.b, ia + 1)
@@ -347,20 +371,21 @@ class TestAddPosition(SetupData):
         assert t.columns.keys() == ['c', 'a', 'b']
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestInitFromTable(SetupData):
 
-    def test_from_table_cols(self):
+    def test_from_table_cols(self, table_types):
         """Ensure that using cols from an existing table gives
         a clean copy.
         """
+        self._setup(table_types)
         t = self.t
         cols = t.columns
         # Construct Table with cols via Table._new_from_cols
-        t2a = Table([cols['a'], cols['b'], self.c])
+        t2a = table_types.Table([cols['a'], cols['b'], self.c])
 
         # Construct with add_column
-        t2b = Table()
+        t2b = table_types.Table()
         t2b.add_column(cols['a'])
         t2b.add_column(cols['b'])
         t2b.add_column(self.c)
@@ -382,78 +407,86 @@ class TestInitFromTable(SetupData):
             assert t.columns['a'].meta['aa'][3] == 3
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestAddColumns(SetupData):
 
-    def test_add_columns1(self):
-        t = Table()
+    def test_add_columns1(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table()
         t.add_columns([self.a, self.b, self.c])
         assert t.colnames == ['a', 'b', 'c']
 
-    def test_add_columns2(self):
-        t = Table([self.a, self.b])
+    def test_add_columns2(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
         t.add_columns([self.c, self.d])
         assert t.colnames == ['a', 'b', 'c', 'd']
         assert np.all(t['c'] == np.array([7, 8, 9]))
 
-    def test_add_columns3(self):
-        t = Table([self.a, self.b])
+    def test_add_columns3(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
         t.add_columns([self.c, self.d], indexes=[1, 0])
         assert t.colnames == ['d', 'a', 'c', 'b']
 
-    def test_add_columns4(self):
-        t = Table([self.a, self.b])
+    def test_add_columns4(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
         t.add_columns([self.c, self.d], indexes=[0, 0])
         assert t.colnames == ['c', 'd', 'a', 'b']
 
-    def test_add_columns5(self):
-        t = Table([self.a, self.b])
+    def test_add_columns5(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
         t.add_columns([self.c, self.d], indexes=[2, 2])
         assert t.colnames == ['a', 'b', 'c', 'd']
 
-    def test_add_duplicate_column(self):
-        t = Table()
+    def test_add_duplicate_column(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table()
         t.add_column(self.a)
         with pytest.raises(ValueError):
-            t.add_column(Column(name='a', data=[0, 1, 2]))
+            t.add_column(table_types.Column(name='a', data=[0, 1, 2]))
         t.add_column(self.b)
         t.add_column(self.c)
         assert t.colnames == ['a', 'b', 'c']
 
-    def test_add_duplicate_columns(self):
-        t = Table([self.a, self.b, self.c])
+    def test_add_duplicate_columns(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b, self.c])
         with pytest.raises(ValueError):
-            t.add_columns([Column(name='a', data=[0, 1, 2]), Column(name='b', data=[0, 1, 2])])
+            t.add_columns([table_types.Column(name='a', data=[0, 1, 2]), table_types.Column(name='b', data=[0, 1, 2])])
         t.add_column(self.d)
         assert t.colnames == ['a', 'b', 'c', 'd']
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestAddRow(SetupData):
 
     @property
     def b(self):
-        if Column is not None:
+        if self._column_type is not None:
             if not hasattr(self, '_b'):
-                self._b = Column(name='b', data=[4.0, 5.1, 6.2])
+                self._b = self._column_type(name='b', data=[4.0, 5.1, 6.2])
             return self._b
 
     @property
     def c(self):
-        if Column is not None:
+        if self._column_type is not None:
             if not hasattr(self, '_c'):
-                self._c = Column(name='c', data=['7', '8', '9'])
+                self._c = self._column_type(name='c', data=['7', '8', '9'])
             return self._c
 
     @property
     def t(self):
-        if Table is not None:
+        if self._table_type is not None:
             if not hasattr(self, '_t'):
-                self._t = Table([self.a, self.b, self.c])
+                self._t = self._table_type([self.a, self.b, self.c])
             return self._t
 
-    def test_add_none_to_empty_table(self):
-        t = Table(names=('a', 'b'), dtypes=('i', 'S4'))
+    def test_add_none_to_empty_table(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table(names=('a', 'b'), dtypes=('i', 'S4'))
         t.add_row()
         assert t['a'][0] == 0
         assert t['b'][0] == b''
@@ -461,8 +494,9 @@ class TestAddRow(SetupData):
         assert t['a'][1] == 0
         assert t['b'][1] == b''
 
-    def test_add_stuff_to_empty_table(self):
-        t = Table(names=('a', 'b'), dtypes=('i', 'S8'))
+    def test_add_stuff_to_empty_table(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table(names=('a', 'b'), dtypes=('i', 'S8'))
         t.add_row([1, 'hello'])
         assert t['a'][0] == 1
         assert t['b'][0] == b'hello'
@@ -472,16 +506,18 @@ class TestAddRow(SetupData):
         assert t['a'][1] == 0
         assert t['b'][1] == b''
 
-    def test_add_table_row(self):
+    def test_add_table_row(self, table_types):
+        self._setup(table_types)
         t = self.t
-        t2 = Table([self.a, self.b, self.c])
+        t2 = table_types.Table([self.a, self.b, self.c])
         t.add_row(t2[0])
         assert len(t) == 4
         assert np.all(t['a'] == np.array([1, 2, 3, 1]))
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 4.0]))
         assert np.all(t['c'] == np.array(['7', '8', '9', '7']))
 
-    def test_add_with_tuple(self):
+    def test_add_with_tuple(self, table_types):
+        self._setup(table_types)
         t = self.t
         t.add_row((4, 7.2, '1'))
         assert len(t) == 4
@@ -489,7 +525,8 @@ class TestAddRow(SetupData):
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 7.2]))
         assert np.all(t['c'] == np.array(['7', '8', '9', '1']))
 
-    def test_add_with_list(self):
+    def test_add_with_list(self, table_types):
+        self._setup(table_types)
         t = self.t
         t.add_row([4, 7.2, '10'])
         assert len(t) == 4
@@ -497,7 +534,8 @@ class TestAddRow(SetupData):
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 7.2]))
         assert np.all(t['c'] == np.array(['7', '8', '9', '1']))
 
-    def test_add_with_dict(self):
+    def test_add_with_dict(self, table_types):
+        self._setup(table_types)
         t = self.t
         t.add_row({'a': 4, 'b': 7.2})
         assert len(t) == 4
@@ -508,7 +546,8 @@ class TestAddRow(SetupData):
         else:
             assert np.all(t['c'] == np.array(['7', '8', '9', '']))
 
-    def test_add_with_none(self):
+    def test_add_with_none(self, table_types):
+        self._setup(table_types)
         t = self.t
         t.add_row()
         assert len(t) == 4
@@ -516,143 +555,161 @@ class TestAddRow(SetupData):
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 0.0]))
         assert np.all(t['c'].data == np.array(['7', '8', '9', '']))
 
-    def test_add_missing_column(self):
+    def test_add_missing_column(self, table_types):
+        self._setup(table_types)
         t = self.t
         with pytest.raises(ValueError):
             t.add_row({'bad_column': 1})
 
-    def test_wrong_size_tuple(self):
+    def test_wrong_size_tuple(self, table_types):
+        self._setup(table_types)
         t = self.t
         with pytest.raises(ValueError):
             t.add_row((1, 2))
 
-    def test_wrong_vals_type(self):
+    def test_wrong_vals_type(self, table_types):
+        self._setup(table_types)
         t = self.t
         with pytest.raises(TypeError):
             t.add_row(1)
 
-    def test_add_without_own_fails(self):
+    def test_add_without_own_fails(self, table_types):
         """Add row to a table that doesn't own the data"""
+        self._setup(table_types)
         data = np.array([(1, 2, 3),
                          (3, 4, 5)],
                         dtype='i4')
-        t = Table(data, copy=False)
+        t = table_types.Table(data, copy=False)
         if not t.masked:
             with pytest.raises(ValueError):
                 t.add_row([6, 7, 8])
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestTableColumn(SetupData):
 
-    def test_column_view(self):
+    def test_column_view(self, table_types):
+        self._setup(table_types)
         t = self.t
         a = t.columns['a']
         a[2] = 10
         assert t._data['a'][2] == 10
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestArrayColumns(SetupData):
 
-    def test_1d(self):
-        b = Column(name='b', dtype=int, shape=(2, ), length=3)
-        t = Table([self.a])
+    def test_1d(self, table_types):
+        self._setup(table_types)
+        b = table_types.Column(name='b', dtype=int, shape=(2, ), length=3)
+        t = table_types.Table([self.a])
         t.add_column(b)
         assert t['b'].shape == (3, 2)
         assert t['b'][0].shape == (2, )
 
-    def test_2d(self):
-        b = Column(name='b', dtype=int, shape=(2, 4), length=3)
-        t = Table([self.a])
+    def test_2d(self, table_types):
+        self._setup(table_types)
+        b = table_types.Column(name='b', dtype=int, shape=(2, 4), length=3)
+        t = table_types.Table([self.a])
         t.add_column(b)
         assert t['b'].shape == (3, 2, 4)
         assert t['b'][0].shape == (2, 4)
 
-    def test_3d(self):
-        t = Table([self.a])
-        b = Column(name='b', dtype=int, shape=(2, 4, 6), length=3)
+    def test_3d(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a])
+        b = table_types.Column(name='b', dtype=int, shape=(2, 4, 6), length=3)
         t.add_column(b)
         assert t['b'].shape == (3, 2, 4, 6)
         assert t['b'][0].shape == (2, 4, 6)
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestRemove(SetupData):
 
     @property
     def t(self):
-        if Table is not None:
+        if self._table_type is not None:
             if not hasattr(self, '_t'):
-                self._t = Table([self.a])
+                self._t = self._table_type([self.a])
             return self._t
 
     @property
     def t2(self):
-        if Table is not None:
+        if self._table_type is not None:
             if not hasattr(self, '_t2'):
-                self._t2 = Table([self.a, self.b, self.c])
+                self._t2 = self._table_type([self.a, self.b, self.c])
             return self._t2
 
-    def test_1(self):
+    def test_1(self, table_types):
+        self._setup(table_types)
         self.t.remove_columns('a')
         assert self.t.columns.keys() == []
         assert self.t._data is None
 
-    def test_2(self):
+    def test_2(self, table_types):
+        self._setup(table_types)
         self.t.add_column(self.b)
         self.t.remove_columns('a')
         assert self.t.columns.keys() == ['b']
         assert self.t._data.dtype.names == ('b',)
         assert np.all(self.t['b'] == np.array([4, 5, 6]))
 
-    def test_delitem1(self):
+    def test_delitem1(self, table_types):
+        self._setup(table_types)
         del self.t['a']
         assert self.t.columns.keys() == []
         assert self.t._data is None
 
-    def test_delitem2(self):
+    def test_delitem2(self, table_types):
+        self._setup(table_types)
         del self.t2['b']
         assert self.t2.colnames == ['a', 'c']
 
-    def test_delitems(self):
+    def test_delitems(self, table_types):
+        self._setup(table_types)
         del self.t2['a', 'b']
         assert self.t2.colnames == ['c']
 
-    def test_delitem_fail(self):
+    def test_delitem_fail(self, table_types):
+        self._setup(table_types)
         with pytest.raises(KeyError):
             del self.t['d']
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestKeep(SetupData):
 
-    def test_1(self):
-        t = Table([self.a, self.b])
+    def test_1(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
         t.keep_columns([])
         assert t.columns.keys() == []
         assert t._data is None
 
-    def test_2(self):
-        t = Table([self.a, self.b])
+    def test_2(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
         t.keep_columns('b')
         assert t.columns.keys() == ['b']
         assert t._data.dtype.names == ('b',)
         assert np.all(t['b'] == np.array([4, 5, 6]))
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestRename(SetupData):
 
-    def test_1(self):
-        t = Table([self.a])
+    def test_1(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a])
         t.rename_column('a', 'b')
         assert t.columns.keys() == ['b']
         assert t._data.dtype.names == ('b',)
         assert np.all(t['b'] == np.array([1, 2, 3]))
 
-    def test_2(self):
-        t = Table([self.a, self.b])
+    def test_2(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
         t.rename_column('a', 'c')
         t.rename_column('b', 'a')
         assert t.columns.keys() == ['c', 'a']
@@ -662,8 +719,9 @@ class TestRename(SetupData):
         assert np.all(t['c'] == np.array([1, 2, 3]))
         assert np.all(t['a'] == np.array([4, 5, 6]))
 
-    def test_rename_by_attr(self):
-        t = Table([self.a, self.b])
+    def test_rename_by_attr(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b])
         t['a'].name = 'c'
         t['b'].name = 'a'
         assert t.columns.keys() == ['c', 'a']
@@ -672,13 +730,13 @@ class TestRename(SetupData):
         assert np.all(t['a'] == np.array([4, 5, 6]))
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestSort():
 
-    def test_single(self):
-        t = Table()
-        t.add_column(Column(name='a', data=[2, 1, 3]))
-        t.add_column(Column(name='b', data=[6, 5, 4]))
+    def test_single(self, table_types):
+        t = table_types.Table()
+        t.add_column(table_types.Column(name='a', data=[2, 1, 3]))
+        t.add_column(table_types.Column(name='b', data=[6, 5, 4]))
         assert np.all(t['a'] == np.array([2, 1, 3]))
         assert np.all(t['b'] == np.array([6, 5, 4]))
         t.sort('a')
@@ -688,20 +746,20 @@ class TestSort():
         assert np.all(t['a'] == np.array([3, 1, 2]))
         assert np.all(t['b'] == np.array([4, 5, 6]))
 
-    def test_single_big(self):
+    def test_single_big(self, table_types):
         """Sort a big-ish table with a non-trivial sort order"""
         x = np.arange(10000)
         y = np.sin(x)
-        t = Table([x, y], names=('x', 'y'))
+        t = table_types.Table([x, y], names=('x', 'y'))
         t.sort('y')
         idx = np.argsort(y)
         assert np.all(t['x'] == x[idx])
         assert np.all(t['y'] == y[idx])
 
-    def test_multiple(self):
-        t = Table()
-        t.add_column(Column(name='a', data=[2, 1, 3, 2, 3, 1]))
-        t.add_column(Column(name='b', data=[6, 5, 4, 3, 5, 4]))
+    def test_multiple(self, table_types):
+        t = table_types.Table()
+        t.add_column(table_types.Column(name='a', data=[2, 1, 3, 2, 3, 1]))
+        t.add_column(table_types.Column(name='b', data=[6, 5, 4, 3, 5, 4]))
         assert np.all(t['a'] == np.array([2, 1, 3, 2, 3, 1]))
         assert np.all(t['b'] == np.array([6, 5, 4, 3, 5, 4]))
         t.sort(['a', 'b'])
@@ -712,14 +770,14 @@ class TestSort():
         assert np.all(t['b'] == np.array([3, 4, 4, 5, 5, 6]))
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestIterator():
 
-    def test_iterator(self):
+    def test_iterator(self, table_types):
         d = np.array([(2, 1),
                       (3, 6),
                       (4, 5)], dtype=[('a', 'i4'), ('b', 'i4')])
-        t = Table(d)
+        t = table_types.Table(d)
         if t.masked:
             with pytest.raises(ValueError):
                 t[0] == d[0]
@@ -728,11 +786,11 @@ class TestIterator():
                 assert np.all(row == np_row)
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestSetMeta():
 
-    def test_set_meta(self):
-        d = Table(names=('a', 'b'))
+    def test_set_meta(self, table_types):
+        d = table_types.Table(names=('a', 'b'))
         d.meta['a'] = 1
         d.meta['b'] = 1
         d.meta['c'] = 1
@@ -740,20 +798,20 @@ class TestSetMeta():
         assert list(d.meta.keys()) == ['a', 'b', 'c', 'd']
 
 
-@pytest.mark.usefixtures('set_global_Table')
+@pytest.mark.usefixtures('table_types')
 class TestConvertNumpyArray():
 
-    def test_convert_numpy_array(self):
-        d = Table([[1, 2], [3, 4]], names=('a', 'b'))
+    def test_convert_numpy_array(self, table_types):
+        d = table_types.Table([[1, 2], [3, 4]], names=('a', 'b'))
 
         np_data = np.array(d)
-        if Table is not MaskedTable:
+        if table_types.Table is not MaskedTable:
             assert np.all(np_data == d._data)
         assert not np_data is d._data
         assert d.colnames == list(np_data.dtype.names)
 
         np_data = np.array(d, copy=False)
-        if Table is not MaskedTable:
+        if table_types.Table is not MaskedTable:
             assert np.all(np_data == d._data)
             assert np_data is d._data
         assert d.colnames == list(np_data.dtype.names)
