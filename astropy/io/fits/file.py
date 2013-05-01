@@ -381,7 +381,7 @@ class _File(object):
             os.fsync(tmpfd)
             try:
                 mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
-            except mmap.error, e:
+            except mmap.error as e:
                 warnings.warn('Failed to create mmap: %s; mmap use will be '
                               'disabled' % str(e))
                 _File._mmap_available = False
