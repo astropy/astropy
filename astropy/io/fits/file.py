@@ -377,7 +377,7 @@ class _File(object):
         tmpfd, tmpname = tempfile.mkstemp()
         try:
             # Windows does not allow mappings on empty files
-            os.write(tmpfd, ' ')
+            os.write(tmpfd, b' ')
             os.fsync(tmpfd)
             try:
                 mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
