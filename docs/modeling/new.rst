@@ -20,7 +20,7 @@ named `~astropy.modeling.core.Model.param_names`. Pass the list of parameter
 names and the number of parameter sets to the base class. Note, that if
 the method which evaluates the model cannot work with multiple parameter sets,
 `~astropy.modeling.core.Model.param_dim` should not be given
-as an argument in the __init__ method. The default for
+as an argument in the ``__init__`` method. The default for
 `~astropy.modeling.core.Model.param_dim` is set in the base class to 1.::
 
     from astropy.modeling import *
@@ -33,11 +33,12 @@ As a minimum the __init__ method takes all parameters and the number of
 parameter sets, `~astropy.modeling.Model.param_dim`::
 
     def __init__(self, amplitude, mean, stddev, param_dim=1):
-        self.linear = False
         self._amplitude = Parameter(name='amplitude', val=amplitude, mclass=self, param_dim=param_dim)
         self._stddev = Parameter(name='stddev', val=stddev, mclass=self, param_dim=param_dim)
         self._mean = Parameter(name='mean', val=mean, mclass=self, param_dim=param_dim)
-        ParametricModel.__init__(self, self.param_names, n_inputs=1, n_outputs=1, param_dim=param_dim)
+        super(ParametricModel,self).__init__(self, self.param_names,
+            n_inputs=1, n_outputs=1, param_dim=param_dim)
+        self.linear = False
     
 Parametric models can be linear or nonlinear in a regression sense. The default 
 value of the `~astropy.modeling.core.Model.linear` attribute is True. 
@@ -55,14 +56,27 @@ called "deriv",  to compute its derivatives. The evaluation method takes all
 input coordinates as separate arguments and a parameter set. For this example::
 
     def eval(self, x, params):
-        return params[0] * np.exp((-(1/(params[2]**2)) * (x-params[1])**2))
+        return params[0] * np.exp((-(1/(2.*params[2]**2)) * (x-params[1])**2))
                                                 
 
 The "deriv" method takes as input all coordinates as separate arguments.
 There is an option to compute numerical derivatives for nonlinear models
-in which case the "deriv" method should return None.
+in which case the "deriv" method should be ``None``.  The "deriv" method
+must also accept a dummy variable for compatibility with `scipy.optimize`::
 
-Finally, the __call__ method takes input coordinates as separate arguments.
+    def gderiv(self, p, x, dummy):
+        amplitude, mean, stddev = p
+        deriv_dict = {}
+        deriv_dict['amplitude'] = np.exp((-(1/(stddev**2)) * (x-mean)**2))
+        deriv_dict['mean'] = 2 * amplitude * np.exp((-(1/(stddev**2)) *
+                                (x-mean)**2)) * (x-mean)/(stddev**2)
+        deriv_dict['stddev'] = 2 * amplitude * np.exp((-(1/(stddev**2)) *
+                                (x-mean)**2)) * ((x-mean)**2)/(stddev**3)
+        derivval = [deriv_dict[par] for par in self.param_names]
+        return np.array(derivval).T
+
+
+Finally, the ``__call__`` method takes input coordinates as separate arguments.
 It reformats them (if necessary) and calls the eval method to perform the 
 model evaluation using model.param_sets as parameters. 
 The reason there is a separate eval method is to allow fitters to call the eval
@@ -85,10 +99,10 @@ A Full Example of a LineModel
         param_names = ['slope', 'intercept']
     
     def init(self, slope, intercept, param_dim=1):
-        self.linear = True 
         self._slope = parameters.Parameter(name='slope', val=slope, mclass=self, param_dim=param_dim)
         self._intercept = parameters.Parameter(name='intercept', val=intercept, mclass=self, param_dim=param_dim)
-        models.ParametricModel.__init__(self, self.param_names, n_inputs=1, n_outputs=1, param_dim=param_dim)
+        super(models.ParametricModel,self).__init__(self, self.param_names, n_inputs=1, n_outputs=1, param_dim=param_dim)
+        self.linear = True 
         self.domain = [-1, 1]
         self.window = [-1, 1]
         self._order = 2
@@ -111,7 +125,7 @@ Creating a New Type of Fitter
 *****************************
 
 This document describes how to add a new nonlinear fitting algorithm
-to this package. In short, one needs to define an error function and a __call__
+to this package. In short, one needs to define an error function and a ``__call__``
 method and define the types of constraints which work with this fitter (if any).
 
 The details are described below using scipy's SLSQP algorithm as an example.
@@ -120,13 +134,13 @@ The base class for all fitters is `~astropy.modeling.fitting.Fitter`.::
     class SLSQPFitter(Fitter):
         def __init__(self, model, fixed=None, tied=None, bounds=None,
                             eqcons=None, ineqcons=None):
-            Fitter.__init__(self, model, fixed=fixed, tied=tied, bounds=bounds, 
+            super(Fitter,self).__init__(self, model, fixed=fixed, tied=tied, bounds=bounds, 
                                       eqcons=eqcons, ineqcons=ineqcons)
             if self.model.linear:
                 raise ModelLinearityException('Model is linear in parameters, '
                              'non-linear fitting methods should not be used.')
 
-All fitters take a model (their __call__ method modifies the model's parameters).
+All fitters take a model (their ``__call__`` method modifies the model's parameters).
 If the fitter does not support constraint fitting, this may be the only argument 
 passed to the constructor. In our example the rest of the arguments represent 
 different types of constraints.
@@ -142,7 +156,7 @@ squared residuals is used as a measure of fitting.::
         res = self.model(*args[1:]) - meas
         return np.sum(res**2)
     
-The __call__ method performs the fitting. As a minimum it takes all coordinates 
+The ``__call__`` method performs the fitting. As a minimum it takes all coordinates 
 as separate arguments. Additional arguments are passed as necessary.::
 
     def __call__(self, x, y , maxiter=MAXITER, epsilon=EPS):

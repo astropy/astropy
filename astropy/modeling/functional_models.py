@@ -69,7 +69,23 @@ class Gaussian1DModel(ParametricModel):
         return params[0] * np.exp((-(1/(params[2]**2)) * 
                                                 (x-params[1])**2))
  
-    def gderiv(self, p, x, y):
+    def gderiv(self, p, x, dummy):
+        """ 
+        Analytical Gaussian derivative 
+
+        Parameters
+        ----------
+        p : list
+            Parameter list
+        x : array
+            Array of X-values at which to evaluate derivative
+        dummy : None
+            A dummy variable required by scipy's optimize techniques
+
+        Returns
+        -------
+        The derivatives along each parameter with shape [npars, len(x)]
+        """
         amplitude, mean, stddev = p
         deriv_dict = {}
         deriv_dict['amplitude'] = np.exp((-(1/(stddev**2)) * (x-mean)**2))
