@@ -1250,7 +1250,7 @@ class Table(object):
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.colnames)
         s = "<Table rows={0} names=({1})>\n{2}".format(
-            self.__len__(),  ','.join(names), repr(self._data))
+            self.__len__(), ','.join(names), repr(self._data))
         return s
 
     def __str__(self):
@@ -1537,6 +1537,24 @@ class Table(object):
         -------
         index : int
             Positional index of column ``name``.
+
+        Examples
+        --------
+        Create a table with three columns 'a', 'b' and 'c'::
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
+                            names=('a', 'b', 'c'))
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
+
+        Get index of column 'b' of the table::
+
+            >>> t.index_column('b')
+            1
         """
         try:
             return self.colnames.index(name)
@@ -1556,6 +1574,43 @@ class Table(object):
             Column object to add.
         index : int or None
             Insert column before this position or at end (default)
+
+        Examples
+        --------
+        Create a table with two columns 'a' and 'b'::
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
+            >>> print t
+             a   b
+            --- ---
+              1 0.1
+              2 0.2
+              3 0.3
+
+        Create a third column 'c' and append it to the end of the table::
+
+            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
+            >>> t.add_column(col_c)
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
+
+        Add column 'c' at position 1. Note that the column is inserted
+        before the given index::
+
+            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
+            >>> t.add_column(col_c, 1)
+            >>> print t
+             a   c   b
+            --- --- ---
+              1   x 0.1
+              2   y 0.2
+              3   z 0.3
+
+        To add several columns use add_columns.
         """
         if index is None:
             index = len(self.columns)
@@ -1574,6 +1629,43 @@ class Table(object):
             Column objects to add.
         indexes : list of ints or None
             Insert column before this position or at end (default)
+
+        Examples
+        --------
+        Create a table with two columns 'a' and 'b'::
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
+            >>> print t
+             a   b
+            --- ---
+              1 0.1
+              2 0.2
+              3 0.3
+
+        Create column 'c' and 'd' and append them to the end of the table::
+
+            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
+            >>> col_d = Column(name='d', data=['u', 'v', 'w'])
+            >>> t.add_columns([col_c, col_d])
+            >>> print t
+             a   b   c   d
+            --- --- --- ---
+              1 0.1   x   u
+              2 0.2   y   v
+              3 0.3   z   w
+
+        Add column 'c' at position 0 and column 'd' at position 1. Note that
+        the columns are inserted before the given position::
+
+            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
+            >>> col_d = Column(name='d', data=['u', 'v', 'w'])
+            >>> t.add_columns([col_c, col_d], [0, 1])
+            >>> print t
+             c   a   d   b
+            --- --- --- ---
+              x   1   u 0.1
+              y   2   v 0.2
+              z   3   w 0.3
         """
         if indexes is None:
             indexes = [len(self.columns)] * len(cols)
@@ -1605,6 +1697,31 @@ class Table(object):
         ----------
         name : str
             Name of column to remove
+
+        Examples
+        --------
+        Create a table with three columns 'a', 'b' and 'c'::
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
+                            names=('a', 'b', 'c'))
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
+
+        Remove column 'b' from the table::
+
+            >>> t.remove_column('b')
+            >>> print t
+             a   c
+            --- ---
+              1   x
+              2   y
+              3   z
+
+        To remove several columns at the same time use remove_columns.
         """
 
         self.remove_columns([name])
@@ -1617,6 +1734,41 @@ class Table(object):
         ----------
         names : list
             A list containing the names of the columns to remove
+
+        Examples
+        --------
+        Create a table with three columns 'a', 'b' and 'c'::
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
+                    names=('a', 'b', 'c'))
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
+
+        Remove columns 'b' and 'c' from the table::
+
+            >>> t.remove_columns(['b', 'c'])
+            >>> print t
+             a
+            ---
+              1
+              2
+              3
+
+        Specifying only a single column also works. Remove column 'b' from the table:
+
+            >>> t.remove_columns('b')
+            >>> print t
+             a   c
+            --- ---
+              1   x
+              2   y
+              3   z
+
+        This gives the same as using remove_column.
         '''
 
         for name in names:
@@ -1637,6 +1789,41 @@ class Table(object):
         names : list
             A list containing the names of the columns to keep. All other
             columns will be removed.
+
+        Examples
+        --------
+        Create a table with three columns 'a', 'b' and 'c'::
+
+            >>> t = Table([[1, 2, 3],[0.1, 0.2, 0.3],['x', 'y', 'z']],
+                            names=('a', 'b', 'c'))
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
+
+        Specifying only a single column name keeps only this column.
+        Keep only column 'a' of the table::
+
+            >>> t.keep_columns('a')
+            >>> print t
+             a
+            ---
+              1
+              2
+              3
+
+        Specifying a list of column names is keeps is also possible.
+        Keep columns 'a' and 'c' of the table::
+
+            >>> t.keep_columns(['a', 'c'])
+            >>> print t
+             a   c
+            --- ---
+              1   x
+              2   y
+              3   z
         '''
 
         if isinstance(names, basestring):
