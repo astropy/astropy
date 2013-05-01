@@ -758,7 +758,7 @@ def _makehdu(data, header):
         # The HDU type was unrecognized, possibly due to a
         # nonexistent/incomplete header
         if ((isinstance(data, np.ndarray) and data.dtype.fields is not None)
-            or isinstance(data, np.recarray)):
+                or isinstance(data, np.recarray)):
             hdu = BinTableHDU(data)
         elif isinstance(data, np.ndarray):
             hdu = ImageHDU(data)

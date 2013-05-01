@@ -133,7 +133,7 @@ class Header(object):
             keyword = key
         card = self._cards[self._cardindex(key)]
         if (card.field_specifier is not None and
-            keyword == card.keyword.split('.', 1)[0]):
+                keyword == card.keyword.split('.', 1)[0]):
             # This is RVKC; if only the top-level keyword was specified return
             # the raw value, not the parsed out float value
             return card.rawvalue
@@ -791,14 +791,14 @@ class Header(object):
         # only for validating RVKCs.
         if (len(keyword) <= KEYWORD_LENGTH and
             Card._keywd_FSC_RE.match(keyword) and
-            keyword not in self._keyword_indices):
+                keyword not in self._keyword_indices):
             new_card = Card(keyword, value, comment)
             new_keyword = new_card.keyword
         else:
             new_keyword = keyword
 
         if (new_keyword not in Card._commentary_keywords and
-            new_keyword in self):
+                new_keyword in self):
             if comment is None:
                 comment = self.comments[keyword]
             if value is None:
@@ -815,12 +815,6 @@ class Header(object):
                                  after=after)
         else:
             self[keyword] = (value, comment)
-
-    @deprecated('3.0', alternative='``key in header`` syntax')
-    def has_key(self, key):
-        """Like :meth:`dict.has_key`."""
-
-        return key in self
 
     def items(self):
         """Like :meth:`dict.items`."""
@@ -1062,10 +1056,10 @@ class Header(object):
                     card = Card(*((k,) + v))
                 else:
                     raise ValueError(
-                            'Header update value for key %r is invalid; the '
-                            'value must be either a scalar, a 1-tuple '
-                            'containing the scalar value, or a 2-tuple '
-                            'containing the value and a comment string.' % k)
+                        'Header update value for key %r is invalid; the '
+                        'value must be either a scalar, a 1-tuple '
+                        'containing the scalar value, or a 2-tuple '
+                        'containing the value and a comment string.' % k)
                 self._update(card)
 
             if other is None:
@@ -1084,10 +1078,10 @@ class Header(object):
                         self._update(Card(*card))
                     else:
                         raise ValueError(
-                                'Header update sequence item #%d is invalid; '
-                                'the item must either be a 2-tuple containing '
-                                'a keyword and value, or a 3-tuple containing '
-                                'a keyword, value, and comment string.' % idx)
+                            'Header update sequence item #%d is invalid; '
+                            'the item must either be a 2-tuple containing '
+                            'a keyword and value, or a 3-tuple containing '
+                            'a keyword, value, and comment string.' % idx)
             if kwargs:
                 self.update(kwargs)
 
@@ -1250,7 +1244,7 @@ class Header(object):
                         # XTENSION as the case may be, as was in the case in
                         # Header.fromTxtFile
                         if ((keyword == 'SIMPLE' and first == 'XTENSION') or
-                            (keyword == 'XTENSION' and first == 'SIMPLE')):
+                                (keyword == 'XTENSION' and first == 'SIMPLE')):
                             del self[0]
                             self.insert(0, card)
                         else:
@@ -1331,10 +1325,10 @@ class Header(object):
         else:
             step = 1
 
-        keyword = Card.normalize_keyword(keyword)
+        norm_keyword = Card.normalize_keyword(keyword)
 
         for idx in xrange(start, stop, step):
-            if self._cards[idx].keyword == keyword:
+            if self._cards[idx].keyword.upper() == norm_keyword:
                 return idx
         else:
             raise ValueError('The keyword %r is not in the header.' % keyword)
@@ -1446,7 +1440,7 @@ class Header(object):
             raise ValueError('Can not rename to CONTINUE')
 
         if (newkeyword in Card._commentary_keywords or
-            oldkeyword in Card._commentary_keywords):
+                oldkeyword in Card._commentary_keywords):
             if not (newkeyword in Card._commentary_keywords and
                     oldkeyword in Card._commentary_keywords):
                 raise ValueError('Regular and commentary keys can not be '
@@ -1532,7 +1526,7 @@ class Header(object):
             keyword = keyword[9:]
 
         if (keyword not in Card._commentary_keywords and
-            keyword in self._keyword_indices):
+                keyword in self._keyword_indices):
             # Easy; just update the value/comment
             idx = self._keyword_indices[keyword][0]
             existing_card = self._cards[idx]
@@ -1577,8 +1571,8 @@ class Header(object):
             if (len(key) != 2 or not isinstance(key[0], basestring) or
                     not isinstance(key[1], int)):
                 raise ValueError(
-                        'Tuple indices must be 2-tuples consisting of a '
-                        'keyword string and an integer index.')
+                    'Tuple indices must be 2-tuples consisting of a '
+                    'keyword string and an integer index.')
             keyword, n = key
             keyword = Card.normalize_keyword(keyword)
             # Returns the index into _cards for the n-th card with the given
@@ -1595,7 +1589,7 @@ class Header(object):
                 found = 0
                 for idx, card in enumerate(self._cards):
                     if (card.field_specifier and
-                        card.keyword.startswith(keyword)):
+                            card.keyword.startswith(keyword)):
                         if found == n:
                             return idx
                         found += 1
@@ -1609,8 +1603,8 @@ class Header(object):
                                   keyword))
         else:
             raise ValueError(
-                    'Header indices must be either a string, a 2-tuple, or '
-                    'an integer.')
+                'Header indices must be either a string, a 2-tuple, or '
+                'an integer.')
 
     def _relativeinsert(self, card, before=None, after=None, replace=False):
         """
@@ -1647,7 +1641,7 @@ class Header(object):
             insertion_idx = get_insertion_idx()
 
             if (insertion_idx >= len(self._cards) and
-                old_idx == len(self._cards) - 1):
+                    old_idx == len(self._cards) - 1):
                 # The card would be appended to the end, but it's already at
                 # the end
                 return
@@ -1659,7 +1653,6 @@ class Header(object):
                 return
 
             del self[old_idx]
-
 
         # Even if replace=True, the insertion idx may have changed since the
         # old card was deleted
@@ -1841,19 +1834,11 @@ class Header(object):
 
         return CardList(self)
 
-    @deprecated('3.0', alternative='the `.ascard` attribute')
-    def ascardlist(self):
-        """
-        Returns a `CardList` object.
-        """
-
-        return self.ascard
-
     @deprecated('3.1', alternative=':meth:`Header.rename_keyword`')
     def rename_key(self, oldkey, newkey, force=False):
         self.rename_keyword(oldkey, newkey, force)
 
-    @deprecated('3.1', alternative="``header['HISTORY']``", pending=True)
+    @deprecated('3.1', alternative="``header['HISTORY']``")
     def get_history(self):
         """
         Get all history cards as a list of string texts.
@@ -1864,7 +1849,7 @@ class Header(object):
         else:
             return []
 
-    @deprecated('3.1', alternative="``header['COMMENT']``", pending=True)
+    @deprecated('3.1', alternative="``header['COMMENT']``")
     def get_comment(self):
         """
         Get all comment cards as a list of string texts.

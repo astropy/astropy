@@ -3,7 +3,6 @@ from __future__ import with_statement
 
 import os
 import time
-import shutil
 
 import numpy as np
 from numpy import char as chararray
@@ -50,8 +49,7 @@ class TestGroupsFunctions(FitsTestCase):
         """
 
         # Copy the original file before making any possible changes to it
-        shutil.copy(self.data('random_groups.fits'),
-                    self.temp('random_groups.fits'))
+        self.copy_file('random_groups.fits')
         mtime = os.stat(self.temp('random_groups.fits')).st_mtime
 
         time.sleep(1)
@@ -65,16 +63,16 @@ class TestGroupsFunctions(FitsTestCase):
 
     def test_parnames_round_trip(self):
         """
-        Regression test for #130.  Ensures that opening a random groups file in
-        update mode or writing it to a new file does not cause any change to
-        the parameter names.
+        Regression test for https://trac.assembla.com/pyfits/ticket/130
+
+        Ensures that opening a random groups file in update mode or writing it
+        to a new file does not cause any change to the parameter names.
         """
 
         # Because this test tries to update the random_groups.fits file, let's
         # make a copy of it first (so that the file doesn't actually get
         # modified in the off chance that the test fails
-        shutil.copy(self.data('random_groups.fits'),
-                    self.temp('random_groups.fits'))
+        self.copy_file('random_groups.fits')
 
         parameters = ['UU', 'VV', 'WW', 'BASELINE', 'DATE']
         with fits.open(self.temp('random_groups.fits'), mode='update') as h:
@@ -96,7 +94,6 @@ class TestGroupsFunctions(FitsTestCase):
         regression test for an as-of-yet unreported issue where slicing
         GroupData returned a single Group record.
         """
-
 
         with fits.open(self.data('random_groups.fits')) as hdul:
             s = hdul[0].data[1:]
@@ -136,9 +133,8 @@ class TestGroupsFunctions(FitsTestCase):
         pdata1 = np.arange(10, dtype=np.float32) + 0.1
         pdata2 = 42.0
         x = fits.hdu.groups.GroupData(imdata, parnames=['abc', 'xyz'],
-                                        pardata=[pdata1, pdata2], bitpix=-32)
-
-        assert x.parnames, ['abc' == 'xyz']
+                                      pardata=[pdata1, pdata2], bitpix=-32)
+        assert x.parnames == ['abc', 'xyz']
         assert (x.par('abc') == pdata1).all()
         assert (x.par('xyz') == ([pdata2] * len(x))).all()
         assert (x.data == imdata).all()
@@ -157,7 +153,7 @@ class TestGroupsFunctions(FitsTestCase):
             assert hdr['NAXIS3'] == 2
             assert hdr['NAXIS4'] == 1
             assert hdr['NAXIS5'] == 1
-            assert h[0].data.parnames, ['abc' == 'xyz']
+            assert h[0].data.parnames == ['abc', 'xyz']
             assert comparerecords(h[0].data, x)
 
     def test_duplicate_parameter(self):
@@ -172,10 +168,10 @@ class TestGroupsFunctions(FitsTestCase):
         pdata1 = np.arange(10, dtype=np.float32) + 1
         pdata2 = 42.0
         x = fits.hdu.groups.GroupData(imdata, parnames=['abc', 'xyz', 'abc'],
-                                        pardata=[pdata1, pdata2, pdata1],
-                                        bitpix=-32)
+                                      pardata=[pdata1, pdata2, pdata1],
+                                      bitpix=-32)
 
-        assert x.parnames, ['abc', 'xyz' == 'abc']
+        assert x.parnames == ['abc', 'xyz', 'abc']
         assert (x.par('abc') == pdata1 * 2).all()
         assert x[0].par('abc') == 2
 
@@ -198,7 +194,7 @@ class TestGroupsFunctions(FitsTestCase):
             assert hdr['PTYPE1'] == 'abc'
             assert hdr['PTYPE2'] == 'xyz'
             assert hdr['PTYPE3'] == 'abc'
-            assert x.parnames, ['abc', 'xyz' == 'abc']
-            assert x.dtype.names, ('abc', 'xyz', '_abc' == 'DATA')
+            assert x.parnames == ['abc', 'xyz', 'abc']
+            assert x.dtype.names == ('abc', 'xyz', '_abc', 'DATA')
             assert x.par('abc')[0] == 5
             assert (x.par('abc')[1:] == pdata1[1:] * 2).all()
