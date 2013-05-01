@@ -6,7 +6,8 @@ import warnings
 import numpy as np
 
 from ....io import fits
-from ....tests.helper import pytest
+from ....io.fits.verify import VerifyWarning
+from ....tests.helper import pytest, catch_warnings
 
 from . import FitsTestCase
 from .util import ignore_warnings
@@ -279,7 +280,7 @@ class TestHeaderFunctions(FitsTestCase):
     def test_keyword_too_long(self):
         """Test that long Card keywords are allowed, but with a warning"""
 
-        with warnings.catch_warnings():
+        with catch_warnings():
             warnings.simplefilter('error')
             pytest.raises(UserWarning, fits.Card, 'abcdefghi', 'long')
 
@@ -293,10 +294,10 @@ class TestHeaderFunctions(FitsTestCase):
         # keyword like 'abc+' was simply not allowed.  Now it should create a
         # HIERARCH card.
 
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             c = fits.Card('abc+', 9)
-            assert len(w) == 1
-            assert c.image == _pad('HIERARCH abc+ =                    9')
+        assert len(w) == 1
+        assert c.image == _pad('HIERARCH abc+ =                    9')
 
     def test_commentary_cards(self):
         # commentary cards
@@ -390,23 +391,23 @@ class TestHeaderFunctions(FitsTestCase):
     def test_verify_invalid_equal_sign(self):
         # verification
         c = fits.Card.fromstring('abc= a6')
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             c.verify()
-            err_text1 = ("Card 'ABC' is not FITS standard (equal sign not at "
-                         "column 8)")
-            err_text2 = ("Card 'ABC' is not FITS standard (invalid value "
-                         "string: a6")
-            assert len(w) == 4
-            assert err_text1 in str(w[1].message)
-            assert err_text2 in str(w[2].message)
+        err_text1 = ("Card 'ABC' is not FITS standard (equal sign not at "
+                     "column 8)")
+        err_text2 = ("Card 'ABC' is not FITS standard (invalid value "
+                     "string: a6")
+        assert len(w) == 4
+        assert err_text1 in str(w[1].message)
+        assert err_text2 in str(w[2].message)
 
     def test_fix_invalid_equal_sign(self):
         c = fits.Card.fromstring('abc= a6')
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             c.verify('fix')
-            fix_text = "Fixed 'ABC' card to meet the FITS standard."
-            assert len(w) == 4
-            assert fix_text in str(w[1].message)
+        fix_text = "Fixed 'ABC' card to meet the FITS standard."
+        assert len(w) == 4
+        assert fix_text in str(w[1].message)
         assert str(c) == _pad("ABC     = 'a6      '")
 
     def test_long_string_value(self):
@@ -540,14 +541,14 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_hierarch_card_creation(self):
         # Test automatic upgrade to hierarch card
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             c = fits.Card('ESO INS SLIT2 Y1FRML',
                           'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)')
-            assert len(w) == 1
-            assert 'HIERARCH card will be created' in str(w[0].message)
-            assert (str(c) ==
-                    "HIERARCH ESO INS SLIT2 Y1FRML= "
-                    "'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
+        assert len(w) == 1
+        assert 'HIERARCH card will be created' in str(w[0].message)
+        assert (str(c) ==
+                "HIERARCH ESO INS SLIT2 Y1FRML= "
+                "'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
 
         # Test manual creation of hierarch card
         c = fits.Card('hierarch abcdefghi', 10)
@@ -651,7 +652,7 @@ class TestHeaderFunctions(FitsTestCase):
         msg = 'a HIERARCH card will be created'
 
         header = fits.Header()
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings(VerifyWarning) as w:
             header.update('HIERARCH BLAH BLAH', 'TESTA')
             assert len(w) == 0
             assert 'BLAH BLAH' in header
@@ -714,7 +715,7 @@ class TestHeaderFunctions(FitsTestCase):
         msg = 'a HIERARCH card will be created'
 
         header = fits.Header()
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings(VerifyWarning) as w:
             header.update('HIERARCH BLA BLA', 'TESTA')
             assert len(w) == 0
             assert 'BLA BLA' in header
@@ -741,10 +742,11 @@ class TestHeaderFunctions(FitsTestCase):
             assert header['bla bla'], 'TESTE'
 
         header = fits.Header()
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings(VerifyWarning) as w:
             # Create a HIERARCH card containing invalid characters without
             # explicitly stating 'HIERARCH'
             header.update('BLA BLA', 'TESTA')
+            print([x.category for x in w])
             assert len(w) == 1
             assert msg in str(w[0].message)
 
@@ -1531,15 +1533,15 @@ class TestHeaderFunctions(FitsTestCase):
             f.write(encode_ascii('e'))
 
         hdul = fits.open(self.temp('test.fits'))
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             hdul.writeto(self.temp('temp.fits'), output_verify='warn')
-            assert len(w) == 5
-            # The first two warnings are just the headers to the actual warning
-            # message (HDU 0, Card 4).  I'm still not sure things like that
-            # should be output as separate warning messages, but that's
-            # something to think about...
-            msg = str(w[3].message)
-            assert '(invalid value string: 5.0022221e-07)' in msg
+        assert len(w) == 5
+        # The first two warnings are just the headers to the actual warning
+        # message (HDU 0, Card 4).  I'm still not sure things like that
+        # should be output as separate warning messages, but that's
+        # something to think about...
+        msg = str(w[3].message)
+        assert '(invalid value string: 5.0022221e-07)' in msg
 
     def test_leading_zeros(self):
         """
@@ -1821,15 +1823,15 @@ class TestHeaderFunctions(FitsTestCase):
 
         hdu = fits.PrimaryHDU()
         # This should work with some warnings
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             hdu.header.append(c1)
             hdu.header.append(c2)
             hdu.header.append(c3)
-            assert len(w) == 3
+        assert len(w) == 3
 
         hdu.writeto(self.temp('test.fits'))
 
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             with fits.open(self.temp('test.fits')) as hdul:
                 # Merely opening the file should blast some warnings about the
                 # invalid keywords

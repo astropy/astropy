@@ -10,7 +10,7 @@ import zipfile
 import numpy as np
 
 from ....io import fits
-from ....tests.helper import pytest, raises
+from ....tests.helper import pytest, raises, catch_warnings
 
 from . import FitsTestCase
 from .util import ignore_warnings
@@ -188,7 +188,7 @@ class TestCore(FitsTestCase):
         hdu = fits.ImageHDU()
         # The default here would be to issue a warning; ensure that no warnings
         # or exceptions are raised
-        with warnings.catch_warnings():
+        with catch_warnings():
             warnings.simplefilter('error')
             del hdu.header['NAXIS']
             try:

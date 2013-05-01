@@ -14,6 +14,7 @@ import os
 import subprocess
 import shutil
 import tempfile
+import warnings
 
 try:
     # Import pkg_resources to prevent it from issuing warnings upon being
@@ -374,3 +375,40 @@ class raises(object):
         def run_raises_test(*args, **kwargs):
             pytest.raises(self._exc, func, *args, **kwargs)
         return run_raises_test
+
+
+class catch_warnings(warnings.catch_warnings):
+    """
+    A high-powered version of warnings.catch_warnings to use for testing
+    and to make sure that there is no dependence on the order in which
+    the tests are run.
+
+    This completely blitzes any memory of any warnings that have
+    appeared before so that all warnings will be caught and displayed.
+
+    *args is a set of warning classes to collect.  If no arguments are
+    provided, all warnings are collected.
+
+    Use as follows::
+
+        with catch_warnings(MyCustomWarning) as w:
+            do.something.bad()
+        assert len(w) > 0
+    """
+    def __init__(self, *classes):
+        for module in sys.modules.values():
+            if hasattr(module, '__warningregistry__'):
+                del module.__warningregistry__
+        super(catch_warnings, self).__init__(record=True)
+        self.classes = classes
+
+    def __enter__(self):
+        warning_list = super(catch_warnings, self).__enter__()
+        warnings.resetwarnings()
+        if len(self.classes) == 0:
+            warnings.simplefilter('always')
+        else:
+            warnings.simplefilter('ignore')
+            for cls in self.classes:
+                warnings.simplefilter('always', cls)
+        return warning_list
