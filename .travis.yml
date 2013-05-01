@@ -22,28 +22,27 @@ matrix:
 
         # try all python versions with the latest numpy
         - python: 2.6
-          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
+          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
         - python: 2.7
-          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
+          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
         - python: 3.2
-          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
+          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
         - python: 3.3
           env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
 
         # now try do scipy on 2.7 and an appropriate 3.x build (with latest numpy)
         - python: 2.7
-          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true
+          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true
         - python: 3.2
-          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true
+          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true
 
         # try alternate numpy versions
         - python: 2.7
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
         - python: 3.2
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
         - python: 2.7
-          env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
-        # numpy < 1.6 does not work on py 3.x
+          env: NUMPY_VERSION=1.5.1 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
 
 
 before_install:
