@@ -24,7 +24,8 @@ FITS_SIGNATURE = (b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"
                   b"\x20\x54")
 
 # Keywords to remove for all tables that are read in
-REMOVE_KEYWORDS = ['XTENSION', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2', 'PCOUNT', 'GCOUNT', 'TFIELDS']
+REMOVE_KEYWORDS = ['XTENSION', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2',
+                   'PCOUNT', 'GCOUNT', 'TFIELDS']
 
 # Column-specific keywords
 COLUMN_KEYWORDS = ['TFORM[0-9]+',
@@ -114,11 +115,13 @@ def read_table_fits(input, hdu=None):
             if len(tables) > 1:
 
                 if hdu is None:
-                    warnings.warn("hdu= was not specified but multiple tables are present, reading in first available table (hdu={0})".format(tables.keys()[0]))
+                    warnings.warn("hdu= was not specified but multiple tables"
+                                  " are present, reading in first available"
+                                  " table (hdu={0})".format(tables.keys()[0]))
                     hdu = tables.keys()[0]
 
-                # hdu might not be an integer, so we first need to convert it to
-                # the correct HDU index
+                # hdu might not be an integer, so we first need to convert it
+                # to the correct HDU index
                 hdu = input.index_of(hdu)
 
                 if hdu in tables:
@@ -137,7 +140,8 @@ def read_table_fits(input, hdu=None):
 
         else:
 
-            raise ValueError("Input should be a string, an HDULis, TableHDU, BinTableHDU, or GroupsHDU instance")
+            raise ValueError("Input should be a string, an HDUList, "
+                             "TableHDU, BinTableHDU, or GroupsHDU instance")
 
         # Check if table is masked
         masked = False
@@ -177,7 +181,8 @@ def read_table_fits(input, hdu=None):
                 else:
                     t.meta[key] = [t.meta[key], value]
 
-            elif is_column_keyword(key) or key in REMOVE_KEYWORDS:
+            elif (is_column_keyword(key.upper()) or
+                  key.upper() in REMOVE_KEYWORDS):
 
                 pass
 
@@ -223,7 +228,8 @@ def write_table_fits(input, output, overwrite=False):
             # The astype is necessary because if the string column is less
             # than one character, the fill value will be N/A by default which
             # is too long, and so no values will get masked.
-            col.null = input[col.name].get_fill_value().astype(input[col.name].dtype)
+            fill_value = input[col.name].get_fill_value()
+            col.null = fill_value.astype(input[col.name].dtype)
     else:
         table_hdu = BinTableHDU(np.array(input))
 
@@ -234,13 +240,19 @@ def write_table_fits(input, output, overwrite=False):
 
     for key, value in input.meta.items():
 
+        if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
+
+            log.warn("Meta-data keyword {0} will be ignored since it "
+                     "conflicts with a FITS reserved keyword".format(key))
+
         if isinstance(value, list):
             for item in value:
                 try:
                     table_hdu.header.append((key, item))
                 except ValueError:
-                    log.warn("Attribute `{0}` of type {1} cannot be written to "
-                             "FITS files - skipping".format(key, type(value)))
+                    log.warn("Attribute `{0}` of type {1} cannot be written "
+                             "to FITS files - skipping".format(key,
+                                                               type(value)))
         else:
             try:
                 table_hdu.header[key] = value

@@ -48,6 +48,15 @@ class TestSingleTable(object):
             else:
                 assert t1.meta[key] == t2.meta[key]
 
+    def test_simple_meta_conflicting(self, tmpdir):
+        filename = str(tmpdir.join('test_simple.fits'))
+        t1 = Table(self.data)
+        t1.meta['ttype1'] = 'spam'
+        with log.log_to_list() as l:
+            t1.write(filename, overwrite=True)
+        assert len(l) == 1
+        assert l[0].message == 'Meta-data keyword ttype1 will be ignored since it conflicts with a FITS reserved keyword'
+
     def test_simple_noextension(self, tmpdir):
         """
         Test that file type is recognized without extension
