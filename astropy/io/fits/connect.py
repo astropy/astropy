@@ -84,13 +84,14 @@ def read_table_fits(input, hdu=None):
 
     Parameters
     ----------
-    input : str or fileobj or `~astropy.io.fits.hdu.table.TableHDU` or `~astropy.io.fits.hdu.table.BinTableHDU` or `~astropy.io.fits.hdu.table.GroupsHDU` or `~astropy.io.fits.hdu.hdulist.HDUList`
+    input : str or fileobj or compatible `astropy.io.fits` HDU object
         If a string, the filename to read the table from. If a file object, or
-        a :class:`~astropy.io.fits.hdu.table.TableHDU` or
-        :class:`~astropy.io.fits.hdu.table.BinTableHDU` or
-        :class:`~astropy.io.fits.hdu.table.GroupsHDU` or
-        :class:`~astropy.io.fits.hdu.hdulist.HDUList` instance, the object to
-        extract the table from.
+        a compatible HDU object, the object to extract the table from. The
+        following `astropy.io.fits` HDU objects can be used as input:
+        - :class:`~astropy.io.fits.hdu.table.TableHDU`
+        - :class:`~astropy.io.fits.hdu.table.BinTableHDU`
+        - :class:`~astropy.io.fits.hdu.table.GroupsHDU`
+        - :class:`~astropy.io.fits.hdu.hdulist.HDUList`
     hdu : int or str, optional
         The HDU to read the table from.
     """
