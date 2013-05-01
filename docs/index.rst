@@ -72,6 +72,7 @@ User Documentation
 
    cosmology/index
    stats/index
+   vo/index
 
 **Nuts and bolts of Astropy**
 

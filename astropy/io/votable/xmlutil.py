@@ -6,13 +6,13 @@ Various XML-related utilities
 from __future__ import division, absolute_import
 
 # ASTROPY
+from ...logger import log
+from ...utils import data
 from ...utils.xml import check as xml_check
 from ...utils.xml import validate
 
 # LOCAL
-from .exceptions import (warn_or_raise, vo_warn,
-     W02, W03, W04, W05)
-from ...utils import data
+from .exceptions import (warn_or_raise, vo_warn, W02, W03, W04, W05)
 
 
 __all__ = [
@@ -113,7 +113,10 @@ def validate_schema(filename, version='1.2'):
         Returns the returncode from xmllint and the stdout and stderr
         as strings
     """
-    assert version in ('1.0', '1.1', '1.2')
+    if version not in ('1.0', '1.1', '1.2'):
+        log.info('{0} has version {1}, using schema 1.1'.format(
+            filename, version))
+        version = '1.1'
 
     if version in ('1.1', '1.2'):
         schema_path = data.get_pkg_data_filename(

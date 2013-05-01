@@ -197,10 +197,10 @@ The current planned and existing sub-packages are:
                 astropy.vo
             </td>
             <td align='center'>
-                <img alt="planned" src="_images/planned.png">
+                <img alt="planned" src="_images/dev.png">
             </td>
             <td>
-                &nbsp;
+                Virtual Observatory service access and validation. Currently, only Simple Cone Search is supported.
             </td>
         </tr>
         <tr>

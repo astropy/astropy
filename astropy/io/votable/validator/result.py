@@ -7,6 +7,7 @@ file.
 from __future__ import absolute_import
 
 # STDLIB
+from xml.parsers.expat import ExpatError
 import hashlib
 import httplib
 import os
@@ -25,7 +26,7 @@ from ..util import IS_PY3K
 
 
 class Result:
-    def __init__(self, url, root='results'):
+    def __init__(self, url, root='results', timeout=10):
         self.url = url
         m = hashlib.md5()
         m.update(url)
@@ -35,6 +36,7 @@ class Result:
             self._hash[0:2], self._hash[2:4], self._hash[4:])
         if not os.path.exists(self.get_dirpath()):
             os.makedirs(self.get_dirpath())
+        self.timeout = timeout
         self.load_attributes()
 
     def __enter__(self):
@@ -98,15 +100,16 @@ class Result:
         def fail(reason):
             reason = str(reason)
             with open(path, 'wb') as fd:
-                fd.write("FAILED: %s\n" % reason)
+                fd.write('FAILED: {0}\n'.format(reason).encode('utf-8'))
             self['network_error'] = reason
 
         r = None
         try:
             if IS_PY3K:
-                r = urllib2.urlopen(self.url.decode('ascii'))
+                r = urllib2.urlopen(self.url.decode('ascii'),
+                                    timeout=self.timeout)
             else:
-                r = urllib2.urlopen(self.url, timeout=10)
+                r = urllib2.urlopen(self.url, timeout=self.timeout)
         except urllib2.URLError as e:
             if hasattr(e, 'reason'):
                 reason = e.reason
@@ -117,7 +120,7 @@ class Result:
         except httplib.HTTPException as e:
             fail("HTTPException: %s" % str(e))
             return
-        except socket.timeout as e:
+        except (socket.timeout, socket.error) as e:
             fail("Timeout")
             return
 
@@ -149,7 +152,7 @@ class Result:
         if not os.path.exists(path):
             self.download_xml_content()
         self['version'] = ''
-        if self['network_error'] is not None:
+        if 'network_error' in self and self['network_error'] is not None:
             self['nwarnings'] = 0
             self['nexceptions'] = 0
             self['warnings'] = []
@@ -165,7 +168,7 @@ class Result:
             with warnings.catch_warnings(record=True) as warning_lines:
                 try:
                     t = table.parse(input, pedantic=False, filename=path)
-                except ValueError as e:
+                except (ValueError, TypeError, ExpatError) as e:
                     lines.append(str(e))
                     nexceptions += 1
         lines = [str(x.message) for x in warning_lines] + lines
@@ -200,6 +203,9 @@ class Result:
         return warning_code in self['warning_types']
 
     def match_expectations(self):
+        if 'network_error' not in self:
+            self['network_error'] = None
+
         if self['expected'] == 'good':
             return (not self['network_error'] and
                     self['nwarnings'] == 0 and
@@ -247,27 +253,33 @@ def get_result_subsets(results, root, s=None):
         if s:
             s.next()
 
-        x = Result(url, root=root)
+        if isinstance(url, Result):
+            x = url
+        else:
+            x = Result(url, root=root)
+
         all_results.append(x)
         if (x['nwarnings'] == 0 and
-            x['nexceptions'] == 0 and
-            x['xmllint'] is True):
+                x['nexceptions'] == 0 and
+                x['xmllint'] is True):
             correct.append(x)
         if not x.match_expectations():
             not_expected.append(x)
         if x['xmllint'] is False:
             fail_schema.append(x)
         if (x['xmllint'] is False and
-            x['nwarnings'] == 0 and
-            x['nexceptions'] == 0):
+                x['nwarnings'] == 0 and
+                x['nexceptions'] == 0):
             schema_mismatch.append(x)
         if 'votlint' in x and x['votlint'] is False:
             fail_votlint.append(x)
+            if 'network_error' not in x:
+                x['network_error'] = None
             if (x['nwarnings'] == 0 and
-                x['nexceptions'] == 0 and
-                x['network_error'] is None):
+                    x['nexceptions'] == 0 and
+                    x['network_error'] is None):
                 votlint_mismatch.append(x)
-        if x['network_error'] is not None:
+        if 'network_error' in x and x['network_error'] is not None:
             network_failures.append(x)
         version = x['version']
         if version == '1.0':
@@ -282,8 +294,8 @@ def get_result_subsets(results, root, s=None):
             has_warnings.append(x)
             for warning in x['warning_types']:
                 if (warning is not None and
-                    len(warning) == 3 and
-                    warning.startswith('W')):
+                        len(warning) == 3 and
+                        warning.startswith('W')):
                     warning_set.setdefault(warning, [])
                     warning_set[warning].append(x)
         if x['nexceptions'] > 0:
