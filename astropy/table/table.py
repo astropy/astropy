@@ -29,33 +29,24 @@ AUTO_COLNAME = ConfigurationItem('auto_colname', 'col{0}',
     'The template that determines the name of a column if it cannot be '
     'determined. Uses new-style (format method) string formatting')
 
-WARN_COLUMN_ARGS = ConfigurationItem("warn_column_args",
-                                     True,
-                                     "Show a warning when a Column is created "
-                                     "in a way that will break in Astropy 0.3")
-WARN_COLUMN_ARGS_MESSAGE = \
-"""In the next major release of astropy (0.3), the order of function
-arguments for creating a {class_name} will change.  Currently the order is
-{class_name}(name, data, ...), but in 0.3 and later it will be
-{class_name}(data, name, ...).  This is consistent with Table and NumPy.
-
-In order to use the same code for Astropy 0.2 and 0.3, column objects
-should be created using named keyword arguments for data and name, e.g.:
-{class_name}(name='a', data=[1, 2])."""
+ERROR_COLUMN_ARGS_MESSAGE = """
+The first argument to {class_name} is the string {first_arg}, which was probably intended
+as the column name.  Starting in Astropy 0.3 the argument order for initializing
+a {class_name} object is {class_name}(data=None, name=None, ...)."""
 
 
 def _check_column_new_args(func):
     """
-    Decorator for Column and MaskedColumn __new__(cls, ...) to check that there
-    is only one ``args`` value (which is the class).  Everything else
-    should be a keyword argument.  Otherwise the calling code will break
-    when the name and data args are swapped in 0.3.
+    Decorator for transition from 0.2 arg order (name, data, ..) to 0.3 order (data,
+    name, ...).  Check if user provided a string as the first arg (note that a string
+    cannot be valid as ``data``).  Raise an error with a useful message.
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        if len(args) > 1 and WARN_COLUMN_ARGS():
+        if len(args) > 1 and isinstance(args[1], basestring):
             cls = args[0]  # Column or MaskedColumn class from __new__(cls, ..)
-            warnings.warn(WARN_COLUMN_ARGS_MESSAGE.format(class_name=cls.__name__))
+            raise ValueError(ERROR_COLUMN_ARGS_MESSAGE.format(class_name=cls.__name__,
+                                                              first_arg=repr(args[1])))
         return func(*args, **kwargs)
     return wrapper
 
@@ -386,10 +377,10 @@ class Column(BaseColumn, np.ndarray):
 
     Parameters
     ----------
-    name : str
-        Column name and key for reference within Table
     data : list, ndarray or None
         Column data values
+    name : str
+        Column name and key for reference within Table
     dtype : numpy.dtype compatible value
         Data type for column
     shape : tuple or ()
@@ -460,7 +451,7 @@ class Column(BaseColumn, np.ndarray):
     """
 
     @_check_column_new_args
-    def __new__(cls, name=None, data=None,
+    def __new__(cls, data=None, name=None,
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
 
@@ -500,7 +491,8 @@ class Column(BaseColumn, np.ndarray):
         return self.view(np.ndarray)
 
     def copy(self, data=None, copy_data=True):
-        """Return a copy of the current Column instance.
+        """Return a copy of the current Column instance.  If ``data`` is supplied
+        then a view (reference) of ``data`` is used, and ``copy_data`` is ignored.
         """
         if data is None:
             data = self.view(np.ndarray)
@@ -516,10 +508,10 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
 
     Parameters
     ----------
-    name : str
-        Column name and key for reference within Table
     data : list, ndarray or None
         Column data values
+    name : str
+        Column name and key for reference within Table
     mask : list, ndarray or None
         Boolean mask for which True indicates missing or invalid data
     fill_value : float, int, str or None
@@ -597,7 +589,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
     """
 
     @_check_column_new_args
-    def __new__(cls, name=None, data=None, mask=None, fill_value=None,
+    def __new__(cls, data=None, name=None, mask=None, fill_value=None,
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
 
@@ -721,7 +713,8 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
 
     def copy(self, data=None, copy_data=True):
         """
-        Return a copy of the current MaskedColumn instance.
+        Return a copy of the current MaskedColumn instance.  If ``data`` is supplied
+        then a view (reference) of ``data`` is used, and ``copy_data`` is ignored.
 
         Parameters
         ----------
@@ -1000,6 +993,28 @@ class Table(object):
 
         return self._data.data if self.masked else self._data
 
+    def _rebuild_table_column_views(self):
+        """
+        Some table manipulations can corrupt the Column views of self._data.  This
+        function will cleanly rebuild the columns and self.columns.  This is a slightly
+        subtle operation, see comments.
+        """
+        cols = []
+        for col in self.columns.values():
+            # First make a new column based on the name and the original column.  This
+            # step is needed because the table manipulation may have changed the table
+            # masking so that the original data columns no longer correspond to
+            # self.ColumnClass.  This uses data refs, not copies.
+            newcol = self.ColumnClass(name=col.name, data=col)
+
+            # Now use the copy() method to copy the column and its metadata, but at
+            # the same time set the column data to a view of self._data[col.name].
+            # Somewhat confusingly in this case copy() refers to copying the
+            # column attributes, but the data are used by reference.
+            newcol = newcol.copy(data=self._data[col.name])
+            cols.append(newcol)
+
+        self.columns = TableColumns(cols)
 
     def _check_names_dtypes(self, names, dtypes, n_cols):
         """Make sure that names and dtypes are boths iterable and have
@@ -1279,10 +1294,16 @@ class Table(object):
         elif isinstance(item, int):
             return Row(self, item)
         elif isinstance(item, tuple):
-            if any(x not in set(self.colnames) for x in item):
-                raise ValueError('Table column slice must contain only valid '
-                                 'column names')
-            return Table([self[x] for x in item], meta=deepcopy(self.meta))
+            if all(isinstance(x, np.ndarray) for x in item):
+                # Item is a tuple of ndarrays as in the output of np.where, e.g.
+                # t[np.where(t['a'] > 2)]
+                return self._new_from_slice(item)
+            elif (all(x in self.colnames for x in item)):
+                # Item is a tuple of strings that are valid column names
+                return Table([self[x] for x in item], meta=deepcopy(self.meta))
+            else:
+                raise ValueError('Illegal item for table item access')
+
         elif (isinstance(item, slice) or isinstance(item, np.ndarray)
               or isinstance(item, list)):
             return self._new_from_slice(item)
@@ -1291,12 +1312,35 @@ class Table(object):
                              .format(type(item)))
 
     def __setitem__(self, item, value):
-        try:
+        # If the item is a string then it must be the name of a column.
+        # If that column doesn't already exist then create it now.
+        if isinstance(item, basestring) and item not in self.colnames:
+            NewColumn = MaskedColumn if self.masked else Column
+
+            # Make sure value is an ndarray so we can get the dtype
+            if not isinstance(value, np.ndarray):
+                value = np.asarray(value)
+
+            # Make new column and assign the value.  If the table currently has no rows
+            # (len=0) of the value is already a Column then define new column directly
+            # from value.  In the latter case this allows for propagation of Column
+            # metadata.  Otherwise define a new column with the right length and shape and
+            # then set it from value.  This allows for broadcasting, e.g. t['a'] = 1.
+            if isinstance(value, BaseColumn):
+                new_column = value.copy(copy_data=False)
+                new_column.name = item
+            elif len(self) == 0:
+                new_column = NewColumn(name=item, data=value)
+            else:
+                new_column = NewColumn(name=item, length=len(self), dtype=value.dtype,
+                                       shape=value.shape[1:])
+                new_column[:] = value
+
+            # Now add new column to the table
+            self.add_column(new_column)
+        else:
+            # Otherwise just delegate to the numpy item setter.
             self._data[item] = value
-        except (ValueError, KeyError, TypeError):
-            raise KeyError("Column {0} does not exist".format(item))
-        except:
-            raise
 
     def __delitem__(self, item):
         if isinstance(item, basestring):
@@ -1638,12 +1682,7 @@ class Table(object):
         elif vals is not None:
             raise TypeError('Vals must be an iterable or mapping or None')
 
-        # Add_row() probably corrupted the Column views of self._data.  Rebuild
-        # self.columns.  Col.copy() takes an optional data reference that it
-        # uses in the copy.
-        cols = [self.ColumnClass(name=c.name, data=c).copy(self._data[c.name])
-                for c in self.columns.values()]
-        self.columns = TableColumns(cols)
+        self._rebuild_table_column_views()
 
     def sort(self, keys):
         '''
@@ -1658,6 +1697,7 @@ class Table(object):
         if type(keys) is not list:
             keys = [keys]
         self._data.sort(order=keys)
+        self._rebuild_table_column_views()
 
     def reverse(self):
         '''
@@ -1665,6 +1705,7 @@ class Table(object):
         in place and there are no function arguments.
         '''
         self._data[:] = self._data[::-1].copy()
+        self._rebuild_table_column_views()
 
     read = classmethod(io_registry.read)
     write = io_registry.write

@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.16 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2012, Mark Calabretta
+  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 4.16 2012/11/07 04:42:44 cal103 Exp $
+  $Id: wcspih.l,v 4.17 2013/01/29 05:29:20 cal103 Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -105,6 +105,7 @@ STRING	'([^']|'')*'
 #include "wcs.h"
 #include "wcshdr.h"
 #include "wcsmath.h"
+#include "wcsprintf.h"
 #include "wcsutil.h"
 
 #define INTEGER 0
@@ -934,7 +935,7 @@ jmp_buf wcspih_abort_jmp_env;
 	      keep = wcspih_hdr - 80;
 	
 	    } else if (ctrl > 2) {
-	      fprintf(stderr, "%.80s\n  Discarded.\n", wcspih_hdr-80);
+	      wcsfprintf(stderr, "%.80s\n  Discarded.\n", wcspih_hdr-80);
 	    }
 	  }
 	  BEGIN(FLUSH);
@@ -949,7 +950,7 @@ jmp_buf wcspih_abort_jmp_env;
 	    }
 	
 	    if (abs(ctrl%10) > 1) {
-	      fprintf(stderr, "%.80s\n%4d: %s.\n", wcspih_hdr-80, *nreject,
+	      wcsfprintf(stderr, "%.80s\n%4d: %s.\n", wcspih_hdr-80, *nreject,
 	        errmsg);
 	    }
 	  }
@@ -985,10 +986,10 @@ jmp_buf wcspih_abort_jmp_env;
 	    if (abs(ctrl%10) > 2) {
 	      if (*nwcs == 1) {
 	        if (strcmp(wcs[0]->wcsname, "DEFAULTS") != 0) {
-	          fprintf(stderr, "Found one coordinate representation.\n");
+	          wcsfprintf(stderr, "Found one coordinate representation.\n");
 	        }
 	      } else {
-	        fprintf(stderr, "Found %d coordinate representations.\n",
+	        wcsfprintf(stderr, "Found %d coordinate representations.\n",
 	          *nwcs);
 	      }
 	    }
@@ -1010,7 +1011,7 @@ jmp_buf wcspih_abort_jmp_env;
 	    if (ctrl < 0) {
 	      *hptr = '\0';
 	    } else if (ctrl == 1) {
-	      fprintf(stderr, "%d WCS keyrecords were rejected.\n",
+	      wcsfprintf(stderr, "%d WCS keyrecords were rejected.\n",
 	        *nreject);
 	    }
 	

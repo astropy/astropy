@@ -150,10 +150,10 @@ class TestRunner(object):
         # check for opened files after each test
         if open_files:
             try:
-                subprocess.Popen(
+                subproc = subprocess.Popen(
                     ['lsof -F0 -n -p {0}'.format(os.getpid())],
                     shell=True, stdout=subprocess.PIPE)
-                output = subprocess.communicate()[0].strip()
+                output = subproc.communicate()[0].strip()
             except subprocess.CalledProcessError:
                 raise SystemError(
                     "open file detection requested, but could not "

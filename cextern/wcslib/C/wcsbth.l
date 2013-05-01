@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.16 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2012, Mark Calabretta
+  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsbth.l,v 4.16 2012/11/07 04:42:44 cal103 Exp $
+  $Id: wcsbth.l,v 4.17 2013/01/29 05:29:20 cal103 Exp $
 *=============================================================================
 *
 * wcsbth.l is a Flex description file containing the definition of a lexical
@@ -112,6 +112,7 @@ STRING	'([^']|'')*'
 #include "wcs.h"
 #include "wcshdr.h"
 #include "wcsmath.h"
+#include "wcsprintf.h"
 #include "wcsutil.h"
 
 			/* Codes used for keyvalue data types. */
@@ -1976,7 +1977,7 @@ int wcsbth_final(struct wcsbth_alts *alts, int *nwcs, struct wcsprm **wcs);
 	      hptr += 80;
 	
 	    } else if (ctrl > 2) {
-	      fprintf(stderr, "%.80s\n  Discarded.\n", wcsbth_hdr-80);
+	      wcsfprintf(stderr, "%.80s\n  Discarded.\n", wcsbth_hdr-80);
 	    }
 	  }
 	
@@ -1995,7 +1996,7 @@ int wcsbth_final(struct wcsbth_alts *alts, int *nwcs, struct wcsprm **wcs);
 	    }
 	
 	    if (abs(ctrl) > 1) {
-	      fprintf(stderr, "%.80s\n%4d: %s.\n", wcsbth_hdr-80, *nreject,
+	      wcsfprintf(stderr, "%.80s\n%4d: %s.\n", wcsbth_hdr-80, *nreject,
 	        errmsg);
 	    }
 	  }
@@ -2027,14 +2028,14 @@ int wcsbth_final(struct wcsbth_alts *alts, int *nwcs, struct wcsprm **wcs);
 	      yylex_destroy();
 	      return status;
 	    }
-
+	
 	    if (alts.imgherit) npass = 3;
 	
 	    if (abs(ctrl) > 2) {
 	      if (*nwcs == 1) {
-	        fprintf(stderr, "Found one coordinate representation.\n");
+	        wcsfprintf(stderr, "Found one coordinate representation.\n");
 	      } else {
-	        fprintf(stderr, "Found %d coordinate representations.\n",
+	        wcsfprintf(stderr, "Found %d coordinate representations.\n",
 	          *nwcs);
 	      }
 	    }
@@ -2066,7 +2067,8 @@ int wcsbth_final(struct wcsbth_alts *alts, int *nwcs, struct wcsprm **wcs);
 	    if (ctrl < 0) {
 	      *hptr = '\0';
 	    } else if (ctrl == 1) {
-	      fprintf(stderr, "%d WCS keyrecords were rejected.\n", *nreject);
+	      wcsfprintf(stderr, "%d WCS keyrecords were rejected.\n",
+	        *nreject);
 	    }
 	
 	    return wcsbth_final(&alts, nwcs, wcs);

@@ -54,6 +54,99 @@ is_valid_alt_key(
   return 1;
 }
 
+static int
+convert_rejections_to_warnings() {
+  char buf[1024];
+  char *src;
+  char *dst;
+  int last_was_space;
+  PyObject *wcs_module = NULL;
+  PyObject *FITSFixedWarning = NULL;
+  int status = -1;
+
+  if (wcsprintf_buf()[0] == 0) {
+    return 0;
+  }
+
+  wcs_module = PyImport_ImportModule("astropy.wcs");
+  if (wcs_module == NULL) {
+    goto exit;
+  }
+
+  FITSFixedWarning = PyObject_GetAttrString(
+      wcs_module, "FITSFixedWarning");
+  if (FITSFixedWarning == NULL) {
+    goto exit;
+  }
+
+  src = wcsprintf_buf();
+  while (*src != 0) {
+    dst = buf;
+
+    /* Read the first line, removing any repeated spaces */
+    last_was_space = 0;
+    for (; *src != 0; ++src) {
+      if (*src == ' ') {
+        if (!last_was_space) {
+          *(dst++) = *src;
+          last_was_space = 1;
+        }
+      } else if (*src == '\n') {
+        ++src;
+        break;
+      } else {
+        *(dst++) = *src;
+        last_was_space = 0;
+      }
+    }
+
+    /* For the second line, remove everything up to and including the
+       first colon */
+    for (; *src != 0; ++src) {
+      if (*src == ':') {
+        ++src;
+        break;
+      }
+    }
+
+    /* Read to the end of the second line, removing any repeated
+       spaces */
+    last_was_space = 1;
+    for (; *src != 0; ++src) {
+      if (*src == ' ') {
+        if (!last_was_space) {
+          *(dst++) = *src;
+          last_was_space = 1;
+        }
+      } else if (*src == '\n') {
+        ++src;
+        break;
+      } else {
+        *(dst++) = *src;
+        last_was_space = 0;
+      }
+    }
+
+    /* NULL terminate the string */
+    *dst = 0;
+
+    /* Raise the warning.  Depending on the user's configuration, this
+       may raise an exception, and PyErr_WarnEx returns -1. */
+    if (PyErr_WarnEx(FITSFixedWarning, buf, 1)) {
+      goto exit;
+    }
+  }
+
+  status = 0;
+
+ exit:
+
+  Py_XDECREF(wcs_module);
+  Py_XDECREF(FITSFixedWarning);
+
+  return status;
+}
+
 /***************************************************************************
  * PyWcsprm methods
  */
@@ -111,7 +204,6 @@ PyWcsprm_init(
   PyObject*      colsel        = Py_None;
   PyArrayObject* colsel_array  = NULL;
   int*           colsel_ints   = NULL;
-  int            ctrl          = 0;
   int            nreject       = 0;
   int            nwcs          = 0;
   struct wcsprm* wcs           = NULL;
@@ -197,6 +289,8 @@ PyWcsprm_init(
             "relax must be True, False or an integer.");
         return -1;
       }
+      /* Mask out any invalid flags */
+      relax &= WCSHDR_all;
     }
 
     if (!is_valid_alt_key(key)) {
@@ -242,12 +336,55 @@ PyWcsprm_init(
       Py_DECREF(colsel_array);
     }
 
+    wcsprintf_set(NULL);
+
+    /* Call the header parser twice, the first time to get warnings
+       out about "rejected" keywords (which we can then send to Python
+       as warnings), and the second time to get a corrected wcsprm
+       object. */
+
+    if (keysel < 0) {
+      status = wcspih(
+          header,
+          (int)nkeyrec,
+          WCSHDR_reject,
+          2,
+          &nreject,
+          &nwcs,
+          &wcs);
+    } else {
+      status = wcsbth(
+          header,
+          (int)nkeyrec,
+          WCSHDR_reject,
+          2,
+          keysel,
+          colsel_ints,
+          &nreject,
+          &nwcs,
+          &wcs);
+    }
+
+    if (status != 0) {
+      free(colsel_ints);
+      PyErr_SetString(
+          PyExc_MemoryError,
+          "Memory allocation error.");
+      return -1;
+    }
+
+    if (convert_rejections_to_warnings(wcsprintf_buf())) {
+      free(colsel_ints);
+      wcsvfree(&nwcs, &wcs);
+      return -1;
+    }
+
     if (keysel < 0) {
       status = wcspih(
           header,
           (int)nkeyrec,
           relax,
-          ctrl,
+          0,
           &nreject,
           &nwcs,
           &wcs);
@@ -256,7 +393,7 @@ PyWcsprm_init(
           header,
           (int)nkeyrec,
           relax,
-          ctrl,
+          0,
           keysel,
           colsel_ints,
           &nreject,
@@ -354,7 +491,6 @@ PyWcsprm_find_all_wcs(
   PyObject*      relax_obj     = NULL;
   int            relax         = 0;
   int            keysel        = 0;
-  int            ctrl          = 0;
   int            nreject       = 0;
   int            nwcs          = 0;
   struct wcsprm* wcs           = NULL;
@@ -402,6 +538,50 @@ PyWcsprm_find_all_wcs(
           "relax must be True, False or an integer.");
       return NULL;
     }
+
+    /* Mask out any invalid flags */
+    relax &= WCSHDR_all;
+  }
+
+  /* Call the header parser twice, the first time to get warnings
+     out about "rejected" keywords (which we can then send to Python
+     as warnings), and the second time to get a corrected wcsprm
+     object. */
+
+  Py_BEGIN_ALLOW_THREADS
+  if (keysel < 0) {
+    status = wcspih(
+        header,
+        (int)nkeyrec,
+        WCSHDR_reject,
+        2,
+        &nreject,
+        &nwcs,
+        &wcs);
+  } else {
+    status = wcsbth(
+        header,
+        (int)nkeyrec,
+        WCSHDR_reject,
+        2,
+        keysel,
+        NULL,
+        &nreject,
+        &nwcs,
+        &wcs);
+  }
+  Py_END_ALLOW_THREADS
+
+  if (status != 0) {
+    PyErr_SetString(
+        PyExc_MemoryError,
+        "Memory allocation error.");
+    return -1;
+  }
+
+  if (convert_rejections_to_warnings(wcsprintf_buf())) {
+    wcsvfree(&nwcs, &wcs);
+    return -1;
   }
 
   Py_BEGIN_ALLOW_THREADS
@@ -410,7 +590,7 @@ PyWcsprm_find_all_wcs(
         header,
         (int)nkeyrec,
         relax,
-        ctrl,
+        0,
         &nreject,
         &nwcs,
         &wcs);
@@ -419,7 +599,7 @@ PyWcsprm_find_all_wcs(
         header,
         (int)nkeyrec,
         relax,
-        ctrl,
+        0,
         keysel,
         NULL,
         &nreject,

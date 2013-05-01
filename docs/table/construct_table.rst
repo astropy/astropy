@@ -40,9 +40,9 @@ size, columns, or data are not known.
 ::
 
   >>> t = Table()
-  >>> t.add_column(Column(data=[1, 4], name='a'))
-  >>> t.add_column(Column(data=[2.0, 5.0], name='b'))
-  >>> t.add_column(Column(data=['x', 'y'], name='c'))
+  >>> t['a'] = [1, 4]
+  >>> t['b'] = Column([2.0, 5.0], units='cm', description='Velocity')
+  >>> t['c'] = ['x', 'y']
 
   >>> t = Table(names=('a', 'b', 'c'), dtypes=('f4', 'i4', 'S2'))
   >>> t.add_row((1, 2.0, 'x'))
@@ -98,7 +98,7 @@ of different data types to initialize a table::
 
   >>> a = (1, 4)
   >>> b = np.array([[2, 3], [5, 6]])  # vector column
-  >>> c = Column(data=['x', 'y'], name='axis')
+  >>> c = Column(['x', 'y'], name='axis')
   >>> arr = (a, b, c)
   >>> Table(arr)  # Data column named "c" has a name "axis" that table
   <Table rows=2 names=('col0','col1','axis')>
@@ -134,7 +134,7 @@ The input column data can be any data type that can initialize a |Column| object
 
   >>> arr = {'a': (1, 4),
              'b': np.array([[2, 3], [5, 6]]),
-             'c': Column(data=['x', 'y'], name='axis')}
+             'c': Column(['x', 'y'], name='axis')}
   >>> Table(arr, names=('a', 'b', 'c'))
   <Table rows=2 names=('a','b','c')>
   array([(1, [2, 3], 'x'), (4, [5, 6], 'y')],
@@ -508,11 +508,11 @@ The column data values, shape, and data type are specified in one of two ways:
 
   Examples::
 
-    col = Column(data=[1, 2], name='a')  # shape=(2,)
-    col = Column(data=[[1, 2], [3, 4]], name='a')  # shape=(2, 2)
-    col = Column(data=[1, 2], name='a', dtype=float)
-    col = Column(data=np.array([1, 2]), name='a')
-    col = Column(data=['hello', 'world'], name='a')
+    col = Column([1, 2], name='a')  # shape=(2,)
+    col = Column([[1, 2], [3, 4]], name='a')  # shape=(2, 2)
+    col = Column([1, 2], name='a', dtype=float)
+    col = Column(np.array([1, 2]), name='a')
+    col = Column(['hello', 'world'], name='a')
 
   The ``dtype`` argument can be any value which is an acceptable
   fixed-size data-type initializer for the numpy.dtype() method.  See
@@ -537,19 +537,6 @@ The column data values, shape, and data type are specified in one of two ways:
   The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the array shape of a
   single cell in the column.  The default ``shape`` is () which means a single value in
   each element.
-
-.. warning::
-
-   In the next major release of `astropy` (0.3), the order of function arguments
-   for creating a |Column| or |MaskedColumn| will change.  Currently the order
-   is ``Column(name, data, ...)``, but in 0.3 and later it will be
-   ``Column(data, name, ...)``.  This improves consistency with |Table| and `numpy`.
-
-   In order to use the same code for Astropy 0.2 and 0.3, column objects should
-   always be created using named keyword arguments for ``data`` and ``name``,
-   as demonstrated in the examples above.  When Astropy 0.3 is released then the
-   the keyword identifiers can be dropped, for instance
-   ``c = Column([1, 2], 'd')``.
 
 .. _table_format_string:
 

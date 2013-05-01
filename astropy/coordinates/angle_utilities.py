@@ -7,6 +7,8 @@ This module contains utility functions that are for internal use in
 astropy.coordinates.angles. Mainly they are conversions from one format
 of data to another.
 """
+from __future__ import unicode_literals
+
 import re
 import math
 import inspect # NB: get the function name with: inspect.stack()[0][3]

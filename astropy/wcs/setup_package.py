@@ -207,22 +207,15 @@ def get_extensions():
 
     ######################################################################
     # DISTUTILS SETUP
-    source_files = []
-    libraries = []
-    include_dirs = [
-        'numpy',
-        join(WCSROOT, "include")]
+    cfg = setup_helpers.DistutilsExtensionArgs()
 
-    library_dirs = []
-    define_macros = [
+    cfg['include_dirs'].extend(['numpy', join(WCSROOT, "include")])
+    cfg['define_macros'].extend([
         ('ECHO', None),
         ('WCSTRIG_MACRO', None),
         ('ASTROPY_WCS_BUILD', None),
         ('_GNU_SOURCE', None),
-        ('WCSVERSION', WCSVERSION)]
-    undef_macros = []
-    extra_compile_args = []
-    extra_link_args = []
+        ('WCSVERSION', WCSVERSION)])
 
     if (not setup_helpers.use_system_library('wcslib') or
         sys.platform == 'win32'):
@@ -250,11 +243,10 @@ def get_extensions():
             'wcsprintf.c',
             'wcsunits.c',
             'wcsutil.c']
-        source_files.extend(join(wcslib_cpath, x) for x in wcslib_files)
-        include_dirs.append(wcslib_cpath)
+        cfg['sources'].extend(join(wcslib_cpath, x) for x in wcslib_files)
+        cfg['include_dirs'].append(wcslib_cpath)
     else:
-        setup_helpers.pkg_config(
-            ['wcslib'], ['wcs'], include_dirs, library_dirs, libraries)
+        cfg.update(setup_helpers.pkg_config(['wcslib'], ['wcs']))
 
     astropy_wcs_files = [  # List of astropy.wcs files to compile
         'distortion.c',
@@ -273,24 +265,24 @@ def get_extensions():
         'wcslib_tabprm_wrap.c',
         'wcslib_units_wrap.c',
         'wcslib_wtbarr_wrap.c']
-    source_files.extend(join(WCSROOT, 'src', x) for x in astropy_wcs_files)
+    cfg['sources'].extend(join(WCSROOT, 'src', x) for x in astropy_wcs_files)
 
     if debug:
-        define_macros.append(('DEBUG', None))
-        undef_macros.append('NDEBUG')
+        cfg['define_macros'].append(('DEBUG', None))
+        cfg['undef_macros'].append('NDEBUG')
         if (not sys.platform.startswith('sun') and
             not sys.platform == 'win32'):
-            extra_compile_args.extend(["-fno-inline", "-O0", "-g"])
+            cfg['extra_compile_args'].extend(["-fno-inline", "-O0", "-g"])
     else:
         # Define ECHO as nothing to prevent spurious newlines from
         # printing within the libwcs parser
-        define_macros.append(('NDEBUG', None))
-        undef_macros.append('DEBUG')
+        cfg['define_macros'].append(('NDEBUG', None))
+        cfg['undef_macros'].append('DEBUG')
 
     if sys.platform == 'win32':
         # These are written into wcsconfig.h, but that file is not
         # used by all parts of wcslib.
-        define_macros.extend([
+        cfg['define_macros'].extend([
             ('YY_NO_UNISTD_H', None),
             ('_CRT_SECURE_NO_WARNINGS', None),
             ('_NO_OLDNAMES', None),  # for mingw32
@@ -299,18 +291,9 @@ def get_extensions():
         ])
 
     if sys.platform.startswith('linux'):
-        define_macros.append(('HAVE_SINCOS', None))
+        cfg['define_macros'].append(('HAVE_SINCOS', None))
 
-    return [
-        Extension('astropy.wcs._wcs',
-                  source_files,
-                  include_dirs=include_dirs,
-                  define_macros=define_macros,
-                  undef_macros=undef_macros,
-                  extra_compile_args=extra_compile_args,
-                  extra_link_args=extra_link_args,
-                  libraries=libraries,
-                  library_dirs=library_dirs)]
+    return [Extension('astropy.wcs._wcs', **cfg)]
 
 
 def get_package_data():

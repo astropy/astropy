@@ -250,3 +250,15 @@ def test_compressed_stream():
     with get_readable_fileobj(stream, encoding='binary') as f:
         f.readline()
         assert f.read().rstrip() == b'CONTENT'
+
+
+def test_invalid_location_download():
+    """
+    checks that download_file gives a URLError and not an AttributeError,
+    as its code pathway involves some fiddling with the exception.
+    """
+    from urllib2 import URLError
+    from ..data import download_file
+
+    with pytest.raises(URLError):
+        download_file('http://astropy.org/nonexistentfile')

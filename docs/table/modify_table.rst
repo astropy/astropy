@@ -36,13 +36,21 @@ The code below shows the basics of modifying a table and its data.
 
 **Add a column or columns**
 
-The :func:`~astropy.table.table.add_column` and :func:`~astropy.table.table.add_columns`
-functions can be used to add one or multiple columns to a table.  In both cases the new
-columns must be specified as |Column| or |MaskedColumn| objects.
-::
+A single column can be added to a table using syntax like adding a dict value.
+The value on the right hand side can be a list or array
+of the correct size, or a scalar value that will be broadcast::
 
-  >>> c = Column(data=np.arange(5), name='d')
-  >>> t.add_column(c)
+  >>> t['d1'] = np.arange(5)
+  >>> t['d2'] = [1, 2, 3, 4, 5]
+  >>> t['d3'] = 6  # all 5 rows set to 6
+
+For more explicit control the :func:`~astropy.table.table.add_column` and
+:func:`~astropy.table.table.add_columns` functions can be used to add one or multiple
+columns to a table.  In both cases the new columns must be specified as |Column| or
+|MaskedColumn| objects with the ``name`` defined::
+
+  >>> aa = Column(np.arange(5), name='aa')
+  >>> t.add_column(aa, index=0)  # Insert before the first table column
 
   # Make a new table with the same number of rows and add columns to original table
   >>> t2 = Table(np.arange(25).reshape(5, 5), names=('e', 'f', 'g', 'h', 'i'))
@@ -52,7 +60,7 @@ columns must be specified as |Column| or |MaskedColumn| objects.
 ::
 
   >>> t.remove_column('f')
-  >>> t.remove_columns(['d', 'e'])
+  >>> t.remove_columns(['aa', 'd1', 'd2', 'd3', 'e'])
   >>> del t['g']
   >>> del t['h', 'i']
   >>> t.keep_columns(['a', 'b'])
@@ -112,3 +120,25 @@ only a few things to keep in mind:
   depends on the detailed layout of Python objects in memory and cannot be
   reliably controlled.  In some cases it may be possible to build a table
   row by row in less than O(N**2) time but you cannot count on it.
+
+Another subtlety to keep in mind are cases where the return value of an
+operation results in a new table in memory versus a view of the existing
+table data.  As an example, imagine trying to set two table elements
+using column selection with ``t['a', 'c']`` in combination with row index selection::
+
+  >>> t = Table([[1, 2], [3, 4], [5, 6]], names=('a', 'b', 'c'))
+  >>> t['a', 'c'][1] = (100, 100)
+  >>> print t
+   a   b   c 
+  --- --- ---
+    1   3   5
+    2   4   6
+
+This might be surprising because the data values did not change and there
+was no error.  In fact what happened is that ``t['a', 'c']`` created a
+new temporary table in memory as a *copy* of the original and then updated
+row 1 of the copy.  The original ``t`` table was unaffected and the new
+temporary table disappeared once the statement was complete.  The takeaway
+is to pay attention to how certain operations are performed one step at
+a time.
+

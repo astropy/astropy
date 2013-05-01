@@ -1,45 +1,58 @@
 language: python
 
+
 python:
     - 2.7
-    - 2.6
     - 3.2
+    # Note that these are *only* for the "default" versions - somthing from python 2.x and 3.x
+    # for each we do an 'egg_info' build and a build with all the optional dependencies.  We
+    # do the latter first because they take the longest.  Testing of all other versions (without
+    # optional dependencies) happens in the "include" section below
 env:
-    - NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
-    - NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
-    - NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false
+    - NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=true
+    - NUMPY_VERSION=1.7.0 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
 
 matrix:
     include:
+        # Check for sphinx doc build warnings - we do this first because it runs for a long time
         - python: 2.7
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=true
-        - python: 3.2
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=true
+          # opdeps needed because the matplotlib sphinx extension requires them
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='build_sphinx -w -n' OPTIONAL_DEPS=true
+        
+        # try all python versions with the latest numpy
         - python: 2.7
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
+        - python: 2.6
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
+        - python: 3.3
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 3.2
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
+        
+        # try alternate numpy versions
         - python: 2.7
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='build_sphinx -w -n' OPTIONAL_DEPS=false
-    exclude:
-        - python: 3.2
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
+        - python: 2.7
           env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
-        - python: 3.2
-          env: NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false
+        - python: 3.2 
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
+        # numpy < 1.6 does not work on py 3.x
+
 
 before_install:
    # We do this to make sure we get the dependencies so pip works below
    - sudo apt-get update -qq
    - if [[ $SETUP_CMD != egg_info ]]; then sudo apt-get install -qq python-numpy cython libatlas-dev liblapack-dev gfortran; fi
    - if $OPTIONAL_DEPS; then sudo apt-get install -qq python-scipy libhdf5-serial-1.8.4 libhdf5-serial-dev; fi
-   - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install -qq python-sphinx graphviz texlive-latex-extra dvipng; fi
+   - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install -qq python-sphinx graphviz texlive-latex-extra dvipng python-matplotlib; fi
 
 install:
    - export PYTHONIOENCODING=UTF8 # just in case
    - pip install --upgrade "numpy==$NUMPY_VERSION" -q --use-mirrors
-   - if $OPTIONAL_DEPS; then pip install scipy -q --use-mirrors; fi
+   - if $OPTIONAL_DEPS; then pip install scipy --use-mirrors; fi # this can't be quiet because it takes so long that travis times out
    - if $OPTIONAL_DEPS; then pip install h5py -q --use-mirrors; fi
    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip -q install sphinx --use-mirrors; fi
+   - if [[ $SETUP_CMD == build_sphinx* ]]; then pip -q install matplotlib --use-mirrors; fi #this matplotlib will *not* work with py 3.x, but our sphinx build is currently 2.7, so that's fine
    - if [[ $SETUP_CMD != egg_info ]]; then pip -q install Cython --use-mirrors; fi
 
 script:

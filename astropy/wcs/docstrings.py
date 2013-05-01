@@ -189,10 +189,10 @@ matrix.
 
 For historical compatibility, three alternate specifications of the
 linear transforations are available in wcslib.  The canonical
-``PCi_ja`` with ``CDELTia``, and the deprecated ``CDi_ja`` and
-``CROTAia`` keywords.  Although the deprecated versions may not
-formally co-exist with ``PCi_ja``, the approach here is simply to
-ignore them if given in conjunction with ``PCi_ja``.
+``PCi_ja`` with ``CDELTia``, ``CDi_ja``, and the deprecated
+``CROTAia`` keywords.  Although the latter may not formally co-exist
+with ``PCi_ja``, the approach here is simply to ignore them if given
+in conjunction with ``PCi_ja``.
 
 `~astropy.wcs.Wcsprm.has_pc`, `~astropy.wcs.Wcsprm.has_cd` and
 `~astropy.wcs.Wcsprm.has_crota` can be used to determine which of
@@ -322,10 +322,10 @@ axis.
 
 For historical compatibility, three alternate specifications of the
 linear transforations are available in wcslib.  The canonical
-``PCi_ja`` with ``CDELTia``, and the deprecated ``CDi_ja`` and
-``CROTAia`` keywords.  Although the deprecated versions may not
-formally co-exist with ``PCi_ja``, the approach here is simply to
-ignore them if given in conjunction with ``PCi_ja``.
+``PCi_ja`` with ``CDELTia``, ``CDi_ja``, and the deprecated
+``CROTAia`` keywords.  Although the latter may not formally co-exist
+with ``PCi_ja``, the approach here is simply to ignore them if given
+in conjunction with ``PCi_ja``.
 
 `~astropy.wcs.Wcsprm.has_pc`, `~astropy.wcs.Wcsprm.has_cd` and
 `~astropy.wcs.Wcsprm.has_crota` can be used to determine which of
@@ -706,7 +706,7 @@ Coordinate increments (``CDELTia``) for each coord axis.
 
 Returns the ``CDELT`` offsets in read-only form.  Unlike the
 `~astropy.wcs.Wcsprm.cdelt` property, this works even when the header
-specifies the linear transformation matrix in one of the deprecated
+specifies the linear transformation matrix in one of the alternative
 ``CDi_ja`` or ``CROTAia`` forms.  This is useful when you want access
 to the linear transformation matrix, but don't care how it was
 specified in the header.
@@ -717,7 +717,7 @@ get_pc() -> double array[naxis][naxis]
 
 Returns the ``PC`` matrix in read-only form.  Unlike the
 `~astropy.wcs.Wcsprm.pc` property, this works even when the header
-specifies the linear transformation matrix in one of the deprecated
+specifies the linear transformation matrix in one of the alternative
 ``CDi_ja`` or ``CROTAia`` forms.  This is useful when you want access
 to the linear transformation matrix, but don't care how it was
 specified in the header.
@@ -1307,10 +1307,10 @@ The order is::
 
 For historical compatibility, three alternate specifications of the
 linear transforations are available in wcslib.  The canonical
-``PCi_ja`` with ``CDELTia``, and the deprecated ``CDi_ja`` and
-``CROTAia`` keywords.  Although the deprecated versions may not
-formally co-exist with ``PCi_ja``, the approach here is simply to
-ignore them if given in conjunction with ``PCi_ja``.
+``PCi_ja`` with ``CDELTia``, ``CDi_ja``, and the deprecated
+``CROTAia`` keywords.  Although the latter may not formally co-exist
+with ``PCi_ja``, the approach here is simply to ignore them if given
+in conjunction with ``PCi_ja``.
 
 `~astropy.wcs.Wcsprm.has_pc`, `~astropy.wcs.Wcsprm.has_cd` and
 `~astropy.wcs.Wcsprm.has_crota` can be used to determine which of

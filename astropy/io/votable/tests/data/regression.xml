@@ -109,7 +109,7 @@ The VOTable format is an XML standard for the interchange of data represented as
   <TD>4096</TD>
   <TD>268435456</TD>
   <TD>922337203685477</TD>
-  <TD>1.0</TD>
+  <TD>8.999999</TD>
   <TD encoding="base64">P4AAAA==</TD>
   <TD>   </TD>
   <TD>1</TD>
@@ -269,7 +269,7 @@ The VOTable format is an XML standard for the interchange of data represented as
   <TD>4096</TD>
   <TD>268435456</TD>
   <TD>922337203685477</TD>
-  <TD>1.0</TD>
+  <TD>8.999999</TD>
   <TD encoding="base64">P4AAAA==</TD>
   <TD>   </TD>
   <TD>1</TD>

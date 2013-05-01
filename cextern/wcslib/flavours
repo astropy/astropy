@@ -12,7 +12,7 @@
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 4.16 2012/11/07 04:42:45 cal103 Exp $
+# $Id: flavours,v 4.17 2013/01/29 05:29:22 cal103 Exp $
 #-----------------------------------------------------------------------------
 
 # The list of FLAVOURs can be set on the command line.
@@ -150,6 +150,18 @@ endif
 ifdef FLAVOUR
   TIMER := $(TIMER) ; echo "    with $(FLAVOUR) FLAVOUR."
 endif
+
+# Experimental (see http://upstream-tracker.org/versions/wcslib.html).
+api-sanity-check :
+	-@ $(RM) -r $@/
+	 @ mkdir $@/
+	 @ cp C/*.h C/$(SHRLIB) $@/
+	 @ echo "<version>$(LIBVER)</version>" > $@/opts.xml
+	 @ echo "<headers>.</headers>" >> $@/opts.xml
+	 @ echo "<libs>.</libs>" >> $@/opts.xml
+	 @ echo "<gcc_options>-Dwtbarr=wtbarr_s</gcc_options>" >> $@/opts.xml
+	   cd $@ && api-sanity-checker -lib WCSLIB -d opts.xml \
+	     -show-retval -gen -build -run
 
 show ::
 	-@ echo 'For code development...'

@@ -89,6 +89,7 @@ class Automodsumm(AstropyAutosummary):
     def run(self):
         from inspect import isclass, isfunction
 
+        self.warnings = []
         nodelist = []
 
         try:
@@ -137,7 +138,7 @@ class Automodsumm(AstropyAutosummary):
             #can't use super because Sphinx/docutils has trouble
             #return super(Autosummary,self).run()
             nodelist.extend(Autosummary.run(self))
-            return nodelist
+            return self.warnings + nodelist
         finally:  # has_content = False for the Automodsumm
             self.content = []
 

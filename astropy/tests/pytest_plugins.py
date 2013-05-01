@@ -40,10 +40,10 @@ def _get_open_file_list():
     import subprocess
     fsencoding = sys.getfilesystemencoding()
 
-    proc = subprocess.Popen(
+    sproc = subprocess.Popen(
         ['lsof -F0 -n -p {0}'.format(os.getpid())],
         shell=True, stdout=subprocess.PIPE)
-    output = process.communicate()[0].strip()
+    output = sproc.communicate()[0].strip()
     files = []
     for line in output.split(b'\n'):
         columns = line.split(b'\0')
@@ -118,7 +118,7 @@ if SUPPORTS_OPEN_FILE_DETECTION:
 
 def pytest_report_header(config):
     from .. import __version__
-    s = "\nTesting Astropy version {0}.\n".format(__version__)
+    s = "\nRunning tests with Astropy version {0}.\n".format(__version__)
     s += "Running tests in {0}.\n".format(" ".join(config.args))
 
     special_opts = ["remote_data", "pep8"]

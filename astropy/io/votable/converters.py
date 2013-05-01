@@ -20,7 +20,7 @@ from ...utils.xml.writer import xml_escape_cdata
 
 # LOCAL
 from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,
-    W30, W31, W39, W46, W47, W49, E01, E02, E03, E04, E05, E06)
+    W30, W31, W39, W46, W47, W49, W51, E01, E02, E03, E04, E05, E06)
 from .util import IS_PY3K
 
 
@@ -568,7 +568,7 @@ class FloatingPoint(Numeric):
             format_parts.append(unicode(width))
 
         if precision is None:
-            format_parts.append(u'g')
+            format_parts.append(u's')
         elif precision.startswith("E"):
             format_parts.append(u'.%dg' % int(precision[1:]))
         elif precision.startswith("F"):
@@ -619,7 +619,11 @@ class FloatingPoint(Numeric):
         if mask:
             return self._null_output
         if np.isfinite(value):
-            return self._output_format % value
+            result = self._output_format % value
+            if (self._output_format[-1] == u's' and
+                result.endswith(u'.0')):
+                result = result[:-2]
+            return result
         elif np.isnan(value):
             return u'NaN'
         elif np.isposinf(value):
@@ -693,6 +697,14 @@ class Integer(Numeric):
             value = int(value)
         if self.null is not None and value == self.null:
             mask = True
+
+        if value < self.val_range[0]:
+            warn_or_raise(W51, W51, (value, self.bit_size), config, pos)
+            value = self.val_range[0]
+        elif value > self.val_range[1]:
+            warn_or_raise(W51, W51, (value, self.bit_size), config, pos)
+            value = self.val_range[1]
+
         return value, mask
 
     def output(self, value, mask):
@@ -727,6 +739,8 @@ class UnsignedByte(Integer):
     Handles the unsignedByte datatype.  Unsigned 8-bit integer.
     """
     format = 'u1'
+    val_range = (0, 255)
+    bit_size = '8-bit unsigned'
 
 
 class Short(Integer):
@@ -734,6 +748,8 @@ class Short(Integer):
     Handles the short datatype.  Signed 16-bit integer.
     """
     format = 'i2'
+    val_range = (-32768, 32767)
+    bit_size = '16-bit'
 
 
 class Int(Integer):
@@ -741,6 +757,8 @@ class Int(Integer):
     Handles the int datatype.  Signed 32-bit integer.
     """
     format = 'i4'
+    val_range = (-2147483648, 2147483647)
+    bit_size = '32-bit'
 
 
 class Long(Integer):
@@ -748,6 +766,8 @@ class Long(Integer):
     Handles the long datatype.  Signed 64-bit integer.
     """
     format = 'i8'
+    val_range = (-9223372036854775808, 9223372036854775807)
+    bit_size = '64-bit'
 
 
 class ComplexArrayVarArray(VarArray):
@@ -847,8 +867,6 @@ class Complex(FloatingPoint, Array):
         FloatingPoint.__init__(self, field, config, pos)
         Array.__init__(self, field, config, pos)
 
-        self._output_format = self._output_format + " " + self._output_format
-
     def parse(self, value, config={}, pos=None):
         if value.strip() == '':
             return np.nan, True
@@ -870,7 +888,14 @@ class Complex(FloatingPoint, Array):
                 return u'NaN'
             else:
                 value = self.null
-        return self._output_format % (value.real, value.imag)
+        real = self._output_format % value.real
+        imag = self._output_format % value.imag
+        if self._output_format[-1] == u's':
+            if real.endswith(u'.0'):
+                real = real[:-2]
+            if imag.endswith(u'.0'):
+                imag = imag[:-2]
+        return real + u' ' + imag
 
 
 class FloatComplex(Complex):

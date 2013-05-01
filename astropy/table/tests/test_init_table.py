@@ -150,7 +150,7 @@ class TestInitFromListOfLists(BaseInitFromListLike):
 class TestInitFromColsList(BaseInitFromListLike):
 
     def setup_method(self, method):
-        self.data = [Column(name='x', data=[1, 3], dtype=np.int32),
+        self.data = [Column([1, 3], name='x', dtype=np.int32),
                      np.array([2, 4], dtype=np.int32),
                      np.array([3, 5], dtype='i8')]
 
@@ -212,7 +212,7 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
 class TestInitFromDict(BaseInitFromDictLike):
 
     def setup_method(self, method):
-        self.data = dict([('a', Column(name='x', data=[1, 3])),
+        self.data = dict([('a', Column([1, 3], name='x')),
                           ('b', [2, 4]),
                           ('c', np.array([3, 5], dtype='i8'))])
 

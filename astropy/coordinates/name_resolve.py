@@ -53,6 +53,33 @@ NAME_RESOLVE_TIMEOUT = ConfigurationItem('name_resolve_timeout', 5,
 class NameResolveError(Exception):
     pass
 
+def _parse_response(resp_data):
+    """
+    Given a string response from SESAME, parse out the coordinates by looking
+    for a line starting with a J, meaning ICRS J2000 coordinates.
+    
+    Parameters
+    ----------
+    resp_data : str
+        The string HTTP response from SESAME.
+        
+    Returns
+    -------
+    ra : str
+        The string Right Ascension parsed from the HTTP response.
+    dec : str
+        The string Declination parsed from the HTTP response.
+    """
+    
+    pattr = re.compile(r"%J\s*([0-9\.]+)\s*([\+\-\.0-9]+)")
+    matched = pattr.search(resp_data.decode('utf-8'))
+    
+    if matched == None:
+        return None, None
+    else:
+        ra,dec = matched.groups()
+        return ra,dec
+
 def get_icrs_coordinates(name):
     """ 
     Retrieve an ICRSCoordinates object by using an online name resolving
@@ -121,10 +148,9 @@ def get_icrs_coordinates(name):
 
     resp_data = resp.read()
 
-    pattr = re.compile(r"%J\s*([0-9\.]+)\s*([\+\-\.0-9]+)")
-    matched = pattr.search(resp_data.decode('utf-8'))
-
-    if matched == None:
+    ra,dec = _parse_response(resp_data)
+    
+    if ra == None and dec == None:
         if db == "A":
             err = "Unable to find coordinates for name '{0}'".format(name)
         else:
@@ -132,7 +158,5 @@ def get_icrs_coordinates(name):
                   .format(name, database)
 
         raise NameResolveError(err)
-
-    ra,dec = matched.groups()
 
     return ICRSCoordinates(ra, dec, unit=(u.degree, u.degree))

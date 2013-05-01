@@ -34,7 +34,7 @@ def _default_values(dtype):
 def test_write_nopath(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
     with pytest.raises(ValueError) as exc:
         t1.write(test_file)
     assert exc.value.args[0] == "table path should be set via the path= argument"
@@ -44,7 +44,7 @@ def test_write_nopath(tmpdir):
 def test_read_nopath(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='the_table')
     with pytest.raises(ValueError) as exc:
         Table.read(test_file)
@@ -55,7 +55,7 @@ def test_read_nopath(tmpdir):
 def test_write_invalid_path(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
     with pytest.raises(ValueError) as exc:
         t1.write(test_file, path='test/')
     assert exc.value.args[0] == "table path should end with table name, not /"
@@ -65,7 +65,7 @@ def test_write_invalid_path(tmpdir):
 def test_read_invalid_path(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='the_table')
     with pytest.raises(ValueError) as exc:
         Table.read(test_file, path='test/')
@@ -104,7 +104,7 @@ def test_read_missing_group_fileobj(tmpdir):
 def test_read_write_simple(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='the_table')
     t2 = Table.read(test_file, path='the_table')
     assert np.all(t2['a'] == [1, 2, 3])
@@ -114,7 +114,7 @@ def test_read_write_simple(tmpdir):
 def test_read_write_existing_table(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='the_table')
     with pytest.raises(IOError) as exc:
         t1.write(test_file, path='the_table', append=True)
@@ -125,7 +125,7 @@ def test_read_write_existing_table(tmpdir):
 def test_read_write_memory(tmpdir):
     with h5py.File('test', driver='core', backing_store=False) as output_file:
         t1 = Table()
-        t1.add_column(Column('a', [1, 2, 3]))
+        t1.add_column(Column(name='a', data=[1, 2, 3]))
         t1.write(output_file, path='the_table')
         t2 = Table.read(output_file, path='the_table')
         assert np.all(t2['a'] == [1, 2, 3])
@@ -136,7 +136,7 @@ def test_read_write_existing(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     h5py.File(test_file, 'w').close()  # create empty file
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
     with pytest.raises(IOError) as exc:
         t1.write(test_file, path='the_table')
     assert exc.value.args[0].startswith("File exists:")
@@ -147,7 +147,7 @@ def test_read_write_existing_overwrite(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     h5py.File(test_file, 'w').close()  # create empty file
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='the_table', overwrite=True)
     t2 = Table.read(test_file, path='the_table')
     assert np.all(t2['a'] == [1, 2, 3])
@@ -158,7 +158,7 @@ def test_read_write_existing_append(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     h5py.File(test_file, 'w').close()  # create empty file
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='the_table_1', append=True)
     t1.write(test_file, path='the_table_2', append=True)
     t2 = Table.read(test_file, path='the_table_1')
@@ -173,7 +173,7 @@ def test_read_write_existing_append_groups(tmpdir):
     with h5py.File(test_file, 'w') as f:
         f.create_group('test_1')
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='test_1/the_table_1', append=True)
     t1.write(test_file, path='test_2/the_table_2', append=True)
     t2 = Table.read(test_file, path='test_1/the_table_1')
@@ -188,7 +188,7 @@ def test_read_fileobj(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='the_table')
 
     import h5py
@@ -203,7 +203,7 @@ def test_read_filobj_path(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='path/to/data/the_table')
 
     import h5py
@@ -218,7 +218,7 @@ def test_read_filobj_group_path(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='path/to/data/the_table')
 
     import h5py
@@ -235,7 +235,7 @@ def test_write_fileobj(tmpdir):
     import h5py
     with h5py.File(test_file, 'w') as output_file:
         t1 = Table()
-        t1.add_column(Column('a', [1, 2, 3]))
+        t1.add_column(Column(name='a', data=[1, 2, 3]))
         t1.write(output_file, path='the_table')
 
     t2 = Table.read(test_file, path='the_table')
@@ -250,7 +250,7 @@ def test_write_filobj_group(tmpdir):
     import h5py
     with h5py.File(test_file, 'w') as output_file:
         t1 = Table()
-        t1.add_column(Column('a', [1, 2, 3]))
+        t1.add_column(Column(name='a', data=[1, 2, 3]))
         t1.write(output_file, path='path/to/data/the_table')
 
     t2 = Table.read(test_file, path='path/to/data/the_table')
@@ -266,7 +266,7 @@ def test_preserve_single_dtypes(tmpdir, dtype):
     values = _default_values(dtype)
 
     t1 = Table()
-    t1.add_column(Column('a', np.array(values, dtype=dtype)))
+    t1.add_column(Column(name='a', data=np.array(values, dtype=dtype)))
     t1.write(test_file, path='the_table')
 
     t2 = Table.read(test_file, path='the_table')
@@ -284,7 +284,7 @@ def test_preserve_all_dtypes(tmpdir):
 
     for dtype in ALL_DTYPES:
         values = _default_values(dtype)
-        t1.add_column(Column(str(dtype), np.array(values, dtype=dtype)))
+        t1.add_column(Column(name=str(dtype), data=np.array(values, dtype=dtype)))
 
     t1.write(test_file, path='the_table')
 
@@ -302,7 +302,7 @@ def test_preserve_meta(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
 
     t1.meta['a'] = 1
     t1.meta['b'] = 'hello'
@@ -324,7 +324,7 @@ def test_skip_meta(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
     t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
 
     t1.meta['a'] = 1
     t1.meta['b'] = 'hello'

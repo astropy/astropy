@@ -18,5 +18,6 @@ def get_package_data():
             'data/*.dat',
             'data/*.dat.gz',
             'data/*.dat.bz2',
-            'data/*.txt']
+            'data/*.txt',
+            'data/.hidden_file.txt']
         }

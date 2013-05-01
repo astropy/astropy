@@ -30,7 +30,7 @@ class TestColumn():
         """Show that basic numpy operations with Column behave sensibly"""
 
         arr = np.array([1, 2, 3])
-        c = Column(name='a', data=arr)
+        c = Column(arr, name='a')
         eq = c == arr
         assert np.all(eq)
         assert len(eq) == 3
@@ -57,14 +57,14 @@ class TestColumn():
         """Show that the formatted output from str() works"""
         MAX_LINES_val = table.pprint.MAX_LINES()
         table.pprint.MAX_LINES.set(7)
-        c1 = Column(name='a', data=np.arange(2000), dtype=float,
+        c1 = Column(np.arange(2000), name='a', dtype=float,
                     format='%6.2f')
         assert str(c1) == ('   a   \n-------\n   0.00\n'
                            '   1.00\n    ...\n1998.00\n1999.00')
         table.pprint.MAX_LINES.set(MAX_LINES_val)
 
     def test_convert_numpy_array(self, Column):
-        d = Column(name='a', data=[1, 2, 3], dtype='i8')
+        d = Column([1, 2, 3], name='a', dtype='i8')
 
         np_data = np.array(d)
         assert np.all(np_data == d)
@@ -74,7 +74,7 @@ class TestColumn():
         assert np.all(np_data == d)
 
     def test_convert_units(self, Column):
-        d = Column(name='a', data=[1, 2, 3], dtype="f8", units="m")
+        d = Column([1, 2, 3], name='a', dtype="f8", units="m")
         d.convert_units_to("km")
         assert np.all(d.data == [0.001, 0.002, 0.003])
 
@@ -116,7 +116,7 @@ class TestColumn():
 
     def test_name_none(self, Column):
         """Can create a column without supplying name, which defaults to None"""
-        c = Column(data=[1, 2])
+        c = Column([1, 2])
         assert c.name is None
         assert np.all(c == np.array([1, 2]))
 

@@ -3982,8 +3982,8 @@ char *wcsutrntext;
 #line 1 "wcsutrn.l"
 /*============================================================================
 
-  WCSLIB 4.16 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2012, Mark Calabretta
+  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -4004,7 +4004,7 @@ char *wcsutrntext;
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutrn.c,v 4.16 2012/11/07 04:42:44 cal103 Exp $
+  $Id: wcsutrn.c,v 4.17 2013/01/29 05:29:21 cal103 Exp $
 *=============================================================================
 *
 * wcsutrn.l is a Flex description file containing the definition of a lexical

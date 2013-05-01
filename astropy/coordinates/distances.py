@@ -22,14 +22,15 @@ class Distance(object):
     """
     A one-dimensional distance.
 
-    This can be initialized in one of two ways, using either a distance
-    and a unit, or a redshift and (optionally) a cosmology.  `value`
-    and `unit` may be provided as positional arguments, but `z` and
-    `cosmology` are only valid as keyword arguments (see examples).
+    This can be initialized in one of three ways: a distance and a unit,
+    a `~astropy.units.quantity.Quantity` object, or a redshift and
+    (optionally) a cosmology.  `value` and `unit` may be provided as
+    positional arguments, but `z` and `cosmology` are only valid as
+    keyword arguments (see examples).
 
     Parameters
     ----------
-    value : scalar
+    value : scalar or `~astropy.units.quantity.Quantity`
         The value of this distance
     unit : `~astropy.units.core.UnitBase`
         The units for this distance.  Must have dimensions of distance.
@@ -63,6 +64,9 @@ class Distance(object):
             # just copy
             self._value = args[0]._value
             self._unit = args[0]._unit
+        elif len(args) == 1 and isinstance(args[0], u.Quantity):
+            self._value = args[0].value
+            self._unit = args[0].unit
         elif 'z' in kwargs:
             z = kwargs.pop('z')
             cosmo = kwargs.pop('cosmology', None)

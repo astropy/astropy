@@ -14,7 +14,7 @@ The |write| function provides a way to write a data table as a formatted ASCII t
   >>> from astropy.io import ascii
   >>> x = np.array([1, 2, 3])
   >>> y = x ** 2
-  >>> ascii.write([x, y], names=['x', 'y'], 'values.dat')
+  >>> ascii.write([x, y], 'values.dat', names=['x', 'y'])
 
 The ``values.dat`` file will then contain::
 

@@ -41,7 +41,7 @@ def test_parse_vowarning(recwarn):
         'warning'      : 'W47',
         'is_something' : True,
         'message'      : 'Missing arraysize indicates length 1',
-        'doc_url'      : 'vo/api_exceptions.html#w47',
+        'doc_url'      : 'io/votable/api_exceptions.html#w47',
         'nline'        : 42,
         'is_warning'   : True
         }

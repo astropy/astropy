@@ -1,0 +1,12 @@
+=========================
+What's New in Astropy 0.3
+=========================
+
+WCS
+---
+
+When reading FITS headers, warnings will be displayed about any
+non-standard WCS keywords that were fixed up to become standard
+compliant.
+
+The included version of `wcslib` has been upgraded to version 4.17.

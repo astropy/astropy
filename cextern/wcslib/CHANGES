@@ -1,3 +1,13 @@
+WCSLIB version 4.17 (2013/01/29)
+--------------------------------
+
+* C library
+
+  - Added wcsfprintf() to wcsprint.h.  Now used in wcsbth() and wcspih()
+    to allow diagnostic output to be redirected.  Changes provided by
+    Michael Droettboom.
+
+
 WCSLIB version 4.16 (2012/11/07)
 --------------------------------
 
@@ -8,7 +18,7 @@ WCSLIB version 4.16 (2012/11/07)
     coordinate representation" (if reporting is enabled).
 
 * Utilities
-    
+
   - wcsware has a new option, -P, which does the same as -p except that
     it won't print a wcsprm struct with the name "DEFAULTS".
 
@@ -1982,4 +1992,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 4.16 2012/11/07 04:42:45 cal103 Exp $
+$Id: CHANGES,v 4.17 2013/01/29 05:29:22 cal103 Exp $
