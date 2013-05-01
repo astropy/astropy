@@ -16,7 +16,7 @@ The :class:`~astropy.table.table.Table` class includes two methods,
 :meth:`~astropy.table.table.Table.read` and
 :meth:`~astropy.table.table.Table.write`, that make it possible to read from
 and write to files. A number of formats are automatically supported (see
-`Built-in readers/writers`_) and new file formats and extensions can be
+`Built-in table readers/writers`_) and new file formats and extensions can be
 registered with the :class:`~astropy.table.table.Table` class (see
 :ref:`io_registry`). After importing the :class:`~astropy.table.table.Table`
 class::
@@ -44,7 +44,7 @@ but as for the :meth:`~astropy.table.table.Table.read` method, the format may
 be automatically identified in some cases.
 
 Any additional arguments specified will depend on the format (see e.g. see
-`Built-in readers/writers`_)
+`Built-in table readers/writers`_)
 
 .. _built_in_readers_writers:
 
