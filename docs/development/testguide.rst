@@ -143,6 +143,46 @@ Enable PEP8 compliance testing with ``pep8=True`` in the call to
     variable (see :doc:`/configs/index`) or the `py.test` method described
     above.
 
+Tox
+---
+
+`Tox <http://tox.readthedocs.org>`_ is a sort of meta-test runner for Python.
+It installs a project into one or more virtualenvs (usually one for each Python
+version supported), build and installs the project into each virtualenv, and
+runs the projects tests (or any other build processes one might want to test).
+This is a good way to run the tests against multiple installed Python versions
+locally without pushing to a continous integration system.
+
+Tox works by detecting the presence of a file called ``tox.ini`` in the root of
+a Python project and using that to configuire the desired virtualenvs and start
+the tests.  So to run the Astropy tests on multiple Python versions using tox,
+simply install Tox::
+
+    $ pip install tox
+
+and then from the root of an Astropy repository clone run::
+
+    $ tox
+
+The Astropy tox configuration currently tests against Python versions 2.6, 2.7,
+3.2, and 3.3.  Tox will automatically skip any Python versions you do not have
+installed, but best results are achieved if you first install all supported
+Python versions and make sure they are on your ``$PATH``.
+
+.. note::
+
+    Tox creates its virtualenvs in the root of your project under a ``.tox``
+    directory (which is automatically ignored by ``.gitignore``).  It's worth
+    making note of this, however, as it is common practice to sometimes clean
+    up a git repository and delete any untracked files by running the ``git
+    clean -dfx`` command.  As it can take a long time to rebuild the tox
+    virtualenvs you may want to exclude the ``.tox`` directory from any
+    cleanup.  This can be achieved by running ``git clean -dfx -e .tox``,
+    though it is probably worth defining a `git alias
+    <https://git.wiki.kernel.org/index.php/Aliases>`_ to do this.
+
+
+
 Regression tests
 ================
 
