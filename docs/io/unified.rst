@@ -4,9 +4,9 @@ Unified file read/write interface
 ===================================
 
 Astropy provides a unified interface for reading and writing data
-in different formats.  For many common cases this will 
+in different formats.  For many common cases this will
 simplify the process of file I/O and reduce the need to master
-the separate details of all the I/O packages within Astropy.  This functionality is still in active development and the number of supported formats will be increasing.  For details on the implementation see 
+the separate details of all the I/O packages within Astropy.  This functionality is still in active development and the number of supported formats will be increasing.  For details on the implementation see
 :ref:`io_registry`.
 
 Getting started with Table I/O
@@ -204,6 +204,12 @@ read in and a warning will be emitted::
 To write to a new file::
 
     >>> t.write('new_table.fits')
+
+At this time, the ``meta`` attribute of the
+:class:`~astropy.table.table.Table` class is simply an ordered
+dictionary and does not fully reprepsent the structure of a FITS
+header (for example, keyword comments are dropped). This is likely
+to change in a future release.
 
 HDF5
 ^^^^^^^^
