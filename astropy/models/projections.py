@@ -45,11 +45,11 @@ class Projection(Model):
         self.r0 = 180/np.pi
         
     @property
-    def ndim(self):
+    def number_input_variables(self):
         return self._ndim
     
     @property
-    def outdim(self):
+    def number_output_variables(self):
         return self._outdim
     
     @property
