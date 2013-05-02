@@ -296,6 +296,17 @@ def vstack(arrays, join_type='inner', col_name_map=None):
     all columns, with array values being masked where no common values are
     available.
 
+    Parameters
+    ----------
+
+    arrays : list of structured arrays
+        Structured array(s) to stack by rows (vertically)
+    join_type : str
+        Join type ('inner' | 'exact' | 'outer'), default is 'exact'
+    col_name_map : empty dict or None
+        If passed as a dict then it will be updated in-place with the
+        mapping of output to input column names.
+
     Examples
     --------
 
@@ -312,17 +323,6 @@ def vstack(arrays, join_type='inner', col_name_map=None):
              (5, 6),
              (7, 8)],
             dtype=[('a', '<i4'), ('b', '<i4')])
-
-    Parameters
-    ----------
-
-    arrays : list of structured arrays
-        Structured array(s) to stack by rows (vertically)
-    join_type : str
-        Join type ('inner' | 'exact' | 'outer'), default is 'exact'
-    col_name_map : empty dict or None
-        If passed as a dict then it will be updated in-place with the
-        mapping of output to input column names.
     """
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
@@ -409,21 +409,6 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     the output will have the union of all rows, with array values being
     masked where no common values are available.
 
-    Examples
-    --------
-
-    To stack two arrays horizontally (by columns) do::
-
-      >>> from astropy.table import np_utils
-      >>> t1 = np.array([(1, 2),
-                         (3, 4)], dtype=[('a', 'i4'), ('b', 'i4')])
-      >>> t2 = np.array([(5, 6),
-                         (7, 8)], dtype=[('c', 'i4'), ('d', 'i4')])
-      >>> np_utils.hstack([t1, t2])
-      array([(1, 2, 5, 6),
-             (3, 4, 7, 8)],
-            dtype=[('a', '<i4'), ('b', '<i4'), ('c', '<i4'), ('d', '<i4')])
-
     Parameters
     ----------
 
@@ -438,6 +423,20 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
         Two-element list of table names used when generating unique output
         column names.  The default is ['1', '2', ..].
 
+    Examples
+    --------
+
+    To stack two arrays horizontally (by columns) do::
+
+      >>> from astropy.table import np_utils
+      >>> t1 = np.array([(1, 2),
+                         (3, 4)], dtype=[('a', 'i4'), ('b', 'i4')])
+      >>> t2 = np.array([(5, 6),
+                         (7, 8)], dtype=[('c', 'i4'), ('d', 'i4')])
+      >>> np_utils.hstack([t1, t2])
+      array([(1, 2, 5, 6),
+             (3, 4, 7, 8)],
+            dtype=[('a', '<i4'), ('b', '<i4'), ('c', '<i4'), ('d', '<i4')])
     """
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map

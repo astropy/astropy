@@ -131,6 +131,14 @@ def vstack(tables, join_type='outer'):
     all columns, with table values being masked where no common values are
     available.
 
+    Parameters
+    ----------
+
+    tables : Table or list of Table objects
+        Table(s) to stack by rows (vertically) with the current table
+    join_type : str
+        Join type ('inner' | 'exact' | 'outer'), default is 'exact'
+
     Examples
     --------
 
@@ -146,14 +154,6 @@ def vstack(tables, join_type='outer'):
         2   4
         5   7
         6   8
-
-    Parameters
-    ----------
-
-    tables : Table or list of Table objects
-        Table(s) to stack by rows (vertically) with the current table
-    join_type : str
-        Join type ('inner' | 'exact' | 'outer'), default is 'exact'
     """
     from .table import Table
 
@@ -182,20 +182,6 @@ def hstack(tables, join_type='outer',
     the output will have the union of all rows, with table values being
     masked where no common values are available.
 
-    Examples
-    --------
-
-    To stack two tables horizontally (by columns) do::
-
-      >>> from astropy.table import Table, hstack
-      >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
-      >>> t2 = Table({'c': [5, 6], 'd': [7, 8]}, names=('c', 'd'))
-      >>> print hstack([t1, t2])
-       a   b   c   d
-      --- --- --- ---
-        1   3   5   7
-        2   4   6   8
-
     Parameters
     ----------
 
@@ -212,6 +198,20 @@ def hstack(tables, join_type='outer',
     col_name_map : empty dict or None
         If passed as a dict then it will be updated in-place with the
         mapping of output to input column names.
+
+    Examples
+    --------
+
+    To stack two tables horizontally (by columns) do::
+
+      >>> from astropy.table import Table, hstack
+      >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
+      >>> t2 = Table({'c': [5, 6], 'd': [7, 8]}, names=('c', 'd'))
+      >>> print hstack([t1, t2])
+       a   b   c   d
+      --- --- --- ---
+        1   3   5   7
+        2   4   6   8
     """
     from .table import Table
 
