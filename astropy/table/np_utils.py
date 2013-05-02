@@ -18,6 +18,8 @@ import numpy.ma as ma
 from . import _np_utils
 from ..utils import OrderedDict
 
+__all__ = ['join', 'hstack', 'vstack', 'TableMergeError']
+
 
 class TableMergeError(ValueError):
     pass
@@ -152,9 +154,9 @@ def join(left, right, keys=None, join_type='inner',
 
     Parameters
     ----------
-    left : structured ndarray
+    left : structured array
         Left side table in the join
-    right : structured ndarray
+    right : structured array
         Right side table in the join
     keys : str or list of str
         Column(s) used to match rows of left and right tables.  Default
@@ -287,15 +289,15 @@ def vstack(arrays, join_type='inner', col_name_map=None):
     """
     Stack structured arrays vertically (by rows)
 
-    A ``join_type`` of 'exact' (default) means that the tables must all
+    A ``join_type`` of 'exact' (default) means that the arrays must all
     have exactly the same column names (though the order can vary).  If
     ``join_type`` is 'inner' then the intersection of common columns will
     be output.  A value of 'outer' means the output will have the union of
-    all columns, with table values being masked where no common values are
+    all columns, with array values being masked where no common values are
     available.
 
-    Example
-    -------
+    Examples
+    --------
 
     To stack two structured arrays by rows do::
 
@@ -314,8 +316,8 @@ def vstack(arrays, join_type='inner', col_name_map=None):
     Parameters
     ----------
 
-    tables : Table or list of Table objects
-        Table(s) to stack by rows (vertically) with the current table
+    arrays : list of structured arrays
+        Structured array(s) to stack by rows (vertically)
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'exact'
     col_name_map : empty dict or None
@@ -399,18 +401,18 @@ def vstack(arrays, join_type='inner', col_name_map=None):
 def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
            table_names=None, col_name_map=None):
     """
-    Stack tables by horizontally (by columns)
+    Stack structured arrays by horizontally (by columns)
 
-    A ``join_type`` of 'exact' (default) means that the tables must all
-    have exactly the same number of row.  If ``join_type`` is 'inner' then
+    A ``join_type`` of 'exact' (default) means that the arrays must all
+    have exactly the same number of rows.  If ``join_type`` is 'inner' then
     the intersection of rows will be output.  A value of 'outer' means
-    the output will have the union of all rows, with table values being
+    the output will have the union of all rows, with array values being
     masked where no common values are available.
 
-    Example
-    -------
+    Examples
+    --------
 
-    To stack two tables horizontally (by columns) do::
+    To stack two arrays horizontally (by columns) do::
 
       >>> from astropy.table import np_utils
       >>> t1 = np.array([(1, 2),
@@ -425,8 +427,8 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     Parameters
     ----------
 
-    tables : Table or list of Table objects
-        Table(s) to stack by columns (horizontally) with the current table
+    arrays : List of structured array objects
+        Structured arrays to stack by columns (horizontally)
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'exact'
     uniq_col_name : str or None
@@ -435,6 +437,7 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     table_names : list of str or None
         Two-element list of table names used when generating unique output
         column names.  The default is ['1', '2', ..].
+
     """
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
