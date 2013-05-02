@@ -268,9 +268,9 @@ def _mod_info(modname, toskip=[], toinclude=[]):
     hascls = hasfunc = False
 
     for localnm, fqnm, obj in zip(*find_mod_objs(modname, onlylocals=True)):
-        if (toskip and localnm not in toskip) or \
-           (toinclude and localnm in toinclude) or \
-           (not toskip and not toinclude):
+        if ((toskip and localnm not in toskip) or
+               (toinclude and localnm in toinclude) or
+               (not toskip and not toinclude)):
             hascls = hascls or isclass(obj)
             hasfunc = hasfunc or isfunction(obj)
             if hascls and hasfunc:
