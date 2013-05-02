@@ -122,7 +122,7 @@ def join(left, right, keys=None, join_type='inner',
 
 def vstack(tables, join_type='outer'):
     """
-    Stack tables vertically (by rows)
+    Stack tables vertically (along rows)
 
     A ``join_type`` of 'exact' means that the tables must all
     have exactly the same column names (though the order can vary).  If
@@ -135,14 +135,14 @@ def vstack(tables, join_type='outer'):
     ----------
 
     tables : Table or list of Table objects
-        Table(s) to stack by rows (vertically) with the current table
+        Table(s) to stack along rows (vertically) with the current table
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'exact'
 
     Examples
     --------
 
-    To stack two tables by rows do::
+    To stack two tables along rows do::
 
       >>> from astropy.table import vstack, Table
       >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
@@ -174,7 +174,7 @@ def vstack(tables, join_type='outer'):
 def hstack(tables, join_type='outer',
            uniq_col_name='{col_name}_{table_name}', table_names=None):
     """
-    Stack tables by columns (horizontally)
+    Stack tables along columns (horizontally)
 
     A ``join_type`` of 'exact' means that the tables must all
     have exactly the same number of row.  If ``join_type`` is 'inner' then
@@ -186,7 +186,7 @@ def hstack(tables, join_type='outer',
     ----------
 
     tables : List of Table objects
-        Tables to stack by columns (horizontally) with the current table
+        Tables to stack along columns (horizontally) with the current table
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'outer'
     uniq_col_name : str or None
@@ -202,7 +202,7 @@ def hstack(tables, join_type='outer',
     Examples
     --------
 
-    To stack two tables horizontally (by columns) do::
+    To stack two tables horizontally (along columns) do::
 
       >>> from astropy.table import Table, hstack
       >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
