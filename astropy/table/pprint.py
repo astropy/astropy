@@ -89,6 +89,8 @@ def _auto_format_func(format_, val):
         format_func = lambda format_, val: format_(val.tolist())
         try:                            
             out = format_func(format_, val)
+            if not isinstance(out, basestring):
+                raise ValueError('Format function for value {0} did return {1}, but should have returned a string'.format(val, out))
         except:  # Depending on the function, different exceptions might be raised
             raise ValueError('{0} should have been formatted with a user supplied \
                               function, but this function failed'.format(val))
