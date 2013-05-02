@@ -193,7 +193,10 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
 
             # Check that skip and include were not both used
             if toskip and toinclude:
-                raise ValueError("Cannot use both :skip: and :include: in an automodapi directive")
+                if warnings:
+                    app.warn("Cannot use both :skip: and :include: in an automodapi directive. Ignoring both options.", location)
+                toskip = []
+                toinclude = []
 
             # get the two heading chars
             if len(hds) < 2:
@@ -229,7 +232,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
             elif toinclude:
                 skips_or_includes = ':include: ' + ','.join(toinclude)
             else:
-                skips_or_includes = None
+                skips_or_includes = ''
 
             if hasfuncs:
                 newstrs.append(automod_templ_funcs.format(modname=modnm,

@@ -96,13 +96,14 @@ class Automodsumm(AstropyAutosummary):
 
     def run(self):
 
-        if 'skip' in self.options and 'include' in self.options:
-            raise ValueError("Cannot use both :skip: and :include: in an automodsumm directive")
-
         from inspect import isclass, isfunction
 
         self.warnings = []
         nodelist = []
+
+        if 'skip' in self.options and 'include' in self.options:
+            self.warn("Cannot use both :skip: and :include: in an automodsumm directive. Skipping this automodsumm directive.")
+            return self.warnings
 
         try:
             mod_objs = zip(*find_mod_objs(self.arguments[0]))
