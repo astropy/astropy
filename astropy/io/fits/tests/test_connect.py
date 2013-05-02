@@ -1,11 +1,15 @@
-import pytest
-import numpy as np
+import sys
 import warnings
+
+import numpy as np
 
 from .. import HDUList, PrimaryHDU, BinTableHDU
 from ....table import Table
 from .... import units as u
 from .... import log
+from ....tests.helper import pytest
+
+PY3 = sys.version_info[0] >= 3
 
 
 def equal_data(a, b):
@@ -67,6 +71,7 @@ class TestSingleTable(object):
         t2 = Table.read(filename)
         assert equal_data(t1, t2)
 
+    @pytest.mark.xfail("PY3")
     def test_with_units(self, tmpdir):
         filename = str(tmpdir.join('test_with_units.fits'))
         t1 = Table(self.data)
