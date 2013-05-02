@@ -30,8 +30,8 @@ from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
     warn_unknown_attrs,
     W06, W07, W08, W09, W10, W11, W12, W13, W15, W17, W18, W19, W20,
     W21, W22, W26, W27, W28, W29, W32, W33, W35, W36, W37, W38, W40,
-    W41, W42, W43, W44, W45, W50, E06, E08, E09, E10, E11, E12, E13,
-    E14, E15, E16, E17, E18, E19, E20, E21)
+    W41, W42, W43, W44, W45, W50, W52, E06, E08, E09, E10, E11, E12,
+    E13, E14, E15, E16, E17, E18, E19, E20, E21)
 from . import ucd as ucd_mod
 from . import util
 from . import xmlutil
@@ -524,13 +524,16 @@ class Link(SimpleElement, _IDProperty):
         """
         Defines the MIME role of the referenced object.  Must be one of:
 
-          None, 'query', 'hints', 'doc' or 'location'
+          None, 'query', 'hints', 'doc', 'location' or 'type'
         """
         return self._content_role
 
     @content_role.setter
     def content_role(self, content_role):
-        if content_role not in (None, 'query', 'hints', 'doc', 'location'):
+        if ((content_role == 'type' and
+             not self._config['version_1_3_or_later']) or
+             content_role not in
+             (None, 'query', 'hints', 'doc', 'location')):
             vo_warn(W45, (content_role,), self._config, self._pos)
         self._content_role = content_role
 
@@ -2014,7 +2017,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         [*required*] The serialization format of the table.  Must be
         one of:
 
-          'tabledata' (TABLEDATA_), 'binary' (BINARY_), 'fits' (FITS_).
+          'tabledata' (TABLEDATA_), 'binary' (BINARY_), 'binary2' (BINARY2_)
+          'fits' (FITS_).
 
         Note that the 'fits' format, since it requires an external
         file, can not be written out.  Any file read in with 'fits'
@@ -2028,7 +2032,12 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         if format == 'fits':
             vo_raise("fits format can not be written out, only read.",
                      self._config, self._pos, NotImplementedError)
-        if format not in ('tabledata', 'binary'):
+        if format == 'binary2':
+            if not self._config['version_1_3_or_later']:
+                vo_raise(
+                    "binary2 only supported in votable 1.3 or later",
+                    self._config, self._pos)
+        elif format not in ('tabledata', 'binary'):
             vo_raise("Invalid format '%s'" % format,
                      self._config, self._pos)
         self._format = format
@@ -2284,7 +2293,14 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                         warn_unknown_attrs(
                             'BINARY', data.iterkeys(), config, pos)
                         self.array = self._parse_binary(
-                            iterator, colnumbers, fields, config)
+                            1, iterator, colnumbers, fields, config)
+                        break
+                    elif tag == 'BINARY2':
+                        if not config['version_1_3_or_later']:
+                            warn_or_raise(
+                                W52, W52, config['version'], config, pos)
+                        self.array = self._parse_binary(
+                            2, iterator, colnumbers, fields, config)
                         break
                     elif tag == 'FITS':
                         warn_unknown_attrs(
@@ -2436,9 +2452,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
         return array
 
-    def _parse_binary(self, iterator, colnumbers, fields, config):
-        fields = self.fields
-
+    def _get_binary_data_stream(self, iterator, config):
         have_local_stream = False
         for start, tag, data, pos in iterator:
             if tag == 'STREAM':
@@ -2495,6 +2509,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 raise EOFError
             return result
 
+        return careful_read
+
+    def _parse_binary(self, mode, iterator, colnumbers, fields, config):
+        fields = self.fields
+
+        careful_read = self._get_binary_data_stream(iterator, config)
+
         # Need to have only one reference so that we can resize the
         # array
         array = self.array
@@ -2512,7 +2533,12 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
             row_data = []
             row_mask_data = []
+
             try:
+                if mode == 2:
+                    mask_bits = careful_read(int((len(fields) + 7) / 8))
+                    row_mask_data = list(converters.bitarray_to_bool(
+                        mask_bits, len(fields)))
                 for i, binparse in enumerate(binparsers):
                     try:
                         value, value_mask = binparse(careful_read)
@@ -2523,7 +2549,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                                    "(in row %d, col '%s')" %
                                    (numrows, fields[i].ID))
                     row_data.append(value)
-                    row_mask_data.append(value_mask)
+                    if mode == 1:
+                        row_mask_data.append(value_mask)
+                    else:
+                        row_mask_data[i] = row_mask_data[i] or value_mask
             except EOFError:
                 break
 
@@ -2602,6 +2631,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                                     self.links):
                     for element in element_set:
                         element.to_xml(w, **kwargs)
+            elif kwargs['version_1_2_or_later']:
+                index = list(self._votable.iter_tables()).index(self)
+                group = Group(self, ID=u"_g{0}".format(index))
+                group.to_xml(w, **kwargs)
 
             if len(self.array):
                 with w.tag(u'DATA'):
@@ -2611,9 +2644,11 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     if self.format == u'tabledata':
                         self._write_tabledata(w, **kwargs)
                     elif self.format == u'binary':
-                        self._write_binary(w, **kwargs)
+                        self._write_binary(1, w, **kwargs)
+                    elif self.format == u'binary2':
+                        self._write_binary(2, w, **kwargs)
 
-            if self.ref is None and kwargs['version_1_2_or_later']:
+            if kwargs['version_1_2_or_later']:
                 for element in self._infos:
                     element.to_xml(w, **kwargs)
 
@@ -2663,13 +2698,17 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                             write(td_empty)
                     write(tr_end)
 
-    def _write_binary(self, w, **kwargs):
+    def _write_binary(self, mode, w, **kwargs):
         import base64
 
         fields = self.fields
         array = self.array
+        if mode == 1:
+            tag_name = u'BINARY'
+        else:
+            tag_name = u'BINARY2'
 
-        with w.tag(u'BINARY'):
+        with w.tag(tag_name):
             with w.tag(u'STREAM', encoding='base64'):
                 fields_basic = [(i, field.converter.binoutput)
                                 for (i, field) in enumerate(fields)]
@@ -2678,6 +2717,11 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 for row in xrange(len(array)):
                     array_row = array.data[row]
                     array_mask = array.mask[row]
+
+                    if mode == 2:
+                        flattened = np.array([np.all(x) for x in array_mask])
+                        data.write(converters.bool_to_bitarray(flattened))
+
                     for i, converter in fields_basic:
                         try:
                             chunk = converter(array_row[i], array_mask[i])
@@ -3078,6 +3122,15 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         """
         return self._version
 
+    @version.setter
+    def version(self, version):
+        version = str(version)
+        if version not in ('1.1', '1.2', '1.3'):
+            raise ValueError(
+                "astropy.io.votable only supports VOTable versions "
+                "1.1, 1.2 and 1.3")
+        self._version = version
+
     @property
     def coordinate_systems(self):
         """
@@ -3164,7 +3217,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                                 W29, W29, config['version'], config, pos)
                             self._version = config['version'] = \
                                             config['version'][1:]
-                        if config['version'] not in ('1.1', '1.2'):
+                        if config['version'] not in ('1.1', '1.2', '1.3'):
                             vo_warn(W21, config['version'], config, pos)
 
                     if 'xmlns' in data:
@@ -3183,6 +3236,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             util.version_compare(config['version'], '1.1') >= 0
         config['version_1_2_or_later'] = \
             util.version_compare(config['version'], '1.2') >= 0
+        config['version_1_3_or_later'] = \
+            util.version_compare(config['version'], '1.3') >= 0
 
         tag_mapping = {
             'PARAM'       : self._add_param,
@@ -3232,7 +3287,10 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 util.version_compare(self.version, u'1.1') >= 0,
             'version_1_2_or_later':
                 util.version_compare(self.version, u'1.2') >= 0,
-            '_debug_python_based_parser': _debug_python_based_parser}
+            'version_1_3_or_later':
+                util.version_compare(self.version, u'1.3') >= 0,
+            '_debug_python_based_parser': _debug_python_based_parser,
+            '_group_number': 1}
 
         with util.convert_to_writable_filelike(
             fd, compressed=compressed) as fd:
