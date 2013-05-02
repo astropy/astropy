@@ -19,6 +19,7 @@ import numpy as np
 # AstroPy
 from .core import Unit, UnitBase, CompositeUnit, UnitsException
 from ..config import ConfigurationItem
+from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
 
 
@@ -53,12 +54,8 @@ def _validate_value(value):
 
     from ..utils.misc import isiterable
 
-    if isinstance(value, (numbers.Number, np.number)):
-        value_obj = value
-    elif isiterable(value):
-        value_obj = np.array(value, copy=True)
-    elif isinstance(value, np.ndarray):
-        # A length-0 numpy array (i.e. numpy scalar) which we accept as-is
+    if (isinstance(value, (numbers.Number, np.number, np.ndarray)) or
+            isiterable(value)):
         value_obj = np.array(value, copy=True)
     else:
         raise TypeError("The value must be a valid Python or Numpy numeric "
@@ -102,14 +99,23 @@ class Quantity(np.ndarray):
         from ..utils.misc import isiterable
 
         if isinstance(value, Quantity):
-            _value = _validate_value(value.to(self._unit).value)
+            _value = _validate_value(value.to(unit).value)
         elif isiterable(value) and all(isinstance(v, Quantity) for v in value):
-            _value = _validate_value([q.to(self._unit).value for q in value])
+            _value = _validate_value([q.to(unit).value for q in value])
         else:
             _value = _validate_value(value)
 
-        self = np.asarray(_value, dtype=dtype).view(cls)
-        self._unit = Unit(unit)
+        if dtype is not None and dtype != _value.dtype:
+            _value = _value.astype(dtype)
+        else:
+            dtype = _value.dtype
+
+        self = super(Quantity, cls).__new__(cls, _value.shape, dtype=dtype,
+                                            buffer=_value.data)
+        if unit is None:
+            self._unit = Unit(1)
+        else:
+            self._unit = Unit(unit)
         self._equivalencies = Unit._normalize_equivalencies(equivalencies)
 
         return self
@@ -119,9 +125,6 @@ class Quantity(np.ndarray):
             return
         if isinstance(obj, Quantity):
             self._unit = obj._unit
-
-    def __array_wrap__(self, out_arr, context=None):
-        return np.ndarray.__array_wrap__(self, out_arr, context)
 
     def to(self, unit, equivalencies=None):
         """ Returns a new `Quantity` object with the specified units.
@@ -149,7 +152,10 @@ class Quantity(np.ndarray):
     def value(self):
         """ The numerical value of this quantity. """
 
-        return self.view(np.ndarray)
+        if not self.shape:
+            return self.item()
+        else:
+            return self.view(np.ndarray)
 
     @property
     def unit(self):
@@ -191,7 +197,7 @@ class Quantity(np.ndarray):
         cgs_unit = self.unit.to_system(cgs)[0]
         return Quantity(self.value * cgs_unit.scale, cgs_unit / cgs_unit.scale)
 
-    @property
+    @lazyproperty
     def isscalar(self):
         """
         True if the `value` of this quantity is a scalar, or False if it

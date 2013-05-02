@@ -49,9 +49,11 @@ class TestQuantityCreation(object):
         # create objects using the Quantity constructor:
         q1 = u.Quantity(11.412, unit=u.meter)
         q2 = u.Quantity(21.52, "cm")
+        q3 = u.Quantity(11.412)
 
-        with pytest.raises(TypeError):
-            q3 = u.Quantity(11.412)
+        # By default quantities that don't specify a unit are unscaled
+        # dimensionless
+        assert q3.unit == u.Unit(1)
 
     def test_3(self):
         # with pytest.raises(u.UnitsException):
@@ -419,14 +421,13 @@ def test_arrays():
         qsecnotarray[0]
 
     qseclen0array = u.Quantity(np.array(10), u.second)
-    # 0d numpy array should act basically like a scalar, but still keep its
-    # identity as a numpy array
+    # 0d numpy array should act basically like a scalar
     assert qseclen0array.isscalar
     with pytest.raises(TypeError):
         len(qseclen0array)
     with pytest.raises(TypeError):
         qseclen0array[0]
-    assert isinstance(qseclen0array.value, np.ndarray)
+    assert isinstance(qseclen0array.value, int)
 
     # can also create from lists, will auto-convert to arrays
     qsec = u.Quantity(range(10), u.second)
