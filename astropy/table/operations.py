@@ -16,6 +16,7 @@ from . import np_utils
 
 __all__ = ['join', 'hstack', 'vstack']
 
+
 def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1):
     """
     Merge column meta data for the ``out`` table.
@@ -147,6 +148,16 @@ def vstack(tables, join_type='outer'):
       >>> from astropy.table import vstack, Table
       >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
       >>> t2 = Table({'a': [5, 6], 'b': [7, 8]}, names=('a', 'b'))
+      >>> print t1
+       a   b
+      --- ---
+        1   3
+        2   4
+      >>> print t2
+       a   b
+      --- ---
+        5   7
+        6   8
       >>> print vstack([t1, t2])
        a   b
       --- ---
@@ -207,6 +218,16 @@ def hstack(tables, join_type='outer',
       >>> from astropy.table import Table, hstack
       >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
       >>> t2 = Table({'c': [5, 6], 'd': [7, 8]}, names=('c', 'd'))
+      >>> print t1
+       a   b
+      --- ---
+        1   3
+        2   4
+      >>> print t2
+       c   d
+      --- ---
+        5   7
+        6   8
       >>> print hstack([t1, t2])
        a   b   c   d
       --- --- --- ---
