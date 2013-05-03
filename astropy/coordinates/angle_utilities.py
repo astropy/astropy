@@ -8,17 +8,230 @@ of data to another.
 """
 from __future__ import unicode_literals
 
-import re
 import math
-import inspect # NB: get the function name with: inspect.stack()[0][3]
 from warnings import warn
 
 from .errors import *
 from ..utils import format_exception
+from .. import units as u
+
+
+class _AngleParser(object):
+    """
+    Parses the various angle formats including:
+
+       * 01:02:30.43 degrees
+       * 1 2 0 hours
+       * 1°2′3″
+       * 1d2m3s
+       * -1h2m3s
+
+    This class should not be used directly.  Use `parse_angle`
+    instead.
+    """
+    def __init__(self):
+        if '_parser' not in _AngleParser.__dict__:
+            _AngleParser._parser, _AngleParser._lexer = self._make_parser()
+
+    @classmethod
+    def _get_simple_unit_names(cls):
+        simple_units = set(u.radian.find_equivalent_units())
+        simple_units.remove(u.deg)
+        simple_units.remove(u.hourangle)
+        simple_unit_names = set()
+        for unit in simple_units:
+            simple_unit_names.update(unit.names)
+        return list(simple_unit_names)
+
+    @classmethod
+    def _make_parser(cls):
+        from ..extern.ply import lex, yacc
+
+        # List of token names.
+        tokens = (
+            'SIGN',
+            'UINT',
+            'UFLOAT',
+            'COLON',
+            'DEGREE',
+            'HOUR',
+            'MINUTE',
+            'SECOND',
+            'SIMPLE_UNIT'
+        )
+
+        # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
+        # Regular expression rules for simple tokens
+        def t_UFLOAT(t):
+            r'((\d+\.\d*)|(\.\d+))([eE][+-]?\d+)?'
+            t.value = float(t.value)
+            return t
+
+        def t_UINT(t):
+            r'\d+'
+            t.value = int(t.value)
+            return t
+
+        def t_SIGN(t):
+            r'[+-]'
+            t.value = float(t.value + '1')
+            return t
+
+        t_COLON = ':'
+        t_DEGREE = r'd(eg(ree(s)?)?)?|°'
+        t_HOUR = r'hour(s)?|h(r)?|ʰ'
+        t_MINUTE = r'm(in(ute(s)?)?)?|′|\''
+        t_SECOND = r's(ec(ond(s)?)?)?|″|\"'
+        t_SIMPLE_UNIT = '|'.join(
+            '({0})'.format(x) for x in cls._get_simple_unit_names())
+
+        # A string containing ignored characters (spaces)
+        t_ignore  = ' '
+
+        # Error handling rule
+        def t_error(t):
+            raise ValueError(
+                "Invalid character at col {0}".format(t.lexpos))
+
+        # Build the lexer
+        lexer = lex.lex()
+
+        def p_angle(p):
+            '''
+            angle : hms
+                  | dms
+                  | simple
+            '''
+            p[0] = p[1]
+
+        def p_sign(p):
+            '''
+            sign : SIGN
+                 |
+            '''
+            if len(p) == 2:
+                p[0] = p[1]
+            else:
+                p[0] = 1.0
+
+        def p_ufloat(p):
+            '''
+            ufloat : UFLOAT
+                   | UINT
+            '''
+            p[0] = float(p[1])
+
+        def p_colon(p):
+            '''
+            colon : sign UINT COLON UINT
+                  | sign UINT COLON UINT COLON ufloat
+            '''
+            if len(p) == 5:
+                p[0] = (p[1] * p[2], p[4], 0.0)
+            elif len(p) == 7:
+                p[0] = (p[1] * p[2], p[4], p[6])
+
+        def p_spaced(p):
+            '''
+            spaced : sign UINT UINT
+                   | sign UINT UINT ufloat
+            '''
+            if len(p) == 4:
+                p[0] = (p[1] * p[2], p[3], 0.0)
+            elif len(p) == 5:
+                p[0] = (p[1] * p[2], p[3], p[4])
+
+        def p_generic(p):
+            '''
+            generic : colon
+                    | spaced
+                    | sign UFLOAT
+                    | sign UINT
+            '''
+            if len(p) == 2:
+                p[0] = p[1]
+            else:
+                p[0] = p[1] * p[2]
+
+        def p_hms(p):
+            '''
+            hms : sign UINT HOUR UINT
+                | sign UINT HOUR UINT MINUTE
+                | sign UINT HOUR UINT MINUTE ufloat
+                | sign UINT HOUR UINT MINUTE ufloat SECOND
+                | generic HOUR
+            '''
+            if len(p) == 3:
+                p[0] = (p[1], u.hourangle)
+            elif len(p) in (5, 6):
+                p[0] = ((p[1] * p[2], p[4], 0.0), u.hourangle)
+            elif len(p) in (7, 8):
+                p[0] = ((p[1] * p[2], p[4], p[6]), u.hourangle)
+
+        def p_dms(p):
+            '''
+            dms : sign UINT DEGREE UINT
+                | sign UINT DEGREE UINT MINUTE
+                | sign UINT DEGREE UINT MINUTE ufloat
+                | sign UINT DEGREE UINT MINUTE ufloat SECOND
+                | generic DEGREE
+            '''
+            if len(p) == 3:
+                p[0] = (p[1], u.degree)
+            elif len(p) in (5, 6):
+                p[0] = ((p[1] * p[2], p[4], 0.0), u.degree)
+            elif len(p) in (7, 8):
+                p[0] = ((p[1] * p[2], p[4], p[6]), u.degree)
+
+        def p_simple(p):
+            '''
+            simple : generic
+                   | generic SIMPLE_UNIT
+            '''
+            if len(p) == 2:
+                p[0] = (p[1], None)
+            else:
+                p[0] = (p[1], p[2])
+
+        def p_error(p):
+            raise ValueError
+
+        parser = yacc.yacc(debug=False)
+
+        return parser, lexer
+
+    def parse(self, angle, unit, debug=False):
+        try:
+            found_angle, found_unit = self._parser.parse(
+                angle, lexer=self._lexer, debug=debug)
+        except ValueError as e:
+            if str(e):
+                raise ValueError("{0} in angle {1!r}".format(
+                    str(e), angle))
+            else:
+                raise ValueError(
+                    "Syntax error parsing angle {0!r}".format(angle))
+
+        if unit is not None:
+            unit = u.Unit(unit)
+            if (found_unit is not None and
+                found_unit is not unit):
+                raise u.UnitsException(
+                    "Unit in string ({0}) does not match requested unit "
+                    "({1})".format(found_unit, unit))
+        else:
+            if found_unit is None:
+                raise u.UnitsException("No unit specified")
+            else:
+                unit = found_unit
+
+        return found_angle, unit
 
 
 def _check_hour_range(hrs):
-    ''' Checks that the given value is in the range (-24,24). '''
+    """
+    Checks that the given value is in the range (-24, 24).
+    """
     if math.fabs(hrs) == 24.:
         warn(IllegalHourWarning(hrs, 'Treating as 24 hr'))
     elif not -24. < hrs < 24.:
@@ -26,8 +239,10 @@ def _check_hour_range(hrs):
 
 
 def _check_minute_range(min):
-    ''' Checks that the given value is in the range [0,60].
-    If the value is equal to 60, then a warning is raised. '''
+    """
+    Checks that the given value is in the range [0,60].  If the value
+    is equal to 60, then a warning is raised.
+    """
     if min == 60.:
         warn(IllegalMinuteWarning(min, 'Treating as 0 min, +1 hr/deg'))
     elif not 0. <= min < 60.:
@@ -36,8 +251,10 @@ def _check_minute_range(min):
 
 
 def _check_second_range(sec):
-    ''' Checks that the given value is in the range [0,60].
-    If the value is equal to 60, then a warning is raised. '''
+    """
+    Checks that the given value is in the range [0,60].  If the value
+    is equal to 60, then a warning is raised.
+    """
     if sec == 60.:
         warn(IllegalSecondWarning(sec, 'Treating as 0 sec, +1 min'))
     elif not 0. <= sec < 60.:
@@ -46,287 +263,54 @@ def _check_second_range(sec):
 
 
 def check_hms_ranges(h, m, s):
+    """
+    Checks that the given hour, minute and second are all within
+    reasonable range.
+    """
     _check_hour_range(h)
     _check_minute_range(m)
     _check_second_range(s)
     return None
 
-# these regexes are used in parse_degrees
-# accept these as (one or more repeated) delimiters: :, whitespace, /
-_dms_div_regex_str = '[:|/|\t|\-|\sDdMmSs]{1,2}'
-# Look for a pattern where d,m,s is specified
-_dms_regex = re.compile('^([+-]{0,1}\d{1,3})' + _dms_div_regex_str +
-                        '(\d{1,2})' + _dms_div_regex_str +
-                        '(\d{1,2}[\.0-9]*)' + '[Ss]{0,1}' + '$')
-# look for a pattern where only d,m is specified
-_dm_regex = re.compile('^([+-]{0,1}\d{1,3})' + _dms_div_regex_str +
-                       '(\d{1,2})' + '[Mm]{0,1}' + '$')
 
-
-def parse_degrees(degrees, output_dms=False):
+def parse_angle(angle, unit=None, debug=False):
     """
-    Parses an input "degrees" value into decimal degrees or a
-    degree,arcminute,arcsecond tuple.
-
-    Convert degrees given in any parseable format (float, string, or Angle)
-    into degrees, arcminutes, and arcseconds components or decimal degrees.
+    Parses an input string value into an angle value.
 
     Parameters
     ----------
-    degrees : float, int, str
-        If a string, accepts values in these formats:
-            * [+|-]DD:MM:SS.sss (string), e.g. +12:52:32.423 or -12:52:32.423
-            * DD.dddd (float, string), e.g. 12.542326
-            * DD MM SS.sss (string, array), e.g. +12 52 32.423
-        Whitespace may be spaces and/or tabs.
-    output_dms : bool
-        If True, returns a tuple of (degree, arcminute, arcsecond)
+    angle : str
+        A string representing the angle.  May be in one of the following forms:
+
+            * 01:02:30.43 degrees
+            * 1 2 0 hours
+            * 1°2′3″
+            * 1d2m3s
+            * -1h2m3s
+
+    unit : `~astropy.units.UnitBase` instance, optional
+        The unit used to interpret the string.  If `unit` is not
+        provided, the unit must be explicitly represented in the
+        string, either at the end or as number separators.
+
+    debug : bool, optional
+        If `True`, print debugging information from the parser.
 
     Returns
     -------
-    deg : float or tuple
-         Returns degrees in decimal form unless the keyword "output_dms" is
-         True, in which case a tuple (d, m, s).
+    value, unit : tuple
+        `value` is the value as a floating point number or three-part
+        tuple, and `unit` is a `Unit` instance which is either the
+        unit passed in or the one explicitly mentioned in the input
+        string.
     """
-
-    from .angles import Angle
-
-    # either a string or a float
-    x = degrees
-
-    if isinstance(x, float) or isinstance(x, int):
-        parsed_degrees = float(x)
-
-    elif isinstance(x, basestring):
-        x = x.strip()
-
-        string_parsed = False
-
-        # See if the string is just a float or int value.
-        try:
-            parsed_degrees = float(x)
-            string_parsed = True
-        except ValueError:
-            pass
-
-        if not string_parsed:
-            try:
-                elems = _dms_regex.search(x).groups()
-                # We need to convert elems[0] to float to preserve sign for -0.0
-                parsed_degrees = dms_to_degrees(
-                    float(elems[0]), int(elems[1]), float(elems[2]))
-                string_parsed = True
-            except AttributeError:
-                # regular expression did not match - try again below
-                # make sure to let things like IllegalMinuteError, etc. through
-                pass
-
-        if not string_parsed:
-            try:
-                elems = _dm_regex.search(x).groups()
-                # We need to convert elems[0] to float to preserve sign for -0.0
-                parsed_degrees = dms_to_degrees(
-                    float(elems[0]), int(elems[1]), 0.0)
-                string_parsed = True
-            except AttributeError:
-                # regular expression did not match - try again below
-                # make sure to let things like IllegalMinuteError, etc. through
-                pass
-
-        if not string_parsed:
-            # look for a '°' symbol
-            for unitStr in ["degrees", "degree", "deg", "d", "°"]:
-                x = x.replace(unitStr, '')
-                try:
-                    parsed_degrees = float(x)
-                    string_parsed = True
-                except ValueError:
-                    pass
-
-        if not string_parsed:
-            raise ValueError(format_exception(
-                "{func}: Invalid input string! ('{0}')", x))
-
-    elif isinstance(x, Angle):
-        parsed_degrees = x.degrees
-
-    elif isinstance(x, tuple):
-        parsed_degrees = dms_to_degrees(*x)
-
-    else:
-        raise ValueError(format_exception(
-            "{func}: could not parse value of {0}.", type(x)))
-
-    return degrees_to_dms(parsed_degrees) if output_dms else parsed_degrees
-
-
-# these regexes are used in parse_hours
-# accept these as (one or more repeated) delimiters: :, whitespace, /
-_hms_div_regex_str = '[:|/|\t|\-|\sHhMmSs]{1,2}'
-# Look for a pattern where h,m,s is specified
-_hms_regex = re.compile('^([+-]{0,1}\d{1,2})' + _hms_div_regex_str +
-                        '(\d{1,2})' + _hms_div_regex_str +
-                        '(\d{1,2}[\.0-9]*)' + '[Ss]{0,1}' + '$')
-# look for a pattern where only h,m is specified
-_hm_regex = re.compile('^([+-]{0,1}\d{1,2})' + _hms_div_regex_str +
-                       '(\d{1,2})' + '[Mm]{0,1}' + '$')
-
-
-def parse_hours(hours, output_hms=False):
-    """
-    Returns an hour value (as a decimal or HMS tuple) from the integer, float,
-    or string provided.
-
-    Convert hours given in any parseable format (float, string, tuple, list, or
-    Angle) into hour, minute, and seconds components or decimal hours.
-
-    Parameters
-    ----------
-    hours : float, str, int
-        If a string, accepts values in these formats:
-            * HH:MM:SS.sss (string), e.g. 12:52:32.423
-            * HH.dddd (float, string), e.g. 12.542326
-            * HH MM SS.sss (string, array), e.g. 12 52 32.423
-        Surrounding whitespace in a string value is allowed.
-    output_hms : bool
-        If True, returns a tuple of (hour, minute, second)
-
-    Returns
-    -------
-    hrs : float or tuple
-         Returns degrees in hours form unless the keyword "output_dms" is
-         True, in which case a tuple (h, m, s).
-    """
-    import datetime as py_datetime
-
-    from .angles import Angle
-
-    # either a string or a float
-    x = hours
-
-    if isinstance(x, float) or isinstance(x, int):
-        parsed_hours = x
-        parsed_hms = hours_to_hms(parsed_hours)
-
-    elif isinstance(x, basestring):
-        x = x.strip()
-
-        try:
-            parsed_hours = float(x)
-            parsed_hms = hours_to_hms(parsed_hours)
-        except ValueError:
-
-            string_parsed = False
-
-            try:
-                elems = _hms_regex.search(x).groups()
-                string_parsed = True
-            except:
-                pass  # try again below
-
-            if string_parsed:
-                h, m, s = float(elems[0]), int(elems[1]), float(elems[2])
-                parsed_hours = hms_to_hours(h, m, s)
-                parsed_hms = (h, m, s)
-
-            else:
-                try:
-                    elems = _hm_regex.search(x).groups()
-                    string_parsed = True
-                except:
-                    raise ValueError(format_exception(
-                        "{func}: Invalid input string, can't parse to "
-                        "HMS. ({0})", x))
-                h, m, s = float(elems[0]), int(elems[1]), 0.0
-                parsed_hours = hms_to_hours(h, m, s)
-                parsed_hms = (h, m, s)
-
-    elif isinstance(x, Angle):
-        parsed_hours = x.hours
-        parsed_hms = hours_to_hms(parsed_hours)
-
-    #TODO: make a decision as to whether or not to allow datetime objects
-    #elif isinstance(x, py_datetime.datetime):
-    #    parsed_hours = datetimeToDecimalTime(x)
-    #    parsed_hms = hours_to_hms(parsed_hours)
-
-    elif isinstance(x, tuple):
-        if len(x) == 3:
-            parsed_hours = hms_to_hours(*x)
-            parsed_hms = x
-        else:
-            raise ValueError(format_exception(
-                "{filename}:{func}: Incorrect number of values given, expected "
-                "(h,m,s), got: {0}", x))
-
-    elif isinstance(x, list):
-        if len(x) == 3:
-            try:
-                h = float(x[0])
-                m = float(x[1])
-                s = float(x[2])
-            except ValueError:
-                raise ValueError(format_exception(
-                    "{filename}:{func}: Array values ([h,m,s] expected) "
-                    "could not be coerced into floats. {0}", x))
-
-            parsed_hours = hms_to_hours(h, m, s)
-            parsed_hms = (h, m, s)
-            if output_hms:
-                return (h, m, s)
-            else:
-                return hms_to_hours(h, m, s)
-
-        else:
-            raise ValueError(format_exception(
-                "{filename}:{func}: Array given must contain exactly three "
-                "elements ([h,m,s]), provided: {0}", x))
-
-    else:
-        raise ValueError(
-            "parse_hours: could not parse value of type "
-            "{0}.".format(type(x).__name__))
-
-    if output_hms:
-        return parsed_hms
-    else:
-        return parsed_hours
-
-
-def parse_radians(radians):
-    """
-    Parses an input "radians" value into a float number.
-
-    Convert radians given in any parseable format (float or Angle) into float
-    radians.
-
-    ..Note::
-        This function is mostly for consistency with the other "parse"
-        functions, like parse_hours and parse_degrees.
-
-    Parameters
-    ----------
-    radians : float, int, Angle
-        The input angle.
-    """
-
-    from .angles import Angle
-
-    x = radians
-
-    if type(x) in [float, int]:
-        return float(x)
-    elif isinstance(x, Angle):
-        return x.radians
-    else:
-        raise ValueError(format_exception(
-            "{func}: could not parse value of type {0}.", type(x).__name__))
+    return _AngleParser().parse(angle, unit, debug=debug)
 
 
 def degrees_to_dms(d):
     """
-    Convert any parseable degree value (see: parse_degrees) into a
-    ``(degree, arcminute, arcsecond)`` tuple.
+    Convert a floating-point degree value into a ``(degree, arcminute,
+    arcsecond)`` tuple.
     """
     sign = math.copysign(1.0, d)
 
@@ -341,13 +325,18 @@ def degrees_to_dms(d):
 
 
 def dms_to_degrees(d, m, s):
-    """ Convert degrees, arcminute, arcsecond to a float degrees value. """
+    """
+    Convert degrees, arcminute, arcsecond to a float degrees value.
+    """
 
     _check_minute_range(m)
     _check_second_range(s)
 
     # determine sign
     sign = math.copysign(1.0, d)
+
+    # TODO: This will fail if d or m have values after the decimal
+    # place
 
     try:
         d = int(abs(d))
@@ -362,12 +351,17 @@ def dms_to_degrees(d, m, s):
 
 
 def hms_to_hours(h, m, s):
-    """ Convert hour, minute, second to a float hour value. """
+    """
+    Convert hour, minute, second to a float hour value.
+    """
 
     check_hms_ranges(h, m, s)
 
     # determine sign
     sign = math.copysign(1.0, h)
+
+    # TODO: This will fail if d or m have values after the decimal
+    # place
 
     try:
         h = int(abs(h))
@@ -382,15 +376,19 @@ def hms_to_hours(h, m, s):
 
 
 def hms_to_degrees(h, m, s):
-    """ Convert hour, minute, second to a float degrees value. """
+    """
+    Convert hour, minute, second to a float degrees value.
+    """
 
     return hms_to_hours(h, m, s) * 15.
 
 
 def hms_to_radians(h, m, s):
-    """ Convert hour, minute, second to a float radians value. """
+    """
+    Convert hour, minute, second to a float radians value.
+    """
 
-    return math.radians(hms_to_degrees(h, m, s))
+    return u.degree.to(u.radian, hms_to_degrees(h, m, s))
 
 
 def hms_to_dms(h, m, s):
@@ -404,22 +402,24 @@ def hms_to_dms(h, m, s):
 
 def hours_to_decimal(h):
     """
-    Convert any parseable hour value (see: parse_hours) into a float value.
+    Convert any parseable hour value into a float value.
     """
-
-    return parse_hours(h, output_hms=False)
+    from . import angles
+    return angles.Angle(h, unit=u.hourangle).hour
 
 
 def hours_to_radians(h):
-    """ Convert an angle in Hours to Radians. """
+    """
+    Convert an angle in Hours to Radians.
+    """
 
-    return math.radians(h * 15.)
+    return u.hourangle.to(u.radian, h)
 
 
 def hours_to_hms(h):
     """
-    Convert any parseable hour value (see: parse_hours) into an
-    ``(hour, minute, second)`` tuple.
+    Convert an floating-point hour value into an ``(hour, minute,
+    second)`` tuple.
     """
 
     sign = math.copysign(1.0, h)
@@ -434,35 +434,35 @@ def hours_to_hms(h):
 
 
 def radians_to_degrees(r):
-    """ Convert an angle in Radians to Degrees """
-
-    try:
-        r = float(r)
-    except ValueError:
-        raise ValueError(format_exception(
-            "{func}: degree value ({1[0]}) could not be converted to a "
-            "float.", r))
-
-    return math.degrees(r)
+    """
+    Convert an angle in Radians to Degrees.
+    """
+    return u.radian.to(u.degree, r)
 
 
 def radians_to_hours(r):
-    """ Convert an angle in Radians to Hours """
-
-    return radians_to_degrees(r) / 15.
+    """
+    Convert an angle in Radians to Hours.
+    """
+    return u.radian.to(u.hourangle, r)
 
 
 def radians_to_hms(r):
-    """ Convert an angle in Radians to an hour,minute,second tuple """
+    """
+    Convert an angle in Radians to an ``(hour, minute, second)`` tuple.
+    """
 
     hours = radians_to_hours(r)
     return hours_to_hms(hours)
 
 
 def radians_to_dms(r):
-    """ Convert an angle in Radians to an degree,arcminute,arcsecond tuple """
+    """
+    Convert an angle in Radians to an ``(degree, arcminute,
+    arcsecond)`` tuple.
+    """
 
-    degrees = math.degrees(r)
+    degrees = u.radian.to(u.degree, r)
     return degrees_to_dms(degrees)
 
 
