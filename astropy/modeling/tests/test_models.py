@@ -9,6 +9,13 @@ from ..core import *
 import numpy as np
 from numpy.testing import utils
 from ...tests.helper import pytest
+from .. import fitting
+        
+try:
+    from scipy import optimize
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
 
 class TestSComposite(object):
     """
@@ -67,5 +74,15 @@ class TestPComposite(object):
         delta1 = self.p1(self.x) - self.x
         xx = self.x + delta1 + delta11
         utils.assert_almost_equal(xx, presult.x)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_powerlaw(scale=5., alpha=2.):
+    x = np.linspace(10,100)
+    y = scale * (x)**(-alpha)
+    plm = models.PowerLawModel(1,1) # start with a bad guess
+    fitter = fitting.NonLinearLSQFitter(plm)
+    fitter(x,y)
+    assert np.all((fitter.fitpars-np.array([scale,alpha])) < 0.001)
 
 
