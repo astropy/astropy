@@ -11,7 +11,7 @@ from .. import registry as io_registry
 from ...table import Table
 
 
-def is_votable(origin, args, kwargs):
+def is_votable(origin, *args, **kwargs):
     """
     Reads the header of a file to determine if it is a VOTable file.
 

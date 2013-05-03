@@ -18,7 +18,7 @@ HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 __all__ = ['read_table_hdf5', 'write_table_hdf5']
 
 
-def is_hdf5(origin, args, kwargs):
+def is_hdf5(origin, *args, **kwargs):
 
     if isinstance(args[0], basestring):
         if os.path.exists(args[0]):
