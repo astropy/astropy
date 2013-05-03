@@ -123,7 +123,7 @@ Modifying table values in place is flexible and works as one would expect::
   >>> t['a'][2] = 30              # Set row 2 of column 'a'
   >>> t[1] = (8, 9.0, "W")        # Set all row values
   >>> t[1]['b'] = -9              # Set column 'b' of row 1
-  >>> t[0:2]['b'] = 100.0         # Set column 'c' of rows 0 and 1
+  >>> t[0:2]['b'] = 100.0         # Set column 'b' of rows 0 and 1
   >>> print(t)
    a    b    c
   --- ----- ---
