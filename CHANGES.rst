@@ -23,6 +23,11 @@
     `~astropy.stats.funcs.biweight_location`, and 
     `~astropy.stats.funcs.biweight_midvariance`.
 
+- ``astropy.table``
+
+  - Table.read and Table.write now support reading and writing of FITS tables
+    via the unified reading/writing interface [#591].
+
 0.2.2 (unreleased)
 ------------------
 

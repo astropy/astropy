@@ -4,9 +4,9 @@ Unified file read/write interface
 ===================================
 
 Astropy provides a unified interface for reading and writing data
-in different formats.  For many common cases this will 
+in different formats.  For many common cases this will
 simplify the process of file I/O and reduce the need to master
-the separate details of all the I/O packages within Astropy.  This functionality is still in active development and the number of supported formats will be increasing.  For details on the implementation see 
+the separate details of all the I/O packages within Astropy.  This functionality is still in active development and the number of supported formats will be increasing.  For details on the implementation see
 :ref:`io_registry`.
 
 Getting started with Table I/O
@@ -16,7 +16,7 @@ The :class:`~astropy.table.table.Table` class includes two methods,
 :meth:`~astropy.table.table.Table.read` and
 :meth:`~astropy.table.table.Table.write`, that make it possible to read from
 and write to files. A number of formats are automatically supported (see
-`Built-in readers/writers`_) and new file formats and extensions can be
+`Built-in table readers/writers`_) and new file formats and extensions can be
 registered with the :class:`~astropy.table.table.Table` class (see
 :ref:`io_registry`). After importing the :class:`~astropy.table.table.Table`
 class::
@@ -44,12 +44,12 @@ but as for the :meth:`~astropy.table.table.Table.read` method, the format may
 be automatically identified in some cases.
 
 Any additional arguments specified will depend on the format (see e.g. see
-`Built-in readers/writers`_)
+`Built-in table readers/writers`_)
 
 .. _built_in_readers_writers:
 
-Built-in readers/writers
---------------------------
+Built-in table readers/writers
+------------------------------
 
 ASCII formats
 ^^^^^^^^^^^^^^^
@@ -181,6 +181,36 @@ the ``data_start`` and ``delimiter`` arguments are passed to the
 :func:`~astropy.io.ascii.ui.read` function from `astropy.io.ascii` (and
 similarly for writing).
 
+FITS
+^^^^
+
+Reading/writing from/to `FITS <http://fits.gsfc.nasa.gov/>`_
+files is supported with ``format='fits'``. In most cases, existing FITS
+files should be automatically identified as such based on the header of the
+file, but if not, or if writing to disk, then the format should be explicitly
+specified.
+
+If a FITS table file only contains a single table, then it can be read in
+with::
+
+    >>> t = Table.read('data.fits')
+
+If more that one table are present in the file, the first table found will be
+read in and a warning will be emitted::
+
+    >>> t = Table.read('data.fits')
+    WARNING: hdu= was not specified but multiple tables are present, reading in first available table (hdu=1) [astropy.io.fits.connect]
+
+To write to a new file::
+
+    >>> t.write('new_table.fits')
+
+At this time, the ``meta`` attribute of the
+:class:`~astropy.table.table.Table` class is simply an ordered
+dictionary and does not fully reprepsent the structure of a FITS
+header (for example, keyword comments are dropped). This is likely
+to change in a future release.
+
 HDF5
 ^^^^^^^^
 
@@ -254,10 +284,3 @@ To write to a new file, the ID of the table should also be specified (unless
 When writing, the ``compression=True`` argument can be used to force
 compression of the data on disk, and the ``overwrite=True`` argument can be
 used to overwrite an existing file.
-
-Other
-^^^^^^^
-
-In future, FITS tables will also be supported via the
-:class:`~astropy.table.table.Table` class. For now, these can be read and
-written directly with `astropy.io.fits`.
