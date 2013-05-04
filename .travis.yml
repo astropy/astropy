@@ -1,5 +1,7 @@
 language: python
 
+#Note that this .trais.yml uses a second file to manage installation of dependencies
+#and their locations - ".travis.pip.wheel".  Look there to manage the wheels. 
 
 python:
     - 2.6

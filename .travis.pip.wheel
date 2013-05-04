@@ -6,6 +6,24 @@
 
 USAGE=".travis.pip.wheel PYVERSION PACKAGENAME [PACKAGEVERSION]"
 
+
+#these are variables that help locate the wheels
+
+BASEWHEELURL="http://www.astro.yale.edu/etollerud/wheelhouse"
+PLATFORM="linux_x86_64"
+
+#array mapping python versions to their wheel code
+#this is based on wheels made for Ubuntu 12.04 64-bit, April 2013
+declare -A pyvtowheelcode=(
+  [2.6]="cp26-none"
+  [2.7]="cp27-none"
+  [3.2]="cp32-32mu"
+  [3.3]="cp33-33dm"
+)
+
+
+
+
 #process command line arguments
 PYVERSION=""
 PKGNAME=""
@@ -33,20 +51,7 @@ if [ "$PYVERSION" == "" -o "$PKGNAME" == "" ]; then
   echo "Not enough arguments. Usage: $USAGE"
   exit 1
 fi
-
-#these are variables that help locate the wheels
-
-BASEWHEELURL="http://www.astro.yale.edu/etollerud/wheelhouse"
-PLATFORM="linux_x86_64"
-
-#array mapping python versions to their wheel code
-#this is based on wheels made for Ubuntu 12.04 64-bit, April 2013
-declare -A pyvtowheelcode=(
-  [2.6]="cp26-none"
-  [2.7]="cp27-none"
-  [3.2]="cp32-32mu"
-  [3.3]="cp33-33dm"
-)
+#done w/command line arguments
 
 PYVERSION=${pyvtowheelcode[$PYVERSION]}
 if [ "$PKGVERS" == "" ]
