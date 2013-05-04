@@ -21,6 +21,7 @@ def _tofloat(value):
     if misc.isiterable(value):
         try:
             _value = np.array(value, dtype=np.float)
+            shape = _value.shape
         except (TypeError, ValueError): 
             #catch arrays with strings or user errors like different 
             # types of parameters in a parameter set
@@ -31,21 +32,25 @@ def _tofloat(value):
         raise InputParameterError(
             "Expected parameter to be of numerical type, not boolean")
     elif isinstance(value, numbers.Number):
-        _value = np.array(value, dtype=np.float)
+        #_value = np.array(value, dtype=np.float)
+        _value = float(value)
+        shape = ()
     else:
         raise InputParameterError(
             "Don't know how to convert parameter of {0} to "
             "float".format(type(value)))
-    return _value
+    return _value, shape
     
 class Parameter(list):
     """
     Wraps individual parameters.
     
     This class represents a model's parameter (in a somewhat broad
-    sense). To support multiple parameter sets, a 
-    parameter has a dimension (param_dim). To support some level
-    of validation a parameter has also a shape (parshape).
+    sense). To support multiple parameter sets, a parameter has a dimension
+    (param_dim) and is a list-like object. It supports indexing so that individual 
+    parameters can be updated.
+    To support some level of validation a parameter has a shape
+    (parshape).
     Parameter objects behave like numbers.
 
     Parameters
@@ -69,32 +74,35 @@ class Parameter(list):
     def __init__(self, name, val, mclass, param_dim, fixed=False, tied=False, 
                  minvalue=None, maxvalue=None):
         self._param_dim = param_dim
-        if isinstance(val, numbers.Number):
-            if self.param_dim == 1:
-                val = _tofloat(val)[()]
-                super(Parameter, self).__init__([val])
-                self.parshape = val.shape
-            else:
-                val = [_tofloat(val)[()]]
-                super(Parameter, self).__init__(val)
-                self.parshape = val[0].shape
-        # colections.Sequence covers lists but not ndarrays
-        # which are checked for in _tofloat()
-        # misc.iterable allows dict which is failed in _tofloat()
-        elif misc.isiterable(val):
-            if param_dim == 1:
-                val = [_tofloat(value)[()] for value in val]
-                super(Parameter, self).__init__(val)
-                self.parshape = _tofloat(val).shape
-            else:
-                val = [_tofloat(value)[()] for value in val]
-                super(Parameter, self).__init__(val)
-                self.parshape = _tofloat(val[0]).shape
-        else:
-            raise InputParameterError(
-                "Parameter {0} is not a number".format(name))
-        self._mclass = mclass
         self._name = name
+        if self._param_dim == 1:
+            # number, list or array
+            val, parshape = _tofloat(val)
+            super(Parameter, self).__init__([val])
+        else:
+            try:
+                val0, parshape = _tofloat(val[0])
+                val = [_tofloat(v)[0] for v in val]
+                if len(val) != self._param_dim:
+                    raise InputParameterError(
+                        "Expected parameter {0} to be of param_dim {1}".format(
+                                                                    self._name, self._param_dim))
+            except TypeError:
+                raise InputParameterError("Expected a multivalued"
+            " parameter {0}".format(self._name))
+                
+##            if parshape == ():
+##                # a list of numbers
+            
+            for shape in [_tofloat(v)[1] for v in val]:
+                assert shape == parshape, "Multiple values for the same" \
+                                            " parameters should have the same shape"
+##            else:
+##                # a list of lists or a list of arrays
+##                val = [_tofloat(v)[0] for v in val]
+            super(Parameter, self).__init__(val)
+        self.parshape = parshape
+        self._mclass = mclass
         self._fixed = fixed
         self._tied = tied
         self._min = minvalue
@@ -288,8 +296,8 @@ class Parameters(list):
         super(Parameters, self).__init__(flat)
 
     def __setitem__(self, ind, value):
-        _val = _tofloat(value)
-        super(Parameters, self).__setitem__(ind, _val[()])
+        _val = _tofloat(value)[0]
+        super(Parameters, self).__setitem__(ind, _val)
         self._changed = True
         self._update_model_pars() 
         
@@ -320,7 +328,7 @@ class Parameters(list):
         has the same length as the original parameters list.
         
         """
-        parsize = _tofloat(newpars).size
+        parsize = _tofloat(newpars)[0].size
         return parsize == self.__len__()
 
     def _flatten(self, param_names, parlist):

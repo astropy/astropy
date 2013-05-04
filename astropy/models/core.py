@@ -256,9 +256,19 @@ class Model(object):
         Return parameters as a pset.
         This is an array where each column represents one parameter set.
         """
-        param_sets = np.asarray([getattr(self, attr) for attr in self.param_names])
-        param_sets.shape = (len(self.param_names), self.param_dim)
-        return param_sets
+        parameters = [getattr(self, attr) for attr in self.param_names]
+        shapes = [par.parshape for par in parameters]
+        lenshapes = np.asarray([len(p.parshape) for p in parameters])
+        shapes = [p.parshape for p in parameters]
+        if (lenshapes>1).any():
+            if () in shapes: 
+                psets = np.asarray(parameters, dtype=np.object)
+            else:
+                psets = np.asarray(parameters)
+        else:
+            psets = np.asarray(parameters)
+            psets.shape = (len(self.param_names), self.param_dim)
+        return psets
     
     def inverse(self):
         """
@@ -448,7 +458,7 @@ class ParametricModel(Model):
                     "Expected the list of parameters to be the same "
                     "length as the initial list.")
         elif isinstance(value, (list, np.ndarray)):
-            _val = parameters._tofloat(value)
+            _val = parameters._tofloat(value)[0]
             if self._parameters._is_same_length(_val):
                 self._parameters._changed = True
                 self._parameters[:] = _val
