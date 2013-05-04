@@ -9,7 +9,7 @@ USAGE=".travis.pip.wheel PYVERSION PACKAGENAME [PACKAGEVERSION]"
 
 #these are variables that help locate the wheels
 
-BASEWHEELURL="http://www.astro.yale.edu/etollerud/wheelhouse"
+BASEWHEELURL="http://www.mpia.de/~robitaille/python/wheels"
 PLATFORM="linux_x86_64"
 
 #array mapping python versions to their wheel code
