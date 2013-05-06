@@ -70,6 +70,75 @@ def _make_masked_array(data, mask):
         return ma.array(np.array(data))
 
 
+def bitarray_to_bool(data, length):
+    """
+    Converts a bit array (a string of bits in a bytes object) to a
+    boolean Numpy array.
+
+    Parameters
+    ----------
+    data : bytes
+        The bit array.  The most significant byte is read first.
+
+    length : int
+        The number of bits to read.  The least significant bits in the
+        data bytes beyond length will be ignored.
+
+    Returns
+    -------
+    array : numpy bool array
+    """
+    results = []
+    for byte in data:
+        if not IS_PY3K:
+            byte = ord(byte)
+        for bit_no in range(7, -1, -1):
+            bit = byte & (1 << bit_no)
+            bit = (bit != 0)
+            results.append(bit)
+            if len(results) == length:
+                break
+        if len(results) == length:
+            break
+
+    return np.array(results, dtype='b1')
+
+
+def bool_to_bitarray(value):
+    """
+    Converts a numpy boolean array to a bit array (a string of bits in
+    a bytes object).
+
+    Parameters
+    ----------
+    value : numpy bool array
+
+    Returns
+    -------
+    bit_array : bytes
+        The first value in the input array will be the most
+        significant bit in the result.  The length will be `floor((N +
+        7) / 8)` where `N` is the length of `value`.
+    """
+    value = value.flat
+    bit_no = 7
+    byte = 0
+    bytes = []
+    for v in value:
+        if v:
+            byte |= 1 << bit_no
+        if bit_no == 0:
+            bytes.append(byte)
+            bit_no = 7
+            byte = 0
+        else:
+            bit_no -= 1
+    if bit_no != 7:
+        bytes.append(byte)
+
+    return struct_pack("%sB" % len(bytes), *bytes)
+
+
 class Converter(object):
     """
     The base class for all converters.  Each subclass handles
@@ -485,6 +554,8 @@ class NumericArray(Array):
         self.default[...] = self._base.default
 
     def parse(self, value, config={}, pos=None):
+        if config['version_1_3_or_later'] and value == u'':
+            return np.zeros(self._arraysize, dtype=self._base.format), True
         parts = self._splitter(value, config, pos)
         if len(parts) != self._items:
             warn_or_raise(E02, E02, (self._items, len(parts)), config, pos)
@@ -687,7 +758,10 @@ class Integer(Numeric):
         if isinstance(value, basestring):
             value = value.lower()
             if value == '':
-                warn_or_raise(W49, W49, (), config, pos)
+                if config['version_1_3_or_later']:
+                    mask = True
+                else:
+                    warn_or_raise(W49, W49, (), config, pos)
                 if self.null is not None:
                     value = self.null
                 else:
@@ -789,7 +863,7 @@ class ComplexArrayVarArray(VarArray):
 
     def parse(self, value, config={}, pos=None):
         if value.strip() == '':
-            return ma.array([]), False
+            return ma.array([]), True
 
         parts = self._splitter(value, config, pos)
         items = self._base._items
@@ -815,7 +889,7 @@ class ComplexVarArray(VarArray):
 
     def parse(self, value, config={}, pos=None):
         if value.strip() == '':
-            return ma.array([]), False
+            return ma.array([]), True
 
         parts = self._splitter(value, config, pos)
         parse_parts = self._base.parse_parts
@@ -952,20 +1026,8 @@ class BitArray(NumericArray):
 
     def binparse(self, read):
         data = read(self._bytes)
-        results = []
-        for byte in data:
-            if not IS_PY3K:
-                byte = ord(byte)
-            for bit_no in range(7, -1, -1):
-                bit = byte & (1 << bit_no)
-                bit = (bit != 0)
-                results.append(bit)
-                if len(results) == self._items:
-                    break
-            if len(results) == self._items:
-                break
-
-        result = np.array(results, dtype='b1').reshape(self._arraysize)
+        result = bitarray_to_bool(data, self._items)
+        result = result.reshape(self._arraysize)
         result_mask = np.zeros(self._arraysize, dtype='b1')
         return result, result_mask
 
@@ -973,25 +1035,7 @@ class BitArray(NumericArray):
         if np.any(mask):
             vo_warn(W39)
 
-        value = value.flat
-        bit_no = 7
-        byte = 0
-        bytes = []
-        for v in value:
-            if v:
-                byte |= 1 << bit_no
-            if bit_no == 0:
-                bytes.append(byte)
-                bit_no = 7
-                byte = 0
-            else:
-                bit_no -= 1
-        if bit_no != 7:
-            bytes.append(byte)
-
-        assert len(bytes) == self._bytes
-
-        return struct_pack("%sB" % len(bytes), *bytes)
+        return bool_to_bitarray(value)
 
 
 class Bit(Converter):
@@ -1011,7 +1055,8 @@ class Bit(Converter):
     def parse(self, value, config={}, pos=None):
         mapping = {'1': True, '0': False}
         if value is False or value.strip() == '':
-            warn_or_raise(W49, W49, (), config, pos)
+            if not config['version_1_3_or_later']:
+                warn_or_raise(W49, W49, (), config, pos)
             return False, True
         else:
             try:
@@ -1092,6 +1137,8 @@ class Boolean(Converter):
         Converter.__init__(self, field, config, pos)
 
     def parse(self, value, config={}, pos=None):
+        if value == u'':
+            return False, True
         if value is False:
             return False, True
         mapping = {'TRUE'  : (True, False),

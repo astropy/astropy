@@ -146,14 +146,16 @@ either a string or unicode path, or a Python file-like object::
 
   votable.to_xml('output.xml')
 
-There are currently two data storage formats supported by
+There are a number of data storage formats supported by
 `astropy.io.votable`.  The ``TABLEDATA`` format is XML-based and
 stores values as strings representing numbers.  The ``BINARY`` format
-is more compact, and stores numbers in base64-encoded binary.  The
-storage format can be set on a per-table basis using the
-`~astropy.io.votable.tree.Table.format` attribute, or globally using
-the `~astropy.io.votable.tree.VOTableFile.set_all_tables_format`
-method::
+is more compact, and stores numbers in base64-encoded binary.  VOTable
+version 1.3 adds the ``BINARY2`` format, which allows for masking of
+any data type, including integers and bit fields which can not be
+masked in the older ``BINARY`` format.  The storage format can be set
+on a per-table basis using the `~astropy.io.votable.tree.Table.format`
+attribute, or globally using the
+`~astropy.io.votable.tree.VOTableFile.set_all_tables_format` method::
 
   votable.get_first_table().format = 'binary'
   votable.set_all_tables_format('binary')
@@ -167,9 +169,11 @@ Standard compliance
 
 `astropy.io.votable.table` supports the `VOTable Format Definition
 Version 1.1
-<http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html>`_
-and `Version 1.2
-<http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html>`_.
+<http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html>`_,
+`Version 1.2
+<http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html>`_,
+and the `Version 1.3 proposed recommendation
+<http://www.ivoa.net/documents/VOTable/20130315/PR-VOTable-1.3-20130315.html>`_.
 Some flexibility is provided to support the 1.0 draft version and
 other non-standard usage in the wild.  To support these cases, set the
 keyword argument ``pedantic`` to ``False`` when parsing.
@@ -180,7 +184,8 @@ keyword argument ``pedantic`` to ``False`` when parsing.
   is documented in more detail in :ref:`warnings` and
   :ref:`exceptions`.
 
-Output always conforms to the 1.1 or 1.2 spec, depending on the input.
+Output always conforms to the 1.1, 1.2 or 1.3 spec, depending on the
+input.
 
 .. _pedantic-mode:
 
@@ -327,6 +332,10 @@ See Also
 
 - `VOTable Format Definition Version 1.2
   <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html>`_
+
+- `VOTable Format Definition Version 1.3, Proposed Recommendatation
+  <http://www.ivoa.net/documents/VOTable/20130315/PR-VOTable-1.3-20130315.html>`_
+
 
 Reference/API
 =============
