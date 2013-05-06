@@ -91,7 +91,7 @@ def check_anyuri(uri, config={}, pos=None):
     return True
 
 
-def validate_schema(filename, version='1.2'):
+def validate_schema(filename, version='1.1'):
     """
     Validates the given file against the appropriate VOTable schema.
 
@@ -100,9 +100,10 @@ def validate_schema(filename, version='1.2'):
     filename : str
         The path to the XML file to validate
 
-    version : str
+    version : str, optional
         The VOTABLE version to check, which must be a string \"1.0\",
-        \"1.1\", or \"1.2\".
+        \"1.1\", \"1.2\" or \"1.3\".  If it is not one of these,
+        version \"1.1\" is assumed.
 
         For version \"1.0\", it is checked against a DTD, since that
         version did not have an XML Schema.
@@ -113,12 +114,12 @@ def validate_schema(filename, version='1.2'):
         Returns the returncode from xmllint and the stdout and stderr
         as strings
     """
-    if version not in ('1.0', '1.1', '1.2'):
+    if version not in ('1.0', '1.1', '1.2', '1.3'):
         log.info('{0} has version {1}, using schema 1.1'.format(
             filename, version))
         version = '1.1'
 
-    if version in ('1.1', '1.2'):
+    if version in ('1.1', '1.2', '1.3'):
         schema_path = data.get_pkg_data_filename(
             'data/VOTable.v{0}.xsd'.format(version))
     else:
