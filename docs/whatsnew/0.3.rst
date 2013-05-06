@@ -47,3 +47,9 @@ simply by using `quantity.SOME_UNIT`, for example::
     >>> q = 180.0 * u.degree
     >>> q.radian
     3.141592653589793
+
+
+Virtual Observatory Simple Cone Search
+--------------------------------------
+
+:ref:`astropy_vo` is added.

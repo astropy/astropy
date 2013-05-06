@@ -13,25 +13,25 @@ New Features
 
 - ``astropy.time``
 
-  - Add ``datetime`` format which allows converting to and from standard 
+  - Add ``datetime`` format which allows converting to and from standard
     library ``datetime.datetime`` objects.
 
-  - Add ``plot_date`` format which allows converting to and from the date 
-    representation used when plotting dates with matplotlib via the 
+  - Add ``plot_date`` format which allows converting to and from the date
+    representation used when plotting dates with matplotlib via the
     ``matplotlib.pyplot.plot_date`` function.
-    
+
   - Add ``gps`` format (seconds since 1980-01-01 00:00:00 UTC,
     including leap seconds)
 
   - Add array indexing to Time objects [#1132]
-  
-  - Allow for arithmetic of multi-element and single-element Time and TimeDelta 
+
+  - Allow for arithmetic of multi-element and single-element Time and TimeDelta
     objects [#1081].
 
 - ``astropy.stats``
 
-  - Added robust statistics functions `~astropy.stats.funcs.median_absolute_deviation`, 
-    `~astropy.stats.funcs.biweight_location`, and 
+  - Added robust statistics functions `~astropy.stats.funcs.median_absolute_deviation`,
+    `~astropy.stats.funcs.biweight_location`, and
     `~astropy.stats.funcs.biweight_midvariance`.
 
   - Add `axis=int` option to `astropy.stats.funcs.sigma_clip` to allow clipping
@@ -41,6 +41,11 @@ New Features
 
   - Table.read and Table.write now support reading and writing of FITS tables
     via the unified reading/writing interface [#591].
+
+- :ref:`astropy.vo <astropy_vo>`
+
+  - New package added to support Virtual Observatory Simple Cone Search query
+    and service validation [#552].
 
 
 API Changes
@@ -93,7 +98,7 @@ API Changes
     ``copy`` can be used to indicated whether the input data should be copied
     (``copy=True``, default) or used by reference (``copy=False``) in the
     output masked array.  [#1083]
-    
+
 Bug Fixes
 ^^^^^^^^^^
 
@@ -545,9 +550,9 @@ see the "What's New" section of the documentation for more details.
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- A configuration file with all options set to their defaults is now generated 
-  when astropy is installed.  This file will be pulled in as the users' 
-  astropy configuration file the first time they ``import astropy``.  [#498] 
+- A configuration file with all options set to their defaults is now generated
+  when astropy is installed.  This file will be pulled in as the users'
+  astropy configuration file the first time they ``import astropy``.  [#498]
 
 - Astropy doc themes moved into ``astropy.sphinx`` to allow affiliated packages
   to access them.
@@ -590,10 +595,10 @@ Other Changes and Additions
   access any local as well as remote data, supports caching, and can
   decompress gzip and bzip2 files on-the-fly. [#425]
 
-- Added a classmethod to 
-  `astropy.coordinates.coordsystems.SphericalCoordinatesBase` that performs a 
+- Added a classmethod to
+  `astropy.coordinates.coordsystems.SphericalCoordinatesBase` that performs a
   name resolve query using Sesame to retrieve coordinates for the requested
-  object. This works for any subclass of `SphericalCoordinatesBase`, but 
+  object. This works for any subclass of `SphericalCoordinatesBase`, but
   requires an internet connection. [#556]
 
 - ``astropy.nddata.convolution`` removed requirement of PyFFTW3; uses Numpy's
