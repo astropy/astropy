@@ -66,6 +66,7 @@ def test_create_angles():
     a5 = Angle("54.12412 degrees")
     a6 = Angle(u"54.12412°") # because we like Unicode
     a7 = Angle((54, 7, 26.832), unit=u.degree)
+    a8 = Angle(u"54°07'26.832\"")
     # (deg,min,sec) *tuples* are acceptable, but lists/arrays are *not*
     # because of the need to eventually support arrays of coordinates
     with raises(NotImplementedError):
