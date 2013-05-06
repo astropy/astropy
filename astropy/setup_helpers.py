@@ -871,6 +871,17 @@ if HAVE_SPHINX:
 
                 if retcode != 0:
                     def overrideexitcode():
+                        if os.environ.get('TRAVIS', None) == 'true':
+                            #this means we are in the travis build, so customize
+                            #the message appropriately.
+                            msg = ('The build_sphinx travis build FAILED '
+                                   'because sphinx issued documentation '
+                                   'warnings (scroll up to see the warnings).')
+                        else:  # standard failure message
+                            msg = ('build_sphinx returning a non-zero exit '
+                                   'code because sphinx issued documentation '
+                                   'warnings.')
+                        log.warn(msg)
                         raise SystemExit(retcode)
                     atexit.register(overrideexitcode)
 
