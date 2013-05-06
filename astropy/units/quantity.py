@@ -126,6 +126,10 @@ class Quantity(np.ndarray):
         if isinstance(obj, Quantity):
             self._unit = obj._unit
 
+    def __array_wrap__(self, array, context=None):
+        return self.__class__(array, unit=self._unit,
+                              equivalencies=self._equivalencies)
+
     def to(self, unit, equivalencies=None):
         """ Returns a new `Quantity` object with the specified units.
 
@@ -151,7 +155,6 @@ class Quantity(np.ndarray):
     @property
     def value(self):
         """ The numerical value of this quantity. """
-
         if not self.shape:
             return self.item()
         else:
@@ -604,3 +607,45 @@ class Quantity(np.ndarray):
             new_value = self.value
 
         return Quantity(new_value, new_unit)
+
+    # These ufuncs need to be overridden to take into account the units:
+
+    def mean(self, *args, **kwargs):
+        value = np.ndarray.mean(self, *args, **kwargs)
+        if isinstance(value, Quantity):
+            return value
+        else:
+            return Quantity(value, self.unit)
+
+    def std(self, *args, **kwargs):
+        value = np.ndarray.std(self, *args, **kwargs)
+        if isinstance(value, Quantity):
+            return value
+        else:
+            return Quantity(value, self.unit)
+
+    def var(self, *args, **kwargs):
+        value = np.ndarray.var(self, *args, **kwargs)
+        if isinstance(value, Quantity):
+            return value
+        else:
+            return Quantity(value, self.unit)
+
+    def dot(self, b, **kwargs):
+        value = np.ndarray.dot(self, b, **kwargs)
+        if isinstance(value, Quantity):
+            return value * b.unit
+        else:
+            return Quantity(value, self.unit * b.unit)
+
+    def cumprod(self, **kwargs):
+        if _is_unity(self.unit):
+            return np.ndarray.cumprod(self, **kwargs)
+        else:
+            raise ValueError("cannot use cumprod on non-dimensionless Quantity arrays")
+
+    def prod(self, **kwargs):
+        if _is_unity(self.unit):
+            return np.ndarray.prod(self, **kwargs)
+        else:
+            raise ValueError("cannot use prod on non-dimensionless Quantity arrays")

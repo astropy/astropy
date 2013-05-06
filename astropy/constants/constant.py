@@ -57,10 +57,10 @@ class ConstantMeta(type):
 
         # The wrapper applies to so many of the __ methods that it's easier to
         # just exclude the ones it doesn't apply to
-        exclude = set(['__new__', '__array_finalize__', '__dir__',
-                       '__getattr__', '__init__', '__str__', '__repr__',
-                       '__hash__', '__iter__', '__getitem__', '__len__',
-                       '__nonzero__'])
+        exclude = set(['__new__', '__array_finalize__', '__array_wrap__',
+                       '__dir__', '__getattr__', '__init__', '__str__',
+                       '__repr__', '__hash__', '__iter__', '__getitem__',
+                       '__len__', '__nonzero__'])
         for attr, value in vars(Quantity).items():
             if (isinstance(value, types.FunctionType) and
                     attr.startswith('__') and attr.endswith('__') and
