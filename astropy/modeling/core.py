@@ -577,8 +577,8 @@ class _CompositeModel(OrderedDict):
 
         """
         OrderedDict.__init__(self)
-        self.ndim = None
-        self.outdim = None
+        self.n_inputs = None
+        self.n_outputs = None
         self.fittable = False
         self.has_inverse = np.array([tr.has_inverse for tr in transforms]).all()
         
@@ -669,9 +669,9 @@ class SCompositeModel(_CompositeModel):
             outmap = [None]  * len(transforms)
         
         self._init_comptr(transforms, inmap, outmap)
-        self.ndim = np.array([tr.n_inputs for tr in self]).max()
+        self.n_inputs = np.array([tr.n_inputs for tr in self]).max()
         # the output dimension is equal to the output dim of the last transform
-        self.outdim = self.keys()[-1].n_outputs
+        self.n_outputs = self.keys()[-1].n_outputs
         
     def _init_comptr(self, transforms, inmap, outmap):
         for tr, inm, outm in zip(transforms, inmap, outmap):
@@ -760,8 +760,8 @@ class PCompositeModel(_CompositeModel):
         super(PCompositeModel, self).__init__(transforms,
                                               inmap=None, outmap=None)
         self._init_comptr(transforms, inmap, outmap)
-        self.ndim = self.keys()[0].n_inputs
-        self.outdim = self.ndim
+        self.n_inputs = self.keys()[0].n_inputs
+        self.n_outputs = self.n_inputs
         self.inmap = inmap
         self.outmap = outmap
 

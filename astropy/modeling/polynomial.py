@@ -1012,8 +1012,8 @@ class SIPModel(SCompositeModel):
     """
     def __init__(self, crpix, order, coeff, coeffname='a',
                             aporder=None, apcoeff=None, param_dim=1):
-        self.ndim = 2
-        self.outdim = 1
+        self.n_inputs = 2
+        self.n_outputs = 1
         self.shifta = ShiftModel(crpix[0])
         self.shiftb = ShiftModel(crpix[1])
         self.sip1d = _SIP1D(order, coeffname=coeffname,
