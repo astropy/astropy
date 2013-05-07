@@ -1,12 +1,28 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ..rotations import (RotateNative2Celestial, RotateCelestial2Native,
-                         MatrixRotation2D)
-from ...tests.compat import assert_allclose
+from .. import rotations
+from numpy.testing.utils import assert_allclose
+from ...tests.helper import pytest
 
+# These test currently fail.
+# Reported in issue #1068
+
+@pytest.mark.xfail
+def test_RotateNative2Celestial():
+    phi, theta, psi = 42, 43, 44
+    model = rotations.RotateNative2Celestial(phi, theta, psi)
+    model.phi = model.phi + 1
+    model.psi = model.psi + 1
+    model.theta = model.theta + 1
+    assert model.phi == phi + 1
+    assert model.theta == theta + 1
+    assert model.psi == psi + 1
+
+
+@pytest.mark.xfail
 def test_native_celestial_native():
     phi, theta, psi = 42, 43, 44
-    n2c = RotateNative2Celestial(phi, theta, psi)
-    c2n = RotateCelestial2Native(phi, theta, psi)
+    n2c = rotations.RotateNative2Celestial(phi, theta, psi)
+    c2n = rotations.RotateCelestial2Native(phi, theta, psi)
 
     nphi, ntheta = 33, 44
     calpha, cdelta = n2c(nphi, ntheta)
@@ -14,10 +30,11 @@ def test_native_celestial_native():
     assert_allclose(nphi2, nphi)
     assert_allclose(ntheta2, ntheta)
 
+    assert n2c.inverse(phi, theta, psi)(nphi, ntheta) == c2n(nphi, ntheta)
+    assert c2n.inverse(phi, theta, psi)(nphi, ntheta) == n2c(nphi, ntheta)
 
+@pytest.mark.xfail
 def test_MatrixRotation2D():
     angle = 42
-    # TODO: this fails
-    # m = MatrixRotation2D(angle=angle)
-    # result = m(3, 4)
-    # print result
+    model = rotations.MatrixRotation2D(angle=angle)
+    result = model(3, 4)
