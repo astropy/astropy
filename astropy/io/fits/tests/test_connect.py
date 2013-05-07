@@ -101,8 +101,8 @@ class TestSingleTable(object):
         filename = str(tmpdir.join('test_read_from_fileobj.fits'))
         hdu = BinTableHDU(self.data)
         hdu.writeto(filename)
-        f = open(filename, 'rb')
-        t = Table.read(f)
+        with open(filename, 'rb') as f:
+            t = Table.read(f)
         assert equal_data(t, self.data)
 
     def test_read_with_nonstandard_units(self):
