@@ -74,6 +74,8 @@ class _UnitRegistry(object):
         if not unit._names:
             raise UnitsException("unit has no string representation")
 
+        # Loop through all of the names first, to ensure all of them
+        # are new, then add them all as a single "transaction" below.
         for st in unit._names:
             if not re.match("^[A-Za-z_]+$", st):
                 # will cause problems for simple string parser in
@@ -81,11 +83,15 @@ class _UnitRegistry(object):
                 raise ValueError(
                     "Invalid unit name {0!r}".format(st))
 
+            if ((add_to_namespace and st in cls._namespace) or
+                st in cls._registry and unit != cls._registry[st]):
+                raise ValueError(
+                    "Object with name {0!r} already exists in namespace.  To "
+                    "redefine a unit, call its deregister() method "
+                    "first".format(st))
+
+        for st in unit._names:
             if add_to_namespace:
-                if st in cls._namespace:
-                    raise ValueError(
-                        "Object with name {0!r} already exists "
-                        "in namespace".format(st))
                 cls._namespace[st] = unit
 
             cls._registry[st] = unit
