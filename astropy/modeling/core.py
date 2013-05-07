@@ -317,7 +317,7 @@ class ParametricModel(Model):
     param_names: list
         parameter names
     n_inputs: int
-        model dimensions (number of inputs)
+        number of inputs
     n_outputs: int
         number of output quantities
     param_dim: int
