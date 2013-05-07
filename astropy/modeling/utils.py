@@ -31,11 +31,12 @@ def pmapdomain(oldx, domain, window):
     window : list or tuple of length 2
           range into which to map the domain 
     """
+    oldx = np.asarray(oldx, dtype=np.float64)
     domain = np.array(domain, dtype=np.float64)
     window = np.array(window, dtype=np.float64)
-    scl = (window[1]-window[0])/(domain[1]-domain[0])
-    off = (window[0]*domain[1] - window[1]*domain[0])/(domain[1]-domain[0])
-    return off + scl*oldx
+    scale = (window[1] - window[0]) / (domain[1] - domain[0])
+    offset = (window[0] * domain[1] - window[1] * domain[0]) / (domain[1] - domain[0])
+    return offset + scale * oldx
 
 def comb(N, k):
     """
