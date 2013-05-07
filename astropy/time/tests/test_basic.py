@@ -447,6 +447,7 @@ class TestCopyReplicate():
         assert t.yday != t2.yday
         assert t.yday == t_yday  # prove that it did not change
 
+
 def test_python_builtin_copy():
     import copy
 
@@ -456,3 +457,22 @@ def test_python_builtin_copy():
 
     assert t.jd == t2.jd
     assert t.jd == t3.jd
+
+
+def test_no_argument_init():
+    """
+    Tests creating a Time object with empty arguments - should yield "now".
+    """
+    now = datetime.utcnow()
+    t = Time()
+
+    assert t.format == 'datetime'
+    assert t.scale == 'utc'
+
+    dt = t.datetime - now  # a datetime.timedelta object
+
+    # this gives a .1 second margin between the `utcnow` call and the `Time`
+    # initializer, which is really way more generous than necessary - typical
+    # times are more like microseconds.  But it seems safer in case some
+    # platforms have slow clock calls or something.
+    assert dt.total_seconds() < 0.1
