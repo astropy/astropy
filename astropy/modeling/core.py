@@ -197,7 +197,7 @@ class Model(object):
     @property
     def n_outputs(self):
         """
-        Number of output valiables returned when a model is evaluated.
+        Number of output variables returned when a model is evaluated.
         """
         return self._n_outputs
     
