@@ -4,8 +4,8 @@ Fitting Models to data
 
 This module provides wrappers, called Fitters, around some Numpy and Scipy 
 fitting functions. All Fitters can be called as functions. They take an instance of 
-`~astropy.models.core.ParametricModel` as input and modify 
-`~astropy.models.core.ParametricModel.parameters`
+`~astropy.modeling.core.ParametricModel` as input and modify 
+`~astropy.modeling.core.ParametricModel.parameters`
 attribute. The idea is to make this extensible and allow users to easily add 
 other fitters.
 
@@ -33,7 +33,7 @@ Fitting Examples
 - Fitting simultaneously a polynomial model to multiple data sets
 
 
->>> p1 = builtin_models.Poly1DModel(3)
+>>> p1 = models.Poly1DModel(3)
 >>> p1.c0 = 1
 >>> p1.c1 = 2
 >>> p1.parameters
@@ -41,7 +41,7 @@ Fitting Examples
 >>> x = np.arange(10)
 >>> y = p1(x)
 >>> yy = np.array([y, y]).T
->>> p2 = builtin_models.Poly1DModel(3, param_dim=2)
+>>> p2 = models.Poly1DModel(3, param_dim=2)
 >>> pfit = fitting.LinearLSQFitter(p2)
 >>> pfit(x,yy)
 >>> print p2.param_sets
@@ -50,10 +50,10 @@ array([[  1.00000000e+00,   1.00000000e+00],
        [  3.91115939e-16,   3.91115939e-16],
        [ -2.99676984e-17,  -2.99676984e-17]])
 
-Fitters support constraint fitting through `~astropy.models.constraints.Constraints`.
+Fitters support constraint fitting through `~astropy.modeling.constraints.Constraints`.
 
 - All fitters support fixed (frozen) parameters through the `fixed`
-  argument to models or setting the `~astropy.models.parameters.Parameter.fixed`
+  argument to models or setting the `~astropy.modeling.parameters.Parameter.fixed`
   attribute directly on a parameter.
 
 For linear fitters freezing a polynomial coefficient means that a 
@@ -61,7 +61,7 @@ polynomial without that term will be fitted to the data. For example, fixing
 c0 in a polynomial model will fit a polynomial with the zero-th order term missing.
 
 >>> x = np.arange(1, 10, .1)
->>> p1 = builtin_models.Poly1DModel(2, param_dim=2)
+>>> p1 = models.Poly1DModel(2, param_dim=2)
 >>> p1.parameters = [1, 1, 2, 2, 3, 3]
 >>> p1.param_sets
 array([[ 1.,  1.],
@@ -77,17 +77,17 @@ array([[ 5.50225913,  5.50225913],
        [ 3.17551299,  3.17551299]])
 
        
-- A parameter can be `~astropy.models.parameters.Parameter.tied`
+- A parameter can be `~astropy.modeling.parameters.Parameter.tied`
   (linked to another parameter). This can be done in two ways:
 
 >>> def tiedfunc(g1):
     ...    mean = 3 * g1.stddev[0]
     ...    return mean
->>> g1 = builtin_models.Gaussian1DModel(amplitude=10., mean=3, stddev=.5, tied={'mean': tiedfunc})
+>>> g1 = models.Gaussian1DModel(amplitude=10., mean=3, stddev=.5, tied={'mean': tiedfunc})
 
 or
 
->>> g1 = builtin_models.Gaussian1DModel(amplitude=10., mean=3, stddev=.5)
+>>> g1 = models.Gaussian1DModel(amplitude=10., mean=3, stddev=.5)
 >>> g1.mean.tied = tiedfunc
 >>> gfit = fitting.NonLinearLSQFitter(g1)
 

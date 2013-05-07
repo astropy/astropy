@@ -52,7 +52,7 @@ User Documentation
    time/index
    coordinates/index
    wcs/index
-   models/index
+   modeling/index
 
 **Connecting up: Files and I/O**
 

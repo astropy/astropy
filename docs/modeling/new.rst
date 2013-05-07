@@ -13,24 +13,24 @@ A Step by Step Definition of a 1D Gaussian Model
 
 The details are explained below with a 1D gaussian model as an example.
 There are two base classes for models. If the model is fittable, it 
-should inherit from `~astropy.models.core.ParametricModel`,
-if not it should subclass `~astropy.models.core.Model`. If the model
+should inherit from `~astropy.modeling.core.ParametricModel`,
+if not it should subclass `~astropy.modeling.core.Model`. If the model
 takes parameters, their names are stored in a list as a class attribute
-named `~astropy.models.core.Model.param_names`. Pass the list of parameter
+named `~astropy.modeling.core.Model.param_names`. Pass the list of parameter
 names and the number of parameter sets to the base class. Note, that if
 the method which evaluates the model cannot work with multiple parameter sets,
-`~astropy.models.core.Model.param_dim` should not be given
+`~astropy.modeling.core.Model.param_dim` should not be given
 as an argument in the __init__ method. The default for
-`~astropy.models.core.Model.param_dim` is set in the base class to 1.::
+`~astropy.modeling.core.Model.param_dim` is set in the base class to 1.::
 
-    from astropy.models import *
+    from astropy.modeling import *
     
     class Gaussian1DModel(ParametricModel):
         param_names = ['amplitude', 'mean', 'stddev']
 
 
 As a minimum the __init__ method takes all parameters and the number of
-parameter sets, `~astropy.models.Model.param_dim`::
+parameter sets, `~astropy.modeling.Model.param_dim`::
 
     def __init__(self, amplitude, mean, stddev, param_dim=1):
         self.linear = False
@@ -40,13 +40,13 @@ parameter sets, `~astropy.models.Model.param_dim`::
         ParametricModel.__init__(self, self.param_names, ndim=1, outdim=1, param_dim=param_dim)
     
 Parametric models can be linear or nonlinear in a regression sense. The default 
-value of the `~astropy.models.core.Model.linear` attribute is True. 
-The `~astropy.models.core.Model.ndim` attribute stores the number of input
-variables the model expects.. The `~astropy.models.core.Model.outdim` attribute
+value of the `~astropy.modeling.core.Model.linear` attribute is True. 
+The `~astropy.modeling.core.Model.ndim` attribute stores the number of input
+variables the model expects.. The `~astropy.modeling.core.Model.outdim` attribute
 stores the number of output variables returned after evaluating the model.
 These two attributes are used with composite models.
 Each parameter must be defined as a private attribute of the model class. 
-Parameters are instances of `~astropy.models.parameters.Parameter` class which takes as
+Parameters are instances of `~astropy.modeling.parameters.Parameter` class which takes as
 arguments the name of the parameter, its value, the instance of the class 
 and the number of parameter sets.
 
@@ -78,10 +78,10 @@ A Full Example of a LineModel
 
 ::
 
-    from astropy.models import builtin_models, parameters
+    from astropy.modeling import models, parameters
     import numpy as np
     
-    class Line(builtin_models.PolynomialModel):
+    class Line(models.PolynomialModel):
         param_names = ['slope', 'intercept']
     
     def init(self, slope, intercept, param_dim=1):
@@ -115,7 +115,7 @@ to this package. In short, one needs to define an error function and a __call__
 method and define the types of constraints which work with this fitter (if any).
 
 The details are described below using scipy's SLSQP algorithm as an example.
-The base class for all fitters is `~astropy.models.fitting.Fitter`.::
+The base class for all fitters is `~astropy.modeling.fitting.Fitter`.::
 
     class SLSQPFitter(Fitter):
         def __init__(self, model, fixed=None, tied=None, bounds=None,
