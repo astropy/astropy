@@ -110,13 +110,13 @@ class PolynomialModel(ParametricModel):
         """
         Map the input data into a [-1, 1] window
         """
-        if self.ndim == 1:
+        if self.number_input_variables == 1:
             if not self.domain:
                 self.domain = [x.min(), x.max()]
             if not self.window:
                 self.window = [-1, 1]
             return pmapdomain(x, self.domain, self.window)
-        if self.ndim == 2:
+        if self.number_input_variables == 2:
             assert y is not None, ("Expected 2 input coordinates")
             if not self.xdomain:
                 self.xdomain = [x.min(), x.max()]
@@ -562,9 +562,9 @@ class Poly2DModel(PolynomialModel):
         """
         Derivatives with respect to parameters
         """
-        if x.ndim == 2:
+        if x.number_input_variables == 2:
             x = x.flatten()
-        if y.ndim == 2:
+        if y.number_input_variables == 2:
             y = y.flatten()
         if x.size != y.size:
             raise ValueError('Expected x and y to be of equal size')
