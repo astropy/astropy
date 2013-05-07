@@ -178,7 +178,7 @@ class Gaussian2DModel(ParametricModel):
         
        
         super(Gaussian2DModel, self).__init__(self.param_names, ndim=2, outdim=1,
-                                              param_dim=param_dim)
+                                              param_dim=param_dim, **cons)
         self.linear = False
         if jacobian_func:
             self.deriv = jacobian_func
