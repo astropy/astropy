@@ -82,6 +82,8 @@ for unit, name in [
     (si.J, 'energy'),
     (si.Pa, 'pressure'),
     (si.W, 'power'),
+    (si.kg * si.m / si.s, 'momentum'),
+    (si.kg * si.m ** 2 / si.s, 'angular momentum'),
     (si.g / (si.m * si.s), 'dynamic viscosity'),
     (si.m ** 2 / si.s, 'kinematic viscosity'),
     (si.m ** -1, 'wavenumber'),
