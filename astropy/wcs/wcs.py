@@ -639,7 +639,7 @@ naxis kwarg.
                 (len(cpdis.data.shape),
                  'Number of independent variables in distortion function'))
 
-            for i in range(cpdis.data.n_inputs):
+            for i in range(cpdis.data.ndim):
                 hdulist[0].header.update(
                     '{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i + 1),
                     (i + 1, 'Axis number of the jth independent variable in a '

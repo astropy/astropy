@@ -19,21 +19,6 @@ or by passing it an `~astropy.nddata.nddata.NDData` object:
 
 This object has a few attributes in common with Numpy:
 
-    >>> ndd.n_inputs
-    3
-    >>> ndd.shape
-    (12, 12, 12)
-    >>> ndd.dtype
-    dtype('float64')
-
-The underlying Numpy array can be accessed via the
-
-    >>> ndd1 = NDData(array)
-    >>> ndd2 = NDData(ndd1)
-
-
-This object has a few attributes in common with Numpy:
-
     >>> ndd.ndim
     3
     >>> ndd.shape
