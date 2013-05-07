@@ -256,10 +256,11 @@ The allowed |Time| arguments to create a time object are listed below:
 val
 ^^^^^^^^^^^
 
-The ``val`` argument is the only argument that is always required when creating a
-|Time| object.  This argument specifies the input time or times and
+The ``val`` argument  specifies the input time or times and
 can be a single string or number, or it can be a Python list or `numpy` array
-of strings or numbers.
+of strings or numbers. To initialize a |Time| object based on a specified time,
+it *must* be present.  If `val` is absent (or `None`), the |Time| object will
+be created for the time corresponding to the instant the object is created.
 
 In most situations one also needs to specify the `time scale`_ via the
 ``scale`` argument.  The |Time| class will never guess the `time scale`_,
