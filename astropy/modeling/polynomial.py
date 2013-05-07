@@ -10,7 +10,7 @@ from .core import *
 from .utils import pmapdomain, comb
 
 __all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'Legendre2DModel',
-                    'Legendre1DModel', 'Poly1DModel', 'Poly2DModel', 'SIPModel']
+           'Legendre1DModel', 'Poly1DModel', 'Poly2DModel', 'SIPModel']
 
 
 class PolynomialModel(ParametricModel):

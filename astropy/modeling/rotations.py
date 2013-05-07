@@ -19,7 +19,7 @@ from __future__ import division, print_function
 import math
 import numbers
 import numpy as np
-from .core import *
+from .core import Model
 from .parameters import Parameter
 from .utils import InputParameterError
 

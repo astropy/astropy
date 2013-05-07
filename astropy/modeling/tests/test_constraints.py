@@ -76,9 +76,9 @@ class TestNonLinearConstraints(object):
         errf = lambda p, x, y: func(p, x) - y
         p0 = [9.9, 14.5, 0.3]
         y = g1(self.x)
-        n = np.random.randn(100)
+        n = np.random.randn(len(y))
         ny = y + n
-        fitpar, s = optimize.leastsq(errf, p0, args=(self.x, n+y))
+        fitpar, s = optimize.leastsq(errf, p0, args=(self.x, ny))
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.x, n+y)
         utils.assert_allclose(g1.parameters, fitpar, rtol=5*10**(-3))
