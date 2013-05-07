@@ -60,19 +60,23 @@ class Time(object):
     """
     Represent and manipulate times and dates for astronomy.
 
-    A Time object is initialized with one or more times in the ``val``
+    A `Time` object is initialized with one or more times in the ``val``
     argument.  The input times in ``val`` must conform to the specified
     ``format`` and must correspond to the specified time ``scale``.  The
     optional ``val2`` time input should be supplied only for numeric input
     formats (e.g. JD) where very high precision (better than 64-bit precision)
     is required.
 
+    If `val` and `val2` are missing (or `None`), a `Time` object will be created
+    corresponding to "now", as determined by the `datetime.datetime.utcnow`
+    function, called at the instant the object is created.
+
     Parameters
     ----------
-    val : sequence, str, number, or `~astropy.time.Time` object
+    val : sequence, str, number, or `~astropy.time.Time` object; optional
         Value(s) to initialize the time or times.
     val2 : sequence, str, or number; optional
-        Value(s) to initialize the time or times
+        Value(s) to initialize the time or times.
     format : str, optional
         Format of input value(s)
     scale : str, optional
@@ -97,7 +101,7 @@ class Time(object):
     FORMATS = TIME_FORMATS
     """Dict of time formats"""
 
-    def __new__(cls, val, val2=None, format=None, scale=None,
+    def __new__(cls, val=None, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
                 lat=0.0, lon=0.0, copy=False):
 
@@ -107,7 +111,7 @@ class Time(object):
             self = super(Time, cls).__new__(cls)
         return self
 
-    def __init__(self, val, val2=None, format=None, scale=None,
+    def __init__(self, val=None, val2=None, format=None, scale=None,
                  precision=None, in_subfmt=None, out_subfmt=None,
                  lat=0.0, lon=0.0, copy=False):
 
@@ -132,6 +136,13 @@ class Time(object):
         inputs.  This handles coercion into the correct shapes and
         some basic input validation.
         """
+        if val is val2 is None:
+            dtutc = datetime.utcnow()
+            if scale not in ('utc', None):
+                raise ScaleValueError('{0} is not a valid scale for "now" '
+                                      'initialization'.format(scale))
+            val = dtutc
+            scale = 'utc'
 
         # Coerce val into a 1-d array
         val, val_ndim = _make_1d_array(val, copy)
