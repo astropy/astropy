@@ -81,7 +81,7 @@ def read_table_fits(input, hdu=None):
 
     Parameters
     ----------
-    input : str or fileobj or compatible `astropy.io.fits` HDU object
+    input : str or file-like object or compatible `astropy.io.fits` HDU object
         If a string, the filename to read the table from. If a file object, or
         a compatible HDU object, the object to extract the table from. The
         following `astropy.io.fits` HDU objects can be used as input:
@@ -98,6 +98,9 @@ def read_table_fits(input, hdu=None):
         to_close = input
     else:
         to_close = None
+
+    if hasattr(input, 'read'):
+        input = fits_open(input)
 
     try:
 

@@ -97,6 +97,22 @@ class TestSingleTable(object):
         assert np.all(t1['b'].mask == t2['b'].mask)
         assert np.all(t1['c'].mask == t2['c'].mask)
 
+    def test_read_from_fileobj(self, tmpdir):
+        filename = str(tmpdir.join('test_read_from_fileobj.fits'))
+        hdu = BinTableHDU(self.data)
+        hdu.writeto(filename)
+        f = open(filename, 'rb')
+        t = Table.read(f)
+        assert equal_data(t, self.data)
+
+    def test_read_with_nonstandard_units(self):
+        hdu = BinTableHDU(self.data)
+        hdu.columns[0].unit = 'RADIANS'
+        hdu.columns[1].unit = 'spam'
+        hdu.columns[2].unit = 'millieggs'
+        t = Table.read(hdu)
+        assert equal_data(t, self.data)
+
 
 class TestMultipleHDU(object):
 
