@@ -240,7 +240,7 @@ class CDS(Base):
                 out.append(self._get_unit_name(base))
             else:
                 out.append('{0}{1}'.format(
-                    self._get_unit_name(base), power))
+                    self._get_unit_name(base), int(power)))
         return '.'.join(out)
 
     def to_string(self, unit):

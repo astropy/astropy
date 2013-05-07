@@ -280,23 +280,33 @@ class Quantity(object):
                 "object. Subtraction is only supported between Quantity "
                 "objects with compatible units.".format(other.__class__))
 
+    def _coerce_other(self, other):
+        if isinstance(other, Quantity):
+            return other.value, other.unit
+        elif isinstance(other, basestring):
+            return 1.0, Unit(other)
+        elif isinstance(other, UnitBase):
+            return other.scale, CompositeUnit(1.0, other.bases, other.powers)
+        else:
+            return other, Unit(1)
+
     def __mul__(self, other):
         """ Multiplication between `Quantity` objects and other objects."""
+        other_value, other_unit = self._coerce_other(other)
 
-        if isinstance(other, Quantity):
-            return Quantity(self.value * other.value,
-                            unit=self.unit * other.unit)
-        elif isinstance(other, basestring):
-            return Quantity(self.value, unit=Unit(other) * self.unit)
-        elif isinstance(other, UnitBase):
-            return Quantity(self.value, unit=other * self.unit)
-        else:
-            try:
-                return Quantity(other * self.value, unit=self.unit)
-            except TypeError:
-                raise TypeError(
-                    "Object of type '{0}' cannot be multiplied with a "
-                    "Quantity object.".format(other.__class__))
+        try:
+            if self.unit.is_equivalent(other_unit):
+                return Quantity(
+                    self.value * other_unit.to(self.unit, other_value),
+                    unit=self.unit * self.unit)
+            else:
+                return Quantity(
+                    self.value * other_value,
+                    unit=self.unit * other_unit)
+        except TypeError:
+            raise TypeError(
+                "Object of type '{0}' cannot be multiplied with a "
+                "Quantity object.".format(other.__class__))
 
     def __rmul__(self, other):
         """ Right Multiplication between `Quantity` objects and other
@@ -307,39 +317,39 @@ class Quantity(object):
 
     def __div__(self, other):
         """ Division between `Quantity` objects and other objects."""
+        other_value, other_unit = self._coerce_other(other)
 
-        if isinstance(other, Quantity):
-            return Quantity(self.value / other.value,
-                            unit=self.unit / other.unit)
-        elif isinstance(other, basestring):
-            return Quantity(self.value, unit=self.unit / Unit(other))
-        elif isinstance(other, UnitBase):
-            return Quantity(self.value, unit=self.unit / other)
-        else:
-            try:
-                return Quantity(self.value / other, unit=self.unit)
-            except TypeError:
-                raise TypeError(
-                    "Object of type '{0}' cannot be diveded with a Quantity "
-                    "object.".format(other.__class__))
+        try:
+            if self.unit.is_equivalent(other_unit):
+                return Quantity(
+                    self.value / other_unit.to(self.unit, other_value),
+                    unit=Unit(1))
+            else:
+                return Quantity(
+                    self.value / other_value,
+                    unit=self.unit / other_unit)
+        except TypeError:
+            raise TypeError(
+                "Object of type '{0}' cannot be divided by a "
+                "Quantity object.".format(other.__class__))
 
     def __rdiv__(self, other):
         """ Right Division between `Quantity` objects and other objects."""
+        other_value, other_unit = self._coerce_other(other)
 
-        if isinstance(other, Quantity):
-            return Quantity(other.value / self.value,
-                            unit=other.unit / self.unit)
-        elif isinstance(other, basestring):
-            return Quantity(self.value, unit=Unit(other) / self.unit)
-        elif isinstance(other, UnitBase):
-            return Quantity(1. / self.value, unit=other / self.unit)
-        else:
-            try:
-                return Quantity(other / self.value, unit=1. / self.unit)
-            except TypeError:
-                raise TypeError(
-                    "Object of type '{0}' cannot be diveded with a Quantity "
-                    "object.".format(other.__class__))
+        try:
+            if self.unit.is_equivalent(other_unit):
+                return Quantity(
+                    other_value / self.to(other_unit),
+                    unit=Unit(1))
+            else:
+                return Quantity(
+                    other_value / self.value,
+                    unit=other_unit / self.unit)
+        except TypeError:
+            raise TypeError(
+                "Object of type '{0}' cannot be divided with a "
+                "Quantity object.".format(other.__class__))
 
     def __truediv__(self, other):
         """ Division between `Quantity` objects. """

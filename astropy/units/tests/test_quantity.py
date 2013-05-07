@@ -99,13 +99,13 @@ class TestQuantityOperations(object):
     def test_multiplication(self):
         # Take units from left object, q1
         new_quantity = self.q1 * self.q2
-        assert new_quantity.value == 91.36
-        assert new_quantity.unit == (u.meter * u.centimeter)
+        assert new_quantity.value == 0.9136
+        assert new_quantity.unit == (u.meter * u.meter)
 
         # Take units from left object, q2
         new_quantity = self.q2 * self.q1
-        assert new_quantity.value == 91.36
-        assert new_quantity.unit == (u.centimeter * u.meter)
+        assert new_quantity.value == 9136
+        assert new_quantity.unit == (u.centimeter * u.centimeter)
 
         # Multiply with a number
         new_quantity = 15. * self.q1
@@ -121,14 +121,14 @@ class TestQuantityOperations(object):
         # Take units from left object, q1
         new_quantity = self.q1 / self.q2
         np.testing.assert_array_almost_equal(
-            new_quantity.value, 1.4275, decimal=5)
-        assert new_quantity.unit == (u.meter / u.centimeter)
+            new_quantity.value, 142.75, decimal=5)
+        assert new_quantity.unit == u.dimensionless_unscaled
 
         # Take units from left object, q2
         new_quantity = self.q2 / self.q1
         np.testing.assert_array_almost_equal(
-            new_quantity.value, 0.70052539404553416, decimal=16)
-        assert new_quantity.unit == (u.centimeter / u.meter)
+            new_quantity.value, 0.0070052539404553416, decimal=16)
+        assert new_quantity.unit == u.dimensionless_unscaled
 
         q1 = u.Quantity(11.4, unit=u.meter)
         q2 = u.Quantity(10.0, unit=u.second)
@@ -237,6 +237,13 @@ class TestQuantityOperations(object):
         area = side1 * side2
         np.testing.assert_array_almost_equal(area.value, 77., decimal=15)
         assert area.unit == u.cm * u.cm
+
+        # Area
+        side1 = u.Quantity(11., u.meter)
+        side2 = u.Quantity(7., u.centimeter)
+        area = side1 * side2
+        np.testing.assert_array_almost_equal(area.value, 0.77, decimal=15)
+        assert area.unit == u.m * u.m
 
     def test_comparison(self):
         # equality/ non-equality is straightforward for quantity objects

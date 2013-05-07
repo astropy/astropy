@@ -948,6 +948,27 @@ class NamedUnit(UnitBase):
         return self._format.get(format, self.name)
 
     @property
+    def scale(self):
+        """
+        Return the scale of the unit.
+        """
+        return 1.0
+
+    @property
+    def bases(self):
+        """
+        Return the bases of the unit.
+        """
+        return [self]
+
+    @property
+    def powers(self):
+        """
+        Return the powers of the unit.
+        """
+        return [1.0]
+
+    @property
     def names(self):
         """
         Returns all of the names associated with this unit.
@@ -1032,27 +1053,6 @@ class IrreducibleUnit(NamedUnit):
         return (_recreate_irreducible_unit,
                 (list(self.names), self.name in namespace),
                 self.__dict__)
-
-    @property
-    def scale(self):
-        """
-        Return the scale of the unit.
-        """
-        return 1.0
-
-    @property
-    def bases(self):
-        """
-        Return the bases of the unit.
-        """
-        return [self]
-
-    @property
-    def powers(self):
-        """
-        Return the powers of the unit.
-        """
-        return [1.0]
 
     def decompose(self, bases=set()):
         if len(bases) and not self in bases:
