@@ -96,7 +96,7 @@ class PolynomialModel(ParametricModel):
         Return the number of coefficients in one parameter set
         """
         if self.deg < 1  or self.deg > 16:
-            raise ValueError("Degree of polynomial must be 1< deg < 16")
+            raise ValueError("Degree of polynomial must be 1 <= deg <= 16")
         # deg+1 is used to account for the difference between iraf using
         # degree and numpy using exact degree
         if ndim != 1:

@@ -22,7 +22,7 @@ except ImportError:
 
 class TestPoly2D(object):
     """
-    Tests for 2D polynomail fitting
+    Tests for 2D polynomial fitting
     """
     def setup_class(self):
         self.model = models.Poly2DModel(2)
@@ -146,7 +146,6 @@ class TestNonLinearFitters(object):
     def setup_class(self):
         self.initial_values = [100, 5, 1]
         func = lambda p, x: p[0]* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
-        errf = lambda p, x, y: (func(p, x) - y)
         self.xdata = np.arange(0, 10, 0.1)
         sigma = 10 * np.ones_like(self.xdata)
         rsn = RandomState(1234567890)
