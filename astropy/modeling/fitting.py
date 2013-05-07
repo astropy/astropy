@@ -289,7 +289,7 @@ class LinearLSQFitter(Fitter):
         x = np.asarray(x, dtype=np.float)
         y = np.asarray(y, dtype=np.float)
 
-        if self.model.ndim == 2 and z is None:
+        if self.model.n_inputs == 2 and z is None:
             raise ValueError("Expected x, y and z for a 2 dimensional model.")
 
         if z is None:
@@ -368,9 +368,9 @@ class LinearLSQFitter(Fitter):
         self.fit_info['singular_values'] = sval
 
         self.model._parameters._changed = True
-        # If y.ndim > model.ndim we are doing a simultanious 1D fitting
+        # If y.n_inputs > model.n_inputs we are doing a simultanious 1D fitting
         # of several 1D arrays. Otherwise the model is 2D.
-        #if y.ndim > self.model.ndim:
+        #if y.n_inputs > self.model.n_inputs:
         if multiple:
             self.model._parameters.param_dim = multiple
         lacoef = (lacoef.T/scl).T
@@ -636,8 +636,8 @@ class JointFitter(object):
             m.set_joint_parameters(self.jointpars[m])
         self.fitpars = self._model_to_fit_pars()
 
-        # a list of model.ndim
-        self.modeldims = [m.ndim for m in self.models]
+        # a list of model.n_inputs
+        self.modeldims = [m.n_inputs for m in self.models]
         # sum all model dimensions
         self.ndim = np.sum(self.modeldims)
 
@@ -670,8 +670,8 @@ class JointFitter(object):
         del fitpars[:numjp]
 
         for model in self.models:
-            margs = lstsqargs[:model.ndim+1]
-            del lstsqargs[:model.ndim+1]
+            margs = lstsqargs[:model.n_inputs+1]
+            del lstsqargs[:model.n_inputs+1]
             #separate each model separately fitted parameters
             numfp = len(model._parameters) - len(model.joint)
             mfpars = fitpars[:numfp]

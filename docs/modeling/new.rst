@@ -37,12 +37,12 @@ parameter sets, `~astropy.modeling.Model.param_dim`::
         self._amplitude = Parameter(name='amplitude', val=amplitude, mclass=self, param_dim=param_dim)
         self._stddev = Parameter(name='stddev', val=stddev, mclass=self, param_dim=param_dim)
         self._mean = Parameter(name='mean', val=mean, mclass=self, param_dim=param_dim)
-        ParametricModel.__init__(self, self.param_names, ndim=1, outdim=1, param_dim=param_dim)
+        ParametricModel.__init__(self, self.param_names, n_inputs=1, n_outputs=1, param_dim=param_dim)
     
 Parametric models can be linear or nonlinear in a regression sense. The default 
 value of the `~astropy.modeling.core.Model.linear` attribute is True. 
-The `~astropy.modeling.core.Model.ndim` attribute stores the number of input
-variables the model expects.. The `~astropy.modeling.core.Model.outdim` attribute
+The `~astropy.modeling.core.Model.n_inputs` attribute stores the number of input
+variables the model expects.. The `~astropy.modeling.core.Model.n_outputs` attribute
 stores the number of output variables returned after evaluating the model.
 These two attributes are used with composite models.
 Each parameter must be defined as a private attribute of the model class. 
@@ -88,7 +88,7 @@ A Full Example of a LineModel
         self.linear = True 
         self._slope = parameters.Parameter(name='slope', val=slope, mclass=self, param_dim=param_dim)
         self._intercept = parameters.Parameter(name='intercept', val=intercept, mclass=self, param_dim=param_dim)
-        models.ParametricModel.__init__(self, self.param_names, ndim=1, outdim=1, param_dim=param_dim)
+        models.ParametricModel.__init__(self, self.param_names, n_inputs=1, n_outputs=1, param_dim=param_dim)
         self.domain = [-1, 1]
         self.window = [-1, 1]
         self._order = 2

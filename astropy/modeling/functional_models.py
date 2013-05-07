@@ -57,7 +57,7 @@ class Gaussian1DModel(ParametricModel):
              "Input parameters do not have the same dimension"
         except TypeError:
             param_dim = 1
-        super(Gaussian1DModel, self).__init__(self.param_names, ndim=1, outdim=1,
+        super(Gaussian1DModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
                                                                     param_dim=param_dim, **cons)
         self.linear = False
         if jacobian_func is 'estimated':
@@ -179,7 +179,7 @@ class Gaussian2DModel(ParametricModel):
                             "Input parameters do not have the same dimension"
         except TypeError:
             param_dim = 1
-        super(Gaussian2DModel, self).__init__(self.param_names, ndim=2, outdim=1,
+        super(Gaussian2DModel, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
                                               param_dim=param_dim)
         self.linear = False
         if jacobian_func:
@@ -228,7 +228,7 @@ class ShiftModel(Model):
         else:
             param_dim = len(offsets)
         self._offsets = parameters.Parameter('offsets', offsets, self, param_dim)
-        super(ShiftModel, self).__init__(self.param_names, ndim=1, outdim=1,
+        super(ShiftModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
                                                             param_dim=param_dim)
 
     def __call__(self, x):
@@ -257,7 +257,7 @@ class ScaleModel(Model):
         else:
             param_dim = len(factors)
         self._factors = parameters.Parameter('factors', factors, self, param_dim)
-        super(ScaleModel, self).__init__(self.param_names, ndim=1, outdim=1,
+        super(ScaleModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
                                                             param_dim=param_dim)
     
     def __call__(self, x):

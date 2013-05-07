@@ -22,10 +22,10 @@ class PolynomialModel(ParametricModel):
     default values, names and ordering.
 
     """
-    def __init__(self, degree, ndim=1, outdim=1, param_dim=1, **pars):
+    def __init__(self, degree, n_inputs=1, n_outputs=1, param_dim=1, **pars):
         self.deg = degree
-        self._order = self.get_numcoeff(ndim)
-        self.param_names = self._generate_coeff_names(ndim)
+        self._order = self.get_numcoeff(n_inputs)
+        self.param_names = self._generate_coeff_names(n_inputs)
         if not pars:
             self.set_coeff(pardim=param_dim)
         else:
@@ -39,7 +39,7 @@ class PolynomialModel(ParametricModel):
                 param_dim = lenpars
             self._validate_pars(**pars)
             self.set_coeff(pardim=param_dim, **pars)
-        super(PolynomialModel, self).__init__(self.param_names, ndim=ndim, outdim=outdim,
+        super(PolynomialModel, self).__init__(self.param_names, n_inputs=n_inputs, n_outputs=n_outputs,
                                                         param_dim=param_dim)
 
     def _invlex(self):
@@ -110,13 +110,13 @@ class PolynomialModel(ParametricModel):
         """
         Map the input data into a [-1, 1] window
         """
-        if self.ndim == 1:
+        if self.n_inputs == 1:
             if not self.domain:
                 self.domain = [x.min(), x.max()]
             if not self.window:
                 self.window = [-1, 1]
             return pmapdomain(x, self.domain, self.window)
-        if self.ndim == 2:
+        if self.n_inputs == 2:
             assert y is not None, ("Expected 2 input coordinates")
             if not self.xdomain:
                 self.xdomain = [x.min(), x.max()]
@@ -182,7 +182,7 @@ class OrthogPolyBase(ParametricModel):
                 param_dim = lenpars
             self._validate_pars(**pars)
             self.set_coeff(pardim=param_dim, **pars)
-        super(OrthogPolyBase, self).__init__(self.param_names, ndim=2, outdim=1,
+        super(OrthogPolyBase, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
                                                         param_dim=param_dim)
 
     def _generate_coeff_names(self):
@@ -315,7 +315,7 @@ class Chebyshev1DModel(PolynomialModel):
     def __init__(self, degree, domain=None, window=[-1, 1], param_dim=1, **pars):
         self.domain = domain
         self.window = window
-        super(Chebyshev1DModel, self).__init__(degree, ndim=1, outdim=1,
+        super(Chebyshev1DModel, self).__init__(degree, n_inputs=1, n_outputs=1,
                                              param_dim=param_dim, **pars)
 
     def clenshaw(self, x, coeff):
@@ -387,7 +387,7 @@ class Legendre1DModel(PolynomialModel):
     def __init__(self, degree, domain=None, window=[-1, 1], param_dim=1, **pars):
         self.domain = domain
         self.window = window
-        super(Legendre1DModel, self).__init__(degree, ndim=1, outdim=1,
+        super(Legendre1DModel, self).__init__(degree, n_inputs=1, n_outputs=1,
                                             param_dim=param_dim, **pars)
 
     def clenshaw(self, x, coeff):
@@ -460,7 +460,7 @@ class Poly1DModel(PolynomialModel):
                  param_dim=1, **pars):
         self.domain = domain
         self.window = window
-        super(Poly1DModel, self).__init__(degree, ndim=1, outdim=1,
+        super(Poly1DModel, self).__init__(degree, n_inputs=1, n_outputs=1,
                                           param_dim=param_dim, **pars)
 
     def deriv(self, x):
@@ -528,7 +528,7 @@ class Poly2DModel(PolynomialModel):
     def __init__(self, degree, xdomain=[-1, 1], ydomain=[-1, 1],
                             xwindow=[-1, 1], ywindow=[-1,1],
                             param_dim=1, **pars):
-        super(Poly2DModel, self).__init__(degree, ndim=2, outdim=1,
+        super(Poly2DModel, self).__init__(degree, n_inputs=2, n_outputs=1,
                                                                 param_dim=param_dim, **pars)
         self.xdomain = xdomain
         self.ydomain = ydomain
@@ -869,7 +869,7 @@ class _SIP1D(Model):
             self._validate_pars(ndim=2, **pars)
             self.set_coeff(pardim=param_dim, **pars)
 
-        super(_SIP1D, self).__init__(self.param_names, ndim=2, outdim=1,
+        super(_SIP1D, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
                                                         param_dim=param_dim)
 
     def __repr__(self):
@@ -1012,8 +1012,8 @@ class SIPModel(SCompositeModel):
     """
     def __init__(self, crpix, order, coeff, coeffname='a',
                             aporder=None, apcoeff=None, param_dim=1):
-        self.ndim = 2
-        self.outdim = 1
+        self.n_inputs = 2
+        self.n_outputs = 1
         self.shifta = ShiftModel(crpix[0])
         self.shiftb = ShiftModel(crpix[1])
         self.sip1d = _SIP1D(order, coeffname=coeffname,
