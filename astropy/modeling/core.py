@@ -71,20 +71,20 @@ def _convert_input(x, pdim):
     x = np.asarray(x) + 0.
     fmt = 'N'
     if pdim == 1:
-        if x.ndim == 0:
+        if x.n_inputs == 0:
             fmt = 'S'
             return x, fmt
         else:
             return x, fmt
     else:
-        if x.ndim < 2:
+        if x.n_inputs < 2:
             fmt = 'N'
             return np.array([x]).T, fmt
-        elif x.ndim == 2:
+        elif x.n_inputs == 2:
             assert x.shape[-1] == pdim, "Cannot broadcast with shape"\
                                             "({0}, {1})".format(x.shape[0], x.shape[1])
             return x, fmt
-        elif x.ndim > 2:
+        elif x.n_inputs > 2:
             assert x.shape[0] == pdim, "Cannot broadcast with shape " \
                    "({0}, {1}, {2})".format(x.shape[0], x.shape[1], x.shape[2])
             fmt = 'T'
@@ -174,10 +174,10 @@ class Model(object):
     
     param_names = []
 
-    def __init__(self, param_names, ndim, outdim, param_dim=1):
+    def __init__(self, param_names, n_inputs, n_outputs, param_dim=1):
         self._param_dim = param_dim
-        self._ndim = ndim
-        self._outdim = outdim
+        self._n_inputs = n_inputs
+        self._n_outputs = n_outputs
         self.has_inverse = False
         self._param_names = param_names
         #_parcheck is a dictionary to register parameter validation funcitons
@@ -188,18 +188,18 @@ class Model(object):
             setattr(self.__class__, par, _ParameterProperty(par))
     
     @property 
-    def ndim(self):
+    def n_inputs(self):
         """
         Number of input variables in model evaluation.
         """
-        return self._ndim
+        return self._n_inputs
 
     @property
-    def outdim(self):
+    def n_outputs(self):
         """
         Number of output valiables returned when a model is evaluated.
         """
-        return self._outdim
+        return self._n_outputs
     
     @property
     def param_dim(self):
@@ -316,9 +316,9 @@ class ParametricModel(Model):
     ----------
     param_names: list
         parameter names
-    ndim: int
+    n_inputs: int
         model dimensions (number of inputs)
-    outdim: int
+    n_outputs: int
         number of output quantities
     param_dim: int
         number of parameter sets
@@ -353,10 +353,10 @@ class ParametricModel(Model):
     """
     __metaclass__ = abc.ABCMeta
     
-    def __init__(self, param_names, ndim, outdim, param_dim=1, fittable=True,
+    def __init__(self, param_names, n_inputs, n_outputs, param_dim=1, fittable=True,
                  fixed={}, tied={}, bounds={}, eqcons=[], ineqcons=[]):
         self.linear = True
-        super(ParametricModel, self).__init__(param_names, ndim, outdim, param_dim=param_dim)
+        super(ParametricModel, self).__init__(param_names, n_inputs, n_outputs, param_dim=param_dim)
         self.fittable = fittable
         self._parameters = parameters.Parameters(self, self.param_names,
                                                  param_dim=param_dim)
@@ -421,7 +421,7 @@ class ParametricModel(Model):
                    {4}
         """.format(
               self.__class__.__name__,
-              self.ndim,
+              self.n_inputs,
               degree,
               self.param_dim,
               "\n                   ".join(i+': ' + 
@@ -669,9 +669,9 @@ class SCompositeModel(_CompositeModel):
             outmap = [None]  * len(transforms)
         
         self._init_comptr(transforms, inmap, outmap)
-        self.ndim = np.array([tr.ndim for tr in self]).max()
+        self.ndim = np.array([tr.n_inputs for tr in self]).max()
         # the output dimension is equal to the output dim of the last transform
-        self.outdim = self.keys()[-1].outdim
+        self.outdim = self.keys()[-1].n_outputs
         
     def _init_comptr(self, transforms, inmap, outmap):
         for tr, inm, outm in zip(transforms, inmap, outmap):
@@ -681,11 +681,11 @@ class SCompositeModel(_CompositeModel):
         lendata = len(data)
         tr = self.keys()[0]
         
-        if tr.ndim != lendata:
+        if tr.n_inputs != lendata:
             
             raise ValueError("Required number of coordinates not matched for "
                              "transform # {0}: {1} required, {2} supplied ".format( 
-                             self.keys().index(tr)+1, tr.ndim, lendata))
+                             self.keys().index(tr)+1, tr.n_inputs, lendata))
 
     def invert(self, inmap, outmap):
         scomptr = SCompositeModel(self[::-1], inmap=inmap, outmap=outmap)
@@ -714,7 +714,7 @@ class SCompositeModel(_CompositeModel):
                     outmap = self[tr][1]
                     inlist = [getattr(linp, co) for co in inmap]
                     result = tr(*inlist)
-                    if tr.outdim == 1:
+                    if tr.n_outputs == 1:
                         result = [result]
                     for outcoo, res in zip(outmap, result):
                         if outcoo not in inmap:
@@ -760,7 +760,7 @@ class PCompositeModel(_CompositeModel):
         super(PCompositeModel, self).__init__(transforms,
                                               inmap=None, outmap=None)
         self._init_comptr(transforms, inmap, outmap)
-        self.ndim = self.keys()[0].ndim
+        self.ndim = self.keys()[0].n_inputs
         self.outdim = self.ndim
         self.inmap = inmap
         self.outmap = outmap
@@ -770,10 +770,10 @@ class PCompositeModel(_CompositeModel):
             self[tr] = [inmap, outmap]
 
     def _verify_no_mapper_input(self, *data):
-        ndim = self.keys()[0].ndim
+        ndim = self.keys()[0].n_inputs
         for tr in self.keys():
-            if tr.ndim != ndim:
-                raise ValueError("tr.ndim ...")
+            if tr.n_inputs != ndim:
+                raise ValueError("tr.n_inputs ...")
     
     def invert(self, inmap, outmap):
         pcomptr = PCompositeModel(self.keys()[::-1], inmap=inmap, outmap=outmap)

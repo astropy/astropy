@@ -521,7 +521,7 @@ correction in the *y*-axis.
 """
 
 dims = """
-``int array[ndim]`` (read-only)
+``int array[n_inputs]`` (read-only)
 
 The dimensions of the tabular array
 `~astropy.wcs._astropy.wcs.Wtbarr.data`.

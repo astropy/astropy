@@ -1303,7 +1303,7 @@ def _make_1d_array(val, copy=False):
         Array version of ``val`` and the number of dims in original.
     """
     val = np.array(val, copy=copy)
-    val_ndim = val.ndim  # remember original ndim
+    val_ndim = val.ndim  # remember original n_inputs
     if val.ndim == 0:
         val = (val.reshape(1) if val.dtype.kind == 'O' else np.array([val]))
     elif val_ndim > 1:
