@@ -159,7 +159,7 @@ class Model(object):
     """
     Base class for all models.
     
-    This is an abstract class and should not be instanciated.
+    This is an abstract class and should not be instantiated.
     
     Notes
     -----

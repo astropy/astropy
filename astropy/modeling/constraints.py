@@ -8,7 +8,7 @@ class Constraints(object):
     """
     Fitting constraints
 
-    Should not be instanciated by users directly. 
+    Should not be instantiated by users directly. 
     Instead constraints should be passed to an instance of Model.
     
     Parameters
