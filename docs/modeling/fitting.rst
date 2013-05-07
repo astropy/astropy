@@ -20,7 +20,7 @@ The rules for passing input to fitters are:
 * The linear fitter can fit single input to multiple data sets creating multiple 
   parameter sets. For example fitting a 2D model with input x, y arrays 
   of shape (n, m) to a z array of shape (p, n, m), will set 
-  model.parameters.ndim to p, even if it was 1 when the model was created.
+  model.parameters.n_inputs to p, even if it was 1 when the model was created.
 
 * Attempting to fit a model with multiple parameter sets to a single 
   data set results in an error.

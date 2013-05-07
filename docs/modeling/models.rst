@@ -17,7 +17,7 @@ Parametric models also store a flat list of all parameters as an instance of
 modified by a subclass of `~astropy.modeling.fitting.Fitter`. When fitting nonlinear models,
 the values of the parameters are used as initial guesses by the fitting class.
 
-Models have an `~astropy.modeling.core.Model.ndim` attribute, which shows
+Models have an `~astropy.modeling.core.Model.n_inputs` attribute, which shows
 how many coordinates the 
 model expects as an input. All models expect coordinates as separate arguments.
 For example a 2D model expects x and y to be passed separately, 
@@ -28,9 +28,9 @@ of parameter sets and x_shape, y_shape is the shape of the input array.
 In all other cases the shape of the output array is the same as the shape of the 
 input arrays. 
 
-Models also have an attribute `~astropy.modeling.core.Model.outdim`, which shows
-the number of output coordinates. The `~astropy.modeling.core.Model.ndim` and
-`~astropy.modeling.core.Model.outdim` attributes are used to chain transforms by
+Models also have an attribute `~astropy.modeling.core.Model.n_outputs`, which shows
+the number of output coordinates. The `~astropy.modeling.core.Model.n_inputs` and
+`~astropy.modeling.core.Model.n_outputs` attributes are used to chain transforms by
 adding models in series, `~astropy.modeling.core.SCompositeModel`, or in parallel,
 `~astropy.modeling.core.PCompositeModel`. Because composite models can 
 be nested within other composite models, creating 
