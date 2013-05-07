@@ -32,7 +32,7 @@ def empty_writer(table, *args, **kwargs):
     pass
 
 
-def empty_identifier(args, kwargs):
+def empty_identifier(*args, **kwargs):
     return True
 
 
@@ -132,16 +132,16 @@ def test_write_noformat_arbitrary():
 
 
 def test_read_toomanyformats():
-    io_registry.register_identifier('test1', TestData, lambda o, x, y: True)
-    io_registry.register_identifier('test2', TestData, lambda o, x, y: True)
+    io_registry.register_identifier('test1', TestData, lambda o, *x, **y: True)
+    io_registry.register_identifier('test2', TestData, lambda o, *x, **y: True)
     with pytest.raises(Exception) as exc:
         TestData.read()
     assert exc.value.args[0] == "Format is ambiguous - options are: test1, test2"
 
 
 def test_write_toomanyformats():
-    io_registry.register_identifier('test1', TestData, lambda o, x, y: True)
-    io_registry.register_identifier('test2', TestData, lambda o, x, y: True)
+    io_registry.register_identifier('test1', TestData, lambda o, *x, **y: True)
+    io_registry.register_identifier('test2', TestData, lambda o, *x, **y: True)
     with pytest.raises(Exception) as exc:
         TestData().write()
     assert exc.value.args[0] == "Format is ambiguous - options are: test1, test2"
@@ -161,8 +161,8 @@ def test_write_format_nowriter():
 
 def test_read_identifier():
 
-    io_registry.register_identifier('test1', TestData, lambda o, x, y: x[0].startswith('a'))
-    io_registry.register_identifier('test2', TestData, lambda o, x, y: x[0].startswith('b'))
+    io_registry.register_identifier('test1', TestData, lambda o, *x, **y: x[0].startswith('a'))
+    io_registry.register_identifier('test2', TestData, lambda o, *x, **y: x[0].startswith('b'))
 
     # Now check that we got past the identifier and are trying to get
     # the reader. The io_registry.get_reader will fail but the error message will
@@ -179,8 +179,8 @@ def test_read_identifier():
 
 def test_write_identifier():
 
-    io_registry.register_identifier('test1', TestData, lambda o, x, y: x[0].startswith('a'))
-    io_registry.register_identifier('test2', TestData, lambda o, x, y: x[0].startswith('b'))
+    io_registry.register_identifier('test1', TestData, lambda o, *x, **y: x[0].startswith('a'))
+    io_registry.register_identifier('test2', TestData, lambda o, *x, **y: x[0].startswith('b'))
 
     # Now check that we got past the identifier and are trying to get
     # the reader. The io_registry.get_writer will fail but the error message will
@@ -197,8 +197,8 @@ def test_write_identifier():
 
 def test_identifier_origin():
 
-    io_registry.register_identifier('test1', TestData, lambda o, x, y: o == 'read')
-    io_registry.register_identifier('test2', TestData, lambda o, x, y: o == 'write')
+    io_registry.register_identifier('test1', TestData, lambda o, *x, **y: o == 'read')
+    io_registry.register_identifier('test2', TestData, lambda o, *x, **y: o == 'write')
     io_registry.register_reader('test1', TestData, empty_reader)
     io_registry.register_writer('test2', TestData, empty_writer)
 

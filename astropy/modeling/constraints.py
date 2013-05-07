@@ -14,7 +14,7 @@ class Constraints(object):
     Parameters
     ----------
     model : an instance of a subclass of 
-        `~astropy.models.core.ParametricModel` 
+        `~astropy.modeling.core.ParametricModel` 
     fixed : dict
         {parameter_name: True| False}
         Specify parameters which should be kept fixed during fitting.

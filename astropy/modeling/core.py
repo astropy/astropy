@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module defines base classes for all models.
-The base class of all models is `~astropy.models.Model`.
-`~astropy.models.ParametricModel` is the base class for all fittable models. Parametric
+The base class of all models is `~astropy.modeling.Model`.
+`~astropy.modeling.ParametricModel` is the base class for all fittable models. Parametric
 models can be linear or nonlinear in a regression analysis sense.
 
 All models provide a `__call__` method which performs the transformation in a
@@ -11,10 +11,10 @@ possible the transformation is done using multiple parameter sets, `param_sets`.
 The number of parameter sets is stored in an attribute `param_dim`. 
 
 Parametric models also store a flat list of all parameters as an instance of
-`~astropy.models.parameters.Parameters`. When fitting, this list-like object is modified by a
-subclass of `~astropy.models.fitting.Fitter`. When fitting nonlinear models, the values of the
+`~astropy.modeling.parameters.Parameters`. When fitting, this list-like object is modified by a
+subclass of `~astropy.modeling.fitting.Fitter`. When fitting nonlinear models, the values of the
 parameters are used as initial guesses by the fitting class. Normally users
-will not have to use the `~astropy.models.parameters` module directly.
+will not have to use the `~astropy.modeling.parameters` module directly.
 
 Input Format For Model Evaluation and Fitting
 
@@ -337,20 +337,20 @@ class ParametricModel(Model):
     fixed: a dict
         a dictionary {parameter_name: boolean} of parameters to not be
         varied during fitting. True means the parameter is held fixed.
-        Alternatively the `~astropy.models.parameters.Parameter.fixed`
+        Alternatively the `~astropy.modeling.parameters.Parameter.fixed`
         property of a parameter may be used.
     tied: dict
         a dictionary {parameter_name: callable} of parameters which are
         linked to some other parameter. The dictionary values are callables
         providing the linking relationship. 
-        Alternatively the `~astropy.models.parameters.Parameter.tied`
+        Alternatively the `~astropy.modeling.parameters.Parameter.tied`
         property of a parameter may be used.
     bounds: dict
         a dictionary {parameter_name: boolean} of lower and upper bounds of
         parameters. Keys  are parameter names. Values  are a list of length 
         2 giving the desired range for the parameter. 
-        Alternatively the `~astropy.models.parameters.Parameter.min` and 
-        `~astropy.models.parameters.Parameter.max` properties of a parameter 
+        Alternatively the `~astropy.modeling.parameters.Parameter.min` and 
+        `~astropy.modeling.parameters.Parameter.max` properties of a parameter 
         may be used.
     eqcons: list
         A list of functions of length n such that
@@ -443,7 +443,7 @@ class ParametricModel(Model):
     @property
     def parameters(self):
         """
-        An instance of `~astropy.models.parameters.Parameters`.
+        An instance of `~astropy.modeling.parameters.Parameters`.
         Fittable parameters maintain this list and fitters modify it.
         """
         return self._parameters
@@ -656,7 +656,7 @@ class SCompositeModel(_CompositeModel):
     --------
     Apply a 2D rotation followed by a shift in x and y
     
-    >>> from astropy.models import *
+    >>> from astropy.modeling import *
     >>> rot = builtin_models.MatrixRotation2D(angle=23.5)
     >>> offx = builtin_models.ShiftModel(-4.23)
     >>> offy = builtin_models.ShiftModel(2)

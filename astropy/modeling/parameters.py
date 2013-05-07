@@ -122,7 +122,7 @@ class Parameter(list):
     @property
     def mclass(self):
         """
-        An instance of `~astropy.models.core.ParametricModel`
+        An instance of `~astropy.modeling.core.ParametricModel`
         """
         return self._mclass
     
@@ -268,17 +268,17 @@ class Parameters(list):
     
     This is a list-like object which
     stores model parameters. Only  instances of 
-    `~astropy.models.core.ParametricModel`
+    `~astropy.modeling.core.ParametricModel`
     keep an instance of this class as an attribute. The list of parameters
-    can be modified by the user or by an instance of `~astropy.models.fitting.Fitter`. 
+    can be modified by the user or by an instance of `~astropy.modeling.fitting.Fitter`. 
     This list of parameters is kept in sync with single model parameter attributes.
-    When more than one dimensional, a `~astropy.models.fitting.Fitter` treats each
+    When more than one dimensional, a `~astropy.modeling.fitting.Fitter` treats each
     set of parameters as belonging to the same model but different set of data.
     
     Parameters
     ----------
     mobj : object
-        an instance of a subclass of `~astropy.models.core.ParametricModel`
+        an instance of a subclass of `~astropy.modeling.core.ParametricModel`
     param_names : list of strings
         parameter names
     param_dim : int
@@ -324,7 +324,7 @@ class Parameters(list):
     def _is_same_length(self, newpars):
         """
         Checks if the user supplied value of
-        `~astropy.models.core.ParametricModel.parameters`
+        `~astropy.modeling.core.ParametricModel.parameters`
         has the same length as the original parameters list.
         
         """

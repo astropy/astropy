@@ -8,7 +8,7 @@ and fitting routines.
 
 """
 
-from . import builtin_models
+from . import models
 from .core import *
 from . import fitting
 from .parameters import *

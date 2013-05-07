@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+#This bash script trys to install a python package *first* by using a wheel,
+#and if here isn't one there or it fails, it falls
+#back on using pip to build from source.
+
+USAGE=".travis.pip.wheel PYVERSION PACKAGENAME [PACKAGEVERSION]"
+
+
+#these are variables that help locate the wheels
+
+BASEWHEELURL="http://www.mpia.de/~robitaille/python/wheels"
+PLATFORM="linux_x86_64"
+
+#array mapping python versions to their wheel code
+#this is based on wheels made for Ubuntu 12.04 64-bit, April 2013
+declare -A pyvtowheelcode=(
+  [2.6]="cp26-none"
+  [2.7]="cp27-none"
+  [3.2]="cp32-32mu"
+  [3.3]="cp33-33dm"
+)
+
+
+
+
+#process command line arguments
+PYVERSION=""
+PKGNAME=""
+PKGVERS=""
+PIPFLAGS=""
+while [ "$1" != "" ]; do
+    if [ "$1" == '-q' ]; then
+      PIPFLAGS="-q"
+    elif [[ $1 == -* ]]; then
+      echo "Invalid option $1. Usage: $USAGE"
+      exit 1
+    elif [ "$PYVERSION" == "" ]; then
+      PYVERSION="$1"
+    elif [ "$PKGNAME" == "" ]; then
+      PKGNAME="$1"
+    elif [ "$PKGVERS" == "" ]; then
+      PKGVERS="$1"
+    else
+      echo "Too many arguments $1. Usage: $USAGE"
+      exit 1
+    fi
+    shift
+done
+if [ "$PYVERSION" == "" -o "$PKGNAME" == "" ]; then
+  echo "Not enough arguments. Usage: $USAGE"
+  exit 1
+fi
+#done w/command line arguments
+
+PYVERSION=${pyvtowheelcode[$PYVERSION]}
+if [ "$PKGVERS" == "" ]
+then
+  PACKAGENAMEANDVERSDASH="$PKGNAME"
+  PACKAGENAMEANDVERSEQ="$PKGNAME"
+else
+  PACKAGENAMEANDVERSDASH="$PKGNAME-$PKGVERS"
+  PACKAGENAMEANDVERSEQ="$PKGNAME==$PKGVERS"
+fi
+
+#now construct the url
+WHEELURL="$BASEWHEELURL/$PACKAGENAMEANDVERSDASH-$PYVERSION-$PLATFORM.whl"
+
+echo "Trying to install with wheel:"
+echo "pip install $WHEELURL"
+pip install $WHEELURL
+if [ $? -ne 0 ]
+then
+  echo "Wheel install failed, trying to build from source:"
+  echo "pip install $PACKAGENAMEANDVERSEQ --use-mirrors $PIPFLAGS"
+  pip install $PACKAGENAMEANDVERSEQ --use-mirrors $PIPFLAGS
+fi
+exit $?

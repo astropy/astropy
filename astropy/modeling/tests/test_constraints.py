@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import division
-from .. import builtin_models as models
+from .. import models
 from .. import fitting
 import numpy as np
 from numpy.testing import utils

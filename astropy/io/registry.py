@@ -86,7 +86,7 @@ def register_identifier(data_format, data_class, identifier, force=False):
     To set the identifier based on extensions, for formats that take a
     filename as a first argument, you can do for example::
 
-    >>> register_identifier('ipac', lambda args, kwargs: isinstance(args[0], basestring) and args[0].endswith('.tbl'))
+    >>> register_identifier('ipac', Table, lambda *args, **kwargs: isinstance(args[0], basestring) and args[0].endswith('.tbl'))
     '''
 
     if not (data_format, data_class) in _identifiers or force:
@@ -95,7 +95,7 @@ def register_identifier(data_format, data_class, identifier, force=False):
         raise Exception("Identifier for format '{0:s}' and class '{1:s}' is already defined".format(data_format, data_class.__name__))
 
 
-def identify_format(origin, data_class_required, fileobj, args, kwargs):
+def identify_format(origin, data_class_required, fileobj, *args, **kwargs):
     # Loop through identifiers to see which formats match
     valid_formats = []
     for data_format, data_class in _identifiers:
@@ -107,7 +107,7 @@ def identify_format(origin, data_class_required, fileobj, args, kwargs):
                     origin, [fileobj] + list(args[1:]), kwargs)):
                 valid_formats.append((data_format, [fileobj] + list(args[1:])))
             elif _identifiers[(data_format, data_class)](
-                    origin, args, kwargs):
+                    origin, *args, **kwargs):
                 valid_formats.append((data_format, args))
 
     return valid_formats
@@ -152,7 +152,7 @@ def read(cls, *args, **kwargs):
                     ctx = None
                     fileobj = None
 
-            valid_formats = identify_format('read', cls, fileobj, args, kwargs)
+            valid_formats = identify_format('read', cls, fileobj, *args, **kwargs)
 
             if len(valid_formats) == 0:
                 raise Exception("Format could not be identified")
@@ -192,7 +192,7 @@ def write(data, *args, **kwargs):
 
     if format is None:
 
-        valid_formats = identify_format('write', data.__class__, None, args, kwargs)
+        valid_formats = identify_format('write', data.__class__, None, *args, **kwargs)
 
         if len(valid_formats) == 0:
             raise Exception("Format could not be identified")

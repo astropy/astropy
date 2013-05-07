@@ -4,7 +4,7 @@ Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 from __future__ import division
-from .. import builtin_models as models
+from .. import models
 from ..core import *
 import numpy as np
 from numpy.testing import utils

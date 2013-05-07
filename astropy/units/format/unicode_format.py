@@ -13,7 +13,7 @@ from . import console
 
 class Unicode(console.Console):
     """
-    Output-only format for to display pretty formatting at the console
+    Output-only format to display pretty formatting at the console
     using Unicode characters.
 
     For example::
