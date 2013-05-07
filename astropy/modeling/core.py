@@ -71,20 +71,20 @@ def _convert_input(x, pdim):
     x = np.asarray(x) + 0.
     fmt = 'N'
     if pdim == 1:
-        if x.n_inputs == 0:
+        if x.ndim == 0:
             fmt = 'S'
             return x, fmt
         else:
             return x, fmt
     else:
-        if x.n_inputs < 2:
+        if x.ndim < 2:
             fmt = 'N'
             return np.array([x]).T, fmt
-        elif x.n_inputs == 2:
+        elif x.ndim == 2:
             assert x.shape[-1] == pdim, "Cannot broadcast with shape"\
                                             "({0}, {1})".format(x.shape[0], x.shape[1])
             return x, fmt
-        elif x.n_inputs > 2:
+        elif x.ndim > 2:
             assert x.shape[0] == pdim, "Cannot broadcast with shape " \
                    "({0}, {1}, {2})".format(x.shape[0], x.shape[1], x.shape[2])
             fmt = 'T'

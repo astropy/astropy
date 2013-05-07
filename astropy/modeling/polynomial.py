@@ -562,9 +562,9 @@ class Poly2DModel(PolynomialModel):
         """
         Derivatives with respect to parameters
         """
-        if x.n_inputs == 2:
+        if x.ndim == 2:
             x = x.flatten()
-        if y.n_inputs == 2:
+        if y.ndim == 2:
             y = y.flatten()
         if x.size != y.size:
             raise ValueError('Expected x and y to be of equal size')
