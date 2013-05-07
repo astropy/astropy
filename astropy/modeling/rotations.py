@@ -193,7 +193,7 @@ class MatrixRotation2D(Model):
         self._angle = Parameter('angle', np.deg2rad(val), self, param_dim=1)
         
     def _validate_rotmat(self, rotmat):
-        assert rotmat.n_inputs == 2, "Expected rotation matrix to be a 2D array"
+        assert rotmat.ndim == 2, "Expected rotation matrix to be a 2D array"
                     
     def _validate_angle(self, angle):
         a = np.asarray(angle)
