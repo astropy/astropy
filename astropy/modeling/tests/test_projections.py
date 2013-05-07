@@ -12,8 +12,6 @@ from ... import wcs
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 
-def b(s):
-    return s.encode('ascii')
 
 class TestProjections(object):
     """
@@ -29,7 +27,7 @@ class TestProjections(object):
         self.wazp.wcs.cdelt = np.array([1., 1.])
         
     def test_TAN_p2s(self):
-        self.w.wcs.ctype = [b('RA---TAN'), b('DEC--TAN')]
+        self.w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
         wcslibout = self.w.wcs.p2s([[-10, 30]],1)
         wcs_phi = wcslibout['phi']
         wcs_theta = wcslibout['theta']
@@ -39,7 +37,7 @@ class TestProjections(object):
         utils.assert_almost_equal(np.asarray(theta), wcs_theta)
         
     def test_TAN_s2p(self):
-        self.w.wcs.ctype = [b('RA---TAN'), b('DEC--TAN')]
+        self.w.wcs.ctype = ['RA---TAN', 'DEC--TAN']
         wcslibout = self.w.wcs.p2s([[-10, 30]],1)
         wcs_pix = self.w.wcs.s2p(wcslibout['world'], 1)['pixcrd']
         tinv = projections.Sky2Pix_TAN()
@@ -65,7 +63,7 @@ class TestProjections(object):
         utils.assert_almost_equal(np.asarray(y), wcs_pix[:,1])
         
     def test_STG_p2s(self):
-        self.w.wcs.ctype = [b('RA---STG'), b('DEC--STG')]
+        self.w.wcs.ctype = ['RA---STG', 'DEC--STG']
         wcslibout = self.w.wcs.p2s([[-10, 30]],1)
         wcs_phi = wcslibout['phi']
         wcs_theta = wcslibout['theta']
@@ -75,7 +73,7 @@ class TestProjections(object):
         utils.assert_almost_equal(np.asarray(theta), wcs_theta)
         
     def test_STG_s2p(self):
-        self.w.wcs.ctype = [b('RA---STG'), b('DEC--STG')]
+        self.w.wcs.ctype = ['RA---STG', 'DEC--STG']
         wcslibout = self.w.wcs.p2s([[-10, 30]],1)
         wcs_pix = self.w.wcs.s2p(wcslibout['world'], 1)['pixcrd']
         tinv = projections.Sky2Pix_STG()
