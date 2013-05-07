@@ -183,6 +183,14 @@ def_unit(['lm', 'lumen'], cd * sr, register=True, prefixes=True,
 def_unit(['lx', 'lux'], lm * m ** -2, register=True, prefixes=True,
          doc="lux: luminous emittence")
 
+###########################################################################
+# RADIOACTIVITY
+
+def_unit(['Bq', 'becquerel'], Hz, register=True, prefixes=False,
+         doc="becquerel: unit of radioactivity")
+def_unit(['Ci', 'curie'], Bq / 3.7e10, register=True, prefixes=False,
+         doc="curie: unit of radioactivity")
+
 
 ###########################################################################
 # BASES

@@ -80,7 +80,7 @@ def test_parallax():
     assert_allclose(a, 0.10)
     b = u.pc.to(u.arcsecond, a, u.parallax())
     assert_allclose(b, 10)
-    
+
     a = u.arcminute.to(u.au, 1, u.parallax())
     assert_allclose(a, 3437.7467916)
     b = u.au.to(u.arcminute, a, u.parallax())
@@ -90,7 +90,7 @@ def test_parallax():
 def test_parallax2():
     a = u.arcsecond.to(u.pc, [0.1, 2.5], u.parallax())
     assert_allclose(a, [10, 0.4])
-    
+
 
 def test_spectral():
     a = u.AA.to(u.Hz, 1, u.spectral())
@@ -203,7 +203,7 @@ def test_equivalent_units2():
     match = set(
         [u.AU, u.Angstrom, u.BTU, u.Hz, u.J, u.Ry, u.cal, u.cm, u.eV,
          u.erg, u.ft, u.inch, u.kcal, u.lyr, u.m, u.mi, u.micron,
-         u.pc, u.solRad, u.yd])
+         u.pc, u.solRad, u.yd, u.Bq, u.Ci, u.nmi])
     assert units == match
 
 
