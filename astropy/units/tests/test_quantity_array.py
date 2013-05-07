@@ -14,6 +14,24 @@ class Test1d(object):
         self.q3 = np.array([1.2, 2.2, 3.2]) * u.kg
         self.q4 = np.array([3, 4, 5]) * u.Unit(1)
 
+    def test_add(self):
+        with pytest.raises(u.UnitsException) as exc:
+            self.q1 + self.q2
+        assert exc.value.args[0] == ("'s' (time) and 'm' (length) are not "
+                                     "convertible")
+
+    def test_sub(self):
+        with pytest.raises(u.UnitsException) as exc:
+            self.q1 - self.q2
+        assert exc.value.args[0] == ("'s' (time) and 'm' (length) are not "
+                                     "convertible")
+
+    def test_mult(self):
+        assert np.all(self.q1 * self.q2 == np.array([4,10,54]) * u.m * u.s)
+
+    def test_div(self):
+        assert np.all(self.q2 / self.q1 == np.array([4,2.5,1.5]) * u.s / u.m)
+
     def test_dot(self):
         assert np.dot(self.q1, self.q2) == 68. * u.m * u.s
         assert self.q1.dot(self.q2) == 68. * u.m * u.s
