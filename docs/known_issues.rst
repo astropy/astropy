@@ -66,3 +66,13 @@ tests themselves do not pass, but it does cause some Astropy functionality to
 fail.  
 
 The solution is to use a more recent version of Numpy.
+
+mmap support for ``astropy.io.fits`` on GNU Hurd
+------------------------------------------------
+
+On Hurd and possibly other platforms ``flush()`` on memory-mapped files is not
+implemented, so writing changes to a mmap'd FITS file may not be reliable and is
+thus disabled.  Attempting to open a FITS file in writeable mode with mmap will
+result in a warning (and mmap will be disabled on the file automatically).
+
+See: https://github.com/astropy/astropy/issues/968
