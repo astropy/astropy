@@ -426,7 +426,7 @@ def test_compose_best_unit_first():
     assert results[0].bases[0] is u.l
 
     results = (u.s ** -1).compose()
-    assert results[0].bases[0] is u.Hz
+    assert results[0].bases[0] in (u.Hz, u.Bq)
 
     results = (u.Ry.decompose()).compose()
     assert results[0].bases[0] is u.Ry
