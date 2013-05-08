@@ -456,9 +456,17 @@ def test_pickling():
 
     assert other is u.m
 
-    new_unit = u.IrreducibleUnit(['foo'], register=False, format={'baz': 'bar'})
-    p = cPickle.dumps(new_unit)
+    try:
+        new_unit = u.IrreducibleUnit(['foo'], format={'baz': 'bar'})
+        p = cPickle.dumps(new_unit)
+    finally:
+        del u.UnitBase._registry['foo']
+
     new_unit_copy = cPickle.loads(p)
-    assert new_unit is not new_unit_copy
     assert new_unit_copy.names == ['foo']
     assert new_unit_copy.get_format_name('baz') == 'bar'
+
+
+@raises(ValueError)
+def test_duplicate_define():
+    u.def_unit('m')

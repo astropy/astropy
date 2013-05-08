@@ -813,6 +813,9 @@ class NamedUnit(UnitBase):
         if not self._names:
             raise UnitsException("unit has no string representation")
 
+        # Loop through all of the names first, to ensure of all them
+        # are new, then add them all as a single "transaction" below.
+        cls = self.__class__
         for st in self._names:
             if not re.match("^[A-Za-z_]+$", st):
                 # will cause problems for simple string parser in
@@ -820,12 +823,14 @@ class NamedUnit(UnitBase):
                 raise ValueError(
                     "Invalid unit name {0!r}".format(st))
 
+            if (register and st in self._namespace or (st in cls._registry and
+                    cls._registry[st] != self)):
+                raise ValueError(
+                    "Object with name {0!r} already exists "
+                    "in namespace.".format(st))
+
+        for st in self._names:
             if register:
-                if st in self._namespace:
-                    raise ValueError(
-                        "Object with name {0!r} already exists "
-                        "in namespace ({1})".format(
-                            st, self._namespace[st].__doc__))
                 self._namespace[st] = self
 
             self._registry[st] = self
