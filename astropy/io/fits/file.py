@@ -368,7 +368,7 @@ class _File(object):
         https://github.com/astropy/astropy/issues/968).
 
         If mmap.flush is found not to work, ``self.memmap = False`` is
-        se and a warning is issued.
+        set and a warning is issued.
         """
 
         if self._mmap_available is not None:
