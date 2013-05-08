@@ -80,7 +80,7 @@ def test_parallax():
     assert_allclose(a, 0.10)
     b = u.pc.to(u.arcsecond, a, u.parallax())
     assert_allclose(b, 10)
-    
+
     a = u.arcminute.to(u.au, 1, u.parallax())
     assert_allclose(a, 3437.7467916)
     b = u.au.to(u.arcminute, a, u.parallax())
@@ -90,7 +90,7 @@ def test_parallax():
 def test_parallax2():
     a = u.arcsecond.to(u.pc, [0.1, 2.5], u.parallax())
     assert_allclose(a, [10, 0.4])
-    
+
 
 def test_spectral():
     a = u.AA.to(u.Hz, 1, u.spectral())
@@ -486,9 +486,14 @@ def test_pickling():
 
     assert other is u.m
 
-    new_unit = u.IrreducibleUnit(['foo'], register=False, format={'baz': 'bar'})
+    new_unit = u.IrreducibleUnit(['foo'], register=True, format={'baz': 'bar'})
+    new_unit.deregister()
     p = cPickle.dumps(new_unit)
     new_unit_copy = cPickle.loads(p)
-    assert new_unit is not new_unit_copy
     assert new_unit_copy.names == ['foo']
     assert new_unit_copy.get_format_name('baz') == 'bar'
+
+
+@raises(ValueError)
+def test_duplicate_define():
+    u.def_unit('m')
