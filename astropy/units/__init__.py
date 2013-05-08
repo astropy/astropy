@@ -18,7 +18,6 @@ from . import cgs
 from .si import *
 from .astrophys import *
 from .cgs import *
-from .imperial import *
 from .physical import *
 
 from .equivalencies import *

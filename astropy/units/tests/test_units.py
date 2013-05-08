@@ -22,11 +22,11 @@ def test_getting_started():
     Corresponds to "Getting Started" section in the docs.
     """
     speed_unit = u.cm / u.s
-    x = speed_unit.to(u.mile / u.hour, 1)
-    assert_allclose(x, 0.02236936292054402)
-    speed_converter = speed_unit.get_converter("mile hour^-1")
+    x = speed_unit.to(u.pc / u.hour, 1)
+    assert_allclose(x, 1.166680544209112e-15)
+    speed_converter = speed_unit.get_converter("parsec hour^-1")
     x = speed_converter([1., 1000., 5000.])
-    assert_allclose(x, [2.23693629e-02, 2.23693629e+01, 1.11846815e+02])
+    assert_allclose(x, [1.16668054e-15, 1.16668054e-12, 5.83340272e-12])
 
 
 @raises(ValueError)
@@ -50,7 +50,7 @@ def test_convert_fail():
 
 
 def test_is_equivalent():
-    assert u.m.is_equivalent(u.inch)
+    assert u.m.is_equivalent(u.pc)
     assert not (u.Hz.is_equivalent(u.J))
     assert u.Hz.is_equivalent(u.J, u.spectral())
     assert u.J.is_equivalent(u.Hz, u.spectral())
@@ -193,17 +193,15 @@ def test_decompose():
 def test_equivalent_units():
     units = set(u.g.find_equivalent_units())
     match = set(
-        [u.M_e, u.M_p, u.g, u.kg, u.lb, u.oz,
-         u.solMass, u.t, u.ton, u.u])
+        [u.M_e, u.M_p, u.g, u.kg, u.solMass, u.u, u.t])
     assert units == match
 
 
 def test_equivalent_units2():
     units = set(u.Hz.find_equivalent_units(u.spectral()))
     match = set(
-        [u.AU, u.Angstrom, u.BTU, u.Hz, u.J, u.Ry, u.cal, u.cm, u.eV,
-         u.erg, u.ft, u.inch, u.kcal, u.lyr, u.m, u.mi, u.micron,
-         u.pc, u.solRad, u.yd, u.Bq, u.Ci, u.nmi])
+        [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr,
+         u.m, u.micron, u.pc, u.solRad])
     assert units == match
 
 
@@ -244,7 +242,7 @@ def test_register():
 
 def test_in_units():
     speed_unit = u.cm / u.s
-    x = speed_unit.in_units(u.mile / u.hour, 1)
+    x = speed_unit.in_units(u.pc / u.hour, 1)
 
 
 def test_null_unit():
@@ -253,7 +251,7 @@ def test_null_unit():
 
 def test_unrecognized_equivalency():
     assert u.m.is_equivalent('foo') is False
-    assert u.m.is_equivalent('foot') is True
+    assert u.m.is_equivalent('pc') is True
 
 
 @raises(TypeError)
