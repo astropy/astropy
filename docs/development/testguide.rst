@@ -571,3 +571,23 @@ To use it from Python, do::
 
     >>> import astropy
     >>> astropy.test(open_files=True)
+
+
+Running tests in parallel
+=========================
+
+It is possible to speed up astropy's tests using the parallelization 
+framework of `py.test` .  This can be invoked by doing this at the 
+commandline::
+
+    python setup.py test --parallel=4
+
+Where the `parallel` option determines the number of tests to run
+simultaneously.  It can be ``-1`` to use all available cores.  
+Similarly, this feature can be invoked from Python::
+
+    >>> import astropy
+    >>> astropy.test(parallel=4)
+
+
+
