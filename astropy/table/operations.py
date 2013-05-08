@@ -1,5 +1,5 @@
 """
-High-level table operations: 
+High-level table operations:
 
 - join()
 - hstack()

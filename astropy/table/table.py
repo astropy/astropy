@@ -25,7 +25,8 @@ except NameError:
 
 NUMPY_LT_1P5 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 5]
 
-AUTO_COLNAME = ConfigurationItem('auto_colname', 'col{0}',
+AUTO_COLNAME = ConfigurationItem(
+    'auto_colname', 'col{0}',
     'The template that determines the name of a column if it cannot be '
     'determined. Uses new-style (format method) string formatting')
 
@@ -1733,118 +1734,3 @@ class Table(object):
 
     read = classmethod(io_registry.read)
     write = io_registry.write
-
-    def join(self, right, keys=None, join_type='inner',
-             uniq_col_name='{col_name}_{table_name}',
-             table_names=['1', '2']):
-        """
-        Perform a join of this (left) table with the right table on specified keys.
-
-        Parameters
-        ----------
-        right : Table object or a value that will initialize a Table object
-            Right side table in the join
-        keys : str or list of str
-            Column(s) used to match rows of left and right tables.  Default
-            is to use all columns which are common to both tables.
-        join_type : str
-            Join type ('inner' | 'outer' | 'left' | 'right'), default is 'inner'
-        uniq_col_name : str or None
-            String generate a unique output column name in case of a conflict.
-            The default is '{col_name}_{table_name}'.
-        table_names : list of str or None
-            Two-element list of table names used when generating unique output
-            column names.  The default is ['1', '2'].
-
-        """
-        out = operations.join(self, right, keys=keys, join_type=join_type,
-                              uniq_col_name=uniq_col_name, table_names=table_names)
-        return out
-
-    def vstack(self, tables, join_type='outer'):
-        """
-        Stack tables vertically (by rows)
-
-        A ``join_type`` of 'exact' means that the tables must all
-        have exactly the same column names (though the order can vary).  If
-        ``join_type`` is 'inner' then the intersection of common columns will
-        be output.  A value of 'outer' (default) means the output will have the union of
-        all columns, with table values being masked where no common values are
-        available.
-
-        Examples
-        --------
-
-        To stack two tables by rows do::
-
-          >>> from astropy.table import Table
-          >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
-          >>> t2 = Table({'a': [5, 6], 'b': [7, 8]}, names=('a', 'b'))
-          >>> print t1.vstack(t2)
-           a   b
-          --- ---
-            1   3
-            2   4
-            5   7
-            6   8
-
-        Parameters
-        ----------
-
-        tables : Table or list of Table objects
-            Table(s) to stack by rows (vertically) with the current table
-        join_type : str
-            Join type ('inner' | 'exact' | 'outer'), default is 'exact'
-        """
-        tables = [self] + operations._get_list_of_tables(tables)
-        out = operations.vstack(tables, join_type=join_type)
-
-        return out
-
-    def hstack(self, tables, join_type='outer',
-               uniq_col_name='{col_name}_{table_name}', table_names=None):
-        """
-        Stack tables by columns (horizontally)
-
-        A ``join_type`` of 'exact' means that the tables must all
-        have exactly the same number of row.  If ``join_type`` is 'inner' then
-        the intersection of rows will be output.  A value of 'outer' (default) means
-        the output will have the union of all rows, with table values being
-        masked where no common values are available.
-
-        Examples
-        --------
-
-        To stack two tables horizontally (by columns) do::
-
-          >>> from astropy.table import Table
-          >>> t1 = Table({'a': [1, 2], 'b': [3, 4]}, names=('a', 'b'))
-          >>> t2 = Table({'c': [5, 6], 'd': [7, 8]}, names=('c', 'd'))
-          >>> print t1.hstack(t2)
-           a   b   c   d
-          --- --- --- ---
-            1   3   5   7
-            2   4   6   8
-
-        Parameters
-        ----------
-
-        tables : Table or list of Table objects
-            Table(s) to stack by columns (horizontally) with the current table
-        join_type : str
-            Join type ('inner' | 'exact' | 'outer'), default is 'outer'
-        uniq_col_name : str or None
-            String generate a unique output column name in case of a conflict.
-            The default is '{col_name}_{table_name}'.
-        table_names : list of str or None
-            Two-element list of table names used when generating unique output
-            column names.  The default is ['1', '2', ..].
-        col_name_map : empty dict or None
-            If passed as a dict then it will be updated in-place with the
-            mapping of output to input column names.
-        """
-        tables = [self] + operations._get_list_of_tables(tables)
-        out = operations.hstack(tables, join_type=join_type, uniq_col_name=uniq_col_name,
-                                table_names=table_names)
-
-        return out
