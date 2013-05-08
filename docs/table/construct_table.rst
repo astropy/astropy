@@ -606,19 +606,20 @@ one value is valid, so ``{:.4f} angstroms`` or ``Value: %12.2f`` would both work
 
 **Function**
 
-The greatest flexability can be achived by setting a formating function. This
+The greatest flexibility can be achieved by setting a formatting function. This
 function must accept a single argument (the value) and return a string. In the
 following example this is used to make a LaTeX ready output::
 
-    >>> tab = Table([[1,2],[1.234e9,2.34e-12]], names = ('a','b'))
+    >>> t = Table([[1,2],[1.234e9,2.34e-12]], names = ('a','b'))
     >>> def latex_exp(value):
             val = '{:8.2}'.format(value)
-            val = val.split('e')
+            mant, exp = val.split('e')
             # remove leading zeros
-            val[1] = val[1][0] + val[1][1:].lstrip('0')
-            return '$' + val[0] + '\\times 10^{' + val[1] + '}$'
-    >>> tab['b'].format = latex_exp
-    >>> tab.write(sys.stdout, format = 'latex')
+            exp = exp[0] + exp[1:].lstrip('0')
+            return '$ {0} \\times 10^{{ {1} }}$' .format(mant, exp)
+    >>> t['b'].format = latex_exp
+    >>> t['a'].format = '{0:.4f}'
+    >>> t.write(sys.stdout, format = 'latex')
     \begin{table}
     \begin{tabular}{cc}
     a & b \\

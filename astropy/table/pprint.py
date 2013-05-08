@@ -11,11 +11,12 @@ from ..config import ConfigurationItem
 _format_funcs = {None: lambda format_, val: str(val)}
 
 MAX_LINES = ConfigurationItem('max_lines', 25, 'Maximum number of lines for '
-    'the pretty-printer to use if it cannot determine the terminal size. '
-    'Negative numbers mean no limit.')
+                              'the pretty-printer to use if it cannot determine the terminal size. '
+                              'Negative numbers mean no limit.')
 MAX_WIDTH = ConfigurationItem('max_width', 80, 'Maximum number of characters '
-    'for the pretty-printer to use per line if it cannot determine the '
-    'terminal size.  Negative numbers mean no limit.')
+                              'for the pretty-printer to use per line if it cannot determine the '
+                              'terminal size.  Negative numbers mean no limit.')
+
 
 def _get_pprint_size(max_lines=None, max_width=None):
     """Get the output size (number of lines and character width) for Column and
@@ -87,13 +88,16 @@ def _auto_format_func(format_, val):
     """
     if inspect.isfunction(format_):
         format_func = lambda format_, val: format_(val.tolist())
-        try:                            
+        try:
             out = format_func(format_, val)
             if not isinstance(out, basestring):
-                raise ValueError('Format function for value {0} did return {1}, but should have returned a string'.format(val, out))
-        except:  # Depending on the function, different exceptions might be raised
-            raise ValueError('{0} should have been formatted with a user supplied \
-                              function, but this function failed'.format(val))
+                raise ValueError(
+                    'Format function for value {0} returned {1} instead of string type'.format(
+                        val, type(val)))
+        except Exception as err:
+            raise ValueError(
+                'Format function for value {0} failed: {1}'.format(
+                    val, err))
     else:
         try:
             # Convert val to Python object with tolist().  See
@@ -139,8 +143,15 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
         Number of lines in the header
 
     """
-    outs = {}  # Some values from _pformat_col_iter iterator that are needed here
-    col_strs = list(_pformat_col_iter(col, max_lines, show_name, show_units, outs))
+    outs = {}
+        # Some values from _pformat_col_iter iterator that are needed here
+    col_strs = list(
+        _pformat_col_iter(
+            col,
+            max_lines,
+            show_name,
+            show_units,
+            outs))
     col_width = max(len(x) for x in col_strs)
 
     # Center line content and generate dashed headerline
@@ -232,6 +243,7 @@ def _pformat_col_iter(col, max_lines, show_name, show_units, outs):
     outs['i_centers'] = i_centers
     outs['i_dashes'] = i_dashes
 
+
 def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
                    show_units=False, html=False):
     """Return a list of lines for the formatted string representation of
@@ -295,11 +307,15 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     if html:
         rows.append('<table>')
         for i in range(n_rows):
-            # _pformat_col output has a header line '----' which is not needed here
+            # _pformat_col output has a header line '----' which is not needed
+            # here
             if i == n_header - 1:
                 continue
             td = 'th' if i < n_header else 'td'
-            vals = ('<{0}>{1}</{2}>'.format(td, col[i].strip(), td) for col in cols)
+            vals = (
+                '<{0}>{1}</{2}>'.format(td,
+                                        col[i].strip(),
+                                        td) for col in cols)
             row = ('<tr>' + ''.join(vals) + '</tr>')
             rows.append(row)
         rows.append('</table>')
@@ -312,7 +328,7 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
 
 
 def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
-                show_units=False):
+                 show_units=False):
     """Interactive "more" of a table or column.
 
     Parameters
@@ -349,7 +365,7 @@ def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
     # This is because get_pprint_size leaves 6 extra lines so that in
     # ipython you normally see the last input line.
     max_lines1, max_width = _get_pprint_size(max_lines, max_width)
-    if max_lines == None:
+    if max_lines is None:
         max_lines1 += 2
     delta_lines = max_lines1 - n_header
 
