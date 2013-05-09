@@ -51,7 +51,7 @@ class RotateNative2Celestial(Model):
     
     @phi.setter
     def phi(self, val):
-        self._phi = Parameter('phi', np.deg2rad(val), self)
+        self._phi = Parameter('phi', np.deg2rad(val), self, 1)
         
     @property
     def theta(self):
@@ -59,7 +59,7 @@ class RotateNative2Celestial(Model):
     
     @theta.setter
     def theta(self, val):
-        self._theta = Parameter('theta', np.deg2rad(val), self)
+        self._theta = Parameter('theta', np.deg2rad(val), self, 1)
 
     @property
     def psi(self):
@@ -67,7 +67,7 @@ class RotateNative2Celestial(Model):
     
     @psi.setter
     def psi(self, val):
-        self._psi = Parameter('psi', np.deg2rad(val), self)
+        self._psi = Parameter('psi', np.deg2rad(val), self, 1)
                 
     def inverse(self, phi, theta, psi):
         return RotateCelestial2Native(self.phi, self.theta, self.psi)
@@ -112,7 +112,7 @@ class RotateCelestial2Native(Model):
     
     @phi.setter
     def phi(self, val):
-        self._phi = Parameter('phi', np.deg2rad(val), self)
+        self._phi = Parameter('phi', np.deg2rad(val), self, 1)
         
     @property
     def theta(self):
@@ -120,7 +120,7 @@ class RotateCelestial2Native(Model):
     
     @theta.setter
     def theta(self, val):
-        self._theta = Parameter('theta', np.deg2rad(val), self)
+        self._theta = Parameter('theta', np.deg2rad(val), self, 1)
 
     @property
     def psi(self):
@@ -128,7 +128,7 @@ class RotateCelestial2Native(Model):
     
     @psi.setter
     def psi(self, val):
-        self._psi = Parameter('psi', np.deg2rad(val), self)
+        self._psi = Parameter('psi', np.deg2rad(val), self, 1)
 
     def inverse(self, phi, theta, psi):
         return RotateNative2Celestial(self.phi, self.theta, self.psi)
