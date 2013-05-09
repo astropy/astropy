@@ -447,6 +447,7 @@ class TestCopyReplicate():
         assert t.yday != t2.yday
         assert t.yday == t_yday  # prove that it did not change
 
+
 def test_python_builtin_copy():
     import copy
 
@@ -456,3 +457,31 @@ def test_python_builtin_copy():
 
     assert t.jd == t2.jd
     assert t.jd == t3.jd
+
+
+def test_now():
+    """
+    Tests creating a Time object with the `now` class method.
+    """
+    from sys import version_info
+
+    now = datetime.utcnow()
+    t = Time.now()
+
+    assert t.format == 'datetime'
+    assert t.scale == 'utc'
+
+    dt = t.datetime - now  # a datetime.timedelta object
+
+    # this gives a .1 second margin between the `utcnow` call and the `Time`
+    # initializer, which is really way more generous than necessary - typical
+    # times are more like microseconds.  But it seems safer in case some
+    # platforms have slow clock calls or something.
+
+    # py < 2.7 doesn't have `total_seconds`
+    if (version_info[0] < 3 and version_info[1] < 7) or version_info[0] < 2:
+        total_secs = lambda td: (td.microseconds + (td.seconds + td.days *
+                                                    24 * 3600) * 10**6) / 10**6.
+    else:
+        total_secs = lambda td: td.total_seconds()
+    assert total_secs(dt) < 0.1
