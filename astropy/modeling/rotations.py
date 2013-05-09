@@ -196,11 +196,11 @@ class MatrixRotation2D(Model):
         assert rotmat.ndim == 2, "Expected rotation matrix to be a 2D array"
                     
     def _validate_angle(self, angle):
-        a = np.asarray(angle)
-        assert isinstance(a, numbers.Number), \
+        #a = np.asarray(angle)
+        assert isinstance(angle, numbers.Number), \
                     "Expected angle to be a number"
-        assert a.ndim == 0, \
-                    "Expected angle to be a number"
+        #assert a.ndim == 0, \
+        #           "Expected angle to be a number"
                         
     def _compute_matrix(self, angle):
         return np.array([[math.cos(angle), math.sin(angle)], \
