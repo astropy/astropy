@@ -9,9 +9,7 @@ from ...table import pprint
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float).reshape(100, 20)
 SMALL_ARR = np.arange(12, dtype=np.int).reshape(4, 3)
 
-numpy_lt_1p5 = version.LooseVersion(
-    np.__version__) < version.LooseVersion(
-        '1.5')
+numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
 # Dummy init of Table for pyflakes and to be sure test fixture is working
 Table = None
@@ -235,8 +233,8 @@ class TestFormat():
 
     def test_column_format_func_wrong_number_args(self):
         t = Table([[1., 2.], [3, 4]], names=('a', 'b'))
-        # function that expects wrong number of arguments
 
+        # function that expects wrong number of arguments
         def func(a, b):
             pass
 

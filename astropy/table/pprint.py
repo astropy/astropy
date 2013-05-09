@@ -91,13 +91,11 @@ def _auto_format_func(format_, val):
         try:
             out = format_func(format_, val)
             if not isinstance(out, basestring):
-                raise ValueError(
-                    'Format function for value {0} returned {1} instead of string type'.format(
-                        val, type(val)))
+                raise ValueError('Format function for value {0} returned {1} instead of string type'
+                                 .format(val, type(val)))
         except Exception as err:
-            raise ValueError(
-                'Format function for value {0} failed: {1}'.format(
-                    val, err))
+            raise ValueError('Format function for value {0} failed: {1}'
+                             .format(val, err))
     else:
         try:
             # Convert val to Python object with tolist().  See
@@ -143,15 +141,8 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
         Number of lines in the header
 
     """
-    outs = {}
-        # Some values from _pformat_col_iter iterator that are needed here
-    col_strs = list(
-        _pformat_col_iter(
-            col,
-            max_lines,
-            show_name,
-            show_units,
-            outs))
+    outs = {}  # Some values from _pformat_col_iter iterator that are needed here
+    col_strs = list(_pformat_col_iter(col, max_lines, show_name, show_units, outs))
     col_width = max(len(x) for x in col_strs)
 
     # Center line content and generate dashed headerline
@@ -307,15 +298,11 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     if html:
         rows.append('<table>')
         for i in range(n_rows):
-            # _pformat_col output has a header line '----' which is not needed
-            # here
+            # _pformat_col output has a header line '----' which is not needed here
             if i == n_header - 1:
                 continue
             td = 'th' if i < n_header else 'td'
-            vals = (
-                '<{0}>{1}</{2}>'.format(td,
-                                        col[i].strip(),
-                                        td) for col in cols)
+            vals = ('<{0}>{1}</{2}>'.format(td, col[i].strip(), td) for col in cols)
             row = ('<tr>' + ''.join(vals) + '</tr>')
             rows.append(row)
         rows.append('</table>')
