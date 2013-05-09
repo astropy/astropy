@@ -256,6 +256,11 @@ The allowed |Time| arguments to create a time object are listed below:
 val
 ^^^
 
+The `val` argument is the only argument that is always required when creating a
+|Time| object.  This argument specifies the input time or times and
+can be a single string or number, or it can be a Python list or `numpy` array
+of strings or numbers.
+
 The `val` argument  specifies the input time or times and
 can be a single string or number, or it can be a Python list or `numpy` array
 of strings or numbers. To initialize a |Time| object based on a specified time,
@@ -371,6 +376,19 @@ decimal degrees.  They default to 0.0 and are used for time scales that are
 sensitive to observer position.  Currently the only time scale for which this
 applies is TDB, which relies on the SOFA routine ``iauDtdb`` to determine the
 time offset between TDB and TT.
+
+Getting the Current Time
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The current time can be determined as a `Time` object using the
+`~astropy.time.Time.now` class method::
+
+  >>> nt = Time.now()
+  >>> ut = Time(datetime.utcnow(), scale='utc')
+
+The two should be very close to each other.
+
+
 
 
 Using Time objects
