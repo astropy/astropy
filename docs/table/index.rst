@@ -21,8 +21,8 @@ notable features of this package are:
 * Specify a description, units and output formatting for columns.
 * Interactively scroll through long tables similar to using ``more``.
 * Create a new table by selecting rows or columns from a table.
-* Create a new table by joining two tables on specified key columns.
-* Full support for multidimensional columns.
+* Perform :ref:`table_operations` like database joins and concatenation.
+* Manipulate multidimensional columns.
 * Methods for :ref:`read_write_tables` to files
 
 Currently `astropy.table` is used when reading an ASCII table using
@@ -171,14 +171,52 @@ Using `table`
 
 The details of using `astropy.table` are provided in the following sections:
 
+Construct table
+---------------
+
 .. toctree::
    :maxdepth: 2
 
    construct_table.rst
+
+Access table
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
    access_table.rst
+
+Modify table
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
    modify_table.rst
+
+Table operations
+-----------------
+
+.. toctree::
+   :maxdepth: 2
+
    operations.rst
+
+Masking
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
    masking.rst
+
+I/O with tables
+----------------
+
+.. toctree::
+   :maxdepth: 2
+
    io.rst
 
 Reference/API

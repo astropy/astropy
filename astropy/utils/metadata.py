@@ -57,10 +57,7 @@ def merge(left, right, merge_func=concat):
     if not _both_isinstance(left, right, dict):
         raise MergeConflictError('Can only merge two dict-based objects')
 
-    out = left.__class__()
-
-    for key, val in left.items():
-        out[key] = deepcopy(val)
+    out = deepcopy(left)
 
     for key, val in right.items():
         # If no conflict then insert val into out dict and continue

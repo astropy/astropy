@@ -1,18 +1,24 @@
 """
-Utilities for numpy structured arrays.
+High-level operations for numpy structured arrays.
 
 join():  Perform a database join of two numpy ndarrays.
+hstack(): Horizontally stack a list of numpy ndarrays.
+vstack(): Vertically stack a list of numpy ndarrays.
 
 Some code and inspriration taken from numpy.lib.recfunctions.join_by().
 Redistribution license restrictions apply.
 """
 
+from itertools import izip, chain
 import collections
 
 import numpy as np
 import numpy.ma as ma
 
 from . import _np_utils
+from ..utils import OrderedDict
+
+__all__ = ['join', 'hstack', 'vstack', 'TableMergeError']
 
 
 class TableMergeError(ValueError):
@@ -30,11 +36,104 @@ def _counter(iterable):
     return counts
 
 
-def common_dtype(arrays, name):
+def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name}',
+                     table_names=None):
     """
-    Use numpy to find the common dtype for two structured ndarray columns.
+    Find the column names mapping when merging the list of structured ndarrays
+    ``arrays``.  It is assumed that col names in ``common_names`` are to be
+    merged into a single column while the rest will be uniquely represented
+    in the output.  The args ``uniq_col_name`` and ``table_names`` specify
+    how to rename columns in case of conflicts.
+
+    Returns a dict mapping each output column name to the input(s).  This takes the form
+    {outname : (col_name_0, col_name_1, ...), ... }.  For key columns all of input names
+    will be present, while for the other non-key columns the value will be (col_name_0,
+    None, ..) or (None, col_name_1, ..) etc.
     """
-    arrs = [np.empty(1, dtype=array[name].dtype) for array in arrays]
+
+    col_name_map = collections.defaultdict(lambda: [None for x in arrays])
+    col_name_list = []
+
+    if table_names is None:
+        table_names = [str(ii + 1) for ii in range(len(arrays))]
+
+    for idx, array in enumerate(arrays):
+        table_name = table_names[idx]
+        for name in array.dtype.names:
+            out_name = name
+
+            if name in common_names:
+                # If name is in the list of common_names then insert into
+                # the column name list, but just once.
+                if name not in col_name_list:
+                    col_name_list.append(name)
+            else:
+                # If name is not one of the common column outputs, and it collides
+                # with the names in one of the other arrays, then rename
+                others = (x for x in arrays if x is not array)
+                if any(name in other.dtype.names for other in others):
+                    out_name = uniq_col_name.format(table_name=table_name, col_name=name)
+                col_name_list.append(out_name)
+
+            col_name_map[out_name][idx] = name
+
+    # Check for duplicate output column names
+    col_name_count = _counter(col_name_list)
+    repeated_names = [name for name, count in col_name_count.items() if count > 1]
+    if repeated_names:
+        raise TableMergeError('Merging column names resulted in duplicates: {0:s}.  '
+                              'Change uniq_col_name or table_names args to fix this.'
+                              .format(repeated_names))
+
+    # Convert col_name_map to a regular dict with tuple (immutable) values
+    col_name_map = OrderedDict((name, col_name_map[name]) for name in col_name_list)
+
+    return col_name_map
+
+
+def get_descrs(arrays, col_name_map):
+    """
+    Find the dtypes descrs resulting from merging the list of arrays' dtypes,
+    using the column name mapping ``col_name_map``.
+
+    Return a list of descrs for the output.
+    """
+
+    out_descrs = []
+
+    for out_name, in_names in col_name_map.items():
+        # List of input arrays that contribute to this output column
+        in_cols = [arr[name] for arr, name in izip(arrays, in_names) if name is not None]
+
+        # Output dtype is the superset of all dtypes in in_arrays
+        dtype = common_dtype(in_cols)
+
+        # Make sure all input shapes are the same
+        uniq_shapes = set(col.shape[1:] for col in in_cols)
+        if len(uniq_shapes) != 1:
+            raise TableMergeError('Key columns {0!r} have different shape'.format(name))
+        shape = uniq_shapes.pop()
+
+        out_descrs.append((out_name, dtype, shape))
+
+    return out_descrs
+
+
+def common_dtype(cols):
+    """
+    Use numpy to find the common dtype for a list of structured ndarray columns.
+
+    Only allow columns within the following fundamental numpy data types:
+    np.bool_, np.object_, np.number, np.character, np.void
+    """
+    np_types = (np.bool_, np.object_, np.number, np.character, np.void)
+    uniq_types = set(tuple(issubclass(col.dtype.type, np_type) for np_type in np_types)
+                     for col in cols)
+    if len(uniq_types) > 1:
+        raise TableMergeError('Columns have incompatible types {0}'
+                              .format([col.dtype.name for col in cols]))
+
+    arrs = [np.empty(1, dtype=col.dtype) for col in cols]
 
     # For string-type arrays need to explicitly fill in non-zero
     # values or the final arr_common = .. step is unpredictable.
@@ -46,70 +145,6 @@ def common_dtype(arrays, name):
     return arr_common.dtype.str
 
 
-def get_merge_descrs(arrays, keys, uniq_col_name='{col_name}_{table_name}',
-                     table_names=None):
-    """
-    Find the dtypes descrs resulting from merging the list of arrays' dtypes,
-    assuming the names in `keys` are common in the output.
-
-    Return a list of descrs for the output and a dict mapping
-    each output column name to the input(s).  This takes the form
-    { outname : (col_name_0, col_name_1, ...), ... }.
-    For key columns all of input names will be
-    present, while for the other non-key columns the value will
-    be (col_name_0, None, ..) or (None, col_name_1, ..) etc.
-    """
-
-    out_descrs = []
-    col_name_map = collections.defaultdict(lambda: list([None, None]))
-
-    if table_names is None:
-        table_names = [str(ii + 1) for ii in range(len(arrays))]
-
-    # TODO: should probably refactor this into one routine that determines
-    # col_name_map and a second that gets the merged descrs.
-
-    for idx, array in enumerate(arrays):
-        table_name = table_names[idx]
-        for descr in array.dtype.descr:
-            name = descr[0]
-            shape = array[name].shape[1:]
-            out_descr = [name, descr[1], shape]
-
-            if name in keys:
-                out_name = name  # note: in future there may be diff keys for left / right
-                if idx != 0:
-                    col_name_map[out_name][1] = name
-                    # Skip over keys for the right array, already was done for the left
-                    continue
-                else:
-                    col_name_map[out_name][0] = name
-
-                uniq_shapes = set(arr[name].shape[1:] for arr in arrays)
-                if len(uniq_shapes) != 1:
-                    raise TableMergeError('Key columns {0!r} have different shape'.format(name))
-
-                out_descr[1] = common_dtype(arrays, name)
-            elif any(name in other.dtype.names for other in arrays if other is not array):
-                out_descr[0] = uniq_col_name.format(table_name=table_name, col_name=name)
-
-            col_name_map[out_descr[0]][idx] = name
-            out_descrs.append(tuple(out_descr))
-
-    # Check for duplicate output column names
-    col_name_count = _counter(descr[0] for descr in out_descrs)
-    repeated_names = [name for name, count in col_name_count.items() if count > 1]
-    if repeated_names:
-        raise TableMergeError('Merging column names resulted in duplicates: {0:s}.  '
-                              'Change uniq_col_name or table_names args to fix this.'
-                              .format(repeated_names))
-
-    # Convert col_name_map to a regular dict with tuple (immutable) values
-    col_name_map = dict((key, tuple(val)) for key, val in col_name_map.items())
-
-    return out_descrs, col_name_map
-
-
 def join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
          table_names=['1', '2'],
@@ -119,9 +154,9 @@ def join(left, right, keys=None, join_type='inner',
 
     Parameters
     ----------
-    left : structured ndarray
+    left : structured array
         Left side table in the join
-    right : structured ndarray
+    right : structured array
         Right side table in the join
     keys : str or list of str
         Column(s) used to match rows of left and right tables.  Default
@@ -138,11 +173,8 @@ def join(left, right, keys=None, join_type='inner',
         If passed as a dict then it will be updated in-place with the
         mapping of output to input column names.
     """
-
-    # This function improves on np.lib.recfunctions.join_by():
-    #   key values do not have to be unique (ok with cartesion join)
-    #   key columns do not have to be in the same order
-    #   key columns can have non-trivial shape
+    # Store user-provided col_name_map until the end
+    _col_name_map = col_name_map
 
     if join_type not in ('inner', 'outer', 'left', 'right'):
         raise ValueError("The 'join_type' argument should be in 'inner', "
@@ -165,7 +197,7 @@ def join(left, right, keys=None, join_type='inner',
                                       .format(arr_label, name))
             if hasattr(arr[name], 'mask') and np.any(arr[name].mask):
                 raise TableMergeError('{0} key column {1!r} has missing values'
-                                 .format(arr_label, name))
+                                      .format(arr_label, name))
 
     # Make sure we work with ravelled arrays
     left = left.ravel()
@@ -174,10 +206,8 @@ def join(left, right, keys=None, join_type='inner',
     left_names, right_names = left.dtype.names, right.dtype.names
 
     # Joined array dtype as a list of descr (name, type_str, shape) tuples
-    out_descrs, _col_name_map = get_merge_descrs([left, right], keys, uniq_col_name, table_names)
-    # If col_name_map supplied as a dict input, then update.
-    if isinstance(col_name_map, dict):
-        col_name_map.update(_col_name_map)
+    col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
+    out_descrs = get_descrs([left, right], col_name_map)
 
     # Make an array with just the key columns
     out_keys_dtype = [descr for descr in out_descrs if descr[0] in keys]
@@ -216,7 +246,7 @@ def join(left, right, keys=None, join_type='inner',
     if len(right) == 0:
         right = right.__class__(1, dtype=right.dtype)
 
-    for out_name, left_right_names in _col_name_map.items():
+    for out_name, left_right_names in col_name_map.items():
         left_name, right_name = left_right_names
 
         if left_name and right_name:  # this is a key which comes from left and right
@@ -235,5 +265,237 @@ def join(left, right, keys=None, join_type='inner',
             if isinstance(array, ma.MaskedArray):
                 array_mask = array_mask | array[name].mask.take(array_out)
             out[out_name].mask = array_mask
+
+    # If col_name_map supplied as a dict input, then update.
+    if isinstance(_col_name_map, collections.Mapping):
+        _col_name_map.update(col_name_map)
+
+    return out
+
+
+def _check_for_sequence_of_structured_arrays(arrays):
+    err = '`arrays` arg must be a sequence (e.g. list) of structured arrays'
+    if not isinstance(arrays, collections.Sequence):
+        raise TypeError(err)
+    for array in arrays:
+        # Must be structured array
+        if not isinstance(array, np.ndarray) or array.dtype.names is None:
+            raise TypeError(err)
+    if len(arrays) == 0:
+        raise ValueError('`arrays` arg must include at least one array')
+
+
+def vstack(arrays, join_type='inner', col_name_map=None):
+    """
+    Stack structured arrays vertically (by rows)
+
+    A ``join_type`` of 'exact' (default) means that the arrays must all
+    have exactly the same column names (though the order can vary).  If
+    ``join_type`` is 'inner' then the intersection of common columns will
+    be output.  A value of 'outer' means the output will have the union of
+    all columns, with array values being masked where no common values are
+    available.
+
+    Parameters
+    ----------
+
+    arrays : list of structured arrays
+        Structured array(s) to stack by rows (vertically)
+    join_type : str
+        Join type ('inner' | 'exact' | 'outer'), default is 'exact'
+    col_name_map : empty dict or None
+        If passed as a dict then it will be updated in-place with the
+        mapping of output to input column names.
+
+    Examples
+    --------
+
+    To stack two structured arrays by rows do::
+
+      >>> from astropy.table import np_utils
+      >>> t1 = np.array([(1, 2),
+                         (3, 4)], dtype=[('a', 'i4'), ('b', 'i4')])
+      >>> t2 = np.array([(5, 6),
+                         (7, 8)], dtype=[('a', 'i4'), ('b', 'i4')])
+      >>> np_utils.vstack([t1, t2])
+      array([(1, 2),
+             (3, 4),
+             (5, 6),
+             (7, 8)],
+            dtype=[('a', '<i4'), ('b', '<i4')])
+    """
+    # Store user-provided col_name_map until the end
+    _col_name_map = col_name_map
+
+    # Input validation
+    if join_type not in ('inner', 'exact', 'outer'):
+        raise ValueError("`join_type` arg must be one of 'inner', 'exact' or 'outer'")
+
+    _check_for_sequence_of_structured_arrays(arrays)
+
+    # Trivial case of one input array
+    if len(arrays) == 1:
+        return arrays[0]
+
+    # Start by assuming an outer match where all names go to output
+    names = set(chain(*[arr.dtype.names for arr in arrays]))
+    _col_name_map = get_col_name_map(arrays, names)
+
+    # If col_name_map supplied as a dict input, then update.
+    if isinstance(col_name_map, dict):
+        col_name_map.update(_col_name_map)
+
+    # If require_match is True then the output must have exactly the same
+    # number of columns as each input array
+    if join_type == 'exact':
+        for names in _col_name_map.values():
+            if any(x is None for x in names):
+                raise TableMergeError('Inconsistent columns in input arrays '
+                                      "(use 'inner' or 'outer' join_type to "
+                                      "allow non-matching columns)")
+        join_type = 'outer'
+
+    # For an inner join, keep only columns where all input arrays have that column
+    if join_type == 'inner':
+        col_name_map = OrderedDict((name, in_names) for name, in_names in col_name_map.items()
+                                   if all(x is not None for x in in_names))
+        if len(col_name_map) == 0:
+            raise TableMergeError('Input arrays have no columns in common')
+
+    # If there are any output columns where one or more input arrays are missing
+    # then the output must be masked.  If any input arrays are masked then
+    # output is masked.
+    masked = any(isinstance(arr, ma.MaskedArray) for arr in arrays)
+    for names in col_name_map.values():
+        if any(x is None for x in names):
+            masked = True
+            break
+
+    lens = [len(arr) for arr in arrays]
+    n_rows = sum(lens)
+    out_descrs = get_descrs(arrays, col_name_map)
+    if masked:
+        # Make a masked array with all values initially masked.  Note
+        # that setting an array value automatically unmasks it.
+        # See comment in hstack for heritage of this code.
+        out = ma.masked_array(np.zeros(n_rows, out_descrs),
+                              mask=np.ones(n_rows, ma.make_mask_descr(out_descrs)))
+    else:
+        out = np.empty(n_rows, dtype=out_descrs)
+
+    for out_name, in_names in col_name_map.items():
+        idx0 = 0
+        for name, array in izip(in_names, arrays):
+            idx1 = idx0 + len(array)
+            if name in array.dtype.names:
+                out[out_name][idx0:idx1] = array[name]
+            idx0 = idx1
+
+    # If col_name_map supplied as a dict input, then update.
+    if isinstance(_col_name_map, collections.Mapping):
+        _col_name_map.update(col_name_map)
+
+    return out
+
+
+def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
+           table_names=None, col_name_map=None):
+    """
+    Stack structured arrays by horizontally (by columns)
+
+    A ``join_type`` of 'exact' (default) means that the arrays must all
+    have exactly the same number of rows.  If ``join_type`` is 'inner' then
+    the intersection of rows will be output.  A value of 'outer' means
+    the output will have the union of all rows, with array values being
+    masked where no common values are available.
+
+    Parameters
+    ----------
+
+    arrays : List of structured array objects
+        Structured arrays to stack by columns (horizontally)
+    join_type : str
+        Join type ('inner' | 'exact' | 'outer'), default is 'exact'
+    uniq_col_name : str or None
+        String generate a unique output column name in case of a conflict.
+        The default is '{col_name}_{table_name}'.
+    table_names : list of str or None
+        Two-element list of table names used when generating unique output
+        column names.  The default is ['1', '2', ..].
+
+    Examples
+    --------
+
+    To stack two arrays horizontally (by columns) do::
+
+      >>> from astropy.table import np_utils
+      >>> t1 = np.array([(1, 2),
+                         (3, 4)], dtype=[('a', 'i4'), ('b', 'i4')])
+      >>> t2 = np.array([(5, 6),
+                         (7, 8)], dtype=[('c', 'i4'), ('d', 'i4')])
+      >>> np_utils.hstack([t1, t2])
+      array([(1, 2, 5, 6),
+             (3, 4, 7, 8)],
+            dtype=[('a', '<i4'), ('b', '<i4'), ('c', '<i4'), ('d', '<i4')])
+    """
+    # Store user-provided col_name_map until the end
+    _col_name_map = col_name_map
+
+    # Input validation
+    if join_type not in ('inner', 'exact', 'outer'):
+        raise ValueError("join_type arg must be either 'inner', 'exact' or 'outer'")
+    _check_for_sequence_of_structured_arrays(arrays)
+
+    if table_names is None:
+        table_names = ['{0}'.format(ii + 1) for ii in range(len(arrays))]
+    if len(arrays) != len(table_names):
+        raise ValueError('Number of arrays must match number of table_names')
+
+    # Trivial case of one input arrays
+    if len(arrays) == 1:
+        return arrays[0]
+
+    col_name_map = get_col_name_map(arrays, [], uniq_col_name, table_names)
+
+    # If require_match is True then all input arrays must have the same length
+    arr_lens = [len(arr) for arr in arrays]
+    if join_type == 'exact':
+        if len(set(arr_lens)) > 1:
+            raise TableMergeError("Inconsistent number of rows in input arrays "
+                                  "(use 'inner' or 'outer' join_type to allow "
+                                  "non-matching rows)")
+        join_type = 'outer'
+
+    # For an inner join, keep only columns where all input arrays have that column
+    if join_type == 'inner':
+        min_arr_len = min(arr_lens)
+        arrays = [arr[:min_arr_len] for arr in arrays]
+        arr_lens = [min_arr_len for arr in arrays]
+
+    # If there are any output rows where one or more input arrays are missing
+    # then the output must be masked.  If any input arrays are masked then
+    # output is masked.
+    masked = (any(isinstance(arr, ma.MaskedArray) for arr in arrays) or
+              len(set(arr_lens)) > 1)
+
+    n_rows = max(arr_lens)
+    out_descrs = get_descrs(arrays, col_name_map)
+    if masked:
+        # Adapted from ma.all_masked() code.  Here the array is filled with
+        # zeros instead of empty.  This avoids the bug reported here:
+        # https://github.com/numpy/numpy/issues/3276
+        out = ma.masked_array(np.zeros(n_rows, out_descrs),
+                              mask=np.ones(n_rows, ma.make_mask_descr(out_descrs)))
+    else:
+        out = np.empty(n_rows, dtype=out_descrs)
+
+    for out_name, in_names in col_name_map.items():
+        for name, array, arr_len in izip(in_names, arrays, arr_lens):
+            if name is not None:
+                out[out_name][:arr_len] = array[name]
+
+    # If col_name_map supplied as a dict input, then update.
+    if isinstance(_col_name_map, collections.Mapping):
+        _col_name_map.update(col_name_map)
 
     return out
