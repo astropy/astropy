@@ -72,7 +72,7 @@ There is no distinction made between a "date" and a "time" since both concepts
 moment in time.
 
 Once a |Time| object is created it cannot be altered internally.  In code lingo
-it is immutable.  In particular the common operation of "converting" to a
+it is "immutable."  In particular the common operation of "converting" to a
 different `time scale`_ is always performed by returning a copy of the original
 |Time| object which has been converted to the new time scale.
 
@@ -168,7 +168,7 @@ figure below.  Further details are provided in the `Convert time scale`_ section
 .. image:: time_scale_conversion.png
 
 Scalar or Array
-^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^
 
 A |Time| object can hold either a single time value or an array of time values.
 The distinction is made entirely by the form of the input time(s).  If a |Time|
@@ -184,7 +184,7 @@ value, and likewise for arrays.  ::
   array([ 2400100.5,  2400200.5])
 
 Inferring input format
-^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
 
 The |Time| class initializer will not accept ambiguous inputs,
 but it will make automatic inferences in cases where the inputs are
@@ -204,7 +204,7 @@ the string parsing will be faster if the format is provided.
   'iso'
 
 Internal representation
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The |Time| object maintains an internal representation of time as a pair of
 double precision numbers expressing Julian days. The sum of the two numbers is
@@ -230,7 +230,7 @@ numeric precision::
   (2455197.5, 0.0003935185185185185)
 
 Creating a Time object
-------------------------
+----------------------
 
 The allowed |Time| arguments to create a time object are listed below:
 
@@ -254,15 +254,21 @@ The allowed |Time| arguments to create a time object are listed below:
     Earth longitude of observer
 
 val
-^^^^^^^^^^^
+^^^
 
-The ``val`` argument is the only argument that is always required when creating a
+The `val` argument is the only argument that is always required when creating a
 |Time| object.  This argument specifies the input time or times and
 can be a single string or number, or it can be a Python list or `numpy` array
 of strings or numbers.
 
+The `val` argument  specifies the input time or times and
+can be a single string or number, or it can be a Python list or `numpy` array
+of strings or numbers. To initialize a |Time| object based on a specified time,
+it *must* be present.  If `val` is absent (or `None`), the |Time| object will
+be created for the time corresponding to the instant the object is created.
+
 In most situations one also needs to specify the `time scale`_ via the
-``scale`` argument.  The |Time| class will never guess the `time scale`_,
+`scale` argument.  The |Time| class will never guess the `time scale`_,
 so a simple example would be::
 
   >>> t1 = Time(50100.0, scale='tt', format='mjd')
@@ -277,15 +283,15 @@ first object unless explicitly specified.
   <Time object: scale='tt' format='mjd' vals=[ 50100.  55197.00076602]>
 
 val2
-^^^^^^^^^^^
+^^^^
 
-The ``val2`` argument is available for specialized situations where extremely
+The `val2` argument is available for specialized situations where extremely
 high precision is required.  Recall that the internal representation of time
 within `astropy.time` is two double-precision numbers that when summed give
-the Julian date.  If provided the ``val2`` argument is used in combination with
-``val`` to set the second the internal time values.  The exact interpretation of
-``val2`` is determined by the input format class.  As of this release all
-string-valued formats ignore ``val2`` and all numeric inputs effectively add
+the Julian date.  If provided the `val2` argument is used in combination with
+`val` to set the second the internal time values.  The exact interpretation of
+`val2` is determined by the input format class.  As of this release all
+string-valued formats ignore `val2` and all numeric inputs effectively add
 the two values in a way that maintains the highest precision.  Example::
 
   >>> t = Time(100.0, 0.000001, format='mjd', scale='tt')
@@ -293,16 +299,16 @@ the two values in a way that maintains the highest precision.  Example::
   (2400100.500001, 2400100.5, 1e-06)
 
 format
-^^^^^^^^^^^
+^^^^^^
 
-The ``format`` argument sets the time `time format`_, and as mentioned it is
+The `format` argument sets the time `time format`_, and as mentioned it is
 required unless the format can be unambiguously determined from the input times.
 
 
 scale
-^^^^^^^^^^^
+^^^^^
 
-The ``scale`` argument sets the `time scale`_ and is required except for time
+The `scale` argument sets the `time scale`_ and is required except for time
 formats such as ``plot_date`` (:class:`~astropy.time.core.TimePlotDate`) and ``unix``
 (:class:`~astropy.time.core.TimeUnix`).  These formats represent the duration
 in SI seconds since a fixed instant in time which is independent of time scale.
@@ -310,7 +316,7 @@ in SI seconds since a fixed instant in time which is independent of time scale.
 precision
 ^^^^^^^^^^
 
-The ``precision`` setting affects string formats when outputting a value that
+The `precision` setting affects string formats when outputting a value that
 includes seconds.  It must be an integer between 0 and 9.  There is no effect
 when inputting time values from strings.  The default precision is 3.  Note
 that the limit of 9 digits is driven by the way that SOFA handles fractional
@@ -324,15 +330,15 @@ seconds.  In practice this should should not be an issue.  ::
   'B1950'
 
 in_subfmt
-^^^^^^^^^^^
+^^^^^^^^^
 
-The ``in_subfmt`` argument provides a mechanism to select one or more
+The `in_subfmt` argument provides a mechanism to select one or more
 `subformat`_ values from the available subformats for string input.  Multiple
 allowed subformats can be selected using Unix-style wildcard characters, in
 particular ``*`` and ``?``, as documented in the Python `fnmatch
 <http://docs.python.org/library/fnmatch.html>`_ module.
 
-The default value for ``in_subfmt`` is ``*`` which matches any available
+The default value for `in_subfmt` is ``*`` which matches any available
 subformat.  This allows for convenient input of values with unknown or
 heterogeous subformat::
 
@@ -340,7 +346,7 @@ heterogeous subformat::
   <Time object: scale='utc' format='yday'
    vals=['2000:001:00:00:00.000' '2000:002:03:04:00.000' '2001:003:04:05:06.789']>
 
-One can explicitly specify ``in_subfmt`` in order to strictly require a
+One can explicitly specify `in_subfmt` in order to strictly require a
 certain subformat::
 
   >>> t = Time('2000:002:03:04', scale='utc', in_subfmt='date_hm')
@@ -349,9 +355,9 @@ certain subformat::
   ['iso', 'isot', 'yday']
 
 out_subfmt
-^^^^^^^^^^^
+^^^^^^^^^^
 
-The ``out_subfmt`` argument is similar to ``in_subfmt`` except that it applies
+The `out_subfmt` argument is similar to `in_subfmt` except that it applies
 to output formatting.  In the case of multiple matching subformats the first
 matching subformat is used.
 
@@ -370,6 +376,19 @@ decimal degrees.  They default to 0.0 and are used for time scales that are
 sensitive to observer position.  Currently the only time scale for which this
 applies is TDB, which relies on the SOFA routine ``iauDtdb`` to determine the
 time offset between TDB and TT.
+
+Getting the Current Time
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The current time can be determined as a `Time` object using the
+`~astropy.time.Time.now` class method::
+
+  >>> nt = Time.now()
+  >>> ut = Time(datetime.utcnow(), scale='utc')
+
+The two should be very close to each other.
+
+
 
 
 Using Time objects
@@ -495,7 +514,7 @@ TT, UT1, UTC).  This requires auxilliary information (latitude and longitude).
   '2006-01-15 21:25:56.893378'
 
 Time Deltas
-------------
+-----------
 
 Simple time arithmetic is supported using via the |TimeDelta| class.  The
 following operations are available:
@@ -552,7 +571,7 @@ Reference/API
 
 
 Acknowledgments and Licenses
-=======================================
+============================
 
 This package makes use of the `SOFA Software
 <http://www.iausofa.org/index.html>`_ ANSI C library.  The copyright of the SOFA

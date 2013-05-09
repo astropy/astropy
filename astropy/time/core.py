@@ -60,7 +60,7 @@ class Time(object):
     """
     Represent and manipulate times and dates for astronomy.
 
-    A Time object is initialized with one or more times in the ``val``
+    A `Time` object is initialized with one or more times in the ``val``
     argument.  The input times in ``val`` must conform to the specified
     ``format`` and must correspond to the specified time ``scale``.  The
     optional ``val2`` time input should be supplied only for numeric input
@@ -72,7 +72,7 @@ class Time(object):
     val : sequence, str, number, or `~astropy.time.Time` object
         Value(s) to initialize the time or times.
     val2 : sequence, str, or number; optional
-        Value(s) to initialize the time or times
+        Value(s) to initialize the time or times.
     format : str, optional
         Format of input value(s)
     scale : str, optional
@@ -192,6 +192,28 @@ class Time(object):
                 pass
         else:
             raise ValueError('Input values did not match {0}'.format(err_msg))
+
+    @classmethod
+    def now(cls):
+        """
+        Creates a new object corresponding to the instant in time this
+        method is called.
+
+        .. note::
+            "Now" is determined using the `datetime.utcnow` function, so
+            its accuracy and precision is determined by that function.
+            Generally that means it is set by the accuracy of your
+            system clock.
+
+        Returns
+        -------
+        nowtime
+            A new `Time` object (or a subclass of `Time` if this is called from
+            such a subclass) at the current time.
+        """
+        #call `utcnow` immediately to be sure it's ASAP
+        dtnow = datetime.utcnow()
+        return cls(val=dtnow, format='datetime', scale='utc')
 
     @property
     def format(self):
