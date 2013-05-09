@@ -21,7 +21,8 @@ class MaskedTable(table.Table):
         table.Table.__init__(self, *args, **kwargs)
 
 
-# Fixture to run all tests for both an unmasked (ndarray) and masked (MaskedArray) column.
+# Fixture to run all tests for both an unmasked (ndarray) and masked
+# (MaskedArray) column.
 @pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
 def set_global_Table(request):
     global Table
@@ -217,3 +218,45 @@ class TestFormat():
         assert str(t['a']) == '    a    \n---------\n { 0.00 }\n' \
                               ' { 1.00 }\n      ...\n{ 19.00 }'
         pprint.MAX_LINES.set(MAX_LINES_val)
+
+    def test_column_format_func(self):
+        # run most of functions twice
+        # 1) astropy.table.pprint._format_funcs gets populated
+        # 2) astropy.table.pprint._format_funcs gets used
+
+        t = Table([[1., 2.], [3, 4]], names=('a', 'b'))
+
+        # mathematical function
+        t['a'].format = lambda x: str(x*3.)
+        assert str(t['a']) == ' a \n---\n3.0\n6.0'
+        assert str(t['a']) == ' a \n---\n3.0\n6.0'
+
+    def test_column_format_func_wrong_number_args(self):
+        t = Table([[1., 2.], [3, 4]], names=('a', 'b'))
+
+        # function that expects wrong number of arguments
+        def func(a, b):
+            pass
+
+        t['a'].format = func
+        with pytest.raises(ValueError):
+            str(t['a'])
+
+    def test_column_format_func_multiD(self):
+        arr = [np.array([[1, 2],
+                         [10, 20]])]
+        t = Table(arr, names=['a'])
+
+        # mathematical function
+        t['a'].format = lambda x: str(x*3.)
+        outstr = '   a [2]    \n------------\n  3.0 .. 6.0\n30.0 .. 60.0'
+        assert str(t['a']) == outstr
+        assert str(t['a']) == outstr
+
+    def test_column_format_func_not_str(self):
+        t = Table([[1., 2.], [3, 4]], names=('a', 'b'))
+
+        # mathematical function
+        t['a'].format = lambda x: x*3
+        with pytest.raises(ValueError):
+            str(t['a'])
