@@ -1706,12 +1706,13 @@ class Table(object):
             attrs = ('__getitem__', '__len__', '__iter__', 'keys', 'values', 'items')
             return all(hasattr(obj, attr) for attr in attrs)
 
-	# Create a table with one row to test the operation on
-        test_data = (ma.zeros if self.masked else np.zeros)(1, dtype=self._data.dtype)
         newlen = len(self._data) + 1
 
         if mask is not None and not self.masked:
             self._set_masked(True)
+
+	# Create a table with one row to test the operation on
+        test_data = (ma.zeros if self.masked else np.zeros)(1, dtype=self._data.dtype)
 
         if _is_mapping(vals):
 
