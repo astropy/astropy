@@ -184,7 +184,7 @@ class Model(object):
         #key: value pairs are parameter_name: parameter_validation_function_name
         #see projections.AZP for example
         self._parcheck = {}
-        for par in self.param_names:
+        for par in param_names:
             setattr(self.__class__, par, _ParameterProperty(par))
     
     @property 
