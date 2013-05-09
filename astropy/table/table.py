@@ -1844,8 +1844,6 @@ class Table(object):
             attrs = ('__getitem__', '__len__', '__iter__', 'keys', 'values', 'items')
             return all(hasattr(obj, attr) for attr in attrs)
 
-	# Create a table with one row to test the operation on
-        test_data = (ma.zeros if self.masked else np.zeros)(1, dtype=self._data.dtype)
         newlen = len(self._data) + 1
 
         if vals is None:
@@ -1854,6 +1852,7 @@ class Table(object):
         if mask is not None and not self.masked:
             self._set_masked(True)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         if self.masked:
             if newlen == 1:
@@ -1865,6 +1864,11 @@ class Table(object):
 
 =======
 >>>>>>> This is a straight implementation of taldcroft's suggestions from
+=======
+	# Create a table with one row to test the operation on
+        test_data = (ma.zeros if self.masked else np.zeros)(1, dtype=self._data.dtype)
+
+>>>>>>> The creation of the test table now takes place after the check for masking.
         if _is_mapping(vals):
 
             if mask is not None and not _is_mapping(mask):
