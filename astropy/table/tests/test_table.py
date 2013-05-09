@@ -449,21 +449,21 @@ class TestAddRow(SetupData):
         t = Table(names=('a', 'b'), dtypes=('i', 'S4'))
         t.add_row()
         assert t['a'][0] == 0
-        assert t['b'][0] == ''
+        assert t['b'][0] == b''
         t.add_row()
         assert t['a'][1] == 0
-        assert t['b'][1] == ''
+        assert t['b'][1] == b''
 
     def test_add_stuff_to_empty_table(self):
         t = Table(names=('a', 'b'), dtypes=('i', 'S8'))
         t.add_row([1, 'hello'])
         assert t['a'][0] == 1
-        assert t['b'][0] == 'hello'
+        assert t['b'][0] == b'hello'
         # Make sure it is not repeating last row but instead
         # adding zeros (as documented)
         t.add_row()
         assert t['a'][1] == 0
-        assert t['b'][1] == ''
+        assert t['b'][1] == b''
 
     def test_add_table_row(self):
         t = self.t
