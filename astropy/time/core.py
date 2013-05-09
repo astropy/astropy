@@ -137,11 +137,10 @@ class Time(object):
         some basic input validation.
         """
         if val is val2 is None:
-            dtutc = datetime.utcnow()
+            val = datetime.utcnow()
             if scale not in ('utc', None):
                 raise ScaleValueError('{0} is not a valid scale for "now" '
                                       'initialization'.format(scale))
-            val = dtutc
             scale = 'utc'
 
         # Coerce val into a 1-d array
