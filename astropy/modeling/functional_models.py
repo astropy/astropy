@@ -38,7 +38,10 @@ class Gaussian1DModel(ParametricModel):
     param_names = ['amplitude', 'mean', 'stddev']
     def __init__(self, amplitude, mean, fwhm=None, stddev=None,
                             jacobian_func=None, **cons):
-        self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
+        try:
+            param_dim = len(amplitude)
+        except TypeError:
+            param_dim = 1
         if stddev is None and fwhm is None:
             raise InputParameterError(
                 "Either fwhm or stddev must be specified")
@@ -49,16 +52,11 @@ class Gaussian1DModel(ParametricModel):
                 stddev_val  = 0.42466 * fwhm
             except TypeError:
                 stddev_val = [0.42466 * n for n in fwhm]
-        self._stddev = parameters.Parameter('stddev', stddev_val, self, 1)
-        self._mean = parameters.Parameter('mean', mean, self, 1)
-        try:
-            param_dim = len(self._amplitude)
-            assert (len(amplitude) == len(stddev_val) == len(mean) ), \
-             "Input parameters do not have the same dimension"
-        except TypeError:
-            param_dim = 1
+        self._stddev = parameters.Parameter('stddev', stddev_val, self, param_dim)
+        self._mean = parameters.Parameter('mean', mean, self, param_dim)
+        self._amplitude = parameters.Parameter('amplitude', amplitude, self, param_dim)
         super(Gaussian1DModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
-                                                                    param_dim=param_dim, **cons)
+                                              param_dim=param_dim, **cons)
         self.linear = False
         if jacobian_func is 'estimated':
             self.deriv = None
@@ -137,6 +135,10 @@ class Gaussian2DModel(ParametricModel):
     def __init__(self, amplitude, x_mean, y_mean, x_fwhm=None, y_fwhm=None, 
                  x_stddev=None, y_stddev=None, theta=0.0, cov_matrix=None,
                  jacobian_func=None, **cons):
+        try:
+            param_dim = len(amplitude)
+        except TypeError:
+            param_dim = 1
         if y_stddev is None and y_fwhm is None and cov_matrix is None:
             raise InputParameterError(
                 "Either y_fwhm or y_stddev must be specified, or a "
@@ -145,8 +147,9 @@ class Gaussian2DModel(ParametricModel):
             raise InputParameterError(
                 "Either x_fwhm or x_stddev must be specified, or a "
                 "covariance matrix.")
-                
-        self._amplitude = parameters.Parameter('amplitude', amplitude, self, 1)
+        
+        self._amplitude = parameters.Parameter('amplitude', amplitude,
+                                                self, param_dim)
         
         if cov_matrix is None:
             if x_stddev is None:
@@ -164,21 +167,15 @@ class Gaussian2DModel(ParametricModel):
             y_vec = eig_vecs[:,0]
             theta = np.arctan2(y_vec[1],y_vec[0])
             
-        self._x_stddev = parameters.Parameter('x_stddev', x_stddev, self, 1)
-        self._y_stddev = parameters.Parameter('y_stddev', y_stddev, self, 1)
+        self._x_stddev = parameters.Parameter('x_stddev', x_stddev,
+                                                self, param_dim)
+        self._y_stddev = parameters.Parameter('y_stddev', y_stddev,
+                                                self, param_dim)
         
-        self._x_mean = parameters.Parameter('x_mean', x_mean, self, 1)
-        self._y_mean = parameters.Parameter('y_mean', y_mean, self, 1)
-        self._theta = parameters.Parameter('theta', theta, self, 1)
-        
-        try:
-            param_dim = len(self._amplitude)
-            assert (len(self._amplitude) == len(self._x_stddev) == \
-                            len(self._x_mean) == len(self._y_mean) == \
-                            len(self._theta) ), \
-                            "Input parameters do not have the same dimension"
-        except TypeError:
-            param_dim = 1
+        self._x_mean = parameters.Parameter('x_mean', x_mean, self, param_dim)
+        self._y_mean = parameters.Parameter('y_mean', y_mean, self, param_dim)
+        self._theta = parameters.Parameter('theta', theta, self, param_dim)
+       
         super(Gaussian2DModel, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
                                               param_dim=param_dim)
         self.linear = False

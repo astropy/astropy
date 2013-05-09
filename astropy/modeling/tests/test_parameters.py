@@ -9,7 +9,22 @@ import numpy as np
 from numpy.testing import utils
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
+from .. import ParametricModel, Parameter
 
+class TestParModel(ParametricModel):
+    """
+    A toy model to test parameters machinery
+    """
+    param_names = ['coeff', 'e']
+
+    def __init__(self, coeff, e, param_dim=1): 
+        self._coeff = Parameter(name='coeff', val=coeff, mclass=self, param_dim=param_dim)
+        self._e = Parameter(name='e', val=e, mclass=self, param_dim=param_dim)
+        ParametricModel.__init__(self, self.param_names, n_inputs=1, n_outputs=1, param_dim=param_dim)
+
+    def __call__(self):
+        pass
+        
 class TestParameters(object):
     def setup_class(self):
         """
@@ -87,7 +102,8 @@ class TestParameters(object):
         self.model.parameters = [1, 2, 3, 4, 5]
         self.model.parameters[0] = 10.
         assert(self.model.parameters == [10, 2, 3, 4, 5])
- 
+        assert(self.model.c0 == 10)
+        
     def test_wrong_size1(self):
         """
         Tests raising an error when attempting to reset the parameters
@@ -112,7 +128,12 @@ class TestParameters(object):
         with pytest.raises(InputParameterError):
             self.gmodel.amplitude = [1, 2]
     
-    def test_par_nD_to_1D(self):
+    def test_par_against_iraf(self):
+        """
+        Test the fitter modifies model.parameters.
+        
+        Uses an iraf example.
+        """
         self.linear_fitter(self.x, self.y)
         utils.assert_allclose(self.model.parameters, 
                               np.array([4826.1066602783685,                                                                   952.8943813407858,
@@ -170,3 +191,47 @@ class TestParameters(object):
         sh1 = models.ShiftModel(2)
         with pytest.raises(InputParameterError):
             sh1.offsets  = [3, 3]
+
+class TestMultipleParameterSets(object):
+    def setup_class(self):
+        self.x1 = np.arange(1, 10, .1)
+        self.x, self.y = np.mgrid[:10, :7]
+        self.x11 = np.array([self.x1, self.x1]).T
+        self.gmodel = models.Gaussian1DModel([12, 10], [3.5, 5.2], stddev=[.4, .7])
+        
+    def test_change_par(self):
+        """
+        Test that a change to one parameter as a set propagates
+        to param_sets.
+        """
+        self.gmodel.amplitude = [1, 10]
+        utils.assert_almost_equal(self.gmodel.param_sets, np.array([[1., 10], [3.5, 5.2], [0.4, 0.7]]))
+        utils.assert_almost_equal(self.gmodel.parameters, [1.0, 10.0, 3.5, 5.2, 0.4, 0.7])
+        
+    def test_change_par2(self):
+        """
+        Test that a change to one single parameter in a set propagates
+        to param_sets.
+        """
+        self.gmodel.amplitude[0] = 11
+        utils.assert_almost_equal(self.gmodel.param_sets, np.array([[11., 10], [3.5, 5.2], [0.4, 0.7]]))
+        utils.assert_almost_equal(self.gmodel.parameters, [11.0, 10.0, 3.5, 5.2, 0.4, 0.7])
+        
+    def test_change_parameters(self):
+        self.gmodel.parameters=[13, 10, 9, 5.2, 0.4, 0.7]
+        utils.assert_almost_equal(self.gmodel.amplitude, [13., 10.])
+        utils.assert_almost_equal(self.gmodel.mean, [9., 5.2])
+        
+    def test_object_pars(self):
+        l2 = TestParModel(coeff=[[1,2], [3,4]], e=(2,3),param_dim=2)
+        utils.assert_almost_equal(l2.parameters, [1.0, 2.0, 3.0, 4.0, 2.0, 3.0])
+        #utils.assert_almost_equal(l2.param_sets, np.array([[[1,2.],[3., 4.]],
+         #                                               [2., 3.]], dtype=np.object))
+        
+    def test_wrong_number_of_pars(self):
+        with pytest.raises(InputParameterError):
+            l2 = TestParModel(coeff=[[1,2],[3,4]], e=(2,3,4),param_dim=2)
+            
+    def test_wrong_number_of_pars2(self):
+        with pytest.raises(InputParameterError):
+            l2 = TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)
