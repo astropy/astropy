@@ -67,13 +67,9 @@ class Time(object):
     formats (e.g. JD) where very high precision (better than 64-bit precision)
     is required.
 
-    If `val` and `val2` are missing (or `None`), a `Time` object will be created
-    corresponding to "now", as determined by the `datetime.datetime.utcnow`
-    function, called at the instant the object is created.
-
     Parameters
     ----------
-    val : sequence, str, number, or `~astropy.time.Time` object; optional
+    val : sequence, str, number, or `~astropy.time.Time` object
         Value(s) to initialize the time or times.
     val2 : sequence, str, or number; optional
         Value(s) to initialize the time or times.
@@ -101,7 +97,7 @@ class Time(object):
     FORMATS = TIME_FORMATS
     """Dict of time formats"""
 
-    def __new__(cls, val=None, val2=None, format=None, scale=None,
+    def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
                 lat=0.0, lon=0.0, copy=False):
 
@@ -111,7 +107,7 @@ class Time(object):
             self = super(Time, cls).__new__(cls)
         return self
 
-    def __init__(self, val=None, val2=None, format=None, scale=None,
+    def __init__(self, val, val2=None, format=None, scale=None,
                  precision=None, in_subfmt=None, out_subfmt=None,
                  lat=0.0, lon=0.0, copy=False):
 
@@ -136,12 +132,6 @@ class Time(object):
         inputs.  This handles coercion into the correct shapes and
         some basic input validation.
         """
-        if val is val2 is None:
-            val = datetime.utcnow()
-            if scale not in ('utc', None):
-                raise ScaleValueError('{0} is not a valid scale for "now" '
-                                      'initialization'.format(scale))
-            scale = 'utc'
 
         # Coerce val into a 1-d array
         val, val_ndim = _make_1d_array(val, copy)
@@ -202,6 +192,28 @@ class Time(object):
                 pass
         else:
             raise ValueError('Input values did not match {0}'.format(err_msg))
+
+    @classmethod
+    def now(cls):
+        """
+        Creates a new object corresponding to the instant in time this
+        method is called.
+
+        .. note::
+            "Now" is determined using the `datetime.utcnow` function, so
+            its accuracy and precision is determined by that function.
+            Generally that means it is set by the accuracy of your
+            system clock.
+
+        Returns
+        -------
+        nowtime
+            A new `Time` object (or a subclass of `Time` if this is called from
+            such a subclass) at the current time.
+        """
+        #call `utcnow` immediately to be sure it's ASAP
+        dtnow = datetime.utcnow()
+        return cls(val=dtnow, format='datetime', scale='utc')
 
     @property
     def format(self):

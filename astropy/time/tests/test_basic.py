@@ -459,12 +459,14 @@ def test_python_builtin_copy():
     assert t.jd == t3.jd
 
 
-def test_no_argument_init():
+def test_now():
     """
-    Tests creating a Time object with empty arguments - should yield "now".
+    Tests creating a Time object with the `now` class method.
     """
+    from sys import version_info
+
     now = datetime.utcnow()
-    t = Time()
+    t = Time.now()
 
     assert t.format == 'datetime'
     assert t.scale == 'utc'
