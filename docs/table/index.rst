@@ -171,14 +171,52 @@ Using `table`
 
 The details of using `astropy.table` are provided in the following sections:
 
+Construct table
+---------------
+
 .. toctree::
    :maxdepth: 2
 
    construct_table.rst
+
+Access table
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
    access_table.rst
+
+Modify table
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
    modify_table.rst
+
+Table operations
+-----------------
+
+.. toctree::
+   :maxdepth: 2
+
    operations.rst
+
+Masking
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
    masking.rst
+
+I/O with tables
+----------------
+
+.. toctree::
+   :maxdepth: 2
+
    io.rst
 
 Reference/API
