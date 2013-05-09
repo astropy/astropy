@@ -529,8 +529,8 @@ these values:
     Full description of column
 ``units`` : str
     Physical units
-``format`` : str
-    `Format string`_ for outputting column values
+``format`` : str or function
+    `Format specifier`_ for outputting column values
 ``meta`` : dict
     Meta-data associated with the column
 
@@ -575,12 +575,12 @@ The column data values, shape, and data type are specified in one of two ways:
 
 .. _table_format_string:
 
-Format string
-'''''''''''''
+Format specifier
+''''''''''''''''
 
-The format string controls the output of column values when a table or column
-is printed or written to an ASCII table.  The format string can be either
-"old-style" or "new-style":
+The format specifier controls the output of column values when a table or column
+is printed or written to an ASCII table.  The format specifier can be either
+a "old-style" or "new-style" format string or a function:
 
 **Old-style**
 
@@ -603,6 +603,31 @@ This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in
 
 Note that in either case any Python format string that formats exactly
 one value is valid, so ``{:.4f} angstroms`` or ``Value: %12.2f`` would both work.
+
+**Function**
+
+The greatest flexibility can be achieved by setting a formatting function. This
+function must accept a single argument (the value) and return a string. In the
+following example this is used to make a LaTeX ready output::
+
+    >>> t = Table([[1,2],[1.234e9,2.34e-12]], names = ('a','b'))
+    >>> def latex_exp(value):
+            val = '{:8.2}'.format(value)
+            mant, exp = val.split('e')
+            # remove leading zeros
+            exp = exp[0] + exp[1:].lstrip('0')
+            return '$ {0} \\times 10^{{ {1} }}$' .format(mant, exp)
+    >>> t['b'].format = latex_exp
+    >>> t['a'].format = '{0:.4f}'
+    >>> t.write(sys.stdout, format = 'latex')
+    \begin{table}
+    \begin{tabular}{cc}
+    a & b \\
+    1.0000 & $ 1.2\times 10^{+9}$ \\
+    2.0000 & $ 2.3\times 10^{-12}$ \\
+    \end{tabular}
+    \end{table}
+
 
 TableColumns
 """"""""""""

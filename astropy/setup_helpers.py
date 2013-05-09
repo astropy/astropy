@@ -780,7 +780,6 @@ if HAVE_SPHINX:
             SphinxBuildDoc.finalize_options(self)
 
         def run(self):
-            import atexit
             import webbrowser
 
             from os.path import split, join, abspath
@@ -791,6 +790,10 @@ if HAVE_SPHINX:
                 from urllib.request import pathname2url
             else:
                 from urllib import pathname2url
+
+            # This is used at the very end of `run` to decide if sys.exit should
+            # be called. If it's None, it won't be.
+            retcode = None
 
             # If possible, create the _static dir
             if self.build_dir is not None:
@@ -870,20 +873,17 @@ if HAVE_SPHINX:
                     retcode = 1
 
                 if retcode != 0:
-                    def overrideexitcode():
-                        if os.environ.get('TRAVIS', None) == 'true':
-                            #this means we are in the travis build, so customize
-                            #the message appropriately.
-                            msg = ('The build_sphinx travis build FAILED '
-                                   'because sphinx issued documentation '
-                                   'warnings (scroll up to see the warnings).')
-                        else:  # standard failure message
-                            msg = ('build_sphinx returning a non-zero exit '
-                                   'code because sphinx issued documentation '
-                                   'warnings.')
-                        log.warn(msg)
-                        raise SystemExit(retcode)
-                    atexit.register(overrideexitcode)
+                    if os.environ.get('TRAVIS', None) == 'true':
+                        #this means we are in the travis build, so customize
+                        #the message appropriately.
+                        msg = ('The build_sphinx travis build FAILED '
+                               'because sphinx issued documentation '
+                               'warnings (scroll up to see the warnings).')
+                    else:  # standard failure message
+                        msg = ('build_sphinx returning a non-zero exit '
+                               'code because sphinx issued documentation '
+                               'warnings.')
+                    log.warn(msg)
 
             else:
                 proc = Popen([sys.executable], stdin=PIPE)
@@ -901,6 +901,13 @@ if HAVE_SPHINX:
             else:
                 log.warn('Sphinx Documentation subprocess failed with return '
                          'code ' + str(proc.returncode))
+
+            if retcode is not None:
+                # this is potentially dangerous in that there might be something
+                # after the call to `setup` in `setup.py`, and exiting here will
+                # prevent that from running.  But there's no other apparent way
+                # to signal what the return code should be.
+                sys.exit(retcode)
 
 
 def get_distutils_display_options():

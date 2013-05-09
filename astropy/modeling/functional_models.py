@@ -55,8 +55,8 @@ class Gaussian1DModel(ParametricModel):
         self._stddev = parameters.Parameter('stddev', stddev_val, self, param_dim)
         self._mean = parameters.Parameter('mean', mean, self, param_dim)
         self._amplitude = parameters.Parameter('amplitude', amplitude, self, param_dim)
-        super(Gaussian1DModel, self).__init__(self.param_names, ndim=1, outdim=1,
-                                                                    param_dim=param_dim, **cons)
+        super(Gaussian1DModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
+                                              param_dim=param_dim, **cons)
         self.linear = False
         if jacobian_func is 'estimated':
             self.deriv = None
@@ -175,9 +175,8 @@ class Gaussian2DModel(ParametricModel):
         self._x_mean = parameters.Parameter('x_mean', x_mean, self, param_dim)
         self._y_mean = parameters.Parameter('y_mean', y_mean, self, param_dim)
         self._theta = parameters.Parameter('theta', theta, self, param_dim)
-        
        
-        super(Gaussian2DModel, self).__init__(self.param_names, ndim=2, outdim=1,
+        super(Gaussian2DModel, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
                                               param_dim=param_dim)
         self.linear = False
         if jacobian_func:
@@ -226,7 +225,7 @@ class ShiftModel(Model):
         else:
             param_dim = len(offsets)
         self._offsets = parameters.Parameter('offsets', offsets, self, param_dim)
-        super(ShiftModel, self).__init__(self.param_names, ndim=1, outdim=1,
+        super(ShiftModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
                                                             param_dim=param_dim)
 
     def __call__(self, x):
@@ -255,7 +254,7 @@ class ScaleModel(Model):
         else:
             param_dim = len(factors)
         self._factors = parameters.Parameter('factors', factors, self, param_dim)
-        super(ScaleModel, self).__init__(self.param_names, ndim=1, outdim=1,
+        super(ScaleModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
                                                             param_dim=param_dim)
     
     def __call__(self, x):

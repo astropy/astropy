@@ -20,7 +20,7 @@ class TestParModel(ParametricModel):
     def __init__(self, coeff, e, param_dim=1): 
         self._coeff = Parameter(name='coeff', val=coeff, mclass=self, param_dim=param_dim)
         self._e = Parameter(name='e', val=e, mclass=self, param_dim=param_dim)
-        ParametricModel.__init__(self, self.param_names, ndim=1, outdim=1, param_dim=param_dim)
+        ParametricModel.__init__(self, self.param_names, n_inputs=1, n_outputs=1, param_dim=param_dim)
 
     def __call__(self):
         pass

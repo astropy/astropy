@@ -452,6 +452,26 @@ class TestAddRow(SetupData):
                 self._t = Table([self.a, self.b, self.c])
             return self._t
 
+    def test_add_none_to_empty_table(self):
+        t = Table(names=('a', 'b'), dtypes=('i', 'S4'))
+        t.add_row()
+        assert t['a'][0] == 0
+        assert t['b'][0] == b''
+        t.add_row()
+        assert t['a'][1] == 0
+        assert t['b'][1] == b''
+
+    def test_add_stuff_to_empty_table(self):
+        t = Table(names=('a', 'b'), dtypes=('i', 'S8'))
+        t.add_row([1, 'hello'])
+        assert t['a'][0] == 1
+        assert t['b'][0] == b'hello'
+        # Make sure it is not repeating last row but instead
+        # adding zeros (as documented)
+        t.add_row()
+        assert t['a'][1] == 0
+        assert t['b'][1] == b''
+
     def test_add_table_row(self):
         t = self.t
         t2 = Table([self.a, self.b, self.c])
@@ -492,14 +512,9 @@ class TestAddRow(SetupData):
         t = self.t
         t.add_row()
         assert len(t) == 4
-        if t.masked:
-            assert np.all(t['a'].data == np.array([1, 2, 3, 1]))
-            assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 4.0]))
-            assert np.all(t['c'].data == np.array(['7', '8', '9', '7']))
-        else:
-            assert np.all(t['a'].data == np.array([1, 2, 3, 0]))
-            assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 0.0]))
-            assert np.all(t['c'].data == np.array(['7', '8', '9', '']))
+        assert np.all(t['a'].data == np.array([1, 2, 3, 0]))
+        assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 0.0]))
+        assert np.all(t['c'].data == np.array(['7', '8', '9', '']))
 
     def test_add_missing_column(self):
         t = self.t
