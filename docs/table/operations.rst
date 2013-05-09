@@ -1,5 +1,5 @@
 .. include:: references.txt
-.. |join| replace:: :func:`~astropy.table.table.Table.join`
+.. |join| replace:: :func:`~astropy.table.operations.join`
 
 .. _table_operations:
 
@@ -13,62 +13,34 @@ table from two or more input tables.  This includes:
 
 .. list-table::
    :header-rows: 1
-   :widths: 24 40 22 14
+   :widths: 28 52 20
 
    * - Documentation
      - Description
-     - Object method
      - Function
-   * - `Stacking vertically`_
-     - Concatenate rows of input tables
-     - `~astropy.table.table.Table.vstack`
+   * - `Stack vertically`_
+     - Concatenate input tables along rows
      - `~astropy.table.operations.vstack`
-   * - `Stacking horizontally`_
-     - Concatenate columns of input tables
-     - `~astropy.table.table.Table.hstack`
+   * - `Stack horizontally`_
+     - Concatenate input tables along columns
      - `~astropy.table.operations.hstack`
    * - `Join`_
      - Database-style join of two tables
-     - `~astropy.table.table.Table.join`
      - `~astropy.table.operations.join`
 
 
-Methods versus functions
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-In order to accomodate different use cases, each of the table operations can be
-called in two ways.  The first is using a |Table| object *method*, and the second
-is using a *function* within the `~astropy.table` sub-package.  For example::
-
-  >>> from astropy.table import Table, vstack, hstack, join
-  >>> t1 = Table([[1], [2]], names=('a', 'b'))
-  >>> t2 = Table([[3], [4]], names=('a', 'b'))
-  >>> t3 = Table([[5], [6]], names=('a', 'b'))
-
-  >>> t1.hstack(t2)  # Append t2 to the right of t1
-  >>> hstack([t1, t2])  # Horizontally stack t1 and t2
-
-  >>> t1.vstack([t2, t3])  # Append t2 and t3 to the bottom of t1
-  >>> vstack([t1, t2, t3])  # Vertically stack t1, t2, and t3
-
-  >>> t1.join(t2, keys=['a'])  # Join t2 to t1
-  >>> join(t1, t2, keys=['a'])  # Join t2 to t1 (list input not allowed)
-
-The examples in subsequent sections all use the |Table| method version, but
-it is always possible to use the  `~astropy.table` function syntax as well.
-
-Stacking vertically
+Stack vertically
 ^^^^^^^^^^^^^^^^^^^^
 
 The |Table| class supports stacking tables vertically with the
-`~astropy.table.table.Table.vstack` method.  This process is also commonly known as
+`~astropy.table.operations.vstack` function.  This process is also commonly known as
 concatenating or appending tables in the row direction.  It corresponds roughly
 to the `numpy.vstack` function.
 
 For example, suppose one has two tables of observations with several
 column names in common::
 
-  >>> from astropy.table import Table
+  >>> from astropy.table import Table, vstack
   >>> obs1 = Table.read("""name    obs_date    mag_b  logLx
                            M31     2012-01-02  17.0   42.5
                            M82     2012-10-29  16.2   43.5
@@ -81,7 +53,7 @@ column names in common::
 
 Now we can stack these two tables::
 
-  >>> print obs1.vstack(obs2)
+  >>> print vstack([obs1, obs2])
     name   obs_date  mag_b logLx
   ------- ---------- ----- -----
       M31 2012-01-02  17.0  42.5
@@ -96,7 +68,7 @@ table those values are marked as missing.  This is the default behavior and corr
 ``join_type='outer'``.  There are two other allowed values for the ``join_type`` argument,
 ``'inner'`` and ``'exact'``::
 
-  >>> print obs1.vstack(obs2, join_type='inner')
+  >>> print vstack([obs1, obs2], join_type='inner')
     name   obs_date  logLx
   ------- ---------- -----
       M31 2012-01-02  42.5
@@ -106,21 +78,21 @@ table those values are marked as missing.  This is the default behavior and corr
       M31 1999-01-05  43.1
       M82 2012-10-30  45.0
 
-  >>> print obs1.vstack(obs2, join_type='exact')
+  >>> print vstack([obs1, obs2], join_type='exact')
   ...
   TableMergeError: Inconsistent columns in input arrays (use 'inner' or
   'outer' join_type to allow non-matching columns)
 
 In the case of ``join_type='inner'`, only the common columns (the intersection) are
 present in the output table.  When ``join_type='exact'`` is specified then
-`~astropy.table.table.Table.vstack` requires that all the input tables
+`~astropy.table.operations.vstack` requires that all the input tables
 have exactly the same column names.
 
 More than two tables can be stacked by supplying a list of table objects::
 
   >>> obs3 = Table.read("""name    obs_date    mag_b  logLx
                            M45     2012-02-03  15.0   40.5""", format='ascii')
-  >>> print obs1.vstack([obs2, obs3])
+  >>> print vstack([obs1, obs2, obs3])
     name   obs_date  mag_b logLx
   ------- ---------- ----- -----
       M31 2012-01-02  17.0  42.5
@@ -135,16 +107,16 @@ See also the sections on `Merging metadata`_ and `Merging column
 attributes`_ for details on how these characteristics of the input tables are merged in
 the single output table.
 
-Stacking horizontally
+Stack horizontally
 ^^^^^^^^^^^^^^^^^^^^^
 
 The |Table| class supports stacking tables horizontally (in the column-wise direction) with the
-`~astropy.table.table.Table.hstack` method.    It corresponds roughly
+`~astropy.table.operations.hstack` function.    It corresponds roughly
 to the `numpy.hstack` function.
 
 For example, suppose one has the following two tables::
 
-  >>> from astropy.table import Table
+  >>> from astropy.table import Table, hstack
   >>> t1 = Table.read("""a   b    c
                          1   foo  1.4
                          2   bar  2.1
@@ -156,27 +128,27 @@ For example, suppose one has the following two tables::
 
 Now we can stack these two tables horizontally::
 
-  >>> print t1.hstack(t2)
+  >>> print hstack([t1, t2])
    a   b   c   d     e
   --- --- --- ---- -----
     1 foo 1.4  ham  eggs
     2 bar 2.1 spam toast
     3 baz 2.8   --    --
 
-As with `~astropy.table.table.Table.vstack`, there is an optional ``join_type`` argument
+As with `~astropy.table.operations.vstack`, there is an optional ``join_type`` argument
 that can take values `'inner'``, ``'exact'``, and ``'outer'``.  The default is
 ``'outer'``, which effectively takes the union of available rows and masks out any missing
 values.  This is illustrated in the example above.  The other options give the
 intersection of rows, where ``'exact'`` requires that all tables have exactly the same
 number of rows::
 
-  >>> print t1.hstack(t2, join_type='inner')
+  >>> print hstack([t1, t2], join_type='inner')
    a   b   c   d     e
   --- --- --- ---- -----
     1 foo 1.4  ham  eggs
     2 bar 2.1 spam toast
 
-  >>> print t1.hstack(t2, join_type='exact')
+  >>> print hstack([t1, t2], join_type='exact')
   ...
   TableMergeError: Inconsistent number of rows in input arrays (use 'inner' or
   'outer' join_type to allow non-matching columns)
@@ -187,7 +159,7 @@ below also illustrates the behavior when there is a conflict in the input column
 
   >>> t3 = Table.read("""a    b
                          M45  2012-02-03""", format='ascii')
-  >>> print t1.hstack([t2, t3])
+  >>> print hstack([t1, t2, t3])
   a_1 b_1  c   d     e   a_3    b_3
   --- --- --- ---- ----- --- ----------
     1 foo 1.4  ham  eggs M45 2012-02-03
@@ -208,7 +180,7 @@ values in one or more key columns.
 For example, suppose one has two tables of observations, the first with B and V magnitudes
 and the second with X-ray luminosities of an overlapping (but not identical) sample::
 
-  >>> from astropy.table import Table
+  >>> from astropy.table import Table, join
   >>> optical = Table.read("""name    obs_date    mag_b  mag_v
                               M31     2012-01-02  17.0   16.0
                               M82     2012-10-29  16.2   15.2
@@ -225,7 +197,7 @@ that are common to both tables.  In this case the key columns are ``name`` and
 ``obs_date``.  We can find all the observations of the same object on the same date as
 follows::
 
-  >>> opt_xray = optical.join(xray)
+  >>> opt_xray = join(optical, xray)
   >>> print opt_xray
   name  obs_date  mag_b mag_v logLx
   ---- ---------- ----- ----- -----
@@ -234,7 +206,7 @@ follows::
 We can perform the match only by ``name`` by providing the ``keys`` argument, which can be
 either a single column name or a list of column names::
 
-  >>> print optical.join(xray, keys='name')
+  >>> print join(optical, xray, keys='name')
   name obs_date_1 mag_b mag_v obs_date_2 logLx
   ---- ---------- ----- ----- ---------- -----
    M31 2012-01-02  17.0  16.0 1999-01-05  43.1
@@ -251,7 +223,7 @@ the two tables on the key columns.
 If one wants to make a new table which has *every* row from the left table and includes
 matching values from the right table when available, this is known as a left join::
 
-  >>> print optical.join(xray, join_type='left')
+  >>> print join(optical, xray, join_type='left')
   name  obs_date  mag_b mag_v logLx
   ---- ---------- ----- ----- -----
   M101 2012-10-31  15.1  15.5    --
@@ -264,7 +236,7 @@ surprised that there is no X-ray data for M31 in the output.  Remember that the 
 matching key includes both ``name`` and ``obs_date``.  Specifying the key as only the
 ``name`` column gives::
 
-  >>> print optical.join(xray, join_type='left', keys='name')
+  >>> print join(optical, xray, join_type='left', keys='name')
   name obs_date_1 mag_b mag_v obs_date_2 logLx
   ---- ---------- ----- ----- ---------- -----
   M101 2012-10-31  15.1  15.5         --    --
@@ -276,7 +248,7 @@ values (when available) using ``join_type='right'``.
 
 Finally, to make a table with the union of rows from both tables do an "outer" join::
 
-  >>> print optical.join(xray, join_type='outer')
+  >>> print join(optical, xray, join_type='outer')
     name   obs_date  mag_b mag_v logLx
   ------- ---------- ----- ----- -----
      M101 2012-10-31  15.1  15.5    --
@@ -292,7 +264,7 @@ Identical keys
 The |Table| join operation works even if there are multiple rows with identical key
 values.  For example the following tables have multiple rows for the key column ``x``::
 
-  >>> from astropy.table import Table
+  >>> from astropy.table import Table, join
   >>> left = Table([[0, 1, 1, 2], ['L1', 'L2', 'L3', 'L4']], names=('key', 'L'))
   >>> right = Table([[1, 1, 2, 4], ['R1', 'R2', 'R3', 'R4']], names=('key', 'R'))
   >>> print left
@@ -315,7 +287,7 @@ product <http://en.wikipedia.org/wiki/Cartesian_product>`_.  For each matching k
 combination of the left and right tables is represented.  When there is no match in either
 the left or right table, the corresponding column values are designated as missing.
 
-  >>> print left.join(right, join_type='outer')
+  >>> print join(left, right, join_type='outer')
   key  L   R
   --- --- ---
     0  L1  --
@@ -336,7 +308,7 @@ the left or right table, the corresponding column values are designated as missi
 An inner join is the same but only returns rows where there is a key match in both the
 left and right tables::
 
-  >>> print left.join(right, join_type='inner')
+  >>> print join(left, right, join_type='inner')
   key  L   R
   --- --- ---
     1  L2  R1
@@ -376,9 +348,9 @@ keyword arguments that control the renaming behavior:
 This is most easily understood by example using the ``optical`` and ``xray`` tables
 in the |join| example defined previously::
 
-  >>> print optical.join(xray, keys='name',
-                         table_names=['OPTICAL', 'XRAY'],
-                         uniq_col_name='{table_name}_{col_name}')
+  >>> print join(optical, xray, keys='name',
+                 table_names=['OPTICAL', 'XRAY'],
+                 uniq_col_name='{table_name}_{col_name}')
   name OPTICAL_obs_date mag_b mag_v XRAY_obs_date logLx
   ---- ---------------- ----- ----- ------------- -----
    M31       2012-01-02  17.0  16.0    1999-01-05  43.1
@@ -410,14 +382,14 @@ In addition to the table and column ``meta`` attributes, the column attributes `
 ``format``, and ``description`` are merged by going through the input tables in
 order and taking the first value which is defined (i.e. is not None).  For example::
 
-  >>> from table import Column, Table
+  >>> from astropy.table import Column, Table, vstack
   >>> col1 = Column([1], name='a')
   >>> col2 = Column([2], name='a', units='cm')
   >>> col3 = Column([3], name='a', units='m')
   >>> t1 = Table([col1])
   >>> t2 = Table([col2])
   >>> t3 = Table([col3])
-  >>> out = t1.vstack([t2, t3])
+  >>> out = vstack([t1, t2, t3])
   WARNING: MergeConflictWarning: In merged column 'a' the 'units' attribute does
   not match (cm != m).  Using cm for merged output [astropy.table.table]
   >>> out['a'].units
