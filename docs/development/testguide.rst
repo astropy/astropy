@@ -64,11 +64,11 @@ in the currect directory and all recursive directories then run all the code tha
 within those files.
 
 .. note::
-    To test any compiled C/Cython extensions, you must run ``python
-    setup.py develop`` prior to running the py.test command-line
-    script.  Otherwise, any tests that make use of these extensions
-    will not succeed.  Similarly, in python 3, these tests will not
-    run correctly in the source code, because they need the ``2to3``
+    To test any compiled C/Cython extensions, you should install astropy within a
+    virtual environment and then run `py.test astropy`
+    from outside the source directory.  Otherwise, any tests that make use of these extensions
+    will not succeed.  Similarly, in Python 3, the built-in tests will not
+    run correctly in the source code because they need the ``2to3``
     tool to be run on them.
 
 You may specify a specific test file or directory at the command line::
