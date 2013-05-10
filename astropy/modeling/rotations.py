@@ -177,7 +177,7 @@ class MatrixRotation2D(Model):
             super(MatrixRotation2D, self).__init__(param_names=[], n_inputs=1,
                                                                             n_outputs=1,param_dim=1)
             self.param_names = ['angle']
-            self._rotmat = Parameter('rotmat', self._compute_matrix(angle),
+            self._rotmat = Parameter('rotmat', self._compute_matrix(np.deg2rad(angle)),
                                       self, 1)
         self._n_inputs = self._rotmat[0].shape[0]
         self._n_outputs = self.n_inputs
@@ -213,7 +213,12 @@ class MatrixRotation2D(Model):
         Parameters
         ----------
         x, y : 1D array or list
-              x and y coordinates
+            x and y coordinates
+
+        Returns
+        -------
+        x, y : 1D arrays
+            clockwise rotated x and y coordinates
         """
         x = np.asarray(x)
         y = np.asarray(y)
