@@ -4,11 +4,11 @@ Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 from __future__ import division
-from .. import models
-from ..core import *
 import numpy as np
 from numpy.testing import utils
 from ...tests.helper import pytest
+from .. import models
+from .. import LabeledInput, SCompositeModel, PCompositeModel
 
 class TestSComposite(object):
     """
@@ -67,5 +67,3 @@ class TestPComposite(object):
         delta1 = self.p1(self.x) - self.x
         xx = self.x + delta1 + delta11
         utils.assert_almost_equal(xx, presult.x)
-
-
