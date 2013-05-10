@@ -6,7 +6,9 @@ from __future__ import division, print_function
 import collections
 import numpy as np
 from . import parameters
-from .core import *
+from .core import (_convert_input, _convert_output,
+                   LabeledInput, Model, ParametricModel, SCompositeModel)
+from .functional_models import ShiftModel
 from .utils import pmapdomain, comb
 
 __all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'Legendre2DModel',
