@@ -655,22 +655,29 @@ class SCompositeModel(_CompositeModel):
     --------
 
     >>> from astropy.modeling import models, LabeledInput, SCompositeModel
-    >>> # Set up the serial composite model:
-    >>> # 2D rotation followed by a shift in x and y
+
+    Set up the serial composite model.
+    2D rotation followed by a shift in x and y:
+
     >>> rotation = models.MatrixRotation2D(angle=90)
     >>> shift_x = models.ShiftModel(2)
     >>> shift_y = models.ShiftModel(5)
     >>> model = SCompositeModel([rotation, shift_x, shift_y],
     ...                         inmap=[['x', 'y'], ['x'], ['y']],
     ...                         outmap=[['x', 'y'], ['x'], ['y']])
-    >>> # Evaluate the model
+
+    Evaluate the model:
+
     >>> input_pos = LabeledInput([0, 1], ["x", "y"])
     >>> output_pos = model(input_pos)
-    >>> # 90 deg clockwise rotation: [0, 1] -> [1, 0]
-    >>> # x shift by 2:              [1, 0] -> [3, 0]
-    >>> # y shift by 5:              [3, 0] -> [3, 5]
     >>> print(output_pos)
     {'y': 5.0, 'x': 3.0}
+
+    Explanation of the result:
+    the following three steps were applied in sequence:
+    1. 90 deg clockwise rotation: [0, 1] -> [1, 0]
+    2. x shift by 2:              [1, 0] -> [3, 0]
+    3. y shift by 5:              [3, 0] -> [3, 5]
     """
     def __init__(self, transforms, inmap=None, outmap=None):
         super(SCompositeModel, self).__init__(transforms, inmap, outmap)
