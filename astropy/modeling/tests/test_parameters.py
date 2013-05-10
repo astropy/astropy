@@ -2,11 +2,11 @@
 """
 Tests models.parameters
 """
+import numpy as np
+from numpy.testing import utils
 from .. import models, fitting
 from . import irafutil
 from ..utils import InputParameterError
-import numpy as np
-from numpy.testing import utils
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 from .. import ParametricModel, Parameter
@@ -226,12 +226,12 @@ class TestMultipleParameterSets(object):
         l2 = TestParModel(coeff=[[1,2], [3,4]], e=(2,3),param_dim=2)
         utils.assert_almost_equal(l2.parameters, [1.0, 2.0, 3.0, 4.0, 2.0, 3.0])
         #utils.assert_almost_equal(l2.param_sets, np.array([[[1,2.],[3., 4.]],
-         #                                               [2., 3.]], dtype=np.object))
+        #                                               [2., 3.]], dtype=np.object))
         
     def test_wrong_number_of_pars(self):
         with pytest.raises(InputParameterError):
-            l2 = TestParModel(coeff=[[1,2],[3,4]], e=(2,3,4),param_dim=2)
+            TestParModel(coeff=[[1,2],[3,4]], e=(2,3,4),param_dim=2)
             
     def test_wrong_number_of_pars2(self):
         with pytest.raises(InputParameterError):
-            l2 = TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)
+            TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)
