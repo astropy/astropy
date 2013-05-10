@@ -37,6 +37,16 @@ def test_constraints_example():
     model.mean.tied = tie_mean
     assert model.mean.tied == tie_mean
 
+def test_constraints_str():
+    # Create an example
+    model = models.Gaussian1DModel(amplitude=1, mean=2, stddev=3,
+                                   fixed={'stddev': True},
+                                   tied={'mean': lambda _: 42 * _.stddev})
+    constraints = model.constraints
+    assert str(constraints) == "Constraints(Gaussian1DModel, fixed=['stddev'], tied=['mean: <lambda>()'], bounds=['stddev:(-1000000000000.0, 1000000000000.0)', 'amplitude:(-1000000000000.0, 1000000000000.0)', 'mean:(-1000000000000.0, 1000000000000.0)'])"
+    # Can't check repr(constraints) because it contains a memory address:
+    # <function <lambda> at 0x10cce2e60>
+    repr(constraints)
 
 class TestNonLinearConstraints(object):
     def setup_class(self):
