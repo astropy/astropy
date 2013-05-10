@@ -3,10 +3,6 @@ from .. import rotations
 from numpy.testing.utils import assert_allclose
 from ...tests.helper import pytest
 
-# These test currently fail.
-# Reported in issue #1068
-
-@pytest.mark.xfail
 def test_RotateNative2Celestial():
     phi, theta, psi = 42, 43, 44
     model = rotations.RotateNative2Celestial(phi, theta, psi)
@@ -18,7 +14,6 @@ def test_RotateNative2Celestial():
     assert model.psi == psi + 1
 
 
-@pytest.mark.xfail
 def test_native_celestial_native():
     phi, theta, psi = 42, 43, 44
     n2c = rotations.RotateNative2Celestial(phi, theta, psi)
@@ -33,8 +28,7 @@ def test_native_celestial_native():
     assert n2c.inverse(phi, theta, psi)(nphi, ntheta) == c2n(nphi, ntheta)
     assert c2n.inverse(phi, theta, psi)(nphi, ntheta) == n2c(nphi, ntheta)
 
-@pytest.mark.xfail
 def test_MatrixRotation2D():
-    angle = 42
-    model = rotations.MatrixRotation2D(angle=angle)
-    result = model(3, 4)
+    model = rotations.MatrixRotation2D(angle=90)
+    x, y = model(1, 0)
+    assert_allclose([x, y], [0, -1], atol=1e-10)
