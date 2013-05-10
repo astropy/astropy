@@ -26,6 +26,8 @@ def_unit(['yd', 'yard'], 3 * ft, register=True,
          doc="International yard")
 def_unit(['mi', 'mile'], 5280 * ft, register=True,
          doc="International mile")
+def_unit(['nmi', 'nauticalmile', 'NM'], 1852 * si.m, register=True,
+         doc="Nautical mile")
 
 
 ###########################################################################
@@ -65,6 +67,13 @@ def_unit(['lb', 'pound'], 16 * oz, register=True,
          doc="International avoirdupois pound")
 def_unit(['ton'], 2000 * lb, register=True,
          doc="International avoirdupois ton")
+
+
+###########################################################################
+# SPEED
+
+def_unit(['kn', 'kt', 'knot', 'NMPH'], nmi / si.h, register=True,
+         doc="nautical unit of speed: 1 nmi per hour")
 
 
 ##########################################################################
