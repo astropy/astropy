@@ -203,7 +203,7 @@ def test_equivalent_units2():
     match = set(
         [u.AU, u.Angstrom, u.BTU, u.Hz, u.J, u.Ry, u.cal, u.cm, u.eV,
          u.erg, u.ft, u.inch, u.kcal, u.lyr, u.m, u.mi, u.micron,
-         u.pc, u.solRad, u.yd])
+         u.pc, u.solRad, u.yd, u.Bq, u.Ci, u.nmi])
     assert units == match
 
 
@@ -426,7 +426,7 @@ def test_compose_best_unit_first():
     assert results[0].bases[0] is u.l
 
     results = (u.s ** -1).compose()
-    assert results[0].bases[0] is u.Hz
+    assert results[0].bases[0] in (u.Hz, u.Bq)
 
     results = (u.Ry.decompose()).compose()
     assert results[0].bases[0] is u.Ry
