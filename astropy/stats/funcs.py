@@ -17,7 +17,7 @@ __all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion',
 
 
 def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
-               maout=False):
+               axis=None, maout=None):
     """ Perform sigma-clipping on the provided data.
 
     This performs the sigma clipping algorithm - i.e. the data will be iterated
@@ -41,16 +41,21 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
         nothing).
     cenfunc : callable
         The technique to compute the center for the clipping. Must be a
-        callable that takes in a 1D data array and outputs the central value.
-        Defaults to the median.
+        callable that takes in a data array and outputs the central value.
+        Defaults to the median (numpy.median).
     varfunc : callable
         The technique to compute the variance about the center. Must be a
-        callable that takes in a 1D data array and outputs the width estimator
-        that will be interpreted as a variance. Defaults to the variance.
+        callable that takes in a data array and outputs a width estimator
+        Defaults to the variance (numpy.var).
+    axis : int
+        If not None, will be passed on to cenfunc and varfunc, so that clipping
+        can be done along the given axis.  Those functions need to return an
+        array with the axis dimension removed (like the numpy functions)
     maout : bool or 'copy'
         If True, a masked array will be returned. If the special string
         'inplace', the masked array will contain the same array as `data`,
-        otherwise the array data will be copied.
+        otherwise the array data will be copied.  Default is False when
+        axis is None, True otherwise.
 
     Returns
     -------
@@ -85,33 +90,53 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
         >>> from numpy import mean
         >>> randvar = randn(10000)
         >>> maskedarr = sigma_clip(randvar, 3, None, mean, maout=True)
+    
+    This will clip along one axis on a similar distribution with bad points
+    inserted
+
+        >>> from astropy.stats import sigma_clip
+        >>> from numpy.random import normal
+        >>> from numpy import arange, diag, ones
+        >>> data = arange(5)+normal(0.,0.05,(5,5))+diag(ones(5))
+        >>> masked = sigma_clip(data, axis=0, sig=2.3)
+
+    Note that along the other axis, no points would be masked, as the variance 
+    is higher.
 
     """
 
-    data = np.array(data, copy=False)
-    oldshape = data.shape
-    data = data.ravel()
+    if axis is not None:
+        cenfunc_in = cenfunc
+        varfunc_in = varfunc
+        cenfunc = lambda d: np.expand_dims(cenfunc_in(d, axis=axis), axis=axis)
+        varfunc = lambda d: np.expand_dims(varfunc_in(d, axis=axis), axis=axis)
+        if maout is None: 
+            maout = True
+        elif not maout:
+            raise TypeError('Can only return masked array for sigma clipping'
+                            'along an axis')
 
-    mask = np.ones(data.size, bool)
+    data = np.ma.array(data, copy=False)
+
     if iters is None:
         i = -1
-        lastrej = sum(mask) + 1
-        while(sum(mask) != lastrej):
+        lastrej = np.count(data) + 1
+        while(np.count(data) != lastrej):
             i += 1
-            lastrej = sum(mask)
-            do = data - cenfunc(data[mask])
-            mask = do * do <= varfunc(data[mask]) * sig ** 2
+            lastrej = np.count(data)
+            do = data - cenfunc(data)
+            data.mask = do * do > varfunc(data) * sig ** 2
         iters = i + 1
         #TODO: ?print iters to the log if iters was None?
     else:
         for i in range(iters):
-            do = data - cenfunc(data[mask])
-            mask = do * do <= varfunc(data[mask]) * sig ** 2
+            do = data - cenfunc(data)
+            data.mask = do * do > varfunc(data) * sig ** 2
 
     if maout:
-        return np.ma.MaskedArray(data, ~mask, copy=maout != 'inplace')
+        return np.ma.MaskedArray(data, copy=maout != 'inplace')
     else:
-        return data[mask], mask.reshape(oldshape)
+        return data.data[~data.mask], ~data.mask
 
 
 #TODO Note scipy dependency
