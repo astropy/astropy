@@ -1842,7 +1842,16 @@ class Table(object):
             attrs = ('__getitem__', '__len__', '__iter__', 'keys', 'values', 'items')
             return all(hasattr(obj, attr) for attr in attrs)
 
-        newlen = len(self._data) + 1
+        def _revert_table():
+            """In case of an error, revert the table back to its previous state"""
+            if self.masked:
+                self._data = ma.resize(self._data, (oldlen,))
+            else:
+                self._data.resize((oldlen,), refcheck=False)
+            self._rebuild_table_column_views()
+
+        oldlen = len(self._data)
+        newlen = oldlen + 1
 
         if vals is None:
             vals = np.zeros(1, dtype=self._data.dtype)[0]
@@ -1889,7 +1898,8 @@ class Table(object):
                 raise TypeError("Mismatch between type of vals and mask")
 
             if len(self.columns) != len(vals):
-                raise ValueError('Mismatch between number of vals and columns')
+                _revert_table()
+                raise ValueError('Mismatch between number of values and columns')
 
             if not isinstance(vals, tuple):
                 vals = tuple(vals)
@@ -1899,6 +1909,7 @@ class Table(object):
             if mask is not None:
 
                 if len(self.columns) != len(mask):
+                    _revert_table()
                     raise ValueError('Mismatch between number of masks and columns')
 
                 if not isinstance(mask, tuple):
