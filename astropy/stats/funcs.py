@@ -41,11 +41,11 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
         nothing).
     cenfunc : callable
         The technique to compute the center for the clipping. Must be a
-        callable that takes in a data array and outputs the central value.
+        callable that takes in a masked array and outputs the central value.
         Defaults to the median (numpy.median).
     varfunc : callable
         The technique to compute the variance about the center. Must be a
-        callable that takes in a data array and outputs a width estimator
+        callable that takes in a masked array and outputs a width estimator
         Defaults to the variance (numpy.var).
     axis : int
         If not None, will be passed on to cenfunc and varfunc, so that clipping
