@@ -34,6 +34,12 @@
 Bug Fixes
 ^^^^^^^^^
 
+- ``astropy.io``
+
+  - Fixed issues in both the ``fits`` and ``votable`` sub-packages where array
+    byte order was not being handled consistently, leading to possible crashes
+    espcially on big-endian systems. [#1003]
+
 - ``astropy.io.fits``
 
   - Fixed an obscure issue that can occur on systems that don't have flush to
@@ -42,6 +48,35 @@ Bug Fixes
   - Improved round-tripping and preservation of manually assigned column
     attributes (``TNULLn``, ``TSCALn``, etc.) in table HDU headers. [#996]
 
+- ``astropy.io.votable``
+
+  - Stopped deprecation warnings from the ``astropy.io.votable`` package that
+    could occur during setup. [#970]
+
+  - Fixed an issue where INFO elements were being incorrectly dropped when
+    occurring inside a TABLE element. [#1000]
+
+  - Fixed obscure test failures on MIPS platforms. [#1010]
+
+- ``astropy.nddata.convolution``
+
+  - Fixed an issue in ``make_kernel()`` when using an Airy function kernel.
+    Also removed the superfluous 'brickwall' option. [#939]
+
+- ``astropy.table``
+
+  - Fixed a crash that could occur when adding a row to an empty (rowless)
+    table with masked columns. [#973]
+
+  - Made it possible to assign to one table row from the value of another row,
+    effictively making it easier to copy rows, for example. [#1019]
+
+- ``astropy.time``
+
+  - Added appropriate ``__copy__`` and ``__deepcopy__`` behavior; this
+    omission caused a seemingly unrelated error in FK5 coordinate separation.
+    [#891]
+
 - ``astropy.units``
 
   - Fixed an issue where the ``isiterable()`` utility returned ``True`` for
@@ -49,12 +84,49 @@ Bug Fixes
     ``Quantity`` class and fixed ``isiterable()`` to catch false positives.
     [#878]
 
+  - Fixed previously undefined behavior when multiplying a unit by a string.
+    [#949]
+
+  - Added 'time' as a physical type--this was a simple omission. [#959]
+
+  - Fixed issues with pickling unit objects so as to play nicer with the
+    multiprocessing module. [#974]
+
+  - Made it more difficult to accidentally override existing units with a new
+    unit of the same name. [#1070]
+
+  - Added several more physical types and units that were previously omitted,
+    including 'mass density', 'specific volume', 'molar volume', 'momentum',
+    'angular momentum', 'angular speed', 'angular acceleration', 'electric
+    current', 'electric current density', 'electric field strength', 'electric
+    flux density', 'electric charge density', 'permittivity', 'electromagnetic
+    field strength', 'radiant intensity', 'data quantity', 'bandwidth'; and
+    'knots', 'nautical miles', 'becquerels', and 'curies' respectively. [#1072]
+
 - Misc
+
+  - Fixed a crash that could occur in Python 3 when generation of the default
+    config file fails during setup. [#952]
 
   - Fixed an unrelated error message that could occur when trying to import
     astropy from a source checkout without having build the extension modules
     first. This issue was claimed to be fixed in v0.2.1, but the fix itself had
     a bug. [#971]
+
+  - Fixed a crash that could occur when running the ``build_sphinx`` setup
+    command in Python 3. [#977]
+
+  - Added a more helpful error message when trying to run the
+    ``setup.py build_sphinx`` command when Sphinx is not installed. [#1027]
+
+  - Minor documentation fixes and restructuring.
+    [#935, #967, #978, #1004, #1028, #1047]
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Some performance improvements to the ``astropy.units`` package, in particular
+  improving the time it takes to import the sub-package. [#1015]
 
 
 0.2.1 (2013-04-03)
