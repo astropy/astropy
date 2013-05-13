@@ -28,9 +28,8 @@ def test_LabeledInput():
     assert li.d == 44
 
     del li.x
-    with pytest.raises(AttributeError) as exc:
+    with pytest.raises(AttributeError):
         li.x
-    assert exc.value.args[0] == "'LabeledInput' object has no attribute '_x'"
 
 
 def test_SCompositeModel_example():
