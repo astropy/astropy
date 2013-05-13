@@ -39,11 +39,8 @@ given type::
     M_p          | 1.67262e-27 kg  |            ,
     g            | 0.001 kg        | gram       ,
     kg           | irreducible     | kilogram   ,
-    lb           | 0.453592 kg     | pound      ,
-    oz           | 0.0283495 kg    | ounce      ,
     solMass      | 1.9891e+30 kg   | M_sun      ,
     t            | 1000 kg         | tonne      ,
-    ton          | 907.185 kg      |            ,
     u            | 1.66054e-27 kg  | Da, Dalton ,
   ]
 
