@@ -339,14 +339,14 @@ class Pix2Sky_CYP(Cylindrical):
     param_names = ['mu', 'lam']
     def __init__(self, mu, lam):
         if mu == -lam:
-            ValueError("CYP projection is not defined for mu=-lambda")
+            raise ValueError("CYP projection is not defined for mu = -lambda")
         self._mu = parameters.Parameter('mu', mu, self, 1)
         self._lam = parameters.Parameter('lam', lam, self, 1)
         super(Pix2Sky_CYP, self).__init__(param_names=self.param_names)
         
     def check_mu(self, val):
-        if   val == -1:
-            raise ValueError("CYP projection is not defined for mu=-lambda")
+        if   val == self.lam:
+            raise ValueError("CYP projection is not defined for mu = -lambda")
         
     def inverse(self):
         return Sky2Pix_CYP(self.mu[0], self.lam[0])
@@ -368,14 +368,14 @@ class Sky2Pix_CYP(Cylindrical):
     param_names = ['mu', 'lam']
     def __init__(self, mu, lam):
         if mu == -lam:
-            ValueError("CYP projection is not defined for mu=-lambda")
+            raise ValueError("CYP projection is not defined for mu = -lambda")
         self._mu = parameters.Parameter('mu', mu, self, 1)
         self._lam = parameters.Parameter('lam', lam, self, 1)
         super(Sky2Pix_CYP, self).__init__(param_names=self.param_names)
         
     def check_mu(self, val):
-        if   val == -1:
-            raise ValueError("CYP projection is not defined for mu=-lambda")    
+        if   val == -self.lam:
+            raise ValueError("CYP projection is not defined for mu = -lambda")    
    
     def inverse(self):
         return Pix2Sky_CYP(self.mu[0], self.lam[0])
@@ -492,90 +492,3 @@ class Sky2Pix_MER(Cylindrical):
         y = self.r0*np.log(np.tan((np.pi/2 + theta)/2))
         return x, y
     
-class Conic(Projection):
-    """
-    Base class for conic projections.
-    
-    Parameters
-    ----------
-    thetaA : float
-        angle in deg
-    eta : float
-    
-    param_names : list of strings
-        parameter names
-    
-    """
-    def __init__(self, thetaA, eta, param_names):
-        self._phi0 = 0.0
-        theta1 = thetaA - eta
-        theta2 = thetaA + eta
-        if theta1 >= 90 or theta1 <= -90:
-            raise ValueError("Conic projection with thetaA={0} and eta={1} is not",
-                                            " defined".format(thetaA, eta))
-        if theta2 >= 90 or theta2 <= -90:
-            raise ValueError("Conic projection with thetaA={0} and eta={1} is not",
-                                            " defined".format(thetaA, eta))
-        self._theta1 = np.deg2rad(theta1)
-        self._theta2 = np.deg2rad(theta2)
-        self._thetaA = np.deg2rad(thetaA)
-        self._eta = np.deg2rad(eta)
-        super(Conic, self).__init__(param_names)
-        self.has_inverse = True
-        
-    def inverse(self):
-        raise NotImplementedError()
-    
-    def _compute_rtheta(self):
-        # Subclasses must implement this method
-        raise NotImplementedError()
-    
-    def __call__(self, x, y):
-        raise NotImplementedError()
-    
-class Pix2Sky_COP(Conic):
-    """
-    COP: Conic perspective - pixel to sky.
-    
-    """
-    def __init__(self, thetaA, eta):
-        super(Pix2Sky_COP, self).__init__(thetaA, eta, param_names=[])
-        
-    def _compute_rtheta(self, x, y, Y0):
-        return np.sign(self._thetaA) * np.sqrt(x**2 + (Y0 - y)**2)
-    
-    def inverse(self):
-        return Sky2Pix_COP(self._thetaA, self._eta)
-    
-    def __call__(self, x, y):
-        Y0 = self.r0 * np.cos(self._eta) / np.tan(self._thetaA)
-        rtheta = self._compute_rtheta(x, y, Y0)
-        phi = np.arctan2(x / rtheta, (Y0 - y) / rtheta) / np.sin(self._thetaA)
-        theta = self._thetaA + np.arctan(1/np.tan(self._thetaA) - rtheta /
-                    (self.r0 * np.cos(self._eta)))
-        return np.rad2deg(phi), np.rad2deg(theta)
-    
-class Sky2Pix_COP(Conic):
-    """
-    COP: Conic perspective - sky to pixel.
-    
-    """
-    def __init__(self, thetaA, eta):
-        super(Sky2Pix_COP, self).__init__(thetaA, eta, param_names=[])
-        
-    def _compute_rtheta(self, theta):
-        return self.r0 * np.cos(self._eta) * \
-                    (1/np.tan(self._thetaA) - np.tan(theta - self._thetaA))
-    
-    def inverse(self):
-        return Pix2Sky_COP(self._thetaA, self._eta)
-    
-    def __call__(self, phi, theta):
-        phi = np.deg2rad(phi)
-        theta = np.deg2rad(theta)
-        rtheta = self._compute_rtheta(phi, theta)
-        Y0 = self.r0 * np.cos(self._eta) / np.tan(self._thetaA)
-        C = np.sin(self._thetaA)
-        x = rtheta * np.sin(C)
-        y = -rtheta * np.cos(C) + Y0
-        return x, y
