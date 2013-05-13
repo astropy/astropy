@@ -337,12 +337,13 @@ class ProgressBar(object):
 
     def next(self):
         try:
-            return next(self._items)
+            rv =  next(self._items)
         except StopIteration:
             self.__exit__(None, None, None)
             raise
         else:
             self.update()
+            return rv
 
     def update(self, value=None):
         """
