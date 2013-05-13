@@ -378,6 +378,8 @@ def register_commands(package, version, release):
 
     if HAVE_SPHINX:
         _registered_commands['build_sphinx'] = AstropyBuildSphinx
+    else: 
+         _registered_commands['build_sphinx'] = FakeBuildSphinx
 
     # Need to override the __name__ here so that the commandline options are
     # presented as being related to the "build" command, for example; normally
@@ -1589,3 +1591,42 @@ class bdist_dmg(Command):
 
         # Remove temporary disk image
         os.remove(dmg_path_tmp)
+
+
+class FakeBuildSphinx(Command):
+    """
+    A dummy build_sphinx command that is called if Sphinx is not
+    installed and displays a relevant error message
+    """
+
+    #user options inherited from sphinx.setup_command.BuildDoc
+    user_options = [
+         ('fresh-env', 'E', '' ),
+         ('all-files', 'a', ''),
+         ('source-dir=', 's', ''),
+         ('build-dir=', None, ''),
+         ('config-dir=', 'c', ''),
+         ('builder=', 'b', ''),
+         ('project=', None, ''),
+         ('version=', None, ''),
+         ('release=', None, ''),
+         ('today=', None, ''),
+         ('link-index', 'i', ''),
+     ] 
+
+    #user options appended in astropy.setup_helpers.AstropyBuildSphinx
+    user_options.append(('warnings-returncode', 'w',''))
+    user_options.append(('clean-docs', 'l', ''))
+    user_options.append(('no-intersphinx', 'n', ''))
+    user_options.append(('open-docs-in-browser', 'o',''))
+ 
+                               
+
+    def initialize_options(self):
+        try:
+            raise RuntimeError("Sphinx must be installed for build_sphinx")
+        except:
+            log.error('error : Sphinx must be installed for build_sphinx')
+            sys.exit(1)
+
+    
