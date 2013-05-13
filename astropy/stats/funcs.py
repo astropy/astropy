@@ -13,7 +13,7 @@ import numpy as np
 
 __all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion',
            'median_absolute_deviation', 'biweight_location',
-           'biweight_midvariance', 'signal_to_noise_oir_ccd']
+           'biweight_midvariance', 'signal_to_noise_oir_ccd','bootstrap']
 
 
 __doctest_skip__ = ['binned_binom_proportion']
