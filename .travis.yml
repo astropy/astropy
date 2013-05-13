@@ -25,11 +25,11 @@ matrix:
           env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
         - python: 2.7
           env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
-        - python: 3.2
-          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
         # There is a bug in pytest-xdist that prevents it from working
-        # on Python 3.3.  See
+        # on Python 3.x.  See
         # https://bitbucket.org/hpk42/pytest/issue/301/internal-error-during-test-collecting
+        - python: 3.2
+          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
         - python: 3.3
           env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
 
@@ -37,7 +37,7 @@ matrix:
         - python: 2.7
           env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true
         - python: 3.2
-          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true
+          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true
 
         # try alternate numpy versions
         - python: 2.7
