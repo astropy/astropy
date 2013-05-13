@@ -478,10 +478,11 @@ def test_now():
     # times are more like microseconds.  But it seems safer in case some
     # platforms have slow clock calls or something.
 
-    # py < 2.7 doesn't have `total_seconds`
-    if (version_info[0] < 3 and version_info[1] < 7) or version_info[0] < 2:
-        total_secs = lambda td: (td.microseconds + (td.seconds + td.days *
-                                                    24 * 3600) * 10**6) / 10**6.
+    # py < 2.7 and py3 < 3.2 doesn't have `total_seconds`
+    if ((version_info[0] == 2 and version_info[1] < 7) or
+        (version_info[0] == 3 and version_info[1] < 2) or
+        version_info[0] < 2):
+        total_secs = lambda td: (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10 ** 6) / 10 ** 6.
     else:
         total_secs = lambda td: td.total_seconds()
     assert total_secs(dt) < 0.1
