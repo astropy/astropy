@@ -51,7 +51,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
     None, ..) or (None, col_name_1, ..) etc.
     """
 
-    col_name_map = collections.defaultdict(lambda: [None for x in arrays])
+    col_name_map = collections.defaultdict(lambda: [None] * len(arrays))
     col_name_list = []
 
     if table_names is None:
