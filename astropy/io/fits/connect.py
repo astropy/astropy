@@ -132,11 +132,9 @@ def read_table_fits(input, hdu=None):
         hdulist = fits_open(input)
 
         try:
-            table = read_table_fits(hdulist, hdu=hdu)
+            return read_table_fits(hdulist, hdu=hdu)
         finally:
             hdulist.close()
-
-        return table
 
     # Check if table is masked
     masked = False
