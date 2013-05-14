@@ -911,7 +911,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
         goto fail;
     }
 
-    znaxis = (long) outbufsize;  // The output array is just one dimension.
+    znaxis = (npy_intp) outbufsize;  // The output array is just one dimension.
     tmp = (PyArrayObject*) PyArray_SimpleNewFromData(1, &znaxis, NPY_UBYTE,
                                                      outbuf);
 
