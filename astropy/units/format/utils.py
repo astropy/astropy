@@ -128,11 +128,3 @@ def _trace(func):
         return functools.update_wrapper(run, func)
     else:
         return func
-
-
-def cleanup_pyparsing_error(e):
-    """
-    Given a pyparsing.ParseException, returns a string that has the
-    line and column numbers removed.
-    """
-    return re.sub(", \(line:[0-9]+, col:[0-9]+\)", "", str(e))

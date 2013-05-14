@@ -46,6 +46,9 @@ def_unit(['rad', 'radian'], register=True, prefixes=True,
 def_unit(['deg', 'degree'], _numpy.pi / 180.0 * rad, register=True,
          doc="degree: angular measurement 1/360 of full rotation",
          format={'latex': r'{}^{\circ}', 'unicode': '°'})
+def_unit(['hourangle'], 15.0 * deg, register=True, prefixes=False,
+         doc="hour angle: angular measurement with 24 in a full circle",
+         format={'latex': r'{}^{h}', 'unicode': 'ʰ'})
 def_unit(['arcmin', 'arcminute'], 1.0 / 60.0 * deg, register=True,
          prefixes=True,
          doc="arc minute: angular measurement",
