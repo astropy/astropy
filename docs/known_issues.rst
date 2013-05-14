@@ -66,3 +66,10 @@ tests themselves do not pass, but it does cause some Astropy functionality to
 fail.  
 
 The solution is to use a more recent version of Numpy.
+
+Color printing on Windows
+-------------------------
+
+Colored printing of log messages and other colored text does work in Windows
+but only when running in the IPython console.  Colors are not currently
+supported in the traditional Python command-line interpreter on Windows.
