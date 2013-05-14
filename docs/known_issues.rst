@@ -76,3 +76,18 @@ thus disabled.  Attempting to open a FITS file in writeable mode with mmap will
 result in a warning (and mmap will be disabled on the file automatically).
 
 See: https://github.com/astropy/astropy/issues/968
+
+Crash on upgrading from Astropy 0.2 to a newer version
+------------------------------------------------------
+
+It is possible on some systems when installing a new version of Astropy, or
+possibly upgrading an existing installation due to not having permissions
+on the ``~/.astropy/`` directory (in your home directory) or some file or
+subdirectory in that directory.  In particular this can occur if you installed
+Astropy as the root user (such as with ``sudo``) at any point.  This can
+manifest in several ways, but the most common is a traceback ending with
+``ImportError: cannot import name config``.  To resolve this issue either run
+``sudo chown -R <your_username> ~/.astropy`` or, if you don't need anything
+in it you can blow it away with ``sudo rm -rf ~/.astropy``.
+
+See for example: https://github.com/astropy/astropy/issues/987
