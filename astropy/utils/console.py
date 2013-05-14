@@ -27,11 +27,25 @@ try:
     get_ipython()
 except NameError:
     OutStream = None
+    _stdout = sys.stdout
+    _stderr = sys.stderr
 else:
     try:
         from IPython.zmq.iostream import OutStream
+        from IPython.utils import io
+        _stdout = io.stdout
+        _stderr = io.stderr
     except ImportError:
         OutStream = None
+        _stdout = sys.stdout
+        _stderr = sys.stderr
+
+try:
+    import IPython
+    # This is just to set a flag that IPython is installed at all
+    _HAVE_IPYTHON = True
+except ImportError:
+    _HAVE_IPYTHON = False
 
 from ..config import ConfigurationItem
 from .misc import deprecated, isiterable
@@ -42,8 +56,9 @@ __all__ = [
     'ProgressBar', 'Spinner', 'print_code_line', 'ProgressBarOrSpinner']
 
 
+# Only use color by default on Windows if IPython is installed.
 USE_COLOR = ConfigurationItem(
-    'use_color', True,
+    'use_color', sys.platform != 'win32' or _HAVE_IPYTHON,
     'When True, use ANSI color escape sequences when writing to the console.')
 USE_UNICODE = ConfigurationItem(
     'use_unicode', True,
@@ -109,8 +124,13 @@ def _color_text(text, color):
         'lightcyan': '1;36',
         'white': '1;37'}
 
+    if sys.platform == 'win32' and OutStream is None:
+        # On Windows do not colorize text unless in IPython
+        return text
+
     color_code = color_mapping.get(color, '0;39')
     return u'\033[{0}m{1}\033[0m'.format(color_code, text)
+
 
 def color_print(*args, **kwargs):
     """
@@ -143,7 +163,7 @@ def color_print(*args, **kwargs):
         be printed after resetting any color or font state.
     """
 
-    file = kwargs.get('file', sys.stdout)
+    file = kwargs.get('file', _stdout)
     end = kwargs.get('end', u'\n')
 
     write = file.write
@@ -284,7 +304,7 @@ class ProgressBar(object):
         for item in ProgressBar(items):
             item.process()
     """
-    def __init__(self, total_or_items, file=sys.stdout):
+    def __init__(self, total_or_items, file=_stdout):
         """
         Parameters
         ----------
@@ -411,7 +431,7 @@ class ProgressBar(object):
         pass
 
     @classmethod
-    def map(cls, function, items, multiprocess=False, file=sys.stdout):
+    def map(cls, function, items, multiprocess=False, file=_stdout):
         """
         Does a `map` operation while displaying a progress bar with
         percentage complete.
@@ -464,7 +484,7 @@ class ProgressBar(object):
 
     @deprecated('0.3', alternative='ProgressBar')
     @classmethod
-    def iterate(cls, items, file=sys.stdout):
+    def iterate(cls, items, file=_stdout):
         """
         Iterate over a sequence while indicating progress with a progress
         bar in the terminal.
@@ -506,7 +526,7 @@ class Spinner(object):
     _default_unicode_chars = u"◓◑◒◐"
     _default_ascii_chars = u"-/|\\"
 
-    def __init__(self, msg, color='default', file=sys.stdout, step=1,
+    def __init__(self, msg, color='default', file=_stdout, step=1,
                  chars=None):
         """
         Parameters
@@ -614,7 +634,7 @@ class ProgressBarOrSpinner(object):
                 bar.update(bytes_read)
     """
 
-    def __init__(self, total, msg, color='default', file=sys.stdout):
+    def __init__(self, total, msg, color='default', file=_stdout):
         """
         Parameters
         ----------
@@ -666,7 +686,7 @@ class ProgressBarOrSpinner(object):
             self._obj.update(value)
 
 
-def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
+def print_code_line(line, col=None, file=_stdout, tabwidth=8, width=70):
     u"""
     Prints a line of source code, highlighting a particular character
     position in the line.  Useful for displaying the context of error
