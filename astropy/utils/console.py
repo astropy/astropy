@@ -45,14 +45,16 @@ __all__ = [
 USE_COLOR = ConfigurationItem(
     'use_color', True,
     'When True, use ANSI color escape sequences when writing to the console.')
+
+
 USE_UNICODE = ConfigurationItem(
     'use_unicode', True,
     'Use Unicode characters when drawing progress bars etc. at the console.')
 
 
-def isatty(file):
+def isatty(fileobj):
     """
-    Returns `True` if `file` is a tty.
+    Returns `True` if `fileobj` is a tty.
 
     Most built-in Python file-like objects have an `isatty` member,
     but some user-defined types may not, so this assumes those are not
@@ -63,12 +65,13 @@ def isatty(file):
         return False
 
     if (OutStream is not None and
-        isinstance(file, OutStream) and
-        file.name == 'stdout'):
+        isinstance(fileobj, OutStream) and
+        fileobj.name == 'stdout'):
         return True
-    elif hasattr(file, 'isatty'):
-        return file.isatty()
+    elif hasattr(fileobj, 'isatty'):
+        return fileobj.isatty()
     return False
+
 
 def _color_text(text, color):
     """
@@ -133,7 +136,7 @@ def color_print(*args, **kwargs):
         default, darkgrey, lightred, lightgreen, yellow, lightblue,
         lightmagenta, lightcyan, white, or '' (the empty string).
 
-    file : writeable file-like object, optional
+    fileobj : writeable file-like object, optional
         Where to write to.  Defaults to `sys.stdout`.  If file is not
         a tty (as determined by calling its `isatty` member, if one
         exists), no coloring will be included.
@@ -143,11 +146,11 @@ def color_print(*args, **kwargs):
         be printed after resetting any color or font state.
     """
 
-    file = kwargs.get('file', sys.stdout)
+    fileobj = kwargs.get('file', sys.stdout)
     end = kwargs.get('end', u'\n')
 
-    write = file.write
-    if isatty(file) and USE_COLOR():
+    write = fileobj.write
+    if isatty(fileobj) and USE_COLOR():
         for i in xrange(0, len(args), 2):
             msg = args[i]
             if i + 1 == len(args):
@@ -171,6 +174,7 @@ def color_print(*args, **kwargs):
                 msg = msg.decode('ascii')
             write(msg)
         write(end)
+
 
 def strip_ansi_codes(s):
     """
