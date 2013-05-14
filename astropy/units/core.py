@@ -661,7 +661,8 @@ class UnitBase(object):
 
         return [self]
 
-    def compose(self, equivalencies=[], units=None, max_depth=2):
+    def compose(self, equivalencies=[], units=None, max_depth=2,
+                include_prefix_units=False):
         """
         Return the simplest possible composite unit(s) that represent
         the given unit.  Since there may be multiple equally simple
@@ -682,6 +683,10 @@ class UnitBase(object):
             The maximum recursion depth to use when composing into
             composite units.
 
+        include_prefix_units : bool, optional
+            When `True`, include prefixed units in the result.
+            Default is `False`.
+
         Returns
         -------
         units : list of `CompositeUnit`
@@ -697,7 +702,8 @@ class UnitBase(object):
             filtered_namespace = set()
             for tunit in units:
                 if (isinstance(tunit, UnitBase) and
-                        not isinstance(tunit, PrefixUnit)):
+                    (include_prefix_units or
+                     not isinstance(tunit, PrefixUnit))):
                     filtered_namespace.add(tunit)
             return filtered_namespace
 
@@ -829,7 +835,8 @@ class UnitBase(object):
                          [']'])
                 return '\n'.join(lines)
 
-    def find_equivalent_units(self, equivalencies=[], units=None):
+    def find_equivalent_units(self, equivalencies=[], units=None,
+                              include_prefix_units=False):
         """
         Return a list of all the units that are the same type as the
         specified unit.
@@ -848,6 +855,10 @@ class UnitBase(object):
             equivalencies.  Otherwise, may be a dict, module or
             sequence containing the units to search for equivalencies.
 
+        include_prefix_units : bool, optional
+            When `True`, include prefixed units in the result.
+            Default is `False`.
+
         Returns
         -------
         units : list of `UnitBase`
@@ -856,7 +867,8 @@ class UnitBase(object):
             pretty-prints the list of units when output.
         """
         results = self.compose(
-            equivalencies=equivalencies, units=units, max_depth=1)
+            equivalencies=equivalencies, units=units, max_depth=1,
+            include_prefix_units=include_prefix_units)
         results = [
             x._bases[0] for x in results if len(x._bases) == 1]
         return self.EquivalentUnitsList(results)
@@ -1200,7 +1212,7 @@ class _UnitMetaClass(type):
             return CompositeUnit(s, [], [])
 
         elif s is None:
-            raise ValueError("None is not a valid Unit")
+            raise TypeError("None is not a valid Unit")
 
         else:
             raise TypeError("{0} can not be converted to a Unit".format(s))

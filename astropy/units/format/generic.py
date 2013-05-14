@@ -7,11 +7,11 @@ Handles a "generic" string format for units
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import re
 import sys
 
 from . import utils
 from .base import Base
-from ...extern import pyparsing as p
 from ...utils.compat.fractions import Fraction
 
 
@@ -29,7 +29,7 @@ class Generic(Base):
     def __init__(self):
         # Build this on the class, so it only gets generated once.
         if '_parser' not in Generic.__dict__:
-            Generic._parser = self._make_parser()
+            Generic._parser, Generic._lexer = self._make_parser()
 
     @classmethod
     def _make_parser(cls):
@@ -45,202 +45,306 @@ class Generic(Base):
         formats, the only difference being the set of available unit
         strings.
         """
+        from ...extern.ply import lex, yacc
 
-        product = p.Literal("*") | p.Literal(".") | p.White()
-        division = p.Literal("/")
-        power = p.Literal("**") | p.Literal("^") | p.Empty()
-        open_p = p.Literal("(")
-        close_p = p.Literal(")")
-        # TODO: We only support the sqrt function for now because it's
-        # obvious how to handle it.
-        function_name = p.Literal("sqrt")
+        tokens = (
+            'DOUBLE_STAR',
+            'STAR',
+            'PERIOD',
+            'SOLIDUS',
+            'CARET',
+            'OPEN_PAREN',
+            'CLOSE_PAREN',
+            'SQRT',
+            'UNIT',
+            'SIGN',
+            'UINT',
+            'UFLOAT'
+            )
 
-        unsigned_integer = p.Regex(r'\d+')
-        signed_integer = p.Regex(r'[+-]\d+')
-        integer = p.Regex(r'[+-]?\d+')
-        floating_point = p.Regex(r'[+-]?((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+)?')
+        t_STAR = r'\*'
+        t_PERIOD = r'\.'
+        t_SOLIDUS = r'/'
+        t_DOUBLE_STAR = r'\*\*'
+        t_CARET = r'\^'
+        t_OPEN_PAREN = r'\('
+        t_CLOSE_PAREN = r'\)'
 
-        division_product_of_units = p.Forward()
-        factor = p.Forward()
-        factor_product_of_units = p.Forward()
-        frac = p.Forward()
-        function = p.Forward()
-        main = p.Forward()
-        numeric_power = p.Forward()
-        product_of_units = p.Forward()
-        unit_expression = p.Forward()
-        unit = p.Forward()
-        unit_with_power = p.Forward()
+        # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
+        # Regular expression rules for simple tokens
+        def t_UFLOAT(t):
+            r'((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+)?'
+            if not re.search(r'[eE\.]', t.value):
+                t.type = 'UINT'
+                t.value = int(t.value)
+            elif t.value.endswith('.'):
+                t.type = 'UINT'
+                t.value = int(t.value[:-1])
+            else:
+                t.value = float(t.value)
+            return t
 
-        main << (
-            (factor_product_of_units) ^
-            (division_product_of_units))
+        def t_UINT(t):
+            r'\d+'
+            t.value = int(t.value)
+            return t
 
-        factor_product_of_units << (
-            (p.Optional(factor +
-                        p.Suppress(p.Optional(p.White())), default=1.0) +
-             product_of_units +
-             p.StringEnd()))
+        def t_SIGN(t):
+            r'[+-](?=\d)'
+            t.value = float(t.value + '1')
+            return t
 
-        division_product_of_units << (
-            (p.Optional(factor, default=1.0) +
-             p.Optional(product_of_units, default=1.0) +
-             p.Suppress(division) +
-             p.Suppress(p.ZeroOrMore(p.White())) +
-             unit_expression +
-             p.StringEnd()))
+        # This needs to be a function so we can force it to happen
+        # before t_UNIT
+        def t_SQRT(t):
+            r'sqrt'
+            return t
 
-        product_of_units << (
-            (unit_expression + p.Suppress(product) + product_of_units) ^
-            (unit_expression))
+        def t_UNIT(t):
+            r'[a-zA-Z][a-zA-Z_]*'
+            t.value = cls._get_unit(t)
+            return t
 
-        function << (
-            function_name +
-            p.Suppress(open_p) + unit_expression + p.Suppress(close_p))
+        t_ignore = ' '
 
-        unit_expression << (
-            (function) ^
-            (unit_with_power) ^
-            (p.Suppress(open_p) + product_of_units + p.Suppress(close_p))
-        )
+        # Error handling rule
+        def t_error(t):
+            raise ValueError(
+                "Invalid character at col {0}".format(t.lexpos))
 
-        factor << (
-            (unsigned_integer + signed_integer) ^
-            (unsigned_integer + p.Suppress(power) + numeric_power) ^
-            (floating_point + p.Suppress(p.White()) +
-             unsigned_integer + signed_integer) ^
-            (floating_point + p.Suppress(p.White()) +
-             unsigned_integer + p.Suppress(power) + numeric_power) ^
-            (floating_point)
-        )
+        lexer = lex.lex()
 
-        unit << p.Word(p.alphas, p.alphas + '_')
+        def p_main(p):
+            '''
+            main : product_of_units
+                 | factor product_of_units
+                 | division_product_of_units
+                 | factor division_product_of_units
+                 | inverse_unit
+                 | factor inverse_unit
+            '''
+            if len(p) == 2:
+                p[0] = p[1]
+            else:
+                from ..core import Unit
+                p[0] = Unit(p[1] * p[2])
 
-        unit_with_power << (
-            (unit + p.Suppress(power) + numeric_power) ^
-            (unit))
+        def p_division_product_of_units(p):
+            '''
+            division_product_of_units : product_of_units division unit_expression
+            '''
+            from ..core import Unit
+            p[0] = Unit(p[1] / p[3])
 
-        numeric_power << (
-            integer |
-            (p.Suppress(open_p) + integer + p.Suppress(close_p)) ^
-            (p.Suppress(open_p) + floating_point + p.Suppress(close_p)) ^
-            (p.Suppress(open_p) + frac + p.Suppress(close_p)))
+        def p_inverse_unit(p):
+            '''
+            inverse_unit : division unit_expression
+            '''
+            p[0] = p[2] ** -1
 
-        frac << (
-            integer + p.Suppress(division) + integer)
+        def p_factor(p):
+            '''
+            factor : factor_float
+                   | factor_int
+            '''
+            p[0] = p[1]
 
-        # Set actions
-        for key, val in locals().items():
-            if isinstance(val, p.ParserElement):
-                val.setName(key)
-                val.leaveWhitespace()
-            method_name = "_parse_{0}".format(key)
-            if hasattr(cls, method_name):
-                val.setParseAction(getattr(cls, method_name))
+        def p_factor_float(p):
+            '''
+            factor_float : signed_float
+                         | signed_float UINT signed_int
+                         | signed_float UINT power numeric_power
+            '''
+            if len(p) == 4:
+                p[0] = p[1] * p[2] ** float(p[3])
+            elif len(p) == 5:
+                p[0] = p[1] * p[2] ** float(p[4])
+            elif len(p) == 2:
+                p[0] = p[1]
 
-        return main
+        def p_factor_int(p):
+            '''
+            factor_int : UINT
+                       | UINT signed_int
+                       | UINT power numeric_power
+                       | UINT UINT signed_int
+                       | UINT UINT power numeric_power
+            '''
+            if len(p) == 2:
+                p[0] = p[1]
+            elif len(p) == 3:
+                p[0] = p[1] ** float(p[2])
+            elif len(p) == 4:
+                if isinstance(p[2], int):
+                    p[0] = p[1] * p[2] ** float(p[3])
+                else:
+                    p[0] = p[1] ** float(p[3])
+            elif len(p) == 5:
+                p[0] = p[1] * p[2] ** p[4]
+
+        def p_product_of_units(p):
+            '''
+            product_of_units : unit_expression product product_of_units
+                             | unit_expression product_of_units
+                             | unit_expression
+            '''
+            if len(p) == 2:
+                p[0] = p[1]
+            elif len(p) == 3:
+                p[0] = p[1] * p[2]
+            else:
+                p[0] = p[1] * p[3]
+
+        def p_unit_expression(p):
+            '''
+            unit_expression : function
+                            | unit_with_power
+                            | OPEN_PAREN product_of_units CLOSE_PAREN
+            '''
+            if len(p) == 2:
+                p[0] = p[1]
+            else:
+                p[0] = p[2]
+
+        def p_unit_with_power(p):
+            '''
+            unit_with_power : UNIT power numeric_power
+                            | UNIT numeric_power
+                            | UNIT
+            '''
+            if len(p) == 2:
+                p[0] = p[1]
+            elif len(p) == 3:
+                p[0] = p[1] ** p[2]
+            else:
+                p[0] = p[1] ** p[3]
+
+        def p_numeric_power(p):
+            '''
+            numeric_power : sign UINT
+                          | OPEN_PAREN paren_expr CLOSE_PAREN
+            '''
+            if len(p) == 3:
+                p[0] = p[1] * p[2]
+            elif len(p) == 4:
+                p[0] = p[2]
+
+        def p_paren_expr(p):
+            '''
+            paren_expr : sign UINT
+                       | signed_float
+                       | frac
+            '''
+            if len(p) == 3:
+                p[0] = p[1] * p[2]
+            else:
+                p[0] = p[1]
+
+        def p_frac(p):
+            '''
+            frac : sign UINT division sign UINT
+            '''
+            p[0] = (p[1] * p[2]) / (p[4] * p[5])
+
+        def p_sign(p):
+            '''
+            sign : SIGN
+                 |
+            '''
+            if len(p) == 2:
+                p[0] = p[1]
+            else:
+                p[0] = 1.0
+
+        def p_product(p):
+            '''
+            product : STAR
+                    | PERIOD
+            '''
+            pass
+
+        def p_division(p):
+            '''
+            division : SOLIDUS
+            '''
+            pass
+
+        def p_power(p):
+            '''
+            power : DOUBLE_STAR
+                  | CARET
+            '''
+            pass
+
+        def p_signed_int(p):
+            '''
+            signed_int : SIGN UINT
+            '''
+            p[0] = p[1] * p[2]
+
+        def p_signed_float(p):
+            '''
+            signed_float : sign UINT
+                         | sign UFLOAT
+            '''
+            p[0] = p[1] * p[2]
+
+        def p_function_name(p):
+            '''
+            function_name : SQRT
+            '''
+            p[0] = p[1]
+
+        def p_function(p):
+            '''
+            function : function_name OPEN_PAREN unit_expression CLOSE_PAREN
+            '''
+            if p[1] == 'sqrt':
+                p[0] = p[3] ** -2.0
+            else:
+               raise ValueError(
+                   '{0!r} is not a recognized function'.format(p[1]))
+
+        def p_error(p):
+            raise ValueError()
+
+        parser = yacc.yacc(debug=False)
+
+        return parser, lexer
 
     @classmethod
-    @utils._trace
-    def _parse_unsigned_integer(cls, s, loc, toks):
-        return int(toks[0])
+    def _get_unit(cls, t):
+        try:
+            return cls._parse_unit(t.value)
+        except ValueError:
+            raise ValueError(
+                "At col {0}, {1!r} is not a valid unit".format(
+                    t.lexpos, t.value))
 
     @classmethod
-    @utils._trace
-    def _parse_signed_integer(cls, s, loc, toks):
-        return int(toks[0])
-
-    @classmethod
-    @utils._trace
-    def _parse_integer(cls, s, loc, toks):
-        return int(toks[0])
-
-    @classmethod
-    @utils._trace
-    def _parse_floating_point(cls, s, loc, toks):
-        return float(toks[0])
-
-    @classmethod
-    @utils._trace
-    def _parse_factor(cls, s, loc, toks):
-        if len(toks) == 1:
-            return toks[0]
-        elif len(toks) == 2:
-            return toks[0] ** float(toks[1])
-        elif len(toks) == 3:
-            return float(toks[0]) * toks[1] ** float(toks[2])
-
-    @classmethod
-    @utils._trace
-    def _parse_frac(cls, s, loc, toks):
-        return Fraction(toks[0], toks[1])
-
-    @classmethod
-    @utils._trace
-    def _parse_unit(cls, s, loc, toks):
+    def _parse_unit(cls, s):
         from ..core import _UnitRegistry
         registry = _UnitRegistry().registry
-        if toks[0] in registry:
-            return registry[toks[0]]
-        raise p.ParseException(
-            s, loc, "{0!r} is not a recognized unit".format(toks[0]))
+        if s in registry:
+            return registry[s]
+        raise ValueError(
+            '{0} is not a valid unit'.format(s))
 
-    @classmethod
-    @utils._trace
-    def _parse_product_of_units(cls, s, loc, toks):
-        if len(toks) == 1:
-            return toks[0]
-        else:
-            return toks[0] * toks[1]
-
-    @classmethod
-    @utils._trace
-    def _parse_division_product_of_units(cls, s, loc, toks):
-        from ..core import Unit
-        return Unit((toks[0] * toks[1]) / toks[2])
-
-    @classmethod
-    @utils._trace
-    def _parse_factor_product_of_units(cls, s, loc, toks):
-        if toks[0] != 1.0:
-            from ..core import Unit
-            return Unit(toks[0] * toks[1])
-        else:
-            return toks[1]
-
-    @classmethod
-    @utils._trace
-    def _parse_unit_with_power(cls, s, loc, toks):
-        if len(toks) == 1:
-            return toks[0]
-        else:
-            return toks[0] ** toks[1]
-
-    @classmethod
-    @utils._trace
-    def _parse_function(cls, s, loc, toks):
-        # TODO: Add support for more functions here
-        if toks[0] == 'sqrt':
-            return toks[1] ** -2.0
-        else:
-            raise p.ParseException(
-                s, loc, "{0!r} is not a recognized function".format(
-                    toks[0]))
-
-    def parse(self, s):
-        if utils.DEBUG:
-            print("parse", s)
-
+    def parse(self, s, debug=False):
         # This is a short circuit for the case where the string
         # is just a single unit name
         try:
-            return self._parse_unit(s, 0, [s])
-        except p.ParseException as e:
+            return self._parse_unit(s)
+        except ValueError as e:
             try:
-                return self._parser.parseString(s, parseAll=True)[0]
-            except p.ParseException as e:
-                raise ValueError("{0} in {1!r}".format(
-                    utils.cleanup_pyparsing_error(e), s))
+                return self._parser.parse(s, lexer=self._lexer, debug=debug)
+            except ValueError as e:
+                if str(e):
+                    raise ValueError("{0} in unit {1!r}".format(
+                        str(e), s))
+                else:
+                    raise ValueError(
+                        "Syntax error parsing unit {0!r}".format(s))
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('generic')
