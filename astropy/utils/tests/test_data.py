@@ -4,7 +4,7 @@ from ...tests.helper import remote_data, raises
 import os
 import io
 
-import pytest
+from ...tests.helper import pytest
 from ..data import _get_download_cache_locs
 
 TESTURL = 'http://www.google.com/index.html'

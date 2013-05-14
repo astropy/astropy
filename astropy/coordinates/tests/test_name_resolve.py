@@ -10,7 +10,7 @@ import urllib,urllib2
 
 # Third party
 import numpy as np
-import pytest
+from ...tests.helper import pytest
 
 # Astropy
 from ..name_resolve import get_icrs_coordinates, NameResolveError, \
