@@ -78,13 +78,14 @@ class _TableLikeHDU(_ValidHDU):
         # specifically in the BinTableHDU class, since they're a detail
         # specific to FITS binary tables
         if (_FormatP in [type(r) for r in recformats] and
-            self._datSpan > self._theap):
+                self._data_size > self._theap):
             # We have a heap; include it in the raw_data
-            raw_data = self._get_raw_data(self._datSpan, np.byte, self._datLoc)
+            raw_data = self._get_raw_data(self._data_size, np.byte,
+                                          self._data_offset)
             data = raw_data[:self._theap].view(dtype=dtype,
                                                type=np.rec.recarray)
         else:
-            raw_data = self._get_raw_data(columns._shape, dtype, self._datLoc)
+            raw_data = self._get_raw_data(columns._shape, dtype, self._data_offset)
             data = raw_data.view(np.rec.recarray)
 
         self._init_tbdata(data)
@@ -96,7 +97,8 @@ class _TableLikeHDU(_ValidHDU):
         data.dtype = data.dtype.newbyteorder('>')
 
         # pass datLoc, for P format
-        data._heapoffset = self._theap + self._datLoc
+        data._heapoffset = self._theap
+        data._heapsize = self._header['PCOUNT']
         data._file = self._file
         data._buffer = self._buffer
         tbsize = self._header['NAXIS1'] * self._header['NAXIS2']
@@ -239,15 +241,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     def _theap(self):
         size = self._header['NAXIS1'] * self._header['NAXIS2']
         return self._header.get('THEAP', size)
-
-    @deprecated('3.0', alternative='the `~astropy.io.fits.FITS_rec.columns` '
-                                   'attribute')
-    def get_coldefs(self):
-        """
-        Returns the table's column definitions.
-        """
-
-        return self.columns
 
     # TODO: Need to either rename this to update_header, for symmetry with the
     # Image HDUs, or just at some point deprecate it and remove it altogether,
@@ -393,7 +386,7 @@ class TableHDU(_TableBaseHDU):
     def __init__(self, data=None, header=None, name=None):
         super(TableHDU, self).__init__(data, header, name=name)
         if (self._data_loaded and self.data is not None and
-            not isinstance(self.data._coldefs, _ASCIIColDefs)):
+                not isinstance(self.data._coldefs, _ASCIIColDefs)):
             self.data._coldefs = _ASCIIColDefs(self.data._coldefs)
 
     @classmethod
@@ -425,11 +418,11 @@ class TableHDU(_TableBaseHDU):
             if idx == len(columns) - 1:
                 # The last column is padded out to the value of NAXIS1
                 if self._header['NAXIS1'] > itemsize:
-                    data_type = 'S' + str(columns.spans[idx] + \
+                    data_type = 'S' + str(columns.spans[idx] +
                                 self._header['NAXIS1'] - itemsize)
             dtype[columns.names[idx]] = (data_type, columns.starts[idx] - 1)
 
-        raw_data = self._get_raw_data(columns._shape, dtype, self._datLoc)
+        raw_data = self._get_raw_data(columns._shape, dtype, self._data_offset)
         data = raw_data.view(np.rec.recarray)
         self._init_tbdata(data)
         return data.view(self._data_type)
@@ -574,7 +567,7 @@ class BinTableHDU(_TableBaseHDU):
                         for jdx, c in enumerate(coldata):
                             if (not isinstance(c, chararray.chararray) and
                                 c.itemsize > 1 and
-                                c.dtype.str[0] in swap_types):
+                                    c.dtype.str[0] in swap_types):
                                 to_swap.append(c)
 
                 while to_swap:
@@ -1226,7 +1219,7 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
                         field[:n] = arr[:n]
                     else:
                         hdu.data._convert[idx] = \
-                                np.zeros(nrows, dtype=arr.dtype)
+                            np.zeros(nrows, dtype=arr.dtype)
                         if scale or zero:
                             arr = arr.copy()
                         if scale:
@@ -1235,7 +1228,29 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
                             arr += bzero
                         hdu.data._convert[idx][:n] = arr[:n]
                 else:
-                    field[:n] = arr[:n]
+                    outarr = field[:n]
+                    inarr = arr[:n]
+                    if inarr.shape != outarr.shape:
+                        if inarr.dtype != outarr.dtype:
+                            inarr = inarr.view(outarr.dtype)
+
+                        # This is a special case to handle input arrays with
+                        # non-trivial TDIMn.
+                        # By design each row of the outarray is 1-D, while each
+                        # row of the input array may be n-D
+                        if outarr.ndim > 1:
+                            # The normal case where the first dimension is the
+                            # rows
+                            inarr_rowsize = inarr[0].size
+                            inarr = inarr.reshape((n, inarr_rowsize))
+                            outarr[:, :inarr_rowsize] = inarr
+                        else:
+                            # Special case for strings where the out array only
+                            # has one dimension (the second dimension is rolled
+                            # up into the strings
+                            outarr[:n] = inarr.ravel()
+                    else:
+                        field[:n] = arr[:n]
 
         if n < nrows:
             # If there are additional rows in the new table that were not

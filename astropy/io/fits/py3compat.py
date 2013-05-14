@@ -20,7 +20,7 @@ if PY3:  # pragma: py3
         if isinstance(s, str):
             return s.encode('ascii')
         elif isinstance(s, numpy.ndarray) and \
-             issubclass(s.dtype.type, numpy.str_):
+                issubclass(s.dtype.type, numpy.str_):
             ns = numpy.char.encode(s, 'ascii').view(type(s))
             if ns.dtype.itemsize != s.dtype.itemsize / 4:
                 ns = ns.astype((numpy.bytes_, s.dtype.itemsize / 4))
@@ -165,12 +165,12 @@ if PY3:  # pragma: py3
 
             if 'order' in _recarray.__new__.__code__.co_varnames:
                 return _recarray.__new__(
-                        subtype, shape, dtype, buf, offset, strides, formats,
-                        names, titles, byteorder, aligned, order)
+                    subtype, shape, dtype, buf, offset, strides, formats,
+                    names, titles, byteorder, aligned, order)
             else:
                 return _recarray.__new__(
-                        subtype, shape, dtype, buf, offset, strides, formats,
-                        names, titles, byteorder, aligned)
+                    subtype, shape, dtype, buf, offset, strides, formats,
+                    names, titles, byteorder, aligned)
     numpy.recarray = numpy.core.records.recarray = recarray
 
     # We also need to patch astropy.io.fits.file._File which can also be

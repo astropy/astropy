@@ -433,7 +433,7 @@ class HDUList(list, _Verify):
                 # You passed a Primary HDU but we need an Extension HDU
                 # so create an Extension HDU from the input Primary HDU.
                 # TODO: This isn't necessarily sufficient to copy the HDU;
-                # _hdrLoc and friends need to be copied too.
+                # _header_offset and friends need to be copied too.
                 hdu = ImageHDU(hdu.data, hdu.header)
         else:
             if not isinstance(hdu, (PrimaryHDU, _NonstandardHDU)):
@@ -814,7 +814,7 @@ class HDUList(list, _Verify):
                         if not data:
                             break
                         hdu = _BaseHDU.fromstring(data)
-                        data = data[hdu._datLoc + hdu._datSpan:]
+                        data = data[hdu._data_offset + hdu._data_size:]
                     hdulist.append(hdu)
                     hdu._new = False
                     if 'checksum' in kwargs:
@@ -1043,7 +1043,7 @@ class HDUList(list, _Verify):
             for hdu in self:
                 # Header:
                 nbytes = len(str(hdu._header))
-                if nbytes != (hdu._datLoc - hdu._hdrLoc):
+                if nbytes != (hdu._data_offset - hdu._header_offset):
                     self._resize = True
                     self._truncate = False
                     if verbose:
@@ -1056,7 +1056,7 @@ class HDUList(list, _Verify):
 
                 nbytes = hdu.size
                 nbytes = nbytes + _pad_length(nbytes)
-                if nbytes != hdu._datSpan:
+                if nbytes != hdu._data_size:
                     self._resize = True
                     self._truncate = False
                     if verbose:
@@ -1065,7 +1065,7 @@ class HDUList(list, _Verify):
 
             if self._truncate:
                 try:
-                    self.__file.truncate(hdu._datLoc + hdu._datSpan)
+                    self.__file.truncate(hdu._data_offset + hdu._data_size)
                 except IOError:
                     self._resize = True
                 self._truncate = False

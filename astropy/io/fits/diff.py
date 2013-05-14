@@ -230,13 +230,21 @@ class FITSDiff(_BaseDiff):
         """
 
         if isinstance(a, basestring):
-            a = fitsopen(a)
+            try:
+                a = fitsopen(a)
+            except Exception as e:
+                raise IOError("error opening file a (%s): %s: %s" %
+                              (a, e.__class.__name__, e.args[0]))
             close_a = True
         else:
             close_a = False
 
         if isinstance(b, basestring):
-            b = fitsopen(b)
+            try:
+                b = fitsopen(b)
+            except Exception as e:
+                raise IOError("error opening file b (%s): %s: %s" %
+                              (b, e.__class.__name__, e.args[0]))
             close_b = True
         else:
             close_b = False
@@ -699,6 +707,8 @@ class HeaderDiff(_BaseDiff):
 # different pixels: For example ignore if only 1% of the pixels are different
 # within some threshold.  There are lots of possibilities here, but hold off
 # for now until specific cases come up.
+
+
 class ImageDataDiff(_BaseDiff):
     """
     Diff two image data arrays (really any array from a PRIMARY HDU or an IMAGE
@@ -1063,7 +1073,7 @@ class TableDataDiff(_BaseDiff):
             arrb = self.b[col.name]
 
             if (np.issubdtype(arra.dtype, float) and
-                np.issubdtype(arrb.dtype, float)):
+                    np.issubdtype(arrb.dtype, float)):
                 diffs = where_not_allclose(arra, arrb, atol=0.0,
                                            rtol=self.tolerance)
             elif 'P' in col.format:

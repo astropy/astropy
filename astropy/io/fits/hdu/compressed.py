@@ -13,10 +13,10 @@ from .image import _ImageBaseHDU, ImageHDU
 from .table import BinTableHDU
 from ..column import Column, ColDefs, _FormatP, _makep
 from ..fitsrec import FITS_rec
-from ..header import Header, BLOCK_SIZE, _pad_length
+from ..header import Header, BLOCK_SIZE
 from ..util import _is_pseudo_unsigned, _unsigned_zero
 
-from ....utils import lazyproperty
+from ....utils import lazyproperty, deprecated
 
 try:
     from .. import compression
@@ -75,7 +75,7 @@ class CompImageHeader(Header):
                             'ZCMPTYPE') and
             keyword[:4] not in ('ZVAL') and
             keyword[:5] not in ('NAXIS', 'TTYPE', 'TFORM', 'ZTILE', 'ZNAME')
-            and keyword[:6] not in ('ZNAXIS')):
+                and keyword[:6] not in ('ZNAXIS')):
             self._table_header.set(keyword, value, comment, before, after)
 
     def add_history(self, value, before=None, after=None):
@@ -96,12 +96,19 @@ class CompImageHDU(BinTableHDU):
     Compressed Image HDU class.
     """
 
+    # Maps deprecated keyword arguments to __init__ to their new names
+    DEPRECATED_KWARGS = {
+        'compressionType': 'compression_type', 'tileSize': 'tile_size',
+        'hcompScale': 'hcomp_scale', 'hcompSmooth': 'hcomp_smooth',
+        'quantizeLevel': 'quantize_level'
+    }
+
     def __init__(self, data=None, header=None, name=None,
-                 compressionType=DEFAULT_COMPRESSION_TYPE,
-                 tileSize=None,
-                 hcompScale=DEFAULT_HCOMP_SCALE,
-                 hcompSmooth=DEFAULT_HCOMP_SMOOTH,
-                 quantizeLevel=DEFAULT_QUANTIZE_LEVEL,
+                 compression_type=DEFAULT_COMPRESSION_TYPE,
+                 tile_size=None,
+                 hcomp_scale=DEFAULT_HCOMP_SCALE,
+                 hcomp_smooth=DEFAULT_HCOMP_SMOOTH,
+                 quantize_level=DEFAULT_QUANTIZE_LEVEL,
                  do_not_scale_image_data=False,
                  uint=False, scale_back=False, **kwargs):
         """
@@ -120,20 +127,20 @@ class CompImageHDU(BinTableHDU):
             input image header then the default name ``COMPRESSED_IMAGE`` is
             used.
 
-        compressionType : str, optional
+        compression_type : str, optional
             compression algorithm 'RICE_1', 'PLIO_1', 'GZIP_1', 'HCOMPRESS_1'
 
-        tileSize : int, optional
+        tile_size : int, optional
             compression tile sizes.  Default treats each row of image as a
             tile.
 
-        hcompScale : float, optional
+        hcomp_scale : float, optional
             HCOMPRESS scale parameter
 
-        hcompSmooth : float, optional
+        hcomp_smooth : float, optional
             HCOMPRESS smooth parameter
 
-        quantizeLevel : float, optional
+        quantize_level : float, optional
             floating point quantization level; see note below
 
         Notes
@@ -154,9 +161,8 @@ class CompImageHDU(BinTableHDU):
             2) The `CompImageHDU` class supports the FITS tiled image
                compression convention in which the image is subdivided into a
                grid of rectangular tiles, and each tile of pixels is
-               individually compressed.
-               The details of this FITS compression convention are described at
-               the `FITS Support Office web site
+               individually compressed.  The details of this FITS compression
+               convention are described at the `FITS Support Office web site
                <http://fits.gsfc.nasa.gov/registry/tilecompression.html>`_.
                Basically, the compressed image tiles are stored in rows of a
                variable length arrray column in a FITS binary table.  The
@@ -172,7 +178,7 @@ class CompImageHDU(BinTableHDU):
         designed for data masks with positive integer pixel values.  The 3
         general purpose algorithms are GZIP, Rice, and HCOMPRESS, and the
         special-purpose technique is the IRAF pixel list compression technique
-        (PLIO).  The `compressionType` parameter defines the compression
+        (PLIO).  The `compression_type` parameter defines the compression
         algorithm to be used.
 
         The FITS image can be subdivided into any desired rectangular grid of
@@ -185,35 +191,35 @@ class CompImageHDU(BinTableHDU):
         efficient to compress the whole image as a single tile.  Note that the
         image dimensions are not required to be an integer multiple of the tile
         dimensions; if not, then the tiles at the edges of the image will be
-        smaller than the other tiles.  The `tileSize` parameter may be provided
-        as a list of tile sizes, one for each dimension in the image.  For
-        example a `tileSize` value of ``[100,100]`` would divide a 300 X 300
-        image into 9 100 X 100 tiles.
+        smaller than the other tiles.  The ``tile_size`` parameter may be
+        provided as a list of tile sizes, one for each dimension in the image.
+        For example a ``tile_size`` value of ``[100,100]`` would divide a 300 X
+        300 image into 9 100 X 100 tiles.
 
-        The 4 supported image compression algorithms are all 'loss-less' when
+        The 4 supported image compression algorithms are all 'lossless' when
         applied to integer FITS images; the pixel values are preserved exactly
         with no loss of information during the compression and uncompression
         process.  In addition, the HCOMPRESS algorithm supports a 'lossy'
         compression mode that will produce larger amount of image compression.
-        This is achieved by specifying a non-zero value for the `hcompScale`
+        This is achieved by specifying a non-zero value for the ``hcomp_scale``
         parameter.  Since the amount of compression that is achieved depends
         directly on the RMS noise in the image, it is usually more convenient
-        to specify the `hcompScale` factor relative to the RMS noise.  Setting
-        `hcompScale` = 2.5 means use a scale factor that is 2.5 times the
-        calculated RMS noise in the image tile.  In some cases it may be
-        desirable to specify the exact scaling to be used, instead of
+        to specify the ``hcomp_scale`` factor relative to the RMS noise.
+        Setting ``hcomp_scale = 2.5`` means use a scale factor that is 2.5
+        times the calculated RMS noise in the image tile.  In some cases it may
+        be desirable to specify the exact scaling to be used, instead of
         specifying it relative to the calculated noise value.  This may be done
         by specifying the negative of the desired scale value (typically in the
         range -2 to -100).
 
         Very high compression factors (of 100 or more) can be achieved by using
-        large `hcompScale` values, however, this can produce undesireable
+        large ``hcomp_scale`` values, however, this can produce undesireable
         'blocky' artifacts in the compressed image.  A variation of the
         HCOMPRESS algorithm (called HSCOMPRESS) can be used in this case to
         apply a small amount of smoothing of the image when it is uncompressed
         to help cover up these artifacts.  This smoothing is purely cosmetic
         and does not cause any significant change to the image pixel values.
-        Setting the `hcompSmooth` parameter to 1 will engage the smoothing
+        Setting the ``hcomp_smooth`` parameter to 1 will engage the smoothing
         algorithm.
 
         Floating point FITS images (which have ``BITPIX`` = -32 or -64) usually
@@ -229,16 +235,16 @@ class CompImageHDU(BinTableHDU):
         properly, this integer scaling technique will only discard the
         insignificant noise while still preserving all the real imformation in
         the image.  The amount of precision that is retained in the pixel
-        values is controlled by the `quantizeLevel` parameter.  Larger values
-        will result in compressed images whose pixels more closely match the
-        floating point pixel values, but at the same time the amount of
+        values is controlled by the ``quantize_level`` parameter.  Larger
+        values will result in compressed images whose pixels more closely match
+        the floating point pixel values, but at the same time the amount of
         compression that is achieved will be reduced.  Users should experiment
         with different values for this parameter to determine the optimal value
         that preserves all the useful information in the image, without
         needlessly preserving all the 'noise' which will hurt the compression
         efficiency.
 
-        The default value for the `quantizeLevel` scale factor is 16, which
+        The default value for the ``quantize_level`` scale factor is 16, which
         means that scaled integer pixel values will be quantized such that the
         difference between adjacent integer values will be 1/16th of the noise
         level in the image background.  An optimized algorithm is used to
@@ -251,10 +257,11 @@ class CompImageHDU(BinTableHDU):
         the exact quantization level to be used, instead of specifying it
         relative to the calculated noise value.  This may be done by specifying
         the negative of desired quantization level for the value of
-        `quantizeLevel`.  In the previous example, one could specify
-        `quantizeLevel`=-2.0 so that the quantized integer levels differ by
-        2.0.  Larger negative values for `quantizeLevel` means that the levels
-        are more coarsely-spaced, and will produce higher compression factors.
+        ``quantize_level``.  In the previous example, one could specify
+        ``quantize_level = -2.0`` so that the quantized integer levels differ
+        by 2.0.  Larger negative values for ``quantize_level`` means that the
+        levels are more coarsely-spaced, and will produce higher compression
+        factors.
         """
 
         if not COMPRESSION_SUPPORTED:
@@ -262,6 +269,19 @@ class CompImageHDU(BinTableHDU):
             raise Exception('The astropy.io.fits.compression module is not '
                             'available.  Creation of compressed image HDUs is '
                             'disabled.')
+
+        # Handle deprecated keyword arguments
+        compression_opts = {}
+        for oldarg, newarg in self.DEPRECATED_KWARGS.items():
+            if oldarg in kwargs:
+                warnings.warn('Keyword argument %s to %s is pending '
+                              'deprecation; use %s instead' %
+                              (oldarg, self.__class__.__name__, newarg),
+                              PendingDeprecationWarning)
+                compression_opts[newarg] = kwargs[oldarg]
+                del kwargs[oldarg]
+            else:
+                compression_opts[newarg] = locals()[newarg]
 
         if data is DELAYED:
             # Reading the HDU from a file
@@ -280,8 +300,7 @@ class CompImageHDU(BinTableHDU):
             # image header (if any) and ensure it matches the input
             # data; Create the initially empty table data array to
             # hold the compressed data.
-            self.updateHeaderData(header, name, compressionType, tileSize,
-                                  hcompScale, hcompSmooth, quantizeLevel)
+            self._update_header_data(header, name, **compression_opts)
 
         # TODO: A lot of this should be passed on to an internal image HDU o
         # something like that, see ticket #88
@@ -332,13 +351,13 @@ class CompImageHDU(BinTableHDU):
             # Compression is supported but disabled; just pass silently (#92)
             return False
 
-    def updateHeaderData(self, image_header,
-                         name=None,
-                         compressionType=None,
-                         tileSize=None,
-                         hcompScale=None,
-                         hcompSmooth=None,
-                         quantizeLevel=None):
+    def _update_header_data(self, image_header,
+                            name=None,
+                            compression_type=None,
+                            tile_size=None,
+                            hcomp_scale=None,
+                            hcomp_smooth=None,
+                            quantize_level=None):
         """
         Update the table header (`_header`) to the compressed
         image format and to match the input data (if any).  Create
@@ -361,25 +380,25 @@ class CompImageHDU(BinTableHDU):
             the input image header will be used; if there is no name in the
             input image header then the default name 'COMPRESSED_IMAGE' is used
 
-        compressionType : str, optional
+        compression_type : str, optional
             compression algorithm 'RICE_1', 'PLIO_1', 'GZIP_1', 'HCOMPRESS_1';
             if this value is `None`, use value already in the header; if no
             value already in the header, use 'RICE_1'
 
-        tileSize : sequence of int, optional
+        tile_size : sequence of int, optional
             compression tile sizes as a list; if this value is `None`, use
             value already in the header; if no value already in the header,
             treat each row of image as a tile
 
-        hcompScale : float, optional
+        hcomp_scale : float, optional
             HCOMPRESS scale parameter; if this value is `None`, use the value
             already in the header; if no value already in the header, use 1
 
-        hcompSmooth : float, optional
+        hcomp_smooth : float, optional
             HCOMPRESS smooth parameter; if this value is `None`, use the value
             already in the header; if no value already in the header, use 0
 
-        quantizeLevel : float, optional
+        quantize_level : float, optional
             floating point quantization level; if this value is `None`, use the
             value already in the header; if no value already in header, use 16
         """
@@ -403,18 +422,18 @@ class CompImageHDU(BinTableHDU):
 
         # Set the compression type in the table header.
 
-        if compressionType:
-            if compressionType not in ['RICE_1', 'GZIP_1', 'PLIO_1',
-                                       'HCOMPRESS_1']:
+        if compression_type:
+            if compression_type not in ['RICE_1', 'GZIP_1', 'PLIO_1',
+                                        'HCOMPRESS_1']:
                 warnings.warn('Unknown compression type provided.  Default '
                               '(%s) compression used.' %
                               DEFAULT_COMPRESSION_TYPE)
-                compressionType = DEFAULT_COMPRESSION_TYPE
+                compression_type = DEFAULT_COMPRESSION_TYPE
 
-            self._header.set('ZCMPTYPE', compressionType,
+            self._header.set('ZCMPTYPE', compression_type,
                              'compression algorithm', after='TFIELDS')
         else:
-            compressionType = self._header.get('ZCMPTYPE', 'RICE_1')
+            compression_type = self._header.get('ZCMPTYPE', 'RICE_1')
 
         # If the input image header had BSCALE/BZERO cards, then insert
         # them in the table header.
@@ -445,7 +464,7 @@ class CompImageHDU(BinTableHDU):
         # Set the data format for the first column.  It is dependent
         # on the requested compression type.
 
-        if compressionType == 'PLIO_1':
+        if compression_type == 'PLIO_1':
             tform1 = '1PI'
         else:
             tform1 = '1PB'
@@ -461,7 +480,7 @@ class CompImageHDU(BinTableHDU):
         # Create the additional columns required for floating point
         # data and calculate the width of the output table.
 
-        if self._image_header['BITPIX'] < 0 and quantizeLevel != 0.0:
+        if self._image_header['BITPIX'] < 0 and quantize_level != 0.0:
             # floating point image has 'COMPRESSED_DATA',
             # 'UNCOMPRESSED_DATA', 'ZSCALE', and 'ZZERO' columns (unless using
             # lossless compression, per CFITSIO)
@@ -569,41 +588,41 @@ class CompImageHDU(BinTableHDU):
 
         naxis = self._image_header['NAXIS']
 
-        if not tileSize:
-            tileSize = []
-        elif len(tileSize) != naxis:
+        if not tile_size:
+            tile_size = []
+        elif len(tile_size) != naxis:
             warnings.warn('Provided tile size not appropriate for the data.  '
                           'Default tile size will be used.')
-            tileSize = []
+            tile_size = []
 
         # Set default tile dimensions for HCOMPRESS_1
 
-        if compressionType == 'HCOMPRESS_1':
+        if compression_type == 'HCOMPRESS_1':
             if (self._image_header['NAXIS1'] < 4 or
-                self._image_header['NAXIS2'] < 4):
+                    self._image_header['NAXIS2'] < 4):
                 raise ValueError('Hcompress minimum image dimension is '
                                  '4 pixels')
-            elif tileSize:
-                if tileSize[0] < 4 or tileSize[1] < 4:
+            elif tile_size:
+                if tile_size[0] < 4 or tile_size[1] < 4:
                     # user specified tile size is too small
                     raise ValueError('Hcompress minimum tile dimension is '
                                      '4 pixels')
-                major_dims = len(filter(lambda x: x > 1, tileSize))
+                major_dims = len(filter(lambda x: x > 1, tile_size))
                 if major_dims > 2:
                     raise ValueError(
                         'HCOMPRESS can only support 2-dimensional tile sizes.'
-                        'All but two of the tileSize dimensions must be set '
+                        'All but two of the tile_size dimensions must be set '
                         'to 1.')
 
-            if tileSize and (tileSize[0] == 0 and tileSize[1] == 0):
-                #compress the whole image as a single tile
-                tileSize[0] = self._image_header['NAXIS1']
-                tileSize[1] = self._image_header['NAXIS2']
+            if tile_size and (tile_size[0] == 0 and tile_size[1] == 0):
+                # compress the whole image as a single tile
+                tile_size[0] = self._image_header['NAXIS1']
+                tile_size[1] = self._image_header['NAXIS2']
 
                 for i in range(2, naxis):
                     # set all higher tile dimensions = 1
-                    tileSize[i] = 1
-            elif not tileSize:
+                    tile_size[i] = 1
+            elif not tile_size:
                 # The Hcompress algorithm is inherently 2D in nature, so the
                 # row by row tiling that is used for other compression
                 # algorithms is not appropriate.  If the image has less than 30
@@ -617,44 +636,44 @@ class CompImageHDU(BinTableHDU):
                 # least 4 rows.
 
                 # 1st tile dimension is the row length of the image
-                tileSize.append(self._image_header['NAXIS1'])
+                tile_size.append(self._image_header['NAXIS1'])
 
                 if self._image_header['NAXIS2'] <= 30:
-                    tileSize.append(self._image_header['NAXIS1'])
+                    tile_size.append(self._image_header['NAXIS1'])
                 else:
                     # look for another good tile dimension
                     naxis2 = self._image_header['NAXIS2']
                     for dim in [16, 24, 20, 30, 28, 26, 22, 18, 14]:
                         if naxis2 % dim == 0 or naxis2 % dim > 3:
-                            tileSize.append(dim)
+                            tile_size.append(dim)
                             break
                     else:
-                        tileSize.append(17)
+                        tile_size.append(17)
 
                 for i in range(2, naxis):
                     # set all higher tile dimensions = 1
-                    tileSize.append(1)
+                    tile_size.append(1)
 
             # check if requested tile size causes the last tile to have
             # less than 4 pixels
 
-            remain = self._image_header['NAXIS1'] % tileSize[0]  # 1st dimen
+            remain = self._image_header['NAXIS1'] % tile_size[0]  # 1st dimen
 
             if remain > 0 and remain < 4:
-                tileSize[0] += 1  # try increasing tile size by 1
+                tile_size[0] += 1  # try increasing tile size by 1
 
-                remain = self._image_header['NAXIS1'] % tileSize[0]
+                remain = self._image_header['NAXIS1'] % tile_size[0]
 
                 if remain > 0 and remain < 4:
                     raise ValueError('Last tile along 1st dimension has '
                                      'less than 4 pixels')
 
-            remain = self._image_header['NAXIS2'] % tileSize[1]  # 2nd dimen
+            remain = self._image_header['NAXIS2'] % tile_size[1]  # 2nd dimen
 
             if remain > 0 and remain < 4:
-                tileSize[1] += 1  # try increasing tile size by 1
+                tile_size[1] += 1  # try increasing tile size by 1
 
-                remain = self._image_header['NAXIS2'] % tileSize[1]
+                remain = self._image_header['NAXIS2'] % tile_size[1]
 
                 if remain > 0 and remain < 4:
                     raise ValueError('Last tile along 2nd dimension has '
@@ -677,8 +696,8 @@ class CompImageHDU(BinTableHDU):
             znaxis = 'ZNAXIS' + str(idx + 1)
             ztile = 'ZTILE' + str(idx + 1)
 
-            if tileSize and len(tileSize) >= idx + 1:
-                ts = tileSize[idx]
+            if tile_size and len(tile_size) >= idx + 1:
+                ts = tile_size[idx]
             else:
                 if not ztile in self._header:
                     # Default tile size
@@ -688,7 +707,7 @@ class CompImageHDU(BinTableHDU):
                         ts = 1
                 else:
                     ts = self._header[ztile]
-                tileSize.append(ts)
+                tile_size.append(ts)
 
             nrows = nrows * ((axis - 1) // ts + 1)
 
@@ -725,24 +744,24 @@ class CompImageHDU(BinTableHDU):
                 break
             zval = 'ZVAL' + str(idx)
             if self._header[zname] == 'NOISEBIT':
-                if quantizeLevel is None:
-                    quantizeLevel = self._header[zval]
+                if quantize_level is None:
+                    quantize_level = self._header[zval]
             if self._header[zname] == 'SCALE   ':
-                if hcompScale is None:
-                    hcompScale = self._header[zval]
+                if hcomp_scale is None:
+                    hcomp_scale = self._header[zval]
             if self._header[zname] == 'SMOOTH  ':
-                if hcompSmooth is None:
-                    hcompSmooth = self._header[zval]
+                if hcomp_smooth is None:
+                    hcomp_smooth = self._header[zval]
             idx += 1
 
-        if quantizeLevel is None:
-            quantizeLevel = DEFAULT_QUANTIZE_LEVEL
+        if quantize_level is None:
+            quantize_level = DEFAULT_QUANTIZE_LEVEL
 
-        if hcompScale is None:
-            hcompScale = DEFAULT_HCOMP_SCALE
+        if hcomp_scale is None:
+            hcomp_scale = DEFAULT_HCOMP_SCALE
 
-        if hcompSmooth is None:
-            hcompSmooth = DEFAULT_HCOMP_SCALE
+        if hcomp_smooth is None:
+            hcomp_smooth = DEFAULT_HCOMP_SCALE
 
         # Next, strip the table header of all the ZNAMEn and ZVALn keywords
         # that may be left over from the previous data
@@ -764,7 +783,7 @@ class CompImageHDU(BinTableHDU):
         afterCard = 'ZCMPTYPE'
         idx = 1
 
-        if compressionType == 'RICE_1':
+        if compression_type == 'RICE_1':
             self._header.set('ZNAME1', 'BLOCKSIZE', 'compression block size',
                              after=afterCard)
             self._header.set('ZVAL1', DEFAULT_BLOCK_SIZE, 'pixels per block',
@@ -785,14 +804,14 @@ class CompImageHDU(BinTableHDU):
                              after='ZNAME2')
             afterCard = 'ZVAL2'
             idx = 3
-        elif compressionType == 'HCOMPRESS_1':
+        elif compression_type == 'HCOMPRESS_1':
             self._header.set('ZNAME1', 'SCALE', 'HCOMPRESS scale factor',
                              after=afterCard)
-            self._header.set('ZVAL1', hcompScale, 'HCOMPRESS scale factor',
+            self._header.set('ZVAL1', hcomp_scale, 'HCOMPRESS scale factor',
                              after='ZNAME1')
             self._header.set('ZNAME2', 'SMOOTH', 'HCOMPRESS smooth option',
                              after='ZVAL1')
-            self._header.set('ZVAL2', hcompSmooth, 'HCOMPRESS smooth option',
+            self._header.set('ZVAL2', hcomp_smooth, 'HCOMPRESS smooth option',
                              after='ZNAME2')
             afterCard = 'ZVAL2'
             idx = 3
@@ -801,7 +820,7 @@ class CompImageHDU(BinTableHDU):
             self._header.set('ZNAME' + str(idx), 'NOISEBIT',
                              'floating point quantization level',
                              after=afterCard)
-            self._header.set('ZVAL' + str(idx), quantizeLevel,
+            self._header.set('ZVAL' + str(idx), quantize_level,
                              'floating point quantization level',
                              after='ZNAME' + str(idx))
 
@@ -904,6 +923,21 @@ class CompImageHDU(BinTableHDU):
             for _ in range(required_blanks - table_blanks):
                 self._header.append()
 
+    @deprecated('3.2', alternative='(refactor your code)', pending=True)
+    def updateHeaderData(self, image_header,
+                         name=None,
+                         compressionType=None,
+                         tileSize=None,
+                         hcompScale=None,
+                         hcompSmooth=None,
+                         quantizeLevel=None):
+        self._update_header_data(image_header, name=name,
+                                 compression_type=compressionType,
+                                 tile_size=tileSize,
+                                 hcomp_scale=hcompScale,
+                                 hcomp_smooth=hcompSmooth,
+                                 quantize_level=quantizeLevel)
+
     @lazyproperty
     def data(self):
         # The data attribute is the image data (not the table data).
@@ -916,8 +950,8 @@ class CompImageHDU(BinTableHDU):
 
             zblank = None
 
-            if 'ZBLANK' in self.compData.columns.names:
-                zblank = self.compData['ZBLANK']
+            if 'ZBLANK' in self.compressed_data.columns.names:
+                zblank = self.compressed_data['ZBLANK']
             else:
                 if 'ZBLANK' in self._header:
                     zblank = np.array(self._header['ZBLANK'], dtype='int32')
@@ -943,26 +977,32 @@ class CompImageHDU(BinTableHDU):
     @data.setter
     def data(self, data):
         if (data is not None) and (not isinstance(data, np.ndarray) or
-             data.dtype.fields is not None):
+           data.dtype.fields is not None):
                 raise TypeError('CompImageHDU data has incorrect type:%s; '
                                 'dtype.fields = %s' %
                                 (type(data), data.dtype.fields))
 
     @lazyproperty
-    def compData(self):
+    def compressed_data(self):
         # First we will get the table data (the compressed
         # data) from the file, if there is any.
-        compData = super(BinTableHDU, self).data
-        if isinstance(compData, np.rec.recarray):
+        compressed_data = super(BinTableHDU, self).data
+        if isinstance(compressed_data, np.rec.recarray):
             del self.data
-            return compData
+            return compressed_data
         else:
-            # This will actually set self.compData with the pre-allocated space
-            # for the compression data; this is something I might do away with
-            # in the future
-            self.updateCompressedData()
+            # This will actually set self.compressed_data with the
+            # pre-allocated space for the compression data; this is something I
+            # might do away with in the future
+            self._update_compressed_data()
 
-        return self.compData
+        return self.compressed_data
+
+    @lazyproperty
+    @deprecated('3.2', alternative='the `.compressed_data attribute`',
+                pending=True)
+    def compData(self):
+        return self.compressed_data
 
     @property
     def shape(self):
@@ -1154,7 +1194,7 @@ class CompImageHDU(BinTableHDU):
         # is the default value of COMPRESSED_IMAGE.
 
         if ('EXTNAME' in self._header and
-            self._header['EXTNAME'] == 'COMPRESSED_IMAGE'):
+                self._header['EXTNAME'] == 'COMPRESSED_IMAGE'):
             del self._image_header['EXTNAME']
 
         # Look to see if there are any blank cards in the table
@@ -1201,7 +1241,7 @@ class CompImageHDU(BinTableHDU):
         return (self.name, class_name, len(self.header), _shape,
                 _format)
 
-    def updateCompressedData(self):
+    def _update_compressed_data(self):
         """
         Compress the image data so that it may be written to a file.
         """
@@ -1210,11 +1250,11 @@ class CompImageHDU(BinTableHDU):
         image_bitpix = _ImageBaseHDU.ImgCode[self.data.dtype.name]
 
         if (self.header.get('NAXIS', 0) != len(self.data.shape) or
-            self.header.get('BITPIX', 0) != image_bitpix or
-            self._header.get('ZNAXIS', 0) != len(self.data.shape) or
-            self._header.get('ZBITPIX', 0) != image_bitpix or
-            self.shape != self.data.shape):
-            self.updateHeaderData(self.header)
+                self.header.get('BITPIX', 0) != image_bitpix or
+                self._header.get('ZNAXIS', 0) != len(self.data.shape) or
+                self._header.get('ZBITPIX', 0) != image_bitpix or
+                self.shape != self.data.shape):
+            self._update_header_data(self.header)
 
         # TODO: This is copied right out of _ImageBaseHDU._writedata_internal;
         # it would be cool if we could use an internal ImageHDU and use that to
@@ -1245,10 +1285,10 @@ class CompImageHDU(BinTableHDU):
             # Compress the data.
             # The current implementation of compress_hdu assumes the empty
             # compressed data table has already been initialized in
-            # self.compData, and writes directly to it
+            # self.compressed_data, and writes directly to it
             # compress_hdu returns the size of the heap for the written
             # compressed image table
-            heapsize, self.compData = compression.compress_hdu(self)
+            heapsize, self.compressed_data = compression.compress_hdu(self)
         finally:
             # if data was byteswapped return it to its original order
             if should_swap:
@@ -1258,57 +1298,63 @@ class CompImageHDU(BinTableHDU):
         # Chances are not all the space allocated for the compressed data was
         # needed.  If not, go ahead and truncate the array:
         dataspan = tbsize + heapsize
-        if len(self.compData) > dataspan:
-            if self.compData.flags.owndata:
-                self.compData.resize(dataspan)
+        if len(self.compressed_data) > dataspan:
+            if self.compressed_data.flags.owndata:
+                self.compressed_data.resize(dataspan)
             else:
                 # Need to copy to a new array; this generally shouldn't happen
                 # at all though there are some contrived cases (such as in one
                 # of the regression tests) where it can happen.
-                self.compData = np.resize(self.compData, (dataspan,))
+                self.compressed_data = np.resize(self.compressed_data,
+                                                 (dataspan,))
 
         dtype = np.rec.format_parser(','.join(self.columns._recformats),
                                      self.columns.names, None).dtype
         # CFITSIO will write the compressed data in big-endian order
         dtype = dtype.newbyteorder('>')
-        buf = self.compData
-        compData = buf[:self._theap].view(dtype=dtype, type=np.rec.recarray)
-        self.compData = compData.view(FITS_rec)
-        self.compData._coldefs = self.columns
-        self.compData._heapoffset = self._theap
-        self.compData._heapsize = heapsize
-        self.compData._buffer = buf
-        self.compData.formats = self.columns.formats
+        buf = self.compressed_data
+        compressed_data = buf[:self._theap].view(dtype=dtype,
+                                                 type=np.rec.recarray)
+        self.compressed_data = compressed_data.view(FITS_rec)
+        self.compressed_data._coldefs = self.columns
+        self.compressed_data._heapoffset = self._theap
+        self.compressed_data._heapsize = heapsize
+        self.compressed_data._buffer = buf
+        self.compressed_data.formats = self.columns.formats
 
         # Update the table header cards to match the compressed data.
-        self.updateHeader()
+        self._update_header()
 
-    def updateHeader(self):
+    @deprecated('3.2', alternative='(refactor your code)', pending=True)
+    def updateCompressedData(self):
+        self._update_compressed_data()
+
+    def _update_header(self):
         """
         Update the table header cards to match the compressed data.
         """
 
         # Get the _heapsize attribute to match the data.
-        self.compData._scale_back()
+        self.compressed_data._scale_back()
 
         # Check that TFIELDS and NAXIS2 match the data.
-        self._header['TFIELDS'] = self.compData._nfields
-        self._header['NAXIS2'] = self.compData.shape[0]
+        self._header['TFIELDS'] = self.compressed_data._nfields
+        self._header['NAXIS2'] = self.compressed_data.shape[0]
 
         # Calculate PCOUNT, for variable length tables.
         _tbsize = self._header['NAXIS1'] * self._header['NAXIS2']
         _heapstart = self._header.get('THEAP', _tbsize)
-        self.compData._gap = _heapstart - _tbsize
-        _pcount = self.compData._heapsize + self.compData._gap
+        self.compressed_data._gap = _heapstart - _tbsize
+        _pcount = self.compressed_data._heapsize + self.compressed_data._gap
 
         if _pcount > 0:
             self._header['PCOUNT'] = _pcount
 
         # Update TFORM for variable length columns.
-        for idx in range(self.compData._nfields):
-            format = self.compData._coldefs._recformats[idx]
+        for idx in range(self.compressed_data._nfields):
+            format = self.compressed_data._coldefs._recformats[idx]
             if isinstance(format, _FormatP):
-                _max = self.compData.field(idx).max
+                _max = self.compressed_data.field(idx).max
                 format = _FormatP(format.dtype, repeat=format.repeat, max=_max)
                 self._header['TFORM' + str(idx + 1)] = format.tform
         # Insure that for RICE_1 that the BLOCKSIZE and BYTEPIX cards
@@ -1333,6 +1379,10 @@ class CompImageHDU(BinTableHDU):
             self._header.set('ZVAL2', bytepix,
                              'bytes per pixel (1, 2, 4, or 8)',
                              after='ZNAME2')
+
+    @deprecated('3.2', alternative='(refactor your code)', pending=True)
+    def updateHeader(self):
+        self._update_header()
 
     def scale(self, type=None, option='old', bscale=1, bzero=0):
         """
@@ -1434,7 +1484,7 @@ class CompImageHDU(BinTableHDU):
         self.header['BITPIX'] = self._bitpix
 
         # Update the table header to match the scaled data
-        self.updateHeaderData(self.header)
+        self._update_header_data(self.header)
 
         # Since the image has been manually scaled, the current
         # bitpix/bzero/bscale now serve as the 'original' scaling of the image,
@@ -1449,7 +1499,7 @@ class CompImageHDU(BinTableHDU):
         if self._scale_back:
             self.scale(_ImageBaseHDU.NumCode[self._orig_bitpix])
         if self._data_loaded and self.data is not None:
-            self.updateCompressedData()
+            self._update_compressed_data()
         # Doesn't call the super's _prewriteto, since it calls
         # self.data._scale_back(), which is meaningless here.
         return ExtensionHDU._prewriteto(self, checksum=checksum,
@@ -1477,13 +1527,13 @@ class CompImageHDU(BinTableHDU):
             imagedata = self.data
             # TODO: Ick; have to assign to __dict__ to bypass _setdata; need to
             # find a way to fix this
-            self.__dict__['data'] = self.compData
-            #self.data = self.compData
+            self.__dict__['data'] = self.compressed_data
+            # self.data = self.compressed_data
             try:
                 size += self._binary_table_byte_swap(fileobj)
             finally:
                 self.data = imagedata
-            size += self.compData.size * self.compData.itemsize
+            size += self.compressed_data.size * self.compressed_data.itemsize
 
         return size
 
@@ -1513,7 +1563,7 @@ class CompImageHDU(BinTableHDU):
 
     def _update_header_scale_info(self, dtype=None):
         if (not self._do_not_scale_image_data and
-            not (self._orig_bzero == 0 and self._orig_bscale == 1)):
+                not (self._orig_bzero == 0 and self._orig_bscale == 1)):
             for keyword in ['BSCALE', 'BZERO']:
                 # Make sure to delete from both the image header and the table
                 # header; later this will be streamlined
@@ -1543,7 +1593,7 @@ class CompImageHDU(BinTableHDU):
 
         if self._data_loaded and self.data is not None:
             # We have the data to be used.
-            return self._calculate_datasum_from_data(self.compData,
+            return self._calculate_datasum_from_data(self.compressed_data,
                                                      blocking)
         else:
             # This is the case where the data has not been read from the

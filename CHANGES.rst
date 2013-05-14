@@ -1,6 +1,9 @@
 0.3 (unreleased)
 ----------------
 
+New Features
+^^^^^^^^^^^^
+
 - `astropy.io.votable`
 
   - The format of the units of a VOTable file can be specified using
@@ -28,6 +31,43 @@
   - Table.read and Table.write now support reading and writing of FITS tables
     via the unified reading/writing interface [#591].
 
+
+API Changes
+^^^^^^^^^^^
+
+- ``astropy.io.fits``
+
+  - The ``updateHeader``, ``updateHeaderData``, and ``updateCompressedData``
+    methods of the ``CompDataHDU`` class are pending deprecation and moved to
+    internal methods.  The operation of these methods depended too much on
+    internal state to be used safely by users; instead they are invoked
+    automatically in the appropriate places when reading/writing compressed
+    image HDUs.
+
+  - The ``CompDataHDU.compData`` attribute is pending deprecation in favor of
+    the clearer and more PEP-8 compatible ``CompDataHDU.compressed_data``.
+
+  - The constructor for ``CompDataHDU`` has been changed to accept new keyword
+    arguments.  The new keyword arguments are essentially the same, but are in
+    underscore_separated format rather than camelCase format.  The old
+    arguments are still pending deprecation.
+
+  - The internal attributes of HDU classes ``_hdrLoc``, ``_datLoc``, and
+    ``_datSpan`` have been replaced with ``_header_offset``, ``_data_offset``,
+    and ``_data_size`` respectively.  The old attribute names are still pending
+    deprecation.  This should only be of interest to advanced users who have
+    created their own HDU subclasses.
+
+  - The following previously deprecated functions and methods have been removed
+    entirely: ``createCard``, ``createCardFromString``, ``upperKey``,
+    ``ColDefs.data``, ``setExtensionNameCaseSensitive``, ``_File.getfile``,
+    ``_TableBaseHDU.get_coldefs``, ``Header.has_key``, ``Header.ascardlist``.
+
+  - Interfaces that were pending deprecation are now fully deprecated.  These
+    include: ``create_card``, ``create_card_from_string``, ``upper_key``,
+    ``Header.get_history``, and ``Header.get_comment``.
+
+
 0.2.2 (unreleased)
 ------------------
 
@@ -41,6 +81,46 @@ Bug Fixes
     espcially on big-endian systems. [#1003]
 
 - ``astropy.io.fits``
+
+  - When an error occurs opening a file in fitsdiff the exception message will
+    now at least mention which file had the error.
+
+  - Fixed a couple cases where creating a new table using TDIMn in some of the
+    columns could cause a crash.
+
+  - Slightly refactored how tables containing variable-length array columns are
+    handled to add two improvements: Fixes an issue where accessing the data
+    after a call to the `astropy.io.fits.getdata` convenience function caused
+    an exception, and allows the VLA data to be read from an existing mmap of
+    the FITS file.
+
+  - Fixed a bug on Python 3 where attempting to open a non-existent file on
+    Python 3 caused a seemingly unrelated traceback.
+
+  - Fixed an issue in the tests that caused some tests to fail if Astropy is
+    installed with read-only permissions.
+
+  - Fixed a bug where instantiating a ``BinTableHDU`` from a numpy array
+    containing boolean fields converted all the values to ``False``.
+
+  - Fixed an issue where passing an array of integers into the constructor of
+    ``Column()`` when the column type is floats of the same byte width caused
+    the column array to become garbled.
+
+  - Fixed inconsistent behavior in creating CONTINUE cards from byte strings
+    versus unicode strings in Python 2--CONTINUE cards can now be created
+    properly from unicode strings (so long as they are convertable to ASCII).
+
+  - Fixed a bug in parsing HIERARCH keywords that do not have a space after the
+    first equals sign (before the value).
+
+  - Prevented extra leading whitespace on HIERARCH keywords from being treated
+    as part of the keyword.
+
+  - Fixed a bug where HIERARCH keywords containing lower-case letters was
+    mistakenly marked as invalid during header validation along with an
+    ancillary issue where the ``Header.index()`` method id not work correctly
+    with HIERARCH keywords containing lower-case letters.
 
   - Fixed an obscure issue that can occur on systems that don't have flush to
     memory-mapped files implemented (namely GNU Hurd). [#968]
