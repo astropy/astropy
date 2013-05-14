@@ -260,6 +260,7 @@ def automodsumm_to_autosummary_lines(fn, app):
 
         #filter out functions-only and classes-only options if present
         oplines = ops.split('\n')
+        toskip = []
         funcsonly = clssonly = False
         for i, ln in reversed(list(enumerate(oplines))):
             if ':functions-only:' in ln:
@@ -267,6 +268,9 @@ def automodsumm_to_autosummary_lines(fn, app):
                 del oplines[i]
             if ':classes-only:' in ln:
                 clssonly = True
+                del oplines[i]
+            if ':skip:' in ln:
+                toskip.extend(_str_list_converter(ln.replace(':skip:', '')))
                 del oplines[i]
         if funcsonly and clssonly:
             msg = ('Defined both functions-only and classes-only options. '
@@ -277,17 +281,15 @@ def automodsumm_to_autosummary_lines(fn, app):
 
         newlines.append(i1 + '.. autosummary::')
         newlines.extend(oplines)
-        if funcsonly:
-            for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
-                if isfunction(obj):
-                    newlines.append(allindent + '~' + fqn)
-        elif clssonly:
-            for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
-                if isclass(obj):
-                    newlines.append(allindent + '~' + fqn)
-        else:
-            for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
-                newlines.append(allindent + '~' + fqn)
+
+        for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
+            if nm in toskip:
+                continue
+            if funcsonly and not isfunction(obj):
+                continue
+            if clssonly and not isclass(obj):
+                continue
+            newlines.append(allindent + '~' + fqn)
 
     return newlines
 
