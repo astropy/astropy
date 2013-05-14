@@ -46,7 +46,7 @@ API Changes
 
 - The internal attributes of HDU classes ``_hdrLoc``, ``_datLoc``, and
   ``_datSpan`` have been replaced with ``_header_offset``, ``_data_offset``,
-  and ``_data_size` respectively.  The old attribute names are still pending
+  and ``_data_size`` respectively.  The old attribute names are still pending
   deprecation.  This should only be of interest to advanced users who have
   created their own HDU subclasses.
 
