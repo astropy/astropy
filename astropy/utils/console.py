@@ -19,7 +19,7 @@ try:
     import signal
     _CAN_RESIZE_TERMINAL = True
 except ImportError:
-    _CAN_RESIZE_TERMNIAL = False
+    _CAN_RESIZE_TERMINAL = False
 
 import numpy as np
 
@@ -27,11 +27,25 @@ try:
     get_ipython()
 except NameError:
     OutStream = None
+    _stdout = sys.stdout
+    _stderr = sys.stderr
 else:
     try:
         from IPython.zmq.iostream import OutStream
+        from IPython.utils import io
+        _stdout = io.stdout
+        _stderr = io.stderr
     except ImportError:
         OutStream = None
+        _stdout = sys.stdout
+        _stderr = sys.stderr
+
+try:
+    import IPython
+    # This is just to set a flag that IPython is installed at all
+    _HAVE_IPYTHON = True
+except ImportError:
+    _HAVE_IPYTHON = False
 
 from ..config import ConfigurationItem
 from .misc import deprecated, isiterable
@@ -42,17 +56,20 @@ __all__ = [
     'ProgressBar', 'Spinner', 'print_code_line', 'ProgressBarOrSpinner']
 
 
+# Only use color by default on Windows if IPython is installed.
 USE_COLOR = ConfigurationItem(
-    'use_color', True,
+    'use_color', sys.platform != 'win32' or _HAVE_IPYTHON,
     'When True, use ANSI color escape sequences when writing to the console.')
+
+
 USE_UNICODE = ConfigurationItem(
     'use_unicode', True,
     'Use Unicode characters when drawing progress bars etc. at the console.')
 
 
-def isatty(file):
+def isatty(fileobj):
     """
-    Returns `True` if `file` is a tty.
+    Returns `True` if `fileobj` is a tty.
 
     Most built-in Python file-like objects have an `isatty` member,
     but some user-defined types may not, so this assumes those are not
@@ -63,12 +80,13 @@ def isatty(file):
         return False
 
     if (OutStream is not None and
-        isinstance(file, OutStream) and
-        file.name == 'stdout'):
+        isinstance(fileobj, OutStream) and
+        fileobj.name == 'stdout'):
         return True
-    elif hasattr(file, 'isatty'):
-        return file.isatty()
+    elif hasattr(fileobj, 'isatty'):
+        return fileobj.isatty()
     return False
+
 
 def _color_text(text, color):
     """
@@ -109,8 +127,13 @@ def _color_text(text, color):
         'lightcyan': '1;36',
         'white': '1;37'}
 
+    if sys.platform == 'win32' and OutStream is None:
+        # On Windows do not colorize text unless in IPython
+        return text
+
     color_code = color_mapping.get(color, '0;39')
     return u'\033[{0}m{1}\033[0m'.format(color_code, text)
+
 
 def color_print(*args, **kwargs):
     """
@@ -133,7 +156,7 @@ def color_print(*args, **kwargs):
         default, darkgrey, lightred, lightgreen, yellow, lightblue,
         lightmagenta, lightcyan, white, or '' (the empty string).
 
-    file : writeable file-like object, optional
+    fileobj : writeable file-like object, optional
         Where to write to.  Defaults to `sys.stdout`.  If file is not
         a tty (as determined by calling its `isatty` member, if one
         exists), no coloring will be included.
@@ -143,11 +166,11 @@ def color_print(*args, **kwargs):
         be printed after resetting any color or font state.
     """
 
-    file = kwargs.get('file', sys.stdout)
+    fileobj = kwargs.get('file', _stdout)
     end = kwargs.get('end', u'\n')
 
-    write = file.write
-    if isatty(file) and USE_COLOR():
+    write = fileobj.write
+    if isatty(fileobj) and USE_COLOR():
         for i in xrange(0, len(args), 2):
             msg = args[i]
             if i + 1 == len(args):
@@ -171,6 +194,7 @@ def color_print(*args, **kwargs):
                 msg = msg.decode('ascii')
             write(msg)
         write(end)
+
 
 def strip_ansi_codes(s):
     """
@@ -284,7 +308,7 @@ class ProgressBar(object):
         for item in ProgressBar(items):
             item.process()
     """
-    def __init__(self, total_or_items, file=sys.stdout):
+    def __init__(self, total_or_items, file=_stdout):
         """
         Parameters
         ----------
@@ -411,7 +435,7 @@ class ProgressBar(object):
         pass
 
     @classmethod
-    def map(cls, function, items, multiprocess=False, file=sys.stdout):
+    def map(cls, function, items, multiprocess=False, file=_stdout):
         """
         Does a `map` operation while displaying a progress bar with
         percentage complete.
@@ -464,7 +488,7 @@ class ProgressBar(object):
 
     @deprecated('0.3', alternative='ProgressBar')
     @classmethod
-    def iterate(cls, items, file=sys.stdout):
+    def iterate(cls, items, file=_stdout):
         """
         Iterate over a sequence while indicating progress with a progress
         bar in the terminal.
@@ -506,7 +530,7 @@ class Spinner(object):
     _default_unicode_chars = u"◓◑◒◐"
     _default_ascii_chars = u"-/|\\"
 
-    def __init__(self, msg, color='default', file=sys.stdout, step=1,
+    def __init__(self, msg, color='default', file=_stdout, step=1,
                  chars=None):
         """
         Parameters
@@ -614,7 +638,7 @@ class ProgressBarOrSpinner(object):
                 bar.update(bytes_read)
     """
 
-    def __init__(self, total, msg, color='default', file=sys.stdout):
+    def __init__(self, total, msg, color='default', file=_stdout):
         """
         Parameters
         ----------
@@ -666,7 +690,7 @@ class ProgressBarOrSpinner(object):
             self._obj.update(value)
 
 
-def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
+def print_code_line(line, col=None, file=_stdout, tabwidth=8, width=70):
     u"""
     Prints a line of source code, highlighting a particular character
     position in the line.  Useful for displaying the context of error
