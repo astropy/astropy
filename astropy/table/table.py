@@ -890,7 +890,7 @@ class Table(object):
         self._data = None
         self._set_masked(masked)
         self.columns = TableColumns()
-        self.meta = OrderedDict() if meta is None else deepcopy(meta)
+        self._meta = OrderedDict() if meta is None else deepcopy(meta)
 
         # Must copy if dtypes are changing
         if not copy and dtypes is not None:
@@ -1133,7 +1133,8 @@ class Table(object):
 
         table = data  # data is really a Table, rename for clarity
         data_names = table.colnames
-        self.meta = deepcopy(table.meta)
+        self.meta.clear()
+        self.meta.update(deepcopy(table.meta))
         cols = table.columns.values()
 
         # Set self.masked appropriately from cols
@@ -1172,7 +1173,8 @@ class Table(object):
         """Create a new table as a referenced slice from self."""
 
         table = Table()
-        table.meta = deepcopy(self.meta)
+        table.meta.clear()
+        table.meta.update(deepcopy(self.meta))
         cols = self.columns.values()
         names = [col.name for col in cols]
         data = self._data[slice_]
@@ -1936,3 +1938,8 @@ class Table(object):
 
     read = classmethod(io_registry.read)
     write = io_registry.write
+
+    @property
+    def meta(self):
+        return self._meta
+    
