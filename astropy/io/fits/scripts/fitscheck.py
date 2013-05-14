@@ -67,7 +67,7 @@ def handle_options(args):
         args = ['-h']
 
     parser = optparse.OptionParser(usage=textwrap.dedent("""
-        %prog [options] <.fits files...>
+        fitscheck [options] <.fits files...>
 
         .e.g. fitscheck example.fits
 
@@ -162,7 +162,7 @@ def verify_compliance(filename):
         hdulist.verify('exception')
     except fits.VerifyError as e:
         log.warn('NONCOMPLIANT %r .. %s' %
-                 (filename), str(e).replace('\n',' '))
+                 (filename), str(e).replace('\n', ' '))
         return 1
     return 0
 
@@ -179,8 +179,8 @@ def update(filename):
         output_verify = 'silentfix' if OPTIONS.compliance else 'ignore'
         hdulist.writeto(filename, checksum=OPTIONS.checksum_kind, clobber=True,
                         output_verify=output_verify)
-    except fits.VerifyError:
-        pass # unfixable errors already noted during verification phase
+    except pyfits.VerifyError:
+        pass  # unfixable errors already noted during verification phase
     finally:
         hdulist.close()
 
@@ -219,4 +219,3 @@ def main():
     if errors:
         log.warn('%d errors' % errors)
     return int(bool(errors))
-

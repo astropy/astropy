@@ -16,8 +16,7 @@ from ...utils import deprecated
 
 
 __all__ = ['Card', 'CardList', 'create_card', 'create_card_from_string',
-           'upper_key', 'createCard', 'createCardFromString', 'upperKey',
-           'Undefined']
+           'upper_key', 'Undefined']
 
 
 FIX_FP_TABLE = maketrans('de', 'DE')
@@ -28,8 +27,11 @@ CARD_LENGTH = 80
 BLANK_CARD = ' ' * CARD_LENGTH
 KEYWORD_LENGTH = 8  # The max length for FITS-standard keywords
 
+VALUE_INDICATOR = '= '  # The standard FITS value indicator
+HIERARCH_VALUE_INDICATOR = '='  # HIERARCH cards may use a shortened indicator
 
-class Undefined:
+
+class Undefined(object):
     """Undefined value."""
 
     def __init__(self):
@@ -285,11 +287,6 @@ class CardList(list):
 
         return CardList(self._header[key])
 
-    # For API backwards-compatibility
-    @deprecated('3.0', alternative=':meth:`filter_list`', pending=False)
-    def filterList(self, key):
-        return self.filter_list(key)
-
     @deprecated('3.1', pending=False)
     def count_blanks(self):
         """
@@ -306,7 +303,8 @@ class Card(_Verify):
     # String for a FITS standard compliant (FSC) keyword.
     _keywd_FSC_RE = re.compile(r'^[A-Z0-9_-]{0,%d}$' % KEYWORD_LENGTH)
     # This will match any printable ASCII character excluding '='
-    _keywd_hierarch_RE = re.compile(r'^(?:HIERARCH )?(?:^[ -<>-~]+ ?)+$', re.I)
+    _keywd_hierarch_RE = re.compile(r'^(?:HIERARCH +)?(?:^[ -<>-~]+ ?)+$',
+                                    re.I)
 
     # A number sub-string, either an integer or a float in fixed or
     # scientific notation.  One for FSC and one for non-FSC (NFSC) format:
@@ -406,6 +404,10 @@ class Card(_Verify):
 
     _commentary_keywords = ['', 'COMMENT', 'HISTORY', 'END']
 
+    # The default value indicator; may be changed if required by a convention
+    # (namely HIERARCH cards)
+    _value_indicator = VALUE_INDICATOR
+
     def __init__(self, keyword=None, value=None, comment=None, **kwargs):
         # For backwards compatibility, support the 'key' keyword argument:
         if keyword is None and 'key' in kwargs:
@@ -497,11 +499,12 @@ class Card(_Verify):
                 # the old behavior makes it possible to create HEIRARCH cards
                 # that would otherwise be recognized as RVKCs
                 self._hierarch = True
+                self._value_indicator = HIERARCH_VALUE_INDICATOR
 
                 if keyword_upper[:9] == 'HIERARCH ':
                     # The user explicitly asked for a HIERARCH card, so don't
                     # bug them about it...
-                    keyword = keyword[9:]
+                    keyword = keyword[9:].strip()
                 else:
                     # We'll gladly create a HIERARCH card, but a warning is
                     # also displayed
@@ -826,7 +829,7 @@ class Card(_Verify):
 
         keyword = self._image[:KEYWORD_LENGTH].strip()
         keyword_upper = keyword.upper()
-        value_indicator = self._image.find('= ')
+        value_indicator = self._image.find(VALUE_INDICATOR)
 
         special = self._commentary_keywords + ['CONTINUE']
 
@@ -841,12 +844,14 @@ class Card(_Verify):
                 self._modified = True
             return keyword_upper
         elif (keyword_upper == 'HIERARCH' and self._image[8] == ' ' and
-              '=' in self._image):
+              HIERARCH_VALUE_INDICATOR in self._image):
             # This is valid HIERARCH card as described by the HIERARCH keyword
             # convention:
             # http://fits.gsfc.nasa.gov/registry/hierarch_keyword.html
             self._hierarch = True
-            return self._image.split('=', 1)[0][9:].rstrip()
+            self._value_indicator = HIERARCH_VALUE_INDICATOR
+            keyword = self._image.split(HIERARCH_VALUE_INDICATOR, 1)[0][9:]
+            return keyword.strip()
         else:
             warnings.warn('The following header keyword is invalid or follows '
                           'an unrecognized non-standard convention:\n%s' %
@@ -961,7 +966,7 @@ class Card(_Verify):
             keyword, valuecomment = image.split(' ', 1)
         else:
             try:
-                delim_index = image.index('= ')
+                delim_index = image.index(self._value_indicator)
             except ValueError:
                 delim_index = None
 
@@ -974,7 +979,7 @@ class Card(_Verify):
                 keyword = image[:8]
                 valuecomment = image[8:]
             else:
-                keyword, valuecomment = image.split('= ', 1)
+                keyword, valuecomment = image.split(self._value_indicator, 1)
         return keyword.strip(), valuecomment.strip()
 
     def _fix_keyword(self):
@@ -1083,7 +1088,9 @@ class Card(_Verify):
             comment = self._format_comment()
 
         # equal sign string
-        delimiter = '= '
+        # by default use the standard value indicator even for HIERARCH cards;
+        # later we may abbreviate it if necessary
+        delimiter = VALUE_INDICATOR
         if is_commentary:
             delimiter = ''
 
@@ -1110,7 +1117,7 @@ class Card(_Verify):
             # longstring case (CONTINUE card)
             # try not to use CONTINUE if the string value can fit in one line.
             # Instead, just truncate the comment
-            if (isinstance(self.value, str) and
+            if (isinstance(self.value, basestring) and
                 len(value) > (self.length - 10)):
                 output = self._format_long_image()
             else:
@@ -1186,7 +1193,7 @@ class Card(_Verify):
 
         # verify the equal sign position
         if (self.keyword not in self._commentary_keywords and
-            (self._image and self._image[:8].upper() != 'HIERARCH' and
+            (self._image and self._image[:9].upper() != 'HIERARCH ' and
              self._image.find('=') != 8)):
             errs.append(self.run_option(
                 option,
@@ -1198,7 +1205,8 @@ class Card(_Verify):
         # verify the key, it is never fixable
         # always fix silently the case where "=" is before column 9,
         # since there is no way to communicate back to the _keys.
-        if self._image and self._image[:8].upper() == 'HIERARCH':
+        if ((self._image and self._image[:8].upper() == 'HIERARCH') or
+                self._hierarch):
             pass
         else:
             keyword = self.keyword
@@ -1268,34 +1276,27 @@ def create_card(key='', value='', comment=''):
     return Card(key, value, comment)
 create_card.__doc__ = Card.__init__.__doc__
 # For API backwards-compatibility
-createCard = deprecated('3.0', name='createCard',
-                        alternative=':meth:`Card.__init__`')(create_card)
 create_card = deprecated('3.1', name='create_card',
                          alternative=':meth:`Card.__init__`',
-                         pending=True)(create_card)
+                         pending=False)(create_card)
 
 
 def create_card_from_string(input):
     return Card.fromstring(input)
 create_card_from_string.__doc__ = Card.fromstring.__doc__
 # For API backwards-compat
-createCardFromString = \
-    deprecated('3.0', name='createCardFromString',
-               alternative=':meth:`Card.fromstring`')(create_card_from_string)
 create_card_from_string = deprecated('3.1', name='create_card_from_string',
                                      alternative=':meth:`Card.fromstring`',
-                                     pending=True)(create_card_from_string)
+                                     pending=False)(create_card_from_string)
 
 
 def upper_key(key):
     return Card.normalize_keyword(key)
 upper_key.__doc__ = Card.normalize_keyword.__doc__
 # For API backwards-compat
-upperKey = deprecated('3.0', name='upperKey',
-                      alternative=':meth:`Card.normalize_keyword`')(upper_key)
 upper_key = deprecated('3.1', name='upper_key',
                        alternative=':meth:`Card.normalize_keyword`',
-                       pending=True)(upper_key)
+                       pending=False)(upper_key)
 
 
 def _int_or_float(s):

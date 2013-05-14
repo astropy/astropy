@@ -15,19 +15,15 @@
 /* This module contains three functions that are callable from python.  The  */
 /* first is compress_hdu.  This function takes an                            */
 /* astropy.io.fits.CompImageHDU object containing the uncompressed image     */
-/* data and returns the compressed data for all tiles into the .compData     */
-/* attribute of that HDU.                                                    */
+/* data and returns the compressed data for all tiles into the               */
+/* .compressed_data attribute of that HDU.                                   */
 /*                                                                           */
 /* The second function is decompress_hdu.  It takes an                       */
 /* astropy.io.fits.CompImageHDU object that already has compressed data in   */
-/* its .compData attribute. It returns the decompressed image data into the  */
-/* HDU's .data attribute.                                                    */
+/* its .compressed_data attribute.  It returns the decompressed image data   */
+/* into the HDU's .data attribute.                                           */
 /*                                                                           */
-/* Finally, the utility function calc_max_elm is used internally by the      */
-/* CompImageHDU class to estimate how much memory to allocate for the        */
-/* compressed data when compressing an image.                                */
-/*                                                                           */
-/* Copyright (C) 2012 Association of Universities for Research in Astronomy  */
+/* Copyright (C) 2013 Association of Universities for Research in Astronomy  */
 /* (AURA)                                                                    */
 /*                                                                           */
 /* Redistribution and use in source and binary forms, with or without        */
@@ -757,7 +753,7 @@ void get_hdu_data_base(PyObject* hdu, void** buf, size_t* bufsize) {
     PyArrayObject* base;
     PyArrayObject* tmp;
 
-    data = (PyArrayObject*) PyObject_GetAttrString(hdu, "compData");
+    data = (PyArrayObject*) PyObject_GetAttrString(hdu, "compressed_data");
     if (data == NULL) {
         goto fail;
     }
@@ -767,7 +763,7 @@ void get_hdu_data_base(PyObject* hdu, void** buf, size_t* bufsize) {
     // allocated for the table and its heap
     if (!PyObject_TypeCheck(data, &PyArray_Type)) {
         PyErr_SetString(PyExc_TypeError,
-                        "CompImageHDU.compData must be a numpy.ndarray");
+                        "CompImageHDU.compressed_data must be a numpy.ndarray");
         goto fail;
     }
 
@@ -915,7 +911,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
         goto fail;
     }
 
-    znaxis = (npy_intp) outbufsize;  // The output array is just one dimension.
+    znaxis = (long) outbufsize;  // The output array is just one dimension.
     tmp = (PyArrayObject*) PyArray_SimpleNewFromData(1, &znaxis, NPY_UBYTE,
                                                      outbuf);
 
@@ -972,7 +968,8 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    // Grab a pointer to the input data from the HDU's compData attribute
+    // Grab a pointer to the input data from the HDU's compressed_data
+    // attribute
     get_hdu_data_base(hdu, &inbuf, &inbufsize);
 
     open_from_hdu(&fileptr, &inbuf, &inbufsize, hdu, columns);

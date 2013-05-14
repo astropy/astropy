@@ -287,7 +287,6 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
         # missing, so for now just assume that won't happen
         return [self._header['PTYPE' + str(idx + 1)] for idx in range(pcount)]
 
-
     @lazyproperty
     def columns(self):
         if self._data_loaded and hasattr(self.data, '_coldefs'):
@@ -486,7 +485,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
         self.req_cards('GCOUNT', pos, _is_int, 1, option, errs)
         self.req_cards('PCOUNT', pos, _is_int, 0, option, errs)
-        self.req_cards('GROUPS', pos, lambda v: (v is True), True, option,
+        self.req_cards('GROUPS', pos, lambda v: (v == True), True, option,
                        errs)
         return errs
 
@@ -500,7 +499,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             # Check the byte order of the data.  If it is little endian we
             # must swap it before calculating the datasum.
             byteorder = \
-                 self.data.dtype.fields[self.data.dtype.names[0]][0].str[0]
+                self.data.dtype.fields[self.data.dtype.names[0]][0].str[0]
 
             if byteorder != '>':
                 byteswapped = True

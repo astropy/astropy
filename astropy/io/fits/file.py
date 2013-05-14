@@ -77,7 +77,12 @@ class _File(object):
                 # name does not begin with a drive letter (Windows), try to
                 # get it over the web.
                 #
-            self.name, _ = urllib.urlretrieve(fileobj)
+            try:
+                self.name, _ = urllib.urlretrieve(fileobj)
+            except (TypeError, ValueError):
+                # A couple different exceptions can occur here when passing a
+                # filename into urlretrieve in Python 3
+                raise IOError('File does not exist: %r' % fileobj)
         else:
             self.name = fileobj_name(fileobj)
 
@@ -145,12 +150,6 @@ class _File(object):
 
     def __exit__(self, type, value, traceback):
         self.close()
-
-    @deprecated('3.0', message='This method should not be treated as public.')
-    def getfile(self):
-        """Will be going away as soon as I figure out how."""
-
-        return self.__file
 
     def readable(self):
         if self.writeonly:
