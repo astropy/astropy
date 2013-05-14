@@ -3,7 +3,6 @@
 import glob
 import io
 import os
-import shutil
 import warnings
 import sys
 
@@ -37,7 +36,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         def test_fileinfo(**kwargs):
             assert res['datSpan'] == kwargs.get('datSpan', 2880)
-            assert res['resized'] == kwargs.get('resized', 0)
+            assert res['resized'] == kwargs.get('resized', False)
             assert res['filename'] == self.data('checksum.fits')
             assert res['datLoc'] == kwargs.get('datLoc', 8640)
             assert res['hdrLoc'] == kwargs.get('hdrLoc', 0)
@@ -60,8 +59,10 @@ class TestHDUListFunctions(FitsTestCase):
 
     def test_create_from_multiple_primary(self):
         """
-        Regression test for #145.  Ensure that a validation error occurs when
-        saving an HDUList containing multiple PrimaryHDUs.
+        Regression test for https://trac.assembla.com/pyfits/ticket/145
+
+        Ensure that a validation error occurs when saving an HDUList containing
+        multiple PrimaryHDUs.
         """
 
         hdul = fits.HDUList([fits.PrimaryHDU(), fits.PrimaryHDU()])
@@ -433,9 +434,10 @@ class TestHDUListFunctions(FitsTestCase):
         assert hdul[0].header['EXTEND'] == True
 
     def test_new_hdulist_extend_keyword(self):
-        """
+        """Regression test for https://trac.assembla.com/pyfits/ticket/114
+
         Tests that adding a PrimaryHDU to a new HDUList object updates the
-        EXTEND keyword on that HDU.  Regression test for #114.
+        EXTEND keyword on that HDU.
         """
 
         h0 = fits.Header()
@@ -459,7 +461,10 @@ class TestHDUListFunctions(FitsTestCase):
         assert ((old_data + 1) == hdul[1].data).all()
 
     def test_open_file_with_end_padding(self):
-        """Regression test for #106; open files with end padding bytes."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/106
+
+        Open files with end padding bytes.
+        """
 
         hdul = fits.open(self.data('test0.fits'),
                          do_not_scale_image_data=True)
@@ -474,8 +479,9 @@ class TestHDUListFunctions(FitsTestCase):
 
     def test_open_file_with_bad_header_padding(self):
         """
-        Regression test for #136; open files with nulls for header block
-        padding instead of spaces.
+        Regression test for https://trac.assembla.com/pyfits/ticket/136
+
+        Open files with nulls for header block padding instead of spaces.
         """
 
         a = np.arange(100).reshape((10, 10))
@@ -501,9 +507,10 @@ class TestHDUListFunctions(FitsTestCase):
 
     def test_update_with_truncated_header(self):
         """
-        Regression test for #148.  Test that saving an update where the header
-        is shorter than the original header doesn't leave a stump from the old
-        header in the file.
+        Regression test for https://trac.assembla.com/pyfits/ticket/148
+
+        Test that saving an update where the header is shorter than the
+        original header doesn't leave a stump from the old header in the file.
         """
 
         data = np.arange(100)
@@ -560,10 +567,11 @@ class TestHDUListFunctions(FitsTestCase):
 
     def test_update_resized_header2(self):
         """
-        Regression test for #150.  This is similar to
-        test_update_resized_header, but specifically tests a case of multiple
-        consecutive flush() calls on the same HDUList object, where each
-        flush() requires a resize.
+        Regression test for https://trac.assembla.com/pyfits/ticket/150
+
+        This is similar to test_update_resized_header, but specifically tests a
+        case of multiple consecutive flush() calls on the same HDUList object,
+        where each flush() requires a resize.
         """
 
         data1 = np.arange(100)
@@ -624,7 +632,8 @@ class TestHDUListFunctions(FitsTestCase):
         for filename in glob.glob(os.path.join(self.data_dir, '*.fits')):
             if sys.platform == 'win32' and filename == 'zerowidth.fits':
                 # Running this test on this file causes a crash in some
-                # versions of Numpy on Windows.  See PyFITS ticket #174
+                # versions of Numpy on Windows.  See PyFITS ticket
+                # https://trac.assembla.com/pyfits/ticket/174
                 continue
             test_fromstring(filename)
 
@@ -632,9 +641,12 @@ class TestHDUListFunctions(FitsTestCase):
         pytest.raises(TypeError, fits.HDUList.fromstring, ['a', 'b', 'c'])
 
     def test_save_backup(self):
-        """Test for #121--save backup of file before flushing changes."""
+        """Test for https://trac.assembla.com/pyfits/ticket/121
 
-        shutil.copy(self.data('scale.fits'), self.temp('scale.fits'))
+        Save backup of file before flushing changes.
+        """
+
+        self.copy_file('scale.fits')
 
         with ignore_warnings():
             with fits.open(self.temp('scale.fits'), mode='update',

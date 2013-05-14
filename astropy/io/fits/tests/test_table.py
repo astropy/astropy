@@ -90,25 +90,28 @@ def comparerecords(a, b):
 
 
 class TestTableFunctions(FitsTestCase):
+
     def test_constructor_copies_header(self):
-       """
-       Regression test for #153.  Ensure that a header from one HDU is copied
-       when used to initialize new HDU.
+        """
+        Regression test for https://trac.assembla.com/pyfits/ticket/153
 
-       This is like the test of the same name in test_image, but tests this for
-       tables as well.
-       """
+        Ensure that a header from one HDU is copied when used to initialize new
+        HDU.
 
-       ifd = fits.HDUList([fits.PrimaryHDU(), fits.BinTableHDU()])
-       thdr = ifd[1].header
-       thdr['FILENAME'] = 'labq01i3q_rawtag.fits'
+        This is like the test of the same name in test_image, but tests this
+        for tables as well.
+        """
 
-       thdu = fits.BinTableHDU(header=thdr)
-       ofd = fits.HDUList(thdu)
-       ofd[0].header['FILENAME'] = 'labq01i3q_flt.fits'
+        ifd = fits.HDUList([fits.PrimaryHDU(), fits.BinTableHDU()])
+        thdr = ifd[1].header
+        thdr['FILENAME'] = 'labq01i3q_rawtag.fits'
 
-       # Original header should be unchanged
-       assert thdr['FILENAME'] == 'labq01i3q_rawtag.fits'
+        thdu = fits.BinTableHDU(header=thdr)
+        ofd = fits.HDUList(thdu)
+        ofd[0].header['FILENAME'] = 'labq01i3q_flt.fits'
+
+        # Original header should be unchanged
+        assert thdr['FILENAME'] == 'labq01i3q_rawtag.fits'
 
     def test_open(self):
         # open some existing FITS files:
@@ -172,7 +175,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.data[1][4] == a5[1]
         assert (tbhdu.data[1][5] == a6[1].view('bool')).all()
         assert tbhdu.data[1][6] == a7[1]
-        assert tbhdu.data[1][7].all() == a8[1].all()
+        assert (tbhdu.data[1][7] == a8[1]).all()
 
         # and a column like this:
         assert str(tbhdu.data.field('abc')) == "['abc' 'def' 'xx']"
@@ -188,8 +191,8 @@ class TestTableFunctions(FitsTestCase):
 
         with fits.open(self.temp('tableout1.fits')) as f2:
             temp = f2[1].data.field(7)
-            assert (temp[0] == [True, True, False, True, False, True, True,
-                                True, False, False, True]).all()
+            assert (temp[0] == [True, True, False, True, False, True,
+                                True, True, False, False, True]).all()
 
         # An alternative way to create an output table FITS file:
         fout2 = fits.open(self.temp('tableout2.fits'), 'append')
@@ -257,7 +260,7 @@ class TestTableFunctions(FitsTestCase):
             (10.123000144958496, 37),
             (15.609999656677246, 17),
             (345.0, 345)
-            ], names='c1, c2')
+        ], names='c1, c2')
 
         assert comparerecords(a[1].data[::2], ra3)
 
@@ -282,19 +285,18 @@ class TestTableFunctions(FitsTestCase):
 
     def test_variable_length_columns(self):
         col = fits.Column(name='QUAL_SPE', format='PJ()',
-                            array=[[0] * 1571] * 225)
+                          array=[[0] * 1571] * 225)
         tb_hdu = fits.new_table([col])
         pri_hdu = fits.PrimaryHDU()
         hdu_list = fits.HDUList([pri_hdu, tb_hdu])
         hdu_list.writeto(self.temp('toto.fits'), clobber=True)
         toto = fits.open(self.temp('toto.fits'))
         q = toto[1].data.field('QUAL_SPE')
-        assert (q[0][4:8].all() ==
-                np.array([0, 0, 0, 0], dtype=np.uint8)).all()
+        assert (q[0][4:8] == np.array([0, 0, 0, 0], dtype=np.uint8)).all()
         toto.close()
 
     def test_extend_variable_length_array(self):
-        """Regression test for issue #54."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/54"""
 
         arr = [[1] * 10] * 10
         col1 = fits.Column(name='TESTVLF', format='PJ()', array=arr)
@@ -329,8 +331,8 @@ class TestTableFunctions(FitsTestCase):
 
     def test_column_endianness(self):
         """
-        Regression test for #77 [PyFITS doesn't preserve byte order of
-        non-native order column arrays]
+        Regression test for https://trac.assembla.com/pyfits/ticket/77
+        (PyFITS doesn't preserve byte order of non-native order column arrays)
         """
 
         a = [1., 2., 3., 4.]
@@ -353,11 +355,12 @@ class TestTableFunctions(FitsTestCase):
             assert (hdul[1].data['b'] == a2).all()
 
     def test_recarray_to_bintablehdu(self):
-        bright = np.rec.array([(1, 'Serius', -1.45, 'A1V'),
-                               (2, 'Canopys', -0.73, 'F0Ib'),
-                               (3, 'Rigil Kent', -0.1, 'G2V')],
-                              formats='int16,a20,float32,a10',
-                              names='order,name,mag,Sp')
+        bright = np.rec.array(
+            [(1, 'Serius', -1.45, 'A1V'),
+             (2, 'Canopys', -0.73, 'F0Ib'),
+             (3, 'Rigil Kent', -0.1, 'G2V')],
+            formats='int16,a20,float32,a10',
+            names='order,name,mag,Sp')
         hdu = fits.BinTableHDU(bright)
         assert comparerecords(hdu.data, bright)
         hdu.writeto(self.temp('toto.fits'), clobber=True)
@@ -435,15 +438,18 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.columns._arrays[0][0] == 800
         assert hdu.columns.columns[0].array[0] == 800
 
-        assert (hdu.data.field(0) == np.array([800, 2], dtype=np.int16)).all()
+        assert (hdu.data.field(0) ==
+                np.array([800, 2], dtype=np.int16)).all()
         assert hdu.data[0][1] == 'Serius'
         assert hdu.data[1][1] == 'Canopys'
         assert (hdu.data.field(2) ==
                 np.array([-1.45, -0.73], dtype=np.float32)).all()
         assert hdu.data[0][3] == 'A1V'
         assert hdu.data[1][3] == 'F0Ib'
+
         with ignore_warnings():
             hdu.writeto(self.temp('toto.fits'), clobber=True)
+
         with fits.open(self.temp('toto.fits')) as hdul:
             assert (hdul[1].data.field(0) ==
                     np.array([800, 2], dtype=np.int16)).all()
@@ -517,7 +523,7 @@ class TestTableFunctions(FitsTestCase):
         # Get the total number of rows in the resulting appended table
         nrows = t1[1].data.shape[0] + t2[1].data.shape[0]
 
-        assert t1[1].columns._arrays[1] is t1[1].columns.columns[1].array
+        assert (t1[1].columns._arrays[1] is t1[1].columns.columns[1].array)
 
         # Create a new table that consists of the data from the first table
         # but has enough space in the ndarray to hold the data from both tables
@@ -746,9 +752,9 @@ class TestTableFunctions(FitsTestCase):
         hdul = fits.open(self.temp('newtable.fits'))
         hdu = hdul[1]
 
-        assert hdu.columns.names == ['target', 'counts', 'notes', 'spectrum',
-                                     'flag', 'target1', 'counts1', 'notes1',
-                                     'spectrum1', 'flag1']
+        assert (hdu.columns.names ==
+                ['target', 'counts', 'notes', 'spectrum', 'flag', 'target1',
+                 'counts1', 'notes1', 'spectrum1', 'flag1'])
 
         z = np.array([0.,  0.,  0.,  0.,  0.], dtype=np.float32)
         array = np.rec.array(
@@ -854,7 +860,7 @@ class TestTableFunctions(FitsTestCase):
         row[1:4]['counts'] = 300
         assert row[1:4]['counts'] == 300
 
-        # Test stepping for #59
+        # Test stepping for https://trac.assembla.com/pyfits/ticket/59
         row[1:4][::-1][-1] = 500
         assert row[1:4]['counts'] == 500
         row[1:4:2][0] = 300
@@ -1490,7 +1496,7 @@ class TestTableFunctions(FitsTestCase):
 
     def test_bin_table_with_logical_array(self):
         c1 = fits.Column(name='flag', format='2L',
-                           array=[[True, False], [False, True]])
+                         array=[[True, False], [False, True]])
         coldefs = fits.ColDefs([c1])
 
         tbhdu1 = fits.new_table(coldefs)
@@ -1515,8 +1521,8 @@ class TestTableFunctions(FitsTestCase):
         tbhdu.writeto(self.temp('newtable.fits'))
         tbhdu1 = fits.open(self.temp('newtable.fits'))
 
-        for j in range(0, 3):
-            for i in xrange(len(a[j])):
+        for j in range(3):
+            for i in range(len(a[j])):
                 assert tbhdu1[1].data.field(0)[j][i] == a[j][i]
 
         tbhdu1.close()
@@ -1528,8 +1534,8 @@ class TestTableFunctions(FitsTestCase):
         tbhdu.writeto(self.temp('newtable.fits'))
         tbhdu1 = fits.open(self.temp('newtable.fits'))
 
-        for j in range(0, 3):
-            for i in xrange(len(a[j])):
+        for j in range(3):
+            for i in range(len(a[j])):
                 assert tbhdu1[1].data.field(0)[j][i] == a[j][i]
 
         tbhdu1.close()
@@ -1542,8 +1548,8 @@ class TestTableFunctions(FitsTestCase):
         tbhdu.writeto(self.temp('newtable.fits'))
         hdul = fits.open(self.temp('newtable.fits'))
 
-        for j in range(0, 3):
-            for i in xrange(len(a[j])):
+        for j in range(3):
+            for i in range(len(a[j])):
                 assert hdul[1].data.field(0)[j][i] == a[j][i]
 
         hdul.close()
@@ -1555,8 +1561,8 @@ class TestTableFunctions(FitsTestCase):
         tbhdu.writeto(self.temp('newtable.fits'))
         hdul = fits.open(self.temp('newtable.fits'))
 
-        for j in range(0, 3):
-            for i in xrange(len(a[j])):
+        for j in range(3):
+            for i in range(len(a[j])):
                 assert hdul[1].data.field(0)[j][i] == a[j][i]
 
         hdul.close()
@@ -1621,7 +1627,7 @@ class TestTableFunctions(FitsTestCase):
             'p\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
         acol = fits.Column(name='MEMNAME', format='A10',
-                             array=chararray.array(a))
+                           array=chararray.array(a))
         ahdu = fits.new_table([acol])
         assert ahdu.data.tostring().decode('raw-unicode-escape') == s
         ahdu.writeto(self.temp('newtable.fits'))
@@ -1633,6 +1639,7 @@ class TestTableFunctions(FitsTestCase):
         ahdu = fits.new_table([acol], tbtype='TableHDU')
         with ignore_warnings():
             ahdu.writeto(self.temp('newtable.fits'), clobber=True)
+
         with fits.open(self.temp('newtable.fits')) as hdul:
             assert (hdul[1].data.tostring().decode('raw-unicode-escape') ==
                     s.replace('\x00', ' '))
@@ -1670,8 +1677,6 @@ class TestTableFunctions(FitsTestCase):
 
             c1 = thdu.data.field(0)
             c2 = thdu.data.field(1)
-
-            hdul.close()
 
             assert c1.shape == (3, 3, 2)
             assert c2.shape == (3, 2)
@@ -1715,7 +1720,7 @@ class TestTableFunctions(FitsTestCase):
         assert t.field(1).shape == (3, 4, 3)
 
     def test_string_array_round_trip(self):
-        """Regression test for #201."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/201"""
 
         data = [['abc', 'def', 'ghi'],
                 ['jkl', 'mno', 'pqr'],
@@ -1736,7 +1741,7 @@ class TestTableFunctions(FitsTestCase):
 
         with fits.open(self.temp('test.fits')) as h:
             # Access the data; I think this is necessary to exhibit the bug
-            # reported in #201
+            # reported in https://trac.assembla.com/pyfits/ticket/201
             h[1].data[:]
             h.writeto(self.temp('test2.fits'))
 
@@ -1748,8 +1753,65 @@ class TestTableFunctions(FitsTestCase):
             assert (h[1].data.field(0)[0] ==
                     recarr.field(0)[0].decode('ascii')).all()
 
+    def test_new_table_with_nd_column(self):
+        """Regression test for
+        https://github.com/spacetelescope/PyFITS/issues/3
+        """
+
+        arra = np.array(['a', 'b'], dtype='|S1')
+        arrb = np.array([['a', 'bc'], ['cd', 'e']], dtype='|S2')
+        arrc = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+
+        cols = [
+            fits.Column(name='str', format='1A', array=arra),
+            fits.Column(name='strarray', format='4A', dim='(2,2)',
+                        array=arrb),
+            fits.Column(name='intarray', format='4I', dim='(2, 2)',
+                        array=arrc)
+        ]
+
+        hdu = fits.new_table(fits.ColDefs(cols))
+        hdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as h:
+            # Need to force string arrays to byte arrays in order to compare
+            # correctly on Python 3
+            assert (h[1].data['str'].encode('ascii') == arra).all()
+            assert (h[1].data['strarray'].encode('ascii') == arrb).all()
+            assert (h[1].data['intarray'] == arrc).all()
+
+    def test_mismatched_tform_and_tdim(self):
+        """Normally the product of the dimensions listed in a TDIMn keyword
+        must be less than or equal to the repeat count in the TFORMn keyword.
+
+        This tests that this works if less than (treating the trailing bytes
+        as unspecified fill values per the FITS standard) and fails if the
+        dimensions specified by TDIMn are greater than the repeat count.
+        """
+
+        arra = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+        arrb = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])
+
+        cols = [fits.Column(name='a', format='20I', dim='(2,2)',
+                            array=arra),
+                fits.Column(name='b', format='4I', dim='(2,2)',
+                            array=arrb)]
+
+        # The first column has the mismatched repeat count
+        hdu = fits.new_table(fits.ColDefs(cols))
+        hdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as h:
+            assert (h[1].data['a'] == arra).all()
+            assert (h[1].data['b'] == arrb).all()
+
+        # If dims is more than the repeat count in the format specifier raise
+        # an error
+        pytest.raises(ValueError, fits.Column, name='a', format='2I',
+                      dim='(2,2)', array=arra)
+
     def test_slicing(self):
-        """Regression test for #52."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/52"""
 
         f = fits.open(self.data('table.fits'))
         data = f[1].data
@@ -1767,7 +1829,7 @@ class TestTableFunctions(FitsTestCase):
         assert (s.field('target') == targets[::-1]).all()
 
     def test_array_slicing(self):
-        """Regression test for #55."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/55"""
 
         f = fits.open(self.data('table.fits'))
         data = f[1].data
@@ -1833,8 +1895,8 @@ class TestTableFunctions(FitsTestCase):
         c0 = fits.Column(name='c0', format='L', array=a0)
 
         # Format X currently not supported by the format
-        #a1 = np.array([[0], [1], [0]], dtype=np.uint8)
-        #c1 = fits.Column(name='c1', format='X', array=a1)
+        # a1 = np.array([[0], [1], [0]], dtype=np.uint8)
+        # c1 = fits.Column(name='c1', format='X', array=a1)
 
         a2 = np.array([1, 128, 255], dtype=np.uint8)
         c2 = fits.Column(name='c2', format='B', array=a2)
@@ -1864,7 +1926,7 @@ class TestTableFunctions(FitsTestCase):
 
     def test_attribute_field_shadowing(self):
         """
-        Regression test for #86.
+        Regression test for https://trac.assembla.com/pyfits/ticket/86
 
         Numpy recarray objects have a poorly-considered feature of allowing
         field access by attribute lookup.  However, if a field name conincides
@@ -1889,7 +1951,7 @@ class TestTableFunctions(FitsTestCase):
 
     def test_table_from_bool_fields(self):
         """
-        Regression test for #113.
+        Regression test for https://trac.assembla.com/pyfits/ticket/113
 
         Tests creating a table from a recarray containing numpy.bool columns.
         """
@@ -1905,8 +1967,20 @@ class TestTableFunctions(FitsTestCase):
         assert thdu.columns.formats == ['L', 'L']
         assert comparerecords(data, array)
 
+    def test_table_from_bool_fields2(self):
+        """
+        Regression test for https://trac.assembla.com/pyfits/ticket/215
+
+        Tests the case where a multi-field ndarray (not a recarray) containing
+        a bool field is used to initialize a `BinTableHDU`.
+        """
+
+        arr = np.array([(False,), (True,), (False,)], dtype=[('a', '?')])
+        hdu = fits.BinTableHDU(data=arr)
+        assert (hdu.data['a'] == arr['a']).all()
+
     def test_bool_column_update(self):
-        """Regression test for #139."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/139"""
 
         c1 = fits.Column('F1', 'L', array=[True, False])
         c2 = fits.Column('F2', 'L', array=[False, True])
@@ -1922,10 +1996,10 @@ class TestTableFunctions(FitsTestCase):
             assert (hdul[1].data['F2'] == [True, True]).all()
 
     def test_missing_tnull(self):
-        """Regression test for #197."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/197"""
 
         c = fits.Column('F1', 'A3', null='---',
-                          array=np.array(['1.0', '2.0', '---', '3.0']))
+                        array=np.array(['1.0', '2.0', '---', '3.0']))
         table = fits.new_table([c], tbtype='TableHDU')
         table.writeto(self.temp('test.fits'))
 
@@ -1945,3 +2019,26 @@ class TestTableFunctions(FitsTestCase):
             assert str(e).endswith(
                          "the header may be missing the necessary TNULL1 "
                          "keyword or the table contains invalid data")
+
+    def test_getdata_vla(self):
+        """Regression test for https://trac.assembla.com/pyfits/ticket/200"""
+        col = fits.Column(name='QUAL_SPE', format='PJ()',
+                          array=[np.arange(1572)] * 225)
+        tb_hdu = fits.new_table([col])
+        pri_hdu = fits.PrimaryHDU()
+        hdu_list = fits.HDUList([pri_hdu, tb_hdu])
+        hdu_list.writeto(self.temp('toto.fits'))
+
+        data = fits.getdata(self.temp('toto.fits'))
+
+        # Need to compare to the original data row by row since the FITS_rec
+        # returns an array of _VLA objects
+        for row_a, row_b in zip(data['QUAL_SPE'], col.array):
+            assert (row_a == row_b).all()
+
+    def test_column_array_type_mismatch(self):
+        """Regression test for https://trac.assembla.com/pyfits/ticket/218"""
+
+        arr = [-99] * 20
+        col = fits.Column('mag', format='E', array=arr)
+        assert (arr == col.array).all()

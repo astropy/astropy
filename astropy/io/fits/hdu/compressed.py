@@ -75,7 +75,7 @@ class CompImageHeader(Header):
                             'ZCMPTYPE') and
             keyword[:4] not in ('ZVAL') and
             keyword[:5] not in ('NAXIS', 'TTYPE', 'TFORM', 'ZTILE', 'ZNAME')
-            and keyword[:6] not in ('ZNAXIS')):
+                and keyword[:6] not in ('ZNAXIS')):
             self._table_header.set(keyword, value, comment, before, after)
 
     def add_history(self, value, before=None, after=None):
@@ -154,9 +154,8 @@ class CompImageHDU(BinTableHDU):
             2) The `CompImageHDU` class supports the FITS tiled image
                compression convention in which the image is subdivided into a
                grid of rectangular tiles, and each tile of pixels is
-               individually compressed.
-               The details of this FITS compression convention are described at
-               the `FITS Support Office web site
+               individually compressed.  The details of this FITS compression
+               convention are described at the `FITS Support Office web site
                <http://fits.gsfc.nasa.gov/registry/tilecompression.html>`_.
                Basically, the compressed image tiles are stored in rows of a
                variable length arrray column in a FITS binary table.  The
@@ -1154,7 +1153,7 @@ class CompImageHDU(BinTableHDU):
         # is the default value of COMPRESSED_IMAGE.
 
         if ('EXTNAME' in self._header and
-            self._header['EXTNAME'] == 'COMPRESSED_IMAGE'):
+                self._header['EXTNAME'] == 'COMPRESSED_IMAGE'):
             del self._image_header['EXTNAME']
 
         # Look to see if there are any blank cards in the table
@@ -1210,10 +1209,10 @@ class CompImageHDU(BinTableHDU):
         image_bitpix = _ImageBaseHDU.ImgCode[self.data.dtype.name]
 
         if (self.header.get('NAXIS', 0) != len(self.data.shape) or
-            self.header.get('BITPIX', 0) != image_bitpix or
-            self._header.get('ZNAXIS', 0) != len(self.data.shape) or
-            self._header.get('ZBITPIX', 0) != image_bitpix or
-            self.shape != self.data.shape):
+                self.header.get('BITPIX', 0) != image_bitpix or
+                self._header.get('ZNAXIS', 0) != len(self.data.shape) or
+                self._header.get('ZBITPIX', 0) != image_bitpix or
+                self.shape != self.data.shape):
             self.updateHeaderData(self.header)
 
         # TODO: This is copied right out of _ImageBaseHDU._writedata_internal;
@@ -1513,7 +1512,7 @@ class CompImageHDU(BinTableHDU):
 
     def _update_header_scale_info(self, dtype=None):
         if (not self._do_not_scale_image_data and
-            not (self._orig_bzero == 0 and self._orig_bscale == 1)):
+                not (self._orig_bzero == 0 and self._orig_bscale == 1)):
             for keyword in ['BSCALE', 'BZERO']:
                 # Make sure to delete from both the image header and the table
                 # header; later this will be streamlined

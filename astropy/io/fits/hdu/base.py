@@ -206,7 +206,7 @@ class _BaseHDU(object):
         if isinstance(data, Header):
             header = data
             if (not len(header) or
-                header.keys()[0] not in ('SIMPLE', 'XTENSION')):
+                    header.keys()[0] not in ('SIMPLE', 'XTENSION')):
                 raise ValueError('Block does not begin with SIMPLE or '
                                  'XTENSION')
         else:
@@ -410,7 +410,7 @@ class _BaseHDU(object):
         # If data is unsigned integer 16, 32 or 64, remove the
         # BSCALE/BZERO cards
         if (self._data_loaded and self.data is not None and
-            self._standard and _is_pseudo_unsigned(self.data.dtype)):
+                self._standard and _is_pseudo_unsigned(self.data.dtype)):
             for keyword in ('BSCALE', 'BZERO'):
                 try:
                     del self._header[keyword]
@@ -961,7 +961,6 @@ class _ValidHDU(_BaseHDU, _Verify):
                         errs.append(
                             self.run_option(option=option, err_text=err_text,
                                             fix=fix, fix_text="Deleted."))
-
 
         # Verify that the EXTNAME keyword exists and is a string
         if 'EXTNAME' in self._header:

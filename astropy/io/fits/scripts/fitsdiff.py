@@ -17,7 +17,7 @@ USAGE = """
 Compare two FITS image files and report the differences in header keywords and
 data.
 
-    %prog [options] filename1 filename2
+    fitsdiff [options] filename1 filename2
 
 where filename1 filename2 are the two files to be compared.  They may also be
 wild cards, in such cases, they must be enclosed by double or single quotes, or
@@ -26,7 +26,7 @@ the directories will be included; if only one is directory name, then the
 directory name will be prefixed to the file name(s) specified by the other
 argument.  for example::
 
-    %prog "*.fits" "/machine/data1"
+    fitsdiff "*.fits" "/machine/data1"
 
 will compare all FITS files in the current directory to the corresponding files
 in the directory /machine/data1.

@@ -6,6 +6,46 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - When an error occurs opening a file in fitsdiff the exception message will
+    now at least mention which file had the error.
+
+  - Fixed a couple cases where creating a new table using TDIMn in some of the
+    columns could cause a crash.
+
+  - Slightly refactored how tables containing variable-length array columns are
+    handled to add two improvements: Fixes an issue where accessing the data
+    after a call to the `astropy.io.fits.getdata` convenience function caused
+    an exception, and allows the VLA data to be read from an existing mmap of
+    the FITS file.
+
+  - Fixed a bug on Python 3 where attempting to open a non-existent file on
+    Python 3 caused a seemingly unrelated traceback.
+
+  - Fixed an issue in the tests that caused some tests to fail if Astropy is
+    installed with read-only permissions.
+
+  - Fixed a bug where instantiating a ``BinTableHDU`` from a numpy array
+    containing boolean fields converted all the values to ``False``.
+
+  - Fixed an issue where passing an array of integers into the constructor of
+    ``Column()`` when the column type is floats of the same byte width caused
+    the column array to become garbled.
+
+  - Fixed inconsistent behavior in creating CONTINUE cards from byte strings
+    versus unicode strings in Python 2--CONTINUE cards can now be created
+    properly from unicode strings (so long as they are convertable to ASCII).
+
+  - Fixed a bug in parsing HIERARCH keywords that do not have a space after the
+    first equals sign (before the value).
+
+  - Prevented extra leading whitespace on HIERARCH keywords from being treated
+    as part of the keyword.
+
+  - Fixed a bug where HIERARCH keywords containing lower-case letters was
+    mistakenly marked as invalid during header validation along with an
+    ancillary issue where the ``Header.index()`` method id not work correctly
+    with HIERARCH keywords containing lower-case letters.
+
   - Fixed an obscure issue that can occur on systems that don't have flush to
     memory-mapped files implemented (namely GNU Hurd). [#968]
 

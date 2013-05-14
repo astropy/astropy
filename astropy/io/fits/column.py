@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import operator
 import re
 import sys
 import weakref
@@ -11,7 +12,7 @@ from .card import Card
 from .util import pairwise, _is_int, _convert_array, encode_ascii
 from .verify import VerifyError
 
-from ...utils import deprecated, lazyproperty
+from ...utils import lazyproperty, deprecated
 
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
@@ -230,6 +231,9 @@ class Column(object):
             column dimension corresponding to ``TDIM`` keyword
         """
 
+        if format is None:
+            raise ValueError('Must specify format to construct Column.')
+
         # any of the input argument (except array) can be a Card or just
         # a number/string
         for attr in KEYWORD_ATTRIBUTES:
@@ -242,54 +246,69 @@ class Column(object):
 
         # if the column data is not ndarray, make it to be one, i.e.
         # input arrays can be just list or tuple, not required to be ndarray
-        if format is not None:
-            # check format
-            if not isinstance(format, _ColumnFormat):
+
+        # check format
+        if not isinstance(format, _ColumnFormat):
+            try:
+                # legit FITS format?
+                format = _ColumnFormat(format)
+                recformat = format.recformat
+            except ValueError:
                 try:
-
-                    # legit FITS format?
-                    format = _ColumnFormat(format)
-                    recformat = format.recformat
+                    # legit recarray format?
+                    recformat = format
+                    format = _ColumnFormat.from_recformat(format)
                 except ValueError:
-                    try:
-                        # legit recarray format?
-                        recformat = format
-                        format = _ColumnFormat.from_recformat(format)
-                    except ValueError:
-                        raise ValueError('Illegal format `%s`.' % format)
+                    raise ValueError('Illegal format `%s`.' % format)
 
-            self.format = format
-            # Zero-length formats are legal in the FITS format, but since they
-            # are not supported by numpy we mark columns that use them as
-            # "phantom" columns, that are not considered when reading the data
-            # as a record array.
-            if self.format[0] == '0' or \
-               (self.format[-1] == '0' and self.format[-2].isalpha()):
-                self._phantom = True
-            else:
-                self._phantom = False
-
-            # does not include Object array because there is no guarantee
-            # the elements in the object array are consistent.
-            if not isinstance(array,
-                              (np.ndarray, chararray.chararray, Delayed)):
-                try:  # try to convert to a ndarray first
-                    if array is not None:
-                        array = np.array(array)
-                except:
-                    try:  # then try to conver it to a strings array
-                        itemsize = int(recformat[1:])
-                        array = chararray.array(array, itemsize=itemsize)
-                    except ValueError:
-                        # then try variable length array
-                        if isinstance(recformat, _FormatP):
-                            array = _VLF(array, dtype=recformat.dtype)
-                        else:
-                            raise ValueError('Data is inconsistent with the '
-                                             'format `%s`.' % format)
-
+        self.format = format
+        # Zero-length formats are legal in the FITS format, but since they
+        # are not supported by numpy we mark columns that use them as
+        # "phantom" columns, that are not considered when reading the data
+        # as a record array.
+        if self.format[0] == '0' or \
+           (self.format[-1] == '0' and self.format[-2].isalpha()):
+            self._phantom = True
         else:
-            raise ValueError('Must specify format to construct Column.')
+            self._phantom = False
+
+        if isinstance(dim, basestring):
+            self._dims = _parse_tdim(dim)
+        elif isinstance(dim, tuple):
+            self._dims = dim
+        elif not dim:
+            self._dims = tuple()
+        else:
+            raise TypeError(
+                "`dim` argument must be a string containing a valid value "
+                "for the TDIMn header keyword associated with this column, "
+                "or a tuple containing the C-order dimensions for the column")
+
+        if self._dims:
+            repeat = _parse_tformat(format)[0]
+            if reduce(operator.mul, self._dims) > repeat:
+                raise ValueError(
+                    "The repeat count of the column format %r for column %r "
+                    "is fewer than the number of elements per the TDIM "
+                    "argument %r." % (name, format, dim))
+        # does not include Object array because there is no guarantee
+        # the elements in the object array are consistent.
+        if not isinstance(array,
+                          (np.ndarray, chararray.chararray, Delayed)):
+            try:  # try to convert to a ndarray first
+                if array is not None:
+                    array = np.array(array)
+            except:
+                try:  # then try to convert it to a strings array
+                    itemsize = int(recformat[1:])
+                    array = chararray.array(array, itemsize=itemsize)
+                except ValueError:
+                    # then try variable length array
+                    if isinstance(recformat, _FormatP):
+                        array = _VLF(array, dtype=recformat.dtype)
+                    else:
+                        raise ValueError('Data is inconsistent with the '
+                                         'format `%s`.' % format)
 
         # scale the array back to storage values if there is bscale/bzero
         if isinstance(array, np.ndarray):
@@ -300,7 +319,7 @@ class Column(object):
                 if bscale not in ['', None, 1]:
                     array = array / bscale
 
-        array = self._convert_to_valid_data_type(array, self.format)
+        array = self._convert_to_valid_data_type(array)
         self.array = array
 
     def __repr__(self):
@@ -338,16 +357,24 @@ class Column(object):
         tmp.__dict__ = self.__dict__.copy()
         return tmp
 
-    def _convert_to_valid_data_type(self, array, format):
+    def _convert_to_valid_data_type(self, array):
         # Convert the format to a type we understand
         if isinstance(array, Delayed):
             return array
         elif array is None:
             return array
         else:
+            format = self.format
+            dims = self._dims
             if 'A' in format and 'P' not in format:
                 if array.dtype.char in 'SU':
-                    fsize = int(_convert_format(format)[1:])
+                    if dims:
+                        # The 'last' dimension (first in the order given
+                        # in the TDIMn keyword itself) is the number of
+                        # characters in each string
+                        fsize = dims[-1]
+                    else:
+                        fsize = int(_convert_format(format)[1:])
                     return chararray.array(array, itemsize=fsize)
                 else:
                     numpy_format = _convert_format(format)
@@ -529,6 +556,12 @@ class ColDefs(object):
     @lazyproperty
     def _recformats(self):
         return [_convert_format(fmt) for fmt in self.formats]
+
+    @lazyproperty
+    def _dims(self):
+        """Returns the values of the TDIMn keywords parsed into tuples."""
+
+        return [col._dims for col in self.columns]
 
     def __getitem__(self, key):
         x = self.columns[key]
@@ -1028,6 +1061,20 @@ def _parse_tformat(tform):
         repeat = int(repeat)
 
     return (repeat, dtype, option)
+
+
+def _parse_tdim(tdim):
+    """Parse the ``TDIM`` value into a tuple (may return an empty tuple if
+    the value ``TDIM`` value is empty or invalid).
+    """
+
+    m = tdim and TDIM_RE.match(tdim)
+    if m:
+        dims = m.group('dims')
+        return tuple(int(d.strip()) for d in dims.split(','))[::-1]
+
+    # Ignore any dim values that don't specify a multidimensional column
+    return tuple()
 
 
 def _scalar_to_format(value):

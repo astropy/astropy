@@ -4,7 +4,6 @@ import gzip
 import io
 import mmap
 import os
-import shutil
 import warnings
 import zipfile
 
@@ -23,6 +22,10 @@ class TestCore(FitsTestCase):
     def test_with_statement(self):
         with fits.open(self.data('ascii.fits')) as f:
             pass
+
+    @raises(IOError)
+    def test_missing_file(self):
+        fits.open(self.temp('does-not-exist.fits'))
 
     def test_naxisj_check(self):
         hdulist = fits.open(self.data('o4sp040b0_raw.fits'))
@@ -310,9 +313,10 @@ class TestCore(FitsTestCase):
 
     def test_nonstandard_hdu(self):
         """
-        Regression test for #157.  Tests that "Nonstandard" HDUs with SIMPLE =
-        F are read and written without prepending a superfluous and unwanted
-        standard primary HDU.
+        Regression test for https://trac.assembla.com/pyfits/ticket/157
+
+        Tests that "Nonstandard" HDUs with SIMPLE = F are read and written
+        without prepending a superfluous and unwanted standard primary HDU.
         """
 
         data = np.arange(100, dtype=np.uint8)
@@ -348,8 +352,9 @@ class TestConvenienceFunctions(FitsTestCase):
 
     def test_writeto_2(self):
         """
-        Test of `writeto()` with a trivial header containing a single keyword;
-        regression for #107.
+        Regression test for https://trac.assembla.com/pyfits/ticket/107
+
+        Test of `writeto()` with a trivial header containing a single keyword.
         """
 
         data = np.zeros((100,100))
@@ -436,7 +441,7 @@ class TestFileFunctions(FitsTestCase):
             gf.close()
 
     def test_open_gzip_file_for_writing(self):
-        """Regression test for #195."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/195."""
 
         gf = self._make_gzip_file()
         with fits.open(gf, mode='update') as h:
@@ -458,8 +463,10 @@ class TestFileFunctions(FitsTestCase):
 
     def test_updated_file_permissions(self):
         """
-        Regression test for #79.  Tests that when a FITS file is modified in
-        update mode, the file permissions are preserved.
+        Regression test for https://trac.assembla.com/pyfits/ticket/79
+
+        Tests that when a FITS file is modified in update mode, the file
+        permissions are preserved.
         """
 
         filename = self.temp('test.fits')
@@ -494,8 +501,7 @@ class TestFileFunctions(FitsTestCase):
         _File._mmap_available = None
 
         try:
-            # TODO: Use self.copy_file once it's merged into Astropy
-            shutil.copy(self.data('test0.fits'), self.temp('test0.fits'))
+            self.copy_file('test0.fits')
             with warnings.catch_warnings(record=True) as w:
                 with fits.open(self.temp('test0.fits'), mode='update',
                                memmap=True) as h:

@@ -2,7 +2,6 @@
 
 import math
 import os
-import shutil
 import time
 import warnings
 
@@ -39,21 +38,23 @@ class TestImageFunctions(FitsTestCase):
         assert hdu.header['EXTNAME'] == 'FOO'
 
     def test_constructor_copies_header(self):
-       """
-       Regression test for #153.  Ensure that a header from one HDU is copied
-       when used to initialize new HDU.
-       """
+        """
+        Regression test for https://trac.assembla.com/pyfits/ticket/153
 
-       ifd = fits.HDUList(fits.PrimaryHDU())
-       phdr = ifd[0].header
-       phdr['FILENAME'] = 'labq01i3q_rawtag.fits'
+        Ensure that a header from one HDU is copied when used to initialize new
+        HDU.
+        """
 
-       primary_hdu = fits.PrimaryHDU(header=phdr)
-       ofd = fits.HDUList(primary_hdu)
-       ofd[0].header['FILENAME'] = 'labq01i3q_flt.fits'
+        ifd = fits.HDUList(fits.PrimaryHDU())
+        phdr = ifd[0].header
+        phdr['FILENAME'] = 'labq01i3q_rawtag.fits'
 
-       # Original header should be unchanged
-       assert phdr['FILENAME'] == 'labq01i3q_rawtag.fits'
+        primary_hdu = fits.PrimaryHDU(header=phdr)
+        ofd = fits.HDUList(primary_hdu)
+        ofd[0].header['FILENAME'] = 'labq01i3q_flt.fits'
+
+        # Original header should be unchanged
+        assert phdr['FILENAME'] == 'labq01i3q_rawtag.fits'
 
     @raises(ValueError)
     def test_open(self):
@@ -83,7 +84,7 @@ class TestImageFunctions(FitsTestCase):
             r.close()
 
     def test_primary_with_extname(self):
-        """Regression test for #151.
+        """Regression test for https://trac.assembla.com/pyfits/ticket/151
 
         Tests that the EXTNAME keyword works with Primary HDUs as well, and
         interacts properly with the .name attribute.  For convenience
@@ -126,9 +127,9 @@ class TestImageFunctions(FitsTestCase):
             r[0].header['xxx'] = 1.234e56
 
             assert (str(r[0].header.ascard[-3:]) ==
-                "EXPFLAG = 'NORMAL            ' / Exposure interruption indicator                \n"
-                "FILENAME= 'vtest3.fits'        / File name                                      \n"
-                "XXX     =            1.234E+56                                                  ")
+                    "EXPFLAG = 'NORMAL            ' / Exposure interruption indicator                \n"
+                    "FILENAME= 'vtest3.fits'        / File name                                      \n"
+                    "XXX     =            1.234E+56                                                  ")
 
             # rename a keyword
             r[0].header.rename_key('filename', 'fname')
@@ -233,13 +234,13 @@ class TestImageFunctions(FitsTestCase):
                 np.array([[1.,  1.,  1.,  1.,  1.],
                           [1.,  1.,  1.,  1.,  1.],
                           [1.,  1.,  1.,  1.,  1.]],
-                          dtype=np.float32)).all()
+                         dtype=np.float32)).all()
 
         # create an HDU with header and data
         # notice that the header has the right NAXIS's since it is constructed
         # with ImageHDU
         hdu2 = fits.ImageHDU(header=r[1].header, data=np.array([1, 2],
-                               dtype='int32'))
+                             dtype='int32'))
 
         assert (str(hdu2.header.ascard[1:5]) ==
             "BITPIX  =                   32 / array data type                                \n"
@@ -273,7 +274,7 @@ class TestImageFunctions(FitsTestCase):
     def test_section(self):
         # section testing
         fs = fits.open(self.data('arange.fits'))
-        assert fs[0].section[3, 2, 5] == np.array([357])
+        assert (fs[0].section[3, 2, 5] == np.array([357])).all()
         assert (fs[0].section[3, 2, :] ==
                 np.array([352, 353, 354, 355, 356, 357, 358, 359, 360, 361,
                           362])).all()
@@ -312,8 +313,8 @@ class TestImageFunctions(FitsTestCase):
                            [572, 573, 574]]])).all()
 
         assert (fs[0].section[:, :, :][:3, :2, :2] ==
-                np.array([[[0, 1],
-                           [11, 12]],
+                np.array([[[0,   1],
+                           [11,  12]],
                           [[110, 111],
                            [121, 122]],
                           [[220, 221],
@@ -486,7 +487,7 @@ class TestImageFunctions(FitsTestCase):
         assert (d.section[:, :, :, :] == dat[:, :, :, :]).all()
         assert (d.section[:, :, :] == dat[:, :, :]).all()
         assert (d.section[:, :] == dat[:, :]).all()
-        assert d.section[:].all() == dat[:].all()
+        assert (d.section[:] == dat[:]).all()
         assert (d.section[0, :, :, :] == dat[0, :, :, :]).all()
         assert (d.section[0, :, 0, :] == dat[0, :, 0, :]).all()
         assert (d.section[:, :, 0, :] == dat[:, :, 0, :]).all()
@@ -519,9 +520,10 @@ class TestImageFunctions(FitsTestCase):
 
     def test_section_data_scaled(self):
         """
-        Regression test for #143.  This is like test_section_data_square but
-        uses a file containing scaled image data, to test that sections can
-        work correctly with scaled data.
+        Regression test for https://trac.assembla.com/pyfits/ticket/143
+
+        This is like test_section_data_square but uses a file containing scaled
+        image data, to test that sections can work correctly with scaled data.
         """
 
         hdul = fits.open(self.data('scale.fits'))
@@ -572,7 +574,7 @@ class TestImageFunctions(FitsTestCase):
 
     def test_comp_image_hcompress_image_stack(self):
         """
-        Regression test for #171.
+        Regression test for https://trac.assembla.com/pyfits/ticket/171
 
         Tests that data containing more than two dimensions can be
         compressed with HCOMPRESS_1 so long as the user-supplied tile size can
@@ -593,7 +595,7 @@ class TestImageFunctions(FitsTestCase):
             # No warnings should be displayed in this case
             warnings.simplefilter('error')
             with fits.open(self.data('comp.fits'),
-                             disable_image_compression=True) as hdul:
+                           disable_image_compression=True) as hdul:
                 # The compressed image HDU should show up as a BinTableHDU, but
                 # *not* a CompImageHDU
                 assert isinstance(hdul[1], fits.BinTableHDU)
@@ -604,14 +606,14 @@ class TestImageFunctions(FitsTestCase):
 
     def test_open_comp_image_in_update_mode(self):
         """
-        Regression test for #167.
+        Regression test for https://trac.assembla.com/pyfits/ticket/167
 
         Similar to test_open_scaled_in_update_mode(), but specifically for
         compressed images.
         """
 
         # Copy the original file before making any possible changes to it
-        shutil.copy(self.data('comp.fits'), self.temp('comp.fits'))
+        self.copy_file('comp.fits')
         mtime = os.stat(self.temp('comp.fits')).st_mtime
 
         time.sleep(1)
@@ -623,19 +625,19 @@ class TestImageFunctions(FitsTestCase):
         assert mtime == os.stat(self.temp('comp.fits')).st_mtime
 
     def test_do_not_scale_image_data(self):
-        hdul = fits.open(self.data('scale.fits'),
-                           do_not_scale_image_data=True)
+        hdul = fits.open(self.data('scale.fits'), do_not_scale_image_data=True)
         assert hdul[0].data.dtype == np.dtype('>i2')
         hdul = fits.open(self.data('scale.fits'))
         assert hdul[0].data.dtype == np.dtype('float32')
 
     def test_append_uint_data(self):
-        """Regression test for #56 (BZERO and BSCALE added in the wrong location
-        when appending scaled data)
+        """Regression test for https://trac.assembla.com/pyfits/ticket/56
+        (BZERO and BSCALE added in the wrong location when appending scaled
+        data)
         """
 
         fits.writeto(self.temp('test_new.fits'), data=np.array([],
-                       dtype='uint8'))
+                     dtype='uint8'))
         d = np.zeros([100, 100]).astype('uint16')
         fits.append(self.temp('test_new.fits'), data=d)
         f = fits.open(self.temp('test_new.fits'), uint=True)
@@ -671,7 +673,9 @@ class TestImageFunctions(FitsTestCase):
         assert (hdul[1].data == arr).all()
 
     def test_rewriting_large_scaled_image(self):
-        """Regression test for #84 and #101."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/84 and
+        https://trac.assembla.com/pyfits/ticket/101
+        """
 
         hdul = fits.open(self.data('fixed-1890.fits'))
         orig_data = hdul[0].data
@@ -683,7 +687,8 @@ class TestImageFunctions(FitsTestCase):
         hdul.close()
 
         # Just as before, but this time don't touch hdul[0].data before writing
-        # back out--this is the case that failed in #84
+        # back out--this is the case that failed in
+        # https://trac.assembla.com/pyfits/ticket/84
         hdul = fits.open(self.data('fixed-1890.fits'))
         with ignore_warnings():
             hdul.writeto(self.temp('test_new.fits'), clobber=True)
@@ -694,7 +699,7 @@ class TestImageFunctions(FitsTestCase):
 
         # Test opening/closing/reopening a scaled file in update mode
         hdul = fits.open(self.data('fixed-1890.fits'),
-                           do_not_scale_image_data=True)
+                         do_not_scale_image_data=True)
         hdul.writeto(self.temp('test_new.fits'), clobber=True,
                      output_verify='silentfix')
         hdul.close()
@@ -710,7 +715,7 @@ class TestImageFunctions(FitsTestCase):
 
     def test_rewriting_large_scaled_image_compressed(self):
         """
-        Regression test for #88 1.
+        Regression test for https://trac.assembla.com/pyfits/ticket/88 1
 
         Identical to test_rewriting_large_scaled_image() but with a compressed
         image.
@@ -732,7 +737,8 @@ class TestImageFunctions(FitsTestCase):
         hdul.close()
 
         # Just as before, but this time don't touch hdul[0].data before writing
-        # back out--this is the case that failed in #84
+        # back out--this is the case that failed in
+        # https://trac.assembla.com/pyfits/ticket/84
         hdul = fits.open(self.temp('fixed-1890-z.fits'))
         with ignore_warnings():
             hdul.writeto(self.temp('test_new.fits'), clobber=True)
@@ -743,7 +749,7 @@ class TestImageFunctions(FitsTestCase):
 
         # Test opening/closing/reopening a scaled file in update mode
         hdul = fits.open(self.temp('fixed-1890-z.fits'),
-                           do_not_scale_image_data=True)
+                         do_not_scale_image_data=True)
         hdul.writeto(self.temp('test_new.fits'), clobber=True,
                      output_verify='silentfix')
         hdul.close()
@@ -759,27 +765,27 @@ class TestImageFunctions(FitsTestCase):
 
     def test_image_update_header(self):
         """
-        Regression test for #105.
+        Regression test for https://trac.assembla.com/pyfits/ticket/105
 
         Replacing the original header to an image HDU and saving should update
         the NAXISn keywords appropriately and save the image data correctly.
         """
 
         # Copy the original file before saving to it
-        shutil.copy(self.data('test0.fits'), self.temp('test_new.fits'))
-        with fits.open(self.temp('test_new.fits'), mode='update') as hdul:
+        self.copy_file('test0.fits')
+        with fits.open(self.temp('test0.fits'), mode='update') as hdul:
             orig_data = hdul[1].data.copy()
             hdr_copy = hdul[1].header.copy()
             del hdr_copy['NAXIS*']
             hdul[1].header = hdr_copy
 
-        with fits.open(self.temp('test_new.fits')) as hdul:
+        with fits.open(self.temp('test0.fits')) as hdul:
             assert (orig_data == hdul[1].data).all()
 
     def test_open_scaled_in_update_mode(self):
         """
-        Regression test for #119 (Don't update scaled image data if the data is
-        not read)
+        Regression test for https://trac.assembla.com/pyfits/ticket/119
+        (Don't update scaled image data if the data is not read)
 
         This ensures that merely opening and closing a file containing scaled
         image data does not cause any change to the data (or the header).
@@ -787,7 +793,7 @@ class TestImageFunctions(FitsTestCase):
         """
 
         # Copy the original file before making any possible changes to it
-        shutil.copy(self.data('scale.fits'), self.temp('scale.fits'))
+        self.copy_file('scale.fits')
         mtime = os.stat(self.temp('scale.fits')).st_mtime
 
         time.sleep(1)
@@ -829,7 +835,7 @@ class TestImageFunctions(FitsTestCase):
 
     def test_open_scaled_in_update_mode_compressed(self):
         """
-        Regression test for #88 2.
+        Regression test for https://trac.assembla.com/pyfits/ticket/88 2
 
         Identical to test_open_scaled_in_update_mode() but with a compressed
         version of the scaled image.
@@ -840,7 +846,7 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.data('scale.fits'),
                        do_not_scale_image_data=True) as hdul:
             chdu = fits.CompImageHDU(data=hdul[0].data,
-                                       header=hdul[0].header)
+                                     header=hdul[0].header)
             chdu.writeto(self.temp('scale.fits'))
         mtime = os.stat(self.temp('scale.fits')).st_mtime
 
@@ -881,9 +887,12 @@ class TestImageFunctions(FitsTestCase):
         assert 'BSCALE' not in hdul[1].header
 
     def test_scale_back(self):
-        """A simple test for #120--the scale_back feature for image HDUs."""
+        """A simple test for https://trac.assembla.com/pyfits/ticket/120
 
-        shutil.copy(self.data('scale.fits'), self.temp('scale.fits'))
+        The scale_back feature for image HDUs.
+        """
+
+        self.copy_file('scale.fits')
         with fits.open(self.temp('scale.fits'), mode='update',
                        scale_back=True) as hdul:
             orig_bitpix = hdul[0].header['BITPIX']
@@ -893,7 +902,7 @@ class TestImageFunctions(FitsTestCase):
             hdul[0].data[0] = 0
 
         with fits.open(self.temp('scale.fits'),
-                         do_not_scale_image_data=True) as hdul:
+                       do_not_scale_image_data=True) as hdul:
             assert hdul[0].header['BITPIX'] == orig_bitpix
             assert hdul[0].header['BZERO'] == orig_bzero
             assert hdul[0].header['BSCALE'] == orig_bscale
@@ -906,7 +915,7 @@ class TestImageFunctions(FitsTestCase):
 
     def test_scale_back_compressed(self):
         """
-        Regression test for #88 3.
+        Regression test for https://trac.assembla.com/pyfits/ticket/88 3
 
         Identical to test_scale_back() but uses a compressed image.
         """
@@ -946,7 +955,7 @@ class TestImageFunctions(FitsTestCase):
                 assert (hdul[1].data == hdul2[0].data).all()
 
     def test_lossless_gzip_compression(self):
-        """Regression test for #198."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/198"""
 
         noise = np.random.normal(size=(1000, 1000))
 
@@ -962,7 +971,7 @@ class TestImageFunctions(FitsTestCase):
         del h
 
         chdu2 = fits.CompImageHDU(data=noise, compressionType='GZIP_1',
-                                    quantizeLevel=0.0)  # No quantization
+                                  quantizeLevel=0.0)  # No quantization
         with ignore_warnings():
             chdu2.writeto(self.temp('test.fits'), clobber=True)
 
@@ -970,20 +979,20 @@ class TestImageFunctions(FitsTestCase):
             assert (noise == h[1].data).all()
 
     def test_compression_column_tforms(self):
-        """Regression test for #199."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/199"""
 
         # Some interestingly tiled data so that some of it is quantized and
         # some of it ends up just getting gzip-compressed
         data2 = ((np.arange(1, 8, dtype=np.float32) * 10)[:, np.newaxis] +
-                np.arange(1, 7))
+                 np.arange(1, 7))
         np.random.seed(1337)
         data1 = np.random.uniform(size=(6 * 4, 7 * 4))
         data1[:data2.shape[0], :data2.shape[1]] = data2
         chdu = fits.CompImageHDU(data1, compressionType='RICE_1',
-                                   tileSize=(6, 7))
+                                 tileSize=(6, 7))
         chdu.writeto(self.temp('test.fits'))
 
         with fits.open(self.temp('test.fits'),
-                         disable_image_compression=True) as h:
+                       disable_image_compression=True) as h:
             assert h[1].header['TFORM1'] == '1PB(30)'
             assert h[1].header['TFORM2'] == '1PB(359)'
