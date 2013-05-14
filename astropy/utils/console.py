@@ -19,7 +19,7 @@ try:
     import signal
     _CAN_RESIZE_TERMINAL = True
 except ImportError:
-    _CAN_RESIZE_TERMNIAL = False
+    _CAN_RESIZE_TERMINAL = False
 
 import numpy as np
 
