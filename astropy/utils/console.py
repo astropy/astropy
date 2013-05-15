@@ -27,18 +27,15 @@ try:
     get_ipython()
 except NameError:
     OutStream = None
-    _stdout = sys.stdout
-    _stderr = sys.stderr
+    stdio = sys
 else:
     try:
         from IPython.zmq.iostream import OutStream
         from IPython.utils import io
-        _stdout = io.stdout
-        _stderr = io.stderr
+        stdio = io
     except ImportError:
         OutStream = None
-        _stdout = sys.stdout
-        _stderr = sys.stderr
+        stdio = sys
 
 try:
     import IPython
@@ -163,7 +160,7 @@ def color_print(*args, **kwargs):
         be printed after resetting any color or font state.
     """
 
-    file = kwargs.get('file', _stdout)
+    file = kwargs.get('file', stdio.stdout)
     end = kwargs.get('end', u'\n')
 
     write = file.write
@@ -175,20 +172,24 @@ def color_print(*args, **kwargs):
             else:
                 color = args[i + 1]
 
-            if isinstance(msg, bytes):
-                msg = msg.decode('ascii')
+            if color:
+                msg = _color_text(msg, color)
 
-            if color == u'' or color is None:
-                write(msg)
-            else:
-                write(_color_text(msg, color))
+            if isinstance(msg, bytes):
+                msg = msg.decode('utf-8')
+            elif isinstance(msg, unicode):
+                msg = msg.encode('utf-8')
+
+            write(msg)
 
         write(end)
     else:
         for i in xrange(0, len(args), 2):
             msg = args[i]
             if isinstance(msg, bytes):
-                msg = msg.decode('ascii')
+                msg = msg.decode('utf-8')
+            elif isinstance(msg, unicode):
+                msg = msg.encode('utf-8')
             write(msg)
         write(end)
 
@@ -304,7 +305,7 @@ class ProgressBar(object):
         for item in ProgressBar(items):
             item.process()
     """
-    def __init__(self, total_or_items, file=_stdout):
+    def __init__(self, total_or_items, file=None):
         """
         Parameters
         ----------
@@ -318,6 +319,9 @@ class ProgressBar(object):
             calling its `isatty` member, if any), the scrollbar will
             be completely silent.
         """
+        if file is None:
+            file = stdio.stdout
+
         if not isatty(file):
             self.update = self._silent_update
             self._silent = True
@@ -387,7 +391,7 @@ class ProgressBar(object):
     def update(self, value=None):
         """
         Update the progress bar to the given value (out of the total
-        given to the constructor.
+        given to the constructor).
         """
         if value is None:
             value = self._current_value = self._current_value + 1
@@ -431,7 +435,7 @@ class ProgressBar(object):
         pass
 
     @classmethod
-    def map(cls, function, items, multiprocess=False, file=_stdout):
+    def map(cls, function, items, multiprocess=False, file=None):
         """
         Does a `map` operation while displaying a progress bar with
         percentage complete.
@@ -464,6 +468,9 @@ class ProgressBar(object):
         """
         results = []
 
+        if file is None:
+            file = stdio.stdout
+
         with cls(len(items), file=file) as bar:
             step_size = max(200, bar._bar_length)
             steps = max(int(float(len(items)) / step_size), 1)
@@ -484,7 +491,7 @@ class ProgressBar(object):
 
     @deprecated('0.3', alternative='ProgressBar')
     @classmethod
-    def iterate(cls, items, file=_stdout):
+    def iterate(cls, items, file=None):
         """
         Iterate over a sequence while indicating progress with a progress
         bar in the terminal.
@@ -510,6 +517,8 @@ class ProgressBar(object):
         generator :
             A generator over `items`
         """
+        if file is None:
+            file = stdio.stdout
         return cls(items, file=file)
 
 
@@ -526,7 +535,7 @@ class Spinner(object):
     _default_unicode_chars = u"◓◑◒◐"
     _default_ascii_chars = u"-/|\\"
 
-    def __init__(self, msg, color='default', file=_stdout, step=1,
+    def __init__(self, msg, color='default', file=None, step=1,
                  chars=None):
         """
         Parameters
@@ -552,6 +561,9 @@ class Spinner(object):
         chars : str, optional
             The character sequence to use for the spinner
         """
+        if file is None:
+            file = stdio.stdout
+
         self._msg = msg
         self._color = color
         self._file = file
@@ -634,7 +646,7 @@ class ProgressBarOrSpinner(object):
                 bar.update(bytes_read)
     """
 
-    def __init__(self, total, msg, color='default', file=_stdout):
+    def __init__(self, total, msg, color='default', file=None):
         """
         Parameters
         ----------
@@ -660,6 +672,10 @@ class ProgressBarOrSpinner(object):
             member, if any), only `msg` will be displayed: the
             `ProgressBar` or `Spinner` will be silent.
         """
+
+        if file is None:
+            file = stdio.stdout
+
         if total is None or not isatty(file):
             self._is_spinner = True
             self._obj = Spinner(msg, color=color, file=file)
@@ -686,7 +702,7 @@ class ProgressBarOrSpinner(object):
             self._obj.update(value)
 
 
-def print_code_line(line, col=None, file=_stdout, tabwidth=8, width=70):
+def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
     u"""
     Prints a line of source code, highlighting a particular character
     position in the line.  Useful for displaying the context of error
@@ -723,6 +739,10 @@ def print_code_line(line, col=None, file=_stdout, tabwidth=8, width=70):
         truncated.  Defaults to 70 (this matches the default in the
         standard library's `textwrap` module).
     """
+
+    if file is None:
+        file = stdio.stdout
+
     write = file.write
 
     if col is not None:
