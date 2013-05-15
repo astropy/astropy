@@ -5,6 +5,8 @@ Utilities for console input and output.
 """
 from __future__ import division, print_function
 
+import codecs
+import locale
 import re
 import math
 import multiprocessing
@@ -60,6 +62,9 @@ USE_COLOR = ConfigurationItem(
 USE_UNICODE = ConfigurationItem(
     'use_unicode', True,
     'Use Unicode characters when drawing progress bars etc. at the console.')
+
+
+IS_PY3 = sys.version_info[0] == 3
 
 
 def isatty(file):
@@ -161,6 +166,7 @@ def color_print(*args, **kwargs):
     """
 
     file = kwargs.get('file', stdio.stdout)
+
     end = kwargs.get('end', u'\n')
 
     write = file.write
@@ -175,21 +181,29 @@ def color_print(*args, **kwargs):
             if color:
                 msg = _color_text(msg, color)
 
-            if isinstance(msg, bytes):
-                msg = msg.decode('utf-8')
-            elif isinstance(msg, unicode):
-                msg = msg.encode('utf-8')
+            # Some file objects support writing unicode sensibly on some Python
+            # versions; if this fails try creating a writer using the locale's
+            # preferred encoding. If that fails too give up.
+            if not IS_PY3 and isinstance(msg, bytes):
+                msg = msg.decode(locale.getpreferredencoding())
 
-            write(msg)
+            try:
+                write(msg)
+            except UnicodeEncodeError:
+                Writer = codecs.getwriter(locale.getpreferredencoding())
+                file = Writer(file)
+                write = file.write
+                write(msg)
 
         write(end)
     else:
         for i in xrange(0, len(args), 2):
             msg = args[i]
-            if isinstance(msg, bytes):
-                msg = msg.decode('utf-8')
-            elif isinstance(msg, unicode):
-                msg = msg.encode('utf-8')
+            if not IS_PY3 and isinstance(msg, bytes):
+                # Support decoding bytes to unicode on Python 2; use the
+                # preferred encoding for the locale (which is *sometimes*
+                # sensible)
+                msg = msg.decode(locale.getpreferredencoding())
             write(msg)
         write(end)
 
