@@ -72,6 +72,24 @@ New Features
   support for lossless compression with GZIP. (#198)
 
 
+3.1.3 (unreleased)
+------------------
+
+- Disallowed assigning NaN and Inf floating point values as header values,
+  since the FITS standard does not define a way to represent them in. Because
+  this is undefined, the previous behavior did not make sense and produced
+  invalid FITS files. (spacetelescope/PyFITS#11)
+
+
+3.0.12 (unreleased)
+-------------------
+
+- Disallowed assigning NaN and Inf floating point values as header values,
+  since the FITS standard does not define a way to represent them in. Because
+  this is undefined, the previous behavior did not make sense and produced
+  invalid FITS files. (Backported from 3.1.3)
+
+
 3.1.2 (2013-04-22)
 ------------------
 

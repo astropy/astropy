@@ -1886,6 +1886,21 @@ class TestHeaderFunctions(FitsTestCase):
         c.verify('fix')
         assert str(c) == _pad('HIERARCH ESO DET CHIP PXSPACE = 5E6')
 
+    def test_assign_inf_nan(self):
+        """
+        Regression test for https://github.com/spacetelescope/PyFITS/issues/11
+
+        For the time being it should not be possible to assign the floating
+        point values inf or nan to a header value, since this is not defined by
+        the FITS standard.
+        """
+
+        h = fits.Header()
+        pytest.raises(ValueError, h.set, 'TEST', float('nan'))
+        pytest.raises(ValueError, h.set, 'TEST', np.nan)
+        pytest.raises(ValueError, h.set, 'TEST', float('inf'))
+        pytest.raises(ValueError, h.set, 'TEST', np.inf)
+
 
 class TestRecordValuedKeywordCards(FitsTestCase):
     """

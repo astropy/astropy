@@ -46,6 +46,11 @@ Bug Fixes
     ancillary issue where the ``Header.index()`` method id not work correctly
     with HIERARCH keywords containing lower-case letters.
 
+  - Disallowed assigning NaN and Inf floating point values as header values,
+    since the FITS standard does not define a way to represent them in. Because
+    this is undefined, the previous behavior did not make sense and produced
+    invalid FITS files. [#954]
+
   - Fixed an obscure issue that can occur on systems that don't have flush to
     memory-mapped files implemented (namely GNU Hurd). [#968]
 
