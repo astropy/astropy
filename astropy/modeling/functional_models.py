@@ -335,6 +335,12 @@ class ScaleModel(Model):
 
 
 class PowerLawModel(ParametricModel):
+    """
+    A power law model.
+    
+    The model is of the form :math:`A x^\\alpha`, where :math:`A` is
+    the `scale` parameter, and :math:`\\alpha` is `alpha`.
+    """
     param_names = ['scale', 'alpha']
 
     def __init__(self, scale, alpha, param_dim=1):
