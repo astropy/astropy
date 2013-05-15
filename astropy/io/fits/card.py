@@ -560,6 +560,11 @@ class Card(_Verify):
                                   np.complexfloating, np.bool_)):
             raise ValueError('Illegal value: %r.' % value)
 
+        if isinstance(value, float) and (np.isnan(value) or np.isinf(value)):
+            raise ValueError(
+                "Floating point %r values are not allowed in FITS headers." %
+                value)
+
         if isinstance(value, unicode):
             try:
                 # Any string value must be encodable as ASCII
