@@ -378,7 +378,7 @@ def register_commands(package, version, release):
 
     if HAVE_SPHINX:
         _registered_commands['build_sphinx'] = AstropyBuildSphinx
-    else: 
+    else:
          _registered_commands['build_sphinx'] = FakeBuildSphinx
 
     # Need to override the __name__ here so that the commandline options are
@@ -549,6 +549,14 @@ class AstropyBuildPy(SetuptoolsBuildPy):
                                      'lib' + plat_specifier)
         build_cmd.build_purelib = build_purelib
         build_cmd.build_lib = build_purelib
+
+        # Ugly hack: We also need to 'fix' the build_lib option on the
+        # install command--it would be better just to override that command
+        # entirely, but we can get around that extra effort by doing it here
+        install_cmd = self.get_finalized_command('install')
+        install_cmd.build_lib = build_purelib
+        install_lib_cmd = self.get_finalized_command('install_lib')
+        install_lib_cmd.build_dir = build_purelib
         self.build_lib = build_purelib
         SetuptoolsBuildPy.finalize_options(self)
 
@@ -1662,15 +1670,15 @@ class FakeBuildSphinx(Command):
          ('release=', None, ''),
          ('today=', None, ''),
          ('link-index', 'i', ''),
-     ] 
+     ]
 
     #user options appended in astropy.setup_helpers.AstropyBuildSphinx
     user_options.append(('warnings-returncode', 'w',''))
     user_options.append(('clean-docs', 'l', ''))
     user_options.append(('no-intersphinx', 'n', ''))
     user_options.append(('open-docs-in-browser', 'o',''))
- 
-                               
+
+
 
     def initialize_options(self):
         try:
@@ -1679,4 +1687,4 @@ class FakeBuildSphinx(Command):
             log.error('error : Sphinx must be installed for build_sphinx')
             sys.exit(1)
 
-    
+
