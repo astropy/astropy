@@ -814,6 +814,11 @@ def download_file(remote_url, cache=False, show_progress=True):
     -------
     local_path : str
         Returns the local path that the file was download to.
+
+    Raises
+    ------
+    `urllib2.URLError`
+        Whenever there's a problem getting the remote file.
     """
 
     import hashlib
