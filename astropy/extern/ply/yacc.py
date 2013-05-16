@@ -84,7 +84,7 @@ resultlimit = 40               # Size limit of results when running in debug mod
 
 pickle_protocol = 0            # Protocol to use when writing pickle files
 
-import re, types, sys, os.path
+import re, types, sys, os.path, inspect
 
 # Compatibility function for python 2.6/3.0
 if sys.version_info[0] < 3:
@@ -2765,7 +2765,7 @@ class ParserReflect(object):
         self.start      = None
         self.error_func = None
         self.tokens     = None
-        self.files      = {}
+        self.modules    = {}
         self.grammar    = []
         self.error      = 0
 
@@ -2789,7 +2789,7 @@ class ParserReflect(object):
         self.validate_tokens()
         self.validate_precedence()
         self.validate_pfunctions()
-        self.validate_files()
+        self.validate_modules()
         return self.error
 
     # Compute a signature over the grammar
@@ -2814,7 +2814,7 @@ class ParserReflect(object):
         return sig.digest()
 
     # -----------------------------------------------------------------------------
-    # validate_file()
+    # validate_modules()
     #
     # This method checks to see if there are duplicated p_rulename() functions
     # in the parser module file.  Without this function, it is really easy for
@@ -2824,20 +2824,12 @@ class ParserReflect(object):
     # to try and detect duplicates.
     # -----------------------------------------------------------------------------
 
-    def validate_files(self):
+    def validate_modules(self):
         # Match def p_funcname(
         fre = re.compile(r'\s*def\s+(p_[a-zA-Z_0-9]*)\(')
 
-        for filename in self.files.keys():
-            base,ext = os.path.splitext(filename)
-            if ext != '.py': return 1          # No idea. Assume it's okay.
-
-            try:
-                f = open(filename)
-                lines = f.readlines()
-                f.close()
-            except IOError:
-                continue
+        for module in self.modules.keys():
+            lines, linen = inspect.getsourcelines(module)
 
             counthash = { }
             for linen,l in enumerate(lines):
@@ -2849,6 +2841,7 @@ class ParserReflect(object):
                     if not prev:
                         counthash[name] = linen
                     else:
+                        filename = inspect.getsourcefile(module)
                         self.log.warning("%s:%d: Function %s redefined. Previously defined on line %d", filename,linen,name,prev)
 
     # Get the start symbol
@@ -2879,7 +2872,8 @@ class ParserReflect(object):
 
             eline = func_code(self.error_func).co_firstlineno
             efile = func_code(self.error_func).co_filename
-            self.files[efile] = 1
+            module = inspect.getmodule(self.error_func)
+            self.modules[module] = 1
 
             if (func_code(self.error_func).co_argcount != 1+ismethod):
                 self.log.error("%s:%d: p_error() requires 1 argument",efile,eline)
@@ -2962,8 +2956,8 @@ class ParserReflect(object):
             if name == 'p_error': continue
             if isinstance(item,(types.FunctionType,types.MethodType)):
                 line = func_code(item).co_firstlineno
-                file = func_code(item).co_filename
-                p_functions.append((line,file,name,item.__doc__))
+                module = inspect.getmodule(item)
+                p_functions.append((line,module,name,item.__doc__))
 
         # Sort all of the actions by line number
         p_functions.sort()
@@ -2979,7 +2973,8 @@ class ParserReflect(object):
             self.error = 1
             return
 
-        for line, file, name, doc in self.pfuncs:
+        for line, module, name, doc in self.pfuncs:
+            file = inspect.getsourcefile(module)
             func = self.pdict[name]
             if isinstance(func, types.MethodType):
                 reqargs = 2
@@ -3005,7 +3000,7 @@ class ParserReflect(object):
 
                 # Looks like a valid grammar rule
                 # Mark the file in which defined.
-                self.files[file] = 1
+                self.modules[module] = 1
 
         # Secondary validation step that looks for p_ definitions that are not functions
         # or functions that look like they might be grammar rules.
