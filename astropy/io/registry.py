@@ -93,7 +93,7 @@ def register_identifier(data_format, data_class, identifier, force=False):
         >>> def my_identifier(args, kwargs):
         ...     return (isinstance(args[0], basestring) and
         ...             args[0].endswith('.tbl'))
-        >>> register_identifier('ipac', my_identifier)
+        >>> register_identifier('ipac', Table, my_identifier)
     """
 
     if not (data_format, data_class) in _identifiers or force:
