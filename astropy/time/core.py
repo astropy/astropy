@@ -579,6 +579,13 @@ class Time(object):
     def __len__(self):
         return len(self._time)
 
+    def _add_sub(self, other, op):
+        """
+        Add or subtract self and other.  It is assumed that ``op`` is
+        either operator.add or operator.sub.  (OK since this is a private
+        method and only called from __add__ and __sub__).
+        """
+
     def __sub__(self, other):
         self_tai = self.tai
         if not isinstance(other, Time):
@@ -597,11 +604,15 @@ class Time(object):
         self_time = not self_delta  # only 2 possibilities
         other_time = not other_delta
         if (self_delta and other_delta) or (self_time and other_time):
-            return TimeDelta(jd1, jd2, format='jd')
+            out = TimeDelta(jd1, jd2, format='jd')
+            if self_delta:
+                out = out.replicate(format=self.format)
+            return out
         elif (self_time and other_delta):
-            self_tai._time.jd1 = jd1
-            self_tai._time.jd2 = jd2
-            return getattr(self_tai, self.scale)
+            format = self.format if self_time else other.format
+            scale = self.scale if self_time else other.scale
+            tai = Time(jd1, jd2, format='jd', scale='tai', copy=False)
+            return getattr(tai.replicate(format=format), scale)
         else:
             raise OperandTypeError(self, other)
 
@@ -623,13 +634,15 @@ class Time(object):
         self_time = not self_delta  # only 2 possibilities
         other_time = not other_delta
         if (self_delta and other_delta):
-            return TimeDelta(jd1, jd2, format='jd')
+            out = TimeDelta(jd1, jd2, format='jd')
+            if self_delta:
+                out = out.replicate(format=self.format)
+            return out
         elif (self_time and other_delta) or (self_delta and other_time):
-            tai = self_tai if self_time else other_tai
+            format = self.format if self_time else other.format
             scale = self.scale if self_time else other.scale
-            tai._time.jd1 = jd1
-            tai._time.jd2 = jd2
-            return getattr(tai, scale)
+            tai = Time(jd1, jd2, format='jd', scale='tai', copy=False)
+            return getattr(tai.replicate(format=format), scale)
         else:
             raise OperandTypeError(self, other)
 
