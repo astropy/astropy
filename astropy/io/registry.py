@@ -90,9 +90,10 @@ def register_identifier(data_format, data_class, identifier, force=False):
     To set the identifier based on extensions, for formats that take a
     filename as a first argument, you can do for example::
 
-    >>> def my_identifier(*args, **kwargs):
-    ...     return isinstance(args[0], basestring) and args[0].endswith('.tbl')
-    >>> register_identifier('ipac', Table, my_identifier)
+        >>> def my_identifier(*args, **kwargs):
+        ...     return (isinstance(args[0], basestring) and
+        ...             args[0].endswith('.tbl'))
+        >>> register_identifier('ipac', Table, my_identifier)
     """
 
     if not (data_format, data_class) in _identifiers or force:
