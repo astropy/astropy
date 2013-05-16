@@ -34,7 +34,7 @@
 __version__    = "3.4"
 __tabversion__ = "3.2"       # Version of table file used
 
-import re, sys, types, copy, os
+import re, sys, types, copy, os, inspect
 
 # This tuple contains known string types
 try:
@@ -548,7 +548,7 @@ class LexerReflect(object):
         self.tokens     = []
         self.reflags    = reflags
         self.stateinfo  = { 'INITIAL' : 'inclusive'}
-        self.files      = {}
+        self.modules    = {}
         self.error      = 0
 
         if log is None:
@@ -729,7 +729,8 @@ class LexerReflect(object):
             for fname, f in self.funcsym[state]:
                 line = func_code(f).co_firstlineno
                 file = func_code(f).co_filename
-                self.files[file] = 1
+                module = inspect.getmodule(f)
+                self.modules[module] = 1
 
                 tokname = self.toknames[fname]
                 if isinstance(f, types.MethodType):
@@ -799,7 +800,8 @@ class LexerReflect(object):
                 f = efunc
                 line = func_code(f).co_firstlineno
                 file = func_code(f).co_filename
-                self.files[file] = 1
+                module = inspect.getmodule(f)
+                self.modules[module] = 1
 
                 if isinstance(f, types.MethodType):
                     reqargs = 2
@@ -814,35 +816,26 @@ class LexerReflect(object):
                     self.log.error("%s:%d: Rule '%s' requires an argument", file,line,f.__name__)
                     self.error = 1
 
-        for f in self.files:
-            self.validate_file(f)
+        for module in self.modules:
+            self.validate_module(module)
 
 
     # -----------------------------------------------------------------------------
-    # validate_file()
+    # validate_module()
     #
     # This checks to see if there are duplicated t_rulename() functions or strings
     # in the parser input file.  This is done using a simple regular expression
-    # match on each line in the given file.  
+    # match on each line in the source code of the given module.
     # -----------------------------------------------------------------------------
 
-    def validate_file(self,filename):
-        import os.path
-        base,ext = os.path.splitext(filename)
-        if ext != '.py': return         # No idea what the file is. Return OK
-
-        try:
-            f = open(filename)
-            lines = f.readlines()
-            f.close()
-        except IOError:
-            return                      # Couldn't find the file.  Don't worry about it
+    def validate_module(self, module):
+        lines, linen = inspect.getsourcelines(module)
 
         fre = re.compile(r'\s*def\s+(t_[a-zA-Z_0-9]*)\(')
         sre = re.compile(r'\s*(t_[a-zA-Z_0-9]*)\s*=')
 
         counthash = { }
-        linen = 1
+        linen += 1
         for l in lines:
             m = fre.match(l)
             if not m:
@@ -853,6 +846,7 @@ class LexerReflect(object):
                 if not prev:
                     counthash[name] = linen
                 else:
+                    filename = inspect.getsourcefile(module)
                     self.log.error("%s:%d: Rule %s redefined. Previously defined on line %d",filename,linen,name,prev)
                     self.error = 1
             linen += 1
