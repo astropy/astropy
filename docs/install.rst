@@ -34,11 +34,34 @@ Using `pip`
 
 To install Astropy with `pip`, simply run::
 
-    pip install astropy
+    pip install --no-deps astropy
 
-.. note:: You will need a C compiler (e.g. ``gcc`` or ``clang``) to be
-          installed (see `Building from source`_ below) for the installation
-          to succeed.
+.. note::
+
+    You will need a C compiler (e.g. ``gcc`` or ``clang``) to be installed (see
+    `Building from source`_ below) for the installation to succeed.
+
+.. note::
+
+    The ``--no-deps`` flag is optional, but highly recommended if you already
+    have Numpy installed, since otherwise pip will sometimes try to "help" you
+    by upgrading your Numpy installation, which may not always be desired.
+
+.. note::
+
+    If you get a ``PermissionError`` this means that you do not have the
+    required administrative access to install new packages to your Python
+    installation.  In this case you may consider using the ``--user`` option
+    to install the package into your home directory.  You can read more about
+    how to do this on `Stack Overflow <http://stackoverflow.com/a/7143496/982257>`_.
+
+    Alternatively, if you intend to do development on other software that uses
+    Astropy, such as an affiliated package, consider installing Astropy into a
+    :ref:`virtualenv<using-virtualenv>`.
+
+    Do **not** install Astropy or other third-party packages using ``sudo``
+    unless you are fully aware of the risks.
+
 
 Binary installers
 -----------------
