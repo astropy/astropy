@@ -4,10 +4,12 @@
 import io
 import sys
 
-from astropy.tests.helper import raises
+from ...tests.helper import pytest, raises
 
 from .. import console
 
+
+@pytest.mark.skipif("sys.platform.startswith('win')")
 def test_color_text():
     assert console._color_text("foo", "green") == u'\033[0;32mfoo\033[0m'
 
@@ -29,7 +31,7 @@ def test_color_print2():
     console.color_print("foo", "green", "bar", "red", "baz", file=stream)
     assert stream.getvalue() == u'foobarbaz\n'
 
-
+@pytest.mark.skipif("sys.platform.startswith('win')")
 def test_color_print3():
     # Test that this things the FakeTTY is a tty and applies colors.
     class FakeTTY(io.StringIO):
