@@ -179,7 +179,7 @@ def _get_unit_format(config):
     """
     Get the unit format based on the configuration.
     """
-    if config['unit_format'] is None:
+    if 'unit_format' not in config:
         format = _get_default_unit_format(config)
     else:
         format = config['unit_format']

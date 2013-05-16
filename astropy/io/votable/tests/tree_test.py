@@ -16,3 +16,15 @@ def test_check_astroyear_fail():
 def test_string_fail():
     config = {'pedantic': True}
     tree.check_string(42, 'foo', config)
+
+def test_make_Fields():
+    votable = tree.VOTableFile()
+    # ...with one resource...
+    resource = tree.Resource()
+    votable.resources.append(resource)
+
+    # ... with one table
+    table = tree.Table(votable)
+    resource.tables.append(table)
+
+    table.fields.extend([tree.Field(votable, name='Test', datatype="float", unit = "mag")])
