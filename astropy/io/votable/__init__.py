@@ -5,12 +5,13 @@ Observatory (VO) initiative, particularly the VOTable XML format.
 """
 
 from .table import (
-    parse, parse_single_table, validate, from_table, is_votable)
+    parse, parse_single_table, validate, from_table, is_votable, writeto)
 from .exceptions import (
     VOWarning, VOTableChangeWarning, VOTableSpecWarning, UnimplementedWarning,
     IOWarning, VOTableSpecError)
 
 __all__ = [
     'parse', 'parse_single_table', 'validate', 'from_table',
-    'is_votable', 'VOWarning', 'VOTableChangeWarning', 'VOTableSpecWarning',
-    'UnimplementedWarning', 'IOWarning', 'VOTableSpecError']
+    'is_votable', 'writeto', 'VOWarning', 'VOTableChangeWarning',
+    'VOTableSpecWarning', 'UnimplementedWarning', 'IOWarning',
+    'VOTableSpecError']
