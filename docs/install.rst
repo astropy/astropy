@@ -53,7 +53,7 @@ To install Astropy with `pip`, simply run::
     required administrative access to install new packages to your Python
     installation.  In this case you may consider using the ``--user`` option
     to install the package into your home directory.  You can read more about
-    how to do this on `Stack Overflow <http://stackoverflow.com/a/7143496/982257>`_.
+    how to do this in the `pip documentation <http://www.pip-installer.org/en/1.2.1/other-tools.html#using-pip-with-the-user-scheme>`_.
 
     Alternatively, if you intend to do development on other software that uses
     Astropy, such as an affiliated package, consider installing Astropy into a
