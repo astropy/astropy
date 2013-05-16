@@ -124,6 +124,123 @@ that for you.  You can delete this tag by doing::
 
     $ git tag -d v0.1
 
+
+Maintaining Bug Fix Releases
+----------------------------
+
+Astropy releases, as recommended for most Python projects, follows a
+<major>.<minor>.<micro> version scheme, where the "micro" version is also
+known as a "bug fix" release.  Bug fix releases should not change any user-
+visible interfaces.  They should only fix bugs on the previous major/minor
+release and may also refactor internal APIs or include omissions from previous
+releases--that is, features that were documented to exist but were accidentally
+left out of the previous release.
+
+Bug fix releases are typically managed by maintaining one or more bug fix
+branches separate from the master branch (the release procedure below discusses
+creating these branches).  Typically, whenever an issue is fixed on the Astropy
+master branch a decision must be made whether this is a fix that should be
+included in the Astropy bug fix release.  Usually the answer to this question
+is "yes", though there are some issues that may not apply to the bug fix
+branch.  For example, it is not necessary to backport a fix to a new feature
+that did not exist when the bug fix branch was first created.  New features
+are never merged into the bug fix branch--only bug fixes; hence the name.
+
+In rare cases a bug fix may be made directly into the bug fix branch without
+going into the master branch first.  This may occur if a fix is made to a
+feature that has been removed or rewritten in the development version and no
+longer has the issue being fixed.  However, depending on how critical the bug
+is it may be worth including in a bug fix release, as some users can be slow to
+upgrade to new major/micro versions due to API changes.
+
+Issues are assigned to an Astropy release by way of the Milestone feature in
+the GitHub issue tracker.  At any given time there are at least two versions
+under development: The next major/minor version, and the next bug fix release.
+For example, at the time of writing there are two release milestones open:
+v0.2.2 and v0.3.0.  In this case, v0.2.2 is the next bug fix release and all
+issues that should include fixes in that release should be assigned that
+milestone.  Any issues that implement new features would go into the v0.3.0
+milestone--this is any work that goes in the master branch that should not
+be backported.  For a more detailed set of guidelines on using milestones, see
+:ref:`milestones-and-labels`.
+
+Backporting fixes from master
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Most fixes are backported using the ``git cherry-pick`` command, which applies
+the diff from a single commit like a patch.  For the sake of example, say the
+current bug fix branch is 'v0.2.x', and that a bug was fixed in master in a
+commit ``abcd1234``.  In order to backport the fix, simply checkout the v0.2.x
+branch (it's also good to make sure it's in sync with the main Astropy
+repository) and cherry-pick the appropriate commit::
+
+    $ git checkout v0.2.x
+    $ git pull upstream v0.2.x
+    $ git cherry-pick abcd1234
+
+Sometimes a cherry-pick does not apply cleanly, since the bug fix branch
+represents a different line of development.  This can be resolved like any
+other merge conflict:  Edit the conflicted files by hand, and then run
+``git commit`` and accept the default commit message.
+
+What if the issue required more than one commit to fix?  There are a few
+possibilities for this.  The easiest is if the fix came in the form of a
+pull request that was merged into the master branch.  Whenever GitHub merges
+a pull request it generates a merge commit in the master branch.  This merge
+commit represents the *full* difference of all the commits in the pull request
+combined.  What this means is that it is only necessary to cherry-pick the
+merge commit (this requires adding the ``-m 1`` option to the cherry-pick
+command).  For example, if ``5678abcd`` is a merge commit::
+
+    $ git checkout v0.2.x
+    $ git pull upstream v0.2.x
+    $ git cherry-pick -m 1 5678abcd
+
+In fact, because Astropy emphasizes a pull request-based workflow, this is the
+*most* common scenario for backporting bug fixes, and the one requiring the
+least thought.  However, if you're not dealing with backporting a fix that was
+not brought in as a pull request, read on.
+
+.. seealso::
+
+    :ref:`merge-commits-and-cherry-picks` for further explanation of the
+    cherry-pick command and how it works with merge commits.
+
+If not cherry-picking a merge commit there are still other options for dealing
+with multiple commits.  The simplest, though potentially tedious, is to simply
+run the cherry-pick command once for each commit in the correct order.
+However, as of Git 1.7.2 it is possible to merge a range of commits like so::
+
+    $ git cherry-pick 1234abcd..56789def
+
+This works fine so long as the commits you want to pick are actually congruous
+with each other.  In most cases this will be the case, though some bug fixes
+will involve followup commits that need to back backported as well.  Most bug
+fixes will have an issues associated with it in the issue tracker, so make sure
+to reference all commits related to that issue in the commit message.  That way
+it's harder for commits that need to be backported from getting lost.
+
+Making fixes directly to the bug fix branch
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As mentioned earlier in this section, in some cases a fix only applies to a bug
+fix release, and is not applicable in the mainline development.  In this case
+there are two choices:
+
+1. An Astropy developer with commit access to the main Astropy repository may
+   check out the bug fix branch and commit and push your fix directly.
+
+2. **Preferable**: You may also make a pull request through GitHub against the
+   bug fix branch rather than against master.  Normally when making a pull
+   request from a branch on your fork to the main Astropy repository GitHub
+   compares your branch to Astropy's master.  If you look on the left-hand
+   side of the pull request page, under "base repo: astropy/astropy" there is
+   a drop-down list labeled "base branch: master".  You can click on this
+   drop-down and instead select the bug fix branch ("v0.2.x" for example). Then
+   GitHub will instead compare your fix against that branch, and merge into
+   that branch when the PR is accepted.
+
+
 Release Procedure
 -----------------
 
