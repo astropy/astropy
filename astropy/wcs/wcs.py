@@ -481,27 +481,75 @@ naxis kwarg.
         Create a `Paper IV`_ type lookup table for detector to image
         plane correction.
         """
-        cpdis = [None, None]
-        crpix = [0., 0.]
-        crval = [0., 0.]
-        cdelt = [1., 1.]
-
         if fobj is None:
             return (None, None)
 
         if not isinstance(fobj, fits.HDUList):
             return (None, None)
-
-        d_error = header.get('D2IMERR', 0.0)
-        if d_error < err:
+        
+        try:            
+            axiscorr = header['AXISCORR']
+            d2imdis = self._read_d2im_old_format(header, fobj, axiscorr)
+            return d2imdis
+        except KeyError:
+            pass
+        
+        dist = 'D2IMDIS'
+        d_kw = 'D2IM'
+        err_kw = 'D2IMERR'
+        tables = {}
+        for i in range(1, self.naxis + 1):
+            d_error = header.get(err_kw + str(i), 0.0)
+            if d_error < err:
+                tables[i] = None
+                continue
+            distortion = dist + str(i)
+            if distortion in header:
+                dis = header[distortion].lower()
+                if dis == 'lookup':
+                    assert isinstance(fobj, fits.HDUList), \
+                        'An astropy.io.fits.HDUList is required for ' + \
+                        'Lookup table distortion.'
+                    dp = (d_kw + str(i)).strip()
+                    d_extver = header.get(dp + '.EXTVER', 1)
+                    if i == header[dp + '.AXIS.{0:d}'.format(i)]:
+                        d_data = fobj['D2IMARR', d_extver].data
+                    else:
+                        d_data = (fobj['D2IMARR', d_extver].data).transpose()
+                    d_header = fobj['D2IMARR', d_extver].header
+                    d_crpix = (d_header.get('CRPIX1', 0.0), d_header.get('CRPIX2', 0.0))
+                    d_crval = (d_header.get('CRVAL1', 0.0), d_header.get('CRVAL2', 0.0))
+                    d_cdelt = (d_header.get('CDELT1', 1.0), d_header.get('CDELT2', 1.0))
+                    d_lookup = DistortionLookupTable(d_data, d_crpix,
+                                                     d_crval, d_cdelt)
+                    tables[i] = d_lookup
+                else:
+                    print('Polynomial distortion is not implemented.\n')
+            else:
+                tables[i] = None
+        if not tables:
             return (None, None)
+        else:
+            return (tables.get(1), tables.get(2))
 
+    def _read_d2im_old_format(self, header, fobj, axiscorr):
+        warnings.warn("The use of ``AXISCORR`` for D2IM correction has been deprecated."
+                      "The new style of this correction is described at"
+                      ""
+                      "PyWCS will read in files with ``AXISCORR`` but to_fits() will write"
+                      "out files in the new style",
+                      DeprecationWarning)
+        cpdis = [None, None]
+        crpix = [0., 0.]
+        crval = [0., 0.]
+        cdelt = [1., 1.]
         try:
             d2im_data = fobj[('D2IMARR', 1)].data
         except KeyError:
             return (None, None)
         except AttributeError:
             return (None, None)
+        
         d2im_data = np.array([d2im_data])
         d2im_hdr = fobj[('D2IMARR', 1)].header
         naxis = d2im_hdr['NAXIS']
@@ -513,12 +561,13 @@ naxis kwarg.
 
         cpdis = DistortionLookupTable(d2im_data, crpix, crval, cdelt)
 
-        axiscorr = header.get('AXISCORR', None)
-
         if axiscorr == 1:
             return (cpdis, None)
-        else:
+        elif axiscorr == 2:
             return (None, cpdis)
+        else:
+            print "Expected AXISCORR to be 1 or 2"
+            return (None, None)
 
     def _write_det2im(self, hdulist):
         """
@@ -526,30 +575,45 @@ naxis kwarg.
         `astropy.io.fits.HDUList`.
         """
 
-        det2im1 = self.det2im1
-        det2im2 = self.det2im2
-        if det2im1 is not None and det2im2 is None:
-            hdulist[0].header.update('AXISCORR', 1)
-            det2im = det2im1
-        elif det2im1 is None and det2im2 is not None:
-            hdulist[0].header.update('AXISCORR', 0)
-            det2im = det2im2
-        elif det2im1 is None and det2im2 is None:
+        if self.det2im1 is None and self.det2im2 is None:
             return
-        else:
-            raise ValueError("Saving both distortion images is not supported")
+        dist = 'D2IMDIS'
+        d_kw = 'D2IM'
+        err_kw = 'D2IMERR'
+        
+        def write_d2i(num, det2im):
+            if det2im is None:
+                return
+            '{0}{1:d}'.format(dist, num),
+            hdulist[0].header.update('{0}{1:d}'.format(dist, num), value='LOOKUP',
+                                     comment='Detector to image correction type')
+            hdulist[0].header.update('{0}{1:d}.EXTVER'.format(d_kw, num), value=num,
+                                     comment='Version number of WCSDVARR extension')
+            hdulist[0].header.update('{0}{1:d}.NAXES'.format(d_kw, num), value=len(det2im.data.shape),
+                            comment='Number of independent variables in d2im function')
+            for i in range(det2im.data.ndim):
+                hdulist[0].header.update('{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i+1), value=i+1,
+                                comment='Axis number of the jth independent variable in a d2im function')
 
-        image = fits.ImageHDU(det2im.data[0], name='D2IMARR')
-        header = image.header
+            image = fits.ImageHDU(det2im.data, name='D2IMARR')
+            header = image.header
 
-        header.update('CRPIX1', det2im.crpix[0])
-        header.update('CRPIX2', det2im.crpix[1])
-        header.update('CRVAL1', det2im.crval[0])
-        header.update('CRVAL2', det2im.crval[1])
-        header.update('CDELT1', det2im.cdelt[0])
-        header.update('CDELT2', det2im.cdelt[1])
-
-        hdulist.append(image)
+            header.update('CRPIX1', value=det2im.crpix[0],
+                                comment='Coordinate system reference pixel')
+            header.update('CRPIX2', value=det2im.crpix[1],
+                                comment='Coordinate system reference pixel')
+            header.update('CRVAL1', value=det2im.crval[0],
+                                comment='Coordinate system value at reference pixel')
+            header.update('CRVAL2', value=det2im.crval[1],
+                                comment='Coordinate system value at reference pixel')
+            header.update('CDELT1', value=det2im.cdelt[0],
+                                comment='Coordinate increment along axis')
+            header.update('CDELT2', value=det2im.cdelt[1],
+                                comment='Coordinate increment along axis')
+            image.update_ext_version(int(hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)]))
+            hdulist.append(image)
+        write_d2i(1, self.det2im1)
+        write_d2i(2, self.det2im2)
 
     def _read_distortion_kw(self, header, fobj, dist='CPDIS', err=0.0):
         """
@@ -630,42 +694,42 @@ naxis kwarg.
 
             hdulist[0].header.update(
                 '{0}{1:d}'.format(dist, num),
-                ('LOOKUP', 'Prior distortion function type'))
+                'LOOKUP', 'Prior distortion function type')
             hdulist[0].header.update(
                 '{0}{1:d}.EXTVER'.format(d_kw, num),
-                (num, 'Version number of WCSDVARR extension'))
+                num, 'Version number of WCSDVARR extension')
             hdulist[0].header.update(
                 '{0}{1:d}.NAXES'.format(d_kw, num),
-                (len(cpdis.data.shape),
-                 'Number of independent variables in distortion function'))
+                len(cpdis.data.shape),
+                 'Number of independent variables in distortion function')
 
             for i in range(cpdis.data.ndim):
                 hdulist[0].header.update(
                     '{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i + 1),
-                    (i + 1, 'Axis number of the jth independent variable in a '
-                     'distortion function'))
+                    i + 1, 'Axis number of the jth independent variable in a '
+                     'distortion function')
 
             image = fits.ImageHDU(cpdis.data, name='WCSDVARR')
             header = image.header
 
             header.update(
                 'CRPIX1',
-                (cpdis.crpix[0], 'Coordinate system reference pixel'))
+                cpdis.crpix[0], 'Coordinate system reference pixel')
             header.update(
                 'CRPIX2',
-                (cpdis.crpix[1], 'Coordinate system reference pixel'))
+                cpdis.crpix[1], 'Coordinate system reference pixel')
             header.update(
                 'CRVAL1',
-                (cpdis.crval[0], 'Coordinate system value at reference pixel'))
+                cpdis.crval[0], 'Coordinate system value at reference pixel')
             header.update(
                 'CRVAL2',
-                (cpdis.crval[1], 'Coordinate system value at reference pixel'))
+                cpdis.crval[1], 'Coordinate system value at reference pixel')
             header.update(
                 'CDELT1',
-                (cpdis.cdelt[0], 'Coordinate increment along axis'))
+                cpdis.cdelt[0], 'Coordinate increment along axis')
             header.update(
                 'CDELT2',
-                (cpdis.cdelt[1], 'Coordinate increment along axis'))
+                cpdis.cdelt[1], 'Coordinate increment along axis')
             image.update_ext_version(
                 int(hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)]))
 
@@ -685,7 +749,7 @@ naxis kwarg.
             # TODO: Parse SIP from a string without pyfits around
             return None
 
-        if "A_ORDER" in header:
+        if "A_ORDER" in header and header['A_ORDER'] > 1:
             if "B_ORDER" not in header:
                 raise ValueError(
                     "A_ORDER provided without corresponding B_ORDER "
@@ -698,11 +762,15 @@ naxis kwarg.
                     a[i, j] = header.get(("A_{0}_{1}".format(i, j)), 0.0)
 
             m = int(header["B_ORDER"])
-            b = np.zeros((m + 1, m + 1), np.double)
-            for i in range(m + 1):
-                for j in range(m - i + 1):
-                    b[i, j] = header.get(("B_{0}_{1}".format(i, j)), 0.0)
-        elif "B_ORDER" in header:
+            if m > 1:
+                b = np.zeros((m + 1, m + 1), np.double)
+                for i in range(m + 1):
+                    for j in range(m - i + 1):
+                        b[i, j] = header.get(("B_{0}_{1}".format(i, j)), 0.0)
+            else:
+                a = None
+                b = None
+        elif "B_ORDER" in header and header['B_ORDER'] > 1:
             raise ValueError(
                 "B_ORDER provided without corresponding A_ORDER " +
                 "keyword for SIP distortion")
@@ -710,7 +778,7 @@ naxis kwarg.
             a = None
             b = None
 
-        if "AP_ORDER" in header:
+        if "AP_ORDER" in header and header['AP_ORDER'] > 1:
             if "BP_ORDER" not in header:
                 raise ValueError(
                     "AP_ORDER provided without corresponding BP_ORDER "
@@ -723,11 +791,15 @@ naxis kwarg.
                     ap[i, j] = header.get("AP_{0}_{1}".format(i, j), 0.0)
 
             m = int(header["BP_ORDER"])
-            bp = np.zeros((m + 1, m + 1), np.double)
-            for i in range(m + 1):
-                for j in range(m - i + 1):
-                    bp[i, j] = header.get("BP_{0}_{1}".format(i, j), 0.0)
-        elif "BP_ORDER" in header:
+            if m > 1:
+                bp = np.zeros((m + 1, m + 1), np.double)
+                for i in range(m + 1):
+                    for j in range(m - i + 1):
+                        bp[i, j] = header.get("BP_{0}_{1}".format(i, j), 0.0)
+            else:
+                ap = None
+                bp = None
+        elif "BP_ORDER" in header and header['BP_ORDER'] > 1:
             raise ValueError(
                 "BP_ORDER provided without corresponding AP_ORDER "
                 "keyword for SIP distortion")
@@ -772,9 +844,6 @@ naxis kwarg.
         write_array('B', self.sip.b)
         write_array('AP', self.sip.ap)
         write_array('BP', self.sip.bp)
-
-        keywords['CRPIX1'] = self.sip.crpix[0]
-        keywords['CRPIX2'] = self.sip.crpix[1]
 
         return keywords
 
@@ -1262,7 +1331,7 @@ naxis kwarg.
         """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('pixel coordinates', 8))
 
-    def to_fits(self, relax=False):
+    def to_fits(self, relax=False, wkey=None):
         """
         Generate an `astropy.io.fits.HDUList` object with all of the
         information stored in this object.  This should be logically identical
@@ -1290,7 +1359,7 @@ naxis kwarg.
         hdulist : `astropy.io.fits.HDUList`
         """
 
-        header = self.to_header(relax=relax)
+        header = self.to_header(relax=relax, wkey=wkey)
 
         hdu = fits.PrimaryHDU(header=header)
         hdulist = fits.HDUList(hdu)
@@ -1300,7 +1369,7 @@ naxis kwarg.
 
         return hdulist
 
-    def to_header(self, relax=False):
+    def to_header(self, relax=False, wkey=None):
         """
         Generate an `astropy.io.fits.Header` object with the basic WCS and SIP
         information stored in this object.  This should be logically
@@ -1327,6 +1396,10 @@ naxis kwarg.
 
             - `int`: a bit field selecting specific extensions to
               write.  See :ref:`relaxwrite` for details.
+        wkey : string
+            The name of a particular WCS transform to use.  This may be 
+            either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"`` 
+            part of the ``CTYPEia`` cards.
 
         Returns
         -------
@@ -1363,7 +1436,11 @@ naxis kwarg.
              `to_header` tries hard to write meaningful comments.
 
           8. Keyword order may be changed.
+        
+        
         """
+        if wkey:
+            self.wcs.alt = wkey
 
         if relax not in (True, False):
             do_sip = relax & WCSHDO_SIP
