@@ -786,9 +786,20 @@ def download_file(remote_url, cache=False):
         The URL of the file to download
     cache : bool, optional
         Whether to use the cache
+
+    Returns
+    -------
+    local_path : str
+        Returns the local path that the file was download to.
+
+    Raises
+    ------
+    `urllib2.URLError`
+        Whenever there's a problem getting the remote file.
     """
 
     import hashlib
+    import socket
     from contextlib import closing
     from tempfile import NamedTemporaryFile, gettempdir
     from shutil import move
@@ -877,6 +888,12 @@ def download_file(remote_url, cache=False):
             e.reason.strerror = e.reason.strerror + '. requested URL: ' + remote_url
             e.reason.args = (e.reason.errno, e.reason.strerror)
         raise e
+    except socket.timeout as e:
+        # this isn't supposed to happen, but occasionally a socket.timeout gets
+        # through.  It's supposed to be caught in `urrlib2` and raised in this
+        # way, but for some reason in mysterious circumstances it doesn't. So
+        # we'll just re-raise it here instead
+        raise urllib2.URLError(e)
 
     return local_path
 
