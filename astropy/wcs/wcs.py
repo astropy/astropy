@@ -507,9 +507,8 @@ naxis kwarg.
             if distortion in header:
                 dis = header[distortion].lower()
                 if dis == 'lookup':
-                    assert isinstance(fobj, fits.HDUList), \
-                        'An astropy.io.fits.HDUList is required for ' + \
-                        'Lookup table distortion.'
+                    assert isinstance(fobj, fits.HDUList), ('An astropy.io.fits.HDUList'
+                                'is required for Lookup table distortion.')
                     dp = (d_kw + str(i)).strip()
                     d_extver = header.get(dp + '.EXTVER', 1)
                     if i == header[dp + '.AXIS.{0:d}'.format(i)]:
@@ -566,7 +565,7 @@ naxis kwarg.
         elif axiscorr == 2:
             return (None, cpdis)
         else:
-            print "Expected AXISCORR to be 1 or 2"
+            warnings.warn("Expected AXISCORR to be 1 or 2")
             return (None, None)
 
     def _write_det2im(self, hdulist):
@@ -585,31 +584,31 @@ naxis kwarg.
             if det2im is None:
                 return
             '{0}{1:d}'.format(dist, num),
-            hdulist[0].header.update('{0}{1:d}'.format(dist, num), value='LOOKUP',
-                                     comment='Detector to image correction type')
-            hdulist[0].header.update('{0}{1:d}.EXTVER'.format(d_kw, num), value=num,
-                                     comment='Version number of WCSDVARR extension')
-            hdulist[0].header.update('{0}{1:d}.NAXES'.format(d_kw, num), value=len(det2im.data.shape),
-                            comment='Number of independent variables in d2im function')
+            hdulist[0].header['{0}{1:d}'.format(dist, num)] = ('LOOKUP',
+                                     'Detector to image correction type')
+            hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)] = (num,
+                                     'Version number of WCSDVARR extension')
+            hdulist[0].header['{0}{1:d}.NAXES'.format(d_kw, num)] = (len(det2im.data.shape),
+                                        'Number of independent variables in d2im function')
             for i in range(det2im.data.ndim):
-                hdulist[0].header.update('{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i+1), value=i+1,
-                                comment='Axis number of the jth independent variable in a d2im function')
+                hdulist[0].header['{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i + 1)] = (i + 1,
+                                'Axis number of the jth independent variable in a d2im function')
 
             image = fits.ImageHDU(det2im.data, name='D2IMARR')
             header = image.header
 
-            header.update('CRPIX1', value=det2im.crpix[0],
-                                comment='Coordinate system reference pixel')
-            header.update('CRPIX2', value=det2im.crpix[1],
-                                comment='Coordinate system reference pixel')
-            header.update('CRVAL1', value=det2im.crval[0],
-                                comment='Coordinate system value at reference pixel')
-            header.update('CRVAL2', value=det2im.crval[1],
-                                comment='Coordinate system value at reference pixel')
-            header.update('CDELT1', value=det2im.cdelt[0],
-                                comment='Coordinate increment along axis')
-            header.update('CDELT2', value=det2im.cdelt[1],
-                                comment='Coordinate increment along axis')
+            header['CRPIX1'] = (det2im.crpix[0],
+                                'Coordinate system reference pixel')
+            header['CRPIX2'] = (det2im.crpix[1],
+                            'Coordinate system reference pixel')
+            header['CRVAL1'] = (det2im.crval[0],
+                            'Coordinate system value at reference pixel')
+            header['CRVAL2'] = (det2im.crval[1],
+                                'Coordinate system value at reference pixel')
+            header['CDELT1'] = (det2im.cdelt[0],
+                                'Coordinate increment along axis')
+            header['CDELT2'] = (det2im.cdelt[1],
+                                'Coordinate increment along axis')
             image.update_ext_version(int(hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)]))
             hdulist.append(image)
         write_d2i(1, self.det2im1)
@@ -653,15 +652,12 @@ naxis kwarg.
                         d_data = fobj['WCSDVARR', d_extver].data
                     else:
                         d_data = (fobj['WCSDVARR', d_extver].data).transpose()
+
                     d_header = fobj['WCSDVARR', d_extver].header
-                    d_crpix = (d_header.get('CRPIX1', 0.0),
-                               d_header.get('CRPIX2', 0.0))
-                    d_crval = (d_header.get('CRVAL1', 0.0),
-                               d_header.get('CRVAL2', 0.0))
-                    d_cdelt = (d_header.get('CDELT1', 1.0),
-                               d_header.get('CDELT2', 1.0))
-                    d_lookup = DistortionLookupTable(d_data, d_crpix,
-                                                     d_crval, d_cdelt)
+                    d_crpix = (d_header.get('CRPIX1', 0.0), d_header.get('CRPIX2', 0.0))
+                    d_crval = (d_header.get('CRVAL1', 0.0), d_header.get('CRVAL2', 0.0))
+                    d_cdelt = (d_header.get('CDELT1', 1.0), d_header.get('CDELT2', 1.0))
+                    d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
                     tables[i] = d_lookup
                 else:
                     print('Polynomial distortion is not implemented.\n')
@@ -692,47 +688,29 @@ naxis kwarg.
             if cpdis is None:
                 return
 
-            hdulist[0].header.update(
-                '{0}{1:d}'.format(dist, num),
-                'LOOKUP', 'Prior distortion function type')
-            hdulist[0].header.update(
-                '{0}{1:d}.EXTVER'.format(d_kw, num),
-                num, 'Version number of WCSDVARR extension')
-            hdulist[0].header.update(
-                '{0}{1:d}.NAXES'.format(d_kw, num),
-                len(cpdis.data.shape),
+            hdulist[0].header['{0}{1:d}'.format(dist, num)] = ('LOOKUP', 
+                                        'Prior distortion function type')
+            hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)] = (num, 
+                                        'Version number of WCSDVARR extension')
+            hdulist[0].header['{0}{1:d}.NAXES'.format(d_kw, num)] = (len(cpdis.data.shape),
                  'Number of independent variables in distortion function')
 
             for i in range(cpdis.data.ndim):
-                hdulist[0].header.update(
-                    '{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i + 1),
-                    i + 1, 'Axis number of the jth independent variable in a '
-                     'distortion function')
+                hdulist[0].header['{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i + 1)] = (i + 1,
+                                    'Axis number of the jth independent variable in'
+                                    'a distortion function')
 
             image = fits.ImageHDU(cpdis.data, name='WCSDVARR')
             header = image.header
 
-            header.update(
-                'CRPIX1',
-                cpdis.crpix[0], 'Coordinate system reference pixel')
-            header.update(
-                'CRPIX2',
-                cpdis.crpix[1], 'Coordinate system reference pixel')
-            header.update(
-                'CRVAL1',
-                cpdis.crval[0], 'Coordinate system value at reference pixel')
-            header.update(
-                'CRVAL2',
-                cpdis.crval[1], 'Coordinate system value at reference pixel')
-            header.update(
-                'CDELT1',
-                cpdis.cdelt[0], 'Coordinate increment along axis')
-            header.update(
-                'CDELT2',
-                cpdis.cdelt[1], 'Coordinate increment along axis')
+            header['CRPIX1'] = (cpdis.crpix[0], 'Coordinate system reference pixel')
+            header['CRPIX2'] = (cpdis.crpix[1], 'Coordinate system reference pixel')
+            header['CRVAL1'] = (cpdis.crval[0], 'Coordinate system value at reference pixel')
+            header['CRVAL2'] = (cpdis.crval[1], 'Coordinate system value at reference pixel')
+            header['CDELT1'] = (cpdis.cdelt[0], 'Coordinate increment along axis')
+            header['CDELT2'] = (cpdis.cdelt[1], 'Coordinate increment along axis')
             image.update_ext_version(
                 int(hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)]))
-
             hdulist.append(image)
 
         write_dist(1, self.cpdis1)
@@ -1331,7 +1309,7 @@ naxis kwarg.
         """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('pixel coordinates', 8))
 
-    def to_fits(self, relax=False, wkey=None):
+    def to_fits(self, relax=False, key=None):
         """
         Generate an `astropy.io.fits.HDUList` object with all of the
         information stored in this object.  This should be logically identical
@@ -1354,12 +1332,17 @@ naxis kwarg.
             - `int`: a bit field selecting specific extensions to
               write.  See :ref:`relaxwrite` for details.
 
+        key : string
+            The name of a particular WCS transform to use.  This may be 
+            either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"`` 
+            part of the ``CTYPEia`` cards.
+            
         Returns
         -------
         hdulist : `astropy.io.fits.HDUList`
         """
 
-        header = self.to_header(relax=relax, wkey=wkey)
+        header = self.to_header(relax=relax, key=key)
 
         hdu = fits.PrimaryHDU(header=header)
         hdulist = fits.HDUList(hdu)
@@ -1369,7 +1352,7 @@ naxis kwarg.
 
         return hdulist
 
-    def to_header(self, relax=False, wkey=None):
+    def to_header(self, relax=False, key=None):
         """
         Generate an `astropy.io.fits.Header` object with the basic WCS and SIP
         information stored in this object.  This should be logically
@@ -1396,7 +1379,7 @@ naxis kwarg.
 
             - `int`: a bit field selecting specific extensions to
               write.  See :ref:`relaxwrite` for details.
-        wkey : string
+        key : string
             The name of a particular WCS transform to use.  This may be 
             either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"`` 
             part of the ``CTYPEia`` cards.
@@ -1439,8 +1422,8 @@ naxis kwarg.
         
         
         """
-        if wkey:
-            self.wcs.alt = wkey
+        if key is not None:
+            self.wcs.alt = key
 
         if relax not in (True, False):
             do_sip = relax & WCSHDO_SIP
@@ -1456,7 +1439,7 @@ naxis kwarg.
 
         if do_sip and self.sip is not None:
             for key, val in self._write_sip_kw().items():
-                header.update(key, val)
+                header[key] = val
 
         return header
 
