@@ -106,13 +106,13 @@ def test_register_identifier_force():
 def test_read_noformat():
     with pytest.raises(Exception) as exc:
         TestData.read()
-    assert exc.value.args[0] == "Format could not be identified"
+    assert exc.value.args[0] == "Format could not be identified. "
 
 
 def test_write_noformat():
     with pytest.raises(Exception) as exc:
         TestData().write()
-    assert exc.value.args[0] == "Format could not be identified"
+    assert exc.value.args[0] == "Format could not be identified. "
 
 
 def test_read_noformat_arbitrary():
@@ -120,7 +120,20 @@ def test_read_noformat_arbitrary():
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
     with pytest.raises(Exception) as exc:
         TestData.read(object())
-    assert exc.value.args[0] == "Format could not be identified"
+    assert exc.value.args[0] == "Format could not be identified. "
+
+
+def test_read_noformat_arbitrary_file(tmpdir):
+    """Tests that all identifier functions can accept arbitrary files"""
+    _readers.update(_READERS_ORIGINAL)
+    testfile = str(tmpdir.join('foo.example'))
+    with open(testfile, 'w') as f:
+        f.write("Hello world")
+
+    with pytest.raises(Exception) as exc:
+        Table.read(testfile)
+    assert exc.value.args[0] == "Format could not be identified. "
+    assert ', '.join(sorted(r[0] for r in _readers)) in exc.value.args[1]
 
 
 def test_write_noformat_arbitrary():
@@ -128,7 +141,18 @@ def test_write_noformat_arbitrary():
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
     with pytest.raises(Exception) as exc:
         TestData().write(object())
-    assert exc.value.args[0] == "Format could not be identified"
+    assert exc.value.args[0] == "Format could not be identified. "
+
+
+def test_write_noformat_arbitrary_file(tmpdir):
+    """Tests that all identifier functions can accept arbitrary files"""
+    _writers.update(_WRITERS_ORIGINAL)
+    testfile = str(tmpdir.join('foo.example'))
+
+    with pytest.raises(Exception) as exc:
+        Table().write(testfile)
+    assert exc.value.args[0] == "Format could not be identified. "
+    assert ', '.join(sorted(r[0] for r in _writers)) in exc.value.args[1]
 
 
 def test_read_toomanyformats():

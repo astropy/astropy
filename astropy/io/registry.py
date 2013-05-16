@@ -13,7 +13,7 @@ _identifiers = OrderedDict()
 
 
 def register_reader(data_format, data_class, function, force=False):
-    '''
+    """
     Register a reader function.
 
     Parameters
@@ -27,16 +27,18 @@ def register_reader(data_format, data_class, function, force=False):
         The function to read in a data object.
     force : bool
         Whether to override any existing function if already present.
-    '''
+    """
 
     if not (data_format, data_class) in _readers or force:
         _readers[(data_format, data_class)] = function
     else:
-        raise Exception("Reader for format '{0:s}' and class '{1:s}' is already defined".format(data_format, data_class.__name__))
+        raise Exception('Reader for format {0!r} and class {1!r} is '
+                        'already defined'.format(data_format,
+                                                 data_class.__name__))
 
 
 def register_writer(data_format, data_class, function, force=False):
-    '''
+    """
     Register a table writer function.
 
     Parameters
@@ -50,16 +52,18 @@ def register_writer(data_format, data_class, function, force=False):
         The function to write out a data object.
     force : bool
         Whether to override any existing function if already present.
-    '''
+    """
 
     if not (data_format, data_class) in _writers or force:
         _writers[(data_format, data_class)] = function
     else:
-        raise Exception("Writer for format '{0:s}' and class '{1:s}' is already defined".format(data_format, data_class.__name__))
+        raise Exception('Writer for format {0!r} and class {1!r} is '
+                        'already defined'.format(data_format,
+                                                 data_class.__name__))
 
 
 def register_identifier(data_format, data_class, identifier, force=False):
-    '''
+    """
     Associate an identifier function with a specific data type.
 
     Parameters
@@ -86,13 +90,18 @@ def register_identifier(data_format, data_class, identifier, force=False):
     To set the identifier based on extensions, for formats that take a
     filename as a first argument, you can do for example::
 
-    >>> register_identifier('ipac', lambda args, kwargs: isinstance(args[0], basestring) and args[0].endswith('.tbl'))
-    '''
+        >>> def my_identifier(args, kwargs):
+        ...     return (isinstance(args[0], basestring) and
+        ...             args[0].endswith('.tbl'))
+        >>> register_identifier('ipac', my_identifier)
+    """
 
     if not (data_format, data_class) in _identifiers or force:
         _identifiers[(data_format, data_class)] = identifier
     else:
-        raise Exception("Identifier for format '{0:s}' and class '{1:s}' is already defined".format(data_format, data_class.__name__))
+        raise Exception('Identifier for format {0!r} and class {1!r} is '
+                        'already defined'.format(data_format,
+                                                 data_class.__name__))
 
 
 def identify_format(origin, data_class_required, fileobj, args, kwargs):
@@ -117,22 +126,24 @@ def get_reader(data_format, data_class):
     if (data_format, data_class) in _readers:
         return _readers[(data_format, data_class)]
     else:
-        raise Exception("No reader defined for format '{0}' and class '{1}'".format(data_format, data_class.__name__))
+        raise Exception('No reader defined for format {0!r} and class '
+                        '{1!r}'.format(data_format, data_class.__name__))
 
 
 def get_writer(data_format, data_class):
     if (data_format, data_class) in _writers:
         return _writers[(data_format, data_class)]
     else:
-        raise Exception("No writer defined for format '{0}' and class '{1}'".format(data_format, data_class.__name__))
+        raise Exception('No writer defined for format {0!r} and class '
+                        '{1!r}'.format(data_format, data_class.__name__))
 
 
 def read(cls, *args, **kwargs):
-    '''
+    """
     Read in data
 
     The arguments passed to this method depend on the format
-    '''
+    """
 
     if 'format' in kwargs:
         format = kwargs.pop('format')
@@ -152,16 +163,8 @@ def read(cls, *args, **kwargs):
                     ctx = None
                     fileobj = None
 
-            valid_formats = identify_format('read', cls, fileobj, args, kwargs)
-
-            if len(valid_formats) == 0:
-                raise Exception("Format could not be identified")
-            elif len(valid_formats) > 1:
-                raise Exception(
-                    "Format is ambiguous - options are: {0:s}".format(
-                        ', '.join(sorted(x[0] for x in valid_formats))))
-            else:
-                format, args = valid_formats[0]
+            format, args = _get_valid_format('read', cls, fileobj, *args,
+                                             **kwargs)
 
         reader = get_reader(format, cls)
         if fileobj is not None:
@@ -170,7 +173,7 @@ def read(cls, *args, **kwargs):
 
         if not isinstance(table, cls):
             raise TypeError(
-                "reader should return a {0:s} instance".format(cls.__name__))
+                "reader should return a {0} instance".format(cls.__name__))
     finally:
         if ctx is not None:
             ctx.__exit__(*sys.exc_info())
@@ -179,11 +182,11 @@ def read(cls, *args, **kwargs):
 
 
 def write(data, *args, **kwargs):
-    '''
+    """
     Write out data
 
     The arguments passed to this method depend on the format
-    '''
+    """
 
     if 'format' in kwargs:
         format = kwargs.pop('format')
@@ -191,17 +194,34 @@ def write(data, *args, **kwargs):
         format = None
 
     if format is None:
-
-        valid_formats = identify_format('write', data.__class__, None, args, kwargs)
-
-        if len(valid_formats) == 0:
-            raise Exception("Format could not be identified")
-        elif len(valid_formats) > 1:
-            raise Exception(
-                "Format is ambiguous - options are: {0:s}".format(
-                    ', '.join(sorted(x[0] for x in valid_formats))))
-        else:
-            format, args = valid_formats[0]
+        format, args = _get_valid_format('write', data.__class__, None, *args,
+                                         **kwargs)
 
     writer = get_writer(format, data.__class__)
     writer(data, *args, **kwargs)
+
+
+def _get_valid_format(mode, cls, fileobj, *args, **kwargs):
+    """
+    Returns the first valid format that can be used to read/write the data in
+    question.  Mode can be either 'read' or 'write'.
+    """
+
+    if mode == 'read':
+        funcs = _readers
+    elif mode == 'write':
+        funcs = _writers
+
+    valid_formats = identify_format(mode, cls, fileobj, args, kwargs)
+
+    if len(valid_formats) == 0:
+        raise Exception(
+            "Format could not be identified. ",
+            "Valid formats are {0}".format(
+                ', '.join(sorted(r[0] for r in funcs))))
+    elif len(valid_formats) > 1:
+        raise Exception(
+            "Format is ambiguous - options are: {0}".format(
+                ', '.join(sorted(x[0] for x in valid_formats))))
+
+    return valid_formats[0]
