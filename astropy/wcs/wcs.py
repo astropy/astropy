@@ -892,7 +892,7 @@ naxis kwarg.
                     for i in range(sky.shape[1])]
 
         raise TypeError(
-            "Expected 2 or {0} arguments, {0} given".format(
+            "Expected 2 or {0} arguments, {1} given".format(
                 self.naxis + 1, len(args)))
 
     def all_pix2world(self, *args, **kwargs):
