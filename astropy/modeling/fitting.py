@@ -116,11 +116,9 @@ class Fitter(object):
            any(self.model.constraints._tied.values()):
             self.model.constraints.fitpars = fps
             self._fitpars[:] = self.model.constraints.fitpars
+        elif any([b != (-1E12, 1E12) for b in self.model.constraints.bounds.values()]):
+            self._set_bounds(fps)
         else:
-            try:
-                self._set_bounds(fps)
-            except NotImplementedError:
-                pass
             self._fitpars[:] = fps
             self.model.parameters = fps
 
