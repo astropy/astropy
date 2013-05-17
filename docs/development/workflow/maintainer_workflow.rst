@@ -102,6 +102,9 @@ Push to trunk
 This pushes the ``my-new-feature`` branch in this repository to the ``master``
 branch in the ``upstream-rw`` repository.
 
+
+.. _milestones-and-labels:
+
 ***************************
 Using Milestones and Labels
 ***************************
