@@ -25,7 +25,6 @@ Running from ``astropy/vo/validator/tests`` directory::
 
 """
 # STDLIB
-import filecmp
 import json
 import os
 import shutil
@@ -117,7 +116,10 @@ class TestConeSearchResults(object):
         out_file = os.path.join(self.out_dir, oname)
         with open(out_file, 'w') as fout:
             func(fout=fout, *args, **kwargs)
-        assert filecmp.cmp(dat_file, out_file, shallow=False)
+
+        with open(dat_file) as f1:
+            with open(out_file) as f2:
+                assert f1.read() == f2.read()
 
     def test_tally(self):
         self.gen_cmp(self.r.tally, 'tally.out')
