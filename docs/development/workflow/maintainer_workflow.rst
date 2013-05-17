@@ -162,4 +162,98 @@ followed by IPython:
     such additional work is required it is not a bad idea to open a "Backport #nnn to v0.X.Y" issue in the appropriate
     v0.X.Y milestone.
 
+
+.. _changelog-format:
+
+**************************************
+Updating and Maintaining the Changelog
+**************************************
+
+The Astropy "changelog" is kept in the file ``CHANGES.rst`` at the root of the
+repository.  As the filename extension suggests this is a reStructured Text
+file.  The purpose of this file is to give a technical, but still user (and
+developer) oriented overview of what changes were made to Astropy between each
+public release.  The idea is that it's a little more to the point and easier to
+follow than trying to read through full git log.  It lists all new features
+added between versions, so that a user can easily find out from reading the
+changelog when a feature was added.  Likewise it lists any features or APIs
+that were changed (and how they were changed) or removed.  It also lists all
+bug fixes.  Affiliated packages are encouraged to maintain a similar changelog.
+
+Adding to the changelog
+=======================
+
+There are two approaches one may take to adding a new entry to the changelog,
+each with certain pros and cons.  Before describing the two specific approaches
+it should be said that *all* additions to the changelog should be made first
+in the 'master' branch.  This is because every release of Astropy includes a
+copy of the changelog, and it should list all the changes in every prior
+version of Astropy.  For example, when Astropy v0.3.0 is released, in addition
+to the changes new to that version the changelog should have all the changes
+from every v0.2.x version (and earlier) released up to that point.
+
+Two approaches for including a changelog entry for a new feature or bug fix
+are:
+
+* Include the changelog update in the same pull request as the change.  That
+  is, assuming this change is being made in a pull request it can include an
+  accurate changelog update along with it.
+
+  Pro: An addition to the changelog is just like any other documentation
+  update, and should be part of any atomic change to the software.  It can
+  be pulled into master along with the rest of the change.
+
+  Con: If many pull requests also include changelog updates, they can quickly
+  conflict with each other and require rebasing.  This is not difficult to
+  resolve if the only conflict is in the changelog, but it can still be trouble
+  especially for new contributors.
+
+* Add to the changelog after a change has been merged to master, whether by
+  pull request or otherwise.
+
+  Pro: Largely escapes the merge conflict issue.
+
+  Cons: Isn't included "atomically" in the merge commit, making it more
+  difficult to keep track of for backporting.  Requires new contributors to
+  either make a second pull request or have a developer with push access to the
+  main repository make the commit.
+
+The first approach is probably preferable, especially for core contributors.
+But the latter approach is acceptable as well.
+
+Changelog format
+================
+
+The exact formatting of the changelog content is a bit loose for now (though
+it might become stricter if we want to develop more tools around the
+changelog).  The format can be mostly inferred by looking at previous verisons.
+Each release gets its own heading (using the ``-`` heading marker) with the
+version and release date.  Releases still under development have
+``(unreleased)`` as there is no release date yet.
+
+There are generally up to three subheadings (using the ``^`` marker): "New
+Features", "API Changes", "Bug Fixes", and "Other Changes and Additions".  The
+latter is mostly a catch-all for miscellaneous changes, though there's no
+reason not to make up additional sub-headings if it seems appropriate.
+
+Under each sub-heading, changes are typically grouped according to which
+sub-package they pertain to.  Changes that apply to more than one sub-package
+or that only apply to support modules like ``logging`` or ``utils`` may go
+under a "Misc" group.
+
+The actual texts of the changelog entries are typically just one to three
+sentences--they should be easy to glance over.  Most entires end with a
+reference to an issue/pull request number in square brackets.
+
+A single changelog entry may also reference multiple small changes.  For
+example::
+
+
+  - Minor documentation fixes and restructuring.
+    [#935, #967, #978, #1004, #1028, #1047]
+
+Beyond that, the best advice for updating the changelog is just to look at
+existing entries for previous releases and copy the format.
+
+
 .. include:: links.inc
