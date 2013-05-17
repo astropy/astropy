@@ -181,7 +181,9 @@ repository) and cherry-pick the appropriate commit::
 Sometimes a cherry-pick does not apply cleanly, since the bug fix branch
 represents a different line of development.  This can be resolved like any
 other merge conflict:  Edit the conflicted files by hand, and then run
-``git commit`` and accept the default commit message.
+``git commit`` and accept the default commit message.  If the fix being
+cherry-picked has an associated changelog entry in a separate commit make
+sure to backport that as well.
 
 What if the issue required more than one commit to fix?  There are a few
 possibilities for this.  The easiest is if the fix came in the form of a
@@ -254,6 +256,9 @@ described in the release procedure below).
 2. The Astropy changelog must be updated to list all issues--especially
    user-visible issues--fixed for the current release.  The changelog should
    be updated in the master branch, and then merged into the bug fix branch.
+   Most issues *should* already have changelog entries for them. But it's
+   typical to forget this, so if doesn't exist yet please add one in
+   the process of backporting.  See :ref:`changelog-format` for more details.
 
 To aid in this process there is a script called ``suggest_backports.py`` at
 https://gist.github.com/iguananaut/4497178.  The script is not perfect and
