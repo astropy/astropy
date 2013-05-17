@@ -814,8 +814,8 @@ if HAVE_SPHINX:
             subproccode = textwrap.dedent("""
             from sphinx.setup_command import *
 
-            os.chdir('{srcdir}')
-            sys.path.insert(0,'{build_cmd_path}')
+            os.chdir({srcdir!r})
+            sys.path.insert(0, {build_cmd_path!r})
 
             """).format(build_cmd_path=build_cmd_path, srcdir=self.source_dir)
             #runlines[1:] removes 'def run(self)' on the first line
