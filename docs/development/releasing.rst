@@ -240,6 +240,85 @@ there are two choices:
    GitHub will instead compare your fix against that branch, and merge into
    that branch when the PR is accepted.
 
+Preparing the bug fix branch for release
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are two primary steps that need to be taken before creating a bug fix
+release (the rest of the procedure is the same as any other release as
+described in the release procedure below).
+
+1. Any existing fixes to the issues assigned to the current bug fix release
+   milestone, or labeled with the relevant "backport-x.y.z" label must be
+   merged into the bug fix branch.
+
+2. The Astropy changelog must be updated to list all issues--especially
+   user-visible issues--fixed for the current release.  The changelog should
+   be updated in the master branch, and then merged into the bug fix branch.
+
+To aid in this process there is a script called ``suggest_backports.py`` at
+https://gist.github.com/iguananaut/4497178.  The script is not perfect and
+still needs a little work, but it will get most of the work done.  For example,
+if the current bug fix branch is called 'v0.2.x' run it like so::
+
+    $ suggest_backports.py astropy astropy v0.2.x -f backport.sh
+
+This will search GitHub for all issues assigned to the next bug fix release
+milestone that's associated with the given bug fix branch ('v0.2.2' for
+example), find the commits that fix those issues, and will generate a shell
+script called ``backport.sh`` containing all the ``git cherry-pick`` commands
+to backport all those fixes.
+
+The ``suggest_backports.py`` script will typically take a couple minutes to
+run, but once it's done simply execute the generated script from within your
+local clone of the Astropy repository::
+
+    $ ./backport.sh
+
+This will checkout the appropriate bug fix branch ('v0.2.x' in this example),
+do a ``git pull upstream v0.2.x`` to make sure it's up to date, and then start
+doing cherry-picks into the bug fix branch.
+
+.. note::
+
+    As discussed earlier, cherry-pick may result in merge conflicts.  If this
+    occurs, the ``backport.sh`` script will exit and the conflict should be
+    resolved manually, followed by running ``git commit``.  To resume the 
+    ``backport.sh`` script after the merge conflict, it is currently necessary
+    to edit the script to either remove or comment out the ``git cherry-pick``
+    commands that already ran successfully.
+
+    The author of the script hopes to improve it in the future to add
+    ``git rebase`` like functionality, such that running
+    ``backport.sh --continue`` or ``backport.sh --skip`` will be possible in
+    such cases.
+
+.. warning::
+
+    It has also been noted that the ``suggest_backports.py`` script is not
+    perfect, and can either miss issues that need to be backported, and in some
+    cases can report false positives.
+
+    It's always a good idea before finalizing a bug fix release to look on
+    GitHub through the list of closed issues in the release milestone and check
+    that each one has a fix in the bug fix branch.  Usually a quick way to do
+    this is for each issue to run::
+
+        $ git log --oneline <bugfix-branch> | grep #<issue>
+
+    Most fixes will mention their related issue in the commit message, so this
+    tends to be pretty reliable.  Some issues won't show up in the commit log,
+    however, as their fix is in a separate pull request.  Usually GitHub makes
+    this clear by cross-referencing the issue with its PR.  A future version
+    of the ``suggest_backports.py`` script will perform this check
+    automatically.
+
+Finally, not all issues assigned to a release milestone need to be fixed before
+making that release.  Usually, in the interest of getting a release with
+existing fixes out within some schedule, it's best to triage issues that won't
+be fixed soon to a new release milestone.  If the upcoming bug fix release is
+'v0.2.2', then go ahead and create a 'v0.2.3' milestone and reassign to it any
+issues that you don't expect to be fixed in time for 'v0.2.2'.
+
 
 Release Procedure
 -----------------
@@ -270,51 +349,56 @@ procedure is that ensures a consistent release process each time.
 
  3. Create and activate a virtualenv::
 
-    $ virtualenv --system-site-packages --distribute astropy-release
-    $ source astropy-release/bin/activate
+        $ virtualenv --system-site-packages --distribute astropy-release
+        $ source astropy-release/bin/activate
 
  4. Obtain a *clean* version of the Astropy repository.  That is, one
     where you don't have any intermediate build files.  Either use a fresh
     ``git clone`` or do ``git clean -dfx``.
 
- 5. Be sure you're the "master" branch, and install Astropy into the
-    virtualenv::
+ 5. Be sure you're the "master" branch or, for a bug fix release, on the
+    appropriate bug fix branch.  For example, if releasing version 0.2.2 make
+    sure to::
+    
+        $ git checkout v0.2.x
 
-    $ python setup.py install
+ 6. Now install Astropy into the virtualenv::
+
+        $ python setup.py install
 
     This is necessary for two reasons.  First, the entry points for the
-    releaser scripts need to be availale, and these are in the Astropy
+    releaser scripts need to be available, and these are in the Astropy
     package. Second, the build process will generate .c files from the
     Cython .pyx files, and the .c files are necessary for the source
     distribution.
 
- 6. Install zest.releaser into the virtualenv; use ``--upgrade --force`` to
+ 7. Install zest.releaser into the virtualenv; use ``--upgrade --force`` to
     ensure that the latest version is installed in the virtualenv (if you're
     running a csh variant make sure to run ``rehash`` afterwards too)::
 
-    $ pip install zest.releaser --upgrade --force
+        $ pip install zest.releaser --upgrade --force
 
- 7. Ensure that all changes to the code have been committed, then start the
+ 8. Ensure that all changes to the code have been committed, then start the
     release by running::
 
-    $ fullrelease
+        $ fullrelease
 
- 8. You will be asked to enter the version to be released.  Press enter to
+ 9. You will be asked to enter the version to be released.  Press enter to
     accept the default (which will normally be correct) or enter a specific
     version string.  A diff will then be shown of CHANGES.rst and setup.py
     showing that a release date has been added to the changelog, and that the
     version has been updated in setup.py.  Enter 'Y' when asked to commit
     these changes.
 
- 9. You will then be shown the command that will be run to tag the release.
-    Enter 'Y' to confirm and run the command.
+ 10. You will then be shown the command that will be run to tag the release.
+     Enter 'Y' to confirm and run the command.
 
- 10. When asked "Check out the tag (for tweaks or pypi/distutils server
+ 11. When asked "Check out the tag (for tweaks or pypi/distutils server
      upload)" enter 'N': zest.releaser does not offer enough control yet over
      how the register and upload are performed so we will do this manually
      until the release scripts have been improved.
 
- 11. You will be asked to enter a new development version.  Normally the next
+ 12. You will be asked to enter a new development version.  Normally the next
      logical version will be selected--press enter to accept the default, or
      enter a specific version string.  Do not add ".dev" to the version, as
      this will be appended automatically (ignore the message that says ".dev0
@@ -323,65 +407,69 @@ procedure is that ensures a consistent release process each time.
      will be "0.2".  If we want the next version to be, say "1.0" then that
      must be entered manually.
 
- 12. You will be shown a diff of CHANGES.rst showing that a new section has
+ 13. You will be shown a diff of CHANGES.rst showing that a new section has
      been added for the new development version, and showing that the version
      has been updated in setup.py.  Enter 'Y' to commit these changes.
 
- 13. When asked to push the changes to a remote repository, enter 'Y'.  This
+ 14. When asked to push the changes to a remote repository, enter 'Y'.  This
      should complete the portion of the process that's automated at this point.
 
- 14. Check out the tag of the released version.  For example::
+ 15. Check out the tag of the released version.  For example::
 
-     $ git checkout v0.1
+         $ git checkout v0.1
 
- 15. Create the source distribution by doing::
+ 16. Create the source distribution by doing::
 
-     $ python setup.py sdist
+         $ python setup.py sdist
 
      Copy the produced ``.tar.gz`` somewhere and verify that you can unpack it,
      build it, and get all the tests to pass.  It would be best to create a new
      virtualenv in which to do this.
 
- 16. Register the release on PyPI with::
+ 17. Register the release on PyPI with::
 
-     $ python setup.py register
+         $ python setup.py register
 
- 17. Upload the source distribution to PyPI; this is preceded by re-running
+ 18. Upload the source distribution to PyPI; this is preceded by re-running
      the sdist command, which is necessary for the upload command to know
      which distribution to upload::
 
-     $ python setup.py sdist upload
+         $ python setup.py sdist upload
 
- 18. Update the website to reflect the fact there is now a stable release.
+ 19. Update the website to reflect the fact there is now a stable release.
 
- 19. Update Readthedocs so that it builds docs for the corresponding github tag,
+ 20. Update Readthedocs so that it builds docs for the corresponding github tag,
      and set the default page to the new release.
 
- 20. Create a bug fix branch.  If the version just was released was a "X.Y.0"
-     version ("0.1" or "0.2" for example--the final ".0" is typically ommitted)
-     it is good to create a bug fix branch as well.  Starting from the tagged
-     changset, just checkout a new branch and push it to the remote server.
-     For example, after releasing version 0.1, do::
+ 21. If this was a major/minor release (not a bug fix release) create a bug fix
+     branch for this line of release.  That is, if the version just released
+     was "v<major>.<minor>.0", create bug fix branch with the name
+     "v<major>.<minor>.x".  Starting from the commit tagged as the release,
+     just checkout a new branch and push it to the remote server.  For example,
+     after releasing version 0.3, do::
 
-     $ git checkout -b v0.1.x
+         $ git checkout -b v0.3.x
 
-     Then edit ``setup.py`` so that the version is ``'0.1.1.dev'``, and commit
-     that change. Then, do::
+     Then edit ``setup.py`` so that the ``VERSION`` variable is
+     ``'0.3.1.dev'``, and commit that change. Then, do::
 
-     $ git push upstream v0.1.x
+         $ git push upstream v0.3.x
 
     .. note::
+
         You may need to replace ``upstream`` here with ``astropy`` or
         whatever remote name you use for the main astropy repository.
 
-     The purpose of this branch is for creating bug fix releases like "0.1.1"
-     and "0.1.2", while allowing development of new features to continue in
+     The purpose of this branch is for creating bug fix releases like "0.3.1"
+     and "0.3.2", while allowing development of new features to continue in
      the master branch.  Only changesets that fix bugs without making
      significant API changes should be merged to the bug fix branches.
 
- 21. Create a bug fix label on GitHub; this should have the same name as the
-     just created bug fix branch.  This label should be applied to all issues
-     that should be backported to the bug fix branch.
+ 22. Create a bug fix label on GitHub; this should have the same name as the
+     just created bug fix branch prepended with "backport-".  For the previous
+     example this would be "backport-0.3.x"  This label should be applied to
+     all issues that should be backported to the bug fix branch.  Also create a
+     milestone for the next bug fix release if it hasn't been made already.
 
 
 Creating a MacOS X Installer on a DMG
