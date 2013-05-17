@@ -32,7 +32,6 @@ def _tofloat(value):
         raise InputParameterError(
             "Expected parameter to be of numerical type, not boolean")
     elif isinstance(value, numbers.Number):
-        #_value = np.array(value, dtype=np.float)
         _value = float(value)
         shape = ()
     else:
@@ -40,7 +39,7 @@ def _tofloat(value):
             "Don't know how to convert parameter of {0} to "
             "float".format(type(value)))
     return _value, shape
-    
+
 class Parameter(list):
     """
     Wraps individual parameters.
@@ -66,17 +65,16 @@ class Parameter(list):
         if True the parameter is not varied during fitting
     tied: callable or False
         if callable is suplplied it provides a way to link to another parameter
-    minvalue: float
+    min: float
         the lower bound of a parameter
-    maxvalue: float
+    max: float
         the upper bound of a parameter
     """
     def __init__(self, name, val, mclass, param_dim, fixed=False, tied=False, 
-                 minvalue=None, maxvalue=None):
+                 min=None, max=None):
         self._param_dim = param_dim
         self._name = name
         if self._param_dim == 1:
-            # number, list or array
             val, parshape = _tofloat(val)
             super(Parameter, self).__init__([val])
         else:
@@ -90,57 +88,50 @@ class Parameter(list):
             except TypeError:
                 raise InputParameterError("Expected a multivalued"
             " parameter {0}".format(self._name))
-                
-##            if parshape == ():
-##                # a list of numbers
-            
             for shape in [_tofloat(v)[1] for v in val]:
                 assert shape == parshape, "Multiple values for the same" \
                                             " parameters should have the same shape"
-##            else:
-##                # a list of lists or a list of arrays
-##                val = [_tofloat(v)[0] for v in val]
             super(Parameter, self).__init__(val)
         self.parshape = parshape
         self._mclass = mclass
         self._fixed = fixed
         self._tied = tied
-        self._min = minvalue
-        self._max = maxvalue
-        
+        self._min = min
+        self._max = max
+
     @property
     def param_dim(self):
         """
         Number of parameter sets
         """
         return self._param_dim
-    
+
     @param_dim.setter
     def param_dim(self, val):
         self._param_dim = val
-        
+
     @property
     def mclass(self):
         """
         An instance of `~astropy.modeling.core.ParametricModel`
         """
         return self._mclass
-    
+
     @mclass.setter
     def mclass(self, val):
         self._mclass = val
-        
+
     @property
     def name(self):
         """
         Parameter name
         """
         return self._name
-    
+
     @name.setter
     def name(self, val):
         self._name = val
-        
+
     @property
     def fixed(self):
         """
@@ -148,14 +139,14 @@ class Parameter(list):
         
         """
         return self._fixed
-    
+
     @fixed.setter
     def fixed(self, val):
         assert isinstance(val, bool), "Fixed can be True or False"
         self._fixed = val
         self.mclass.constraints._fixed.update({self.name: val})
         self.mclass.constraints._update()
-        
+
     @property
     def tied(self):
         """
@@ -163,39 +154,39 @@ class Parameter(list):
         A callable which provides the relationship of the two parameters.
         """
         return self._tied
-    
+
     @tied.setter
     def tied(self, val):
-        assert callable(val), "Tied must be a callable"
+        assert callable(val) or val == False, "Tied must be a callable"
         self._tied = val
         self.mclass.constraints._tied.update({self.name:val})
         self.mclass.constraints._update()
-        
+
     @property
     def min(self):
         """
         A value used as a lower bound when fitting a parameter.
         """
         return self._min
-    
+
     @min.setter
     def min(self, val):
         assert isinstance(val, numbers.Number), "Min value must be a number"
         self._min = float(val)
-        self.mclass.constraints.set_range({self.name: (val, self.max or 1E12)})
-        
+        self.mclass.constraints.set_range({self.name: (val, self.max)})
+
     @property
     def max(self):
         """
         A value used as an upper bound when fitting a parameter.
         """
         return self._max
-    
+
     @max.setter
     def max(self, val):
         assert isinstance(val, numbers.Number), "Max value must be a number"
         self._max = float(val)
-        self.mclass.constraints.set_range({self.name: (self.min or -1E12, val)})
+        self.mclass.constraints.set_range({self.name: (self.min, val)})
 
     def __setslice__(self, i, j, val):
         super(Parameter, self).__setslice__(i, j, val)

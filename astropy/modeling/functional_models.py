@@ -147,43 +147,35 @@ class Gaussian2DModel(ParametricModel):
             raise InputParameterError(
                 "Either x_fwhm or x_stddev must be specified, or a "
                 "covariance matrix.")
-        
         self._amplitude = parameters.Parameter('amplitude', amplitude,
                                                 self, param_dim)
-        
         if cov_matrix is None:
             if x_stddev is None:
                 x_stddev = 0.42466 * x_fwhm
-            
             if y_stddev is None:
                 y_stddev = 0.42466 * y_fwhm
-        
         else:
             cov_matrix = np.array(cov_matrix)
             assert cov_matrix.shape == (2,2), "Covariance matrix must be 2D"
-            
             eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
             x_stddev, y_stddev = np.sqrt(eig_vals)
             y_vec = eig_vecs[:,0]
             theta = np.arctan2(y_vec[1],y_vec[0])
-            
         self._x_stddev = parameters.Parameter('x_stddev', x_stddev,
                                                 self, param_dim)
         self._y_stddev = parameters.Parameter('y_stddev', y_stddev,
                                                 self, param_dim)
-        
         self._x_mean = parameters.Parameter('x_mean', x_mean, self, param_dim)
         self._y_mean = parameters.Parameter('y_mean', y_mean, self, param_dim)
         self._theta = parameters.Parameter('theta', theta, self, param_dim)
-       
         super(Gaussian2DModel, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
-                                              param_dim=param_dim)
+                                              param_dim=param_dim, **cons)
         self.linear = False
         if jacobian_func:
             self.deriv = jacobian_func
         else:
             self.deriv = None
-            
+
     def eval(self, x, y, p):
         return p[0] * np.exp(-(
             ((np.cos(p[5])/p[1])**2 + (np.sin(p[5])/p[2])**2) * ((x-p[3])**2)

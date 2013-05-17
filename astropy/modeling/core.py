@@ -362,22 +362,28 @@ class ParametricModel(Model):
         problem.
     """
     __metaclass__ = abc.ABCMeta
-    
+
     def __init__(self, param_names, n_inputs, n_outputs, param_dim=1, fittable=True,
-                 fixed={}, tied={}, bounds={}, eqcons=[], ineqcons=[]):
+                 fixed=None, tied=None, bounds=None, eqcons=None, ineqcons=None):
         self.linear = True
         super(ParametricModel, self).__init__(param_names, n_inputs, n_outputs, param_dim=param_dim)
         self.fittable = fittable
         self._parameters = parameters.Parameters(self, self.param_names,
                                                  param_dim=param_dim)
+        # Initialize the constraints for each parameter
         _fixed = {}.fromkeys(self.param_names, False)
         _tied = {}.fromkeys(self.param_names, False)
         _bounds = {}.fromkeys(self.param_names, [-1.E12, 1.E12])
+        if eqcons is None:
+            eqcons = []
+        if ineqcons is None:
+            ineqcons = []
         self.constraints = constraints.Constraints(self, fixed=_fixed,
                                                    tied=_tied, 
                                                    bounds=_bounds,
                                                    eqcons=eqcons, 
                                                    ineqcons=ineqcons)
+        # Set constraints
         if fixed:
             for name in fixed:
                 par = getattr(self, name)
@@ -389,10 +395,9 @@ class ParametricModel(Model):
         if bounds:
             for name in bounds:
                 par = getattr(self, name)
-                setattr(par, 'min', bounds[0])
-                setattr(par, 'max', bounds[1])
-        
-        
+                setattr(par, 'min', bounds[name][0])
+                setattr(par, 'max', bounds[name][1])
+
     def __repr__(self):
         try:
             degree = str(self.deg)
