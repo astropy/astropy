@@ -66,7 +66,7 @@ class Gaussian1DModel(ParametricModel):
             self.deriv = self.gderiv
             
     def eval(self, x, params):
-        return params[0] * np.exp((-(1/(params[2]**2)) * 
+        return params[0] * np.exp((- 0.5 / params[2]**2) *
                                                 (x-params[1])**2))
  
     def gderiv(self, p, x, y):
