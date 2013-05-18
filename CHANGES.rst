@@ -190,6 +190,9 @@ Bug Fixes
 
 - Misc
 
+  - Made it easier to filter warnings from the ``convolve()`` function and
+    from ``Quantity`` objects. [#853]
+
   - Fixed a crash that could occur in Python 3 when generation of the default
     config file fails during setup. [#952]
 
