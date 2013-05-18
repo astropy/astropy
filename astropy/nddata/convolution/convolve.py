@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import warnings
+
 import numpy as np
 from ...config import ConfigurationItem
-from ... import log
 
 def convolve(array, kernel, boundary=None, fill_value=0.,
              normalize_kernel=False):
@@ -51,35 +52,35 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     -----
     Masked arrays are not supported at this time.
     '''
-    from .boundary_none import convolve1d_boundary_none, \
-                               convolve2d_boundary_none, \
-                               convolve3d_boundary_none
+    from .boundary_none import (convolve1d_boundary_none,
+                                convolve2d_boundary_none,
+                                convolve3d_boundary_none)
 
-    from .boundary_extend import convolve1d_boundary_extend, \
-                                 convolve2d_boundary_extend, \
-                                 convolve3d_boundary_extend
+    from .boundary_extend import (convolve1d_boundary_extend,
+                                  convolve2d_boundary_extend,
+                                  convolve3d_boundary_extend)
 
-    from .boundary_fill import convolve1d_boundary_fill, \
-                               convolve2d_boundary_fill, \
-                               convolve3d_boundary_fill
+    from .boundary_fill import (convolve1d_boundary_fill,
+                                convolve2d_boundary_fill,
+                                convolve3d_boundary_fill)
 
-    from .boundary_wrap import convolve1d_boundary_wrap, \
-                               convolve2d_boundary_wrap, \
-                               convolve3d_boundary_wrap
+    from .boundary_wrap import (convolve1d_boundary_wrap,
+                                convolve2d_boundary_wrap,
+                                convolve3d_boundary_wrap)
 
     # Check that the arguemnts are lists or Numpy arrays
-    if type(array) == list:
+    if isinstance(array, list):
         array = np.array(array, dtype=float)
-    elif type(array) != np.ndarray:
+    elif not isinstance(array, np.ndarray):
         raise TypeError("array should be a list or a Numpy array")
-    if type(kernel) == list:
+    if isinstance(kernel, list):
         kernel = np.array(kernel, dtype=float)
-    elif type(kernel) != np.ndarray:
+    elif not isinstance(kernel, np.ndarray):
         raise TypeError("kernel should be a list or a Numpy array")
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
-        raise Exception('array and kernel have differing number of'
+        raise Exception('array and kernel have differing number of '
                         'dimensions')
 
     # The .dtype.type attribute returs the datatype without the endian. We can
@@ -307,8 +308,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
-        raise Exception('array and kernel have differing number of'
-                        'dimensions')
+        raise Exception('array and kernel have differing number of dimensions')
 
     # turn the arrays into 'complex' arrays
     if array.dtype.kind != 'c':
@@ -331,10 +331,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     array[nanmaskarray] = 0
     nanmaskkernel = np.isnan(kernel) + np.isinf(kernel)
     kernel[nanmaskkernel] = 0
-    if ((nanmaskarray.sum() > 0 or nanmaskkernel.sum() > 0) and not interpolate_nan
-            and not quiet):
-        log.warn("NOT ignoring nan values even though they are present" +
-                " (they are treated as 0)")
+    if ((nanmaskarray.sum() > 0 or nanmaskkernel.sum() > 0) and
+            not interpolate_nan and not quiet):
+        warnings.warn("NOT ignoring nan values even though they are present "
+                      " (they are treated as 0)")
 
     if normalize_kernel is True:
         kernel = kernel / kernel.sum()
@@ -350,15 +350,15 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         else:
             kernel_is_normalized = False
             if (interpolate_nan or ignore_edge_zeros):
-                WARNING = ("Kernel is not normalized, therefore ignore_edge_zeros"+
-                    "and interpolate_nan will be ignored.")
-                log.warn(WARNING)
+                warnings.warn("Kernel is not normalized, therefore "
+                              "ignore_edge_zeros and interpolate_nan will be "
+                              "ignored.")
 
     if boundary is None:
-        WARNING = ("The convolve_fft version of boundary=None is equivalent" +
-                " to the convolve boundary='fill'.  There is no FFT " +
-                " equivalent to convolve's zero-if-kernel-leaves-boundary")
-        log.warn(WARNING)
+        warnings.warn("The convolve_fft version of boundary=None is "
+                      "equivalent to the convolve boundary='fill'.  There is "
+                      "no FFT equivalent to convolve's "
+                      "zero-if-kernel-leaves-boundary")
         psf_pad = True
     elif boundary == 'fill':
         # create a boundary region at least as large as the kernel
@@ -368,14 +368,14 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         fft_pad = False
         fill_value = 0  # force zero; it should not be used
     elif boundary == 'extend':
-        raise NotImplementedError("The 'extend' option is not implemented " +
-                "for fft-based convolution")
+        raise NotImplementedError("The 'extend' option is not implemented "
+                                  "for fft-based convolution")
 
     arrayshape = array.shape
     kernshape = kernel.shape
     if array.ndim != kernel.ndim:
-        raise ValueError("Image and kernel must " +
-            "have same number of dimensions")
+        raise ValueError("Image and kernel must have same number of "
+                         "dimensions")
     # find ideal size (power of 2) for fft.
     # Can add shapes because they are tuples
     if fft_pad:
