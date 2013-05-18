@@ -2,14 +2,15 @@
 """
 Tests models.parameters
 """
+import numpy as np
+from numpy.testing import utils
 from .. import models, fitting
 from . import irafutil
 from ..utils import InputParameterError
-import numpy as np
-from numpy.testing import utils
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 from .. import ParametricModel, Parameter
+
 
 class TestParModel(ParametricModel):
     """
@@ -24,8 +25,59 @@ class TestParModel(ParametricModel):
 
     def __call__(self):
         pass
-        
+
+def test_parameter_properties():
+    """
+    Test if getting / setting of Parameter properties works.
+
+    Note that to construct a Parameter we need a Model instance,
+    so Parameter can't be tested independently of Model.
+    """
+    #p = Parameter(name='alpha', val=42, mclass=Model, param_dim=1)
+    model = TestParModel(coeff=42, e=43)
+    p = model._coeff
+
+    assert p.param_dim == 1
+    p.param_dim = 2
+    assert p.param_dim == 2
+
+    assert type(p.mclass) == TestParModel
+    p.mclass = 'asdf'
+    p.mclass = model
+
+    assert p.name == 'coeff'
+    p.name = 'beta'
+    assert p.name == 'beta'
+
+    assert p.fixed == False
+    p.fixed = True
+    assert p.fixed == True
+
+    assert p.tied == False
+    p.tied = lambda _: 0
+
+    # TODO: see https://github.com/astropy/astropy/issues/980
+    #p.tied = False
+    #assert p.tied == False
+
+    assert p.min == None
+    p.min = 42
+    assert p.min == 42
+    # TODO: see https://github.com/astropy/astropy/issues/980
+    #p.min = None
+    #assert p.min == None
+
+    assert p.max == None
+    # TODO: shouldn't setting a max < min give an error?
+    p.max = 41
+    assert p.max == 41
+
+
+# TODO: Add test for all the parameter operators ( +, **, >, ...)
+# to check that they actually do behave like numbers
+
 class TestParameters(object):
+
     def setup_class(self):
         """
         Unit tests for parameters
@@ -193,6 +245,7 @@ class TestParameters(object):
             sh1.offsets  = [3, 3]
 
 class TestMultipleParameterSets(object):
+
     def setup_class(self):
         self.x1 = np.arange(1, 10, .1)
         self.x, self.y = np.mgrid[:10, :7]
@@ -226,12 +279,12 @@ class TestMultipleParameterSets(object):
         l2 = TestParModel(coeff=[[1,2], [3,4]], e=(2,3),param_dim=2)
         utils.assert_almost_equal(l2.parameters, [1.0, 2.0, 3.0, 4.0, 2.0, 3.0])
         #utils.assert_almost_equal(l2.param_sets, np.array([[[1,2.],[3., 4.]],
-         #                                               [2., 3.]], dtype=np.object))
+        #                                               [2., 3.]], dtype=np.object))
         
     def test_wrong_number_of_pars(self):
         with pytest.raises(InputParameterError):
-            l2 = TestParModel(coeff=[[1,2],[3,4]], e=(2,3,4),param_dim=2)
+            TestParModel(coeff=[[1,2],[3,4]], e=(2,3,4),param_dim=2)
             
     def test_wrong_number_of_pars2(self):
         with pytest.raises(InputParameterError):
-            l2 = TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)
+            TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)

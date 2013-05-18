@@ -6,7 +6,8 @@ from __future__ import division, print_function
 import collections
 import numpy as np
 from . import parameters
-from .core import *
+from .core import (_convert_input, _convert_output,
+                   Model, ParametricModel)
 from .utils import InputParameterError
  
 __all__ = ['Gaussian1DModel', 'Gaussian2DModel',  'ScaleModel', 'ShiftModel']

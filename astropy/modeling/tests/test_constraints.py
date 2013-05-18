@@ -12,7 +12,42 @@ try:
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
-    
+
+def test_constraints_example():
+    """Test the example given in the Constraints constructor"""
+    from ..models import Gaussian1DModel
+
+    gauss = Gaussian1DModel(amplitude=1, mean=2, stddev=3, fixed={'stddev': True})
+    assert gauss.stddev.fixed == True
+
+    gauss = Gaussian1DModel(amplitude=1, mean=2, stddev=3)
+    assert gauss.stddev.fixed == False
+    gauss.stddev.fixed = True
+    assert gauss.stddev.fixed == True
+
+    def tie_mean(model):
+        mean = 50 * model.stddev
+        return mean
+
+    model = Gaussian1DModel(amplitude=1, mean=2, stddev=3, tied={'mean': tie_mean})
+    assert model.mean.tied == tie_mean
+
+    model = Gaussian1DModel(amplitude=1, mean=2, stddev=3)
+    assert model.mean.tied == False
+    model.mean.tied = tie_mean
+    assert model.mean.tied == tie_mean
+
+def test_constraints_str():
+    # Create an example
+    model = models.Gaussian1DModel(amplitude=1, mean=2, stddev=3,
+                                   fixed={'stddev': True},
+                                   tied={'mean': lambda _: 42 * _.stddev})
+    constraints = model.constraints
+    assert str(constraints) == "Constraints(Gaussian1DModel, fixed=['stddev'], tied=['mean: <lambda>()'], bounds=['stddev:(-1000000000000.0, 1000000000000.0)', 'amplitude:(-1000000000000.0, 1000000000000.0)', 'mean:(-1000000000000.0, 1000000000000.0)'])"
+    # Can't check repr(constraints) because it contains a memory address:
+    # <function <lambda> at 0x10cce2e60>
+    repr(constraints)
+
 class TestNonLinearConstraints(object):
     def setup_class(self):
         self.g1 = models.Gaussian1DModel(10, 14.9, stddev=.3)
@@ -76,13 +111,14 @@ class TestNonLinearConstraints(object):
         errf = lambda p, x, y: func(p, x) - y
         p0 = [9.9, 14.5, 0.3]
         y = g1(self.x)
-        n = np.random.randn(100)
+        n = np.random.randn(len(y))
         ny = y + n
-        fitpar, s = optimize.leastsq(errf, p0, args=(self.x, n+y))
+        fitpar, s = optimize.leastsq(errf, p0, args=(self.x, ny))
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.x, n+y)
         utils.assert_allclose(g1.parameters, fitpar, rtol=5*10**(-3))
-        
+
+
 class TestLinearConstraints(object):
     def setup_class(self):
         self.p1 = models.Poly1DModel(4)

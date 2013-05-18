@@ -40,7 +40,6 @@ In all these cases the output has the same shape as the input.
  
 """
 from __future__ import division, print_function
-import collections
 import abc
 from ..utils.compat.odict import OrderedDict
 import numpy as np
@@ -160,7 +159,7 @@ class Model(object):
     """
     Base class for all models.
     
-    This is an abstract class and should not be instanciated.
+    This is an abstract class and should not be instantiated.
     
     Notes
     -----
@@ -659,18 +658,31 @@ class SCompositeModel(_CompositeModel):
     
     Examples
     --------
-    Apply a 2D rotation followed by a shift in x and y
-    
-    >>> from astropy.modeling import *
-    >>> rot = builtin_models.MatrixRotation2D(angle=23.5)
-    >>> offx = builtin_models.ShiftModel(-4.23)
-    >>> offy = builtin_models.ShiftModel(2)
-    >>> linp = LabeledInput([x, y], ["x", "y"]
-    >>> scomptr = SCompositeModel([rot, offx, offy], 
-                                  inmap=[['x', 'y'], ['x'], ['y']],
-                                  outmap=[['x', 'y'], ['x'], ['y']])
-    >>> result=scomptr(linp)
-        
+
+    >>> from astropy.modeling import models, LabeledInput, SCompositeModel
+
+    Set up the serial composite model.
+    2D rotation followed by a shift in x and y:
+
+    >>> rotation = models.MatrixRotation2D(angle=90)
+    >>> shift_x = models.ShiftModel(2)
+    >>> shift_y = models.ShiftModel(5)
+    >>> model = SCompositeModel([rotation, shift_x, shift_y],
+    ...                         inmap=[['x', 'y'], ['x'], ['y']],
+    ...                         outmap=[['x', 'y'], ['x'], ['y']])
+
+    Evaluate the model:
+
+    >>> input_pos = LabeledInput([0, 1], ["x", "y"])
+    >>> output_pos = model(input_pos)
+    >>> print(output_pos)
+    {'y': 5.0, 'x': 3.0}
+
+    Explanation of the result:
+    the following three steps were applied in sequence:
+    1. 90 deg clockwise rotation: [0, 1] -> [1, 0]
+    2. x shift by 2:              [1, 0] -> [3, 0]
+    3. y shift by 5:              [3, 0] -> [3, 5]
     """
     def __init__(self, transforms, inmap=None, outmap=None):
         super(SCompositeModel, self).__init__(transforms, inmap, outmap)

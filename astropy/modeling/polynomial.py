@@ -6,11 +6,13 @@ from __future__ import division, print_function
 import collections
 import numpy as np
 from . import parameters
-from .core import *
+from .core import (_convert_input, _convert_output,
+                   LabeledInput, Model, ParametricModel, SCompositeModel)
+from .functional_models import ShiftModel
 from .utils import pmapdomain, comb
 
 __all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'Legendre2DModel',
-                    'Legendre1DModel', 'Poly1DModel', 'Poly2DModel', 'SIPModel']
+           'Legendre1DModel', 'Poly1DModel', 'Poly2DModel', 'SIPModel']
 
 
 class PolynomialModel(ParametricModel):
@@ -96,7 +98,7 @@ class PolynomialModel(ParametricModel):
         Return the number of coefficients in one parameter set
         """
         if self.deg < 1  or self.deg > 16:
-            raise ValueError("Degree of polynomial must be 1< deg < 16")
+            raise ValueError("Degree of polynomial must be 1 <= deg <= 16")
         # deg+1 is used to account for the difference between iraf using
         # degree and numpy using exact degree
         if ndim != 1:

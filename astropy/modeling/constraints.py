@@ -8,7 +8,7 @@ class Constraints(object):
     """
     Fitting constraints
 
-    Should not be instanciated by users directly. 
+    Should not be instantiated by users directly. 
     Instead constraints should be passed to an instance of Model.
     
     Parameters
@@ -42,39 +42,38 @@ class Constraints(object):
         
     Examples
     --------
-    >>> def tie_center(model):
-    ...         xcen = 50 * model.xsigma
-    ...         return xcen
-    >>> tied_parameters  ={'xcen': tie_center}
-    
-    Specify that 'xcen' is a tied parameter in one of two ways:
-    
-    >>> g1 = builtin_models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3, tied=tied)
 
-    or
+    >>> from astropy.modeling.models import Gaussian1DModel
 
-    >>> g1 = builtin_models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3)
-    >>> g1.xcen.tied
-    False
-    >>> g1.xcen.tied = tie_center
-    >>> g1.xcen.tied
-    <function tie_center at 0x395ab0>
+    How to fix model parameters?
 
-    Fixed parameters:
-    
-    >>> g1 = builtin_models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3, fixed={'xsigma':True})
-    >>> g1.xsigma.fixed
-    True
+    Via the 'fixed' option in the model constructor ...
 
-    or
-    
-    >>> g1 = builtin_models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3)
-    >>> g1.xsigma.fixed
-    False
-    >>> g1.xsigma.fixed=True
-    >>> g1.xsigma.fixed
-    True
+    >>> gauss = Gaussian1DModel(amplitude=1, mean=2, stddev=3,
+    ...                         fixed={'stddev': True})
 
+    ... or later via the model parameter 'fixed' property
+
+    >>> gauss = Gaussian1DModel(amplitude=1, mean=2, stddev=3)
+    gauss.stddev.fixed = True
+
+    How to tie model parameters?
+
+    First define the tie relationship as a function:
+
+    >>> def tie_mean(model):
+    ...     mean = 50 * model.stddev
+    ...     return mean
+
+    Via the 'tied' option in the model constructor ...
+
+    >>> model = Gaussian1DModel(amplitude=1, mean=2, stddev=3,
+    ...                         tied={'mean': tie_mean})
+
+    ... or later via the model parameter 'tied' property.
+
+    >>> model = Gaussian1DModel(amplitude=1, mean=2, stddev=3)
+    >>> model.mean.tied = tie_mean
     """
     
     def __init__(self, model, fixed={}, tied={}, bounds={},
@@ -105,37 +104,37 @@ class Constraints(object):
         fmt = ""
         if any(self._fixed.values()):
             fixedstr = [par for par in self._fixed if self._fixed[par]]
-            fmt += "fixed={0}".format(fixedstr)
+            fmt += ", fixed={0}".format(fixedstr)
         if any(self._tied.values()):
             tiedstr = [par+": "+self._tied[par].__name__+"()" for
                        par in self._tied if self._tied[par]]
-            fmt += "tied={0}".format(tiedstr)
+            fmt += ", tied={0}".format(tiedstr)
         if not all([(-np.inf, np.inf)==b for b in self._bounds.values()]):
             boundsstr = [par+":"+str(self._bounds[par]) for
                          par in self._bounds if
                          self._bounds[par]!= (-np.inf, np.inf)]
-            fmt += "bounds={0}".format(boundsstr)
+            fmt += ", bounds={0}".format(boundsstr)
         if self._eqcons:
-            fmt += "eqcons={0}".format(self._eqcons)
+            fmt += ", eqcons={0}".format(self._eqcons)
         if self._ineqcons:
-            fmt += "ineqcons={0}".format(self._ineqcons)
-        name = "Constraints({0}, ".format(self.model.__class__.__name__)
+            fmt += ", ineqcons={0}".format(self._ineqcons)
+        name = "Constraints({0}".format(self.model.__class__.__name__)
         if fmt:
             fmt = name + fmt +")"
         return fmt
     
     def __repr__(self):
-        fmt = "<Constraints({0}, ".format(self.model.__class__.__name__)
+        fmt = "<Constraints({0}".format(self.model.__class__.__name__)
         if self._fixed:
-            fmt += 'fixed={0}, '.format(self._fixed)
+            fmt += ', fixed={0}'.format(self._fixed)
         if self._tied:
-            fmt += 'tied={0}, '.format(self._tied)
+            fmt += ', tied={0}'.format(self._tied)
         if self._bounds:
-            fmt += 'bounds={0}, '.format(self._bounds)
+            fmt += ', bounds={0}'.format(self._bounds)
         if self._eqcons:
-            fmt += "eqcons={0}, ".format(self._eqcons)
+            fmt += ", eqcons={0}".format(self._eqcons)
         if self._ineqcons:
-            fmt += "ineqcons={0}".format(self._ineqcons)
+            fmt += ", ineqcons={0}".format(self._ineqcons)
         fmt += ")>"
         return fmt
     
