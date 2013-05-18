@@ -4,6 +4,7 @@ This module prvoides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest` testing framework.
 """
 
+import errno
 import shlex
 import sys
 import base64
@@ -52,6 +53,24 @@ else:
     sys.meta_path.append(importer)
 
     pytest = importer.load_module('pytest')
+
+
+# Monkey-patch py.test to work around issue #811
+# https://github.com/astropy/astropy/issues/811
+from _pytest.assertion import rewrite as _rewrite
+_orig_write_pyc = _rewrite._write_pyc
+def _write_pyc_wrapper(co, source_path, pyc):
+    """Wraps the internal _write_pyc method in py.test to recognize
+    PermissionErrors and just stop trying to cache its generated pyc files if
+    it can't write them to the __pycache__ directory.
+    """
+
+    try:
+        return _orig_write_pyc(co, source_path, pyc)
+    except IOError as e:
+        if e.errno == errno.EACCES:
+            return False
+_rewrite._write_pyc = _write_pyc_wrapper
 
 
 # pytest marker to mark tests which get data from the web

@@ -190,6 +190,9 @@ Bug Fixes
 
 - Misc
 
+  - Fixed a permission error that could occur when running ``astropy.test()``
+    on Python 3 when Astropy is installed as root. [#811]
+
   - Made it easier to filter warnings from the ``convolve()`` function and
     from ``Quantity`` objects. [#853]
 
