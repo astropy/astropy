@@ -63,7 +63,7 @@ Numpy 1.4.x unreliable on 64-bit Ubuntu
 As of Ubuntu 12.04 (and possibly earlier), the 1.4.x versions of numpy sometimes
 cause segmentation faults.  This problem is not unique to Astropy, as the numpy
 tests themselves do not pass, but it does cause some Astropy functionality to
-fail.  
+fail.
 
 The solution is to use a more recent version of Numpy.
 
@@ -91,3 +91,10 @@ cannot import name config``.  To resolve this issue either run ``sudo chown -R
 it away with ``sudo rm -rf ~/.astropy``.
 
 See for example: https://github.com/astropy/astropy/issues/987
+
+Color printing on Windows
+-------------------------
+
+Colored printing of log messages and other colored text does work in Windows
+but only when running in the IPython console.  Colors are not currently
+supported in the traditional Python command-line interpreter on Windows.
