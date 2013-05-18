@@ -4,6 +4,7 @@ This module prvoides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest` testing framework.
 """
 
+import errno
 import shlex
 import sys
 import base64
@@ -52,6 +53,34 @@ else:
     sys.meta_path.append(importer)
 
     pytest = importer.load_module('pytest')
+
+
+# Monkey-patch py.test to work around issue #811
+# https://github.com/astropy/astropy/issues/811
+from _pytest.assertion import rewrite as _rewrite
+_orig_write_pyc = _rewrite._write_pyc
+def _write_pyc_wrapper(co, source_path, pyc):
+    """Wraps the internal _write_pyc method in py.test to recognize
+    PermissionErrors and just stop trying to cache its generated pyc files if
+    it can't write them to the __pycache__ directory.
+
+    When py.test scans for test modules, it actually rewrites the bytecode
+    of each test module it discovers--this is how it manages to add extra
+    instrumentation to the assert builtin.  Normally it caches these
+    rewritten bytecode files--``_write_pyc()`` is just a function that handles
+    writing the rewritten pyc file to the cache.  If it returns ``False`` for
+    any reason py.test will stop trying to cache the files altogether.  The
+    original function catches some cases, but it has a long-standing bug of
+    not catching permission errors on the ``__pycache__`` directory in Python
+    3.  Hence this patch.
+    """
+
+    try:
+        return _orig_write_pyc(co, source_path, pyc)
+    except IOError as e:
+        if e.errno == errno.EACCES:
+            return False
+_rewrite._write_pyc = _write_pyc_wrapper
 
 
 # pytest marker to mark tests which get data from the web
@@ -299,7 +328,7 @@ class astropy_test(Command, object):
         raise SystemExit(retcode)
 
 
-class raises:
+class raises(object):
     """
     A decorator to mark that a test should raise a given exception.
     Use as follows::
