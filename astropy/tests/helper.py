@@ -63,6 +63,16 @@ def _write_pyc_wrapper(co, source_path, pyc):
     """Wraps the internal _write_pyc method in py.test to recognize
     PermissionErrors and just stop trying to cache its generated pyc files if
     it can't write them to the __pycache__ directory.
+
+    When py.test scans for test modules, it actually rewrites the bytecode
+    of each test module it discovers--this is how it manages to add extra
+    instrumentation to the assert builtin.  Normally it caches these
+    rewritten bytecode files--``_write_pyc()`` is just a function that handles
+    writing the rewritten pyc file to the cache.  If it returns ``False`` for
+    any reason py.test will stop trying to cache the files altogether.  The
+    original function catches some cases, but it has a long-standing bug of
+    not catching permission errors on the ``__pycache__`` directory in Python
+    3.  Hence this patch.
     """
 
     try:
