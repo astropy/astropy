@@ -73,6 +73,7 @@ User Documentation
    configs/index
    io/registry
    logging
+   warnings
    utils/index
 
 **Astropy project details**

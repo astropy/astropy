@@ -66,6 +66,12 @@ Bug Fixes
 
 - Misc
 
+  - Made it easier to filter warnings from the ``convolve()`` function and
+    from ``Quantity`` objects. [#853]
+
+  - Fixed a crash that could occur in Python 3 when generation of the default
+    config file fails during setup. [#952]
+
   - Fixed an unrelated error message that could occur when trying to import
     astropy from a source checkout without having build the extension modules
     first. This issue was claimed to be fixed in v0.2.1, but the fix itself had

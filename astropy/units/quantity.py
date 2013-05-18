@@ -12,12 +12,12 @@ from __future__ import (absolute_import, unicode_literals, division,
 # Standard library
 import copy
 import numbers
+import warnings
 
 import numpy as np
 
 # AstroPy
 from .core import Unit, UnitBase, CompositeUnit
-from .. import log
 from ..config import ConfigurationItem
 
 WARN_IMPLICIT_NUMERIC_CONVERSION = ConfigurationItem(
@@ -396,8 +396,8 @@ class Quantity(object):
         # We show a warning unless the unit is equivalent to unity (i.e. not
         # just dimensionless, but also with a scale of 1)
         if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            log.warn("Converting Quantity object in units '{0}' to a Python "
-                     "scalar".format(self.unit))
+            warnings.warn("Converting Quantity object in units '{0}' to a "
+                          "Python scalar".format(self.unit))
         return float(self.value)
 
     def __int__(self):
@@ -407,8 +407,8 @@ class Quantity(object):
         # We show a warning unless the unit is equivalent to unity (i.e. not
         # just dimensionless, but also with a scale of 1)
         if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            log.warn("Converting Quantity object in units '{0}' to a Python "
-                     "scalar".format(self.unit))
+            warnings.warn("Converting Quantity object in units '{0}' to a "
+                          "Python scalar".format(self.unit))
         return int(self.value)
 
     def __long__(self):
@@ -418,8 +418,8 @@ class Quantity(object):
         # We show a warning unless the unit is equivalent to unity (i.e. not
         # just dimensionless, but also with a scale of 1)
         if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            log.warn("Converting Quantity object in units '{0}' to a Python "
-                     "scalar".format(self.unit))
+            warnings.warn("Converting Quantity object in units '{0}' to a "
+                          "Python scalar".format(self.unit))
         return long(self.value)
 
     # Array types
@@ -427,8 +427,8 @@ class Quantity(object):
         # We show a warning unless the unit is equivalent to unity (i.e. not
         # just dimensionless, but also with a scale of 1)
         if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            log.warn("Converting Quantity object in units '{0}' to a Numpy "
-                     "array".format(self.unit))
+            warnings.warn("Converting Quantity object in units '{0}' to a "
+                          "Numpy array".format(self.unit))
         return np.array(self.value)
 
     # Display
