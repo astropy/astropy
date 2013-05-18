@@ -5,6 +5,8 @@ into conftest.py in the root directory.
 """
 
 import io
+import locale
+import math
 import os
 import sys
 
@@ -127,6 +129,19 @@ def pytest_report_header(config):
     s += "Platform: {0}\n\n".format(platform())
     s += "Executable: {0}\n\n".format(sys.executable)
     s += "Full Python Version: \n{0}\n\n".format(sys.version)
+
+    s += "encodings: sys: {0}, locale: {1}, filesystem: {2}".format(
+        sys.getdefaultencoding(),
+        locale.getpreferredencoding(),
+        sys.getfilesystemencoding())
+    if sys.version_info < (3, 3, 0):
+        s += ", unicode bits: {0}".format(
+            int(math.log(sys.maxunicode, 2)))
+    s += '\n'
+
+    s += "byteorder: {0}\n".format(sys.byteorder)
+    s += "float info: dig: {0.dig}, mant_dig: {0.dig}\n\n".format(
+        sys.float_info)
 
     import numpy
     s += "Numpy: {0}\n".format(numpy.__version__)
