@@ -328,7 +328,7 @@ class astropy_test(Command, object):
         raise SystemExit(retcode)
 
 
-class raises:
+class raises(object):
     """
     A decorator to mark that a test should raise a given exception.
     Use as follows::
