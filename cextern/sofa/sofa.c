@@ -1,5 +1,8 @@
 #include "sofam.h"
+#include "sofa.h"
 #include <stdlib.h>
+#include <string.h>
+
 
 void iauA2af(int ndp, double angle, char *sign, int idmsf[4])
 /*
@@ -72,104 +75,8 @@ void iauA2af(int ndp, double angle, char *sign, int idmsf[4])
    iauD2tf(ndp, angle*F, sign, idmsf);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauA2tf(int ndp, double angle, char *sign, int ihmsf[4])
 /*
@@ -238,103 +145,8 @@ void iauA2tf(int ndp, double angle, char *sign, int ihmsf[4])
    iauD2tf(ndp, angle/D2PI, sign, ihmsf);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
+
 
 int iauAf2a(char s, int ideg, int iamin, double asec, double *rad)
 /*
@@ -393,104 +205,8 @@ int iauAf2a(char s, int ideg, int iamin, double asec, double *rad)
    if ( iamin < 0 || iamin > 59 ) return 2;
    if ( asec < 0.0 || asec >= 60.0 ) return 3;
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauAnp(double a)
 /*
@@ -525,104 +241,8 @@ double iauAnp(double a)
    if (w < 0) w += D2PI;
 
    return w;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauAnpm(double a)
 /*
@@ -657,104 +277,8 @@ double iauAnpm(double a)
    if (fabs(w) >= DPI) w -= dsign(D2PI, a);
 
    return w;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauBi00(double *dpsibi, double *depsbi, double *dra)
 /*
@@ -823,104 +347,8 @@ void iauBi00(double *dpsibi, double *depsbi, double *dra)
    *dra = DRA0;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauBp00(double date1, double date2,
              double rb[3][3], double rp[3][3], double rbp[3][3])
@@ -1046,104 +474,8 @@ void iauBp00(double date1, double date2,
    iauRxr(rp, rbw, rbp);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauBp06(double date1, double date2,
              double rb[3][3], double rp[3][3], double rbp[3][3])
@@ -1232,104 +564,8 @@ void iauBp06(double date1, double date2,
    iauRxr(rbp, rbt, rp);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauBpn2xy(double rbpn[3][3], double *x, double *y)
 /*
@@ -1382,104 +618,8 @@ void iauBpn2xy(double rbpn[3][3], double *x, double *y)
    *y = rbpn[2][1];
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2i00a(double date1, double date2, double rc2i[3][3])
 /*
@@ -1571,104 +711,8 @@ void iauC2i00a(double date1, double date2, double rc2i[3][3])
    iauC2ibpn(date1, date2, rbpn, rc2i);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2i00b(double date1, double date2, double rc2i[3][3])
 /*
@@ -1760,104 +804,8 @@ void iauC2i00b(double date1, double date2, double rc2i[3][3])
    iauC2ibpn(date1, date2, rbpn, rc2i);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2i06a(double date1, double date2, double rc2i[3][3])
 /*
@@ -1946,104 +894,8 @@ void iauC2i06a(double date1, double date2, double rc2i[3][3])
    iauC2ixys(x, y, s, rc2i);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2ibpn(double date1, double date2, double rbpn[3][3],
                double rc2i[3][3])
@@ -2138,104 +990,8 @@ void iauC2ibpn(double date1, double date2, double rbpn[3][3],
    iauC2ixy(date1, date2, x, y, rc2i);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2ixy(double date1, double date2, double x, double y,
               double rc2i[3][3])
@@ -2319,104 +1075,8 @@ void iauC2ixy(double date1, double date2, double x, double y,
    iauC2ixys(x, y, iauS00(date1, date2, x, y), rc2i);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2ixys(double x, double y, double s, double rc2i[3][3])
 /*
@@ -2492,104 +1152,8 @@ void iauC2ixys(double x, double y, double s, double rc2i[3][3])
    iauRz(-(e+s), rc2i);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2s(double p[3], double *theta, double *phi)
 /*
@@ -2638,104 +1202,8 @@ void iauC2s(double p[3], double *theta, double *phi)
    *phi = (z == 0.0) ? 0.0 : atan2(z, sqrt(d2));
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2t00a(double tta, double ttb, double uta, double utb,
                double xp, double yp, double rc2t[3][3])
@@ -2842,104 +1310,8 @@ void iauC2t00a(double tta, double ttb, double uta, double utb,
    iauC2tcio(rc2i, era, rpom, rc2t);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2t00b(double tta, double ttb, double uta, double utb,
                double xp, double yp, double rc2t[3][3])
@@ -3042,104 +1414,8 @@ void iauC2t00b(double tta, double ttb, double uta, double utb,
    iauC2tcio(rc2i, era, rpom, rc2t);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2t06a(double tta, double ttb, double uta, double utb,
                double xp, double yp, double rc2t[3][3])
@@ -3244,104 +1520,8 @@ void iauC2t06a(double tta, double ttb, double uta, double utb,
    iauC2tcio(rc2i, era, rpom, rc2t);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2tcio(double rc2i[3][3], double era, double rpom[3][3],
                double rc2t[3][3])
@@ -3416,104 +1596,8 @@ void iauC2tcio(double rc2i[3][3], double era, double rpom[3][3],
    iauRxr(rpom, r, rc2t);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2teqx(double rbpn[3][3], double gst, double rpom[3][3],
                double rc2t[3][3])
@@ -3588,104 +1672,8 @@ void iauC2teqx(double rbpn[3][3], double gst, double rpom[3][3],
    iauRxr(rpom, r, rc2t);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2tpe(double tta, double ttb, double uta, double utb,
               double dpsi, double deps, double xp, double yp,
@@ -3805,104 +1793,8 @@ void iauC2tpe(double tta, double ttb, double uta, double utb,
    iauC2teqx(rbpn, gmst + ee, rpom, rc2t);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauC2txy(double tta, double ttb, double uta, double utb,
               double x, double y, double xp, double yp,
@@ -4014,104 +1906,8 @@ void iauC2txy(double tta, double ttb, double uta, double utb,
    iauC2tcio(rc2i, era, rpom, rc2t);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauCal2jd(int iy, int im, int id, double *djm0, double *djm)
 /*
@@ -4203,104 +1999,8 @@ int iauCal2jd(int iy, int im, int id, double *djm0, double *djm)
 
 /* Return status. */
    return j;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauCp(double p[3], double c[3])
 /*
@@ -4333,104 +2033,8 @@ void iauCp(double p[3], double c[3])
    c[2] = p[2];
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauCpv(double pv[2][3], double c[2][3])
 /*
@@ -4465,104 +2069,8 @@ void iauCpv(double pv[2][3], double c[2][3])
    iauCp(pv[1], c[1]);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauCr(double r[3][3], double c[3][3])
 /*
@@ -4598,105 +2106,8 @@ void iauCr(double r[3][3], double c[3][3])
    iauCp(r[2], c[2]);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
-#include <string.h>
+
 
 int iauD2dtf(const char *scale, int ndp, double d1, double d2,
              int *iy, int *im, int *id, int ihmsf[4])
@@ -4853,104 +2264,8 @@ int iauD2dtf(const char *scale, int ndp, double d1, double d2,
 
 /* Status. */
    return js < 0 ? -1 : js;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauD2tf(int ndp, double days, char *sign, int ihmsf[4])
 /*
@@ -5063,104 +2378,8 @@ void iauD2tf(int ndp, double days, char *sign, int ihmsf[4])
    ihmsf[3] = (int) af;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauDat(int iy, int im, int id, double fd, double *deltat )
 /*
@@ -5402,104 +2621,8 @@ int iauDat(int iy, int im, int id, double fd, double *deltat )
 
 /* Return the status. */
    return j;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauDtdb(double date1, double date2,
                double ut, double elong, double u, double v)
@@ -6665,105 +3788,8 @@ double iauDtdb(double date1, double date2,
    w = wt + wf + wj;
 
    return w;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
-#include <string.h>
+
 
 int iauDtf2d(const char *scale, int iy, int im, int id,
              int ihr, int imn, double sec, double *d1, double *d2)
@@ -6911,104 +3937,8 @@ int iauDtf2d(const char *scale, int iy, int im, int id,
 
 /* Status. */
    return js;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofa.h"
+
 
 double iauEe00(double date1, double date2, double epsa, double dpsi)
 /*
@@ -7089,104 +4019,8 @@ double iauEe00(double date1, double date2, double epsa, double dpsi)
    ee = dpsi * cos(epsa) + iauEect00(date1, date2);
 
    return ee;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofa.h"
+
 
 double iauEe00a(double date1, double date2)
 /*
@@ -7274,104 +4108,8 @@ double iauEe00a(double date1, double date2)
    ee = iauEe00(date1, date2, epsa, dpsi);
 
    return ee;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofa.h"
+
 
 double iauEe00b(double date1, double date2)
 /*
@@ -7465,104 +4203,8 @@ double iauEe00b(double date1, double date2)
    ee = iauEe00(date1, date2, epsa, dpsi);
 
    return ee;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofa.h"
+
 
 double iauEe06a(double date1, double date2)
 /*
@@ -7637,104 +4279,8 @@ double iauEe06a(double date1, double date2)
    ee  = iauAnpm(gst06a - gmst06);
 
    return ee;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauEect00(double date1, double date2)
 /*
@@ -7969,104 +4515,8 @@ double iauEect00(double date1, double date2)
    eect = (s0 + s1 * t ) * DAS2R;
 
    return eect;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauEform ( int n, double *a, double *f )
 /*
@@ -8166,104 +4616,8 @@ int iauEform ( int n, double *a, double *f )
 /* OK status. */
    return 0;
 
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
-
 }
-#include "sofam.h"
+
 
 double iauEo06a(double date1, double date2)
 /*
@@ -8347,104 +4701,8 @@ double iauEo06a(double date1, double date2)
    eo = iauEors(r, s);
 
    return eo;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauEors(double rnpb[3][3], double s)
 /*
@@ -8505,104 +4763,8 @@ double iauEors(double rnpb[3][3], double s)
    eo = ((p != 0) || (q != 0)) ? s - atan2(q, p) : s;
 
    return eo;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauEpb(double dj1, double dj2)
 /*
@@ -8651,104 +4813,8 @@ double iauEpb(double dj1, double dj2)
    epb = 1900.0 + ((dj1 - DJ00) + (dj2 + D1900)) / DTY;
 
    return epb;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauEpb2jd(double epb, double *djm0, double *djm)
 /*
@@ -8792,104 +4858,8 @@ void iauEpb2jd(double epb, double *djm0, double *djm)
    *djm  =   15019.81352 + (epb - 1900.0) * DTY;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauEpj(double dj1, double dj2)
 /*
@@ -8935,104 +4905,8 @@ double iauEpj(double dj1, double dj2)
    epj = 2000.0 + ((dj1 - DJ00) + dj2) / DJY;
 
    return epj;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauEpj2jd(double epj, double *djm0, double *djm)
 /*
@@ -9076,104 +4950,8 @@ void iauEpj2jd(double epj, double *djm0, double *djm)
    *djm  =   51544.5 + (epj - 2000.0) * 365.25;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauEpv00(double date1, double date2,
              double pvh[2][3], double pvb[2][3])
@@ -11715,104 +7493,8 @@ int iauEpv00(double date1, double date2,
 
 /* Return the status. */
    return jstat;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauEqeq94(double date1, double date2)
 /*
@@ -11896,104 +7578,8 @@ double iauEqeq94(double date1, double date2)
    ee = dpsi*cos(eps0) + DAS2R*(0.00264*sin(om) + 0.000063*sin(om+om));
 
    return ee;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauEra00(double dj1, double dj2)
 /*
@@ -12082,104 +7668,8 @@ double iauEra00(double dj1, double dj2)
                             + 0.00273781191135448 * t));
 
    return theta;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFad03(double t)
 /*
@@ -12235,104 +7725,8 @@ double iauFad03(double t)
              t * (        - 0.00003169 ) ) ) ), TURNAS ) * DAS2R;
 
    return a;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFae03(double t)
 /*
@@ -12387,104 +7781,8 @@ double iauFae03(double t)
    a = fmod(1.753470314 + 628.3075849991 * t, D2PI);
 
    return a;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFaf03(double t)
 /*
@@ -12543,104 +7841,8 @@ double iauFaf03(double t)
 
    return a;
 
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFaju03(double t)
 /*
@@ -12695,104 +7897,8 @@ double iauFaju03(double t)
    a = fmod(0.599546497 + 52.9690962641 * t, D2PI);
 
    return a;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFal03(double t)
 /*
@@ -12848,104 +7954,8 @@ double iauFal03(double t)
              t * (        - 0.00024470 ) ) ) ), TURNAS ) * DAS2R;
 
    return a;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFalp03(double t)
 /*
@@ -13001,104 +8011,8 @@ double iauFalp03(double t)
              t * (       - 0.00001149 ) ) ) ), TURNAS ) * DAS2R;
 
    return a;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFama03(double t)
 /*
@@ -13153,104 +8067,8 @@ double iauFama03(double t)
    a = fmod(6.203480913 + 334.0612426700 * t, D2PI);
 
    return a;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFame03(double t)
 /*
@@ -13305,104 +8123,8 @@ double iauFame03(double t)
    a = fmod(4.402608842 + 2608.7903141574 * t, D2PI);
 
    return a;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFane03(double t)
 /*
@@ -13454,104 +8176,8 @@ double iauFane03(double t)
    a = fmod(5.311886287 + 3.8133035638 * t, D2PI);
 
    return a;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFaom03(double t)
 /*
@@ -13608,104 +8234,8 @@ double iauFaom03(double t)
              t * (       - 0.00005939 ) ) ) ), TURNAS ) * DAS2R;
 
    return a;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFapa03(double t)
 /*
@@ -13761,104 +8291,8 @@ double iauFapa03(double t)
    a = (0.024381750 + 0.00000538691 * t) * t;
 
    return a;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFasa03(double t)
 /*
@@ -13913,104 +8347,8 @@ double iauFasa03(double t)
    a = fmod(0.874016757 + 21.3299104960 * t, D2PI);
 
    return a;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFaur03(double t)
 /*
@@ -14062,104 +8400,8 @@ double iauFaur03(double t)
    a = fmod(5.481293872 + 7.4781598567 * t, D2PI);
 
    return a;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauFave03(double t)
 /*
@@ -14214,104 +8456,8 @@ double iauFave03(double t)
    a = fmod(3.176146697 + 1021.3285546211 * t, D2PI);
 
    return a;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauFk52h(double r5, double d5,
               double dr5, double dd5, double px5, double rv5,
@@ -14407,104 +8553,8 @@ void iauFk52h(double r5, double d5,
    iauPvstar(pvh, rh, dh, drh, ddh, pxh, rvh);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauFk5hip(double r5h[3][3], double s5h[3])
 /*
@@ -14583,104 +8633,8 @@ void iauFk5hip(double r5h[3][3], double s5h[3])
    s5h[2] = omz;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauFk5hz(double r5, double d5, double date1, double date2,
               double *rh, double *dh)
@@ -14793,104 +8747,8 @@ void iauFk5hz(double r5, double d5, double date1, double date2,
    *rh = iauAnp(w);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauFw2m(double gamb, double phib, double psi, double eps,
              double r[3][3])
@@ -14977,104 +8835,8 @@ void iauFw2m(double gamb, double phib, double psi, double eps,
    iauRx(-eps, r);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauFw2xy(double gamb, double phib, double psi, double eps,
               double *x, double *y)
@@ -15147,104 +8909,8 @@ void iauFw2xy(double gamb, double phib, double psi, double eps,
    iauBpn2xy(r, x, y);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauGc2gd ( int n, double xyz[3],
                double *elong, double *phi, double *height )
@@ -15331,104 +8997,8 @@ int iauGc2gd ( int n, double xyz[3],
 /* Return the status. */
    return j;
 
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
-
 }
-#include "sofam.h"
+
 
 int iauGc2gde ( double a, double f, double xyz[3],
                 double *elong, double *phi, double *height )
@@ -15581,104 +9151,8 @@ int iauGc2gde ( double a, double f, double xyz[3],
 /* OK status. */
    return 0;
 
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
-
 }
-#include "sofam.h"
+
 
 int iauGd2gc ( int n, double elong, double phi, double height,
                double xyz[3] )
@@ -15765,104 +9239,8 @@ int iauGd2gc ( int n, double elong, double phi, double height,
 /* Return the status. */
    return j;
 
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
-
 }
-#include "sofam.h"
+
 
 int iauGd2gce ( double a, double f, double elong, double phi,
                 double height, double xyz[3] )
@@ -15953,104 +9331,8 @@ int iauGd2gce ( double a, double f, double elong, double phi,
 /* Success. */
    return 0;
 
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
-
 }
-#include "sofam.h"
+
 
 double iauGmst00(double uta, double utb, double tta, double ttb)
 /*
@@ -16148,104 +9430,8 @@ double iauGmst00(double uta, double utb, double tta, double ttb)
           * t) * t) * t) * t) * DAS2R);
 
    return gmst;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauGmst06(double uta, double utb, double tta, double ttb)
 /*
@@ -16334,104 +9520,8 @@ double iauGmst06(double uta, double utb, double tta, double ttb)
           * t) * t) * t) * t) * t) * DAS2R);
 
    return gmst;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauGmst82(double dj1, double dj2)
 /*
@@ -16535,104 +9625,8 @@ double iauGmst82(double dj1, double dj2)
    gmst = iauAnp(DS2R * ((A + (B + (C + D * t) * t) * t) + f));
 
    return gmst;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauGst00a(double uta, double utb, double tta, double ttb)
 /*
@@ -16723,104 +9717,8 @@ double iauGst00a(double uta, double utb, double tta, double ttb)
    gst = iauAnp(gmst00 + ee00a);
 
    return gst;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauGst00b(double uta, double utb)
 /*
@@ -16919,104 +9817,8 @@ double iauGst00b(double uta, double utb)
    gst = iauAnp(gmst00 + ee00b);
 
    return gst;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauGst06(double uta, double utb, double tta, double ttb,
                 double rnpb[3][3])
@@ -17109,104 +9911,8 @@ double iauGst06(double uta, double utb, double tta, double ttb,
    gst = iauAnp(era - eors);
 
    return gst;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauGst06a(double uta, double utb, double tta, double ttb)
 /*
@@ -17290,104 +9996,8 @@ double iauGst06a(double uta, double utb, double tta, double ttb)
    gst = iauGst06(uta, utb, tta, ttb, rnpb);
 
    return gst;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofa.h"
+
 
 double iauGst94(double uta, double utb)
 /*
@@ -17471,104 +10081,8 @@ double iauGst94(double uta, double utb)
    gst = iauAnp(gmst82  + eqeq94);
 
    return gst;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauH2fk5(double rh, double dh,
               double drh, double ddh, double pxh, double rvh,
@@ -17669,104 +10183,8 @@ void iauH2fk5(double rh, double dh,
    iauPvstar(pv5, r5, d5, dr5, dd5, px5, rv5);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauHfk5z(double rh, double dh, double date1, double date2,
               double *r5, double *d5, double *dr5, double *dd5)
@@ -17894,104 +10312,8 @@ void iauHfk5z(double rh, double dh, double date1, double date2,
    *r5 = iauAnp(w);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauIr(double r[3][3])
 /*
@@ -18025,104 +10347,8 @@ void iauIr(double r[3][3])
    r[2][2] = 1.0;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauJd2cal(double dj1, double dj2,
               int *iy, int *im, int *id, double *fd)
@@ -18230,104 +10456,8 @@ int iauJd2cal(double dj1, double dj2,
    *fd = f;
 
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
 /*
@@ -18441,104 +10571,8 @@ int iauJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
 
 /* Return the status. */
    return j;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauNum00a(double date1, double date2, double rmatn[3][3])
 /*
@@ -18612,104 +10646,8 @@ void iauNum00a(double date1, double date2, double rmatn[3][3])
             &dpsi, &deps, &epsa, rb, rp, rbp, rmatn, rbpn);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauNum00b(double date1, double date2, double rmatn[3][3])
 /*
@@ -18783,104 +10721,8 @@ void iauNum00b(double date1, double date2, double rmatn[3][3])
             &dpsi, &deps, &epsa, rb, rp, rbp, rmatn, rbpn);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauNum06a(double date1, double date2, double rmatn[3][3])
 /*
@@ -18958,104 +10800,8 @@ void iauNum06a(double date1, double date2, double rmatn[3][3])
    iauNumat(eps, dp, de, rmatn);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauNumat(double epsa, double dpsi, double deps, double rmatn[3][3])
 /*
@@ -19117,104 +10863,8 @@ void iauNumat(double epsa, double dpsi, double deps, double rmatn[3][3])
    iauRx(-(epsa + deps), rmatn);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauNut00a(double date1, double date2, double *dpsi, double *deps)
 /*
@@ -21214,104 +12864,8 @@ void iauNut00a(double date1, double date2, double *dpsi, double *deps)
    *deps = depsls + depspl;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauNut00b(double date1, double date2, double *dpsi, double *deps)
 /*
@@ -21636,104 +13190,8 @@ void iauNut00b(double date1, double date2, double *dpsi, double *deps)
    *deps = depsls + depspl;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauNut06a(double date1, double date2, double *dpsi, double *deps)
 /*
@@ -21836,104 +13294,8 @@ void iauNut06a(double date1, double date2, double *dpsi, double *deps)
    *deps = de + de * fj2;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauNut80(double date1, double date2, double *dpsi, double *deps)
 /*
@@ -22211,104 +13573,8 @@ void iauNut80(double date1, double date2, double *dpsi, double *deps)
    *deps = de * U2R;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauNutm80(double date1, double date2, double rmatn[3][3])
 /*
@@ -22378,104 +13644,8 @@ void iauNutm80(double date1, double date2, double rmatn[3][3])
    iauNumat(epsa, dpsi, deps, rmatn);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauObl06(double date1, double date2)
 /*
@@ -22546,104 +13716,8 @@ double iauObl06(double date1, double date2)
           ( -0.0000000434) * t) * t) * t) * t) * t) * DAS2R;
 
    return eps0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauObl80(double date1, double date2)
 /*
@@ -22714,104 +13788,8 @@ double iauObl80(double date1, double date2)
                   ( 0.001813) * t) * t) * t);
 
    return eps0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauP06e(double date1, double date2,
              double *eps0, double *psia, double *oma, double *bpa,
@@ -23085,104 +14063,8 @@ void iauP06e(double date1, double date2,
           * t) * t) * t) * t) * t * DAS2R;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauP2pv(double p[3], double pv[2][3])
 /*
@@ -23218,104 +14100,8 @@ void iauP2pv(double p[3], double pv[2][3])
    iauZp(pv[1]);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauP2s(double p[3], double *theta, double *phi, double *r)
 /*
@@ -23359,104 +14145,8 @@ void iauP2s(double p[3], double *theta, double *phi, double *r)
    *r = iauPm(p);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauPap(double a[3], double b[3])
 /*
@@ -23548,104 +14238,8 @@ double iauPap(double a[3], double b[3])
    pa = atan2(st, ct);
 
    return pa;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauPas(double al, double ap, double bl, double bp)
 /*
@@ -23694,104 +14288,8 @@ double iauPas(double al, double ap, double bl, double bp)
    pa = ((x != 0.0) || (y != 0.0)) ? atan2(y, x) : 0.0;
 
    return pa;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPb06(double date1, double date2,
              double *bzeta, double *bz, double *btheta)
@@ -23888,104 +14386,8 @@ void iauPb06(double date1, double date2,
                    r[2][2]);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauPdp(double a[3], double b[3])
 /*
@@ -24022,104 +14424,8 @@ double iauPdp(double a[3], double b[3])
       + a[2] * b[2];
 
    return w;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPfw06(double date1, double date2,
               double *gamb, double *phib, double *psib, double *epsa)
@@ -24237,104 +14543,8 @@ void iauPfw06(double date1, double date2,
    *epsa =  iauObl06(date1, date2);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauPlan94(double date1, double date2, int np, double pv[2][3])
 /*
@@ -24801,104 +15011,8 @@ int iauPlan94(double date1, double date2, int np, double pv[2][3])
 
 /* Return the status. */
    return jstat;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauPm(double p[3])
 /*
@@ -24934,104 +15048,8 @@ double iauPm(double p[3])
             + p[2] * p[2] );
 
    return w;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPmat00(double date1, double date2, double rbp[3][3])
 /*
@@ -25102,104 +15120,8 @@ void iauPmat00(double date1, double date2, double rbp[3][3])
    iauBp00(date1, date2, rb, rp, rbp);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPmat06(double date1, double date2, double rbp[3][3])
 /*
@@ -25274,104 +15196,8 @@ void iauPmat06(double date1, double date2, double rbp[3][3])
    iauFw2m(gamb, phib, psib, epsa, rbp);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPmat76(double date1, double date2, double rmatp[3][3])
 /*
@@ -25465,104 +15291,8 @@ void iauPmat76(double date1, double date2, double rmatp[3][3])
    iauCr( wmat, rmatp);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPmp(double a[3], double b[3], double amb[3])
 /*
@@ -25600,104 +15330,8 @@ void iauPmp(double a[3], double b[3], double amb[3])
    amb[2] = a[2] - b[2];
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPn(double p[3], double *r, double u[3])
 /*
@@ -25759,104 +15393,8 @@ void iauPn(double p[3], double *r, double u[3])
    *r = w;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPn00(double date1, double date2, double dpsi, double deps,
              double *epsa,
@@ -25986,104 +15524,8 @@ void iauPn00(double date1, double date2, double dpsi, double deps,
    iauRxr(rnw, rbpw, rbpn);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPn00a(double date1, double date2,
               double *dpsi, double *deps, double *epsa,
@@ -26198,104 +15640,8 @@ void iauPn00a(double date1, double date2,
    iauPn00(date1, date2, *dpsi, *deps, epsa, rb, rp, rbp, rn, rbpn);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPn00b(double date1, double date2,
               double *dpsi, double *deps, double *epsa,
@@ -26410,104 +15756,8 @@ void iauPn00b(double date1, double date2,
    iauPn00(date1, date2, *dpsi, *deps, epsa, rb, rp, rbp, rn, rbpn);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPn06(double date1, double date2, double dpsi, double deps,
              double *epsa,
@@ -26647,104 +15897,8 @@ void iauPn06(double date1, double date2, double dpsi, double deps,
    *epsa = eps;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPn06a(double date1, double date2,
               double *dpsi, double *deps, double *epsa,
@@ -26849,104 +16003,8 @@ void iauPn06a(double date1, double date2,
    iauPn06(date1, date2, *dpsi, *deps, epsa, rb, rp, rbp, rn, rbpn);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPnm00a(double date1, double date2, double rbpn[3][3])
 /*
@@ -27020,104 +16078,8 @@ void iauPnm00a(double date1, double date2, double rbpn[3][3])
    iauPn00a(date1, date2, &dpsi, &deps, &epsa, rb, rp, rbp, rn, rbpn);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPnm00b(double date1, double date2, double rbpn[3][3])
 /*
@@ -27191,104 +16153,8 @@ void iauPnm00b(double date1, double date2, double rbpn[3][3])
    iauPn00b(date1, date2, &dpsi, &deps, &epsa, rb, rp, rbp, rn, rbpn);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPnm06a(double date1, double date2, double rnpb[3][3])
 /*
@@ -27365,104 +16231,8 @@ void iauPnm06a(double date1, double date2, double rnpb[3][3])
    iauFw2m(gamb, phib, psib + dp, epsa + de, rnpb);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPnm80(double date1, double date2, double rmatpn[3][3])
 /*
@@ -27541,104 +16311,8 @@ void iauPnm80(double date1, double date2, double rmatpn[3][3])
    iauRxr(rmatn, rmatp, rmatpn);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPom00(double xp, double yp, double sp, double rpom[3][3])
 /*
@@ -27706,104 +16380,8 @@ void iauPom00(double xp, double yp, double sp, double rpom[3][3])
    iauRx(-yp, rpom);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPpp(double a[3], double b[3], double apb[3])
 /*
@@ -27841,104 +16419,8 @@ void iauPpp(double a[3], double b[3], double apb[3])
    apb[2] = a[2] + b[2];
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPpsp(double a[3], double s, double b[3], double apsb[3])
 /*
@@ -27985,104 +16467,8 @@ void iauPpsp(double a[3], double s, double b[3], double apsb[3])
    iauPpp(a, sb, apsb);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPr00(double date1, double date2, double *dpsipr, double *depspr)
 /*
@@ -28177,104 +16563,8 @@ void iauPr00(double date1, double date2, double *dpsipr, double *depspr)
    *depspr = OBLCOR * t;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPrec76(double ep01, double ep02, double ep11, double ep12,
                double *zeta, double *z, double *theta)
@@ -28375,104 +16665,8 @@ void iauPrec76(double ep01, double ep02, double ep11, double ep12,
           + ((-0.42665 - 0.000217 * t0) - 0.041833 * t) * t) * tas2r;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPv2p(double pv[2][3], double p[3])
 /*
@@ -28506,104 +16700,8 @@ void iauPv2p(double pv[2][3], double p[3])
    iauCp(pv[0], p);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPv2s(double pv[2][3],
              double *theta, double *phi, double *r,
@@ -28700,104 +16798,8 @@ void iauPv2s(double pv[2][3],
    *rd = (rw != 0.0) ? (xyp + z*zd) / rw : 0.0;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPvdpv(double a[2][3], double b[2][3], double adb[2])
 /*
@@ -28852,104 +16854,8 @@ void iauPvdpv(double a[2][3], double b[2][3], double adb[2])
    adb[1] = adbd + addb;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPvm(double pv[2][3], double *r, double *s)
 /*
@@ -28988,104 +16894,8 @@ void iauPvm(double pv[2][3], double *r, double *s)
    *s = iauPm(pv[1]);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPvmpv(double a[2][3], double b[2][3], double amb[2][3])
 /*
@@ -29125,104 +16935,8 @@ void iauPvmpv(double a[2][3], double b[2][3], double amb[2][3])
    iauPmp(a[1], b[1], amb[1]);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPvppv(double a[2][3], double b[2][3], double apb[2][3])
 /*
@@ -29262,104 +16976,8 @@ void iauPvppv(double a[2][3], double b[2][3], double apb[2][3])
    iauPpp(a[1], b[1], apb[1]);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauPvstar(double pv[2][3], double *ra, double *dec,
               double *pmr, double *pmd, double *px, double *rv)
@@ -29519,104 +17137,8 @@ int iauPvstar(double pv[2][3], double *ra, double *dec,
 
 /* OK status. */
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPvu(double dt, double pv[2][3], double upv[2][3])
 /*
@@ -29662,104 +17184,8 @@ void iauPvu(double dt, double pv[2][3], double upv[2][3])
    iauCp(pv[1], upv[1]);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPvup(double dt, double pv[2][3], double p[3])
 /*
@@ -29800,104 +17226,8 @@ void iauPvup(double dt, double pv[2][3], double p[3])
    p[2] = pv[0][2] + dt * pv[1][2];
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPvxpv(double a[2][3], double b[2][3], double axb[2][3])
 /*
@@ -29957,104 +17287,8 @@ void iauPvxpv(double a[2][3], double b[2][3], double axb[2][3])
    iauPpp(axbd, adxb, axb[1]);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauPxp(double a[3], double b[3], double axb[3])
 /*
@@ -30101,104 +17335,8 @@ void iauPxp(double a[3], double b[3], double axb[3])
    axb[2] = xa*yb - ya*xb;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauRm2v(double r[3][3], double w[3])
 /*
@@ -30262,104 +17400,8 @@ void iauRm2v(double r[3][3], double w[3])
    }
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauRv2m(double w[3], double r[3][3])
 /*
@@ -30430,104 +17472,8 @@ void iauRv2m(double w[3], double r[3][3])
    r[2][2] = z*z*f + c;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauRx(double phi, double r[3][3])
 /*
@@ -30584,104 +17530,8 @@ void iauRx(double phi, double r[3][3])
    iauCr(w, r);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauRxp(double r[3][3], double p[3], double rp[3])
 /*
@@ -30733,104 +17583,8 @@ void iauRxp(double r[3][3], double p[3], double rp[3])
    iauCp(wrp, rp);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauRxpv(double r[3][3], double pv[2][3], double rpv[2][3])
 /*
@@ -30869,104 +17623,8 @@ void iauRxpv(double r[3][3], double pv[2][3], double rpv[2][3])
    iauRxp(r, pv[1], rpv[1]);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauRxr(double a[3][3], double b[3][3], double atb[3][3])
 /*
@@ -31018,104 +17676,8 @@ void iauRxr(double a[3][3], double b[3][3], double atb[3][3])
    iauCr(wm, atb);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauRy(double theta, double r[3][3])
 /*
@@ -31172,104 +17734,8 @@ void iauRy(double theta, double r[3][3])
    iauCr(w, r);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauRz(double psi, double r[3][3])
 /*
@@ -31326,104 +17792,8 @@ void iauRz(double psi, double r[3][3])
    iauCr(w, r);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauS00(double date1, double date2, double x, double y)
 /*
@@ -31747,104 +18117,8 @@ double iauS00(double date1, double date2, double x, double y)
         w5 * t) * t) * t) * t) * t) * DAS2R - x*y/2.0;
 
    return s;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauS00a(double date1, double date2)
 /*
@@ -31940,104 +18214,8 @@ double iauS00a(double date1, double date2)
    s = iauS00(date1, date2, x, y);
 
    return s;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauS00b(double date1, double date2)
 /*
@@ -32133,104 +18311,8 @@ double iauS00b(double date1, double date2)
    s = iauS00(date1, date2, x, y);
 
    return s;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauS06(double date1, double date2, double x, double y)
 /*
@@ -32551,104 +18633,8 @@ double iauS06(double date1, double date2, double x, double y)
         w5 * t) * t) * t) * t) * t) * DAS2R - x*y/2.0;
 
    return s;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauS06a(double date1, double date2)
 /*
@@ -32746,104 +18732,8 @@ double iauS06a(double date1, double date2)
    s = iauS06(date1, date2, x, y);
 
    return s;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauS2c(double theta, double phi, double c[3])
 /*
@@ -32881,104 +18771,8 @@ void iauS2c(double theta, double phi, double c[3])
    c[2] = sin(phi);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauS2p(double theta, double phi, double r, double p[3])
 /*
@@ -33019,104 +18813,8 @@ void iauS2p(double theta, double phi, double r, double p[3])
    iauSxp(r, u, p);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauS2pv(double theta, double phi, double r,
              double td, double pd, double rd,
@@ -33172,104 +18870,8 @@ void iauS2pv(double theta, double phi, double r,
    pv[1][2] = rpd*cp + sp*rd;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauS2xpv(double s1, double s2, double pv[2][3], double spv[2][3])
 /*
@@ -33309,104 +18911,8 @@ void iauS2xpv(double s1, double s2, double pv[2][3], double spv[2][3])
    iauSxp(s2, pv[1], spv[1]);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauSepp(double a[3], double b[3])
 /*
@@ -33464,104 +18970,8 @@ double iauSepp(double a[3], double b[3])
    s = ((ss != 0.0) || (cs != 0.0)) ? atan2(ss, cs) : 0.0;
 
    return s;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauSeps(double al, double ap, double bl, double bp)
 /*
@@ -33607,104 +19017,8 @@ double iauSeps(double al, double ap, double bl, double bp)
    s = iauSepp(ac, bc);
 
    return s;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 double iauSp00(double date1, double date2)
 /*
@@ -33775,104 +19089,8 @@ double iauSp00(double date1, double date2)
    sp = -47e-6 * t * DAS2R;
 
    return sp;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauStarpm(double ra1, double dec1,
               double pmr1, double pmd1, double px1, double rv1,
@@ -34030,104 +19248,8 @@ int iauStarpm(double ra1, double dec1,
    j = (j2 == 0) ? j1 : -1;
 
    return j;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauStarpv(double ra, double dec,
               double pmr, double pmd, double px, double rv,
@@ -34344,104 +19466,8 @@ int iauStarpv(double ra, double dec,
 
 /* Return the status. */
    return iwarn;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauSxp(double s, double p[3], double sp[3])
 /*
@@ -34478,104 +19504,8 @@ void iauSxp(double s, double p[3], double sp[3])
    sp[2] = s * p[2];
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauSxpv(double s, double pv[2][3], double spv[2][3])
 /*
@@ -34613,106 +19543,8 @@ void iauSxpv(double s, double pv[2][3], double spv[2][3])
    iauS2xpv(s, s, pv, spv);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include <stdio.h>
-#include "sofa.h"
-#include "sofam.h"
+
 
 static int verbose = 0;
 
@@ -34771,6 +19603,7 @@ static void viv(int ival, int ivalok,
    return;
 }
 
+
 static void vvd(double val, double valok, double dval,
                 const char *func, const char *test, int *status)
 /*
@@ -34811,6 +19644,7 @@ static void vvd(double val, double valok, double dval,
    return;
 }
 
+
 static void t_a2af(int *status)
 /*
 **  - - - - - - -
@@ -34841,6 +19675,7 @@ static void t_a2af(int *status)
    viv(idmsf[3], 9706, "iauA2af", "3", status);
 
 }
+
 
 static void t_a2tf(int *status)
 /*
@@ -34873,6 +19708,7 @@ static void t_a2tf(int *status)
 
 }
 
+
 static void t_af2a(int *status)
 /*
 **  - - - - - - -
@@ -34900,6 +19736,7 @@ static void t_af2a(int *status)
 
 }
 
+
 static void t_anp(int *status)
 /*
 **  - - - - - -
@@ -34919,6 +19756,7 @@ static void t_anp(int *status)
    vvd(iauAnp(-0.1), 6.183185307179586477, 1e-12, "iauAnp", "", status);
 }
 
+
 static void t_anpm(int *status)
 /*
 **  - - - - - - -
@@ -34937,6 +19775,7 @@ static void t_anpm(int *status)
 {
    vvd(iauAnpm(-4.0), 2.283185307179586477, 1e-12, "iauAnpm", "", status);
 }
+
 
 static void t_bi00(int *status)
 /*
@@ -34965,6 +19804,7 @@ static void t_bi00(int *status)
    vvd(dra, -0.7078279744199225506e-7, 1e-12,
       "iauBi00", "dra", status);
 }
+
 
 static void t_bp00(int *status)
 /*
@@ -35045,6 +19885,7 @@ static void t_bp00(int *status)
        "iauBp00", "rbp33", status);
 }
 
+
 static void t_bp06(int *status)
 /*
 **  - - - - - - -
@@ -35124,6 +19965,7 @@ static void t_bp06(int *status)
        "iauBp06", "rbp33", status);
 }
 
+
 static void t_bpn2xy(int *status)
 /*
 **  - - - - - - - - -
@@ -35161,6 +20003,7 @@ static void t_bpn2xy(int *status)
    vvd(y, -4.281337229063151e-5, 1e-12, "iauBpn2xy", "y", status);
 
 }
+
 
 static void t_c2i00a(int *status)
 /*
@@ -35206,6 +20049,7 @@ static void t_c2i00a(int *status)
 
 }
 
+
 static void t_c2i00b(int *status)
 /*
 **  - - - - - - - - -
@@ -35250,6 +20094,7 @@ static void t_c2i00b(int *status)
 
 }
 
+
 static void t_c2i06a(int *status)
 /*
 **  - - - - - - - - -
@@ -35293,6 +20138,7 @@ static void t_c2i06a(int *status)
        "iauC2i06a", "33", status);
 
 }
+
 
 static void t_c2ibpn(int *status)
 /*
@@ -35350,6 +20196,7 @@ static void t_c2ibpn(int *status)
 
 }
 
+
 static void t_c2ixy(int *status)
 /*
 **  - - - - - - - -
@@ -35396,6 +20243,7 @@ static void t_c2ixy(int *status)
        "iauC2ixy", "33", status);
 
 }
+
 
 static void t_c2ixys(int *status)
 /*
@@ -35445,6 +20293,7 @@ static void t_c2ixys(int *status)
 
 }
 
+
 static void t_c2s(int *status)
 /*
 **  - - - - - -
@@ -35474,6 +20323,7 @@ static void t_c2s(int *status)
    vvd(phi, 0.2199879773954594463, 1e-14, "iauC2s", "phi", status);
 
 }
+
 
 static void t_c2t00a(int *status)
 /*
@@ -35526,6 +20376,7 @@ static void t_c2t00a(int *status)
 
 }
 
+
 static void t_c2t00b(int *status)
 /*
 **  - - - - - - - - -
@@ -35577,6 +20428,7 @@ static void t_c2t00b(int *status)
 
 }
 
+
 static void t_c2t06a(int *status)
 /*
 **  - - - - - - - - -
@@ -35627,6 +20479,7 @@ static void t_c2t06a(int *status)
        "iauC2t06a", "33", status);
 
 }
+
 
 static void t_c2tcio(int *status)
 /*
@@ -35699,6 +20552,7 @@ static void t_c2tcio(int *status)
 
 }
 
+
 static void t_c2teqx(int *status)
 /*
 **  - - - - - - - - -
@@ -35769,6 +20623,7 @@ static void t_c2teqx(int *status)
 
 }
 
+
 static void t_c2tpe(int *status)
 /*
 **  - - - - - - - -
@@ -35821,6 +20676,7 @@ static void t_c2tpe(int *status)
        "iauC2tpe", "33", status);
 
 }
+
 
 static void t_c2txy(int *status)
 /*
@@ -35875,6 +20731,7 @@ static void t_c2txy(int *status)
 
 }
 
+
 static void t_cal2jd(int *status)
 /*
 **  - - - - - - - - -
@@ -35903,6 +20760,7 @@ static void t_cal2jd(int *status)
    viv(j, 0, "iauCal2jd", "j", status);
 
 }
+
 
 static void t_cp(int *status)
 /*
@@ -35933,6 +20791,7 @@ static void t_cp(int *status)
    vvd(c[1],  1.2, 0.0, "iauCp", "2", status);
    vvd(c[2], -2.5, 0.0, "iauCp", "3", status);
 }
+
 
 static void t_cpv(int *status)
 /*
@@ -35972,6 +20831,7 @@ static void t_cpv(int *status)
    vvd(c[1][2],  0.9, 0.0, "iauCpv", "v3", status);
 
 }
+
 
 static void t_cr(int *status)
 /*
@@ -36019,6 +20879,7 @@ static void t_cr(int *status)
    vvd(c[2][2], 5.0, 0.0, "iauCr", "33", status);
 }
 
+
 static void t_d2dtf(int *status )
 /*
 **  - - - - - - - -
@@ -36051,6 +20912,7 @@ static void t_d2dtf(int *status )
 
 }
 
+
 static void t_d2tf(int *status)
 /*
 **  - - - - - - -
@@ -36081,6 +20943,7 @@ static void t_d2tf(int *status)
    viv(ihmsf[3], 3333, "iauD2tf", "3", status);
 
 }
+
 
 static void t_dat(int *status)
 /*
@@ -36114,6 +20977,7 @@ static void t_dat(int *status)
 
 }
 
+
 static void t_dtdb(int *status)
 /*
 **  - - - - - - -
@@ -36138,6 +21002,7 @@ static void t_dtdb(int *status)
    vvd(dtdb, -0.1280368005936998991e-2, 1e-15, "iauDtdb", "", status);
 
 }
+
 
 static void t_dtf2d(int *status)
 /*
@@ -36165,6 +21030,7 @@ static void t_dtf2d(int *status)
    viv(j, 0, "iauDtf2d", "j", status);
 
 }
+
 
 static void t_ee00(int *status)
 /*
@@ -36194,6 +21060,7 @@ static void t_ee00(int *status)
 
 }
 
+
 static void t_ee00a(int *status)
 /*
 **  - - - - - - - -
@@ -36218,6 +21085,7 @@ static void t_ee00a(int *status)
    vvd(ee, -0.8834192459222588227e-5, 1e-18, "iauEe00a", "", status);
 
 }
+
 
 static void t_ee00b(int *status)
 /*
@@ -36244,6 +21112,7 @@ static void t_ee00b(int *status)
 
 }
 
+
 static void t_ee06a(int *status)
 /*
 **  - - - - - - - -
@@ -36267,6 +21136,7 @@ static void t_ee06a(int *status)
 
    vvd(ee, -0.8834195072043790156e-5, 1e-15, "iauEe06a", "", status);
 }
+
 
 static void t_eect00(int *status)
 /*
@@ -36292,6 +21162,7 @@ static void t_eect00(int *status)
    vvd(eect, 0.2046085004885125264e-8, 1e-20, "iauEect00", "", status);
 
 }
+
 
 static void t_eform(int *status)
 /*
@@ -36338,6 +21209,7 @@ static void t_eform(int *status)
    viv(j, -1, "iauEform", "j3", status);
 }
 
+
 static void t_eo06a(int *status)
 /*
 **  - - - - - - - -
@@ -36362,6 +21234,7 @@ static void t_eo06a(int *status)
    vvd(eo, -0.1332882371941833644e-2, 1e-15, "iauEo06a", "", status);
 
 }
+
 
 static void t_eors(int *status)
 /*
@@ -36402,6 +21275,7 @@ static void t_eors(int *status)
 
 }
 
+
 static void t_epb(int *status)
 /*
 **  - - - - - -
@@ -36426,6 +21300,7 @@ static void t_epb(int *status)
    vvd(epb, 1982.418424159278580, 1e-12, "iauEpb", "", status);
 
 }
+
 
 static void t_epb2jd(int *status)
 /*
@@ -36455,6 +21330,7 @@ static void t_epb2jd(int *status)
 
 }
 
+
 static void t_epj(int *status)
 /*
 **  - - - - - -
@@ -36479,6 +21355,7 @@ static void t_epj(int *status)
    vvd(epj, 1979.760438056125941, 1e-12, "iauEpj", "", status);
 
 }
+
 
 static void t_epj2jd(int *status)
 /*
@@ -36507,6 +21384,7 @@ static void t_epj2jd(int *status)
    vvd(djm,    50375.7, 1e-9, "iauEpj2jd", "mjd",  status);
 
 }
+
 
 static void t_epv00(int *status)
 /*
@@ -36562,6 +21440,7 @@ static void t_epv00(int *status)
 
 }
 
+
 static void t_eqeq94(int *status)
 /*
 **  - - - - - - - - -
@@ -36586,6 +21465,7 @@ static void t_eqeq94(int *status)
    vvd(eqeq, 0.5357758254609256894e-4, 1e-17, "iauEqeq94", "", status);
 
 }
+
 
 static void t_era00(int *status)
 /*
@@ -36612,6 +21492,7 @@ static void t_era00(int *status)
 
 }
 
+
 static void t_fad03(int *status)
 /*
 **  - - - - - - - -
@@ -36631,6 +21512,7 @@ static void t_fad03(int *status)
    vvd(iauFad03(0.80), 1.946709205396925672, 1e-12,
        "iauFad03", "", status);
 }
+
 
 static void t_fae03(int *status)
 /*
@@ -36652,6 +21534,7 @@ static void t_fae03(int *status)
        "iauFae03", "", status);
 }
 
+
 static void t_faf03(int *status)
 /*
 **  - - - - - - - -
@@ -36671,6 +21554,7 @@ static void t_faf03(int *status)
    vvd(iauFaf03(0.80), 0.2597711366745499518, 1e-12,
        "iauFaf03", "", status);
 }
+
 
 static void t_faju03(int *status)
 /*
@@ -36692,6 +21576,7 @@ static void t_faju03(int *status)
        "iauFaju03", "", status);
 }
 
+
 static void t_fal03(int *status)
 /*
 **  - - - - - - - -
@@ -36711,6 +21596,7 @@ static void t_fal03(int *status)
    vvd(iauFal03(0.80), 5.132369751108684150, 1e-12,
        "iauFal03", "", status);
 }
+
 
 static void t_falp03(int *status)
 /*
@@ -36732,6 +21618,7 @@ static void t_falp03(int *status)
       "iauFalp03", "", status);
 }
 
+
 static void t_fama03(int *status)
 /*
 **  - - - - - - - - -
@@ -36751,6 +21638,7 @@ static void t_fama03(int *status)
    vvd(iauFama03(0.80), 3.275506840277781492, 1e-12,
        "iauFama03", "", status);
 }
+
 
 static void t_fame03(int *status)
 /*
@@ -36772,6 +21660,7 @@ static void t_fame03(int *status)
        "iauFame03", "", status);
 }
 
+
 static void t_fane03(int *status)
 /*
 **  - - - - - - - - -
@@ -36791,6 +21680,7 @@ static void t_fane03(int *status)
    vvd(iauFane03(0.80), 2.079343830860413523, 1e-12,
        "iauFane03", "", status);
 }
+
 
 static void t_faom03(int *status)
 /*
@@ -36812,6 +21702,7 @@ static void t_faom03(int *status)
        "iauFaom03", "", status);
 }
 
+
 static void t_fapa03(int *status)
 /*
 **  - - - - - - - - -
@@ -36831,6 +21722,7 @@ static void t_fapa03(int *status)
    vvd(iauFapa03(0.80), 0.1950884762240000000e-1, 1e-12,
        "iauFapa03", "", status);
 }
+
 
 static void t_fasa03(int *status)
 /*
@@ -36852,6 +21744,7 @@ static void t_fasa03(int *status)
        "iauFasa03", "", status);
 }
 
+
 static void t_faur03(int *status)
 /*
 **  - - - - - - - - -
@@ -36872,6 +21765,7 @@ static void t_faur03(int *status)
        "iauFaur03", "", status);
 }
 
+
 static void t_fave03(int *status)
 /*
 **  - - - - - - - - -
@@ -36891,6 +21785,7 @@ static void t_fave03(int *status)
    vvd(iauFave03(0.80), 3.424900460533758000, 1e-12,
        "iauFave03", "", status);
 }
+
 
 static void t_fk52h(int *status)
 /*
@@ -36935,6 +21830,7 @@ static void t_fk52h(int *status)
        "iauFk52h", "rv", status);
 
 }
+
 
 static void t_fk5hip(int *status)
 /*
@@ -36984,6 +21880,7 @@ static void t_fk5hip(int *status)
 
 }
 
+
 static void t_fk5hz(int *status)
 /*
 **  - - - - - - - -
@@ -37012,6 +21909,7 @@ static void t_fk5hz(int *status)
    vvd(dh, -0.2917516001679884419, 1e-12, "iauFk5hz", "dec", status);
 
 }
+
 
 static void t_fw2m(int *status)
 /*
@@ -37062,6 +21960,7 @@ static void t_fw2m(int *status)
 
 }
 
+
 static void t_fw2xy(int *status)
 /*
 **  - - - - - - - -
@@ -37092,6 +21991,7 @@ static void t_fw2xy(int *status)
    vvd(y, -0.1924880848087615651e-6, 1e-14, "iauFw2xy", "y", status);
 
 }
+
 
 static void t_gc2gd(int *status)
 /*
@@ -37143,6 +22043,7 @@ static void t_gc2gd(int *status)
    viv(j, -1, "iauGc2gd", "j4", status);
 }
 
+
 static void t_gc2gde(int *status)
 /*
 **  - - - - - - - - -
@@ -37171,6 +22072,7 @@ static void t_gc2gde(int *status)
    vvd(p, 0.97160183775704115, 1e-14, "iauGc2gde", "p", status);
    vvd(h, 332.36862495764397, 1e-8, "iauGc2gde", "h", status);
 }
+
 
 static void t_gd2gc(int *status)
 /*
@@ -37222,6 +22124,7 @@ static void t_gd2gc(int *status)
    viv(j, -1, "iauGd2gc", "j4", status);
 }
 
+
 static void t_gd2gce(int *status)
 /*
 **  - - - - - - - - -
@@ -37251,6 +22154,7 @@ static void t_gd2gce(int *status)
    vvd(xyz[2], -3040909.0517314132, 1e-7, "iauGd2gce", "2", status);
 }
 
+
 static void t_gmst00(int *status)
 /*
 **  - - - - - - - - -
@@ -37275,6 +22179,7 @@ static void t_gmst00(int *status)
    vvd(theta, 1.754174972210740592, 1e-12, "iauGmst00", "", status);
 
 }
+
 
 static void t_gmst06(int *status)
 /*
@@ -37301,6 +22206,7 @@ static void t_gmst06(int *status)
 
 }
 
+
 static void t_gmst82(int *status)
 /*
 **  - - - - - - - - -
@@ -37325,6 +22231,7 @@ static void t_gmst82(int *status)
    vvd(theta, 1.754174981860675096, 1e-12, "iauGmst82", "", status);
 
 }
+
 
 static void t_gst00a(int *status)
 /*
@@ -37351,6 +22258,7 @@ static void t_gst00a(int *status)
 
 }
 
+
 static void t_gst00b(int *status)
 /*
 **  - - - - - - - - -
@@ -37375,6 +22283,7 @@ static void t_gst00b(int *status)
    vvd(theta, 1.754166136510680589, 1e-12, "iauGst00b", "", status);
 
 }
+
 
 static void t_gst06(int *status)
 /*
@@ -37413,6 +22322,7 @@ static void t_gst06(int *status)
 
 }
 
+
 static void t_gst06a(int *status)
 /*
 **  - - - - - - - - -
@@ -37438,6 +22348,7 @@ static void t_gst06a(int *status)
 
 }
 
+
 static void t_gst94(int *status)
 /*
 **  - - - - - - - -
@@ -37462,6 +22373,7 @@ static void t_gst94(int *status)
    vvd(theta, 1.754166136020645203, 1e-12, "iauGst94", "", status);
 
 }
+
 
 static void t_h2fk5(int *status)
 /*
@@ -37507,6 +22419,7 @@ static void t_h2fk5(int *status)
 
 }
 
+
 static void t_hfk5z(int *status)
 /*
 **  - - - - - - - -
@@ -37542,6 +22455,7 @@ static void t_hfk5z(int *status)
        "iauHfk5z", "dd5", status);
 
 }
+
 
 static void t_ir(int *status)
 /*
@@ -37590,6 +22504,7 @@ static void t_ir(int *status)
 
 }
 
+
 static void t_jd2cal(int *status)
 /*
 **  - - - - - - - - -
@@ -37622,6 +22537,7 @@ static void t_jd2cal(int *status)
    viv(j, 0, "iauJd2cal", "j", status);
 
 }
+
 
 static void t_jdcalf(int *status)
 /*
@@ -37656,6 +22572,7 @@ static void t_jdcalf(int *status)
    viv(j, 0, "iauJdcalf", "j", status);
 
 }
+
 
 static void t_num00a(int *status)
 /*
@@ -37701,6 +22618,7 @@ static void t_num00a(int *status)
 
 }
 
+
 static void t_num00b(int *status)
 /*
 **  - - - - - - - - -
@@ -37744,6 +22662,7 @@ static void t_num00b(int *status)
 
 }
 
+
 static void t_num06a(int *status)
 /*
 **  - - - - - - - - -
@@ -37786,6 +22705,7 @@ static void t_num06a(int *status)
        "iauNum06a", "33", status);
 
 }
+
 
 static void t_numat(int *status)
 /*
@@ -37835,6 +22755,7 @@ static void t_numat(int *status)
 
 }
 
+
 static void t_nut00a(int *status)
 /*
 **  - - - - - - - - -
@@ -37862,6 +22783,7 @@ static void t_nut00a(int *status)
        "iauNut00a", "deps", status);
 
 }
+
 
 static void t_nut00b(int *status)
 /*
@@ -37891,6 +22813,7 @@ static void t_nut00b(int *status)
 
 }
 
+
 static void t_nut06a(int *status)
 /*
 **  - - - - - - - - -
@@ -37919,6 +22842,7 @@ static void t_nut06a(int *status)
 
 }
 
+
 static void t_nut80(int *status)
 /*
 **  - - - - - - - -
@@ -37946,6 +22870,7 @@ static void t_nut80(int *status)
        "iauNut80", "deps", status);
 
 }
+
 
 static void t_nutm80(int *status)
 /*
@@ -37991,6 +22916,7 @@ static void t_nutm80(int *status)
 
 }
 
+
 static void t_obl06(int *status)
 /*
 **  - - - - - - - -
@@ -38010,6 +22936,7 @@ static void t_obl06(int *status)
    vvd(iauObl06(2400000.5, 54388.0), 0.4090749229387258204, 1e-14,
        "iauObl06", "", status);
 }
+
 
 static void t_obl80(int *status)
 /*
@@ -38035,6 +22962,7 @@ static void t_obl80(int *status)
    vvd(eps0, 0.4090751347643816218, 1e-14, "iauObl80", "", status);
 
 }
+
 
 static void t_p06e(int *status)
 /*
@@ -38095,6 +23023,7 @@ static void t_p06e(int *status)
 
 }
 
+
 static void t_p2pv(int *status)
 /*
 **  - - - - - - -
@@ -38138,6 +23067,7 @@ static void t_p2pv(int *status)
 
 }
 
+
 static void t_p2s(int *status)
 /*
 **  - - - - - -
@@ -38168,6 +23098,7 @@ static void t_p2s(int *status)
    vvd(r, 114.5643923738960002, 1e-9, "iauP2s", "r", status);
 
 }
+
 
 static void t_pap(int *status)
 /*
@@ -38202,6 +23133,7 @@ static void t_pap(int *status)
 
 }
 
+
 static void t_pas(int *status)
 /*
 **  - - - - - -
@@ -38232,6 +23164,7 @@ static void t_pas(int *status)
 
 }
 
+
 static void t_pb06(int *status)
 /*
 **  - - - - - - -
@@ -38261,6 +23194,7 @@ static void t_pb06(int *status)
        "iauPb06", "btheta", status);
 
 }
+
 
 static void t_pdp(int *status)
 /*
@@ -38295,6 +23229,7 @@ static void t_pdp(int *status)
 
 }
 
+
 static void t_pfw06(int *status)
 /*
 **  - - - - - - - -
@@ -38326,6 +23261,7 @@ static void t_pfw06(int *status)
        "iauPfw06", "epsa", status);
 
 }
+
 
 static void t_plan94(int *status)
 /*
@@ -38401,6 +23337,7 @@ static void t_plan94(int *status)
 
 }
 
+
 static void t_pmat00(int *status)
 /*
 **  - - - - - - - - -
@@ -38444,6 +23381,7 @@ static void t_pmat00(int *status)
        "iauPmat00", "33", status);
 
 }
+
 
 static void t_pmat06(int *status)
 /*
@@ -38489,6 +23427,7 @@ static void t_pmat06(int *status)
 
 }
 
+
 static void t_pmat76(int *status)
 /*
 **  - - - - - - - - -
@@ -38533,6 +23472,7 @@ static void t_pmat76(int *status)
 
 }
 
+
 static void t_pm(int *status)
 /*
 **  - - - - -
@@ -38561,6 +23501,7 @@ static void t_pm(int *status)
    vvd(r, 2.789265136196270604, 1e-12, "iauPm", "", status);
 
 }
+
 
 static void t_pmp(int *status)
 /*
@@ -38597,6 +23538,7 @@ static void t_pmp(int *status)
 
 }
 
+
 static void t_pn(int *status)
 /*
 **  - - - - -
@@ -38629,6 +23571,7 @@ static void t_pn(int *status)
    vvd(u[2], -0.8962934242275933816, 1e-12, "iauPn", "u3", status);
 
 }
+
 
 static void t_pn00(int *status)
 /*
@@ -38764,6 +23707,7 @@ static void t_pn00(int *status)
        "iauPn00", "rbpn33", status);
 
 }
+
 
 static void t_pn00a(int *status)
 /*
@@ -38901,6 +23845,7 @@ static void t_pn00a(int *status)
 
 }
 
+
 static void t_pn00b(int *status)
 /*
 **  - - - - - - - -
@@ -39036,6 +23981,7 @@ static void t_pn00b(int *status)
       "iauPn00b", "rbpn33", status);
 
 }
+
 
 static void t_pn06a(int *status)
 /*
@@ -39173,6 +24119,7 @@ static void t_pn06a(int *status)
 
 }
 
+
 static void t_pn06(int *status)
 /*
 **  - - - - - - -
@@ -39308,6 +24255,7 @@ static void t_pn06(int *status)
 
 }
 
+
 static void t_pnm00a(int *status)
 /*
 **  - - - - - - - - -
@@ -39351,6 +24299,7 @@ static void t_pnm00a(int *status)
        "iauPnm00a", "33", status);
 
 }
+
 
 static void t_pnm00b(int *status)
 /*
@@ -39396,6 +24345,7 @@ static void t_pnm00b(int *status)
 
 }
 
+
 static void t_pnm06a(int *status)
 /*
 **  - - - - - - - - -
@@ -39440,6 +24390,7 @@ static void t_pnm06a(int *status)
 
 }
 
+
 static void t_pnm80(int *status)
 /*
 **  - - - - - - - -
@@ -39483,6 +24434,7 @@ static void t_pnm80(int *status)
        "iauPnm80", "33", status);
 
 }
+
 
 static void t_pom00(int *status)
 /*
@@ -39532,6 +24484,7 @@ static void t_pom00(int *status)
 
 }
 
+
 static void t_ppp(int *status)
 /*
 **  - - - - - -
@@ -39566,6 +24519,7 @@ static void t_ppp(int *status)
    vvd(apb[2], 7.0, 1e-12, "iauPpp", "2", status);
 
 }
+
 
 static void t_ppsp(int *status)
 /*
@@ -39604,6 +24558,7 @@ static void t_ppsp(int *status)
 
 }
 
+
 static void t_pr00(int *status)
 /*
 **  - - - - - - -
@@ -39630,6 +24585,7 @@ static void t_pr00(int *status)
       "iauPr00", "depspr", status);
 
 }
+
 
 static void t_prec76(int *status)
 /*
@@ -39666,6 +24622,7 @@ static void t_prec76(int *status)
 
 }
 
+
 static void t_pv2p(int *status)
 /*
 **  - - - - - - -
@@ -39700,6 +24657,7 @@ static void t_pv2p(int *status)
    vvd(p[2], -2.5, 0.0, "iauPv2p", "3", status);
 
 }
+
 
 static void t_pv2s(int *status)
 /*
@@ -39738,6 +24696,7 @@ static void t_pv2s(int *status)
    vvd(rd, -0.1229999999999999832e-4, 1e-16, "iauPv2s", "rd", status);
 
 }
+
 
 static void t_pvdpv(int *status)
 /*
@@ -39781,6 +24740,7 @@ static void t_pvdpv(int *status)
 
 }
 
+
 static void t_pvm(int *status)
 /*
 **  - - - - - -
@@ -39814,6 +24774,7 @@ static void t_pvm(int *status)
    vvd(s, 1.214495780149111922, 1e-12, "iauPvm", "s", status);
 
 }
+
 
 static void t_pvmpv(int *status)
 /*
@@ -39862,6 +24823,7 @@ static void t_pvmpv(int *status)
 
 }
 
+
 static void t_pvppv(int *status)
 /*
 **  - - - - - - - -
@@ -39909,6 +24871,7 @@ static void t_pvppv(int *status)
 
 }
 
+
 static void t_pvstar(int *status)
 /*
 **  - - - - - - - - -
@@ -39949,6 +24912,7 @@ static void t_pvstar(int *status)
    viv(j, 0, "iauPvstar", "j", status);
 
 }
+
 
 static void t_pvu(int *status)
 /*
@@ -39995,6 +24959,7 @@ static void t_pvu(int *status)
 
 }
 
+
 static void t_pvup(int *status)
 /*
 **  - - - - - - -
@@ -40029,6 +24994,7 @@ static void t_pvup(int *status)
    vvd(p[2], -245216.5048590656190,   1e-12, "iauPvup", "3", status);
 
 }
+
 
 static void t_pvxpv(int *status)
 /*
@@ -40077,6 +25043,7 @@ static void t_pvxpv(int *status)
 
 }
 
+
 static void t_pxp(int *status)
 /*
 **  - - - - - -
@@ -40111,6 +25078,7 @@ static void t_pxp(int *status)
    vvd(axb[2],  4.0, 1e-12, "iauPxp", "3", status);
 
 }
+
 
 static void t_rm2v(int *status)
 /*
@@ -40151,6 +25119,7 @@ static void t_rm2v(int *status)
 
 }
 
+
 static void t_rv2m(int *status)
 /*
 **  - - - - - - -
@@ -40189,6 +25158,7 @@ static void t_rv2m(int *status)
    vvd(r[2][2],  0.3854415612311154341, 1e-14, "iauRv2m", "33", status);
 
 }
+
 
 static void t_rx(int *status)
 /*
@@ -40239,6 +25209,7 @@ static void t_rx(int *status)
 
 }
 
+
 static void t_rxp(int *status)
 /*
 **  - - - - - -
@@ -40281,6 +25252,7 @@ static void t_rxp(int *status)
    vvd(rp[2], 7.1, 1e-12, "iauRxp", "3", status);
 
 }
+
 
 static void t_rxpv(int *status)
 /*
@@ -40333,6 +25305,7 @@ static void t_rxpv(int *status)
    vvd(rpv[1][2], 5.8, 1e-12, "iauRxpv", "32", status);
 
 }
+
 
 static void t_rxr(int *status)
 /*
@@ -40393,6 +25366,7 @@ static void t_rxr(int *status)
 
 }
 
+
 static void t_ry(int *status)
 /*
 **  - - - - -
@@ -40441,6 +25415,7 @@ static void t_ry(int *status)
    vvd(r[2][2], 5.381899160903798712, 1e-12, "iauRy", "33", status);
 
 }
+
 
 static void t_rz(int *status)
 /*
@@ -40491,6 +25466,7 @@ static void t_rz(int *status)
 
 }
 
+
 static void t_s00a(int *status)
 /*
 **  - - - - - - -
@@ -40516,6 +25492,7 @@ static void t_s00a(int *status)
 
 }
 
+
 static void t_s00b(int *status)
 /*
 **  - - - - - - -
@@ -40540,6 +25517,7 @@ static void t_s00b(int *status)
    vvd(s, -0.1340695782951026584e-7, 1e-18, "iauS00b", "", status);
 
 }
+
 
 static void t_s00(int *status)
 /*
@@ -40569,6 +25547,7 @@ static void t_s00(int *status)
 
 }
 
+
 static void t_s06a(int *status)
 /*
 **  - - - - - - -
@@ -40593,6 +25572,7 @@ static void t_s06a(int *status)
    vvd(s, -0.1340680437291812383e-7, 1e-18, "iauS06a", "", status);
 
 }
+
 
 static void t_s06(int *status)
 /*
@@ -40622,6 +25602,7 @@ static void t_s06(int *status)
 
 }
 
+
 static void t_s2c(int *status)
 /*
 **  - - - - - -
@@ -40649,6 +25630,7 @@ static void t_s2c(int *status)
 
 }
 
+
 static void t_s2p(int *status)
 /*
 **  - - - - - -
@@ -40675,6 +25657,7 @@ static void t_s2p(int *status)
    vvd(p[2],  0.0559466810510877933, 1e-12, "iauS2p", "z", status);
 
 }
+
 
 static void t_s2pv(int *status)
 /*
@@ -40709,6 +25692,7 @@ static void t_s2pv(int *status)
        "iauS2pv", "vz", status);
 
 }
+
 
 static void t_s2xpv(int *status)
 /*
@@ -40752,6 +25736,7 @@ static void t_s2xpv(int *status)
 
 }
 
+
 static void t_sepp(int *status)
 /*
 **  - - - - - - -
@@ -40785,6 +25770,7 @@ static void t_sepp(int *status)
 
 }
 
+
 static void t_seps(int *status)
 /*
 **  - - - - - - -
@@ -40816,6 +25802,7 @@ static void t_seps(int *status)
 
 }
 
+
 static void t_sp00(int *status)
 /*
 **  - - - - - - -
@@ -40836,6 +25823,7 @@ static void t_sp00(int *status)
        -0.6216698469981019309e-11, 1e-12, "iauSp00", "", status);
 
 }
+
 
 static void t_starpm(int *status)
 /*
@@ -40886,6 +25874,7 @@ static void t_starpm(int *status)
 
 }
 
+
 static void t_starpv(int *status)
 /*
 **  - - - - - - - - -
@@ -40933,6 +25922,7 @@ static void t_starpv(int *status)
 
 }
 
+
 static void t_sxp(int *status)
 /*
 **  - - - - - -
@@ -40965,6 +25955,7 @@ static void t_sxp(int *status)
    vvd(sp[2], -5.0, 0.0, "iauSxp", "3", status);
 
 }
+
 
 
 static void t_sxpv(int *status)
@@ -41008,6 +25999,7 @@ static void t_sxpv(int *status)
 
 }
 
+
 static void t_taitt(int *status)
 /*
 **  - - - - - - - -
@@ -41035,6 +26027,7 @@ static void t_taitt(int *status)
    viv(j, 0, "iauTaitt", "j", status);
 
 }
+
 
 static void t_taiut1(int *status)
 /*
@@ -41064,6 +26057,7 @@ static void t_taiut1(int *status)
 
 }
 
+
 static void t_taiutc(int *status)
 /*
 **  - - - - - - - - -
@@ -41091,6 +26085,7 @@ static void t_taiutc(int *status)
    viv(j, 0, "iauTaiutc", "j", status);
 
 }
+
 
 static void t_tcbtdb(int *status)
 /*
@@ -41120,6 +26115,7 @@ static void t_tcbtdb(int *status)
 
 }
 
+
 static void t_tcgtt(int *status)
 /*
 **  - - - - - - - -
@@ -41147,6 +26143,7 @@ static void t_tcgtt(int *status)
    viv(j, 0, "iauTcgtt", "j", status);
 
 }
+
 
 static void t_tdbtcb(int *status)
 /*
@@ -41176,6 +26173,7 @@ static void t_tdbtcb(int *status)
 
 }
 
+
 static void t_tdbtt(int *status)
 /*
 **  - - - - - - - -
@@ -41204,6 +26202,7 @@ static void t_tdbtt(int *status)
 
 }
 
+
 static void t_tf2a(int *status)
 /*
 **  - - - - - - -
@@ -41231,6 +26230,7 @@ static void t_tf2a(int *status)
 
 }
 
+
 static void t_tf2d(int *status)
 /*
 **  - - - - - - -
@@ -41257,6 +26257,7 @@ static void t_tf2d(int *status)
    viv(j, 0, "iauTf2d", "j", status);
 
 }
+
 
 static void t_tr(int *status)
 /*
@@ -41305,6 +26306,7 @@ static void t_tr(int *status)
 
 }
 
+
 static void t_trxp(int *status)
 /*
 **  - - - - - - -
@@ -41347,6 +26349,7 @@ static void t_trxp(int *status)
    vvd(trp[2], 5.4, 1e-12, "iauTrxp", "3", status);
 
 }
+
 
 static void t_trxpv(int *status)
 /*
@@ -41399,6 +26402,7 @@ static void t_trxpv(int *status)
 
 }
 
+
 static void t_tttai(int *status)
 /*
 **  - - - - - - - -
@@ -41426,6 +26430,7 @@ static void t_tttai(int *status)
    viv(j, 0, "iauTttai", "j", status);
 
 }
+
 
 static void t_tttcg(int *status)
 /*
@@ -41455,6 +26460,7 @@ static void t_tttcg(int *status)
 
 }
 
+
 static void t_tttdb(int *status)
 /*
 **  - - - - - - - -
@@ -41482,6 +26488,7 @@ static void t_tttdb(int *status)
    viv(j, 0, "iauTttdb", "j", status);
 
 }
+
 
 static void t_ttut1(int *status)
 /*
@@ -41511,6 +26518,7 @@ static void t_ttut1(int *status)
 
 }
 
+
 static void t_ut1tai(int *status)
 /*
 **  - - - - - - - - -
@@ -41538,6 +26546,7 @@ static void t_ut1tai(int *status)
    viv(j, 0, "iauUt1tai", "j", status);
 
 }
+
 
 static void t_ut1tt(int *status)
 /*
@@ -41567,6 +26576,7 @@ static void t_ut1tt(int *status)
 
 }
 
+
 static void t_ut1utc(int *status)
 /*
 **  - - - - - - - - -
@@ -41594,6 +26604,7 @@ static void t_ut1utc(int *status)
    viv(j, 0, "iauUt1utc", "j", status);
 
 }
+
 
 static void t_utctai(int *status)
 /*
@@ -41623,6 +26634,7 @@ static void t_utctai(int *status)
 
 }
 
+
 static void t_utcut1(int *status)
 /*
 **  - - - - - - - - -
@@ -41651,6 +26663,7 @@ static void t_utcut1(int *status)
 
 }
 
+
 static void t_xy06(int *status)
 /*
 **  - - - - - - -
@@ -41676,6 +26689,7 @@ static void t_xy06(int *status)
    vvd(y, 0.4020579816732958141e-4, 1e-16, "iauXy06", "y", status);
 
 }
+
 
 static void t_xys00a(int *status)
 /*
@@ -41704,6 +26718,7 @@ static void t_xys00a(int *status)
 
 }
 
+
 static void t_xys00b(int *status)
 /*
 **  - - - - - - - - -
@@ -41731,6 +26746,7 @@ static void t_xys00b(int *status)
 
 }
 
+
 static void t_xys06a(int *status)
 /*
 **  - - - - - - - - -
@@ -41757,6 +26773,7 @@ static void t_xys06a(int *status)
    vvd(s, -0.1220032294164579896e-7, 1e-18, "iauXys06a", "s", status);
 
 }
+
 
 static void t_zp(int *status)
 /*
@@ -41788,6 +26805,7 @@ static void t_zp(int *status)
    vvd(p[2], 0.0, 0.0, "iauZp", "3", status);
 
 }
+
 
 static void t_zpv(int *status)
 /*
@@ -41827,6 +26845,7 @@ static void t_zpv(int *status)
    vvd(pv[1][2], 0.0, 0.0, "iauZpv", "v3", status);
 
 }
+
 
 static void t_zr(int *status)
 /*
@@ -41874,6 +26893,7 @@ static void t_zr(int *status)
    vvd(r[2][2], 0.0, 0.0, "iauZr", "22", status);
 
 }
+
 
 int main(int argc, char *argv[])
 /*
@@ -42092,7 +27112,7 @@ int main(int argc, char *argv[])
    }
    return status;
 }
-#include "sofam.h"
+
 
 int iauTaitt(double tai1, double tai2, double *tt1, double *tt2)
 /*
@@ -42155,104 +27175,8 @@ int iauTaitt(double tai1, double tai2, double *tt1, double *tt2)
 
 /* Status (always OK). */
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauTaiut1(double tai1, double tai2, double dta,
               double *ut11, double *ut12)
@@ -42317,104 +27241,8 @@ int iauTaiut1(double tai1, double tai2, double dta,
 
 /* Status (always OK). */
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauTaiutc(double tai1, double tai2, double *utc1, double *utc2)
 /*
@@ -42549,104 +27377,8 @@ int iauTaiutc(double tai1, double tai2, double *utc1, double *utc2)
 
 /* Status. */
    return js;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauTcbtdb(double tcb1, double tcb2, double *tdb1, double *tdb2)
 /*
@@ -42731,104 +27463,8 @@ int iauTcbtdb(double tcb1, double tcb2, double *tdb1, double *tdb2)
 
 /* Status (always OK). */
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauTcgtt(double tcg1, double tcg2, double *tt1, double *tt2)
 /*
@@ -42890,104 +27526,8 @@ int iauTcgtt(double tcg1, double tcg2, double *tt1, double *tt2)
 
 /* OK status. */
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
 /*
@@ -43077,104 +27617,8 @@ int iauTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
 
 /* Status (always OK). */
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauTdbtt(double tdb1, double tdb2, double dtr,
              double *tt1, double *tt2 )
@@ -43249,105 +27693,8 @@ int iauTdbtt(double tdb1, double tdb2, double dtr,
 
 /* Status (always OK). */
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
-#include <stdlib.h>
+
 
 int iauTf2a(char s, int ihour, int imin, double sec, double *rad)
 /*
@@ -43406,105 +27753,8 @@ int iauTf2a(char s, int ihour, int imin, double sec, double *rad)
    if ( imin < 0 || imin > 59 ) return 2;
    if ( sec < 0.0 || sec >= 60.0 ) return 3;
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
-#include <stdlib.h>
+
 
 int iauTf2d(char s, int ihour, int imin, double sec, double *days)
 /*
@@ -43563,104 +27813,8 @@ int iauTf2d(char s, int ihour, int imin, double sec, double *days)
    if ( imin < 0 || imin > 59 ) return 2;
    if ( sec < 0.0 || sec >= 60.0 ) return 3;
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauTr(double r[3][3], double rt[3][3])
 /*
@@ -43706,104 +27860,8 @@ void iauTr(double r[3][3], double rt[3][3])
    iauCr(wm, rt);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauTrxp(double r[3][3], double p[3], double trp[3])
 /*
@@ -43849,104 +27907,8 @@ void iauTrxp(double r[3][3], double p[3], double trp[3])
    iauRxp(tr, p, trp);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauTrxpv(double r[3][3], double pv[2][3], double trpv[2][3])
 /*
@@ -43992,104 +27954,8 @@ void iauTrxpv(double r[3][3], double pv[2][3], double trpv[2][3])
    iauRxpv(tr, pv, trpv);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauTttai(double tt1, double tt2, double *tai1, double *tai2)
 /*
@@ -44152,104 +28018,8 @@ int iauTttai(double tt1, double tt2, double *tai1, double *tai2)
 
 /* Status (always OK). */
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauTttcg(double tt1, double tt2, double *tcg1, double *tcg2)
 /*
@@ -44314,104 +28084,8 @@ int iauTttcg(double tt1, double tt2, double *tcg1, double *tcg2)
 
 /* Status (always OK). */
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauTttdb(double tt1, double tt2, double dtr,
              double *tdb1, double *tdb2)
@@ -44485,104 +28159,8 @@ int iauTttdb(double tt1, double tt2, double dtr,
 
 /* Status (always OK). */
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauTtut1(double tt1, double tt2, double dt,
              double *ut11, double *ut12)
@@ -44645,104 +28223,8 @@ int iauTtut1(double tt1, double tt2, double dt,
 
 /* Status (always OK). */
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauUt1tai(double ut11, double ut12, double dta,
               double *tai1, double *tai2)
@@ -44806,104 +28288,8 @@ int iauUt1tai(double ut11, double ut12, double dta,
 
 /* Status (always OK). */
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauUt1tt(double ut11, double ut12, double dt,
              double *tt1, double *tt2)
@@ -44966,104 +28352,8 @@ int iauUt1tt(double ut11, double ut12, double dt,
 
 /* Status (always OK). */
    return 0;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauUt1utc(double ut11, double ut12, double dut1,
               double *utc1, double *utc2)
@@ -45209,104 +28499,8 @@ int iauUt1utc(double ut11, double ut12, double dut1,
 
 /* Status. */
    return js;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauUtctai(double utc1, double utc2, double *tai1, double *tai2)
 /*
@@ -45422,104 +28616,8 @@ int iauUtctai(double utc1, double utc2, double *tai1, double *tai2)
 
 /* Status. */
    return js;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 int iauUtcut1(double utc1, double utc2, double dut1,
               double *ut11, double *ut12)
@@ -45623,104 +28721,8 @@ int iauUtcut1(double utc1, double utc2, double dut1,
 
 /* Status. */
    return js;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauXy06(double date1, double date2, double *x, double *y)
 /*
@@ -48431,104 +31433,8 @@ void iauXy06(double date1, double date2, double *x, double *y)
    *y = DAS2R * (xypr[1] + (xyls[1] + xypl[1]) / 1e6);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauXys00a(double date1, double date2,
                double *x, double *y, double *s)
@@ -48614,104 +31520,8 @@ void iauXys00a(double date1, double date2,
    *s = iauS00(date1, date2, *x, *y);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauXys00b(double date1, double date2,
                double *x, double *y, double *s)
@@ -48797,104 +31607,8 @@ void iauXys00b(double date1, double date2,
    *s = iauS00(date1, date2, *x, *y);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauXys06a(double date1, double date2,
                double *x, double *y, double *s)
@@ -48980,104 +31694,8 @@ void iauXys06a(double date1, double date2,
    *s = iauS06(date1, date2, *x, *y);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauZp(double p[3])
 /*
@@ -49107,104 +31725,8 @@ void iauZp(double p[3])
    p[2] = 0.0;
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauZpv(double pv[2][3])
 /*
@@ -49236,104 +31758,8 @@ void iauZpv(double pv[2][3])
    iauZp(pv[1]);
 
    return;
-
-/*----------------------------------------------------------------------
-**
-**  Copyright (C) 2012
-**  Standards Of Fundamental Astronomy Board
-**  of the International Astronomical Union.
-**
-**  =====================
-**  SOFA Software License
-**  =====================
-**
-**  NOTICE TO USER:
-**
-**  BY USING THIS SOFTWARE YOU ACCEPT THE FOLLOWING SIX TERMS AND
-**  CONDITIONS WHICH APPLY TO ITS USE.
-**
-**  1. The Software is owned by the IAU SOFA Board ("SOFA").
-**
-**  2. Permission is granted to anyone to use the SOFA software for any
-**     purpose, including commercial applications, free of charge and
-**     without payment of royalties, subject to the conditions and
-**     restrictions listed below.
-**
-**  3. You (the user) may copy and distribute SOFA source code to others,
-**     and use and adapt its code and algorithms in your own software,
-**     on a world-wide, royalty-free basis.  That portion of your
-**     distribution that does not consist of intact and unchanged copies
-**     of SOFA source code files is a "derived work" that must comply
-**     with the following requirements:
-**
-**     a) Your work shall be marked or carry a statement that it
-**        (i) uses routines and computations derived by you from
-**        software provided by SOFA under license to you; and
-**        (ii) does not itself constitute software provided by and/or
-**        endorsed by SOFA.
-**
-**     b) The source code of your derived work must contain descriptions
-**        of how the derived work is based upon, contains and/or differs
-**        from the original SOFA software.
-**
-**     c) The names of all routines in your derived work shall not
-**        include the prefix "iau" or "sofa" or trivial modifications
-**        thereof such as changes of case.
-**
-**     d) The origin of the SOFA components of your derived work must
-**        not be misrepresented;  you must not claim that you wrote the
-**        original software, nor file a patent application for SOFA
-**        software or algorithms embedded in the SOFA software.
-**
-**     e) These requirements must be reproduced intact in any source
-**        distribution and shall apply to anyone to whom you have
-**        granted a further right to modify the source code of your
-**        derived work.
-**
-**     Note that, as originally distributed, the SOFA software is
-**     intended to be a definitive implementation of the IAU standards,
-**     and consequently third-party modifications are discouraged.  All
-**     variations, no matter how minor, must be explicitly marked as
-**     such, as explained above.
-**
-**  4. You shall not cause the SOFA software to be brought into
-**     disrepute, either by misuse, or use for inappropriate tasks, or
-**     by inappropriate modification.
-**
-**  5. The SOFA software is provided "as is" and SOFA makes no warranty
-**     as to its use or performance.   SOFA does not and cannot warrant
-**     the performance or results which the user may obtain by using the
-**     SOFA software.  SOFA makes no warranties, express or implied, as
-**     to non-infringement of third party rights, merchantability, or
-**     fitness for any particular purpose.  In no event will SOFA be
-**     liable to the user for any consequential, incidental, or special
-**     damages, including any lost profits or lost savings, even if a
-**     SOFA representative has been advised of such damages, or for any
-**     claim by any third party.
-**
-**  6. The provision of any version of the SOFA software under the terms
-**     and conditions specified herein does not imply that future
-**     versions will also be made available under the same terms and
-**     conditions.
-*
-**  In any published work or commercial product which uses the SOFA
-**  software directly, acknowledgement (see www.iausofa.org) is
-**  appreciated.
-**
-**  Correspondence concerning SOFA software should be addressed as
-**  follows:
-**
-**      By email:  sofa@ukho.gov.uk
-**      By post:   IAU SOFA Center
-**                 HM Nautical Almanac Office
-**                 UK Hydrographic Office
-**                 Admiralty Way, Taunton
-**                 Somerset, TA1 2DN
-**                 United Kingdom
-**
-**--------------------------------------------------------------------*/
 }
-#include "sofam.h"
+
 
 void iauZr(double r[3][3])
 /*
@@ -49368,6 +31794,8 @@ void iauZr(double r[3][3])
    }
 
    return;
+}
+
 
 /*----------------------------------------------------------------------
 **
@@ -49464,4 +31892,3 @@ void iauZr(double r[3][3])
 **                 United Kingdom
 **
 **--------------------------------------------------------------------*/
-}
