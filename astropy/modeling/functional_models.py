@@ -72,10 +72,10 @@ class Gaussian1DModel(ParametricModel):
         amplitude, mean, stddev = p
         deriv_dict = {}
         deriv_dict['amplitude'] = np.exp(-0.5 / stddev**2 * (x-mean)**2)
-        deriv_dict['mean'] = (2 * amplitude
+        deriv_dict['mean'] = (amplitude
                               * np.exp(-0.5 / stddev**2 * (x-mean)**2)
                               * (x-mean) / stddev**2)
-        deriv_dict['stddev'] = (2 * amplitude
+        deriv_dict['stddev'] = (amplitude
                                 * np.exp(-0.5 / stddev**2 * (x-mean)**2)
                                 * (x-mean)**2 / stddev**3)
         derivval = [deriv_dict[par] for par in self.param_names]
