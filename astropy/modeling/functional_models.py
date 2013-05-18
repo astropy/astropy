@@ -8,12 +8,12 @@ import numpy as np
 from . import parameters
 from .core import *
 from .utils import InputParameterError
- 
+
 __all__ = ['Gaussian1DModel', 'Gaussian2DModel',  'ScaleModel', 'ShiftModel']
-        
+
 class Gaussian1DModel(ParametricModel):
     """
-    
+
     Implements 1D Gaussian model.
 
     Parameters
@@ -28,12 +28,12 @@ class Gaussian1DModel(ParametricModel):
         Standard deviation of the gaussian
         Either fwhm or stddev must be specified
     jacobian_func : callable, 'estimated' or None
-        if callable - a function to compute the Jacobian of 
+        if callable - a function to compute the Jacobian of
         func with derivatives across the rows.
         if 'estimated' - the Jacobian will be estimated
         if None - if the model has a deriv method, it will be used,
         if not the Jacobian will be estimated.
-        
+
     """
     param_names = ['amplitude', 'mean', 'stddev']
     def __init__(self, amplitude, mean, fwhm=None, stddev=None,
@@ -64,10 +64,10 @@ class Gaussian1DModel(ParametricModel):
             self.deriv = jacobian_func
         else:
             self.deriv = self.gderiv
-            
+
     def eval(self, x, params):
         return params[0] * np.exp(- 0.5 * (x-params[1])**2 / params[2]**2)
- 
+
     def gderiv(self, p, x, y):
         amplitude, mean, stddev = p
         deriv_dict = {}
@@ -80,28 +80,28 @@ class Gaussian1DModel(ParametricModel):
                                 * (x-mean)**2 / stddev**3)
         derivval = [deriv_dict[par] for par in self.param_names]
         return np.array(derivval).T
-                                    
+
     def __call__(self, x):
         """
         Transforms data using this model.
-        
+
         Parameters
         --------------
         x : array, of minimum dimensions 1
-        
+
         Notes
         -----
-        See the module docstring for rules for model evaluation. 
+        See the module docstring for rules for model evaluation.
         """
         x, fmt = _convert_input(x, self.param_dim)
         result = self.eval(x, self.param_sets)
         return _convert_output(result, fmt)
-    
+
 class Gaussian2DModel(ParametricModel):
     """
-    
+
     2D Gaussian.
-    
+
     Parameters
     ----------
     amplitude : float
@@ -121,19 +121,19 @@ class Gaussian2DModel(ParametricModel):
         Standard deviation of the gaussian in y
         Either y_stddev or ratio should be given
     jacobian_func : callable or None
-        if callable - a function to compute the Jacobian of 
+        if callable - a function to compute the Jacobian of
         func with derivatives across the rows.
         if None - the Jacobian will be estimated
-    theta : float 
+    theta : float
         Rotation angle in radians. Note: increases clockwise.
     cov_matrix : ndarray
-        A 2x2 covariance matrix. If specified, overrides stddev, fwhm, and 
+        A 2x2 covariance matrix. If specified, overrides stddev, fwhm, and
         theta specification.
     """
     param_names = ['amplitude', 'x_mean', 'y_mean', \
                    'x_stddev', 'y_stddev', 'theta']
-    
-    def __init__(self, amplitude, x_mean, y_mean, x_fwhm=None, y_fwhm=None, 
+
+    def __init__(self, amplitude, x_mean, y_mean, x_fwhm=None, y_fwhm=None,
                  x_stddev=None, y_stddev=None, theta=0.0, cov_matrix=None,
                  jacobian_func=None, **cons):
         try:
@@ -178,21 +178,27 @@ class Gaussian2DModel(ParametricModel):
             self.deriv = None
 
     def eval(self, x, y, p):
-        return p[0] * np.exp(-(
-            ((np.cos(p[5])/p[1])**2 + (np.sin(p[5])/p[2])**2) * ((x-p[3])**2)
-            + 2*(np.cos(p[5])*np.sin(p[5])*(1/(p[1]**2)-1/(p[2]**2))) *
-            (x-p[3])*(y-p[4]) + ((np.sin(p[5])/p[1])**2+(np.cos(p[5])/p[2])**2)*
-            ((y-p[4])**2)))
-        
+
+        a = 0.5 * ((np.cos(p[5]) / p[1]) ** 2 +
+                   (np.sin(p[5]) / p[2]) ** 2)
+        b = 0.5 * (np.cos(p[5]) * np.sin(p[5]) *
+                   (1. / p[1] ** 2 - 1. / p[2] ** 2))
+        c = 0.5 * ((np.sin(p[5]) / p[1]) ** 2 +
+                   (np.cos(p[5]) / p[2]) ** 2)
+
+        return p[0] * np.exp(-(a * (x - p[3]) ** 2 +
+                               b * (x - p[3]) * (y - p[4]) +
+                               c * (y - p[4]) ** 2))
+
     def __call__(self, x, y):
         """
         Transforms data using this model.
-        
+
         Parameters
         --------------
         x, y : arrays, of min dimensions 2
-        
-        Note: See the module docstring for rules for model evaluation. 
+
+        Note: See the module docstring for rules for model evaluation.
         """
         x, _ = _convert_input(x, self.param_dim)
         y, fmt = _convert_input(y, self.param_dim)
@@ -209,7 +215,7 @@ class ShiftModel(Model):
         offsets to be applied to a coordinate
         if a list - each value in the list is an offset to be applied to a
         column in the input coordinate array
-            
+
     """
     param_names = ['offsets']
     def __init__(self, offsets):
@@ -228,17 +234,17 @@ class ShiftModel(Model):
         x, fmt = _convert_input(x, self.param_dim)
         result = x + self.offsets
         return _convert_output(result, fmt)
- 
+
 class ScaleModel(Model):
     """
-    
+
     Multiply a model by a factor.
 
     Parameters
     ---------------
     factors : float or a list of floats
         scale for a coordinate
-        
+
     """
     param_names = ['factors']
     def __init__(self, factors):
@@ -249,7 +255,7 @@ class ScaleModel(Model):
         self._factors = parameters.Parameter('factors', factors, self, param_dim)
         super(ScaleModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
                                                             param_dim=param_dim)
-    
+
     def __call__(self, x):
         """
         Transforms data using this model.
