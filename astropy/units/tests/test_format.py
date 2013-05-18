@@ -27,7 +27,7 @@ def test_unit_grammar():
         (["m**2", "m2", "m**(2)", "m**+2", "m+2", "m^(+2)"], u.m ** 2),
         (["m**-3", "m-3", "m^(-3)", "/m3"], u.m ** -3),
         (["m**(1.5)", "m(3/2)", "m**(3/2)", "m^(3/2)"], u.m ** 1.5),
-        (["2.54cm"], u.Unit(u.cm * 2.54)),
+        (["2.54 cm"], u.Unit(u.cm * 2.54)),
         (["10+8m"], u.Unit(u.m * 1e8)),
         # This is the VOUnits documentation, but doesn't seem to follow the
         # unity grammar (["3.45 10**(-4)Jy"], 3.45 * 1e-4 * u.Jy)

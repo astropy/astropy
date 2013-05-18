@@ -23,11 +23,10 @@ class Fits(generic.Generic):
     name = 'fits'
 
     def __init__(self):
+        super(Fits, self).__init__()
+
         if not '_units' in Fits.__dict__:
             Fits._units, Fits._deprecated_units = self._generate_unit_names()
-
-        if not '_parser' in Fits.__dict__:
-            Fits._parser = self._make_parser()
 
     @staticmethod
     def _generate_unit_names():
@@ -73,12 +72,9 @@ class Fits(generic.Generic):
         return names, deprecated_names
 
     @classmethod
-    def _parse_unit(cls, s, loc, toks):
-        from astropy.extern import pyparsing as p
-
-        unit = toks[0]
+    def _parse_unit(cls, unit):
         if unit not in cls._units:
-            raise p.ParseException(
+            raise ValueError(
                 "Unit {0!r} not supported by the FITS standard.".format(unit))
 
         if unit in cls._deprecated_units:

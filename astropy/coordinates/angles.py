@@ -21,22 +21,6 @@ __all__ = ['Angle', 'RA', 'Dec', 'AngularSeparation']
 TWOPI = math.pi * 2.0  # no need to calculate this all the time
 
 
-#used in Angle initializer to convert various strings into their parseable forms
-_unitstrmap = OrderedDict([
-   ("degrees", 'd'),
-   ("degree", 'd'),
-   ("deg", 'd'),
-   ("°", 'd'),
-   ("hours", 'h'),
-   ("hour", 'h'),
-   ("hr", 'h'),
-   ("radians", ''),
-   ("radian", ''),
-   ("rad", ''),
-   ("d", 'd'),
-   ("h", 'h')])
-
-
 class Angle(object):
     """ An angle.
 
@@ -90,83 +74,26 @@ class Angle(object):
         # -------------------------------
         # unit validation and angle value
         # -------------------------------
-        if isinstance(unit, u.UnitBase):
-            pass
-        elif isinstance(unit, basestring):
+        if unit is not None:
             unit = u.Unit(unit)
-        elif unit is None:
-            # try to determine unit from the "angle" value
-            if self.is_array:
-                # this is currently unreachable, but in principal should work when arrays are added in the future
-                try:
-                    angle = [x.lower() for x in angle]
-                except AttributeError:
-                        # If units are not specified as a parameter, the only chance
-                        # to determine them is in a string value - if it's not a string,
-                        # then there's not enough information to create an Angle.
-                        raise UnitsError("Could not parse an angle value in the array provided"
-                                         "- units could not be determined.".format(angle[idx]))
-                for idx, a in enumerate(angle):
-                    a_unit = None
-                    # order is important here - longest name first
-                    for unitStr in ["degrees", "degree", "deg", "°"]:
-                        if unitStr in a:
-                            a_unit = u.radian
-                            a = angle.replace(unitStr, "")
-                            angle[idx] = math.radians(util.parse_degrees(a))
-                            break
-                    if unit is None:
-                        for unitStr in ["hours", "hour", "hr"]:
-                            if unitStr in a:
-                                a_unit = u.radian
-                                a = angle.replace(unitStr, "")
-                                angle[idx] = math.radians(util.parse_hours(a) * 15.)
-                                break
-                    if unit is None:
-                        for unitStr in ["radians", "radian", "rad"]:
-                            if unitStr in angle:
-                                a_unit = u.radian
-                                a = angle.replace(unitStr, "")
-                                angle[idx] = util.parse_radians(a)
-                                break
-                    if a_unit is None:
-                        raise UnitsError('Could not parse the angle value "{0}" '
-                                         '- units could not be determined.'.format(angle[idx]))
-                unit = u.radian
 
-            else:  # single value
-                if isinstance(angle, basestring):
-                    inputangle = angle
-                    angle = angle.lower().strip()
+        if unit is u.hour:
+            unit = u.hourangle
 
-                    for fromstr, tostr in _unitstrmap.iteritems():
-                        if fromstr in angle:
-                            angle = angle.replace(fromstr, tostr)
-                            if tostr == "h":
-                                unit = u.hour
-                                # this is for "1:2:3.4 hours" case
-                                if angle[-1] == 'h':
-                                    angle = angle[:-1]
-                            elif tostr == "d":
-                                unit = u.degree
-                                # this is for "1:2:3.4 degrees" case
-                                if angle[-1] == 'd':
-                                    angle = angle[:-1]
-                            elif tostr == "":
-                                unit = u.radian
-                            else:
-                                raise ValueError('Unrecognized tostr... this should never happen!')
-                            break
-                    else:
-                        raise UnitsError('Could not infer Angle units '
-                            'from provided string "{0}"'.format(inputangle))
+        if isinstance(angle, basestring):
+            angle, found_unit = util.parse_angle(angle, unit)
+            unit = found_unit
 
-
-
-        else:
-            raise UnitsError('Requested unit "{0}" for Angle, which could not be '
-                'interpreted as a unit - should be a string or astropy.units '
-                'unit object'.format(unit))
+        if isinstance(angle, tuple):
+            if unit is u.hourangle:
+                util.check_hms_ranges(*angle)
+                angle = util.hms_to_hours(*angle)
+            elif unit is u.degree:
+                angle = util.dms_to_degrees(*angle)
+            else:
+                raise UnitsError(
+                    "Can not parse '{0}' as unit '{1}'".format(
+                        angle, unit))
 
         if unit is None:
             raise UnitsError("No unit was specified in Angle initializer; the "
@@ -177,14 +104,7 @@ class Angle(object):
         if self.is_array:
             pass  # already performed conversions to radians above
         else:
-            if unit is u.degree:
-                self._radians = math.radians(util.parse_degrees(angle))
-            elif unit is u.radian:
-                self._radians = float(angle)
-            elif unit is u.hour:
-                self._radians = util.hours_to_radians(util.parse_hours(angle))
-            else:
-                raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
+            self._radians = unit.to(u.radian, angle)
 
         # ---------------
         # bounds checking
@@ -201,7 +121,7 @@ class Angle(object):
                 elif unit is u.degree:
                     lower_bound = math.radians(bounds[0])
                     upper_bound = math.radians(bounds[1])
-                elif unit is u.hour:
+                elif unit is u.hourangle:
                     lower_bound = math.radians(bounds[0] * 15.)
                     upper_bound = math.radians(bounds[1] * 15.)
                 # invalid units handled above
