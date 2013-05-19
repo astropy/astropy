@@ -9,6 +9,7 @@ of data to another.
 from __future__ import unicode_literals
 
 import math
+import tempfile
 from warnings import warn
 
 from .errors import *
@@ -196,7 +197,7 @@ class _AngleParser(object):
         def p_error(p):
             raise ValueError
 
-        parser = yacc.yacc(debug=False)
+        parser = yacc.yacc(debug=False, outputdir=tempfile.mkdtemp())
 
         return parser, lexer
 
