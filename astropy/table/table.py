@@ -1494,7 +1494,7 @@ class Table(object):
         Create a table with three columns 'a', 'b' and 'c'::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
-                            names=('a', 'b', 'c'))
+            ...           names=('a', 'b', 'c'))
             >>> print t
              a   b   c
             --- --- ---
@@ -1654,7 +1654,7 @@ class Table(object):
         Create a table with three columns 'a', 'b' and 'c'::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
-                            names=('a', 'b', 'c'))
+            ...           names=('a', 'b', 'c'))
             >>> print t
              a   b   c
             --- --- ---
@@ -1691,7 +1691,7 @@ class Table(object):
         Create a table with three columns 'a', 'b' and 'c'::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
-                    names=('a', 'b', 'c'))
+            ...     names=('a', 'b', 'c'))
             >>> print t
              a   b   c
             --- --- ---
@@ -1746,7 +1746,7 @@ class Table(object):
         Create a table with three columns 'a', 'b' and 'c'::
 
             >>> t = Table([[1, 2, 3],[0.1, 0.2, 0.3],['x', 'y', 'z']],
-                            names=('a', 'b', 'c'))
+            ...           names=('a', 'b', 'c'))
             >>> print t
              a   b   c
             --- --- ---
@@ -1942,4 +1942,4 @@ class Table(object):
     @property
     def meta(self):
         return self._meta
-    
+

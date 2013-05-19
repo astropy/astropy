@@ -314,9 +314,9 @@ def vstack(arrays, join_type='inner', col_name_map=None):
 
       >>> from astropy.table import np_utils
       >>> t1 = np.array([(1, 2),
-                         (3, 4)], dtype=[('a', 'i4'), ('b', 'i4')])
+      ...                (3, 4)], dtype=[('a', 'i4'), ('b', 'i4')])
       >>> t2 = np.array([(5, 6),
-                         (7, 8)], dtype=[('a', 'i4'), ('b', 'i4')])
+      ...                (7, 8)], dtype=[('a', 'i4'), ('b', 'i4')])
       >>> np_utils.vstack([t1, t2])
       array([(1, 2),
              (3, 4),
@@ -430,9 +430,9 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
 
       >>> from astropy.table import np_utils
       >>> t1 = np.array([(1, 2),
-                         (3, 4)], dtype=[('a', 'i4'), ('b', 'i4')])
+      ...                (3, 4)], dtype=[('a', 'i4'), ('b', 'i4')])
       >>> t2 = np.array([(5, 6),
-                         (7, 8)], dtype=[('c', 'i4'), ('d', 'i4')])
+      ...                (7, 8)], dtype=[('c', 'i4'), ('d', 'i4')])
       >>> np_utils.hstack([t1, t2])
       array([(1, 2, 5, 6),
              (3, 4, 7, 8)],

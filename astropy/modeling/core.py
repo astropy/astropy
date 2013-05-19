@@ -6,9 +6,9 @@ The base class of all models is `~astropy.modeling.Model`.
 models can be linear or nonlinear in a regression analysis sense.
 
 All models provide a `__call__` method which performs the transformation in a
-purely mathematical way, i.e. the models are unitless. In addition, when 
+purely mathematical way, i.e. the models are unitless. In addition, when
 possible the transformation is done using multiple parameter sets, `param_sets`.
-The number of parameter sets is stored in an attribute `param_dim`. 
+The number of parameter sets is stored in an attribute `param_dim`.
 
 Parametric models also store a flat list of all parameters as an instance of
 `~astropy.modeling.parameters.Parameters`. When fitting, this list-like object is modified by a
@@ -18,9 +18,9 @@ will not have to use the `~astropy.modeling.parameters` module directly.
 
 Input Format For Model Evaluation and Fitting
 
-Input coordinates are passed in separate arguments, for example 2D models 
+Input coordinates are passed in separate arguments, for example 2D models
 expect x and y coordinates to be passed separately as two scalars or aray-like
-objects. 
+objects.
 The evaluation depends on the input dimensions and the number of parameter
 sets but in general normal broadcasting rules apply.
 For example:
@@ -32,12 +32,12 @@ For example:
 
 - A model with N parameter sets works with multidimensional arrays if the
   shape of the input array is (N, M, P). A parameter set is applied to each plane.
-  
+
 In all these cases the output has the same shape as the input.
 
-- A model with N parameter sets works with 1D input arrays. The shape 
+- A model with N parameter sets works with 1D input arrays. The shape
   of the output is (M, N)
- 
+
 """
 from __future__ import division, print_function
 import collections
@@ -47,23 +47,23 @@ import numpy as np
 from . import parameters
 from . import constraints
 from .utils import pmapdomain, InputParameterError, comb
- 
+
 __all__ = ['Model', 'ParametricModel', 'PCompositeModel', 'SCompositeModel',
                 'LabeledInput', '_convert_input', '_convert_output']
-        
+
 def _convert_input(x, pdim):
     """
     Format the input into appropriate shape
-    
+
     Parameters
     ----------
     x : scalar, array or a sequence of numbers
         input data
     pdim : int
         number of parameter sets
-        
+
     The meaning of the internally used format is:
-    
+
     'N' - the format of the input was not changed
     'T' - input was transposed
     'S' - input is a scalar
@@ -89,11 +89,11 @@ def _convert_input(x, pdim):
                    "({0}, {1}, {2})".format(x.shape[0], x.shape[1], x.shape[2])
             fmt = 'T'
             return x.T, fmt
-    
+
 def _convert_output(x, fmt):
     """
     Put the output in the shpae/type of the original input
-    
+
     Parameters
     ----------
     x : scalar, array or a sequence of numbers
@@ -113,21 +113,21 @@ def _convert_output(x, fmt):
 class _ParameterProperty(object):
     """
     Create a property for a parameter.
-    
+
     Parameters
     ----------
     name: string
         the name of the parameter
-        
+
     """
     def __init__(self, name):
         self.aname = '_'+name
         self.name = name
-        
+
     def __get__(self, obj, objtype):
         par = getattr(obj, self.aname)
         return par
-    
+
     def __set__(self, obj, val):
         if self.name in obj._parcheck:
             obj._parcheck[self.name](val)
@@ -141,7 +141,7 @@ class _ParameterProperty(object):
                         "have the required shape".format(self.name))
                 else:
                     setattr(obj, self.aname, par)
-                obj._parameters = parameters.Parameters(obj, 
+                obj._parameters = parameters.Parameters(obj,
                                                         obj.param_names,
                                                          param_dim=obj.param_dim)
             else:
@@ -155,23 +155,23 @@ class _ParameterProperty(object):
                     "have the required shape".format(self.name))
             else:
                 setattr(obj, self.aname, par)
-                
+
 class Model(object):
     """
     Base class for all models.
-    
+
     This is an abstract class and should not be instanciated.
-    
+
     Notes
     -----
     Models which are not meant to be fit to data should subclass this class
-    
+
     This class sets the properties for all individual parameters and performs
     parameter validation.
-    
+
     """
     __metaclass__ = abc.ABCMeta
-    
+
     param_names = []
 
     def __init__(self, param_names, n_inputs, n_outputs, param_dim=1):
@@ -186,8 +186,8 @@ class Model(object):
         self._parcheck = {}
         for par in param_names:
             setattr(self.__class__, par, _ParameterProperty(par))
-    
-    @property 
+
+    @property
     def n_inputs(self):
         """
         Number of input variables in model evaluation.
@@ -200,29 +200,29 @@ class Model(object):
         Number of output variables returned when a model is evaluated.
         """
         return self._n_outputs
-    
+
     @property
     def param_dim(self):
         """
         Number of parameter sets in a model.
         """
         return self._param_dim
-    
+
     @param_dim.setter
     def param_dim(self, val):
         self._param_dim = val
-    
+
     @property
     def param_names(self):
         """
         A list of names of the parameters defining a model.
         """
         return self._param_names
-    
+
     @param_names.setter
     def param_names(self, val):
         self._param_names = val
-        
+
     def __repr__(self):
         fmt = "{0}(".format(self.__class__.__name__)
         for i in range(len(self.param_names)):
@@ -231,23 +231,23 @@ class Model(object):
             """.format(self.param_names[i], getattr(self, self.param_names[i]))
             fmt += fmt1
         fmt += ")"
-        
+
         return fmt
-    
+
     def __str__(self):
-        
+
         fmt = """
         Model: {0}
         Parameter sets: {1}
-        Parameters: 
+        Parameters:
                    {2}
         """.format(
               self.__class__.__name__,
               self.param_dim,
-              "\n                   ".join(i+': ' + 
+              "\n                   ".join(i+': ' +
                 str(self.__getattribute__(i)) for i in self.param_names)
                 )
-            
+
         return fmt
 
     @property
@@ -261,7 +261,7 @@ class Model(object):
         lenshapes = np.asarray([len(p.parshape) for p in parameters])
         shapes = [p.parshape for p in parameters]
         if (lenshapes>1).any():
-            if () in shapes: 
+            if () in shapes:
                 psets = np.asarray(parameters, dtype=np.object)
             else:
                 psets = np.asarray(parameters)
@@ -269,13 +269,13 @@ class Model(object):
             psets = np.asarray(parameters)
             psets.shape = (len(self.param_names), self.param_dim)
         return psets
-    
+
     def inverse(self):
         """
         Return a callable object which does the inverse transform
         """
         raise NotImplementedError("Subclasses should implement this")
-    
+
     def invert(self):
         """
         Invert coordinates iteratively if possible
@@ -286,7 +286,7 @@ class Model(object):
         """
         Create a CompositeModel by chaining the current model with the new one
         using the specified mode.
-        
+
         Parameters
         ----------
         newtr : an instance of a subclass of Model
@@ -294,7 +294,7 @@ class Model(object):
                'parallel', 'serial', 'p' or 's'
                a flag indicating whether to combine the models
                in series or in parallel
-               
+
         Returns
         -------
         model : CompositeModel
@@ -306,22 +306,22 @@ class Model(object):
             return SCompositeModel([self, newtr])
         else:
             raise InputParameterError("Unrecognized mode {0}".format(mode))
-    
+
     @abc.abstractmethod
     def __call__(self):
         raise NotImplementedError("Subclasses should implement this")
-    
+
 class ParametricModel(Model):
     """
     Base class for all fittable models.
-    
+
     Notes
     -----
     All models which can be fit to data and provide a `deriv` method
     should subclass this class.
-    
+
     Sets the parameters attributes.
-    
+
     Parameters
     ----------
     param_names: list
@@ -342,15 +342,15 @@ class ParametricModel(Model):
     tied: dict
         a dictionary {parameter_name: callable} of parameters which are
         linked to some other parameter. The dictionary values are callables
-        providing the linking relationship. 
+        providing the linking relationship.
         Alternatively the `~astropy.modeling.parameters.Parameter.tied`
         property of a parameter may be used.
     bounds: dict
         a dictionary {parameter_name: boolean} of lower and upper bounds of
-        parameters. Keys  are parameter names. Values  are a list of length 
-        2 giving the desired range for the parameter. 
-        Alternatively the `~astropy.modeling.parameters.Parameter.min` and 
-        `~astropy.modeling.parameters.Parameter.max` properties of a parameter 
+        parameters. Keys  are parameter names. Values  are a list of length
+        2 giving the desired range for the parameter.
+        Alternatively the `~astropy.modeling.parameters.Parameter.min` and
+        `~astropy.modeling.parameters.Parameter.max` properties of a parameter
         may be used.
     eqcons: list
         A list of functions of length n such that
@@ -379,9 +379,9 @@ class ParametricModel(Model):
         if ineqcons is None:
             ineqcons = []
         self.constraints = constraints.Constraints(self, fixed=_fixed,
-                                                   tied=_tied, 
+                                                   tied=_tied,
                                                    bounds=_bounds,
-                                                   eqcons=eqcons, 
+                                                   eqcons=eqcons,
                                                    ineqcons=ineqcons)
         # Set constraints
         if fixed:
@@ -407,7 +407,7 @@ class ParametricModel(Model):
             param_dim = str(self.param_dim)
         except AttributeError:
             param_dim = " "
-            
+
         if degree:
             fmt = "<{0}({1},".format(self.__class__.__name__, repr(self.deg))
         else:
@@ -419,9 +419,9 @@ class ParametricModel(Model):
             fmt += fmt1.strip()
         if param_dim:
             fmt += "param_dim={0})>".format(self.param_dim)
-        
+
         return fmt
-    
+
     def __str__(self):
         try:
             degree = str(self.deg)
@@ -432,19 +432,19 @@ class ParametricModel(Model):
         Dim:   {1}
         Degree: {2}
         Parameter sets: {3}
-        Parameters: 
+        Parameters:
                    {4}
         """.format(
               self.__class__.__name__,
               self.n_inputs,
               degree,
               self.param_dim,
-              "\n                   ".join(i+': ' + 
+              "\n                   ".join(i+': ' +
                 str(self.__getattribute__(i)) for i in self.param_names)
                 )
-            
+
         return fmt
-    
+
     @property
     def parameters(self):
         """
@@ -452,7 +452,7 @@ class ParametricModel(Model):
         Fittable parameters maintain this list and fitters modify it.
         """
         return self._parameters
-    
+
     @parameters.setter
     def parameters(self, value):
         if isinstance(value, parameters.Parameters):
@@ -473,10 +473,10 @@ class ParametricModel(Model):
                     "length as the initial list.")
         else:
             raise TypeError("Parameters must be of type 'list' or 'Parameters'")
-   
+
     def set_joint_parameters(self, jpars):
         """
-        Used by the JointFitter class to store parameters which are 
+        Used by the JointFitter class to store parameters which are
         considered common for several models and are to be fitted together.
         """
         self.joint = jpars
@@ -485,39 +485,39 @@ class LabeledInput(dict):
     """
     Create a container with all input data arrays, assigning labels for
     each one.
-    
+
     Used by CompositeModel to choose input data using labels
-    
+
     Parameters
     ----------
-    data : list 
+    data : list
         a list of all input data
     labels : list of strings
         names matching each coordinate in data
-    
+
     Returns
     -------
     data : LabeledData
         a dict of input data and their assigned labels
-        
+
     Examples
     --------
     >>> x,y = np.mgrid[:10, :10]
     >>> l = np.arange(10)
     >>> ado = LabeledInput([x, y, l], ['x', 'y', 'pixel'])
-    >>> ado.x      
+    >>> ado.x
     array([[0, 0, 0, 0, 0],
     [1, 1, 1, 1, 1],
     [2, 2, 2, 2, 2],
     [3, 3, 3, 3, 3],
-    [4, 4, 4, 4, 4]])    
+    [4, 4, 4, 4, 4]])
     >>> ado['x']
     array([[0, 0, 0, 0, 0],
     [1, 1, 1, 1, 1],
     [2, 2, 2, 2, 2],
     [3, 3, 3, 3, 3],
     [4, 4, 4, 4, 4]])
-        
+
     """
     def __init__(self,  data, labels):
         dict.__init__(self)
@@ -527,23 +527,23 @@ class LabeledInput(dict):
             self[label] = coord
             setattr(self, '_'+label, coord)
         self._set_properties(self.labels)
-    
+
     def _getlabel(self, name):
         par = getattr(self, '_'+name)
         return par
-    
+
     def _setlabel(self,  name, val):
         setattr(self, '_'+name, val)
         self[name] = val
-        
+
     def _dellabel(self,  name):
         delattr( self,  '_'+name)
         del self[name]
-        
+
     def add(self, label=None, value=None,  **kw):
         """
         Add input data to a LabeledInput object
-        
+
         Parameters
         --------------
         label : string
@@ -552,7 +552,7 @@ class LabeledInput(dict):
             coordinate value
         kw : dictionary
             if given this is a dictionary of {label: value} pairs
-            
+
         """
         if kw:
             if label is None or value is None:
@@ -565,11 +565,11 @@ class LabeledInput(dict):
             assert(label is not None and value is not None), (
                 "Expected label and value to be defined")
             self[label] = value
-            
+
         for key in kw:
             self.__setattr__('_'+key, kw[key])
         self._set_properties(kw.keys())
-            
+
     def _set_properties(self, attributes):
         for attr in attributes:
             setattr(self.__class__, attr , property(lambda self, attr=attr:
@@ -580,11 +580,11 @@ class LabeledInput(dict):
                                                   self._dellabel(attr)
                                                   )
                     )
-            
+
     def copy(self):
         data = [self[label] for label in self.labels]
         return LabeledInput(data, self.labels)
-    
+
 class _CompositeModel(OrderedDict):
     def __init__(self, transforms, inmap=None, outmap=None):
         """
@@ -596,20 +596,20 @@ class _CompositeModel(OrderedDict):
         self.n_outputs = None
         self.fittable = False
         self.has_inverse = np.array([tr.has_inverse for tr in transforms]).all()
-        
+
     def _init_comptr(self, trans, inmap, outmap):
         # implemented by subclasses
         raise NotImplementedError("Subclasses should implement this")
-    
+
     def __repr__(self):
         transforms = self.keys()
         fmt = """
-            Model:  {0} 
+            Model:  {0}
             """.format(self.__class__.__name__)
         fmt1 = " %s  " * len(transforms)% tuple([repr(tr) for tr in transforms])
         fmt = fmt + fmt1
         return fmt
-    
+
     def __str__(self):
         transforms = self.keys()
         fmt = """
@@ -618,22 +618,22 @@ class _CompositeModel(OrderedDict):
         fmt1 = " %s  " * len(transforms)% tuple([str(tr) for tr in transforms])
         fmt = fmt + fmt1
         return fmt
-            
+
     def add_model(self, transf, inmap, outmap):
         self[transf] = [inmap, outmap]
- 
+
     def invert(self):
         raise NotImplementedError("Subclasses should implement this")
-            
+
     def __call__(self):
         # implemented by subclasses
         raise NotImplementedError("Subclasses should implement this")
 
 class SCompositeModel(_CompositeModel):
     """
-    
+
     Execute models in series.
-    
+
     Parameters
     ----------
     transforms : list
@@ -641,36 +641,36 @@ class SCompositeModel(_CompositeModel):
     inmap : list of lists or None
         labels in an input instance of LabeledInput
         if None, the number of input coordinates is exactly what
-        the transforms expect 
+        the transforms expect
     outmap : list or None
         labels in an input instance of LabeledInput
-        if None, the number of output coordinates is exactly what 
+        if None, the number of output coordinates is exactly what
         the transforms expect
-    
+
     Returns
     -------
     model : SCompositeModel
         Composite model which executes the comprising models in series
-    
+
     Notes
     -----
     Output values of one model are used as input values of another.
     Obviously the order of the models matters.
-    
+
     Examples
     --------
-    Apply a 2D rotation followed by a shift in x and y
-    
-    >>> from astropy.modeling import *
-    >>> rot = builtin_models.MatrixRotation2D(angle=23.5)
-    >>> offx = builtin_models.ShiftModel(-4.23)
-    >>> offy = builtin_models.ShiftModel(2)
-    >>> linp = LabeledInput([x, y], ["x", "y"]
-    >>> scomptr = SCompositeModel([rot, offx, offy], 
-                                  inmap=[['x', 'y'], ['x'], ['y']],
-                                  outmap=[['x', 'y'], ['x'], ['y']])
-    >>> result=scomptr(linp)
-        
+    Apply a 2D rotation followed by a shift in x and y::
+
+        >>> from astropy.modeling import *
+        >>> rot = builtin_models.MatrixRotation2D(angle=23.5)
+        >>> offx = builtin_models.ShiftModel(-4.23)
+        >>> offy = builtin_models.ShiftModel(2)
+        >>> linp = LabeledInput([x, y], ["x", "y"])
+        >>> scomptr = SCompositeModel([rot, offx, offy],
+        ...                           inmap=[['x', 'y'], ['x'], ['y']],
+        ...                           outmap=[['x', 'y'], ['x'], ['y']])
+        >>> result=scomptr(linp)
+
     """
     def __init__(self, transforms, inmap=None, outmap=None):
         super(SCompositeModel, self).__init__(transforms, inmap, outmap)
@@ -682,30 +682,30 @@ class SCompositeModel(_CompositeModel):
             inmap = [None] * len(transforms)
         if outmap is None:
             outmap = [None]  * len(transforms)
-        
+
         self._init_comptr(transforms, inmap, outmap)
         self.n_inputs = np.array([tr.n_inputs for tr in self]).max()
         # the output dimension is equal to the output dim of the last transform
         self.n_outputs = self.keys()[-1].n_outputs
-        
+
     def _init_comptr(self, transforms, inmap, outmap):
         for tr, inm, outm in zip(transforms, inmap, outmap):
             self[tr] = [inm, outm]
-     
+
     def _verify_no_mapper_input(self, *data):
         lendata = len(data)
         tr = self.keys()[0]
-        
+
         if tr.n_inputs != lendata:
-            
+
             raise ValueError("Required number of coordinates not matched for "
-                             "transform # {0}: {1} required, {2} supplied ".format( 
+                             "transform # {0}: {1} required, {2} supplied ".format(
                              self.keys().index(tr)+1, tr.n_inputs, lendata))
 
     def invert(self, inmap, outmap):
         scomptr = SCompositeModel(self[::-1], inmap=inmap, outmap=outmap)
         return scomptr
-            
+
     def __call__(self, x, *data):
         """
         Transforms data using this model.
@@ -722,7 +722,7 @@ class SCompositeModel(_CompositeModel):
             else:
                 linp = x.copy()
                 # we want to return the entire labeled object because some parts
-                # of it may not be used in another transform of which this 
+                # of it may not be used in another transform of which this
                 # one is a component
                 for tr in self:
                     inmap = self[tr][0]
@@ -746,12 +746,12 @@ class SCompositeModel(_CompositeModel):
             for tr in self.keys()[1:]:
                 result = tr(result)
             return result
-            
+
 class PCompositeModel(_CompositeModel):
     """
-    
+
     Execute models in parallel.
-    
+
     Parameters
     --------------
     transforms : list
@@ -759,17 +759,17 @@ class PCompositeModel(_CompositeModel):
     inmap : list or None
         labels in an input instance of LabeledInput
         if None, the number of input coordinates is exactly what the
-        transforms expect 
-        
+        transforms expect
+
     Returns
     -------
     model : PCompositeModel
         Composite model which executes the comprising models in parallel
-        
+
     Notes
     -----
     Models are applied to input data separately and the deltas are summed.
-    
+
     """
     def __init__(self, transforms, inmap=None, outmap=None):
         super(PCompositeModel, self).__init__(transforms,
@@ -789,11 +789,11 @@ class PCompositeModel(_CompositeModel):
         for tr in self.keys():
             if tr.n_inputs != ndim:
                 raise ValueError("tr.n_inputs ...")
-    
+
     def invert(self, inmap, outmap):
         pcomptr = PCompositeModel(self.keys()[::-1], inmap=inmap, outmap=outmap)
         return pcomptr
-    
+
     def __call__(self, x, *data):
         """
         Transforms data using this model.
@@ -836,4 +836,4 @@ class PCompositeModel(_CompositeModel):
                 for i in range(len(inlist)):
                     result[i] = res[i]-inlist[i]
             return result
-        
+
