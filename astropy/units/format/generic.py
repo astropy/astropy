@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import re
 import sys
+import tempfile
 
 from . import utils
 from .base import Base
@@ -308,7 +309,7 @@ class Generic(Base):
         def p_error(p):
             raise ValueError()
 
-        parser = yacc.yacc(debug=False)
+        parser = yacc.yacc(debug=False, outputdir=tempfile.mkdtemp())
 
         return parser, lexer
 

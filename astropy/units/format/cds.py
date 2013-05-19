@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import re
+import tempfile
 
 from .base import Base
 from . import utils
@@ -245,7 +246,7 @@ class CDS(Base):
         def p_error(p):
             raise ValueError()
 
-        parser = yacc.yacc()
+        parser = yacc.yacc(outputdir=tempfile.mkdtemp())
 
         return parser, lexer
 
