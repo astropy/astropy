@@ -7,6 +7,7 @@ Handles a "generic" string format for units
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import os
 import re
 import sys
 
@@ -112,7 +113,12 @@ class Generic(Base):
             raise ValueError(
                 "Invalid character at col {0}".format(t.lexpos))
 
-        lexer = lex.lex()
+        try:
+            from . import generic_lextab
+            lexer = lex.lex(optimize=True, lextab=generic_lextab)
+        except ImportError:
+            lexer = lex.lex(optimize=True, lextab='generic_lextab',
+                            outputdir=os.path.dirname(__file__))
 
         def p_main(p):
             '''
@@ -308,7 +314,13 @@ class Generic(Base):
         def p_error(p):
             raise ValueError()
 
-        parser = yacc.yacc(debug=False)
+        try:
+            from . import generic_parsetab
+            parser = yacc.yacc(debug=False, tabmodule=generic_parsetab,
+                               write_tables=False)
+        except ImportError:
+            parser = yacc.yacc(debug=False, tabmodule='generic_parsetab',
+                               outputdir=os.path.dirname(__file__))
 
         return parser, lexer
 
