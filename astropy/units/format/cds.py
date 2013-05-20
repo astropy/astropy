@@ -8,6 +8,7 @@ Handles a "generic" string format for units
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import os
 import re
 
 from .base import Base
@@ -132,7 +133,12 @@ class CDS(Base):
             raise ValueError(
                 "Invalid character at col {0}".format(t.lexpos))
 
-        lexer = lex.lex()
+        try:
+            from . import cds_lextab
+            lexer = lex.lex(optimize=True, lextab=cds_lextab)
+        except ImportError:
+            lexer = lex.lex(optimize=True, lextab='cds_lextab',
+                            outputdir=os.path.dirname(__file__))
 
         def p_main(p):
             '''
@@ -245,7 +251,13 @@ class CDS(Base):
         def p_error(p):
             raise ValueError()
 
-        parser = yacc.yacc()
+        try:
+            from . import cds_parsetab
+            parser = yacc.yacc(debug=False, tabmodule=cds_parsetab,
+                               write_tables=False)
+        except ImportError:
+            parser = yacc.yacc(debug=False, tabmodule='cds_parsetab',
+                               outputdir=os.path.dirname(__file__))
 
         return parser, lexer
 
