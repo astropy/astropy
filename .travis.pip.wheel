@@ -4,8 +4,9 @@
 #and if here isn't one there or it fails, it falls
 #back on using pip to build from source.
 
-USAGE=".travis.pip.wheel PYVERSION PACKAGENAME [PACKAGEVERSION]"
-
+USAGE=".travis.pip.wheel PYVERSION PACKAGENAME [PACKAGEVERSION] [-q] [-p]"
+#"-q" means use "pip install -q ..." if a source install is needed
+#"-p" means it's a pure-python package (necessary for looking up wheels correctly)
 
 #these are variables that help locate the wheels
 
@@ -14,13 +15,20 @@ PLATFORM="linux_x86_64"
 
 #array mapping python versions to their wheel code
 #this is based on wheels made for Ubuntu 12.04 64-bit, April 2013
-declare -A pyvtowheelcode=(
+#this is for non pure-python code - it requires extra information about the C compilation flags
+declare -A pyvtowheelcodecp=(
   [2.6]="cp26-none"
   [2.7]="cp27-none"
   [3.2]="cp32-32mu"
   [3.3]="cp33-33dm"
 )
-
+#this is for pure-python
+declare -A pyvtowheelcodepy=(
+  [2.6]="py26-none"
+  [2.7]="py27-none"
+  [3.2]="py32-32mu"
+  [3.3]="py33-33dm"
+)
 
 
 
@@ -29,9 +37,12 @@ PYVERSION=""
 PKGNAME=""
 PKGVERS=""
 PIPFLAGS=""
+PUREPYTHON=false
 while [ "$1" != "" ]; do
     if [ "$1" == '-q' ]; then
       PIPFLAGS="-q"
+    elif [ "$1" == '-p' ]; then
+      PUREPYTHON=true
     elif [[ $1 == -* ]]; then
       echo "Invalid option $1. Usage: $USAGE"
       exit 1
@@ -53,7 +64,17 @@ if [ "$PYVERSION" == "" -o "$PKGNAME" == "" ]; then
 fi
 #done w/command line arguments
 
-PYVERSION=${pyvtowheelcode[$PYVERSION]}
+#figure out the version code
+if $PUREPYTHON
+then
+  PYVERSION=${pyvtowheelcodepy[$PYVERSION]}
+  #the pure python code, the platform is "any"
+  PLATFORM="any"
+else
+  PYVERSION=${pyvtowheelcodecp[$PYVERSION]}
+fi
+
+# now figure out the name sphinx wants to see in case we need to fall back
 if [ "$PKGVERS" == "" ]
 then
   PACKAGENAMEANDVERSDASH="$PKGNAME"
