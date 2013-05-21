@@ -23,10 +23,11 @@ class Gaussian1DModel(ParametricModel):
         Amplitude of the gaussian
     mean : float
         Mean of the gaussian
-    fwhm : float
-        FWHM
     stddev : float
         Standard deviation of the gaussian
+        Either fwhm or stddev must be specified
+    fwhm : float
+        Full width at half maximum
         Either fwhm or stddev must be specified
     jacobian_func : callable, 'estimated' or None
         if callable - a function to compute the Jacobian of
@@ -36,28 +37,37 @@ class Gaussian1DModel(ParametricModel):
         if not the Jacobian will be estimated.
 
     """
+
     param_names = ['amplitude', 'mean', 'stddev']
-    def __init__(self, amplitude, mean, fwhm=None, stddev=None,
+
+    def __init__(self, amplitude, mean, stddev=None, fwhm=None,
                             jacobian_func=None, **cons):
+
         try:
             param_dim = len(amplitude)
         except TypeError:
             param_dim = 1
+
         if stddev is None and fwhm is None:
             raise InputParameterError(
                 "Either fwhm or stddev must be specified")
-        if stddev is not None:
+        elif stddev is not None and fwhm is not None:
+            raise InputParameterError("Cannot specify both fwhm and stddev")
+        elif stddev is not None:
             stddev_val = stddev
         else:
             try:
                 stddev_val  = 0.42466 * fwhm
             except TypeError:
                 stddev_val = [0.42466 * n for n in fwhm]
+
         self._stddev = parameters.Parameter('stddev', stddev_val, self, param_dim)
         self._mean = parameters.Parameter('mean', mean, self, param_dim)
         self._amplitude = parameters.Parameter('amplitude', amplitude, self, param_dim)
+
         super(Gaussian1DModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
                                               param_dim=param_dim, **cons)
+
         self.linear = False
         if jacobian_func is 'estimated':
             self.deriv = None
@@ -112,16 +122,18 @@ class Gaussian2DModel(ParametricModel):
         Mean of the gaussian in x
     y_mean : float
         Mean of the gaussian in y
-    x_fwhm : float
-        Full width at half maximum in x
-    y_fwhm : float
-        Full width at half maximum in y
     x_stddev : float
         Standard deviation of the gaussian in x
-        Either fwhm or x_stddev must be specified
+        Either x_fwhm or x_stddev must be specified
     y_stddev : float
         Standard deviation of the gaussian in y
-        Either y_stddev or ratio should be given
+        Either y_fwhm or y_stddev must be specified
+    x_fwhm : float
+        Full width at half maximum in x
+        Either x_fwhm or x_stddev must be specified
+    y_fwhm : float
+        Full width at half maximum in y
+        Either y_fwhm or y_stddev must be specified
     jacobian_func : callable or None
         if callable - a function to compute the Jacobian of
         func with derivatives across the rows.
@@ -132,16 +144,19 @@ class Gaussian2DModel(ParametricModel):
         A 2x2 covariance matrix. If specified, overrides stddev, fwhm, and
         theta specification.
     """
-    param_names = ['amplitude', 'x_mean', 'y_mean', \
+
+    param_names = ['amplitude', 'x_mean', 'y_mean',
                    'x_stddev', 'y_stddev', 'theta']
 
-    def __init__(self, amplitude, x_mean, y_mean, x_fwhm=None, y_fwhm=None,
-                 x_stddev=None, y_stddev=None, theta=0.0, cov_matrix=None,
+    def __init__(self, amplitude, x_mean, y_mean, x_stddev=None, y_stddev=None,
+                 x_fwhm=None, y_fwhm=None, theta=0.0, cov_matrix=None,
                  jacobian_func=None, **cons):
+
         try:
             param_dim = len(amplitude)
         except TypeError:
             param_dim = 1
+
         if y_stddev is None and y_fwhm is None and cov_matrix is None:
             raise InputParameterError(
                 "Either y_fwhm or y_stddev must be specified, or a "
@@ -150,6 +165,16 @@ class Gaussian2DModel(ParametricModel):
             raise InputParameterError(
                 "Either x_fwhm or x_stddev must be specified, or a "
                 "covariance matrix.")
+        elif x_stddev is not None and x_fwhm is not None:
+            raise InputParameterError("Cannot specify both x_fwhm and x_stddev")
+        elif y_stddev is not None and y_fwhm is not None:
+            raise InputParameterError("Cannot specify both y_fwhm and y_stddev")
+        elif cov_matrix is not None and (x_stddev is not None or
+                                         y_stddev is not None or
+                                         x_fwhm is not None or
+                                         y_fwhm is not None):
+            raise InputParameterError("Cannot specify both cov_matrix and x/y_stddev or x/y_fwhm")
+
         self._amplitude = parameters.Parameter('amplitude', amplitude,
                                                 self, param_dim)
         if cov_matrix is None:
@@ -164,6 +189,7 @@ class Gaussian2DModel(ParametricModel):
             x_stddev, y_stddev = np.sqrt(eig_vals)
             y_vec = eig_vecs[:,0]
             theta = np.arctan2(y_vec[1],y_vec[0])
+
         self._x_stddev = parameters.Parameter('x_stddev', x_stddev,
                                                 self, param_dim)
         self._y_stddev = parameters.Parameter('y_stddev', y_stddev,
@@ -171,6 +197,7 @@ class Gaussian2DModel(ParametricModel):
         self._x_mean = parameters.Parameter('x_mean', x_mean, self, param_dim)
         self._y_mean = parameters.Parameter('y_mean', y_mean, self, param_dim)
         self._theta = parameters.Parameter('theta', theta, self, param_dim)
+
         super(Gaussian2DModel, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
                                               param_dim=param_dim, **cons)
         self.linear = False
