@@ -128,6 +128,8 @@ class Gaussian2DModel(ParametricModel):
     y_stddev : float
         Standard deviation of the gaussian in y
         Either y_fwhm or y_stddev must be specified
+    theta : float
+        Rotation angle in radians. Note: increases clockwise.
     x_fwhm : float
         Full width at half maximum in x
         Either x_fwhm or x_stddev must be specified
@@ -138,8 +140,6 @@ class Gaussian2DModel(ParametricModel):
         if callable - a function to compute the Jacobian of
         func with derivatives across the rows.
         if None - the Jacobian will be estimated
-    theta : float
-        Rotation angle in radians. Note: increases clockwise.
     cov_matrix : ndarray
         A 2x2 covariance matrix. If specified, overrides stddev, fwhm, and
         theta specification.
@@ -149,7 +149,7 @@ class Gaussian2DModel(ParametricModel):
                    'x_stddev', 'y_stddev', 'theta']
 
     def __init__(self, amplitude, x_mean, y_mean, x_stddev=None, y_stddev=None,
-                 x_fwhm=None, y_fwhm=None, theta=0.0, cov_matrix=None,
+                 theta=0.0, x_fwhm=None, y_fwhm=None, cov_matrix=None,
                  jacobian_func=None, **cons):
 
         try:
