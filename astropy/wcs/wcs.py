@@ -453,7 +453,7 @@ naxis kwarg.
                     naxis1 = self._naxis1
                     naxis2 = self._naxis2
                 except AttributeError:
-                    warning.warn("Need a valid header in order to calculate footprint\n")
+                    warnings.warn("Need a valid header in order to calculate footprint\n")
                     return None
             else:
                 naxis1 = header.get('NAXIS1', None)
@@ -523,7 +523,7 @@ naxis kwarg.
                                                      d_crval, d_cdelt)
                     tables[i] = d_lookup
                 else:
-                    warning.warn('Polynomial distortion is not implemented.\n')
+                    warnings.warn('Polynomial distortion is not implemented.\n')
             else:
                 tables[i] = None
         if not tables:
@@ -660,7 +660,7 @@ naxis kwarg.
                     d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
                     tables[i] = d_lookup
                 else:
-                    warning.warn('Polynomial distortion is not implemented.\n')
+                    warnings.warn('Polynomial distortion is not implemented.\n')
             else:
                 tables[i] = None
 
