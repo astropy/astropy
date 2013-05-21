@@ -1515,9 +1515,9 @@ naxis kwarg.
                 self.wcs.cd[1, 0], self.wcs.cd[1, 1]))
         else:
             print('PC_11  PC_12: {!r} {!r}'.format(
-                self.wcs.cd[0, 0], self.wcs.cd[0, 1]))
+                self.wcs.pc[0, 0], self.wcs.pc[0, 1]))
             print('PC_21  PC_22: {!r} {!r}'.format(
-                self.wcs.cd[1, 0], self.wcs.cd[1, 1]))
+                self.wcs.pc[1, 0], self.wcs.pc[1, 1]))
         print('CRVAL    : {!r} {!r}'.format(
             self.wcs.crval[0], self.wcs.crval[1]))
         print('CRPIX    : {!r} {!r}'.format(
