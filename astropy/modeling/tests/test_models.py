@@ -19,13 +19,13 @@ class TestSComposite(object):
         self.p1= models.Poly1DModel(3)
         self.p11= models.Poly1DModel(3)
         self.p2 = models.Poly2DModel(3)
-        
+
     def test_single_array_input(self):
         scomptr = SCompositeModel([self.p1, self.p11])
         sresult = scomptr(self.x)
         xx = self.p11(self.p1(self.x))
         utils.assert_almost_equal(xx, sresult)
-        
+
     def test_labeledinput(self):
         ado = LabeledInput([self.x, self.y], ['x', 'y'])
         scomptr = SCompositeModel([self.p2, self.p1], [['x', 'y'], ['z']], [['z'], ['z']])
@@ -33,14 +33,14 @@ class TestSComposite(object):
         z = self.p2(self.x, self.y)
         z1 = self.p1(z)
         utils.assert_almost_equal(z1, sresult.z)
-        
+
     def test_multiple_arrays(self):
         scomptr = SCompositeModel([self.p2, self.p1], [['x', 'y'], ['z']], [['z'], ['z']])
         sresult = scomptr(self.x, self.y)
         z = self.p2(self.x, self.y)
         z1 = self.p1(z)
         utils.assert_almost_equal(z1, sresult)
-        
+
 class TestPComposite(object):
     """
     Test composite models evaluation in parallel
@@ -50,7 +50,7 @@ class TestPComposite(object):
         self.p1= models.Poly1DModel(3)
         self.p11= models.Poly1DModel(3)
         self.p2 = models.Poly2DModel(3)
-        
+
     def test_single_array_input(self):
         pcomptr = PCompositeModel([self.p1, self.p11])
         presult = pcomptr(self.x)
@@ -58,7 +58,7 @@ class TestPComposite(object):
         delta1 = self.p1(self.x) - self.x
         xx = self.x + delta1 + delta11
         utils.assert_almost_equal(xx, presult)
-        
+
     def test_labeledinput(self):
         ado = LabeledInput([self.x, self.y], ['x', 'y'])
         pcomptr = PCompositeModel([self.p1, self.p11], inmap=['x'], outmap=['x'])
@@ -69,3 +69,13 @@ class TestPComposite(object):
         utils.assert_almost_equal(xx, presult.x)
 
 
+def TestGaussian2D(object):
+    """
+    Test the Gaussian2D model
+    """
+
+    def setup_class(self):
+        self.m = models.Gaussian2DModel(2., 3., 4., x_stddev=1., y_stddev=5., theta=30.)
+
+    def test_eval(self):
+        assert self.m(3., 4.) == 2.

@@ -11,6 +11,7 @@ from .utils import InputParameterError
 
 __all__ = ['Gaussian1DModel', 'Gaussian2DModel',  'ScaleModel', 'ShiftModel']
 
+
 class Gaussian1DModel(ParametricModel):
     """
 
@@ -97,6 +98,7 @@ class Gaussian1DModel(ParametricModel):
         result = self.eval(x, self.param_sets)
         return _convert_output(result, fmt)
 
+
 class Gaussian2DModel(ParametricModel):
     """
 
@@ -179,16 +181,16 @@ class Gaussian2DModel(ParametricModel):
 
     def eval(self, x, y, p):
 
-        a = 0.5 * ((np.cos(p[5]) / p[1]) ** 2 +
-                   (np.sin(p[5]) / p[2]) ** 2)
+        a = 0.5 * ((np.cos(p[5]) / p[3]) ** 2 +
+                   (np.sin(p[5]) / p[4]) ** 2)
         b = 0.5 * (np.cos(p[5]) * np.sin(p[5]) *
-                   (1. / p[1] ** 2 - 1. / p[2] ** 2))
-        c = 0.5 * ((np.sin(p[5]) / p[1]) ** 2 +
-                   (np.cos(p[5]) / p[2]) ** 2)
+                   (1. / p[3] ** 2 - 1. / p[4] ** 2))
+        c = 0.5 * ((np.sin(p[5]) / p[3]) ** 2 +
+                   (np.cos(p[5]) / p[4]) ** 2)
 
-        return p[0] * np.exp(-(a * (x - p[3]) ** 2 +
-                               b * (x - p[3]) * (y - p[4]) +
-                               c * (y - p[4]) ** 2))
+        return p[0] * np.exp(-(a * (x - p[1]) ** 2 +
+                               b * (x - p[1]) * (y - p[2]) +
+                               c * (y - p[2]) ** 2))
 
     def __call__(self, x, y):
         """
@@ -204,6 +206,7 @@ class Gaussian2DModel(ParametricModel):
         y, fmt = _convert_input(y, self.param_dim)
         result = self.eval(x, y, self.param_sets)
         return _convert_output(result, fmt)
+
 
 class ShiftModel(Model):
     """
@@ -234,6 +237,7 @@ class ShiftModel(Model):
         x, fmt = _convert_input(x, self.param_dim)
         result = x + self.offsets
         return _convert_output(result, fmt)
+
 
 class ScaleModel(Model):
     """
