@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import io
 import sys
 
 from ..utils import OrderedDict
@@ -76,11 +77,23 @@ def register_identifier(data_format, data_class, identifier, force=False):
     identifier : function
         A function that checks the argument specified to `read` or `write` to
         determine whether the input can be interpreted as a table of type
-        `data_format`. This function should take two arguments, which will be
-        set to the list of arguments and a dictionary of keyword arguments
-        passed to `read` or `write`. The function should return True if the
-        input can be identified as being of format `data_format`, and False
-        otherwise.
+        `data_format`. This function should take the following arguments:
+
+           - `origin`: A string `read` or `write` identifying whether
+             the file is to be opened for reading or writing.
+           - `path`: The path to the file.
+           - `fileobj`: An open file object to read the file's contents, or
+             `None` if the file could not be opened.
+           - `*args`: A list of positional arguments to the `read` or
+             `write` function.
+           - `**kwargs`: A list of keyword arguments to the `read` or
+             `write` function.
+
+        One or both of `path` or `fileobj` may be `None`.  If they are
+        both `None`, the identifier will need to work from `args[0]`.
+
+        The function should return True if the input can be identified
+        as being of format `data_format`, and False otherwise.
     force : bool
         Whether to override any existing function if already present.
 
@@ -104,20 +117,14 @@ def register_identifier(data_format, data_class, identifier, force=False):
                                                  data_class.__name__))
 
 
-def identify_format(origin, data_class_required, fileobj, *args, **kwargs):
+def identify_format(origin, data_class_required, path, fileobj, *args, **kwargs):
     # Loop through identifiers to see which formats match
     valid_formats = []
     for data_format, data_class in _identifiers:
         if data_class is data_class_required:
-            # We try first with the fileobj, and failing that with the
-            # original arguments
-            if (fileobj is not None and
-                _identifiers[(data_format, data_class)](
-                    origin, [fileobj] + list(args[1:]), kwargs)):
-                valid_formats.append((data_format, [fileobj] + list(args[1:])))
-            elif _identifiers[(data_format, data_class)](
-                    origin, *args, **kwargs):
-                valid_formats.append((data_format, args))
+            if _identifiers[(data_format, data_class)](
+                origin, path, fileobj, *args, **kwargs):
+                valid_formats.append(data_format)
 
     return valid_formats
 
@@ -150,25 +157,31 @@ def read(cls, *args, **kwargs):
     else:
         format = None
 
-    fileobj = None
     ctx = None
     try:
         if format is None:
-            if len(args) and isinstance(args[0], (bytes, unicode)):
-                from ..utils.data import get_readable_fileobj
-                try:
-                    ctx = get_readable_fileobj(args[0], encoding='binary')
-                    fileobj = ctx.__enter__()
-                except:
-                    ctx = None
-                    fileobj = None
+            path = None
+            fileobj = None
 
-            format, args = _get_valid_format('read', cls, fileobj, *args,
-                                             **kwargs)
+            if len(args):
+                if isinstance(args[0], basestring):
+                    from ..utils.data import get_readable_fileobj
+                    path = args[0]
+                    try:
+                        ctx = get_readable_fileobj(args[0], encoding='binary')
+                        fileobj = ctx.__enter__()
+                    except Exception as e:
+                        fileobj = None
+                    else:
+                        args = [fileobj] + list(args[1:])
+                elif hasattr(args[0], 'read'):
+                    path = None
+                    fileobj = args[0]
+
+            format = _get_valid_format(
+                'read', cls, path, fileobj, *args, **kwargs)
 
         reader = get_reader(format, cls)
-        if fileobj is not None:
-            fileobj.seek(0)
         table = reader(*args, **kwargs)
 
         if not isinstance(table, cls):
@@ -194,14 +207,24 @@ def write(data, *args, **kwargs):
         format = None
 
     if format is None:
-        format, args = _get_valid_format('write', data.__class__, None, *args,
-                                         **kwargs)
+        path = None
+        fileobj = None
+        if len(args):
+            if isinstance(args[0], basestring):
+                path = args[0]
+                fileobj = None
+            elif hasattr(args[0], 'read'):
+                path = None
+                fileobj = args[0]
+
+        format = _get_valid_format(
+            'write', data.__class__, path, fileobj, *args, **kwargs)
 
     writer = get_writer(format, data.__class__)
     writer(data, *args, **kwargs)
 
 
-def _get_valid_format(mode, cls, fileobj, *args, **kwargs):
+def _get_valid_format(mode, cls, path, fileobj, *args, **kwargs):
     """
     Returns the first valid format that can be used to read/write the data in
     question.  Mode can be either 'read' or 'write'.
@@ -212,16 +235,16 @@ def _get_valid_format(mode, cls, fileobj, *args, **kwargs):
     elif mode == 'write':
         funcs = _writers
 
-    valid_formats = identify_format(mode, cls, fileobj, *args, **kwargs)
+    valid_formats = identify_format(mode, cls, path, fileobj, *args, **kwargs)
 
     if len(valid_formats) == 0:
         raise Exception(
             "Format could not be identified. ",
             "Valid formats are {0}".format(
-                ', '.join(sorted(r[0] for r in funcs))))
+                ', '.join(sorted(x[0] for x in funcs))))
     elif len(valid_formats) > 1:
         raise Exception(
             "Format is ambiguous - options are: {0}".format(
-                ', '.join(sorted(x[0] for x in valid_formats))))
+                ', '.join(sorted(valid_formats))))
 
     return valid_formats[0]

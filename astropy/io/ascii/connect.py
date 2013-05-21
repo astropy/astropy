@@ -99,8 +99,8 @@ def write_latex(table, filename, **kwargs):
 io_registry.register_writer('latex', Table, write_latex)
 
 
-def is_latex(origin, *args, **kwargs):
-    return isinstance(args[0], basestring) and args[0].endswith('.tex')
+def is_latex(origin, path, fileobj, *args, **kwargs):
+    return path is not None and path.endswith('.tex')
 
 io_registry.register_identifier('latex', Table, is_latex)
 
@@ -126,7 +126,7 @@ def write_rdb(table, filename, **kwargs):
 io_registry.register_writer('rdb', Table, write_rdb)
 
 
-def is_rdb(origin, *args, **kwargs):
-    return isinstance(args[0], basestring) and args[0].endswith('.rdb')
+def is_rdb(origin, path, fileobj, *args, **kwargs):
+    return path is not None and path.endswith('.rdb')
 
 io_registry.register_identifier('rdb', Table, is_rdb)

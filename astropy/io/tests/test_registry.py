@@ -185,8 +185,12 @@ def test_write_format_nowriter():
 
 def test_read_identifier():
 
-    io_registry.register_identifier('test1', TestData, lambda o, *x, **y: x[0].startswith('a'))
-    io_registry.register_identifier('test2', TestData, lambda o, *x, **y: x[0].startswith('b'))
+    io_registry.register_identifier(
+        'test1', TestData,
+        lambda o, path, fileobj, *x, **y: path.startswith('a'))
+    io_registry.register_identifier(
+        'test2', TestData,
+        lambda o, path, fileobj, *x, **y: path.startswith('b'))
 
     # Now check that we got past the identifier and are trying to get
     # the reader. The io_registry.get_reader will fail but the error message will

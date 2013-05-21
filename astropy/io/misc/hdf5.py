@@ -18,17 +18,15 @@ HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 __all__ = ['read_table_hdf5', 'write_table_hdf5']
 
 
-def is_hdf5(origin, *args, **kwargs):
+def is_hdf5(origin, path, fileobj, *args, **kwargs):
 
-    if isinstance(args[0], basestring):
-        if os.path.exists(args[0]):
-            with open(args[0], 'rb') as f:
-                if f.read(8) == HDF5_SIGNATURE:
-                    return True
-                else:
-                    return False
-        elif args[0].endswith('.hdf5') or args[0].endswith('.h5'):
-            return True
+    if fileobj is not None:
+        pos = fileobj.tell()
+        signature = fileobj.read(8)
+        fileobj.seek(pos)
+        return signature == HDF5_SIGNATURE
+    elif path is not None:
+        return path.endswith('.hdf5') or path.endswith('.h5')
 
     try:
         import h5py

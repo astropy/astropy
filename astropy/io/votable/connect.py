@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+import io
 import os
 
 from . import parse, from_table
@@ -11,7 +12,7 @@ from .. import registry as io_registry
 from ...table import Table
 
 
-def is_votable(origin, *args, **kwargs):
+def is_votable(origin, path, fileobj, *args, **kwargs):
     """
     Reads the header of a file to determine if it is a VOTable file.
 
@@ -27,8 +28,14 @@ def is_votable(origin, *args, **kwargs):
     """
     from . import is_votable
     if origin == 'read':
-        if isinstance(args[0], basestring) or hasattr(args[0], 'read'):
-            return is_votable(args[0])
+        if fileobj is not None:
+            try:
+                result = is_votable(fileobj)
+            finally:
+                fileobj.seek(0)
+            return result
+        elif path is not None:
+            return is_votable(path)
         elif isinstance(args[0], (VOTableFile, VOTable)):
             return True
         else:
@@ -78,8 +85,9 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False):
             if table_id is None:
                 raise ValueError(
                     "Multiple tables found: table id should be set via "
-                    "the table_id= argument. The available tables are " +
-                    ', '.join(tables.keys()))
+                    "the table_id= argument. The available tables are {0}, "
+                    'or integers less than {1}.'.format(
+                        ', '.join(table_id_mapping.keys()), len(tables)))
             elif isinstance(table_id, basestring):
                 if table_id in table_id_mapping:
                     table = table_id_mapping[table_id]

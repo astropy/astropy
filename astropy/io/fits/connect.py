@@ -47,7 +47,7 @@ def is_column_keyword(keyword):
     return False
 
 
-def is_fits(origin, *args, **kwargs):
+def is_fits(origin, path, fileobj, *args, **kwargs):
     """
     Determine whether `origin` is a FITS file.
 
@@ -61,18 +61,14 @@ def is_fits(origin, *args, **kwargs):
     is_fits : bool
         Returns `True` if the given file is a FITS file.
     """
-    if isinstance(args[0], basestring):
-        if args[0].lower().endswith(('.fits', '.fits.gz', '.fit', '.fit.gz')):
-            return True
-        elif origin == 'read':
-            with open(args[0], 'rb') as f:
-                sig = f.read(30)
-            return sig == FITS_SIGNATURE
-    elif hasattr(args[0], 'read'):
-        pos = args[0].tell()
-        sig = args[0].read(30)
-        args[0].seek(pos)
+    if fileobj is not None:
+        pos = fileobj.tell()
+        sig = fileobj.read(30)
+        fileobj.seek(pos)
         return sig == FITS_SIGNATURE
+    elif path is not None:
+        if path.lower().endswith(('.fits', '.fits.gz', '.fit', '.fit.gz')):
+            return True
     elif isinstance(args[0], (HDUList, TableHDU, BinTableHDU, GroupsHDU)):
         return True
     else:
@@ -97,7 +93,7 @@ def read_table_fits(input, hdu=None):
         The HDU to read the table from.
     """
 
-    if isinstance(input, basestring):
+    if isinstance(input, basestring) or hasattr(input, 'read'):
         input = fits_open(input)
         to_close = input
     else:
@@ -140,8 +136,9 @@ def read_table_fits(input, hdu=None):
 
         else:
 
-            raise ValueError("Input should be a string, an HDUList, "
-                             "TableHDU, BinTableHDU, or GroupsHDU instance")
+            raise ValueError(
+                "Input should be a string, readable file-like object, "
+                "an HDUList, TableHDU, BinTableHDU, or GroupsHDU instance")
 
         # Check if table is masked
         masked = False
@@ -162,7 +159,8 @@ def read_table_fits(input, hdu=None):
         # Copy over units
         for col in table.columns:
             if col.unit is not None:
-                t[col.name].units = u.Unit(col.unit, format='fits')
+                t[col.name].units = u.Unit(
+                    col.unit, format='fits', parse_strict='warn')
 
         # TODO: deal properly with unsigned integers
 
