@@ -148,7 +148,7 @@ class TestNonLinearFitters(object):
         func = lambda p, x: p[0]* np.exp(-0.5 / p[2]**2 * (x-p[1])**2)
         errf = lambda p, x, y: (func(p, x) - y)
         self.xdata = np.arange(0, 10, 0.1)
-        sigma = 10 * np.ones_like(self.xdata)
+        sigma = 8. * np.ones_like(self.xdata)
         rsn = RandomState(1234567890)
         yerror = rsn.normal(0, sigma)
         self.ydata = func(self.initial_values, self.xdata)+ yerror
