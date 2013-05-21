@@ -453,7 +453,7 @@ naxis kwarg.
                     naxis1 = self._naxis1
                     naxis2 = self._naxis2
                 except AttributeError:
-                    print("Need a valid header in order to calculate footprint\n")
+                    warning.warn("Need a valid header in order to calculate footprint\n")
                     return None
             else:
                 naxis1 = header.get('NAXIS1', None)
@@ -523,7 +523,7 @@ naxis kwarg.
                                                      d_crval, d_cdelt)
                     tables[i] = d_lookup
                 else:
-                    print('Polynomial distortion is not implemented.\n')
+                    warning.warn('Polynomial distortion is not implemented.\n')
             else:
                 tables[i] = None
         if not tables:
@@ -660,7 +660,7 @@ naxis kwarg.
                     d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
                     tables[i] = d_lookup
                 else:
-                    print('Polynomial distortion is not implemented.\n')
+                    warning.warn('Polynomial distortion is not implemented.\n')
             else:
                 tables[i] = None
 
@@ -1513,10 +1513,17 @@ naxis kwarg.
                 self.wcs.cd[0, 0], self.wcs.cd[0, 1]))
             print('CD_21  CD_22: {!r} {!r}'.format(
                 self.wcs.cd[1, 0], self.wcs.cd[1, 1]))
+        else:
+            print('PC_11  PC_12: {!r} {!r}'.format(
+                self.wcs.cd[0, 0], self.wcs.cd[0, 1]))
+            print('PC_21  PC_22: {!r} {!r}'.format(
+                self.wcs.cd[1, 0], self.wcs.cd[1, 1]))
         print('CRVAL    : {!r} {!r}'.format(
             self.wcs.crval[0], self.wcs.crval[1]))
         print('CRPIX    : {!r} {!r}'.format(
             self.wcs.crpix[0], self.wcs.crpix[1]))
+        print('CDELT    : {!r} {!r}'.format(
+            self.wcs.cdelt[0], self.wcs.cdelt[1]))
         print('NAXIS    : {!r} {!r}'.format(
             self.naxis1, self.naxis2))
 
