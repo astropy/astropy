@@ -109,7 +109,7 @@ class TestJointFitter(object):
         p2 = [13, .4]
         A = 9.8
         p = np.r_[A, p1, p2]
-        compmodel = lambda A, p, x: A* np.exp((-(1/(p[1]**2)) * (x-p[0])**2))
+        compmodel = lambda A, p, x: A* np.exp(-0.5/p[1]**2 * (x-p[0])**2)
         errf = lambda p, x1, y1, x2, y2: np.ravel(np.r_[compmodel(p[0], p[1:3], 
                                 x1) -y1, compmodel(p[0], p[3:], x2) - y2])
         coeff, _ = optimize.leastsq(errf, p, args=(self.x, self.ny1, self.x, 
@@ -145,10 +145,10 @@ class TestNonLinearFitters(object):
     """
     def setup_class(self):
         self.initial_values = [100, 5, 1]
-        func = lambda p, x: p[0]* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
+        func = lambda p, x: p[0]* np.exp(-0.5 / p[2]**2 * (x-p[1])**2)
         errf = lambda p, x, y: (func(p, x) - y)
         self.xdata = np.arange(0, 10, 0.1)
-        sigma = 10 * np.ones_like(self.xdata)
+        sigma = 8. * np.ones_like(self.xdata)
         rsn = RandomState(1234567890)
         yerror = rsn.normal(0, sigma)
         self.ydata = func(self.initial_values, self.xdata)+ yerror
@@ -167,7 +167,7 @@ class TestNonLinearFitters(object):
         g1= models.Gaussian1DModel(100, 5, stddev=1, jacobian_func='estimated')
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.xdata, self.ydata)
-        func = lambda p, x: p[0]* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
+        func = lambda p, x: p[0]* np.exp(-0.5 / p[2]**2 * (x-p[1])**2)
         errf = lambda p, x, y: (func(p, x) - y)
         result = optimize.leastsq(errf, self.initial_values, args=(self.xdata, self.ydata))
         utils.assert_allclose(g1.parameters, result[0], rtol=10**(-3))
