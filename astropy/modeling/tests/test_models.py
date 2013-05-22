@@ -69,13 +69,6 @@ class TestPComposite(object):
         utils.assert_almost_equal(xx, presult.x)
 
 
-def TestGaussian2D(object):
-    """
-    Test the Gaussian2D model
-    """
-
-    def setup_class(self):
-        self.m = models.Gaussian2DModel(2., 3., 4., x_stddev=1., y_stddev=5., theta=30.)
-
-    def test_eval(self):
-        assert self.m(3., 4.) == 2.
+def test_gaussian2d_eval():
+    m = models.Gaussian2DModel(2., 3., 4., x_stddev=1., y_stddev=5., theta=30.)
+    assert m(3., 4.) == 2.
