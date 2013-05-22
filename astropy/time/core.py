@@ -811,16 +811,12 @@ class TimeFromEpoch(TimeFormat):
         # Initialize the reference epoch which is a single time defined in subclasses
         epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
                      format=self.epoch_format)
-        # Convert the epoch time to TAI so that calculations involving adding/subtracting
-        # JDs are always linear and well-defined (a JD in TAI is always 86400 uniform
-        # seconds, unlike other scales, in particular UTC where one JD isn't always the
-        # same duration).
         self.epoch = epoch
         super(TimeFromEpoch, self).__init__(val1, val2, scale, precision,
                                             in_subfmt, out_subfmt, from_jd)
 
     def set_jds(self, val1, val2):
-        # Form new JDs based on epoch time (TAI) + time from epoch (converted to JD)
+        # Form new JDs based on epoch time + time from epoch (converted to JD)
         jd1 = self.epoch.jd1 + val2 * self.unit
         jd2 = self.epoch.jd2 + val1 * self.unit
 
@@ -833,7 +829,7 @@ class TimeFromEpoch(TimeFormat):
 
     @property
     def vals(self):
-        # Convert current JDs to TAI
+        # Convert current JDs to the epoch scale, then compute time from the epoch
         tm = getattr(Time(self.jd1, self.jd2, scale=self.scale, format='jd'), self.epoch_scale)
         time_from_epoch = ((tm.jd1 - self.epoch.jd1) +
                            (tm.jd2 - self.epoch.jd2)) / self.unit
