@@ -60,8 +60,7 @@ class TestNonLinearConstraints(object):
         p2 = [13, .4]
         A = 9.8
         p = np.r_[A, p1, p2]
-        compmodel = lambda A, p, x: A* np.exp((-(1/(p[1]**2)) * 
-                                             (x-p[0])**2))
+        compmodel = lambda A, p, x: A* np.exp(-0.5 / p[1]**2 * (x-p[0])**2)
         errf = lambda p, x1, y1, x2, y2: np.ravel(
             np.r_[compmodel(p[0], p[1:3], x1) - y1, 
                   compmodel(p[0], p[3:], x2) - y2])
@@ -72,7 +71,7 @@ class TestNonLinearConstraints(object):
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_no_constraints(self):
         g1 = models.Gaussian1DModel(9.9, 14.5, stddev=.3)
-        func = lambda p, x: p[0]* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
+        func = lambda p, x: p[0]* np.exp(-0.5 / p[2]**2 * (x-p[1])**2)
         errf = lambda p, x, y: func(p, x) - y
         p0 = [9.9, 14.5, 0.3]
         y = g1(self.x)
