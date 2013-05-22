@@ -815,7 +815,7 @@ class TimeFromEpoch(TimeFormat):
         # JDs are always linear and well-defined (a JD in TAI is always 86400 uniform
         # seconds, unlike other scales, in particular UTC where one JD isn't always the
         # same duration).
-        self.epoch = epoch.tai
+        self.epoch = epoch
         super(TimeFromEpoch, self).__init__(val1, val2, scale, precision,
                                             in_subfmt, out_subfmt, from_jd)
 
@@ -824,9 +824,9 @@ class TimeFromEpoch(TimeFormat):
         jd1 = self.epoch.jd1 + val2 * self.unit
         jd2 = self.epoch.jd2 + val1 * self.unit
 
-        # Create a Time object corresponding to the new (jd1, jd2) in TAI, then convert
-        # that to the time scale for this object.
-        tm = getattr(Time(jd1, jd2, scale='tai', format='jd'), self.scale)
+        # Create a Time object corresponding to the new (jd1, jd2) in the epoch scale,
+        # then convert that to the time scale for this object.
+        tm = getattr(Time(jd1, jd2, scale=self.epoch_scale, format='jd'), self.scale)
 
         self.jd1 = tm.jd1
         self.jd2 = tm.jd2
@@ -834,7 +834,7 @@ class TimeFromEpoch(TimeFormat):
     @property
     def vals(self):
         # Convert current JDs to TAI
-        tm = Time(self.jd1, self.jd2, scale=self.scale, format='jd').tai
+        tm = getattr(Time(self.jd1, self.jd2, scale=self.scale, format='jd'), self.epoch_scale)
         time_from_epoch = ((tm.jd1 - self.epoch.jd1) +
                            (tm.jd2 - self.epoch.jd2)) / self.unit
         return time_from_epoch

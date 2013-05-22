@@ -83,7 +83,7 @@ class TestBasic():
         assert allclose_jd(t.utc.jd, 2455197.5)
         assert allclose_jd(t.ut1.jd, 2455197.500003867)
         assert t.tcg.isot == '2010-01-01T00:01:06.910'
-        assert allclose_sec(t.unix, 1262304025.9999182)  # Correct is 1262304000.0!
+        assert allclose_sec(t.unix, 1262304000.0)
         assert allclose_sec(t.cxcsec, 378691266.184)
         assert t.datetime == datetime(2010, 1, 1)
 
@@ -367,6 +367,9 @@ class TestSubFormat():
         # Value take from Chandra.Time.DateTime('2010:001:00:00:00').secs
         t = Time(378691266.184, format='cxcsec', scale='utc')
         assert t.yday == '2010:001:00:00:00.000'
+        t = Time('2010:001:00:00:00.000', scale='utc')
+        assert allclose_sec(t.cxcsec, 378691266.184)
+        assert allclose_sec(t.tt.cxcsec, 378691266.184)
 
         # Value from:
         #   d = datetime.datetime(2000, 1, 1)
@@ -379,6 +382,15 @@ class TestSubFormat():
             t = Time('2000:001', scale=scale)
             t2 = Time(t.unix, scale=scale, format='unix')
             assert getattr(t2, scale).iso == '2000-01-01 00:00:00.000'
+
+        # Test unix time.  Values taken from http://en.wikipedia.org/wiki/Unix_time
+        t = Time('2013-05-20 21:18:46', scale='utc')
+        assert allclose_sec(t.unix, 1369084726.0)
+        assert allclose_sec(t.tt.unix, 1369084726.0)
+
+        # Values from issue #1118
+        t = Time('2004-09-16T23:59:59', scale='utc')
+        assert allclose_sec(t.unix, 1095379199.0)
 
 
 class TestSofaErrors():
