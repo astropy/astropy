@@ -1,8 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import functools
+
 import numpy as np
 
 from ...tests.helper import pytest
 from .. import Time, TimeDelta, OperandTypeError
+
+allclose_jd = functools.partial(np.allclose, rtol=1e-15, atol=0)
+allclose_sec = functools.partial(np.allclose, rtol=1e-15, atol=1e-9)  # 1 nanosec atol
 
 
 class TestTimeDelta():
@@ -18,8 +23,8 @@ class TestTimeDelta():
         dt = self.t2 - self.t
         assert (repr(dt).startswith("<TimeDelta object: scale='tai' "
                                     "format='jd' vals=1.00001157407"))
-        assert np.allclose(dt.jd, 1.00001157407)
-        assert np.allclose(dt.sec, 86401.0)
+        assert allclose_jd(dt.jd, 86401.0 / 86400.0)
+        assert allclose_sec(dt.sec, 86401.0)
 
         # time - delta_time
         t = self.t2 - dt
@@ -27,7 +32,7 @@ class TestTimeDelta():
 
         # delta_time - delta_time
         dt2 = dt - self.dt
-        assert np.allclose(dt2.sec, 86301.0)
+        assert allclose_sec(dt2.sec, 86301.0)
 
         # delta_time - time
         with pytest.raises(OperandTypeError):
@@ -45,7 +50,7 @@ class TestTimeDelta():
 
         # delta_time + delta_time
         dt2 = dt + self.dt
-        assert np.allclose(dt2.sec, 86501.0)
+        assert allclose_sec(dt2.sec, 86501.0)
 
         # delta_time + time
         dt = self.t2 - self.t
@@ -72,4 +77,4 @@ class TestTimeDelta():
 
         # Include initializers
         dt2 = TimeDelta(dt, format='sec')
-        assert np.allclose(dt2.val, 86400.0)
+        assert allclose_sec(dt2.val, 86400.0)
