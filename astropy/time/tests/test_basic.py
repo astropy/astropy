@@ -1,10 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from datetime import datetime
+import functools
 
 import numpy as np
 
 from ...tests.helper import pytest
 from .. import Time, ScaleValueError, sofa_time
+
+allclose_jd = functools.partial(np.allclose, rtol=1e-15, atol=0)
+allclose_jd2 = functools.partial(np.allclose, rtol=1e-15, atol=1e-11)  # 1 microsec atol
+allclose_sec = functools.partial(np.allclose, rtol=1e-15, atol=1e-9)  # 1 nanosec atol
+allclose_year = functools.partial(np.allclose, rtol=1e-15, atol=0)  # 60 microsec at current epoch
 
 
 class TestBasic():
@@ -15,15 +21,15 @@ class TestBasic():
         t = Time(times, format='iso', scale='utc')
         assert (repr(t) == "<Time object: scale='utc' format='iso' "
                 "vals=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>")
-        assert np.allclose(t.jd1, np.array([2451179.5, 2455197.5]))
-        assert np.allclose(t.jd2, np.array([1.42889802e-06, 0.00000000e+00]))
+        assert allclose_jd(t.jd1, np.array([2451179.5, 2455197.5]))
+        assert allclose_jd2(t.jd2, np.array([1.42889802e-06, 0.00000000e+00]))
 
         # Set scale to TAI
         t = t.tai
         assert (repr(t) == "<Time object: scale='tai' format='iso' "
                 "vals=['1999-01-01 00:00:32.123' '2010-01-01 00:00:34.000']>")
-        assert np.allclose(t.jd1, np.array([2451179.5, 2455197.5]))
-        assert np.allclose(t.jd2, np.array([0.0003718, 0.00039352]))
+        assert allclose_jd(t.jd1, np.array([2451179.5, 2455197.5]))
+        assert allclose_jd2(t.jd2, np.array([0.00037179926839122024, 0.00039351851851851852]))
 
         # Get a new ``Time`` object which is referenced to the TT scale
         # (internal JD1 and JD1 are now with respect to TT scale)"""
@@ -36,8 +42,7 @@ class TestBasic():
         # array, depending on whether the input was a scalar or array"""
 
         print t.cxcsec
-        assert np.allclose(t.cxcsec, np.array([3.15360643e+07,
-                                               3.78691266e+08]))
+        assert allclose_sec(t.cxcsec, np.array([31536064.307456788, 378691266.18400002]))
 
     def test_copy_time(self):
         """Test copying the values of a Time object by passing it into the
@@ -71,15 +76,15 @@ class TestBasic():
 
         t = Time('2010-01-01 00:00:00', format='iso', scale='utc')
         t.delta_ut1_utc = 0.3341  # Explicitly set one part of the xform
-        assert np.allclose(t.jd, 2455197.5)
+        assert allclose_jd(t.jd, 2455197.5)
         assert t.iso == '2010-01-01 00:00:00.000'
         assert t.tt.iso == '2010-01-01 00:01:06.184'
         assert t.tai.iso == '2010-01-01 00:00:34.000'
-        assert np.allclose(t.utc.jd, 2455197.5)
-        assert np.allclose(t.ut1.jd, 2455197.500003867)
+        assert allclose_jd(t.utc.jd, 2455197.5)
+        assert allclose_jd(t.ut1.jd, 2455197.500003867)
         assert t.tcg.isot == '2010-01-01T00:01:06.910'
-        assert np.allclose(t.unix, 1262304000.0)
-        assert np.allclose(t.cxcsec, 378691266.184)
+        assert allclose_sec(t.unix, 1262304025.9999182)  # Correct is 1262304000.0!
+        assert allclose_sec(t.cxcsec, 378691266.184)
         assert t.datetime == datetime(2010, 1, 1)
 
     def test_precision(self):
@@ -116,7 +121,7 @@ class TestBasic():
         lat = 19.48125
         lon = -155.933222
         t = Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
-                     precision=6, lat=lat, lon=lon)
+                 precision=6, lat=lat, lon=lon)
         t.delta_ut1_utc = 0.3341  # Explicitly set one part of the xform
         assert t.utc.iso == '2006-01-15 21:24:37.500000'
         assert t.ut1.iso == '2006-01-15 21:24:37.834100'
@@ -166,17 +171,17 @@ class TestBasic():
         """Besselian and julian epoch transforms"""
         jd = 2457073.05631
         t = Time(jd, format='jd', scale='tai', precision=6)
-        assert np.allclose(t.byear, 2015.1365941021)
-        assert np.allclose(t.jyear, 2015.1349933196)
+        assert allclose_year(t.byear, 2015.1365941020817)
+        assert allclose_year(t.jyear, 2015.1349933196439)
         assert t.byear_str == 'B2015.136594'
         assert t.jyear_str == 'J2015.134993'
         t2 = Time(t.byear, format='byear', scale='tai')
-        assert np.allclose(t2.jd, jd)
+        assert allclose_jd(t2.jd, jd)
         t2 = Time(t.jyear, format='jyear', scale='tai')
-        assert np.allclose(t2.jd, jd)
+        assert allclose_jd(t2.jd, jd)
 
         t = Time('J2015.134993', scale='tai', precision=6)
-        assert np.allclose(t.jd, jd)
+        assert np.allclose(t.jd, jd, rtol=1e-10, atol=0)  # J2015.134993 has 10 digit precision
         assert t.byear_str == 'B2015.136594'
 
     def test_input_validation(self):
@@ -215,7 +220,7 @@ class TestBasic():
         # Delta time gives 2 seconds here as expected
         t0 = Time('2012-06-30 23:59:59', scale='utc')
         t1 = Time('2012-07-01 00:00:00', scale='utc')
-        assert np.allclose((t1 - t0).sec, 2.0)
+        assert allclose_sec((t1 - t0).sec, 2.0)
 
     def test_init_from_time_objects(self):
         """Initialize from one or more Time objects"""
@@ -268,6 +273,7 @@ class TestVal2():
             Time([0.0, 50000.0], [0.0], format='mjd', scale='tai')
         with pytest.raises(ValueError):
             Time([0.0], 0.0, format='mjd', scale='tai')
+
 
 class TestSubFormat():
     """Test input and output subformat functionality"""
@@ -390,8 +396,8 @@ class TestSofaErrors():
         # Set month to a good value so now the bad day just gives a warning
         im[0] = 2
         sofa_time.cal2jd(iy, im, id, djm0, djm)
-        assert np.allclose(djm0, [2400000.5])
-        assert np.allclose(djm, [ 53574.])
+        assert allclose_jd(djm0, [2400000.5])
+        assert allclose_jd(djm, [53574.])
 
         # How do you test for warnings in pytest?  Test that dubious year for
         # UTC works.
@@ -405,21 +411,21 @@ class TestCopyReplicate():
         mutable."""
         jds = np.array([2450000.5], dtype=np.double)
         t = Time(jds, format='jd', scale='tai')
-        assert np.allclose(t.jd, jds)
+        assert allclose_jd(t.jd, jds)
         jds[0] = 2459009.5
-        assert np.allclose(t.jd, jds)
+        assert allclose_jd(t.jd, jds)
 
         t = Time(jds, format='jd', scale='tai', copy=True)
-        assert np.allclose(t.jd, jds)
+        assert allclose_jd(t.jd, jds)
         jds[0] = 2458654
-        assert not np.allclose(t.jd, jds)
+        assert not allclose_jd(t.jd, jds)
 
         # MJD does not suffer from this mutability
         mjds = np.array([50000.0], dtype=np.double)
         t = Time(mjds, format='mjd', scale='tai')
-        assert np.allclose(t.jd, [2450000.5])
+        assert allclose_jd(t.jd, [2450000.5])
         mjds[0] = 0.0
-        assert np.allclose(t.jd, [2450000.5])
+        assert allclose_jd(t.jd, [2450000.5])
 
     def test_replicate(self):
         """Test replicate method"""
