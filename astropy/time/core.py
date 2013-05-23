@@ -579,13 +579,6 @@ class Time(object):
     def __len__(self):
         return len(self._time)
 
-    def _add_sub(self, other, op):
-        """
-        Add or subtract self and other.  It is assumed that ``op`` is
-        either operator.add or operator.sub.  (OK since this is a private
-        method and only called from __add__ and __sub__).
-        """
-
     def __sub__(self, other):
         self_tai = self.tai
         if not isinstance(other, Time):
