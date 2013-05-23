@@ -77,8 +77,6 @@ class Time(object):
         Format of input value(s)
     scale : str, optional
         Time scale of input value(s)
-    opt : dict, optional
-        options
     lat : float, optional
         Earth latitude of observer (decimal degrees)
     lon : float, optional
