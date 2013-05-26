@@ -131,6 +131,65 @@ tablefoot
 
 ]
 
+tab_to_fill = ['a b c','1 2 3','1 1 3']
+
+test_defs_fill_value = [
+    dict(kwargs=dict(),
+         out="""\
+a b c
+1 2 3
+1 1 3
+"""
+         ),   
+    dict(kwargs=dict(fill_values = ('1','w')),
+         out="""\
+a b c
+w 2 3
+w w 3
+"""
+         ),   
+    dict(kwargs=dict(fill_values = ('1','w', 'b')),
+         out="""\
+a b c
+1 2 3
+1 w 3
+"""
+         ), 
+    dict(kwargs=dict(fill_values = ('1','w'),
+                     fill_include_names = ['b']),
+         out="""\
+a b c
+1 2 3
+1 w 3
+"""
+         ), 
+    dict(kwargs=dict(fill_values = ('1','w'),
+                     fill_exclude_names = ['a']),
+         out="""\
+a b c
+1 2 3
+1 w 3
+"""
+         ),
+    dict(kwargs=dict(fill_values = ('1','w'),
+                     fill_include_names = ['a'],
+                     fill_exclude_names = ['a', 'b']),
+         out="""\
+a b c
+1 2 3
+1 1 3
+"""
+         ),
+    dict(kwargs=dict(fill_values = [('1','w')],
+                     formats={'a': '%4.2f'}),
+         out="""\
+a b c
+1.00 2 3
+1.00 w 3
+"""
+         ),
+]
+
 
 def check_write_table(test_def, table):
     out = io.StringIO()
@@ -146,3 +205,11 @@ def test_write_table():
 
     for test_def in test_defs:
         check_write_table(test_def, data)
+
+
+def test_write_fill_values():
+    data = asciitable.read(tab_to_fill)
+
+    for test_def in test_defs_fill_value:
+        check_write_table(test_def, data)
+

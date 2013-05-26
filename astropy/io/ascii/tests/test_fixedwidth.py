@@ -225,6 +225,16 @@ def test_write_normal():
 |  2.4 | 's worlds |    2 |    2 |
 """)
 
+def test_write_fill_values():
+    """Write a table as a normal fixed width table."""
+    out = io.StringIO()
+    asciitable.write(dat, out, Writer=asciitable.FixedWidth, 
+                     fill_values = ('a', 'N/A'))
+    assert_equal_splitlines(out.getvalue(), """\
+| Col1 |      Col2 | Col3 | Col4 |
+|  1.2 |   "hello" |    1 |  N/A |
+|  2.4 | 's worlds |    2 |    2 |
+""")
 
 def test_write_no_pad():
     """Write a table as a fixed width table with no padding."""

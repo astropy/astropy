@@ -543,6 +543,12 @@ class BaseData(object):
 
         """
         if self.fill_values:
+            # when we write tables the columns may be astropy.table.Columns
+            # which don't carry a fill_values by default
+            for col in cols:
+                if ~hasattr(col, 'fill_values'):
+                    col.fill_values = {}
+
             #if input is only one <fill_spec>, then make it a list
             try:
                 self.fill_values[0] + ''
@@ -581,6 +587,14 @@ class BaseData(object):
                     col.str_vals[i] = col.fill_values[str_val]
                     col.mask[i] = True
 
+    def _replace_vals(self, cols):
+        """Replace string values in col.str_vals"""
+        if self.fill_values:
+            for col in (col for col in cols if col.fill_values):
+                for i, str_val in ((i, x) for i, x in enumerate(col.str_vals)
+                                   if x in col.fill_values):
+                    col.str_vals[i] = col.fill_values[str_val]
+
     def write(self, lines):
         if hasattr(self.start_line, '__call__'):
             raise TypeError('Start_line attribute cannot be callable for write()')
@@ -590,27 +604,21 @@ class BaseData(object):
         while len(lines) < data_start_line:
             lines.append(itertools.cycle(self.write_spacer_lines))
 
-        with self._set_col_formats(self.cols, self.formats):
-            col_str_iters = [col.iter_str_vals() for col in self.cols]
-            for vals in izip(*col_str_iters):
-                lines.append(self.splitter.join(vals))
+        self._set_fill_values(self.cols)
+        self._set_col_formats()
+        for col in self.cols:
+            col.str_vals = list(col.iter_str_vals())
+        self._replace_vals(self.cols)
+        col_str_iters = [col.str_vals for col in self.cols]
+        for vals in zip(*col_str_iters):
+            lines.append(self.splitter.join(vals))
 
-    @contextmanager
-    def _set_col_formats(self, cols, formats):
+    def _set_col_formats(self):
         """
-        Context manager to save the internal column formats in `cols` and
-        override with any custom `formats`.
         """
-        orig_formats = [col.format for col in cols]
-        for col in cols:
-            if col.name in formats:
-                col.format = formats[col.name]
-
-        yield  # execute the nested context manager block
-
-        # Restore the original column format values
-        for col, orig_format in izip(cols, orig_formats):
-            col.format = orig_format
+        for col in self.cols:
+            if col.name in self.formats:
+                col.format = self.formats[col.name]
 
 class DictLikeNumpy(dict):
     """Provide minimal compatibility with numpy rec array API for BaseOutputter
