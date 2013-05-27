@@ -17,7 +17,7 @@ __all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion',
 
 
 def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
-               axis=None, maout=None):
+               axis=None, copy=True):
     """ Perform sigma-clipping on the provided data.
 
     This performs the sigma clipping algorithm - i.e. the data will be iterated
@@ -51,23 +51,15 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
         If not None, will be passed on to cenfunc and varfunc, so that clipping
         can be done along the given axis.  Those functions need to return an
         array with the axis dimension removed (like the numpy functions)
-    maout : bool or 'copy'
-        If True, a masked array will be returned. If the special string
-        'inplace', the masked array will contain the same array as `data`,
-        otherwise the array data will be copied.  Default is False when
-        axis is None, True otherwise.
+    copy : bool
+        If True, the data array will be copied.  If False, the masked array 
+        data will contain the same array as `data`.  Default it True.
 
     Returns
     -------
-    filtereddata : `numpy.ndarray` or `numpy.masked.MaskedArray`
-        If `maout` is True, this is a masked array with a shape matching the
-        input that is masked where the algorithm has rejected those values.
-        Otherwise, a 1D array of values including only those that are not
-        clipped.
-    mask : boolean array
-        Only present if `maout` is False. A boolean array with a shape matching
-        the input `data` that is False for rejected values and True for all
-        others.
+    filtereddata : `numpy.masked.MaskedArray`
+        Masked array with a shape matching the input with points rejected 
+        by the algorithm masked.
 
     Examples
     --------
@@ -79,26 +71,25 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import randn
         >>> randvar = randn(10000)
-        >>> data,mask = sigma_clip(randvar, 2, 1)
+        >>> filtereddata = sigma_clip(randvar, 2, 1)
 
     This will clipping on a similar distribution, but for 3 sigma relative to
-    the sample *mean*, will clip until converged, and produces a
-    `numpy.masked.MaskedArray`::
+    the sample *mean*, will clip until converged, and does not copy the data::
 
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import randn
         >>> from numpy import mean
         >>> randvar = randn(10000)
-        >>> maskedarr = sigma_clip(randvar, 3, None, mean, maout=True)
+        >>> filtereddata = sigma_clip(randvar, 3, None, mean, copy=False)
     
     This will clip along one axis on a similar distribution with bad points
-    inserted
+    inserted::
 
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import normal
         >>> from numpy import arange, diag, ones
         >>> data = arange(5)+normal(0.,0.05,(5,5))+diag(ones(5))
-        >>> masked = sigma_clip(data, axis=0, sig=2.3)
+        >>> filtereddata = sigma_clip(data, axis=0, sig=2.3)
 
     Note that along the other axis, no points would be masked, as the variance 
     is higher.
@@ -110,34 +101,25 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
         varfunc_in = varfunc
         cenfunc = lambda d: np.expand_dims(cenfunc_in(d, axis=axis), axis=axis)
         varfunc = lambda d: np.expand_dims(varfunc_in(d, axis=axis), axis=axis)
-        if maout is None: 
-            maout = True
-        elif not maout:
-            raise TypeError('Can only return masked array for sigma clipping'
-                            'along an axis')
 
-    data = np.ma.array(data, copy=False)
+    filtereddata = np.ma.array(data, copy=copy)
 
     if iters is None:
         i = -1
-        lastrej = np.count(data) + 1
-        while(np.count(data) != lastrej):
+        lastrej = np.count(filtereddata) + 1
+        while(np.count(filtereddata) != lastrej):
             i += 1
-            lastrej = np.count(data)
-            do = data - cenfunc(data)
-            data.mask = do * do > varfunc(data) * sig ** 2
+            lastrej = np.count(filtereddata)
+            do = filtereddata - cenfunc(filtereddata)
+            filtereddata.mask = do * do > varfunc(filtereddata) * sig ** 2
         iters = i + 1
         #TODO: ?print iters to the log if iters was None?
     else:
         for i in range(iters):
-            do = data - cenfunc(data)
-            data.mask = do * do > varfunc(data) * sig ** 2
+            do = filtereddata - cenfunc(filtereddata)
+            filtereddata.mask = do * do > varfunc(filtereddata) * sig ** 2
 
-    if maout:
-        return np.ma.MaskedArray(data, copy=maout != 'inplace')
-    else:
-        return data.data[~data.mask], ~data.mask
-
+    return filtereddata
 
 #TODO Note scipy dependency
 def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
