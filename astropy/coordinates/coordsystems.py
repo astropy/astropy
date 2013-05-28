@@ -323,9 +323,8 @@ class SphericalCoordinatesBase(object):
             self._distance = None
         elif isinstance(val, tuple):
             self._distance = Distance(*val)
-        elif isinstance(val, Distance):
-            self._distance = val
         elif isinstance(val, u.Quantity):
+            #includes giving a Distance, as Distance is a Quantity subclass
             self._distance = Distance(val)
         else:
             raise TypeError(
