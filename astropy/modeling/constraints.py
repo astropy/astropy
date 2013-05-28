@@ -54,11 +54,11 @@ class Constraints(object):
 
     Specify that 'xcen' is a tied parameter in one of two ways:
 
-    >>> g1 = builtin_models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3, tied=tied)
+    >>> g1 = models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3, tied=tied)
 
     or
 
-    >>> g1 = builtin_models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3)
+    >>> g1 = models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3)
     >>> g1.xcen.tied
     False
     >>> g1.xcen.tied = tie_center
@@ -67,13 +67,13 @@ class Constraints(object):
 
     Fixed parameters:
 
-    >>> g1 = builtin_models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3, fixed={'xsigma':True})
+    >>> g1 = models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3, fixed={'xsigma':True})
     >>> g1.xsigma.fixed
     True
 
     or
 
-    >>> g1 = builtin_models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3)
+    >>> g1 = models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3)
     >>> g1.xsigma.fixed
     False
     >>> g1.xsigma.fixed=True

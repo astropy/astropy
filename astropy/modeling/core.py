@@ -604,7 +604,7 @@ class LabeledInput(dict):
 
 class _CompositeModel(OrderedDict):
 
-    def __init__(self, transforms):  # , inmap=None, outmap=None):
+    def __init__(self, transforms, inmap=None, outmap=None):
         """
         A Base class for all composite models.
 
@@ -682,9 +682,9 @@ class SCompositeModel(_CompositeModel):
     Apply a 2D rotation followed by a shift in x and y::
 
         >>> from astropy.modeling import *
-        >>> rot = builtin_models.MatrixRotation2D(angle=23.5)
-        >>> offx = builtin_models.ShiftModel(-4.23)
-        >>> offy = builtin_models.ShiftModel(2)
+        >>> rot = models.MatrixRotation2D(angle=23.5)
+        >>> offx = models.ShiftModel(-4.23)
+        >>> offy = models.ShiftModel(2)
         >>> linp = LabeledInput([x, y], ["x", "y"])
         >>> scomptr = SCompositeModel([rot, offx, offy],
         ...                           inmap=[['x', 'y'], ['x'], ['y']],
@@ -693,7 +693,7 @@ class SCompositeModel(_CompositeModel):
 
     """
     def __init__(self, transforms, inmap=None, outmap=None):
-        super(SCompositeModel, self).__init__(transforms)  # , inmap, outmap)
+        super(SCompositeModel, self).__init__(transforms, inmap, outmap)
         if transforms and inmap and outmap:
             assert len(transforms) == len(inmap) == len(outmap), \
                 "Expected sequences of transform, " \
@@ -794,7 +794,7 @@ class PCompositeModel(_CompositeModel):
 
     """
     def __init__(self, transforms, inmap=None, outmap=None):
-        super(PCompositeModel, self).__init__(transforms)  # , inmap=None, outmap=None)
+        super(PCompositeModel, self).__init__(transforms, inmap=None, outmap=None)
         self._init_comptr(transforms, inmap, outmap)
         self.n_inputs = self.keys()[0].n_inputs
         self.n_outputs = self.n_inputs

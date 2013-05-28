@@ -2,7 +2,7 @@
 """
 This module provides wrappers, called Fitters, around some Numpy and Scipy
 fitting functions. All Fitters take an instance of `~astropy.modeling.core.ParametricModel`
-as input and define a __call__ method which fits the model to the data and changes the
+as input and define a ``__call__`` method which fits the model to the data and changes the
 model's parameters attribute. The idea is to make this extensible and allow
 users to easily add other fitters.
 
