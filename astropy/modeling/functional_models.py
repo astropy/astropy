@@ -6,13 +6,14 @@ from __future__ import division, print_function
 import collections
 import numpy as np
 from . import parameters
-from .core import *
+from .core import ParametricModel, Model, _convert_input, _convert_output
 from .utils import InputParameterError
 
-__all__ = ['Gaussian1DModel', 'Gaussian2DModel',  'ScaleModel', 'ShiftModel']
+__all__ = ['Gaussian1DModel', 'Gaussian2DModel', 'ScaleModel', 'ShiftModel']
 
 
 class Gaussian1DModel(ParametricModel):
+
     """
 
     Implements 1D Gaussian model.
@@ -41,7 +42,7 @@ class Gaussian1DModel(ParametricModel):
     param_names = ['amplitude', 'mean', 'stddev']
 
     def __init__(self, amplitude, mean, stddev=None, fwhm=None,
-                            jacobian_func=None, **cons):
+                 jacobian_func=None, **cons):
 
         try:
             param_dim = len(amplitude)
@@ -57,7 +58,7 @@ class Gaussian1DModel(ParametricModel):
             stddev_val = stddev
         else:
             try:
-                stddev_val  = 0.42466 * fwhm
+                stddev_val = 0.42466 * fwhm
             except TypeError:
                 stddev_val = [0.42466 * n for n in fwhm]
 
@@ -77,18 +78,40 @@ class Gaussian1DModel(ParametricModel):
             self.deriv = self.gderiv
 
     def eval(self, x, params):
-        return params[0] * np.exp(- 0.5 * (x-params[1])**2 / params[2]**2)
+        """
+        Evaluate the model.
 
-    def gderiv(self, p, x, y):
-        amplitude, mean, stddev = p
+        Parameters
+        ----------
+        x : array like or a number
+            input
+        params : list
+            a list of float parameters returned by the optimization algorithm
+        """
+        return params[0] * np.exp(- 0.5 * (x - params[1]) ** 2 / params[2] ** 2)
+
+    def gderiv(self, params, x, y):
+        """
+        Gaussian 1D derivative.
+
+        Parameters
+        ----------
+        params : list
+            a list of float parameters returned by the optimization algorithm
+        x : array like or a number
+            input
+        y : dummy variable - array like or a number
+            input
+        """
+        amplitude, mean, stddev = params
         deriv_dict = {}
-        deriv_dict['amplitude'] = np.exp(-0.5 / stddev**2 * (x-mean)**2)
+        deriv_dict['amplitude'] = np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
         deriv_dict['mean'] = (amplitude
-                              * np.exp(-0.5 / stddev**2 * (x-mean)**2)
-                              * (x-mean) / stddev**2)
+                              * np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
+                              * (x - mean) / stddev ** 2)
         deriv_dict['stddev'] = (amplitude
-                                * np.exp(-0.5 / stddev**2 * (x-mean)**2)
-                                * (x-mean)**2 / stddev**3)
+                                * np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
+                                * (x - mean) ** 2 / stddev ** 3)
         derivval = [deriv_dict[par] for par in self.param_names]
         return np.array(derivval).T
 
@@ -110,6 +133,7 @@ class Gaussian1DModel(ParametricModel):
 
 
 class Gaussian2DModel(ParametricModel):
+
     """
 
     2D Gaussian.
@@ -176,7 +200,7 @@ class Gaussian2DModel(ParametricModel):
             raise InputParameterError("Cannot specify both cov_matrix and x/y_stddev or x/y_fwhm")
 
         self._amplitude = parameters.Parameter('amplitude', amplitude,
-                                                self, param_dim)
+                                               self, param_dim)
         if cov_matrix is None:
             if x_stddev is None:
                 x_stddev = 0.42466 * x_fwhm
@@ -184,16 +208,16 @@ class Gaussian2DModel(ParametricModel):
                 y_stddev = 0.42466 * y_fwhm
         else:
             cov_matrix = np.array(cov_matrix)
-            assert cov_matrix.shape == (2,2), "Covariance matrix must be 2D"
+            assert cov_matrix.shape == (2, 2), "Covariance matrix must be 2D"
             eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
             x_stddev, y_stddev = np.sqrt(eig_vals)
-            y_vec = eig_vecs[:,0]
-            theta = np.arctan2(y_vec[1],y_vec[0])
+            y_vec = eig_vecs[:, 0]
+            theta = np.arctan2(y_vec[1], y_vec[0])
 
         self._x_stddev = parameters.Parameter('x_stddev', x_stddev,
-                                                self, param_dim)
+                                              self, param_dim)
         self._y_stddev = parameters.Parameter('y_stddev', y_stddev,
-                                                self, param_dim)
+                                              self, param_dim)
         self._x_mean = parameters.Parameter('x_mean', x_mean, self, param_dim)
         self._y_mean = parameters.Parameter('y_mean', y_mean, self, param_dim)
         self._theta = parameters.Parameter('theta', theta, self, param_dim)
@@ -206,18 +230,29 @@ class Gaussian2DModel(ParametricModel):
         else:
             self.deriv = None
 
-    def eval(self, x, y, p):
+    def eval(self, x, y, params):
+        """
+        Evaluate the model.
 
-        a = 0.5 * ((np.cos(p[5]) / p[3]) ** 2 +
-                   (np.sin(p[5]) / p[4]) ** 2)
-        b = 0.5 * (np.cos(p[5]) * np.sin(p[5]) *
-                   (1. / p[3] ** 2 - 1. / p[4] ** 2))
-        c = 0.5 * ((np.sin(p[5]) / p[3]) ** 2 +
-                   (np.cos(p[5]) / p[4]) ** 2)
+        Parameters
+        ----------
+        x : array like or a number
+            input
+        y : dummy variable - array like or a number
+            input
+        params : array
+            parameter sets
+        """
+        a = 0.5 * ((np.cos(params[5]) / params[3]) ** 2 +
+                   (np.sin(params[5]) / params[4]) ** 2)
+        b = 0.5 * (np.cos(params[5]) * np.sin(params[5]) *
+                   (1. / params[3] ** 2 - 1. / params[4] ** 2))
+        c = 0.5 * ((np.sin(params[5]) / params[3]) ** 2 +
+                   (np.cos(params[5]) / params[4]) ** 2)
 
-        return p[0] * np.exp(-(a * (x - p[1]) ** 2 +
-                               b * (x - p[1]) * (y - p[2]) +
-                               c * (y - p[2]) ** 2))
+        return params[0] * np.exp(-(a * (x - params[1]) ** 2 +
+                                    b * (x - params[1]) * (y - params[2]) +
+                                    c * (y - params[2]) ** 2))
 
     def __call__(self, x, y):
         """
@@ -236,6 +271,7 @@ class Gaussian2DModel(ParametricModel):
 
 
 class ShiftModel(Model):
+
     """
     Shift a coordinate.
 
@@ -248,6 +284,7 @@ class ShiftModel(Model):
 
     """
     param_names = ['offsets']
+
     def __init__(self, offsets):
         if not isinstance(offsets, collections.Sequence):
             param_dim = 1
@@ -255,7 +292,7 @@ class ShiftModel(Model):
             param_dim = len(offsets)
         self._offsets = parameters.Parameter('offsets', offsets, self, param_dim)
         super(ShiftModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
-                                                            param_dim=param_dim)
+                                         param_dim=param_dim)
 
     def __call__(self, x):
         """
@@ -267,6 +304,7 @@ class ShiftModel(Model):
 
 
 class ScaleModel(Model):
+
     """
 
     Multiply a model by a factor.
@@ -278,6 +316,7 @@ class ScaleModel(Model):
 
     """
     param_names = ['factors']
+
     def __init__(self, factors):
         if not isinstance(factors, collections.Sequence):
             param_dim = 1
@@ -285,7 +324,7 @@ class ScaleModel(Model):
             param_dim = len(factors)
         self._factors = parameters.Parameter('factors', factors, self, param_dim)
         super(ScaleModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
-                                                            param_dim=param_dim)
+                                         param_dim=param_dim)
 
     def __call__(self, x):
         """
