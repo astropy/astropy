@@ -441,10 +441,15 @@ procedure is that ensures a consistent release process each time.
 
          $ python setup.py sdist upload
 
- 19. Update the website to reflect the fact there is now a stable release.
+ 19. Update the "stable" branch to point to the new stable release For example::
 
- 20. Update Readthedocs so that it builds docs for the corresponding github tag,
-     and set the default page to the new release.
+         $ git checkout stable
+         $ git reset --hard v0.1
+
+ 20. Update Readthedocs so that it builds docs for the corresponding github tag.
+     Also verify that the ``stable`` Readthedocs version builds correctly for
+     the new version (it should trigger automatically once you've done the 
+     previous step.)
 
  21. If this was a major/minor release (not a bug fix release) create a bug fix
      branch for this line of release.  That is, if the version just released
@@ -475,6 +480,15 @@ procedure is that ensures a consistent release process each time.
      example this would be "backport-0.3.x"  This label should be applied to
      all issues that should be backported to the bug fix branch.  Also create a
      milestone for the next bug fix release if it hasn't been made already.
+
+ 23. Update `astropy/astropy-website <https://github.com/astropy/astropy-website>`_
+     for the new version.  Two files need to be updated: ``index.rst`` has two tags
+     near the top specifying the current release, and the ``docs.rst`` file should
+     be updated by putting the previous release in as an older version, and updating
+     the "latest developer version" link to point to the new release.
+
+ 24. Run the ``upload_script.py`` script in `astropy-website` to update the actual
+     web site.
 
 
 Creating a MacOS X Installer on a DMG
