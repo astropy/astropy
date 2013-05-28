@@ -4,19 +4,21 @@ import collections
 import sys
 from copy import deepcopy
 import functools
+import warnings
 
 import numpy as np
 from numpy import ma
 
 from ..units import Unit
 from .. import log
-from ..utils import OrderedDict, isiterable
+from ..utils import OrderedDict, isiterable, meta
 from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
 from ..utils.console import color_print
 from ..config import ConfigurationItem
 from  ..io import registry as io_registry
 from . import operations
+from . import np_utils
 
 # Python 2 and 3 source compatibility
 try:
@@ -55,6 +57,59 @@ def _check_column_new_args(func):
 
 def _auto_names(n_cols):
     return [AUTO_COLNAME().format(i) for i in range(n_cols)]
+
+
+def _merge_col_meta(out, left, right, col_name_map):
+    """
+    Merge column meta data for the ``out`` table.
+
+    This merges column meta, which includes attributes units, format,
+    and description, as well as the actual `meta` atttribute.  It is
+    assumed that the ``out`` table was created by merging ``left``
+    and ``right`` (e.g. by joining).  The ``col_name_map`` provides
+    the mapping from col name in ``out`` back to the original name
+    (which may be different).
+
+    If a column was derived from both left and right tables (e.g.
+    a key column in a join) then ``meta`` values are merged.  The
+    attributes (units, format, description) are set from the logical
+    "or" of the left and right values, e.g. (left.units or right.units).
+    This selects the first non-trivial value, and does not check for
+    conflicts.
+    """
+    # Set column meta
+    attrs = ('units', 'format', 'description')
+    for out_col in out.columns.values():
+        left_name, right_name = col_name_map[out_col.name]
+        left_col = (left[left_name] if left_name else None)
+        right_col = (right[right_name] if right_name else None)
+
+        if left_name and right_name:
+            out_col.meta = meta.merge(left_col.meta, right_col.meta)
+            for attr in attrs:
+                left_attr = getattr(left_col, attr)
+                right_attr = getattr(right_col, attr)
+                merge_attr = left_attr or right_attr
+                setattr(out_col, attr, merge_attr)
+                if left_attr and right_attr and left_attr != right_attr:
+                    warnings.warn('Left and right column {0} attributes do not match '
+                                  '({1} != {2}) using left for merged output'
+                                  .format(attr, left_attr, right_attr),
+                                  meta.MergeConflictWarning)
+        elif left_name:
+            out_col.meta = deepcopy(left_col.meta)
+            for attr in attrs:
+                setattr(out_col, attr, getattr(left_col, attr))
+        elif right_name:
+            out_col.meta = deepcopy(right_col.meta)
+            for attr in attrs:
+                setattr(out_col, attr, getattr(right_col, attr))
+        else:
+            raise ValueError('Unexpected column names')
+
+
+def _merge_table_meta(out, left, right):
+    out.meta = meta.merge(left.meta, right.meta)
 
 
 class TableColumns(OrderedDict):
@@ -1852,6 +1907,11 @@ class Table(object):
         if mask is not None and not self.masked:
             self._set_masked(True)
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Merged my own changes with those from the main repository.
         if self.masked:
             if newlen == 1:
                 self._data = ma.empty(1, dtype=self._data.dtype)
@@ -1859,7 +1919,19 @@ class Table(object):
                 self._data = ma.resize(self._data, (newlen,))
         else:
             self._data.resize((newlen,), refcheck=False)
+<<<<<<< HEAD
+=======
+	# Create a table with one row to test the operation on
+        test_data = (ma.zeros if self.masked else np.zeros)(1, dtype=self._data.dtype)
+>>>>>>> Merged my own changes with those from the main repository.
 
+=======
+>>>>>>> This is a straight implementation of taldcroft's suggestions from
+=======
+	# Create a table with one row to test the operation on
+        test_data = (ma.zeros if self.masked else np.zeros)(1, dtype=self._data.dtype)
+
+>>>>>>> The creation of the test table now takes place after the check for masking.
         if _is_mapping(vals):
 
             if mask is not None and not _is_mapping(mask):
@@ -1874,16 +1946,16 @@ class Table(object):
                 # We set the mask to True regardless of whether a mask value
                 # is specified or not - that is, any cell where a new row
                 # value is not specified should be treated as missing.
-                self._data.mask[-1] = (True,) * len(self._data.dtype)
+                test_data.mask[-1] = (True,) * len(test_data.dtype)
 
             # First we copy the values
             for name, val in vals.items():
                 try:
-                    self._data[name][-1] = val
+                    test_data[name][-1] = val
                 except IndexError:
                     raise ValueError("No column {0} in table".format(name))
                 if mask:
-                    self._data[name].mask[-1] = mask[name]
+                    test_data[name].mask[-1] = mask[name]
 
         elif isiterable(vals):
 
@@ -1896,7 +1968,7 @@ class Table(object):
             if not isinstance(vals, tuple):
                 vals = tuple(vals)
 
-            self._data[-1] = vals
+            test_data[-1] = vals
 
             if mask is not None:
 
@@ -1906,10 +1978,19 @@ class Table(object):
                 if not isinstance(mask, tuple):
                     mask = tuple(mask)
 
-                self._data.mask[-1] = mask
+                test_data.mask[-1] = mask
 
-        else:
+        elif vals is not None:
             raise TypeError('Vals must be an iterable or mapping or None')
+
+	# If no errors have been raised, then the table can be resized
+        if self.masked:
+            self._data = ma.resize(self._data, (newlen,))
+        else:
+            self._data.resize((newlen,), refcheck=False)
+
+	# Assign the new row
+	self._data[-1] = test_data[-1]
 
         self._rebuild_table_column_views()
 
@@ -1939,7 +2020,53 @@ class Table(object):
     read = classmethod(io_registry.read)
     write = io_registry.write
 
+<<<<<<< HEAD
     @property
     def meta(self):
         return self._meta
 
+=======
+    def join(self, right, keys=None, join_type='inner',
+             uniq_col_name='{col_name}_{table_name}',
+             table_names=['1', '2']):
+        """
+        Perform a join of this (left) table with the right table on specified keys.
+
+        Parameters
+        ----------
+        right : Table object or a value that will initialize a Table object
+            Right side table in the join
+        keys : str or list of str
+            Column(s) used to match rows of left and right tables.  Default
+            is to use all columns which are common to both tables.
+        join_type : str
+            Join type ('inner' | 'outer' | 'left' | 'right'), default is 'inner'
+        uniq_col_name : str or None
+            String generate a unique output column name in case of a conflict.
+            The default is '{col_name}_{table_name}'.
+        table_names : list of str or None
+            Two-element list of table names used when generating unique output
+            column names.  The default is ['1', '2'].
+
+        """
+        # In "t1.join(t2)" self (i.e. t1) is the left table.
+        left = self
+
+        # If right isn't a table, use right as the data for a new Table
+        # that has the same class as left.
+        if not isinstance(right, Table):
+            right = left.__class__(right)
+        col_name_map = {}
+        out_data = np_utils.join(left._data, right._data, keys, join_type,
+                                 uniq_col_name, table_names, col_name_map)
+        # Create the output (Table or subclass of Table)
+        out = left.__class__(out_data)
+
+        # Merge the column and table meta data.  In this context 'self' is
+        # just the left input table.  Table subclasses might override these
+        # methods for custom merge behavior.
+        _merge_col_meta(out, left, right, col_name_map)
+        _merge_table_meta(out, left, right)
+
+        return out
+>>>>>>> Merged my own changes with those from the main repository.
