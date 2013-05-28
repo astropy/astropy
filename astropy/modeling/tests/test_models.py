@@ -10,14 +10,16 @@ import numpy as np
 from numpy.testing import utils
 from ...tests.helper import pytest
 
+
 class TestSComposite(object):
+
     """
     Test composite models evaluation in series
     """
     def setup_class(self):
         self.x, self.y = np.mgrid[:5, :5]
-        self.p1= models.Poly1DModel(3)
-        self.p11= models.Poly1DModel(3)
+        self.p1 = models.Poly1DModel(3)
+        self.p11 = models.Poly1DModel(3)
         self.p2 = models.Poly2DModel(3)
 
     def test_single_array_input(self):
@@ -41,14 +43,16 @@ class TestSComposite(object):
         z1 = self.p1(z)
         utils.assert_almost_equal(z1, sresult)
 
+
 class TestPComposite(object):
+
     """
     Test composite models evaluation in parallel
     """
     def setup_class(self):
         self.x, self.y = np.mgrid[:5, :5]
-        self.p1= models.Poly1DModel(3)
-        self.p11= models.Poly1DModel(3)
+        self.p1 = models.Poly1DModel(3)
+        self.p11 = models.Poly1DModel(3)
         self.p2 = models.Poly2DModel(3)
 
     def test_single_array_input(self):

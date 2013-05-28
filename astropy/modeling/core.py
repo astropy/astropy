@@ -40,16 +40,16 @@ In all these cases the output has the same shape as the input.
 
 """
 from __future__ import division, print_function
-import collections
 import abc
 from ..utils.compat.odict import OrderedDict
 import numpy as np
 from . import parameters
 from . import constraints
-from .utils import pmapdomain, InputParameterError, comb
+from .utils import InputParameterError
 
 __all__ = ['Model', 'ParametricModel', 'PCompositeModel', 'SCompositeModel',
-                'LabeledInput', '_convert_input', '_convert_output']
+           'LabeledInput', '_convert_input', '_convert_output']
+
 
 def _convert_input(x, pdim):
     """
@@ -82,13 +82,14 @@ def _convert_input(x, pdim):
             return np.array([x]).T, fmt
         elif x.ndim == 2:
             assert x.shape[-1] == pdim, "Cannot broadcast with shape"\
-                                            "({0}, {1})".format(x.shape[0], x.shape[1])
+                "({0}, {1})".format(x.shape[0], x.shape[1])
             return x, fmt
         elif x.ndim > 2:
             assert x.shape[0] == pdim, "Cannot broadcast with shape " \
-                   "({0}, {1}, {2})".format(x.shape[0], x.shape[1], x.shape[2])
+                "({0}, {1}, {2})".format(x.shape[0], x.shape[1], x.shape[2])
             fmt = 'T'
             return x.T, fmt
+
 
 def _convert_output(x, fmt):
     """
@@ -110,7 +111,9 @@ def _convert_output(x, fmt):
     else:
         raise ValueError("Unrecognized output conversion format")
 
+
 class _ParameterProperty(object):
+
     """
     Create a property for a parameter.
 
@@ -121,7 +124,7 @@ class _ParameterProperty(object):
 
     """
     def __init__(self, name):
-        self.aname = '_'+name
+        self.aname = '_' + name
         self.name = name
 
     def __get__(self, obj, objtype):
@@ -143,7 +146,7 @@ class _ParameterProperty(object):
                     setattr(obj, self.aname, par)
                 obj._parameters = parameters.Parameters(obj,
                                                         obj.param_names,
-                                                         param_dim=obj.param_dim)
+                                                        param_dim=obj.param_dim)
             else:
                 setattr(obj, self.aname, val)
         else:
@@ -156,7 +159,9 @@ class _ParameterProperty(object):
             else:
                 setattr(obj, self.aname, par)
 
+
 class Model(object):
+
     """
     Base class for all models.
 
@@ -181,8 +186,8 @@ class Model(object):
         self.has_inverse = False
         self._param_names = param_names
         #_parcheck is a dictionary to register parameter validation funcitons
-        #key: value pairs are parameter_name: parameter_validation_function_name
-        #see projections.AZP for example
+        # key: value pairs are parameter_name: parameter_validation_function_name
+        # see projections.AZP for example
         self._parcheck = {}
         for par in param_names:
             setattr(self.__class__, par, _ParameterProperty(par))
@@ -210,6 +215,9 @@ class Model(object):
 
     @param_dim.setter
     def param_dim(self, val):
+        """
+        Set the number of parameter sets in a model.
+        """
         self._param_dim = val
 
     @property
@@ -244,9 +252,9 @@ class Model(object):
         """.format(
               self.__class__.__name__,
               self.param_dim,
-              "\n                   ".join(i+': ' +
-                str(self.__getattribute__(i)) for i in self.param_names)
-                )
+              "\n                   ".join(i + ': ' +
+                                           str(self.__getattribute__(i)) for i in self.param_names)
+        )
 
         return fmt
 
@@ -260,7 +268,7 @@ class Model(object):
         shapes = [par.parshape for par in parameters]
         lenshapes = np.asarray([len(p.parshape) for p in parameters])
         shapes = [p.parshape for p in parameters]
-        if (lenshapes>1).any():
+        if (lenshapes > 1).any():
             if () in shapes:
                 psets = np.asarray(parameters, dtype=np.object)
             else:
@@ -311,7 +319,9 @@ class Model(object):
     def __call__(self):
         raise NotImplementedError("Subclasses should implement this")
 
+
 class ParametricModel(Model):
+
     """
     Base class for all fittable models.
 
@@ -439,9 +449,9 @@ class ParametricModel(Model):
               self.n_inputs,
               degree,
               self.param_dim,
-              "\n                   ".join(i+': ' +
-                str(self.__getattribute__(i)) for i in self.param_names)
-                )
+              "\n                   ".join(i + ': ' +
+                                           str(self.__getattribute__(i)) for i in self.param_names)
+        )
 
         return fmt
 
@@ -455,6 +465,10 @@ class ParametricModel(Model):
 
     @parameters.setter
     def parameters(self, value):
+        """
+        Reset the parameters attribute as an instance of
+        `~astropy.modeling.parameters.Parameters`
+        """
         if isinstance(value, parameters.Parameters):
             if self._parameters._is_same_length(value):
                 self._parameters = value
@@ -481,7 +495,9 @@ class ParametricModel(Model):
         """
         self.joint = jpars
 
+
 class LabeledInput(dict):
+
     """
     Create a container with all input data arrays, assigning labels for
     each one.
@@ -519,28 +535,28 @@ class LabeledInput(dict):
     [4, 4, 4, 4, 4]])
 
     """
-    def __init__(self,  data, labels):
+    def __init__(self, data, labels):
         dict.__init__(self)
         assert len(labels) == len(data)
         self.labels = [l.strip() for l in labels]
         for coord, label in zip(data, labels):
             self[label] = coord
-            setattr(self, '_'+label, coord)
+            setattr(self, '_' + label, coord)
         self._set_properties(self.labels)
 
     def _getlabel(self, name):
-        par = getattr(self, '_'+name)
+        par = getattr(self, '_' + name)
         return par
 
-    def _setlabel(self,  name, val):
-        setattr(self, '_'+name, val)
+    def _setlabel(self, name, val):
+        setattr(self, '_' + name, val)
         self[name] = val
 
-    def _dellabel(self,  name):
-        delattr( self,  '_'+name)
+    def _dellabel(self, name):
+        delattr(self, '_' + name)
         del self[name]
 
-    def add(self, label=None, value=None,  **kw):
+    def add(self, label=None, value=None, **kw):
         """
         Add input data to a LabeledInput object
 
@@ -567,25 +583,27 @@ class LabeledInput(dict):
             self[label] = value
 
         for key in kw:
-            self.__setattr__('_'+key, kw[key])
+            self.__setattr__('_' + key, kw[key])
         self._set_properties(kw.keys())
 
     def _set_properties(self, attributes):
         for attr in attributes:
-            setattr(self.__class__, attr , property(lambda self, attr=attr:
-                                                  self._getlabel(attr),
-                                                  lambda self, value, attr=attr:
-                                                  self._setlabel(attr, value),
-                                                  lambda self, attr=attr:
-                                                  self._dellabel(attr)
-                                                  )
+            setattr(self.__class__, attr, property(lambda self, attr=attr:
+                                                   self._getlabel(attr),
+                    lambda self, value, attr=attr:
+                                                   self._setlabel(attr, value),
+                    lambda self, attr=attr:
+                                                   self._dellabel(attr)
+                                                   )
                     )
 
     def copy(self):
         data = [self[label] for label in self.labels]
         return LabeledInput(data, self.labels)
 
+
 class _CompositeModel(OrderedDict):
+
     def __init__(self, transforms, inmap=None, outmap=None):
         """
         A Base class for all composite models.
@@ -606,7 +624,7 @@ class _CompositeModel(OrderedDict):
         fmt = """
             Model:  {0}
             """.format(self.__class__.__name__)
-        fmt1 = " %s  " * len(transforms)% tuple([repr(tr) for tr in transforms])
+        fmt1 = " %s  " * len(transforms) % tuple([repr(tr) for tr in transforms])
         fmt = fmt + fmt1
         return fmt
 
@@ -615,7 +633,7 @@ class _CompositeModel(OrderedDict):
         fmt = """
             Model:  {0}
             """.format(self.__class__.__name__)
-        fmt1 = " %s  " * len(transforms)% tuple([str(tr) for tr in transforms])
+        fmt1 = " %s  " * len(transforms) % tuple([str(tr) for tr in transforms])
         fmt = fmt + fmt1
         return fmt
 
@@ -629,7 +647,9 @@ class _CompositeModel(OrderedDict):
         # implemented by subclasses
         raise NotImplementedError("Subclasses should implement this")
 
+
 class SCompositeModel(_CompositeModel):
+
     """
 
     Execute models in series.
@@ -662,9 +682,9 @@ class SCompositeModel(_CompositeModel):
     Apply a 2D rotation followed by a shift in x and y::
 
         >>> from astropy.modeling import *
-        >>> rot = builtin_models.MatrixRotation2D(angle=23.5)
-        >>> offx = builtin_models.ShiftModel(-4.23)
-        >>> offy = builtin_models.ShiftModel(2)
+        >>> rot = models.MatrixRotation2D(angle=23.5)
+        >>> offx = models.ShiftModel(-4.23)
+        >>> offy = models.ShiftModel(2)
         >>> linp = LabeledInput([x, y], ["x", "y"])
         >>> scomptr = SCompositeModel([rot, offx, offy],
         ...                           inmap=[['x', 'y'], ['x'], ['y']],
@@ -676,12 +696,12 @@ class SCompositeModel(_CompositeModel):
         super(SCompositeModel, self).__init__(transforms, inmap, outmap)
         if transforms and inmap and outmap:
             assert len(transforms) == len(inmap) == len(outmap), \
-                   "Expected sequences of transform, " \
-                   "inmap and outmap to have the same length"
+                "Expected sequences of transform, " \
+                "inmap and outmap to have the same length"
         if inmap is None:
             inmap = [None] * len(transforms)
         if outmap is None:
-            outmap = [None]  * len(transforms)
+            outmap = [None] * len(transforms)
 
         self._init_comptr(transforms, inmap, outmap)
         self.n_inputs = np.array([tr.n_inputs for tr in self]).max()
@@ -700,7 +720,7 @@ class SCompositeModel(_CompositeModel):
 
             raise ValueError("Required number of coordinates not matched for "
                              "transform # {0}: {1} required, {2} supplied ".format(
-                             self.keys().index(tr)+1, tr.n_inputs, lendata))
+                             self.keys().index(tr) + 1, tr.n_inputs, lendata))
 
     def invert(self, inmap, outmap):
         scomptr = SCompositeModel(self[::-1], inmap=inmap, outmap=outmap)
@@ -747,7 +767,9 @@ class SCompositeModel(_CompositeModel):
                 result = tr(result)
             return result
 
+
 class PCompositeModel(_CompositeModel):
+
     """
 
     Execute models in parallel.
@@ -772,8 +794,7 @@ class PCompositeModel(_CompositeModel):
 
     """
     def __init__(self, transforms, inmap=None, outmap=None):
-        super(PCompositeModel, self).__init__(transforms,
-                                              inmap=None, outmap=None)
+        super(PCompositeModel, self).__init__(transforms, inmap=None, outmap=None)
         self._init_comptr(transforms, inmap, outmap)
         self.n_inputs = self.keys()[0].n_inputs
         self.n_outputs = self.n_inputs
@@ -809,13 +830,13 @@ class PCompositeModel(_CompositeModel):
                 return result
             else:
                 assert self.inmap is not None, ("Parameter 'inmap' must be "
-                                    "provided when input is a labeled object")
+                                                "provided when input is a labeled object")
                 assert self.outmap is not None, ("Parameter 'outmap' must be "
-                                    "provided when input is a labeled object")
+                                                 "provided when input is a labeled object")
                 linp = x.copy()
-                #create a list of inputs to be passed to the transforms
+                # create a list of inputs to be passed to the transforms
                 inlist = [getattr(linp, co) for co in self.inmap]
-                #create a list of outputs to which the deltas are applied
+                # create a list of outputs to which the deltas are applied
                 result = [getattr(linp, co) for co in self.outmap]
                 res = [tr(*inlist) for tr in self]
                 delta = (np.asarray(res) - np.asarray(result)).sum(axis=0)
@@ -823,7 +844,7 @@ class PCompositeModel(_CompositeModel):
                 for outcoo, res in zip(self.outmap, result):
                     linp[outcoo] = res
                     setattr(linp, outcoo, res)
-                #always return the entire labeled object, not just the result
+                # always return the entire labeled object, not just the result
                 # since this may be part of another composite transform
                 return linp
         else:
@@ -834,6 +855,5 @@ class PCompositeModel(_CompositeModel):
             for tr in self.keys():
                 res = tr(*inlist)
                 for i in range(len(inlist)):
-                    result[i] = res[i]-inlist[i]
+                    result[i] = res[i] - inlist[i]
             return result
-
