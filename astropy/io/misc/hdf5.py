@@ -20,9 +20,14 @@ __all__ = ['read_table_hdf5', 'write_table_hdf5']
 
 def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
 
-    # h5py does not support opening from a file descriptor, so
-    # there's no point in checking that case here.
-    if filepath is not None:
+    if fileobj is not None:
+        loc = fileobj.tell()
+        try:
+            signature = fileobj.read(8)
+        finally:
+            fileobj.seek(loc)
+        return signature == HDF5_SIGNATURE
+    elif filepath is not None:
         return filepath.endswith('.hdf5') or filepath.endswith('.h5')
 
     try:
@@ -74,7 +79,10 @@ def read_table_hdf5(input, path=None):
                 raise IOError("Group {0} does not exist".format(group))
     else:
         if hasattr(input, 'read'):
-            input = input.name
+            try:
+                input = input.name
+            except AttributeError:
+                raise TypeError("h5py can only open regular files")
         f = h5py.File(input, 'r')
         try:
             g = f[group] if group else f
