@@ -127,15 +127,13 @@ sip_init(
     }
   }
 
-  if (scratch_size > 0) {
-    scratch_size = (scratch_size + 1) * sizeof(double);
-    sip->scratch = malloc(scratch_size);
-    if (sip->scratch == NULL) {
-      sip_free(sip);
-      status = wcserr_set(
-        SIP_ERRMSG(WCSERR_MEMORY), "Memory allocation failed");
-      goto exit;
-    }
+  scratch_size = (scratch_size + 1) * sizeof(double);
+  sip->scratch = malloc(scratch_size);
+  if (sip->scratch == NULL) {
+    sip_free(sip);
+    status = wcserr_set(
+      SIP_ERRMSG(WCSERR_MEMORY), "Memory allocation failed");
+    goto exit;
   }
 
   sip->crpix[0] = crpix[0];
