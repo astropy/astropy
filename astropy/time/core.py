@@ -459,6 +459,11 @@ class Time(object):
         """
         return self.copy()
 
+    def __getitem__(self, item):
+        tm = self.__class__(self._time.jd1[item], self._time.jd2[item],
+                            format='jd', scale=self.scale, copy=True)
+        return tm.replicate(format=self.format) 
+
     def _getAttributeNames(self):
         """
         Add dynamic attribute names for IPython completer.
