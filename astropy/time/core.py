@@ -782,30 +782,48 @@ class TimeFromEpoch(TimeFormat):
         # Initialize the reference epoch which is a single time defined in subclasses
         epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
                      format=self.epoch_format)
-        # Convert the epoch time to TAI so that calculations involving adding/subtracting
-        # JDs are always linear and well-defined (a JD in TAI is always 86400 uniform
-        # seconds, unlike other scales, in particular UTC where one JD isn't always the
-        # same duration).
-        self.epoch = epoch.tai
+        self.epoch = epoch
+
+        # Now create the TimeFormat object as normal
         super(TimeFromEpoch, self).__init__(val1, val2, scale, precision,
                                             in_subfmt, out_subfmt, from_jd)
 
     def set_jds(self, val1, val2):
-        # Form new JDs based on epoch time (TAI) + time from epoch (converted to JD)
+        """
+        Initialize the internal jd1 and jd2 attributes given val1 and val2.  For an
+        TimeFromEpoch subclass like TimeUnix these will be floats giving the effective
+        seconds since an epoch time (e.g. 1970-01-01 00:00:00).
+        """
+        # Form new JDs based on epoch time + time from epoch (converted to JD).
+        # One subtlety that might not be obvious is that 1.000 Julian days in UTC
+        # can be 86400 or 86401 seconds.  For the TimeUnix format the assumption
+        # is that every day is exactly 86400 seconds, so in principle this
+        # is doing the math incorrectly, *except* that it matches the definition
+        # of Unix time which does not include leap seconds.
         jd1 = self.epoch.jd1 + val2 * self.unit
         jd2 = self.epoch.jd2 + val1 * self.unit
 
-        # Create a Time object corresponding to the new (jd1, jd2) in TAI, then convert
-        # that to the time scale for this object.
-        tm = getattr(Time(jd1, jd2, scale='tai', format='jd'), self.scale)
+        # Create a temporary Time object corresponding to the current new (jd1, jd2) in
+        # the epoch scale (e.g. UTC for TimeUnix) then convert that to the desired time
+        # scale for this object.
+        #
+        # A known limitation is that the transform from self.epoch_scale to self.scale
+        # cannot involve any metadata like lat or lon.
+        tm = getattr(Time(jd1, jd2, scale=self.epoch_scale, format='jd'), self.scale)
 
         self.jd1 = tm.jd1
         self.jd2 = tm.jd2
 
     @property
     def vals(self):
-        # Convert current JDs to TAI
-        tm = Time(self.jd1, self.jd2, scale=self.scale, format='jd').tai
+        # Create a temporary Time object corresponding to the parent Time, then transform
+        # that to the epoch scale.  From there do the simple math to compute delta time
+        # from the epoch in Julian days, and then in the desired output units
+        # (e.g. seconds).
+        #
+        # A known limitation is that the transform from self.scale to self.epoch_scale
+        # cannot involve any metadata like lat or lon.
+        tm = getattr(Time(self.jd1, self.jd2, scale=self.scale, format='jd'), self.epoch_scale)
         time_from_epoch = ((tm.jd1 - self.epoch.jd1) +
                            (tm.jd2 - self.epoch.jd2)) / self.unit
         return time_from_epoch
