@@ -443,6 +443,11 @@ class Time(object):
 
         return tm
 
+    def __getitem__(self, item):
+        tm = self.__class__(self._time.jd1[item], self._time.jd2[item],
+                            format='jd', scale=self.scale, copy=True)
+        return tm.replicate(format=self.format) 
+
     def __copy__(self):
         """
         Overrides the default behavior of the `copy.copy` function in
