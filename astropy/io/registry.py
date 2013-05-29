@@ -117,7 +117,7 @@ def register_identifier(data_format, data_class, identifier, force=False):
                                                  data_class.__name__))
 
 
-def identify_format(origin, data_class_required, path, fileobj, *args, **kwargs):
+def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
     # Loop through identifiers to see which formats match
     valid_formats = []
     for data_format, data_class in _identifiers:
@@ -179,7 +179,7 @@ def read(cls, *args, **kwargs):
                     fileobj = args[0]
 
             format = _get_valid_format(
-                'read', cls, path, fileobj, *args, **kwargs)
+                'read', cls, path, fileobj, args, kwargs)
 
         reader = get_reader(format, cls)
         table = reader(*args, **kwargs)
@@ -218,13 +218,13 @@ def write(data, *args, **kwargs):
                 fileobj = args[0]
 
         format = _get_valid_format(
-            'write', data.__class__, path, fileobj, *args, **kwargs)
+            'write', data.__class__, path, fileobj, args, kwargs)
 
     writer = get_writer(format, data.__class__)
     writer(data, *args, **kwargs)
 
 
-def _get_valid_format(mode, cls, path, fileobj, *args, **kwargs):
+def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
     """
     Returns the first valid format that can be used to read/write the data in
     question.  Mode can be either 'read' or 'write'.
@@ -235,7 +235,7 @@ def _get_valid_format(mode, cls, path, fileobj, *args, **kwargs):
     elif mode == 'write':
         funcs = _writers
 
-    valid_formats = identify_format(mode, cls, path, fileobj, *args, **kwargs)
+    valid_formats = identify_format(mode, cls, path, fileobj, args, kwargs)
 
     if len(valid_formats) == 0:
         raise Exception(

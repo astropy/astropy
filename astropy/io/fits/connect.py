@@ -47,7 +47,7 @@ def is_column_keyword(keyword):
     return False
 
 
-def is_fits(origin, path, fileobj, *args, **kwargs):
+def is_fits(origin, filepath, fileobj, *args, **kwargs):
     """
     Determine whether `origin` is a FITS file.
 
@@ -66,8 +66,8 @@ def is_fits(origin, path, fileobj, *args, **kwargs):
         sig = fileobj.read(30)
         fileobj.seek(pos)
         return sig == FITS_SIGNATURE
-    elif path is not None:
-        if path.lower().endswith(('.fits', '.fits.gz', '.fit', '.fit.gz')):
+    elif filepath is not None:
+        if filepath.lower().endswith(('.fits', '.fits.gz', '.fit', '.fit.gz')):
             return True
     elif isinstance(args[0], (HDUList, TableHDU, BinTableHDU, GroupsHDU)):
         return True

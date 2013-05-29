@@ -18,15 +18,12 @@ HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 __all__ = ['read_table_hdf5', 'write_table_hdf5']
 
 
-def is_hdf5(origin, path, fileobj, *args, **kwargs):
+def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
 
-    if fileobj is not None:
-        pos = fileobj.tell()
-        signature = fileobj.read(8)
-        fileobj.seek(pos)
-        return signature == HDF5_SIGNATURE
-    elif path is not None:
-        return path.endswith('.hdf5') or path.endswith('.h5')
+    # h5py does not support opening from a file descriptor, so
+    # there's no point in checking that case here.
+    if filepath is not None:
+        return filepath.endswith('.hdf5') or filepath.endswith('.h5')
 
     try:
         import h5py
@@ -76,6 +73,8 @@ def read_table_hdf5(input, path=None):
             except KeyError:
                 raise IOError("Group {0} does not exist".format(group))
     else:
+        if hasattr(input, 'read'):
+            input = input.name
         f = h5py.File(input, 'r')
         try:
             g = f[group] if group else f

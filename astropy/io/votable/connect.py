@@ -12,7 +12,7 @@ from .. import registry as io_registry
 from ...table import Table
 
 
-def is_votable(origin, path, fileobj, *args, **kwargs):
+def is_votable(origin, filepath, fileobj, *args, **kwargs):
     """
     Reads the header of a file to determine if it is a VOTable file.
 
@@ -34,8 +34,8 @@ def is_votable(origin, path, fileobj, *args, **kwargs):
             finally:
                 fileobj.seek(0)
             return result
-        elif path is not None:
-            return is_votable(path)
+        elif filepath is not None:
+            return is_votable(filepath)
         elif isinstance(args[0], (VOTableFile, VOTable)):
             return True
         else:
