@@ -2,9 +2,10 @@
 """
 This module contains predefined polynomial models.
 """
-from __future__ import division, print_function
+from __future__ import division
 import collections
 import numpy as np
+from ..logger import log
 from . import parameters
 from .core import ParametricModel, Model, SCompositeModel
 from .core import _convert_input, _convert_output
@@ -39,8 +40,15 @@ class PolynomialModel(ParametricModel):
             else:
                 lenpars = 1
             if param_dim != lenpars:
-                print("Creating a model with {0} parameter sets\n".format(lenpars))
-                param_dim = lenpars
+                if param_dim == 1:
+                    log.info("Inferred {0} dimensions when creating a {1} model. "
+                             "Reseting param_dim to {2}".format(lenpars,
+                                                                self.__class__.__name__,
+                                                                lenpars))
+                    param_dim = lenpars
+                else:
+                    raise ValueError("Number of coefficient sets ({0}) does not match number "
+                                     "of parameter sets ({1}).".format(lenpars, param_dim))
             self._validate_pars(**pars)
             self.set_coeff(pardim=param_dim, **pars)
         super(PolynomialModel, self).__init__(self.param_names, n_inputs=n_inputs,
@@ -184,8 +192,15 @@ class OrthogPolyBase(ParametricModel):
             else:
                 lenpars = 1
             if param_dim != lenpars:
-                print("Creating a model with {0} parameter sets\n".format(lenpars))
-                param_dim = lenpars
+                if param_dim == 1:
+                    log.info("Inferred {0} dimensions when creating a {1} model. "
+                             "Reseting param_dim to {2}".format(lenpars,
+                                                                self.__class__.__name__,
+                                                                lenpars))
+                    param_dim = lenpars
+                else:
+                    raise ValueError("Number of coefficient sets {0} does not match number "
+                                     "of parameter sets {1}".format(lenpars, param_dim))
             self._validate_pars(**pars)
             self.set_coeff(pardim=param_dim, **pars)
         super(OrthogPolyBase, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
@@ -881,8 +896,15 @@ class _SIP1D(Model):
             else:
                 lenpars = 1
             if param_dim != lenpars:
-                print("Creating a model with {0} parameter sets\n".format(lenpars))
-                param_dim = lenpars
+                if param_dim == 1:
+                    log.info("Inferred {0} dimensions when creating a {1} model. "
+                             "Reseting param_dim to {2}".format(lenpars,
+                                                                self.__class__.__name__,
+                                                                lenpars))
+                    param_dim = lenpars
+                else:
+                    raise ValueError("Number of coefficient sets ({0}) does not match number "
+                                     "of parameter sets ({1}).".format(lenpars, param_dim))
             self._validate_pars(ndim=2, **pars)
             self.set_coeff(pardim=param_dim, **pars)
 
