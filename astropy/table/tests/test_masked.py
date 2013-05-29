@@ -249,7 +249,7 @@ class TestRenameColumn(object):
         assert t.masked
         assert np.all(t['b'] == np.array([1,2,3]))
         assert np.all(t['b'].mask == np.array([0,1,0], bool))
-        assert t['a'].fill_value == 42
+        assert t['b'].fill_value == 42
         assert t.colnames == ['b']
 
 @pytest.mark.xfail('numpy_lt_1p5')
