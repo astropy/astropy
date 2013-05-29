@@ -42,7 +42,7 @@ class PolynomialModel(ParametricModel):
             if param_dim != lenpars:
                 if param_dim == 1:
                     log.info("Inferred {0} dimensions when creating a {1} model. "
-                             "Reseting param_dim to {2}".format(lenpars,
+                             "Resetting param_dim to {2}".format(lenpars,
                                                                 self.__class__.__name__,
                                                                 lenpars))
                     param_dim = lenpars
@@ -154,9 +154,9 @@ class OrthogPolyBase(ParametricModel):
     Parameters
     ----------
 
-    xdeg : int
+    x_degree : int
         degree in x
-    ydeg : int
+    y_degree : int
         degree in y
     xdomain : list or None
         domain of the x independent variable
@@ -171,10 +171,10 @@ class OrthogPolyBase(ParametricModel):
     **pars : dict
         {keyword: value} pairs, representing {parameter_name: value}
     """
-    def __init__(self, xdeg, ydeg, xdomain=None, xwindow=None, ydomain=None,
+    def __init__(self, x_degree, y_degree, xdomain=None, xwindow=None, ydomain=None,
                  ywindow=None, param_dim=1, **pars):
-        self.xdeg = xdeg
-        self.ydeg = ydeg
+        self.xdeg = x_degree
+        self.ydeg = y_degree
         self._order = self.get_numcoeff()
         self.xdomain = xdomain
         self.ydomain = ydomain
@@ -194,7 +194,7 @@ class OrthogPolyBase(ParametricModel):
             if param_dim != lenpars:
                 if param_dim == 1:
                     log.info("Inferred {0} dimensions when creating a {1} model. "
-                             "Reseting param_dim to {2}".format(lenpars,
+                             "Resetting param_dim to {2}".format(lenpars,
                                                                 self.__class__.__name__,
                                                                 lenpars))
                     param_dim = lenpars
@@ -656,9 +656,9 @@ class Chebyshev2DModel(OrthogPolyBase):
     Parameters
     ----------
 
-    xdeg : int
+    x_degree : int
         degree in x
-    ydeg : int
+    y_degree : int
         degree in y
     xdomain : list or None
         domain of the x independent variable
@@ -674,9 +674,9 @@ class Chebyshev2DModel(OrthogPolyBase):
         keyword: value pairs, representing parameter_name: value
 
     """
-    def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1, 1],
+    def __init__(self, x_degree, y_degree, xdomain=None, xwindow=[-1, 1],
                  ydomain=None, ywindow=[-1, 1], param_dim=1, **pars):
-        super(Chebyshev2DModel, self).__init__(xdeg, ydeg,
+        super(Chebyshev2DModel, self).__init__(x_degree, y_degree,
                                                xdomain=xdomain, ydomain=ydomain,
                                                xwindow=xwindow, ywindow=ywindow,
                                                param_dim=param_dim, **pars)
@@ -770,9 +770,9 @@ class Legendre2DModel(OrthogPolyBase):
     Parameters
     ----------
 
-    xdeg : int
+    x_degree : int
         degree in x
-    ydeg : int
+    y_degree : int
         degree in y
     xdomain : list or None
         domain of the x independent variable
@@ -788,9 +788,9 @@ class Legendre2DModel(OrthogPolyBase):
         keyword: value pairs, representing parameter_name: value
 
     """
-    def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1, 1],
+    def __init__(self, x_degree, y_degree, xdomain=None, xwindow=[-1, 1],
                  ydomain=None, ywindow=[-1, 1], param_dim=1, **pars):
-        super(Legendre2DModel, self).__init__(xdeg, ydeg,
+        super(Legendre2DModel, self).__init__(x_degree, y_degree,
                                               xdomain=xdomain, ydomain=ydomain,
                                               xwindow=xwindow, ywindow=ywindow,
                                               param_dim=param_dim, **pars)
@@ -898,7 +898,7 @@ class _SIP1D(Model):
             if param_dim != lenpars:
                 if param_dim == 1:
                     log.info("Inferred {0} dimensions when creating a {1} model. "
-                             "Reseting param_dim to {2}".format(lenpars,
+                             "Resetting param_dim to {2}".format(lenpars,
                                                                 self.__class__.__name__,
                                                                 lenpars))
                     param_dim = lenpars
