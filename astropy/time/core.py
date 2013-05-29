@@ -151,9 +151,12 @@ class Time(object):
         if val_ndim != val2_ndim:
             raise ValueError('Input val and val2 must have same dimensions')
 
-        if scale is not None and scale not in self.SCALES:
-            raise ScaleValueError("Scale {0} is not in the allowed scales {1}"
-                                  .format(repr(scale), sorted(self.SCALES)))
+        if scale is not None:
+            if not (isinstance(scale, basestring) and
+                    scale.lower() in self.SCALES):
+                raise ScaleValueError("Scale {0} is not in the allowed scales "
+                                      "{1}".format(repr(scale),
+                                                   sorted(self.SCALES)))
 
         # Parse / convert input values into internal jd1, jd2 based on format
         self._time = self._get_time_fmt(val, val2, format, scale)
@@ -174,12 +177,15 @@ class Time(object):
                        if issubclass(cls, TimeUnique)]
             err_msg = 'any of the formats where the format keyword is optional {0}'.format(
                 [name for name, cls in formats])
-        elif format not in self.FORMATS:
+        elif not (isinstance(format, basestring) and
+                  format.lower() in self.FORMATS):
             if format is None:
-                raise ValueError("No time format was given, and the input is not unique")
+                raise ValueError("No time format was given, and the input is "
+                                 "not unique")
             else:
                 raise ValueError("Format {0} is not one of the allowed "
-                                 "formats {1}".format(repr(format), sorted(self.FORMATS)))
+                                 "formats {1}".format(repr(format),
+                                                      sorted(self.FORMATS)))
         else:
             formats = [(format, self.FORMATS[format])]
             err_msg = 'the format class {0}'.format(format)
