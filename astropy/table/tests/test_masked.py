@@ -244,11 +244,13 @@ class TestRenameColumn(object):
     def test_rename_masked_column(self):
         t = Table(masked=True)
         t.add_column(MaskedColumn(name='a', data=[1,2,3], mask=[0,1,0]))
+        t['a'].fill_value = 42
         t.rename_column('a', 'b')
         assert t.masked
         assert np.all(t['b'] == np.array([1,2,3]))
         assert np.all(t['b'].mask == np.array([0,1,0], bool))
-
+        assert t['a'].fill_value == 42
+        assert t.colnames == ['b']
 
 @pytest.mark.xfail('numpy_lt_1p5')
 class TestRemoveColumn(object):
@@ -263,6 +265,7 @@ class TestRemoveColumn(object):
         assert np.all(t['a'] == np.array([1,2,3]))
         assert np.all(t['a'].mask == np.array([0,1,0], bool))
         assert t['a'].fill_value == 42
+        assert t.colnames == ['a']
 
 
 @pytest.mark.xfail('numpy_lt_1p5')
