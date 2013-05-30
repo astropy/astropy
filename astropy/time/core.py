@@ -460,9 +460,22 @@ class Time(object):
         return self.copy()
 
     def __getitem__(self, item):
-        tm = self.__class__(self._time.jd1[item], self._time.jd2[item],
-                            format='jd', scale=self.scale, copy=True)
-        return tm.replicate(format=self.format) 
+        if self.is_scalar:
+            raise IndexError('invalid index to scalar {0!r} object.'.format(
+                self.__class__.__name__))
+        keepasarray = lambda x, is_scalar: np.array([x]) if is_scalar else x
+        tm = self.replicate()
+        jd1 = self._time.jd1[item]
+        is_scalar = jd1.ndim == 0
+        tm._time.jd1 = keepasarray(jd1, is_scalar)
+        tm._time.jd2 = keepasarray(self._time.jd2[item], is_scalar)
+        tm.is_scalar = is_scalar
+        attrs = ('_delta_ut1_utc', '_delta_tdb_tt')
+        for attr in attrs:
+            if hasattr(self, attr):
+                val = getattr(self, attr)
+                setattr(tm, attr, keepasarray(val[item], is_scalar))
+        return tm
 
     def _getAttributeNames(self):
         """
