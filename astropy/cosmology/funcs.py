@@ -4,6 +4,7 @@ Convenience functions for `astropy.cosmology`.
 """
 from .core import get_current as _get_current
 
+
 def kpc_comoving_per_arcmin(z, cosmo=None):
     """ Separation in transverse comoving kpc corresponding to an
     arcminute at redshift `z`.
