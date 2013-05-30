@@ -173,7 +173,9 @@ Scalar or Array
 A |Time| object can hold either a single time value or an array of time values.
 The distinction is made entirely by the form of the input time(s).  If a |Time|
 object holds a single value then any format outputs will be a single scalar
-value, and likewise for arrays.  ::
+value, and likewise for arrays.  Like other arrays and lists, |Time| objects
+holding arrays are subscriptable, returning scalar or array objects as
+appropriate::
 
   >>> from astropy.time import Time
   >>> t = Time(100.0, format='mjd', scale='utc')
@@ -181,7 +183,11 @@ value, and likewise for arrays.  ::
   2400100.5
   >>> t = Time([100.0, 200.0], format='mjd', scale='utc')
   >>> t.jd
-  array([ 2400100.5,  2400200.5])
+  array([ 2400100.5,  2400200.5,  2400300.5])
+  >>> t[:2]
+  <Time object: scale='utc' format='mjd' vals=[ 100.  200.]>
+  >>> t[2]
+  <Time object: scale='utc' format='mjd' vals=300.0>
 
 Inferring input format
 ^^^^^^^^^^^^^^^^^^^^^^
