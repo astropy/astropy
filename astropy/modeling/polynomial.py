@@ -748,11 +748,12 @@ class Chebyshev2DModel(OrthogPolyBase):
         -----
         See the module docstring for rules for model evaluation.
         """
+        x, _ = _convert_input(x, self.param_dim)
+        y, fmt = _convert_input(y, self.param_dim)
         assert x.shape == y.shape, \
             "Expected input arrays to have the same shape"
         invcoeff = self.invlex_coeff()
-        x, _ = _convert_input(x, self.param_dim)
-        y, fmt = _convert_input(y, self.param_dim)
+
         result = self.imhorner(x, y, invcoeff)
         return _convert_output(result, fmt)
 
@@ -864,11 +865,11 @@ class Legendre2DModel(OrthogPolyBase):
         -----
         See the module docstring for rules for model evaluation.
         """
+        x, _ = _convert_input(x, self.param_dim)
+        y, fmt = _convert_input(y, self.param_dim)
         assert x.shape == y.shape, \
             "Expected input arrays to have the same shape"
         invcoeff = self.invlex_coeff()
-        x, _ = _convert_input(x, self.param_dim)
-        y, fmt = _convert_input(y, self.param_dim)
         result = self.imhorner(x, y, invcoeff)
         return _convert_output(result, fmt)
 
