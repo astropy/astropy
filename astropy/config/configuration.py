@@ -45,7 +45,7 @@ class ConfigurationDefaultMissingError(ValueError):
     """
 
 
-#this is used in astropy/__init__.py
+# this is used in astropy/__init__.py
 class ConfigurationDefaultMissingWarning(Warning):
     """ A warning that is issued when the configuration defaults (which
     should be generated at build-time) are missing.
@@ -111,12 +111,12 @@ class ConfigurationItem(object):
 
     """
 
-    #this is used to make validation faster so a Validator object doesn't
-    #have to be created every time
+    # this is used to make validation faster so a Validator object doesn't
+    # have to be created every time
     _validator = validate.Validator()
 
     def __init__(self, name, defaultvalue='', description=None, cfgtype=None,
-                      module=None):
+                 module=None):
         from warnings import warn
         from ..utils import find_current_module
         from ..utils import isiterable
@@ -134,11 +134,11 @@ class ConfigurationItem(object):
         self.module = module
         self.description = description
 
-        #now determine cfgtype if it is not given
+        # now determine cfgtype if it is not given
         if cfgtype is None:
             if (isiterable(defaultvalue) and not
-                isinstance(defaultvalue, basestring)):
-                #it is an options list
+                    isinstance(defaultvalue, basestring)):
+                # it is an options list
                 dvstr = [str(v) for v in defaultvalue]
                 cfgtype = 'option(' + ', '.join(dvstr) + ')'
                 defaultvalue = dvstr[0]
@@ -157,12 +157,12 @@ class ConfigurationItem(object):
         self._validate_val(defaultvalue)
         self.defaultvalue = defaultvalue
 
-        #note that the actual value is stored in the ConfigObj file for this
-        #package
+        # note that the actual value is stored in the ConfigObj file for this
+        # package
 
-        #this checks the current value to make sure it's valid for the type
-        #as well as updating the ConfigObj with the default value, if it's not
-        #actually in the ConfigObj
+        # this checks the current value to make sure it's valid for the type
+        # as well as updating the ConfigObj with the default value, if it's not
+        # actually in the ConfigObj
         try:
             self()
         except TypeError as e:
@@ -257,16 +257,16 @@ class ConfigurationItem(object):
             msg = 'Provided value for configuration item {0} not valid: {1}'
             raise TypeError(msg.format(self.name, e.args[0]))
 
-        #Now find the  ConfigObj that this is based on
+        # Now find the  ConfigObj that this is based on
         baseobj = get_config(self.module)
         secname = baseobj.name
         cobj = baseobj
-        #a ConfigObj's parent is itself, so we look for the parent with that
+        # a ConfigObj's parent is itself, so we look for the parent with that
         while cobj.parent is not cobj:
             cobj = cobj.parent
 
-        #use the current on disk version, which will be modified with the
-        #given value and type/description
+        # use the current on disk version, which will be modified with the
+        # given value and type/description
         newobj = configobj.ConfigObj(cobj.filename, interpolation=False)
         if secname is not None:
             if secname not in newobj:
@@ -290,7 +290,7 @@ class ConfigurationItem(object):
         secname = baseobj.name
 
         cobj = baseobj
-        #a ConfigObj's parent is itself, so we look for the parent with that
+        # a ConfigObj's parent is itself, so we look for the parent with that
         while cobj.parent is not cobj:
             cobj = cobj.parent
 
@@ -332,7 +332,7 @@ class ConfigurationItem(object):
             If the configuration value as stored is not this item's type.
         """
 
-        #get the value from the relevant `configobj.ConfigObj` object
+        # get the value from the relevant `configobj.ConfigObj` object
         sec = get_config(self.module)
         if self.name not in sec:
             self.set(self.defaultvalue)
@@ -349,9 +349,9 @@ class ConfigurationItem(object):
 
         throws the underlying configobj exception if it fails
         """
-        #note that this will normally use the *class* attribute `_validator`,
-        #but if some arcane reason is needed for making a special one for an
-        #instance or sub-class, it will be used
+        # note that this will normally use the *class* attribute `_validator`,
+        # but if some arcane reason is needed for making a special one for an
+        # instance or sub-class, it will be used
         return self._validator.check(self.cfgtype, val)
 
     def _generate_comments(self):
@@ -470,7 +470,7 @@ def save_config(packageormod=None, filename=None):
     """
 
     sec = get_config(packageormod)
-    #look for the section that is its own parent - that's the base object
+    # look for the section that is its own parent - that's the base object
     while sec.parent is not sec:
         sec = sec.parent
     if filename is not None:
@@ -495,7 +495,7 @@ def reload_config(packageormod=None):
         The package or module name - see `get_config` for details.
     """
     sec = get_config(packageormod)
-    #look for the section that is its own parent - that's the base object
+    # look for the section that is its own parent - that's the base object
     while sec.parent is not sec:
         sec = sec.parent
     sec.reload()
@@ -539,7 +539,7 @@ def get_config_items(packageormod=None):
 
     configitems = {}
     for n, obj in packageormod.__dict__.iteritems():
-        #if it's not a new-style object, it's certainly not a ConfigurationItem
+        # if it's not a new-style object, it's certainly not a ConfigurationItem
         if hasattr(obj, '__class__'):
             fqn = obj.__class__.__module__ + '.' + obj.__class__.__name__
             if fqn == 'astropy.config.configuration.ConfigurationItem':
@@ -560,7 +560,7 @@ def _fix_section_blank_lines(sec, recurse=True, gotoroot=True):
     if not hasattr(sec, 'sections'):
         sec = get_config(sec)
 
-        #look for the section that is its own parent - that's the base object
+        # look for the section that is its own parent - that's the base object
         if gotoroot:
             while sec.parent is not sec:
                 sec = sec.parent

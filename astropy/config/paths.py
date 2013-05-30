@@ -30,8 +30,8 @@ def _find_home():
     else:  # pragma: py2
         decodepath = lambda pth: pth
 
-    #First find the home directory - this is inspired by the scheme ipython
-    #uses to identify "home"
+    # First find the home directory - this is inspired by the scheme ipython
+    # uses to identify "home"
     if os.name == 'posix':
         # Linux, Unix, AIX, OS X
         if 'HOME' in env:
@@ -40,34 +40,34 @@ def _find_home():
             raise OSError('Could not find unix home directory to search for '
                           'astropy config dir')
     elif os.name == 'nt':  # This is for all modern Windows (NT or after)
-        #Try for a network home first
+        # Try for a network home first
         if 'HOMESHARE' in env:
             homedir = decodepath(env['HOMESHARE'])
-        #See if there's a local home
+        # See if there's a local home
         elif 'HOMEDRIVE' in env and 'HOMEPATH' in env:
             homedir = os.path.join(env['HOMEDRIVE'], env['HOMEPATH'])
             homedir = decodepath(homedir)
-        #Maybe a user profile?
+        # Maybe a user profile?
         elif 'USERPROFILE' in env:
             homedir = decodepath(os.path.join(env['USERPROFILE']))
         else:
             try:
                 import _winreg as wreg
-                key = wreg.OpenKey(wreg.HKEY_CURRENT_USER,
-            r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+                shell_folders = r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
+                key = wreg.OpenKey(wreg.HKEY_CURRENT_USER, shell_folders)
 
                 homedir = wreg.QueryValueEx(key, 'Personal')[0]
                 homedir = decodepath(homedir)
                 key.Close()
             except:
-                #As a final possible resort, see if HOME is present
+                # As a final possible resort, see if HOME is present
                 if 'HOME' in env:
                     homedir = decodepath(env['HOME'])
                 else:
                     raise OSError('Could not find windows home directory to '
                                   'search for astropy config dir')
     else:
-        #for other platforms, try HOME, although it probably isn't there
+        # for other platforms, try HOME, although it probably isn't there
         if 'HOME' in env:
             homedir = decodepath(env['HOME'])
         else:
@@ -96,9 +96,9 @@ def get_config_dir(create=True):
 
     from os import path, environ
 
-    #symlink will be set to this if the directory is created
+    # symlink will be set to this if the directory is created
     linkto = None
-    #first look for XDG_CONFIG_HOME
+    # first look for XDG_CONFIG_HOME
     xch = environ.get('XDG_CONFIG_HOME')
 
     if xch is not None and path.exists(xch):
@@ -129,9 +129,9 @@ def get_cache_dir():
     """
     from os import path, environ
 
-    #symlink will be set to this if the directory is created
+    # symlink will be set to this if the directory is created
     linkto = None
-    #first look for XDG_CACHE_HOME
+    # first look for XDG_CACHE_HOME
     xch = environ.get('XDG_CACHE_HOME')
 
     if xch is not None and path.exists(xch):
@@ -153,7 +153,7 @@ def _find_or_create_astropy_dir(dirnm, linkto):
     maindir = path.join(_find_home(), '.astropy', dirnm)
 
     if not path.exists(maindir):
-        #first create .astropy dir if needed
+        # first create .astropy dir if needed
         if not path.exists(innerdir):
             try:
                 mkdir(innerdir)
@@ -172,7 +172,7 @@ def _find_or_create_astropy_dir(dirnm, linkto):
 
         if (not sys.platform.startswith('win') and
             linkto is not None and
-            not path.exists(linkto)):
+                not path.exists(linkto)):
             from os import symlink
             symlink(maindir, linkto)
 
