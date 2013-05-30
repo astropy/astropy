@@ -181,7 +181,7 @@ appropriate::
   >>> t = Time(100.0, format='mjd', scale='utc')
   >>> t.jd
   2400100.5
-  >>> t = Time([100.0, 200.0], format='mjd', scale='utc')
+  >>> t = Time([100.0, 200.0, 300.], format='mjd', scale='utc')
   >>> t.jd
   array([ 2400100.5,  2400200.5,  2400300.5])
   >>> t[:2]
