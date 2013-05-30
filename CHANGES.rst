@@ -1,7 +1,21 @@
 0.2.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.time``
+
+  - Fixed inaccurate handling of leap seconds when converting from UTC to UNIX
+    timestamps. [#1118]
+
+  - Tightened required accuracy in many of the time conversion tests. [#1121]
+
+- Misc
+
+  - Fixed a regression that was introduced in v0.2.2 by the fix to issue #992
+    that was preventing installation of Astropy affiliated packages that use
+    Astropy's setup framework. [#1124]
 
 
 0.2.2 (2013-05-21)
