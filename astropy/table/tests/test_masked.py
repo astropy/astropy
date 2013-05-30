@@ -146,9 +146,9 @@ class TestMaskedColumnInit(SetupData):
 
     def test_set_mask_and_not_ref(self):
         """Check that mask gets set properly and that it is a copy, not ref"""
-        assert np.all(self.a.mask == False)
-        assert np.all(self.b.mask == True)
-        assert np.all(self.c.mask == False)
+        assert np.all(~self.a.mask)
+        assert np.all(self.b.mask)
+        assert np.all(~self.c.mask)
         assert np.all(self.d.mask == self.d_mask)
         self.d.mask[0] = True
         assert not np.all(self.d.mask == self.d_mask)
@@ -204,38 +204,38 @@ class TestAddColumn(object):
     def test_add_masked_column_to_masked_table(self):
         t = Table(masked=True)
         assert t.masked
-        t.add_column(MaskedColumn(name='a', data=[1,2,3], mask=[0,1,0]))
+        t.add_column(MaskedColumn(name='a', data=[1, 2, 3], mask=[0, 1, 0]))
         assert t.masked
-        t.add_column(MaskedColumn(name='b', data=[4,5,6], mask=[1,0,1]))
+        t.add_column(MaskedColumn(name='b', data=[4, 5, 6], mask=[1, 0, 1]))
         assert t.masked
-        assert np.all(t['a'] == np.array([1,2,3]))
-        assert np.all(t['a'].mask == np.array([0,1,0], bool))
-        assert np.all(t['b'] == np.array([4,5,6]))
-        assert np.all(t['b'].mask == np.array([1,0,1], bool))
+        assert np.all(t['a'] == np.array([1, 2, 3]))
+        assert np.all(t['a'].mask == np.array([0, 1, 0], bool))
+        assert np.all(t['b'] == np.array([4, 5, 6]))
+        assert np.all(t['b'].mask == np.array([1, 0, 1], bool))
 
     def test_add_masked_column_to_non_masked_table(self):
         t = Table(masked=False)
         assert not t.masked
-        t.add_column(Column(name='a', data=[1,2,3]))
+        t.add_column(Column(name='a', data=[1, 2, 3]))
         assert not t.masked
-        t.add_column(MaskedColumn(name='b', data=[4,5,6], mask=[1,0,1]))
+        t.add_column(MaskedColumn(name='b', data=[4, 5, 6], mask=[1, 0, 1]))
         assert t.masked
-        assert np.all(t['a'] == np.array([1,2,3]))
-        assert np.all(t['a'].mask == np.array([0,0,0], bool))
-        assert np.all(t['b'] == np.array([4,5,6]))
-        assert np.all(t['b'].mask == np.array([1,0,1], bool))
+        assert np.all(t['a'] == np.array([1, 2, 3]))
+        assert np.all(t['a'].mask == np.array([0, 0, 0], bool))
+        assert np.all(t['b'] == np.array([4, 5, 6]))
+        assert np.all(t['b'].mask == np.array([1, 0, 1], bool))
 
     def test_add_non_masked_column_to_masked_table(self):
         t = Table(masked=True)
         assert t.masked
-        t.add_column(Column(name='a', data=[1,2,3]))
+        t.add_column(Column(name='a', data=[1, 2, 3]))
         assert t.masked
-        t.add_column(MaskedColumn(name='b', data=[4,5,6], mask=[1,0,1]))
+        t.add_column(MaskedColumn(name='b', data=[4, 5, 6], mask=[1, 0, 1]))
         assert t.masked
-        assert np.all(t['a'] == np.array([1,2,3]))
-        assert np.all(t['a'].mask == np.array([0,0,0], bool))
-        assert np.all(t['b'] == np.array([4,5,6]))
-        assert np.all(t['b'].mask == np.array([1,0,1], bool))
+        assert np.all(t['a'] == np.array([1, 2, 3]))
+        assert np.all(t['a'].mask == np.array([0, 0, 0], bool))
+        assert np.all(t['b'] == np.array([4, 5, 6]))
+        assert np.all(t['b'].mask == np.array([1, 0, 1], bool))
 
 
 @pytest.mark.xfail('numpy_lt_1p5')
@@ -245,25 +245,25 @@ class TestAddRow(object):
         t = Table(masked=True)
         t.add_column(MaskedColumn(name='a', data=[1], mask=[0]))
         t.add_column(MaskedColumn(name='b', data=[4], mask=[1]))
-        t.add_row([2,5], mask=[1,0])
-        t.add_row([3,6], mask=[0,1])
+        t.add_row([2, 5], mask=[1, 0])
+        t.add_row([3, 6], mask=[0, 1])
         assert t.masked
-        assert np.all(np.array(t['a']) == np.array([1,2,3]))
-        assert np.all(t['a'].mask == np.array([0,1,0], bool))
-        assert np.all(np.array(t['b']) == np.array([4,5,6]))
-        assert np.all(t['b'].mask == np.array([1,0,1], bool))
+        assert np.all(np.array(t['a']) == np.array([1, 2, 3]))
+        assert np.all(t['a'].mask == np.array([0, 1, 0], bool))
+        assert np.all(np.array(t['b']) == np.array([4, 5, 6]))
+        assert np.all(t['b'].mask == np.array([1, 0, 1], bool))
 
     def test_add_masked_row_to_masked_table_mapping1(self):
         t = Table(masked=True)
         t.add_column(MaskedColumn(name='a', data=[1], mask=[0]))
         t.add_column(MaskedColumn(name='b', data=[4], mask=[1]))
-        t.add_row({'b':5, 'a':2}, mask={'a':1, 'b':0})
-        t.add_row({'a':3, 'b':6}, mask={'b':1, 'a':0})
+        t.add_row({'b': 5, 'a': 2}, mask={'a': 1, 'b': 0})
+        t.add_row({'a': 3, 'b': 6}, mask={'b': 1, 'a': 0})
         assert t.masked
-        assert np.all(np.array(t['a']) == np.array([1,2,3]))
-        assert np.all(t['a'].mask == np.array([0,1,0], bool))
-        assert np.all(np.array(t['b']) == np.array([4,5,6]))
-        assert np.all(t['b'].mask == np.array([1,0,1], bool))
+        assert np.all(np.array(t['a']) == np.array([1, 2, 3]))
+        assert np.all(t['a'].mask == np.array([0, 1, 0], bool))
+        assert np.all(np.array(t['b']) == np.array([4, 5, 6]))
+        assert np.all(t['b'].mask == np.array([1, 0, 1], bool))
 
     def test_add_masked_row_to_masked_table_mapping2(self):
         # When adding values to a masked table, if the mask is specified as a
@@ -271,13 +271,13 @@ class TestAddRow(object):
         t = Table(masked=True)
         t.add_column(MaskedColumn(name='a', data=[1], mask=[0]))
         t.add_column(MaskedColumn(name='b', data=[4], mask=[1]))
-        t.add_row({'b':5}, mask={'b':0})
-        t.add_row({'a':3}, mask={'a':0})
+        t.add_row({'b': 5}, mask={'b': 0})
+        t.add_row({'a': 3}, mask={'a': 0})
         assert t.masked
         assert t['a'][0] == 1 and t['a'][2] == 3
-        assert np.all(t['a'].mask == np.array([0,1,0], bool))
+        assert np.all(t['a'].mask == np.array([0, 1, 0], bool))
         assert t['b'][1] == 5
-        assert np.all(t['b'].mask == np.array([1,0,1], bool))
+        assert np.all(t['b'].mask == np.array([1, 0, 1], bool))
 
     def test_add_masked_row_to_masked_table_mapping3(self):
         # When adding values to a masked table, if mask is not passed to
@@ -286,13 +286,13 @@ class TestAddRow(object):
         t = Table(masked=True)
         t.add_column(MaskedColumn(name='a', data=[1], mask=[0]))
         t.add_column(MaskedColumn(name='b', data=[4], mask=[1]))
-        t.add_row({'b':5})
-        t.add_row({'a':3})
+        t.add_row({'b': 5})
+        t.add_row({'a': 3})
         assert t.masked
         assert t['a'][0] == 1 and t['a'][2] == 3
-        assert np.all(t['a'].mask == np.array([0,1,0], bool))
+        assert np.all(t['a'].mask == np.array([0, 1, 0], bool))
         assert t['b'][1] == 5
-        assert np.all(t['b'].mask == np.array([1,0,1], bool))
+        assert np.all(t['b'].mask == np.array([1, 0, 1], bool))
 
     def test_add_masked_row_to_masked_table_mapping4(self):
         # When adding values to a masked table, if the mask is specified as a
@@ -301,7 +301,7 @@ class TestAddRow(object):
         t.add_column(MaskedColumn(name='a', data=[1], mask=[0]))
         t.add_column(MaskedColumn(name='b', data=[4], mask=[1]))
         with pytest.raises(ValueError) as exc:
-            t.add_row({'b':5}, mask={'a':True})
+            t.add_row({'b': 5}, mask={'a': True})
         assert exc.value.args[0] == 'keys in mask should match keys in vals'
 
     def test_add_masked_row_to_masked_table_mismatch(self):
@@ -309,10 +309,10 @@ class TestAddRow(object):
         t.add_column(MaskedColumn(name='a', data=[1], mask=[0]))
         t.add_column(MaskedColumn(name='b', data=[4], mask=[1]))
         with pytest.raises(TypeError) as exc:
-            t.add_row([2,5], mask={'a':1, 'b':0})
+            t.add_row([2, 5], mask={'a': 1, 'b': 0})
         assert exc.value.args[0] == "Mismatch between type of vals and mask"
         with pytest.raises(TypeError) as exc:
-            t.add_row({'b':5, 'a':2}, mask=[1,0])
+            t.add_row({'b': 5, 'a': 2}, mask=[1, 0])
         assert exc.value.args[0] == "Mismatch between type of vals and mask"
 
     def test_add_masked_row_to_non_masked_table_iterable(self):
@@ -320,11 +320,11 @@ class TestAddRow(object):
         t.add_column(Column(name='a', data=[1]))
         t.add_column(Column(name='b', data=[4]))
         assert not t.masked
-        t.add_row([2,5])
+        t.add_row([2, 5])
         assert not t.masked
-        t.add_row([3,6], mask=[0,1])
+        t.add_row([3, 6], mask=[0, 1])
         assert t.masked
-        assert np.all(np.array(t['a']) == np.array([1,2,3]))
-        assert np.all(t['a'].mask == np.array([0,0,0], bool))
-        assert np.all(np.array(t['b']) == np.array([4,5,6]))
-        assert np.all(t['b'].mask == np.array([0,0,1], bool))
+        assert np.all(np.array(t['a']) == np.array([1, 2, 3]))
+        assert np.all(t['a'].mask == np.array([0, 0, 0], bool))
+        assert np.all(np.array(t['b']) == np.array([4, 5, 6]))
+        assert np.all(t['b'].mask == np.array([0, 0, 1], bool))

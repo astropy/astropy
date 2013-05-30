@@ -15,7 +15,7 @@ from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
 from ..utils.console import color_print
 from ..config import ConfigurationItem
-from  ..io import registry as io_registry
+from ..io import registry as io_registry
 from . import operations
 
 # Python 2 and 3 source compatibility
@@ -457,8 +457,8 @@ class Column(BaseColumn, np.ndarray):
 
     @_check_column_new_args
     def __new__(cls, data=None, name=None,
-                 dtype=None, shape=(), length=0,
-                 description=None, units=None, format=None, meta=None):
+                dtype=None, shape=(), length=0,
+                description=None, units=None, format=None, meta=None):
 
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
@@ -596,8 +596,8 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
 
     @_check_column_new_args
     def __new__(cls, data=None, name=None, mask=None, fill_value=None,
-                 dtype=None, shape=(), length=0,
-                 description=None, units=None, format=None, meta=None):
+                dtype=None, shape=(), length=0,
+                description=None, units=None, format=None, meta=None):
 
         if NUMPY_LT_1P5:
             raise ValueError('MaskedColumn requires NumPy version 1.5 or later')
@@ -1285,7 +1285,7 @@ class Table(object):
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
-               show_units=False):
+             show_units=False):
         """Interactively browse table with a paging interface.
 
         Supported keys::
@@ -1473,7 +1473,6 @@ class Table(object):
             raise Exception("data array is already masked")
         else:
             self._data = ma.array(self._data)
-
 
     def index_column(self, name):
         """
@@ -1942,4 +1941,3 @@ class Table(object):
     @property
     def meta(self):
         return self._meta
-

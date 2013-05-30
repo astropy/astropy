@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-#This module implements the base NDData class.
+# This module implements the base NDData class.
 
 __all__ = ['NDData']
 
@@ -11,7 +11,7 @@ from .. import log
 from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
-from  ..io import registry as io_registry
+from ..io import registry as io_registry
 from ..config import ConfigurationItem
 
 WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
@@ -19,7 +19,7 @@ WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
     'Whether to issue a warning if NDData arithmetic is performed with '
     'uncertainties and the uncertainties do not support the propagation '
     'of correlated uncertainties.'
-    )
+)
 
 
 class NDData(object):
@@ -111,7 +111,8 @@ class NDData(object):
 
             if uncertainty is not None:
                 self.uncertainty = uncertainty
-                log.info("Overwriting NDData's current uncertainty being overwritten with specified uncertainty")
+                log.info("Overwriting NDData's current uncertainty being"
+                         " overwritten with specified uncertainty")
 
             if mask is not None:
                 self.mask = mask
@@ -138,9 +139,9 @@ class NDData(object):
                 if mask is not None:
                     self.mask = mask
                     log.info("NDData was created with a masked array, and a "
-                        "mask was explictly provided to NDData. The explicitly "
-                        "passed-in mask will be used and the masked array's "
-                        "mask will be ignored.")
+                             "mask was explictly provided to NDData. The explicitly "
+                             "passed-in mask will be used and the masked array's "
+                             "mask will be ignored.")
                 else:
                     self.mask = data.mask
             else:
@@ -300,8 +301,9 @@ class NDData(object):
         else:
             new_wcs = None
 
-        return self.__class__(new_data, uncertainty=new_uncertainty, mask=new_mask, flags=new_flags, wcs=new_wcs,
-            meta=self.meta, unit=self.unit)
+        return self.__class__(new_data, uncertainty=new_uncertainty,
+                              mask=new_mask, flags=new_flags, wcs=new_wcs,
+                              meta=self.meta, unit=self.unit)
 
     def _arithmetic(self, operand, propagate_uncertainties, name, operation):
         """
@@ -338,7 +340,7 @@ class NDData(object):
 
         if not (self.unit is None and operand.unit is None):
             if (self.unit is None or operand.unit is None
-                or not self.unit.is_equivalent(operand.unit)):
+                    or not self.unit.is_equivalent(operand.unit)):
                 raise ValueError("operand units do not match")
 
         if self.shape != operand.shape:
@@ -361,7 +363,7 @@ class NDData(object):
             result.uncertainty = self.uncertainty
         else:  # both self and operand have uncertainties
             if WARN_UNSUPPORTED_CORRELATED() and \
-               (not self.uncertainty.support_correlated or \
+               (not self.uncertainty.support_correlated or
                not operand.uncertainty.support_correlated):
                 log.info("The uncertainty classes used do not support the "
                          "propagation of correlated errors, so uncertainties"
