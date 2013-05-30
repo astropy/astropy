@@ -97,6 +97,10 @@ class Quantity(object):
     # Constants can not initialize properly
     _equivalencies = []
 
+    # Make sure that __rmul__ of units gets called over the __mul__ of Numpy
+    # arrays to avoid element-wise multiplication.
+    __array_priority__ = 1000.
+
     def __init__(self, value, unit, equivalencies=[]):
         from ..utils.misc import isiterable
 
