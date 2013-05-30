@@ -31,6 +31,8 @@ In general any output values have the same shape (scalar or array) as the input.
   >>> t = Time(times, format='iso', scale='utc')
   >>> t
   <Time object: scale='utc' format='iso' vals=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>
+  >>> t[1]
+  <Time object: scale='utc' format='iso' vals=2010-01-01 00:00:00.000>
 
 The ``format`` argument specifies how to interpret the input values, e.g. ISO
 or JD or Unix time.  The ``scale`` argument specifies the `time scale`_ for the
