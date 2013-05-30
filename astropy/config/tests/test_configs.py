@@ -3,13 +3,13 @@
 import io
 
 try:
-    #used by test_get_config_items
+    # used by test_get_config_items
     from ..configuration import ConfigurationItem
 
     TESTCONF1 = ConfigurationItem('test1', 1, 'descr')
     TESTCONF2 = ConfigurationItem('test2', 2, 'descr')
 except:
-    #if this fails on import, don't worry - the tests will catch it.
+    # if this fails on import, don't worry - the tests will catch it.
     pass
 
 
@@ -34,8 +34,8 @@ def test_config_file():
 
     reload_config('astropy')
 
-    #saving shouldn't change the file, because reload should have made sure it
-    #is based on the current file.  But don't do it if there's no file
+    # saving shouldn't change the file, because reload should have made sure it
+    # is based on the current file.  But don't do it if there's no file
     if exists(apycfg.filename):
         save_config('astropy')
 
@@ -59,8 +59,8 @@ def test_configitem():
     assert ci() == 32
     assert sec.comments['tstnm'][1] == 'updated Descr'
 
-    #It's useful to go back to the default to allow other test functions to
-    #call this one and still be in the default configuration.
+    # It's useful to go back to the default to allow other test functions to
+    # call this one and still be in the default configuration.
     ci.description = 'this is a Description'
     ci.set(34)
     assert ci() == 34
@@ -74,7 +74,7 @@ def test_configitem_save(tmpdir):
     ci = ConfigurationItem('tstnm2', 42, 'this is another Description')
     apycfg = get_config(ci.module)
 
-    #now try saving
+    # now try saving
 
     while apycfg.parent is not apycfg:
         apycfg = apycfg.parent
@@ -112,7 +112,7 @@ def test_configitem_save(tmpdir):
             assert '[config.tests.test_configs]' in lns
             assert 'tstnm2 = 31' in lns
 
-        #also try to save one that doesn't yet exist
+        # also try to save one that doesn't yet exist
         apycfg.filename = tmpdir.join('astropy.cfg3').realpath().strpath
         ci.save()
 
@@ -166,7 +166,7 @@ def test_configitem_options(tmpdir):
         cio.set('op5')
     assert sec['tstnmo'] == 'op2'
 
-    #now try saving
+    # now try saving
     apycfg = sec
     while apycfg.parent is not apycfg:
         apycfg = apycfg.parent
@@ -188,7 +188,7 @@ def test_config_noastropy_fallback(monkeypatch, recwarn):
     from ...tests.helper import pytest
     from .. import paths, configuration
 
-    #make sure the config directory is not searched
+    # make sure the config directory is not searched
     monkeypatch.setenv('XDG_CONFIG_HOME', 'foo')
     monkeypatch.delenv('XDG_CONFIG_HOME')
 
@@ -202,7 +202,7 @@ def test_config_noastropy_fallback(monkeypatch, recwarn):
     monkeypatch.setattr(configuration, '_cfgobjs', {})
 
     with pytest.raises(OSError):
-        #make sure the config dir search fails
+        # make sure the config dir search fails
         paths.get_config_dir()
 
     # now run the basic tests, and make sure the warning about no astropy
