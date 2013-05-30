@@ -146,9 +146,9 @@ class TestMaskedColumnInit(SetupData):
 
     def test_set_mask_and_not_ref(self):
         """Check that mask gets set properly and that it is a copy, not ref"""
-        assert np.all(self.a.mask is False)
-        assert np.all(self.b.mask is True)
-        assert np.all(self.c.mask is False)
+        assert np.all(~self.a.mask)
+        assert np.all(self.b.mask)
+        assert np.all(~self.c.mask)
         assert np.all(self.d.mask == self.d_mask)
         self.d.mask[0] = True
         assert not np.all(self.d.mask == self.d_mask)
