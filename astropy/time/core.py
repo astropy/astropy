@@ -461,20 +461,20 @@ class Time(object):
 
     def __getitem__(self, item):
         if self.is_scalar:
-            raise IndexError('invalid index to scalar {0!r} object.'.format(
+            raise TypeError('scalar {0!r} object is not subscriptable.'.format(
                 self.__class__.__name__))
-        keepasarray = lambda x, is_scalar: np.array([x]) if is_scalar else x
         tm = self.replicate()
         jd1 = self._time.jd1[item]
-        is_scalar = jd1.ndim == 0
-        tm._time.jd1 = keepasarray(jd1, is_scalar)
-        tm._time.jd2 = keepasarray(self._time.jd2[item], is_scalar)
-        tm.is_scalar = is_scalar
+        tm.is_scalar = jd1.ndim == 0
+        def keepasarray(x, is_scalar=tm.is_scalar):
+            return np.array([x]) if is_scalar else x
+        tm._time.jd1 = keepasarray(jd1)
+        tm._time.jd2 = keepasarray(self._time.jd2[item])
         attrs = ('_delta_ut1_utc', '_delta_tdb_tt')
         for attr in attrs:
             if hasattr(self, attr):
                 val = getattr(self, attr)
-                setattr(tm, attr, keepasarray(val[item], is_scalar))
+                setattr(tm, attr, keepasarray(val[item]))
         return tm
 
     def _getAttributeNames(self):
