@@ -104,7 +104,7 @@ def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
         try:
             import scipy.special
         except ImportError:
-            raise ImportError("Could not import scipy.special; cannot create an " +
+            raise ImportError("Could not import scipy.special; cannot create an "
                               "airy kernel without this (need the bessel function)")
         rr = np.sum([(x - (x.max()) / 2.) ** 2 for x in np.indices(kernelshape)], axis=0) ** 0.5
         # airy function is first bessel(x) / x  [like the sinc]
