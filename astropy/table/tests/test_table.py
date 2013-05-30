@@ -79,7 +79,7 @@ class TestSetTableColumn(SetupData):
         assert t['b'][0] == 4
         assert t['b'][1] == 21
         assert t['b'][2] == 6
-    
+
     def test_set_row_existing(self):
         """Set a row from another existing row"""
         t = Table([self.a, self.b])
@@ -760,5 +760,3 @@ class TestConvertNumpyArray():
 
         with pytest.raises(ValueError):
             np_data = np.array(d, dtype=[('c', 'i8'), ('d', 'i8')])
-
-

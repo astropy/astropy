@@ -148,19 +148,19 @@ class TestInitFromListOfLists(BaseInitFromListLike):
 
 @pytest.mark.usefixtures('set_global_Table')
 class TestInitFromListOfDicts(BaseInitFromListLike):
-    
+
     def setup_method(self, method):
         self.data = [{'a': 1, 'b': 2, 'c': 3},
                      {'a': 3, 'b': 4, 'c': 5}]
-    
+
     def test_names(self):
         t = Table(self.data)
         assert all(colname in set(['a', 'b', 'c']) for colname in t.colnames)
-    
+
     def test_names_ordered(self):
         t = Table(self.data, names=('c', 'b', 'a'))
         assert t.colnames == ['c', 'b', 'a']
-    
+
     def test_bad_data(self):
         with pytest.raises(ValueError):
             Table([{'a': 1, 'b': 2, 'c': 3},

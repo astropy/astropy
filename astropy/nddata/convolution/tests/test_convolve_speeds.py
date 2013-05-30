@@ -13,7 +13,7 @@ if __name__ == "__main__":
         print " ".join(["%17s" % n for n in ("n", "convolve", "convolve_fftnp", "convolve_fftw", "convolve_fftsp")])
 
         for ii in xrange(3, max_exponents_fft[ndims]):
-            #array = np.random.random([2**ii]*ndims)
+            # array = np.random.random([2**ii]*ndims)
             # test ODD sizes too
             if ii < max_exponents_fft[ndims]:
                 setup = ("""
@@ -28,16 +28,16 @@ kernel = make_kernel([%i]*%i, 3, force_odd=True)""") % (2 ** ii - 1, ndims, 2 **
 
                 if ii <= max_exponents_linear[ndims]:
                     for ffttype, extra in zip(("", "_fft", "_fft", "_fft"),
-                            ("", "fft_pad=False, fft_type='numpy'",
-                                "fft_pad=False,fft_type='fftw'",
-                                "fft_pad=False,fft_type='scipy'")):
+                                             ("", "fft_pad=False, fft_type='numpy'",
+                                              "fft_pad=False,fft_type='fftw'",
+                                              "fft_pad=False,fft_type='scipy'")):
                         statement = "convolve%s(array, kernel, boundary='fill', %s)" % (ffttype, extra)
                         besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                         print "%17f" % (besttime),
                 else:
                     print "%17s" % "skipped",
                     for ffttype, extra in zip(("_fft", "_fft", "_fft"),
-                            ("fft_type='numpy'", "fft_type='fftw'", "fft_type='scipy'")):
+                                             ("fft_type='numpy'", "fft_type='fftw'", "fft_type='scipy'")):
                         statement = "convolve%s(array, kernel, boundary='fill', %s)" % (ffttype, extra)
                         besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                         print "%17f" % (besttime),
@@ -56,14 +56,14 @@ kernel = make_kernel([%i]*%i, 3, force_odd=True)""") % (2 ** ii, ndims, 2 ** ii,
 
             if ii <= max_exponents_linear[ndims]:
                 for ffttype, extra in zip(("", "_fft", "_fft", "_fft"),
-                        ("", "fft_type='numpy'", "fft_type='fftw'", "fft_type='scipy'")):
+                                         ("", "fft_type='numpy'", "fft_type='fftw'", "fft_type='scipy'")):
                     statement = "convolve%s(array, kernel, boundary='fill', %s)" % (ffttype, extra)
                     besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                     print "%17f" % (besttime),
             else:
                 print "%17s" % "skipped",
                 for ffttype, extra in zip(("_fft", "_fft", "_fft"),
-                        ("fft_type='numpy'", "fft_type='fftw'", "fft_type='scipy'")):
+                                         ("fft_type='numpy'", "fft_type='fftw'", "fft_type='scipy'")):
                     statement = "convolve%s(array, kernel, boundary='fill', %s)" % (ffttype, extra)
                     besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                     print "%17f" % (besttime),
