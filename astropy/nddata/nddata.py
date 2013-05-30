@@ -111,7 +111,8 @@ class NDData(object):
 
             if uncertainty is not None:
                 self.uncertainty = uncertainty
-                log.info("Overwriting NDData's current uncertainty being overwritten with specified uncertainty")
+                log.info("Overwriting NDData's current uncertainty being"
+                         " overwritten with specified uncertainty")
 
             if mask is not None:
                 self.mask = mask
@@ -300,7 +301,8 @@ class NDData(object):
         else:
             new_wcs = None
 
-        return self.__class__(new_data, uncertainty=new_uncertainty, mask=new_mask, flags=new_flags, wcs=new_wcs,
+        return self.__class__(new_data, uncertainty=new_uncertainty,
+                              mask=new_mask, flags=new_flags, wcs=new_wcs,
                               meta=self.meta, unit=self.unit)
 
     def _arithmetic(self, operand, propagate_uncertainties, name, operation):

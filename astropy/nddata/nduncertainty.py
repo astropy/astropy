@@ -3,20 +3,23 @@ import abc
 
 import numpy as np
 
-__all__ = ['MissingDataAssociationException', 'IncompatibleUncertaintiesException', 'NDUncertainty',
+__all__ = ['MissingDataAssociationException',
+           'IncompatibleUncertaintiesException', 'NDUncertainty',
            'StdDevUncertainty']
 
 
 class IncompatibleUncertaintiesException(Exception):
     """
-    This exception should be used to indicate cases in which uncertainties with two different classes can not be propagated.
+    This exception should be used to indicate cases in which uncertainties
+    with two different classes can not be propagated.
     """
     pass
 
 
 class MissingDataAssociationException(Exception):
     """
-    This exception should be used to indicate that an uncertainty instance has not been associated with a parent `~astropy.nddata.nddata.NDData` object.
+    This exception should be used to indicate that an uncertainty instance has
+    not been associated with a parent `~astropy.nddata.nddata.NDData` object.
     """
     pass
 
