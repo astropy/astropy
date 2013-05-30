@@ -2,8 +2,9 @@
 
 import numpy as np
 
+
 def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
-        trapslope=None, normalize_kernel=np.sum, force_odd=False):
+                trapslope=None, normalize_kernel=np.sum, force_odd=False):
     """
     Create a smoothing kernel for use with `convolve` or `convolve_fft`.
 
@@ -76,48 +77,48 @@ def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
     """
 
     if force_odd:
-        kernelshape = [n-1 if (n%2==0) else n for n in kernelshape]
+        kernelshape = [n - 1 if (n % 2 == 0) else n for n in kernelshape]
 
     if normalize_kernel is True:
         normalize_kernel = np.sum
 
     if kerneltype == 'gaussian':
-        rr = np.sum([(x-(x.max()+1)//2)**2 for x in np.indices(kernelshape)],axis=0)**0.5
-        kernel = np.exp(-(rr**2)/(2.*kernelwidth**2))
-        kernel /= normalize_kernel(kernel) #/ (kernelwidth**2 * (2*np.pi))
+        rr = np.sum([(x - (x.max() + 1) // 2) ** 2 for x in np.indices(kernelshape)], axis=0) ** 0.5
+        kernel = np.exp(-(rr ** 2) / (2. * kernelwidth ** 2))
+        kernel /= normalize_kernel(kernel)  # / (kernelwidth**2 * (2*np.pi))
     elif kerneltype == 'boxcar':
-        kernel = np.zeros(kernelshape,dtype='float64')
+        kernel = np.zeros(kernelshape, dtype='float64')
         kernelslices = []
         for dimsize in kernelshape:
-            center = dimsize - (dimsize+1)//2
-            kernelslices += [slice(center - (kernelwidth)//2, center + (kernelwidth+1)//2)]
+            center = dimsize - (dimsize + 1) // 2
+            kernelslices += [slice(center - (kernelwidth) // 2, center + (kernelwidth + 1) // 2)]
         kernel[kernelslices] = 1.0
         kernel /= normalize_kernel(kernel)
     elif kerneltype == 'tophat':
-        rr = np.sum([(x-(x.max())/2.)**2 for x in np.indices(kernelshape)],axis=0)**0.5
-        kernel = np.zeros(kernelshape,dtype='float64')
-        kernel[rr<kernelwidth] = 1.0
+        rr = np.sum([(x - (x.max()) / 2.) ** 2 for x in np.indices(kernelshape)], axis=0) ** 0.5
+        kernel = np.zeros(kernelshape, dtype='float64')
+        kernel[rr < kernelwidth] = 1.0
         # normalize
         kernel /= normalize_kernel(kernel)
     elif kerneltype == 'airy':
         try:
             import scipy.special
         except ImportError:
-            raise ImportError("Could not import scipy.special; cannot create an "+
-                    "airy kernel without this (need the bessel function)")
-        rr = np.sum([(x-(x.max())/2.)**2 for x in np.indices(kernelshape)],axis=0)**0.5
+            raise ImportError("Could not import scipy.special; cannot create an " +
+                              "airy kernel without this (need the bessel function)")
+        rr = np.sum([(x - (x.max()) / 2.) ** 2 for x in np.indices(kernelshape)], axis=0) ** 0.5
         # airy function is first bessel(x) / x  [like the sinc]
-        kernel = scipy.special.j1(rr/kernelwidth) / (rr/kernelwidth)
+        kernel = scipy.special.j1(rr / kernelwidth) / (rr / kernelwidth)
         # fix NAN @ center
-        kernel[rr==0] = 0.5
+        kernel[rr == 0] = 0.5
         kernel /= normalize_kernel(kernel)
     elif kerneltype == 'trapezoid':
-        rr = np.sum([(x-(x.max())/2.)**2 for x in np.indices(kernelshape)],axis=0)**0.5
+        rr = np.sum([(x - (x.max()) / 2.) ** 2 for x in np.indices(kernelshape)], axis=0) ** 0.5
         if trapslope:
-            zz = rr.max()-(rr*trapslope)
-            zz[zz<0] = 0
-            zz[rr<kernelwidth] = 1.0
-            kernel = zz/zz.sum()
+            zz = rr.max() - (rr * trapslope)
+            zz[zz < 0] = 0
+            zz[rr < kernelwidth] = 1.0
+            kernel = zz / zz.sum()
         else:
             raise ValueError("Must specify a slope for kerneltype='trapezoid'")
 

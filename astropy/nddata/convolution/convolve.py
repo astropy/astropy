@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 from ...config import ConfigurationItem
 
+
 def convolve(array, kernel, boundary=None, fill_value=0.,
              normalize_kernel=False):
     '''
@@ -394,7 +395,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
             newshape = np.array(arrayshape) + np.array(kernshape)
         else:
             newshape = np.array([np.max([imsh, kernsh])
-                for imsh, kernsh in zip(arrayshape, kernshape)])
+                                 for imsh, kernsh in zip(arrayshape, kernshape)])
 
     # separate each dimension by the padding size...  this is to determine the
     # appropriate slice size to get back to the input dimensions
@@ -403,9 +404,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     for ii, (newdimsize, arraydimsize, kerndimsize) in enumerate(zip(newshape, arrayshape, kernshape)):
         center = newdimsize - (newdimsize + 1) // 2
         arrayslices += [slice(center - arraydimsize // 2,
-            center + (arraydimsize + 1) // 2)]
+                              center + (arraydimsize + 1) // 2)]
         kernslices += [slice(center - kerndimsize // 2,
-            center + (kerndimsize + 1) // 2)]
+                             center + (kerndimsize + 1) // 2)]
 
     bigarray = np.ones(newshape, dtype=complex_dtype) * fill_value
     bigkernel = np.zeros(newshape, dtype=complex_dtype)
