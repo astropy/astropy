@@ -494,15 +494,6 @@ class Quantity(object):
                           "Python scalar".format(self.unit))
         return long(self.value)
 
-    # Array types
-    def __array__(self):
-        # We show a warning unless the unit is equivalent to unity (i.e. not
-        # just dimensionless, but also with a scale of 1)
-        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            warnings.warn("Converting Quantity object in units '{0}' to a "
-                          "Numpy array".format(self.unit))
-        return np.array(self.value)
-
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
     def __str__(self):
