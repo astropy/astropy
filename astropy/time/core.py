@@ -135,7 +135,9 @@ class Time(object):
 
         if hasattr(val, '__getitem__') and isinstance(val[0], self.__class__):
             if val2 is not None:
-                raise ValueError('non-None second value for list of {0!r} objects'.format(self.__class__.__name__))
+                raise ValueError(
+                    'non-None second value for list of {0!r} objects'
+                    .format(self.__class__.__name__))
             self.is_scalar = False
         else:
             # Coerce val into a 1-d array
