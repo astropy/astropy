@@ -983,7 +983,7 @@ class Table(object):
             data = [col.filled(fill_value) for col in self.columns.values()]
         else:
             data = self
-        return Table(data, meta=deepcopy(self.meta))
+        return self.__class__(data, meta=deepcopy(self.meta))
 
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).
@@ -1332,7 +1332,7 @@ class Table(object):
                 return self._new_from_slice(item)
             elif (all(x in self.colnames for x in item)):
                 # Item is a tuple of strings that are valid column names
-                return Table([self[x] for x in item], meta=deepcopy(self.meta))
+                return self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
             else:
                 raise ValueError('Illegal item for table item access')
 
