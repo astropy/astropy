@@ -68,6 +68,21 @@ class TestBasic():
         t2 = Time(t, format='iso', scale='tai', out_subfmt='date')
         assert t2.val == '2010-01-01'
 
+    def test_getitem(self):
+        """Test that Time objects holding arrays are properly subscriptable,
+        set is_scalar as appropriate, and also subscript delta_ut1_utc, etc."""
+
+        t = Time(np.arange(50000, 50010), format='mjd', scale='utc')
+        t1 = t[3]
+        assert t1.is_scalar is True
+        assert np.all(t1._time.jd1 == np.array([t._time.jd1[3]]))
+        t2 = t[4:6]
+        assert t2.is_scalar is False
+        assert np.all(t2._time.jd1 == t._time.jd1[4:6])
+        t.delta_tdb_tt = np.arange(len(t))  # Explicitly set (not testing .tdb)
+        t3 = t[4:6]
+        assert np.all(t3._delta_tdb_tt == t._delta_tdb_tt[4:6])
+
     def test_properties(self):
         """Use properties to convert scales and formats.  Note that the UT1 to
         UTC transformation requires a supplementary value (``delta_ut1_utc``)
