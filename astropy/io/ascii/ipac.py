@@ -149,9 +149,20 @@ class Ipac(fixedwidth.FixedWidth):
                 except TypeError:
                     pass
 
+        #get header and data as strings to find width
+        for i, col in enumerate(table.cols):
+            col.headwidth = max([len(vals[i]) for vals in self.header.str_vals()])
+        # keep those because they take some time to make
+        data_str_vals = self.data.str_vals()
+        for i, col in enumerate(table.cols):
+            col.width = max([len(vals[i]) for vals in data_str_vals])
+
+
+        widths = [max(col.width, col.headwidth) for col in table.cols]
+
         # then write table
-        self.header.write(lines)
-        self.data.write(lines)
+        self.header.write(lines, widths)
+        self.data.write(lines, widths, data_str_vals)
 
         return lines
 
@@ -342,13 +353,8 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         for i, col in enumerate(self.cols):
             col.index = i
 
-    def write_delayed(self, lines, cols, widths):
-        '''Write header.
-
-        The width of each column is determined in IpacData.write. Writing the header
-        must be delayed until that time.
-        This function is called from data, once the widht information is
-        available.'''
+    def str_vals(self):
+        
         if self.strict:
             IpacFormatE = IpacFormatErrorStrict
         else:
@@ -380,15 +386,41 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             if (not 'ra' in namelist) and ('dec') in namelist:
                 raise IpacFormatE('"ra" and "dec" are required columns (with equatorial J2000 coordinates in decimal degrees)')
 
-        lines.append(self.splitter.join(namelist, widths))
+        dtypelist = []
+        unitlist = []
+        for col in self.cols:
+            if col.dtype.kind in ['i', 'u']:
+                dtypelist.append('int')
+            elif col.dtype.kind  == 'f':
+                dtypelist.append('float')
+            else:
+                dtypelist.append('char')
+            if col.units is None:
+                unitlist.append('unit')
+            else:
+                unitlist.append(str(col.units))
+        nullist = [getattr(col, 'fill_value', 'null') for col in self.cols]
+        return [namelist, dtypelist, unitlist, nullist]           
+
+    def write(self, lines, widths):
+        '''Write header.
+
+        The width of each column is determined in IpacData.write. Writing the header
+        must be delayed until that time.
+        This function is called from data, once the widht information is
+        available.'''
+
+        for vals in self.str_vals():
+            lines.append(self.splitter.join(vals, widths))
+        return lines
 
 class IpacData(fixedwidth.FixedWidthData):
     """IPAC table data reader"""
     comment = r'[|\\]'
 
-    def write(self, lines):
-        """ IPAC writer, modified from FixedWidth writer """
 
+    def str_vals(self):
+        '''return str vals for each in the table'''
         vals_list = []
 
         with self._set_col_formats(self.cols, self.formats):
@@ -398,15 +430,12 @@ class IpacData(fixedwidth.FixedWidthData):
             for vals in izip(*col_str_iters):
                 vals_list.append(vals)
 
-        for i, col in enumerate(self.cols):
-            col.width = max([len(vals[i]) for vals in vals_list])
+        return vals_list
 
-        widths = [col.width for col in self.cols]
 
-        self.header.write_delayed(lines, self.cols, widths)
-
+    def write(self, lines, widths, vals_list):
+        """ IPAC writer, modified from FixedWidth writer """
         for vals in vals_list:
             lines.append(self.splitter.join(vals, widths))
-
         return lines
 
