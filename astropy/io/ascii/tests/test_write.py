@@ -170,6 +170,9 @@ tablefoot
 \\CLIPEXP='6'
 \\CLIPRANGE='2.5'
 |       id|   xcenter|   ycenter|         mag|          merr|           msky| niter|              sharpness|         chi|  pier|       perror|
+|      int|     float|     float|       float|         float|          float|   int|                  float|       float|   int|         char|
+|     unit|    pixels|    pixels|  magnitudes|    magnitudes|         counts|  unit|                   unit|        unit|  unit|      perrors|
+|     null|      null|      null|        null|          null|           null|  null|                   null|        null|  null|         null|
  14        138.538    256.405    15.461       0.003          34.85955        4      -0.032                  0.802        0      No_error      
  18        18.114     280.170    22.329       0.206          30.12784        4      -2.544                  1.104        0      No_error      
 """
