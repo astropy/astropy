@@ -1171,7 +1171,7 @@ class Table(object):
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""
 
-        table = Table(masked=self.masked)
+        table = self.__class__(masked=self.masked)
         table.meta.clear()
         table.meta.update(deepcopy(self.meta))
         cols = self.columns.values()
