@@ -133,23 +133,30 @@ class Time(object):
         some basic input validation.
         """
 
-        # Coerce val into a 1-d array
-        val, val_ndim = _make_1d_array(val, copy)
-
-        # If val2 is None then replace with zeros of the same length
-        if val2 is None:
-            val2 = np.zeros(len(val), dtype=np.double)
-            val2_ndim = val_ndim
+        if hasattr(val, '__getitem__') and isinstance(val[0], self.__class__):
+            if val2 is not None:
+                raise ValueError(
+                    'non-None second value for list of {0!r} objects'
+                    .format(self.__class__.__name__))
+            self.is_scalar = False
         else:
-            val2, val2_ndim = _make_1d_array(val2, copy)
+            # Coerce val into a 1-d array
+            val, val_ndim = _make_1d_array(val, copy)
 
-        # Consistency checks
-        if len(val) != len(val2):
-            raise ValueError('Input val and val2 must match in length')
+            # If val2 is None then replace with zeros of the same length
+            if val2 is None:
+                val2 = np.zeros(len(val), dtype=np.double)
+                val2_ndim = val_ndim
+            else:
+                val2, val2_ndim = _make_1d_array(val2, copy)
 
-        self.is_scalar = (val_ndim == 0)
-        if val_ndim != val2_ndim:
-            raise ValueError('Input val and val2 must have same dimensions')
+            # Consistency checks
+            if len(val) != len(val2):
+                raise ValueError('Input val and val2 must match in length')
+
+            self.is_scalar = (val_ndim == 0)
+            if val_ndim != val2_ndim:
+                raise ValueError('Input val and val2 must have same dimensions')
 
         if scale is not None and scale not in self.SCALES:
             raise ScaleValueError("Scale {0} is not in the allowed scales {1}"
@@ -169,7 +176,8 @@ class Time(object):
         available formats and stop when one matches.
         """
 
-        if format is None and val.dtype.kind in ('S', 'U', 'O'):
+        if format is None and (isinstance(val[0], self.__class__) or
+                               val.dtype.kind in ('S', 'U', 'O')):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeUnique)]
             err_msg = 'any of the formats where the format keyword is optional {0}'.format(
@@ -458,6 +466,24 @@ class Time(object):
         copy of the JD arrays.
         """
         return self.copy()
+
+    def __getitem__(self, item):
+        if self.is_scalar:
+            raise TypeError('scalar {0!r} object is not subscriptable.'.format(
+                self.__class__.__name__))
+        tm = self.replicate()
+        jd1 = self._time.jd1[item]
+        tm.is_scalar = jd1.ndim == 0
+        def keepasarray(x, is_scalar=tm.is_scalar):
+            return np.array([x]) if is_scalar else x
+        tm._time.jd1 = keepasarray(jd1)
+        tm._time.jd2 = keepasarray(self._time.jd2[item])
+        attrs = ('_delta_ut1_utc', '_delta_tdb_tt')
+        for attr in attrs:
+            if hasattr(self, attr):
+                val = getattr(self, attr)
+                setattr(tm, attr, keepasarray(val[item]))
+        return tm
 
     def _getAttributeNames(self):
         """
