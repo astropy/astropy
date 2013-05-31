@@ -32,6 +32,7 @@ ipac.py:
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
+import collections
 from ...utils import OrderedDict
 
 from . import core
@@ -40,7 +41,17 @@ from ...utils import OrderedDict
 from .core import io, next, izip, any
 import numpy as np
 
-class Ipac(core.BaseReader):
+class IpacFormatErrorStrict(Exception):
+    def __str__(self):
+        return super(Exception, self).__str__() + '\nSee http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html'
+
+
+class IpacFormatError(Exception):
+    def __str__(self):
+        return super(Exception, self).__str__() + '\nSee http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html'
+    
+
+class Ipac(fixedwidth.FixedWidth):
     """Read an IPAC format table.  See
     http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
 
@@ -85,118 +96,86 @@ class Ipac(core.BaseReader):
 
     """
     def __init__(self, definition='ignore'):
-        core.BaseReader.__init__(self)
+        super(fixedwidth.FixedWidth, self).__init__()
         self.header = IpacHeader(definition=definition)
         self.data = IpacData()
         self.data.header = self.header
-        self.header.splitter.delimiter = '|'
-        self.header.splitter.bookend = True
+        self.header.data = self.data
         self.data.splitter.delimiter = ' '
+        self.data.splitter.delimiter_pad = ''
         self.data.splitter.bookend = True
+        self.header.comment = r'\s*\\'
+        self.header.write_comment = r'\\'
+        self.header.col_starts = None
+        self.header.col_ends = None
 
-    def write(self, lines):
-        '''
-        Write the table to an IPAC file
-        '''
+    def write(self, table, strict = True):
+        """Write ``table`` as list of strings.
 
-        # atpy leftover
-        #self._raise_vector_columns()
+        :param table: input table data (astropy.table.Table object)
+        :param strict: If true, this varifies that written tables adheres (mostly)
+            to the `IPAC/DBMS <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
+            definiton of IPAC tables. If ``False`` it only checks for the (less strict)
+            `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
+            definition.
+        :returns: list of strings corresponding to ASCII table
+        """
+        # link information about the columns to the writer object (i.e. self)
+        self.header.cols = table.cols
+        self.data.cols = table.cols
+        self.header.strict = strict
 
-        for key in self.keywords:
-            value = self.keywords[key]
-            lines.append("\\" + key + "=" + str(value) + "\n")
-
-        for comment in self.comments:
-            lines.append("\\ " + comment + "\n")
-
-        # Compute width of all columns
-
-        width = {}
-
-        line_names = ""
-        line_types = ""
-        line_units = ""
-        line_nulls = ""
-
-        width = {}
-
-        def format_length(format):
-            " for format length adjustment; copied from atpy helpers "
-            if '.' in format:
-                return int(format.split('.')[0])
-            else:
-                return int(format[:-1])
-
-        for name in self.names:
-
-            dtype = self.columns[name].dtype
-
-            coltype = type_rev_dict[dtype.type]
-            colunit = self.columns[name].unit
-
-            if self._masked:
-                colnull = self.data[name].fill_value
-            else:
-                colnull = self.columns[name].null
-
-            if colnull:
-                colnull = ("%" + self.columns[name].format) % colnull
-            else:
-                colnull = ''
-
-            # Adjust the format for each column
-
-            width[name] = format_length(self.columns[name].format)
-
-            max_width = max(len(name), len(coltype), len(colunit), \
-                len(colnull))
-
-            if max_width > width[name]:
-                width[name] = max_width
-
-            sf = "%" + str(width[name]) + "s"
-            line_names = line_names + "|" + (sf % name)
-            line_types = line_types + "|" + (sf % coltype)
-            line_units = line_units + "|" + (sf % colunit)
-            line_nulls = line_nulls + "|" + (sf % colnull)
-
-        line_names = line_names + "|\n"
-        line_types = line_types + "|\n"
-        line_units = line_units + "|\n"
-        line_nulls = line_nulls + "|\n"
-
-        lines.append(line_names)
-        lines.append(line_types)
-        if len(line_units.replace("|", "").strip()) > 0:
-            lines.append(line_units)
-        if len(line_nulls.replace("|", "").strip()) > 0:
-            lines.append(line_nulls)
-
-        for i in range(self.__len__()):
-
-            line = ""
-
-            for name in self.names:
-                if self.columns[name].dtype == np.uint64:
-                    item = (("%" + self.columns[name].format) % long(self.data[name][i]))
+        # Write header and data to lines list
+        lines = []
+        # Write meta information
+        if 'comments' in table.meta:
+            for comment in table.meta['comments']:
+                comment_str  = str(comment)
+                if len(comment_str) < 78:
+                    lines.append('\\ {0}'.format(comment_str))
                 else:
-                    item = (("%" + self.columns[name].format) % self.data[name][i])
-                item = ("%" + str(width[name]) + "s") % item
+                    raise IpacFormatError('Comment string must be less than 78 characters. Too long: \n{0}'.format(comment_str))
+        if 'keywords' in table.meta:
+            keydict = table.meta['keywords']
+            for keyword in keydict:
+                try:
+                    val = keydict[keyword]['value']
+                    if isinstance(val, basestring): val = "'"+val+"'"
+                    lines.append('\\{0}={1}'.format(keyword.strip(), val))
+                    # meta is not standardized: Catch some common Errors.
+                except TypeError:
+                    pass
 
-                if len(item) > width[name]:
-                    raise Exception('format for column %s (%s) is not wide enough to contain data' % (name, self.columns[name].format))
+        # then write table
+        self.header.write(lines)
+        self.data.write(lines)
 
-                line = line + " " + item
-
-            line = line + " \n"
-
-            lines.append(line)
         return lines
 
-class IpacHeader(core.BaseHeader):
+
+
+class IpacHeaderSplitter(core.BaseSplitter):
+
+    process_line = None
+    process_val = None
+    delimiter = '|'
+    delimiter_pad = ''
+    skipinitialspace = False
+
+    def join(self, vals, widths):
+        pad = self.delimiter_pad or ''
+        delimiter = self.delimiter or ''
+        padded_delim = pad + delimiter + pad
+        bookend_left = delimiter + pad
+        bookend_right = pad + delimiter
+ 
+        vals = [' ' * (width - len(val)) + val for val, width in zip(vals, widths)]
+        return bookend_left + padded_delim.join(vals) + bookend_right
+
+class IpacHeader(fixedwidth.FixedWidthHeader):
     """IPAC table header"""
     comment = '\\'
-    splitter_class = fixedwidth.FixedWidthSplitter
+    splitter_class = IpacHeaderSplitter
     col_type_map = {'int': core.IntType,
                     'integer': core.IntType,
                     'long': core.IntType,
@@ -213,10 +192,13 @@ class IpacHeader(core.BaseHeader):
                     'c': core.StrType}
 
     def __init__(self, definition='ignore'):
-        self.splitter = self.__class__.splitter_class()
-        self.splitter.process_line = None
-        self.splitter.process_val = None
-        self.splitter.delimiter = '|'
+       
+        fixedwidth.FixedWidthHeader.__init__(self)
+
+        #self.splitter = IpacHeaderSplitter
+        #self.splitter.process_line = None
+        #self.splitter.process_val = None
+
         if definition in ['ignore', 'left', 'right']:
             self.ipac_definition = definition
         else:
@@ -302,7 +284,6 @@ class IpacHeader(core.BaseHeader):
         :param lines: list of table lines
         :returns: list of table Columns
         """
-        #self.get_meta(lines)
         header_lines = self.process_lines(lines)  # generator returning valid header lines
         header_vals = [vals for vals in self.splitter(header_lines)]
         if len(header_vals) == 0:
@@ -358,6 +339,46 @@ class IpacHeader(core.BaseHeader):
         for i, col in enumerate(self.cols):
             col.index = i
 
+    def write_delayed(self, lines, cols, widths):
+        '''Write header.
+
+        The width of each column is determined in IpacData.write. Writing the header
+        must be delayed until that time.
+        This function is called from data, once the widht information is
+        available.'''
+        if self.strict:
+            IpacFormatE = IpacFormatErrorStrict
+        else:
+            IpacFormatE = IpacFormatError
+
+        if self.strict:
+            namelist = [col.name.lower() for col in self.cols]
+            doublenames = [x for x, y in collections.Counter(namelist).items() if y > 1]
+            if doublenames != []:
+                raise IpacFormatE('IPAC DBMS tables are not case sensitive. This causes dublicate column names: {0}'.format(doublenames))
+
+        else:
+            namelist = [col.name for col in self.cols]
+
+        for name in namelist:
+            m = re.match('\w+', name)
+            if m.end() != len(name):
+                raise IpacFormatE('{0} - Only alphanumaric characters and _ are allowed in column names.'.format(name))
+            if self.strict:
+                if name in ['x','y','z', 'X', 'Y','Z']:
+                    raise IpacFormatE('{0} - x, y, z, X, Y, Z are reserved names and cannot be used as column names.'.format(name))
+                if len(name) > 16:
+                    raise IpacFormatE('{0} - Maximum length for column name is 16 characters'.format(name))
+            else:
+                if len(name) > 40:
+                    raise IpacFormatE('{0} - Maximum length for column name is 40 characters.'.format(name))
+
+        if self.strict:
+            if (not 'ra' in namelist) and ('dec') in namelist:
+                raise IpacFormatE('"ra" and "dec" are required columns (with equatorial J2000 coordinates in decimal degrees)')
+
+        lines.append(self.splitter.join(namelist, widths))
+
 class IpacData(fixedwidth.FixedWidthData):
     """IPAC table data reader"""
     comment = r'[|\\]'
@@ -379,7 +400,7 @@ class IpacData(fixedwidth.FixedWidthData):
 
         widths = [col.width for col in self.cols]
 
-        lines.append(self.header.splitter.join([col.name for col in self.cols], widths))
+        self.header.write_delayed(lines, self.cols, widths)
 
         for vals in vals_list:
             lines.append(self.splitter.join(vals, widths))
