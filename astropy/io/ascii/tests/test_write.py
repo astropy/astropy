@@ -20,6 +20,13 @@ ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """
          ),
+    dict(kwargs=dict(delimiter=None),
+         out="""\
+ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
+14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
+18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
+"""
+         ),
     dict(kwargs=dict(formats={'XCENTER': '%12.1f',
                               'YCENTER': '{0:.1f}'},
                      include_names=['XCENTER', 'YCENTER'],
