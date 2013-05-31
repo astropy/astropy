@@ -36,6 +36,9 @@ from ...utils import OrderedDict
 
 from . import core
 from . import fixedwidth
+from ...utils import OrderedDict
+from .core import io, next, izip, any
+import numpy as np
 
 class Ipac(core.BaseReader):
     """Read an IPAC format table.  See
@@ -85,16 +88,21 @@ class Ipac(core.BaseReader):
         core.BaseReader.__init__(self)
         self.header = IpacHeader(definition=definition)
         self.data = IpacData()
-
-    def write(self, table=None):
-        """Not available for the Ipac class (raises NotImplementedError)"""
-        raise NotImplementedError
+        # from FixedWidth, needed for writer
+        self.data.header = self.header
+        # this is also defined in the header __init__
+        # Which is right?  "conventional" ?
+        # (obviously not both)
+        self.header.splitter.delimiter = '|'
+        self.header.splitter.bookend = True
+        self.data.splitter.delimiter = ' '
+        self.data.splitter.bookend = True
 
 
 class IpacHeader(core.BaseHeader):
     """IPAC table header"""
-    comment = '\\'
-    splitter_class = core.BaseSplitter
+    comment = '\\' # comment is just a single \.  r'\\' = '\\\\'
+    splitter_class = fixedwidth.FixedWidthSplitter
     col_type_map = {'int': core.IntType,
                     'integer': core.IntType,
                     'long': core.IntType,
@@ -127,6 +135,28 @@ class IpacHeader(core.BaseHeader):
         for line in lines:
             if line.startswith(delim) and line.endswith(delim):
                 yield line.strip(delim)
+
+    def process_meta_kw(self, lines):
+        """Generator to yield IPAC metadata lines, i.e. those starting with a
+        comment character and with an = in the middle"""
+        for line in lines:
+            if line.startswith(self.__class__.comment):
+                if "=" in line:
+                    k,v = line.lstrip(self.__class__.comment).split("=")
+                    yield k.strip(),v.strip()
+
+    def process_meta_comments(self, lines):
+        """Generator to yield IPAC comment lines"""
+        for line in lines:
+            if line.startswith(self.__class__.comment):
+                if "=" not in line:
+                    yield line.lstrip(self.__class__.comment).strip()
+
+    def get_meta(self, lines):
+        self.table_meta = OrderedDict()
+        for k,v in self.process_meta_kw(lines):
+            self.table_meta[k] = v
+        self.table_meta['comments'] = list(self.process_meta_comments(lines))
 
     def update_meta(self, lines, meta):
         """
@@ -200,6 +230,7 @@ class IpacHeader(core.BaseHeader):
         :param lines: list of table lines
         :returns: list of table Columns
         """
+        #self.get_meta(lines)
         header_lines = self.process_lines(lines)  # generator returning valid header lines
         header_vals = [vals for vals in self.splitter(header_lines)]
         if len(header_vals) == 0:
@@ -255,7 +286,31 @@ class IpacHeader(core.BaseHeader):
         for i, col in enumerate(self.cols):
             col.index = i
 
-class IpacData(core.BaseData):
+class IpacData(fixedwidth.FixedWidthData):
     """IPAC table data reader"""
-    splitter_class = fixedwidth.FixedWidthSplitter
     comment = r'[|\\]'
+
+    def write(self, lines):
+        """ IPAC writer, modified from FixedWidth writer """
+
+        vals_list = []
+
+        with self._set_col_formats(self.cols, self.formats):
+            # Col iterator does the formatting defined above so each val is a string
+            # and vals is a tuple of strings for all columns of each row
+            col_str_iters = [col.iter_str_vals() for col in self.cols]
+            for vals in izip(*col_str_iters):
+                vals_list.append(vals)
+
+        for i, col in enumerate(self.cols):
+            col.width = max([len(vals[i]) for vals in vals_list])
+
+        widths = [col.width for col in self.cols]
+
+        lines.append(self.header.splitter.join([col.name for col in self.cols], widths))
+
+        for vals in vals_list:
+            lines.append(self.splitter.join(vals, widths))
+
+        return lines
+
