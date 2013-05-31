@@ -59,6 +59,8 @@ else:
 # https://github.com/astropy/astropy/issues/811
 from _pytest.assertion import rewrite as _rewrite
 _orig_write_pyc = _rewrite._write_pyc
+
+
 def _write_pyc_wrapper(co, source_path, pyc):
     """Wraps the internal _write_pyc method in py.test to recognize
     PermissionErrors and just stop trying to cache its generated pyc files if
@@ -298,8 +300,8 @@ class astropy_test(Command, object):
                    'open_files={1.open_files!r}))')
             cmd = cmd.format(set_flag, self)
 
-            #override the config locations to not make a new directory nor use
-            #existing cache or config
+            # override the config locations to not make a new directory nor use
+            # existing cache or config
             os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
             os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
             os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
