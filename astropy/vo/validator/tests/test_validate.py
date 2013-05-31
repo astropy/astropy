@@ -67,7 +67,7 @@ class TestConeSearchValidation(object):
             validate.check_conesearch_sites(
                 destdir=self.out_dir, parallel=parallel, url_list=None)
         except AssertionError as e:
-            if parallel and sys.version_info >= (3,3):
+            if parallel and sys.version_info >= (3, 3):
                 pytest.xfail('See http://bugs.python.org/issue16307')
             else:
                 raise
