@@ -19,6 +19,8 @@ New Features
   - Add ``plot_date`` format (:class:`~astropy.time.core.TimePlotDate`) which
     allows converting to and from the date representation used when plotting
     dates with matplotlib via the `~matplotlib.pyplot.plot_date` function.
+    
+  - Add array indexing to Time objects [#1132]
 
 - `astropy.stats`
 
