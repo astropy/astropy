@@ -103,6 +103,7 @@ Parameters for ``read()``
 **fill_values**: fill value specifier of lists
   This can be used to fill missing values in the table or replace strings with special meaning.
   See the `Replace bad or missing values`_ section for more information and examples.
+  The default is that any blank table values are treated as missing.
 
 **fill_include_names**: list of column names, which are affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
