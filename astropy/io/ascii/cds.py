@@ -287,6 +287,11 @@ class Cds(core.BaseReader):
       ``description`` attributes, respectively.
     * The other metadata defined by this format is not available in the output table.
     """
+    _format_name = 'cds'
+    _io_registry_format_aliases = ['cds']
+    _io_registry_can_write = False
+    _description = 'CDS format table'
+
     def __init__(self, readme=None):
         core.BaseReader.__init__(self)
         self.header = CdsHeader(readme)

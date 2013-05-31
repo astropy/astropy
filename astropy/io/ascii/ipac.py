@@ -106,6 +106,11 @@ class Ipac(fixedwidth.FixedWidth):
         `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
         definition.
     """
+    _format_name = 'ipac'
+    _io_registry_format_aliases = ['ipac']
+    _io_registry_can_write = True
+    _description = 'IPAC format table'
+
     def __init__(self, definition='ignore', DBMS = False):
         super(fixedwidth.FixedWidth, self).__init__()
         self.header = IpacHeader(definition=definition)
