@@ -97,7 +97,7 @@ def read(table, guess=None, **kwargs):
     :param guess: try to guess the table format (default=True)
     :param Reader: Reader class (default=``ascii.Basic``)
     :param Inputter: Inputter class
-    :param Outputter: Outputter class
+    :param Outputter: Outputter class (default=TableOutputter)
     :param delimiter: column delimiter string
     :param comment: regular expression defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
@@ -110,11 +110,13 @@ def read(table, guess=None, **kwargs):
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param fill_values: specification of fill values for bad or missing table values
+    :param fill_values: specification of fill values for bad or missing table values (default=('', '0'))
     :param fill_include_names: list of names to include in fill_values (default=None selects all names)
     :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
-
     """
+
+    if 'fill_values' not in kwargs:
+        kwargs['fill_values'] = [('', '0')]
 
     # Provide a simple way to choose between the two common outputters.  If an
     # Outputter is supplied in kwargs that will take precedence.

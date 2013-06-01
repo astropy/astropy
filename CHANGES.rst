@@ -37,6 +37,14 @@ New Features
 API Changes
 ^^^^^^^^^^^
 
+- ``astropy.io.ascii``
+
+  - In the ``read`` method of ``astropy.io.ascii``, empty column values in an ASCII table
+    are now treated as missing values instead of the previous treatment as a zero-length
+    string "".  This now corresponds to the behavior of other table readers like
+    ``numpy.genfromtxt``.  To restore the previous behavior set ``fill_values=None`` in the
+    call to ``ascii.read()``.
+
 - ``astropy.io.fits``
 
   - The ``updateHeader``, ``updateHeaderData``, and ``updateCompressedData``

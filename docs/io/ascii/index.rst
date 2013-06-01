@@ -117,13 +117,44 @@ Using `io.ascii`
 
 The details of using `astropy.io.ascii` are provided in the following sections:
 
+Reading tables
+---------------
+
 .. toctree::
    :maxdepth: 2
 
    read
+
+Writing tables
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
    write
+
+Fixed-width Gallery
+--------------------
+
+.. toctree::
+   :maxdepth: 2
+
    fixed_width_gallery
+
+Base class elements
+-------------------
+
+.. toctree::
+   :maxdepth: 2
+
    base_classes
+
+Extension Reader classes
+------------------------
+
+.. toctree::
+   :maxdepth: 2
+
    extension_classes
 
 
