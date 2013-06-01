@@ -101,6 +101,9 @@ class Quantity(object):
     # arrays to avoid element-wise multiplication.
     __array_priority__ = 1000.
 
+    def __array_wrap__(self, out, context=None):
+        return self.__class__(out, unit=self._unit)
+
     def __init__(self, value, unit, equivalencies=[]):
         from ..utils.misc import isiterable
 
@@ -135,6 +138,9 @@ class Quantity(object):
         new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
         new_unit = Unit(unit)
         return Quantity(new_val, new_unit)
+
+    def value_in(self, unit):
+        return self.to(unit)._value
 
     @property
     def value(self):
@@ -264,10 +270,16 @@ class Quantity(object):
             return Quantity(self.value + other.to(self.unit).value,
                             unit=self.unit)
         else:
-            raise TypeError(
-                "Object of type '{0}' cannot be added with a Quantity "
-                "object. Addition is only supported between Quantity "
-                "objects with compatible units.".format(other.__class__))
+            try:
+                return self.__add__(other * Unit(1))
+            except TypeError:
+                raise TypeError(
+                    "Object of type '{0}' cannot be added with a Quantity "
+                    "object. Addition is only supported between Quantity "
+                    "objects with compatible units.".format(other.__class__))
+
+
+    __radd__ = __add__
 
     def __sub__(self, other):
         """ Subtraction between `Quantity` objects and other objects.
@@ -279,10 +291,16 @@ class Quantity(object):
             return Quantity(self.value - other.to(self.unit).value,
                             unit=self.unit)
         else:
-            raise TypeError(
-                "Object of type '{0}' cannot be subtracted from a Quantity "
-                "object. Subtraction is only supported between Quantity "
-                "objects with compatible units.".format(other.__class__))
+            try:
+                return self.__sub__(other * Unit(1))
+            except TypeError:
+                raise TypeError(
+                    "Object of type '{0}' cannot be subtracted from a Quantity "
+                    "object. Subtraction is only supported between Quantity "
+                    "objects with compatible units.".format(other.__class__))
+
+    def __rsub__(self, other):
+        return -__sub__(self, other)
 
     def __mul__(self, other):
         """ Multiplication between `Quantity` objects and other objects."""
@@ -463,40 +481,6 @@ class Quantity(object):
                             "len()".format(cls=self.__class__.__name__))
         else:
             return len(self.value)
-
-    # Numerical types
-    def __float__(self):
-        if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to '
-                            'Python scalars')
-        # We show a warning unless the unit is equivalent to unity (i.e. not
-        # just dimensionless, but also with a scale of 1)
-        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            warnings.warn("Converting Quantity object in units '{0}' to a "
-                          "Python scalar".format(self.unit))
-        return float(self.value)
-
-    def __int__(self):
-        if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to '
-                            'Python scalars')
-        # We show a warning unless the unit is equivalent to unity (i.e. not
-        # just dimensionless, but also with a scale of 1)
-        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            warnings.warn("Converting Quantity object in units '{0}' to a "
-                          "Python scalar".format(self.unit))
-        return int(self.value)
-
-    def __long__(self):
-        if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to '
-                            'Python scalars')
-        # We show a warning unless the unit is equivalent to unity (i.e. not
-        # just dimensionless, but also with a scale of 1)
-        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            warnings.warn("Converting Quantity object in units '{0}' to a "
-                          "Python scalar".format(self.unit))
-        return long(self.value)
 
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
