@@ -16,7 +16,7 @@ import abc
 import numpy as np
 from numpy import linalg
 import warnings
-from .utils import pmapdomain
+from .utils import poly_map_domain
 from functools import reduce
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
@@ -270,11 +270,11 @@ class LinearLSQFitter(Fitter):
                          'pars': None
                          }
 
-    def _deriv_with_constraints(self, x, y=None):
+    def _deriv_with_constraints(self, pars=None, x=None, y=None):
         if y is None:
-            d = self.model.deriv(x)
+            d = self.model.deriv(x=x)
         else:
-            d = self.model.deriv(x, y)
+            d = self.model.deriv(x=x, y=y)
         fixed = [name for name in self.model.constraints.fixed if
                  self.model.constraints.fixed[name]]
         ind = range(len(self.model.param_names))
@@ -322,11 +322,11 @@ class LinearLSQFitter(Fitter):
                 self.model.domain = [x.min(), x.max()]
             if not self.model.window:
                 self.model.window = [-1, 1]
-            xnew = pmapdomain(x, self.model.domain, self.model.window)
+            xnew = poly_map_domain(x, self.model.domain, self.model.window)
             if any(self.model.constraints.fixed.values()):
-                lhs = self._deriv_with_constraints(xnew)
+                lhs = self._deriv_with_constraints(x=xnew)
             else:
-                lhs = self.model.deriv(xnew)
+                lhs = self.model.deriv(x=xnew)
             if len(y.shape) == 2:
                 rhs = y
                 multiple = y.shape[1]
@@ -339,22 +339,22 @@ class LinearLSQFitter(Fitter):
                 raise ValueError("x and z should have equal last dimensions")
 
             # map domain into window
-            if self.model.xdomain is None:
-                self.model.xdomain = [x.min(), x.max()]
-            if self.model.ydomain is None:
-                self.model.ydomain = [y.min(), y.max()]
-            if self.model.xwindow is None:
-                self.model.xwindow = [-1., 1.]
-            if self.model.ywindow is None:
-                self.model.ywindow = [-1., 1.]
+            if self.model.x_domain is None:
+                self.model.x_domain = [x.min(), x.max()]
+            if self.model.y_domain is None:
+                self.model.y_domain = [y.min(), y.max()]
+            if self.model.x_window is None:
+                self.model.x_window = [-1., 1.]
+            if self.model.y_window is None:
+                self.model.y_window = [-1., 1.]
 
-            xnew = pmapdomain(x, self.model.xdomain, self.model.xwindow)
-            ynew = pmapdomain(y, self.model.ydomain, self.model.ywindow)
+            xnew = poly_map_domain(x, self.model.x_domain, self.model.x_window)
+            ynew = poly_map_domain(y, self.model.y_domain, self.model.y_window)
 
             if any(self.model.constraints.fixed.values()):
-                lhs = self._deriv_with_constraints(xnew, ynew)
+                lhs = self._deriv_with_constraints(x=xnew, y=ynew)
             else:
-                lhs = self.model.deriv(xnew, ynew)
+                lhs = self.model.deriv(x=xnew, y=ynew)
             if len(z.shape) == 3:
                 rhs = np.array([i.flatten() for i in z]).T
                 multiple = z.shape[0]

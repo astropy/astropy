@@ -5,7 +5,7 @@ This module provides utility functions for the models package
 from __future__ import division, print_function
 import numpy as np
 
-__all__ = ['pmapdomain', 'comb', 'InputParameterError']
+__all__ = ['poly_map_domain', 'comb', 'InputParameterError']
 
 
 class InputParameterError(Exception):
@@ -20,7 +20,7 @@ class InputParameterError(Exception):
         return self._message
 
 
-def pmapdomain(oldx, domain, window):
+def poly_map_domain(oldx, domain, window):
     """
     Map domain into window by shifting and scaling.
 

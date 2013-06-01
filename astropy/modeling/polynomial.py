@@ -10,7 +10,7 @@ from . import parameters
 from .core import ParametricModel, Model, SCompositeModel
 from .core import _convert_input, _convert_output
 from .core import LabeledInput
-from .utils import pmapdomain, comb
+from .utils import poly_map_domain, comb
 from .functional_models import ShiftModel
 
 __all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'Legendre2DModel',
@@ -118,31 +118,6 @@ class PolynomialModel(ParametricModel):
         numc = self.deg * ndim + nmixed + 1
         return numc
 
-    def set_domain(self, x, y=None):
-        """
-        Map the input data into a [-1, 1] window
-        """
-        if self.n_inputs == 1:
-            if not self.domain:
-                self.domain = [x.min(), x.max()]
-            if not self.window:
-                self.window = [-1, 1]
-            return pmapdomain(x, self.domain, self.window)
-        if self.n_inputs == 2:
-            assert y is not None, ("Expected 2 input coordinates")
-            if not self.xdomain:
-                self.xdomain = [x.min(), x.max()]
-            if not self.xwindow:
-                self.xwindow = [-1, 1]
-            if not self.ydomain:
-                self.ydomain = [y.min(), y.max()]
-            if not self.ywindow:
-                self.ywindow = [-1, 1]
-            xnew = pmapdomain(x, self.xdomain, self.xwindow)
-            ynew = pmapdomain(x, self.ydomain, self.ywindow)
-            return xnew, ynew
-
-
 class OrthogPolyBase(ParametricModel):
 
     """
@@ -158,28 +133,28 @@ class OrthogPolyBase(ParametricModel):
         degree in x
     y_degree : int
         degree in y
-    xdomain : list or None
+    x_domain : list or None
         domain of the x independent variable
-    ydomain : list or None
+    y_domain : list or None
         domain of the y independent variable
-    xwindow : list or None
+    x_window : list or None
         range of the x independent variable
-    ywindow : list or None
+    y_window : list or None
         range of the y independent variable
     param_dim : int
         number of parameter sets
     **pars : dict
         {keyword: value} pairs, representing {parameter_name: value}
     """
-    def __init__(self, x_degree, y_degree, xdomain=None, xwindow=None, ydomain=None,
-                 ywindow=None, param_dim=1, **pars):
+    def __init__(self, x_degree, y_degree, x_domain=None, x_window=None, y_domain=None,
+                 y_window=None, param_dim=1, **pars):
         self.xdeg = x_degree
         self.ydeg = y_degree
         self._order = self.get_numcoeff()
-        self.xdomain = xdomain
-        self.ydomain = ydomain
-        self.xwindow = xwindow
-        self.ywindow = ywindow
+        self.x_domain = x_domain
+        self.y_domain = y_domain
+        self.x_window = x_window
+        self.y_window = y_window
         self.param_names = self._generate_coeff_names()
 
         if not pars:
@@ -359,7 +334,19 @@ class Chebyshev1DModel(PolynomialModel):
                 c1 = tmp + c1 * x2
         return c0 + c1 * x
 
-    def deriv(self, x):
+    def deriv(self, pars=None, x=None, y=None):
+        """
+        Computes the Vandermonde matrix.
+
+        Parameters
+        ----------
+        pars : throw away parameter
+            parameter list returned by non-linear fitters
+        x : ndarray
+            input
+        y : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
+        """
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.deg + 1,) + x.shape, dtype=x.dtype)
         v[0] = x * 0 + 1
@@ -382,7 +369,7 @@ class Chebyshev1DModel(PolynomialModel):
         See the module docstring for rules for model evaluation.
         """
         if self.domain is not None:
-            x = self.set_domain(x)
+            x = poly_map_domain(x, self.domain, self.window)#self.set_domain(x)
         x, fmt = _convert_input(x, self.param_dim)
         result = self.clenshaw(x, self.param_sets)
         return _convert_output(result, fmt)
@@ -434,7 +421,17 @@ class Legendre1DModel(PolynomialModel):
                 c1 = tmp + (c1 * x * (2 * nd - 1)) / nd
         return c0 + c1 * x
 
-    def deriv(self, x):
+    def deriv(self, pars=None, x=None, y=None):
+        """
+        Parameters
+        ----------
+        pars : throw away parameter
+            parameter list returned by non-linear fitters
+        x : ndarray
+            input
+        y : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
+        """
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.deg + 1,) + x.shape, dtype=x.dtype)
         v[0] = x * 0 + 1
@@ -456,7 +453,7 @@ class Legendre1DModel(PolynomialModel):
         See the module docstring for rules for model evaluation.
         """
         if self.domain is not None:
-            x = self.set_domain(x)
+            x = poly_map_domain(x, self.domain, self.window)#self.set_domain(x)
         x, fmt = _convert_input(x, self.param_dim)
         result = self.clenshaw(x, self.param_sets)
         return _convert_output(result, fmt)
@@ -489,9 +486,21 @@ class Poly1DModel(PolynomialModel):
         super(Poly1DModel, self).__init__(degree, n_inputs=1, n_outputs=1,
                                           param_dim=param_dim, **pars)
 
-    def deriv(self, x):
+    def deriv(self, pars=None, x=None, y=None):
+        """
+        Computes the Vandermonde matrix.
+
+        Parameters
+        ----------
+        pars : throw away parameter
+            parameter list returned by non-linear fitters
+        x : ndarray
+            input
+        y : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
+        """
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
-        v = np.empty((self.deg + 1,) + x.shape, dtype=x.dtype)
+        v = np.empty((self.deg + 1,) + x.shape, dtype=np.float)
         v[0] = x * 0 + 1
         v[1] = x
         for i in range(2, self.deg + 1):
@@ -528,24 +537,22 @@ class Poly2DModel(PolynomialModel):
 
     Represents a general polynomial of degree n:
 
-    .. math::
-
-    P(x,y) = c_{0_0} + c_{1_0}x + ...+ c_{n_0}x^n + c_{0_1}y + ...+ c_{0_n}y^n \\
+    .. math:: P(x,y) = c_{0_0} + c_{1_0}x + ...+ c_{n_0}x^n + c_{0_1}y + ...+ c_{0_n}y^n \\
     + c_{1_1}xy + c_{1_2}xy^2 + ... + c_{1_(n-1)}xy^{n-1}+ ... + \\
     c_{(n-1)_1}x^{n-1}y
 
     Parameters
     ----------
     degree : int
-        highest power of the polynomial, the number of terms
-        are degree+1
-    xdomain : list or None
+        highest power of the polynomial,
+        the number of terms is degree+1
+    x_domain : list or None
         domain of the x independent variable
-    ydomain : list or None
+    y_domain : list or None
         domain of the y independent variable
-    xwindow : list or None
+    x_window : list or None
         range of the x independent variable
-    ywindow : list or None
+    y_window : list or None
         range of the y independent variable
     param_dim : int
         number of parameter sets
@@ -553,15 +560,15 @@ class Poly2DModel(PolynomialModel):
         keyword: value pairs, representing parameter_name: value
 
     """
-    def __init__(self, degree, xdomain=[-1, 1], ydomain=[-1, 1],
-                 xwindow=[-1, 1], ywindow=[-1, 1],
+    def __init__(self, degree, x_domain=[-1, 1], y_domain=[-1, 1],
+                 x_window=[-1, 1], y_window=[-1, 1],
                  param_dim=1, **pars):
         super(Poly2DModel, self).__init__(degree, n_inputs=2, n_outputs=1,
                                           param_dim=param_dim, **pars)
-        self.xdomain = xdomain
-        self.ydomain = ydomain
-        self.xwindow = xwindow
-        self.ywindow = ywindow
+        self.x_domain = x_domain
+        self.y_domain = y_domain
+        self.x_window = x_window
+        self.y_window = y_window
 
     def mhorner(self, x, y, coeff):
         """
@@ -586,9 +593,20 @@ class Poly2DModel(PolynomialModel):
             r0 = coeff[n + 1]
         return r0 + r1 + r2
 
-    def deriv(self, x, y):
+    def deriv(self, pars=None, x=None, y=None, z=None):
         """
-        Derivatives with respect to parameters
+        Computes the Vandermonde matrix.
+
+        Parameters
+        ----------
+        pars : throw away parameter
+            parameter list returned by non-linear fitters
+        x : ndarray
+            input
+        y : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
+        z : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
         """
         if x.ndim == 2:
             x = x.flatten()
@@ -660,13 +678,13 @@ class Chebyshev2DModel(OrthogPolyBase):
         degree in x
     y_degree : int
         degree in y
-    xdomain : list or None
+    x_domain : list or None
         domain of the x independent variable
-    ydomain : list or None
+    y_domain : list or None
         domain of the y independent variable
-    xwindow : list or None
+    x_window : list or None
         range of the x independent variable
-    ywindow : list or None
+    y_window : list or None
         range of the y independent variable
     param_dim : int
         number of parameter sets
@@ -674,11 +692,11 @@ class Chebyshev2DModel(OrthogPolyBase):
         keyword: value pairs, representing parameter_name: value
 
     """
-    def __init__(self, x_degree, y_degree, xdomain=None, xwindow=[-1, 1],
-                 ydomain=None, ywindow=[-1, 1], param_dim=1, **pars):
+    def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
+                 y_domain=None, y_window=[-1, 1], param_dim=1, **pars):
         super(Chebyshev2DModel, self).__init__(x_degree, y_degree,
-                                               xdomain=xdomain, ydomain=ydomain,
-                                               xwindow=xwindow, ywindow=ywindow,
+                                               x_domain=x_domain, y_domain=y_domain,
+                                               x_window=x_window, y_window=y_window,
                                                param_dim=param_dim, **pars)
 
     def _fcache(self, x, y):
@@ -699,12 +717,23 @@ class Chebyshev2DModel(OrthogPolyBase):
             kfunc[n] = 2 * y * kfunc[n - 1] - kfunc[n - 2]
         return kfunc
 
-    def deriv(self, x, y):
+    def deriv(self, pars=None, x=None, y=None, z=None):
         """
         Derivatives with respect to the coefficients.
         This is an array with Chebyshev polynomials:
 
         Tx0Ty0  Tx1Ty0...TxnTy0...TxnTym
+
+        Parameters
+        ----------
+        pars : throw away parameter
+            parameter list returned by non-linear fitters
+        x : ndarray
+            input
+        y : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
+        z : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
         """
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
@@ -734,15 +763,13 @@ class Chebyshev2DModel(OrthogPolyBase):
                 d[i] = d[i - 1] * x2 - d[i - 2]
         return np.rollaxis(d, 0, d.ndim)
 
-    def __call__(self, x, y, xdomain=None, ydomain=None):
+    def __call__(self, x, y):
         """
         Transforms data using this model.
 
         Parameters
         --------------
         x, y : arrays, of min dimensions 2
-        xdomain, ydomain : list of two numbers
-            polynomial domain for x and y variable
 
         Notes
         -----
@@ -752,6 +779,10 @@ class Chebyshev2DModel(OrthogPolyBase):
         y, fmt = _convert_input(y, self.param_dim)
         assert x.shape == y.shape, \
             "Expected input arrays to have the same shape"
+        if self.x_domain is not None:
+            x = poly_map_domain(x, self.x_domain, self.x_window)
+        if self.y_domain is not None:
+            y = poly_map_domain(y, self.y_domain, self.y_window)
         invcoeff = self.invlex_coeff()
 
         result = self.imhorner(x, y, invcoeff)
@@ -775,13 +806,13 @@ class Legendre2DModel(OrthogPolyBase):
         degree in x
     y_degree : int
         degree in y
-    xdomain : list or None
+    x_domain : list or None
         domain of the x independent variable
-    ydomain : list or None
+    y_domain : list or None
         domain of the y independent variable
-    xwindow : list or None
+    x_window : list or None
         range of the x independent variable
-    ywindow : list or None
+    y_window : list or None
         range of the y independent variable
     param_dim : int
         number of parameter sets
@@ -789,11 +820,11 @@ class Legendre2DModel(OrthogPolyBase):
         keyword: value pairs, representing parameter_name: value
 
     """
-    def __init__(self, x_degree, y_degree, xdomain=None, xwindow=[-1, 1],
-                 ydomain=None, ywindow=[-1, 1], param_dim=1, **pars):
+    def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
+                 y_domain=None, y_window=[-1, 1], param_dim=1, **pars):
         super(Legendre2DModel, self).__init__(x_degree, y_degree,
-                                              xdomain=xdomain, ydomain=ydomain,
-                                              xwindow=xwindow, ywindow=ywindow,
+                                              x_domain=x_domain, y_domain=y_domain,
+                                              x_window=x_window, y_window=y_window,
                                               param_dim=param_dim, **pars)
 
     def _fcache(self, x, y):
@@ -809,18 +840,28 @@ class Legendre2DModel(OrthogPolyBase):
         kfunc[xterms] = np.ones(y.shape)
         kfunc[xterms + 1] = y.copy()
         for n in range(2, xterms):
-            kfunc[n] = (2 * n + 1) / (n + 1) * kfunc[n - 1] - n / (n + 1) * kfunc[n - 2]
+            kfunc[n] = ((2 * (n-1) + 1) * x * kfunc[n - 1] - (n-1) * kfunc[n - 2]) / n
         for n in range(2, yterms):
-            kfunc[n + xterms] = (2 * n + 1) / (n + 1) * kfunc[n + xterms - 1] \
-                - n / (n + 1) * kfunc[n + xterms - 2]
+            kfunc[n + xterms] = ((2 * (n-1) + 1) * y * kfunc[n + xterms - 1] - (n-1) * kfunc[n + xterms - 2]) / (n)
         return kfunc
 
-    def deriv(self, x, y):
+    def deriv(self, pars=None, x=None, y=None, z=None):
         """
         Derivatives with repect to the coefficients.
         This is an array with Legendre polynomials:
 
         Lx0Ly0  Lx1Ly0...LxnLy0...LxnLym
+
+        Parameters
+        ----------
+        pars : throw away parameter
+            parameter list returned by non-linear fitters
+        x : ndarray
+            input
+        y : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
+        z : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
         """
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
@@ -842,24 +883,23 @@ class Legendre2DModel(OrthogPolyBase):
         Derivative of 1D Legendre polynomial
         """
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
-        d = np.empty((deg + 1, len(x)), dtype=x.dtype)
+        d = np.empty((deg + 1,) + x.shape, dtype=x.dtype)# len(x)), dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0:
             d[1] = x
             for i in range(2, deg + 1):
-                x2 = (2 * i + 1) * x
-                d[i] = d[i - 1] * x2 - d[i - 2] * i / (i + 1)
+                #x2 = (2 * i + 1) * x
+                #d[i] = d[i - 1] * x2 - d[i - 2] * i / (i + 1)
+                d[i] = (d[i - 1] * x * (2 * i - 1) - d[i - 2] * (i - 1)) / i
         return np.rollaxis(d, 0, d.ndim)
 
-    def __call__(self, x, y, xdomain=None, ydomain=None):
+    def __call__(self, x, y):
         """
         Transforms data using this model.
 
         Parameters
         --------------
         x, y : arrays, of min dimensions 2
-        xdomain, ydomain : list of two numbers
-            polynomial domain for x and y variable
 
         Notes
         -----
@@ -869,6 +909,10 @@ class Legendre2DModel(OrthogPolyBase):
         y, fmt = _convert_input(y, self.param_dim)
         assert x.shape == y.shape, \
             "Expected input arrays to have the same shape"
+        if self.x_domain is not None:
+            x = poly_map_domain(x, self.x_domain, self.x_window)
+        if self.y_domain is not None:
+            y = poly_map_domain(y, self.y_domain, self.y_window)
         invcoeff = self.invlex_coeff()
         result = self.imhorner(x, y, invcoeff)
         return _convert_output(result, fmt)

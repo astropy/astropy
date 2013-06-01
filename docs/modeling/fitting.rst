@@ -2,11 +2,11 @@
 Fitting Models to data
 **********************
 
-This module provides wrappers, called Fitters, around some Numpy and Scipy 
-fitting functions. All Fitters can be called as functions. They take an instance of 
-`~astropy.modeling.core.ParametricModel` as input and modify 
+This module provides wrappers, called Fitters, around some Numpy and Scipy
+fitting functions. All Fitters can be called as functions. They take an instance of
+`~astropy.modeling.core.ParametricModel` as input and modify
 `~astropy.modeling.core.ParametricModel.parameters`
-attribute. The idea is to make this extensible and allow users to easily add 
+attribute. The idea is to make this extensible and allow users to easily add
 other fitters.
 
 Linear fitting is done using Numpy's `~numpy.linalg.lstsq` function.
@@ -17,12 +17,12 @@ The rules for passing input to fitters are:
 
 * Non-linear fitters work only with single data sets
 
-* The linear fitter can fit single input to multiple data sets creating multiple 
-  parameter sets. For example fitting a 2D model with input x, y arrays 
-  of shape (n, m) to a z array of shape (p, n, m), will set 
+* The linear fitter can fit single input to multiple data sets creating multiple
+  parameter sets. For example fitting a 2D model with input x, y arrays
+  of shape (n, m) to a z array of shape (p, n, m), will set
   model.parameters.n_inputs to p, even if it was 1 when the model was created.
 
-* Attempting to fit a model with multiple parameter sets to a single 
+* Attempting to fit a model with multiple parameter sets to a single
   data set results in an error.
 
 
@@ -56,9 +56,10 @@ Fitters support constraint fitting through `~astropy.modeling.constraints.Constr
   argument to models or setting the `~astropy.modeling.parameters.Parameter.fixed`
   attribute directly on a parameter.
 
-For linear fitters freezing a polynomial coefficient means that a 
+For linear fitters freezing a polynomial coefficient means that a
 polynomial without that term will be fitted to the data. For example, fixing
 c0 in a polynomial model will fit a polynomial with the zero-th order term missing.
+However, the fixed value of the coefficient is used when evaluating the model.
 
 >>> x = np.arange(1, 10, .1)
 >>> p1 = models.Poly1DModel(2, param_dim=2)
@@ -76,7 +77,7 @@ array([[ 5.50225913,  5.50225913],
        [ 2.        ,  2.        ],
        [ 3.17551299,  3.17551299]])
 
-       
+
 - A parameter can be `~astropy.modeling.parameters.Parameter.tied`
   (linked to another parameter). This can be done in two ways:
 
@@ -100,4 +101,4 @@ or
  'SLSQPFitter': ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']}
 
 
-    
+
