@@ -68,7 +68,13 @@ API Changes
   - Interfaces that were pending deprecation are now fully deprecated.  These
     include: ``create_card``, ``create_card_from_string``, ``upper_key``,
     ``Header.get_history``, and ``Header.get_comment``.
+    
+Bug Fixes
+^^^^^^^^^^
 
+- ``astropy.io.ascii``
+
+  - The ``write()`` function was ignoring the ``fill_values`` argument (#910).
 
 0.2.3 (unreleased)
 ------------------
