@@ -242,7 +242,7 @@ class FixedWidthData(core.BaseData):
         vals_list = []
         # Col iterator does the formatting defined above so each val is a string
         # and vals is a tuple of strings for all columns of each row
-        for vals in zip(*col_str_iters):
+        for vals in izip(*col_str_iters):
             vals_list.append(vals)
 
         for i, col in enumerate(self.cols):
