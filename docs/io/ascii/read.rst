@@ -102,7 +102,7 @@ Parameters for ``read()``
 
 **fill_values**: fill value specifier of lists
   This can be used to fill missing values in the table or replace strings with special meaning.
-  See the `Replace bad or missing values`_ section for more information and examples.
+  See the `Bad or missing values`_ section for more information and examples.
   The default is that any blank table values are treated as missing.
 
 **fill_include_names**: list of column names, which are affected by ``fill_values``.
@@ -126,20 +126,41 @@ Parameters for ``read()``
 
 .. _replace_bad_or_missing_values:
 
-Replace bad or missing values
+Bad or missing values
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ASCII data tables can contain bad or missing values.  A common case is when a table
 contains blank entries with no available data, for example::
 
-  day,rain,snow
-  Mon,0.0,1.5
+  day,precip,type
+  Mon,1.5,rain
   Tues,,       # <-- Weather station down
-  Wed,1.1,0.0
+  Wed,1.1,snow
 
-By default |read| will interpret blank entries as being bad/missing and output
-a masked Table with those entries masked out by setting the corresponding mask
-value set to ``True``.
+By default |read| will interpret blank entries as being bad/missing and output a masked
+Table with those entries masked out by setting the corresponding mask value set to
+``True``.  If you have read the above table into a variable ``dat``, you would see the
+output below, where the ``--`` values indicate missing data::
+
+  >>> print dat
+  day  precip type
+  ---- ------ ----
+   Mon    1.5 rain
+  Tues     --   --
+   Wed    1.1 snow
+
+If you want to replace the masked (missing) values with particular values, set the masked
+column ``fill_value`` attribute and then get the "filled" version of the table.  This
+looks like the following::
+
+  >>> dat['precip'].fill_value = -99.9
+  >>> dat['type'].fill_value = ''
+  >>> print dat.filled()
+  day  precip type
+  ---- ------ ----
+   Mon    1.5 rain
+  Tues  -99.9     
+   Wed    1.1 snow
 
 ASCII tables may also have other indicators of bad or missing data.  For example a table
 may contain string values that are not a valid representation of a number, e.g. ``"..."``,
