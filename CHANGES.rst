@@ -11,18 +11,18 @@ New Features
     written out using the CDS format, to ensure compatibility with the
     standard.
 
-- `astropy.time`
+- ``astropy.time``
 
-  - Add ``datetime`` format (:class:`~astropy.time.core.TimeDatetime`) which
-    allows converting to and from standard library `~datetime.datetime` objects.
+  - Add ``datetime`` format which allows converting to and from standard 
+    library ``datetime.datetime`` objects.
 
-  - Add ``plot_date`` format (:class:`~astropy.time.core.TimePlotDate`) which
-    allows converting to and from the date representation used when plotting
-    dates with matplotlib via the `~matplotlib.pyplot.plot_date` function.
+  - Add ``plot_date`` format which allows converting to and from the date 
+    representation used when plotting dates with matplotlib via the 
+    ``matplotlib.pyplot.plot_date`` function.
     
   - Add array indexing to Time objects [#1132]
 
-- `astropy.stats`
+- ``astropy.stats``
 
   - Added robust statistics functions `~astropy.stats.funcs.median_absolute_deviation`, 
     `~astropy.stats.funcs.biweight_location`, and 
