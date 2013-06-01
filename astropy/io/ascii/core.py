@@ -784,8 +784,6 @@ class MetaBaseReader(type):
         if format is None:
             return
 
-        FORMAT_CLASSES[format] = cls
-
         io_formats = dct.get('_io_registry_format_aliases', []) + ['ascii:' + format]
 
         if '_io_registry_suffix' in dct:
@@ -793,13 +791,14 @@ class MetaBaseReader(type):
             connect.io_registry.register_identifier(io_formats[0], Table, func)
 
         for io_format in io_formats:
+            FORMAT_CLASSES[io_format] = cls
+
             func = functools.partial(connect.io_read, io_format)
             connect.io_registry.register_reader(io_format, Table, func)
 
             if dct.get('_io_registry_can_write', True):
                 func = functools.partial(connect.io_write, io_format)
                 connect.io_registry.register_writer(io_format, Table, func)
-
 
 
 class BaseReader(object):
