@@ -284,6 +284,31 @@ class LinearLSQFitter(Fitter):
         res = d[:, ind]
         return res
 
+    def _map_domain_window(self, x, y=None):
+        """
+        Maps domain into window for a polynomial model which has
+        these attributes.
+        """
+        if y is None:
+            if hasattr(self.model, 'domain') and self.model.domain is None:
+                self.model.domain = [x.min(), x.max()]
+            if hasattr(self.model, 'window') and self.model.window is None:
+                self.model.window = [-1, 1]
+            return poly_map_domain(x, self.model.domain, self.model.window)
+        else:
+            if hasattr(self.model, 'x_domain') and self.model.x_domain is None:
+                self.model.x_domain = [x.min(), x.max()]
+            if hasattr(self.model, 'y_domain') and self.model.y_domain is None:
+                self.model.y_domain = [y.min(), y.max()]
+            if hasattr(self.model, 'x_window') and self.model.x_window is None:
+                self.model.x_window = [-1., 1.]
+            if hasattr(self.model, 'y_window') and self.model.y_window is None:
+                self.model.y_window = [-1., 1.]
+
+            xnew = poly_map_domain(x, self.model.x_domain, self.model.x_window)
+            ynew = poly_map_domain(y, self.model.y_domain, self.model.y_window)
+            return xnew, ynew
+
     def __call__(self, x, y, z=None, weights=None, rcond=None):
         """
         Fit data to this model.
@@ -318,15 +343,13 @@ class LinearLSQFitter(Fitter):
                     "Number of data sets (Y array is expected to equal "
                     "the number of parameter sets")
             # map domain into window
-            if not self.model.domain:
-                self.model.domain = [x.min(), x.max()]
-            if not self.model.window:
-                self.model.window = [-1, 1]
-            xnew = poly_map_domain(x, self.model.domain, self.model.window)
+            if hasattr(self.model, 'domain'):
+                x = self._map_domain_window(x)
+
             if any(self.model.constraints.fixed.values()):
-                lhs = self._deriv_with_constraints(x=xnew)
+                lhs = self._deriv_with_constraints(x=x)
             else:
-                lhs = self.model.deriv(x=xnew)
+                lhs = self.model.deriv(x=x)
             if len(y.shape) == 2:
                 rhs = y
                 multiple = y.shape[1]
@@ -339,22 +362,13 @@ class LinearLSQFitter(Fitter):
                 raise ValueError("x and z should have equal last dimensions")
 
             # map domain into window
-            if self.model.x_domain is None:
-                self.model.x_domain = [x.min(), x.max()]
-            if self.model.y_domain is None:
-                self.model.y_domain = [y.min(), y.max()]
-            if self.model.x_window is None:
-                self.model.x_window = [-1., 1.]
-            if self.model.y_window is None:
-                self.model.y_window = [-1., 1.]
-
-            xnew = poly_map_domain(x, self.model.x_domain, self.model.x_window)
-            ynew = poly_map_domain(y, self.model.y_domain, self.model.y_window)
+            if hasattr(self.model, 'x_domain'):
+                x, y = self._map_domain_window(x, y)
 
             if any(self.model.constraints.fixed.values()):
-                lhs = self._deriv_with_constraints(x=xnew, y=ynew)
+                lhs = self._deriv_with_constraints(x=x, y=y)
             else:
-                lhs = self.model.deriv(x=xnew, y=ynew)
+                lhs = self.model.deriv(x=x, y=y)
             if len(z.shape) == 3:
                 rhs = np.array([i.flatten() for i in z]).T
                 multiple = z.shape[0]
