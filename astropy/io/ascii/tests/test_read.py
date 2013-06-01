@@ -346,7 +346,49 @@ def test_read_rdb_wrong_type():
     table = """col1\tcol2
 N\tN
 1\tHello"""
-    dat = asciitable.read(table, Reader=asciitable.Rdb)
+    asciitable.read(table, Reader=asciitable.Rdb)
+
+
+@pytest.mark.xfail('numpy_lt_1p5')
+def test_default_missing():
+    """Read a table with empty values and ensure that corresponding entries are masked"""
+    table = '\n'.join(['a,b,c,d',
+                       '1,3,,',
+                       '2, , 4.0 , ss '])
+    dat = asciitable.read(table)
+    assert dat.masked is True
+    assert dat.pformat() == [' a   b   c   d ',
+                             '--- --- --- ---',
+                             '  1   3  --  --',
+                             '  2  -- 4.0  ss']
+
+    # Single row table with a single missing element
+    table = """ a \n "" """
+    dat = asciitable.read(table)
+    assert dat.pformat() == [' a ',
+                             '---',
+                             ' --']
+    assert dat['a'].dtype.kind == 'i'
+
+    # Same test with a fixed width reader
+    table = '\n'.join([' a   b   c   d ',
+                       '--- --- --- ---',
+                       '  1   3        ',
+                       '  2     4.0  ss'])
+    dat = asciitable.read(table, Reader=asciitable.FixedWidthTwoLine)
+    assert dat.masked is True
+    assert dat.pformat() == [' a   b   c   d ',
+                             '--- --- --- ---',
+                             '  1   3  --  --',
+                             '  2  -- 4.0  ss']
+
+    dat = asciitable.read(table, Reader=asciitable.FixedWidthTwoLine, fill_values=None)
+    assert dat.masked is False
+    assert dat.pformat() == [' a   b   c   d ',
+                             '--- --- --- ---',
+                             '  1   3        ',
+                             '  2     4.0  ss']
+
 
 def get_testfiles(name=None):
     """Set up information about the columns, number of rows, and reader params to

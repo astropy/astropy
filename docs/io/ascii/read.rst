@@ -102,7 +102,8 @@ Parameters for ``read()``
 
 **fill_values**: fill value specifier of lists
   This can be used to fill missing values in the table or replace strings with special meaning.
-  See the `Replace bad or missing values`_ section for more information and examples.
+  See the `Bad or missing values`_ section for more information and examples.
+  The default is that any blank table values are treated as missing.
 
 **fill_include_names**: list of column names, which are affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
@@ -125,17 +126,49 @@ Parameters for ``read()``
 
 .. _replace_bad_or_missing_values:
 
-Replace bad or missing values
+Bad or missing values
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:mod:`astropy.io.ascii` can replace string values in the input data before they are
-converted.  The most common use case is probably a table which contains string
-values that are not a valid representation of a number, e.g. ``"..."`` for a
-missing value or ``""``.  If :mod:`astropy.io.ascii` cannot convert all elements in a
-column to a numeric type, it will format the column as strings. To avoid this,
-``fill_values`` can be used at the string level to fill missing values with the
-following syntax, which replaces ``<old>`` with ``<new>`` before the type
-conversion is done::
+ASCII data tables can contain bad or missing values.  A common case is when a table
+contains blank entries with no available data, for example::
+
+  day,precip,type
+  Mon,1.5,rain
+  Tues,,       # <-- Weather station down
+  Wed,1.1,snow
+
+By default |read| will interpret blank entries as being bad/missing and output a masked
+Table with those entries masked out by setting the corresponding mask value set to
+``True``.  If you have read the above table into a variable ``dat``, you would see the
+output below, where the ``--`` values indicate missing data::
+
+  >>> print dat
+  day  precip type
+  ---- ------ ----
+   Mon    1.5 rain
+  Tues     --   --
+   Wed    1.1 snow
+
+If you want to replace the masked (missing) values with particular values, set the masked
+column ``fill_value`` attribute and then get the "filled" version of the table.  This
+looks like the following::
+
+  >>> dat['precip'].fill_value = -99.9
+  >>> dat['type'].fill_value = ''
+  >>> print dat.filled()
+  day  precip type
+  ---- ------ ----
+   Mon    1.5 rain
+  Tues  -99.9     
+   Wed    1.1 snow
+
+ASCII tables may also have other indicators of bad or missing data.  For example a table
+may contain string values that are not a valid representation of a number, e.g. ``"..."``,
+or a table may have special values like ``-999`` that are chosen to indicate missing data.
+The |read| function has a flexible system to accomodate these cases by replacing string
+values in the input data before they are converted.  This is done with the ``fill_values``
+argument which replaces ``<old>`` with ``<new>`` before the type conversion is
+done::
 
   fill_values = <fill_spec> | [<fill_spec1>, <fill_spec2>, ...]
   <fill_spec> = (<old>, <new>, <optional col name 1>, <optional col name 2>, ...)
@@ -155,8 +188,9 @@ columns with "1e38" while empty values in any other column will get "-999"::
 
   >>> ascii.read(table, fill_values=[('', '1e38', 'x', 'y'), ('', '-999')])
 
-The following shows an example where string information needs to be exchanged 
-before the conversion to float values happens. Here ``no_rain`` and ``no_snow`` is replaced by ``0.0``::
+The following shows an example where string information needs to be exchanged before the
+conversion to float values happens. Here ``no_rain`` and ``no_snow`` is replaced by
+``0.0``::
 
   >>> table = ['day  rain     snow',    # column names
                #---  -------  --------
@@ -175,10 +209,19 @@ given directly with fill_values::
   [('text1', 1, 1.0) ('', 2, --)]
 
 Here, the empty value ``''`` in column ``no2`` is replaced by ``nan``, but the ``text``
-column remains unaltered. 
+column remains unaltered.
 
 If any table elements match the fill specification then |read| returns a masked
 `~astropy.table.Table` object with the corresponding elements masked out.
+
+.. note::
+
+   The default in |read| is ``fill_values=('','0')``.  This marks blank entries as being
+   missing for any data type (int, float, or string).  If ``fill_values`` is explicitly
+   set in the call to |read| then the default behavior of marking blank entries as missing
+   no longer applies.  For instance setting ``fill_values=None`` will disable this
+   auto-masking without setting any other fill values.  This can be useful for a string
+   column where one of values happens to be ``""``.
 
 Guess table format
 ^^^^^^^^^^^^^^^^^^^^^^
