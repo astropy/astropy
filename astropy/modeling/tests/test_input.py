@@ -30,6 +30,11 @@ model2d_pars = [(models.Poly2DModel, [2]),
                 ]
 
 class TestInputType(object):
+    """
+    This class tests that models accept numbers, lists and arrays.
+
+    Add new models to one of the lists above to test for this.
+    """
     def setup_class(self):
         self.x = 5.3
         self.y = 6.7

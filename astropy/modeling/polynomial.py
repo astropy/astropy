@@ -284,6 +284,30 @@ class OrthogPolyBase(ParametricModel):
         """
         raise NotImplementedError("Subclasses should implement this")
 
+    def __call__(self, x, y):
+        """
+        Transforms data using this model.
+
+        Parameters
+        --------------
+        x, y : arrays, of min dimensions 2
+
+        Notes
+        -----
+        See the module docstring for rules for model evaluation.
+        """
+        x, _ = _convert_input(x, self.param_dim)
+        y, fmt = _convert_input(y, self.param_dim)
+        assert x.shape == y.shape, \
+            "Expected input arrays to have the same shape"
+        if self.x_domain is not None:
+            x = poly_map_domain(x, self.x_domain, self.x_window)
+        if self.y_domain is not None:
+            y = poly_map_domain(y, self.y_domain, self.y_window)
+        invcoeff = self.invlex_coeff()
+
+        result = self.imhorner(x, y, invcoeff)
+        return _convert_output(result, fmt)
 
 class Chebyshev1DModel(PolynomialModel):
 
@@ -763,30 +787,7 @@ class Chebyshev2DModel(OrthogPolyBase):
                 d[i] = d[i - 1] * x2 - d[i - 2]
         return np.rollaxis(d, 0, d.ndim)
 
-    def __call__(self, x, y):
-        """
-        Transforms data using this model.
 
-        Parameters
-        --------------
-        x, y : arrays, of min dimensions 2
-
-        Notes
-        -----
-        See the module docstring for rules for model evaluation.
-        """
-        x, _ = _convert_input(x, self.param_dim)
-        y, fmt = _convert_input(y, self.param_dim)
-        assert x.shape == y.shape, \
-            "Expected input arrays to have the same shape"
-        if self.x_domain is not None:
-            x = poly_map_domain(x, self.x_domain, self.x_window)
-        if self.y_domain is not None:
-            y = poly_map_domain(y, self.y_domain, self.y_window)
-        invcoeff = self.invlex_coeff()
-
-        result = self.imhorner(x, y, invcoeff)
-        return _convert_output(result, fmt)
 
 
 class Legendre2DModel(OrthogPolyBase):
@@ -883,39 +884,13 @@ class Legendre2DModel(OrthogPolyBase):
         Derivative of 1D Legendre polynomial
         """
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
-        d = np.empty((deg + 1,) + x.shape, dtype=x.dtype)# len(x)), dtype=x.dtype)
+        d = np.empty((deg + 1,) + x.shape, dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0:
             d[1] = x
             for i in range(2, deg + 1):
-                #x2 = (2 * i + 1) * x
-                #d[i] = d[i - 1] * x2 - d[i - 2] * i / (i + 1)
                 d[i] = (d[i - 1] * x * (2 * i - 1) - d[i - 2] * (i - 1)) / i
         return np.rollaxis(d, 0, d.ndim)
-
-    def __call__(self, x, y):
-        """
-        Transforms data using this model.
-
-        Parameters
-        --------------
-        x, y : arrays, of min dimensions 2
-
-        Notes
-        -----
-        See the module docstring for rules for model evaluation.
-        """
-        x, _ = _convert_input(x, self.param_dim)
-        y, fmt = _convert_input(y, self.param_dim)
-        assert x.shape == y.shape, \
-            "Expected input arrays to have the same shape"
-        if self.x_domain is not None:
-            x = poly_map_domain(x, self.x_domain, self.x_window)
-        if self.y_domain is not None:
-            y = poly_map_domain(y, self.y_domain, self.y_window)
-        invcoeff = self.invlex_coeff()
-        result = self.imhorner(x, y, invcoeff)
-        return _convert_output(result, fmt)
 
 
 class _SIP1D(Model):
