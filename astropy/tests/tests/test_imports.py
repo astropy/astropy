@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 def test_imports():
     """
     This just imports all modules in astropy, making sure they don't have any

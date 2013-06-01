@@ -16,11 +16,13 @@ PY3K = sys.version_info[0] >= 3
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
+
+
 def pytest_addoption(parser):
     parser.addoption("--remote-data", action="store_true",
-        help="run tests with online data")
+                     help="run tests with online data")
     parser.addoption("--open-files", action="store_true",
-        help="fail if any test leaves files open")
+                     help="fail if any test leaves files open")
 
 
 # Open file detection.
@@ -56,7 +58,7 @@ def _get_open_file_list():
 
         if (mapping.get(b'f') and
             mapping.get(b'a', b' ') != b' ' and
-            mapping.get(b't') == b'REG'):
+                mapping.get(b't') == b'REG'):
             # Ignore extension modules -- they may be imported by a
             # test but are never again closed by the runtime.  That's
             # ok.
@@ -76,7 +78,7 @@ def pytest_runtest_setup(item):
         item.open_files = _get_open_file_list()
 
     if ('remote_data' in item.keywords and
-        not item.config.getvalue("remote_data")):
+            not item.config.getvalue("remote_data")):
         pytest.skip("need --remote-data option to run")
 
 
@@ -86,7 +88,7 @@ if SUPPORTS_OPEN_FILE_DETECTION:
         # pytest_runtest_setup, so therefore won't have an
         # "open_files" member
         if (not item.config.getvalue('open_files') or
-            not hasattr(item, 'open_files')):
+                not hasattr(item, 'open_files')):
             return
 
         start_open_files = item.open_files
@@ -204,7 +206,7 @@ def modarg(request):
         os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
 
         def teardown():
-            #wipe the config/cache tmpdirs and restore the envars
+            # wipe the config/cache tmpdirs and restore the envars
             shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
             shutil.rmtree(os.environ['XDG_CACHE_HOME'])
             if oldconfigdir is None:
