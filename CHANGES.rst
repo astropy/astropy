@@ -21,6 +21,9 @@ New Features
     ``matplotlib.pyplot.plot_date`` function.
     
   - Add array indexing to Time objects [#1132]
+  
+  - Allow for arithmetic of multi-element and single-element Time and TimeDelta 
+    objects [#1081].
 
 - ``astropy.stats``
 
