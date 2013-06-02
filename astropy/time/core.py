@@ -600,10 +600,8 @@ class Time(object):
                 out = out.replicate(format=self.format)
             return out
         elif (self_time and other_delta):
-            format = self.format if self_time else other.format
-            scale = self.scale if self_time else other.scale
             tai = Time(jd1, jd2, format='jd', scale='tai', copy=False)
-            return getattr(tai.replicate(format=format), scale)
+            return getattr(tai.replicate(format=self.format), self.scale)
         else:
             raise OperandTypeError(self, other)
 
@@ -626,9 +624,7 @@ class Time(object):
         other_time = not other_delta
         if (self_delta and other_delta):
             out = TimeDelta(jd1, jd2, format='jd')
-            if self_delta:
-                out = out.replicate(format=self.format)
-            return out
+            return out.replicate(format=self.format)
         elif (self_time and other_delta) or (self_delta and other_time):
             format = self.format if self_time else other.format
             scale = self.scale if self_time else other.scale
