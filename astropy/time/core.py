@@ -77,8 +77,6 @@ class Time(object):
         Format of input value(s)
     scale : str, optional
         Time scale of input value(s)
-    opt : dict, optional
-        options
     lat : float, optional
         Earth latitude of observer (decimal degrees)
     lon : float, optional
@@ -623,11 +621,13 @@ class Time(object):
         self_time = not self_delta  # only 2 possibilities
         other_time = not other_delta
         if (self_delta and other_delta) or (self_time and other_time):
-            return TimeDelta(jd1, jd2, format='jd')
+            out = TimeDelta(jd1, jd2, format='jd')
+            if self_delta:
+                out = out.replicate(format=self.format)
+            return out
         elif (self_time and other_delta):
-            self_tai._time.jd1 = jd1
-            self_tai._time.jd2 = jd2
-            return getattr(self_tai, self.scale)
+            tai = Time(jd1, jd2, format='jd', scale='tai', copy=False)
+            return getattr(tai.replicate(format=self.format), self.scale)
         else:
             raise OperandTypeError(self, other)
 
@@ -649,13 +649,13 @@ class Time(object):
         self_time = not self_delta  # only 2 possibilities
         other_time = not other_delta
         if (self_delta and other_delta):
-            return TimeDelta(jd1, jd2, format='jd')
+            out = TimeDelta(jd1, jd2, format='jd')
+            return out.replicate(format=self.format)
         elif (self_time and other_delta) or (self_delta and other_time):
-            tai = self_tai if self_time else other_tai
+            format = self.format if self_time else other.format
             scale = self.scale if self_time else other.scale
-            tai._time.jd1 = jd1
-            tai._time.jd2 = jd2
-            return getattr(tai, scale)
+            tai = Time(jd1, jd2, format='jd', scale='tai', copy=False)
+            return getattr(tai.replicate(format=format), scale)
         else:
             raise OperandTypeError(self, other)
 

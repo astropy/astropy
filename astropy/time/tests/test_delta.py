@@ -57,6 +57,46 @@ class TestTimeDelta():
         t2 = dt + self.t
         assert t2.iso == self.t2.iso
 
+    def test_add_vector(self):
+        t = Time(0.0, format='mjd', scale='utc')
+        t2 = Time([0.0, 1.0], format='mjd', scale='utc')
+        dt = TimeDelta(100.0, format='jd')
+        dt2 = TimeDelta([100.0, 200.0], format='jd')
+
+        out = t + dt2
+        assert allclose_jd(out.mjd, [100.0, 200.0])
+
+        out = t2 + dt
+        assert allclose_jd(out.mjd, [100.0, 101.0])
+
+        out = dt + dt2
+        assert allclose_jd(out.jd, [200.0, 300.0])
+
+        # Reverse the argument order
+        out = dt2 + t
+        assert allclose_jd(out.mjd, [100.0, 200.0])
+
+        out = dt + t2
+        assert allclose_jd(out.mjd, [100.0, 101.0])
+
+        out = dt2 + dt
+        assert allclose_jd(out.jd, [200.0, 300.0])
+
+    def test_sub_vector(self):
+        t = Time(0.0, format='mjd', scale='utc')
+        t2 = Time([0.0, 1.0], format='mjd', scale='utc')
+        dt = TimeDelta(100.0, format='jd')
+        dt2 = TimeDelta([100.0, 200.0], format='jd')
+
+        out = t - dt2
+        assert allclose_jd(out.mjd, [-100.0, -200.0])
+
+        out = t2 - dt
+        assert allclose_jd(out.mjd, [-100.0, -99.0])
+
+        out = dt - dt2
+        assert allclose_jd(out.jd, [0.0, -100.0])
+
     def test_copy_timedelta(self):
         """Test copying the values of a TimeDelta object by passing it into the
         Time initializer.
