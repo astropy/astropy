@@ -101,8 +101,24 @@ class Quantity(object):
     # arrays to avoid element-wise multiplication.
     __array_priority__ = 1000.
 
+    def __array_prepare__(self, array, context=None):
+        return array
+
     def __array_wrap__(self, out, context=None):
-        return self.__class__(out, unit=self._unit)
+        if context:
+            if context[0] is np.sqrt:
+                return self.__class__(out, self._unit ** 0.5)
+            elif context[0] in [np.cos, np.sin, np.tan, np.exp, np.log, np.log1p, np.log2, np.log10]:
+                if len(out.shape) == 0:
+                    return float(out)
+                else:
+                    return out.astype(np.float64)
+            elif context[0] in [np.abs]:
+                return self.__class__(out, unit=self._unit)
+            else:
+                return self.__class__(out, unit=self._unit)
+        else:
+            return self.__class__(out, unit=self._unit)
 
     def __init__(self, value, unit, equivalencies=[]):
         from ..utils.misc import isiterable
@@ -402,6 +418,65 @@ class Quantity(object):
 
         return Quantity(abs(self.value), unit=self.unit)
 
+    # Trigonometric methods (these get called when np.cos/np.sin/np.tan are used)
+
+    def cos(self):
+        try:
+            return np.cos(self.value_in(Unit('radian')))
+        except UnitsException:
+            raise TypeError("Can only apply trigonometric functions to quantities with angle units")
+
+    def sin(self):
+        try:
+            return np.sin(self.value_in(Unit('radian')))
+        except UnitsException:
+            raise TypeError("Can only apply trigonometric functions to quantities with angle units")
+
+    def tan(self):
+        try:
+            return np.tan(self.value_in(Unit('radian')))
+        except UnitsException:
+            raise TypeError("Can only apply trigonometric functions to quantities with angle units")
+
+    # Special methods  (these get called when np.sqrt/np.exp/etc. are used)
+
+    def sqrt(self):
+        return Quantity(self.value ** 0.5, self.unit ** 0.5)
+
+    def exp(self):
+        if self._unit == Unit(1):
+            return np.exp(self.value)
+        else:
+            raise TypeError("Can only apply exponential function to dimensionless quantities")
+
+    def log(self):
+        if self._unit == Unit(1):
+            return np.log(self.value)
+        else:
+            raise TypeError("Can only apply log function to dimensionless quantities")
+
+    def log2(self):
+        if self._unit == Unit(1):
+            return np.log2(self.value)
+        else:
+            raise TypeError("Can only apply log2 function to dimensionless quantities")
+
+    def log10(self):
+        if self._unit == Unit(1):
+            return np.log10(self.value)
+        else:
+            raise TypeError("Can only apply log10 function to dimensionless quantities")
+
+    def log1p(self):
+        if self._unit == Unit(1):
+            return np.log1p(self.value)
+        else:
+            raise TypeError("Can only apply log1p function to dimensionless quantities")
+
+    # Quantity.std to be defined otherwise units are wrong when calling np.std
+    def std(self, **kwargs):
+        return Quantity(np.std(self.value, **kwargs), self._unit)
+
     # Comparison operations
     def __eq__(self, other):
         if hasattr(other, 'value') and hasattr(other, 'to'):
@@ -481,6 +556,28 @@ class Quantity(object):
                             "len()".format(cls=self.__class__.__name__))
         else:
             return len(self.value)
+
+    # Numerical types
+    def __float__(self):
+        if not self.isscalar or not _is_unity(self.unit):
+            raise TypeError('Only dimensionless scalar quantities can be '
+                            'converted to Python scalars')
+        else:
+            return float(self.value)
+
+    def __int__(self):
+        if not self.isscalar or not _is_unity(self.unit):
+            raise TypeError('Only dimensionless scalar quantities can be '
+                            'converted to Python scalars')
+        else:
+            return int(self.value)
+
+    def __long__(self):
+        if not self.isscalar or not _is_unity(self.unit):
+            raise TypeError('Only dimensionless scalar quantities can be '
+                            'converted to Python scalars')
+        else:
+            return float(self.value)
 
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
