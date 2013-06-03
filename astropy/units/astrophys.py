@@ -50,7 +50,7 @@ def_unit(['barn'], 10 ** -28 * si.m ** 2, register=True, prefixes=True,
 ###########################################################################
 # MASS
 
-def_unit(['solMass', 'M_sun'], _si.M_sun.value * si.kg, register=True,
+def_unit(['solMass', 'M_sun', 'Msun'], _si.M_sun.value * si.kg, register=True,
          prefixes=True, doc="Solar mass",
          format={'latex': r'M_{\odot}', 'unicode': 'M⊙'})
 def_unit(['M_p'], _si.m_p.value * si.kg, register=True,
