@@ -131,7 +131,14 @@ class Time(object):
         some basic input validation.
         """
 
-        if hasattr(val, '__getitem__') and isinstance(val[0], self.__class__):
+        # check whether input is some form of list of Time objects,
+        # since these should be treated separately
+        try:
+            isiterable_of_times = isinstance(val[0], self.__class__)
+        except (IndexError, TypeError):
+            isiterable_of_times = False
+
+        if isiterable_of_times:
             if val2 is not None:
                 raise ValueError(
                     'non-None second value for list of {0!r} objects'
