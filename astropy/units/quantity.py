@@ -421,20 +421,23 @@ class Quantity(object):
     # Trigonometric methods (these get called when np.cos/np.sin/np.tan are used)
 
     def cos(self):
+        from .si import radian
         try:
-            return np.cos(self.value_in(Unit('radian')))
+            return np.cos(self.value_in(radian))
         except UnitsException:
             raise TypeError("Can only apply trigonometric functions to quantities with angle units")
 
     def sin(self):
+        from .si import radian
         try:
-            return np.sin(self.value_in(Unit('radian')))
+            return np.sin(self.value_in(radian))
         except UnitsException:
             raise TypeError("Can only apply trigonometric functions to quantities with angle units")
 
     def tan(self):
+        from .si import radian
         try:
-            return np.tan(self.value_in(Unit('radian')))
+            return np.tan(self.value_in(radian))
         except UnitsException:
             raise TypeError("Can only apply trigonometric functions to quantities with angle units")
 
@@ -444,31 +447,31 @@ class Quantity(object):
         return Quantity(self.value ** 0.5, self.unit ** 0.5)
 
     def exp(self):
-        if self._unit == Unit(1):
+        if _is_unity(self._unit):
             return np.exp(self.value)
         else:
             raise TypeError("Can only apply exponential function to dimensionless quantities")
 
     def log(self):
-        if self._unit == Unit(1):
+        if _is_unity(self._unit):
             return np.log(self.value)
         else:
             raise TypeError("Can only apply log function to dimensionless quantities")
 
     def log2(self):
-        if self._unit == Unit(1):
+        if _is_unity(self._unit):
             return np.log2(self.value)
         else:
             raise TypeError("Can only apply log2 function to dimensionless quantities")
 
     def log10(self):
-        if self._unit == Unit(1):
+        if _is_unity(self._unit):
             return np.log10(self.value)
         else:
             raise TypeError("Can only apply log10 function to dimensionless quantities")
 
     def log1p(self):
-        if self._unit == Unit(1):
+        if _is_unity(self._unit):
             return np.log1p(self.value)
         else:
             raise TypeError("Can only apply log1p function to dimensionless quantities")
