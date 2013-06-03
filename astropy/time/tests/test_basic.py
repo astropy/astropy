@@ -83,6 +83,15 @@ class TestBasic():
         t2 = t[4:6]
         assert t2.is_scalar is False
         assert np.all(t2._time.jd1 == t._time.jd1[4:6])
+        t2a = Time(t[4:6])
+        assert t2a.is_scalar is False
+        assert np.all(t2a._time.jd1 == t._time.jd1[4:6])
+        t2b = Time([t[4], t[5]])
+        assert t2b.is_scalar is False
+        assert np.all(t2b._time.jd1 == t._time.jd1[4:6])
+        t2c = Time((t[4], t[5]))
+        assert t2c.is_scalar is False
+        assert np.all(t2c._time.jd1 == t._time.jd1[4:6])
         t.delta_tdb_tt = np.arange(len(t))  # Explicitly set (not testing .tdb)
         t3 = t[4:6]
         assert np.all(t3._delta_tdb_tt == t._delta_tdb_tt[4:6])
