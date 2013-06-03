@@ -80,6 +80,9 @@ class TestBasic():
         t1a = Time(mjd[3], format='mjd', scale='utc')
         assert t1a.is_scalar is True
         assert np.all(t1._time.jd1 == t1a._time.jd1)
+        t1b = Time(t[3])
+        assert t1b.is_scalar is True
+        assert np.all(t1._time.jd1 == t1b._time.jd1)
         t2 = t[4:6]
         assert t2.is_scalar is False
         assert np.all(t2._time.jd1 == t._time.jd1[4:6])
