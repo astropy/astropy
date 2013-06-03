@@ -32,7 +32,6 @@ ipac.py:
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
-import collections
 from ...utils import OrderedDict
 
 from . import core
@@ -40,6 +39,33 @@ from . import fixedwidth
 from ...utils import OrderedDict
 from .core import io, next, izip, any
 import numpy as np
+
+try: 
+    from collections import Counter
+except ImportError:
+    # Counter was added in python 2.7
+    # for python < 2.7 define Counter here stripped to a the methods needed here
+    # see http://code.activestate.com/recipes/576611-counter-class/
+    class Counter(dict):
+        def __init__(self, iterable=None, **kwds):
+            self.update(iterable, **kwds)
+
+        def update(self, iterable=None, **kwds):
+            if iterable is not None:
+                if hasattr(iterable, 'iteritems'):
+                    if self:
+                        self_get = self.get
+                        for elem, count in iterable.iteritems():
+                            self[elem] = self_get(elem, 0) + count
+                    else:
+                        dict.update(self, iterable) # fast path when counter is empty
+                else:
+                    self_get = self.get
+                    for elem in iterable:
+                        self[elem] = self_get(elem, 0) + 1
+            if kwds:
+                self.update(kwds)
+
 
 class IpacFormatErrorStrict(Exception):
     def __str__(self):
@@ -52,7 +78,7 @@ class IpacFormatError(Exception):
     
 
 class Ipac(fixedwidth.FixedWidth):
-    """Read an IPAC format table.  See
+    """Read or write an IPAC format table.  See
     http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
 
       \\name=value
@@ -93,14 +119,21 @@ class Ipac(fixedwidth.FixedWidth):
           * 'ignore' - Any character beneath a pipe symbol is ignored (default)
           * 'right' - Character is associated with the column to the right
           * 'left' - Character is associated with the column to the left
+    strict : bool, optional
+        If true, this varifies that written tables adhere (semantically)
+        to the `IPAC/DBMS <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
+        definiton of IPAC tables. If 'False' it only checks for the (less strict)
+        `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
+        definition.
 
     """
-    def __init__(self, definition='ignore'):
+    def __init__(self, definition='ignore', strict = True):
         super(fixedwidth.FixedWidth, self).__init__()
         self.header = IpacHeader(definition=definition)
         self.data = IpacData()
         self.data.header = self.header
         self.header.data = self.data
+        self.header.strict = strict
         self.data.splitter.delimiter = ' '
         self.data.splitter.delimiter_pad = ''
         self.data.splitter.bookend = True
@@ -109,21 +142,15 @@ class Ipac(fixedwidth.FixedWidth):
         self.header.col_starts = None
         self.header.col_ends = None
 
-    def write(self, table, strict = True):
+    def write(self, table):
         """Write ``table`` as list of strings.
 
         :param table: input table data (astropy.table.Table object)
-        :param strict: If true, this varifies that written tables adheres (mostly)
-            to the `IPAC/DBMS <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
-            definiton of IPAC tables. If ``False`` it only checks for the (less strict)
-            `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
-            definition.
         :returns: list of strings corresponding to ASCII table
         """
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = table.cols
         self.data.cols = table.cols
-        self.header.strict = strict
 
         # Write header and data to lines list
         lines = []
@@ -359,7 +386,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
         if self.strict:
             namelist = [col.name.lower() for col in self.cols]
-            doublenames = [x for x, y in collections.Counter(namelist).items() if y > 1]
+            doublenames = [x for x, y in Counter(namelist).items() if y > 1]
             if doublenames != []:
                 raise IpacFormatE('IPAC DBMS tables are not case sensitive. This causes dublicate column names: {0}'.format(doublenames))
 
@@ -370,6 +397,8 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             m = re.match('\w+', name)
             if m.end() != len(name):
                 raise IpacFormatE('{0} - Only alphanumaric characters and _ are allowed in column names.'.format(name))
+            if self.strict and not(name[0].isalpha() or (name[0] =='_')):
+                raise IpacFormatE('Column names cannot stars with numbers: {}'.format(name))
             if self.strict:
                 if name in ['x','y','z', 'X', 'Y','Z']:
                     raise IpacFormatE('{0} - x, y, z, X, Y, Z are reserved names and cannot be used as column names.'.format(name))
@@ -378,10 +407,6 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             else:
                 if len(name) > 40:
                     raise IpacFormatE('{0} - Maximum length for column name is 40 characters.'.format(name))
-
-        if self.strict:
-            if (not 'ra' in namelist) and ('dec') in namelist:
-                raise IpacFormatE('"ra" and "dec" are required columns (with equatorial J2000 coordinates in decimal degrees)')
 
         dtypelist = []
         unitlist = []
