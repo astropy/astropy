@@ -32,13 +32,10 @@ ipac.py:
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
-from ...utils import OrderedDict
 
 from . import core
 from . import fixedwidth
 from ...utils import OrderedDict
-from .core import io, next, izip, any
-import numpy as np
 
 try: 
     from collections import Counter
@@ -137,10 +134,6 @@ class Ipac(fixedwidth.FixedWidth):
         self.data.splitter.delimiter = ' '
         self.data.splitter.delimiter_pad = ''
         self.data.splitter.bookend = True
-        self.header.comment = r'\s*\\'
-        self.header.write_comment = r'\\'
-        self.header.col_starts = None
-        self.header.col_ends = None
 
     def write(self, table):
         """Write ``table`` as list of strings.
@@ -173,14 +166,13 @@ class Ipac(fixedwidth.FixedWidth):
                 except TypeError:
                     pass
 
-        #get header and data as strings to find width
+        #get header and data as strings to find width or each column
         for i, col in enumerate(table.cols):
             col.headwidth = max([len(vals[i]) for vals in self.header.str_vals()])
         # keep those because they take some time to make
         data_str_vals = self.data.str_vals()
         for i, col in enumerate(table.cols):
             col.width = max([len(vals[i]) for vals in data_str_vals])
-
 
         widths = [max(col.width, col.headwidth) for col in table.cols]
 
@@ -199,6 +191,10 @@ class IpacHeaderSplitter(core.BaseSplitter):
     delimiter = '|'
     delimiter_pad = ''
     skipinitialspace = False
+    comment = r'\s*\\'
+    write_comment = r'\\'
+    col_starts = None
+    col_ends = None
 
     def join(self, vals, widths):
         pad = self.delimiter_pad or ''
@@ -212,7 +208,6 @@ class IpacHeaderSplitter(core.BaseSplitter):
 
 class IpacHeader(fixedwidth.FixedWidthHeader):
     """IPAC table header"""
-    comment = '\\'
     splitter_class = IpacHeaderSplitter
     col_type_map = {'int': core.IntType,
                     'integer': core.IntType,
@@ -232,10 +227,6 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
     def __init__(self, definition='ignore'):
        
         fixedwidth.FixedWidthHeader.__init__(self)
-
-        #self.splitter = IpacHeaderSplitter
-        #self.splitter.process_line = None
-        #self.splitter.process_val = None
 
         if definition in ['ignore', 'left', 'right']:
             self.ipac_definition = definition
@@ -448,7 +439,7 @@ class IpacData(fixedwidth.FixedWidthData):
         # just to make sure
         self._set_col_formats()
         col_str_iters = [col.iter_str_vals() for col in self.cols]
-        for vals in izip(*col_str_iters):
+        for vals in core.izip(*col_str_iters):
             vals_list.append(vals)
 
         return vals_list
