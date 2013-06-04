@@ -12,6 +12,7 @@ configuration files for Astropy and affiliated packages.
 from __future__ import division
 
 import re
+import sys
 import textwrap
 from contextlib import contextmanager
 
@@ -171,6 +172,15 @@ class ConfigurationItem(object):
                 warn(InvalidConfigurationItemWarning(*e.args))
             else:
                 raise
+        
+        # update the docstring of the module
+        print("{}:{}".format(self.module, name.upper()))
+        if sys.modules[self.module].__doc__ is None:
+            sys.modules[self.module].__doc__ = self.module+'\n'
+        sys.modules[self.module].__doc__ += '\n'
+        sys.modules[self.module].__doc__ += name.upper()
+        sys.modules[self.module].__doc__ += '\n    '.join(self._generate_comments())
+        sys.modules[self.module].__doc__ += '\n    '
 
     def set(self, value):
         """ Sets the current value of this `ConfigurationItem`.
