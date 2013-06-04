@@ -445,12 +445,11 @@ class IpacData(fixedwidth.FixedWidthData):
         '''return str vals for each in the table'''
         vals_list = []
 
-        with self._set_col_formats(self.cols, self.formats):
-            # Col iterator does the formatting defined above so each val is a string
-            # and vals is a tuple of strings for all columns of each row
-            col_str_iters = [col.iter_str_vals() for col in self.cols]
-            for vals in izip(*col_str_iters):
-                vals_list.append(vals)
+        # just to make sure
+        self._set_col_formats()
+        col_str_iters = [col.iter_str_vals() for col in self.cols]
+        for vals in izip(*col_str_iters):
+            vals_list.append(vals)
 
         return vals_list
 
