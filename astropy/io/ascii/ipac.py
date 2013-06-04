@@ -227,7 +227,6 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
     def __init__(self, definition='ignore'):
        
         fixedwidth.FixedWidthHeader.__init__(self)
-
         if definition in ['ignore', 'left', 'right']:
             self.ipac_definition = definition
         else:
@@ -435,7 +434,6 @@ class IpacData(fixedwidth.FixedWidthData):
     def str_vals(self):
         '''return str vals for each in the table'''
         vals_list = []
-
         # just to make sure
         self._set_col_formats()
         col_str_iters = [col.iter_str_vals() for col in self.cols]
