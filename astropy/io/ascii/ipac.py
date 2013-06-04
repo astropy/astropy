@@ -76,54 +76,53 @@ class IpacFormatError(Exception):
 
 class Ipac(fixedwidth.FixedWidth):
     """Read or write an IPAC format table. See
-http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
+    http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
 
-\\name=value
-\\ Comment
-| column1 | column2 | column3 | column4 | column5 |
-| double | double | int | double | char |
-| unit | unit | unit | unit | unit |
-| null | null | null | null | null |
-2.0978 29.09056 73765 2.06000 B8IVpMnHg
+        \\name=value
+        \\ Comment
+        | column1 | column2 | column3 | column4 | column5 |
+        | double  | double  | int     | double  | char    |
+        | unit    | unit    | unit    | unit    | unit    |
+        | null    | null    | null    | null    | null    |
+         2.0978    29.09056  73765     2.06000   B8IVpMnHg
 
-Or::
+    Or::
 
-|-----ra---|----dec---|---sao---|------v---|----sptype--------|
-2.09708 29.09056 73765 2.06000 B8IVpMnHg
+        |-----ra---|----dec---|---sao---|------v---|----sptype--------|
+         2.09708    29.09056   73765     2.06000     B8IVpMnHg
 
-The comments and keywords defined in the header are available via the output
-table ``meta`` attribute::
+    The comments and keywords defined in the header are available via the output
+    table ``meta`` attribute::
 
->>> from astropy.io import ascii
->>> filename = os.path.join(ascii.__path__[0], 'tests/t/ipac.dat')
->>> data = ascii.read(filename)
->>> print data.meta['comments']
-['This is an example of a valid comment']
->>> for name, keyword in data.meta['keywords'].items():
-... print name, keyword['value']
-...
-intval 1
-floatval 2300.0
-date Wed Sp 20 09:48:36 1995
-key_continue IPAC keywords can continue across lines
+        >>> from astropy.io import ascii
+        >>> filename = os.path.join(ascii.__path__[0], 'tests/t/ipac.dat')
+        >>> data = ascii.read(filename)
+        >>> print data.meta['comments']
+        ['This is an example of a valid comment']
+        >>> for name, keyword in data.meta['keywords'].items():
+        ... print name, keyword['value']
+        ...
+        intval 1
+        floatval 2300.0
+        date Wed Sp 20 09:48:36 1995
+        key_continue IPAC keywords can continue across lines
 
-Parameters
-----------
-definition : str, optional
-Specify the convention for characters in the data table that occur
-directly below the pipe (`|`) symbol in the header column definition:
+    Parameters
+    ----------
+    definition : str, optional
+    Specify the convention for characters in the data table that occur
+    directly below the pipe (`|`) symbol in the header column definition:
 
-* 'ignore' - Any character beneath a pipe symbol is ignored (default)
-* 'right' - Character is associated with the column to the right
-* 'left' - Character is associated with the column to the left
-strict : bool, optional
-If true, this varifies that written tables adhere (semantically)
-to the `IPAC/DBMS <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
-definiton of IPAC tables. If 'False' it only checks for the (less strict)
-`IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
-definition.
-
-"""
+    * 'ignore' - Any character beneath a pipe symbol is ignored (default)
+    * 'right' - Character is associated with the column to the right
+    * 'left' - Character is associated with the column to the left
+    strict : bool, optional
+    If true, this varifies that written tables adhere (semantically)
+    to the `IPAC/DBMS <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
+    definiton of IPAC tables. If 'False' it only checks for the (less strict)
+    `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
+    definition.
+    """
     def __init__(self, definition='ignore', strict = True):
         super(fixedwidth.FixedWidth, self).__init__()
         self.header = IpacHeader(definition=definition)
@@ -138,9 +137,9 @@ definition.
     def write(self, table):
         """Write ``table`` as list of strings.
 
-:param table: input table data (astropy.table.Table object)
-:returns: list of strings corresponding to ASCII table
-"""
+        :param table: input table data (astropy.table.Table object)
+        :returns: list of strings corresponding to ASCII table
+        """
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = table.cols
         self.data.cols = table.cols
@@ -185,7 +184,11 @@ definition.
 
 
 class IpacHeaderSplitter(core.BaseSplitter):
+    '''Splitter for Ipac Headers.
 
+    This splitter is similar its parent when reading, but supports a
+    fixed width format (as required for Ipac table headers) for writing.
+    '''
     process_line = None
     process_val = None
     delimiter = '|'
@@ -234,7 +237,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
     def process_lines(self, lines):
         """Generator to yield IPAC header lines, i.e. those starting and ending with
-delimiter character."""
+        delimiter character."""
         delim = self.splitter.delimiter
         for line in lines:
             if line.startswith(delim) and line.endswith(delim):
@@ -242,14 +245,14 @@ delimiter character."""
 
     def update_meta(self, lines, meta):
         """
-Extract table-level comments and keywords for IPAC table. See:
-http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html#kw
-"""
+        Extract table-level comments and keywords for IPAC table. See:
+        http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html#kw
+        """
         def process_keyword_value(val):
             """
-Take a string value and convert to float, int or str, and strip quotes
-as needed.
-"""
+            Take a string value and convert to float, int or str, and strip quotes
+            as needed.
+            """
             val = val.strip()
             try:
                 val = int(val)
@@ -304,14 +307,14 @@ as needed.
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
 
-Based on the previously set Header attributes find or create the column names.
-Sets ``self.cols`` with the list of Columns. This list only includes the actual
-requested columns after filtering by the include_names and exclude_names
-attributes. See ``self.names`` for the full list.
+        Based on the previously set Header attributes find or create the column names.
+        Sets ``self.cols`` with the list of Columns. This list only includes the actual
+        requested columns after filtering by the include_names and exclude_names
+        attributes. See ``self.names`` for the full list.
 
-:param lines: list of table lines
-:returns: list of table Columns
-"""
+        :param lines: list of table lines
+        :returns: list of table Columns
+        """
         header_lines = self.process_lines(lines) # generator returning valid header lines
         header_vals = [vals for vals in self.splitter(header_lines)]
         if len(header_vals) == 0:
@@ -417,10 +420,10 @@ attributes. See ``self.names`` for the full list.
     def write(self, lines, widths):
         '''Write header.
 
-The width of each column is determined in IpacData.write. Writing the header
-must be delayed until that time.
-This function is called from data, once the widht information is
-available.'''
+        The width of each column is determined in IpacData.write. Writing the header
+        must be delayed until that time.
+        This function is called from data, once the widht information is
+        available.'''
 
         for vals in self.str_vals():
             lines.append(self.splitter.join(vals, widths))
