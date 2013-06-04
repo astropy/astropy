@@ -114,10 +114,10 @@ Astropy is designed so that the ``astropy`` package can generally be used
 directly out of the source tree by using ``import astropy`` when running Python
 in the source of an Astropy repository clone.  There are some caveats, however:
 
-1. It is necessary to build C extensions in "inline" mode which copies the
+1. It is necessary to build C extensions in "inplace" mode which copies the
    built shared libraries into the source tree::
 
-       $ python setup.py build_ext --inline
+       $ python setup.py build_ext --inplace
 
 2. If you change directories from the root of the repository clone the
    ``astropy`` package will no longer be importable, and other features may not
@@ -137,7 +137,7 @@ Develop mode can be easily disabled again by running
 
     When switching branches it is not *generally* required to re-run
     ``setup.py develop``, though it may be necessary to run
-    ``setup.py build_ext --inline`` again in case you think there might be
+    ``setup.py build_ext --inplace`` again in case you think there might be
     differences in the C extensions between the two branches.
 
 Another useful technique to avoid having to switch develop mode on and off
