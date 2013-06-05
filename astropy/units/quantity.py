@@ -155,9 +155,6 @@ class Quantity(object):
         new_unit = Unit(unit)
         return Quantity(new_val, new_unit)
 
-    def value_in(self, unit):
-        return self.to(unit)._value
-
     @property
     def value(self):
         """ The numerical value of this quantity. """
@@ -423,21 +420,21 @@ class Quantity(object):
     def cos(self):
         from .si import radian
         try:
-            return np.cos(self.value_in(radian))
+            return np.cos(self.to(radian).value)
         except UnitsException:
             raise TypeError("Can only apply trigonometric functions to quantities with angle units")
 
     def sin(self):
         from .si import radian
         try:
-            return np.sin(self.value_in(radian))
+            return np.sin(self.to(radian).value)
         except UnitsException:
             raise TypeError("Can only apply trigonometric functions to quantities with angle units")
 
     def tan(self):
         from .si import radian
         try:
-            return np.tan(self.value_in(radian))
+            return np.tan(self.to(radian).value)
         except UnitsException:
             raise TypeError("Can only apply trigonometric functions to quantities with angle units")
 
