@@ -12,8 +12,6 @@ import warnings
 
 import numpy as np
 
-from ... import log
-
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 
 __all__ = ['read_table_hdf5', 'write_table_hdf5']
@@ -176,15 +174,18 @@ def write_table_hdf5(table, output, path=None, compression=False,
     else:
         group, name = None, path
 
-    if isinstance(output, h5py.highlevel.File) or \
-       isinstance(output, h5py.highlevel.Group):
-        f, g = None, output
+    if isinstance(output, (h5py.highlevel.File, h5py.highlevel.Group)):
+
         if group:
             try:
-                g = g[group]
+                output_group = output[group]
             except KeyError:
-                g = g.create_group(group)
-    else:
+                output_group = output.create_group(group)
+        else:
+            output_group = output
+
+    elif isinstance(output, basestring):
+
         if os.path.exists(output) and not append:
             if overwrite:
                 os.remove(output)
@@ -194,25 +195,24 @@ def write_table_hdf5(table, output, path=None, compression=False,
         # Open the file for appending or writing
         f = h5py.File(output, 'a' if append else 'w')
 
-        if group:
-            if append:
-                if group in f.keys():
-                    g = f[group]
-                else:
-                    g = f.create_group(group)
-            else:
-                g = f.create_group(group)
-        else:
-            g = f
+        # Recursively call the write function
+        try:
+            return write_table_hdf5(table, f, path=path,
+                                    compression=compression, append=append,
+                                    overwrite=overwrite)
+        finally:
+            f.close()
+
+    else:
+
+        raise TypeError('output should be a string or an h5py File or Group object')
 
     # Check whether table already exists
-    if name in g:
-        if f is not None:
-            f.close()
+    if name in output_group:
         raise IOError("Table {0} already exists".format(path))
 
     # Write the table to the file
-    dset = g.create_dataset(name, data=table._data, compression=compression)
+    dset = output_group.create_dataset(name, data=table._data, compression=compression)
 
     # Write the meta-data to the file
     for key in table.meta:
@@ -220,8 +220,5 @@ def write_table_hdf5(table, output, path=None, compression=False,
         try:
             dset.attrs[key] = val
         except TypeError:
-            log.warn("Attribute `{0}` of type {1} cannot be written to "
-                     "HDF5 files - skipping".format(key, type(val)))
-
-    if f is not None:
-        f.close()
+            warnings.warn("Attribute `{0}` of type {1} cannot be written to "
+                          "HDF5 files - skipping".format(key, type(val)))
