@@ -41,6 +41,15 @@ def test_write_nopath(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY')
+def test_read_notable_nopath(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    h5py.File(test_file, 'w').close()  # create empty file
+    with pytest.raises(ValueError) as exc:
+        t1 = Table.read(test_file, path='/', format='hdf5')
+    assert exc.value.args[0] == 'no table found in HDF5 group /'
+
+
+@pytest.mark.skipif('not HAS_H5PY')
 def test_read_nopath(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
@@ -48,6 +57,7 @@ def test_read_nopath(tmpdir):
     t1.write(test_file, path='the_table')
     t2 = Table.read(test_file)
     assert np.all(t1['a'] == t2['a'])
+
 
 @pytest.mark.skipif('not HAS_H5PY')
 def test_write_invalid_path(tmpdir):
@@ -226,6 +236,20 @@ def test_read_filobj_group_path(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY')
+def test_read_wrong_fileobj():
+
+    class FakeFile(object):
+        def read(self):
+            pass
+
+    f = FakeFile()
+
+    with pytest.raises(TypeError) as exc:
+        t1 = Table.read(f, format='hdf5')
+    assert exc.value.args[0] == 'h5py can only open regular files'
+
+
+@pytest.mark.skipif('not HAS_H5PY')
 def test_write_fileobj(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
@@ -253,6 +277,17 @@ def test_write_filobj_group(tmpdir):
 
     t2 = Table.read(test_file, path='path/to/data/the_table')
     assert np.all(t2['a'] == [1, 2, 3])
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_write_wrong_type():
+
+    t1 = Table()
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
+    with pytest.raises(TypeError) as exc:
+        t1.write(1212, path='path/to/data/the_table', format='hdf5')
+    assert exc.value.args[0] == ('output should be a string '
+                                 'or an h5py File or Group object')
 
 
 @pytest.mark.skipif('not HAS_H5PY')
