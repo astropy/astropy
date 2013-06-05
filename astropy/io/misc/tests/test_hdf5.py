@@ -46,10 +46,8 @@ def test_read_nopath(tmpdir):
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='the_table')
-    with pytest.raises(ValueError) as exc:
-        Table.read(test_file)
-    assert exc.value.args[0] == "table path should be set via the path= argument"
-
+    t2 = Table.read(test_file)
+    assert np.all(t1['a'] == t2['a'])
 
 @pytest.mark.skipif('not HAS_H5PY')
 def test_write_invalid_path(tmpdir):
@@ -67,9 +65,9 @@ def test_read_invalid_path(tmpdir):
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file, path='the_table')
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(IOError) as exc:
         Table.read(test_file, path='test/')
-    assert exc.value.args[0] == "table path should end with table name, not /"
+    assert exc.value.args[0] == "Path test/ does not exist"
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -78,7 +76,7 @@ def test_read_missing_group(tmpdir):
     h5py.File(test_file, 'w').close()  # create empty file
     with pytest.raises(IOError) as exc:
         Table.read(test_file, path='test/path/table')
-    assert exc.value.args[0] == "Group test/path does not exist"
+    assert exc.value.args[0] == "Path test/path/table does not exist"
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -88,7 +86,7 @@ def test_read_missing_table(tmpdir):
         f.create_group('test').create_group('path')
     with pytest.raises(IOError) as exc:
         Table.read(test_file, path='test/path/table')
-    assert exc.value.args[0] == "Table test/path/table does not exist"
+    assert exc.value.args[0] == "Path test/path/table does not exist"
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -97,7 +95,7 @@ def test_read_missing_group_fileobj(tmpdir):
     with h5py.File(test_file, 'w') as f:
         with pytest.raises(IOError) as exc:
             Table.read(f, path='test/path/table')
-        assert exc.value.args[0] == "Group test/path does not exist"
+        assert exc.value.args[0] == "Path test/path/table does not exist"
 
 
 @pytest.mark.skipif('not HAS_H5PY')

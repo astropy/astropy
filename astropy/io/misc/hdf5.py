@@ -8,6 +8,7 @@ not meant to be used directly, but instead are available as readers/writers in
 from __future__ import print_function
 
 import os
+import warnings
 
 import numpy as np
 
@@ -16,6 +17,19 @@ from ... import log
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 
 __all__ = ['read_table_hdf5', 'write_table_hdf5']
+
+
+def _find_all_structured_arrays(handle):
+    """
+    Find all sturctured arrays in an HDF5 file
+    """
+    import h5py
+    structured_arrays = []
+    def append_structured_arrays(name, obj):
+        if isinstance(obj, h5py.Dataset) and obj.dtype.kind == 'V':
+            structured_arrays.append(name)
+    handle.visititems(append_structured_arrays)
+    return structured_arrays
 
 
 def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
@@ -47,7 +61,7 @@ def read_table_hdf5(input, path=None):
 
     Parameters
     ----------
-    input : str or `h5py.highlevel.File` or `h5py.highlevel.Group`
+    input : str or `h5py.highlevel.File` or `h5py.highlevel.Group` or `h5py.highlevel.Dataset`
         If a string, the filename to read the table from. If an h5py object,
         either the file or the group object to read the table from.
     path : str
@@ -60,54 +74,65 @@ def read_table_hdf5(input, path=None):
     except ImportError:
         raise Exception("h5py is required to read and write HDF5 files")
 
-    if path is None:
-        raise ValueError("table path should be set via the path= argument")
-    elif path.endswith('/'):
-        raise ValueError("table path should end with table name, not /")
-
-    if '/' in path:
-        group, name = path.rsplit('/', 1)
-    else:
-        group, name = None, path
-
     if isinstance(input, (h5py.highlevel.File, h5py.highlevel.Group)):
-        f, g = None, input
-        if group:
+
+        # If a path was specified, follow the path
+
+        if path:
             try:
-                g = g[group]
+                input = input[path]
             except KeyError:
-                raise IOError("Group {0} does not exist".format(group))
-    else:
+                raise IOError("Path {0} does not exist".format(path))
+
+        # `input` is now either a group or a dataset. If it is a group, we
+        # will search for all structured arrays inside the group, and if there
+        # is one we can proceed otherwise an error is raised. If it is a
+        # dataset, we just proceed with the reading.
+
+        if isinstance(input, h5py.highlevel.Group):
+
+            # Find all structured arrays in group
+            arrays = _find_all_structured_arrays(input)
+
+            if len(arrays) == 0:
+                raise ValueError("no table found in HDF5 group {0}".format(path))
+            elif len(arrays) > 0:
+                path = arrays[0] if path is None else path + '/' + arrays[0]
+                warnings.warn("path= was not specified but multiple tables"
+                              " are present, reading in first available"
+                              " table (path={0})".format(path))
+                return read_table_hdf5(input, path=path)
+
+    elif not isinstance(input, h5py.highlevel.Dataset):
+
+        # If a file object was passed, then we need to extract the filename
+        # because h5py cannot properly read in file objects.
+
         if hasattr(input, 'read'):
             try:
                 input = input.name
             except AttributeError:
                 raise TypeError("h5py can only open regular files")
+
+        # Open the file for reading, and recursively call read_table_hdf5 with
+        # the file object and the path.
+
         f = h5py.File(input, 'r')
+
         try:
-            g = f[group] if group else f
-        except KeyError:
+            return read_table_hdf5(f, path=path)
+        finally:
             f.close()
-            raise IOError("Group {0} does not exist".format(group))
 
-    # Check whether table exists
-    if name not in g:
-        if f is not None:
-            f.close()
-        raise IOError("Table {0} does not exist".format(path))
-
-    # Read the table from the file
-    dset = g[name]
+    # If we are here, `input` should be a Dataset object, which we can now
+    # convert to a Table.
 
     # Create a Table object
     from ...table import Table
-    table = Table(np.array(dset))
+    table = Table(np.array(input))
 
     # Read the meta-data from the file
-    table.meta.update(dset.attrs)
-
-    if f is not None:
-        f.close()
+    table.meta.update(input.attrs)
 
     return table
 
