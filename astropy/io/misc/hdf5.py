@@ -23,6 +23,7 @@ def _find_all_structured_arrays(handle):
     """
     import h5py
     structured_arrays = []
+
     def append_structured_arrays(name, obj):
         if isinstance(obj, h5py.Dataset) and obj.dtype.kind == 'V':
             structured_arrays.append(name)
@@ -136,7 +137,7 @@ def read_table_hdf5(input, path=None):
 
 
 def write_table_hdf5(table, output, path=None, compression=False,
-               append=False, overwrite=False):
+                     append=False, overwrite=False):
     """
     Write a Table object to an HDF5 file
 
