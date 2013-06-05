@@ -91,34 +91,39 @@ class IERS(Table):
         """
 
         mjd, utc = self.mjd_utc(jd1, jd2)
-        # for typical format, will always find a match (since MJD are integer)
+        # For typical format, will always find a match (since MJD are integer)
         # hence, important to define which side we will be; this ensures
-        # mjd<self['MJD'][i]
+        # self['MJD'][i-1]<=mjd<self['MJD'][i]
         i = np.searchsorted(self['MJD'], mjd, side='right')
-        # get index to MJD at or just below given mjd, clipping to ensure
-        # we stay in range of table (status will be set below)
-        i0 = np.clip(i-1, 0, len(self)-2)
-        mjd_0, mjd_1 = self['MJD'][i0], self['MJD'][i0+1]
-        ut1_utc_0, ut1_utc_1 = self['UT1_UTC'][i0], self['UT1_UTC'][i0+1]
-        # check and correct for possible leap second (correcting difference,
-        # not first point, since jump happens right at second point)
+        # Get index to MJD at or just below given mjd, clipping to ensure we
+        # stay in range of table (status will be set below for those outside)
+        i1 = np.clip(i, 1, len(self)-1)
+        i0 = i1-1
+        mjd_0, mjd_1 = self['MJD'][i0], self['MJD'][i1]
+        ut1_utc_0, ut1_utc_1 = self['UT1_UTC'][i0], self['UT1_UTC'][i1]
+        # Check and correct for possible leap second (correcting difference,
+        # not first point, since jump can only happen right at second point)
         d_ut1_utc = ut1_utc_1 - ut1_utc_0
-        d_ut1_utc += d_ut1_utc < 0.5
-        d_ut1_utc -= d_ut1_utc > 0.5
-        # and linearly interpolate to get UT1-UTC
+        d_ut1_utc -= np.round(d_ut1_utc)
+        # Linearly interpolate to get UT1-UTC
+        # (which is what TEMPO does, but may want to follow IERS gazette #13
+        # for more precise interpolation and correction for tidal effects;
+        # http://maia.usno.navy.mil/iers-gaz13)
         ut1_utc = ut1_utc_0 + (mjd-mjd_0+utc)/(mjd_1-mjd_0)*d_ut1_utc
 
-        status = (TIME_BEFORE_IERS_RANGE * (i == 0) +
-                  TIME_AFTER_IERS_RANGE * (i == len(self)))
-        # better safe than sorry - no extrapolation
-        ut1_utc *= (status == 0)
-
+        # Set status to reflect possible issues; default is taken from IERS B
+        status = FROM_IERS_B * np.ones_like(ut1_utc, dtype=np.int)
         if 'UT1Flag' in self.colnames:
-            ut1flag = self['UT1Flag'][i0]
-            status += (status == 0) * \
-                      (FROM_IERS_B * (ut1flag == 'B') +
-                       FROM_IERS_A * (ut1flag == 'I') +
-                       FROM_IERS_A_PREDICTION * (ut1flag == 'P'))
+            ut1flag = self['UT1Flag'][i0]  # checking lower point good enough
+            status[ut1flag == 'I'] = FROM_IERS_A
+            status[ut1flag == 'P'] = FROM_IERS_A_PREDICTION
+        # Check for out of range - more important than above, so OK to override
+        # also reset any extrapolated values - better safe than sorry
+        if np.any(i1 != i):
+            status[i == 0] = TIME_BEFORE_IERS_RANGE
+            ut1_utc[i == 0] = self['UT1_UTC'][0]
+            status[i == len(self)] = TIME_AFTER_IERS_RANGE
+            ut1_utc[i == len(self)] = self['UT1_UTC'][-1]
 
         if return_status:
             return ut1_utc, status
@@ -138,9 +143,9 @@ class IERS_A(IERS):
     """IERS table targeted to files provided by USNO, which include rapid
     turnaround and predicted times (IERS A)
     """
-    def __init__(self, table, **kwargs):
+    def __init__(self, table):
         # combine UT1_UTC, taking UT1_UTC_B if available, else UT1_UTC_A
-        Table.__init__(self, table)
+        super(IERS_A, self).__init__(table)
         self['UT1_UTC'] = np.where(self['UT1_UTC_B'].mask,
                                    self['UT1_UTC_A'],
                                    self['UT1_UTC_B'])
@@ -149,14 +154,18 @@ class IERS_A(IERS):
                                    np.array(['B']*len(self)))
 
     @classmethod
-    def read(cls, file=FINALS2000A(), readme=README_FINALS2000A, **kwargs):
+    def read(cls, file=FINALS2000A(), readme=README_FINALS2000A):
         iers_a = Table.read(file, format='cds', readme=readme)
-        return cls(iers_a[~iers_a['UT1_UTC_A'].mask], **kwargs)
+        # IERS A has some rows at the end that hold nothing but dates & MJD
+        # presumably to be filled later.  Exclude those a priori -- there
+        # should at least be a predicted UT1-UTC!
+        return cls(iers_a[~iers_a['UT1_UTC_A'].mask])
 
 
 class IERS_B(IERS):
     @classmethod
     def read(cls, file=EOPC04_IAU2000(), readme=README_EOPC04_IAU2000):
-        # must be possible to do this more elegantly!
+        # can this be done more elegantly, initialising directly, without
+        # passing a Table to the Table initialiser?
         iers_b = Table.read(file, format='cds', readme=readme, data_start=14)
         return cls(iers_b)
