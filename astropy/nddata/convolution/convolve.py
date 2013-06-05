@@ -91,8 +91,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
         # then cast to float
         array_internal = np.array(array)
         array_dtype = array_internal.dtype
-        if array_dtype != np.dtype(float):
-            array_internal = array_internal.astype(dtype=float)
+        array_internal = array.astype(float, copy=False)
     elif type(array) == np.ndarray:
         array_dtype = array.dtype
         # Note this won't copy if it doesn't have to -- which is okay
