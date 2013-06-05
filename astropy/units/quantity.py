@@ -580,7 +580,7 @@ class Quantity(object):
             raise TypeError('Only dimensionless scalar quantities can be '
                             'converted to Python scalars')
         else:
-            return float(self.value)
+            return long(self.value)
 
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
