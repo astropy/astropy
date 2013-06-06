@@ -31,6 +31,10 @@ WARN_IMPLICIT_NUMERIC_CONVERSION = ConfigurationItem(
 
 __all__ = ["Quantity"]
 
+# Numpy ufuncs that return unitless values
+UNITLESS_UFUNCS = [np.cos, np.sin, np.tan,
+                   np.exp, np.log, np.log1p, np.log2, np.log10]
+
 
 def _is_unity(value):
     x = value.decompose()
@@ -108,7 +112,7 @@ class Quantity(object):
         if context:
             if context[0] is np.sqrt:
                 return self.__class__(out, self._unit ** 0.5)
-            elif context[0] in [np.cos, np.sin, np.tan, np.exp, np.log, np.log1p, np.log2, np.log10]:
+            elif context[0] in UNITLESS_UFUNCS:
                 if len(out.shape) == 0:
                     return float(out)
                 else:
