@@ -111,7 +111,14 @@ class Quantity(object):
     def __array_wrap__(self, out, context=None):
         if context:
             if context[0] is np.sqrt:
-                return self.__class__(out, self._unit ** 0.5)
+                # In this case, we should just re-compute it even though
+                # Quantity.sqrt is present, because otherwise here we will in
+                # some cases get an array of Quantity objects out, which is not
+                # what we want. This is sub-optimal because behind the scenes,
+                # Quantity.sqrt is still getting called, and the output
+                # converted to an array of Quantity objects, but at least it's
+                # correct.
+                return Quantity(self.value ** 0.5, self.unit ** 0.5)
             elif context[0] in UNITLESS_UFUNCS:
                 if len(out.shape) == 0:
                     return float(out)
@@ -414,7 +421,7 @@ class Quantity(object):
 
         return Quantity(abs(self.value), unit=self.unit)
 
-    # Mathematical methods
+    # Statistical methods
 
     def mean(self, axis=None, dtype=None, out=None):
         value = np.mean(self.value, axis=axis, dtype=dtype, out=out)
@@ -447,7 +454,7 @@ class Quantity(object):
         except UnitsException:
             raise TypeError("Can only apply trigonometric functions to quantities with angle units")
 
-    # Special methods  (these get called when np.sqrt/np.exp/etc. are used)
+    # Mathematical methods (these get called when np.sqrt/np.exp/etc. are used)
 
     def sqrt(self):
         return Quantity(self.value ** 0.5, self.unit ** 0.5)

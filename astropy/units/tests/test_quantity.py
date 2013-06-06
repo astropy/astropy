@@ -277,7 +277,7 @@ class TestQuantityOperations(object):
         assert long(q) == 1L
 
 
-class TestQuantityNumpyFunctions(object):
+class TestQuantityStatsFunctions(object):
 
     def test_mean(self):
 
@@ -304,6 +304,58 @@ class TestQuantityNumpyFunctions(object):
         assert np.median(q1) == 4. * u.m
         assert np.median(q1).unit == u.m
         assert np.median(q1).value == 4.
+
+
+class TestQuantityTrigonometricFunctions(object):
+
+    def test_sin_scalar(self):
+        assert_allclose(np.sin(30. * u.degree), 0.5)
+
+    def test_sin_array(self):
+        assert_allclose(np.sin(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian),
+                        np.array([0., 1. / np.sqrt(2.), 1.]), atol=1.e-15)
+
+    def test_sin_invalid_units(self):
+        with pytest.raises(TypeError) as exc:
+            np.sin(3. * u.m)
+        assert exc.value.args[0] == ("Can only apply trigonometric functions "
+                                     "to quantities with angle units")
+
+    def test_cos_scalar(self):
+        assert_allclose(np.cos(np.pi / 3. * u.radian), 0.5)
+
+    def test_cos_array(self):
+        assert_allclose(np.cos(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian),
+                        np.array([1., 1. / np.sqrt(2.), 0.]), atol=1.e-15)
+
+    def test_cos_invalid_units(self):
+        with pytest.raises(TypeError) as exc:
+            np.cos(3. * u.s)
+        assert exc.value.args[0] == ("Can only apply trigonometric functions "
+                                     "to quantities with angle units")
+
+    def test_tan_scalar(self):
+        assert_allclose(np.tan(np.pi / 3. * u.radian), np.sqrt(3.))
+
+    def test_tan_array(self):
+        assert_allclose(np.tan(np.array([0., 45., 135., 180.]) * u.degree),
+                        np.array([0., 1., -1., 0.]), atol=1.e-15)
+
+    def test_tan_invalid_units(self):
+        with pytest.raises(TypeError) as exc:
+            np.sin(np.array([1,2,3]) * u.N)
+        assert exc.value.args[0] == ("Can only apply trigonometric functions "
+                                     "to quantities with angle units")
+
+
+class TestQuantityMathFunctions(object):
+
+    def test_sqrt_scalar(self):
+        assert np.sqrt(4. * u.m) == 2. * u.m ** 0.5
+        assert (9. * u.s ** 2).sqrt() == 3. * u.s
+
+    def test_sqrt_array(self):
+        assert np.all(np.sqrt(np.array([1., 4., 9.]) * u.m) == np.array([1., 2., 3.]) * u.m ** 0.5)
 
 
 def test_quantity_conversion():
