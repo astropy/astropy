@@ -72,13 +72,29 @@ class TestBasic():
         """Test that Time objects holding arrays are properly subscriptable,
         set is_scalar as appropriate, and also subscript delta_ut1_utc, etc."""
 
-        t = Time(np.arange(50000, 50010), format='mjd', scale='utc')
+        mjd = np.arange(50000, 50010)
+        t = Time(mjd, format='mjd', scale='utc')
         t1 = t[3]
         assert t1.is_scalar is True
         assert np.all(t1._time.jd1 == np.array([t._time.jd1[3]]))
+        t1a = Time(mjd[3], format='mjd', scale='utc')
+        assert t1a.is_scalar is True
+        assert np.all(t1._time.jd1 == t1a._time.jd1)
+        t1b = Time(t[3])
+        assert t1b.is_scalar is True
+        assert np.all(t1._time.jd1 == t1b._time.jd1)
         t2 = t[4:6]
         assert t2.is_scalar is False
         assert np.all(t2._time.jd1 == t._time.jd1[4:6])
+        t2a = Time(t[4:6])
+        assert t2a.is_scalar is False
+        assert np.all(t2a._time.jd1 == t._time.jd1[4:6])
+        t2b = Time([t[4], t[5]])
+        assert t2b.is_scalar is False
+        assert np.all(t2b._time.jd1 == t._time.jd1[4:6])
+        t2c = Time((t[4], t[5]))
+        assert t2c.is_scalar is False
+        assert np.all(t2c._time.jd1 == t._time.jd1[4:6])
         t.delta_tdb_tt = np.arange(len(t))  # Explicitly set (not testing .tdb)
         t3 = t[4:6]
         assert np.all(t3._delta_tdb_tt == t._delta_tdb_tt[4:6])
