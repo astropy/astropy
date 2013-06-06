@@ -52,12 +52,16 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     Returns
     -------
     result : `numpy.ndarray`
-        An array with the same dimensions and type as the input array,
-        convolved with kernel.
+        An array with the same dimensions and as the input array,
+        convolved with kernel.  The data type depends on the input
+        array type.  If array is a floating point type, then the
+        return array keeps the same data type, otherwise the type
+        is numpy.float.
 
     Notes
     -----
-    Masked arrays are not supported at this time.
+    Masked arrays are not supported at this time.  The convolution
+    is always done at numpy.float precision.
     '''
     from .boundary_none import (convolve1d_boundary_none,
                                 convolve2d_boundary_none,
@@ -78,31 +82,29 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     # The cython routines all need float type inputs (so, a particular
     # bit size, endianness, etc.).  So we have to convert, which also
     # has the effect of making copies so we don't modify the inputs.
-    # After this, the variables we work with will be array_internal, and 
-    # kernel_internal.  However -- we do want to keep track of what type 
-    # the input array was so we can cast the result to that at the end.
+    # After this, the variables we work with will be array_internal, and
+    # kernel_internal.  However -- we do want to keep track of what type
+    # the input array was so we can cast the result to that at the end
+    # if it's a floating point type.  Don't bother with this for lists --
+    # just always push those as np.float.
     # It is always necessary to make a copy of kernel (since it is modified),
     # but, if we just so happen to be lucky enough to have the input array
     # have exactly the desired type, we just alias to array_internal
-    # Note that array.astype will make a copy, even if you aren't changing
-    # types, unless you use copy=False
     if type(array) == list:
-        # In order to get the type, we first convert to an array,
-        # then cast to float
-        array_internal = np.array(array)
+        array_internal = numpy.array(array, dtype=np.float)
         array_dtype = array_internal.dtype
-        array_internal = array.astype(float, copy=False)
     elif type(array) == np.ndarray:
-        array_dtype = array.dtype
         # Note this won't copy if it doesn't have to -- which is okay
         # because none of what follows modifies array_internal.
+        array_dtype = array.dtype
         array_internal = array.astype(float, copy=False)
     else:
         raise TypeError("array should be a list or a Numpy array")
     if type(kernel) == list:
         kernel_internal = np.array(kernel, dtype=float)
     elif type(kernel) == np.ndarray:
-        kernel_internal = kernel.astype(float) # Note this makes a copy
+        # Note this always makes a copy, since we will be modifying it
+        kernel_internal = kernel.astype(float)
     else:
         raise TypeError("kernel should be a list or a Numpy array")
 
@@ -110,12 +112,6 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     if array_internal.ndim != kernel_internal.ndim:
         raise Exception('array and kernel have differing number of'
                         'dimensions')
-
-    # The .dtype.type attribute returs the datatype without the endian. We can
-    # use this to check that the array is a 32- or 64-bit array
-    if not array_dtype.kind in ('i', 'f'):
-        raise TypeError('array should be an integer or a '
-                        'floating-point Numpy array')
 
     # Because the Cython routines have to normalize the kernel on the fly, we
     # explicitly normalize the kernel here, and then scale the image at the
@@ -176,12 +172,12 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     if not normalize_kernel:
         result *= kernel_sum
 
-    # Cast back to original dtype (if needed) and return
-    if result.dtype == array_dtype:
-        return result # Avoids another copy operation!
+    # Try to preserve the input type if it's a floating point type
+    if array.dtype.kind == 'f':
+        # Avoid making another copy if possible
+        return result.astype(array_dtype, copy=False)
     else:
-        return result.astype(array_dtype)
-
+        return result
 
 def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                  return_fft=False, fft_pad=True, psf_pad=False,
@@ -321,8 +317,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
 
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
-    # returned!
-    # Check that the arguments are lists or Numpy arrays
+    # returned! Note that this always makes a copy.
     array = np.asarray(array, dtype=np.complex)
     kernel = np.asarray(kernel, dtype=np.complex)
 
