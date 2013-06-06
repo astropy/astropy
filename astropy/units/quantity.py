@@ -463,7 +463,7 @@ class Quantity(object):
         if _is_unity(self._unit):
             return np.exp(self.value)
         else:
-            raise TypeError("Can only apply exponential function to dimensionless quantities")
+            raise TypeError("Can only apply exp function to dimensionless quantities")
 
     def log(self):
         if _is_unity(self._unit):

@@ -355,7 +355,32 @@ class TestQuantityMathFunctions(object):
         assert (9. * u.s ** 2).sqrt() == 3. * u.s
 
     def test_sqrt_array(self):
-        assert np.all(np.sqrt(np.array([1., 4., 9.]) * u.m) == np.array([1., 2., 3.]) * u.m ** 0.5)
+        assert np.all(np.sqrt(np.array([1., 4., 9.]) * u.m)
+                      == np.array([1., 2., 3.]) * u.m ** 0.5)
+
+    @pytest.mark.parametrize('function', (np.exp, np.log, np.log2, np.log10, np.log1p))
+    def test_exp_scalar(self, function):
+        assert function(3. * u.m / (6. * u.m)) == function(0.5)
+
+    @pytest.mark.parametrize('function', (np.exp, np.log, np.log2, np.log10, np.log1p))
+    def test_exp_array(self, function):
+        assert np.all(function(np.array([2., 3., 6.]) * u.m / (6. * u.m))
+                      == function(np.array([1. / 3., 1. / 2., 1.])))
+
+    @pytest.mark.parametrize('function', (np.exp, np.log, np.log2, np.log10, np.log1p))
+    def test_exp_invalid_units(self, function):
+
+        # Can't use exp() with non-dimensionless quantities
+        with pytest.raises(TypeError) as exc:
+            function(3. * u.m / u.s)
+        assert exc.value.args[0] == ("Can only apply {0} function to dimensionless "
+                                     "quantities".format(function.__name__))
+
+        # Also can't use exp() with dimensionless scaled quantities
+        with pytest.raises(TypeError) as exc:
+            function(3. * u.m / u.km)
+        assert exc.value.args[0] == ("Can only apply {0} function to dimensionless "
+                                     "quantities".format(function.__name__))
 
 
 def test_quantity_conversion():
