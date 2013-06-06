@@ -17,7 +17,7 @@ __all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion',
 
 
 def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
-               maout=False):
+               axis=None, copy=True):
     """ Perform sigma-clipping on the provided data.
 
     This performs the sigma clipping algorithm - i.e. the data will be iterated
@@ -41,77 +41,111 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
         nothing).
     cenfunc : callable
         The technique to compute the center for the clipping. Must be a
-        callable that takes in a 1D data array and outputs the central value.
-        Defaults to the median.
+        callable that takes in a masked array and outputs the central value.
+        Defaults to the median (numpy.median).
     varfunc : callable
-        The technique to compute the variance about the center. Must be a
-        callable that takes in a 1D data array and outputs the width estimator
-        that will be interpreted as a variance. Defaults to the variance.
-    maout : bool or 'copy'
-        If True, a masked array will be returned. If the special string
-        'inplace', the masked array will contain the same array as `data`,
-        otherwise the array data will be copied.
+        The technique to compute the standard deviation about the center. Must
+        be a callable that takes in a masked array and outputs a width
+        estimator.  Defaults to the standard deviation (numpy.var).
+    axis : int or None
+        If not None, clip along the given axis.  For this case, axis=int will
+        be passed on to cenfunc and varfunc, which are expected to return an
+        array with the axis dimension removed (like the numpy functions).
+        If None, clip over all values.  Defaults to None.
+    copy : bool
+        If True, the data array will be copied.  If False, the masked array
+        data will contain the same array as `data`.  Defaults to True.
 
     Returns
     -------
-    filtereddata : `numpy.ndarray` or `numpy.masked.MaskedArray`
-        If `maout` is True, this is a masked array with a shape matching the
-        input that is masked where the algorithm has rejected those values.
-        Otherwise, a 1D array of values including only those that are not
-        clipped.
-    mask : boolean array
-        Only present if `maout` is False. A boolean array with a shape matching
-        the input `data` that is False for rejected values and True for all
-        others.
+    filtered_data : `numpy.masked.MaskedArray`
+        A masked array with the same shape as `data` input, where the points
+        rejected by the algorithm have been masked.
+
+    Implementation
+    --------------
+    The routine works by calculating
+
+        deviation = data - cenfunc(data [,axis=int])
+
+    and then setting a mask for points outside the range
+
+        data.mask = deviation**2 > sig**2 * varfunc(deviation)
+
+    It will iterate a given number of times, or until no further points are
+    rejected.
+
+    Note
+    ----
+
+    Most numpy functions deal well with masked arrays, but if one would like
+    to have an array with just the good (or bad) values, one can use::
+
+        >>> good_only = filtered_data.data[~filtered_data.mask]
+        >>> bad_only = filtered_data.data[filtered_data.mask]
+
+    However, for multidimensional data, this flattens the array, which may not
+    be what one wants (especially is filtering was done along an axis).
 
     Examples
     --------
 
     This will generate random variates from a Gaussian distribution and return
-    only the points that are within 2 *sample* standard deviation from the
-    median::
+    a masked array in which all points that are more than 2 *sample* standard
+    deviation from the median are masked::
 
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import randn
         >>> randvar = randn(10000)
-        >>> data,mask = sigma_clip(randvar, 2, 1)
+        >>> filtered_data = sigma_clip(randvar, 2, 1)
 
     This will clipping on a similar distribution, but for 3 sigma relative to
-    the sample *mean*, will clip until converged, and produces a
-    `numpy.masked.MaskedArray`::
+    the sample *mean*, will clip until converged, and does not copy the data::
 
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import randn
         >>> from numpy import mean
         >>> randvar = randn(10000)
-        >>> maskedarr = sigma_clip(randvar, 3, None, mean, maout=True)
+        >>> filtered_data = sigma_clip(randvar, 3, None, mean, copy=False)
+
+    This will clip along one axis on a similar distribution with bad points
+    inserted::
+
+        >>> from astropy.stats import sigma_clip
+        >>> from numpy.random import normal
+        >>> from numpy import arange, diag, ones
+        >>> data = arange(5)+normal(0.,0.05,(5,5))+diag(ones(5))
+        >>> filtered_data = sigma_clip(data, axis=0, sig=2.3)
+
+    Note that along the other axis, no points would be masked, as the variance
+    is higher.
 
     """
 
-    data = np.array(data, copy=False)
-    oldshape = data.shape
-    data = data.ravel()
+    if axis is not None:
+        cenfunc_in = cenfunc
+        varfunc_in = varfunc
+        cenfunc = lambda d: np.expand_dims(cenfunc_in(d, axis=axis), axis=axis)
+        varfunc = lambda d: np.expand_dims(varfunc_in(d, axis=axis), axis=axis)
 
-    mask = np.ones(data.size, bool)
+    filtered_data = np.ma.array(data, copy=copy)
+
     if iters is None:
         i = -1
-        lastrej = sum(mask) + 1
-        while(sum(mask) != lastrej):
+        lastrej = filtered_data.count() + 1
+        while(filtered_data.count() != lastrej):
             i += 1
-            lastrej = sum(mask)
-            do = data - cenfunc(data[mask])
-            mask = do * do <= varfunc(data[mask]) * sig ** 2
+            lastrej = filtered_data.count()
+            do = filtered_data - cenfunc(filtered_data)
+            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
         iters = i + 1
         #TODO: ?print iters to the log if iters was None?
     else:
         for i in range(iters):
-            do = data - cenfunc(data[mask])
-            mask = do * do <= varfunc(data[mask]) * sig ** 2
+            do = filtered_data - cenfunc(filtered_data)
+            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
 
-    if maout:
-        return np.ma.MaskedArray(data, ~mask, copy=maout != 'inplace')
-    else:
-        return data[mask], mask.reshape(oldshape)
+    return filtered_data
 
 
 #TODO Note scipy dependency
@@ -295,7 +329,7 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
             return np.array([midpoint - halflength, midpoint + halflength])
 
     elif interval == 'jeffreys':
-        from scipy.special import betainc, betaincinv
+        from scipy.special import betaincinv
 
         lowerbound = betaincinv(k + 0.5, n - k + 0.5, alpha / 2.)
         upperbound = betaincinv(k + 0.5, n - k + 0.5, 1. - alpha / 2.)
