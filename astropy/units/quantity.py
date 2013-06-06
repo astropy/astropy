@@ -414,6 +414,16 @@ class Quantity(object):
 
         return Quantity(abs(self.value), unit=self.unit)
 
+    # Mathematical methods
+
+    def mean(self, axis=None, dtype=None, out=None):
+        value = np.mean(self.value, axis=axis, dtype=dtype, out=out)
+        return Quantity(value, unit=self.unit)
+
+    def std(self, axis=None, dtype=None, out=None, ddof=0):
+        value = np.std(self.value, axis=axis, dtype=dtype, out=out, ddof=ddof)
+        return Quantity(value, self._unit)
+
     # Trigonometric methods (these get called when np.cos/np.sin/np.tan are used)
 
     def cos(self):
@@ -471,10 +481,6 @@ class Quantity(object):
             return np.log1p(self.value)
         else:
             raise TypeError("Can only apply log1p function to dimensionless quantities")
-
-    # Quantity.std to be defined otherwise units are wrong when calling np.std
-    def std(self, **kwargs):
-        return Quantity(np.std(self.value, **kwargs), self._unit)
 
     # Comparison operations
     def __eq__(self, other):
