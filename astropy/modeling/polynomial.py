@@ -290,11 +290,9 @@ class OrthogPolyBase(ParametricModel):
 
         Parameters
         --------------
-        x, y : arrays, of min dimensions 2
+        x : scalar, list or array
+        y : scalar, lis or array
 
-        Notes
-        -----
-        See the module docstring for rules for model evaluation.
         """
         x, _ = _convert_input(x, self.param_dim)
         y, fmt = _convert_input(y, self.param_dim)
@@ -328,10 +326,6 @@ class Chebyshev1DModel(PolynomialModel):
     **pars : dict
         keyword : value pairs, representing parameter_name: value
 
-    Returns
-    -------
-    model : Chebyshev1DModel
-        1D Chebyshev model
     """
     def __init__(self, degree, domain=None, window=[-1, 1], param_dim=1, **pars):
         self.domain = domain
@@ -340,6 +334,9 @@ class Chebyshev1DModel(PolynomialModel):
                                                param_dim=param_dim, **pars)
 
     def clenshaw(self, x, coeff):
+        """
+        Evaluates the polynomial using Clenshaw's algorithm.
+        """
         if isinstance(x, tuple) or isinstance(x, list):
             x = np.asarray(x)
         if len(coeff) == 1:
@@ -370,6 +367,11 @@ class Chebyshev1DModel(PolynomialModel):
             input
         y : throw away parameter
             Present here so that the non-linear fitting algorithms can work
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
         """
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.deg + 1,) + x.shape, dtype=x.dtype)
@@ -386,11 +388,9 @@ class Chebyshev1DModel(PolynomialModel):
 
         Parameters
         --------------
-        x : array, of minimum dimensions 1
+        x : scalar, list or array
+            input
 
-        Notes
-        -----
-        See the module docstring for rules for model evaluation.
         """
         if self.domain is not None:
             x = poly_map_domain(x, self.domain, self.window)#self.set_domain(x)
@@ -455,6 +455,12 @@ class Legendre1DModel(PolynomialModel):
             input
         y : throw away parameter
             Present here so that the non-linear fitting algorithms can work
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
+
         """
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.deg + 1,) + x.shape, dtype=x.dtype)
@@ -470,11 +476,9 @@ class Legendre1DModel(PolynomialModel):
 
         Parameters
         --------------
-        x : array, of minimum dimensions 1
+        x : scalar, list or array
+            input
 
-        Notes
-        -----
-        See the module docstring for rules for model evaluation.
         """
         if self.domain is not None:
             x = poly_map_domain(x, self.domain, self.window)#self.set_domain(x)
@@ -522,6 +526,12 @@ class Poly1DModel(PolynomialModel):
             input
         y : throw away parameter
             Present here so that the non-linear fitting algorithms can work
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
+
         """
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.deg + 1,) + x.shape, dtype=np.float)
@@ -543,11 +553,9 @@ class Poly1DModel(PolynomialModel):
 
         Parameters
         --------------
-        x : array, of minimum dimensions 1
+        x : scalar, list or array
+            input
 
-        Notes
-        -----
-        Rules for model evaluation are described in the module docstring
         """
         x, fmt = _convert_input(x, self.param_dim)
         result = self.horner(x, self.param_sets)
@@ -562,8 +570,8 @@ class Poly2DModel(PolynomialModel):
     Represents a general polynomial of degree n:
 
     .. math::
-       P(x,y) = c_{0_0} + c_{1_0}x + ...+ c_{n_0}x^n + c_{0_1}y + ...+ c_{0_n}y^n
-       + c_{1_1}xy + c_{1_2}xy^2 + ... + c_{1_(n-1)}xy^{n-1}+ ... + c_{(n-1)_1}x^{n-1}y
+        P(x,y) = c_{0_0} + c_{1_0}*x + ...+ c_{n_0}*x^n + c_{0_1}*y + ...+ c_{0_n}*y^n
+        + c_{1_1}*x*y + c_{1_2}*x*y^2 + ... + c_{1_(n-1)}*x*y^{n-1}+ ... + c_{(n-1)_1}*x^{n-1}*y
 
     Parameters
     ----------
@@ -627,10 +635,15 @@ class Poly2DModel(PolynomialModel):
             parameter list returned by non-linear fitters
         x : ndarray
             input
-        y : throw away parameter
-            Present here so that the non-linear fitting algorithms can work
+        y : ndarray
+            input
         z : throw away parameter
             Present here so that the non-linear fitting algorithms can work
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
         """
         if x.ndim == 2:
             x = x.flatten()
@@ -670,11 +683,11 @@ class Poly2DModel(PolynomialModel):
 
         Parameters
         --------------
-        x, y : arrays, of min dimensions 2
+        x : scalar, list or array
+            input
+        y : scalar, list or array
+            input
 
-        Notes
-        -----
-        See the module docstring for rules for model evaluation.
         """
         invcoeff = self.invlex_coeff()
         x, _ = _convert_input(x, self.param_dim)
@@ -754,10 +767,16 @@ class Chebyshev2DModel(OrthogPolyBase):
             parameter list returned by non-linear fitters
         x : ndarray
             input
-        y : throw away parameter
-            Present here so that the non-linear fitting algorithms can work
+        y : ndarray
+            input
         z : throw away parameter
             Present here so that the non-linear fitting algorithms can work
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
+
         """
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
@@ -859,10 +878,16 @@ class Legendre2DModel(OrthogPolyBase):
             parameter list returned by non-linear fitters
         x : ndarray
             input
-        y : throw away parameter
-            Present here so that the non-linear fitting algorithms can work
+        y : ndarray
+            input
         z : throw away parameter
             Present here so that the non-linear fitting algorithms can work
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
+
         """
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
@@ -1061,10 +1086,6 @@ class SIPModel(SCompositeModel):
         when input is 2D array, if True (default) it is to be
         treated as multiple 1D arrays
 
-    Returns
-    -------
-    model : SIPModel
-        A model representing the Simple Imaging Protocol
 
     References
     ----------
@@ -1110,6 +1131,14 @@ class SIPModel(SCompositeModel):
     def __call__(self, x, y):
         """
         Transforms data using this model.
+
+        Parameters
+        ----------
+        x : scalar, list ot array
+            input
+        y : scalar, list or array
+            input
+
         """
         ado = LabeledInput([x, y], ['x', 'y'])
         return SCompositeModel.__call__(self, ado).z
