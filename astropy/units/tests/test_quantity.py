@@ -277,6 +277,21 @@ class TestQuantityOperations(object):
         assert long(q) == 1L
 
 
+class TestQuantityNumpyFunctions(object):
+
+    def test_mean(self):
+
+        q1 = np.array([1.,2.,4.,5.,6.]) * u.m
+        assert np.mean(q1) == 3.6 * u.m
+        assert np.mean(q1).unit == u.m
+        assert np.mean(q1).value == 3.6
+
+        q2 = (np.array([1.,2.5,4.]) * u.km / u.s) / (4000. * u.m / u.s) + 1.
+        assert np.mean(q2) == 0.001625 * u.km / u.m
+        assert np.mean(q2).unit == u.km / u.m
+        assert np.mean(q2).value == 0.001625
+
+
 def test_quantity_conversion():
     q1 = u.Quantity(0.1, unit=u.meter)
 
