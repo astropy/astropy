@@ -50,7 +50,7 @@ uses an FFT.  Thus, the former is better for small kernels, while the latter
 is much more efficient for larger kernels.
 
 
-The input images and kernels should be lists or Numpy arrays with either both 1, 2, or 3 dimensions (and the number of dimensions should be the same for the image and kernel). The result is a Numpy array with the same dimensions as the input image.
+The input images and kernels should be lists or Numpy arrays with either both 1, 2, or 3 dimensions (and the number of dimensions should be the same for the image and kernel). The result is a Numpy array with the same dimensions as the input image. 
 
 The ``convolve`` function takes an optional ``boundary=`` argument describing how to perform the convolution at the edge of the array. The values for ``boundary`` can be:
 
@@ -71,12 +71,12 @@ Examples
 
 Smooth a 1D array with a custom kernel and no boundary treatment::
 
-    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
+    >>> convolve([1.0, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
     array([ 0. ,  3.4,  5. ,  5.6,  5.6,  5.2,  0. ])
 
 As above, but using the 'extend' algorithm for boundaries::
 
-    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
+    >>> convolve([1.0, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
     array([ 1.6,  3.6,  5. ,  5.6,  5.6,  6.8,  7.8])
 
 If a NaN value is present in the original array, it will be interpolated using the kernel::
