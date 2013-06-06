@@ -117,12 +117,7 @@ class Quantity(object):
                     return float(out)
                 else:
                     return out.astype(np.float64)
-            elif context[0] in [np.abs]:
-                return self.__class__(out, unit=self._unit)
-            else:
-                return self.__class__(out, unit=self._unit)
-        else:
-            return self.__class__(out, unit=self._unit)
+        return self.__class__(out, unit=self._unit)
 
     def __init__(self, value, unit, equivalencies=[]):
         from ..utils.misc import isiterable
