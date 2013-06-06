@@ -581,10 +581,16 @@ class Quantity(object):
             A new object equal to this quantity with units decomposed.
 
         """
-        newu = self.unit.decompose(bases=bases)
-        newval = self.value
-        if not allowscaledunits and hasattr(newu, 'scale'):
-            newval *= newu.scale
-            newu = newu / Unit(newu.scale)
 
-        return Quantity(newval, newu)
+        new_unit = self.unit.decompose(bases=bases)
+
+        if not allowscaledunits and hasattr(new_unit, 'scale'):
+            # Be careful here because self.value might be an array, so if the
+            # following is changed, always be sure that the original value is
+            # not being modified.
+            new_value = self.value * new_unit.scale
+            new_unit = new_unit / Unit(new_unit.scale)
+        else:
+            new_value = self.value
+
+        return Quantity(new_value, new_unit)
