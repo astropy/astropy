@@ -45,6 +45,10 @@ matrix:
           env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
         # numpy < 1.6 does not work on py 3.x
 
+        #also do the PEP8 check
+        - python: 2.7
+          env: SETUP_CMD='pep8 setup.py astropy --ignore=E501 --statistics --count --exclude="astropy/extern,docs"' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
+
 
 before_install:
     # use utf8 encoding.  Should be default, but this is insurance against future changes
@@ -77,5 +81,7 @@ install:
     - if [[ $SETUP_CMD == build_sphinx* ]]; then bash .travis.pip.wheel $TRAVIS_PYTHON_VERSION matplotlib 1.2.1 -q; fi
       # this matplotlib will *not* work with py 3.x, but our sphinx build is currently 2.7, so that's fine
 
+    - if [[ $SETUP_CMD == pep8* ]]; then bash .travis.pip.wheel $TRAVIS_PYTHON_VERSION pep8  -q; fi
+
 script:
-    - python setup.py $SETUP_CMD
+    - if [[ $SETUP_CMD == pep8* ]]; then $SETUP_CMD; else python setup.py $SETUP_CMD; fi
