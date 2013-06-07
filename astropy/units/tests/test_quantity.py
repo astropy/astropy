@@ -320,12 +320,14 @@ class TestQuantityTrigonometricFunctions(object):
                         np.array([0., 1. / np.sqrt(2.), 1.]), atol=1.e-15)
 
     def test_arcsin_scalar(self):
-        q = 30. * u.degree
-        assert np.arccos(np.cos(q)) == q
+        q1 = 30. * u.degree
+        q2 = np.arcsin(np.sin(q1)).to(q1.unit)
+        assert_allclose(q1.value, q2.value)
 
     def test_arcsin_array(self):
-        q = np.array([0., np.pi / 4., np.pi / 2.]) * u.radian
-        assert np.all(np.arccos(np.cos(q)) == q)
+        q1 = np.array([0., np.pi / 4., np.pi / 2.]) * u.radian
+        q2 = np.arcsin(np.sin(q1)).to(q1.unit)
+        assert_allclose(q1.value, q2.value)
 
     def test_sin_invalid_units(self):
         with pytest.raises(TypeError) as exc:
@@ -352,12 +354,14 @@ class TestQuantityTrigonometricFunctions(object):
                         np.array([1., 1. / np.sqrt(2.), 0.]), atol=1.e-15)
 
     def test_arccos_scalar(self):
-        q = np.pi / 3. * u.radian
-        assert np.arccos(np.cos(q)) == q
+        q1 = np.pi / 3. * u.radian
+        q2 = np.arccos(np.cos(q1)).to(q1.unit)
+        assert_allclose(q1.value, q2.value)
 
     def test_arccos_array(self):
-        q = np.array([0., np.pi / 4., np.pi / 2.]) * u.radian
-        assert np.all(np.arccos(np.cos(q)) == q)
+        q1 = np.array([0., np.pi / 4., np.pi / 2.]) * u.radian
+        q2 = np.arccos(np.cos(q1)).to(q1.unit)
+        assert_allclose(q1.value, q2.value)
 
     def test_cos_invalid_units(self):
         with pytest.raises(TypeError) as exc:
