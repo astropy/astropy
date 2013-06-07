@@ -116,6 +116,7 @@ class TestBasic():
         assert t.tcg.isot == '2010-01-01T00:01:06.910'
         assert allclose_sec(t.unix, 1262304000.0)
         assert allclose_sec(t.cxcsec, 378691266.184)
+        assert allclose_sec(t.gps, 946339215.0)
         assert t.datetime == datetime(2010, 1, 1)
 
     def test_precision(self):
@@ -166,6 +167,7 @@ class TestBasic():
         """Create a time object using each defined format"""
         Time(100.0, format='cxcsec')
         Time(100.0, format='unix')
+        Time(100.0, format='gps')
         Time(1950.0, format='byear', scale='tai')
         Time(2000.0, format='jyear', scale='tai')
         Time('B1950.0', format='byear_str', scale='tai')
@@ -373,6 +375,8 @@ class TestSubFormat():
         assert t.scale == 'utc'
         t = Time(100.0, format='unix', scale='tai')
         assert t.scale == 'tai'
+        t = Time(100.0, format='gps', scale='utc')
+        assert t.scale == 'utc'
 
         # Check that bad scale is caught when format is specified
         with pytest.raises(ScaleValueError):

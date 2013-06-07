@@ -11,7 +11,7 @@ import itertools
 import numpy as np
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
-           'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimePlotDate',
+           'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS', 'TimePlotDate',
            'TimeDatetime',
            'TimeString', 'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
            'TimeBesselianEpoch', 'TimeJulianEpoch', 'TimeDeltaFormat',
@@ -919,6 +919,21 @@ class TimeCxcSec(TimeFromEpoch):
     epoch_val = '1998-01-01 00:00:00'
     epoch_val2 = None
     epoch_scale = 'tt'
+    epoch_format = 'iso'
+
+
+class TimeGPS(TimeFromEpoch):
+    """GPS time: seconds from 1980-01-06 00:00:00 UTC
+
+    GPS time includes leap seconds.  For details, see
+    http://tycho.usno.navy.mil/gpstt.html
+    """
+    name = 'gps'
+    unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
+    epoch_val = '1980-01-06 00:00:19'
+    # above epoch is the same as Time('1980-01-06 00:00:00', scale='utc').tai
+    epoch_val2 = None
+    epoch_scale = 'tai'
     epoch_format = 'iso'
 
 
