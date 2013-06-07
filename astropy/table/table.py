@@ -11,7 +11,6 @@ from numpy import ma
 from ..units import Unit
 from .. import log
 from ..utils import OrderedDict, isiterable
-from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
 from ..utils.console import color_print
 from ..config import ConfigurationItem
@@ -1728,7 +1727,26 @@ class Table(object):
         for name in names:
             self.columns.pop(name)
 
-        self._data = _drop_fields(self._data, names)
+        newdtype = [(name, self._data.dtype[name]) for name in self._data.dtype.names
+                if name not in names]
+        newdtype = np.dtype(newdtype)
+
+        if newdtype:
+            if self.masked:
+                table = np.ma.empty(self._data.shape, dtype=newdtype)
+            else:
+                table = np.empty(self._data.shape, dtype=newdtype)
+
+            for field in newdtype.fields:
+                table[field] = self._data[field]
+                if self.masked:
+                    table[field].fill_value = self._data[field].fill_value
+        else:
+            table = None
+
+        self._data = table
+
+
 
     def keep_columns(self, names):
         '''
