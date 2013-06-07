@@ -177,10 +177,10 @@ class ConfigurationItem(object):
         print("{}:{}".format(self.module, name.upper()))
         if sys.modules[self.module].__doc__ is None:
             sys.modules[self.module].__doc__ = self.module+'\n'
-        sys.modules[self.module].__doc__ += '\n'
-        sys.modules[self.module].__doc__ += name.upper()
-        sys.modules[self.module].__doc__ += '\n    '.join(self._generate_comments())
-        sys.modules[self.module].__doc__ += '\n    '
+        doc = '\n'+name.upper()
+        doc += '\n    '.join(self._generate_comments())
+        doc += '\n    '
+        sys.modules[self.module].__doc__ += doc
 
     def set(self, value):
         """ Sets the current value of this `ConfigurationItem`.
