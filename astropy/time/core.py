@@ -923,10 +923,15 @@ class TimeCxcSec(TimeFromEpoch):
 
 
 class TimeGPS(TimeFromEpoch):
-    """GPS time: seconds from 1980-01-06 00:00:00 UTC = 00:00:19 TAI"""
+    """GPS time: seconds from 1980-01-06 00:00:00 UTC
+
+    GPS time includes leap seconds.  For details, see
+    http://tycho.usno.navy.mil/gpstt.html
+    """
     name = 'gps'
     unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
     epoch_val = '1980-01-06 00:00:19'
+    # above epoch is the same as Time('1980-01-06 00:00:00', scale='utc').tai
     epoch_val2 = None
     epoch_scale = 'tai'
     epoch_format = 'iso'
