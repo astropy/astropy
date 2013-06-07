@@ -50,8 +50,9 @@ before_install:
     # use utf8 encoding.  Should be default, but this is insurance against future changes
     - export PYTHONIOENCODING=UTF8
 
-    # install the pip that supports wheel - this should be set to the first pip  *release* that supports wheel, whenever that is
-    - pip install -e git+https://github.com/pypa/pip#egg=pip
+    # install the pip that supports wheel
+    # this particular commit is "known good".  Whenever pip 1.4 is released, we should switch to that
+    - pip install -e git+https://github.com/pypa/pip@be0c47f7aae5bc840dc1ec6af9fcbb2ae7ec2354#egg=pip
     - pip install wheel
 
     # We do this to make sure we get dependencies so pip works below
