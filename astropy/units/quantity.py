@@ -32,11 +32,12 @@ WARN_IMPLICIT_NUMERIC_CONVERSION = ConfigurationItem(
 __all__ = ["Quantity"]
 
 # Numpy ufuncs that return unitless values
-DIMENSIONLESS_UFUNCS = [np.exp, np.log, np.log1p, np.log2, np.log10]
+DIMENSIONLESS_UFUNCS = set([np.exp, np.log, np.log1p, np.log2, np.log10])
 
-TRIG_UFUNCS = [np.cos, np.sin, np.tan]
+TRIG_UFUNCS = set([np.cos, np.sin, np.tan])
 
-INVTRIG_UFUNCS = [np.arccos, np.arcsin, np.arctan]
+INVTRIG_UFUNCS = set([np.arccos, np.arcsin, np.arctan])
+
 
 def _is_unity(value):
     x = value.decompose()
@@ -300,7 +301,6 @@ class Quantity(object):
                     "Object of type '{0}' cannot be added with a Quantity "
                     "object. Addition is only supported between Quantity "
                     "objects with compatible units.".format(other.__class__))
-
 
     __radd__ = __add__
 
