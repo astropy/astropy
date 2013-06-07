@@ -32,9 +32,11 @@ WARN_IMPLICIT_NUMERIC_CONVERSION = ConfigurationItem(
 __all__ = ["Quantity"]
 
 # Numpy ufuncs that return unitless values
-UNITLESS_UFUNCS = [np.cos, np.sin, np.tan,
-                   np.exp, np.log, np.log1p, np.log2, np.log10]
+DIMENSIONLESS_UFUNCS = [np.exp, np.log, np.log1p, np.log2, np.log10]
 
+TRIG_UFUNCS = [np.cos, np.sin, np.tan]
+
+INVTRIG_UFUNCS = [np.arccos, np.arcsin, np.arctan]
 
 def _is_unity(value):
     x = value.decompose()
@@ -110,20 +112,22 @@ class Quantity(object):
 
     def __array_wrap__(self, out, context=None):
         if context:
+            # Numpy will take the output of the ufuncs and try and convert it
+            # to an array, which means that it will convert it to an array of
+            # Quantity objects (because __len__ is defined, Numpy thinks it can
+            # do that). Kind of a waste of computation to try and piece back
+            # together the Quantity array, so we do the following, which is at
+            # least correct.
+            from . import dimensionless_unscaled
+            from .si import radian
             if context[0] is np.sqrt:
-                # In this case, we should just re-compute it even though
-                # Quantity.sqrt is present, because otherwise here we will in
-                # some cases get an array of Quantity objects out, which is not
-                # what we want. This is sub-optimal because behind the scenes,
-                # Quantity.sqrt is still getting called, and the output
-                # converted to an array of Quantity objects, but at least it's
-                # correct.
                 return Quantity(self.value ** 0.5, self.unit ** 0.5)
-            elif context[0] in UNITLESS_UFUNCS:
-                if len(out.shape) == 0:
-                    return float(out)
-                else:
-                    return out.astype(np.float64)
+            elif context[0] in DIMENSIONLESS_UFUNCS:
+                return Quantity(context[0](self.value), dimensionless_unscaled)
+            elif context[0] in TRIG_UFUNCS:
+                return Quantity(context[0](self.to(radian).value), dimensionless_unscaled)
+            elif context[0] in INVTRIG_UFUNCS:
+                return Quantity(context[0](self.value), radian)
         return self.__class__(out, unit=self._unit)
 
     def __init__(self, value, unit, equivalencies=[]):
@@ -434,25 +438,51 @@ class Quantity(object):
     # Trigonometric methods (these get called when np.cos/np.sin/np.tan are used)
 
     def cos(self):
+        from . import dimensionless_unscaled
         from .si import radian
         try:
-            return np.cos(self.to(radian).value)
+            return Quantity(np.cos(self.to(radian).value), unit=dimensionless_unscaled)
         except UnitsException:
             raise TypeError("Can only apply trigonometric functions to quantities with angle units")
 
     def sin(self):
+        from . import dimensionless_unscaled
         from .si import radian
         try:
-            return np.sin(self.to(radian).value)
+            return Quantity(np.sin(self.to(radian).value), unit=dimensionless_unscaled)
         except UnitsException:
             raise TypeError("Can only apply trigonometric functions to quantities with angle units")
 
     def tan(self):
+        from . import dimensionless_unscaled
         from .si import radian
         try:
-            return np.tan(self.to(radian).value)
+            print(self.to(radian).value)
+            print(np.tan(self.to(radian).value))
+            return Quantity(np.tan(self.to(radian).value), unit=dimensionless_unscaled)
         except UnitsException:
             raise TypeError("Can only apply trigonometric functions to quantities with angle units")
+
+    def arccos(self):
+        from .si import radian
+        if _is_unity(self.unit):
+            return Quantity(np.arccos(self.value), unit=radian)
+        else:
+            raise TypeError("Can only apply inverse trigonometric functions to dimensionless and unscaled quantities")
+
+    def arcsin(self):
+        from .si import radian
+        if _is_unity(self.unit):
+            return Quantity(np.arcsin(self.value), unit=radian)
+        else:
+            raise TypeError("Can only apply inverse trigonometric functions to dimensionless and unscaled quantities")
+
+    def arctan(self):
+        from .si import radian
+        if _is_unity(self.unit):
+            return Quantity(np.arctan(self.value), unit=radian)
+        else:
+            raise TypeError("Can only apply inverse trigonometric functions to dimensionless and unscaled quantities")
 
     # Mathematical methods (these get called when np.sqrt/np.exp/etc. are used)
 

@@ -309,11 +309,23 @@ class TestQuantityStatsFunctions(object):
 class TestQuantityTrigonometricFunctions(object):
 
     def test_sin_scalar(self):
-        assert_allclose(np.sin(30. * u.degree), 0.5)
+        q = np.sin(30. * u.degree)
+        assert q.unit == u.dimensionless_unscaled
+        assert_allclose(q.value, 0.5)
 
     def test_sin_array(self):
-        assert_allclose(np.sin(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian),
+        q = np.sin(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian)
+        assert q.unit == u.dimensionless_unscaled
+        assert_allclose(q.value,
                         np.array([0., 1. / np.sqrt(2.), 1.]), atol=1.e-15)
+
+    def test_arcsin_scalar(self):
+        q = 30. * u.degree
+        assert np.arccos(np.cos(q)) == q
+
+    def test_arcsin_array(self):
+        q = np.array([0., np.pi / 4., np.pi / 2.]) * u.radian
+        assert np.all(np.arccos(np.cos(q)) == q)
 
     def test_sin_invalid_units(self):
         with pytest.raises(TypeError) as exc:
@@ -321,12 +333,31 @@ class TestQuantityTrigonometricFunctions(object):
         assert exc.value.args[0] == ("Can only apply trigonometric functions "
                                      "to quantities with angle units")
 
+    def test_arcsin_invalid_units(self):
+        with pytest.raises(TypeError) as exc:
+            np.arcsin(3. * u.m)
+        assert exc.value.args[0] == ("Can only apply inverse trigonometric "
+                                     "functions to dimensionless and unscaled "
+                                     "quantities")
+
     def test_cos_scalar(self):
-        assert_allclose(np.cos(np.pi / 3. * u.radian), 0.5)
+        q = np.cos(np.pi / 3. * u.radian)
+        assert q.unit == u.dimensionless_unscaled
+        assert_allclose(q.value, 0.5)
 
     def test_cos_array(self):
-        assert_allclose(np.cos(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian),
+        q = np.cos(np.array([0., np.pi / 4., np.pi / 2.]) * u.radian)
+        assert q.unit == u.dimensionless_unscaled
+        assert_allclose(q.value,
                         np.array([1., 1. / np.sqrt(2.), 0.]), atol=1.e-15)
+
+    def test_arccos_scalar(self):
+        q = np.pi / 3. * u.radian
+        assert np.arccos(np.cos(q)) == q
+
+    def test_arccos_array(self):
+        q = np.array([0., np.pi / 4., np.pi / 2.]) * u.radian
+        assert np.all(np.arccos(np.cos(q)) == q)
 
     def test_cos_invalid_units(self):
         with pytest.raises(TypeError) as exc:
@@ -334,18 +365,44 @@ class TestQuantityTrigonometricFunctions(object):
         assert exc.value.args[0] == ("Can only apply trigonometric functions "
                                      "to quantities with angle units")
 
+    def test_arccos_invalid_units(self):
+        with pytest.raises(TypeError) as exc:
+            np.arccos(3. * u.s)
+        assert exc.value.args[0] == ("Can only apply inverse trigonometric "
+                                     "functions to dimensionless and unscaled "
+                                     "quantities")
+
     def test_tan_scalar(self):
-        assert_allclose(np.tan(np.pi / 3. * u.radian), np.sqrt(3.))
+        q = np.tan(np.pi / 3. * u.radian)
+        assert q.unit == u.dimensionless_unscaled
+        assert_allclose(q.value, np.sqrt(3.))
 
     def test_tan_array(self):
-        assert_allclose(np.tan(np.array([0., 45., 135., 180.]) * u.degree),
+        q = np.tan(np.array([0., 45., 135., 180.]) * u.degree)
+        assert q.unit == u.dimensionless_unscaled
+        assert_allclose(q.value,
                         np.array([0., 1., -1., 0.]), atol=1.e-15)
+
+    def test_arctan_scalar(self):
+        q = np.pi / 3. * u.radian
+        assert np.arctan(np.tan(q))
+
+    def test_arctan_array(self):
+        q = np.array([10., 30., 70., 80.]) * u.degree
+        assert_allclose(np.arctan(np.tan(q)).to(q.unit).value, q.value)
 
     def test_tan_invalid_units(self):
         with pytest.raises(TypeError) as exc:
             np.sin(np.array([1,2,3]) * u.N)
         assert exc.value.args[0] == ("Can only apply trigonometric functions "
                                      "to quantities with angle units")
+
+    def test_arctan_invalid_units(self):
+        with pytest.raises(TypeError) as exc:
+            np.arctan(np.array([1,2,3]) * u.N)
+        assert exc.value.args[0] == ("Can only apply inverse trigonometric "
+                                     "functions to dimensionless and unscaled "
+                                     "quantities")
 
 
 class TestQuantityMathFunctions(object):
@@ -360,11 +417,15 @@ class TestQuantityMathFunctions(object):
 
     @pytest.mark.parametrize('function', (np.exp, np.log, np.log2, np.log10, np.log1p))
     def test_exp_scalar(self, function):
-        assert function(3. * u.m / (6. * u.m)) == function(0.5)
+        q = function(3. * u.m / (6. * u.m))
+        assert q.unit == u.dimensionless_unscaled
+        assert q.value == function(0.5)
 
     @pytest.mark.parametrize('function', (np.exp, np.log, np.log2, np.log10, np.log1p))
     def test_exp_array(self, function):
-        assert np.all(function(np.array([2., 3., 6.]) * u.m / (6. * u.m))
+        q = function(np.array([2., 3., 6.]) * u.m / (6. * u.m))
+        assert q.unit == u.dimensionless_unscaled
+        assert np.all(q.value
                       == function(np.array([1. / 3., 1. / 2., 1.])))
 
     @pytest.mark.parametrize('function', (np.exp, np.log, np.log2, np.log10, np.log1p))
