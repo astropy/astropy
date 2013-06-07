@@ -1,7 +1,7 @@
 language: python
 
 #Note that this .trais.yml uses a second file to manage installation of dependencies
-#and their locations - ".travis.pip.wheel".  Look there to manage the wheels. 
+#and their locations - ".travis.pip.wheel".  Look there to manage the wheels.
 
 python:
     - 2.6
@@ -69,10 +69,10 @@ install:
     - if [[ $SETUP_CMD != egg_info ]]; then bash .travis.pip.wheel $TRAVIS_PYTHON_VERSION Cython 0.18 -q; fi
     - if $OPTIONAL_DEPS; then bash .travis.pip.wheel $TRAVIS_PYTHON_VERSION scipy 0.12.0; fi
       # not doing -q in scipy because if we have to fall back on the source build it takes too long and travis times out without continuous output
-    - if $OPTIONAL_DEPS; then bash .travis.pip.wheel $TRAVIS_PYTHON_VERSION h5py -q; fi
+    - if $OPTIONAL_DEPS; then bash .travis.pip.wheel $TRAVIS_PYTHON_VERSION h5py 2.1.3 -q; fi
 
     # build_sphinx needs sphinx and matplotlib (for plot_directive)
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then bash .travis.pip.wheel $TRAVIS_PYTHON_VERSION Sphinx 1.1.3 -q; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then bash .travis.pip.wheel $TRAVIS_PYTHON_VERSION Sphinx 1.1.3 -q -p; fi
     - if [[ $SETUP_CMD == build_sphinx* ]]; then bash .travis.pip.wheel $TRAVIS_PYTHON_VERSION matplotlib 1.2.1 -q; fi
       # this matplotlib will *not* work with py 3.x, but our sphinx build is currently 2.7, so that's fine
 
