@@ -1033,7 +1033,8 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
 
     return reader
 
-extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats', 'strip_whitespace',
+extra_writer_pars = ('delimiter', 'write_comment', 'quotechar', 'formats',
+                     'strip_whitespace',
                      'names', 'include_names', 'exclude_names',
                      'fill_values', 'fill_include_names',
                      'fill_exclude_names')

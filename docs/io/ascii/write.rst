@@ -168,8 +168,11 @@ of these classes for details.
   A one-character string used to separate fields which typically defaults to the space character.
   Other common values might be "," or "|" or "\\t".
 
-**comment** : string defining a comment line in table
-  For the :class:`~astropy.io.ascii.Basic` Reader this defaults to "#". 
+**write_comment** : string defining a comment line in table
+  For the :class:`~astropy.io.ascii.Basic` Writer this defaults to "#". 
+  It depends on the Writer chosen, which and how comments are written (e.g.
+  :class:`~astropy.io.ascii.CommentedHeader` puts the comment symbol in the line
+  with the column names).
 
 **formats**: dict of data type converters
   For each key (column name) use the given value to convert the column data to a string.  
