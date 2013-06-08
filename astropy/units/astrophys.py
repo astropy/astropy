@@ -48,6 +48,13 @@ def_unit(['barn'], 10 ** -28 * si.m ** 2, register=True, prefixes=True,
 
 
 ###########################################################################
+# ANGULAR MEASUREMENTS
+
+def_unit(['cycle', 'cy'], 2.0 * _numpy.pi * si.rad,
+         register=True, prefixes=False,
+         doc="cycle: angular measurement, a full turn or rotation")
+
+###########################################################################
 # MASS
 
 def_unit(['solMass', 'M_sun'], _si.M_sun.value * si.kg, register=True,
