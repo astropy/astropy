@@ -36,6 +36,18 @@ class IERS(Table):
     """Generic IERS table, which defines the functions to return interpolated
     UT1-UTC values, etc.  Should hold columns 'MJD' and 'UT1_UTC'
     """
+    iers_table = None
+
+    @classmethod
+    def open(cls, *args, **kwargs):
+        if cls.iers_table is None:
+            cls.iers_table = cls.read(*args, **kwargs)
+        return cls.iers_table
+
+    @classmethod
+    def close(cls):
+        cls.iers_table = None
+
     def mjd_utc(self, jd1, jd2=0.):
         """Turn a time to MJD, returning integer and fractional parts.
 
@@ -91,6 +103,11 @@ class IERS(Table):
         """
 
         mjd, utc = self.mjd_utc(jd1, jd2)
+        # enforce array
+        is_scalar = not hasattr(mjd, '__array__') or mjd.ndim == 0
+        if is_scalar:
+            mjd = np.array([mjd])
+            utc = np.array([utc])
         # For typical format, will always find a match (since MJD are integer)
         # hence, important to define which side we will be; this ensures
         # self['MJD'][i-1]<=mjd<self['MJD'][i]
@@ -125,6 +142,10 @@ class IERS(Table):
             status[i == len(self)] = TIME_AFTER_IERS_RANGE
             ut1_utc[i == len(self)] = self['UT1_UTC'][-1]
 
+        if is_scalar:
+            ut1_utc = ut1_utc[0]
+            status = status[0]
+
         if return_status:
             return ut1_utc, status
         else:
@@ -145,13 +166,13 @@ class IERS_A(IERS):
     """
     def __init__(self, table):
         # combine UT1_UTC, taking UT1_UTC_B if available, else UT1_UTC_A
-        super(IERS_A, self).__init__(table)
-        self['UT1_UTC'] = np.where(self['UT1_UTC_B'].mask,
-                                   self['UT1_UTC_A'],
-                                   self['UT1_UTC_B'])
-        self['UT1Flag'] = np.where(self['UT1_UTC_B'].mask,
-                                   self['UT1Flag_A'],
-                                   np.array(['B']*len(self)))
+        table['UT1_UTC'] = np.where(table['UT1_UTC_B'].mask,
+                                    table['UT1_UTC_A'],
+                                    table['UT1_UTC_B'])
+        table['UT1Flag'] = np.where(table['UT1_UTC_B'].mask,
+                                    table['UT1Flag_A'],
+                                    'B')
+        super(IERS_A, self).__init__(table.filled())
 
     @classmethod
     def read(cls, file=FINALS2000A(), readme=README_FINALS2000A):
