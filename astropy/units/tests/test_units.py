@@ -178,6 +178,7 @@ def test_units_conversion():
     assert_allclose(u.Mpc.to(u.kpc), 1000)
     assert_allclose(u.yr.to(u.Myr), 1.e-6)
     assert_allclose(u.AU.to(u.pc), 4.84813681e-6)
+    assert_allclose(u.cycle.to(u.rad), 6.283185307179586)
 
 
 def test_units_manipulation():
