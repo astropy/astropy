@@ -98,6 +98,7 @@ byear      :class:`~astropy.time.core.TimeBesselianEpoch`
 byear_str  :class:`~astropy.time.core.TimeBesselianEpochString`
 cxcsec     :class:`~astropy.time.core.TimeCxcSec`
 datetime   :class:`~astropy.time.core.TimeDatetime`
+gps        :class:`~astropy.time.core.TimeGPS`
 iso        :class:`~astropy.time.core.TimeISO`
 isot       :class:`~astropy.time.core.TimeISOT`
 jd         :class:`~astropy.time.core.TimeJD`

@@ -20,6 +20,9 @@ New Features
     representation used when plotting dates with matplotlib via the 
     ``matplotlib.pyplot.plot_date`` function.
     
+  - Add ``gps`` format (seconds since 1980-01-01 00:00:00 UTC,
+    including leap seconds)
+
   - Add array indexing to Time objects [#1132]
   
   - Allow for arithmetic of multi-element and single-element Time and TimeDelta 
