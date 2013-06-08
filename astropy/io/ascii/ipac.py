@@ -138,8 +138,7 @@ class Ipac(fixedwidth.FixedWidth):
             for keyword in keydict:
                 try:
                     val = keydict[keyword]['value']
-                    if isinstance(val, basestring): val = "'"+val+"'"
-                    lines.append('\\{0}={1}'.format(keyword.strip(), val))
+                    lines.append('\\{0}={1!r}'.format(keyword.strip(), val))
                     # meta is not standardized: Catch some common Errors.
                 except TypeError:
                     pass
