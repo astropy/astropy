@@ -32,36 +32,14 @@ Classes to read IPAC table format
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
+from collections import defaultdict
+from textwrap import wrap
+from warnings import warn
 
 from . import core
 from . import fixedwidth
 from ...utils import OrderedDict
 
-try:
-    from collections import Counter
-except ImportError:
-    # Counter was added in python 2.7
-    # for python < 2.7 define Counter here stripped to a the methods needed here
-    # see http://code.activestate.com/recipes/576611-counter-class/
-    class Counter(dict):
-        def __init__(self, iterable=None, **kwds):
-            self.update(iterable, **kwds)
-
-        def update(self, iterable=None, **kwds):
-            if iterable is not None:
-                if hasattr(iterable, 'iteritems'):
-                    if self:
-                        self_get = self.get
-                        for elem, count in iterable.iteritems():
-                            self[elem] = self_get(elem, 0) + count
-                    else:
-                        dict.update(self, iterable) # fast path when counter is empty
-                else:
-                    self_get = self.get
-                    for elem in iterable:
-                        self[elem] = self_get(elem, 0) + 1
-            if kwds:
-                self.update(kwds)
 
 
 class IpacFormatErrorStrict(Exception):
@@ -113,23 +91,24 @@ class Ipac(fixedwidth.FixedWidth):
     Specify the convention for characters in the data table that occur
     directly below the pipe (`|`) symbol in the header column definition:
 
-    * 'ignore' - Any character beneath a pipe symbol is ignored (default)
-    * 'right' - Character is associated with the column to the right
-    * 'left' - Character is associated with the column to the left
-    strict : bool, optional
-    If true, this varifies that written tables adhere (semantically)
-    to the `IPAC/DBMS <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
-    definiton of IPAC tables. If 'False' it only checks for the (less strict)
-    `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
-    definition.
+        * 'ignore' - Any character beneath a pipe symbol is ignored (default)
+        * 'right' - Character is associated with the column to the right
+        * 'left' - Character is associated with the column to the left
+
+    DBMS : bool, optional
+        If true, this varifies that written tables adhere (semantically)
+        to the `IPAC/DBMS <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
+        definiton of IPAC tables. If 'False' it only checks for the (less strict)
+        `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
+        definition.
     """
-    def __init__(self, definition='ignore', strict = True):
+    def __init__(self, definition='ignore', DBMS = True):
         super(fixedwidth.FixedWidth, self).__init__()
         self.header = IpacHeader(definition=definition)
         self.data = IpacData()
         self.data.header = self.header
         self.header.data = self.data
-        self.header.strict = strict
+        self.header.DBMS = DBMS
         self.data.splitter.delimiter = ' '
         self.data.splitter.delimiter_pad = ''
         self.data.splitter.bookend = True
@@ -149,11 +128,11 @@ class Ipac(fixedwidth.FixedWidth):
         # Write meta information
         if 'comments' in table.meta:
             for comment in table.meta['comments']:
-                comment_str = str(comment)
-                if len(comment_str) < 78:
-                    lines.append('\\ {0}'.format(comment_str))
-                else:
-                    raise IpacFormatError('Comment string must be less than 78 characters. Too long: \n{0}'.format(comment_str))
+                if len(str(comment)) > 78:
+                    warn('Comment string > 78 characters was automatically wrapped.',
+                          UserWarning)
+                for line in wrap(str(comment), 80, initial_indent='\\ ', subsequent_indent='\\ '):
+                    lines.append(line)
         if 'keywords' in table.meta:
             keydict = table.meta['keywords']
             for keyword in keydict:
@@ -372,27 +351,27 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
     def str_vals(self):
         
-        if self.strict:
+        if self.DBMS:
             IpacFormatE = IpacFormatErrorStrict
         else:
             IpacFormatE = IpacFormatError
-
-        if self.strict:
-            namelist = [col.name.lower() for col in self.cols]
-            doublenames = [x for x, y in Counter(namelist).items() if y > 1]
+        
+        namelist = [col.name for col in self.cols]
+        if self.DBMS:
+            countnamelist = defaultdict(int)
+            for col in self.cols:
+                countnamelist[col.name.lower()] += 1 
+            doublenames = [x for x in countnamelist if countnamelist[x] > 1]
             if doublenames != []:
-                raise IpacFormatE('IPAC DBMS tables are not case sensitive. This causes dublicate column names: {0}'.format(doublenames))
-
-        else:
-            namelist = [col.name for col in self.cols]
+                raise IpacFormatE('IPAC DBMS tables are not case sensitive. This causes duplicate column names: {0}'.format(doublenames))
 
         for name in namelist:
             m = re.match('\w+', name)
             if m.end() != len(name):
                 raise IpacFormatE('{0} - Only alphanumaric characters and _ are allowed in column names.'.format(name))
-            if self.strict and not(name[0].isalpha() or (name[0] =='_')):
+            if self.DBMS and not(name[0].isalpha() or (name[0] =='_')):
                 raise IpacFormatE('Column names cannot stars with numbers: {}'.format(name))
-            if self.strict:
+            if self.DBMS:
                 if name in ['x','y','z', 'X', 'Y','Z']:
                     raise IpacFormatE('{0} - x, y, z, X, Y, Z are reserved names and cannot be used as column names.'.format(name))
                 if len(name) > 16:

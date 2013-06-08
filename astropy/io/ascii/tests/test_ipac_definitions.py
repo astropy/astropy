@@ -52,26 +52,26 @@ def test_too_long_colname_strict():
     table = Table([[3]], names = ['a1234567890123456'])
     out = io.StringIO()
     with pytest.raises(IpacFormatErrorStrict):
-        ascii.write(table, out, Writer = Ipac, strict = True)
+        ascii.write(table, out, Writer = Ipac, DBMS = True)
 
 def test_too_long_colname_notstrict():
     table = Table([[3]], names = ['a1234567890123456789012345678901234567890'])
     out = io.StringIO()
     with pytest.raises(IpacFormatError):
-        ascii.write(table, out, Writer = Ipac, strict=False)
+        ascii.write(table, out, Writer = Ipac, DBMS = False)
 
 @pytest.mark.parametrize(("strict_", "Err"), [(True, IpacFormatErrorStrict),(False, IpacFormatError)])
 def test_non_alfnum_colname(strict_, Err):
     table = Table([[3]], names = ['a123456789 01234'])
     out = io.StringIO()
     with pytest.raises(Err):
-        ascii.write(table, out, Writer = Ipac, strict = strict_)
+        ascii.write(table, out, Writer = Ipac, DBMS = strict_)
 
 def test_colname_starswithnumber_strict():
     table = Table([[3]], names = ['a123456789 01234'])
     out = io.StringIO()
     with pytest.raises(IpacFormatErrorStrict):
-        ascii.write(table, out, Writer = Ipac, strict = True)
+        ascii.write(table, out, Writer = Ipac, DBMS = True)
 
 def test_double_colname_strict():
     table = Table([[3], [1]], names = ['DEC', 'dec'])
@@ -85,3 +85,21 @@ def test_reserved_colname_strict(colname):
     out = io.StringIO()
     with pytest.raises(IpacFormatErrorStrict):
         ascii.write(table, out, Writer = Ipac)
+
+def test_too_long_comment(recwarn):
+    table = Table([[3]])
+    table.meta['comments'] = ['a' * 79]
+    out = io.StringIO()
+    ascii.write(table, out, Writer = Ipac)
+    w = recwarn.pop(UserWarning)
+    assert 'Comment string > 78 characters was automatically wrapped.' == str(w.message)
+    expected_out="""\
+\\ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+\\ a
+|col0|
+| int|
+|unit|
+|null|
+    3 
+"""
+    assert out.getvalue().splitlines() == expected_out.splitlines()

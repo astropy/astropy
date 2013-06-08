@@ -169,7 +169,7 @@ tablefoot
 \\PROFERROR='5.'
 \\CLIPEXP='6'
 \\CLIPRANGE='2.5'
-|       id|   xcenter|   ycenter|         mag|          merr|           msky| niter|              sharpness|         chi|  pier|       perror|
+|       ID|   XCENTER|   YCENTER|         MAG|          MERR|           MSKY| NITER|              SHARPNESS|         CHI|  PIER|       PERROR|
 |      int|     float|     float|       float|         float|          float|   int|                  float|       float|   int|         char|
 |     unit|    pixels|    pixels|  magnitudes|    magnitudes|         counts|  unit|                   unit|        unit|  unit|      perrors|
 |     null|      null|      null|        null|          null|           null|  null|                   null|        null|  null|         null|
