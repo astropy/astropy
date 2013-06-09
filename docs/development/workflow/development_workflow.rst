@@ -171,6 +171,9 @@ sections.
 
 * Ask for code review!
 
+* Once your code is nearing completion, run the test suite to look for
+  regressions and add new tests to it.  
+
 * Once your code is ready to be accepted, please add an entry to the changelog
   (see :ref:`changelog-format`).  If you're sure where to put this, please at
   least suggest a brief (one or two sentence) description of your change so
@@ -252,7 +255,7 @@ The editing workflow
 Overview
 --------
 
-::
+Make changes, test, and::
 
    git add my_new_file
    git commit -am 'NF - some message'
@@ -262,6 +265,20 @@ In more detail
 --------------
 
 #. Make some changes
+
+#. Once you are a bit further along, test your changes do not lead to
+   regressions, and add new tests.  E.g., if you are working on ``time``::
+
+     import astropy
+     astropy.test('time')
+
+   If you have sphinx installed, you can also check the documentation
+   builds and looks properly:: 
+
+     python setup.py build_sphinx
+
+   The last line should just state ``build succeeded``, not mentioning
+   warnings.
 
 #. See which files have changed with ``git status`` (see `git status`_).
    You'll see a listing like this one::
