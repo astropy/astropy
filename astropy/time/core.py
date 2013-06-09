@@ -115,6 +115,7 @@ class Time(object):
 
         self.lat = lat
         self.lon = lon
+        self.iers = 'B'
         if precision is not None:
             self.precision = precision
         if in_subfmt is not None:
@@ -436,7 +437,7 @@ class Time(object):
                           self.in_subfmt, self.out_subfmt, from_jd=True)
         # Optional or non-arg attributes
         attrs = ('is_scalar', '_delta_ut1_utc', '_delta_tdb_tt',
-                 'lat', 'lon', 'precision', 'in_subfmt', 'out_subfmt')
+                 'lat', 'lon', 'iers', 'precision', 'in_subfmt', 'out_subfmt')
         for attr in attrs:
             try:
                 setattr(tm, attr, getattr(self, attr))
@@ -551,17 +552,27 @@ class Time(object):
         """
         Get ERFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
         jd2 args because it gets called that way when converting time scales.
-        The current code ignores these, but when the IERS table is interpolated
-        by this module they will be used.
+        If delta_ut1_utc is not yet set, this will interpolate them from the
+        the IERS table.
         """
 
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
-        # seconds. It can be obtained from tables published by the IERS.
-        # TODO - get that table when needed and interpolate or whatever.
+        # seconds. It is obtained from tables published by the IERS.
         if not hasattr(self, '_delta_ut1_utc'):
-            # Exception until the IERS table is available to the package
-            raise ValueError('Must set the delta_ut1_utc attribute in '
-                             'order to do the scale transform.')
+            from ..utils.iers import IERS_A, IERS_B, \
+                TIME_BEFORE_IERS_RANGE, TIME_BEYOND_IERS_RANGE
+            if self.iers == 'B':
+                iers_table = IERS_B.open()
+            else:
+                iers_table = IERS_A.open()
+            ut1_utc, status = iers_table.ut1_utc(jd1, jd2, return_status=True)
+            if np.any(status == TIME_BEFORE_IERS_RANGE):
+                raise ValueError('(some) times are before range covered by ' +
+                                 'IERS {} table.'.format(self.iers))
+            if np.any(status == TIME_BEYOND_IERS_RANGE):
+                raise ValueError('(some) times are beyond range covered by ' +
+                                 'IERS {} table.\n'.format(self.iers))
+            self._set_delta_ut1_utc(ut1_utc)
 
         return self._delta_ut1_utc
 

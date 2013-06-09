@@ -27,7 +27,7 @@ FROM_IERS_B = 0
 FROM_IERS_A = 1
 FROM_IERS_A_PREDICTION = 2
 TIME_BEFORE_IERS_RANGE = -1
-TIME_AFTER_IERS_RANGE = -2
+TIME_BEYOND_IERS_RANGE = -2
 
 MJD_ZERO = 2400000.5
 
@@ -139,7 +139,7 @@ class IERS(Table):
         if np.any(i1 != i):
             status[i == 0] = TIME_BEFORE_IERS_RANGE
             ut1_utc[i == 0] = self['UT1_UTC'][0]
-            status[i == len(self)] = TIME_AFTER_IERS_RANGE
+            status[i == len(self)] = TIME_BEYOND_IERS_RANGE
             ut1_utc[i == len(self)] = self['UT1_UTC'][-1]
 
         if is_scalar:
@@ -151,7 +151,7 @@ class IERS(Table):
         else:
             if np.any(status == TIME_BEFORE_IERS_RANGE):
                 warnings.warn('some times fall before the IERS table range.')
-            if np.any(status == TIME_AFTER_IERS_RANGE):
+            if np.any(status == TIME_BEYOND_IERS_RANGE):
                 warnings.warn('some times fall after the IERS table range. ' +
                               'Is your table out of date?')
             if np.any(status == FROM_IERS_A_PREDICTION):
