@@ -118,3 +118,27 @@ class TestTimeDelta():
         # Include initializers
         dt2 = TimeDelta(dt, format='sec')
         assert allclose_sec(dt2.val, 86400.0)
+
+    def test_neg_abs(self):
+        dt2 = -self.dt
+        assert dt2.jd == -self.dt.jd
+        dt3 = abs(self.dt)
+        assert dt3.jd == self.dt.jd
+        dt4 = abs(dt2)
+        assert dt4.jd == self.dt.jd
+
+    def test_mul_div(self):
+        dt2 = self.dt+self.dt
+        dt3 = 2.*self.dt
+        assert dt2.jd == dt3.jd
+        dt4 = self.dt*np.arange(3)
+        assert dt4[0].jd == 0.
+        assert dt4[-1].jd == dt2.jd
+        dt5 = dt3 / 2.
+        assert dt5.jd == self.dt.jd
+        with pytest.raises(OperandTypeError):
+            self.dt * self.dt
+        with pytest.raises(OperandTypeError):
+            self.dt * self.t
+        with pytest.raises(TypeError):
+            2. / self.dt
