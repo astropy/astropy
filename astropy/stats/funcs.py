@@ -62,30 +62,27 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
         A masked array with the same shape as `data` input, where the points
         rejected by the algorithm have been masked.
 
-    Implementation
-    --------------
-    The routine works by calculating
+    Notes
+    -----
+     1. The routine works by calculating
 
-        deviation = data - cenfunc(data [,axis=int])
+            deviation = data - cenfunc(data [,axis=int])
 
-    and then setting a mask for points outside the range
+        and then setting a mask for points outside the range
 
-        data.mask = deviation**2 > sig**2 * varfunc(deviation)
+            data.mask = deviation**2 > sig**2 * varfunc(deviation)
 
-    It will iterate a given number of times, or until no further points are
-    rejected.
+        It will iterate a given number of times, or until no further points are
+        rejected.
 
-    Note
-    ----
-
-    Most numpy functions deal well with masked arrays, but if one would like
-    to have an array with just the good (or bad) values, one can use::
+     2. Most numpy functions deal well with masked arrays, but if one would
+        like to have an array with just the good (or bad) values, one can use::
 
         >>> good_only = filtered_data.data[~filtered_data.mask]
         >>> bad_only = filtered_data.data[filtered_data.mask]
 
-    However, for multidimensional data, this flattens the array, which may not
-    be what one wants (especially is filtering was done along an axis).
+        However, for multidimensional data, this flattens the array, which may
+        not be what one wants (especially is filtering was done along an axis).
 
     Examples
     --------
