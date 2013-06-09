@@ -669,6 +669,44 @@ class Time(object):
         else:
             raise OperandTypeError(self, other)
 
+    def _tai_difference(self, other):
+        if not (isinstance(other, self.__class__) and
+                isinstance(self, other.__class__)):
+            raise OperandTypeError(self, other)
+        self_tai_time, other_tai_time = self.tai._time, other.tai._time
+        return (self_tai_time.jd1 - other_tai_time.jd1 +
+                self_tai_time.jd2 - other_tai_time.jd2)
+
+    def _shaped_like_input_if_possible(self, val):
+        if len(val) == len(self):
+            return self._shaped_like_input(val)
+        else:
+            return val
+
+    def __lt__(self, other):
+        diff = self._tai_difference(other)
+        return self._shape_like_input_if_possible(diff < 0.)
+
+    def __le__(self, other):
+        diff = self._tai_difference(other)
+        return self._shape_like_input_if_possible(diff <= 0.)
+
+    def __eq__(self, other):
+        diff = self._tai_difference(other)
+        return self._shape_like_input_if_possible(diff == 0.)
+
+    def __ne__(self, other):
+        diff = self._tai_difference(other)
+        return self._shape_like_input_if_possible(diff != 0.)
+
+    def __gt__(self, other):
+        diff = self._tai_difference(other)
+        return self._shape_like_input_if_possible(diff > 0.)
+
+    def __ge__(self, other):
+        diff = self._tai_difference(other)
+        return self._shape_like_input_if_possible(diff >= 0.)
+
 
 class TimeDelta(Time):
     """
