@@ -169,13 +169,14 @@ sections.
 
 * Ask on the `astropy-dev mailing list`_ if you get stuck.
 
-* Ask for code review!
+* Once your code is nearing completion, run the test suite to ensure
+  you have not accidentally caused regressions, and add new tests to ensure
+  your contribution behaves correctly (see :ref:`testing-guidelines`).
 
-* Once your code is nearing completion, run the test suite to look for
-  regressions and add new tests to it (see :ref:`testing-guidelines`).
+* Issue a pull request on github!
 
-* Even nearer completion, ensure your documentation follows the
-  guidelines (see :ref:`documentation-guidelines`).
+* As the code is converging to a final state, ensure your
+  documentation follows the guidelines (see :ref:`documentation-guidelines`).
 
 * Once your code is ready to be accepted, please add an entry to the changelog
   (see :ref:`changelog-format`).  If you're sure where to put this, please at
@@ -276,7 +277,7 @@ In more detail
      import astropy
      astropy.test('time')
 
-   If you have sphinx installed, you can also check the documentation
+   If you have sphinx installed, you can also check that the documentation
    builds and looks properly:: 
 
      python setup.py build_sphinx
