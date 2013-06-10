@@ -172,7 +172,10 @@ sections.
 * Ask for code review!
 
 * Once your code is nearing completion, run the test suite to look for
-  regressions and add new tests to it.  
+  regressions and add new tests to it (see :ref:`testing-guidelines`).
+
+* Even nearer completion, ensure your documentation follows the
+  guidelines (see :ref:`documentation-guidelines`).
 
 * Once your code is ready to be accepted, please add an entry to the changelog
   (see :ref:`changelog-format`).  If you're sure where to put this, please at
@@ -267,7 +270,8 @@ In more detail
 #. Make some changes
 
 #. Once you are a bit further along, test your changes do not lead to
-   regressions, and add new tests.  E.g., if you are working on ``time``::
+   regressions, and add new tests (see :ref:`testing-guidelines`).
+   E.g., if you are working on ``time``:: 
 
      import astropy
      astropy.test('time')
@@ -278,7 +282,7 @@ In more detail
      python setup.py build_sphinx
 
    The last line should just state ``build succeeded``, not mentioning
-   warnings.
+   warnings.  (For more details, see :ref:`documentation-guidelines`.)
 
 #. See which files have changed with ``git status`` (see `git status`_).
    You'll see a listing like this one::
