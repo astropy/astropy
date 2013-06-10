@@ -378,6 +378,21 @@ def test_decompose():
     assert q1.decompose() == (5 * u.kg * u.m * u.s ** -2)
 
 
+def test_decompose_regression():
+    """
+    Regression test for bug #1163
+
+    If decompose was called multiple times on a Quantity with an array and a
+    scale != 1, the result changed every time. This is because the value was
+    being referenced not copied, then modified, which changed the original
+    value.
+    """
+    q = np.array([1, 2, 3]) * u.m / (2. * u.km)
+    assert np.all(q.decompose().value == np.array([0.0005, 0.001, 0.0015]))
+    assert np.all(q == np.array([1, 2, 3]) * u.m / (2. * u.km))
+    assert np.all(q.decompose().value == np.array([0.0005, 0.001, 0.0015]))
+
+
 def test_arrays():
     """
     Test using quantites with array values
