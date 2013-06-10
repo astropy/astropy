@@ -56,7 +56,8 @@ def read_table_hdf5(input, path=None):
     Read a Table object from an HDF5 file
 
     This requires `h5py <http://alfven.org/wp/hdf5-for-python/>`_ to be
-    installed.
+    installed. If more than one table is present in the HDF5 file or group, the
+    first table is read in and a warning is displayed.
 
     Parameters
     ----------
