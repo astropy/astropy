@@ -45,8 +45,9 @@ class CDS(Base):
             'lm', 'lx', 'm', 'mol', 'N', 'Ohm', 'Pa', 'rad', 's', 'S',
             'sr', 'T', 'V', 'W', 'Wb']
         astro_bases = [
-            'a', 'AU', 'arcmin', 'arcsec', 'barn', 'bit',
-            'byte', 'Jy', 'mag', 'pc', 'yr']
+            'a', 'AU', 'arcmin', 'arcsec', 'barn', 'bit', 'byte',
+            'ct', 'D', 'd', 'deg', 'h', 'Jy', 'mag', 'min', 'pc',
+            'pix', 'Ry', 'solLum', 'solMass', 'solRad', 'Sun', 'yr']
 
         prefixes = [
             'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
@@ -59,10 +60,8 @@ class CDS(Base):
                     continue
                 names[key] = getattr(u, key)
 
-        unprefixable = [ 
+        unprefixable = [
             'mas',                        # as specified by the CDS standard
-            'ct', 'D', 'd', 'deg', 'h',   # as limited by the units module
-            'min', 'pix', 'Ry', 'solLum', 'solMass', 'solRad', 'Sun'
             ]
 
         for base in unprefixable:
