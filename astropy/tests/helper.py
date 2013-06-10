@@ -172,7 +172,7 @@ class TestRunner(object):
                 coveragerc_content = coveragerc_content.replace(
                     "{ignore_python_version}", ignore_python_version)
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                    tmp.write(coveragerc_content)
+                    tmp.write(coveragerc_content.encode('utf-8'))
 
                 all_args += (
                     ' --cov-report html --cov astropy'
