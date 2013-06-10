@@ -862,7 +862,8 @@ class Legendre2DModel(OrthogPolyBase):
         for n in range(2, xterms):
             kfunc[n] = ((2 * (n-1) + 1) * x * kfunc[n - 1] - (n-1) * kfunc[n - 2]) / n
         for n in range(2, yterms):
-            kfunc[n + xterms] = ((2 * (n-1) + 1) * y * kfunc[n + xterms - 1] - (n-1) * kfunc[n + xterms - 2]) / (n)
+            kfunc[n + xterms] = ((2 * (n-1) + 1) * y * kfunc[n + xterms - 1] -
+                                 (n-1) * kfunc[n + xterms - 2]) / (n)
         return kfunc
 
     def deriv(self, pars=None, x=None, y=None, z=None):
@@ -927,15 +928,15 @@ class _SIP1D(Model):
     and SIPModel should be used instead.
 
     """
-    def __init__(self, order, coeffname='a', param_dim=1, **pars):
+    def __init__(self, order, coeff_prefix, param_dim=1, **pars):
         self.order = order
-        self.coeffname = coeffname.lower()
-        self.param_names = self._generate_coeff_names(coeffname)
+        self.coeff_prefix = coeff_prefix
+        self.param_names = self._generate_coeff_names(coeff_prefix)
 
         if not pars:
             self.set_coeff(pardim=param_dim)
         else:
-            p = pars.get('{0}02'.format(coeffname, None))
+            p = pars.get('{0}0_2'.format(coeff_prefix, None))
             if isinstance(p, collections.Sequence):
                 lenpars = len(p)
             else:
@@ -959,25 +960,32 @@ class _SIP1D(Model):
     def __repr__(self):
         fmt = """
         Model: {0}
-        Order: {1}
-        Parameter sets: {2}
+        order: {1}
+        coeff_prefix: {2}
+        param_dim: {3}
+        pars: {4}
         """.format(
               self.__class__.__name__,
               self.order,
-              self.param_dim
+              self.coeff_prefix,
+              self._param_dim,
+              "\n                   ".join(i + ':  ' + str(getattr(self, i)) for
+                                           i in self.param_names)
         )
         return fmt
 
     def __str__(self):
         fmt = """
         Model: {0}
-        Order: {1}
-        Parameter sets: {2}
+        order: {1}
+        coeff_prefix: {2}
+        Parameter sets: {3}
         Parameters:
                    {3}
         """.format(
               self.__class__.__name__,
               self.order,
+              self.coeff_prefix,
               self.param_dim,
               "\n                   ".join(i + ':  ' + str(getattr(self, i)) for
                                            i in self.param_names)
@@ -994,16 +1002,16 @@ class _SIP1D(Model):
         numc = self.order * ndim + nmixed + 1
         return numc
 
-    def _generate_coeff_names(self, coeffname):
+    def _generate_coeff_names(self, coeff_prefix):
         names = []
         for i in range(2, self.order + 1):
-            names.append('{0}{1}{2}'.format(coeffname, i, 0))
+            names.append('{0}{1}_{2}'.format(coeff_prefix, i, 0))
         for i in range(2, self.order + 1):
-            names.append('{0}{1}{2}'.format(coeffname, 0, i))
+            names.append('{0}{1}_{2}'.format(coeff_prefix, 0, i))
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i + j < self.order + 1:
-                    names.append('{0}{1}{2}'.format(coeffname, i, j))
+                    names.append('{0}{1}_{2}'.format(coeff_prefix, i, j))
         return names
 
     def set_coeff(self, pardim=1, **pars):
@@ -1027,22 +1035,22 @@ class _SIP1D(Model):
         numcoeff = self.get_numcoeff(ndim)
         assert(len(pars) == numcoeff)
 
-    def _coef_matrix(self, coeffname):
+    def _coef_matrix(self, coeff_prefix):
         mat = np.zeros((self.order + 1, self.order + 1))
         for i in range(2, self.order + 1):
-            mat[i, 0] = getattr(self, '{0}{1}{2}'.format(coeffname, i, 0))[0]
+            mat[i, 0] = getattr(self, '{0}{1}_{2}'.format(coeff_prefix, i, 0))[0]
         for i in range(2, self.order + 1):
-            mat[0, i] = getattr(self, '{0}{1}{2}'.format(coeffname, 0, i))[0]
+            mat[0, i] = getattr(self, '{0}{1}_{2}'.format(coeff_prefix, 0, i))[0]
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i + j < self.order + 1:
-                    mat[i, j] = getattr(self, '{0}{1}{2}'.format(coeffname, i, j))[0]
+                    mat[i, j] = getattr(self, '{0}{1}_{2}'.format(coeff_prefix, i, j))[0]
         return mat
 
     def _eval_sip(self, x, y, coef):
         x = np.asarray(x, dtype=np.float64)
         y = np.asarray(y, dtype=np.float64)
-        if self.coeffname == 'a':
+        if self.coeff_prefix == 'a':
             result = np.zeros(x.shape)
         else:
             result = np.zeros(y.shape)
@@ -1054,7 +1062,7 @@ class _SIP1D(Model):
         return result
 
     def __call__(self, x, y):
-        mcoef = self._coef_matrix(self.coeffname)
+        mcoef = self._coef_matrix(self.coeff_prefix)
         return self._eval_sip(x, y, mcoef)
 
 
@@ -1070,60 +1078,69 @@ class SIPModel(SCompositeModel):
     ----------
     crpix : list or ndarray of length(2)
         CRPIX values
-    order : int
-        SIP polynomial order
-    coeff : dict
-        SIP coefficients
-    coeffname : string: 'a', 'b', 'A' or 'B'
+    a_order : int
+        SIP polynomial order for first axis
+    a_coeff : dict
+        SIP coefficients for first axis
+    coeff_prefix : string: 'a', 'b', 'A' or 'B'
         SIP coefficient preffix
-    aporder : int
-        order for the inverse transformation
-    apcoeff : dict
+    b_order : int
+        SIP order for second axis
+    b_coeff : dict
+        SIP coefficients for the second axis
+    a_inv_order : int
+        order for the inverse transformation (AP coefficients)
+    a_inv_coeff : dict
+        coefficients for the inverse transform
+    b_inv_order : int
+        order for the inverse transformation (BP coefficients)
+    b_inv_coeff : dict
         coefficients for the inverse transform
     param_dim : int
         number of parameter sets
-    multiple : boolean
-        when input is 2D array, if True (default) it is to be
-        treated as multiple 1D arrays
-
 
     References
     ----------
     .. [1] David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005
 
     """
-    def __init__(self, crpix, order, coeff, coeffname='a',
-                 aporder=None, apcoeff=None, param_dim=1):
+    def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
+        a_inv_order=None, a_inv_coeff=None,b_inv_order=None, b_inv_coeff=None,
+        param_dim=1):
         self.n_inputs = 2
         self.n_outputs = 1
-        self.shifta = ShiftModel(crpix[0])
-        self.shiftb = ShiftModel(crpix[1])
-        self.sip1d = _SIP1D(order, coeffname=coeffname,
-                            param_dim=param_dim, **coeff)
-        if aporder is not None and apcoeff is not None:
-            self.inverse = Poly1DModel(aporder, **apcoeff)
+        self.shifta = ShiftModel(-crpix[0])
+        self.shiftb = ShiftModel(-crpix[1])
+        self.sip1da = _SIP1D(a_order, coeff_prefix='A',
+                             param_dim=param_dim, **a_coeff)
+        self.sip1db = _SIP1D(b_order, coeff_prefix='B',
+                             param_dim=param_dim, **b_coeff)
+        if a_inv_order is not None and a_inv_coeff is not None and \
+            b_inv_order is not None and b_inv_coeff is not None:
+            self.inversea = _SIP1D(a_inv_order, coeff_prefix='A', **a_inv_coeff)
+            self.inverseb = _SIP1D(b_inv_order, coeff_prefix='BP', **b_inv_coeff)
+            self.inverse = True
         else:
             self.inverse = None
-        super(SIPModel, self).__init__([self.shifta, self.shiftb, self.sip1d],
-                                       inmap=[['x'], ['y'], ['x', 'y']],
-                                       outmap=[['x'], ['y'], ['z']])
+        super(SIPModel, self).__init__([self.shifta, self.shiftb, self.sip1da, self.sip1db],
+                                       inmap=[['x'], ['y'], ['x', 'y'], ['x', 'y']],
+                                       outmap=[['x'], ['y'], ['x1'], ['y1']], n_inputs=2,
+                                       n_outputs=2)
 
     def __repr__(self):
-        models = [self.shifta, self.shiftb, self.sip1d]
+        models = [self.shifta, self.shiftb, self.sip1da, self.sip1db]
         fmt = """
             Model:  {0}
-            Coeff Prefix: {1}
-            """.format(self.__class__.__name__, self.sip1d.coeffname.upper())
+            """.format(self.__class__.__name__, self.sip1d.coeff_prefix)
         fmt1 = " %s  " * len(models) % tuple([repr(model) for model in models])
         fmt = fmt + fmt1
         return fmt
 
     def __str__(self):
-        models = [self.shifta, self.shiftb, self.sip1d]
+        models = [self.shifta, self.shiftb, self.sip1da, sip1db]
         fmt = """
             Model:  {0}
-            Coeff Prefix: {1}
-            """.format(self.__class__.__name__, self.sip1d.coeffname.upper())
+            """.format(self.__class__.__name__, self.sip1d.coeff_prefix)
         fmt1 = " %s  " * len(models) % tuple([str(model) for model in models])
         fmt = fmt + fmt1
         return fmt
@@ -1140,5 +1157,7 @@ class SIPModel(SCompositeModel):
             input
 
         """
-        ado = LabeledInput([x, y], ['x', 'y'])
-        return SCompositeModel.__call__(self, ado).z
+        labeled_input = LabeledInput([x, y], ['x', 'y'])
+        result = SCompositeModel.__call__(self, labeled_input)
+        return result.x1+ labeled_input.x, result.y1+ labeled_input.y
+
