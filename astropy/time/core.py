@@ -565,7 +565,7 @@ class Time(object):
                 iers_table = IERS_B.open()
             else:
                 iers_table = IERS_A.open()
-            ut1_utc, status = iers_table.ut1_utc(jd1, jd2, return_status=True)
+            ut1_utc, status = iers_table.ut1_utc(jd1, jd2)
             if np.any(status == TIME_BEFORE_IERS_RANGE):
                 raise ValueError('(some) times are before range covered by ' +
                                  'IERS {} table.'.format(self.iers))

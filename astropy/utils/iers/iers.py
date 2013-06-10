@@ -1,28 +1,20 @@
 from __future__ import division, print_function
-import warnings
 import numpy as np
 
 from ...table import Table
 from ...time import Time
-from ...config import ConfigurationItem
 from ...utils.data import get_pkg_data_filename
 
-FINALS2000A = ConfigurationItem('IERS_A_DATA', 'finals2000A.all',
-                                'Path to IERS A data file (IAU2000 model)')
-FINALS2000A_URL = ConfigurationItem(
-    'IERS_A_URL', 'http://maia.usno.navy.mil/ser7/finals2000A.all',
-    'URL to IERS A final2000A.all')
+FINALS2000A = 'finals2000A.all'
+FINALS2000A_URL = 'http://maia.usno.navy.mil/ser7/finals2000A.all'
 README_FINALS2000A = get_pkg_data_filename('ReadMe.finals2000A')
 
-EOPC04_IAU2000 = ConfigurationItem('IERS_B_DATA', 'eopc04_IAU2000.62-now',
-                                   'Path to IERS B data file (C04 series)')
-EOPC04_IAU2000_URL = ConfigurationItem(
-    'IERS_B_URL',
-    'http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now',
-    'URL to IERS B C04 series eopc04_IAU2000.62-now')
+EOPC04_IAU2000 = 'eopc04_IAU2000.62-now'
+EOPC04_IAU2000_URL = \
+    'http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now'
 README_EOPC04_IAU2000 = get_pkg_data_filename('ReadMe.eopc04_IAU2000')
 
-# Status values
+# Status/source values
 FROM_IERS_B = 0
 FROM_IERS_A = 1
 FROM_IERS_A_PREDICTION = 2
@@ -33,9 +25,11 @@ MJD_ZERO = 2400000.5
 
 
 class IERS(Table):
-    """Generic IERS table, which defines the functions to return interpolated
-    UT1-UTC values, etc.  Should hold columns 'MJD' and 'UT1_UTC'
+    """Generic IERS table class, defining interpolation functions.
+
+    Should hold columns 'MJD' and 'UT1_UTC'
     """
+
     iers_table = None
 
     @classmethod
@@ -71,35 +65,28 @@ class IERS(Table):
         utc = jd1 - (MJD_ZERO+mjd) + jd2
         return mjd, utc
 
-    def ut1_utc(self, jd1, jd2=0., return_status=False):
+    def ut1_utc(self, jd1, jd2=0.):
         """Interpolate UT1-UTC corrections in IERS Table for given dates.
 
         Parameters
         ----------
-        jd1: float, array, or Time
+        jd1: float, float array, or Time object
             first part of two-part JD, or Time object
-        jd2: float or array, optional
+        jd2: float or float array, optional
             second part of two-part JD (default: 0., ignored if jd1 is Time)
-        return_status: bool, optional
-            whether to return status accompanying each result (default: False)
 
         Returns
         -------
-        ut1_utc: float (array)
+        ut1_utc: float or float array
             UT1-UTC, interpolated in IERS Table
-        status: int (array), if return_status is True
+        status: int or int array
+            Status values, as follows::
 
-        Note
-        ----
-        Status values are as follows.  If return_status is False, warnings
-        are given for values not equal to 0 or 1.
-            0: Interpolated in IERS B values
-            1: Interpolated in IERS A values
-            2: Interpolated in IERS A predictions
-           -1: Time falls before IERS table range
-           -2: Time falls after IERS table range
-
-        For status -2 and 2, the IERS table may need to be updated.
+             0 : Interpolated in IERS B values
+             1 : Interpolated in IERS A values
+             2 : Interpolated in IERS A predictions
+            -1 : Time falls before IERS table range
+            -2 : Time falls beyond IERS table range
         """
 
         mjd, utc = self.mjd_utc(jd1, jd2)
@@ -128,41 +115,32 @@ class IERS(Table):
         # http://maia.usno.navy.mil/iers-gaz13)
         ut1_utc = ut1_utc_0 + (mjd-mjd_0+utc)/(mjd_1-mjd_0)*d_ut1_utc
 
-        # Set status to reflect possible issues; default is taken from IERS B
-        status = FROM_IERS_B * np.ones_like(ut1_utc, dtype=np.int)
-        if 'UT1Flag' in self.colnames:
-            ut1flag = self['UT1Flag'][i0]  # checking lower point good enough
-            status[ut1flag == 'I'] = FROM_IERS_A
-            status[ut1flag == 'P'] = FROM_IERS_A_PREDICTION
+        # Set status to source, possibly using routine provided by subclass
+        status = self.ut1_utc_source(i1)
         # Check for out of range - more important than above, so OK to override
         # also reset any extrapolated values - better safe than sorry
         if np.any(i1 != i):
             status[i == 0] = TIME_BEFORE_IERS_RANGE
-            ut1_utc[i == 0] = self['UT1_UTC'][0]
+            ut1_utc[i == 0] = 0.
             status[i == len(self)] = TIME_BEYOND_IERS_RANGE
-            ut1_utc[i == len(self)] = self['UT1_UTC'][-1]
+            ut1_utc[i == len(self)] = 0.
 
         if is_scalar:
             ut1_utc = ut1_utc[0]
             status = status[0]
 
-        if return_status:
-            return ut1_utc, status
-        else:
-            if np.any(status == TIME_BEFORE_IERS_RANGE):
-                warnings.warn('some times fall before the IERS table range.')
-            if np.any(status == TIME_BEYOND_IERS_RANGE):
-                warnings.warn('some times fall after the IERS table range. ' +
-                              'Is your table out of date?')
-            if np.any(status == FROM_IERS_A_PREDICTION):
-                warnings.warn('for some times, only predicted values are ' +
-                              'available.  Is your IERS table out of date?')
-            return ut1_utc
+        return ut1_utc, status
+
+    # this should be overridden by subclasses
+    def ut1_utc_source(self, i):
+        return np.zeros_like(i)
 
 
 class IERS_A(IERS):
-    """IERS table targeted to files provided by USNO, which include rapid
-    turnaround and predicted times (IERS A)
+    """IERS Table class targeted to IERS A, provided by USNO.
+
+    These include rapid turnaround and predicted times.
+    See http://maia.usno.navy.mil/
     """
     def __init__(self, table):
         # combine UT1_UTC, taking UT1_UTC_B if available, else UT1_UTC_A
@@ -175,18 +153,32 @@ class IERS_A(IERS):
         super(IERS_A, self).__init__(table.filled())
 
     @classmethod
-    def read(cls, file=FINALS2000A(), readme=README_FINALS2000A):
+    def read(cls, file=FINALS2000A, readme=README_FINALS2000A):
         iers_a = Table.read(file, format='cds', readme=readme)
         # IERS A has some rows at the end that hold nothing but dates & MJD
         # presumably to be filled later.  Exclude those a priori -- there
         # should at least be a predicted UT1-UTC!
         return cls(iers_a[~iers_a['UT1_UTC_A'].mask])
 
+    def ut1_utc_source(self, i):
+        ut1flag = self['UT1Flag'][i]
+        source = np.ones_like(i) * FROM_IERS_B
+        source[ut1flag == 'I'] = FROM_IERS_A
+        source[ut1flag == 'P'] = FROM_IERS_A_PREDICTION
+        return source
+
 
 class IERS_B(IERS):
+    """IERS Table class targeted to IERS B, provided by IERS itself.
+
+    These are final values; see http://www.iers.org/
+    """
     @classmethod
-    def read(cls, file=EOPC04_IAU2000(), readme=README_EOPC04_IAU2000):
+    def read(cls, file=EOPC04_IAU2000, readme=README_EOPC04_IAU2000):
         # can this be done more elegantly, initialising directly, without
         # passing a Table to the Table initialiser?
         iers_b = Table.read(file, format='cds', readme=readme, data_start=14)
         return cls(iers_b)
+
+    def ut1_utc_source(self, i):
+        return np.ones_like(i) * FROM_IERS_B
