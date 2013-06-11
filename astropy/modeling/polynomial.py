@@ -14,7 +14,8 @@ from .utils import poly_map_domain, comb
 from .functional_models import ShiftModel
 
 __all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'Legendre2DModel',
-           'Legendre1DModel', 'Poly1DModel', 'Poly2DModel', 'SIPModel']
+           'Legendre1DModel', 'Poly1DModel', 'Poly2DModel', 'SIPModel',
+           'OrthogPolyBase', 'PolynomialModel']
 
 
 class PolynomialModel(ParametricModel):
