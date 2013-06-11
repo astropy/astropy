@@ -2,7 +2,7 @@
 """An extensible ASCII table reader and writer.
 
 ipac.py:
-Classes to read IPAC table format
+  Classes to read IPAC table format
 
 :Copyright: Smithsonian Astrophysical Observatory (2011)
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
@@ -11,14 +11,14 @@ Classes to read IPAC table format
 ##
 ## Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
-## * Redistributions of source code must retain the above copyright
-## notice, this list of conditions and the following disclaimer.
-## * Redistributions in binary form must reproduce the above copyright
-## notice, this list of conditions and the following disclaimer in the
-## documentation and/or other materials provided with the distribution.
-## * Neither the name of the Smithsonian Astrophysical Observatory nor the
-## names of its contributors may be used to endorse or promote products
-## derived from this software without specific prior written permission.
+##     * Redistributions of source code must retain the above copyright
+##       notice, this list of conditions and the following disclaimer.
+##     * Redistributions in binary form must reproduce the above copyright
+##       notice, this list of conditions and the following disclaimer in the
+##       documentation and/or other materials provided with the distribution.
+##     * Neither the name of the Smithsonian Astrophysical Observatory nor the
+##       names of its contributors may be used to endorse or promote products
+##       derived from this software without specific prior written permission.
 ##
 ## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ## ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -42,48 +42,51 @@ from ...utils import OrderedDict
 
 
 
-class IpacFormatErrorStrict(Exception):
+class IpacFormatErrorDBMS(Exception):
     def __str__(self):
-        return super(Exception, self).__str__() + '\nSee http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html'
-
+        return '{0}\nSee {1}'.format(
+            super(Exception, self).__str__(),
+            'http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html')
 
 class IpacFormatError(Exception):
     def __str__(self):
-        return super(Exception, self).__str__() + '\nSee http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html'
-    
+        return '{0}\nSee {1}'.format(
+            super(Exception, self).__str__(),
+            'http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html')
+
 
 class Ipac(fixedwidth.FixedWidth):
-    """Read or write an IPAC format table. See
+    """Read or write an IPAC format table.  See
     http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
 
-        \\name=value
-        \\ Comment
-        | column1 | column2 | column3 | column4 | column5 |
-        | double  | double  | int     | double  | char    |
-        | unit    | unit    | unit    | unit    | unit    |
-        | null    | null    | null    | null    | null    |
-         2.0978    29.09056  73765     2.06000   B8IVpMnHg
+      \\name=value
+      \\ Comment
+      | column1 | column2 | column3 | column4 | column5 |
+      | double  | double  | int     | double  | char    |
+      | unit    | unit    | unit    | unit    | unit    |
+      | null    | null    | null    | null    | null    |
+       2.0978    29.09056  73765     2.06000   B8IVpMnHg
 
     Or::
 
-        |-----ra---|----dec---|---sao---|------v---|----sptype--------|
-         2.09708    29.09056   73765     2.06000     B8IVpMnHg
+      |-----ra---|----dec---|---sao---|------v---|----sptype--------|
+       2.09708    29.09056   73765     2.06000     B8IVpMnHg
 
     The comments and keywords defined in the header are available via the output
     table ``meta`` attribute::
 
-        >>> from astropy.io import ascii
-        >>> filename = os.path.join(ascii.__path__[0], 'tests/t/ipac.dat')
-        >>> data = ascii.read(filename)
-        >>> print data.meta['comments']
-        ['This is an example of a valid comment']
-        >>> for name, keyword in data.meta['keywords'].items():
-        ... print name, keyword['value']
-        ...
-        intval 1
-        floatval 2300.0
-        date Wed Sp 20 09:48:36 1995
-        key_continue IPAC keywords can continue across lines
+      >>> from astropy.io import ascii
+      >>> filename = os.path.join(ascii.__path__[0], 'tests/t/ipac.dat')
+      >>> data = ascii.read(filename)
+      >>> print data.meta['comments']
+      ['This is an example of a valid comment']
+      >>> for name, keyword in data.meta['keywords'].items():
+      ... print name, keyword['value']
+      ...
+      intval 1
+      floatval 2300.0
+      date Wed Sp 20 09:48:36 1995
+      key_continue IPAC keywords can continue across lines
 
     Parameters
     ----------
@@ -91,9 +94,9 @@ class Ipac(fixedwidth.FixedWidth):
     Specify the convention for characters in the data table that occur
     directly below the pipe (`|`) symbol in the header column definition:
 
-        * 'ignore' - Any character beneath a pipe symbol is ignored (default)
-        * 'right' - Character is associated with the column to the right
-        * 'left' - Character is associated with the column to the left
+          * 'ignore' - Any character beneath a pipe symbol is ignored (default)
+          * 'right' - Character is associated with the column to the right
+          * 'left' - Character is associated with the column to the left
 
     DBMS : bool, optional
         If true, this varifies that written tables adhere (semantically)
@@ -102,7 +105,7 @@ class Ipac(fixedwidth.FixedWidth):
         `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
         definition.
     """
-    def __init__(self, definition='ignore', DBMS = True):
+    def __init__(self, definition='ignore', DBMS = False):
         super(fixedwidth.FixedWidth, self).__init__()
         self.header = IpacHeader(definition=definition)
         self.data = IpacData()
@@ -143,16 +146,15 @@ class Ipac(fixedwidth.FixedWidth):
                 except TypeError:
                     pass
 
-        #get header and data as strings to find width or each column
+        # get header and data as strings to find width of each column
         for i, col in enumerate(table.cols):
             col.headwidth = max([len(vals[i]) for vals in self.header.str_vals()])
-        # keep those because they take some time to make
+        # keep data_str_vals because they take some time to make
         data_str_vals = self.data.str_vals()
         for i, col in enumerate(table.cols):
             col.width = max([len(vals[i]) for vals in data_str_vals])
 
         widths = [max(col.width, col.headwidth) for col in table.cols]
-
         # then write table
         self.header.write(lines, widths)
         self.data.write(lines, widths, data_str_vals)
@@ -223,7 +225,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
     def update_meta(self, lines, meta):
         """
-        Extract table-level comments and keywords for IPAC table. See:
+        Extract table-level comments and keywords for IPAC table.  See:
         http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html#kw
         """
         def process_keyword_value(val):
@@ -238,7 +240,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 try:
                     val = float(val)
                 except:
-                    # Strip leading/trailing quote. The spec says that a matched pair
+                    # Strip leading/trailing quote.  The spec says that a matched pair
                     # of quotes is required, but this code will allow a non-quoted value.
                     for quote in ('"', "'"):
                         if val.startswith(quote) and val.endswith(quote):
@@ -256,7 +258,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                                 r'\s* = (?P<value> .+) $',
                                 re.VERBOSE)
         for line in lines:
-            # Keywords and comments start with "\". Once the first non-slash
+            # Keywords and comments start with "\".  Once the first non-slash
             # line is seen then bail out.
             if not line.startswith('\\'):
                 break
@@ -267,8 +269,8 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 val = process_keyword_value(m.group('value'))
 
                 # IPAC allows for continuation keywords, e.g.
-                # \SQL = 'WHERE '
-                # \SQL = 'SELECT (25 column names follow in next row.)'
+                # \SQL     = 'WHERE '
+                # \SQL     = 'SELECT (25 column names follow in next row.)'
                 if name in keywords and isinstance(val, basestring):
                     prev_val = keywords[name]['value']
                     if isinstance(prev_val, basestring):
@@ -286,14 +288,14 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         """Initialize the header Column objects from the table ``lines``.
 
         Based on the previously set Header attributes find or create the column names.
-        Sets ``self.cols`` with the list of Columns. This list only includes the actual
+        Sets ``self.cols`` with the list of Columns.  This list only includes the actual
         requested columns after filtering by the include_names and exclude_names
-        attributes. See ``self.names`` for the full list.
+        attributes.  See ``self.names`` for the full list.
 
         :param lines: list of table lines
         :returns: list of table Columns
         """
-        header_lines = self.process_lines(lines) # generator returning valid header lines
+        header_lines = self.process_lines(lines)  # generator returning valid header lines
         header_vals = [vals for vals in self.splitter(header_lines)]
         if len(header_vals) == 0:
             raise ValueError('At least one header line beginning and ending with '
@@ -351,7 +353,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
     def str_vals(self):
         
         if self.DBMS:
-            IpacFormatE = IpacFormatErrorStrict
+            IpacFormatE = IpacFormatErrorDBMS
         else:
             IpacFormatE = IpacFormatError
         
@@ -369,7 +371,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             if m.end() != len(name):
                 raise IpacFormatE('{0} - Only alphanumaric characters and _ are allowed in column names.'.format(name))
             if self.DBMS and not(name[0].isalpha() or (name[0] =='_')):
-                raise IpacFormatE('Column names cannot stars with numbers: {}'.format(name))
+                raise IpacFormatE('Column name cannot start with numbers: {}'.format(name))
             if self.DBMS:
                 if name in ['x','y','z', 'X', 'Y','Z']:
                     raise IpacFormatE('{0} - x, y, z, X, Y, Z are reserved names and cannot be used as column names.'.format(name))
@@ -383,13 +385,13 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         unitlist = []
         for col in self.cols:
             if col.dtype.kind in ['i', 'u']:
-                dtypelist.append('int')
+                dtypelist.append('long')
             elif col.dtype.kind == 'f':
-                dtypelist.append('float')
+                dtypelist.append('double')
             else:
                 dtypelist.append('char')
             if col.units is None:
-                unitlist.append('unit')
+                unitlist.append('')
             else:
                 unitlist.append(str(col.units))
         nullist = [getattr(col, 'fill_value', 'null') for col in self.cols]
@@ -400,7 +402,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
         The width of each column is determined in IpacData.write. Writing the header
         must be delayed until that time.
-        This function is called from data, once the widht information is
+        This function is called from data, once the width information is
         available.'''
 
         for vals in self.str_vals():

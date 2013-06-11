@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from ..ui import read
-from ..ipac import Ipac, IpacFormatError, IpacFormatErrorStrict
+from ..ipac import Ipac, IpacFormatError, IpacFormatErrorDBMS
 from ....tests.helper import pytest
 from ... import ascii
 from ....table import Table
@@ -43,15 +43,15 @@ def test_ipac_right():
 
 
 def test_too_long_colname_default():
-    table = Table([[3]], names = ['a1234567890123456'])
+    table = Table([[3]], names = ['a1234567890123456789012345678901234567890'])
     out = io.StringIO()
-    with pytest.raises(IpacFormatErrorStrict):
+    with pytest.raises(IpacFormatError):
         ascii.write(table, out, Writer = Ipac)
 
 def test_too_long_colname_strict():
     table = Table([[3]], names = ['a1234567890123456'])
     out = io.StringIO()
-    with pytest.raises(IpacFormatErrorStrict):
+    with pytest.raises(IpacFormatErrorDBMS):
         ascii.write(table, out, Writer = Ipac, DBMS = True)
 
 def test_too_long_colname_notstrict():
@@ -60,7 +60,7 @@ def test_too_long_colname_notstrict():
     with pytest.raises(IpacFormatError):
         ascii.write(table, out, Writer = Ipac, DBMS = False)
 
-@pytest.mark.parametrize(("strict_", "Err"), [(True, IpacFormatErrorStrict),(False, IpacFormatError)])
+@pytest.mark.parametrize(("strict_", "Err"), [(True, IpacFormatErrorDBMS),(False, IpacFormatError)])
 def test_non_alfnum_colname(strict_, Err):
     table = Table([[3]], names = ['a123456789 01234'])
     out = io.StringIO()
@@ -70,21 +70,21 @@ def test_non_alfnum_colname(strict_, Err):
 def test_colname_starswithnumber_strict():
     table = Table([[3]], names = ['a123456789 01234'])
     out = io.StringIO()
-    with pytest.raises(IpacFormatErrorStrict):
+    with pytest.raises(IpacFormatErrorDBMS):
         ascii.write(table, out, Writer = Ipac, DBMS = True)
 
 def test_double_colname_strict():
     table = Table([[3], [1]], names = ['DEC', 'dec'])
     out = io.StringIO()
-    with pytest.raises(IpacFormatErrorStrict):
-        ascii.write(table, out, Writer = Ipac)
+    with pytest.raises(IpacFormatErrorDBMS):
+        ascii.write(table, out, Writer = Ipac, DBMS = True)
 
 @pytest.mark.parametrize('colname', ['x','y','z', 'X', 'Y','Z'])
 def test_reserved_colname_strict(colname):
     table = Table([['reg']], names = [colname])
     out = io.StringIO()
-    with pytest.raises(IpacFormatErrorStrict):
-        ascii.write(table, out, Writer = Ipac)
+    with pytest.raises(IpacFormatErrorDBMS):
+        ascii.write(table, out, Writer = Ipac, DBMS = True)
 
 def test_too_long_comment(recwarn):
     table = Table([[3]])
@@ -97,8 +97,8 @@ def test_too_long_comment(recwarn):
 \\ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 \\ a
 |col0|
-| int|
-|unit|
+|long|
+|    |
 |null|
     3 
 """
