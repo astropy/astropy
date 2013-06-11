@@ -137,8 +137,10 @@ different `conventions <http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`__:
 
 To define an equivalency using the radio convention for CO 1-0::
 
-    >>> CO_GHz = 115.27120
-    >>> ghz_kms = [(u.GHz, u.km/u.s, lambda x: (x-CO_GHz) / CO_GHz * float(c.c.to('km/s')), lambda x: (x/float(c.c.to('km/s'))) * CO_GHz + CO_GHz)]
+    >>> restfreq = 115.27120  # rest frequency of 12 CO 1-0 in GHz
+    >>> ghz_kms = [(u.GHz, u.km/u.s, 
+        lambda x: (x-restfreq) / restfreq * c.c.to('km/s').value,
+        lambda x: (x/c.c.to('km/s').value) * restfreq + restfreq)]
     >>> u.Hz.to(u.km/u.s,116e9,equivalencies=ghz_kms)
     1895.43219287
 
