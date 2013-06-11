@@ -128,7 +128,9 @@ Spectral equivalencies allow you to convert between wavelength, frequency, and
 energy, but not to velocity, which is frequently the quantity of interest.
 
 It is fairly straightforward to define the equivalency, but note that there are
-different `conventions <http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`__:
+different `conventions <http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`__.  
+In these conventions :math:`f_0` is the rest frequency, :math:`f` is the observed frequency,
+:math:`V` is the velocity, and :math:`c` is the speed of light:
         
     * Radio         :math:`V = c (f_0 - f)/f_0  ;  f(V) = f_0 ( 1 - V/c )`
     * Optical       :math:`V = c (f_0 - f)/f  ;   f(V) = f_0 ( 1 + V/c )^{-1}`
