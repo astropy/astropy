@@ -1159,5 +1159,5 @@ class SIPModel(SCompositeModel):
         """
         labeled_input = LabeledInput([x, y], ['x', 'y'])
         result = SCompositeModel.__call__(self, labeled_input)
-        return result.x1+ labeled_input.x, result.y1+ labeled_input.y
+        return result.x1, result.y1
 
