@@ -3,38 +3,38 @@ Creating and Evaluating Models
 ******************************
 
 The base class of all models is `~astropy.modeling.core.Model`, however fittable
-models should subclass `~astropy.modeling.core.ParametricModel`. Parametric 
+models should subclass `~astropy.modeling.core.ParametricModel`. Parametric
 models can be linear or nonlinear in a regression analysis sense.
 
-To evaluate a model, it is called like a function. When possible the 
+To evaluate a model, it is called like a function. When possible the
 transformation is done using multiple parameter sets,
 `~astropy.modeling.core.Model.param_sets`.
 The number of parameter sets is stored in an attribute
-`~astropy.modeling.core.Model.param_dim`. 
+`~astropy.modeling.core.Model.param_dim`.
 
-Parametric models also store a flat list of all parameters as an instance of 
+Parametric models also store a flat list of all parameters as an instance of
 `~astropy.modeling.parameters.Parameters`. When fitting, this list-like object is
 modified by a subclass of `~astropy.modeling.fitting.Fitter`. When fitting nonlinear models,
 the values of the parameters are used as initial guesses by the fitting class.
 
 Models have an `~astropy.modeling.core.Model.n_inputs` attribute, which shows
-how many coordinates the 
+how many coordinates the
 model expects as an input. All models expect coordinates as separate arguments.
-For example a 2D model expects x and y to be passed separately, 
-e.g. as two arrays or two lists. When a model has multiple parameter sets and x, y are 
-2D arrays, the model is evaluated with each of the parameter sets and the same x, y as 
-input. The shape of the output array is (param_dim, x_shape, y_shape) where param_dim is the number 
+For example a 2D model expects x and y to be passed separately,
+e.g. as two arrays or two lists. When a model has multiple parameter sets and x, y are
+2D arrays, the model is evaluated with each of the parameter sets and the same x, y as
+input. The shape of the output array is (param_dim, x_shape, y_shape) where param_dim is the number
 of parameter sets and x_shape, y_shape is the shape of the input array.
-In all other cases the shape of the output array is the same as the shape of the 
-input arrays. 
+In all other cases the shape of the output array is the same as the shape of the
+input arrays.
 
 Models also have an attribute `~astropy.modeling.core.Model.n_outputs`, which shows
 the number of output coordinates. The `~astropy.modeling.core.Model.n_inputs` and
 `~astropy.modeling.core.Model.n_outputs` attributes are used to chain transforms by
 adding models in series, `~astropy.modeling.core.SCompositeModel`, or in parallel,
-`~astropy.modeling.core.PCompositeModel`. Because composite models can 
-be nested within other composite models, creating 
-theoretically infinetely complex models, a mechanism to map input data to models 
+`~astropy.modeling.core.PCompositeModel`. Because composite models can
+be nested within other composite models, creating
+theoretically infinetely complex models, a mechanism to map input data to models
 is needed. In this case the input may be wrapped in a
 `~astropy.modeling.core.LabeledInput` object - a dict like object whose items are {label: data} pairs.
 
@@ -79,7 +79,7 @@ or two data sets (any other number would be an error)
   plt.plot(x, y)
   plt.title('Evaluate a Gaussian1DModel with 2 parameter sets and 1 set of input data')
   plt.show()
-  
+
 .. plot::
 
   import matplotlib.pyplot as plt
@@ -91,8 +91,8 @@ or two data sets (any other number would be an error)
   plt.plot(x, y)
   plt.title('Evaluating a Gaussian1DModel with 2 parameter sets and 2 sets of input data')
   plt.show()
-  
-  
+
+
 - Evaluating polynomial models with multiple parameter sets with one input data set creates multiple output data sets
 
 >>> p1 = models.Poly1DModel(1, param_dim=5)
@@ -117,7 +117,7 @@ array([[ 0.,  0.,  0.,  0.,  0.],
   plt.plot(x, y)
   plt.title("Poly1DModel with 5 parameter sets")
   plt.show()
-  
+
 - When passed a 2D array, the same polynomial will map parameter sets to array columns
 
 >>> x = np.ones((10,5))
@@ -146,7 +146,7 @@ array([[ 0.,  1.,  2.,  3.,  4.],
 
 This is equivalent to applying the two models in parallel:
 
->>> y = x + (g1(x) - x) + (p1(x) - x)
+>>> y = x + g1(x) + p1(x)
 
 In more complex cases the input and output may be mapped to transformations:
 
@@ -155,7 +155,7 @@ In more complex cases the input and output may be mapped to transformations:
 >>> poly2 = models.Poly2DModel(2)
 >>> serial_composite_model = SCompositeModel([off, poly2], inmap=[['x'], ['x', 'y']], outmap=[['x'], ['z']])
 
-The above composite transform will apply an inplace shift to x, followed by a 2D 
+The above composite transform will apply an inplace shift to x, followed by a 2D
 polynomial and will save the result in an array, labeled 'z'.
 To evaluate this model use a LabeledInput object
 
