@@ -87,7 +87,7 @@ class _AngleParser(object):
             '({0})'.format(x) for x in cls._get_simple_unit_names())
 
         # A string containing ignored characters (spaces)
-        t_ignore  = ' '
+        t_ignore = ' '
 
         # Error handling rule
         def t_error(t):
@@ -161,13 +161,14 @@ class _AngleParser(object):
 
         def p_hms(p):
             '''
-            hms : sign UINT HOUR UINT
+            hms : sign UINT HOUR
+                | sign UINT HOUR UINT
                 | sign UINT HOUR UINT MINUTE
                 | sign UINT HOUR UINT MINUTE ufloat
                 | sign UINT HOUR UINT MINUTE ufloat SECOND
                 | generic HOUR
             '''
-            if len(p) == 3:
+            if len(p) in (3, 4):
                 p[0] = (p[1], u.hourangle)
             elif len(p) in (5, 6):
                 p[0] = ((p[1] * p[2], p[4], 0.0), u.hourangle)
@@ -176,13 +177,14 @@ class _AngleParser(object):
 
         def p_dms(p):
             '''
-            dms : sign UINT DEGREE UINT
+            dms : sign UINT DEGREE
+                | sign UINT DEGREE UINT
                 | sign UINT DEGREE UINT MINUTE
                 | sign UINT DEGREE UINT MINUTE ufloat
                 | sign UINT DEGREE UINT MINUTE ufloat SECOND
                 | generic DEGREE
             '''
-            if len(p) == 3:
+            if len(p) in (3, 4):
                 p[0] = (p[1], u.degree)
             elif len(p) in (5, 6):
                 p[0] = ((p[1] * p[2], p[4], 0.0), u.degree)

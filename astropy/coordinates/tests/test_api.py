@@ -89,6 +89,11 @@ def test_create_angles():
 
     a15 = Angle("5h4m3s") # single digits, no decimal
 
+    a16 = Angle("1 d")
+    a17 = Angle("1 degree")
+    assert a16.degrees == 1
+    assert a17.degrees == 1
+
     #ensure the above angles that should match do
     assert a1 == a2 == a3 == a4 == a5 == a6 == a7
     npt.assert_almost_equal(a1.radians, a2.radians)
