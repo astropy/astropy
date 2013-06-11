@@ -591,6 +591,13 @@ class SLSQPFitter(Fitter):
         else:
             return np.sum(self.weights * res ** 2)
 
+    def _set_bounds(self, fitpars):
+        """
+        Set this as a dummy method because the SLSQP fitter
+        handles bounds internally.
+        """
+        pass
+
     def __call__(self, x, y, z=None, weights=None, verblevel=0,
                  maxiter=MAXITER, epsilon=EPS):
         """
@@ -625,7 +632,7 @@ class SLSQPFitter(Fitter):
             raise ValueError("NonLinearLSQFitter can only fit "
                              "one data set at a time")
 
-        if not z:
+        if z is None:
             if x.shape[0] != y.shape[0]:
                 raise ValueError("x and y should have the same shape")
             meas = np.asarray(y, dtype=np.float)
