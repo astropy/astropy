@@ -2,7 +2,7 @@
 from __future__ import division
 
 import numpy as np
-from numpy.testing import assert_equal, assert_almost_equal
+from numpy.testing import assert_equal
 from ...tests.helper import pytest
 from ...tests.compat import assert_allclose
 
@@ -11,8 +11,6 @@ from ...utils.misc import NumpyRNGContext
 
 try:
     from scipy import stats  # used in testing
-    from scipy.integrate import quad  # used in testing
-    from scipy.special import erfinv, betainc, betaincinv  # used in funcs
 except ImportError:
     HAS_SCIPY = False
 else:
@@ -25,30 +23,44 @@ def test_sigma_clip():
     #need to seed the numpy RNG to make sure we don't get some amazingly flukey
     #random number that breaks one of the tests
 
-    with NumpyRNGContext(12345):  # Amazing, I've got the same combination on my luggage!
-
+    with NumpyRNGContext(12345):
+        # Amazing, I've got the same combination on my luggage!
         randvar = randn(10000)
 
-        data, mask = funcs.sigma_clip(randvar, 1, 2)
-        maskedarr = funcs.sigma_clip(randvar, 1, 2, maout=True)
+        filtered_data = funcs.sigma_clip(randvar, 1, 2)
 
-        assert sum(mask) > 0
-        assert data.size < randvar.size
-        assert np.all(mask == ~maskedarr.mask)
+        assert sum(filtered_data.mask) > 0
+        assert sum(~filtered_data.mask) < randvar.size
 
         #this is actually a silly thing to do, because it uses the standard
         #deviation as the variance, but it tests to make sure these arguments
         #are actually doing something
-        data2, mask2 = funcs.sigma_clip(randvar, 1, 2, varfunc=np.std)
-        assert not np.all(data == data2)
-        assert not np.all(mask == mask2)
+        filtered_data2 = funcs.sigma_clip(randvar, 1, 2, varfunc=np.std)
+        assert not np.all(filtered_data.mask == filtered_data2.mask)
 
-        data3, mask3 = funcs.sigma_clip(randvar, 1, 2, cenfunc=np.mean)
-        assert not np.all(data == data3)
-        assert not np.all(mask == mask3)
+        filtered_data3 = funcs.sigma_clip(randvar, 1, 2, cenfunc=np.mean)
+        assert not np.all(filtered_data.mask == filtered_data3.mask)
 
-        #now just make sure the iters=None method works at all.
-        maskedarr = funcs.sigma_clip(randvar, 3, None, maout=True)
+        # make sure the iters=None method works at all.
+        filtered_data = funcs.sigma_clip(randvar, 3, None)
+
+        # test copying
+        assert filtered_data.data[0] == randvar[0]
+        filtered_data.data[0] += 1.
+        assert filtered_data.data[0] != randvar[0]
+
+        filtered_data = funcs.sigma_clip(randvar, 3, None, copy=False)
+        assert filtered_data.data[0] == randvar[0]
+        filtered_data.data[0] += 1.
+        assert filtered_data.data[0] == randvar[0]
+
+        # test axis
+        data = np.arange(5)+np.random.normal(0.,0.05,(5,5))+np.diag(np.ones(5))
+        filtered_data = funcs.sigma_clip(data, axis=0, sig=2.3)
+        assert filtered_data.count() == 20
+        filtered_data = funcs.sigma_clip(data, axis=1, sig=2.3)
+        assert filtered_data.count() == 25
+
 
 def test_median_absolute_deviation():
     from numpy.random import randn
@@ -56,17 +68,18 @@ def test_median_absolute_deviation():
     #need to seed the numpy RNG to make sure we don't get some amazingly flukey
     #random number that breaks one of the tests
 
-    with NumpyRNGContext(12345):  # Amazing, I've got the same combination on my luggage!
+    with NumpyRNGContext(12345):
 
         #test that it runs
         randvar = randn(10000)
         mad = funcs.median_absolute_deviation(randvar)
 
         #test whether an array is returned if an axis is used
-        randvar=randvar.reshape((10,1000))
+        randvar = randvar.reshape((10, 1000))
         mad = funcs.median_absolute_deviation(randvar, axis=1)
         assert len(mad) == 10
         assert mad.size < randvar.size
+
 
 def test_biweight_location():
     from numpy.random import randn
@@ -74,13 +87,13 @@ def test_biweight_location():
     #need to seed the numpy RNG to make sure we don't get some amazingly flukey
     #random number that breaks one of the tests
 
-    with NumpyRNGContext(12345):  # Amazing, I've got the same combination on my luggage!
+    with NumpyRNGContext(12345):
 
         #test that it runs
         randvar = randn(10000)
         cbl = funcs.biweight_location(randvar)
 
-        assert abs(cbl-0)<1e-2
+        assert abs(cbl-0) < 1e-2
 
 
 def test_biweight_midvariance():
@@ -89,17 +102,13 @@ def test_biweight_midvariance():
     #need to seed the numpy RNG to make sure we don't get some amazingly flukey
     #random number that breaks one of the tests
 
-    with NumpyRNGContext(12345):  # Amazing, I've got the same combination on my luggage!
+    with NumpyRNGContext(12345):
 
         #test that it runs
         randvar = randn(10000)
         scl = funcs.biweight_midvariance(randvar)
 
         assert abs(scl-1) < 1e-2
-
-
-
-
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -109,14 +118,15 @@ def test_compare_to_scipy_sigmaclip():
     #need to seed the numpy RNG to make sure we don't get some amazingly flukey
     #random number that breaks one of the tests
 
-    with NumpyRNGContext(12345):  # Amazing, I've got the same combination on my luggage!
+    with NumpyRNGContext(12345):
 
         randvar = randn(10000)
 
-        astropyres = funcs.sigma_clip(randvar, 3, None, np.mean)[0]
+        astropyres = funcs.sigma_clip(randvar, 3, None, np.mean)
         scipyres = stats.sigmaclip(randvar, 3, 3)[0]
 
-        assert_equal(astropyres, scipyres)
+        assert astropyres.count() == len(scipyres)
+        assert_equal(astropyres[~astropyres.mask].data, scipyres)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -138,19 +148,20 @@ def test_binom_conf_interval():
     n = 7
     conf = 0.95
     result = funcs.binom_conf_interval(k, n, conf=conf, interval='jeffreys')
-    table = np.array([[   0., 0.016, 0.065, 0.139, 0.234],
+    table = np.array([[0.000, 0.016, 0.065, 0.139, 0.234],
                       [0.292, 0.501, 0.648, 0.766, 0.861]])
     assert_allclose(result, table, atol=1.e-3, rtol=0.)
 
     # Test Wald interval
     result = funcs.binom_conf_interval(0, 5, interval='wald')
-    assert_allclose(result, 0.) # conf interval is [0, 0] when k = 0
+    assert_allclose(result, 0.)  # conf interval is [0, 0] when k = 0
     result = funcs.binom_conf_interval(5, 5, interval='wald')
     assert_allclose(result, 1.)  # conf interval is [1, 1] when k = n
     result = funcs.binom_conf_interval(500, 1000, conf=0.68269,
                                        interval='wald')
     assert_allclose(result[0], 0.5 - 0.5 / np.sqrt(1000.))
     assert_allclose(result[1], 0.5 + 0.5 / np.sqrt(1000.))
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_binned_binom_proportion():

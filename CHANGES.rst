@@ -34,6 +34,9 @@ New Features
     `~astropy.stats.funcs.biweight_location`, and 
     `~astropy.stats.funcs.biweight_midvariance`.
 
+  - Add `axis=int` option to `astropy.stats.funcs.sigma_clip` to allow clipping
+    along a given axis for multidimensional data.  [#1083]
+
 - ``astropy.table``
 
   - Table.read and Table.write now support reading and writing of FITS tables
@@ -82,6 +85,14 @@ API Changes
   - Interfaces that were pending deprecation are now fully deprecated.  These
     include: ``create_card``, ``create_card_from_string``, ``upper_key``,
     ``Header.get_history``, and ``Header.get_comment``.
+
+- ``astropy.stats.funcs``
+
+  - For ``sigma_clip``, the ``maout`` optional parameter has been removed, and
+    the function now always returns a masked array.  A new boolean parameter
+    ``copy`` can be used to indicated whether the input data should be copied
+    (``copy=True``, default) or used by reference (``copy=False``) in the
+    output masked array.  [#1083]
     
 Bug Fixes
 ^^^^^^^^^^
