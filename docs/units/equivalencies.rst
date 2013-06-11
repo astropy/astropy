@@ -132,9 +132,9 @@ different `conventions <http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`__.
 In these conventions :math:`f_0` is the rest frequency, :math:`f` is the observed frequency,
 :math:`V` is the velocity, and :math:`c` is the speed of light:
         
-    * Radio         :math:`V = c (f_0 - f)/f_0  ;  f(V) = f_0 ( 1 - V/c )`
-    * Optical       :math:`V = c (f_0 - f)/f  ;   f(V) = f_0 ( 1 + V/c )^{-1}`
-    * Redshift      :math:`z = (f_0 - f)/f ;  f(V) = f_0 ( 1 + z )^{-1}`
+    * Radio         :math:`V = c \frac{f_0 - f}{f_0}  ;  f(V) = f_0 ( 1 - V/c )`
+    * Optical       :math:`V = c \frac{f_0 - f}{f  }  ;   f(V) = f_0 ( 1 + V/c )^{-1}`
+    * Redshift      :math:`z =   \frac{f_0 - f}{f  }  ;  f(V) = f_0 ( 1 + z )^{-1}`
     * Relativistic  :math:`V = c (f_0^2 - f^2)/(f_0^2 + f^2) ;  f(V) = f_0 \frac{\left(1 - (V/c)^2\right)^{1/2}}{(1+V/c)}`
 
 To define an equivalency using the radio convention for CO 1-0::
