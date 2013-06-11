@@ -20,6 +20,7 @@ class MaskedTable(table.Table):
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
 @pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
+<<<<<<< HEAD
 def table_data(request):
     class TableData:
         def __init__(self, request):
@@ -37,6 +38,23 @@ def table_data(request):
 
 
 @pytest.mark.usefixtures('table_data')
+=======
+def set_global_Table_DATA(request):
+    global Table, Column, DATA, COLS
+
+    Table = MaskedTable if request.param else table.Table
+    Column = table.MaskedColumn if request.param else table.Column
+    COLS = [Column(name='a', data=[1, 2, 3], description='da',
+                   format='fa', meta={'ma': 1}, unit='ua'),
+            Column(name='b', data=[4, 5, 6], description='db',
+                   format='fb', meta={'mb': 1}, unit='ub'),
+            Column(name='c', data=[7, 8, 9], description='dc',
+                   format='fc', meta={'mc': 1}, unit='ub')]
+    DATA = Table(COLS)
+
+
+@pytest.mark.usefixtures('set_global_Table_DATA')
+>>>>>>> change units to unit in all Table and Column objects
 class BaseTestItems():
     pass
 
@@ -55,7 +73,7 @@ class TestTableColumnsItems(BaseTestItems):
         assert self.tc['a'].description == 'da'
         assert self.tc['a'].format == 'fa'
         assert self.tc['a'].meta == {'ma': 1}
-        assert self.tc['a'].units == 'ua'
+        assert self.tc['a'].unit == 'ua'
         assert self.tc['a'].attrs_equal(table_data.COLS[0])
         assert isinstance(self.tc['a'], table_data.Column)
 
@@ -73,11 +91,11 @@ class TestTableColumnsItems(BaseTestItems):
         assert self.tc[1].description == 'db'
         assert self.tc[1].format == 'fb'
         assert self.tc[1].meta == {'mb': 1}
-        assert self.tc[1].units == 'ub'
+        assert self.tc[1].unit == 'ub'
         assert self.tc[1].attrs_equal(table_data.COLS[1])
         assert isinstance(self.tc[1], table_data.Column)
 
-        assert self.tc[2].units == 'ub'
+        assert self.tc[2].unit == 'ub'
 
         self.tc[1][1] = 0
         assert self.t['b'][1] == 0

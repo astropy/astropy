@@ -282,8 +282,8 @@ class TestJoin():
         meta2 = OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)])
 
         # Key col 'a', should first value ('cm')
-        t1['a'].units = 'cm'
-        t2['a'].units = 'm'
+        t1['a'].unit = 'cm'
+        t2['a'].unit = 'm'
         # Key col 'b', take first value 't1_b'
         t1['b'].description = 't1_b'
         # Key col 'b', take first non-empty value 't1_b'
@@ -295,11 +295,11 @@ class TestJoin():
         t2['b'].meta = meta2
 
         # All these should pass through
-        t1['c'].units = 'cm'
+        t1['c'].unit = 'cm'
         t1['c'].format = '%3s'
         t1['c'].description = 't1_c'
 
-        t2['c'].units = 'm'
+        t2['c'].unit = 'm'
         t2['c'].format = '%6s'
         t2['c'].description = 't2_c'
 
@@ -309,20 +309,20 @@ class TestJoin():
 
             t12 = table.join(t1, t2, keys=['a', 'b'])
 
-            assert t12['a'].units == 'cm'
+            assert t12['a'].unit == 'cm'
             assert t12['b'].description == 't1_b'
             assert t12['b'].format == '%6s'
             assert t12['a'].meta == self.meta_merge
             assert t12['b'].meta == meta2
-            assert t12['c_1'].units == 'cm'
+            assert t12['c_1'].unit == 'cm'
             assert t12['c_1'].format == '%3s'
             assert t12['c_1'].description == 't1_c'
-            assert t12['c_2'].units == 'm'
+            assert t12['c_2'].unit == 'm'
             assert t12['c_2'].format == '%6s'
             assert t12['c_2'].description == 't2_c'
 
             assert warning_lines[0].category == metadata.MergeConflictWarning
-            assert ("In merged column 'a' the 'units' attribute does not match (cm != m)"
+            assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
                     in str(warning_lines[0].message))
 
 
@@ -434,9 +434,9 @@ class TestVStack():
         t4 = self.t4
 
         # Key col 'a', should first value ('cm')
-        t1['a'].units = 'cm'
-        t2['a'].units = 'm'
-        t4['a'].units = 'km'
+        t1['a'].unit = 'cm'
+        t2['a'].unit = 'm'
+        t4['a'].unit = 'km'
         # Key col 'b', take first value 't1_b'
         t1['b'].description = 't1_b'
         # Key col 'b', take first non-empty value '%6s'
@@ -449,7 +449,7 @@ class TestVStack():
         t2['b'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
 
         # All these should pass through
-        t2['c'].units = 'm'
+        t2['c'].unit = 'm'
         t2['c'].format = '%6s'
         t2['c'].description = 't2_c'
 
@@ -458,20 +458,20 @@ class TestVStack():
             warnings.simplefilter("always", metadata.MergeConflictWarning, append=True)
             out = table.vstack([t1, t2, t4], join_type='outer')
 
-            assert out['a'].units == 'cm'
+            assert out['a'].unit == 'cm'
             assert out['b'].description == 't1_b'
             assert out['b'].format == '%6s'
             assert out['a'].meta == self.meta_merge
             assert out['b'].meta == OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)])
-            assert out['c'].units == 'm'
+            assert out['c'].unit == 'm'
             assert out['c'].format == '%6s'
             assert out['c'].description == 't2_c'
 
             assert warning_lines[0].category == metadata.MergeConflictWarning
-            assert ("In merged column 'a' the 'units' attribute does not match (cm != m)"
+            assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
                     in str(warning_lines[0].message))
             assert warning_lines[1].category == metadata.MergeConflictWarning
-            assert ("In merged column 'a' the 'units' attribute does not match (cm != km)"
+            assert ("In merged column 'a' the 'unit' attribute does not match (cm != km)"
                     in str(warning_lines[1].message))
 
 
@@ -581,14 +581,14 @@ class TestHStack():
 
         # Just set a bunch of meta and make sure it is the same in output
         meta1 = OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)])
-        t1['a'].units = 'cm'
+        t1['a'].unit = 'cm'
         t1['b'].description = 't1_b'
         t4['f'].format = '%6s'
         t1['b'].meta.update(meta1)
         t3['d'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
         t4['g'].meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
         t3['e'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
-        t3['d'].units = 'm'
+        t3['d'].unit = 'm'
         t3['d'].format = '%6s'
         t3['d'].description = 't3_c'
 
@@ -600,7 +600,7 @@ class TestHStack():
 
             for t in [t1, t3, t4]:
                 for name in t.colnames:
-                    for attr in ('meta', 'units', 'format', 'description'):
+                    for attr in ('meta', 'unit', 'format', 'description'):
                         assert getattr(out[name], attr) == getattr(t[name], attr)
 
             assert len(warning_lines) == 0

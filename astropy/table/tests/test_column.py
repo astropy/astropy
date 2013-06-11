@@ -46,12 +46,12 @@ class TestColumn():
     def test_view(self, Column):
         c = np.array([1, 2, 3]).view(Column)
         if Column == table.MaskedColumn:
-            assert repr(c) == ('<MaskedColumn name=None units=None format=None description=None>\n'
+            assert repr(c) == ('<MaskedColumn name=None unit=None format=None description=None>\n'
                                'masked_array(data = [1 2 3],\n'
                                '             mask = False,\n'
                                '       fill_value = 999999)\n')
         else:
-            assert repr(c) == ('<Column name=None units=None format=None description=None>\n'
+            assert repr(c) == ('<Column name=None unit=None format=None description=None>\n'
                                'array([1, 2, 3])')
 
     def test_format(self, Column):
@@ -74,9 +74,9 @@ class TestColumn():
         np_data = np.array(d, dtype='i4')
         assert np.all(np_data == d)
 
-    def test_convert_units(self, Column):
-        d = Column([1, 2, 3], name='a', dtype="f8", units="m")
-        d.convert_units_to("km")
+    def test_convert_unit(self, Column):
+        d = Column([1, 2, 3], name='a', dtype="f8", unit="m")
+        d.convert_unit_to("km")
         assert np.all(d.data == [0.001, 0.002, 0.003])
 
     def test_array_wrap(self):
@@ -126,71 +126,71 @@ class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""
 
     def test_5(self, Column):
-        c1 = Column(name='a', dtype=int, units='mJy')
-        c2 = Column(name='a', dtype=int, units='mJy')
+        c1 = Column(name='a', dtype=int, unit='mJy')
+        c2 = Column(name='a', dtype=int, unit='mJy')
         assert c1.attrs_equal(c2)
 
     def test_6(self, Column):
-        c1 = Column(name='a', dtype=int, units='mJy', format='%i',
+        c1 = Column(name='a', dtype=int, unit='mJy', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
-        c2 = Column(name='a', dtype=int, units='mJy', format='%i',
+        c2 = Column(name='a', dtype=int, unit='mJy', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
         assert c1.attrs_equal(c2)
 
     def test_7(self, Column):
-        c1 = Column(name='a', dtype=int, units='mJy', format='%i',
+        c1 = Column(name='a', dtype=int, unit='mJy', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
-        c2 = Column(name='b', dtype=int, units='mJy', format='%i',
+        c2 = Column(name='b', dtype=int, unit='mJy', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
         assert not c1.attrs_equal(c2)
 
     def test_8(self, Column):
-        c1 = Column(name='a', dtype=int, units='mJy', format='%i',
+        c1 = Column(name='a', dtype=int, unit='mJy', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
-        c2 = Column(name='a', dtype=float, units='mJy', format='%i',
+        c2 = Column(name='a', dtype=float, unit='mJy', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
         assert not c1.attrs_equal(c2)
 
     def test_9(self, Column):
-        c1 = Column(name='a', dtype=int, units='mJy', format='%i',
+        c1 = Column(name='a', dtype=int, unit='mJy', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
-        c2 = Column(name='a', dtype=int, units='erg.cm-2.s-1.Hz-1', format='%i',
+        c2 = Column(name='a', dtype=int, unit='erg.cm-2.s-1.Hz-1', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
         assert not c1.attrs_equal(c2)
 
     def test_10(self, Column):
-        c1 = Column(name='a', dtype=int, units='mJy', format='%i',
+        c1 = Column(name='a', dtype=int, unit='mJy', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
-        c2 = Column(name='a', dtype=int, units='mJy', format='%g',
+        c2 = Column(name='a', dtype=int, unit='mJy', format='%g',
                     description='test column', meta={'c': 8, 'd': 12})
         assert not c1.attrs_equal(c2)
 
     def test_11(self, Column):
-        c1 = Column(name='a', dtype=int, units='mJy', format='%i',
+        c1 = Column(name='a', dtype=int, unit='mJy', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
-        c2 = Column(name='a', dtype=int, units='mJy', format='%i',
+        c2 = Column(name='a', dtype=int, unit='mJy', format='%i',
                     description='another test column', meta={'c': 8, 'd': 12})
         assert not c1.attrs_equal(c2)
 
     def test_12(self, Column):
-        c1 = Column(name='a', dtype=int, units='mJy', format='%i',
+        c1 = Column(name='a', dtype=int, unit='mJy', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
-        c2 = Column(name='a', dtype=int, units='mJy', format='%i',
+        c2 = Column(name='a', dtype=int, unit='mJy', format='%i',
                     description='test column', meta={'e': 8, 'd': 12})
         assert not c1.attrs_equal(c2)
 
     def test_13(self, Column):
-        c1 = Column(name='a', dtype=int, units='mJy', format='%i',
+        c1 = Column(name='a', dtype=int, unit='mJy', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
-        c2 = Column(name='a', dtype=int, units='mJy', format='%i',
+        c2 = Column(name='a', dtype=int, unit='mJy', format='%i',
                     description='test column', meta={'c': 9, 'd': 12})
         assert not c1.attrs_equal(c2)
 
     @pytest.mark.xfail('numpy_lt_1p5')
     def test_col_and_masked_col(self):
-        c1 = table.Column(name='a', dtype=int, units='mJy', format='%i',
+        c1 = table.Column(name='a', dtype=int, unit='mJy', format='%i',
                           description='test column', meta={'c': 8, 'd': 12})
-        c2 = table.MaskedColumn(name='a', dtype=int, units='mJy', format='%i',
+        c2 = table.MaskedColumn(name='a', dtype=int, unit='mJy', format='%i',
                                 description='test column', meta={'c': 8, 'd': 12})
         assert c1.attrs_equal(c2)
         assert c2.attrs_equal(c1)
