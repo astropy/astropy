@@ -15,6 +15,46 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
+model1d_pars = [(models.Poly1DModel, [2]),
+                (models.Legendre1DModel, [2]),
+                (models.Chebyshev1DModel, [2]),
+                (models.Gaussian1DModel, [10, 3.4, 1.1]),
+                (models.ShiftModel, [2]),
+                (models.ScaleModel, [2]),
+                ]
+
+model2d_pars = [(models.Poly2DModel, [2]),
+                (models.Legendre2DModel, [1, 2]),
+                (models.Chebyshev2DModel, [1, 2]),
+                (models.Gaussian2DModel, [10, 3.4, 3.3, 1.2, 1.1]),
+                ]
+
+class TestInputType(object):
+    """
+    This class tests that models accept numbers, lists and arrays.
+
+    Add new models to one of the lists above to test for this.
+    """
+    def setup_class(self):
+        self.x = 5.3
+        self.y = 6.7
+        self.x1 = np.arange(1, 10, .1)
+        self.y1 = np.arange(1, 10, .1)
+        self.x2, self.y2 = np.mgrid[:10, :8]
+
+    @pytest.mark.parametrize(('model', 'params'), model1d_pars)
+    def test_input1D(self, model, params):
+        m = model(*params)
+        m(self.x)
+        m(self.x1)
+        m(self.x2)
+
+    @pytest.mark.parametrize(('model', 'params'), model2d_pars)
+    def test_input2D(self, model, params):
+        m = model(*params)
+        m(self.x, self.y)
+        m(self.x1, self.y1)
+        m(self.x2, self.y2)
 
 class TestFitting(object):
 

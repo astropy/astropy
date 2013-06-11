@@ -2,18 +2,20 @@
 """
 This module contains predefined polynomial models.
 """
-from __future__ import division, print_function
+from __future__ import division
 import collections
 import numpy as np
+from ..logger import log
 from . import parameters
 from .core import ParametricModel, Model, SCompositeModel
 from .core import _convert_input, _convert_output
 from .core import LabeledInput
-from .utils import pmapdomain, comb
+from .utils import poly_map_domain, comb
 from .functional_models import ShiftModel
 
 __all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'Legendre2DModel',
-           'Legendre1DModel', 'Poly1DModel', 'Poly2DModel', 'SIPModel']
+           'Legendre1DModel', 'Poly1DModel', 'Poly2DModel', 'SIPModel',
+           'OrthogPolyBase', 'PolynomialModel']
 
 
 class PolynomialModel(ParametricModel):
@@ -39,8 +41,15 @@ class PolynomialModel(ParametricModel):
             else:
                 lenpars = 1
             if param_dim != lenpars:
-                print("Creating a model with {0} parameter sets\n".format(lenpars))
-                param_dim = lenpars
+                if param_dim == 1:
+                    log.info("Inferred {0} dimensions when creating a {1} model. "
+                             "Resetting param_dim to {2}".format(lenpars,
+                                                                self.__class__.__name__,
+                                                                lenpars))
+                    param_dim = lenpars
+                else:
+                    raise ValueError("Number of coefficient sets ({0}) does not match number "
+                                     "of parameter sets ({1}).".format(lenpars, param_dim))
             self._validate_pars(**pars)
             self.set_coeff(pardim=param_dim, **pars)
         super(PolynomialModel, self).__init__(self.param_names, n_inputs=n_inputs,
@@ -110,31 +119,6 @@ class PolynomialModel(ParametricModel):
         numc = self.deg * ndim + nmixed + 1
         return numc
 
-    def set_domain(self, x, y=None):
-        """
-        Map the input data into a [-1, 1] window
-        """
-        if self.n_inputs == 1:
-            if not self.domain:
-                self.domain = [x.min(), x.max()]
-            if not self.window:
-                self.window = [-1, 1]
-            return pmapdomain(x, self.domain, self.window)
-        if self.n_inputs == 2:
-            assert y is not None, ("Expected 2 input coordinates")
-            if not self.xdomain:
-                self.xdomain = [x.min(), x.max()]
-            if not self.xwindow:
-                self.xwindow = [-1, 1]
-            if not self.ydomain:
-                self.ydomain = [y.min(), y.max()]
-            if not self.ywindow:
-                self.ywindow = [-1, 1]
-            xnew = pmapdomain(x, self.xdomain, self.xwindow)
-            ynew = pmapdomain(x, self.ydomain, self.ywindow)
-            return xnew, ynew
-
-
 class OrthogPolyBase(ParametricModel):
 
     """
@@ -146,32 +130,32 @@ class OrthogPolyBase(ParametricModel):
     Parameters
     ----------
 
-    xdeg : int
+    x_degree : int
         degree in x
-    ydeg : int
+    y_degree : int
         degree in y
-    xdomain : list or None
+    x_domain : list or None
         domain of the x independent variable
-    ydomain : list or None
+    y_domain : list or None
         domain of the y independent variable
-    xwindow : list or None
+    x_window : list or None
         range of the x independent variable
-    ywindow : list or None
+    y_window : list or None
         range of the y independent variable
     param_dim : int
         number of parameter sets
     **pars : dict
         {keyword: value} pairs, representing {parameter_name: value}
     """
-    def __init__(self, xdeg, ydeg, xdomain=None, xwindow=None, ydomain=None,
-                 ywindow=None, param_dim=1, **pars):
-        self.xdeg = xdeg
-        self.ydeg = ydeg
+    def __init__(self, x_degree, y_degree, x_domain=None, x_window=None, y_domain=None,
+                 y_window=None, param_dim=1, **pars):
+        self.xdeg = x_degree
+        self.ydeg = y_degree
         self._order = self.get_numcoeff()
-        self.xdomain = xdomain
-        self.ydomain = ydomain
-        self.xwindow = xwindow
-        self.ywindow = ywindow
+        self.x_domain = x_domain
+        self.y_domain = y_domain
+        self.x_window = x_window
+        self.y_window = y_window
         self.param_names = self._generate_coeff_names()
 
         if not pars:
@@ -184,8 +168,15 @@ class OrthogPolyBase(ParametricModel):
             else:
                 lenpars = 1
             if param_dim != lenpars:
-                print("Creating a model with {0} parameter sets\n".format(lenpars))
-                param_dim = lenpars
+                if param_dim == 1:
+                    log.info("Inferred {0} dimensions when creating a {1} model. "
+                             "Resetting param_dim to {2}".format(lenpars,
+                                                                self.__class__.__name__,
+                                                                lenpars))
+                    param_dim = lenpars
+                else:
+                    raise ValueError("Number of coefficient sets {0} does not match number "
+                                     "of parameter sets {1}".format(lenpars, param_dim))
             self._validate_pars(**pars)
             self.set_coeff(pardim=param_dim, **pars)
         super(OrthogPolyBase, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
@@ -294,6 +285,28 @@ class OrthogPolyBase(ParametricModel):
         """
         raise NotImplementedError("Subclasses should implement this")
 
+    def __call__(self, x, y):
+        """
+        Transforms data using this model.
+
+        Parameters
+        --------------
+        x : scalar, list or array
+        y : scalar, lis or array
+
+        """
+        x, _ = _convert_input(x, self.param_dim)
+        y, fmt = _convert_input(y, self.param_dim)
+        assert x.shape == y.shape, \
+            "Expected input arrays to have the same shape"
+        if self.x_domain is not None:
+            x = poly_map_domain(x, self.x_domain, self.x_window)
+        if self.y_domain is not None:
+            y = poly_map_domain(y, self.y_domain, self.y_window)
+        invcoeff = self.invlex_coeff()
+
+        result = self.imhorner(x, y, invcoeff)
+        return _convert_output(result, fmt)
 
 class Chebyshev1DModel(PolynomialModel):
 
@@ -314,10 +327,6 @@ class Chebyshev1DModel(PolynomialModel):
     **pars : dict
         keyword : value pairs, representing parameter_name: value
 
-    Returns
-    -------
-    model : Chebyshev1DModel
-        1D Chebyshev model
     """
     def __init__(self, degree, domain=None, window=[-1, 1], param_dim=1, **pars):
         self.domain = domain
@@ -326,6 +335,9 @@ class Chebyshev1DModel(PolynomialModel):
                                                param_dim=param_dim, **pars)
 
     def clenshaw(self, x, coeff):
+        """
+        Evaluates the polynomial using Clenshaw's algorithm.
+        """
         if isinstance(x, tuple) or isinstance(x, list):
             x = np.asarray(x)
         if len(coeff) == 1:
@@ -344,7 +356,24 @@ class Chebyshev1DModel(PolynomialModel):
                 c1 = tmp + c1 * x2
         return c0 + c1 * x
 
-    def deriv(self, x):
+    def deriv(self, pars=None, x=None, y=None):
+        """
+        Computes the Vandermonde matrix.
+
+        Parameters
+        ----------
+        pars : throw away parameter
+            parameter list returned by non-linear fitters
+        x : ndarray
+            input
+        y : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
+        """
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.deg + 1,) + x.shape, dtype=x.dtype)
         v[0] = x * 0 + 1
@@ -360,14 +389,12 @@ class Chebyshev1DModel(PolynomialModel):
 
         Parameters
         --------------
-        x : array, of minimum dimensions 1
+        x : scalar, list or array
+            input
 
-        Notes
-        -----
-        See the module docstring for rules for model evaluation.
         """
         if self.domain is not None:
-            x = self.set_domain(x)
+            x = poly_map_domain(x, self.domain, self.window)#self.set_domain(x)
         x, fmt = _convert_input(x, self.param_dim)
         result = self.clenshaw(x, self.param_sets)
         return _convert_output(result, fmt)
@@ -419,7 +446,23 @@ class Legendre1DModel(PolynomialModel):
                 c1 = tmp + (c1 * x * (2 * nd - 1)) / nd
         return c0 + c1 * x
 
-    def deriv(self, x):
+    def deriv(self, pars=None, x=None, y=None):
+        """
+        Parameters
+        ----------
+        pars : throw away parameter
+            parameter list returned by non-linear fitters
+        x : ndarray
+            input
+        y : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
+
+        """
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.deg + 1,) + x.shape, dtype=x.dtype)
         v[0] = x * 0 + 1
@@ -434,14 +477,12 @@ class Legendre1DModel(PolynomialModel):
 
         Parameters
         --------------
-        x : array, of minimum dimensions 1
+        x : scalar, list or array
+            input
 
-        Notes
-        -----
-        See the module docstring for rules for model evaluation.
         """
         if self.domain is not None:
-            x = self.set_domain(x)
+            x = poly_map_domain(x, self.domain, self.window)#self.set_domain(x)
         x, fmt = _convert_input(x, self.param_dim)
         result = self.clenshaw(x, self.param_sets)
         return _convert_output(result, fmt)
@@ -474,9 +515,27 @@ class Poly1DModel(PolynomialModel):
         super(Poly1DModel, self).__init__(degree, n_inputs=1, n_outputs=1,
                                           param_dim=param_dim, **pars)
 
-    def deriv(self, x):
+    def deriv(self, pars=None, x=None, y=None):
+        """
+        Computes the Vandermonde matrix.
+
+        Parameters
+        ----------
+        pars : throw away parameter
+            parameter list returned by non-linear fitters
+        x : ndarray
+            input
+        y : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
+
+        """
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
-        v = np.empty((self.deg + 1,) + x.shape, dtype=x.dtype)
+        v = np.empty((self.deg + 1,) + x.shape, dtype=np.float)
         v[0] = x * 0 + 1
         v[1] = x
         for i in range(2, self.deg + 1):
@@ -495,11 +554,9 @@ class Poly1DModel(PolynomialModel):
 
         Parameters
         --------------
-        x : array, of minimum dimensions 1
+        x : scalar, list or array
+            input
 
-        Notes
-        -----
-        Rules for model evaluation are described in the module docstring
         """
         x, fmt = _convert_input(x, self.param_dim)
         result = self.horner(x, self.param_sets)
@@ -514,23 +571,21 @@ class Poly2DModel(PolynomialModel):
     Represents a general polynomial of degree n:
 
     .. math::
-
-    P(x,y) = c_{0_0} + c_{1_0}x + ...+ c_{n_0}x^n + c_{0_1}y + ...+ c_{0_n}y^n \\
-    + c_{1_1}xy + c_{1_2}xy^2 + ... + c_{1_(n-1)}xy^{n-1}+ ... + \\
-    c_{(n-1)_1}x^{n-1}y
+        P(x,y) = c_{0_0} + c_{1_0}*x + ...+ c_{n_0}*x^n + c_{0_1}*y + ...+ c_{0_n}*y^n
+        + c_{1_1}*x*y + c_{1_2}*x*y^2 + ... + c_{1_(n-1)}*x*y^{n-1}+ ... + c_{(n-1)_1}*x^{n-1}*y
 
     Parameters
     ----------
     degree : int
-        highest power of the polynomial, the number of terms
-        are degree+1
-    xdomain : list or None
+        highest power of the polynomial,
+        the number of terms is degree+1
+    x_domain : list or None
         domain of the x independent variable
-    ydomain : list or None
+    y_domain : list or None
         domain of the y independent variable
-    xwindow : list or None
+    x_window : list or None
         range of the x independent variable
-    ywindow : list or None
+    y_window : list or None
         range of the y independent variable
     param_dim : int
         number of parameter sets
@@ -538,15 +593,15 @@ class Poly2DModel(PolynomialModel):
         keyword: value pairs, representing parameter_name: value
 
     """
-    def __init__(self, degree, xdomain=[-1, 1], ydomain=[-1, 1],
-                 xwindow=[-1, 1], ywindow=[-1, 1],
+    def __init__(self, degree, x_domain=[-1, 1], y_domain=[-1, 1],
+                 x_window=[-1, 1], y_window=[-1, 1],
                  param_dim=1, **pars):
         super(Poly2DModel, self).__init__(degree, n_inputs=2, n_outputs=1,
                                           param_dim=param_dim, **pars)
-        self.xdomain = xdomain
-        self.ydomain = ydomain
-        self.xwindow = xwindow
-        self.ywindow = ywindow
+        self.x_domain = x_domain
+        self.y_domain = y_domain
+        self.x_window = x_window
+        self.y_window = y_window
 
     def mhorner(self, x, y, coeff):
         """
@@ -571,9 +626,25 @@ class Poly2DModel(PolynomialModel):
             r0 = coeff[n + 1]
         return r0 + r1 + r2
 
-    def deriv(self, x, y):
+    def deriv(self, pars=None, x=None, y=None, z=None):
         """
-        Derivatives with respect to parameters
+        Computes the Vandermonde matrix.
+
+        Parameters
+        ----------
+        pars : throw away parameter
+            parameter list returned by non-linear fitters
+        x : ndarray
+            input
+        y : ndarray
+            input
+        z : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
         """
         if x.ndim == 2:
             x = x.flatten()
@@ -613,11 +684,11 @@ class Poly2DModel(PolynomialModel):
 
         Parameters
         --------------
-        x, y : arrays, of min dimensions 2
+        x : scalar, list or array
+            input
+        y : scalar, list or array
+            input
 
-        Notes
-        -----
-        See the module docstring for rules for model evaluation.
         """
         invcoeff = self.invlex_coeff()
         x, _ = _convert_input(x, self.param_dim)
@@ -641,17 +712,17 @@ class Chebyshev2DModel(OrthogPolyBase):
     Parameters
     ----------
 
-    xdeg : int
+    x_degree : int
         degree in x
-    ydeg : int
+    y_degree : int
         degree in y
-    xdomain : list or None
+    x_domain : list or None
         domain of the x independent variable
-    ydomain : list or None
+    y_domain : list or None
         domain of the y independent variable
-    xwindow : list or None
+    x_window : list or None
         range of the x independent variable
-    ywindow : list or None
+    y_window : list or None
         range of the y independent variable
     param_dim : int
         number of parameter sets
@@ -659,11 +730,11 @@ class Chebyshev2DModel(OrthogPolyBase):
         keyword: value pairs, representing parameter_name: value
 
     """
-    def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1, 1],
-                 ydomain=None, ywindow=[-1, 1], param_dim=1, **pars):
-        super(Chebyshev2DModel, self).__init__(xdeg, ydeg,
-                                               xdomain=xdomain, ydomain=ydomain,
-                                               xwindow=xwindow, ywindow=ywindow,
+    def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
+                 y_domain=None, y_window=[-1, 1], param_dim=1, **pars):
+        super(Chebyshev2DModel, self).__init__(x_degree, y_degree,
+                                               x_domain=x_domain, y_domain=y_domain,
+                                               x_window=x_window, y_window=y_window,
                                                param_dim=param_dim, **pars)
 
     def _fcache(self, x, y):
@@ -684,12 +755,29 @@ class Chebyshev2DModel(OrthogPolyBase):
             kfunc[n] = 2 * y * kfunc[n - 1] - kfunc[n - 2]
         return kfunc
 
-    def deriv(self, x, y):
+    def deriv(self, pars=None, x=None, y=None, z=None):
         """
         Derivatives with respect to the coefficients.
         This is an array with Chebyshev polynomials:
 
         Tx0Ty0  Tx1Ty0...TxnTy0...TxnTym
+
+        Parameters
+        ----------
+        pars : throw away parameter
+            parameter list returned by non-linear fitters
+        x : ndarray
+            input
+        y : ndarray
+            input
+        z : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
+
         """
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
@@ -719,27 +807,7 @@ class Chebyshev2DModel(OrthogPolyBase):
                 d[i] = d[i - 1] * x2 - d[i - 2]
         return np.rollaxis(d, 0, d.ndim)
 
-    def __call__(self, x, y, xdomain=None, ydomain=None):
-        """
-        Transforms data using this model.
 
-        Parameters
-        --------------
-        x, y : arrays, of min dimensions 2
-        xdomain, ydomain : list of two numbers
-            polynomial domain for x and y variable
-
-        Notes
-        -----
-        See the module docstring for rules for model evaluation.
-        """
-        assert x.shape == y.shape, \
-            "Expected input arrays to have the same shape"
-        invcoeff = self.invlex_coeff()
-        x, _ = _convert_input(x, self.param_dim)
-        y, fmt = _convert_input(y, self.param_dim)
-        result = self.imhorner(x, y, invcoeff)
-        return _convert_output(result, fmt)
 
 
 class Legendre2DModel(OrthogPolyBase):
@@ -755,17 +823,17 @@ class Legendre2DModel(OrthogPolyBase):
     Parameters
     ----------
 
-    xdeg : int
+    x_degree : int
         degree in x
-    ydeg : int
+    y_degree : int
         degree in y
-    xdomain : list or None
+    x_domain : list or None
         domain of the x independent variable
-    ydomain : list or None
+    y_domain : list or None
         domain of the y independent variable
-    xwindow : list or None
+    x_window : list or None
         range of the x independent variable
-    ywindow : list or None
+    y_window : list or None
         range of the y independent variable
     param_dim : int
         number of parameter sets
@@ -773,11 +841,11 @@ class Legendre2DModel(OrthogPolyBase):
         keyword: value pairs, representing parameter_name: value
 
     """
-    def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1, 1],
-                 ydomain=None, ywindow=[-1, 1], param_dim=1, **pars):
-        super(Legendre2DModel, self).__init__(xdeg, ydeg,
-                                              xdomain=xdomain, ydomain=ydomain,
-                                              xwindow=xwindow, ywindow=ywindow,
+    def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
+                 y_domain=None, y_window=[-1, 1], param_dim=1, **pars):
+        super(Legendre2DModel, self).__init__(x_degree, y_degree,
+                                              x_domain=x_domain, y_domain=y_domain,
+                                              x_window=x_window, y_window=y_window,
                                               param_dim=param_dim, **pars)
 
     def _fcache(self, x, y):
@@ -793,18 +861,35 @@ class Legendre2DModel(OrthogPolyBase):
         kfunc[xterms] = np.ones(y.shape)
         kfunc[xterms + 1] = y.copy()
         for n in range(2, xterms):
-            kfunc[n] = (2 * n + 1) / (n + 1) * kfunc[n - 1] - n / (n + 1) * kfunc[n - 2]
+            kfunc[n] = ((2 * (n-1) + 1) * x * kfunc[n - 1] - (n-1) * kfunc[n - 2]) / n
         for n in range(2, yterms):
-            kfunc[n + xterms] = (2 * n + 1) / (n + 1) * kfunc[n + xterms - 1] \
-                - n / (n + 1) * kfunc[n + xterms - 2]
+            kfunc[n + xterms] = ((2 * (n-1) + 1) * y * kfunc[n + xterms - 1] -
+                                 (n-1) * kfunc[n + xterms - 2]) / (n)
         return kfunc
 
-    def deriv(self, x, y):
+    def deriv(self, pars=None, x=None, y=None, z=None):
         """
         Derivatives with repect to the coefficients.
         This is an array with Legendre polynomials:
 
         Lx0Ly0  Lx1Ly0...LxnLy0...LxnLym
+
+        Parameters
+        ----------
+        pars : throw away parameter
+            parameter list returned by non-linear fitters
+        x : ndarray
+            input
+        y : ndarray
+            input
+        z : throw away parameter
+            Present here so that the non-linear fitting algorithms can work
+
+        Returns
+        -------
+        result : ndarray
+            The Vandermonde matrix
+
         """
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
@@ -826,36 +911,13 @@ class Legendre2DModel(OrthogPolyBase):
         Derivative of 1D Legendre polynomial
         """
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
-        d = np.empty((deg + 1, len(x)), dtype=x.dtype)
+        d = np.empty((deg + 1,) + x.shape, dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0:
             d[1] = x
             for i in range(2, deg + 1):
-                x2 = (2 * i + 1) * x
-                d[i] = d[i - 1] * x2 - d[i - 2] * i / (i + 1)
+                d[i] = (d[i - 1] * x * (2 * i - 1) - d[i - 2] * (i - 1)) / i
         return np.rollaxis(d, 0, d.ndim)
-
-    def __call__(self, x, y, xdomain=None, ydomain=None):
-        """
-        Transforms data using this model.
-
-        Parameters
-        --------------
-        x, y : arrays, of min dimensions 2
-        xdomain, ydomain : list of two numbers
-            polynomial domain for x and y variable
-
-        Notes
-        -----
-        See the module docstring for rules for model evaluation.
-        """
-        assert x.shape == y.shape, \
-            "Expected input arrays to have the same shape"
-        invcoeff = self.invlex_coeff()
-        x, _ = _convert_input(x, self.param_dim)
-        y, fmt = _convert_input(y, self.param_dim)
-        result = self.imhorner(x, y, invcoeff)
-        return _convert_output(result, fmt)
 
 
 class _SIP1D(Model):
@@ -867,22 +929,29 @@ class _SIP1D(Model):
     and SIPModel should be used instead.
 
     """
-    def __init__(self, order, coeffname='a', param_dim=1, **pars):
+    def __init__(self, order, coeff_prefix, param_dim=1, **pars):
         self.order = order
-        self.coeffname = coeffname.lower()
-        self.param_names = self._generate_coeff_names(coeffname)
+        self.coeff_prefix = coeff_prefix
+        self.param_names = self._generate_coeff_names(coeff_prefix)
 
         if not pars:
             self.set_coeff(pardim=param_dim)
         else:
-            p = pars.get('{0}02'.format(coeffname, None))
+            p = pars.get('{0}0_2'.format(coeff_prefix, None))
             if isinstance(p, collections.Sequence):
                 lenpars = len(p)
             else:
                 lenpars = 1
             if param_dim != lenpars:
-                print("Creating a model with {0} parameter sets\n".format(lenpars))
-                param_dim = lenpars
+                if param_dim == 1:
+                    log.info("Inferred {0} dimensions when creating a {1} model. "
+                             "Resetting param_dim to {2}".format(lenpars,
+                                                                self.__class__.__name__,
+                                                                lenpars))
+                    param_dim = lenpars
+                else:
+                    raise ValueError("Number of coefficient sets ({0}) does not match number "
+                                     "of parameter sets ({1}).".format(lenpars, param_dim))
             self._validate_pars(ndim=2, **pars)
             self.set_coeff(pardim=param_dim, **pars)
 
@@ -892,25 +961,32 @@ class _SIP1D(Model):
     def __repr__(self):
         fmt = """
         Model: {0}
-        Order: {1}
-        Parameter sets: {2}
+        order: {1}
+        coeff_prefix: {2}
+        param_dim: {3}
+        pars: {4}
         """.format(
               self.__class__.__name__,
               self.order,
-              self.param_dim
+              self.coeff_prefix,
+              self._param_dim,
+              "\n                   ".join(i + ':  ' + str(getattr(self, i)) for
+                                           i in self.param_names)
         )
         return fmt
 
     def __str__(self):
         fmt = """
         Model: {0}
-        Order: {1}
-        Parameter sets: {2}
+        order: {1}
+        coeff_prefix: {2}
+        Parameter sets: {3}
         Parameters:
                    {3}
         """.format(
               self.__class__.__name__,
               self.order,
+              self.coeff_prefix,
               self.param_dim,
               "\n                   ".join(i + ':  ' + str(getattr(self, i)) for
                                            i in self.param_names)
@@ -927,16 +1003,16 @@ class _SIP1D(Model):
         numc = self.order * ndim + nmixed + 1
         return numc
 
-    def _generate_coeff_names(self, coeffname):
+    def _generate_coeff_names(self, coeff_prefix):
         names = []
         for i in range(2, self.order + 1):
-            names.append('{0}{1}{2}'.format(coeffname, i, 0))
+            names.append('{0}{1}_{2}'.format(coeff_prefix, i, 0))
         for i in range(2, self.order + 1):
-            names.append('{0}{1}{2}'.format(coeffname, 0, i))
+            names.append('{0}{1}_{2}'.format(coeff_prefix, 0, i))
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i + j < self.order + 1:
-                    names.append('{0}{1}{2}'.format(coeffname, i, j))
+                    names.append('{0}{1}_{2}'.format(coeff_prefix, i, j))
         return names
 
     def set_coeff(self, pardim=1, **pars):
@@ -960,22 +1036,22 @@ class _SIP1D(Model):
         numcoeff = self.get_numcoeff(ndim)
         assert(len(pars) == numcoeff)
 
-    def _coef_matrix(self, coeffname):
+    def _coef_matrix(self, coeff_prefix):
         mat = np.zeros((self.order + 1, self.order + 1))
         for i in range(2, self.order + 1):
-            mat[i, 0] = getattr(self, '{0}{1}{2}'.format(coeffname, i, 0))[0]
+            mat[i, 0] = getattr(self, '{0}{1}_{2}'.format(coeff_prefix, i, 0))[0]
         for i in range(2, self.order + 1):
-            mat[0, i] = getattr(self, '{0}{1}{2}'.format(coeffname, 0, i))[0]
+            mat[0, i] = getattr(self, '{0}{1}_{2}'.format(coeff_prefix, 0, i))[0]
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i + j < self.order + 1:
-                    mat[i, j] = getattr(self, '{0}{1}{2}'.format(coeffname, i, j))[0]
+                    mat[i, j] = getattr(self, '{0}{1}_{2}'.format(coeff_prefix, i, j))[0]
         return mat
 
     def _eval_sip(self, x, y, coef):
         x = np.asarray(x, dtype=np.float64)
         y = np.asarray(y, dtype=np.float64)
-        if self.coeffname == 'a':
+        if self.coeff_prefix == 'a':
             result = np.zeros(x.shape)
         else:
             result = np.zeros(y.shape)
@@ -987,7 +1063,7 @@ class _SIP1D(Model):
         return result
 
     def __call__(self, x, y):
-        mcoef = self._coef_matrix(self.coeffname)
+        mcoef = self._coef_matrix(self.coeff_prefix)
         return self._eval_sip(x, y, mcoef)
 
 
@@ -1003,64 +1079,67 @@ class SIPModel(SCompositeModel):
     ----------
     crpix : list or ndarray of length(2)
         CRPIX values
-    order : int
-        SIP polynomial order
-    coeff : dict
-        SIP coefficients
-    coeffname : string: 'a', 'b', 'A' or 'B'
+    a_order : int
+        SIP polynomial order for first axis
+    a_coeff : dict
+        SIP coefficients for first axis
+    coeff_prefix : string: 'a', 'b', 'A' or 'B'
         SIP coefficient preffix
-    aporder : int
-        order for the inverse transformation
-    apcoeff : dict
+    b_order : int
+        SIP order for second axis
+    b_coeff : dict
+        SIP coefficients for the second axis
+    a_inv_order : int
+        order for the inverse transformation (AP coefficients)
+    a_inv_coeff : dict
+        coefficients for the inverse transform
+    b_inv_order : int
+        order for the inverse transformation (BP coefficients)
+    b_inv_coeff : dict
         coefficients for the inverse transform
     param_dim : int
         number of parameter sets
-    multiple : boolean
-        when input is 2D array, if True (default) it is to be
-        treated as multiple 1D arrays
-
-    Returns
-    -------
-    model : SIPModel
-        A model representing the Simple Imaging Protocol
 
     References
     ----------
     .. [1] David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005
 
     """
-    def __init__(self, crpix, order, coeff, coeffname='a',
-                 aporder=None, apcoeff=None, param_dim=1):
-        self.n_inputs = 2
-        self.n_outputs = 1
-        self.shifta = ShiftModel(crpix[0])
-        self.shiftb = ShiftModel(crpix[1])
-        self.sip1d = _SIP1D(order, coeffname=coeffname,
-                            param_dim=param_dim, **coeff)
-        if aporder is not None and apcoeff is not None:
-            self.inverse = Poly1DModel(aporder, **apcoeff)
+    def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
+        a_inv_order=None, a_inv_coeff=None,b_inv_order=None, b_inv_coeff=None,
+        param_dim=1):
+        self.shifta = ShiftModel(-crpix[0])
+        self.shiftb = ShiftModel(-crpix[1])
+        self.sip1da = _SIP1D(a_order, coeff_prefix='A',
+                             param_dim=param_dim, **a_coeff)
+        self.sip1db = _SIP1D(b_order, coeff_prefix='B',
+                             param_dim=param_dim, **b_coeff)
+        if a_inv_order is not None and a_inv_coeff is not None and \
+            b_inv_order is not None and b_inv_coeff is not None:
+            self.inversea = _SIP1D(a_inv_order, coeff_prefix='A', **a_inv_coeff)
+            self.inverseb = _SIP1D(b_inv_order, coeff_prefix='BP', **b_inv_coeff)
+            self.inverse = True
         else:
             self.inverse = None
-        super(SIPModel, self).__init__([self.shifta, self.shiftb, self.sip1d],
-                                       inmap=[['x'], ['y'], ['x', 'y']],
-                                       outmap=[['x'], ['y'], ['z']])
+        super(SIPModel, self).__init__([self.shifta, self.shiftb, self.sip1da, self.sip1db],
+                                       inmap=[['x'], ['y'], ['x', 'y'], ['x', 'y']],
+                                       outmap=[['x'], ['y'], ['x1'], ['y1']], n_inputs=2,
+                                       n_outputs=2)
 
     def __repr__(self):
-        models = [self.shifta, self.shiftb, self.sip1d]
+        models = [self.shifta, self.shiftb, self.sip1da, self.sip1db]
         fmt = """
             Model:  {0}
-            Coeff Prefix: {1}
-            """.format(self.__class__.__name__, self.sip1d.coeffname.upper())
+            """.format(self.__class__.__name__, self.sip1d.coeff_prefix)
         fmt1 = " %s  " * len(models) % tuple([repr(model) for model in models])
         fmt = fmt + fmt1
         return fmt
 
     def __str__(self):
-        models = [self.shifta, self.shiftb, self.sip1d]
+        models = [self.shifta, self.shiftb, self.sip1da, sip1db]
         fmt = """
             Model:  {0}
-            Coeff Prefix: {1}
-            """.format(self.__class__.__name__, self.sip1d.coeffname.upper())
+            """.format(self.__class__.__name__, self.sip1d.coeff_prefix)
         fmt1 = " %s  " * len(models) % tuple([str(model) for model in models])
         fmt = fmt + fmt1
         return fmt
@@ -1068,6 +1147,16 @@ class SIPModel(SCompositeModel):
     def __call__(self, x, y):
         """
         Transforms data using this model.
+
+        Parameters
+        ----------
+        x : scalar, list ot array
+            input
+        y : scalar, list or array
+            input
+
         """
-        ado = LabeledInput([x, y], ['x', 'y'])
-        return SCompositeModel.__call__(self, ado).z
+        labeled_input = LabeledInput([x, y], ['x', 'y'])
+        result = SCompositeModel.__call__(self, labeled_input)
+        return result.x1, result.y1
+
