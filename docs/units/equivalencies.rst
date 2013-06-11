@@ -145,6 +145,8 @@ To define an equivalency using the radio convention for CO 1-0::
         lambda x: (x/c.c.to('km/s').value) * restfreq + restfreq)]
     >>> u.Hz.to(u.km/u.s,116e9,equivalencies=ghz_kms)
     1895.43219287
+    >>> (116e9*u.Hz).to(u.km/u.s,equivalencies=ghz_kms)
+    <Quantity 1895.43219287 km / s>
 
 Displaying available equivalencies
 ----------------------------------
