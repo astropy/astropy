@@ -39,9 +39,9 @@ In all these cases the output has the same shape as the input.
   of the output is (M, N)
 
 """
-from __future__ import division, print_function
+from __future__ import division
 import abc
-from ..utils.compat.odict import OrderedDict
+from itertools import izip
 import numpy as np
 from . import parameters
 from . import constraints
@@ -602,43 +602,36 @@ class LabeledInput(dict):
         return LabeledInput(data, self.labels)
 
 
-class _CompositeModel(OrderedDict):
+class _CompositeModel(Model):
 
-    def __init__(self, transforms, inmap=None, outmap=None):
+    def __init__(self, transforms, n_inputs, n_outputs):
         """
         A Base class for all composite models.
 
         """
-        OrderedDict.__init__(self)
-        self.n_inputs = None
-        self.n_outputs = None
+        self._transforms = transforms
+        param_names = []
+        for tr in self._transforms:
+            param_names.extend(tr.param_names)
+        super(_CompositeModel, self).__init__(param_names, n_inputs, n_outputs)
         self.fittable = False
-        self.has_inverse = np.array([tr.has_inverse for tr in transforms]).all()
-
-    def _init_comptr(self, trans, inmap, outmap):
-        # implemented by subclasses
-        raise NotImplementedError("Subclasses should implement this")
+        self.has_inverse = all([tr.has_inverse for tr in transforms])
 
     def __repr__(self):
-        transforms = self.keys()
         fmt = """
             Model:  {0}
             """.format(self.__class__.__name__)
-        fmt1 = " %s  " * len(transforms) % tuple([repr(tr) for tr in transforms])
+        fmt1 = " %s  " * len(self._transforms) % tuple([repr(tr) for tr in self._transforms])
         fmt = fmt + fmt1
         return fmt
 
     def __str__(self):
-        transforms = self.keys()
         fmt = """
             Model:  {0}
             """.format(self.__class__.__name__)
-        fmt1 = " %s  " * len(transforms) % tuple([str(tr) for tr in transforms])
+        fmt1 = " %s  " * len(self._transforms) % tuple([str(tr) for tr in self._transforms])
         fmt = fmt + fmt1
         return fmt
-
-    def add_model(self, transf, inmap, outmap):
-        self[transf] = [inmap, outmap]
 
     def invert(self):
         raise NotImplementedError("Subclasses should implement this")
@@ -667,11 +660,6 @@ class SCompositeModel(_CompositeModel):
         if None, the number of output coordinates is exactly what
         the transforms expect
 
-    Returns
-    -------
-    model : SCompositeModel
-        Composite model which executes the comprising models in series
-
     Notes
     -----
     Output values of one model are used as input values of another.
@@ -692,8 +680,16 @@ class SCompositeModel(_CompositeModel):
         >>> result=scomptr(linp)
 
     """
-    def __init__(self, transforms, inmap=None, outmap=None):
-        super(SCompositeModel, self).__init__(transforms, inmap, outmap)
+    def __init__(self, transforms, inmap=None, outmap=None, n_inputs=None, n_outputs=None):
+        if n_inputs is None:
+            n_inputs = max([tr.n_inputs for tr in transforms])
+            # the output dimension is equal to the output dim of the last transform
+            n_outputs = transforms[-1].n_outputs
+        else:
+            assert n_outputs is not None, "Expected n_inputs and n_outputs"
+            n_inputs = n_inputs
+            n_outputs = n_outputs
+        super(SCompositeModel, self).__init__(transforms, n_inputs, n_outputs)
         if transforms and inmap and outmap:
             assert len(transforms) == len(inmap) == len(outmap), \
                 "Expected sequences of transform, " \
@@ -702,70 +698,53 @@ class SCompositeModel(_CompositeModel):
             inmap = [None] * len(transforms)
         if outmap is None:
             outmap = [None] * len(transforms)
+        self._inmap = inmap
+        self._outmap = outmap
 
-        self._init_comptr(transforms, inmap, outmap)
-        self.n_inputs = np.array([tr.n_inputs for tr in self]).max()
-        # the output dimension is equal to the output dim of the last transform
-        self.n_outputs = self.keys()[-1].n_outputs
-
-    def _init_comptr(self, transforms, inmap, outmap):
-        for tr, inm, outm in zip(transforms, inmap, outmap):
-            self[tr] = [inm, outm]
-
-    def _verify_no_mapper_input(self, *data):
-        lendata = len(data)
-        tr = self.keys()[0]
-
-        if tr.n_inputs != lendata:
-
-            raise ValueError("Required number of coordinates not matched for "
-                             "transform # {0}: {1} required, {2} supplied ".format(
-                             self.keys().index(tr) + 1, tr.n_inputs, lendata))
-
-    def invert(self, inmap, outmap):
-        scomptr = SCompositeModel(self[::-1], inmap=inmap, outmap=outmap)
-        return scomptr
-
-    def __call__(self, x, *data):
+    def __call__(self, *data):
         """
         Transforms data using this model.
         """
-        lendata = len(data) + 1
-        if lendata == 1:
-            if not isinstance(x, LabeledInput):
-                data = np.asarray(x, dtype=np.float64)
-                self._verify_no_mapper_input(data)
-                result = data
-                for tr in self:
+        if len(data) == 1:
+            if not isinstance(data[0], LabeledInput):
+                assert self._transforms[0].n_inputs == 1, ("First transform "
+                                                           "expects {0} inputs, ")
+                "1 given".format(self._transforms[0].n_inputs)
+
+                result = data[0]
+                for tr in self._transforms:
                     result = tr(result)
                 return result
             else:
-                linp = x.copy()
+                labeled_input = data[0].copy()
                 # we want to return the entire labeled object because some parts
-                # of it may not be used in another transform of which this
+                # of it may be used in another transform of which this
                 # one is a component
-                for tr in self:
-                    inmap = self[tr][0]
-                    outmap = self[tr][1]
-                    inlist = [getattr(linp, co) for co in inmap]
-                    result = tr(*inlist)
-                    if tr.n_outputs == 1:
-                        result = [result]
-                    for outcoo, res in zip(outmap, result):
-                        if outcoo not in inmap:
-                            linp.add(outcoo, res)
-                        else:
-                            linp[outcoo] = res
-                            setattr(linp, outcoo, res)
-                return linp
+                assert self._inmap is not None, ("Parameter 'inmap' must be provided when"
+                                                 "input is a labeled object")
+                assert self._outmap is not None, ("Parameter 'outmap' must be "
+                                                  "provided when input is a labeled object")
+
+                #for transform, input, output in zip(self._transforms, self._inmap, self._outmap):
+                for i in range(len(self._transforms)):
+                    #inlist = [getattr(labeled_input, label) for label in self._inmap[i]]
+                    inlist = [labeled_input[label] for label in self._inmap[i]]
+                    #result = [transform(*inlist)]
+                    result = [self._transforms[i](*inlist)]
+                    output = self._outmap[i]
+                    for label, res in zip(output, result):
+                        labeled_input.update({label: res})
+                        if label not in self._inmap[i]:
+                            setattr(labeled_input, label, res)
+                return labeled_input
         else:
-            inlist = [x]
-            inlist.extend(data)
-            self._verify_no_mapper_input(*inlist)
-            result = self.keys()[0](*inlist)
-            for tr in self.keys()[1:]:
-                result = tr(result)
-            return result
+            assert self.n_inputs == len(data), "This transform expects "
+            "{0} inputs".format(self._n_inputs)
+
+            result = self._transforms[0](*data)
+            for transform in self._transforms[1:]:
+                result = transform(result)
+        return result
 
 
 class PCompositeModel(_CompositeModel):
@@ -782,78 +761,55 @@ class PCompositeModel(_CompositeModel):
         labels in an input instance of LabeledInput
         if None, the number of input coordinates is exactly what the
         transforms expect
-
-    Returns
-    -------
-    model : PCompositeModel
-        Composite model which executes the comprising models in parallel
+    outmap : list or None
 
     Notes
     -----
-    Models are applied to input data separately and the deltas are summed.
+    Evaluate each model separately and add the results to the input_data.
 
     """
     def __init__(self, transforms, inmap=None, outmap=None):
-        super(PCompositeModel, self).__init__(transforms, inmap=None, outmap=None)
-        self._init_comptr(transforms, inmap, outmap)
-        self.n_inputs = self.keys()[0].n_inputs
-        self.n_outputs = self.n_inputs
-        self.inmap = inmap
-        self.outmap = outmap
+        self._transforms = transforms
+        n_inputs = self._transforms[0].n_inputs
+        n_outputs = n_inputs
+        for transform in self._transforms:
+            assert transform.n_inputs == transform.n_outputs == n_inputs, \
+                   ("A PCompositeModel expects n_inputs = n_outputs for all transforms")
+        super(PCompositeModel, self).__init__(transforms, n_inputs, n_outputs)
 
-    def _init_comptr(self, transforms, inmap, outmap):
-        for tr in transforms:
-            self[tr] = [inmap, outmap]
+        self._inmap = inmap
+        self._outmap = outmap
 
-    def _verify_no_mapper_input(self, *data):
-        ndim = self.keys()[0].n_inputs
-        for tr in self.keys():
-            if tr.n_inputs != ndim:
-                raise ValueError("tr.n_inputs ...")
 
-    def invert(self, inmap, outmap):
-        pcomptr = PCompositeModel(self.keys()[::-1], inmap=inmap, outmap=outmap)
-        return pcomptr
-
-    def __call__(self, x, *data):
+    def __call__(self, *data):
         """
         Transforms data using this model.
         """
-        lendata = len(data) + 1
-        if lendata == 1:
-            if not isinstance(x, LabeledInput):
-                self._verify_no_mapper_input(x)
-                result = x.copy()
-                for tr in self:
-                    delta = tr(x) - x
-                    result = result + delta
-                return result
+        if len(data) == 1:
+            if not isinstance(data[0], LabeledInput):
+                result = data[0]
+                x = data[0]
+                deltas = sum(tr(x) for tr in self._transforms)
+                return result + deltas
             else:
-                assert self.inmap is not None, ("Parameter 'inmap' must be "
+                assert self._inmap is not None, ("Parameter 'inmap' must be "
                                                 "provided when input is a labeled object")
-                assert self.outmap is not None, ("Parameter 'outmap' must be "
+                assert self._outmap is not None, ("Parameter 'outmap' must be "
                                                  "provided when input is a labeled object")
-                linp = x.copy()
+                labeled_input = data[0].copy()
                 # create a list of inputs to be passed to the transforms
-                inlist = [getattr(linp, co) for co in self.inmap]
-                # create a list of outputs to which the deltas are applied
-                result = [getattr(linp, co) for co in self.outmap]
-                res = [tr(*inlist) for tr in self]
-                delta = (np.asarray(res) - np.asarray(result)).sum(axis=0)
-                result = np.asarray(result) + delta
-                for outcoo, res in zip(self.outmap, result):
-                    linp[outcoo] = res
-                    setattr(linp, outcoo, res)
+                inlist = [getattr(labeled_input, label) for label in self._inmap]
+                deltas = [np.zeros_like(x) for x in inlist]
+                for transform in self._transforms:
+                    deltas = [transform(*inlist)]
+                for outcoo, inp, delta in izip(self._outmap, inlist, deltas):
+                    setattr(labeled_input, outcoo, inp + delta)
                 # always return the entire labeled object, not just the result
                 # since this may be part of another composite transform
-                return linp
+                return labeled_input
         else:
-            self._verify_no_mapper_input(x, *data)
-            inlist = [x]
-            inlist.extend(list(data))
-            result = inlist[:]
-            for tr in self.keys():
-                res = tr(*inlist)
-                for i in range(len(inlist)):
-                    result[i] = res[i] - inlist[i]
+            result = data[:]
+            assert self.n_inputs == self.n_outputs
+            for tr in self._transforms:
+                result += tr(*data)
             return result

@@ -30,19 +30,22 @@ class TestSComposite(object):
 
     def test_labeledinput(self):
         ado = LabeledInput([self.x, self.y], ['x', 'y'])
-        scomptr = SCompositeModel([self.p2, self.p1], [['x', 'y'], ['z']], [['z'], ['z']])
+        scomptr = SCompositeModel([self.p2, self.p1],
+                                  [['x', 'y'], ['z']],
+                                  [['z'], ['z']])
         sresult = scomptr(ado)
         z = self.p2(self.x, self.y)
         z1 = self.p1(z)
         utils.assert_almost_equal(z1, sresult.z)
 
     def test_multiple_arrays(self):
-        scomptr = SCompositeModel([self.p2, self.p1], [['x', 'y'], ['z']], [['z'], ['z']])
+        scomptr = SCompositeModel([self.p2, self.p1],
+                                  [['x', 'y'], ['z']],
+                                  [['z'], ['z']])
         sresult = scomptr(self.x, self.y)
         z = self.p2(self.x, self.y)
         z1 = self.p1(z)
         utils.assert_almost_equal(z1, sresult)
-
 
 class TestPComposite(object):
 
@@ -58,8 +61,8 @@ class TestPComposite(object):
     def test_single_array_input(self):
         pcomptr = PCompositeModel([self.p1, self.p11])
         presult = pcomptr(self.x)
-        delta11 = self.p11(self.x) - self.x
-        delta1 = self.p1(self.x) - self.x
+        delta11 = self.p11(self.x)
+        delta1 = self.p1(self.x)
         xx = self.x + delta1 + delta11
         utils.assert_almost_equal(xx, presult)
 
@@ -67,12 +70,38 @@ class TestPComposite(object):
         ado = LabeledInput([self.x, self.y], ['x', 'y'])
         pcomptr = PCompositeModel([self.p1, self.p11], inmap=['x'], outmap=['x'])
         presult = pcomptr(ado)
-        delta11 = self.p11(self.x) - self.x
-        delta1 = self.p1(self.x) - self.x
+        delta11 = self.p11(self.x)
+        delta1 = self.p1(self.x)
         xx = self.x + delta1 + delta11
         utils.assert_almost_equal(xx, presult.x)
 
+    def test_inputs_outputs_mismatch(self):
+        p2 = models.Poly2DModel(1)
+        ch2 = models.Chebyshev2DModel(1, 1)
+        with pytest.raises(AssertionError):
+            pcomp = PCompositeModel([p2, ch2])
 
 def test_gaussian2d_eval():
     m = models.Gaussian2DModel(2., 3., 4., x_stddev=1., y_stddev=5., theta=30.)
     assert m(3., 4.) == 2.
+
+def test_pickle():
+    import copy_reg, types
+    import cPickle
+
+    def reduce_method(m):
+        return (getattr, (m.__self__, m.__func__.__name__))
+
+    copy_reg.pickle(types.MethodType, reduce_method)
+
+    p1 = models.Poly1DModel(3)
+    p11 = models.Poly1DModel(4)
+    p2 = models.Poly2DModel(3)
+    g1 = models.Gaussian1DModel(10.3, 5.4, 1.2)
+    scomp_model = SCompositeModel([p1, g1])
+    pcomp_model = PCompositeModel([scomp_model, p11])
+    s = cPickle.dumps(pcomp_model)
+    s1 = cPickle.loads(s)
+    assert s1(3) == pcomp_model(3)
+
+
