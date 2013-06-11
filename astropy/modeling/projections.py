@@ -14,7 +14,7 @@ References
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 
 """
-from __future__ import division, print_function
+from __future__ import division
 from .core import Model
 from . import parameters
 import numpy as np

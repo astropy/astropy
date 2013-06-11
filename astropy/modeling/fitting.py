@@ -11,13 +11,15 @@ There are currently two non-linear fitters which use `~scipy.optimize.leastsq` a
 `~scipy.optimize.slsqp` functions in scipy.optimize.
 
 """
-from __future__ import division, print_function
+from __future__ import division
 import abc
+from functools import reduce
+import warnings
 import numpy as np
 from numpy import linalg
-import warnings
+from ..logger import log
 from .utils import poly_map_domain
-from functools import reduce
+
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
            'JointFitter', 'Fitter']
@@ -408,7 +410,7 @@ class LinearLSQFitter(Fitter):
         lacoef = (lacoef.T / scl).T
         self.fit_info['pars'] = lacoef
         if rank != self.model._order:
-            print("The fit may be poorly conditioned\n")
+            warnings.warn("The fit may be poorly conditioned\n")
         self.fitpars = lacoef.flatten()[:]
 
 
@@ -478,7 +480,7 @@ class NonLinearLSQFitter(Fitter):
         try:
             return np.dual.inv(np.dot(p_rt, r_pt))
         except:
-            print("Could not construct a covariance matrix")
+            log.info("Could not construct a covariance matrix")
             return None
 
     def __call__(self, x, y, z=None, weights=None, maxiter=MAXITER, epsilon=EPS):
