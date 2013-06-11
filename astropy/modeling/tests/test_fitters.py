@@ -36,7 +36,7 @@ class TestPoly2D(object):
         self.fitter = fitting.LinearLSQFitter(self.model)
 
     def test_poly2D_fitting(self):
-        v = self.model.deriv(self.x, self.y)
+        v = self.model.deriv(x=self.x, y=self.y)
         p = linalg.lstsq(v, self.z.flatten())[0]
         self.fitter(self.x, self.y, self.z)
         utils.assert_allclose(self.model.parameters, p)
