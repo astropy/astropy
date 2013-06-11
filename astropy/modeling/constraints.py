@@ -2,7 +2,7 @@
 """
 Constraints implementation
 """
-from __future__ import division, print_function
+from __future__ import division
 import numpy as np
 
 __all__ = ['Constraints']

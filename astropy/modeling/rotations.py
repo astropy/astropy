@@ -15,7 +15,7 @@ References
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 
 """
-from __future__ import division, print_function
+from __future__ import division
 import math
 import numbers
 import numpy as np

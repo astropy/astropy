@@ -2,7 +2,7 @@
 """
 This module provides utility functions for the models package
 """
-from __future__ import division, print_function
+from __future__ import division
 import numpy as np
 
 __all__ = ['poly_map_domain', 'comb', 'InputParameterError']
