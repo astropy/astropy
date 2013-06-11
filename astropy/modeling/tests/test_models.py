@@ -61,8 +61,8 @@ class TestPComposite(object):
     def test_single_array_input(self):
         pcomptr = PCompositeModel([self.p1, self.p11])
         presult = pcomptr(self.x)
-        delta11 = self.p11(self.x) - self.x
-        delta1 = self.p1(self.x) - self.x
+        delta11 = self.p11(self.x)
+        delta1 = self.p1(self.x)
         xx = self.x + delta1 + delta11
         utils.assert_almost_equal(xx, presult)
 
@@ -70,8 +70,8 @@ class TestPComposite(object):
         ado = LabeledInput([self.x, self.y], ['x', 'y'])
         pcomptr = PCompositeModel([self.p1, self.p11], inmap=['x'], outmap=['x'])
         presult = pcomptr(ado)
-        delta11 = self.p11(self.x) - self.x
-        delta1 = self.p1(self.x) - self.x
+        delta11 = self.p11(self.x)
+        delta1 = self.p1(self.x)
         xx = self.x + delta1 + delta11
         utils.assert_almost_equal(xx, presult.x)
 

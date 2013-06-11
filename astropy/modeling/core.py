@@ -761,15 +761,11 @@ class PCompositeModel(_CompositeModel):
         labels in an input instance of LabeledInput
         if None, the number of input coordinates is exactly what the
         transforms expect
-
-    Returns
-    -------
-    model : PCompositeModel
-        Composite model which executes the comprising models in parallel
+    outmap : list or None
 
     Notes
     -----
-    Models are applied to input data separately and the deltas are summed.
+    Evaluate each model separately and add the results to the input_data.
 
     """
     def __init__(self, transforms, inmap=None, outmap=None):
@@ -793,10 +789,8 @@ class PCompositeModel(_CompositeModel):
             if not isinstance(data[0], LabeledInput):
                 result = data[0]
                 x = data[0]
-                for tr in self._transforms:
-                    delta = tr(x) - x
-                    result = result + delta
-                return result
+                deltas = sum(tr(x) for tr in self._transforms)
+                return result + deltas
             else:
                 assert self._inmap is not None, ("Parameter 'inmap' must be "
                                                 "provided when input is a labeled object")
@@ -807,10 +801,7 @@ class PCompositeModel(_CompositeModel):
                 inlist = [getattr(labeled_input, label) for label in self._inmap]
                 deltas = [np.zeros_like(x) for x in inlist]
                 for transform in self._transforms:
-                    # create a list of outputs to which the deltas are applied
-                    result = [transform(*inlist)]
-                    for i in range(len(deltas)):
-                        deltas[i] = deltas[i] + result[i] - inlist[i]
+                    deltas = [transform(*inlist)]
                 for outcoo, inp, delta in izip(self._outmap, inlist, deltas):
                     setattr(labeled_input, outcoo, inp + delta)
                 # always return the entire labeled object, not just the result
@@ -820,6 +811,5 @@ class PCompositeModel(_CompositeModel):
             result = data[:]
             assert self.n_inputs == self.n_outputs
             for tr in self._transforms:
-                res = [tr(*data)]
-                result = [inp + delta for inp in result for delta in res]
+                result += tr(*data)
             return result
