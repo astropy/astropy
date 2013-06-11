@@ -122,6 +122,26 @@ And it also works in the other direction::
   >>> u.lb.to(u.pint, 1, equivalencies=liters_water)
   0.9586114172355458
 
+Writing Spectral (velocity) equivalencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Spectral equivalencies allow you to convert between wavelength, frequency, and
+energy, but not to velocity, which is frequently the quantity of interest.
+
+It is fairly straightforward to define the equivalency, but note that there are
+different `conventions <http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`__:
+        
+    * Radio         :math:`V = c (f_0 - f)/f_0  ;  f(V) = f_0 ( 1 - V/c )`
+    * Optical       :math:`V = c (f_0 - f)/f  ;   f(V) = f_0 ( 1 + V/c )^{-1}`
+    * Redshift      :math:`z = (f_0 - f)/f ;  f(V) = f_0 ( 1 + z )^{-1}`
+    * Relativistic  :math:`V = c (f_0^2 - f^2)/(f_0^2 + f^2) ;  f(V) = f_0 \frac{\left(1 - (V/c)^2\right)^{1/2}}{(1+V/c)}`
+
+To define an equivalency using the radio convention for CO 1-0::
+
+    >>> CO_GHz = 115.27120
+    >>> ghz_kms = [(u.GHz, u.km/u.s, lambda x: (x-CO_GHz) / CO_GHz * float(c.c.to('km/s')), lambda x: (x/float(c.c.to('km/s'))) * CO_GHz + CO_GHz)]
+    >>> u.Hz.to(u.km/u.s,116e9,equivalencies=ghz_kms)
+    1895.43219287
+
 Displaying available equivalencies
 ----------------------------------
 
