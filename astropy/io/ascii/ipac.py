@@ -61,16 +61,16 @@ class Ipac(fixedwidth.FixedWidth):
 
       \\name=value
       \\ Comment
-      | column1 | column2 | column3 | column4 | column5 |
-      | double  | double  | int     | double  | char    |
-      | unit    | unit    | unit    | unit    | unit    |
-      | null    | null    | null    | null    | null    |
-       2.0978    29.09056  73765     2.06000   B8IVpMnHg
+      |  column1 |   column2 | column3 | column4  |    column5    |
+      |  double  |   double  |   int   |   double |     char      |
+      |  unit    |   unit    |   unit  |    unit  |     unit      |
+      |  null    |   null    |   null  |    null  |     null      |
+       2.0978     29.09056    73765     2.06000    B8IVpMnHg
 
     Or::
 
       |-----ra---|----dec---|---sao---|------v---|----sptype--------|
-       2.09708    29.09056   73765     2.06000     B8IVpMnHg
+        2.09708   29.09056     73765   2.06000    B8IVpMnHg
 
     The comments and keywords defined in the header are available via the output
     table ``meta`` attribute::
@@ -81,7 +81,7 @@ class Ipac(fixedwidth.FixedWidth):
       >>> print data.meta['comments']
       ['This is an example of a valid comment']
       >>> for name, keyword in data.meta['keywords'].items():
-      ... print name, keyword['value']
+      ...     print name, keyword['value']
       ...
       intval 1
       floatval 2300.0
@@ -91,8 +91,8 @@ class Ipac(fixedwidth.FixedWidth):
     Parameters
     ----------
     definition : str, optional
-    Specify the convention for characters in the data table that occur
-    directly below the pipe (`|`) symbol in the header column definition:
+        Specify the convention for characters in the data table that occur
+        directly below the pipe (`|`) symbol in the header column definition:
 
           * 'ignore' - Any character beneath a pipe symbol is ignored (default)
           * 'right' - Character is associated with the column to the right
