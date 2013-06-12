@@ -18,7 +18,7 @@ eopc04_IAU2000.62-now  155 18279   all EOP values since 01 January 1962
 --------------------------------------------------------------------------------
 
 ================================================================================
-Byte-by-byte Description of file: eopc04_IAU2000.62-now
+Byte-by-byte Description of file: eopc04_IAU2000.62-now.gz
 --------------------------------------------------------------------------------
    Bytes Format Units  Label  Explanations
 --------------------------------------------------------------------------------
@@ -39,5 +39,3 @@ Byte-by-byte Description of file: eopc04_IAU2000.62-now
 132-143   F12.6 arcsec  e_dX_2000A   error in dX_2000A
 144-155   F12.6 arcsec  e_dY_2000A   error in dY_2000A
 --------------------------------------------------------------------------------
-
-Notes: The same format is used for finals2000A.data, finals2000A.daily, and finals2000A.all

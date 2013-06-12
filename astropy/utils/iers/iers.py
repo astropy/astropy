@@ -7,12 +7,12 @@ from ...utils.data import get_pkg_data_filename
 
 FINALS2000A = 'finals2000A.all'
 FINALS2000A_URL = 'http://maia.usno.navy.mil/ser7/finals2000A.all'
-README_FINALS2000A = get_pkg_data_filename('ReadMe.finals2000A')
+README_FINALS2000A = get_pkg_data_filename('data/ReadMe.finals2000A')
 
-EOPC04_IAU2000 = 'eopc04_IAU2000.62-now'
+PACKAGE_EOPC04_IAU2000 = get_pkg_data_filename('data/eopc04_IAU2000.62-now.gz')
 EOPC04_IAU2000_URL = \
     'http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now'
-README_EOPC04_IAU2000 = get_pkg_data_filename('ReadMe.eopc04_IAU2000')
+README_EOPC04_IAU2000 = get_pkg_data_filename('data/ReadMe.eopc04_IAU2000')
 
 # Status/source values
 FROM_IERS_B = 0
@@ -174,7 +174,7 @@ class IERS_B(IERS):
     These are final values; see http://www.iers.org/
     """
     @classmethod
-    def read(cls, file=EOPC04_IAU2000, readme=README_EOPC04_IAU2000):
+    def read(cls, file=PACKAGE_EOPC04_IAU2000, readme=README_EOPC04_IAU2000):
         # can this be done more elegantly, initialising directly, without
         # passing a Table to the Table initialiser?
         iers_b = Table.read(file, format='cds', readme=readme, data_start=14)
