@@ -47,3 +47,53 @@ simply by using `quantity.SOME_UNIT`, for example::
     >>> q = 180.0 * u.degree
     >>> q.radian
     3.141592653589793
+
+
+Virtual Observatory Simple Cone Search
+--------------------------------------
+
+:ref:`astropy_vo` is added. Example showing Cone Search for a radius of
+0.1 degrees around M31 from a selected 2MASS catalog:
+
+    >>> from astropy.vo.client import conesearch
+    >>> conesearch.list_catalogs()
+    [u'Guide Star Catalog 2.3 1',
+     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 1',
+     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 2',
+     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 3',
+     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 4',
+     u'SDSS DR8 - Sloan Digital Sky Survey Data Release 8 1',
+     u'SDSS DR8 - Sloan Digital Sky Survey Data Release 8 2',
+     u'The HST Guide Star Catalog, Version 1.1 (Lasker+ 1992) 1',
+     u'The HST Guide Star Catalog, Version 1.2 (Lasker+ 1996) 1',
+     u'The HST Guide Star Catalog, Version GSC-ACT (Lasker+ 1996-99) 1',
+     u'The PMM USNO-A1.0 Catalogue (Monet 1997) 1',
+     u'The USNO-A2.0 Catalogue (Monet+ 1998) 1',
+     u'Two Micron All Sky Survey (2MASS) 1',
+     u'Two Micron All Sky Survey (2MASS) 2',
+     u'USNO-A2 Catalogue 1',
+     u'USNO-A2.0 1']
+    >>> my_catname = 'Two Micron All Sky Survey (2MASS) 1'
+    >>> from astropy import coordinates as coord
+    >>> c = coord.ICRSCoordinates.from_name('M31')
+    >>> result = conesearch.conesearch(
+    ...     c.ra.degrees, c.dec.degrees, 0.1, catalog_db=my_catname)
+    Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
+    Downloading ...
+    WARNING: W06: ... UCD has invalid character '?' in '??' [...]
+    WARNING: W50: ... Invalid unit string 'yyyy-mm-dd' [...]
+    WARNING: W50: ... Invalid unit string 'Julian days' [...]
+    >>> result
+    <astropy.io.votable.tree.Table at 0x41e8610>
+    >>> result.url
+    u'http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&DSATAB=twomass_psc&'
+    >>> result.array.size
+    2008
+    >>> result.array['ra']
+    masked_array(data = [10.620983 10.672264 10.651166 ..., 10.805599],
+                 mask = [False False False ..., False],
+           fill_value = 1e+20)
+    >>> result.array['dec']
+    masked_array(data = [41.192303 41.19426 41.19445 ..., 41.262123],
+                 mask = [False False False ..., False],
+           fill_value = 1e+20)
