@@ -26,7 +26,7 @@ from ..util import IS_PY3K
 from ..exceptions import VOTableSpecError, VOWarning
 from ..xmlutil import validate_schema
 from ....utils.data import get_pkg_data_filename, get_pkg_data_fileobj, get_pkg_data_filenames
-from ....tests.helper import pytest, raises
+from ....tests.helper import pytest, raises, catch_warnings
 from ....utils.compat import gzip
 
 numpy_has_complex_bug = (
@@ -822,9 +822,7 @@ def test_gzip_filehandles():
 
 
 def test_from_scratch_example():
-    with warnings.catch_warnings(record=True) as warning_lines:
-        warnings.resetwarnings()
-        warnings.simplefilter("always", VOWarning, append=True)
+    with catch_warnings(VOWarning) as warning_lines:
         try:
             _run_test_from_scratch_example()
         except ValueError as e:

@@ -11,7 +11,7 @@ import numpy as np
 from .util import ignore_warnings
 from ..verify import VerifyError
 from ....io import fits
-from ....tests.helper import pytest, raises
+from ....tests.helper import pytest, raises, catch_warnings
 
 from . import FitsTestCase
 
@@ -417,10 +417,10 @@ class TestHDUListFunctions(FitsTestCase):
         oldmtime = os.stat(self.data('test0.fits')).st_mtime
         hdul = fits.open(self.data('test0.fits'))
         hdul[0].header['FOO'] = 'BAR'
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings(UserWarning) as w:
             hdul.flush()
-            assert len(w) == 1
-            assert 'mode is not supported' in str(w[0].message)
+        assert len(w) == 1
+        assert 'mode is not supported' in str(w[0].message)
         assert oldmtime == os.stat(self.data('test0.fits')).st_mtime
 
     def test_fix_extend_keyword(self):
@@ -496,14 +496,14 @@ class TestHDUListFunctions(FitsTestCase):
             f.seek(padding_start)
             f.write('\0'.encode('ascii') * padding_len)
 
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings(UserWarning) as w:
             with fits.open(self.temp('temp.fits')) as hdul:
-                assert ('contains null bytes instead of spaces' in
-                        str(w[0].message))
-                assert len(w) == 1
-                assert len(hdul) == 1
-                assert str(hdul[0].header) == str(hdu.header)
                 assert (hdul[0].data == a).all()
+        assert ('contains null bytes instead of spaces' in
+                str(w[0].message))
+        assert len(w) == 1
+        assert len(hdul) == 1
+        assert str(hdul[0].header) == str(hdu.header)
 
     def test_update_with_truncated_header(self):
         """

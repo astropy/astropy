@@ -10,7 +10,7 @@ import warnings
 
 import numpy as np
 
-from ...tests.helper import pytest, raises
+from ...tests.helper import pytest, raises, catch_warnings
 from ...tests.compat import assert_allclose
 from ...utils.compat.fractions import Fraction
 
@@ -209,22 +209,16 @@ def test_equivalent_units2():
 
 
 def test_unknown_unit():
-    with warnings.catch_warnings(record=True) as warning_lines:
-        warnings.resetwarnings()
-        warnings.simplefilter("always", u.UnitsWarning, append=True)
+    with catch_warnings(u.UnitsWarning) as warning_lines:
         u.Unit("FOO", parse_strict='warn')
 
-    assert warning_lines[0].category == u.UnitsWarning
     assert 'FOO' in str(warning_lines[0].message)
 
 
 def test_unknown_unit2():
-    with warnings.catch_warnings(record=True) as warning_lines:
-        warnings.resetwarnings()
-        warnings.simplefilter("always", u.UnitsWarning, append=True)
+    with catch_warnings(u.UnitsWarning) as warning_lines:
         assert u.Unit("m/s/kg", parse_strict='warn').to_string() == 'm/s/kg'
 
-    assert warning_lines[0].category == u.UnitsWarning
     assert 'm/s/kg' in str(warning_lines[0].message)
 
 
