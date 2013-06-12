@@ -17,6 +17,7 @@ class TestTimeDelta():
         self.t = Time('2010-01-01', scale='utc')
         self.t2 = Time('2010-01-02 00:00:01', scale='utc')
         self.dt = TimeDelta(100.0, format='sec')
+        self.dt_array = TimeDelta(np.arange(100,1000,100), format='sec')
 
     def test_sub(self):
         # time - time
@@ -120,22 +121,24 @@ class TestTimeDelta():
         assert allclose_sec(dt2.val, 86400.0)
 
     def test_neg_abs(self):
-        dt2 = -self.dt
-        assert dt2.jd == -self.dt.jd
-        dt3 = abs(self.dt)
-        assert dt3.jd == self.dt.jd
-        dt4 = abs(dt2)
-        assert dt4.jd == self.dt.jd
+        for dt in (self.dt, self.dt_array):
+            dt2 = -dt
+            assert np.all(dt2.jd == -dt.jd)
+            dt3 = abs(dt)
+            assert np.all(dt3.jd == dt.jd)
+            dt4 = abs(dt2)
+            assert np.all(dt4.jd == dt.jd)
 
     def test_mul_div(self):
-        dt2 = self.dt+self.dt
-        dt3 = 2.*self.dt
-        assert dt2.jd == dt3.jd
-        dt4 = self.dt*np.arange(3)
-        assert dt4[0].jd == 0.
-        assert dt4[-1].jd == dt2.jd
-        dt5 = dt3 / 2.
-        assert dt5.jd == self.dt.jd
+        for dt in (self.dt, self.dt_array):
+            dt2 = dt+dt+dt
+            dt3 = 3.*dt
+            assert allclose_jd(dt2.jd, dt3.jd)
+            dt4 = dt3 / 3.
+            assert allclose_jd(dt4.jd, dt.jd)
+        dt5 = self.dt*np.arange(3)
+        assert dt5[0].jd == 0.
+        assert dt5[-1].jd == (self.dt+self.dt).jd
         with pytest.raises(OperandTypeError):
             self.dt * self.dt
         with pytest.raises(OperandTypeError):

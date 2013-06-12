@@ -704,17 +704,21 @@ class TimeDelta(Time):
             self._init_from_vals(val, val2, format, 'tai', copy)
 
     def __neg__(self):
+        """Negation of a `TimeDelta` object."""
         new = self.copy()
         new._time.jd1 = -self._time.jd1
         new._time.jd2 = -self._time.jd2
         return new
 
     def __abs__(self):
+        """Absolute value of a `TimeDelta` object."""
         #TODO: for safety, ensure round-off errors are taken into account
-        if self._time.jd1 + self._time.jd2 < 0:
-            return self.__neg__()
-        else:
-            return self.copy()
+        jd1, jd2 = self._time.jd1, self._time.jd2
+        negative = jd1 + jd2 < 0
+        new = self.copy()
+        new._time.jd1 = np.where(negative, -jd1, jd1)
+        new._time.jd2 = np.where(negative, -jd2, jd2)
+        return new
 
     def __mul__(self, other):
         """Multiplication of `TimeDelta` objects by numbers/arrays."""
@@ -737,16 +741,11 @@ class TimeDelta(Time):
     def __div__(self, other):
         """Division of `TimeDelta` objects by numbers/arrays."""
         #TODO: ensure round-off errors in jd1 are taken into account!!!
-        jd1 = self.jd1 / other
-        jd2 = self.jd2 / other
-        out = TimeDelta(jd1, jd2, format='jd')
-        if self.format != 'jd':
-            out = out.replicate(format=self.format)
-        return out
+        return self.__mul__(1. / other)
 
     def __truediv__(self, other):
         """Division of `TimeDelta` objects by numbers/arrays."""
-        return self.__div__(other)
+        return self.__mul__(1. / other)
 
 
 class TimeFormat(object):
