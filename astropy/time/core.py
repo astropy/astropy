@@ -717,6 +717,7 @@ class TimeDelta(Time):
             return self.copy()
 
     def __mul__(self, other):
+        """Multiplication of `TimeDelta` objects by numbers/arrays."""
         # check needed since otherwise the self.jd1 * other multiplication
         # would enter here again (via __rmul__)
         if isinstance(other, Time):
@@ -730,9 +731,11 @@ class TimeDelta(Time):
         return out
 
     def __rmul__(self, other):
+        """Multiplication of numbers/arrays with `TimeDelta` objects."""
         return self.__mul__(other)
 
     def __div__(self, other):
+        """Division of `TimeDelta` objects by numbers/arrays."""
         #TODO: ensure round-off errors in jd1 are taken into account!!!
         jd1 = self.jd1 / other
         jd2 = self.jd2 / other
@@ -740,6 +743,10 @@ class TimeDelta(Time):
         if self.format != 'jd':
             out = out.replicate(format=self.format)
         return out
+
+    def __truediv__(self, other):
+        """Division of `TimeDelta` objects by numbers/arrays."""
+        return self.__div__(other)
 
 
 class TimeFormat(object):
