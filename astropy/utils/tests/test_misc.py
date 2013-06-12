@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from .. import misc
-from ...tests.helper import remote_data
+from ...tests.helper import remote_data, catch_warnings
 from .. import data
 
 
@@ -91,18 +91,14 @@ def test_deprecated_attribute():
 
     dummy = DummyClass()
 
-    with warnings.catch_warnings(record=True) as w:
-        warnings.resetwarnings()
-        warnings.simplefilter('always')
+    with catch_warnings(DeprecationWarning) as w:
         x = dummy.foo
 
     assert len(w) == 1
     assert str(w[0].message) == ("The foo attribute is deprecated and may be "
                                  "removed in a future version.")
 
-    with warnings.catch_warnings(record=True) as w:
-        warnings.resetwarnings()
-        warnings.simplefilter('always')
+    with catch_warnings() as w:
         dummy.set_private()
 
     assert len(w) == 0

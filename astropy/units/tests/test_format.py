@@ -159,7 +159,7 @@ def test_wcs_parse():
 
 
 def test_flatten_to_known():
-    myunit = u.def_unit("FOOBAR", u.erg / u.Hz)
+    myunit = u.def_unit("FOOBAR_One", u.erg / u.Hz)
     try:
         assert myunit.to_string('fits') == 'erg Hz-1'
         myunit2 = myunit * u.bit ** 3
@@ -167,9 +167,10 @@ def test_flatten_to_known():
     finally:
         myunit.deregister()
 
+
 @raises(ValueError)
 def test_flatten_impossible():
-    myunit = u.def_unit("FOOBAR")
+    myunit = u.def_unit("FOOBAR_Two")
     try:
         myunit.to_string('fits')
     finally:

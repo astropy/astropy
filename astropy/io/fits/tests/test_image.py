@@ -8,7 +8,8 @@ import warnings
 import numpy as np
 
 from ....io import fits
-from ....tests.helper import pytest, raises
+from ....io.fits.verify import VerifyWarning
+from ....tests.helper import pytest, raises, catch_warnings
 
 from . import FitsTestCase
 from .util import ignore_warnings
@@ -258,18 +259,18 @@ class TestImageFunctions(FitsTestCase):
         # make a defect HDUList first
         x = fits.ImageHDU()
         hdu = fits.HDUList(x)  # HDUList can take a list or one single HDU
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             hdu.verify()
-            text = "HDUList's 0th element is not a primary HDU."
-            assert len(w) == 3
-            assert text in str(w[1].message)
+        text = "HDUList's 0th element is not a primary HDU."
+        assert len(w) == 3
+        assert text in str(w[1].message)
 
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             hdu.writeto(self.temp('test_new2.fits'), 'fix')
-            text = ("HDUList's 0th element is not a primary HDU.  "
-                    "Fixed by inserting one as 0th HDU.")
-            assert len(w) == 3
-            assert text in str(w[1].message)
+        text = ("HDUList's 0th element is not a primary HDU.  "
+                "Fixed by inserting one as 0th HDU.")
+        assert len(w) == 3
+        assert text in str(w[1].message)
 
     def test_section(self):
         # section testing
@@ -591,7 +592,7 @@ class TestImageFunctions(FitsTestCase):
             assert (hdul['SCI'].data == cube).all()
 
     def test_disable_image_compression(self):
-        with warnings.catch_warnings():
+        with catch_warnings():
             # No warnings should be displayed in this case
             warnings.simplefilter('error')
             with fits.open(self.data('comp.fits'),

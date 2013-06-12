@@ -571,3 +571,25 @@ To use it from Python, do::
 
     >>> import astropy
     >>> astropy.test(open_files=True)
+
+
+Running tests in parallel
+=========================
+
+It is possible to speed up astropy's tests using the `pytest-xdist`
+plugin.  This plugin can be installed using `pip`::
+
+    pip install pytest-xdist
+
+Once installed, tests can be run in parallel using the `--parallel`
+commandline option.  For example, to use 4 processes::
+
+    python setup.py test --parallel=4
+
+Pass a negative number to `--parallel` to create the same number of
+processes as cores on your machine.
+
+Similarly, this feature can be invoked from Python::
+
+    >>> import astropy
+    >>> astropy.test(parallel=4)
