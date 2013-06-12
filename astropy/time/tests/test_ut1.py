@@ -5,10 +5,18 @@ import numpy as np
 
 from ...tests.helper import pytest
 from .. import Time
+from ...utils.iers import iers  # used in testing
 
 allclose_jd = functools.partial(np.allclose, rtol=1e-15, atol=0)
 allclose_sec = functools.partial(np.allclose, rtol=1e-15, atol=1e-9)
 # 1 nanosec atol
+
+try:
+    iers.IERS_A.open()  # check if IERS_A is available
+except IOError:
+    HAS_IERS_A = False
+else:
+    HAS_IERS_A = True
 
 
 class TestTimeUT1():
@@ -28,6 +36,11 @@ class TestTimeUT1():
         tnow = Time.now()
         with pytest.raises(ValueError):
             tnow.ut1
+
+@pytest.mark.skipif('not HAS_IERS_A')
+class TestTimeUT1_IERSA():
+    def test_ut1_iers_A(self):
+        tnow = Time.now()
         tnow.iers = 'A'
         tnow_ut1_jd = tnow.ut1.jd
         assert tnow_ut1_jd != tnow.jd
