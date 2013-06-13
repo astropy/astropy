@@ -670,6 +670,9 @@ class Time(object):
             raise OperandTypeError(self, other)
 
     def _tai_difference(self, other):
+        """If other is of same class as self, return difference in TAI.
+        Otherwise, raise OperandTypeError.
+        """
         if not (isinstance(other, self.__class__) and
                 isinstance(self, other.__class__)):
             raise OperandTypeError(self, other)
@@ -685,27 +688,27 @@ class Time(object):
 
     def __lt__(self, other):
         diff = self._tai_difference(other)
-        return self._shape_like_input_if_possible(diff < 0.)
+        return self._shaped_like_input_if_possible(diff < 0.)
 
     def __le__(self, other):
         diff = self._tai_difference(other)
-        return self._shape_like_input_if_possible(diff <= 0.)
+        return self._shaped_like_input_if_possible(diff <= 0.)
 
     def __eq__(self, other):
         diff = self._tai_difference(other)
-        return self._shape_like_input_if_possible(diff == 0.)
+        return self._shaped_like_input_if_possible(diff == 0.)
 
     def __ne__(self, other):
         diff = self._tai_difference(other)
-        return self._shape_like_input_if_possible(diff != 0.)
+        return self._shaped_like_input_if_possible(diff != 0.)
 
     def __gt__(self, other):
         diff = self._tai_difference(other)
-        return self._shape_like_input_if_possible(diff > 0.)
+        return self._shaped_like_input_if_possible(diff > 0.)
 
     def __ge__(self, other):
         diff = self._tai_difference(other)
-        return self._shape_like_input_if_possible(diff >= 0.)
+        return self._shaped_like_input_if_possible(diff >= 0.)
 
 
 class TimeDelta(Time):
