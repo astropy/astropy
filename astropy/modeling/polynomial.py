@@ -923,7 +923,7 @@ class Legendre2DModel(OrthogPolyBase):
 class _SIP1D(Model):
 
     """
-    This implements the Simple Imaging Protocol Model (SIP) in 1D.
+    This implements the Simple Imaging Polynomial Model (SIP) in 1D.
 
     It's unlikely it will be used in 1D so this class is private
     and SIPModel should be used instead.
