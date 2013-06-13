@@ -157,6 +157,8 @@ class TestTableItems(BaseTestItems):
         assert t2['c'].attrs_equal(table_data.COLS[2])
         t2['a'][0] = 0
         assert np.all(self.t['a'] == np.array([1, 0, 3]))
+        assert t2.masked == self.t.masked
+        assert t2._column_class == self.t._column_class
 
     def test_fancy_index_slice(self, table_data):
         """Table fancy slice returns COPY of data"""
@@ -172,6 +174,8 @@ class TestTableItems(BaseTestItems):
         t2['a'][0] = 0
         assert np.all(self.t._data == table_data.DATA)
         assert np.any(t2['a'] != table_data.DATA['a'][slice])
+        assert t2.masked == self.t.masked
+        assert t2._column_class == self.t._column_class
 
     def test_list_index_slice(self, table_data):
         """Table list index slice returns COPY of data"""
@@ -187,6 +191,9 @@ class TestTableItems(BaseTestItems):
         t2['a'][0] = 0
         assert np.all(self.t._data == table_data.DATA)
         assert np.any(t2['a'] != table_data.DATA['a'][slice])
+        assert t2.masked == self.t.masked
+        assert t2._column_class == self.t._column_class
+
 
     def test_select_columns(self, table_data):
         """Select columns returns COPY of data and all column
@@ -202,6 +209,9 @@ class TestTableItems(BaseTestItems):
         t2['a'][0] = 0
         assert np.all(self.t._data == table_data.DATA)
         assert np.any(t2['a'] != table_data.DATA['a'])
+        assert t2.masked == self.t.masked
+        assert t2._column_class == self.t._column_class
+
 
     def test_np_where(self, table_data):
         """Select rows using output of np.where"""
