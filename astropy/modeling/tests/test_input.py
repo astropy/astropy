@@ -30,7 +30,9 @@ model2d_pars = [(models.Poly2DModel, [2]),
                 (models.Gaussian2DModel, [10, 3.4, 3.3, 1.2, 1.1]),
                 ]
 
+
 class TestInputType(object):
+
     """
     This class tests that models accept numbers, lists and arrays.
 
@@ -56,6 +58,7 @@ class TestInputType(object):
         m(self.x, self.y)
         m(self.x1, self.y1)
         m(self.x2, self.y2)
+
 
 class TestFitting(object):
 

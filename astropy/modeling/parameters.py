@@ -171,7 +171,7 @@ class Parameter(list):
         """
         Tie a parameter.
         """
-        assert callable(val) or val == False, "Tied must be a callable"
+        assert callable(val) or val is False, "Tied must be a callable"
         self._tied = val
         self.mclass.constraints._tied.update({self.name: val})
         self.mclass.constraints._update()
