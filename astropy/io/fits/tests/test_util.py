@@ -12,9 +12,16 @@ from ..util import ignore_sigint
 
 from . import FitsTestCase
 
+def _in_ipython():
+    try:
+        temp = __IPYTHON__ 
+        return True
+    except: 
+        return False
 
 class TestUtils(FitsTestCase):
     @pytest.mark.skipif("sys.platform.startswith('win')")
+    @pytest.mark.skipif("_in_ipython()")
     def test_ignore_sigint(self):
         @ignore_sigint
         def test():
