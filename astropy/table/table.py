@@ -889,14 +889,11 @@ class Table(object):
         The mask to initialize the table
     '''
 
-    def __init__(self, data=None, masked=False, names=None, dtypes=None,
+    def __init__(self, data=None, masked=None, names=None, dtypes=None,
                  meta=None, copy=True):
 
         # Set up a placeholder empty table
         self._data = None
-        self._masked = False
-        # Even if masked = False need to call _set_masked here, because it
-        # implicetly sets _column_class as well.
         self._set_masked(masked)
         self.columns = TableColumns()
         self._meta = OrderedDict() if meta is None else deepcopy(meta)
@@ -1051,7 +1048,12 @@ class Table(object):
                 .format(inp_str))
 
     def _set_masked_from_cols(self, cols):
-        if not self.masked:
+        if self.masked is None:
+            if any(isinstance(col, (MaskedColumn, ma.MaskedArray)) for col in cols):
+                self._set_masked(True)
+            else:
+                self._set_masked(False)
+        elif not self.masked:
             if any(isinstance(col, (MaskedColumn, ma.MaskedArray)) for col in cols):
                 self._set_masked(True)
 
@@ -1426,15 +1428,23 @@ class Table(object):
         masked : bool
             State of table masking (True or False)
         """
-        if masked not in [True, False]:
-            raise ValueError("masked should be one of True, False")
-
-        if self._masked is False:
-            log.info("Upgrading Table to masked Table")
-            self._masked = masked
+        if hasattr(self, '_masked'):
+            # The only allowed change is from None to False or True, or False to True
+            if self._masked is None and masked in [False, True]:
+                self._masked = masked
+            elif self._masked is False and masked is True:
+                log.info("Upgrading Table to masked Table")
+                self._masked = masked
+            elif self._masked is masked:
+                raise Exception("Masked attribute is already set to {0}".format(masked))
+            else:
+                raise Exception("Cannot change masked attribute to {0} once it is set to {1}"
+                                .format(masked, self._masked))
         else:
-            raise Exception("Cannot change masked attribute to False once it is set to True")
-
+            if masked in [True, False, None]:
+                self._masked = masked
+            else:
+                raise ValueError("masked should be one of True, False, None")
         if self._masked:
             self._column_class = MaskedColumn
         else:
