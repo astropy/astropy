@@ -37,10 +37,11 @@ class TestTimeUT1():
         with pytest.raises(ValueError):
             tnow.ut1
 
+
 @pytest.mark.skipif('not HAS_IERS_A')
 class TestTimeUT1_IERSA():
     def test_ut1_iers_A(self):
         tnow = Time.now()
-        tnow.iers = 'A'
+        iers.IERS.iers_table = iers.IERS_A.open()
         tnow_ut1_jd = tnow.ut1.jd
         assert tnow_ut1_jd != tnow.jd

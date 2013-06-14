@@ -5,31 +5,69 @@ International Earth Rotation Service, in particular allowing interpolation of
 published UT1-UTC values for given times.  These are used in astropy.time to
 provide UT1 values.  By default, IERS B values provided as part of astropy are
 used, but user-downloaded files can be substituted.
+
+Generally, there is no need to invoke the iers classes oneself.  E.g., the
+default IERS B table is loaded as necessary in `Time`::
+    >>> t = Time(['2012-06-30 12:00:00', '2012-06-30 23:59:59',
+                  '2012-06-30 23:59:60', '2012-07-01 00:00:00',
+                  '2012-07-01 12:00:00'], scale='utc')
+    >>> t.ut1
+    <Time object: scale='ut1' format='iso' vals=['2012-06-30 11:59:59.413'
+     '2012-06-30 23:59:58.413' '2012-06-30 23:59:59.413'
+     '2012-07-01 00:00:00.413' '2012-07-01 12:00:00.413']>
+
+But if one is dealing with very recent observations, this does now work::
+    >>> t2 = Time.now()
+    >>> t2.ut1
+    ERROR: ValueError: (some) times are beyond range covered by IERS table.
+    [astropy.time.core]
+
+In this case, one needs to update the IERS B table or override it with IERS A
+(which also has predictions).  In future versions, this may become
+configurable, but currently it requires some handiwork.  For `Time`, one
+option is to set the `delta_ut1_utc` property directly::
+    >>> from astropy.utils.iers import IERS_A
+    >>> a = IERS_A.open('finals2000A.all')
+    >>> a.ut1_utc(t2)
+    (0.069727551794218745, 2)
+    >>> t2.delta_ut1_utc = a.ut1_utc(t2)[0]
+    >>> t2.ut1
+    <Time object: scale='ut1' format='datetime' vals=2013-06-14 02:31:40.441858>
+
+(Note that one should check the status! Negative values indicate the time is
+out of range.  Above it is 2, or `iers.FROM_IERS_A_PREDICTION`)
+
+Alternatively, the default table used by `Time` can be overridden in the
+following way (which makes use of the fact that after a table is read in, it is
+kept for future calls during the session in `cls.iers_table`):
+    >>> from astropy.utils.iers import IERS, IERS_A
+    >>> IERS.iers_table = IERS_A.open('finals2000A.all')
+    >>> Time.now().ut1
+    <Time object: scale='ut1' format='datetime' vals=2013-06-14 02:36:11.986437>
+
+(The IERS-A file `finals2000A.all` can be downloaded from `iers.IERS_A_URL`)
 """
 
 from __future__ import division
 import numpy as np
 
 from ...table import Table
-from ...time import Time
 from ...utils.data import get_pkg_data_filename
 
 __all__ = ['IERS', 'IERS_B', 'IERS_A',
            'FROM_IERS_B', 'FROM_IERS_A', 'FROM_IERS_A_PREDICTION',
            'TIME_BEFORE_IERS_RANGE', 'TIME_BEYOND_IERS_RANGE',
-           'FINALS2000A', 'FINALS2000A_URL', 'README_FINALS2000A',
-           'PACKAGE_EOPC04_IAU2000', 'EOPC04_IAU2000_URL',
-           'README_EOPC04_IAU2000']
+           'IERS_A_FILE', 'IERS_A_URL', 'IERS_A_README',
+           'IERS_B_FILE', 'IERS_B_URL', 'IERS_B_README']
 
 # IERS-A default file name, URL, and ReadMe with content description
-FINALS2000A = 'finals2000A.all'
-FINALS2000A_URL = 'http://maia.usno.navy.mil/ser7/finals2000A.all'
-README_FINALS2000A = get_pkg_data_filename('data/ReadMe.finals2000A')
+IERS_A_FILE = 'finals2000A.all'
+IERS_A_URL = 'http://maia.usno.navy.mil/ser7/finals2000A.all'
+IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
 # IERS-B default file name, URL, and ReadMe with content description
-PACKAGE_EOPC04_IAU2000 = get_pkg_data_filename('data/eopc04_IAU2000.62-now.gz')
-EOPC04_IAU2000_URL = \
-    'http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now'
-README_EOPC04_IAU2000 = get_pkg_data_filename('data/ReadMe.eopc04_IAU2000')
+IERS_B_FILE = get_pkg_data_filename('data/eopc04_IAU2000.62-now.gz')
+IERS_B_URL = 'http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now'
+IERS_B_README = get_pkg_data_filename('data/ReadMe.eopc04_IAU2000')
 # Status/source values returned by IERS.ut1_utc
 FROM_IERS_B = 0
 FROM_IERS_A = 1
@@ -60,9 +98,13 @@ class IERS(Table):
 
         Notes
         -----
-        All parameters are passed on to (sub)class method read.
+        If it exists, a previously stored table is returned (`cls.iers_table`)
+        If not, the `read` method is called, passing on all parameters.
+
         If a table needs to be re-read from disk, use the (sub-class) close
         method and re-open.
+
+        For the IERS class itself, an IERS_B sub-class instance is opened.
         """
         if cls.iers_table is None:
             cls.iers_table = cls.read(*args, **kwargs)
@@ -94,8 +136,10 @@ class IERS(Table):
         utc: float or array
             fractional part of MJD
         """
-        if isinstance(jd1, Time):
+        try:  # see if this is a Time object
             jd1, jd2 = jd1.utc.jd1, jd1.utc.jd2
+        except:
+            pass
         mjd = np.floor(jd1 - MJD_ZERO + jd2)
         utc = jd1 - (MJD_ZERO+mjd) + jd2
         return mjd, utc
@@ -180,7 +224,16 @@ class IERS_A(IERS):
 
     These include rapid turnaround and predicted times.
     See http://maia.usno.navy.mil/
+
+    Notes
+    -----
+    The IERS A file is not part of astropy.  It can be downloaded from
+    `iers.IERS_A_URL`.  See `iers.__doc__` for instructions on how to enable
+    its use in `Time`, etc.
     """
+
+    iers_table = None
+
     def __init__(self, table):
         """Initialize an IERS-A table that is already read in.
         Use read or open class methods to read it from disk.
@@ -196,17 +249,17 @@ class IERS_A(IERS):
         super(IERS_A, self).__init__(table.filled())
 
     @classmethod
-    def read(cls, file=FINALS2000A, readme=README_FINALS2000A):
+    def read(cls, file=IERS_A_FILE, readme=IERS_A_README):
         """Read IERS-A table from a finals2000a.* file provided by USNO.
 
         Parameters
         ----------
         file : str
             full path to ascii file holding IERS-A data
-            (default: 'finals2000A.all', i.e., in one's working directory)
+            (default: `iers.IERS_A_FILE`)
         readme : str
             full path to ascii file holding CDS-style readme
-            (default: package version, properly set up for standard USNO files)
+            (default: package version, `iers.IERS_A_README`)
 
         Returns
         -------
@@ -231,19 +284,30 @@ class IERS_B(IERS):
     """IERS Table class targeted to IERS B, provided by IERS itself.
 
     These are final values; see http://www.iers.org/
+
+    Notes
+    -----
+    If the package IERS B file (`iers.IERS_B_FILE`) is out of date, a new
+    version can be downloaded from `iers.IERS_B_URL`.  See `iers.__doc__`
+    for instructions on how to enable its use in `Time`, etc.
     """
+
+    iers_table = None
+
     @classmethod
-    def read(cls, file=PACKAGE_EOPC04_IAU2000, readme=README_EOPC04_IAU2000):
+    def read(cls, file=IERS_B_FILE, readme=IERS_B_README, data_start=14):
         """Read IERS-B table from a eopc04_iau2000.* file provided by IERS.
 
         Parameters
         ----------
         file : str
             full path to ascii file holding IERS-B data
-            (default: package version)
+            (default: package version, `iers.IERS_B_FILE`)
         readme : str
             full path to ascii file holding CDS-style readme
-            (default: package version, properly set up for standard USNO files)
+            (default: package version, `iers.IERS_B_README`)
+        data_start : int
+            starting row (default: 14, appropriate for standard IERS files)
 
         Returns
         -------
@@ -251,9 +315,13 @@ class IERS_B(IERS):
         """
         # can this be done more elegantly, initialising directly, without
         # passing a Table to the Table initialiser?
-        iers_b = Table.read(file, format='cds', readme=readme, data_start=14)
+        iers_b = Table.read(file, format='cds', readme=readme,
+                            data_start=data_start)
         return cls(iers_b)
 
     def ut1_utc_source(self, i):
         """Set UT1-UTC source flag for entries in IERS table"""
         return np.ones_like(i) * FROM_IERS_B
+
+# by default for IERS class, read IERS-B table
+IERS.read = IERS_B.read

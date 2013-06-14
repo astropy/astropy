@@ -115,7 +115,6 @@ class Time(object):
 
         self.lat = lat
         self.lon = lon
-        self.iers = 'B'
         if precision is not None:
             self.precision = precision
         if in_subfmt is not None:
@@ -437,7 +436,7 @@ class Time(object):
                           self.in_subfmt, self.out_subfmt, from_jd=True)
         # Optional or non-arg attributes
         attrs = ('is_scalar', '_delta_ut1_utc', '_delta_tdb_tt',
-                 'lat', 'lon', 'iers', 'precision', 'in_subfmt', 'out_subfmt')
+                 'lat', 'lon', 'precision', 'in_subfmt', 'out_subfmt')
         for attr in attrs:
             try:
                 setattr(tm, attr, getattr(self, attr))
@@ -559,19 +558,17 @@ class Time(object):
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
         # seconds. It is obtained from tables published by the IERS.
         if not hasattr(self, '_delta_ut1_utc'):
-            from ..utils.iers import IERS_A, IERS_B, \
+            from ..utils.iers import IERS, \
                 TIME_BEFORE_IERS_RANGE, TIME_BEYOND_IERS_RANGE
-            if self.iers == 'B':
-                iers_table = IERS_B.open()
-            else:
-                iers_table = IERS_A.open()
+            iers_table = IERS.open()
             ut1_utc, status = iers_table.ut1_utc(jd1, jd2)
             if np.any(status == TIME_BEFORE_IERS_RANGE):
-                raise ValueError('(some) times are before range covered by ' +
-                                 'IERS {} table.'.format(self.iers))
+                raise ValueError('(some) times are before range covered by '
+                                 'IERS table.')
             if np.any(status == TIME_BEYOND_IERS_RANGE):
-                raise ValueError('(some) times are beyond range covered by ' +
-                                 'IERS {} table.\n'.format(self.iers))
+                raise ValueError('(some) times are beyond range covered by '
+                                 'IERS table.  See astropy.utils.iers.__doc__ '
+                                 'for how to handle recent times.')
             self._set_delta_ut1_utc(ut1_utc)
 
         return self._delta_ut1_utc
