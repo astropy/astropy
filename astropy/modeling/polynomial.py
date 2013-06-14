@@ -923,7 +923,7 @@ class Legendre2DModel(OrthogPolyBase):
 class _SIP1D(Model):
 
     """
-    This implements the Simple Imaging Protocol Model (SIP) in 1D.
+    This implements the Simple Imaging Polynomial Model (SIP) in 1D.
 
     It's unlikely it will be used in 1D so this class is private
     and SIPModel should be used instead.
@@ -1071,9 +1071,10 @@ class SIPModel(SCompositeModel):
 
     """
 
-    Simple Imaging Protocol (SIP) model.
+    Simple Imaging Polynomial (SIP) model.
 
-    See [1]_ for a description of the SIP.
+    The SIP convention is used to represent distortions in FITS image headers.
+    See [1]_ for a description of the SIP convention.
 
     Parameters
     ----------
@@ -1102,7 +1103,7 @@ class SIPModel(SCompositeModel):
 
     References
     ----------
-    .. [1] David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005
+    .. [1] `David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005 <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`_
 
     """
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
