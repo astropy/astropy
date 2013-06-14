@@ -708,9 +708,9 @@ class SCompositeModel(_CompositeModel):
         """
         if len(data) == 1:
             if not isinstance(data[0], LabeledInput):
-                assert self._transforms[0].n_inputs == 1, ("First transform "
-                                                           "expects {0} inputs, ")
-                "1 given".format(self._transforms[0].n_inputs)
+                assert self._transforms[0].n_inputs == 1, \
+                    "First transform expects {0} inputs, 1 given".format(
+                        self._transforms[0].n_inputs)
 
                 result = data[0]
                 for tr in self._transforms:
