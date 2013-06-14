@@ -78,7 +78,6 @@ class Gaussian1DModel(ParametricModel):
             self.deriv = self.gderiv
 
     def eval(self, x, params):
-
         """
         Evaluate the model.
 
@@ -90,7 +89,6 @@ class Gaussian1DModel(ParametricModel):
             a list of float parameters returned by the optimization algorithm
         """
         return params[0] * np.exp(- 0.5 * (x - params[1]) ** 2 / params[2] ** 2)
-
 
     def gderiv(self, params, x, dummy=None):
         """
@@ -109,7 +107,7 @@ class Gaussian1DModel(ParametricModel):
         -------
         The derivatives along each parameter with shape [npars, len(x)]
         """
-        amplitude, mean, stddev = p
+        amplitude, mean, stddev = params
 
         deriv_dict = {}
         deriv_dict['amplitude'] = np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
