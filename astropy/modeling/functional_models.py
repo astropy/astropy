@@ -90,20 +90,25 @@ class Gaussian1DModel(ParametricModel):
         """
         return params[0] * np.exp(- 0.5 * (x - params[1]) ** 2 / params[2] ** 2)
 
-    def gderiv(self, params, x, y):
+    def gderiv(self, params, x, dummy=None):
         """
-        Gaussian 1D derivative.
+        Analytical Gaussian derivative
 
         Parameters
         ----------
         params : list
-            a list of float parameters returned by the optimization algorithm
-        x : array like or a number
-            input
-        y : dummy variable - array like or a number
-            input
+            Parameter list
+        x : array
+            Array of X-values at which to evaluate derivative
+        dummy : None
+            A dummy variable required by scipy's optimize techniques
+
+        Returns
+        -------
+        The derivatives along each parameter with shape [npars, len(x)]
         """
         amplitude, mean, stddev = params
+
         deriv_dict = {}
         deriv_dict['amplitude'] = np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
         deriv_dict['mean'] = (amplitude
@@ -384,7 +389,7 @@ class PowerLawModel(ParametricModel):
         """
         return params[0] * ((x) ** (-params[1]))
 
-    def deriv(self, params, x, y):
+    def deriv(self, params, x, dummy):
         """
         Parameters
         ----------
@@ -392,7 +397,9 @@ class PowerLawModel(ParametricModel):
             a list of float parameters returned by the optimization algorithm
         x : array like or a number
             input
-        y : dummy variable
+        dummy : None
+            A dummy variable required by scipy's optimize techniques
+
         """
         deriv_dict = {
             'scale': ((x) ** (-params[1])),
