@@ -10,7 +10,7 @@ import numpy as np
 from numpy.testing import utils
 from ...tests.helper import pytest
 from .. import fitting
-        
+
 try:
     from scipy import optimize
     HAS_SCIPY = True
@@ -54,6 +54,7 @@ class TestSComposite(object):
         z1 = self.p1(z)
         utils.assert_almost_equal(z1, sresult)
 
+
 class TestPComposite(object):
 
     """
@@ -88,12 +89,15 @@ class TestPComposite(object):
         with pytest.raises(AssertionError):
             pcomp = PCompositeModel([p2, ch2])
 
+
 def test_gaussian2d_eval():
     m = models.Gaussian2DModel(2., 3., 4., x_stddev=1., y_stddev=5., theta=30.)
     assert m(3., 4.) == 2.
 
+
 def test_pickle():
-    import copy_reg, types
+    import copy_reg
+    import types
     import cPickle
 
     def reduce_method(m):
@@ -114,11 +118,9 @@ def test_pickle():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_powerlaw(scale=5., alpha=2.):
-    x = np.linspace(10,100)
-    y = scale * (x)**(-alpha)
-    plm = models.PowerLawModel(1,1) # start with a bad guess
+    x = np.linspace(10, 100)
+    y = scale * (x) ** (-alpha)
+    plm = models.PowerLawModel(1, 1)  # start with a bad guess
     fitter = fitting.NonLinearLSQFitter(plm)
-    fitter(x,y)
-    assert np.all((fitter.fitpars-np.array([scale,alpha])) < 0.001)
-
-
+    fitter(x, y)
+    assert np.all((fitter.fitpars - np.array([scale, alpha])) < 0.001)

@@ -11,6 +11,7 @@ iraf_models_map = {1.: 'Chebyshev',
                    3.: 'Spline3',
                    4.: 'Spline1'}
 
+
 def get_records(fname):
     """
     Read the records of an IRAF database file into a python list
@@ -31,6 +32,7 @@ def get_records(fname):
     records = [Record(r) for r in recs]
     return records
 
+
 def get_database_string(fname):
     """
     Read an IRAF database file
@@ -49,7 +51,9 @@ def get_database_string(fname):
     f.close()
     return dtb
 
+
 class Record(object):
+
     """
     A base class for all records - represents an IRAF database record
 
@@ -70,7 +74,7 @@ class Record(object):
     def aslist(self):
         reclist = self.recstr.split('\n')
         reclist = [l.strip() for l in reclist]
-        [reclist.remove(l) for l in reclist if len(l)==0]
+        [reclist.remove(l) for l in reclist if len(l) == 0]
         return reclist
 
     def get_fields(self):
@@ -81,11 +85,11 @@ class Record(object):
         for i in range(numfields):
             line = flist[i]
             if line and line[0].isalpha():
-                field =  line.split()
-                if i+1 < numfields:
-                    if not flist[i+1][0].isalpha():
+                field = line.split()
+                if i + 1 < numfields:
+                    if not flist[i + 1][0].isalpha():
                         fields[field[0]] = self.read_array_field(
-                                             flist[i:i+int(field[1])+1])
+                            flist[i:i + int(field[1]) + 1])
                     else:
                         fields[field[0]] = " ".join(s for s in field[1:])
                 else:
@@ -112,7 +116,9 @@ class Record(object):
             log.debug("Could not read array field %s" % fieldlist[0].split()[0])
         return farr.astype(np.float64)
 
+
 class IdentifyRecord(Record):
+
     """
     Represents a database record for the onedspec.identify task
 
@@ -139,9 +145,9 @@ class IdentifyRecord(Record):
     def __init__(self, recstr):
         super(IdentifyRecord, self).__init__(recstr)
         self._flatcoeff = self.fields['coefficients'].flatten()
-        self.x = self.fields['features'][:,0]
+        self.x = self.fields['features'][:, 0]
         self.y = self.get_ydata()
-        self.z = self.fields['features'][:,1]
+        self.z = self.fields['features'][:, 1]
         self.modelname = self.get_model_name()
         self.nterms = self.get_nterms()
         self.mrange = self.get_range()
@@ -163,19 +169,18 @@ class IdentifyRecord(Record):
 
     def get_ydata(self):
         image = self.fields['image']
-        left = image.find('[')+1
+        left = image.find('[') + 1
         right = image.find(']')
         section = image[left:right]
         if ',' in section:
-            yind = image.find(',')+1
+            yind = image.find(',') + 1
             return int(image[yind:-1])
         else:
             return int(section)
-        #xind = image.find('[')+1
-        #yind = image.find(',')+1
-        #return int(image[yind:-1])
+
 
 class FitcoordsRecord(Record):
+
     """
     Represents a database record for the longslit.fitccords task
 
@@ -208,7 +213,9 @@ class FitcoordsRecord(Record):
     def get_coeff(self):
         return self._surface[8:]
 
+
 class IDB(object):
+
     """
     Base class for an IRAF identify database
 
@@ -236,7 +243,9 @@ class IDB(object):
         else:
             return rl
 
+
 class ReidentifyRecord(IDB):
+
     """
     Represents a database record for the onedspec.reidentify task
     """
@@ -246,9 +255,7 @@ class ReidentifyRecord(IDB):
         self.y = self.get_ydata()
         self.z = np.array([r.z for r in self.records])
 
-
     def get_ydata(self):
         y = np.ones(self.x.shape)
-        y = y*np.array([r.y for r in self.records])[:,np.newaxis]
+        y = y * np.array([r.y for r in self.records])[:, np.newaxis]
         return y
-
