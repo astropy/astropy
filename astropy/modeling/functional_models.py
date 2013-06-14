@@ -9,7 +9,7 @@ from . import parameters
 from .core import ParametricModel, Model, _convert_input, _convert_output
 from .utils import InputParameterError
 
-__all__ = ['Gaussian1DModel', 'Gaussian2DModel', 'ScaleModel', 'ShiftModel']
+__all__ = ['Gaussian1DModel', 'Gaussian2DModel',  'ScaleModel', 'ShiftModel', 'PowerLawModel']
 
 
 class Gaussian1DModel(ParametricModel):
@@ -121,11 +121,8 @@ class Gaussian1DModel(ParametricModel):
 
         Parameters
         --------------
-        x : array, of minimum dimensions 1
+        x : array like or a number
 
-        Notes
-        -----
-        See the module docstring for rules for model evaluation.
         """
         x, fmt = _convert_input(x, self.param_dim)
         result = self.eval(x, self.param_sets)
@@ -259,10 +256,12 @@ class Gaussian2DModel(ParametricModel):
         Transforms data using this model.
 
         Parameters
-        --------------
-        x, y : arrays, of min dimensions 2
+        ----------
+        x : array like or a number
+            input
+        y : array like or a number
+            input
 
-        Note: See the module docstring for rules for model evaluation.
         """
         x, _ = _convert_input(x, self.param_dim)
         y, fmt = _convert_input(y, self.param_dim)
@@ -297,6 +296,11 @@ class ShiftModel(Model):
     def __call__(self, x):
         """
         Transforms data using this model.
+
+        Parameters
+        ----------
+        x : array like or a number
+            input
         """
         x, fmt = _convert_input(x, self.param_dim)
         result = x + self.offsets
@@ -310,7 +314,7 @@ class ScaleModel(Model):
     Multiply a model by a factor.
 
     Parameters
-    ---------------
+    ----------
     factors : float or a list of floats
         scale for a coordinate
 
@@ -329,7 +333,82 @@ class ScaleModel(Model):
     def __call__(self, x):
         """
         Transforms data using this model.
+
+        Parameters
+        ----------
+        x : array like or a number
+            input
         """
         x, fmt = _convert_input(x, self.param_dim)
         result = x * self.factors
+        return _convert_output(result, fmt)
+
+
+class PowerLawModel(ParametricModel):
+
+    """
+    A power law model.
+
+    The model is of the form :math:`A x^\\alpha`, where :math:`A` is
+    the `scale` parameter, and :math:`\\alpha` is `alpha`.
+
+    Parameters
+    ----------
+    scale : float
+        Model scale
+    alpha : float
+        power
+    """
+    param_names = ['scale', 'alpha']
+
+    def __init__(self, scale, alpha, param_dim=1):
+        self._scale = parameters.Parameter(name='scale', val=scale,
+                                           mclass=self, param_dim=param_dim)
+        self._alpha = parameters.Parameter(name='alpha', val=alpha,
+                                           mclass=self, param_dim=param_dim)
+        super(PowerLawModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
+                                            param_dim=param_dim)
+        self.linear = False
+
+    def eval(self, x, params):
+        """
+        Evaluate the model
+
+        Parameters
+        ----------
+        x : array like or a number
+            input
+        params : array
+            parameter sets
+
+        """
+        return params[0] * ((x) ** (-params[1]))
+
+    def deriv(self, params, x, y):
+        """
+        Parameters
+        ----------
+        params : list
+            a list of float parameters returned by the optimization algorithm
+        x : array like or a number
+            input
+        y : dummy variable
+        """
+        deriv_dict = {
+            'scale': ((x) ** (-params[1])),
+            'alpha': params[0] * ((x) ** (-params[1])) * np.log(x)}
+        derivval = [deriv_dict[par] for par in self.param_names]
+        return np.array(derivval).T
+
+    def __call__(self, x):
+        """
+        Transforms data using this model.
+
+        Parameters
+        ----------
+        x : array like or a number
+            input
+        """
+        x, fmt = _convert_input(x, self.param_dim)
+        result = self.eval(x, self.param_sets)
         return _convert_output(result, fmt)
