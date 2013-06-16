@@ -44,8 +44,8 @@ class PolynomialModel(ParametricModel):
                 if param_dim == 1:
                     log.info("Inferred {0} dimensions when creating a {1} model. "
                              "Resetting param_dim to {2}".format(lenpars,
-                                                                self.__class__.__name__,
-                                                                lenpars))
+                                                                 self.__class__.__name__,
+                                                                 lenpars))
                     param_dim = lenpars
                 else:
                     raise ValueError("Number of coefficient sets ({0}) does not match number "
@@ -119,6 +119,7 @@ class PolynomialModel(ParametricModel):
         numc = self.deg * ndim + nmixed + 1
         return numc
 
+
 class OrthogPolyBase(ParametricModel):
 
     """
@@ -171,8 +172,8 @@ class OrthogPolyBase(ParametricModel):
                 if param_dim == 1:
                     log.info("Inferred {0} dimensions when creating a {1} model. "
                              "Resetting param_dim to {2}".format(lenpars,
-                                                                self.__class__.__name__,
-                                                                lenpars))
+                                                                 self.__class__.__name__,
+                                                                 lenpars))
                     param_dim = lenpars
                 else:
                     raise ValueError("Number of coefficient sets {0} does not match number "
@@ -308,6 +309,7 @@ class OrthogPolyBase(ParametricModel):
         result = self.imhorner(x, y, invcoeff)
         return _convert_output(result, fmt)
 
+
 class Chebyshev1DModel(PolynomialModel):
 
     """
@@ -394,7 +396,7 @@ class Chebyshev1DModel(PolynomialModel):
 
         """
         if self.domain is not None:
-            x = poly_map_domain(x, self.domain, self.window)#self.set_domain(x)
+            x = poly_map_domain(x, self.domain, self.window)
         x, fmt = _convert_input(x, self.param_dim)
         result = self.clenshaw(x, self.param_sets)
         return _convert_output(result, fmt)
@@ -482,7 +484,7 @@ class Legendre1DModel(PolynomialModel):
 
         """
         if self.domain is not None:
-            x = poly_map_domain(x, self.domain, self.window)#self.set_domain(x)
+            x = poly_map_domain(x, self.domain, self.window)
         x, fmt = _convert_input(x, self.param_dim)
         result = self.clenshaw(x, self.param_sets)
         return _convert_output(result, fmt)
@@ -808,8 +810,6 @@ class Chebyshev2DModel(OrthogPolyBase):
         return np.rollaxis(d, 0, d.ndim)
 
 
-
-
 class Legendre2DModel(OrthogPolyBase):
 
     """
@@ -861,10 +861,10 @@ class Legendre2DModel(OrthogPolyBase):
         kfunc[xterms] = np.ones(y.shape)
         kfunc[xterms + 1] = y.copy()
         for n in range(2, xterms):
-            kfunc[n] = ((2 * (n-1) + 1) * x * kfunc[n - 1] - (n-1) * kfunc[n - 2]) / n
+            kfunc[n] = ((2 * (n - 1) + 1) * x * kfunc[n - 1] - (n - 1) * kfunc[n - 2]) / n
         for n in range(2, yterms):
-            kfunc[n + xterms] = ((2 * (n-1) + 1) * y * kfunc[n + xterms - 1] -
-                                 (n-1) * kfunc[n + xterms - 2]) / (n)
+            kfunc[n + xterms] = ((2 * (n - 1) + 1) * y * kfunc[n + xterms - 1] -
+                                 (n - 1) * kfunc[n + xterms - 2]) / (n)
         return kfunc
 
     def deriv(self, pars=None, x=None, y=None, z=None):
@@ -946,8 +946,8 @@ class _SIP1D(Model):
                 if param_dim == 1:
                     log.info("Inferred {0} dimensions when creating a {1} model. "
                              "Resetting param_dim to {2}".format(lenpars,
-                                                                self.__class__.__name__,
-                                                                lenpars))
+                                                                 self.__class__.__name__,
+                                                                 lenpars))
                     param_dim = lenpars
                 else:
                     raise ValueError("Number of coefficient sets ({0}) does not match number "
@@ -1107,8 +1107,8 @@ class SIPModel(SCompositeModel):
 
     """
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
-        a_inv_order=None, a_inv_coeff=None,b_inv_order=None, b_inv_coeff=None,
-        param_dim=1):
+                 a_inv_order=None, a_inv_coeff=None, b_inv_order=None, b_inv_coeff=None,
+                 param_dim=1):
         self.shifta = ShiftModel(-crpix[0])
         self.shiftb = ShiftModel(-crpix[1])
         self.sip1da = _SIP1D(a_order, coeff_prefix='A',
@@ -1116,7 +1116,7 @@ class SIPModel(SCompositeModel):
         self.sip1db = _SIP1D(b_order, coeff_prefix='B',
                              param_dim=param_dim, **b_coeff)
         if a_inv_order is not None and a_inv_coeff is not None and \
-            b_inv_order is not None and b_inv_coeff is not None:
+                b_inv_order is not None and b_inv_coeff is not None:
             self.inversea = _SIP1D(a_inv_order, coeff_prefix='A', **a_inv_coeff)
             self.inverseb = _SIP1D(b_inv_order, coeff_prefix='BP', **b_inv_coeff)
             self.inverse = True
@@ -1160,4 +1160,3 @@ class SIPModel(SCompositeModel):
         labeled_input = LabeledInput([x, y], ['x', 'y'])
         result = SCompositeModel.__call__(self, labeled_input)
         return result.x1, result.y1
-

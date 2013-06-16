@@ -376,7 +376,8 @@ class ParametricModel(Model):
     def __init__(self, param_names, n_inputs, n_outputs, param_dim=1, fittable=True,
                  fixed=None, tied=None, bounds=None, eqcons=None, ineqcons=None):
         self.linear = True
-        super(ParametricModel, self).__init__(param_names, n_inputs, n_outputs, param_dim=param_dim)
+        super(ParametricModel, self).__init__(param_names, n_inputs, n_outputs,
+                                              param_dim=param_dim)
         self.fittable = fittable
         self._parameters = parameters.Parameters(self, self.param_names,
                                                  param_dim=param_dim)
@@ -707,9 +708,9 @@ class SCompositeModel(_CompositeModel):
         """
         if len(data) == 1:
             if not isinstance(data[0], LabeledInput):
-                assert self._transforms[0].n_inputs == 1, ("First transform "
-                                                           "expects {0} inputs, ")
-                "1 given".format(self._transforms[0].n_inputs)
+                assert self._transforms[0].n_inputs == 1, \
+                    "First transform expects {0} inputs, 1 given".format(
+                        self._transforms[0].n_inputs)
 
                 result = data[0]
                 for tr in self._transforms:
@@ -724,12 +725,8 @@ class SCompositeModel(_CompositeModel):
                                                  "input is a labeled object")
                 assert self._outmap is not None, ("Parameter 'outmap' must be "
                                                   "provided when input is a labeled object")
-
-                #for transform, input, output in zip(self._transforms, self._inmap, self._outmap):
                 for i in range(len(self._transforms)):
-                    #inlist = [getattr(labeled_input, label) for label in self._inmap[i]]
                     inlist = [labeled_input[label] for label in self._inmap[i]]
-                    #result = [transform(*inlist)]
                     result = [self._transforms[i](*inlist)]
                     output = self._outmap[i]
                     for label, res in zip(output, result):
@@ -774,12 +771,11 @@ class PCompositeModel(_CompositeModel):
         n_outputs = n_inputs
         for transform in self._transforms:
             assert transform.n_inputs == transform.n_outputs == n_inputs, \
-                   ("A PCompositeModel expects n_inputs = n_outputs for all transforms")
+                ("A PCompositeModel expects n_inputs = n_outputs for all transforms")
         super(PCompositeModel, self).__init__(transforms, n_inputs, n_outputs)
 
         self._inmap = inmap
         self._outmap = outmap
-
 
     def __call__(self, *data):
         """
@@ -793,9 +789,9 @@ class PCompositeModel(_CompositeModel):
                 return result + deltas
             else:
                 assert self._inmap is not None, ("Parameter 'inmap' must be "
-                                                "provided when input is a labeled object")
-                assert self._outmap is not None, ("Parameter 'outmap' must be "
                                                  "provided when input is a labeled object")
+                assert self._outmap is not None, ("Parameter 'outmap' must be "
+                                                  "provided when input is a labeled object")
                 labeled_input = data[0].copy()
                 # create a list of inputs to be passed to the transforms
                 inlist = [getattr(labeled_input, label) for label in self._inmap]
