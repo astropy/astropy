@@ -869,18 +869,25 @@ class Table(object):
     ----------
     data : numpy ndarray, dict, list, or Table, optional
         Data to initialize table.
-    mask : numpy ndarray, dict, list, optional
-        The mask to initialize the table
+    masked : boolean, optional
+        Specify whether the table is masked.
     names : list, optional
-        Specify column names
+        Specify column names.
     dtypes : list, optional
-        Specify column data types
+        Specify column data types.
     meta : dict, optional
-        Metadata associated with the table
+        Metadata associated with the table.
     copy : boolean, optional
         Copy the input data (default=True).
 
     """
+    '''
+    There should be a way to initialize a table object with a mask.
+    This functionality is currently not provided and will be implented in
+    the future. This will be the API.
+    mask : numpy ndarray, dict, list, optional
+        The mask to initialize the table
+    '''
 
     def __init__(self, data=None, masked=None, names=None, dtypes=None,
                  meta=None, copy=True):
@@ -1171,7 +1178,7 @@ class Table(object):
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""
 
-        table = Table()
+        table = Table(masked=self.masked)
         table.meta.clear()
         table.meta.update(deepcopy(self.meta))
         cols = self.columns.values()
