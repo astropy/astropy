@@ -35,7 +35,7 @@ class TestSComposite(object):
         xx = self.p11(self.p1(self.x))
         utils.assert_almost_equal(xx, sresult)
 
-    def test_labeledinput(self):
+    def test_labeledinput_1(self):
         ado = LabeledInput([self.x, self.y], ['x', 'y'])
         scomptr = SCompositeModel([self.p2, self.p1],
                                   [['x', 'y'], ['z']],
@@ -44,6 +44,36 @@ class TestSComposite(object):
         z = self.p2(self.x, self.y)
         z1 = self.p1(z)
         utils.assert_almost_equal(z1, sresult.z)
+
+    def test_labeledinput_2(self):
+        labeled_input = LabeledInput([self.x, self.y], ['x', 'y'])
+        rot = models.MatrixRotation2D(angle=23.4)
+        offx = models.ShiftModel(-2)
+        offy = models.ShiftModel(1.2)
+        scomptr = SCompositeModel([rot, offx, offy],
+                                  [['x', 'y'], ['x'], ['y']],
+                                  [['x', 'y'], ['x'], ['y']])
+        sresult = scomptr(labeled_input)
+        x, y = rot(self.x, self.y)
+        x = offx(x)
+        y = offy(y)
+        utils.assert_almost_equal(x, sresult.x)
+        utils.assert_almost_equal(y, sresult.y)
+
+    def test_labeledinput_3(self):
+        labeled_input = LabeledInput([2, 4.5], ['x', 'y'])
+        rot = models.MatrixRotation2D(angle=23.4)
+        offx = models.ShiftModel(-2)
+        offy = models.ShiftModel(1.2)
+        scomptr = SCompositeModel([rot, offx, offy],
+                                  [['x', 'y'], ['x'], ['y']],
+                                  [['x', 'y'], ['x'], ['y']])
+        sresult = scomptr(labeled_input)
+        x, y = rot(2, 4.5)
+        x = offx(x)
+        y = offy(y)
+        utils.assert_almost_equal(x, sresult.x)
+        utils.assert_almost_equal(y, sresult.y)
 
     def test_multiple_arrays(self):
         scomptr = SCompositeModel([self.p2, self.p1],

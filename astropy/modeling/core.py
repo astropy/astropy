@@ -43,6 +43,7 @@ from __future__ import division
 import abc
 from itertools import izip
 import numpy as np
+from ..utils import misc
 from . import parameters
 from . import constraints
 from .utils import InputParameterError
@@ -725,14 +726,16 @@ class SCompositeModel(_CompositeModel):
                                                  "input is a labeled object")
                 assert self._outmap is not None, ("Parameter 'outmap' must be "
                                                   "provided when input is a labeled object")
-                for i in range(len(self._transforms)):
-                    inlist = [labeled_input[label] for label in self._inmap[i]]
-                    result = [self._transforms[i](*inlist)]
-                    output = self._outmap[i]
-                    for label, res in zip(output, result):
-                        labeled_input.update({label: res})
-                        if label not in self._inmap[i]:
-                            setattr(labeled_input, label, res)
+                for transform, incoo, outcoo in izip(self._transforms, self._inmap, self._outmap):
+                    inlist = [labeled_input[label] for label in incoo]
+                    result = transform(*inlist)
+                    if len(outcoo) == 1:
+                        result = [result]
+                    for label, res in zip(outcoo, result):
+
+                        if label not in labeled_input.labels:
+                            labeled_input[label] = res
+                        setattr(labeled_input, label, res)
                 return labeled_input
         else:
             assert self.n_inputs == len(data), "This transform expects "
