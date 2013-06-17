@@ -870,13 +870,13 @@ class Table(object):
     data : numpy ndarray, dict, list, or Table, optional
         Data to initialize table.
     masked : boolean, optional
-        Specify wheather the table sould be masked.
+        Specify whether the table is masked.
     names : list, optional
-        Specify column names
+        Specify column names.
     dtypes : list, optional
-        Specify column data types
+        Specify column data types.
     meta : dict, optional
-        Metadata associated with the table
+        Metadata associated with the table.
     copy : boolean, optional
         Copy the input data (default=True).
 
@@ -1178,7 +1178,7 @@ class Table(object):
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""
 
-        table = Table(masked = self.masked)
+        table = Table(masked=self.masked)
         table.meta.clear()
         table.meta.update(deepcopy(self.meta))
         cols = self.columns.values()
