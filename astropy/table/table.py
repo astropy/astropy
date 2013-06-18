@@ -881,13 +881,6 @@ class Table(object):
         Copy the input data (default=True).
 
     """
-    '''
-    There should be a way to initialize a table object with a mask.
-    This functionality is currently not provided and will be implented in
-    the future. This will be the API.
-    mask : numpy ndarray, dict, list, optional
-        The mask to initialize the table
-    '''
 
     def __init__(self, data=None, masked=None, names=None, dtypes=None,
                  meta=None, copy=True):
