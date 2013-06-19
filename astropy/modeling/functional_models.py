@@ -9,7 +9,7 @@ from . import parameters
 from .core import ParametricModel, Model, _convert_input, _convert_output
 from .utils import InputParameterError
 
-__all__ = ['Gaussian1DModel', 'Gaussian2DModel',  'ScaleModel', 'ShiftModel', 'PowerLawModel']
+__all__ = ['Gaussian1DModel', 'Gaussian2DModel', 'ScaleModel', 'ShiftModel', 'PowerLawModel']
 
 
 class Gaussian1DModel(ParametricModel):
