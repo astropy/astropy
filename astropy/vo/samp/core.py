@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 #!/usr/bin/env python
 
+from __future__ import print_function, division
+
 ###################################################################
 ##
 ##   sampy.py - This module contains classes to create a SAMP Hub
@@ -685,7 +687,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
           response = self.server._marshaled_dispatch(
                   data, getattr(self, '_dispatch', None), self.path
               )
-        except Exception, e: # This should only happen if the module is buggy
+        except Exception as e: # This should only happen if the module is buggy
           # internal error, report as HTTP server error
           self.send_response(500)
 
@@ -783,7 +785,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
         response = self.server._marshaled_dispatch(
           data, getattr(self, '_dispatch', None)
         )
-      except Exception, e: # This should only happen if the module is buggy
+      except Exception as e: # This should only happen if the module is buggy
         # internal error, report as HTTP server error
         self.send_response(500)
 
@@ -2986,7 +2988,7 @@ class SAMPHubProxy(object):
       self.lockfile = copy.deepcopy(hub_params)
       self._connected = True
 
-    except xmlrpclib.ProtocolError, p:
+    except xmlrpclib.ProtocolError as p:
       # 401 Unauthorized
       if p.errcode == 401:
         raise SAMPHubError("Unauthorized access. Basic Authentication required or failed.")
@@ -3644,7 +3646,7 @@ class SAMPClient(object):
           self._declareSubscriptions()
         if self._metadata != {}:
           self.declareMetadata()
-      except SAMPProxyError, err:
+      except SAMPProxyError as err:
         raise SAMPClientError(err.faultString)
       except:
         raise SAMPClientError("Unexpected error: registration failed")
@@ -3698,7 +3700,7 @@ class SAMPClient(object):
 
         self.hub.declareSubscriptions(self._private_key, mtypes_dict)
 
-      except Exception, ex:
+      except Exception as ex:
         raise SAMPClientError("Unable to declare subscriptions. Hub unreachable or not connected or client not registered (%s)."%str(ex))
     else:
       raise SAMPClientError("Unable to declare subscriptions. Hub unreachable or not connected or client not registered.")
@@ -3925,7 +3927,7 @@ class SAMPIntegratedClient(object):
     cliEx = None
     try:
       self.client.unregister()
-    except SAMPClientError, cliEx:
+    except SAMPClientError as cliEx:
       pass
 
     if self.client.isRunning():
@@ -4741,13 +4743,13 @@ def main(timeout=0):
   except KeyboardInterrupt:
     hub.stop()
   except IOError as e:
-    print "[SAMP] Error: I/O error(%s): %s" % (e.errno, e.strerror)
+    print("[SAMP] Error: I/O error({0:%s}): {0:%s}".format(e.errno, e.strerror))
   except SAMPHubError:
     pass
   except SystemExit:
     pass
   except:
-    print "[SAMP] Error: Unexpected error:", sys.exc_info()
+    print("[SAMP] Error: Unexpected error:" + sys.exc_info())
 
 
 if __name__ == "__main__":
