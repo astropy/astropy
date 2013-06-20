@@ -194,6 +194,7 @@ class MatrixRotation2D(Model):
         self._n_outputs = self.n_inputs
         self._parcheck = {'rotmat': self._validate_rotmat,
                           'angle': self._validate_angle}
+        self.has_inverse = True
 
     @property
     def angle(self):

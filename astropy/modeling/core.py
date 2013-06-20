@@ -43,7 +43,6 @@ from __future__ import division
 import abc
 from itertools import izip
 import numpy as np
-from ..utils import misc
 from . import parameters
 from . import constraints
 from .utils import InputParameterError
@@ -617,7 +616,6 @@ class _CompositeModel(Model):
             param_names.extend(tr.param_names)
         super(_CompositeModel, self).__init__(param_names, n_inputs, n_outputs)
         self.fittable = False
-        self.has_inverse = all([tr.has_inverse for tr in transforms])
 
     def __repr__(self):
         fmt = """
@@ -702,6 +700,20 @@ class SCompositeModel(_CompositeModel):
             outmap = [None] * len(transforms)
         self._inmap = inmap
         self._outmap = outmap
+        self.has_inverse = all([tr.has_inverse for tr in transforms])
+
+    def inverse(self):
+        if self.has_inverse:
+            transforms = [tr.inverse() for tr in self._transforms[::-1]]
+            if self._inmap is not None:
+                inmap = self._inmap[::-1]
+                outmap = self._outmap[::-1]
+            else:
+                inmap = None
+                outmap = None
+            return SCompositeModel(transforms, inmap, outmap)
+        else:
+            raise NotImplementedError
 
     def __call__(self, *data):
         """
@@ -743,7 +755,7 @@ class SCompositeModel(_CompositeModel):
 
             result = self._transforms[0](*data)
             for transform in self._transforms[1:]:
-                result = transform(result)
+                result = transform(*result)
         return result
 
 
@@ -779,6 +791,7 @@ class PCompositeModel(_CompositeModel):
 
         self._inmap = inmap
         self._outmap = outmap
+        self.has_inverse = False
 
     def __call__(self, *data):
         """

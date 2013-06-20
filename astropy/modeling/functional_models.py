@@ -9,7 +9,7 @@ from . import parameters
 from .core import ParametricModel, Model, _convert_input, _convert_output
 from .utils import InputParameterError
 
-__all__ = ['Gaussian1DModel', 'Gaussian2DModel', 'ScaleModel', 'ShiftModel', 'PowerLawModel']
+__all__ = ['Gaussian1DModel', 'Gaussian2DModel',  'ScaleModel', 'ShiftModel', 'PowerLawModel']
 
 
 class Gaussian1DModel(ParametricModel):
@@ -297,6 +297,13 @@ class ShiftModel(Model):
         self._offsets = parameters.Parameter('offsets', offsets, self, param_dim)
         super(ShiftModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
                                          param_dim=param_dim)
+        self.has_inverse = True
+
+    def inverse(self):
+        if self.param_dim == 1:
+            return ShiftModel(offsets=(-1) * self.offsets[0])
+        else:
+            return ShiftModel(offsets=[off * (-1) for off in self._offsets])
 
     def __call__(self, x):
         """
@@ -334,6 +341,13 @@ class ScaleModel(Model):
         self._factors = parameters.Parameter('factors', factors, self, param_dim)
         super(ScaleModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
                                          param_dim=param_dim)
+        self.has_inverse = True
+
+    def inverse(self):
+        if self.param_dim == 1:
+            return ScaleModel(factors=1. / self.factors[0])
+        else:
+            return ScaleModel(factors=[1 / factor for factor in self._factors])
 
     def __call__(self, x):
         """
