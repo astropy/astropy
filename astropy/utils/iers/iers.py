@@ -22,10 +22,10 @@ But if one is dealing with very recent observations, this does now work::
     ERROR: ValueError: (some) times are beyond range covered by IERS table.
     [astropy.time.core]
 
-In this case, one needs to update the IERS B table or override it with IERS A
-(which also has predictions).  In future versions, this may become
-configurable, but currently it requires some handiwork.  For `Time`, one
-option is to set the `delta_ut1_utc` property directly::
+In this case, one needs to update the IERS B table or use IERS A instead
+(which also has predictions).  In future versions, this may become configurable
+or automatic, but currently it requires some handiwork.  For `Time`, the
+easiest option is to set the `delta_ut1_utc` property directly::
     >>> from astropy.utils.iers import IERS_A
     >>> a = IERS_A.open('finals2000A.all')
     >>> a.ut1_utc(t2)
@@ -34,16 +34,8 @@ option is to set the `delta_ut1_utc` property directly::
     >>> t2.ut1
     <Time object: scale='ut1' format='datetime' vals=2013-06-14 02:31:40.441858>
 
-(Note that one should check the status! Negative values indicate the time is
-out of range.  Above it is 2, or `iers.FROM_IERS_A_PREDICTION`)
-
-Alternatively, the default table used by `Time` can be overridden in the
-following way (which makes use of the fact that after a table is read in, it is
-kept for future calls during the session in `cls.iers_table`):
-    >>> from astropy.utils.iers import IERS, IERS_A
-    >>> IERS.iers_table = IERS_A.open('finals2000A.all')
-    >>> Time.now().ut1
-    <Time object: scale='ut1' format='datetime' vals=2013-06-14 02:36:11.986437>
+Note that the status returned by ut1_utc should be checked: negative values
+indicate a time out of range.  The 2 above is `iers.FROM_IERS_A_PREDICTION`.
 
 (The IERS-A file `finals2000A.all` can be downloaded from `iers.IERS_A_URL`)
 """
