@@ -152,15 +152,18 @@ def relativistic_velocity(rest):
     Example
     -------
     >>> CO_restfreq = 115.27120*u.GHz  # rest frequency of 12 CO 1-0 in GHz
-    >>> optical_CO_equiv = optical_velocity(CO_restfreq)
+    >>> relativistic_CO_equiv = relativistic_velocity(CO_restfreq)
     >>> measured_freq = 115.2832*u.GHz
-    >>> optical_velocity = measured_freq.to(u.km/u.s, equivalencies=optical_CO_equiv)
-    >>> print optical_velocity
-    -31.205843488 km / s
+    >>> relativistic_velocity = measured_freq.to(u.km/u.s, equivalencies=relativistic_CO_equiv)
+    >>> print relativistic_velocity
+    -31.2074676194 km / s
+    >>> measured_velocity = 1250 * u.km/u.s
+    >>> relativistic_frequency = measured_freq.to(u.GHz, equivalencies=relativistic_CO_equiv)
+    >>> print relativistic_frequency
+    115.2832 GHz
     """
     restfreq = rest.to(si.Hz, spectral())
 
-    # NOT DONE
     return [(si.Hz, si.km/si.s,
-            lambda x: (restfreq.value-x) / x * _si.c.to('km/s').value,
-            lambda x: (1+x/_si.c.to('km/s').value)**(-1) * restfreq)]
+            lambda x: (restfreq.value**2-x**2) / (restfreq.value**2+x**2) * _si.c.to('km/s').value,
+            lambda x: (1-(x/_si.c.to('km/s').value)**2)**0.5 / (1+(x/_si.c.to('km/s').value)))]
