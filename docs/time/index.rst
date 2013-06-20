@@ -539,9 +539,9 @@ following operations are available:
 .. note::
     As implemented, the arithmetic is not guaranteed to be good beyond
     float64, as round-off errors are not yet properly carried between the 
-    two values representing the date.  Like for sofa, taking the first
+    two values representing the date.  Like for SOFA, taking the first
     value as (half-)integer helps, as this can be represented exactly
-    by a float64.  We hope to resolve this for version 0.3.
+    by a float64 (at least for all but multiply and divide).
 
 The |TimeDelta| class is derived from the |Time| class and shares many of its
 properties.  The key difference is that the time scale is always TAI so that
@@ -582,7 +582,7 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
   >>> dt + dt2
   <TimeDelta object: scale='tai' format='jd' vals=31.0005787037>
 
-  >>> t1 + dt * np.linspace(0,1,5)
+  >>> t1 + dt * np.linspace(0, 1, 5)
   <Time object: scale='utc' format='iso' vals=['2010-01-01 00:00:00.000' 
   '2010-01-08 18:00:00.000' '2010-01-16 12:00:00.000' '2010-01-24 06:00:00.000'
   '2010-02-01 00:00:00.000']>
