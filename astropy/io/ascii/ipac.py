@@ -32,27 +32,45 @@ ipac.py:
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
-from ...utils import OrderedDict
+from collections import defaultdict
+from textwrap import wrap
+from warnings import warn
 
 from . import core
 from . import fixedwidth
+from ...utils import OrderedDict
 
-class Ipac(core.BaseReader):
-    """Read an IPAC format table.  See
+
+
+class IpacFormatErrorDBMS(Exception):
+    def __str__(self):
+        return '{0}\nSee {1}'.format(
+            super(Exception, self).__str__(),
+            'http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html')
+
+class IpacFormatError(Exception):
+    def __str__(self):
+        return '{0}\nSee {1}'.format(
+            super(Exception, self).__str__(),
+            'http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html')
+
+
+class Ipac(fixedwidth.FixedWidth):
+    """Read or write an IPAC format table.  See
     http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
 
       \\name=value
       \\ Comment
-      |  column1 |  column2 | column3 | column4  |    column5       |
-      |  double  |  double  |   int   |   double |     char         |
-      |   unit   |   unit   |   unit  |    unit  |     unit         |
-      |   null   |   null   |   null  |    null  |     null         |
-       2.0978     29.09056   73765     2.06000    B8IVpMnHg
+      |  column1 |   column2 | column3 | column4  |    column5    |
+      |  double  |   double  |   int   |   double |     char      |
+      |  unit    |   unit    |   unit  |    unit  |     unit      |
+      |  null    |   null    |   null  |    null  |     null      |
+       2.0978     29.09056    73765     2.06000    B8IVpMnHg
 
     Or::
 
       |-----ra---|----dec---|---sao---|------v---|----sptype--------|
-        2.09708   29.09056     73765    2.06000   B8IVpMnHg
+        2.09708   29.09056     73765   2.06000    B8IVpMnHg
 
     The comments and keywords defined in the header are available via the output
     table ``meta`` attribute::
@@ -64,7 +82,7 @@ class Ipac(core.BaseReader):
       ['This is an example of a valid comment']
       >>> for name, keyword in data.meta['keywords'].items():
       ...     print name, keyword['value']
-      ...     
+      ...
       intval 1
       floatval 2300.0
       date Wed Sp 20 09:48:36 1995
@@ -80,21 +98,100 @@ class Ipac(core.BaseReader):
           * 'right' - Character is associated with the column to the right
           * 'left' - Character is associated with the column to the left
 
+    DBMS : bool, optional
+        If true, this varifies that written tables adhere (semantically)
+        to the `IPAC/DBMS <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
+        definiton of IPAC tables. If 'False' it only checks for the (less strict)
+        `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
+        definition.
     """
-    def __init__(self, definition='ignore'):
-        core.BaseReader.__init__(self)
+    def __init__(self, definition='ignore', DBMS = False):
+        super(fixedwidth.FixedWidth, self).__init__()
         self.header = IpacHeader(definition=definition)
         self.data = IpacData()
+        self.data.header = self.header
+        self.header.data = self.data
+        self.header.DBMS = DBMS
+        self.data.splitter.delimiter = ' '
+        self.data.splitter.delimiter_pad = ''
+        self.data.splitter.bookend = True
 
-    def write(self, table=None):
-        """Not available for the Ipac class (raises NotImplementedError)"""
-        raise NotImplementedError
+    def write(self, table):
+        """Write ``table`` as list of strings.
+
+        :param table: input table data (astropy.table.Table object)
+        :returns: list of strings corresponding to ASCII table
+        """
+        # link information about the columns to the writer object (i.e. self)
+        self.header.cols = table.cols
+        self.data.cols = table.cols
+
+        # Write header and data to lines list
+        lines = []
+        # Write meta information
+        if 'comments' in table.meta:
+            for comment in table.meta['comments']:
+                if len(str(comment)) > 78:
+                    warn('Comment string > 78 characters was automatically wrapped.',
+                          UserWarning)
+                for line in wrap(str(comment), 80, initial_indent='\\ ', subsequent_indent='\\ '):
+                    lines.append(line)
+        if 'keywords' in table.meta:
+            keydict = table.meta['keywords']
+            for keyword in keydict:
+                try:
+                    val = keydict[keyword]['value']
+                    lines.append('\\{0}={1!r}'.format(keyword.strip(), val))
+                    # meta is not standardized: Catch some common Errors.
+                except TypeError:
+                    pass
+
+        # get header and data as strings to find width of each column
+        for i, col in enumerate(table.cols):
+            col.headwidth = max([len(vals[i]) for vals in self.header.str_vals()])
+        # keep data_str_vals because they take some time to make
+        data_str_vals = self.data.str_vals()
+        for i, col in enumerate(table.cols):
+            col.width = max([len(vals[i]) for vals in data_str_vals])
+
+        widths = [max(col.width, col.headwidth) for col in table.cols]
+        # then write table
+        self.header.write(lines, widths)
+        self.data.write(lines, widths, data_str_vals)
+
+        return lines
 
 
-class IpacHeader(core.BaseHeader):
+
+class IpacHeaderSplitter(core.BaseSplitter):
+    '''Splitter for Ipac Headers.
+
+    This splitter is similar its parent when reading, but supports a
+    fixed width format (as required for Ipac table headers) for writing.
+    '''
+    process_line = None
+    process_val = None
+    delimiter = '|'
+    delimiter_pad = ''
+    skipinitialspace = False
+    comment = r'\s*\\'
+    write_comment = r'\\'
+    col_starts = None
+    col_ends = None
+
+    def join(self, vals, widths):
+        pad = self.delimiter_pad or ''
+        delimiter = self.delimiter or ''
+        padded_delim = pad + delimiter + pad
+        bookend_left = delimiter + pad
+        bookend_right = pad + delimiter
+ 
+        vals = [' ' * (width - len(val)) + val for val, width in zip(vals, widths)]
+        return bookend_left + padded_delim.join(vals) + bookend_right
+
+class IpacHeader(fixedwidth.FixedWidthHeader):
     """IPAC table header"""
-    comment = '\\'
-    splitter_class = core.BaseSplitter
+    splitter_class = IpacHeaderSplitter
     col_type_map = {'int': core.IntType,
                     'integer': core.IntType,
                     'long': core.IntType,
@@ -111,10 +208,8 @@ class IpacHeader(core.BaseHeader):
                     'c': core.StrType}
 
     def __init__(self, definition='ignore'):
-        self.splitter = self.__class__.splitter_class()
-        self.splitter.process_line = None
-        self.splitter.process_val = None
-        self.splitter.delimiter = '|'
+       
+        fixedwidth.FixedWidthHeader.__init__(self)
         if definition in ['ignore', 'left', 'right']:
             self.ipac_definition = definition
         else:
@@ -255,7 +350,84 @@ class IpacHeader(core.BaseHeader):
         for i, col in enumerate(self.cols):
             col.index = i
 
-class IpacData(core.BaseData):
+    def str_vals(self):
+        
+        if self.DBMS:
+            IpacFormatE = IpacFormatErrorDBMS
+        else:
+            IpacFormatE = IpacFormatError
+        
+        namelist = [col.name for col in self.cols]
+        if self.DBMS:
+            countnamelist = defaultdict(int)
+            for col in self.cols:
+                countnamelist[col.name.lower()] += 1 
+            doublenames = [x for x in countnamelist if countnamelist[x] > 1]
+            if doublenames != []:
+                raise IpacFormatE('IPAC DBMS tables are not case sensitive. This causes duplicate column names: {0}'.format(doublenames))
+
+        for name in namelist:
+            m = re.match('\w+', name)
+            if m.end() != len(name):
+                raise IpacFormatE('{0} - Only alphanumaric characters and _ are allowed in column names.'.format(name))
+            if self.DBMS and not(name[0].isalpha() or (name[0] =='_')):
+                raise IpacFormatE('Column name cannot start with numbers: {}'.format(name))
+            if self.DBMS:
+                if name in ['x','y','z', 'X', 'Y','Z']:
+                    raise IpacFormatE('{0} - x, y, z, X, Y, Z are reserved names and cannot be used as column names.'.format(name))
+                if len(name) > 16:
+                    raise IpacFormatE('{0} - Maximum length for column name is 16 characters'.format(name))
+            else:
+                if len(name) > 40:
+                    raise IpacFormatE('{0} - Maximum length for column name is 40 characters.'.format(name))
+
+        dtypelist = []
+        unitlist = []
+        for col in self.cols:
+            if col.dtype.kind in ['i', 'u']:
+                dtypelist.append('long')
+            elif col.dtype.kind == 'f':
+                dtypelist.append('double')
+            else:
+                dtypelist.append('char')
+            if col.units is None:
+                unitlist.append('')
+            else:
+                unitlist.append(str(col.units))
+        nullist = [getattr(col, 'fill_value', 'null') for col in self.cols]
+        return [namelist, dtypelist, unitlist, nullist]
+
+    def write(self, lines, widths):
+        '''Write header.
+
+        The width of each column is determined in IpacData.write. Writing the header
+        must be delayed until that time.
+        This function is called from data, once the width information is
+        available.'''
+
+        for vals in self.str_vals():
+            lines.append(self.splitter.join(vals, widths))
+        return lines
+
+class IpacData(fixedwidth.FixedWidthData):
     """IPAC table data reader"""
-    splitter_class = fixedwidth.FixedWidthSplitter
     comment = r'[|\\]'
+
+
+    def str_vals(self):
+        '''return str vals for each in the table'''
+        vals_list = []
+        # just to make sure
+        self._set_col_formats()
+        col_str_iters = [col.iter_str_vals() for col in self.cols]
+        for vals in core.izip(*col_str_iters):
+            vals_list.append(vals)
+
+        return vals_list
+
+
+    def write(self, lines, widths, vals_list):
+        """ IPAC writer, modified from FixedWidth writer """
+        for vals in vals_list:
+            lines.append(self.splitter.join(vals, widths))
+        return lines
