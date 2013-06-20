@@ -28,6 +28,10 @@ New Features
   - Allow for arithmetic of multi-element and single-element Time and TimeDelta
     objects [#1081].
 
+  - Allow multiplication and division of TimeDelta objects by
+    constants and arrays, as well as changing sign (negation) and
+    taking the absolute value of TimeDelta objects [#1082]
+
 - ``astropy.stats``
 
   - Added robust statistics functions `~astropy.stats.funcs.median_absolute_deviation`,
