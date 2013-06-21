@@ -3,14 +3,16 @@
 
 from __future__ import print_function, division
 
-###################################################################
+################################################################################
 ##
-##   sampy.py - This module contains classes to create a SAMP Hub
-##              and interface an application to a running SAMP Hub
-##              (Standard Profile)
+##   astropy.vo.samp.core.py
+##
+##   This module contains classes to create a SAMP Hub and interface an
+##   application to a running SAMP Hub (Standard Profile). This package
+##   was formerly known as SAMPy (https://pypi.python.org/pypi/sampy/)
 ##
 ##
-##   Copyright (C) 2008  INAF-IASF Milano
+##   Copyright (C) 2013  INAF-IASF Milano
 ##
 ##
 ##   Authors:
@@ -213,37 +215,22 @@ __doc__ = \
         """
 
 
-import stat
-import threading
 
-import datetime, time
+
+import time
+import stat
+import copy
+import uuid
 import socket
 import select
-import httplib
-import getpass
-import hashlib
 import base64
 import random
-import copy
-import string
-import platform
+import getpass
+import hashlib
 import inspect
-import urllib
-import urllib2
-import urlparse
-
-import StringIO
-
-try:
-  import Tkinter
-  HAS_TKINTER = True
-except:
-  HAS_TKINTER = False
-  
-import Queue
-
-
-PYTHON_VERSION = float(platform.python_version()[:3])
+import datetime
+import platform
+import threading
 
 try:
   import bsddb
@@ -259,15 +246,69 @@ except ImportError:
 else:
   SSL_SUPPORT = True
 
-try:
-  from urlparse import parse_qs
-except ImportError:
-  from cgi import parse_qs
 
+PYTHON_VERSION = float(platform.python_version()[:3])
 
-from SimpleHTTPServer import *
-from SimpleXMLRPCServer import *
-from SocketServer import ThreadingMixIn, BaseServer
+if PYTHON_VERSION >= 3.0:
+  
+  import io
+  import queue  
+  import http.client
+  import urllib.parse
+  import urllib.error
+  import urllib.request
+  import xmlrpc.client as xmlrpc
+
+  
+  try:
+    import tkinter as tk
+    HAS_TKINTER = True
+  except:
+    HAS_TKINTER = False
+    
+  try:
+    from urllib.parse import parse_qs
+  except ImportError:
+    from cgi import parse_qs
+    
+    
+  from urllib.error import URLError
+  from urllib.request import urlopen
+  from http.client import HTTPConnection, HTTPS_PORT
+  
+  from http.server import *
+  from xmlrpc.server import *
+  from socketserver import ThreadingMixIn, BaseServer
+    
+    
+else:
+  
+  import httplib
+  import urllib2
+  import urlparse
+  import xmlrpclib as xmlrpc
+  import Queue as queue
+  import StringIO as io
+  
+  try:
+    import Tkinter as tk
+    HAS_TKINTER = True
+  except:
+    HAS_TKINTER = False
+
+  try:
+    from urlparse import parse_qs
+  except ImportError:
+    from cgi import parse_qs
+    
+  
+  from urllib2 import urlopen, URLError
+  from httplib import HTTPConnection, HTTPS_PORT, HTTP
+  
+  from SimpleHTTPServer import *
+  from SimpleXMLRPCServer import *
+  from SocketServer import ThreadingMixIn, BaseServer
+
 
 #: General constant for samp.ok status string
 SAMP_STATUS_OK = "samp.ok"
@@ -287,7 +328,8 @@ SAMP_RESTRICT_GROUP = "GROUP"
 SAMP_RESTRICT_OWNER = "OWNER"
 
 
-SAMPY_ICON = """iVBORw0KGgoAAAANSUhEUgAAABgAAAAWCAYAAADafVyIAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI
+SAMPY_ICON = \
+b"""iVBORw0KGgoAAAANSUhEUgAAABgAAAAWCAYAAADafVyIAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI
 WXMAAA7DAAAOwwHHb6hkAAAAB3RJTUUH2AgFDTkeyUSsmwAAA5FJREFUSMellH9M1GUcx1/PXTfc
 MfGGguR1IQeGdZN98ThFSMGmJLIxpFwF0UgXMZXJYm3Qyrm2XLW5wtVGKx1ZOWTgmIgZ5mamaePX
 ibsRQQeJ0KEhxK9BePf01133xWOgvv/67nk+3/freT4/HiGlZLZGJkfl0csnaOqxMzo1TvjipZjD
@@ -310,9 +352,9 @@ YII="""
 
 def internet_on():
   try:
-    response = urllib2.urlopen('http://74.125.113.99',timeout=1)
+    response = urlopen('http://google.com',timeout=1)
     return True
-  except urllib2.URLError as err: pass
+  except URLError as err: pass
   return False
 
 SAFE_MTYPES = ["samp.app.*", "samp.msg.progress", "table.*", "image.*",
@@ -341,8 +383,8 @@ class ServerProxyPool(object):
   
   def __init__(self, size, proxy_class, *args, **keywords):
     
-    self._proxies = Queue.Queue(size)
-    for i in xrange(size):
+    self._proxies = queue.Queue(size)
+    for i in range(size):
       self._proxies.put(proxy_class(*args, **keywords))
       
   def __getattr__(self, name):
@@ -351,26 +393,26 @@ class ServerProxyPool(object):
     
 
 if HAS_TKINTER:
-  class WebProfilePopupDialogue(Tkinter.Tk):
+  class WebProfilePopupDialogue(tk.Tk):
   
     def __init__(self, queue, screenName=None, baseName=None, className='Tk',
                  useTk=1, sync=0, use=None):
   
-      Tkinter.Tk.__init__(self, screenName, baseName, className,
-                          useTk, sync, use)
+      tk.Tk.__init__(self, screenName, baseName, className,
+                     useTk, sync, use)
   
       self._queue = queue
   
       self.title("SAMP Hub")
-      self._text = Tkinter.Label(self, font=("Helvetica", 14), \
-                                 fg="red", justify=Tkinter.CENTER)
-      self._text.pack(padx=5, pady=5, expand=1, fill=Tkinter.X,)
+      self._text = tk.Label(self, font=("Helvetica", 14), \
+                            fg="red", justify=tk.CENTER)
+      self._text.pack(padx=5, pady=5, expand=1, fill=tk.X,)
   
-      a = Tkinter.Button(self, text="CONSENT", command=self._consent)
-      a.pack(padx=5, pady=5, expand=1, fill=Tkinter.X, side=Tkinter.LEFT)
+      a = tk.Button(self, text="CONSENT", command=self._consent)
+      a.pack(padx=5, pady=5, expand=1, fill=tk.X, side=tk.LEFT)
   
-      r = Tkinter.Button(self, text="REJECT", command=self._reject)
-      r.pack(padx=5, pady=5, expand=1, fill=Tkinter.X, side=Tkinter.RIGHT)
+      r = tk.Button(self, text="REJECT", command=self._reject)
+      r.pack(padx=5, pady=5, expand=1, fill=tk.X, side=tk.RIGHT)
   
       self.protocol("WM_DELETE_WINDOW", self._reject)
   
@@ -431,9 +473,19 @@ class SAMPMsgReplierWrapper(object):
   def __call__(self, f):
 
     def wrapped_f(*args):
-      if (inspect.ismethod(f) and f.im_func.func_code.co_argcount == 6) or \
-         (inspect.isfunction(f) and f.func_code.co_argcount == 5) or \
-         args[2] is None:
+      
+      test = False
+      
+      if PYTHON_VERSION > 2.5:
+        test = (inspect.ismethod(f) and f.__func__.__code__.co_argcount == 6)\
+             or (inspect.isfunction(f) and f.__code__.co_argcount == 5) or \
+             args[2] is None
+      else:
+        test = (inspect.ismethod(f) and f.im_func.func_code.co_argcount == 6)\
+             or (inspect.isfunction(f) and f.func_code.co_argcount == 5) or \
+             args[2] is None
+      
+      if test:
 
         # It is a notification
         f(*args)
@@ -447,7 +499,7 @@ class SAMPMsgReplierWrapper(object):
                                {"samp.status": SAMP_STATUS_ERROR,
                                 "samp.result": result})
         except:
-          err = StringIO.StringIO()
+          err = io.StringIO()
           traceback.print_exc(file=err)
           txt = err.getvalue()
           self.cli.hub.reply(self.cli.getPrivateKey(), args[2],
@@ -641,19 +693,19 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
               chunk_size = min(size_remaining, max_chunk_size)
               L.append(self.rfile.read(chunk_size))
               size_remaining -= len(L[-1])
-          data = ''.join(L)
+          data = b''.join(L)
           
-          params, method = xmlrpclib.loads(data)
+          params, method = xmlrpc.loads(data)
           
           if method == "samp.webhub.register":
             params = list(params)
             params.append(self.client_address)
-            if self.headers.has_key('Origin'):
+            if 'Origin' in self.headers:
               params.append(self.headers.get('Origin'))
             else:
               params.append('unknown')
             params = tuple(params)
-            data = xmlrpclib.dumps(params, methodname=method)
+            data = xmlrpc.dumps(params, methodname=method)
   
           elif method in ('samp.hub.notify', 'samp.hub.notifyAll', 
                           'samp.hub.call', 'samp.hub.callAll', 
@@ -661,7 +713,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
   
             user = "unknown"
   
-            if self.headers.has_key('Authorization'):
+            if 'Authorization' in self.headers:
               # handle Basic authentication
               (enctype, encstr) =  self.headers.get('Authorization').split()
               user, password = base64.standard_b64decode(encstr).split(':')
@@ -673,7 +725,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
               params[-1]["host"] = self.address_string()
               params[-1]["user"] = user
   
-            data = xmlrpclib.dumps(params, methodname=method)
+            data = xmlrpc.dumps(params, methodname=method)
 
           data = self.decode_request_content(data)
           if data is None:
@@ -695,7 +747,9 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
           if hasattr(self.server, '_send_traceback_header') and \
                   self.server._send_traceback_header:
               self.send_header("X-exception", str(e))
-              self.send_header("X-traceback", traceback.format_exc())
+              trace = traceback.format_exc()
+              trace = str(trace.encode('ASCII', 'backslashreplace'), 'ASCII')
+              self.send_header("X-traceback", trace)
 
           self.send_header("Content-length", "0")
           self.end_headers()
@@ -708,7 +762,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
                   q = self.accept_encodings().get("gzip", 0)
                   if q:
                       try:
-                          response = xmlrpclib.gzip_encode(response)
+                          response = xmlrpc.gzip_encode(response)
                           self.send_header("Content-Encoding", "gzip")
                       except NotImplementedError:
                           pass
@@ -745,17 +799,17 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
           size_remaining -= len(L[-1])
         data = ''.join(L)
 
-        params, method = xmlrpclib.loads(data)
+        params, method = xmlrpc.loads(data)
 
         if method == "samp.webhub.register":
           params = list(params)
           params.append(self.client_address)
-          if self.headers.has_key('Origin'):
+          if 'Origin' in self.headers:
             params.append(self.headers.get('Origin'))
           else:
             params.append('unknown')
           params = tuple(params)
-          data = xmlrpclib.dumps(params, methodname=method)
+          data = xmlrpc.dumps(params, methodname=method)
 
         elif method in ('samp.hub.notify', 'samp.hub.notifyAll', 
                         'samp.hub.call', 'samp.hub.callAll', 
@@ -763,7 +817,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
 
           user = "unknown"
 
-          if self.headers.has_key('Authorization'):
+          if 'Authorization' in self.headers:
             # handle Basic authentication
             (enctype, encstr) =  self.headers.get('Authorization').split()
             user, password = base64.standard_b64decode(encstr).split(':')
@@ -775,7 +829,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
             params[-1]["host"] = self.address_string()
             params[-1]["user"] = user
 
-          data = xmlrpclib.dumps(params, methodname=method)
+          data = xmlrpc.dumps(params, methodname=method)
 
         # In previous versions of SimpleXMLRPCServer, _dispatch
         # could be overridden in this class, instead of in
@@ -836,17 +890,17 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
           size_remaining -= len(L[-1])
         data = ''.join(L)
 
-        params, method = xmlrpclib.loads(data)
+        params, method = xmlrpc.loads(data)
 
         if method == "samp.webhub.register":
           params = list(params)
           params.append(self.client_address)
-          if self.headers.has_key('Origin'):
+          if 'Origin' in self.headers:
             params.append(self.headers.get('Origin'))
           else:
             params.append('unknown')
           params = tuple(params)
-          data = xmlrpclib.dumps(params, methodname=method)
+          data = xmlrpc.dumps(params, methodname=method)
 
         elif method in ('samp.hub.notify', 'samp.hub.notifyAll', 
                         'samp.hub.call', 'samp.hub.callAll', 
@@ -854,7 +908,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
 
           user = "unknown"
 
-          if self.headers.has_key('Authorization'):
+          if 'Authorization' in self.headers:
             # handle Basic authentication
             (enctype, encstr) =  self.headers.get('Authorization').split()
             user, password = base64.standard_b64decode(encstr).split(':')
@@ -866,7 +920,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
             params[-1]["host"] = self.address_string()
             params[-1]["user"] = user
 
-          data = xmlrpclib.dumps(params, methodname=method)
+          data = xmlrpc.dumps(params, methodname=method)
 
         # In previous versions of SimpleXMLRPCServer, _dispatch
         # could be overridden in this class, instead of in
@@ -1017,7 +1071,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
       # Request of a file proxying
       urlpath = parse_qs(split_path[1])
       try:
-        proxyfile = urllib.urlopen(urlpath["ref"][0])
+        proxyfile = urlopen(urlpath["ref"][0])
         self.send_response(200, 'OK')
         self.end_headers()
         self.wfile.write(proxyfile.read())
@@ -1057,16 +1111,16 @@ class WebProfileXMLRPCServer(ThreadingXMLRPCServer):
 
 if SSL_SUPPORT:
 
-  class HTTPSConnection(httplib.HTTPConnection):
+  class HTTPSConnection(HTTPConnection):
     "This class allows communication via SSL (client side)."
 
-    default_port = httplib.HTTPS_PORT
+    default_port = HTTPS_PORT
 
     def __init__(self, host, port=None, key_file=None, cert_file=None, 
                  cert_reqs=ssl.CERT_NONE, ca_certs=None,
                  ssl_version=ssl.PROTOCOL_SSLv3, strict=None):
 
-      httplib.HTTPConnection.__init__(self, host, port, strict)
+      HTTPConnection.__init__(self, host, port, strict)
 
       self.key_file = key_file
       self.cert_file = cert_file
@@ -1089,35 +1143,37 @@ if SSL_SUPPORT:
       self.sock = sslconn
 
 
-  class HTTPS(httplib.HTTP):
+  if PYTHON_VERSION < 3.0:
+    
+    class HTTPS(HTTP):
+  
+      _connection_class = HTTPSConnection
+  
+      def __init__(self, host='', port=None, key_file=None, cert_file=None,
+                   cert_reqs=ssl.CERT_NONE, ca_certs=None,
+                   ssl_version=ssl.PROTOCOL_SSLv3):
+  
+        # provide a default host, pass the X509 cert info
+  
+        # urf. compensate for bad input.
+        if port == 0:
+          port = None
+  
+        self._setup(self._connection_class(host, port, key_file,
+                                           cert_file, cert_reqs,
+                                           ca_certs, ssl_version, None))
+  
+        # we never actually use these for anything, but we keep them
+        # here for compatibility with post-1.5.2 CVS.
+        self.key_file = key_file
+        self.cert_file = cert_file
+        
+      def getresponse(self, buffering=False):
+        "Get the response from the server."
+        return self._conn.getresponse(buffering)
 
-    _connection_class = HTTPSConnection
 
-    def __init__(self, host='', port=None, key_file=None, cert_file=None,
-                 cert_reqs=ssl.CERT_NONE, ca_certs=None,
-                 ssl_version=ssl.PROTOCOL_SSLv3):
-
-      # provide a default host, pass the X509 cert info
-
-      # urf. compensate for bad input.
-      if port == 0:
-        port = None
-
-      self._setup(self._connection_class(host, port, key_file,
-                                         cert_file, cert_reqs,
-                                         ca_certs, ssl_version, None))
-
-      # we never actually use these for anything, but we keep them
-      # here for compatibility with post-1.5.2 CVS.
-      self.key_file = key_file
-      self.cert_file = cert_file
-      
-    def getresponse(self, buffering=False):
-      "Get the response from the server."
-      return self._conn.getresponse(buffering)
-
-
-  class SafeTransport(xmlrpclib.Transport):
+  class SafeTransport(xmlrpc.Transport):
     """Handles an HTTPS transaction to an XML-RPC server."""
 
     def __init__(self, key_file=None, cert_file=None,
@@ -1125,7 +1181,8 @@ if SSL_SUPPORT:
                  ssl_version=ssl.PROTOCOL_SSLv3, strict=None,
                  use_datetime=0):
 
-      xmlrpclib.Transport.__init__(self, use_datetime)
+      xmlrpc.Transport.__init__(self, use_datetime)
+      self._connection = (None, None)
       self.key_file = key_file
       self.cert_file = cert_file
       self.cert_reqs = cert_reqs
@@ -1134,11 +1191,22 @@ if SSL_SUPPORT:
 
 
     def make_connection(self, host):
+      
+      if self._connection and host == self._connection[0]:
+        return self._connection[1]
+
       # create a HTTPS connection object from a host descriptor
       # host may be a string, or a (host, x509-dict) tuple
       host, extra_headers, x509 = self.get_host_info(host)
-      return HTTPS(host, None, self.key_file, self.cert_file,
-                   self.cert_reqs, self.ca_certs, self.ssl_version)
+      if PYTHON_VERSION < 3.0:
+        return HTTPS(host, None, self.key_file, self.cert_file,
+                     self.cert_reqs, self.ca_certs, self.ssl_version)
+      else:
+        self._connection = host, http.client.HTTPSConnection(chost,
+                                                             None, **(x509 or {}))
+        return self._connection[1]
+
+
 
 
   class SecureXMLRPCServer(ThreadingXMLRPCServer):
@@ -1208,27 +1276,27 @@ if BDB_SUPPORT:
 
         pwdhash = self.db[id][0:16]
         groups =  self.db[id][16:]
-        pwd = hashlib.md5(pwd).digest()
+        pwd = hashlib.md5(pwd.encode('utf-8')).digest()
 
         if self.access_restrict != None:
 
           # ADMIN TEST
-          if self.access_restrict.has_key("admin"):
+          if "admin" in self.access_restrict:
             admin = self.access_restrict["admin"]
-            if self.db.has_key(admin):
+            if admin in self.db:
               adminpwdhash = self.db[admin][0:16]
               if admin == id and adminpwdhash == pwd:
                 return True
 
           # TEST USER RESTRICTION
-          if self.access_restrict.has_key("user"):
+          if "user" in self.access_restrict:
             if self.access_restrict["user"] == id and pwdhash == pwd:
               return True
             else:
               return False
 
           # TEST GROUP RESTRICTION
-          if self.access_restrict.has_key("group"):
+          if "group" in self.access_restrict:
             if self.access_restrict["group"] in groups.split(",") and pwdhash == pwd:
               return True
             else:
@@ -1244,7 +1312,7 @@ if BDB_SUPPORT:
     def authenticate_client(self):
       validuser = False
 
-      if self.headers.has_key('Authorization'):
+      if 'Authorization' in self.headers:
         # handle Basic authentication
         (enctype, encstr) =  self.headers.get('Authorization').split()
         (user, password) = base64.standard_b64decode(encstr).split(':')
@@ -1491,9 +1559,9 @@ class SAMPHubServer(object):
     self._web_profile_server = None
     self._web_profile_callbacks = {}
     self._web_profile_popup_dialogue = None
-    self._web_profile_requests_queue = Queue.Queue(1)
-    self._web_profile_requests_result = Queue.Queue(1)
-    self._web_profile_requests_semaphore = Queue.Queue(1)
+    self._web_profile_requests_queue = queue.Queue(1)
+    self._web_profile_requests_result = queue.Queue(1)
+    self._web_profile_requests_semaphore = queue.Queue(1)
     if web_profile:
       try:
         self._web_profile_server = WebProfileXMLRPCServer(('localhost', 21012), self._log, \
@@ -1764,7 +1832,7 @@ class SAMPHubServer(object):
 
 
     # CHECK FOR SAMP_HUB ENVIRONMENT VARIABLE
-    if os.environ.has_key("SAMP_HUB"):
+    if "SAMP_HUB" in os.environ:
       # For the time being I assume just the std profile supported.
       if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
 
@@ -1787,7 +1855,7 @@ class SAMPHubServer(object):
         else:
           lockfilename = "samp-hub-%d-%s" % (os.getpid(), threading._counter + 1)
 
-        if os.environ.has_key("HOME"):
+        if "HOME" in os.environ:
           # UNIX
           lockfiledir = os.environ["HOME"]
         else:
@@ -1874,7 +1942,7 @@ class SAMPHubServer(object):
 
     # HUB SINGLE INSTANCE MODE
 
-    if os.environ.has_key("HOME"):
+    if "HOME" in os.environ:
       # UNIX
       lockfilename = os.path.join(os.environ["HOME"], ".samp")
     else:
@@ -1896,7 +1964,7 @@ class SAMPHubServer(object):
 
     lockfiledir = ""
 
-    if os.environ.has_key("HOME"):
+    if "HOME" in os.environ:
       # UNIX
       lockfiledir = os.path.join(os.environ["HOME"], ".samp-1")
     else:
@@ -1942,24 +2010,29 @@ class SAMPHubServer(object):
 
     # Check whether a lockfile alredy exists
     try:
-      lockfile = urllib.urlopen(lockfilename)
+      if not (lockfilename.startswith("file:") or\
+              lockfilename.startswith("http:") or \
+              lockfilename.startswith("https:")):
+        lockfilename = "file://" + lockfilename
+      
+      lockfile = urlopen(lockfilename)
       lockfile_content = lockfile.readlines()
       lockfile.close()
     except:
       return is_running, lockfiledict
 
     for line in lockfile_content:
-      if line.strip()[0] != "#":
-        kw, val = line.split("=")
-        lockfiledict[kw.strip()] = val.strip()
+      if not line.startswith(b"#"):
+        kw, val = line.split(b"=")
+        lockfiledict[kw.decode().strip()] = val.decode().strip()
 
-    if lockfiledict.has_key("samp.hub.xmlrpc.url"):
+    if "samp.hub.xmlrpc.url" in lockfiledict:
       try:
-        proxy = xmlrpclib.ServerProxy(lockfiledict["samp.hub.xmlrpc.url"].replace("\\", ""),
-                                      allow_none=1)
+        proxy = xmlrpc.ServerProxy(lockfiledict["samp.hub.xmlrpc.url"].replace("\\", ""),
+                                   allow_none=1)
         proxy.samp.hub.ping()
         is_running = True
-      except xmlrpclib.ProtocolError:
+      except xmlrpc.ProtocolError:
         # There is a protocol error (e.g. for authentication required),
         # but the server is alive
         is_running = True
@@ -1977,10 +2050,7 @@ class SAMPHubServer(object):
     if self._hub_secret_code_customized != None:
       return self._hub_secret_code_customized
     else:
-      now = datetime.datetime.utcnow().isoformat()
-      host = self._host_name
-      user = getpass.getuser()
-      return hashlib.sha1(host + user + now).hexdigest()
+      return str(uuid.uuid1())
 
 
   def stop(self):
@@ -2066,7 +2136,7 @@ class SAMPHubServer(object):
         try:
           request = self._web_profile_requests_queue.get_nowait()
           self._web_profile_popup_dialogue.showPopup(request)
-        except Queue.Empty:
+        except queue.Empty:
           pass
 
         try:
@@ -2082,7 +2152,7 @@ class SAMPHubServer(object):
   def _notifyShutdown(self):
     msubs = SAMPHubServer.getMTypeSubtypes("samp.hub.event.shutdown")		
     for mtype in msubs:
-      if self._mtype2ids.has_key(mtype):
+      if mtype in self._mtype2ids:
         for key in self._mtype2ids[mtype]:
           self._notify_(self._hub_private_key, self._private_keys[key][0],
                         {"samp.mtype":"samp.hub.event.shutdown",
@@ -2091,7 +2161,7 @@ class SAMPHubServer(object):
   def _notifyRegister(self, private_key):
     msubs = SAMPHubServer.getMTypeSubtypes("samp.hub.event.register")		
     for mtype in msubs:
-      if self._mtype2ids.has_key(mtype):
+      if mtype in self._mtype2ids:
         public_id = self._private_keys[private_key][0]
         for key in self._mtype2ids[mtype]:
           #if key != private_key:
@@ -2102,7 +2172,7 @@ class SAMPHubServer(object):
   def _notifyUnregister(self, private_key):
     msubs = SAMPHubServer.getMTypeSubtypes("samp.hub.event.unregister")		
     for mtype in msubs:
-      if self._mtype2ids.has_key(mtype):
+      if mtype in self._mtype2ids:
         public_id = self._private_keys[private_key][0]
         for key in self._mtype2ids[mtype]:
           if key != private_key:
@@ -2113,7 +2183,7 @@ class SAMPHubServer(object):
   def _notifyMetadata(self, private_key):
     msubs = SAMPHubServer.getMTypeSubtypes("samp.hub.event.metadata")		
     for mtype in msubs:
-      if self._mtype2ids.has_key(mtype):
+      if mtype in self._mtype2ids:
         public_id = self._private_keys[private_key][0]
         for key in self._mtype2ids[mtype]:
           #if key != private_key:
@@ -2126,7 +2196,7 @@ class SAMPHubServer(object):
   def _notifySubscriptions(self, private_key):
     msubs = SAMPHubServer.getMTypeSubtypes("samp.hub.event.subscriptions")		
     for mtype in msubs:
-      if self._mtype2ids.has_key(mtype):
+      if mtype in self._mtype2ids:
         public_id = self._private_keys[private_key][0]
         for key in self._mtype2ids[mtype]:
           #if key != private_key:
@@ -2149,7 +2219,7 @@ class SAMPHubServer(object):
     endpoint = self._xmlrpcEndpoints[public_id][1]
 
     for mtype in msubs:
-      if self._mtype2ids.has_key(mtype) and private_key in self._mtype2ids[mtype]:
+      if mtype in self._mtype2ids and private_key in self._mtype2ids[mtype]:
         try:
           self._log.debug("notify disconnection to %s" % (public_id))
           threading.Thread(target = _xmlrpc_call_disconnect,
@@ -2176,7 +2246,7 @@ class SAMPHubServer(object):
 
   def _setXmlrpcCallback(self, private_key, xmlrpc_addr):
     self._updateLastActivityTime(private_key)
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
       if private_key == self._hub_private_key:
         self._xmlrpcEndpoints[self._private_keys[private_key][0]] = (xmlrpc_addr, _HubAsClient(self._hubAsClientRequestHandler))
         return ""
@@ -2184,7 +2254,7 @@ class SAMPHubServer(object):
       self._log.debug("setXmlrpcCallback: %s %s" % (private_key, xmlrpc_addr))
       server_proxy_pool = None
       if SSL_SUPPORT and xmlrpc_addr[0:5] == "https":
-        server_proxy_pool = ServerProxyPool(self._pool_size, xmlrpclib.ServerProxy,
+        server_proxy_pool = ServerProxyPool(self._pool_size, xmlrpc.ServerProxy,
                                             xmlrpc_addr, transport = SafeTransport(key_file = self._keyfile,
                                                                                    cert_file = self._certfile,
                                                                                    cert_reqs = self._cert_reqs,
@@ -2192,7 +2262,7 @@ class SAMPHubServer(object):
                                                                                    ssl_version = ssl.PROTOCOL_SSLv3),
                                             allow_none=1)
       else:
-        server_proxy_pool = ServerProxyPool(self._pool_size, xmlrpclib.ServerProxy, \
+        server_proxy_pool = ServerProxyPool(self._pool_size, xmlrpc.ServerProxy, \
                                             xmlrpc_addr, allow_none=1)
 
       self._xmlrpcEndpoints[self._private_keys[private_key][0]] = (xmlrpc_addr, server_proxy_pool)
@@ -2225,12 +2295,7 @@ class SAMPHubServer(object):
       raise SAMPProxyError(7, "Bad secret code")
 
   def _getNewIds(self):
-
-    now = datetime.datetime.utcnow().isoformat()
-    host = self._host_name
-    user = getpass.getuser()
-    private_key = hashlib.md5(str(random.randint(0, 99999999999999999999)) \
-                              + self._hub_secret + host + user + now).hexdigest()
+    private_key = str(uuid.uuid1())
     self._client_id_counter += 1
     public_id = 'cli#hub'
     if self._client_id_counter > 0:
@@ -2249,31 +2314,31 @@ class SAMPHubServer(object):
 
     self._thread_lock.acquire()
 
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
       public_key = self._private_keys[private_key][0]
       del self._private_keys[private_key]
     else:
       self._thread_lock.release()
       return ""
 
-    if self._metadata.has_key(private_key):
+    if private_key in self._metadata:
       del self._metadata[private_key]
 
-    if self._id2mtypes.has_key(private_key):
+    if private_key in self._id2mtypes:
       del self._id2mtypes[private_key]
 
     for mtype in self._mtype2ids.keys():
       if private_key in self._mtype2ids[mtype]:
         self._mtype2ids[mtype].remove(private_key)
 
-    if self._xmlrpcEndpoints.has_key(public_key):
+    if public_key in self._xmlrpcEndpoints:
       del self._xmlrpcEndpoints[public_key]
 
-    if self._client_activity_time.has_key(private_key):
+    if private_key in self._client_activity_time:
       del self._client_activity_time[private_key]
 
     if self._web_profile:
-      if self._web_profile_callbacks.has_key(private_key):
+      if private_key in self._web_profile_callbacks:
         del self._web_profile_callbacks[private_key]
       self._web_profile_server.remove_client(private_key)
 
@@ -2285,7 +2350,7 @@ class SAMPHubServer(object):
 
   def _declareMetadata(self, private_key, metadata):
     self._updateLastActivityTime(private_key)
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
       self._log.debug("declareMetadata: private-key = %s metadata = %s" % (private_key, str(metadata)))
       self._metadata[private_key] = metadata
       self._notifyMetadata(private_key)
@@ -2295,12 +2360,12 @@ class SAMPHubServer(object):
 
   def _getMetadata(self, private_key, client_id):
     self._updateLastActivityTime(private_key)
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
       client_private_key = self._getPrivateKeyFromPublicId(client_id)
       self._log.debug("getMetadata: private-key = %s client-id = %s" %  \
                       (private_key, client_id))
       if client_private_key != None:
-        if self._metadata.has_key(client_private_key):
+        if client_private_key in self._metadata:
           self._log.debug("--> metadata = %s" % self._metadata[client_private_key])
           return self._metadata[client_private_key]
         else:
@@ -2316,12 +2381,12 @@ class SAMPHubServer(object):
 
     self._updateLastActivityTime(private_key)
 
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
 
       self._log.debug("declareSubscriptions: private-key = %s mtypes = %s" % (private_key, str(mtypes)))
 
       # remove subscription to previous mtypes
-      if self._id2mtypes.has_key(private_key):
+      if private_key in self._id2mtypes:
 
         prev_mtypes = self._id2mtypes[private_key]
 
@@ -2341,13 +2406,13 @@ class SAMPHubServer(object):
           for mtype2 in original_mtypes:
             if mtype2.startswith(mtype[:-1]) and \
                mtype2 != mtype:
-              if mtypes.has_key(mtype2): del(mtypes[mtype2])
+              if mtype2 in mtypes: del(mtypes[mtype2])
 
       self._log.debug("declareSubscriptions: subscriptions accepted from %s => %s" % (private_key, str(mtypes)))
 
       for mtype in mtypes:
 
-        if self._mtype2ids.has_key(mtype):
+        if mtype in self._mtype2ids:
           if not private_key in self._mtype2ids[mtype]:
             self._mtype2ids[mtype].append(private_key)
         else:
@@ -2365,10 +2430,10 @@ class SAMPHubServer(object):
 
     self._updateLastActivityTime(private_key)
 
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
       client_private_key = self._getPrivateKeyFromPublicId(client_id)
       if client_private_key != None:
-        if self._id2mtypes.has_key(client_private_key):
+        if client_private_key in self._id2mtypes:
           self._log.debug("getSubscriptions: client-id = %s mtypes = %s" %\
                           (client_id, str(self._id2mtypes[client_private_key])))
           return self._id2mtypes[client_private_key]
@@ -2385,7 +2450,7 @@ class SAMPHubServer(object):
 
     self._updateLastActivityTime(private_key)
 
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
       reg_clients = []
       for pkey in self._private_keys.keys():
         if pkey != private_key:
@@ -2399,7 +2464,7 @@ class SAMPHubServer(object):
 
     self._updateLastActivityTime(private_key)
 
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
       sub_clients = {}
 
       for pkey in self._private_keys.keys():
@@ -2431,12 +2496,12 @@ class SAMPHubServer(object):
     subtypes = []
 
     msubs = mtype.split(".")
-    indexes = range(len(msubs))
+    indexes = list(range(len(msubs)))
     indexes.reverse()
     indexes.append(-1)
 
     for i in indexes:
-      tmp_mtype = string.join(msubs[:i+1], ".")
+      tmp_mtype = ".".join(msubs[:i+1])
       if tmp_mtype != mtype:
         if tmp_mtype != "":
           tmp_mtype = tmp_mtype + ".*"
@@ -2453,7 +2518,7 @@ class SAMPHubServer(object):
     msubs = SAMPHubServer.getMTypeSubtypes(mtype)
 
     for msub in msubs:
-      if self._mtype2ids.has_key(msub):
+      if msub in self._mtype2ids:
         if private_key in self._mtype2ids[msub]:
           subscribed = True
 
@@ -2463,7 +2528,7 @@ class SAMPHubServer(object):
   def _notify(self, private_key, recipient_id, message):
     self._updateLastActivityTime(private_key)
 
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
       if self._isSubscribed(self._getPrivateKeyFromPublicId(recipient_id),
                             message["samp.mtype"]) == False:
         raise SAMPProxyError(2, "Client %s not subscribed to MType %s" % (recipient_id, message["samp.mtype"]))
@@ -2474,13 +2539,13 @@ class SAMPHubServer(object):
       raise SAMPProxyError(5, "Private-key %s expired or invalid." % private_key)
 
   def _notify_(self, sender_private_key, recipient_public_id, message):
-    if self._private_keys.has_key(sender_private_key):
+    if sender_private_key in self._private_keys:
       sender_public_id = self._private_keys[sender_private_key][0]
       try:
         self._log.debug("notify %s from %s to %s" % (message["samp.mtype"], sender_public_id, recipient_public_id))
         recipient_private_key = self._getPrivateKeyFromPublicId(recipient_public_id)
         if recipient_private_key != None:
-          for attempt in xrange(10):
+          for attempt in range(10):
             if self._is_running:
               try:
                 if self._web_profile and recipient_private_key in self._web_profile_callbacks:
@@ -2493,7 +2558,7 @@ class SAMPHubServer(object):
                   recipient_private_key, sender_public_id, message)
                 break
               except:
-                err = StringIO.StringIO()
+                err = io.StringIO()
                 traceback.print_exc(file=err)
                 txt = err.getvalue()
                 self._log.debug("%s XML-RPC endpoint error (attempt %d): \n%s" % (recipient_public_id, attempt + 1, txt))
@@ -2506,8 +2571,8 @@ class SAMPHubServer(object):
   def _notifyAll(self, private_key, message):
     self._updateLastActivityTime(private_key)
 
-    if self._private_keys.has_key(private_key):
-      if not message.has_key("samp.mtype"):
+    if private_key in self._private_keys:
+      if not "samp.mtype" in message:
         raise SAMPProxyError(3, "samp.mtype keyword is missing")
       recipient_ids = self._notifyAll(private_key, message)
       return recipient_ids
@@ -2520,7 +2585,7 @@ class SAMPHubServer(object):
     msubs = SAMPHubServer.getMTypeSubtypes(message["samp.mtype"])
 
     for mtype in msubs:
-      if self._mtype2ids.has_key(mtype):
+      if mtype in self._mtype2ids:
         for key in self._mtype2ids[mtype]:
           if key != sender_private_key:
             _recipient_id = self._private_keys[key][0]
@@ -2535,7 +2600,7 @@ class SAMPHubServer(object):
   def _call(self, private_key, recipient_id, msg_tag, message):
     self._updateLastActivityTime(private_key)
 
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
       if self._isSubscribed(self._getPrivateKeyFromPublicId(recipient_id),
                             message["samp.mtype"]) == False:
         raise SAMPProxyError(2, "Client %s not subscribed to MType %s" % (recipient_id, message["samp.mtype"]))
@@ -2547,12 +2612,12 @@ class SAMPHubServer(object):
       raise SAMPProxyError(5, "Private-key %s expired or invalid." % private_key)
 
   def _call_(self, sender_private_key, sender_public_id, recipient_public_id, msg_id, message):
-    if self._private_keys.has_key(sender_private_key):
+    if sender_private_key in self._private_keys:
       try:
         self._log.debug("call %s from %s to %s (%s)" % (msg_id.split(";;")[0], sender_public_id, recipient_public_id, message["samp.mtype"]))
         recipient_private_key = self._getPrivateKeyFromPublicId(recipient_public_id)
         if recipient_private_key != None:
-          for attempt in xrange(10):
+          for attempt in range(10):
             if self._is_running:
               try:
                 if self._web_profile and recipient_private_key in self._web_profile_callbacks:
@@ -2565,7 +2630,7 @@ class SAMPHubServer(object):
                   recipient_private_key, sender_public_id, msg_id, message)
                 break
               except:
-                err = StringIO.StringIO()
+                err = io.StringIO()
                 traceback.print_exc(file=err)
                 txt = err.getvalue()
                 self._log.debug("%s XML-RPC endpoint error (attempt %d): \n%s" % (recipient_public_id, attempt + 1, txt))
@@ -2578,8 +2643,8 @@ class SAMPHubServer(object):
   def _callAll(self, private_key, msg_tag, message):
     self._updateLastActivityTime(private_key)
 
-    if self._private_keys.has_key(private_key):
-      if not message.has_key("samp.mtype"):
+    if private_key in self._private_keys:
+      if not "samp.mtype" in message:
         raise SAMPProxyError(3, "samp.mtype keyword is missing in message tagged as %s" % msg_tag)
 
       public_id = self._private_keys[private_key][0]
@@ -2594,7 +2659,7 @@ class SAMPHubServer(object):
     msubs = SAMPHubServer.getMTypeSubtypes(message["samp.mtype"])
 
     for mtype in msubs:
-      if self._mtype2ids.has_key(mtype):
+      if mtype in self._mtype2ids:
         for key in self._mtype2ids[mtype]:
           if key != sender_private_key:
             _msg_id = self._getNewHubMsgId(sender_public_id, msg_tag)
@@ -2609,7 +2674,7 @@ class SAMPHubServer(object):
   def _callAndWait(self, private_key, recipient_id, message, timeout):
     self._updateLastActivityTime(private_key)
 
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
       timeout = int(timeout)
 
       now = time.time()
@@ -2635,7 +2700,7 @@ class SAMPHubServer(object):
 
   def _reply(self, private_key, msg_id, response):
     self._updateLastActivityTime(private_key)
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
       threading.Thread(target = self._reply_, args = (private_key, msg_id, response)).start()
     else:
       raise SAMPProxyError(5, "Private-key %s expired or invalid." % private_key)
@@ -2644,7 +2709,7 @@ class SAMPHubServer(object):
 
   def _reply_(self, responder_private_key, msg_id, response):
 
-    if self._private_keys.has_key(responder_private_key) and msg_id:
+    if (responder_private_key in self._private_keys) and msg_id:
       responder_public_id = self._private_keys[responder_private_key][0]
       counter, hub_public_id, recipient_public_id, \
              recipient_msg_tag = msg_id.split(";;", 3)
@@ -2657,7 +2722,7 @@ class SAMPHubServer(object):
         else:
           recipient_private_key = self._getPrivateKeyFromPublicId(recipient_public_id)
           if recipient_private_key != None:
-            for attempt in xrange(10):
+            for attempt in range(10):
               if self._is_running:
                 try:
                   if self._web_profile and recipient_private_key in self._web_profile_callbacks:
@@ -2671,7 +2736,7 @@ class SAMPHubServer(object):
                     recipient_private_key, responder_public_id, recipient_msg_tag, response)
                   break
                 except:
-                  err = StringIO.StringIO()
+                  err = io.StringIO()
                   traceback.print_exc(file=err)
                   txt = err.getvalue()
                   self._log.debug("%s XML-RPC endpoint error (attempt %d): \n%s" % (recipient_public_id, attempt + 1, txt))
@@ -2709,10 +2774,10 @@ class SAMPHubServer(object):
   def _receiveCall(self, private_key, sender_id, msg_id, message):
     if private_key == self._hub_private_key:
       
-      if message.has_key("samp.mtype") and message["samp.mtype"] == "samp.app.ping":
+      if "samp.mtype" in message and message["samp.mtype"] == "samp.app.ping":
         self._reply(self._hub_private_key, msg_id, {"samp.status": SAMP_STATUS_OK, "samp.result": {}})
         
-      elif message.has_key("samp.mtype") and \
+      elif "samp.mtype" in message and \
          (message["samp.mtype"] == "x-samp.query.by-meta" or \
           message["samp.mtype"] == "samp.query.by-meta"):
         
@@ -2741,7 +2806,7 @@ class SAMPHubServer(object):
 
     if isinstance(identity_info, dict):
       # an old version of the protocol provided just a string with the app name
-      if "samp.name" not in identity_info.keys():
+      if "samp.name" not in identity_info:
         raise SAMPProxyError(403, "Request of registration rejected by the Hub (application name not provided).")
     
     # Red semaphore for the other threads
@@ -2764,19 +2829,19 @@ class SAMPHubServer(object):
 
   def _web_profile_allowReverseCallbacks(self, private_key, allow):
     self._updateLastActivityTime()
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
       if allow == "0":
         if private_key in self._web_profile_callbacks:
           del self._web_profile_callbacks[private_key]
       else:
-        self._web_profile_callbacks[private_key] = Queue.Queue()
+        self._web_profile_callbacks[private_key] = queue.Queue()
     else:
       raise SAMPProxyError(5, "Private-key %s expired or invalid." % private_key)
     return ""
 
   def _web_profile_pullCallbacks(self, private_key, timeout_secs):
     self._updateLastActivityTime()
-    if self._private_keys.has_key(private_key):
+    if private_key in self._private_keys:
       callback = []
       try:
         while self._is_running:
@@ -2784,7 +2849,7 @@ class SAMPHubServer(object):
           callback.append(item_queued)
           if self._web_profile_callbacks[private_key].empty():
             break
-      except Queue.Empty:
+      except queue.Empty:
         pass
       return callback
     else:
@@ -2851,12 +2916,12 @@ class SAMPHubProxy(object):
     # HUB SINGLE INSTANCE MODE
 
     # CHECK FOR SAMP_HUB ENVIRONMENT VARIABLE
-    if os.environ.has_key("SAMP_HUB"):
+    if "SAMP_HUB" in os.environ:
       # For the time being I assume just the std profile supported.
       if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
         lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
     else:
-      if os.environ.has_key("HOME"):
+      if "HOME" in os.environ:
         # UNIX
         lockfilename = os.path.join(os.environ["HOME"], ".samp")
       else:
@@ -2872,7 +2937,7 @@ class SAMPHubProxy(object):
 
     lockfiledir = ""
 
-    if os.environ.has_key("HOME"):
+    if "HOME" in os.environ:
       # UNIX
       lockfiledir = os.path.join(os.environ["HOME"], ".samp-1")
     else:
@@ -2949,14 +3014,14 @@ class SAMPHubProxy(object):
         # Use Single instance hub by default
         lockfilename = ""
         # CHECK FOR SAMP_HUB ENVIRONMENT VARIABLE
-        if os.environ.has_key("SAMP_HUB"):
+        if "SAMP_HUB" in os.environ:
           # For the time being I assume just the std profile supported.
           if os.environ["SAMP_HUB"].startswith("std-lockurl:"):
             lockfilename = os.environ["SAMP_HUB"][len("std-lockurl:"):]
           else:
             raise SAMPHubError("SAMP Hub profile not supported.")
         else:
-          if os.environ.has_key("HOME"):
+          if "HOME" in os.environ:
             # UNIX
             lockfilename = os.path.join(os.environ["HOME"], ".samp")
           else:
@@ -2976,26 +3041,26 @@ class SAMPHubProxy(object):
         url = "%s://%s:%s@%s" % (trans, user, password, addr)
 
       if SSL_SUPPORT and url[0:5] == "https":
-        self.proxy = ServerProxyPool(pool_size, xmlrpclib.ServerProxy,
+        self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy,
                                      url, transport = SafeTransport(key_file, cert_file, cert_reqs,
                                                                     ca_certs, ssl_version),
                                      allow_none=1)
       else:
-        self.proxy = ServerProxyPool(pool_size, xmlrpclib.ServerProxy, url, allow_none=1)
+        self.proxy = ServerProxyPool(pool_size, xmlrpc.ServerProxy, url, allow_none=1)
 
       self.proxy.samp.hub.ping()
 
       self.lockfile = copy.deepcopy(hub_params)
       self._connected = True
 
-    except xmlrpclib.ProtocolError as p:
+    except xmlrpc.ProtocolError as p:
       # 401 Unauthorized
       if p.errcode == 401:
         raise SAMPHubError("Unauthorized access. Basic Authentication required or failed.")
       else:
         raise SAMPHubError("Protocol Error %d: %s" % (p.errcode, p.errmsg))
     except:
-      err = StringIO.StringIO()
+      err = io.StringIO()
       traceback.print_exc(file=err)
       txt = err.getvalue()
       if SSL_SUPPORT:
@@ -3316,7 +3381,7 @@ class SAMPClient(object):
 
   def _handle_notification(self, private_key, sender_id, message):
 
-    if private_key == self.getPrivateKey() and message.has_key("samp.mtype"):
+    if private_key == self.getPrivateKey() and "samp.mtype" in message:
 
       msg_mtype = message["samp.mtype"]
       del message["samp.mtype"]
@@ -3325,10 +3390,20 @@ class SAMPClient(object):
 
       msubs = SAMPHubServer.getMTypeSubtypes(msg_mtype)
       for mtype in msubs:
-        if self._notification_bindings.has_key(mtype):
+        if mtype in self._notification_bindings:
           bound_func = self._notification_bindings[mtype][0]
-          if (inspect.ismethod(bound_func) and bound_func.im_func.func_code.co_argcount == 6) or \
-             (inspect.isfunction(bound_func) and bound_func.func_code.co_argcount == 5):
+          test = False
+          if PYTHON_VERSION > 2.5:
+            test = (inspect.ismethod(bound_func) and \
+                    bound_func.__func__.__code__.co_argcount == 6) or \
+                 (inspect.isfunction(bound_func) and \
+                  bound_func.__code__.co_argcount == 5)
+          else:
+            test = (inspect.ismethod(bound_func) and \
+                    bound_func.im_func.func_code.co_argcount == 6) or \
+                 (inspect.isfunction(bound_func) and \
+                  bound_func.func_code.co_argcount == 5)
+          if test:
             bound_func(private_key, sender_id, msg_mtype, msg_params, message)
           else:
             bound_func(private_key, sender_id, None, msg_mtype, msg_params, message)
@@ -3359,7 +3434,7 @@ class SAMPClient(object):
     return self._handle_notification(private_key, sender_id, message)
 
   def _handle_call(self, private_key, sender_id, msg_id, message):
-    if private_key == self.getPrivateKey() and message.has_key("samp.mtype"):
+    if private_key == self.getPrivateKey() and "samp.mtype" in message:
 
       msg_mtype = message["samp.mtype"]
       del message["samp.mtype"]
@@ -3369,8 +3444,9 @@ class SAMPClient(object):
       msubs = SAMPHubServer.getMTypeSubtypes(msg_mtype)
 
       for mtype in msubs:
-        if self._call_bindings.has_key(mtype):
-          self._call_bindings[mtype][0](private_key, sender_id, msg_id, msg_mtype, msg_params, message)
+        if mtype in self._call_bindings:
+          self._call_bindings[mtype][0](private_key, sender_id, msg_id,\
+                                        msg_mtype, msg_params, message)
 
     return ""
 
@@ -3401,7 +3477,7 @@ class SAMPClient(object):
     return self._handle_call(private_key, sender_id, msg_id, message)
 
   def _handle_response(self, private_key, responder_id, msg_tag, response):
-    if private_key == self.getPrivateKey() and self._response_bindings.has_key(msg_tag):
+    if private_key == self.getPrivateKey() and msg_tag in self._response_bindings:
       self._response_bindings[msg_tag](private_key, responder_id, msg_tag, response)
     return ""
 
@@ -3764,8 +3840,8 @@ class SAMPClientError(Exception):
   def __str__(self):
     return repr(self.value)
 
-#: SAMP Proxy Hub exceptions (overwites xmlrpclib.Fault).
-SAMPProxyError = xmlrpclib.Fault
+#: SAMP Proxy Hub exceptions (overwites xmlrpc.Fault).
+SAMPProxyError = xmlrpc.Fault
 
 
 class SAMPIntegratedClient(object):
@@ -3978,7 +4054,7 @@ class SAMPIntegratedClient(object):
 
     msg = {}
 
-    if params.has_key("extra_kws"):
+    if "extra_kws" in params:
       extra = params["extra_kws"]
       del(params["extra_kws"])
       msg = {"samp.mtype": mtype, "samp.params": params}
@@ -4749,7 +4825,10 @@ def main(timeout=0):
   except SystemExit:
     pass
   except:
-    print("[SAMP] Error: Unexpected error:" + sys.exc_info())
+    err = io.StringIO()
+    traceback.print_exc(file=err)
+    txt = err.getvalue()    
+    print("[SAMP] Error: Unexpected error:\n" + txt)
 
 
 if __name__ == "__main__":
