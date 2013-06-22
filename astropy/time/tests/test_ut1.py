@@ -34,7 +34,7 @@ class TestTimeUT1():
                            2456110.0000047833])
         assert allclose_jd(t_ut1_jd, t_comp)
         tnow = Time.now()
-        with pytest.raises(ValueError):
+        with pytest.raises(IndexError):
             tnow.ut1
 
 
@@ -42,6 +42,8 @@ class TestTimeUT1():
 class TestTimeUT1_IERSA():
     def test_ut1_iers_A(self):
         tnow = Time.now()
-        iers.IERS.iers_table = iers.IERS_A.open()
+        iers_a = iers.IERS_A.open()
+        tnow.delta_ut1_utc, status = iers_a.ut1_utc(tnow, return_status=True)
+        assert status == iers.FROM_IERS_A_PREDICTION
         tnow_ut1_jd = tnow.ut1.jd
         assert tnow_ut1_jd != tnow.jd

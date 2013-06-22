@@ -30,19 +30,22 @@ class TestBasic():
         jd1 = np.array([2456108.5, 2456108.5, 2456108.5,
                         2456109.5, 2456109.5])
         jd2 = np.array([0.49999421, 0.99997685, 0.99998843, 0., 0.5])
-        ut1_utc, status = iers_tab.ut1_utc(jd1, jd2)
-        assert np.all(status == iers.FROM_IERS_B)
+        ut1_utc = iers_tab.ut1_utc(jd1, jd2)
         assert allclose_sec(ut1_utc, np.array([-0.5868211, -0.5868184,
                                                -0.5868184, 0.4131816,
                                                0.41328895]))
         # should be future-proof; surely we've moved to another planet by then
-        ut1_utc2, status2 = iers_tab.ut1_utc(1e11, 0.)
-        assert status2 == iers.TIME_BEYOND_IERS_RANGE
+        with pytest.raises(IndexError):
+            ut1_utc2, status2 = iers_tab.ut1_utc(1e11, 0.)
+        # also check it returns the right status
+        ut1_utc2, status2 = iers_tab.ut1_utc(jd1, jd2, return_status=True)
+        assert np.all(status2 == iers.FROM_IERS_B)
+        ut1_utc4, status4 = iers_tab.ut1_utc(1e11, 0., return_status=True)
+        assert status4 == iers.TIME_BEYOND_IERS_RANGE
 
         # check it works via Time too
         t = Time(jd1, jd2, format='jd', scale='utc')
-        ut1_utc3, status3 = iers_tab.ut1_utc(t)
-        assert np.all(status3 == iers.FROM_IERS_B)
+        ut1_utc3 = iers_tab.ut1_utc(t)
         assert allclose_sec(ut1_utc3, np.array([-0.5868211, -0.5868184,
                                                 -0.5868184, 0.4131816,
                                                 0.41328895]))
@@ -55,16 +58,16 @@ class TestIERS_A():
         jd1 = np.array([2456108.5, 2456108.5, 2456108.5,
                         2456109.5, 2456109.5])
         jd2 = np.array([0.49999421, 0.99997685, 0.99998843, 0., 0.5])
-        ut1_utc, status = iers_tab.ut1_utc(jd1, jd2)
+        ut1_utc, status = iers_tab.ut1_utc(jd1, jd2, return_status=True)
         assert np.all(status == iers.FROM_IERS_B)
         assert allclose_sec(ut1_utc, np.array([-0.5868211, -0.5868184,
                                                -0.5868184, 0.4131816,
                                                0.41328895]))
-        ut1_utc2, status2 = iers_tab.ut1_utc(1e11, 0.)
+        ut1_utc2, status2 = iers_tab.ut1_utc(1e11, 0., return_status=True)
         assert status2 == iers.TIME_BEYOND_IERS_RANGE
 
         tnow = Time.now()
 
-        ut1_utc3, status3 = iers_tab.ut1_utc(tnow)
+        ut1_utc3, status3 = iers_tab.ut1_utc(tnow, return_status=True)
         assert status3 == iers.FROM_IERS_A_PREDICTION
         assert ut1_utc3 != 0.

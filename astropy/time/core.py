@@ -558,18 +558,9 @@ class Time(object):
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
         # seconds. It is obtained from tables published by the IERS.
         if not hasattr(self, '_delta_ut1_utc'):
-            from ..utils.iers import IERS, \
-                TIME_BEFORE_IERS_RANGE, TIME_BEYOND_IERS_RANGE
+            from ..utils.iers import IERS
             iers_table = IERS.open()
-            ut1_utc, status = iers_table.ut1_utc(jd1, jd2)
-            if np.any(status == TIME_BEFORE_IERS_RANGE):
-                raise ValueError('(some) times are before range covered by '
-                                 'IERS table.')
-            if np.any(status == TIME_BEYOND_IERS_RANGE):
-                raise ValueError('(some) times are beyond range covered by '
-                                 'IERS table.  See astropy.utils.iers.__doc__ '
-                                 'for how to handle recent times.')
-            self._set_delta_ut1_utc(ut1_utc)
+            self._set_delta_ut1_utc(iers_table.ut1_utc(jd1, jd2))
 
         return self._delta_ut1_utc
 

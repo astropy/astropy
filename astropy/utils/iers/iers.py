@@ -16,26 +16,23 @@ default IERS B table is loaded as necessary in `Time`::
      '2012-06-30 23:59:58.413' '2012-06-30 23:59:59.413'
      '2012-07-01 00:00:00.413' '2012-07-01 12:00:00.413']>
 
-But if one is dealing with very recent observations, this does now work::
+But if one is dealing with very recent observations, this does not work::
     >>> t2 = Time.now()
     >>> t2.ut1
-    ERROR: ValueError: (some) times are beyond range covered by IERS table.
-    [astropy.time.core]
+    ERROR: IndexError: (some) times are outside of range covered by IERS table.
+    [astropy.utils.iers.iers]
 
 In this case, one needs to update the IERS B table or use IERS A instead
 (which also has predictions).  In future versions, this may become configurable
-or automatic, but currently it requires some handiwork.  For `Time`, the
-easiest option is to set the `delta_ut1_utc` property directly::
+or automatic, but currently it requires handiwork.  For `Time`, the easiest
+option is to set the `delta_ut1_utc` property directly::
     >>> from astropy.utils.iers import IERS_A
-    >>> a = IERS_A.open('finals2000A.all')
-    >>> a.ut1_utc(t2)
-    (0.069727551794218745, 2)
-    >>> t2.delta_ut1_utc = a.ut1_utc(t2)[0]
+    >>> iers_a = IERS_A.open('finals2000A.all')
+    >>> iers_a.ut1_utc(t2)
+    0.069727551794218745
+    >>> t2.delta_ut1_utc = iers_a.ut1_utc(t2)
     >>> t2.ut1
-    <Time object: scale='ut1' format='datetime' vals=2013-06-14 02:31:40.441858>
-
-Note that the status returned by ut1_utc should be checked: negative values
-indicate a time out of range.  The 2 above is `iers.FROM_IERS_A_PREDICTION`.
+    <Time object: scale='ut1' format='datetime' vals=2013-06-22 17:01:13.446632>
 
 (The IERS-A file `finals2000A.all` can be downloaded from `iers.IERS_A_URL`)
 """
@@ -81,8 +78,16 @@ class IERS(Table):
     iers_table = None
 
     @classmethod
-    def open(cls, *args, **kwargs):
+    def open(cls, file=None, **kwargs):
         """Open an IERS table, reading it from a file if not loaded before.
+
+        Parameters
+        ----------
+        file : str or None
+            full path to the ascii file holding IERS data, for passing on to
+            the `read` class methods (further optional arguments that are
+            available for some IERS subclasses can be added).
+            If None, use the default location from the `read` class method.
 
         Returns
         -------
@@ -90,16 +95,19 @@ class IERS(Table):
 
         Notes
         -----
-        If it exists, a previously stored table is returned (`cls.iers_table`)
-        If not, the `read` method is called, passing on all parameters.
+        On the first call in a session, the table will be memoized (in
+        `cls.iers_table`), and further calls to `open` will return this stored
+        table if `file=None` (the default).
 
-        If a table needs to be re-read from disk, use the (sub-class) close
-        method and re-open.
+        If a table needs to be re-read from disk, pass on an explicit file
+        loction or use the (sub-class) close method and re-open.
 
         For the IERS class itself, an IERS_B sub-class instance is opened.
         """
-        if cls.iers_table is None:
-            cls.iers_table = cls.read(*args, **kwargs)
+        if file is not None or cls.iers_table is None:
+            if file is not None:
+                kwargs.update(file=file)
+            cls.iers_table = cls.read(**kwargs)
         return cls.iers_table
 
     @classmethod
@@ -107,7 +115,7 @@ class IERS(Table):
         """Remove the IERS table from the class.
 
         This allows the table to be re-read from disk during one's session
-        (e.g., if one finds it is out of date and has updated the file.
+        (e.g., if one finds it is out of date and has updated the file).
         """
         cls.iers_table = None
 
@@ -136,7 +144,7 @@ class IERS(Table):
         utc = jd1 - (MJD_ZERO+mjd) + jd2
         return mjd, utc
 
-    def ut1_utc(self, jd1, jd2=0.):
+    def ut1_utc(self, jd1, jd2=0., return_status=False):
         """Interpolate UT1-UTC corrections in IERS Table for given dates.
 
         Parameters
@@ -145,23 +153,22 @@ class IERS(Table):
             first part of two-part JD, or Time object
         jd2: float or float array, optional
             second part of two-part JD (default: 0., ignored if jd1 is Time)
+        return_status : bool
+            Whether to return status values.  If False (default),
+            raise `IndexError` if any time is out of the range covered
+            by the IERS table.
 
         Returns
         -------
         ut1_utc: float or float array
             UT1-UTC, interpolated in IERS Table
         status: int or int array
-            Status values, as follows::
+            Status values (if `return_status`=`True`)::
             `iers.FROM_IERS_B`
             `iers.FROM_IERS_A`
             `iers.FROM_IERS_A_PREDICTION`
             `iers.TIME_BEFORE_IERS_RANGE`
             `iers.TIME_BEYOND_IERS_RANGE`
-
-        The status values are defined as 0, 1, 2, -1, -2, respectively, but
-        but this may change. Always, zero means a definitive result, positive
-        values a preliminary result or a prediction, and negative values
-        indicate a problem.
         """
 
         mjd, utc = self.mjd_utc(jd1, jd2)
@@ -190,21 +197,24 @@ class IERS(Table):
         # http://maia.usno.navy.mil/iers-gaz13)
         ut1_utc = ut1_utc_0 + (mjd-mjd_0+utc)/(mjd_1-mjd_0)*d_ut1_utc
 
-        # Set status to source, possibly using routine provided by subclass
-        status = self.ut1_utc_source(i1)
-        # Check for out of range - more important than above, so OK to override
-        # also reset any extrapolated values - better safe than sorry
-        if np.any(i1 != i):
-            status[i == 0] = TIME_BEFORE_IERS_RANGE
-            ut1_utc[i == 0] = 0.
-            status[i == len(self)] = TIME_BEYOND_IERS_RANGE
-            ut1_utc[i == len(self)] = 0.
-
         if is_scalar:
             ut1_utc = ut1_utc[0]
-            status = status[0]
 
-        return ut1_utc, status
+        if return_status:
+            # Set status to source, possibly using routine provided by subclass
+            status = self.ut1_utc_source(i1)
+            # Check for out of range
+            status[i == 0] = TIME_BEFORE_IERS_RANGE
+            status[i == len(self)] = TIME_BEYOND_IERS_RANGE
+            if is_scalar:
+                status = status[0]
+            return ut1_utc, status
+        else:
+            # Not returning status, so raise an exception for out-of-range
+            if np.any(i1 != i):
+                raise IndexError('(some) times are outside of range covered '
+                                 'by IERS table.')
+            return ut1_utc
 
     def ut1_utc_source(self, i):
         """Source for UT1-UTC.  To be overridden by subclass."""
@@ -220,8 +230,8 @@ class IERS_A(IERS):
     Notes
     -----
     The IERS A file is not part of astropy.  It can be downloaded from
-    `iers.IERS_A_URL`.  See `iers.__doc__` for instructions on how to enable
-    its use in `Time`, etc.
+    `iers.IERS_A_URL`.  See `iers.__doc__` for instructions on how to use
+    it in `Time`, etc.
     """
 
     iers_table = None
@@ -281,7 +291,7 @@ class IERS_B(IERS):
     -----
     If the package IERS B file (`iers.IERS_B_FILE`) is out of date, a new
     version can be downloaded from `iers.IERS_B_URL`.  See `iers.__doc__`
-    for instructions on how to enable its use in `Time`, etc.
+    for instructions on how to use it in `Time`, etc.
     """
 
     iers_table = None
