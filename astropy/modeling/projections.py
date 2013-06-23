@@ -73,7 +73,6 @@ class Zenithal(Projection):
         self.phi0 = 0.
         self.theta0 = 90.
         super(Zenithal, self).__init__(param_names)
-        self.has_inverse = True
 
     def _compute_rtheta(self):
         # Subclasses must implement this method
@@ -380,7 +379,6 @@ class Cylindrical(Projection):
         self.phi0 = 0.0
         self.theta0 = 0.0
         super(Cylindrical, self).__init__(param_names)
-        self.has_inverse = True
 
     def inverse(self):
         raise NotImplementedError()

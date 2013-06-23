@@ -297,7 +297,6 @@ class ShiftModel(Model):
         self._offsets = parameters.Parameter('offsets', offsets, self, param_dim)
         super(ShiftModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
                                          param_dim=param_dim)
-        self.has_inverse = True
 
     def inverse(self):
         if self.param_dim == 1:
@@ -341,7 +340,6 @@ class ScaleModel(Model):
         self._factors = parameters.Parameter('factors', factors, self, param_dim)
         super(ScaleModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
                                          param_dim=param_dim)
-        self.has_inverse = True
 
     def inverse(self):
         if self.param_dim == 1:

@@ -46,7 +46,6 @@ class RotateNative2Celestial(Model):
         self._theta = Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = Parameter('psi', np.deg2rad(psi), self, 1)
         super(RotateNative2Celestial, self).__init__(param_names=[], n_inputs=2, n_outputs=2)
-        self.has_inverse = True
 
     @property
     def phi(self):
@@ -112,8 +111,6 @@ class RotateCelestial2Native(Model):
         self._theta = Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = Parameter('psi', np.deg2rad(psi), self, 1)
         super(RotateCelestial2Native, self).__init__(param_names=[], n_inputs=2, n_outputs=2)
-
-        self.has_inverse = True
 
     @property
     def phi(self):
@@ -194,7 +191,6 @@ class MatrixRotation2D(Model):
         self._n_outputs = self.n_inputs
         self._parcheck = {'rotmat': self._validate_rotmat,
                           'angle': self._validate_angle}
-        self.has_inverse = True
 
     @property
     def angle(self):
