@@ -75,14 +75,14 @@ class TestSComposite(object):
         utils.assert_almost_equal(x, sresult.x)
         utils.assert_almost_equal(y, sresult.y)
 
-    def test_multiple_arrays(self):
-        scomptr = SCompositeModel([self.p2, self.p1],
-                                  [['x', 'y'], ['z']],
-                                  [['z'], ['z']])
-        sresult = scomptr(self.x, self.y)
-        z = self.p2(self.x, self.y)
-        z1 = self.p1(z)
-        utils.assert_almost_equal(z1, sresult)
+    def test_multiple_input(self):
+        rot = models.MatrixRotation2D(angle=-60)
+        scomp = SCompositeModel([rot, rot])
+        xx, yy = scomp(self.x, self.y)
+        iscomp = scomp.inverse()
+        x1, y1 = iscomp(xx, yy)
+        utils.assert_almost_equal(x1, self.x)
+        utils.assert_almost_equal(y1, self.y)
 
 
 class TestPComposite(object):

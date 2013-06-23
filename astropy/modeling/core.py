@@ -43,7 +43,6 @@ from __future__ import division
 import abc
 from itertools import izip
 import numpy as np
-from ..utils import misc
 from . import parameters
 from . import constraints
 from .utils import InputParameterError
@@ -184,7 +183,6 @@ class Model(object):
         self._param_dim = param_dim
         self._n_inputs = n_inputs
         self._n_outputs = n_outputs
-        self.has_inverse = False
         self._param_names = param_names
         #_parcheck is a dictionary to register parameter validation funcitons
         # key: value pairs are parameter_name: parameter_validation_function_name
@@ -283,7 +281,8 @@ class Model(object):
         """
         Return a callable object which does the inverse transform
         """
-        raise NotImplementedError("Subclasses should implement this")
+        raise NotImplementedError("An analytical inverse transform has not been"
+                                  " implemented for this model.")
 
     def invert(self):
         """
@@ -617,7 +616,6 @@ class _CompositeModel(Model):
             param_names.extend(tr.param_names)
         super(_CompositeModel, self).__init__(param_names, n_inputs, n_outputs)
         self.fittable = False
-        self.has_inverse = all([tr.has_inverse for tr in transforms])
 
     def __repr__(self):
         fmt = """
@@ -703,6 +701,19 @@ class SCompositeModel(_CompositeModel):
         self._inmap = inmap
         self._outmap = outmap
 
+    def inverse(self):
+        try:
+            transforms = [tr.inverse() for tr in self._transforms[::-1]]
+        except NotIMplementedError:
+            raise
+        if self._inmap is not None:
+            inmap = self._inmap[::-1]
+            outmap = self._outmap[::-1]
+        else:
+            inmap = None
+            outmap = None
+        return SCompositeModel(transforms, inmap, outmap)
+
     def __call__(self, *data):
         """
         Transforms data using this model.
@@ -743,7 +754,7 @@ class SCompositeModel(_CompositeModel):
 
             result = self._transforms[0](*data)
             for transform in self._transforms[1:]:
-                result = transform(result)
+                result = transform(*result)
         return result
 
 
