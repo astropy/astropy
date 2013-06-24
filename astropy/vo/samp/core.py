@@ -78,7 +78,7 @@ __all__ = ["SAMPHubServer",
            "SAMP_RESTRICT_OWNER"]
 
 __doc__ = \
-        """
+  """
         This module contains classes to create a SAMP Hub and/or interface 
         an application to a running SAMP Hub (Standard Profile).
 
@@ -250,7 +250,7 @@ else:
 PYTHON_VERSION = float(platform.python_version()[:3])
 
 if PYTHON_VERSION >= 3.0:
-  
+
   import io
   import queue  
   import http.client
@@ -259,37 +259,37 @@ if PYTHON_VERSION >= 3.0:
   import urllib.request
   import xmlrpc.client as xmlrpc
 
-  
+
   try:
     import tkinter as tk
     HAS_TKINTER = True
   except:
     HAS_TKINTER = False
-    
+
   try:
     from urllib.parse import parse_qs
   except ImportError:
     from cgi import parse_qs
-    
-    
+
+
   from urllib.error import URLError
   from urllib.request import urlopen
   from http.client import HTTPConnection, HTTPS_PORT
-  
+
   from http.server import *
   from xmlrpc.server import *
   from socketserver import ThreadingMixIn, BaseServer
-    
-    
+
+
 else:
-  
+
   import httplib
   import urllib2
   import urlparse
   import xmlrpclib as xmlrpc
   import Queue as queue
   import StringIO as io
-  
+
   try:
     import Tkinter as tk
     HAS_TKINTER = True
@@ -300,11 +300,11 @@ else:
     from urlparse import parse_qs
   except ImportError:
     from cgi import parse_qs
-    
-  
+
+
   from urllib2 import urlopen, URLError
   from httplib import HTTPConnection, HTTPS_PORT, HTTP
-  
+
   from SimpleHTTPServer import *
   from SimpleXMLRPCServer import *
   from SocketServer import ThreadingMixIn, BaseServer
@@ -380,79 +380,137 @@ class _ServerProxyPoolMethod:
 
 
 class ServerProxyPool(object):
-  
+
   def __init__(self, size, proxy_class, *args, **keywords):
-    
+
     self._proxies = queue.Queue(size)
     for i in range(size):
       self._proxies.put(proxy_class(*args, **keywords))
-      
+
   def __getattr__(self, name):
     # magic method dispatcher
     return _ServerProxyPoolMethod(self._proxies, name)
-    
+
 
 if HAS_TKINTER:
   class WebProfilePopupDialogue(tk.Tk):
-  
+
     def __init__(self, queue, screenName=None, baseName=None, className='Tk',
                  useTk=1, sync=0, use=None):
-  
+
       tk.Tk.__init__(self, screenName, baseName, className,
                      useTk, sync, use)
-  
+
       self._queue = queue
-  
+
       self.title("SAMP Hub")
       self._text = tk.Label(self, font=("Helvetica", 14), \
                             fg="red", justify=tk.CENTER)
       self._text.pack(padx=5, pady=5, expand=1, fill=tk.X,)
-  
+
       a = tk.Button(self, text="CONSENT", command=self._consent)
       a.pack(padx=5, pady=5, expand=1, fill=tk.X, side=tk.LEFT)
-  
+
       r = tk.Button(self, text="REJECT", command=self._reject)
       r.pack(padx=5, pady=5, expand=1, fill=tk.X, side=tk.RIGHT)
-  
+
       self.protocol("WM_DELETE_WINDOW", self._reject)
-  
+
       self.withdraw()
-  
-  
+
+
     def showPopup(self, request):
-      
+
       samp_name = "unknown"
-      
+
       if isinstance(request[0], str):
         # To support the old protocol version
         samp_name = request[0]
       else:
         samp_name = request[0]["samp.name"]
-  
+
       text = \
-  """A Web application which declares to be
-  
+        """A Web application which declares to be
+
   Name: %s
   Origin: %s
-  
+
   is requesting to be registered with the SAMP Hub.
   Pay attention that if you permit its registration, such
   application will acquire all current user privileges, like
   file read/write.
-  
+
   Do you give your consent?""" % (samp_name, request[2])
-  
+
       self._text.configure(text=text)
       self.deiconify()
-  
+
     def _consent(self):
       self._queue.put(True)
       self.withdraw()
-  
+
     def _reject(self):
       self._queue.put(False)
       self.withdraw()
-  
+
+else:
+
+  class WebProfilePopupDialogue(object):
+
+    def __init__(self, queue):
+
+      self._queue = queue
+
+
+    def showPopup(self, request):
+
+      samp_name = "unknown"
+
+      if isinstance(request[0], str):
+        # To support the old protocol version
+        samp_name = request[0]
+      else:
+        samp_name = request[0]["samp.name"]
+
+      self.cls()
+
+      text = \
+        """A Web application which declares to be
+
+  Name: %s
+  Origin: %s
+
+  is requesting to be registered with the SAMP Hub.
+  Pay attention that if you permit its registration, such
+  application will acquire all current user privileges, like
+  file read/write.
+
+  Do you give your consent? [yes|no]
+  """ % (samp_name, request[2])
+
+      print (text)
+      self.beep()
+      
+      answer = raw_input("[no] >>> ")
+      if answer.lower() in ["yes", "y"]:
+        print("OK!")
+        self._consent()
+      else:
+        print("REJECTED!")
+        self._reject()
+
+
+    def _consent(self):
+      self._queue.put(True)
+
+
+    def _reject(self):
+      self._queue.put(False)
+
+    def update(self):
+      pass
+
+
 
 
 class SAMPMsgReplierWrapper(object):
@@ -473,18 +531,18 @@ class SAMPMsgReplierWrapper(object):
   def __call__(self, f):
 
     def wrapped_f(*args):
-      
+
       test = False
-      
+
       if PYTHON_VERSION > 2.5:
         test = (inspect.ismethod(f) and f.__func__.__code__.co_argcount == 6)\
-             or (inspect.isfunction(f) and f.__code__.co_argcount == 5) or \
-             args[2] is None
+          or (inspect.isfunction(f) and f.__code__.co_argcount == 5) or \
+          args[2] is None
       else:
         test = (inspect.ismethod(f) and f.im_func.func_code.co_argcount == 6)\
-             or (inspect.isfunction(f) and f.func_code.co_argcount == 5) or \
-             args[2] is None
-      
+          or (inspect.isfunction(f) and f.func_code.co_argcount == 5) or \
+          args[2] is None
+
       if test:
 
         # It is a notification
@@ -666,110 +724,110 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
       self.send_header('Content-Type', 'image/png')
       self.end_headers()
       self.wfile.write(base64.decodestring(SAMPY_ICON))
-      
+
   if PYTHON_VERSION >= 2.7:
-    
+
     def do_POST(self):
-        """Handles the HTTP POST request.
+      """Handles the HTTP POST request.
 
-        Attempts to interpret all HTTP POST requests as XML-RPC calls,
-        which are forwarded to the server's _dispatch method for handling.
-        """
+      Attempts to interpret all HTTP POST requests as XML-RPC calls,
+      which are forwarded to the server's _dispatch method for handling.
+      """
 
-        # Check that the path is legal
-        if not self.is_rpc_path_valid():
-            self.report_404()
-            return
+      # Check that the path is legal
+      if not self.is_rpc_path_valid():
+        self.report_404()
+        return
 
-        try:
-          # Get arguments by reading body of request.
-          # We read this in chunks to avoid straining
-          # socket.read(); around the 10 or 15Mb mark, some platforms
-          # begin to have problems (bug #792570).
-          max_chunk_size = 10*1024*1024
-          size_remaining = int(self.headers["content-length"])
-          L = []
-          while size_remaining:
-              chunk_size = min(size_remaining, max_chunk_size)
-              L.append(self.rfile.read(chunk_size))
-              size_remaining -= len(L[-1])
-          data = b''.join(L)
-          
-          params, method = xmlrpc.loads(data)
-          
-          if method == "samp.webhub.register":
-            params = list(params)
-            params.append(self.client_address)
-            if 'Origin' in self.headers:
-              params.append(self.headers.get('Origin'))
-            else:
-              params.append('unknown')
-            params = tuple(params)
-            data = xmlrpc.dumps(params, methodname=method)
-  
-          elif method in ('samp.hub.notify', 'samp.hub.notifyAll', 
-                          'samp.hub.call', 'samp.hub.callAll', 
-                          'samp.hub.callAndWait'):
-  
-            user = "unknown"
-  
-            if 'Authorization' in self.headers:
-              # handle Basic authentication
-              (enctype, encstr) =  self.headers.get('Authorization').split()
-              user, password = base64.standard_b64decode(encstr).split(':')
-  
-            if method == 'samp.hub.callAndWait':
-              params[2]["host"] = self.address_string()
-              params[2]["user"] = user
-            else:
-              params[-1]["host"] = self.address_string()
-              params[-1]["user"] = user
-  
-            data = xmlrpc.dumps(params, methodname=method)
+      try:
+        # Get arguments by reading body of request.
+        # We read this in chunks to avoid straining
+        # socket.read(); around the 10 or 15Mb mark, some platforms
+        # begin to have problems (bug #792570).
+        max_chunk_size = 10*1024*1024
+        size_remaining = int(self.headers["content-length"])
+        L = []
+        while size_remaining:
+          chunk_size = min(size_remaining, max_chunk_size)
+          L.append(self.rfile.read(chunk_size))
+          size_remaining -= len(L[-1])
+        data = b''.join(L)
 
-          data = self.decode_request_content(data)
-          if data is None:
-              return #response has been sent
+        params, method = xmlrpc.loads(data)
 
-          # In previous versions of SimpleXMLRPCServer, _dispatch
-          # could be overridden in this class, instead of in
-          # SimpleXMLRPCDispatcher. To maintain backwards compatibility,
-          # check to see if a subclass implements _dispatch and dispatch
-          # using that method if present.
-          response = self.server._marshaled_dispatch(
-                  data, getattr(self, '_dispatch', None), self.path
-              )
-        except Exception as e: # This should only happen if the module is buggy
-          # internal error, report as HTTP server error
-          self.send_response(500)
+        if method == "samp.webhub.register":
+          params = list(params)
+          params.append(self.client_address)
+          if 'Origin' in self.headers:
+            params.append(self.headers.get('Origin'))
+          else:
+            params.append('unknown')
+          params = tuple(params)
+          data = xmlrpc.dumps(params, methodname=method)
 
-          # Send information about the exception if requested
-          if hasattr(self.server, '_send_traceback_header') and \
-                  self.server._send_traceback_header:
-              self.send_header("X-exception", str(e))
-              trace = traceback.format_exc()
-              trace = str(trace.encode('ASCII', 'backslashreplace'), 'ASCII')
-              self.send_header("X-traceback", trace)
+        elif method in ('samp.hub.notify', 'samp.hub.notifyAll', 
+                        'samp.hub.call', 'samp.hub.callAll', 
+                        'samp.hub.callAndWait'):
 
-          self.send_header("Content-length", "0")
-          self.end_headers()
-        else:
-          # got a valid XML RPC response
-          self.send_response(200)
-          self.send_header("Content-type", "text/xml")
-          if self.encode_threshold is not None:
-              if len(response) > self.encode_threshold:
-                  q = self.accept_encodings().get("gzip", 0)
-                  if q:
-                      try:
-                          response = xmlrpc.gzip_encode(response)
-                          self.send_header("Content-Encoding", "gzip")
-                      except NotImplementedError:
-                          pass
-          self.send_header("Content-length", str(len(response)))
-          self.end_headers()
-          self.wfile.write(response)
-    
+          user = "unknown"
+
+          if 'Authorization' in self.headers:
+            # handle Basic authentication
+            (enctype, encstr) =  self.headers.get('Authorization').split()
+            user, password = base64.standard_b64decode(encstr).split(':')
+
+          if method == 'samp.hub.callAndWait':
+            params[2]["host"] = self.address_string()
+            params[2]["user"] = user
+          else:
+            params[-1]["host"] = self.address_string()
+            params[-1]["user"] = user
+
+          data = xmlrpc.dumps(params, methodname=method)
+
+        data = self.decode_request_content(data)
+        if data is None:
+          return #response has been sent
+
+        # In previous versions of SimpleXMLRPCServer, _dispatch
+        # could be overridden in this class, instead of in
+        # SimpleXMLRPCDispatcher. To maintain backwards compatibility,
+        # check to see if a subclass implements _dispatch and dispatch
+        # using that method if present.
+        response = self.server._marshaled_dispatch(
+          data, getattr(self, '_dispatch', None), self.path
+        )
+      except Exception as e: # This should only happen if the module is buggy
+        # internal error, report as HTTP server error
+        self.send_response(500)
+
+        # Send information about the exception if requested
+        if hasattr(self.server, '_send_traceback_header') and \
+           self.server._send_traceback_header:
+          self.send_header("X-exception", str(e))
+          trace = traceback.format_exc()
+          trace = str(trace.encode('ASCII', 'backslashreplace'), 'ASCII')
+          self.send_header("X-traceback", trace)
+
+        self.send_header("Content-length", "0")
+        self.end_headers()
+      else:
+        # got a valid XML RPC response
+        self.send_response(200)
+        self.send_header("Content-type", "text/xml")
+        if self.encode_threshold is not None:
+          if len(response) > self.encode_threshold:
+            q = self.accept_encodings().get("gzip", 0)
+            if q:
+              try:
+                response = xmlrpc.gzip_encode(response)
+                self.send_header("Content-Encoding", "gzip")
+              except NotImplementedError:
+                pass
+        self.send_header("Content-length", str(len(response)))
+        self.end_headers()
+        self.wfile.write(response)
+
 
   elif PYTHON_VERSION >= 2.6 and PYTHON_VERSION < 2.7:
 
@@ -1144,30 +1202,30 @@ if SSL_SUPPORT:
 
 
   if PYTHON_VERSION < 3.0:
-    
+
     class HTTPS(HTTP):
-  
+
       _connection_class = HTTPSConnection
-  
+
       def __init__(self, host='', port=None, key_file=None, cert_file=None,
                    cert_reqs=ssl.CERT_NONE, ca_certs=None,
                    ssl_version=ssl.PROTOCOL_SSLv3):
-  
+
         # provide a default host, pass the X509 cert info
-  
+
         # urf. compensate for bad input.
         if port == 0:
           port = None
-  
+
         self._setup(self._connection_class(host, port, key_file,
                                            cert_file, cert_reqs,
                                            ca_certs, ssl_version, None))
-  
+
         # we never actually use these for anything, but we keep them
         # here for compatibility with post-1.5.2 CVS.
         self.key_file = key_file
         self.cert_file = cert_file
-        
+
       def getresponse(self, buffering=False):
         "Get the response from the server."
         return self._conn.getresponse(buffering)
@@ -1191,7 +1249,7 @@ if SSL_SUPPORT:
 
 
     def make_connection(self, host):
-      
+
       if self._connection and host == self._connection[0]:
         return self._connection[1]
 
@@ -1526,7 +1584,7 @@ class SAMPHubServer(object):
 
     @param web_profile: The C{web_profile} option enables/disables the Web Profile support.
     @type ssl_version: boolean
-    
+
     @param pool_size: The number of socket connections opened to communicate with the clients.
     @type pool_size: int
     """
@@ -1548,13 +1606,6 @@ class SAMPHubServer(object):
       self._log = log
     self._pool_size = pool_size
 
-    # Web Profile variables
-    if not HAS_TKINTER:
-      if web_profile:
-        self._log.info("Tkinter python module is missing. Impossible to start the Web profile.")
-        web_profile = False
-    
-    
     self._web_profile = web_profile
     self._web_profile_server = None
     self._web_profile_callbacks = {}
@@ -2014,7 +2065,7 @@ class SAMPHubServer(object):
               lockfilename.startswith("http:") or \
               lockfilename.startswith("https:")):
         lockfilename = "file://" + lockfilename
-      
+
       lockfile = urlopen(lockfilename)
       lockfile_content = lockfile.readlines()
       lockfile.close()
@@ -2119,10 +2170,11 @@ class SAMPHubServer(object):
   def _serve_forever(self):
 
     if self._web_profile:
-      self._web_profile_popup_dialogue = WebProfilePopupDialogue(self._web_profile_requests_result)
+      self._web_profile_popup_dialogue = \
+        WebProfilePopupDialogue(self._web_profile_requests_result)
 
     while self._is_running:
-      
+
       try:
         r = w = e = None
         r, w, e = select.select([self._server.socket], [], [], 0.1)
@@ -2234,14 +2286,14 @@ class SAMPHubServer(object):
     self._updateLastActivityTime()
     self._log.debug("ping")
     return "1"
-  
+
   def _query_by_metadata(self, key, value):
     public_id_list = []
     for private_id in self._metadata:
       if key in self._metadata[private_id]:
         if self._metadata[private_id][key] == value:
           public_id_list.append(self._private_keys[private_id][0])
-          
+
     return public_id_list
 
   def _setXmlrpcCallback(self, private_key, xmlrpc_addr):
@@ -2712,7 +2764,7 @@ class SAMPHubServer(object):
     if (responder_private_key in self._private_keys) and msg_id:
       responder_public_id = self._private_keys[responder_private_key][0]
       counter, hub_public_id, recipient_public_id, \
-             recipient_msg_tag = msg_id.split(";;", 3)
+        recipient_msg_tag = msg_id.split(";;", 3)
 
       try:
         self._log.debug("reply %s from %s to %s" % (counter, responder_public_id, recipient_public_id))
@@ -2773,19 +2825,19 @@ class SAMPHubServer(object):
 
   def _receiveCall(self, private_key, sender_id, msg_id, message):
     if private_key == self._hub_private_key:
-      
+
       if "samp.mtype" in message and message["samp.mtype"] == "samp.app.ping":
         self._reply(self._hub_private_key, msg_id, {"samp.status": SAMP_STATUS_OK, "samp.result": {}})
-        
+
       elif "samp.mtype" in message and \
-         (message["samp.mtype"] == "x-samp.query.by-meta" or \
-          message["samp.mtype"] == "samp.query.by-meta"):
-        
+           (message["samp.mtype"] == "x-samp.query.by-meta" or \
+            message["samp.mtype"] == "samp.query.by-meta"):
+
         ids_list = self._query_by_metadata(message["samp.params"]["key"], message["samp.params"]["value"])
         self._reply(self._hub_private_key, msg_id, 
                     {"samp.status": SAMP_STATUS_OK, 
                      "samp.result": {"ids": ids_list}})
-      
+
       return ""
     else:
       return ""
@@ -2795,7 +2847,7 @@ class SAMPHubServer(object):
 
 
   def _web_profile_register(self, identity_info, client_address = ("uknown", 0), origin = "unknown"):
-    
+
     self._updateLastActivityTime()
 
     if not client_address[0] in ["localhost", "127.0.0.1"]:
@@ -2808,7 +2860,7 @@ class SAMPHubServer(object):
       # an old version of the protocol provided just a string with the app name
       if "samp.name" not in identity_info:
         raise SAMPProxyError(403, "Request of registration rejected by the Hub (application name not provided).")
-    
+
     # Red semaphore for the other threads
     self._web_profile_requests_semaphore.put("wait")
     # Set the request to be displayed for the current thread
@@ -3196,11 +3248,11 @@ class SAMPClient(object):
 
     @param hub: an instance of L{SAMPHubProxy} to be used for messaging with the SAMP Hub.
     @type hub: L{SAMPHubProxy}
-    
+
     @param name: (optional) a string containing the client name
     (corresponding to C{samp.name} metadata keyword).
     @type name: string
-    
+
     @param description: (optional) a string containing the client description
     (corresponding to C{samp.description.text} metadata keyword).
     @type description: string
@@ -3256,17 +3308,17 @@ class SAMPClient(object):
     # GENERAL
     self._thread = None
     self._is_running = False
-    
+
     if metadata == None: metadata = {}
-    
+
     if name != None:
       metadata["samp.name"] = name
-      
+
     if description != None:
       metadata["samp.description.text"] = description
-    
+
     self._metadata = metadata
-    
+
     self._addr = addr
     self._port = port
     self._xmlrpcAddr = None
@@ -3281,7 +3333,7 @@ class SAMPClient(object):
     self._call_bindings = {"samp.app.ping": [self._ping, {}],
                            "client.env.get": [self._client_env_get, {}]}
     self._response_bindings = {}
-    
+
 
     self._host_name = "127.0.0.1"
     try:
@@ -3396,13 +3448,13 @@ class SAMPClient(object):
           if PYTHON_VERSION > 2.5:
             test = (inspect.ismethod(bound_func) and \
                     bound_func.__func__.__code__.co_argcount == 6) or \
-                 (inspect.isfunction(bound_func) and \
-                  bound_func.__code__.co_argcount == 5)
+              (inspect.isfunction(bound_func) and \
+               bound_func.__code__.co_argcount == 5)
           else:
             test = (inspect.ismethod(bound_func) and \
                     bound_func.im_func.func_code.co_argcount == 6) or \
-                 (inspect.isfunction(bound_func) and \
-                  bound_func.func_code.co_argcount == 5)
+              (inspect.isfunction(bound_func) and \
+               bound_func.func_code.co_argcount == 5)
           if test:
             bound_func(private_key, sender_id, msg_mtype, msg_params, message)
           else:
@@ -3860,11 +3912,11 @@ class SAMPIntegratedClient(object):
     @param name: (optional) a string containing the client name
     (corresponding to C{samp.name} metadata keyword).
     @type name: string
-    
+
     @param description: (optional) a string containing the client description
     (corresponding to C{samp.description.text} metadata keyword).
     @type description: string
-    
+
     @param metadata: (optional) a dictionary containing the client 
     application metadata in the standard SAMP format. If present, C{samp.name}
     keyword and C{samp.description.text} keyword are overwritten by the parameters
@@ -3916,14 +3968,14 @@ class SAMPIntegratedClient(object):
     """
 
     self.hub = SAMPHubProxy()
-    
+
     self.client = SAMPClient(self.hub, name, description, metadata, addr, port, \
                              https, key_file, cert_file, cert_reqs, \
                              ca_certs, ssl_version, callable)
 
-    
-  
-    
+
+
+
   def __del__(self):
     try:
       self.disconnect()
@@ -4567,7 +4619,7 @@ def main(timeout=0):
 
   parser.add_option("-P", "--pool-size", dest="pool_size", metavar="SIZE", type="int",
                     help = "the socket connections pool size.")
-  
+
   timeout_group = OptionGroup(parser, "Timeout group",
                               "Special options to setup hub and client timeouts." \
                               "It contains a set of special options that allows to set up the Hub and " \
