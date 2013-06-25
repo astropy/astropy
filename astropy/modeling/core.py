@@ -47,6 +47,7 @@ from . import parameters
 from . import constraints
 from .utils import InputParameterError
 
+
 __all__ = ['Model', 'ParametricModel', 'PCompositeModel', 'SCompositeModel',
            'LabeledInput', '_convert_input', '_convert_output']
 
@@ -824,3 +825,51 @@ class PCompositeModel(_CompositeModel):
             for tr in self._transforms:
                 result += tr(*data)
             return result
+
+
+class Parametric1DModel(ParametricModel):
+    """
+    Base class for one dimensional parametric models
+
+    This class provides an easier interface to defining new models.
+    Examples can be found in functional_models.py
+
+    Parameters
+    ----------
+    parameter_dict : dictionary
+        Dictionary of model parameters with default values
+        {'parameter_name': 'parameter_value'}
+
+   """
+    __metaclass__ = abc.ABCMeta
+
+    def __init__(self, param_dict, **cons):
+        # Get parameter dimension
+        param_dim = np.size(param_dict[self.param_names[0]])
+
+        # Initialize model parameters
+        for param_name in self.param_names:
+            setattr(self, "_" + param_name, parameters.Parameter(name=param_name,
+                            val=param_dict[param_name], mclass=self, param_dim=param_dim))
+
+        super(Parametric1DModel, self).__init__(self.param_names, n_inputs=1,
+                                                n_outputs=1, param_dim=param_dim, **cons)
+
+        # Check if derivative is implemented otherwise None
+        self.deriv = getattr(self, "deriv", None)
+
+        # Model is nonlinear in parameters per default
+        self.linear = getattr(self, "linear", False)
+
+    def __call__(self, x):
+        """
+        Transforms data using this model.
+
+        Parameters
+        ----------
+        x : array like or a number
+            input
+        """
+        x, fmt = _convert_input(x, self.param_dim)
+        result = self.eval(x, *self.param_sets)
+        return _convert_output(result, fmt)
