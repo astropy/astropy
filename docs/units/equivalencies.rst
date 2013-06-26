@@ -122,8 +122,8 @@ And it also works in the other direction::
   >>> u.lb.to(u.pint, 1, equivalencies=liters_water)
   0.9586114172355458
 
-Writing Spectral (velocity) equivalencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Writing Spectral (doppler) equivalencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Spectral equivalencies allow you to convert between wavelength, frequency, and
 energy, but not to velocity, which is frequently the quantity of interest.
 
@@ -134,7 +134,6 @@ In these conventions :math:`f_0` is the rest frequency, :math:`f` is the observe
         
     * Radio         :math:`V = c \frac{f_0 - f}{f_0}  ;  f(V) = f_0 ( 1 - V/c )`
     * Optical       :math:`V = c \frac{f_0 - f}{f  }  ;  f(V) = f_0 ( 1 + V/c )^{-1}`
-    * Redshift      :math:`z =   \frac{f_0 - f}{f  }  ;  f(V) = f_0 ( 1 + z )^{-1}`
     * Relativistic  :math:`V = c \frac{f_0^2 - f^2}{f_0^2 + f^2} ;  f(V) = f_0 \frac{\left(1 - (V/c)^2\right)^{1/2}}{(1+V/c)}`
 
 To define an equivalency using the radio convention for CO 1-0::
@@ -147,6 +146,9 @@ To define an equivalency using the radio convention for CO 1-0::
     -1895.432192866963
     >>> (116e9*u.Hz).to(u.km/u.s,equivalencies=ghz_kms)
     <Quantity -1895.43219287 km / s>
+
+The three conventions are also implemented in `astropy.units.equivalencies` as
+`doppler_optical`, `doppler_radio`, and `doppler_relativistic`.
 
 Displaying available equivalencies
 ----------------------------------
