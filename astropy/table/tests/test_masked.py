@@ -10,6 +10,12 @@ from ...table import Column, MaskedColumn, Table
 
 numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
+class SubclassTable(Table):
+    pass
+
+@pytest.fixture(params = [True, False])
+def tableclass(request):
+    return Table if request.param else SubclassTable
 
 class SetupData(object):
     def setup_method(self, method):
@@ -63,8 +69,8 @@ class TestFilled(object):
         assert np.all(f == ['1', '8', '9'])
         assert isinstance(f, Column)
 
-    def test_filled_masked_table(self):
-        t = Table([self.a, self.b, self.c], meta=self.meta)
+    def test_filled_masked_table(self, tableclass):
+        t = tableclass([self.a, self.b, self.c], meta=self.meta)
 
         f = t.filled()
         assert isinstance(f, Table)
@@ -80,8 +86,8 @@ class TestFilled(object):
         f['a'][2] = 100
         assert t['a'][2] == 3
 
-    def test_filled_unmasked_table(self):
-        t = Table([(1, 2), ('3', '4')], names=('a', 'b'), meta=self.meta)
+    def test_filled_unmasked_table(self, tableclass):
+        t = tableclass([(1, 2), ('3', '4')], names=('a', 'b'), meta=self.meta)
         f = t.filled()
         assert isinstance(f, Table)
         assert f.masked is False

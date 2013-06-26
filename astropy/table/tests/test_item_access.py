@@ -165,6 +165,7 @@ class TestTableItems(BaseTestItems):
         assert np.all(self.t['a'] == np.array([1, 0, 3]))
         assert t2.masked == self.t.masked
         assert t2._column_class == self.t._column_class
+        assert isinstance(t2, Table)
 
     def test_fancy_index_slice(self):
         """Table fancy slice returns COPY of data"""
@@ -182,6 +183,7 @@ class TestTableItems(BaseTestItems):
         assert np.any(t2['a'] != DATA['a'][slice])
         assert t2.masked == self.t.masked
         assert t2._column_class == self.t._column_class
+        assert isinstance(t2, Table)
 
     def test_list_index_slice(self):
         """Table list index slice returns COPY of data"""
@@ -199,6 +201,7 @@ class TestTableItems(BaseTestItems):
         assert np.any(t2['a'] != DATA['a'][slice])
         assert t2.masked == self.t.masked
         assert t2._column_class == self.t._column_class
+        assert isinstance(t2, Table)
 
     def test_select_columns(self):
         """Select columns returns COPY of data and all column
@@ -225,11 +228,13 @@ class TestTableItems(BaseTestItems):
         t2 = t[rows]
         assert np.all(t2['a'] == [2, 3])
         assert np.all(t2['b'] == [5, 6])
+        assert isinstance(t2, Table)
 
         # Select no rows
         rows = np.where(t['a'] > 100)
         t2 = t[rows]
         assert len(t2) == 0
+        assert isinstance(t2, Table)
 
     def test_select_bad_column(self):
         """Select column name that does not exist"""
