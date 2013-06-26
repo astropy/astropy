@@ -10,13 +10,12 @@ from numpy import ma
 
 from ..units import Unit
 from .. import log
-from ..utils import OrderedDict, isiterable
+from ..utils import OrderedDict, isiterable, deprecated
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
 from ..utils.console import color_print
 from ..config import ConfigurationItem
 from ..io import registry as io_registry
 from . import operations
-from ...utils import deprecated
 
 # Python 2 and 3 source compatibility
 try:
@@ -346,6 +345,16 @@ class BaseColumn(object):
     @deprecated
     def units(self):
         return self.unit
+    
+    @units.setter
+    @deprecated
+    def units(self, unit):
+        self.unit = unit
+    
+    @units.deleter
+    @deprecated
+    def units(self):
+        del self.unit
     
     def convert_unit_to(self, new_unit, equivalencies=[]):
         """
