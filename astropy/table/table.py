@@ -342,17 +342,17 @@ class BaseColumn(object):
         self._unit = None
     
     @property
-    @deprecated
+    @deprecated('0.3', alternative=':attr:`Column.unit`', pending=False)
     def units(self):
         return self.unit
     
     @units.setter
-    @deprecated
+    @deprecated('0.3', alternative=':attr:`Column.unit`', pending=False)
     def units(self, unit):
         self.unit = unit
     
     @units.deleter
-    @deprecated
+    @deprecated('0.3', alternative=':attr:`Column.unit`', pending=False)
     def units(self):
         del self.unit
     
