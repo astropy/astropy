@@ -16,6 +16,7 @@ from ..utils.console import color_print
 from ..config import ConfigurationItem
 from ..io import registry as io_registry
 from . import operations
+from ...utils import deprecated
 
 # Python 2 and 3 source compatibility
 try:
@@ -340,7 +341,12 @@ class BaseColumn(object):
     @unit.deleter
     def unit(self):
         self._unit = None
-
+    
+    @property
+    @deprecated
+    def units(self):
+        return self.unit
+    
     def convert_unit_to(self, new_unit, equivalencies=[]):
         """
         Converts the values of the column in-place from the current
