@@ -888,9 +888,9 @@ class Table(object):
     masked : boolean, optional
         Specify whether the table is masked.
     names : list, optional
-        Specify column names.
-    dtypes : list, optional
-        Specify column data types.
+        Specify column names
+    dtype : list, optional
+        Specify column data types
     meta : dict, optional
         Metadata associated with the table.
     copy : boolean, optional
@@ -898,7 +898,7 @@ class Table(object):
 
     """
 
-    def __init__(self, data=None, masked=None, names=None, dtypes=None,
+    def __init__(self, data=None, masked=None, names=None, dtype=None,
                  meta=None, copy=True):
 
         # Set up a placeholder empty table
@@ -907,9 +907,9 @@ class Table(object):
         self.columns = TableColumns()
         self._meta = OrderedDict() if meta is None else deepcopy(meta)
 
-        # Must copy if dtypes are changing
-        if not copy and dtypes is not None:
-            raise ValueError('Cannot specify dtypes when copy=False')
+        # Must copy if dtype are changing
+        if not copy and dtype is not None:
+            raise ValueError('Cannot specify dtype when copy=False')
 
         # Infer the type of the input data and set up the initialization
         # function, number of columns, and potentially the default col names
@@ -953,19 +953,19 @@ class Table(object):
             raise ValueError('Data type {0} not allowed to init Table'
                              .format(type(data)))
 
-        # Set up defaults if names and/or dtypes are not specified.
+        # Set up defaults if names and/or dtype are not specified.
         # A value of None means the actual value will be inferred
         # within the appropriate initialization routine, either from
         # existing specification or auto-generated.
 
         if names is None:
             names = default_names or [None] * n_cols
-        if dtypes is None:
-            dtypes = [None] * n_cols
-        self._check_names_dtypes(names, dtypes, n_cols)
+        if dtype is None:
+            dtype = [None] * n_cols
+        self._check_names_dtype(names, dtype, n_cols)
 
         # Finally do the real initialization
-        init_func(data, names, dtypes, n_cols, copy)
+        init_func(data, names, dtype, n_cols, copy)
 
         # Whatever happens above, the masked property should be set to a boolean
         if type(self.masked) != bool:
@@ -1043,17 +1043,17 @@ class Table(object):
 
         self.columns = TableColumns(cols)
 
-    def _check_names_dtypes(self, names, dtypes, n_cols):
-        """Make sure that names and dtypes are boths iterable and have
+    def _check_names_dtype(self, names, dtype, n_cols):
+        """Make sure that names and dtype are boths iterable and have
         the same length as data.
         """
-        for inp_list, inp_str in ((dtypes, 'dtypes'), (names, 'names')):
+        for inp_list, inp_str in ((dtype, 'dtype'), (names, 'names')):
             if not isiterable(inp_list):
                 raise ValueError('{0} must be a list or None'.format(inp_str))
 
-        if len(names) != n_cols or len(dtypes) != n_cols:
+        if len(names) != n_cols or len(dtype) != n_cols:
             raise ValueError(
-                'Arguments "names" and "dtypes" must match number of columns'
+                'Arguments "names" and "dtype" must match number of columns'
                 .format(inp_str))
 
     def _set_masked_from_cols(self, cols):
@@ -1066,7 +1066,7 @@ class Table(object):
             if any(isinstance(col, (MaskedColumn, ma.MaskedArray)) for col in cols):
                 self._set_masked(True)
 
-    def _init_from_list(self, data, names, dtypes, n_cols, copy):
+    def _init_from_list(self, data, names, dtype, n_cols, copy):
         """Initialize table from a list of columns.  A column can be a
         Column object, np.ndarray, or any other iterable object.
         """
@@ -1094,10 +1094,10 @@ class Table(object):
                         raise ValueError('Row {0} has no value for column {1}'.format(i, name))
             if all(name is None for name in names):
                 names = sorted(names_from_data)
-            self._init_from_dict(cols, names, dtypes, n_cols, copy)
+            self._init_from_dict(cols, names, dtype, n_cols, copy)
             return
 
-        for col, name, def_name, dtype in zip(data, names, def_names, dtypes):
+        for col, name, def_name, dtype in zip(data, names, def_names, dtype):
             if isinstance(col, (Column, MaskedColumn)):
                 col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype)
             elif isinstance(col, np.ndarray) or isiterable(col):
@@ -1109,7 +1109,7 @@ class Table(object):
 
         self._init_from_cols(cols)
 
-    def _init_from_ndarray(self, data, names, dtypes, n_cols, copy):
+    def _init_from_ndarray(self, data, names, dtype, n_cols, copy):
         """Initialize table from an ndarray structured array"""
 
         data_names = data.dtype.names or _auto_names(n_cols)
@@ -1123,10 +1123,10 @@ class Table(object):
         self._set_masked_from_cols(cols)
 
         if copy:
-            self._init_from_list(cols, names, dtypes, n_cols, copy)
+            self._init_from_list(cols, names, dtype, n_cols, copy)
         else:
-            dtypes = [(name, col.dtype) for name, col in zip(names, cols)]
-            self._data = data.view(dtypes).ravel()
+            dtype = [(name, col.dtype) for name, col in zip(names, cols)]
+            self._data = data.view(dtype).ravel()
             columns = TableColumns()
 
             for name in names:
@@ -1134,16 +1134,16 @@ class Table(object):
                 columns[name].parent_table = self
             self.columns = columns
 
-    def _init_from_dict(self, data, names, dtypes, n_cols, copy):
+    def _init_from_dict(self, data, names, dtype, n_cols, copy):
         """Initialize table from a dictionary of columns"""
 
         if not copy:
             raise ValueError('Cannot use copy=False with a dict data input')
 
         data_list = [data[name] for name in names]
-        self._init_from_list(data_list, names, dtypes, n_cols, copy)
+        self._init_from_list(data_list, names, dtype, n_cols, copy)
 
-    def _init_from_table(self, data, names, dtypes, n_cols, copy):
+    def _init_from_table(self, data, names, dtype, n_cols, copy):
         """Initialize table from an existing Table object """
 
         table = data  # data is really a Table, rename for clarity
@@ -1156,11 +1156,11 @@ class Table(object):
         self._set_masked_from_cols(cols)
 
         if copy:
-            self._init_from_list(cols, names, dtypes, n_cols, copy)
+            self._init_from_list(cols, names, dtype, n_cols, copy)
         else:
             names = [vals[0] or vals[1] for vals in zip(names, data_names)]
-            dtypes = [(name, col.dtype) for name, col in zip(names, cols)]
-            data = table._data.view(dtypes)
+            dtype = [(name, col.dtype) for name, col in zip(names, cols)]
+            data = table._data.view(dtype)
 
             self._update_table_from_cols(self, data, cols, names)
 
@@ -1176,9 +1176,9 @@ class Table(object):
         cols = [self.ColumnClass(name=col.name, data=col) for col in cols]
 
         names = [col.name for col in cols]
-        dtypes = [col.descr for col in cols]
+        dtype = [col.descr for col in cols]
         empty_init = ma.empty if self.masked else np.empty
-        data = empty_init(lengths.pop(), dtype=dtypes)
+        data = empty_init(lengths.pop(), dtype=dtype)
         for col in cols:
             data[col.name] = col.data
 
