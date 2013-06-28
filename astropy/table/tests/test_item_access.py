@@ -20,7 +20,6 @@ class MaskedTable(table.Table):
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
 @pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
-<<<<<<< HEAD
 def table_data(request):
     class TableData:
         def __init__(self, request):
@@ -28,33 +27,16 @@ def table_data(request):
             self.Column = table.MaskedColumn if request.param else table.Column
             self.COLS = [
                 self.Column(name='a', data=[1, 2, 3], description='da',
-                            format='fa', meta={'ma': 1}, units='ua'),
+                            format='fa', meta={'ma': 1}, unit='ua'),
                 self.Column(name='b', data=[4, 5, 6], description='db',
-                            format='fb', meta={'mb': 1}, units='ub'),
+                            format='fb', meta={'mb': 1}, unit='ub'),
                 self.Column(name='c', data=[7, 8, 9], description='dc',
-                            format='fc', meta={'mc': 1}, units='ub')]
+                            format='fc', meta={'mc': 1}, unit='ub')]
             self.DATA = self.Table(self.COLS)
     return TableData(request)
 
 
 @pytest.mark.usefixtures('table_data')
-=======
-def set_global_Table_DATA(request):
-    global Table, Column, DATA, COLS
-
-    Table = MaskedTable if request.param else table.Table
-    Column = table.MaskedColumn if request.param else table.Column
-    COLS = [Column(name='a', data=[1, 2, 3], description='da',
-                   format='fa', meta={'ma': 1}, unit='ua'),
-            Column(name='b', data=[4, 5, 6], description='db',
-                   format='fb', meta={'mb': 1}, unit='ub'),
-            Column(name='c', data=[7, 8, 9], description='dc',
-                   format='fc', meta={'mc': 1}, unit='ub')]
-    DATA = Table(COLS)
-
-
-@pytest.mark.usefixtures('set_global_Table_DATA')
->>>>>>> change units to unit in all Table and Column objects
 class BaseTestItems():
     pass
 

@@ -22,7 +22,12 @@ class MaskedTable(table.Table):
 # (MaskedArray) column.
 @pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
 def table_type(request):
-    return MaskedTable if request.param else table.Table
+    # return MaskedTable if request.param else table.Table
+    try:
+        request.param
+        return MaskedTable
+    except AttributeError:
+        return table.Table
 
 
 @pytest.mark.usefixtures('table_type')
@@ -102,7 +107,7 @@ class TestPprint():
                          '1.960000e+03 1961.000000 ... 1979.0',
                          '1.980000e+03 1981.000000 ... 1999.0']
 
-    def test_format2(self):
+    def test_format2(self, table_type):
         """Include the unit header row"""
         self._setup(table_type)
         lines = self.tb.pformat(max_lines=8, max_width=40, show_unit=True)
