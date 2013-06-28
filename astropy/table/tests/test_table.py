@@ -818,3 +818,40 @@ class TestConvertNumpyArray():
 
         with pytest.raises(ValueError):
             np_data = np.array(d, dtype=[('c', 'i8'), ('d', 'i8')])
+
+
+def _assert_copies(t, t2, deep=True):
+    assert t.colnames == t2.colnames
+    np.testing.assert_array_equal(t._data, t2._data)
+    assert t.meta == t2.meta
+
+    if deep:
+        assert not np.may_share_memory(t._data, t2._data)
+    else:
+        assert np.may_share_memory(t._data, t2._data)
+
+
+def test_copy():
+    t = table.Table([[1, 2, 3], [2, 3, 4]], names=['x', 'y'])
+    t2 = t.copy()
+    _assert_copies(t, t2)
+
+
+def test_copy_masked():
+    t = table.Table([[1, 2, 3], [2, 3, 4]], names=['x', 'y'], masked=True,
+                    meta={'name': 'test'})
+    t['x'].mask == [True, False, True]
+    t2 = t.copy()
+    _assert_copies(t, t2)
+
+
+def test_copy_protocol():
+    from copy import copy, deepcopy
+
+    t = table.Table([[1, 2, 3], [2, 3, 4]], names=['x', 'y'])
+
+    t2 = copy(t)
+    t3 = deepcopy(t)
+
+    _assert_copies(t, t2, deep=False)
+    _assert_copies(t, t3)
