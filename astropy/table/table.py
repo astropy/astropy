@@ -881,6 +881,11 @@ class Row(object):
     @property
     def dtype(self):
         return self.data.dtype
+    
+    @property
+    @deprecated('0.3', alternative=':attr:`Row.dtype`', pending=False)
+    def dtypes(self):
+        return self.dtype
 
     def __repr__(self):
         return "<Row {0} of table\n values={1!r}\n dtype={2}>".format(

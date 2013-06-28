@@ -139,3 +139,9 @@ class TestRow():
         table = self.t
         row = table[0]
         assert format(row, "").startswith("<Row 0 of table")
+    
+    def test_deprecated_attributes(self):
+        c = Row(self.t, 2)
+        
+        # make sure .dtpyes calls raise DeprecationWarning
+        pytest.deprecated_call(lambda: c.dtypes)
