@@ -4,6 +4,7 @@ import collections
 import sys
 from copy import deepcopy
 import functools
+from warning import DeprecationWarning
 
 import numpy as np
 from numpy import ma
@@ -472,8 +473,19 @@ class Column(BaseColumn, np.ndarray):
     @_check_column_new_args
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
-                description=None, unit=None, format=None, meta=None):
-
+                description=None, unit=None, format=None, meta=None,
+                dtypes=None, units=None):
+        
+        if dtypes is not None:
+            dtype = dtypes
+            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
+                          DeprecationWarning)
+        
+        if units is not None:
+            unit = units
+            warnings.warn("'units' has been renamed to the singular 'unit'.",
+                          DeprecationWarning)
+            
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
             self_data = np.zeros(length, dtype=dtype)
@@ -611,8 +623,19 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
     @_check_column_new_args
     def __new__(cls, data=None, name=None, mask=None, fill_value=None,
                 dtype=None, shape=(), length=0,
-                description=None, unit=None, format=None, meta=None):
-
+                description=None, unit=None, format=None, meta=None,
+                units=None, dtypes=None):
+        
+        if dtypes is not None:
+            dtype = dtypes
+            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
+                          DeprecationWarning)
+        
+        if units is not None:
+            unit = units
+            warnings.warn("'units' has been renamed to the singular 'unit'.",
+                          DeprecationWarning)
+        
         if NUMPY_LT_1P5:
             raise ValueError('MaskedColumn requires NumPy version 1.5 or later')
 
