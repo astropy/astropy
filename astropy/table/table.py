@@ -1636,6 +1636,48 @@ class Table(object):
 
         self._init_from_cols(newcols)
 
+    def remove_row(self, index):
+        """
+        Remove a row from the table.
+
+        Parameters
+        ----------
+        index: int
+            Index of row to remove
+
+        Example
+        --------
+        Create a table with three columns 'a', 'b' and 'c'::
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
+            ...           names=('a', 'b', 'c'))
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
+
+        Remove row 1 from the table::
+
+            >>> t.remove_row(1)
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              3 0.3   z
+
+        """
+        # check the index against the types that work with np.delete
+        if not isinstance(index, (int, long, np.integer)):
+            raise TypeError("Row index must be an integer")
+        table = np.delete(self._data, index, axis=0)
+        self._data = table
+
+        # after updating the row data, the column views will be out of date
+        # and should be updated:
+        self._rebuild_table_column_views()
+
     def remove_column(self, name):
         """
         Remove a column from the table.
