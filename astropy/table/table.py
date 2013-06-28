@@ -1705,26 +1705,6 @@ class Table(object):
               2 0.2   y
 
 
-        Create a table with three columns 'a', 'b' and 'c'::
-
-            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
-            ...           names=('a', 'b', 'c'))
-            >>> print t
-             a   b   c
-            --- --- ---
-              1 0.1   x
-              2 0.2   y
-              3 0.3   z
-
-        Remove rows 0 and 1 from the table::
-
-            >>> import numpy as np
-            >>> t.remove_rows(np.s_([0:2]))
-            >>> print t
-             a   b   c
-            --- --- ---
-              3 0.3   z
-
         Note that there are no warnings if the slice operator extends
         outside the data
 
