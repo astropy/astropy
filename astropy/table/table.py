@@ -4,7 +4,7 @@ import collections
 import sys
 from copy import deepcopy
 import functools
-from warning import DeprecationWarning
+import warnings
 
 import numpy as np
 from numpy import ma
@@ -346,7 +346,7 @@ class BaseColumn(object):
     @deprecated('0.3', alternative=':attr:`Column.unit`', pending=False)
     def units(self):
         return self.unit
-    
+        
     @units.setter
     @deprecated('0.3', alternative=':attr:`Column.unit`', pending=False)
     def units(self, unit):
