@@ -69,6 +69,8 @@ Binary installers
 Binary installers are available on Windows for Python 2.6, 2.7, 3.1, and 3.2
 at `PyPI <https://pypi.python.org/pypi/astropy>`_.
 
+.. _testing_installed_astropy:
+
 Testing an installed Astropy
 ----------------------------
 
