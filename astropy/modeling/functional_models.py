@@ -519,6 +519,24 @@ class Box2DModel(ParametricModel):
         raise ModelDefinitionError("Not implemented")
 
 
+class MexicanHat1DModel(ParametricModel):
+
+    """
+    One dimensional mexican hat function.
+    """
+    def __init__(self):
+        raise ModelDefinitionError("Not implemented")
+
+
+class MexicanHat2DModel(ParametricModel):
+
+    """
+    Two dimensional mexican hat function.
+    """
+    def __init__(self):
+        raise ModelDefinitionError("Not implemented")
+
+
 class Custom1DModel(Parametric1DModel):
 
     """

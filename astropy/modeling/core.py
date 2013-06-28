@@ -49,7 +49,8 @@ from .utils import InputParameterError
 
 
 __all__ = ['Model', 'ParametricModel', 'PCompositeModel', 'SCompositeModel',
-           'LabeledInput', '_convert_input', '_convert_output']
+           'LabeledInput', '_convert_input', '_convert_output', 
+           'Parametric1DModel']
 
 
 def _convert_input(x, pdim):
