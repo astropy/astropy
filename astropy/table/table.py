@@ -751,12 +751,13 @@ class Row(object):
     A Row object is returned when a Table object is indexed with an integer
     or when iterating over a table::
 
-      >>> table = Table([(1, 2), (3, 4)], names=('a', 'b'))
+      >>> table = Table([(1, 2), (3, 4)], names=('a', 'b'),
+      ...               dtypes=('int32', 'int32'))
       >>> row = table[1]
       >>> row
       <Row 1 of table
        values=(2, 4)
-       dtype=[('a', '<i8'), ('b', '<i8')]>
+       dtype=[('a', '<i4'), ('b', '<i4')]>
       >>> row['a']
       2
       >>> row[1]
