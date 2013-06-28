@@ -655,6 +655,35 @@ class TestRemove(SetupData):
         assert self.t._data.dtype.names == ('b',)
         assert np.all(self.t['b'] == np.array([4, 5, 6]))
 
+    def test_remove_nonexistent_row(self, table_types):
+        self._setup(table_types)
+        with pytest.raises(ValueError):
+            self.t.remove_row(4)
+
+    def test_remove_row_0(self, table_types):
+        self._setup(table_types)
+        self.t.add_column(self.b)
+        self.t.add_column(self.c)
+        self.t.remove_row(0)
+        assert self.t.colnames == ['a', 'b', 'c']
+        assert np.all(self.t['b'] == np.array([5, 6]))
+
+    def test_remove_row_1(self, table_types):
+        self._setup(table_types)
+        self.t.add_column(self.b)
+        self.t.add_column(self.c)
+        self.t.remove_row(1)
+        assert self.t.colnames == ['a', 'b', 'c']
+        assert np.all(self.t['a'] == np.array([1, 3]))
+
+    def test_remove_row_2(self, table_types):
+        self._setup(table_types)
+        self.t.add_column(self.b)
+        self.t.add_column(self.c)
+        self.t.remove_row(2)
+        assert self.t.colnames == ['a', 'b', 'c']
+        assert np.all(self.t['c'] == np.array([7, 8]))
+
     def test_delitem1(self, table_types):
         self._setup(table_types)
         del self.t['a']
