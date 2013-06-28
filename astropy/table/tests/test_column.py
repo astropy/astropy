@@ -103,8 +103,6 @@ class TestColumn():
             del d.units
         pytest.deprecated_call(delete_units, d)
         
-
-        
     def test_array_wrap(self):
         """Test that the __array_wrap__ method converts a reduction ufunc
         output that has a different shape into an ndarray view.  Without this a
