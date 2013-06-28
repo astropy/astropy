@@ -105,9 +105,17 @@ def doppler_radio(rest):
     """
     restfreq = rest.to(si.Hz, spectral())
 
-    return [(si.Hz, si.km/si.s,
-            lambda x: (restfreq.value-x) / restfreq.value * _si.c.to('km/s').value,
-            lambda x: (1-x/_si.c.to('km/s').value) * restfreq)]
+    def to_vel(x):
+        x = x.to(si.Hz, equivalencies=spectral())
+        return (restfreq.value-x) / restfreq.value * _si.c.to('km/s').value
+
+    def from_vel(x):
+        return (1-x/_si.c.to('km/s').value) * restfreq
+
+    return [(si.Hz, si.km/si.s, to_vel, from_vel),
+            (si.m, si.km/si.s, to_vel, from_vel),
+            (si.eV, si.km/si.s, to_vel, from_vel),
+            ]
 
 def doppler_optical(rest):
     """
@@ -133,12 +141,21 @@ def doppler_optical(rest):
     """
     restfreq = rest.to(si.Hz, spectral())
 
-    return [(si.Hz, si.km/si.s,
-            lambda x: (restfreq.value-x) / x * _si.c.to('km/s').value,
-            lambda x: (1+x/_si.c.to('km/s').value)**(-1) * restfreq)]
+    def to_vel(x):
+        x = x.to(si.Hz, equivalencies=spectral())
+        return (restfreq.value-x) / x * _si.c.to('km/s').value
+
+    def from_vel(x):
+        return (1+x/_si.c.to('km/s').value)**(-1) * restfreq
+
+    return [(si.Hz, si.km/si.s, to_vel, from_vel),
+            (si.m, si.km/si.s, to_vel, from_vel),
+            (si.eV, si.km/si.s, to_vel, from_vel),
+            ]
+            
 
 def doppler_relativistic(rest):
-    """
+    r"""
     Return the equivalency pairs for the relativistic convention for velocity:
 
     http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html
@@ -163,8 +180,16 @@ def doppler_relativistic(rest):
     >>> print relativistic_frequency
     115.2832 GHz
     """
-    restfreq = rest.to(si.Hz, spectral())
+    restfreq = rest.to(si.Hz, equivalencies=spectral())
 
-    return [(si.Hz, si.km/si.s,
-            lambda x: (restfreq.value**2-x**2) / (restfreq.value**2+x**2) * _si.c.to('km/s').value,
-            lambda x: (1-(x/_si.c.to('km/s').value)**2)**0.5 / (1+(x/_si.c.to('km/s').value)))]
+    def to_vel(x):
+        x = x.to(si.Hz, equivalencies=spectral())
+        return (restfreq.value**2-x**2) / (restfreq.value**2+x**2) * _si.c.to('km/s').value
+
+    def from_vel(x):
+        return (1-(x/_si.c.to('km/s').value)**2)**0.5 / (1+(x/_si.c.to('km/s').value))
+
+    return [(si.Hz, si.km/si.s, to_vel, from_vel),
+            (si.m, si.km/si.s, to_vel, from_vel),
+            (si.eV, si.km/si.s, to_vel, from_vel),
+            ]
