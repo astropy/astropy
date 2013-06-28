@@ -12,7 +12,8 @@ from . import si
 from . import cgs
 from . import astrophys
 
-__all__ = ['parallax', 'spectral', 'spectral_density']
+__all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
+           'doppler_optical', 'doppler_relativistic']
 
 def parallax():
     """
