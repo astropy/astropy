@@ -140,7 +140,8 @@ class TestRow():
         row = table[0]
         assert format(row, "").startswith("<Row 0 of table")
     
-    def test_deprecated_attributes(self):
+    def test_deprecated_attributes(self, table_types):
+        self._setup(table_types)
         c = Row(self.t, 2)
         
         # make sure .dtpyes calls raise DeprecationWarning
