@@ -2,6 +2,7 @@
 from distutils import version
 import numpy as np
 
+from ... import units as u
 from ...tests.helper import pytest
 from ... import table
 
@@ -78,7 +79,32 @@ class TestColumn():
         d = Column([1, 2, 3], name='a', dtype="f8", unit="m")
         d.convert_unit_to("km")
         assert np.all(d.data == [0.001, 0.002, 0.003])
+    
+    def test_deprecated_attributes(self, Column):
+        pytest.deprecated_call(Column, [1,2,3], name='a', 
+                               dtypes="f8", unit="m")
+        
+        pytest.deprecated_call(Column, [1,2,3], name='a', 
+                               dtype="f8", units="m")
+        
+        pytest.deprecated_call(Column, [1,2,3], name='a', 
+                               dtypes="f8", units="m")
+        
+        d = Column([1, 2, 3], name='a', dtype="f8", unit="m")
+        
+        # make sure .units calls raise DeprecationWarning
+        pytest.deprecated_call(lambda: d.units)
+        
+        def assign_units(d):
+            d.units = u.km
+        pytest.deprecated_call(assign_units, d)
+        
+        def delete_units(d):
+            del d.units
+        pytest.deprecated_call(delete_units, d)
+        
 
+        
     def test_array_wrap(self):
         """Test that the __array_wrap__ method converts a reduction ufunc
         output that has a different shape into an ndarray view.  Without this a
