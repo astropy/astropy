@@ -927,8 +927,13 @@ class Table(object):
     """
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True):
-
+                 meta=None, copy=True, dtypes=None):
+        
+        if dtypes is not None:
+            dtype = dtypes
+            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
+                          DeprecationWarning)
+        
         # Set up a placeholder empty table
         self._data = None
         self._set_masked(masked)
