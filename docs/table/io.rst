@@ -27,16 +27,16 @@ the :meth:`~astropy.table.table.Table.read` method should be used as::
 
 where ``'format'`` is the format of the file to read in, e.g.::
 
-    >>> t = Table.read('photometry.dat', format='daophot')
+    >>> t = Table.read('photometry.dat', format='ascii.daophot')
 
 For certain file formats, the format can be automatically detected, for
 example from the filename extension::
 
     >>> t = Table.read('table.tex')
 
-Similarly, for writing, the format can be explicitly specified::
+Similarly, for writing, the format can be explicitly specified, e.g.::
 
-    >>> t.write(filename, format='format')
+    >>> t.write(filename, format='fits')
 
 but as for the :meth:`~astropy.table.table.Table.read` method, the format may
 be automatically identified in some cases.
@@ -52,150 +52,59 @@ ASCII formats
 
 The :meth:`~astropy.table.table.Table.read` and
 :meth:`~astropy.table.table.Table.write` methods can be used to read and write formats
-supported by `astropy.io.ascii`:
+supported by `astropy.io.ascii`.
 
-=========================== ======= ====== ===== ==============================================================================================
-           Format            Alias  Suffix Write                                            Description
-=========================== ======= ====== ===== ==============================================================================================
-ascii                                        Yes ASCII table in any supported format (uses guessing)
-ascii:aastex                 aastex   .tex   Yes :class:`~astropy.io.ascii.latex.AASTex`: AASTeX deluxetable used for AAS journals
-ascii:basic                                  Yes :class:`~astropy.io.ascii.basic.Basic`: Basic table with custom delimiters
-ascii:cds                       cds              :class:`~astropy.io.ascii.cds.Cds`: CDS format table
-ascii:commented_header                       Yes :class:`~astropy.io.ascii.basic.CommentedHeader`: Column names in a commented line
-ascii:daophot               daophot              :class:`~astropy.io.ascii.daophot.Daophot`: IRAF DAOphot format table
-ascii:fixed_width                            Yes :class:`~astropy.io.ascii.fixedwidth.FixedWidth`: Fixed width
-ascii:fixed_width_no_header                  Yes :class:`~astropy.io.ascii.fixedwidth.FixedWidthNoHeader`: Fixed width with no header
-ascii:fixed_width_two_line                   Yes :class:`~astropy.io.ascii.fixedwidth.FixedWidthTwoLine`: Fixed width with a second header line
-ascii:ipac                     ipac          Yes :class:`~astropy.io.ascii.ipac.Ipac`: IPAC format table
-ascii:latex                   latex   .tex   Yes :class:`~astropy.io.ascii.latex.Latex`: LaTeX table
-ascii:no_header                              Yes :class:`~astropy.io.ascii.basic.NoHeader`: Basic table with no headers
-ascii:rdb                       rdb   .rdb   Yes :class:`~astropy.io.ascii.basic.Rdb`: Tab-separated with a type definition header line
-ascii:sextractor                                 :class:`~astropy.io.ascii.sextractor.SExtractor`: SExtractor format table
-ascii:tab                                    Yes :class:`~astropy.io.ascii.basic.Tab`: Basic table with tab-separated values
-=========================== ======= ====== ===== ==============================================================================================
-
-IPAC
-++++
-
-`IPAC tables <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
-can be read with ``format='ipac'``::
-
-  >>> t = Table.read('2mass.tbl', format='ipac')
-
-Note that there are different conventions for characters occuring below the
-position of the ``|`` symbol in IPAC tables. By default, any character
-below a ``|`` will be ignored (since this is the current standard),
-but if you need to read files that assume characters below the ``|``
-symbols belong to the column before or after the ``|``, you can specify
-``definition='left'`` or ``definition='right'`` respectively when reading
-the table (the default is ``definition='ignore'``). The following examples demonstrate the different conventions:
-
-* ``definition='ignore'``::
-
-    |   ra  |  dec  |
-    | float | float |
-      1.2345  6.7890
-
-* ``definition='left'``::
-
-    |   ra  |  dec  |
-    | float | float |
-       1.2345  6.7890
-
-* ``definition='right'``::
-
-    |   ra  |  dec  |
-    | float | float |
-    1.2345  6.7890
-
-
-Advanced information is available in the :class:`~astropy.io.ascii.ipac.Ipac`
-class (any arguments apart from the filename and ``format`` are passed to
-this class when ``format='ipac'``).
-
-CDS/Machine Readable
-++++++++++++++++++++
-
-`CDS/Machine readable tables <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ can be read with ``format='cds'``::
-
-    >>> t = Table.read('aj285677t3.txt', format='cds')
-
-If the table definition is given in a separate ``ReadMe`` file, this can be
-specified with::
-
-    >>> t = Table.read('aj285677t3.txt', format='cds', readme="ReadMe")
-
-Advanced information is available in the :class:`~astropy.io.ascii.cds.Cds`
-class (any arguments apart from the filename and ``format`` are passed to
-this class when ``format='cds'``).
-
-DAOPhot
-+++++++
-
-`DAOPhot <http://stsdas.stsci.edu/cgi-bin/gethelp.cgi?daophot.hlp>`_ tables
-can be read with ``format='daophot'``::
-
-  >>> t = Table.read('photometry.dat', format='daophot')
-
-Advanced information is available in the
-:class:`~astropy.io.ascii.daophot.Daophot` class (any arguments apart from
-the filename and ``format`` are passed to this class when
-``format='daophot'``).
-
-LaTeX
-+++++
-
-`LaTeX <http://www.latex-project.org/>`_ tables can be read and written with
-``format='latex'``. Provided the ``.tex``` extension is used, the format does
-not need to be explicitly specified::
-
-      >>> t = Table.read('paper_table.tex')
-      >>> t.write('new_paper_table.tex')
-
-If a different extension is used, the format should be specified::
-
-      >>> t.write('new_paper_table.inc', format='latex')
-
-Advanced information is available in the
-:class:`~astropy.io.ascii.latex.Latex` class (any arguments apart from the
-filename and ``format`` are passed to this class  when ``format='latex'``).
-
-RDB
-+++
-
-`RDB <http://hea-www.harvard.edu/MST/simul/software/docs/rdb.html>`_ tables
-can be read and written with ``format='rdb'`` Provided the ``.rdb`` extension
-is used, the format does not need to be explicitly specified::
-
-      >>> t = Table.read('discovery_data.rdb')
-      >>> t.write('updated_data.rdb')
-
-If a different extension is used, the format should be specified::
-
-      >>> t.write('updated_data.txt', format='rdb')
-
-Advanced information is available in the :class:`~astropy.io.ascii.basic.Rdb`
-class (any arguments apart from the filename and ``format`` are passed to
-this class when ``format='rdb'``).
-
-Arbitrary ASCII formats
-+++++++++++++++++++++++
-
-``format='ascii'`` can be used to interface to the bare
+Use ``format='ascii'`` in order to interface to the generic
 :func:`~astropy.io.ascii.ui.read` and :func:`~astropy.io.ascii.ui.write`
-functions from `astropy.io.ascii`, e.g.::
+functions from `astropy.io.ascii`.  When reading a table this means
+that all supported ASCII table formats will be tried in order to successfully
+parse the input.  For example::
 
-       >>> t = Table.read('table.tex', format='ascii')
+  >>> t = Table.read('astropy/io/ascii/tests/t/latex1.tex', format='ascii')
+  >>> print t
+  cola colb colc
+  ---- ---- ----
+     a    1    2
+     b    3    4
+
+When writing a table with ``format='ascii'`` the output is a basic
+character-delimited file with a single header line containing the
+column names.
 
 All additional arguments are passed to the `astropy.io.ascii`
 :func:`~astropy.io.ascii.ui.read` and
-:func:`~astropy.io.ascii.ui.write`. For example, in the following case::
+:func:`~astropy.io.ascii.ui.write` functions. For example, to change
+column  delimiter and the output format for the ``colc`` column use::
 
-       >>> t = Table.read('photometry.dat', format='ascii', data_start=2, delimiter='|')
+  >>> t.write(sys.stdout, format='ascii', delimiter='|', formats={'colc': '%0.2f'})
+  cola|colb|colc
+  a|1|2.00
+  b|3|4.00
 
-the ``data_start`` and ``delimiter`` arguments are passed to the
-:func:`~astropy.io.ascii.ui.read` function from `astropy.io.ascii` (and
-similarly for writing).
+A full list of the supported ``format`` values and corresponding format types
+for ASCII tables is given below.  The ``Suffix`` column indicates the filename
+suffix where the format will be auto-detected, while the ``Write`` column
+indicates which support write functionality.
+
+=========================== ====== ===== ============================================================================================
+           Format           Suffix Write                                          Description                                          
+=========================== ====== ===== ============================================================================================
+ascii                                Yes ASCII table in any supported format (uses guessing)                                           
+ascii.aastex                         Yes :class:`~astropy.io.ascii.latex.AASTex`: AASTeX deluxetable used for AAS journals             
+ascii.basic                          Yes :class:`~astropy.io.ascii.basic.Basic`: Basic table with custom delimiters                    
+ascii.cds                                :class:`~astropy.io.ascii.cds.Cds`: CDS format table                                          
+ascii.commented_header               Yes :class:`~astropy.io.ascii.basic.CommentedHeader`: Column names in a commented line            
+ascii.daophot                            :class:`~astropy.io.ascii.daophot.Daophot`: IRAF DAOphot format table                         
+ascii.fixed_width                    Yes :class:`~astropy.io.ascii.fixedwidth.FixedWidth`: Fixed width                                 
+ascii.fixed_width_no_header          Yes :class:`~astropy.io.ascii.fixedwidth.FixedWidthNoHeader`: Fixed width with no header          
+ascii.fixed_width_two_line           Yes :class:`~astropy.io.ascii.fixedwidth.FixedWidthTwoLine`: Fixed width with second header line
+ascii.ipac                           Yes :class:`~astropy.io.ascii.ipac.Ipac`: IPAC format table                                       
+ascii.latex                   .tex   Yes :class:`~astropy.io.ascii.latex.Latex`: LaTeX table                                           
+ascii.no_header                      Yes :class:`~astropy.io.ascii.basic.NoHeader`: Basic table with no headers                        
+ascii.rdb                     .rdb   Yes :class:`~astropy.io.ascii.basic.Rdb`: Tab-separated with a type definition header line        
+ascii.sextractor                         :class:`~astropy.io.ascii.sextractor.SExtractor`: SExtractor format table                     
+ascii.tab                            Yes :class:`~astropy.io.ascii.basic.Tab`: Basic table with tab-separated values                   
+=========================== ====== ===== ============================================================================================
 
 HDF5
 """"
