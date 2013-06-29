@@ -89,6 +89,33 @@ class Ipac(fixedwidth.FixedWidth):
       date Wed Sp 20 09:48:36 1995
       key_continue IPAC keywords can continue across lines
 
+    Note that there are different conventions for characters occuring below the
+    position of the ``|`` symbol in IPAC tables. By default, any character
+    below a ``|`` will be ignored (since this is the current standard),
+    but if you need to read files that assume characters below the ``|``
+    symbols belong to the column before or after the ``|``, you can specify
+    ``definition='left'`` or ``definition='right'`` respectively when reading
+    the table (the default is ``definition='ignore'``). The following examples
+    demonstrate the different conventions:
+
+    * ``definition='ignore'``::
+
+        |   ra  |  dec  |
+        | float | float |
+          1.2345  6.7890
+
+    * ``definition='left'``::
+
+        |   ra  |  dec  |
+        | float | float |
+           1.2345  6.7890
+
+    * ``definition='right'``::
+
+        |   ra  |  dec  |
+        | float | float |
+        1.2345  6.7890
+
     Parameters
     ----------
     definition : str, optional
