@@ -390,7 +390,7 @@ class FixedWidthTwoLine(FixedWidth):
     :param bookend: put the delimiter at start and end of line when writing (default = False)
     """
     _format_name = 'fixed_width_two_line'
-    _description = 'Fixed width with a second header line'
+    _description = 'Fixed width with second header line'
 
     def __init__(self, position_line=1, position_char='-', delimiter_pad=None, bookend=False):
         FixedWidth.__init__(self, delimiter_pad=delimiter_pad, bookend=bookend)
