@@ -373,6 +373,7 @@ class AASTex(Latex):
 
     _format_name = 'aastex'
     _io_registry_format_aliases = ['aastex']
+    _io_registry_suffix = ''  # AASTex inherits from Latex, so override this class attr
     _description = 'AASTeX deluxetable used for AAS journals'
 
     def __init__(self, **kwargs):
