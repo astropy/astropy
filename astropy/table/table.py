@@ -1747,7 +1747,6 @@ class Table(object):
         self._data = table
 
 
-
     def keep_columns(self, names):
         '''
         Keep only the columns specified (remove the others).
@@ -1959,3 +1958,22 @@ class Table(object):
     @property
     def meta(self):
         return self._meta
+
+    def copy(self, copy_data=True):
+        '''
+        Return a copy of the table
+
+
+        Parameters
+        ----------
+        copy_data : bool
+            If True (the default), copy the underlying data array.
+            Otherwise, use the same data array
+        '''
+        return self.__class__(self, copy=copy_data)
+
+    def __deepcopy__(self, memo=None):
+        return self.copy(True)
+
+    def __copy__(self):
+        return self.copy(False)
