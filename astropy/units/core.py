@@ -755,12 +755,18 @@ class UnitBase(object):
             for base in compose._bases:
                 if base in bases:
                     sum += 1
+
             return sum / float(len(compose._bases))
 
         x = self.decompose(bases=bases)
         composed = x.compose(units=system)
-        composed = sorted(composed, key=score, reverse=True)
-        return composed
+
+        # check for dimensionless quantities:
+        if len(composed) == 1 and len(composed[0]._bases) == 0:
+            return composed
+        else:
+            composed = sorted(composed, key=score, reverse=True)
+            return composed
 
     @property
     def physical_type(self):
