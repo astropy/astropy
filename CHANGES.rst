@@ -47,9 +47,9 @@ New Features
 
   - Table.read and Table.write now support reading and writing of FITS tables
     via the unified reading/writing interface [#591].
-  
-  - The 'units' and 'dtypes' attributes and keyword arguments in Column, 
-    MaskedColumn, Row, and Table are now deprecated in favor of the 
+
+  - The 'units' and 'dtypes' attributes and keyword arguments in Column,
+    MaskedColumn, Row, and Table are now deprecated in favor of the
     single-tense 'unit' and 'dtype' [#1174].
 
 - :ref:`astropy.vo <astropy_vo>`
@@ -114,10 +114,11 @@ API Changes
     output masked array.  [#1083]
 
 - ``astropy.table``
+
   - The plural 'units' and 'dtypes' have been switched to 'unit' and 'dtype'
     where appropriate. The original attributes are still present in this version
     as deprecated attributes, but will be removed in the next version [#1174].
-  
+
 
 Bug Fixes
 ^^^^^^^^^^
