@@ -54,7 +54,7 @@ the data contained in that object relate to the original table data
 
   print t      # Print formatted version of table to the screen
   t.pprint()   # Same as above
-  t.pprint(show_units=True)  # Show column units
+  t.pprint(show_unit=True)  # Show column unit
   t.pprint(show_name=False)  # Do not show column names
   t.pprint(max_lines=-1, max_width=-1)  # Print full table no matter how long / wide it is
 
@@ -79,7 +79,7 @@ For all the following examples it is assumed that the table has been created as 
   >>> arr = np.arange(15).reshape(5, 3)
   >>> t = Table(arr, names=('a', 'b', 'c'), meta={'keywords': {'key1': 'val1'}})
   >>> t['a'].format = "%6.3f"  # print as a float with 3 digits after decimal point
-  >>> t['a'].units = 'm sec^-1'
+  >>> t['a'].unit = 'm sec^-1'
   >>> t['a'].description = 'unladen swallow velocity'
   >>> print t
     a     b   c
@@ -118,7 +118,7 @@ As expected one can access a table column by name and get an element from that
 column with a numerical index::
 
   >>> t['a']  # Column 'a'
-  <Column name='a' units='m sec^-1' format='%6.3f' description='unladen swallow velocity'>
+  <Column name='a' unit='m sec^-1' format='%6.3f' description='unladen swallow velocity'>
   array([ 0,  3,  6,  9, 12])
 
   >>> t['a'][1]  # Row 1 of column 'a'
@@ -268,15 +268,15 @@ pprint() method
 In order to fully control the print output use the Table
 :func:`~astropy.table.table.Table.pprint` or Column
 :func:`~astropy.table.table.Column.pprint` methods.  These have keyword
-arguments ``max_lines``, ``max_width``, ``show_name``, ``show_units`` with
+arguments ``max_lines``, ``max_width``, ``show_name``, ``show_unit`` with
 meaning as shown below::
 
   >>> arr = np.arange(3000, dtype=float).reshape(100, 30)
   >>> t = Table(arr)
   >>> t['col0'].format = '%e'
   >>> t['col1'].format = '%.6f'
-  >>> t['col0'].units = 'km**2'
-  >>> t['col29'].units = 'kg sec m**-2'
+  >>> t['col0'].unit = 'km**2'
+  >>> t['col29'].unit = 'kg sec m**-2'
 
   >>> t.pprint(max_lines=8, max_width=40)
       col0         col1    ... col29
@@ -288,7 +288,7 @@ meaning as shown below::
   2.940000e+03 2941.000000 ... 2969.0
   2.970000e+03 2971.000000 ... 2999.0
 
-  >>> t.pprint(max_lines=8, max_width=40, show_units=True)
+  >>> t.pprint(max_lines=8, max_width=40, show_unit=True)
       col0     ...    col29
      km**2     ... kg sec m**-2
   ------------ ... ------------
@@ -393,7 +393,7 @@ column representation.  This uses the standard `numpy` mechanism for printing
 any array::
 
   >>> t['a']
-  <Column name='a' units=None format=None description=None>
+  <Column name='a' unit=None format=None description=None>
   array([[[ 1,  2],
           [10, 20]],
 
