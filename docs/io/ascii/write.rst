@@ -169,7 +169,10 @@ of these classes for details.
   Other common values might be "," or "|" or "\\t".
 
 **comment** : string defining a comment line in table
-  For the :class:`~astropy.io.ascii.Basic` Reader this defaults to "#". 
+  For the :class:`~astropy.io.ascii.Basic` Writer this defaults to "#". 
+  Which and how comments are written depends on the Writer chosen (e.g.
+  :class:`~astropy.io.ascii.CommentedHeader` puts the comment symbol in the line
+  with the column names).
 
 **formats**: dict of data type converters
   For each key (column name) use the given value to convert the column data to a string.  

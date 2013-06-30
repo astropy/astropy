@@ -1033,7 +1033,8 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
 
     return reader
 
-extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats', 'strip_whitespace',
+extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats', 
+                     'strip_whitespace',
                      'names', 'include_names', 'exclude_names',
                      'fill_values', 'fill_include_names',
                      'fill_exclude_names')
@@ -1049,9 +1050,9 @@ def _get_writer(Writer, **kwargs):
     if 'delimiter' in kwargs:
         writer.header.splitter.delimiter = kwargs['delimiter']
         writer.data.splitter.delimiter = kwargs['delimiter']
-    if 'write_comment' in kwargs:
-        writer.header.write_comment = kwargs['write_comment']
-        writer.data.write_comment = kwargs['write_comment']
+    if 'comment' in kwargs:
+        writer.header.write_comment = kwargs['comment']
+        writer.data.write_comment = kwargs['comment']
     if 'quotechar' in kwargs:
         writer.header.splitter.quotechar = kwargs['quotechar']
         writer.data.splitter.quotechar = kwargs['quotechar']
