@@ -135,9 +135,9 @@ class CdsHeader(core.BaseHeader):
                 col = core.Column(name=match.group('name'), index=i)
                 col.start = int(re.sub(r'[-\s]', '', match.group('start') or match.group('end'))) - 1
                 col.end = int(match.group('end'))
-                col.units = match.group('units')
-                if col.units == '---':
-                    col.units = None  # "---" is the marker for no units in CDS table
+                col.unit = match.group('units')
+                if col.unit == '---':
+                    col.unit = None  # "---" is the marker for no unit in CDS table
                 col.description = match.group('descr').strip()
                 col.raw_type = match.group('format')
                 col.type = self.get_col_type(col)
@@ -283,7 +283,7 @@ class Cds(core.BaseReader):
 
     Caveats:
 
-    * The Units and Explanations are available in the column ``units`` and
+    * The Units and Explanations are available in the column ``unit`` and
       ``description`` attributes, respectively.
     * The other metadata defined by this format is not available in the output table.
     """
