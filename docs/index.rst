@@ -19,6 +19,7 @@ Astropy Core Package Documentation
 .. image:: astropy_banner_96.png
     :width: 485px
     :height: 96px
+    :target: http://www.astropy.org/
 
 Welcome to the `astropy` documentation! `astropy` is a community-driven 
 package intended to contain much of the core functionality and some common 
