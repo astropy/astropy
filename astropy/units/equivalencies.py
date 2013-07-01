@@ -82,7 +82,7 @@ def spectral_density(sunit, sfactor):
     ]
 
 def doppler_radio(rest):
-    """
+    r"""
     Return the equivalency pairs for the radio convention for velocity:
 
     http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html
@@ -103,22 +103,39 @@ def doppler_radio(rest):
     >>> print doppler_radio
     -31.2090920889 km / s
     """
-    restfreq = rest.to(si.Hz, spectral())
+    ckms = _si.c.to('km/s').value
 
-    def to_vel(x):
-        x = x.to(si.Hz, equivalencies=spectral())
-        return (restfreq.value-x) / restfreq.value * _si.c.to('km/s').value
+    def to_vel_freq(x):
+        restfreq = rest.to(si.Hz, equivalencies=spectral()).value
+        return (restfreq-x) / (restfreq) * ckms
+    def from_vel_freq(x):
+        restfreq = rest.to(si.Hz, equivalencies=spectral()).value
+        voverc = x/ckms
+        return restfreq * (1-voverc)
 
-    def from_vel(x):
-        return (1-x/_si.c.to('km/s').value) * restfreq
 
-    return [(si.Hz, si.km/si.s, to_vel, from_vel),
-            (si.m, si.km/si.s, to_vel, from_vel),
-            (si.eV, si.km/si.s, to_vel, from_vel),
+    def to_vel_wav(x):
+        restwav = rest.to(si.AA, spectral()).value
+        return (x-restwav) / (x) * ckms
+    def from_vel_wav(x):
+        restwav = rest.to(si.AA, spectral()).value
+        return restwav * ckms / (ckms-x)
+
+    def to_vel_en(x):
+        resten = rest.to(si.eV, equivalencies=spectral()).value
+        return (resten-x) / (resten) * ckms
+    def from_vel_freq(x):
+        resten = rest.to(si.eV, equivalencies=spectral()).value
+        voverc = x/ckms
+        return resten * (1-voverc)
+
+    return [(si.Hz, si.km/si.s, to_vel_freq, from_vel_freq),
+            (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
+            (si.eV, si.km/si.s, to_vel_en, from_vel_en),
             ]
 
 def doppler_optical(rest):
-    """
+    r"""
     Return the equivalency pairs for the optical convention for velocity:
 
     http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html
@@ -139,18 +156,37 @@ def doppler_optical(rest):
     >>> print doppler_optical
     -31.205843488 km / s
     """
-    restfreq = rest.to(si.Hz, spectral())
+    ckms = _si.c.to('km/s').value
 
-    def to_vel(x):
-        x = x.to(si.Hz, equivalencies=spectral())
-        return (restfreq.value-x) / x * _si.c.to('km/s').value
+    def to_vel_freq(x):
+        restfreq = rest.to(si.Hz, equivalencies=spectral()).value
+        return ckms * (restfreq-x) / x
+    def from_vel_freq(x):
+        restfreq = rest.to(si.Hz, equivalencies=spectral()).value
+        voverc = x/ckms
+        return restfreq / (1+voverc)
 
-    def from_vel(x):
-        return (1+x/_si.c.to('km/s').value)**(-1) * restfreq
 
-    return [(si.Hz, si.km/si.s, to_vel, from_vel),
-            (si.m, si.km/si.s, to_vel, from_vel),
-            (si.eV, si.km/si.s, to_vel, from_vel),
+    def to_vel_wav(x):
+        restwav = rest.to(si.AA, spectral()).value
+        return ckms * (x/restwav-1)
+    def from_vel_wav(x):
+        restwav = rest.to(si.AA, spectral()).value
+        voverc = x/ckms
+        return restwav * (1+voverc)
+
+
+    def to_vel_en(x):
+        resten = rest.to(si.eV, equivalencies=spectral()).value
+        return ckms * (resten-x) / x
+    def from_vel_en(x):
+        resten = rest.to(si.eV, equivalencies=spectral()).value
+        voverc = x/ckms
+        return resten / (1+voverc)
+
+    return [(si.Hz, si.km/si.s, to_vel_freq, from_vel_freq),
+            (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
+            (si.eV, si.km/si.s, to_vel_en, from_vel_en),
             ]
             
 
@@ -176,20 +212,42 @@ def doppler_relativistic(rest):
     >>> print doppler_relativistic
     -31.2074676194 km / s
     >>> measured_velocity = 1250 * u.km/u.s
-    >>> relativistic_frequency = measured_freq.to(u.GHz, equivalencies=relativistic_CO_equiv)
+    >>> relativistic_frequency = measured_velocity.to(u.GHz, equivalencies=relativistic_CO_equiv)
     >>> print relativistic_frequency
-    115.2832 GHz
+    114.79156866993587 GHz
+    >>> relativistic_wavelength = measured_velocity.to(u.mm, equivalencies=relativistic_CO_equiv)
+    >>> print relativistic_wavelength
+    2.61162436818 mm
     """
-    restfreq = rest.to(si.Hz, equivalencies=spectral())
 
-    def to_vel(x):
-        x = x.to(si.Hz, equivalencies=spectral())
-        return (restfreq.value**2-x**2) / (restfreq.value**2+x**2) * _si.c.to('km/s').value
+    ckms = _si.c.to('km/s').value
 
-    def from_vel(x):
-        return (1-(x/_si.c.to('km/s').value)**2)**0.5 / (1+(x/_si.c.to('km/s').value))
+    def to_vel_freq(x):
+        restfreq = rest.to(si.Hz, equivalencies=spectral()).value
+        return (restfreq**2-x**2) / (restfreq**2+x**2) * ckms
+    def from_vel_freq(x):
+        restfreq = rest.to(si.Hz, equivalencies=spectral()).value
+        voverc = x/ckms
+        return restfreq * ((1-voverc) / (1+(voverc)))**0.5
 
-    return [(si.Hz, si.km/si.s, to_vel, from_vel),
-            (si.m, si.km/si.s, to_vel, from_vel),
-            (si.eV, si.km/si.s, to_vel, from_vel),
+
+    def to_vel_wav(x):
+        restwav = rest.to(si.AA, spectral()).value
+        return (x**2-restwav**2) / (restwav**2+x**2) * ckms
+    def from_vel_wav(x):
+        restwav = rest.to(si.AA, spectral()).value
+        voverc = x/ckms
+        return restwav * ((1+voverc) / (1-voverc))**0.5
+
+    def to_vel_en(x):
+        resten = rest.to(si.eV, spectral()).value
+        return (resten**2-x**2) / (resten**2+x**2) * ckms
+    def from_vel_en(x):
+        resten = rest.to(si.eV, spectral()).value
+        voverc = x/ckms
+        return resten * ((1-voverc) / (1+(voverc)))**0.5
+
+    return [(si.Hz, si.km/si.s, to_vel_freq, from_vel_freq),
+            (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
+            (si.eV, si.km/si.s, to_vel_en, from_vel_en),
             ]
