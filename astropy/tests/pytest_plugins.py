@@ -101,16 +101,20 @@ class DoctestPlus(object):
 
         This also supports wildcard patterns.  For example, to run doctests in
         a class's docstring, but skip all doctests in its modules use, at the
-        module level:
+        module level::
 
             __doctest_skip__ = ['ClassName.*']
+
+        You may also use the string ``'.'`` in ``__doctest_skip__`` to refer
+        to the module itself, in case its module-level docstring contains
+        doctests.
 
         ``__doctests_require__`` should be a dictionary mapping wildcard
         patterns (in the same format as ``__doctest_skip__`` to a list of one
         or more modules that should be *importable* in order for the tests to
         run.  For example, if some tests require the scipy module to work they
         will be skipped unless ``import scipy`` is possible.  It is also
-        possible to use a tuple of wildcard patterns as a key in this dict:
+        possible to use a tuple of wildcard patterns as a key in this dict::
 
             __doctests_require__ = {('func1', 'func2'): ['scipy']}
 
@@ -124,7 +128,7 @@ class DoctestPlus(object):
 
 class DocTestFinderPlus(doctest.DocTestFinder):
     """Extension to the default `doctest.DoctestFinder` that supports
-    ``__doctest_skip`` magic.  See `pytest_collect_file` for more details.
+    ``__doctest_skip__`` magic.  See `pytest_collect_file` for more details.
     """
 
     # Caches the results of import attempts
@@ -145,7 +149,11 @@ class DocTestFinderPlus(doctest.DocTestFinder):
 
             def test_filter(test):
                 for pat in getattr(obj, '__doctest_skip__', []):
-                    if fnmatch.fnmatch(test.name, '.'.join((name, pat))):
+                    if pat == '*':
+                        return False
+                    elif pat == '.' and test.name == name:
+                        return False
+                    elif fnmatch.fnmatch(test.name, '.'.join((name, pat))):
                         return False
 
                 reqs = getattr(obj, '__doctests_require__', {})
