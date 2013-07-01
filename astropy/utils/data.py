@@ -760,8 +760,19 @@ def get_free_space_in_dir(path):
         The amount of free space on the partition that the directory
         is on.
     """
-    stat = os.statvfs(path)
-    return stat.f_bavail * stat.f_frsize
+
+    if sys.platform.startswith('win'):
+        import ctypes
+        free_bytes = ctypes.c_ulonglong(0)
+        retval = ctypes.windll.kernel32.GetDiskFreeSpaceExW(
+                ctypes.c_wchar_p(path), None, None, ctypes.pointer(free_bytes))
+        if retval == 0:
+            raise IOError('Checking free space on %r failed unexpectedly.' %
+                          path)
+        return free_bytes.value
+    else:
+        stat = os.statvfs(path)
+        return stat.f_bavail * stat.f_frsize
 
 
 def check_free_space_in_dir(path, size):
