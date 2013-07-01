@@ -124,7 +124,7 @@ def doppler_radio(rest):
     def to_vel_en(x):
         resten = rest.to(si.eV, equivalencies=spectral()).value
         return (resten-x) / (resten) * ckms
-    def from_vel_freq(x):
+    def from_vel_en(x):
         resten = rest.to(si.eV, equivalencies=spectral()).value
         voverc = x/ckms
         return resten * (1-voverc)

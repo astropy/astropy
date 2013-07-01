@@ -66,3 +66,12 @@ def test_doppler_energy_circle(function):
     en = velo.to(u.eV, equivalencies=function(rest))
     np.testing.assert_almost_equal( en.value , shifted.value , decimal=7 )
 
+@pytest.mark.parametrize(('function','value'), 
+        ((u.doppler_optical,u.doppler_radio,u.doppler_relativistic),
+         (999.899940784289,999.8999307714406,999.8999357778647))
+        )
+def test_30kms(function, value):
+    rest = 1000 * u.GHz
+    velo = 30 * u.km/u.s
+    shifted = velo.to(u.GHz, equivalencies=function(rest))
+    np.testing.assert_almost_equal( shifted.value , value , decimal=7 )
