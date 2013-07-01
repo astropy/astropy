@@ -700,6 +700,14 @@ class TestRemove(SetupData):
         assert self.t.colnames == ['a', 'b', 'c']
         assert np.all(self.t['c'] == np.array([8]))
 
+    def test_remove_row_preserves_meta(self, table_types):
+        self._setup(table_types)
+        self.t.add_column(self.b)
+        self.t.remove_rows([0, 2])
+        assert self.t['a'].meta == {'aa': [0, 1, 2, 3, 4]}
+        assert self.t.dtype == np.dtype([('a', '<i8'),
+                                         ('b', '<i8')])
+
     def test_delitem1(self, table_types):
         self._setup(table_types)
         del self.t['a']
