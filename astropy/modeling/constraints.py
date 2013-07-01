@@ -47,37 +47,40 @@ class Constraints(object):
 
     Examples
     --------
+    >>> from astropy.modeling import models
     >>> def tie_center(model):
-    ...         xcen = 50 * model.xsigma
-    ...         return xcen
-    >>> tied_parameters  ={'xcen': tie_center}
+    ...         mean = 50 * model.stddev
+    ...         return mean
+    >>> tied_parameters = {'mean': tie_center}
 
-    Specify that 'xcen' is a tied parameter in one of two ways:
+    Specify that 'mean' is a tied parameter in one of two ways:
 
-    >>> g1 = models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3, tied=tied)
+    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3,
+    ...                             tied=tied_parameters)
 
     or
 
-    >>> g1 = models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3)
-    >>> g1.xcen.tied
+    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3)
+    >>> g1.mean.tied
     False
-    >>> g1.xcen.tied = tie_center
-    >>> g1.xcen.tied
-    <function tie_center at 0x395ab0>
+    >>> g1.mean.tied = tie_center
+    >>> g1.mean.tied
+    <function tie_center at 0x...>
 
     Fixed parameters:
 
-    >>> g1 = models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3, fixed={'xsigma':True})
-    >>> g1.xsigma.fixed
+    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3,
+    ...                             fixed={'stddev': True})
+    >>> g1.stddev.fixed
     True
 
     or
 
-    >>> g1 = models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3)
-    >>> g1.xsigma.fixed
+    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3)
+    >>> g1.stddev.fixed
     False
-    >>> g1.xsigma.fixed=True
-    >>> g1.xsigma.fixed
+    >>> g1.stddev.fixed = True
+    >>> g1.stddev.fixed
     True
 
     """
