@@ -18,17 +18,6 @@ class Laplace1DKernel(Kernel1D):
         self._separable = False
 
 
-class Laplace2DKernel(Kernel2D):
-    """
-    Laplace filter kernel.
-
-    The Laplace filter is a derivative filter. It is useful for detection
-    of fast changing structures in the data e.g edges.
-    """
-    def __init__(self):
-        self._separable = False
-
-
 class GaussianKernel(Kernel1D):
     """
     Gaussian filter kernel.
@@ -40,7 +29,8 @@ class GaussianKernel(Kernel1D):
         self._separable = True
         self._normalized = True
         self._weighted = True
-        self.model = Gaussian1DModel(amplitude=1., mean=0.,
+        amplitude = 1. / (np.sqrt(2 * np.pi) * width)
+        self.model = Gaussian1DModel(amplitude=amplitude, mean=0.,
                                                  stddev=width)
 
 
@@ -80,7 +70,8 @@ class BoxKernel(Kernel1D):
         self._separable = True
         self._normalized = True
         self._weighted = False
-        self.model = Box1DModel(amplitude=1., mean=0.,
+        amplitude = 1. / width
+        self.model = Box1DModel(amplitude=amplitude, mean=0.,
                                                  stddev=width)
 
 
@@ -95,7 +86,8 @@ class Tophat2DKernel(Kernel2D):
         self._separable = False
         self._normalized = True
         self._weighted = False
-        self.model = Disk2DModel(amplitude=1., mean=0., radius=radius)
+        amplitude = 1. / (np.pi * radius ** 2)
+        self.model = Disk2DModel(amplitude=amplitude, mean=0., radius=radius)
 
 
 class Ring2DKernel(Kernel2D):
@@ -150,6 +142,7 @@ class MexicanHat2DKernel(Kernel2D):
         self._separable = False
         self._normalized = False
         self.model = MexicanHat2DModel()
+
 
 class Airy2DKernel(Kernel2D):
     def __init__(self):

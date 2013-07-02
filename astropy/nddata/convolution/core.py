@@ -11,7 +11,8 @@ case we speak of "impulse response function", in the 2D case we call it
 by an astropy ParametricModel, which is evaluated on a grid to obtain a filter
 mask, which can then be applied to binned data.
 
-The model is centered on the mask and has amplitude = 1 per default.
+The model is centered on the mask and has an amplitude such that the mask
+integrate to ones per default.
 """
 
 import abc
@@ -37,9 +38,10 @@ class Kernel(object):
         self._maskfft
         self.truncation = 1E-5  # Lower limit at which the mask is truncated
         self.pixsize
-        #self.transfer_function
-        #self.symmetric
-        #self.antisymmetric
+        # This attributes and functions could be useful
+        # self.transfer_function
+        # self.symmetric
+        # self.antisymmetric
 
     @property
     def truncation(self):
@@ -144,6 +146,9 @@ class Kernel(object):
         """
         Indicates if the filter kernel is separable.
 
+        A 2D filter is separable, when its filter mask can be written as the
+        outer product of two 1D masks.
+
         If a filter kernel is separable, higher dimension convolutions will be
         performed by applying the 1D filter mask consecutively on every dimension.
         This is significantly faster, than using a filter mask with the same
@@ -201,7 +206,7 @@ class Kernel(object):
         if self.mask.shape == kernel.mask.shape:
             self.mask = self.mask + kernel.mask
         else:
-            pass
+            pass  # new_shape = np.maximum(self.mask.shape, kernel.mask.shape)
         self.normalized = True
 
     def __sub__(self,  kernel):
@@ -221,7 +226,7 @@ class Kernel(object):
         """
         # As convolution is linear we can multiply with a scalar
         if isinstance(value, (int, float)):
-            self._mask = self._mask * value
+            self._mask = self._normalisation * value
         elif isinstance(value, Kernel):
             #Convolve the two kernels with each other
             pass
@@ -235,7 +240,7 @@ class Kernel1D(Kernel):
     Abstract base class for 1D filter kernels
     """
     def __init__(self):
-        pass
+        self.axes = 0
 
     @model.setter
     def model(self, model):
