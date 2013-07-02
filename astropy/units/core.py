@@ -751,22 +751,24 @@ class UnitBase(object):
         bases = set(system.bases)
 
         def score(compose):
-            sum = 0
-            for base in compose._bases:
-                if base in bases:
-                    sum += 1
+            # In case that compose._bases has no elements we return
+            # 'np.inf' as 'score value'.  It does not really matter which
+            # number we would return. This case occurs for instance for
+            # dimensionless quantities:
+            if len(compose._bases) == 0:
+                return np.inf
+            else:
+                sum = 0
+                for base in compose._bases:
+                    if base in bases:
+                        sum += 1
 
-            return sum / float(len(compose._bases))
+                return sum / float(len(compose._bases))
 
         x = self.decompose(bases=bases)
         composed = x.compose(units=system)
-
-        # check for dimensionless quantities:
-        if len(composed) == 1 and len(composed[0]._bases) == 0:
-            return composed
-        else:
-            composed = sorted(composed, key=score, reverse=True)
-            return composed
+        composed = sorted(composed, key=score, reverse=True)
+        return composed
 
     @property
     def physical_type(self):
