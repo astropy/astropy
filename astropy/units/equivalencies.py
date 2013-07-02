@@ -96,6 +96,7 @@ def doppler_radio(rest):
 
     Examples
     --------
+    >>> import astropy.units as u
     >>> CO_restfreq = 115.27120*u.GHz  # rest frequency of 12 CO 1-0 in GHz
     >>> radio_CO_equiv = doppler_radio(CO_restfreq)
     >>> measured_freq = 115.2832*u.GHz
@@ -155,6 +156,7 @@ def doppler_optical(rest):
 
     Examples
     --------
+    >>> import astropy.units as u
     >>> CO_restfreq = 115.27120*u.GHz  # rest frequency of 12 CO 1-0 in GHz
     >>> optical_CO_equiv = doppler_optical(CO_restfreq)
     >>> measured_freq = 115.2832*u.GHz
@@ -215,6 +217,7 @@ def doppler_relativistic(rest):
 
     Examples
     --------
+    >>> import astropy.units as u
     >>> CO_restfreq = 115.27120*u.GHz  # rest frequency of 12 CO 1-0 in GHz
     >>> relativistic_CO_equiv = doppler_relativistic(CO_restfreq)
     >>> measured_freq = 115.2832*u.GHz
