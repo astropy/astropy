@@ -98,11 +98,11 @@ def doppler_radio(rest):
     --------
     >>> import astropy.units as u
     >>> CO_restfreq = 115.27120*u.GHz  # rest frequency of 12 CO 1-0 in GHz
-    >>> radio_CO_equiv = doppler_radio(CO_restfreq)
+    >>> radio_CO_equiv = u.doppler_radio(CO_restfreq)
     >>> measured_freq = 115.2832*u.GHz
     >>> doppler_radio = measured_freq.to(u.km/u.s, equivalencies=radio_CO_equiv)
-    >>> print doppler_radio
-    -31.2090920889 km / s
+    >>> doppler_radio
+    <Quantity -31.2090920889 km / s>
     """
     ckms = _si.c.to('km/s').value
 
@@ -158,11 +158,11 @@ def doppler_optical(rest):
     --------
     >>> import astropy.units as u
     >>> CO_restfreq = 115.27120*u.GHz  # rest frequency of 12 CO 1-0 in GHz
-    >>> optical_CO_equiv = doppler_optical(CO_restfreq)
+    >>> optical_CO_equiv = u.doppler_optical(CO_restfreq)
     >>> measured_freq = 115.2832*u.GHz
     >>> doppler_optical = measured_freq.to(u.km/u.s, equivalencies=optical_CO_equiv)
-    >>> print doppler_optical
-    -31.205843488 km / s
+    >>> doppler_optical
+    <Quantity -31.205843488 km / s>
     """
     ckms = _si.c.to('km/s').value
 
@@ -219,18 +219,18 @@ def doppler_relativistic(rest):
     --------
     >>> import astropy.units as u
     >>> CO_restfreq = 115.27120*u.GHz  # rest frequency of 12 CO 1-0 in GHz
-    >>> relativistic_CO_equiv = doppler_relativistic(CO_restfreq)
+    >>> relativistic_CO_equiv = u.doppler_relativistic(CO_restfreq)
     >>> measured_freq = 115.2832*u.GHz
     >>> doppler_relativistic = measured_freq.to(u.km/u.s, equivalencies=relativistic_CO_equiv)
-    >>> print doppler_relativistic
-    -31.2074676194 km / s
+    >>> doppler_relativistic
+    <Quantity -31.2074676194 km / s>
     >>> measured_velocity = 1250 * u.km/u.s
     >>> relativistic_frequency = measured_velocity.to(u.GHz, equivalencies=relativistic_CO_equiv)
-    >>> print relativistic_frequency
-    114.79156866993587 GHz
+    >>> relativistic_frequency
+    <Quantity 114.79156867 GHz>
     >>> relativistic_wavelength = measured_velocity.to(u.mm, equivalencies=relativistic_CO_equiv)
-    >>> print relativistic_wavelength
-    2.61162436818 mm
+    >>> relativistic_wavelength
+    <Quantity 2.61162436818 mm>
     """
 
     ckms = _si.c.to('km/s').value
