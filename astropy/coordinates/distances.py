@@ -16,7 +16,7 @@ __all__ = ['Distance', 'CartesianPoints', 'cartesian_to_spherical',
            'spherical_to_cartesian']
 
 
-__doctests_require__ = {'*': ['scipy.integrate']}
+__doctest_requires__ = {'*': ['scipy.integrate']}
 
 
 # FIXME: make this subclass Quantity once Quantity is in master

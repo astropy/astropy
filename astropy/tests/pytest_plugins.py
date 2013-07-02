@@ -109,14 +109,14 @@ class DoctestPlus(object):
         to the module itself, in case its module-level docstring contains
         doctests.
 
-        ``__doctests_require__`` should be a dictionary mapping wildcard
-        patterns (in the same format as ``__doctest_skip__`` to a list of one
+        ``__doctest_requires__`` should be a dictionary mapping wildcard
+        patterns (in the same format as ``__doctest_skip__``) to a list of one
         or more modules that should be *importable* in order for the tests to
         run.  For example, if some tests require the scipy module to work they
         will be skipped unless ``import scipy`` is possible.  It is also
         possible to use a tuple of wildcard patterns as a key in this dict::
 
-            __doctests_require__ = {('func1', 'func2'): ['scipy']}
+            __doctest_requires__ = {('func1', 'func2'): ['scipy']}
 
         """
 
@@ -139,7 +139,7 @@ class DocTestFinderPlus(doctest.DocTestFinder):
         tests = doctest.DocTestFinder.find(self, obj, name, module, globs,
                                            extraglobs)
         if (hasattr(obj, '__doctest_skip__') or
-                hasattr(obj, '__doctests_require__')):
+                hasattr(obj, '__doctest_requires__')):
             if name is None and hasattr(obj, '__name__'):
                 name = obj.__name__
             else:
@@ -156,7 +156,7 @@ class DocTestFinderPlus(doctest.DocTestFinder):
                     elif fnmatch.fnmatch(test.name, '.'.join((name, pat))):
                         return False
 
-                reqs = getattr(obj, '__doctests_require__', {})
+                reqs = getattr(obj, '__doctest_requires__', {})
                 for pats, mods in reqs.items():
                     if not isinstance(pats, tuple):
                         pats = (pats,)

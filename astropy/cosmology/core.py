@@ -24,7 +24,7 @@ __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
            "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM", "get_current",
            "set_current", "WMAP5", "WMAP7", "WMAP9", "Planck13"]
 
-__doctests_require__ = {'*': ['scipy.integrate']}
+__doctest_requires__ = {'*': ['scipy.integrate']}
 
 # Constants
 
