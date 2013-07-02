@@ -898,10 +898,6 @@ class ViewColumn(object):
     def units(self):
         return self._col.units
 
-    @units.setter
-    def units(self, value):
-        self._col.units
-
     def __table_replicate__(self, data):
         """
         Replicate the current column but using a new ``data`` ndarray.
@@ -1653,7 +1649,7 @@ class Table(object):
             NewColumn = MaskedColumn if self.masked else Column
 
             # Make sure value is an ndarray so we can get the dtype
-            if not isinstance(value, np.ndarray):
+            if not isinstance(value, np.ndarray) and not hasattr(value, '__table_add_column__'):
                 value = np.asarray(value)
 
             # Make new column and assign the value.  If the table currently has no rows
