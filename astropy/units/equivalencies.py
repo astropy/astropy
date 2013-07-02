@@ -105,9 +105,11 @@ def doppler_radio(rest):
     """
     ckms = _si.c.to('km/s').value
 
+
     def to_vel_freq(x):
         restfreq = rest.to(si.Hz, equivalencies=spectral()).value
         return (restfreq-x) / (restfreq) * ckms
+
     def from_vel_freq(x):
         restfreq = rest.to(si.Hz, equivalencies=spectral()).value
         voverc = x/ckms
@@ -117,17 +119,21 @@ def doppler_radio(rest):
     def to_vel_wav(x):
         restwav = rest.to(si.AA, spectral()).value
         return (x-restwav) / (x) * ckms
+
     def from_vel_wav(x):
         restwav = rest.to(si.AA, spectral()).value
         return restwav * ckms / (ckms-x)
 
+
     def to_vel_en(x):
         resten = rest.to(si.eV, equivalencies=spectral()).value
         return (resten-x) / (resten) * ckms
+
     def from_vel_en(x):
         resten = rest.to(si.eV, equivalencies=spectral()).value
         voverc = x/ckms
         return resten * (1-voverc)
+
 
     return [(si.Hz, si.km/si.s, to_vel_freq, from_vel_freq),
             (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
@@ -158,9 +164,11 @@ def doppler_optical(rest):
     """
     ckms = _si.c.to('km/s').value
 
+
     def to_vel_freq(x):
         restfreq = rest.to(si.Hz, equivalencies=spectral()).value
         return ckms * (restfreq-x) / x
+
     def from_vel_freq(x):
         restfreq = rest.to(si.Hz, equivalencies=spectral()).value
         voverc = x/ckms
@@ -170,6 +178,7 @@ def doppler_optical(rest):
     def to_vel_wav(x):
         restwav = rest.to(si.AA, spectral()).value
         return ckms * (x/restwav-1)
+
     def from_vel_wav(x):
         restwav = rest.to(si.AA, spectral()).value
         voverc = x/ckms
@@ -179,6 +188,7 @@ def doppler_optical(rest):
     def to_vel_en(x):
         resten = rest.to(si.eV, equivalencies=spectral()).value
         return ckms * (resten-x) / x
+
     def from_vel_en(x):
         resten = rest.to(si.eV, equivalencies=spectral()).value
         voverc = x/ckms
@@ -222,9 +232,11 @@ def doppler_relativistic(rest):
 
     ckms = _si.c.to('km/s').value
 
+
     def to_vel_freq(x):
         restfreq = rest.to(si.Hz, equivalencies=spectral()).value
         return (restfreq**2-x**2) / (restfreq**2+x**2) * ckms
+
     def from_vel_freq(x):
         restfreq = rest.to(si.Hz, equivalencies=spectral()).value
         voverc = x/ckms
@@ -234,18 +246,22 @@ def doppler_relativistic(rest):
     def to_vel_wav(x):
         restwav = rest.to(si.AA, spectral()).value
         return (x**2-restwav**2) / (restwav**2+x**2) * ckms
+
     def from_vel_wav(x):
         restwav = rest.to(si.AA, spectral()).value
         voverc = x/ckms
         return restwav * ((1+voverc) / (1-voverc))**0.5
 
+
     def to_vel_en(x):
         resten = rest.to(si.eV, spectral()).value
         return (resten**2-x**2) / (resten**2+x**2) * ckms
+
     def from_vel_en(x):
         resten = rest.to(si.eV, spectral()).value
         voverc = x/ckms
         return resten * ((1-voverc) / (1+(voverc)))**0.5
+
 
     return [(si.Hz, si.km/si.s, to_vel_freq, from_vel_freq),
             (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
