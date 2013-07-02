@@ -9,7 +9,7 @@ Units (`astropy.units`)
 Introduction
 ============
 
-``astropy.units`` handles defining and converting between physical
+`astropy.units` handles defining and converting between physical
 units, and performing arithmetic with physical quantities (numbers
 with associated units).
 
@@ -33,7 +33,7 @@ Units that "cancel out" become a special unit called the
   >>> u.m / u.m
   Unit(dimensionless)
 
-`astropy` is able to match compound units against the units it already
+`astropy.units` is able to match compound units against the units it already
 knows about::
 
   >>> (u.s ** -1).compose()
@@ -117,7 +117,7 @@ See Also
 Reference/API
 =============
 
-.. automodapi:: astropy.units.core
+.. automodapi:: astropy.units
 
 .. automodapi:: astropy.units.format
 

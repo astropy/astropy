@@ -135,19 +135,17 @@ code, pre {
   border-radius: 3px;
 }
 code {
-  background-color: #fee9cc;
   color: rgba(0, 0, 0, 0.75);
   padding: 1px 3px;
 }
 pre {
-  background-color: #eee;
   display: block;
   padding: 8.5px;
   margin: 0 0 18px;
   line-height: 18px;
   font-size: 12px;
-  border: 1px solid #ccc;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid #ddd;
+  border: 1px solid rgba(0, 0, 0, 0.12);
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
@@ -160,10 +158,35 @@ img {
   margin: 9px 0;
 }
 
+/* format inline code with a rounded box */
 tt {
-    padding: 0 1px 0 1px;
+    margin: 0 2px;
+    padding: 0 5px;
+    border: 1px solid #ddd;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 3px;
     font-size: 0.95em;
 }
+
+/* all code has same box background color, even in headers */
+h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt, pre, code, tt {
+  background-color: #f8f8f8;
+}
+
+/* override box for links & other sphinx-specifc stuff */
+tt.xref, a tt, tt.descname, tt.descclassname {
+  padding: 0 1px 0 1px;
+  border: none;
+}
+
+/* override box for related bar at the top of the page */
+.related tt {
+  border: none;
+  padding: 0 1px 0 1px;
+  background-color: transparent;
+  font-weight: bold;
+}
+
 th {
     background-color: #dddddd;
 }
