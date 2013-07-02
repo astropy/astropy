@@ -979,10 +979,10 @@ class Row(object):
                 raise
 
     def __getitem__(self, item):
-        return self.data[item]
+        return self._table[item][self._index]
 
     def __setitem__(self, item, val):
-        self.data[item] = val
+        self._table[item][self._index] = val
 
     def __eq__(self, other):
         if self._table.masked:
@@ -1049,8 +1049,7 @@ class Row(object):
         return self.dtype
 
     def __repr__(self):
-        return "<Row {0} of table\n values={1!r}\n dtype={2}>".format(
-            self.index, self.data, self.dtype)
+        return str(self._table[self._index:self._index + 1])
 
 
 collections.Sequence.register(Row)
