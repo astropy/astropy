@@ -208,6 +208,28 @@ def test_equivalent_units2():
     assert units == match
 
 
+def test_dimensionless_to_si():
+    """
+    Issue #1150: Test for conversion of dimensionless quantities
+                 to the SI system
+    """
+
+    testunit = ((1.0 * u.kpc) / (1.0 * u.Mpc))
+
+    assert testunit.unit.physical_type == 'dimensionless'
+    assert_allclose(testunit.si, 0.001)
+
+def test_dimensionless_to_cgs():
+    """
+    Issue #1150: Test for conversion of dimensionless quantities
+                 to the CGS system
+    """
+
+    testunit = ((1.0 * u.m) / (1.0 * u.km))
+
+    assert testunit.unit.physical_type == 'dimensionless'
+    assert_allclose(testunit.cgs, 0.001)
+
 def test_unknown_unit():
     with catch_warnings(u.UnitsWarning) as warning_lines:
         u.Unit("FOO", parse_strict='warn')
