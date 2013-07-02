@@ -71,6 +71,44 @@ These equivalencies even work with non-base units::
   >>> u.inch.to(u.Cal, 1, equivalencies=u.spectral())
   1.869180759162485e-27
 
+Spectral (doppler) equivalencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Spectral equivalencies allow you to convert between wavelength, frequency, and
+energy, but not to velocity, which is frequently the quantity of interest.
+
+It is fairly straightforward to define the equivalency, but note that there are
+different `conventions <http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`__.  
+In these conventions :math:`f_0` is the rest frequency, :math:`f` is the observed frequency,
+:math:`V` is the velocity, and :math:`c` is the speed of light:
+        
+    * Radio         :math:`V = c \frac{f_0 - f}{f_0}  ;  f(V) = f_0 ( 1 - V/c )`
+    * Optical       :math:`V = c \frac{f_0 - f}{f  }  ;  f(V) = f_0 ( 1 + V/c )^{-1}`
+    * Relativistic  :math:`V = c \frac{f_0^2 - f^2}{f_0^2 + f^2} ;  f(V) = f_0 \frac{\left(1 - (V/c)^2\right)^{1/2}}{(1+V/c)}`
+
+As an example, we show how to define an equivalency using the radio convention for CO 1-0::
+
+    >>> restfreq = 115.27120  # rest frequency of 12 CO 1-0 in GHz
+    >>> ghz_kms = [(u.GHz, u.km/u.s, 
+        lambda x: (restfreq-x) / restfreq * c.c.to('km/s').value,
+        lambda x: (1-x/c.c.to('km/s').value) * restfreq )]
+    >>> u.Hz.to(u.km/u.s,116e9,equivalencies=ghz_kms)
+    -1895.432192866963
+    >>> (116e9*u.Hz).to(u.km/u.s,equivalencies=ghz_kms)
+    <Quantity -1895.43219287 km / s>
+
+However, these are already defined for you, so you can just use them directly::
+
+    >>> restfreq = 115.27120 * u.GHz  # rest frequency of 12 CO 1-0 in GHz
+    >>> ghz_kms = u.doppler_radio(restfreq)
+    >>> u.Hz.to(u.km/u.s,116e9,equivalencies=ghz_kms)
+    -1895.432192866963
+    >>> (116e9*u.Hz).to(u.km/u.s,equivalencies=ghz_kms)
+    <Quantity -1895.43219287 km / s>
+
+The three conventions are implemented in `astropy.units.equivalencies` as
+`doppler_optical`, `doppler_radio`, and `doppler_relativistic`.
+
+
 Spectral Flux Density Units
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -121,34 +159,6 @@ And it also works in the other direction::
 
   >>> u.lb.to(u.pint, 1, equivalencies=liters_water)
   0.9586114172355458
-
-Writing Spectral (doppler) equivalencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Spectral equivalencies allow you to convert between wavelength, frequency, and
-energy, but not to velocity, which is frequently the quantity of interest.
-
-It is fairly straightforward to define the equivalency, but note that there are
-different `conventions <http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`__.  
-In these conventions :math:`f_0` is the rest frequency, :math:`f` is the observed frequency,
-:math:`V` is the velocity, and :math:`c` is the speed of light:
-        
-    * Radio         :math:`V = c \frac{f_0 - f}{f_0}  ;  f(V) = f_0 ( 1 - V/c )`
-    * Optical       :math:`V = c \frac{f_0 - f}{f  }  ;  f(V) = f_0 ( 1 + V/c )^{-1}`
-    * Relativistic  :math:`V = c \frac{f_0^2 - f^2}{f_0^2 + f^2} ;  f(V) = f_0 \frac{\left(1 - (V/c)^2\right)^{1/2}}{(1+V/c)}`
-
-To define an equivalency using the radio convention for CO 1-0::
-
-    >>> restfreq = 115.27120  # rest frequency of 12 CO 1-0 in GHz
-    >>> ghz_kms = [(u.GHz, u.km/u.s, 
-        lambda x: (restfreq-x) / restfreq * c.c.to('km/s').value,
-        lambda x: (1-x/c.c.to('km/s').value) * restfreq )]
-    >>> u.Hz.to(u.km/u.s,116e9,equivalencies=ghz_kms)
-    -1895.432192866963
-    >>> (116e9*u.Hz).to(u.km/u.s,equivalencies=ghz_kms)
-    <Quantity -1895.43219287 km / s>
-
-The three conventions are also implemented in `astropy.units.equivalencies` as
-`doppler_optical`, `doppler_radio`, and `doppler_relativistic`.
 
 Displaying available equivalencies
 ----------------------------------
