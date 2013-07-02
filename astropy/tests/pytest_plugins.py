@@ -4,6 +4,9 @@ These plugins modify the behavior of py.test and are meant to be imported
 into conftest.py in the root directory.
 """
 
+import doctest
+import fnmatch
+import imp
 import io
 import locale
 import math
@@ -23,6 +26,159 @@ def pytest_addoption(parser):
                      help="run tests with online data")
     parser.addoption("--open-files", action="store_true",
                      help="fail if any test leaves files open")
+
+    parser.addoption("--doctest-plus", action="store_true",
+            help="enable running doctests with additional features not "
+                 "found in the normal doctest plugin")
+
+    parser.addini("doctest_plus", "enable running doctests with additional "
+                  "features not found in the normal doctest plugin")
+
+    parser.addini("doctest_norecursedirs",
+                  "like the norecursedirs option but applies only to doctest "
+                  "collection", type="args", default=())
+
+
+def pytest_configure(config):
+    doctest_plugin = config.pluginmanager.getplugin('doctest')
+
+    if (doctest_plugin is None or config.option.doctestmodules or not
+            (config.getini('doctest_plus') or config.option.doctest_plus)):
+        return
+
+    class DocTestModulePlus(doctest_plugin.DoctestModule):
+        def runtest(self):
+            if self.fspath.basename == 'conftest.py':
+                module = self.config._conftest.importconftest(self.fspath)
+            else:
+                module = self.fspath.pyimport()
+
+            finder = DocTestFinderPlus(exclude_empty=False)
+            opts = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
+            runner = doctest.DebugRunner(verbose=False, optionflags=opts)
+
+            for test in finder.find(module):
+                runner.run(test)
+
+            failed, tot = doctest.TestResults(runner.failures, runner.tries)
+
+    config.pluginmanager.register(DoctestPlus(DocTestModulePlus),
+                                  'doctestplus')
+
+
+class DoctestPlus(object):
+    def __init__(self, doctest_module_item_cls):
+        """
+        doctest_module_item_cls should be a class inheriting
+        `pytest.doctest.DoctestItem` and `pytest.File`.  This class handles
+        running of a single doctest found in a Python module.  This is passed
+        in as an argument because the actual class to be used may not be
+        available at import time, depending on whether or not the doctest
+        plugin for py.test is available.
+        """
+
+        self._doctest_module_item_cls = doctest_module_item_cls
+
+
+    def pytest_ignore_collect(self, path, config):
+        """Skip paths that match any of the doctest_norecursedirs patterns."""
+
+        for pattern in config.getini("doctest_norecursedirs"):
+            if path.check(fnmatch=pattern):
+                return True
+
+
+    def pytest_collect_file(self, path, parent):
+        """Implements an enhanced version of the doctest module from py.test
+        (specifically, as enabled by the --doctest-modules option) which
+        supports skipping all doctests in a specific docstring by way of a
+        special ``__doctest_skip__`` module-level variable.  It can also skip
+        tests that have special requirements by way of
+        ``__doctest_requires__``.
+
+        ``__doctest_skip__`` should be a list of functions, classes, or class
+        methods whose docstrings should be ignored when collecting doctests.
+
+        This also supports wildcard patterns.  For example, to run doctests in
+        a class's docstring, but skip all doctests in its modules use, at the
+        module level::
+
+            __doctest_skip__ = ['ClassName.*']
+
+        You may also use the string ``'.'`` in ``__doctest_skip__`` to refer
+        to the module itself, in case its module-level docstring contains
+        doctests.
+
+        ``__doctest_requires__`` should be a dictionary mapping wildcard
+        patterns (in the same format as ``__doctest_skip__``) to a list of one
+        or more modules that should be *importable* in order for the tests to
+        run.  For example, if some tests require the scipy module to work they
+        will be skipped unless ``import scipy`` is possible.  It is also
+        possible to use a tuple of wildcard patterns as a key in this dict::
+
+            __doctest_requires__ = {('func1', 'func2'): ['scipy']}
+
+        """
+
+        config = parent.config
+        if path.ext == '.py':
+            # Don't override the built-in doctest plugin
+            return self._doctest_module_item_cls(path, parent)
+
+
+class DocTestFinderPlus(doctest.DocTestFinder):
+    """Extension to the default `doctest.DoctestFinder` that supports
+    ``__doctest_skip__`` magic.  See `pytest_collect_file` for more details.
+    """
+
+    # Caches the results of import attempts
+    _import_cache = {}
+
+    def find(self, obj, name=None, module=None, globs=None,
+             extraglobs=None):
+        tests = doctest.DocTestFinder.find(self, obj, name, module, globs,
+                                           extraglobs)
+        if (hasattr(obj, '__doctest_skip__') or
+                hasattr(obj, '__doctest_requires__')):
+            if name is None and hasattr(obj, '__name__'):
+                name = obj.__name__
+            else:
+               raise ValueError("DocTestFinder.find: name must be given "
+                                "when obj.__name__ doesn't exist: %r" %
+                                (type(obj),))
+
+            def test_filter(test):
+                for pat in getattr(obj, '__doctest_skip__', []):
+                    if pat == '*':
+                        return False
+                    elif pat == '.' and test.name == name:
+                        return False
+                    elif fnmatch.fnmatch(test.name, '.'.join((name, pat))):
+                        return False
+
+                reqs = getattr(obj, '__doctest_requires__', {})
+                for pats, mods in reqs.items():
+                    if not isinstance(pats, tuple):
+                        pats = (pats,)
+                    for pat in pats:
+                        if not fnmatch.fnmatch(test.name,
+                                               '.'.join((name, pat))):
+                            continue
+                        for mod in mods:
+                            if mod in self._import_cache:
+                                return self._import_cache[mod]
+                            try:
+                                imp.find_module(mod)
+                            except ImportError:
+                                self._import_cache[mod] = False
+                                return False
+                            else:
+                                self._import_cache[mod] = True
+                return True
+
+            tests = filter(test_filter, tests)
+
+        return tests
 
 
 # Open file detection.

@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+import os
+
 from ....tests.helper import pytest
 pytest.importorskip('sphinx')  # skips these tests if sphinx not present
 
@@ -68,7 +71,8 @@ Class Inheritance Diagram
     :private-bases:
 
 This comes after
-""".format(empty='')  # necessary for editors that remove empty-line whitespace
+""".format(empty='').replace('/', os.sep)
+# the .format is necessary for editors that remove empty-line whitespace
 
 
 def test_am_replacer_basic():
@@ -78,7 +82,7 @@ def test_am_replacer_basic():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='_generated/')
+    fakeapp = FakeApp(automodapi_toctreedirnm='_generated')
     result = automodapi_replace(am_replacer_str.format(options=''), fakeapp)
 
     assert result == am_replacer_basic_expected
@@ -109,7 +113,7 @@ Classes
 
 
 This comes after
-""".format(empty='')  # necessary for editors that remove empty-line whitespace
+""".format(empty='').replace('/', os.sep)
 
 
 def test_am_replacer_noinh():
@@ -119,7 +123,7 @@ def test_am_replacer_noinh():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='_generated/')
+    fakeapp = FakeApp(automodapi_toctreedirnm='_generated')
     ops = ['', ':no-inheritance-diagram:']
     ostr = '\n    '.join(ops)
     result = automodapi_replace(am_replacer_str.format(options=ostr), fakeapp)
@@ -158,7 +162,7 @@ Class Inheritance Diagram
 
 
 This comes after
-""".format(empty='')  # necessary for editors that remove empty-line whitespace
+""".format(empty='').replace('/', os.sep)
 
 
 def test_am_replacer_titleandhdrs():
@@ -168,7 +172,7 @@ def test_am_replacer_titleandhdrs():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='_generated/')
+    fakeapp = FakeApp(automodapi_toctreedirnm='_generated')
     ops = ['', ':title: A new title', ':headings: &*']
     ostr = '\n    '.join(ops)
     result = automodapi_replace(am_replacer_str.format(options=ostr), fakeapp)
@@ -203,7 +207,7 @@ Functions
 
 
 This comes after
-""".format(empty='')  # necessary for editors that remove empty-line whitespace
+""".format(empty='').replace('/', os.sep)
 
 
 def test_am_replacer_nomain():
@@ -212,7 +216,7 @@ def test_am_replacer_nomain():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='_generated/')
+    fakeapp = FakeApp(automodapi_toctreedirnm='_generated')
     result = automodapi_replace(am_replacer_nomain_str, fakeapp)
 
     assert result == am_replacer_nomain_expected
@@ -246,7 +250,7 @@ Functions
 
 
 This comes after
-""".format(empty='')  # necessary for editors that remove empty-line whitespace
+""".format(empty='').replace('/', os.sep)
 
 
 def test_am_replacer_skip():
@@ -255,7 +259,7 @@ def test_am_replacer_skip():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='_generated/')
+    fakeapp = FakeApp(automodapi_toctreedirnm='_generated')
     result = automodapi_replace(am_replacer_skip_str, fakeapp)
 
     assert result == am_replacer_skip_expected
@@ -277,7 +281,7 @@ def test_am_replacer_invalidop():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='_generated/')
+    fakeapp = FakeApp(automodapi_toctreedirnm='_generated')
     automodapi_replace(am_replacer_invalidop_str, fakeapp)
 
     expected_warnings = [('Found additional options invalid-option in '

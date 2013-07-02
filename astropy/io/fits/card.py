@@ -778,9 +778,11 @@ class Card(_Verify):
         Examples
         --------
 
-        >>> self._check_if_rvkc('DP1', 'AXIS.1: 2')
-        >>> self._check_if_rvkc('DP1.AXIS.1', 2)
-        >>> self._check_if_rvkc('DP1     = AXIS.1: 2')
+        ::
+
+            self._check_if_rvkc('DP1', 'AXIS.1: 2')
+            self._check_if_rvkc('DP1.AXIS.1', 2)
+            self._check_if_rvkc('DP1     = AXIS.1: 2')
         """
 
         if not ENABLE_RECORD_VALUED_KEYWORD_CARDS():

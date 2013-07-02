@@ -38,6 +38,10 @@ import re
 from . import core
 from . import fixedwidth
 
+
+__doctest_skip__ = ['*']
+
+
 class CdsHeader(core.BaseHeader):
     col_type_map = {'e': core.FloatType,
                     'f': core.FloatType,

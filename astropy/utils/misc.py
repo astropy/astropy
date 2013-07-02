@@ -22,6 +22,8 @@ __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'NumpyRNGContext', 'find_api_page', 'is_path_hidden',
            'walk_skip_hidden', 'JsonCustomEncoder']
 
+__doctest_skip__ = ['find_current_module']
+
 
 def find_current_module(depth=1, finddiff=False):
     """ Determines the module/package from which this function is called.

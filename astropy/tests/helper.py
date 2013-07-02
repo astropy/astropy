@@ -296,6 +296,7 @@ class astropy_test(Command, object):
         tmp_dir = tempfile.mkdtemp(prefix='astropy-test-')
         testing_path = os.path.join(tmp_dir, os.path.basename(new_path))
         shutil.copytree(new_path, testing_path)
+        shutil.copy('setup.cfg', testing_path)
 
         try:
 

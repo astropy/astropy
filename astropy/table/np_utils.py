@@ -339,16 +339,12 @@ def vstack(arrays, join_type='inner', col_name_map=None):
 
     # Start by assuming an outer match where all names go to output
     names = set(chain(*[arr.dtype.names for arr in arrays]))
-    _col_name_map = get_col_name_map(arrays, names)
-
-    # If col_name_map supplied as a dict input, then update.
-    if isinstance(col_name_map, dict):
-        col_name_map.update(_col_name_map)
+    col_name_map = get_col_name_map(arrays, names)
 
     # If require_match is True then the output must have exactly the same
     # number of columns as each input array
     if join_type == 'exact':
-        for names in _col_name_map.values():
+        for names in col_name_map.values():
             if any(x is None for x in names):
                 raise TableMergeError('Inconsistent columns in input arrays '
                                       "(use 'inner' or 'outer' join_type to "
