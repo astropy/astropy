@@ -16,6 +16,10 @@ __all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion',
            'biweight_midvariance']
 
 
+__doctest_skip__ = ['binned_binom_proportion']
+__doctest_requires__ = {'binom_conf_interval': ['scipy.special']}
+
+
 def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
                axis=None, copy=True):
     """ Perform sigma-clipping on the provided data.
@@ -78,8 +82,8 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
      2. Most numpy functions deal well with masked arrays, but if one would
         like to have an array with just the good (or bad) values, one can use::
 
-        >>> good_only = filtered_data.data[~filtered_data.mask]
-        >>> bad_only = filtered_data.data[filtered_data.mask]
+            good_only = filtered_data.data[~filtered_data.mask]
+            bad_only = filtered_data.data[filtered_data.mask]
 
         However, for multidimensional data, this flattens the array, which may
         not be what one wants (especially is filtering was done along an axis).
@@ -548,7 +552,7 @@ def median_absolute_deviation(a, axis=None):
     This will generate random variates from a Gaussian distribution and return
     the median absolute deviation for that distribution::
 
-        >>> from astropy.stats import median_aboslute_deviation
+        >>> from astropy.stats import median_absolute_deviation
         >>> from numpy.random import randn
         >>> randvar = randn(10000)
         >>> mad = median_absolute_deviation(randvar)
@@ -618,7 +622,7 @@ def biweight_location(a, c=6.0, M=None):
     This will generate random variates from a Gaussian distribution and return
     the median absolute deviation for that distribution::
 
-    >>> from astropy.tools.alg import biweight_location
+    >>> from astropy.stats.funcs import biweight_location
     >>> from numpy.random import randn
     >>> randvar = randn(10000)
     >>> cbl = biweight_location(randvar)
@@ -693,7 +697,7 @@ def biweight_midvariance(a, c=9.0, M=None):
     This will generate random variates from a Gaussian distribution and return
     the median absolute deviation for that distribution::
 
-    >>> from astropy.tools.alg import biweight_midvariance
+    >>> from astropy.stats.funcs import biweight_midvariance
     >>> from numpy.random import randn
     >>> randvar = randn(10000)
     >>> scl = biweight_midvariance(randvar)

@@ -519,21 +519,21 @@ class LabeledInput(dict):
 
     Examples
     --------
-    >>> x,y = np.mgrid[:10, :10]
-    >>> l = np.arange(10)
+    >>> x, y = np.mgrid[:5, :5]
+    >>> l = np.arange(5)
     >>> ado = LabeledInput([x, y, l], ['x', 'y', 'pixel'])
     >>> ado.x
     array([[0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1],
-    [2, 2, 2, 2, 2],
-    [3, 3, 3, 3, 3],
-    [4, 4, 4, 4, 4]])
+           [1, 1, 1, 1, 1],
+           [2, 2, 2, 2, 2],
+           [3, 3, 3, 3, 3],
+           [4, 4, 4, 4, 4]])
     >>> ado['x']
     array([[0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1],
-    [2, 2, 2, 2, 2],
-    [3, 3, 3, 3, 3],
-    [4, 4, 4, 4, 4]])
+           [1, 1, 1, 1, 1],
+           [2, 2, 2, 2, 2],
+           [3, 3, 3, 3, 3],
+           [4, 4, 4, 4, 4]])
 
     """
     def __init__(self, data, labels):
@@ -670,14 +670,15 @@ class SCompositeModel(_CompositeModel):
     Apply a 2D rotation followed by a shift in x and y::
 
         >>> from astropy.modeling import *
+        >>> x, y = np.mgrid[:5, :5]
         >>> rot = models.MatrixRotation2D(angle=23.5)
         >>> offx = models.ShiftModel(-4.23)
         >>> offy = models.ShiftModel(2)
-        >>> linp = LabeledInput([x, y], ["x", "y"])
+        >>> linp = LabeledInput([x, y], ['x', 'y'])
         >>> scomptr = SCompositeModel([rot, offx, offy],
         ...                           inmap=[['x', 'y'], ['x'], ['y']],
         ...                           outmap=[['x', 'y'], ['x'], ['y']])
-        >>> result=scomptr(linp)
+        >>> result = scomptr(linp)
 
     """
     def __init__(self, transforms, inmap=None, outmap=None, n_inputs=None, n_outputs=None):

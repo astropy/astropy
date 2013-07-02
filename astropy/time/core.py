@@ -21,6 +21,8 @@ __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TIME_FORMATS', 'TIME_DELTA_FORMATS', 'TIME_SCALES',
            'TIME_DELTA_SCALES']
 
+__doctest_skip__ = ['TimePlotDate']
+
 try:
     # Not guaranteed available at setup time
     from . import sofa_time

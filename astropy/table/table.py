@@ -751,12 +751,13 @@ class Row(object):
     A Row object is returned when a Table object is indexed with an integer
     or when iterating over a table::
 
-      >>> table = Table([(1, 2), (3, 4)], names=('a', 'b'))
+      >>> table = Table([(1, 2), (3, 4)], names=('a', 'b'),
+      ...               dtypes=('int32', 'int32'))
       >>> row = table[1]
       >>> row
       <Row 1 of table
        values=(2, 4)
-       dtype=[('a', '<i8'), ('b', '<i8')]>
+       dtype=[('a', '<i4'), ('b', '<i4')]>
       >>> row['a']
       2
       >>> row[1]
@@ -1547,17 +1548,17 @@ class Table(object):
               2 0.2   y
               3 0.3   z
 
-        Add column 'c' at position 1. Note that the column is inserted
+        Add column 'd' at position 1. Note that the column is inserted
         before the given index::
 
-            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
-            >>> t.add_column(col_c, 1)
+            >>> col_d = Column(name='d', data=['a', 'b', 'c'])
+            >>> t.add_column(col_d, 1)
             >>> print t
-             a   c   b
-            --- --- ---
-              1   x 0.1
-              2   y 0.2
-              3   z 0.3
+             a   d   b   c
+            --- --- --- ---
+              1   a 0.1   x
+              2   b 0.2   y
+              3   c 0.3   z
 
         To add several columns use add_columns.
         """
@@ -1606,6 +1607,7 @@ class Table(object):
         Add column 'c' at position 0 and column 'd' at position 1. Note that
         the columns are inserted before the given position::
 
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
             >>> col_c = Column(name='c', data=['x', 'y', 'z'])
             >>> col_d = Column(name='d', data=['u', 'v', 'w'])
             >>> t.add_columns([col_c, col_d], [0, 1])
@@ -1709,6 +1711,8 @@ class Table(object):
 
         Specifying only a single column also works. Remove column 'b' from the table:
 
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
+            ...     names=('a', 'b', 'c'))
             >>> t.remove_columns('b')
             >>> print t
              a   c
@@ -1784,6 +1788,8 @@ class Table(object):
         Specifying a list of column names is keeps is also possible.
         Keep columns 'a' and 'c' of the table::
 
+            >>> t = Table([[1, 2, 3],[0.1, 0.2, 0.3],['x', 'y', 'z']],
+            ...           names=('a', 'b', 'c'))
             >>> t.keep_columns(['a', 'c'])
             >>> print t
              a   c

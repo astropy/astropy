@@ -17,6 +17,11 @@ from ...utils.timer import timefunc, RunTimePredictor
 __all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs', 'predict_search',
            'conesearch_timer']
 
+# Skip these doctests for now;
+# TODO: Add the ability to add py.test markers (such as remote_data) to
+# doctests
+__doctest_skip__ = ['AsyncConeSearch']
+
 CONESEARCH_DBNAME = ConfigurationItem('conesearch_dbname', 'conesearch_good',
                                       'Conesearch database name.')
 

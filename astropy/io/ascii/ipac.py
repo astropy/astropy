@@ -75,6 +75,7 @@ class Ipac(fixedwidth.FixedWidth):
     The comments and keywords defined in the header are available via the output
     table ``meta`` attribute::
 
+      >>> import os
       >>> from astropy.io import ascii
       >>> filename = os.path.join(ascii.__path__[0], 'tests/t/ipac.dat')
       >>> data = ascii.read(filename)

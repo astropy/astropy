@@ -32,6 +32,9 @@ HEADER_END_RE = re.compile(encode_ascii('END {77} *'))
 VALID_HEADER_CHARS = set(chr(x) for x in range(0x20, 0x7F))
 
 
+__doctest_skip__ = ['Header', 'Header.*']
+
+
 class Header(object):
     """
     FITS header class.  This class exposes both a dict-like interface and a
@@ -902,13 +905,13 @@ class Header(object):
         (keyword, value, comment) tuples.
 
         Arbitrary arguments are also accepted, in which case the update() is
-        called again with the kwargs dict as its only argument.  That is,
+        called again with the kwargs dict as its only argument.  That is, ::
 
-            >>> header.update(NAXIS1=100, NAXIS2=100)
+            header.update(NAXIS1=100, NAXIS2=100)
 
-        is equivalent to
+        is equivalent to ::
 
-            >>> header.update({'NAXIS1': 100, 'NAXIS2': 100})
+            header.update({'NAXIS1': 100, 'NAXIS2': 100})
 
         .. warning::
             As this method works similarly to dict.update() it is very
@@ -920,38 +923,38 @@ class Header(object):
             **deprecated**.  Most uses of the old API can be replaced as
             follows:
 
-            * Replace
+            * Replace ::
 
-                  >>> header.update(keyword, value)
+                  header.update(keyword, value)
 
-              with
+              with ::
 
-                  >>> header[keyword] = value
+                  header[keyword] = value
 
-            * Replace
+            * Replace ::
 
-                  >>> header.update(keyword, value, comment=comment)
+                  header.update(keyword, value, comment=comment)
 
-              with
+              with ::
 
-                  >>> header[keyword] = (value, comment)
+                  header[keyword] = (value, comment)
 
-            * Replace
+            * Replace ::
 
-                  >>> header.update(keyword, value, before=before_keyword)
+                  header.update(keyword, value, before=before_keyword)
 
-              with
+              with ::
 
-                  >>> header.insert(before_keyword, (keyword, value))
+                  header.insert(before_keyword, (keyword, value))
 
-            * Replace
+            * Replace ::
 
-                  >>> header.update(keyword, value, after=after_keyword)
+                  header.update(keyword, value, after=after_keyword)
 
-              with
+              with ::
 
-                  >>> header.insert(after_keyword, (keyword, value),
-                  ...               after=True)
+                  header.insert(after_keyword, (keyword, value),
+                                after=True)
 
             See also :meth:`Header.set` which is a new method that provides an
             interface similar to the old Header.update() and may help make

@@ -9,19 +9,19 @@
 
 Examples
 --------
-Running inside Python:
+Running inside Python::
 
->>> import astropy
->>> astropy.test('vo.validator', remote_data=True)
+    >>> import astropy
+    >>> astropy.test('vo.validator', remote_data=True)
 
 Running from top level via command line::
 
-    python setup.py test -P vo.validator --remote-data
+    $ python setup.py test -P vo.validator --remote-data
 
 Running from ``astropy/vo/validator/tests`` directory::
 
-    setenv ASTROPY_USE_SYSTEM_PYTEST 1
-    py.test test_validate.py --remote-data
+    $ setenv ASTROPY_USE_SYSTEM_PYTEST 1
+    $ py.test test_validate.py --remote-data
 
 """
 # STDLIB
@@ -37,6 +37,9 @@ from ...client.vos_catalog import BASEURL
 from ....tests.helper import pytest, remote_data
 from ....utils.data import _find_pkg_data_path, get_pkg_data_filename
 from ....utils.data import REMOTE_TIMEOUT
+
+
+__doctest_skip__ = ['*']
 
 
 @remote_data

@@ -481,6 +481,110 @@ You may need to adjust the relative import to work for the depth of your module.
 if the user does not have py.test installed. This is so that users need not
 install py.test to run AstroPy's tests.
 
+
+.. _doctests:
+
+Writing doctests
+================
+
+A doctest in Python is a special kind of test that is embedded in a function,
+class, or module's docstring and is formatted to look like a Python interactive
+session--that is, they show lines of Python code entered at a ``>>>`` prompt
+followed by the output that would be expected (if any) when running that code
+in an interactive session.
+
+The idea is to write usage examples in docstrings that users can enter
+verbatim and check their output against the expected output to confirm that
+they are using the interface properly.
+
+Furthermore, Python includes a :mod:`doctest` module that can detect these
+doctests and execute them as part of a project's automated test suite.  This
+way we can automatically ensure that all doctest-like examples in our
+docstrings are correct.
+
+The Astropy test suite automatically detects and runs any doctests in the
+Astropy source code, or in affiliated packages using the Astropy test running
+framework. For example doctests and detailed documentation on how to write
+them, see the full :mod:`doctest` documentation.
+
+Skipping doctests
+-----------------
+
+Sometimes it is necessary to write examples that look like doctests but that
+are not actually executable verbatim. An example may depend on some external
+conditions being fulfilled, for example. In these cases there are a few ways to
+skip a doctest:
+
+1. Next to the example add a comment like: ``# doctest: +SKIP``.  For example::
+
+    >>> import os
+    >>> os.listdir('.')  # doctest: +SKIP
+
+  In the above example we want to direct the user to run ``os.listdir('.')``
+  but we don't want that line to be executed as part of the doctest.
+  The downside to this approach is that the ``# doctest: +SKIP`` line will
+  appear in the documentation and may be distracting or confusing, but the
+  upside is that can prevent a single line of an example from being run as a
+  doctest.
+
+2. Astropy's test framework adds support for a special ``__doctest_skip__``
+   variable that can be placed at the module level of any module to list
+   functions, classes, and methods in that module whose doctests should not
+   be run.  That is, if it doesn't make sense to run a function's example
+   usage as a doctest, the entire function can be skipped in the doctest
+   collection phase.
+
+   The value of ``__doctest_skip__`` should be a list of wildcard patterns
+   for all functions/classes whose doctests should be skipped.  For example::
+
+       __doctest_skip__ = ['myfunction', 'MyClass', 'MyClass.*']
+
+   skips the doctests in a function called ``myfunction``, the doctest for a
+   class called ``MyClass``, and all *methods* of ``MyClass``.
+
+   Module docstrings may contain doctests as well.  To skip the module-level
+   doctests include the string ``'.'`` in ``__doctest_skip__``.
+
+3. ``__doctest_requires__`` is a way to list dependencies for specific
+   doctests.  It should be a dictionary mapping wildcard patterns (in the same
+   format as ``__doctest_skip__``) to a list of one or more modules that should
+   be *importable* in order for the tests to run.  For example, if some tests
+   require the scipy module to work they will be skipped unless ``import
+   scipy`` is possible.  It is also possible to use a tuple of wildcard
+   patterns as a key in this dict::
+
+            __doctest_requires__ = {('func1', 'func2'): ['scipy']}
+
+   Having this module-level variable will require ``scipy`` to be importable
+   in order to run the doctests for functions ``func1`` and ``func2`` in that
+   module.
+
+Skipping output
+---------------
+
+One of the important aspects of writing doctests is that the example output
+can be accurately compared to the actual output produced when running the
+test.
+
+The doctest system compares the actual output to the example output verbatim
+by default, but this not always feasible.  For example the example output may
+contain the ``__repr__`` of an object which displays its id (which will change
+on each run), or a test that expects an exception may output a traceback.
+
+The simplest way to generalize the example output is to use the elipses
+``...``.  For example::
+
+    >>> 1 / 0
+    Traceback (most recent call last):
+    ...
+    ZeroDivisionError: integer division or modulo by zero
+
+This doctest expects an exception with a traceback, but the text of the
+traceback is skipped in the example output--only the first and last lines
+of the output are checked.  See the :module:``doctest`` documentation for
+more examples of skipping output.
+
+
 Using data in tests
 ===================
 

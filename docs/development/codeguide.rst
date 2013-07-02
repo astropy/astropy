@@ -58,6 +58,12 @@ Documentation and Testing
 * Docstrings must be present for all public classes/methods/functions, and
   must follow the form outlined in the :doc:`docguide` document.
 
+* Write usage examples in the docstrings of all classes and functions whenever
+  possible. These examples should be short and simple to reproduce--users
+  should be able to copy them verbatim and run them. These examples should,
+  whenever possible, be in the :ref:`doctest <doctests>` format and will be
+  executed as part of the test suite.
+
 * Unit tests should be provided for as many public methods and functions as
   possible, and should adhere to the standards set in the :doc:`testguide`
   document.
