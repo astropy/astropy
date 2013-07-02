@@ -51,7 +51,7 @@ New Features
   - New package added to support Virtual Observatory Simple Cone Search query
     and service validation [#552].
 
-- ``astropy.units.equivalencies.doppler_relativistic`` (and related
+- ``astropy.units.equivalencies`` 
    
   - Added new spectroscopic equivalencies for velocity conversions
     (relativistic, optical, and radio conventions are supported)
