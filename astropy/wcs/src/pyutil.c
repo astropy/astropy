@@ -225,7 +225,7 @@ PyObject** wcs_errexc[14];
 static PyObject*
 _new_exception_with_doc(char *name, char *doc, PyObject *base)
 {
-#if PYTHON_VERSION_HEX >= 0x02070000
+#if PY_VERSION_HEX >= 0x02070000
   return PyErr_NewExceptionWithDoc(name, doc, base, NULL);
 #else
   /* Python 2.6 doesn't have PyErr_NewExceptionWithDoc */
