@@ -90,19 +90,24 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     # It is always necessary to make a copy of kernel (since it is modified),
     # but, if we just so happen to be lucky enough to have the input array
     # have exactly the desired type, we just alias to array_internal
-    if type(array) == list:
-        array_internal = numpy.array(array, dtype=np.float)
+    if isinstance(array, list):
+        array_internal = np.array(array, dtype=np.float)
         array_dtype = array_internal.dtype
-    elif type(array) == np.ndarray:
+    elif isinstance(array, np.ndarray):
         # Note this won't copy if it doesn't have to -- which is okay
-        # because none of what follows modifies array_internal.
+        # because none of what follows modifies array_internal.  However,
+        # only numpy > 1.7 has support for no-copy astype, so we use
+        # a try/except because astropy supports 1.5 and 1.6
         array_dtype = array.dtype
-        array_internal = array.astype(float, copy=False)
+        try:
+            array_internal = array.astype(float, copy=False)
+        except TypeError:
+            array_internal = array.astype(float)
     else:
         raise TypeError("array should be a list or a Numpy array")
-    if type(kernel) == list:
+    if isinstance(kernel, list):
         kernel_internal = np.array(kernel, dtype=float)
-    elif type(kernel) == np.ndarray:
+    elif isinstance(kernel, np.ndarray):
         # Note this always makes a copy, since we will be modifying it
         kernel_internal = kernel.astype(float)
     else:
@@ -175,7 +180,10 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     # Try to preserve the input type if it's a floating point type
     if array.dtype.kind == 'f':
         # Avoid making another copy if possible
-        return result.astype(array_dtype, copy=False)
+        try:
+            return result.astype(array_dtype, copy=False)
+        except TypeError:
+            return result.astype(array_dtype)
     else:
         return result
 
