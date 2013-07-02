@@ -200,7 +200,7 @@ class BaseColumn(object):
             "description={4}>\n{5}".format(
             self.__class__.__name__,
             repr(self.name), repr(unit),
-            repr(self.format), repr(self.description), repr(self.data))
+            repr(self.__print_format__), repr(self.description), repr(self.data))
 
         return out
 
@@ -367,7 +367,15 @@ class BaseColumn(object):
     def units(self):
         del self.unit
 
-    def convert_unit_to(self, new_unit, equivalencies=[]):
+    @property
+    def format(self):
+        return self.__print_format__
+
+    @format.setter
+    def format(self, value):
+        self.__print_format__ = value
+
+    def convert_unit_to(self, new_units, equivalencies=[]):
         """
         Converts the values of the column in-place from the current
         unit to the given unit.
@@ -863,6 +871,9 @@ class ViewColumn(object):
             self._col = col._col.copy(data=data[col.data_name], copy_data=False)
         self.dependencies = [self.data_name]
         self.name = name
+        self.format = col.format
+        self.description = col.description
+        self.units = col.units
 
     @property
     def shape(self):
@@ -888,15 +899,11 @@ class ViewColumn(object):
 
     @property
     def format(self):
-        return self._col.format
+        return self.__print_format__
 
     @format.setter
     def format(self, value):
-        self._col.format = value
-
-    @property
-    def units(self):
-        return self._col.units
+        self.__print_format__ = value
 
     def __table_replicate__(self, data):
         """
