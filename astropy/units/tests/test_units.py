@@ -176,6 +176,28 @@ def test_equivalent_units():
     assert u.J in u.Hz.find_equivalent_units(u.spectral())
 
 
+def test_dimensionless_to_si():
+    """
+    Issue #1150: Test for conversion of dimensionless quantities
+                 to the SI system
+    """
+
+    testunit = ((1.0 * u.kpc) / (1.0 * u.Mpc))
+
+    assert testunit.unit.physical_type == 'dimensionless'
+    assert_allclose(testunit.si, 0.001)
+
+def test_dimensionless_to_cgs():
+    """
+    Issue #1150: Test for conversion of dimensionless quantities
+                 to the CGS system
+    """
+
+    testunit = ((1.0 * u.m) / (1.0 * u.km))
+
+    assert testunit.unit.physical_type == 'dimensionless'
+    assert_allclose(testunit.cgs, 0.001)
+
 def test_unknown_unit():
     with warnings.catch_warnings(record=True) as warning_lines:
         warnings.resetwarnings()
