@@ -104,8 +104,8 @@ def doppler_radio(rest):
     >>> CO_restfreq = 115.27120*u.GHz  # rest frequency of 12 CO 1-0 in GHz
     >>> radio_CO_equiv = u.doppler_radio(CO_restfreq)
     >>> measured_freq = 115.2832*u.GHz
-    >>> doppler_radio = measured_freq.to(u.km/u.s, equivalencies=radio_CO_equiv)
-    >>> doppler_radio
+    >>> radio_velocity = measured_freq.to(u.km/u.s, equivalencies=radio_CO_equiv)
+    >>> radio_velocity
     <Quantity -31.2090920889... km / s>
     """
 
@@ -167,8 +167,8 @@ def doppler_optical(rest):
     >>> CO_restfreq = 115.27120*u.GHz  # rest frequency of 12 CO 1-0 in GHz
     >>> optical_CO_equiv = u.doppler_optical(CO_restfreq)
     >>> measured_freq = 115.2832*u.GHz
-    >>> doppler_optical = measured_freq.to(u.km/u.s, equivalencies=optical_CO_equiv)
-    >>> doppler_optical
+    >>> optical_velocity = measured_freq.to(u.km/u.s, equivalencies=optical_CO_equiv)
+    >>> optical_velocity
     <Quantity -31.205843488... km / s>
     """
 
@@ -231,16 +231,16 @@ def doppler_relativistic(rest):
     >>> CO_restfreq = 115.27120*u.GHz  # rest frequency of 12 CO 1-0 in GHz
     >>> relativistic_CO_equiv = u.doppler_relativistic(CO_restfreq)
     >>> measured_freq = 115.2832*u.GHz
-    >>> doppler_relativistic = measured_freq.to(u.km/u.s, equivalencies=relativistic_CO_equiv)
-    >>> doppler_relativistic
-    <Quantity -31.2074676194... km / s>
+    >>> relativistic_velocity = measured_freq.to(u.km/u.s, equivalencies=relativistic_CO_equiv)
+    >>> relativistic_velocity
+    <Quantity -31.2074676194...
     >>> measured_velocity = 1250 * u.km/u.s
     >>> relativistic_frequency = measured_velocity.to(u.GHz, equivalencies=relativistic_CO_equiv)
     >>> relativistic_frequency
-    <Quantity 114.79156867... GHz>
+    <Quantity 114.79156867...
     >>> relativistic_wavelength = measured_velocity.to(u.mm, equivalencies=relativistic_CO_equiv)
     >>> relativistic_wavelength
-    <Quantity 2.61162436818... mm>
+    <Quantity 2.61162436818...
     """
 
     ckms = _si.c.to('km/s').value
