@@ -673,8 +673,7 @@ class Time(object):
         """If other is of same class as self, return difference in TAI.
         Otherwise, raise OperandTypeError.
         """
-        if not (isinstance(other, self.__class__) and
-                isinstance(self, other.__class__)):
+        if other.__class__ is not self.__class__:
             raise OperandTypeError(self, other)
         self_tai_time, other_tai_time = self.tai._time, other.tai._time
         return (self_tai_time.jd1 - other_tai_time.jd1 +
