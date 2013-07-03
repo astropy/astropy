@@ -893,3 +893,50 @@ def test_nonstandard_units():
 
     assert not isinstance(
         votable.get_first_table().fields[0].unit, u.UnrecognizedUnit)
+
+
+def test_resource_structure():
+    # Based on issue #1223, as reported by @astro-friedel and @RayPlante
+    from astropy.io.votable import tree as vot
+
+    vtf = vot.VOTableFile()
+
+    r1 = vot.Resource()
+    vtf.resources.append(r1)
+    t1 = vot.Table(vtf)
+    t1.name = "t1"
+    t2 = vot.Table(vtf)
+    t2.name = 't2'
+    r1.tables.append(t1)
+    r1.tables.append(t2)
+
+    r2 = vot.Resource()
+    vtf.resources.append(r2)
+    t3 = vot.Table(vtf)
+    t3.name = "t3"
+    t4 = vot.Table(vtf)
+    t4.name = "t4"
+    r2.tables.append(t3)
+    r2.tables.append(t4)
+
+    r3 = vot.Resource()
+    vtf.resources.append(r3)
+    t5 = vot.Table(vtf)
+    t5.name = "t5"
+    t6 = vot.Table(vtf)
+    t6.name = "t6"
+    r3.tables.append(t5)
+    r3.tables.append(t6)
+
+    buff = io.BytesIO()
+    vtf.to_xml(buff)
+
+    buff.seek(0)
+    vtf2 = parse(buff)
+
+    assert len(vtf2.resources) == 3
+
+    for r in xrange(len(vtf2.resources)):
+        res = vtf2.resources[r]
+        assert len(res.tables) == 2
+        assert len(res.resources) == 0
