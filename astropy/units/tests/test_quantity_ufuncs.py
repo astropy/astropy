@@ -14,37 +14,75 @@ class TestQuantityStatsFuncs(object):
     """
 
     def test_mean(self):
-
         q1 = np.array([1.,2.,4.,5.,6.]) * u.m
         assert np.mean(q1) == 3.6 * u.m
         assert np.mean(q1).unit == u.m
         assert np.mean(q1).value == 3.6
 
-        q2 = (np.array([1.,2.5,4.]) * u.km / u.s) / (4000. * u.m / u.s) + 1.
-        assert np.mean(q2) == 0.001625 * u.km / u.m
-        assert np.mean(q2).unit == u.km / u.m
-        assert np.mean(q2).value == 0.001625
-
     def test_std(self):
-
         q1 = np.array([1.,2.]) * u.m
         assert np.std(q1) == 0.5 * u.m
         assert np.std(q1).unit == u.m
         assert np.std(q1).value == 0.5
 
     def test_var(self):
-
         q1 = np.array([1.,2.]) * u.m
         assert np.var(q1) == 0.25 * u.m ** 2
         assert np.var(q1).unit == u.m ** 2
         assert np.var(q1).value == 0.25
 
     def test_median(self):
-
         q1 = np.array([1.,2.,4.,5.,6.]) * u.m
         assert np.median(q1) == 4. * u.m
         assert np.median(q1).unit == u.m
         assert np.median(q1).value == 4.
+
+    def test_min(self):
+        q1 = np.array([1.,2.,4.,5.,6.]) * u.m
+        assert np.min(q1) == 1. * u.m
+        assert np.min(q1).unit == u.m
+        assert np.min(q1).value == 1.
+
+    def test_max(self):
+        q1 = np.array([1.,2.,4.,5.,6.]) * u.m
+        assert np.max(q1) == 6. * u.m
+        assert np.max(q1).unit == u.m
+        assert np.max(q1).value == 6.
+
+    def test_ptp(self):
+        q1 = np.array([1.,2.,4.,5.,6.]) * u.m
+        assert np.ptp(q1) == 5. * u.m
+        assert np.ptp(q1).unit == u.m
+        assert np.ptp(q1).value == 5.
+
+    def test_round(self):
+        q1 = np.array([1.2, 2.2, 3.2]) * u.kg
+        assert np.all(np.round(q1) == np.array([1, 2, 3]) * u.kg)
+
+    def test_cumsum(self):
+
+        q1 = np.array([1, 2, 6]) * u.m
+        assert np.all(q1.cumsum() == np.array([1, 3, 9]) * u.m)
+        assert np.all(np.cumsum(q1) == np.array([1, 3, 9]) * u.m)
+
+        q2 = np.array([4, 5, 9]) * u.s
+        assert np.all(q2.cumsum() == np.array([4, 9, 18]) * u.s)
+        assert np.all(np.cumsum(q2) == np.array([4, 9, 18]) * u.s)
+
+    def test_cumprod(self):
+
+        q1 = np.array([1, 2, 6]) * u.m
+        with pytest.raises(ValueError) as exc:
+            q1.cumprod()
+        assert exc.value.args[0] == 'cannot use cumprod on non-dimensionless Quantity arrays'
+        with pytest.raises(ValueError) as exc:
+            np.cumprod(q1)
+        assert exc.value.args[0] == 'cannot use cumprod on non-dimensionless Quantity arrays'
+
+        q2 = np.array([3, 4, 5]) * u.Unit(1)
+        print q2.cumprod()
+        assert np.all(q2.cumprod() == np.array([3, 12, 60]) * u.Unit(1))
+        assert np.all(np.cumprod(q2) == np.array([3, 12, 60]) * u.Unit(1))
 
 
 class TestQuantityTrigonometricFuncs(object):

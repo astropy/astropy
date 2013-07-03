@@ -39,6 +39,8 @@ TRIG_UFUNCS = set([np.cos, np.sin, np.tan])
 
 INVTRIG_UFUNCS = set([np.arccos, np.arcsin, np.arctan])
 
+INVARIANT_UFUNCS = set([np.absolute, np.conjugate, np.negative, np.ones_like, np.rint, np.floor, np.fix, np.ceil])
+
 
 def _is_unity(value):
     x = value.decompose()
@@ -130,7 +132,7 @@ class Quantity(np.ndarray):
     def __array_finalize__(self, obj):
         if obj is None:
             return
-        if isinstance(obj, Quantity):
+        elif isinstance(obj, Quantity):
             self._unit = obj._unit
 
     def __array_prepare__(self, obj, context=None):
@@ -158,7 +160,7 @@ class Quantity(np.ndarray):
                 raise TypeError("Can only apply {0} function to dimensionless quantities".format(function.__name__))
         elif function in TRIG_UFUNCS:
             try:
-                result = result.to(radian)
+                result.to(radian)
             except:
                 raise TypeError("Can only apply trigonometric functions to quantities with angle units")
             result._unit = dimensionless_unscaled
@@ -167,15 +169,27 @@ class Quantity(np.ndarray):
                 result._unit = radian
             else:
                 raise TypeError("Can only apply inverse trigonometric functions to dimensionless and unscaled quantities")
+        elif function in INVARIANT_UFUNCS:
+            pass
         else:
-            raise TypeError("Unknown ufunc")
+            raise TypeError("Unknown ufunc:" + function.__name__)
 
         return result
 
     def __array_wrap__(self, obj, context=None):
+
+        from . import dimensionless_unscaled
+        from .si import radian
+
+        # Find out which ufunc is being used
+        function = context[0]
+
+        # If context is a trig function and we are not in radians, need to
+        # recompute since there was no way to change the value before
+        if function in TRIG_UFUNCS and self.unit is not radian:
+            obj = Quantity(function(self.to(radian).value), unit=dimensionless_unscaled)
+
         return obj
-        # return self.__class__(array, unit=self._unit,
-        #                       equivalencies=self._equivalencies)
 
     def to(self, unit, equivalencies=None):
         """ Returns a new `Quantity` object with the specified units.
@@ -655,44 +669,45 @@ class Quantity(np.ndarray):
 
         return Quantity(new_value, new_unit)
 
-    # These ufuncs need to be overridden to take into account the units:
+    # These ufuncs need to be overridden to take into account the units
 
-    def mean(self, *args, **kwargs):
-        value = np.ndarray.mean(self, *args, **kwargs)
-        if isinstance(value, Quantity):
-            return value
-        else:
-            return Quantity(value, self.unit)
+    def var(self, axis=None, dtype=None, out=None, ddof=0):
+        value = np.var(self.value, axis=axis, dtype=dtype, ddof=ddof)
+        return Quantity(value, self.unit ** 2)
 
-    def std(self, *args, **kwargs):
-        value = np.ndarray.std(self, *args, **kwargs)
-        if isinstance(value, Quantity):
-            return value
-        else:
-            return Quantity(value, self.unit)
+    def std(self, axis=None, dtype=None, out=None, ddof=0):
+        value = np.std(self.value, axis=axis, dtype=dtype, ddof=ddof)
+        return Quantity(value, self.unit)
 
-    def var(self, *args, **kwargs):
-        value = np.ndarray.var(self, *args, **kwargs)
-        if isinstance(value, Quantity):
-            return value
-        else:
-            return Quantity(value, self.unit)
+    def mean(self, axis=None, dtype=None, out=None):
+        value = np.mean(self.value, axis=axis, dtype=dtype)
+        return Quantity(value, self.unit)
 
-    def dot(self, b, **kwargs):
-        value = np.ndarray.dot(self, b, **kwargs)
-        if isinstance(value, Quantity):
-            return value * b.unit
-        else:
-            return Quantity(value, self.unit * b.unit)
+    def ptp(self, axis=None, dtype=None, out=None):
+        value = np.ptp(self.value, axis=axis, dtype=dtype)
+        return Quantity(value, self.unit)
 
-    def cumprod(self, **kwargs):
+    def ptp(self, axis=None, out=None):
+        value = np.ptp(self.value, axis=axis)
+        return Quantity(value, self.unit)
+
+    def max(self, axis=None, out=None, keepdims=False):
+        value = np.max(self.value, axis=axis, keepdims=keepdims)
+        return Quantity(value, self.unit)
+
+    def min(self, axis=None, out=None, keepdims=False):
+        value = np.min(self.value, axis=axis, keepdims=keepdims)
+        return Quantity(value, self.unit)
+
+    def dot(self, b, out=None):
+        value = np.ndarray.dot(self, b)
+        return value * b.unit
+
+    def cumsum(self, axis=None, dtype=None, out=None):
+        return np.ndarray.cumsum(self.value, axis=axis, dtype=dtype) * self.unit
+
+    def cumprod(self, axis=None, dtype=None, out=None):
         if _is_unity(self.unit):
-            return np.ndarray.cumprod(self, **kwargs)
+            return np.ndarray.cumprod(self.value, axis=axis, dtype=dtype) * self.unit
         else:
             raise ValueError("cannot use cumprod on non-dimensionless Quantity arrays")
-
-    def prod(self, **kwargs):
-        if _is_unity(self.unit):
-            return np.ndarray.prod(self, **kwargs)
-        else:
-            raise ValueError("cannot use prod on non-dimensionless Quantity arrays")
