@@ -254,11 +254,27 @@ class TestQuantityOperations(object):
         assert 1. * u.cm != 1.
 
     def test_numeric_converters(self):
+
         q = u.Quantity(1.23, u.m)
+
+        with pytest.raises(TypeError) as exc:
+            assert float(q) == 1.23
+        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+
+        with pytest.raises(TypeError) as exc:
+            assert int(q) == 1
+        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+
+        with pytest.raises(TypeError) as exc:
+            assert long(q) == 1L
+        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+
+        q = u.Quantity(1.23, u.dimensionless_unscaled)
 
         assert float(q) == 1.23
         assert int(q) == 1
         assert long(q) == 1L
+
 
     def test_array_converters(self):
 
@@ -438,9 +454,9 @@ def test_arrays():
     assert_array_equal((qsec / 2).value, (np.arange(10) / 2))
     # quantity addition/subtraction should *not* work with arrays b/c unit
     # ambiguous
-    with pytest.raises(TypeError):
+    with pytest.raises(u.UnitsException):
         assert_array_equal((qsec + 2).value, (np.arange(10) + 2))
-    with pytest.raises(TypeError):
+    with pytest.raises(u.UnitsException):
         assert_array_equal((qsec - 2).value, (np.arange(10) + 2))
 
     # should create by unit multiplication, too

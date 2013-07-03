@@ -695,11 +695,17 @@ class Quantity(np.ndarray):
         return Quantity(value, self.unit)
 
     def max(self, axis=None, out=None, keepdims=False):
-        value = np.max(self.value, axis=axis, keepdims=keepdims)
+        try:
+            value = np.max(self.value, axis=axis, keepdims=keepdims)
+        except:  # numpy < 1.7
+            value = np.max(self.value, axis=axis)
         return Quantity(value, self.unit)
 
     def min(self, axis=None, out=None, keepdims=False):
-        value = np.min(self.value, axis=axis, keepdims=keepdims)
+        try:
+            value = np.min(self.value, axis=axis, keepdims=keepdims)
+        except:  # numpy < 1.7
+            value = np.min(self.value, axis=axis)
         return Quantity(value, self.unit)
 
     def dot(self, b, out=None):
