@@ -1,6 +1,12 @@
 # The purpose of these tests are to ensure that calling ufuncs with quantities
 # returns quantities with the right units, or raises exceptions.
 
+import numpy as np
+
+from ... import units as u
+from ...tests.helper import pytest
+from ...tests.compat import assert_allclose
+
 
 class TestQuantityStatsFuncs(object):
     """
@@ -154,7 +160,6 @@ class TestQuantityMathFuncs(object):
 
     def test_sqrt_scalar(self):
         assert np.sqrt(4. * u.m) == 2. * u.m ** 0.5
-        assert (9. * u.s ** 2).sqrt() == 3. * u.s
 
     def test_sqrt_array(self):
         assert np.all(np.sqrt(np.array([1., 4., 9.]) * u.m)

@@ -32,6 +32,13 @@ WARN_IMPLICIT_NUMERIC_CONVERSION = ConfigurationItem(
 
 __all__ = ["Quantity"]
 
+# Numpy ufuncs that return unitless values
+DIMENSIONLESS_UFUNCS = set([np.exp, np.log, np.log1p, np.log2, np.log10])
+
+TRIG_UFUNCS = set([np.cos, np.sin, np.tan])
+
+INVTRIG_UFUNCS = set([np.arccos, np.arcsin, np.arctan])
+
 
 def _is_unity(value):
     x = value.decompose()
@@ -126,9 +133,49 @@ class Quantity(np.ndarray):
         if isinstance(obj, Quantity):
             self._unit = obj._unit
 
-    def __array_wrap__(self, array, context=None):
-        return self.__class__(array, unit=self._unit,
-                              equivalencies=self._equivalencies)
+    def __array_prepare__(self, obj, context=None):
+
+        result = obj.view(type(self))
+        result._unit = self.unit
+
+        # If no context is set, just return input
+        if context is None:
+            return result
+
+        # Find out which ufunc is being used
+        function = context[0]
+
+        from . import dimensionless_unscaled
+        from .si import radian
+
+        # Temporary, just return the same
+        if function is np.sqrt:
+            result._unit = self._unit ** 0.5
+        elif function in DIMENSIONLESS_UFUNCS:
+            if _is_unity(self._unit):
+                result._unit = dimensionless_unscaled
+            else:
+                raise TypeError("Can only apply {0} function to dimensionless quantities".format(function.__name__))
+        elif function in TRIG_UFUNCS:
+            try:
+                result = result.to(radian)
+            except:
+                raise TypeError("Can only apply trigonometric functions to quantities with angle units")
+            result._unit = dimensionless_unscaled
+        elif function in INVTRIG_UFUNCS:
+            if _is_unity(self.unit):
+                result._unit = radian
+            else:
+                raise TypeError("Can only apply inverse trigonometric functions to dimensionless and unscaled quantities")
+        else:
+            raise TypeError("Unknown ufunc")
+
+        return result
+
+    def __array_wrap__(self, obj, context=None):
+        return obj
+        # return self.__class__(array, unit=self._unit,
+        #                       equivalencies=self._equivalencies)
 
     def to(self, unit, equivalencies=None):
         """ Returns a new `Quantity` object with the specified units.
