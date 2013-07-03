@@ -85,7 +85,6 @@ def doppler_radio(rest):
     r"""
     Return the equivalency pairs for the radio convention for velocity:
 
-    http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html
     Radio   :math:`V = c \frac{f_0 - f}{f_0}  ;  f(V) = f_0 ( 1 - V/c )`
 
     Parameters
@@ -93,6 +92,10 @@ def doppler_radio(rest):
     rest : Quantity
         Any quantity supported by the standard spectral equivalencies
         (wavelength, energy, frequency)
+
+    References
+    ----------
+    `http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html`_
 
     Examples
     --------
@@ -145,7 +148,6 @@ def doppler_optical(rest):
     r"""
     Return the equivalency pairs for the optical convention for velocity:
 
-    http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html
     Optical       :math:`V = c \frac{f_0 - f}{f  }  ;  f(V) = f_0 ( 1 + V/c )^{-1}`
 
     Parameters
@@ -153,6 +155,10 @@ def doppler_optical(rest):
     rest : Quantity
         Any quantity supported by the standard spectral equivalencies
         (wavelength, energy, frequency)
+
+    References
+    ----------
+    `http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html`_
 
     Examples
     --------
@@ -206,7 +212,6 @@ def doppler_relativistic(rest):
     r"""
     Return the equivalency pairs for the relativistic convention for velocity:
 
-    http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html
     Relativistic  :math:`V = c \frac{f_0^2 - f^2}{f_0^2 + f^2} ;  f(V) = f_0 \frac{\left(1 - (V/c)^2\right)^{1/2}}{(1+V/c)}`
 
     Parameters
@@ -214,6 +219,10 @@ def doppler_relativistic(rest):
     rest : Quantity
         Any quantity supported by the standard spectral equivalencies
         (wavelength, energy, frequency)
+
+    References
+    ----------
+    `http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html`_
 
     Examples
     --------
