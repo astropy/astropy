@@ -347,10 +347,15 @@ class Quantity(np.ndarray):
             return Quantity(self.value + other.to(self.unit).value,
                             unit=self.unit)
         else:
-            raise TypeError(
-                "Object of type '{0}' cannot be added with a Quantity "
-                "object. Addition is only supported between Quantity "
-                "objects with compatible units.".format(other.__class__))
+            try:
+                return self.__add__(other * Unit(1))
+            except TypeError:
+                raise TypeError(
+                    "Object of type '{0}' cannot be added with a Quantity "
+                    "object. Addition is only supported between Quantity "
+                    "objects with compatible units.".format(other.__class__))
+
+    __radd__ = __add__
 
     def __sub__(self, other):
         """ Subtraction between `Quantity` objects and other objects.
@@ -362,10 +367,16 @@ class Quantity(np.ndarray):
             return Quantity(self.value - other.to(self.unit).value,
                             unit=self.unit)
         else:
-            raise TypeError(
-                "Object of type '{0}' cannot be subtracted from a Quantity "
-                "object. Subtraction is only supported between Quantity "
-                "objects with compatible units.".format(other.__class__))
+            try:
+                return self.__sub__(other * Unit(1))
+            except TypeError:
+                raise TypeError(
+                    "Object of type '{0}' cannot be subtracted from a Quantity "
+                    "object. Subtraction is only supported between Quantity "
+                    "objects with compatible units.".format(other.__class__))
+
+    def __rsub__(self, other):
+        return -__sub__(self, other)
 
     def __mul__(self, other):
         """ Multiplication between `Quantity` objects and other objects."""
@@ -549,37 +560,25 @@ class Quantity(np.ndarray):
 
     # Numerical types
     def __float__(self):
-        if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to '
-                            'Python scalars')
-        # We show a warning unless the unit is equivalent to unity (i.e. not
-        # just dimensionless, but also with a scale of 1)
-        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            warnings.warn("Converting Quantity object in units '{0}' to a "
-                          "Python scalar".format(self.unit))
-        return float(self.value)
+        if not self.isscalar or not _is_unity(self.unit):
+            raise TypeError('Only dimensionless scalar quantities can be '
+                            'converted to Python scalars')
+        else:
+            return float(self.value)
 
     def __int__(self):
-        if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to '
-                            'Python scalars')
-        # We show a warning unless the unit is equivalent to unity (i.e. not
-        # just dimensionless, but also with a scale of 1)
-        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            warnings.warn("Converting Quantity object in units '{0}' to a "
-                          "Python scalar".format(self.unit))
-        return int(self.value)
+        if not self.isscalar or not _is_unity(self.unit):
+            raise TypeError('Only dimensionless scalar quantities can be '
+                            'converted to Python scalars')
+        else:
+            return int(self.value)
 
     def __long__(self):
-        if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to '
-                            'Python scalars')
-        # We show a warning unless the unit is equivalent to unity (i.e. not
-        # just dimensionless, but also with a scale of 1)
-        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            warnings.warn("Converting Quantity object in units '{0}' to a "
-                          "Python scalar".format(self.unit))
-        return long(self.value)
+        if not self.isscalar or not _is_unity(self.unit):
+            raise TypeError('Only dimensionless scalar quantities can be '
+                            'converted to Python scalars')
+        else:
+            return long(self.value)
 
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
