@@ -81,6 +81,7 @@ def spectral_density(sunit, sfactor):
         (fla, lafla, converter_fla_lafla, iconverter_fla_lafla),
     ]
 
+
 def doppler_radio(rest):
     r"""
     Return the equivalency pairs for the radio convention for velocity:
@@ -107,8 +108,8 @@ def doppler_radio(rest):
     >>> doppler_radio
     <Quantity -31.2090920889... km / s>
     """
-    ckms = _si.c.to('km/s').value
 
+    ckms = _si.c.to('km/s').value
 
     def to_vel_freq(x):
         restfreq = rest.to(si.Hz, equivalencies=spectral()).value
@@ -138,11 +139,11 @@ def doppler_radio(rest):
         voverc = x/ckms
         return resten * (1-voverc)
 
-
     return [(si.Hz, si.km/si.s, to_vel_freq, from_vel_freq),
             (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
             (si.eV, si.km/si.s, to_vel_en, from_vel_en),
             ]
+
 
 def doppler_optical(rest):
     r"""
@@ -170,8 +171,8 @@ def doppler_optical(rest):
     >>> doppler_optical
     <Quantity -31.205843488... km / s>
     """
-    ckms = _si.c.to('km/s').value
 
+    ckms = _si.c.to('km/s').value
 
     def to_vel_freq(x):
         restfreq = rest.to(si.Hz, equivalencies=spectral()).value
@@ -206,7 +207,7 @@ def doppler_optical(rest):
             (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
             (si.eV, si.km/si.s, to_vel_en, from_vel_en),
             ]
-            
+
 
 def doppler_relativistic(rest):
     r"""
@@ -244,7 +245,6 @@ def doppler_relativistic(rest):
 
     ckms = _si.c.to('km/s').value
 
-
     def to_vel_freq(x):
         restfreq = rest.to(si.Hz, equivalencies=spectral()).value
         return (restfreq**2-x**2) / (restfreq**2+x**2) * ckms
@@ -273,7 +273,6 @@ def doppler_relativistic(rest):
         resten = rest.to(si.eV, spectral()).value
         voverc = x/ckms
         return resten * ((1-voverc) / (1+(voverc)))**0.5
-
 
     return [(si.Hz, si.km/si.s, to_vel_freq, from_vel_freq),
             (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
