@@ -147,6 +147,10 @@ class Quantity(np.ndarray):
         # Find out which ufunc is being used
         function = context[0]
 
+        # If function is one of the is* ones, we should return a plain Numpy array
+        if function.__name__.startswith('is'):
+            return obj
+
         from . import dimensionless_unscaled
         from .si import radian
 
