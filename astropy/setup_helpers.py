@@ -52,6 +52,10 @@ except ImportError:
 PY3 = sys.version_info[0] >= 3
 
 
+# This adds a new keyword to the setup() function
+Distribution.skip_2to3 = []
+
+
 _adjusted_compiler = False
 def adjust_compiler(package):
     """
@@ -379,7 +383,7 @@ def register_commands(package, version, release):
     if HAVE_SPHINX:
         _registered_commands['build_sphinx'] = AstropyBuildSphinx
     else:
-         _registered_commands['build_sphinx'] = FakeBuildSphinx
+        _registered_commands['build_sphinx'] = FakeBuildSphinx
 
     # Need to override the __name__ here so that the commandline options are
     # presented as being related to the "build" command, for example; normally
@@ -559,6 +563,19 @@ class AstropyBuildPy(SetuptoolsBuildPy):
         install_lib_cmd.build_dir = build_purelib
         self.build_lib = build_purelib
         SetuptoolsBuildPy.finalize_options(self)
+
+    def run_2to3(self, files, doctests=False):
+        # Filter the files to exclude things that shouldn't be 2to3'd
+        skip_2to3 = self.distribution.skip_2to3
+        filtered_files = []
+        for file in files:
+            for package in skip_2to3:
+                if file[len(self.build_lib) + 1:].startswith(package):
+                    break
+            else:
+                filtered_files.append(file)
+
+        SetuptoolsBuildPy.run_2to3(self, filtered_files, doctests)
 
     def run(self):
         # first run the normal build_py
@@ -953,13 +970,15 @@ def is_distutils_display_option():
 
 
 def update_package_files(srcdir, extensions, package_data, packagenames,
-                         package_dirs):
-    """ Extends existing extensions, package_data, packagenames and
+                         package_dirs, skip_2to3):
+    """
+    Extends existing extensions, package_data, packagenames and
     package_dirs collections by iterating through all packages in
     ``srcdir`` and locating a ``setup_package.py`` module.  This
     module can contain the following functions: ``get_extensions()``,
     ``get_package_data()``, ``get_legacy_alias()``,
-    ``get_build_options()``, and ``get_external_libraries()``.
+    ``get_build_options()``, ``get_external_libraries()`` and
+    ``requires_2to3()``.
 
     Each of those functions take no arguments.  ``get_extensions``
     returns a list of `distutils.extension.Extension` objects.
@@ -969,7 +988,9 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
     ``get_build_options()`` returns a list of tuples describing the
     extra build options to add.  ``get_external_libraries()`` returns
     a list of libraries that can optionally be built using external
-    dependencies.
+    dependencies. ``requires_2to3()`` should return `True` when the
+    source code requires `2to3` processing to run on Python 3.x.  If
+    ``requires_2to3()`` is missing, it is assumed to return `True`.
 
     The purpose of this function is to allow subpackages to update the
     arguments to the package's ``setup()`` function in its setup.py
@@ -993,6 +1014,13 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
             libraries = setuppkg.get_external_libraries()
             for library in libraries:
                 add_external_library(library)
+        if hasattr(setuppkg, 'requires_2to3'):
+            requires_2to3 = setuppkg.requires_2to3()
+        else:
+            requires_2to3 = True
+        if not requires_2to3:
+            skip_2to3.append(
+                os.path.dirname(setuppkg.__file__))
 
     # Check if all the legacy packages are needed
     if get_distutils_build_or_install_option('enable_legacy'):
@@ -1692,5 +1720,3 @@ class FakeBuildSphinx(Command):
         except:
             log.error('error : Sphinx must be installed for build_sphinx')
             sys.exit(1)
-
-
