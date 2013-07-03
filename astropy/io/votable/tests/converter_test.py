@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 # THIRD-PARTY
 import numpy as np
 from numpy.testing import assert_array_equal
@@ -25,7 +28,7 @@ def test_oversize_char(recwarn):
     c = converters.get_converter(field, config=config)
     w = recwarn.pop(exceptions.W47)
 
-    c.parse(u"XXX")
+    c.parse("XXX")
     w = recwarn.pop(exceptions.W46)
 
 
@@ -45,7 +48,7 @@ def test_oversize_unicode(recwarn):
         config=config)
     c = converters.get_converter(field, config=config)
 
-    c.parse(u"XXX")
+    c.parse("XXX")
     w = recwarn.pop(exceptions.W46)
 
 
@@ -55,7 +58,7 @@ def test_unicode_mask():
         None, name='c', datatype='unicodeChar',
         config=config)
     c = converters.get_converter(field, config=config)
-    assert c.output(u"Foo", True) == u''
+    assert c.output("Foo", True) == ''
 
 
 @raises(exceptions.E02)
@@ -223,4 +226,4 @@ def test_float_default_precision():
         config=config)
     c = converters.get_converter(field, config=config)
     assert (c.output([1, 2, 3, 8.999999], [False, False, False, False]) ==
-            u'1 2 3 8.999999')
+            '1 2 3 8.999999')

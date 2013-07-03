@@ -4,13 +4,15 @@ This module handles the conversion of various VOTABLE datatypes
 to/from TABLEDATA_ and BINARY_ formats.
 """
 
-from __future__ import division, absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
+from ...extern import six
+from ...extern.six.moves import xrange
 
 # STDLIB
 import re
 import sys
-from struct import unpack as struct_unpack
-from struct import pack as struct_pack
+from struct import unpack as _struct_unpack
+from struct import pack as _struct_pack
 
 # THIRD-PARTY
 import numpy as np
@@ -22,7 +24,6 @@ from ...utils.xml.writer import xml_escape_cdata
 # LOCAL
 from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,
     W30, W31, W39, W46, W47, W49, W51, E01, E02, E03, E04, E05, E06)
-from .util import IS_PY3K
 
 
 __all__ = ['get_converter', 'Converter', 'table_column_to_votable_datatype']
@@ -40,6 +41,17 @@ files in the wild use them.
 _zero_int = b'\0\0\0\0'
 _empty_bytes = b''
 _zero_byte = b'\0'
+
+
+if six.PY3:
+    struct_unpack = _struct_unpack
+    struct_pack = _struct_pack
+else:
+    def struct_unpack(format, s):
+        return _struct_unpack(format.encode('ascii'), s)
+
+    def struct_pack(format, *args):
+        return _struct_pack(format.encode('ascii'), *args)
 
 
 if sys.byteorder == 'little':
@@ -90,7 +102,7 @@ def bitarray_to_bool(data, length):
     """
     results = []
     for byte in data:
-        if not IS_PY3K:
+        if not six.PY3:
             byte = ord(byte)
         for bit_no in range(7, -1, -1):
             bit = byte & (1 << bit_no)
@@ -391,7 +403,7 @@ class UnicodeChar(Converter):
     def output(self, value, mask):
         if mask:
             return u''
-        return xml_escape_cdata(unicode(value))
+        return xml_escape_cdata(six.text_type(value))
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
@@ -647,7 +659,7 @@ class FloatingPoint(Numeric):
         format_parts = [u'%']
 
         if width is not None:
-            format_parts.append(unicode(width))
+            format_parts.append(six.text_type(width))
 
         if precision is None:
             format_parts.append(u's')
@@ -755,7 +767,7 @@ class Integer(Numeric):
 
     def parse(self, value, config={}, pos=None):
         mask = False
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             value = value.lower()
             if value == '':
                 if config['version_1_3_or_later']:
@@ -796,8 +808,8 @@ class Integer(Numeric):
             if self.null is None:
                 warn_or_raise(W31, W31)
                 return u'NaN'
-            return unicode(self.null)
-        return unicode(value)
+            return six.text_type(self.null)
+        return six.text_type(value)
 
     def binoutput(self, value, mask):
         if mask:
@@ -1101,7 +1113,7 @@ class BooleanArray(NumericArray):
         result = []
         result_mask = []
         for char in data:
-            if not IS_PY3K:
+            if not six.PY3:
                 char = ord(char)
             value, mask = binparse(char)
             result.append(value)
@@ -1295,7 +1307,7 @@ def _all_bytes(column):
 
 def _all_unicode(column):
     for x in column:
-        if not isinstance(x, unicode):
+        if not isinstance(x, six.text_type):
             return False
     return True
 
@@ -1392,7 +1404,7 @@ def table_column_to_votable_datatype(column):
         if isinstance(column[0], bytes):
             if _all_bytes(column[1:]):
                 return {'datatype': 'char', 'arraysize': '*'}
-        elif isinstance(column[0], unicode):
+        elif isinstance(column[0], six.text_type):
             if _all_unicode(column[1:]):
                 return {'datatype': 'unicodeChar', 'arraysize': '*'}
         elif isinstance(column[0], np.ndarray):

@@ -3,7 +3,6 @@
 Script support for validating a VO file.
 """
 
-from __future__ import absolute_import
 
 def main(args=None):
     from . import table

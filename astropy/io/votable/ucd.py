@@ -3,7 +3,7 @@
 This file contains routines to verify the correctness of UCD strings.
 """
 
-from __future__ import with_statement, absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 #STDLIB
 import re
@@ -31,11 +31,11 @@ class UCDWords:
                 "data/ucd1p-words.txt", encoding='ascii') as fd:
             for line in fd.readlines():
                 type, name, descr = [
-                    x.strip() for x in line.split(u'|')]
+                    x.strip() for x in line.split('|')]
                 name_lower = name.lower()
-                if type in u'QPEV':
+                if type in 'QPEV':
                     self._primary.add(name_lower)
-                if type in u'QSEV':
+                if type in 'QSEV':
                     self._secondary.add(name_lower)
                 self._descriptions[name_lower] = descr
                 self._capitalization[name_lower] = name
@@ -105,34 +105,34 @@ def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
         _ucd_singleton = UCDWords()
 
     if has_colon:
-        m = re.search(u'[^A-Za-z0-9_.:;\-]', ucd)
+        m = re.search('[^A-Za-z0-9_.:;\-]', ucd)
     else:
-        m = re.search(u'[^A-Za-z0-9_.;\-]', ucd)
+        m = re.search('[^A-Za-z0-9_.;\-]', ucd)
     if m is not None:
         raise ValueError("UCD has invalid character '%s' in '%s'" %
                          (m.group(0), ucd))
 
-    word_component_re = u'[A-Za-z0-9][A-Za-z0-9\-_]*'
-    word_re = u'%s(\.%s)*' % (word_component_re, word_component_re)
+    word_component_re = '[A-Za-z0-9][A-Za-z0-9\-_]*'
+    word_re = '%s(\.%s)*' % (word_component_re, word_component_re)
 
-    parts = ucd.split(u';')
+    parts = ucd.split(';')
     words = []
     for i, word in enumerate(parts):
-        colon_count = word.count(u':')
+        colon_count = word.count(':')
         if colon_count == 1:
-            ns, word = word.split(u':', 1)
+            ns, word = word.split(':', 1)
             if not re.match(word_component_re, ns):
                 raise ValueError("Invalid namespace '%s'" % ns)
             ns = ns.lower()
         elif colon_count > 1:
             raise ValueError("Too many colons in '%s'" % word)
         else:
-            ns = u'ivoa'
+            ns = 'ivoa'
 
         if not re.match(word_re, word):
             raise ValueError("Invalid word '%s'" % word)
 
-        if ns == u'ivoa' and check_controlled_vocabulary:
+        if ns == 'ivoa' and check_controlled_vocabulary:
             if i == 0:
                 if not _ucd_singleton.is_primary(word):
                     if _ucd_singleton.is_secondary(word):
