@@ -576,3 +576,14 @@ def test_quantity_iterability():
     assert q2 == 15.0 * u.m
     assert not isiterable(q2)
     pytest.raises(TypeError, iter, q2)
+
+
+@pytest.mark.xfail
+def test_equality_numpy_scalar():
+    """
+    A regression test to ensure that numpy scalars are correctly compared (which originally failed).
+    """
+    assert 10 != 10. * u.m
+    assert np.int64(10) != 10 * u.m
+    assert 10 * u.m != np.int64(10)
+
