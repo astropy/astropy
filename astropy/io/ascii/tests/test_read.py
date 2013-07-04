@@ -6,6 +6,7 @@ import numpy as np
 from ....utils import OrderedDict
 from ....tests.helper import pytest
 from ... import ascii as asciitable
+from ....table import Table
 
 from .common import (raises, numpy_lt_1p5,
                      assert_equal, assert_almost_equal, assert_true,
@@ -22,7 +23,28 @@ def test_read_all_files():
             test_opts = testfile['opts'].copy()
             if 'guess' not in test_opts:
                 test_opts['guess'] = guess
-            table = asciitable.read(testfile['name'], **testfile['opts'])
+            table = asciitable.read(testfile['name'], **test_opts)
+            assert_equal(table.dtype.names, testfile['cols'])
+            for colname in table.dtype.names:
+                assert_equal(len(table[colname]), testfile['nrows'])
+
+
+def test_read_all_files_via_table():
+    for testfile in get_testfiles():
+        if testfile.get('skip'):
+            print('\n\n******** SKIPPING %s' % testfile['name'])
+            continue
+        print('\n\n******** READING %s' % testfile['name'])
+        for guess in (True, False):
+            test_opts = testfile['opts'].copy()
+            if 'guess' not in test_opts:
+                test_opts['guess'] = guess
+            if 'Reader' in test_opts:
+                format = 'ascii.{}'.format(test_opts['Reader']._format_name)
+                del test_opts['Reader']
+            else:
+                format = 'ascii'
+            table = Table.read(testfile['name'], format=format, **test_opts)
             assert_equal(table.dtype.names, testfile['cols'])
             for colname in table.dtype.names:
                 assert_equal(len(table[colname]), testfile['nrows'])
@@ -562,7 +584,7 @@ def get_testfiles(name=None):
         {'cols': ('col1', 'col2', 'col3'),
          'name': 't/space_delim_no_header.dat',
          'nrows': 2,
-         'opts': {}},
+         'opts': {'Reader': asciitable.NoHeader}},
         {'cols': ('obsid', 'offset', 'x', 'y', 'name', 'oaa'),
          'name': 't/space_delim_blank_lines.txt',
          'nrows': 3,

@@ -254,12 +254,29 @@ def check_write_table(test_def, table):
     assert out.getvalue().splitlines() == test_def['out'].splitlines()
 
 
+def check_write_table_via_table(test_def, table):
+    out = io.StringIO()
+
+    test_def = test_def.copy()
+    if 'Writer' in test_def['kwargs']:
+        format = 'ascii.{}'.format(test_def['kwargs']['Writer']._format_name)
+        del test_def['kwargs']['Writer']
+    else:
+        format = 'ascii'
+
+    table.write(out, format=format, **test_def['kwargs'])
+    print('Expected:\n%s' % test_def['out'])
+    print('Actual:\n%s' % out.getvalue())
+    assert out.getvalue().splitlines() == test_def['out'].splitlines()
+
+
 def test_write_table():
     table = asciitable.get_reader(Reader=asciitable.Daophot)
     data = table.read('t/daophot.dat')
 
     for test_def in test_defs:
         check_write_table(test_def, data)
+        check_write_table_via_table(test_def, data)
 
 
 def test_write_fill_values():
