@@ -84,9 +84,11 @@ def spectral_density(sunit, sfactor):
 
 def doppler_radio(rest):
     r"""
-    Return the equivalency pairs for the radio convention for velocity:
+    Return the equivalency pairs for the radio convention for velocity.
 
-    Radio   :math:`V = c \frac{f_0 - f}{f_0}  ;  f(V) = f_0 ( 1 - V/c )`
+    The radio convention for the relation between velocity and frequency is:
+    
+    :math:`V = c \frac{f_0 - f}{f_0}  ;  f(V) = f_0 ( 1 - V/c )`
 
     Parameters
     ----------
@@ -147,9 +149,11 @@ def doppler_radio(rest):
 
 def doppler_optical(rest):
     r"""
-    Return the equivalency pairs for the optical convention for velocity:
+    Return the equivalency pairs for the optical convention for velocity.
 
-    Optical       :math:`V = c \frac{f_0 - f}{f  }  ;  f(V) = f_0 ( 1 + V/c )^{-1}`
+    The optical convention for the relation between velocity and frequency is:
+
+    :math:`V = c \frac{f_0 - f}{f  }  ;  f(V) = f_0 ( 1 + V/c )^{-1}`
 
     Parameters
     ----------
@@ -211,9 +215,11 @@ def doppler_optical(rest):
 
 def doppler_relativistic(rest):
     r"""
-    Return the equivalency pairs for the relativistic convention for velocity:
+    Return the equivalency pairs for the relativistic convention for velocity.
 
-    Relativistic  :math:`V = c \frac{f_0^2 - f^2}{f_0^2 + f^2} ;  f(V) = f_0 \frac{\left(1 - (V/c)^2\right)^{1/2}}{(1+V/c)}`
+    The full relativistic convention for the relation between velocity and frequency is:
+
+    :math:`V = c \frac{f_0^2 - f^2}{f_0^2 + f^2} ;  f(V) = f_0 \frac{\left(1 - (V/c)^2\right)^{1/2}}{(1+V/c)}`
 
     Parameters
     ----------
