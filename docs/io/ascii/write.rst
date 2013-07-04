@@ -23,13 +23,13 @@ The ``values.dat`` file will then contain::
   2 4
   3 9
 
-All of the input Reader table formats supported by `astropy.io.ascii` for
-reading are also supported for writing.  This provides a great deal of
+Most of the input table :ref:`supported_formats` for
+reading are also available for writing.  This provides a great deal of
 flexibility in the format for writing.  The example below writes the data as a
 LaTeX table, using the option to send the output to ``sys.stdout`` instead of a
 file::
 
-  >>> ascii.write(data, sys.stdout, Writer=ascii.Latex)
+  >>> ascii.write(data, sys.stdout, format='latex')
   \begin{table}
   \begin{tabular}{cc}
   x & y \\
@@ -80,7 +80,7 @@ object that can be an input to the |write| function.
 
 ::
 
-    >>> data = astropy.io.ascii.read('t/daophot.dat', Reader=astropy.io.ascii.Daophot)
+    >>> data = astropy.io.ascii.read('t/daophot.dat', format='daophot')
     >>> astropy.io.ascii.write(data, 'space_delimited_table.dat')
 
 
@@ -137,12 +137,13 @@ unpredictable unless the ``names`` argument is provided.
 Parameters for ``write()``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The |write| function accepts a number of parameters that specify the detailed
-output table format.  Different Reader classes can define different defaults, so the
-descriptions below sometimes mention "typical" default values.  This refers to
-the :class:`~astropy.io.ascii.Basic` reader and other similar Reader classes.
+The |write| function accepts a number of parameters that specify the detailed output table
+format.  Each of the :ref:`supported_formats` is handled by a corresponding Writer class that
+can define different defaults, so the descriptions below sometimes mention "typical"
+default values.  This refers to the :class:`~astropy.io.ascii.Basic` writer and other
+similar Writer classes.
 
-Some Reader classes, e.g. :class:`~astropy.io.ascii.Latex` or :class:`~astropy.io.ascii.AASTex`
+Some output format Writer classes, e.g. :class:`~astropy.io.ascii.Latex` or :class:`~astropy.io.ascii.AASTex`
 accept aditional keywords, that can customize the output further. See the documentation
 of these classes for details.
 
@@ -155,14 +156,11 @@ of these classes for details.
 **table** : input table 
   Any value that is supported for initializing a |Table| object (see :ref:`construct_table`).
 
-**Writer** : Writer class (default= :class:`~astropy.io.ascii.Basic`)
-  This specifies the top-level format of the ASCII table to be written, for
+**format** : output format (default='basic')
+  This specifies the format of the ASCII table to be written, for
   example if it is a basic character delimited table, fixed format table, or a
-  CDS-compatible table, etc.  The value of this parameter must be a Reader
-  class.  For basic usage this means one of the built-in :ref:`extension_reader_classes`.
-  Note: Reader classes and Writer classes are synonymous, in other
-  words Reader classes can also write, but for historical reasons they are
-  called Reader classes.
+  CDS-compatible table, etc.  The value of this parameter must
+  be one of the :ref:`supported_formats`.
 
 **delimiter** : column delimiter string
   A one-character string used to separate fields which typically defaults to the space character.
@@ -170,7 +168,7 @@ of these classes for details.
 
 **comment** : string defining a comment line in table
   For the :class:`~astropy.io.ascii.Basic` Writer this defaults to "#". 
-  Which and how comments are written depends on the Writer chosen (e.g.
+  Which and how comments are written depends on the format chosen (e.g.
   :class:`~astropy.io.ascii.CommentedHeader` puts the comment symbol in the line
   with the column names).
 
@@ -214,3 +212,13 @@ of these classes for details.
 
 **fill_exclude_names**: list of column names, which are not affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
+
+**Writer** : Writer class (*deprecated* in favor of ``format``)
+  This specifies the top-level format of the ASCII table to be written, for
+  example if it is a basic character delimited table, fixed format table, or a
+  CDS-compatible table, etc.  The value of this parameter must be a Writer
+  class.  For basic usage this means one of the built-in :ref:`extension_reader_classes`.
+  Note: Reader classes and Writer classes are synonymous, in other
+  words Reader classes can also write, but for historical reasons they are
+  often called Reader classes.
+

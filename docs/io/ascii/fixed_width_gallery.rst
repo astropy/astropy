@@ -42,7 +42,7 @@ FixedWidth
   ... |  1.2   | "hello" |
   ... |  2.4   |'s worlds|
   ... """
-  >>> ascii.read(table, Reader=ascii.FixedWidth)
+  >>> ascii.read(table, format='fixed_width')
   rec.array([(1.2, '"hello"'), (2.4, "'s worlds")], 
         dtype=[('Col1', '<f8'), ('Col2', '|S9')])
 
@@ -55,7 +55,7 @@ FixedWidth
   ... |  1.2   | "hello" |
   ... |  2.4   |'s worlds|
   ... """
-  >>> ascii.read(table, Reader=ascii.FixedWidth, names=('name1', 'name2'))
+  >>> ascii.read(table, format='fixed_width', names=('name1', 'name2'))
   rec.array([(1.2, '"hello"'), (2.4, "'s worlds")], 
         dtype=[('name1', '<f8'), ('name2', '|S9')])
 
@@ -67,7 +67,7 @@ FixedWidth
   ...   1.2       "hello" 
   ...   2.4   sdf's worlds
   ... """
-  >>> ascii.read(table, Reader=ascii.FixedWidth)
+  >>> ascii.read(table, format='fixed_width')
   rec.array([(1.2, '"hel'), (2.4, "df's wo")], 
         dtype=[('Col1', '<f8'), ('Col2', '|S7')])
 
@@ -80,7 +80,7 @@ FixedWidth
   ... |  Mary  | 555-2134 |192.168.1.12X|
   ... |   Bob  | 555-4527 | 192.168.1.9X|
   ... """
-  >>> ascii.read(table, Reader=ascii.FixedWidth)
+  >>> ascii.read(table, format='fixed_width')
   rec.array([('John', '555-1234', '192.168.1.10'),
          ('Mary', '555-2134', '192.168.1.12'),
          ('Bob', '555-4527', '192.168.1.9')], 
@@ -95,7 +95,7 @@ FixedWidth
   ...  Mary  555-2134    192.168.1.12
   ...   Bob  555-4527     192.168.1.9
   ... """
-  >>> ascii.read(table, Reader=ascii.FixedWidth, delimiter=' ')
+  >>> ascii.read(table, format='fixed_width', delimiter=' ')
   rec.array([('John', '555-1234', '192.168.1.10'),
          ('Mary', '555-2134', '192.168.1.12'),
          ('Bob', '555-4527', '192.168.1.9')], 
@@ -111,7 +111,7 @@ Use header_start and data_start keywords to indicate no header line.
   ... |  Mary  | 555-2134 |192.168.1.12|
   ... |   Bob  | 555-4527 | 192.168.1.9|
   ... """
-  >>> ascii.read(table, Reader=ascii.FixedWidth,
+  >>> ascii.read(table, format='fixed_width',
   ...                 header_start=None, data_start=0)
   rec.array([('John', '555-1234', '192.168.1.10'),
          ('Mary', '555-2134', '192.168.1.12'),
@@ -127,7 +127,7 @@ keywords to indicate no header line.
   >>> table = ["|  John  | 555-1234 |192.168.1.10|"
   ...          "|  Mary  | 555-2134 |192.168.1.12|  "
   ...          "|   Bob  | 555-4527 | 192.168.1.9|  "]
-  >>> ascii.read(table, Reader=ascii.FixedWidth,
+  >>> ascii.read(table, format='fixed_width',
   ...                 header_start=None, data_start=0,
   ...                 names=('Name', 'Phone', 'TCP'))
   rec.array([('John', '555-1234', '192.168.1.10')], 
@@ -145,7 +145,7 @@ convenience class.**
   ... |  Mary  | 555-2134 |192.168.1.12|
   ... |   Bob  | 555-4527 | 192.168.1.9|
   ... """
-  >>> ascii.read(table, Reader=ascii.FixedWidthNoHeader)
+  >>> ascii.read(table, format='fixed_width_no_header')
   rec.array([('John', '555-1234', '192.168.1.10'),
          ('Mary', '555-2134', '192.168.1.12'),
          ('Bob', '555-4527', '192.168.1.9')], 
@@ -165,7 +165,7 @@ will select the first 6 characters.
   ...   Mary   555- 2134 192.168.1.12
   ...    Bob   555- 4527  192.168.1.9
   ... """
-  >>> ascii.read(table, Reader=ascii.FixedWidthNoHeader,
+  >>> ascii.read(table, format='fixed_width_no_header',
   ...                 names=('Name', 'Phone', 'TCP'),
   ...                 col_starts=(0, 9, 18),
   ...                 col_ends=(5, 17, 28),
@@ -187,7 +187,7 @@ FixedWidthTwoLine
   ...    1.2xx"hello" 
   ...   2.4   's worlds
   ... """
-  >>> ascii.read(table, Reader=ascii.FixedWidthTwoLine)
+  >>> ascii.read(table, format='fixed_width_two_line')
   rec.array([(1.2, '"hello"'), (2.4, "'s worlds")], 
         dtype=[('Col1', '<f8'), ('Col2', '|S9')])
 
@@ -202,7 +202,7 @@ FixedWidthTwoLine
   ...   2.4   's worlds
   ... ======= ===========
   ... """
-  >>> ascii.read(table, Reader=ascii.FixedWidthTwoLine,
+  >>> ascii.read(table, format='fixed_width_two_line',
   ...                 header_start=1, position_line=2, data_end=-1)
   rec.array([(1.2, '"hello"'), (2.4, "'s worlds")], 
         dtype=[('Col1', '<f8'), ('Col2', '|S9')])
@@ -218,7 +218,7 @@ FixedWidthTwoLine
   ... |  2.4 | 's worlds|
   ... +------+----------+
   ... """
-  >>> ascii.read(table, Reader=ascii.FixedWidthTwoLine, delimiter='+',
+  >>> ascii.read(table, format='fixed_width_two_line', delimiter='+',
   ...                 header_start=1, position_line=0, data_start=3, data_end=-1)
   rec.array([(1.2, '"hello"'), (2.4, "'s worlds")], 
         dtype=[('Col1', '<f8'), ('Col2', '|S9')])
@@ -237,12 +237,12 @@ FixedWidth
   ... | 1.2  | "hello"   |  1    | a    |
   ... | 2.4  | 's worlds |  2    | 2    |
   ... """
-  >>> dat = ascii.read(table, Reader=ascii.FixedWidth)
+  >>> dat = ascii.read(table, format='fixed_width')
 
 **Write a table as a normal fixed width table.**
 ::
 
-  >>> ascii.write(dat, Writer=ascii.FixedWidth)
+  >>> ascii.write(dat, format='fixed_width')
   | Col1 |      Col2 | Col3 | Col4 |
   |  1.2 |   "hello" |    1 |    a |
   |  2.4 | 's worlds |    2 |    2 |
@@ -250,7 +250,7 @@ FixedWidth
 **Write a table as a fixed width table with no padding.**
 ::
 
-  >>> ascii.write(dat, Writer=ascii.FixedWidth, delimiter_pad=None)
+  >>> ascii.write(dat, format='fixed_width', delimiter_pad=None)
   |Col1|     Col2|Col3|Col4|
   | 1.2|  "hello"|   1|   a|
   | 2.4|'s worlds|   2|   2|
@@ -258,7 +258,7 @@ FixedWidth
 **Write a table as a fixed width table with no bookend.**
 ::
 
-  >>> ascii.write(dat, Writer=ascii.FixedWidth, bookend=False)
+  >>> ascii.write(dat, format='fixed_width', bookend=False)
   Col1 |      Col2 | Col3 | Col4
    1.2 |   "hello" |    1 |    a
    2.4 | 's worlds |    2 |    2
@@ -266,7 +266,7 @@ FixedWidth
 **Write a table as a fixed width table with no delimiter.**
 ::
 
-  >>> ascii.write(dat, Writer=ascii.FixedWidth, bookend=False, delimiter=None)
+  >>> ascii.write(dat, format='fixed_width', bookend=False, delimiter=None)
   Col1       Col2  Col3  Col4
    1.2    "hello"     1     a
    2.4  's worlds     2     2
@@ -274,7 +274,7 @@ FixedWidth
 **Write a table as a fixed width table with no delimiter and formatting.**
 ::
 
-  >>> ascii.write(dat, Writer=ascii.FixedWidth,
+  >>> ascii.write(dat, format='fixed_width',
   ...                  formats={'Col1': '%-8.3f', 'Col2': '%-15s'})
   |     Col1 |            Col2 | Col3 | Col4 |
   | 1.200    | "hello"         |    1 |    a |
@@ -286,28 +286,28 @@ FixedWidthNoHeader
 **Write a table as a normal fixed width table.**
 ::
 
-  >>> ascii.write(dat, Writer=ascii.FixedWidthNoHeader)
+  >>> ascii.write(dat, format='fixed_width'NoHeader)
   | 1.2 |   "hello" | 1 | a |
   | 2.4 | 's worlds | 2 | 2 |
 
 **Write a table as a fixed width table with no padding.**
 ::
 
-  >>> ascii.write(dat, Writer=ascii.FixedWidthNoHeader, delimiter_pad=None)
+  >>> ascii.write(dat, format='fixed_width'NoHeader, delimiter_pad=None)
   |1.2|  "hello"|1|a|
   |2.4|'s worlds|2|2|
 
 **Write a table as a fixed width table with no bookend.**
 ::
 
-  >>> ascii.write(dat, Writer=ascii.FixedWidthNoHeader, bookend=False)
+  >>> ascii.write(dat, format='fixed_width'NoHeader, bookend=False)
   1.2 |   "hello" | 1 | a
   2.4 | 's worlds | 2 | 2
 
 **Write a table as a fixed width table with no delimiter.**
 ::
 
-  >>> ascii.write(dat, Writer=ascii.FixedWidthNoHeader, bookend=False,
+  >>> ascii.write(dat, format='fixed_width'NoHeader, bookend=False,
   ...                  delimiter=None)
   1.2    "hello"  1  a
   2.4  's worlds  2  2
@@ -318,7 +318,7 @@ FixedWidthTwoLine
 **Write a table as a normal fixed width table.**
 ::
 
-  >>> ascii.write(dat, Writer=ascii.FixedWidthTwoLine)
+  >>> ascii.write(dat, format='fixed_width_two_line')
   Col1      Col2 Col3 Col4
   ---- --------- ---- ----
    1.2   "hello"    1    a
@@ -327,7 +327,7 @@ FixedWidthTwoLine
 **Write a table as a fixed width table with space padding and '=' position_char.**
 ::
 
-  >>> ascii.write(dat, Writer=ascii.FixedWidthTwoLine,
+  >>> ascii.write(dat, format='fixed_width_two_line',
   ...                  delimiter_pad=' ', position_char='=')
   Col1        Col2   Col3   Col4
   ====   =========   ====   ====
@@ -337,7 +337,7 @@ FixedWidthTwoLine
 **Write a table as a fixed width table with no bookend.**
 ::
 
-  >>> ascii.write(dat, Writer=ascii.FixedWidthTwoLine, bookend=True, delimiter='|')
+  >>> ascii.write(dat, format='fixed_width_two_line', bookend=True, delimiter='|')
   |Col1|     Col2|Col3|Col4|
   |----|---------|----|----|
   | 1.2|  "hello"|   1|   a|
