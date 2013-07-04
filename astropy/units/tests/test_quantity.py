@@ -578,7 +578,6 @@ def test_quantity_iterability():
     pytest.raises(TypeError, iter, q2)
 
 
-@pytest.mark.xfail
 def test_equality_numpy_scalar():
     """
     A regression test to ensure that numpy scalars are correctly compared (which originally failed).

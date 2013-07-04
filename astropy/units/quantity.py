@@ -103,6 +103,8 @@ class Quantity(np.ndarray):
     # Constants can not initialize properly
     _equivalencies = []
 
+    __array_priority__ = 10000
+
     def __new__(cls, value, unit=None, dtype=None, equivalencies=[]):
 
         from ..utils.misc import isiterable
