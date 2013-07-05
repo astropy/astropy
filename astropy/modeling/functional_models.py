@@ -588,12 +588,14 @@ class Custom1DModel(Parametric1DModel):
     --------
     Define a sinusoidal model function:
 
-        >>> def f(x, amplitude=1, frequency=1):
-        >>>     return amplitude * np.sin(2 * np.pi * frequency * x)
+        >>> from astropy.modeling.models import Custom1DModel
+        >>> import numpy as np
+        >>> def f(x, amplitude=1., frequency=1.):
+        ...     return amplitude * np.sin(2 * np.pi * frequency * x)
 
     And create a custom one dimensional model from it:
 
-        >>> sin_model = CustomModel1D(f)
+        >>> sin_model = Custom1DModel(f)
         >>> sin_model(0.25)
         1.0
 
