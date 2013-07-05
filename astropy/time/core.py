@@ -675,39 +675,27 @@ class Time(object):
         """
         if other.__class__ is not self.__class__:
             raise OperandTypeError(self, other)
-        self_tai_time, other_tai_time = self.tai._time, other.tai._time
-        return (self_tai_time.jd1 - other_tai_time.jd1 +
-                self_tai_time.jd2 - other_tai_time.jd2)
-
-    def _shaped_like_input_if_possible(self, val):
-        if len(val) == len(self):
-            return self._shaped_like_input(val)
-        else:
-            return val
+        self_tai = self.tai
+        other_tai = other.tai
+        return (self_tai.jd1 - other_tai.jd1) + (self_tai.jd2 - other_tai.jd2)
 
     def __lt__(self, other):
-        diff = self._tai_difference(other)
-        return self._shaped_like_input_if_possible(diff < 0.)
+        return self._tai_difference(other) < 0.
 
     def __le__(self, other):
-        diff = self._tai_difference(other)
-        return self._shaped_like_input_if_possible(diff <= 0.)
+        return self._tai_difference(other) <= 0.
 
     def __eq__(self, other):
-        diff = self._tai_difference(other)
-        return self._shaped_like_input_if_possible(diff == 0.)
+        return self._tai_difference(other) == 0.
 
     def __ne__(self, other):
-        diff = self._tai_difference(other)
-        return self._shaped_like_input_if_possible(diff != 0.)
+        return self._tai_difference(other) != 0.
 
     def __gt__(self, other):
-        diff = self._tai_difference(other)
-        return self._shaped_like_input_if_possible(diff > 0.)
+        return self._tai_difference(other) > 0.
 
     def __ge__(self, other):
-        diff = self._tai_difference(other)
-        return self._shaped_like_input_if_possible(diff >= 0.)
+        return self._tai_difference(other) >= 0.
 
 
 class TimeDelta(Time):

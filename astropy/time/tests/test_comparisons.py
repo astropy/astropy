@@ -16,9 +16,21 @@ class TestTimeComparisons():
         t1_lt_t2 = self.t1 < self.t2
         assert np.all(t1_lt_t2 == np.array([False, False, False, False, False,
                                             False,True, True, True, True]))
+        t1_ge_t2 = self.t1 >= self.t2
+        assert np.all(t1_ge_t2 != t1_lt_t2)
+
+        t1_le_t2 = self.t1 <= self.t2
+        assert np.all(t1_le_t2 == np.array([False, False, False, False, False,
+                                            True,True, True, True, True]))
+        t1_gt_t2 = self.t1 > self.t2
+        assert np.all(t1_gt_t2 != t1_le_t2)
+
         t1_eq_t2 = self.t1 == self.t2
         assert np.all(t1_eq_t2 == np.array([False, False, False, False, False,
                                             True, False, False, False, False]))
+        t1_ne_t2 = self.t1 != self.t2
+        assert np.all(t1_ne_t2 != t1_eq_t2)
+
         t1_0_gt_t2_0 = self.t1[0] > self.t2[0]
         assert t1_0_gt_t2_0 is True
         t1_0_gt_t2 = self.t1[0] > self.t2
