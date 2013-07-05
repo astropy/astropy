@@ -1,6 +1,6 @@
-.. _astropy.io.ascii_write:
-
 .. include:: references.txt
+
+.. _astropy.io.ascii_write:
 
 Writing tables
 --------------
@@ -133,6 +133,8 @@ unpredictable unless the ``names`` argument is provided.
     2 5.2 world
     3 6.1 !!!
 
+
+.. _io_ascii_write_parameters:
 
 Parameters for ``write()``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

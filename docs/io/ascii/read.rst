@@ -1,6 +1,6 @@
-.. _astropy.io.ascii_read:
-
 .. include:: references.txt
+
+.. _astropy.io.ascii_read:
 
 Reading tables
 --------------
@@ -25,6 +25,8 @@ The |read| function accepts a number of parameters that specify the detailed
 table format.  Different formats can define different defaults, so the
 descriptions below sometimes mention "typical" default values.  This refers to
 the :class:`~astropy.io.ascii.Basic` format reader and other similar character-separated formats.
+
+.. _io_ascii_read_parameters:
 
 Parameters for ``read()``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

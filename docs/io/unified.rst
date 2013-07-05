@@ -76,9 +76,10 @@ character-delimited file with a single header line containing the
 column names.
 
 All additional arguments are passed to the `astropy.io.ascii`
-:func:`~astropy.io.ascii.ui.read` and
-:func:`~astropy.io.ascii.ui.write` functions. For example, to change
-column  delimiter and the output format for the ``colc`` column use::
+:func:`~astropy.io.ascii.ui.read` and :func:`~astropy.io.ascii.ui.write`
+functions. Further details are available in the sections on
+:ref:`io_ascii_read_parameters` and :ref:`io_ascii_write_parameters`.  For example, to change
+column delimiter and the output format for the ``colc`` column use::
 
   >>> t.write(sys.stdout, format='ascii', delimiter='|', formats={'colc': '%0.2f'})
   cola|colb|colc
