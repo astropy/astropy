@@ -838,29 +838,26 @@ class Parametric1DModel(ParametricModel):
     Parameters
     ----------
     parameter_dict : dictionary
-        Dictionary of model parameters with default values
+        Dictionary of model parameters with initialisation values
         {'parameter_name': 'parameter_value'}
 
-   """
-    __metaclass__ = abc.ABCMeta
+    """
+    deriv = None
+    linear = False
 
     def __init__(self, param_dict, **cons):
         # Get parameter dimension
         param_dim = np.size(param_dict[self.param_names[0]])
 
-        # Initialize model parameters
+        # Initialize model parameters. This is preliminary as long there is
+        # no new parameter class. It may be more reasonable and clear to init 
+        # the parameters in the model constructor itself, with constraints etc.
         for param_name in self.param_names:
             setattr(self, "_" + param_name, parameters.Parameter(name=param_name,
                             val=param_dict[param_name], mclass=self, param_dim=param_dim))
 
         super(Parametric1DModel, self).__init__(self.param_names, n_inputs=1,
                                                 n_outputs=1, param_dim=param_dim, **cons)
-
-        # Check if derivative is implemented otherwise None
-        self.deriv = getattr(self, "deriv", None)
-
-        # Model is nonlinear in parameters per default
-        self.linear = getattr(self, "linear", False)
 
     def __call__(self, x):
         """

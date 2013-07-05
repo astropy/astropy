@@ -496,7 +496,7 @@ class Disk2DModel(ParametricModel):
         raise ModelDefinitionError("Not implemented")
 
 
-class Box1DModel(Parametric1DModel):
+class Box1DModel(ParametricModel):
 
     """
     One dimensional box function.

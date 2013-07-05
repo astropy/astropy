@@ -181,3 +181,64 @@ def test_custom_model(amplitude=4, frequency=1):
     fitter = fitting.NonLinearLSQFitter(sin_model)
     fitter(x, data)
     assert np.all((fitter.fitpars - np.array([amplitude, frequency])) < 0.001)
+
+
+models_1D = [(models.Poly1DModel, [2], []),
+            (models.Legendre1DModel, [2], []),
+            (models.Chebyshev1DModel, [2], []),
+            (models.Gaussian1DModel, [10, 3.4, 1.1], []),
+            (models.ShiftModel, [2], []),
+            (models.ScaleModel, [2], []),
+            (models.Sine1DModel, [1, 1], [[0, 0], [np.pi / 2, 1], [42, -0.9165215479]]),
+            (models.Linear1DModel, [1, 0], [[0, 0], [np.pi, np.pi], [42, 42]]),
+            (models.PowerLaw1DModel, [5, 2], [])]
+
+models_2D = []
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+class ParametricModelTest(object):
+    """
+    Test class for all parametric objects
+    """
+
+    def setup_class(self):
+        self.pi = np.pi
+        self.fortytwo = 42
+        self.zero = 0
+        self.e = np.exp(1)
+        self.alpha = 1. / 137.
+        self.one = 1.
+        self.phi = (np.sqrt(5) - 1) / 2
+
+    @pytest.mark.parametrize(('model_class', 'params', 'values'), models_1D)
+    def test_eval1D(self, model_class, params, values):
+        """
+        Test model values add certain given points
+        """
+        model = model_class(*params)
+        for x, y in values:
+            assert model(x) == y
+
+    @pytest.mark.parametrize(('model_class', 'params', 'values'), models_2D)
+    def test_eval2D(self, model_class, params, values):
+        """
+        Test model values add certain given points
+        """
+        model = model_class(*params)
+        for x, y, z in values:
+            assert model(x, y) == z
+
+    @pytest.mark.parametrize(('model_class', 'params', 'values'), models_1D)
+    def test_fitter1D(self, model, params, values):
+        """
+        Test if the parametric model works with the fitter.
+        """
+        pass
+
+    @pytest.mark.parametrize(('model_class', 'params', 'values'), models_2D)
+    def test_fitter2D(self, model, params, values):
+        """
+        Test if the parametric model works with the fitter.
+        """
+        pass
