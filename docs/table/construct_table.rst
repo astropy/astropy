@@ -112,11 +112,11 @@ Notice that in the third column the existing column name ``'axis'`` is used.
 
 You can also initialize a table with row values.  This is constructed as a
 list of dict objects.  The keys determine the column names::
-  
+
   >>> data = [{'a': 5, 'b': 10}, {'a': 15, 'b': 20}]
   >>> Table(data)
   <Table rows=2 names=('a','b')>
-  array([(5, 10), (15, 30)], 
+  array([(5, 10), (15, 30)],
         dtype=[('a', '<i8'), ('b', '<i8')])
 
 Every row must have the same set of keys or a ValueError will be thrown::
@@ -393,7 +393,7 @@ for the ``data`` argument.
     ``names`` in length.
 
 **list-of-dicts**
-    Similar to Python's builtin ``csv.DictReader``, each item in the 
+    Similar to Python's builtin ``csv.DictReader``, each item in the
     ``data`` list provides a row of data values and must be a dict.  The
     key values in each dict define the column names and each row must
     have identical column names.  The ``names`` argument may be supplied
@@ -401,7 +401,7 @@ for the ``data`` argument.
     default to alphabetical.  The ``dtypes`` list may be specified, and must
     correspond to the order of output columns.  If any row's keys do no match
     the rest of the rows, a ValueError will be thrown.
-    
+
 
 **None**
     Initialize a zero-length table.  If ``names`` and optionally ``dtypes``
@@ -572,6 +572,12 @@ The column data values, shape, and data type are specified in one of two ways:
   The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the array shape of a
   single cell in the column.  The default ``shape`` is () which means a single value in
   each element.
+
+.. note::
+
+   After setting the type for a column, that type cannot be changed.
+   If data values of a different type are assigned to the column then they
+   will be cast to the existing column type.
 
 .. _table_format_string:
 
