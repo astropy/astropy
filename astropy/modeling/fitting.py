@@ -81,10 +81,6 @@ class Fitter(object):
             self._fitpars = self.model.constraints.fitpars[:]
         else:
             self._fitpars = self.model._parameters[:]
-        if self._model.deriv is None:
-            self.dfunc = None
-        else:
-            self.dfunc = self._wrap_deriv
         self._weights = None
 
     @property
@@ -431,7 +427,7 @@ class NonLinearLSQFitter(Fitter):
         A linear model is passed to a nonlinear fitter
 
     """
-    def __init__(self, model):
+    def __init__(self, model, **kwargs):
 
         self.fit_info = {'nfev': None,
                          'fvec': None,
@@ -483,7 +479,8 @@ class NonLinearLSQFitter(Fitter):
             log.info("Could not construct a covariance matrix")
             return None
 
-    def __call__(self, x, y, z=None, weights=None, maxiter=MAXITER, epsilon=EPS):
+    def __call__(self, x, y, z=None, weights=None, maxiter=MAXITER,
+                                epsilon=EPS, estimate_jacobian=False):
         """
         Fit data to this model.
 
@@ -526,6 +523,11 @@ class NonLinearLSQFitter(Fitter):
             y = np.asarray(y, np.float)
             meas = np.asarray(z, dtype=np.float)
             farg = (x, y, meas)
+
+        if self._model.deriv is None or estimate_jacobian:
+            self.dfunc = None
+        else:
+            self.dfunc = self._wrap_deriv
 
         self.fitpars, status, dinfo, mess, ierr = optimize.leastsq(
             self.errorfunc, self.fitpars, args=farg, Dfun=self.dfunc,

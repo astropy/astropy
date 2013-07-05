@@ -10,7 +10,8 @@ from .core import ParametricModel, Parametric1DModel, Model, _convert_input, _co
 from .utils import InputParameterError, ModelDefinitionError
 
 __all__ = ['Gaussian1DModel', 'Gaussian2DModel', 'ScaleModel', 'ShiftModel',
-           'Custom1DModel', 'Sine1DModel', 'Linear1DModel', 'PowerLaw1DModel']
+           'Custom1DModel', 'Sine1DModel', 'Linear1DModel', 'PowerLaw1DModel',
+           'Const1DModel', 'Lorentz1DModel', 'Box1DModel']
 
 
 class Gaussian1DModel(Parametric1DModel):
@@ -37,10 +38,8 @@ class Gaussian1DModel(Parametric1DModel):
 
     param_names = ['amplitude', 'mean', 'stddev']
 
-    def __init__(self, amplitude, mean, stddev, jacobian_func=None, **cons):
+    def __init__(self, amplitude, mean, stddev, **cons):
         super(Gaussian1DModel, self).__init__(locals(), **cons)
-        if jacobian_func is 'estimated':
-            self.deriv = None
 
     def eval(self, x, amplitude, mean, stddev):
         """
@@ -342,7 +341,7 @@ class Sine1DModel(Parametric1DModel):
     Notes
     -----
     Model formula:
-        amplitude * np.sin(2 * np.pi * frequency * x)
+        f(x) = amplitude * np.sin(2 * np.pi * frequency * x)
     """
     param_names = ['amplitude', 'frequency']
 
@@ -423,7 +422,7 @@ class Lorentz1DModel(Parametric1DModel):
     Model formula:
         f(x) = amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.) ** 2)
     """
-    param_names = ['x_peak', 'x_pos', 'fwhm']
+    param_names = ['amplitude', 'x_0', 'fwhm']
 
     def __init__(self, amplitude, x_0, fwhm):
         super(Lorentz1DModel, self).__init__(locals())
@@ -433,15 +432,6 @@ class Lorentz1DModel(Parametric1DModel):
         Model function Lorentz1D
         """
         return amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.) ** 2)
-
-    def deriv(self, x, amplitude, x_0, fwhm):
-        """
-        Model function derivatives Lorentz1D
-        """
-        d_amplitude = 0
-        d_x_0 = 0
-        d_fhwm = 0
-        return [d_amplitude, d_x_0, d_fhwm]
 
 
 class Const1DModel(Parametric1DModel):
@@ -496,7 +486,16 @@ class Disk2DModel(ParametricModel):
         raise ModelDefinitionError("Not implemented")
 
 
-class Box1DModel(ParametricModel):
+class Delta1DModel(Parametric1DModel):
+
+    """
+    One dimensional Dirac delta function
+    """
+    def __init__(self):
+        raise ModelDefinitionError("Not implemented")
+
+
+class Box1DModel(Parametric1DModel):
 
     """
     One dimensional box function.
@@ -505,9 +504,39 @@ class Box1DModel(ParametricModel):
     ----------
     amplitude : float
         Amplitude A
+    x_0 : float
+        Position of the center of the box function
+    width : float
+        Width of the box
+
+    Notes
+    -----
+    Model function:
+        f(x) = np.select([x >= x_0 - width / 2., x <= x_0 + width / 2.],
+                         [amplitude, amplitude])
+
+    Note that at f(x_0 - width / 2.) = f(x_0 + width / 2.) = amplitude.
     """
-    def __init__(self, amplitude, x_low, x_high):
-        raise ModelDefinitionError("Not implemented")
+    param_names = ['amplitude', 'x_0', 'width']
+
+    def __init__(self, amplitude, x_0, width):
+        super(Box1DModel, self).__init__(locals())
+
+    def eval(self, x, amplitude, x_0, width):
+        """
+        Model function Box1D
+        """
+        return np.select([np.logical_and(x >= x_0 - width / 2., x <= x_0 + width / 2.)],
+                         [amplitude])
+
+    def deriv(self, x, amplitude, x_0, width):
+        """
+        Model function derivatives Box1D
+        """
+        d_amplitude = self.eval(x, 1, x_0, width)
+        d_x_0 = np.zeros_like(x)
+        d_width = np.zeros_like(x)
+        return [d_amplitude, d_x_0, d_width]
 
 
 class Box2DModel(ParametricModel):

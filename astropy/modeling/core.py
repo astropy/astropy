@@ -49,7 +49,7 @@ from .utils import InputParameterError
 
 
 __all__ = ['Model', 'ParametricModel', 'PCompositeModel', 'SCompositeModel',
-           'LabeledInput', '_convert_input', '_convert_output', 
+           'LabeledInput', '_convert_input', '_convert_output',
            'Parametric1DModel']
 
 
@@ -707,7 +707,7 @@ class SCompositeModel(_CompositeModel):
     def inverse(self):
         try:
             transforms = [tr.inverse() for tr in self._transforms[::-1]]
-        except NotIMplementedError:
+        except NotImplementedError:
             raise
         if self._inmap is not None:
             inmap = self._inmap[::-1]
