@@ -259,7 +259,7 @@ def check_write_table_via_table(test_def, table):
 
     test_def = test_def.copy()
     if 'Writer' in test_def['kwargs']:
-        format = 'ascii.{}'.format(test_def['kwargs']['Writer']._format_name)
+        format = 'ascii.{0}'.format(test_def['kwargs']['Writer']._format_name)
         del test_def['kwargs']['Writer']
     else:
         format = 'ascii'
