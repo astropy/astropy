@@ -427,7 +427,7 @@ class NonLinearLSQFitter(Fitter):
         A linear model is passed to a nonlinear fitter
 
     """
-    def __init__(self, model, **kwargs):
+    def __init__(self, model):
 
         self.fit_info = {'nfev': None,
                          'fvec': None,
