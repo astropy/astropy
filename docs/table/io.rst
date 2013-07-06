@@ -10,6 +10,9 @@ the separate details of all the I/O packages within Astropy.  For details and
 examples of using this interface see the :ref:`table_io` 
 section.
 
+Getting started
+----------------
+
 The :class:`~astropy.table.table.Table` class includes two methods,
 :meth:`~astropy.table.table.Table.read` and
 :meth:`~astropy.table.table.Table.write`, that make it possible to read from
@@ -18,3 +21,36 @@ and write to files. A number of formats are automatically supported (see
 registered with the :class:`~astropy.table.table.Table` class (see
 :ref:`io_registry`).
 
+To use this interface, first import the :class:`~astropy.table.table.Table` class, then
+simply call the :class:`~astropy.table.table.Table`
+:meth:`~astropy.table.table.Table.read` method with the name of the file and
+the file format, for instance ``'ascii.daophot'``::
+
+    >>> from astropy.table import Table
+    >>> t = Table.read('photometry.dat', format='ascii.daophot')
+
+For certain file formats, the format can be automatically detected, for
+example from the filename extension::
+
+    >>> t = Table.read('table.tex')
+
+Similarly, for writing, the format can be explicitly specified::
+
+    >>> t.write(filename, format='latex')
+
+As for the :meth:`~astropy.table.table.Table.read` method, the format may
+be automatically identified in some cases.
+
+Any additional arguments specified will depend on the format.  For examples of this see the
+section :ref:`built_in_readers_writers`.  This section also provides the full list of
+choices for the ``format`` argument.
+
+Supported formats
+------------------
+
+The  :ref:`table_io` has built-in support for the following data file formats:
+
+* :ref:`table_io_ascii`
+* :ref:`table_io_hdf5`
+* :ref:`table_io_fits`
+* :ref:`table_io_votable`

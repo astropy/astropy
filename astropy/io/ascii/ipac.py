@@ -89,6 +89,33 @@ class Ipac(fixedwidth.FixedWidth):
       date Wed Sp 20 09:48:36 1995
       key_continue IPAC keywords can continue across lines
 
+    Note that there are different conventions for characters occuring below the
+    position of the ``|`` symbol in IPAC tables. By default, any character
+    below a ``|`` will be ignored (since this is the current standard),
+    but if you need to read files that assume characters below the ``|``
+    symbols belong to the column before or after the ``|``, you can specify
+    ``definition='left'`` or ``definition='right'`` respectively when reading
+    the table (the default is ``definition='ignore'``). The following examples
+    demonstrate the different conventions:
+
+    * ``definition='ignore'``::
+
+        |   ra  |  dec  |
+        | float | float |
+          1.2345  6.7890
+
+    * ``definition='left'``::
+
+        |   ra  |  dec  |
+        | float | float |
+           1.2345  6.7890
+
+    * ``definition='right'``::
+
+        |   ra  |  dec  |
+        | float | float |
+        1.2345  6.7890
+
     Parameters
     ----------
     definition : str, optional
@@ -106,6 +133,11 @@ class Ipac(fixedwidth.FixedWidth):
         `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
         definition.
     """
+    _format_name = 'ipac'
+    _io_registry_format_aliases = ['ipac']
+    _io_registry_can_write = True
+    _description = 'IPAC format table'
+
     def __init__(self, definition='ignore', DBMS = False):
         super(fixedwidth.FixedWidth, self).__init__()
         self.header = IpacHeader(definition=definition)
