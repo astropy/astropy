@@ -39,7 +39,8 @@ TRIG_UFUNCS = set([np.cos, np.sin, np.tan])
 
 INVTRIG_UFUNCS = set([np.arccos, np.arcsin, np.arctan])
 
-INVARIANT_UFUNCS = set([np.absolute, np.conjugate, np.negative, np.ones_like, np.rint, np.floor, np.fix, np.ceil])
+INVARIANT_UFUNCS = set([np.absolute, np.conjugate, np.negative, np.ones_like,
+                        np.rint, np.floor, np.ceil])
 
 
 def _is_unity(value):

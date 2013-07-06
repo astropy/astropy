@@ -230,3 +230,27 @@ class TestQuantityMathFuncs(object):
             function(3. * u.m / u.km)
         assert exc.value.args[0] == ("Can only apply {0} function to dimensionless "
                                      "quantities".format(function.__name__))
+
+class TestInvariantUfuncs(object):
+
+    @pytest.mark.parametrize(('ufunc'), [np.absolute, np.conjugate,
+                                         np.negative, np.ones_like, np.rint,
+                                         np.floor, np.ceil])
+    def test_invariant_scalar(self, ufunc):
+
+        q_i = 4.7 * u.m
+        q_o = ufunc(q_i)
+        assert isinstance(q_o, u.Quantity)
+        assert q_o.unit == q_i.unit
+        assert q_o.value == ufunc(q_i.value)
+
+    @pytest.mark.parametrize(('ufunc'), [np.absolute, np.conjugate,
+                                         np.negative, np.ones_like, np.rint,
+                                         np.floor, np.ceil])
+    def test_invariant_array(self, ufunc):
+
+        q_i = np.array([-3.3, 2.1, 10.2]) * u.kg / u.s
+        q_o = ufunc(q_i)
+        assert isinstance(q_o, u.Quantity)
+        assert q_o.unit == q_i.unit
+        assert np.all(q_o.value == ufunc(q_i.value))
