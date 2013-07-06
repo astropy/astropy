@@ -1645,7 +1645,7 @@ class Table(object):
         index: int
             Index of row to remove
 
-        Example
+        Examples
         --------
         Create a table with three columns 'a', 'b' and 'c'::
 
