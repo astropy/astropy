@@ -671,6 +671,34 @@ class Time(object):
         else:
             raise OperandTypeError(self, other)
 
+    def _tai_difference(self, other):
+        """If other is of same class as self, return difference in TAI.
+        Otherwise, raise OperandTypeError.
+        """
+        if other.__class__ is not self.__class__:
+            raise OperandTypeError(self, other)
+        self_tai = self.tai
+        other_tai = other.tai
+        return (self_tai.jd1 - other_tai.jd1) + (self_tai.jd2 - other_tai.jd2)
+
+    def __lt__(self, other):
+        return self._tai_difference(other) < 0.
+
+    def __le__(self, other):
+        return self._tai_difference(other) <= 0.
+
+    def __eq__(self, other):
+        return self._tai_difference(other) == 0.
+
+    def __ne__(self, other):
+        return self._tai_difference(other) != 0.
+
+    def __gt__(self, other):
+        return self._tai_difference(other) > 0.
+
+    def __ge__(self, other):
+        return self._tai_difference(other) >= 0.
+
 
 class TimeDelta(Time):
     """
