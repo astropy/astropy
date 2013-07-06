@@ -105,7 +105,7 @@ class Quantity(object):
 
         if isinstance(value, Quantity):
             self._value = _validate_value(value.to(self._unit).value)
-        elif isiterable(value) and all([isinstance(v, Quantity) for v in value]):
+        elif isiterable(value) and all(isinstance(v, Quantity) for v in value):
             self._value = _validate_value([q.to(self._unit).value for q in value])
         else:
             self._value = _validate_value(value)
