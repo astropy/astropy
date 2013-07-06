@@ -150,6 +150,12 @@ class Time(object):
         else:
             self._init_from_vals(val, val2, format, scale, copy)
 
+        self.__print_format__ = None
+        self.units = None
+        self.description = None
+        self.dependencies = []
+        self.name = None
+
     def _init_from_vals(self, val, val2, format, scale, copy):
         """
         Set the internal _format, scale, and _time attrs from user
@@ -409,7 +415,7 @@ class Time(object):
         """Time values in current format as a numpy array"""
         return self.value
 
-    def copy(self, format=None):
+    def copy(self, format=None, data=None, copy_data=True):
         """
         Return a fully independent copy the Time object, optionally changing
         the format.
@@ -432,9 +438,9 @@ class Time(object):
         tm: Time object
             Copy of this object
         """
-        return self.replicate(format, copy=True)
+        return self.replicate(format, copy=copy_data)
 
-    def replicate(self, format=None, copy=False):
+    def replicate(self, format=None, copy=False, jd1=None, jd2=None):
         """
         Return a replica of the Time object, optionally changing the format.
 
@@ -473,6 +479,7 @@ class Time(object):
                           self._time.jd2.copy() if copy else self._time.jd2,
                           self.scale, self.precision,
                           self.in_subfmt, self.out_subfmt, from_jd=True)
+
         # Optional or non-arg attributes
         attrs = ('isscalar', '_delta_ut1_utc', '_delta_tdb_tt',
                  'lat', 'lon', 'precision', 'in_subfmt', 'out_subfmt')
@@ -821,6 +828,46 @@ class Time(object):
 
     def __ge__(self, other):
         return self._tai_difference(other) >= 0.
+
+    @property
+    def shape(self):
+        return () if self.is_scalar else (len(self),)
+
+    @property
+    def data(self):
+        # ?? SHOULD this be self.vals?  Should data return an array always?
+        return self.val
+
+    def __table_replicate__(self, data):
+        """
+        Replicate the current column but using a new ``data`` ndarray.
+        """
+        jd1 = data['{0}__jd1'.format(self.name)]
+        jd2 = data['{0}__jd2'.format(self.name)]
+        return self.replicate(jd1=jd1, jd2=jd2)
+
+    def __table_add_column__(self, table, index=None):
+        from ..table import TableColumns, Column
+        print 'Here in table add column'
+        if index is None:
+            index = len(table.columns)
+
+        col_jd1 = Column(data=self._time.jd1, name='{0}__jd1'.format(self.name))
+        col_jd2 = Column(data=self._time.jd2, name='{0}__jd2'.format(self.name))
+        table.add_columns([col_jd1, col_jd2])
+
+        self._time.jd1 = table['{0}__jd1'.format(self.name)].data
+        self._time.jd2 = table['{0}__jd2'.format(self.name)].data
+
+        columns = TableColumns()
+
+        for i_column, column in enumerate(table.columns.values()):
+            if i_column == index:
+                columns[self.name] = self
+            columns[column.name] = column
+        if index is None or index == len(table.columns):
+            columns[self.name] = self
+        table.columns = columns
 
 
 class TimeDelta(Time):
