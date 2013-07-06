@@ -502,7 +502,10 @@ class NonLinearLSQFitter(Fitter):
             epsfcn is less than the machine precision, it is
             assumed that the relative errors in the functions are
             of the order of the machine precision.
-
+        estimate_jacobian : bool
+            If False (default) and if the model has a deriv method,
+            it will be used. Otherwise the Jacobian will be estimated.
+            If True, the Jacobian will be estimated in any case.
         """
         from scipy import optimize
         x = np.asarray(x, dtype=np.float)

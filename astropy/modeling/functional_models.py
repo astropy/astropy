@@ -28,12 +28,6 @@ class Gaussian1DModel(Parametric1DModel):
         Mean of the gaussian
     stddev : float
         Standard deviation of the gaussian
-    jacobian_func : callable, 'estimated' or None
-        if callable - a function to compute the Jacobian of
-        func with derivatives across the rows.
-        if 'estimated' - the Jacobian will be estimated
-        if None - if the model has a deriv method, it will be used,
-        if not the Jacobian will be estimated.
     """
 
     param_names = ['amplitude', 'mean', 'stddev']
