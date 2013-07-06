@@ -40,7 +40,7 @@ def test_read_all_files_via_table():
             if 'guess' not in test_opts:
                 test_opts['guess'] = guess
             if 'Reader' in test_opts:
-                format = 'ascii.{}'.format(test_opts['Reader']._format_name)
+                format = 'ascii.{0}'.format(test_opts['Reader']._format_name)
                 del test_opts['Reader']
             else:
                 format = 'ascii'
