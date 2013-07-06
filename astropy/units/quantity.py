@@ -166,7 +166,7 @@ class Quantity(np.ndarray):
                 raise TypeError("Can only apply {0} function to dimensionless quantities".format(function.__name__))
         elif function in TRIG_UFUNCS:
             try:
-                result.to(radian)
+                result.unit.to(radian)
             except:
                 raise TypeError("Can only apply trigonometric functions to quantities with angle units")
             result._unit = dimensionless_unscaled
