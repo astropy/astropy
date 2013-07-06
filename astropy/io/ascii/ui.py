@@ -57,12 +57,12 @@ def set_guess(guess):
     """
     global _GUESS
     _GUESS = guess
-
+    
 def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     """Initialize a table reader allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Reader class.
 
-    :param Reader: Reader class (default= :class:`Basic`)
+    :param Reader: Reader class (DEPRECATED) (default= :class:`Basic`)
     :param Inputter: Inputter class 
     :param Outputter: Outputter class
     :param delimiter: column delimiter string
@@ -88,6 +88,18 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     reader = core._get_reader(Reader, Inputter=Inputter, Outputter=Outputter, **kwargs)
     return reader
 
+def _get_format_class(format, ReaderWriter, label):
+    if format is not None and ReaderWriter is not None:
+        raise ValueError('Cannot supply both format and {0} keywords'.format(label))
+
+    if format is not None:
+        if format in core.FORMAT_CLASSES:
+            ReaderWriter = core.FORMAT_CLASSES[format]
+        else:
+            raise ValueError('ASCII format {0!r} not in allowed list {1}'
+                             .format(format, sorted(core.FORMAT_CLASSES)))
+    return ReaderWriter
+
 def read(table, guess=None, **kwargs):
     """Read the input ``table`` and return the table.  Most of
     the default behavior for various parameters is determined by the Reader
@@ -95,7 +107,7 @@ def read(table, guess=None, **kwargs):
 
     :param table: input table (file name, list of strings, or single newline-separated string)
     :param guess: try to guess the table format (default=True)
-    :param Reader: Reader class (default=``ascii.Basic``)
+    :param format: input table format
     :param Inputter: Inputter class
     :param Outputter: Outputter class (default=TableOutputter)
     :param delimiter: column delimiter string
@@ -113,16 +125,24 @@ def read(table, guess=None, **kwargs):
     :param fill_values: specification of fill values for bad or missing table values (default=('', '0'))
     :param fill_include_names: list of names to include in fill_values (default=None selects all names)
     :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
+    :param Reader: Reader class (DEPRECATED) (default=``ascii.Basic``)
     """
 
     if 'fill_values' not in kwargs:
         kwargs['fill_values'] = [('', '0')]
 
-    # Provide a simple way to choose between the two common outputters.  If an
-    # Outputter is supplied in kwargs that will take precedence.
+    # If an Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
     new_kwargs['Outputter'] = core.TableOutputter
     new_kwargs.update(kwargs)
+
+    # Get the Reader class based on possible format and Reader kwarg inputs.
+    Reader = _get_format_class(kwargs.get('format'), kwargs.get('Reader'), 'Reader')
+    if Reader is not None:
+        new_kwargs['Reader'] = Reader
+    # Remove format keyword if there, this is only allowed in read() not get_reader()
+    if 'format' in new_kwargs:
+        del new_kwargs['format']
 
     if guess is None:
         guess = _GUESS
@@ -229,7 +249,7 @@ def get_writer(Writer=None, **kwargs):
     """Initialize a table writer allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Writer class.
 
-    :param Writer: Writer class (default=``ascii.Basic``)
+    :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
     :param delimiter: column delimiter string
     :param write_comment: string defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
@@ -246,13 +266,13 @@ def get_writer(Writer=None, **kwargs):
     writer = core._get_writer(Writer, **kwargs)
     return writer
 
-def write(table, output=sys.stdout,  Writer=None, **kwargs):
+def write(table, output=sys.stdout,  format=None, Writer=None, **kwargs):
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
 
     :param table: input table (Reader object, NumPy struct array, list of lists, etc)
     :param output: output [filename, file-like object] (default = sys.stdout)
-    :param Writer: Writer class (default=``ascii.Basic``)
+    :param format: output format (default=``basic``)
     :param delimiter: column delimiter string
     :param write_comment: string defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
@@ -261,9 +281,12 @@ def write(table, output=sys.stdout,  Writer=None, **kwargs):
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
+    :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
     """
 
     table = Table(table, names=kwargs.get('names'))
+
+    Writer = _get_format_class(format, Writer, 'Writer')
 
     names = set(table.colnames)
     if 'include_names' in kwargs:
@@ -289,4 +312,3 @@ def write(table, output=sys.stdout,  Writer=None, **kwargs):
     else:
         output.write(outstr)
         output.write(os.linesep)
-

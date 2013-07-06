@@ -257,8 +257,13 @@ class Latex(core.BaseReader):
             latexdict['col_align'] = col_align
 
     '''
+    _format_name = 'latex'
+    _io_registry_format_aliases = ['latex']
+    _io_registry_suffix = '.tex'
+    _description = 'LaTeX table'
 
-    def __init__(self, ignore_latex_commands = ['hline', 'vspace', 'tableline'], latexdict = {}, caption ='', col_align = None):
+    def __init__(self, ignore_latex_commands = ['hline', 'vspace', 'tableline'],
+                 latexdict = {}, caption ='', col_align = None):
 
         core.BaseReader.__init__(self)
         self.header = LatexHeader()
@@ -365,6 +370,11 @@ class AASTex(Latex):
     keywords.  However, the keywords ``header_start``, ``header_end``,
     ``data_start`` and ``data_end`` in ``latexdict`` have no effect.
     '''
+
+    _format_name = 'aastex'
+    _io_registry_format_aliases = ['aastex']
+    _io_registry_suffix = ''  # AASTex inherits from Latex, so override this class attr
+    _description = 'AASTeX deluxetable used for AAS journals'
 
     def __init__(self, **kwargs):
         Latex.__init__(self, **kwargs)

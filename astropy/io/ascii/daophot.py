@@ -87,6 +87,10 @@ class Daophot(core.BaseReader):
     Any column values of INDEF are interpreted as a missing value and will be
     masked out in the resultant table.
     """
+    _format_name = 'daophot'
+    _io_registry_format_aliases = ['daophot']
+    _io_registry_can_write = False
+    _description = 'IRAF DAOphot format table'
 
     def __init__(self):
         core.BaseReader.__init__(self)

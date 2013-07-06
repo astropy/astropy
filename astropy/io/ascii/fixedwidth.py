@@ -297,6 +297,9 @@ class FixedWidth(core.BaseReader):
     :param delimiter_pad: padding around delimiter when writing (default = None)
     :param bookend: put the delimiter at start and end of line when writing (default = False)
     """
+    _format_name = 'fixed_width'
+    _description = 'Fixed width'
+
     def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
         core.BaseReader.__init__(self)
 
@@ -348,6 +351,9 @@ class FixedWidthNoHeader(FixedWidth):
     :param delimiter_pad: padding around delimiter when writing (default = None)
     :param bookend: put the delimiter at start and end of line when writing (default = False)
     """
+    _format_name = 'fixed_width_no_header'
+    _description = 'Fixed width with no header'
+
     def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True):
         FixedWidth.__init__(self, col_starts, col_ends,
                             delimiter_pad=delimiter_pad, bookend=bookend)
@@ -383,6 +389,9 @@ class FixedWidthTwoLine(FixedWidth):
     :param delimiter_pad: padding around delimiter when writing (default = None)
     :param bookend: put the delimiter at start and end of line when writing (default = False)
     """
+    _format_name = 'fixed_width_two_line'
+    _description = 'Fixed width with second header line'
+
     def __init__(self, position_line=1, position_char='-', delimiter_pad=None, bookend=False):
         FixedWidth.__init__(self, delimiter_pad=delimiter_pad, bookend=bookend)
         self.header.position_line = position_line

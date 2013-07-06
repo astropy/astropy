@@ -35,13 +35,18 @@ import sys
 import re
 import csv
 import itertools
+import functools
 import numpy
 from contextlib import contextmanager
-from copy import deepcopy
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
 from ...utils import OrderedDict
+from . import connect
+
+# Global dictionary mapping format arg to the corresponding Reader class
+FORMAT_CLASSES = {}
+
 
 class InconsistentTableError(ValueError):
     pass
@@ -771,6 +776,31 @@ class TableOutputter(BaseOutputter):
         return out
 
 
+class MetaBaseReader(type):
+    def __init__(cls, name, bases, dct):
+        super(MetaBaseReader, cls).__init__(name, bases, dct)
+
+        format = dct.get('_format_name')
+        if format is None:
+            return
+
+        FORMAT_CLASSES[format] = cls
+
+        io_formats = ['ascii.' + format] + dct.get('_io_registry_format_aliases', [])
+
+        if dct.get('_io_registry_suffix'):
+            func = functools.partial(connect.io_identify, dct['_io_registry_suffix'])
+            connect.io_registry.register_identifier(io_formats[0], Table, func)
+
+        for io_format in io_formats:
+            func = functools.partial(connect.io_read, io_format)
+            connect.io_registry.register_reader(io_format, Table, func)
+
+            if dct.get('_io_registry_can_write', True):
+                func = functools.partial(connect.io_write, io_format)
+                connect.io_registry.register_writer(io_format, Table, func)
+
+
 class BaseReader(object):
     """Class providing methods to read and write an ASCII table using the specified
     header, data, inputter, and outputter instances.
@@ -784,6 +814,8 @@ class BaseReader(object):
     The default behavior is to raise an InconsistentTableError.
 
     """
+    __metaclass__ = MetaBaseReader
+
     def __init__(self):
         self.header = BaseHeader()
         self.data = BaseData()
