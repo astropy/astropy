@@ -22,6 +22,7 @@ from ..utils.metadata import MetaData
 from . import groups
 from .pprint import (_pformat_table, _more_tabcol)
 from .column import BaseColumn, Column, MaskedColumn, _auto_names
+from .mixins import ViewColumn
 
 # In Python 3, prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
 # sorting of structured arrays to silently fail under certain circumstances (for
@@ -34,7 +35,6 @@ __doctest_skip__ = ['Table.read', 'Table.write']
 
 if SKIP_STRING_SORT:
     __doctest_skip__.append('Table.sort')
-
 
 # Python 2 and 3 source compatibility
 try:
@@ -852,83 +852,6 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         return out
 
 
-class ViewColumn(object):
-    def __init__(self, col, data=None, name=None):
-        print 'jej', type(col), data
-        if isinstance(col, BaseColumn):
-            self.data_name = col.name
-            # Make an internal copy of the input column (including metadata etc)
-            # but keep the reference to the original data column
-            self._col = col.copy(copy_data=False)  # data=col.data ?
-        elif isinstance(col, self.__class__):
-            self.data_name = col.data_name
-            if data is None:
-                raise ValueError('Must supply `data` when constucting new ViewColumn '
-                                 'from existing ViewColumn object')
-            # Since `col` is already a ViewColumn we need to go down one layer and
-            # get the existing _col (which is a plain Column or MaskedColumn) and
-            # copy it.  In this case we update the data reference.
-            self._col = col._col.copy(data=data[col.data_name], copy_data=False)
-        self.dependencies = [self.data_name]
-        self.name = name
-        self.format = col.format
-        self.description = col.description
-        self.units = col.units
-
-    @property
-    def shape(self):
-        return self._col.shape
-
-    @property
-    def data(self):
-        return self._col.data
-
-    def __len__(self):
-        return len(self._col)
-
-    # @property
-    # def name(self):
-    #    return self.col.name
-
-    def __getitem__(self, item):
-        return self._col[item]
-
-    def copy(self, data=None, copy_data=False):
-        # FIX ME
-        return self
-
-    @property
-    def format(self):
-        return self.__print_format__
-
-    @format.setter
-    def format(self, value):
-        self.__print_format__ = value
-
-    def __table_replicate__(self, data):
-        """
-        Replicate the current column but using a new ``data`` ndarray.
-        """
-        newcol = ViewColumn(self, data, name=self.name)
-        return newcol
-
-    def __table_add_column__(self, table, index):
-        print 'Here in table add column'
-        if index is None:
-            index = len(table.columns)
-
-        if isinstance(self, ViewColumn):
-            columns = TableColumns()
-
-            for i_column, column in enumerate(table.columns.values()):
-                if i_column == index:
-                    columns[self.name] = self
-                columns[column.name] = column
-            if index is None or index == len(table.columns):
-                columns[self.name] = self
-            table.columns = columns
-
-
 class Row(object):
     """A class to represent one row of a Table object.
 
@@ -1653,10 +1576,11 @@ class Table(object):
         # If the item is a string then it must be the name of a column.
         # If that column doesn't already exist then create it now.
         if isinstance(item, basestring) and item not in self.colnames:
+            is_mixin = hasattr(value, '__table_add_column__')
             NewColumn = MaskedColumn if self.masked else Column
 
             # Make sure value is an ndarray so we can get the dtype
-            if not isinstance(value, np.ndarray) and not hasattr(value, '__table_add_column__'):
+            if not isinstance(value, np.ndarray) and not is_mixin:
                 value = np.asarray(value)
 
             # Make new column and assign the value.  If the table currently has no rows
@@ -1664,7 +1588,7 @@ class Table(object):
             # from value.  In the latter case this allows for propagation of Column
             # metadata.  Otherwise define a new column with the right length and shape and
             # then set it from value.  This allows for broadcasting, e.g. t['a'] = 1.
-            if isinstance(value, (BaseColumn, ViewColumn)):
+            if isinstance(value, BaseColumn) or is_mixin:
                 new_column = value.copy(copy_data=False)
                 new_column.name = item
             elif len(self) == 0:
