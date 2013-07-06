@@ -161,10 +161,11 @@ class Quantity(np.ndarray):
         if function is np.sqrt:
             result._unit = self._unit ** 0.5
         elif function in DIMENSIONLESS_UFUNCS:
-            if _is_unity(self._unit):
-                result._unit = dimensionless_unscaled
-            else:
+            try:
+                result.unit.to(dimensionless_unscaled)
+            except:
                 raise TypeError("Can only apply {0} function to dimensionless quantities".format(function.__name__))
+            result._unit = dimensionless_unscaled
         elif function in TRIG_UFUNCS:
             try:
                 result.unit.to(radian)
@@ -172,10 +173,11 @@ class Quantity(np.ndarray):
                 raise TypeError("Can only apply trigonometric functions to quantities with angle units")
             result._unit = dimensionless_unscaled
         elif function in INVTRIG_UFUNCS:
-            if _is_unity(self.unit):
-                result._unit = radian
-            else:
-                raise TypeError("Can only apply inverse trigonometric functions to dimensionless and unscaled quantities")
+            try:
+                result.unit.to(dimensionless_unscaled)
+            except:
+                raise TypeError("Can only apply inverse trigonometric functions to dimensionless quantities")
+            result._unit = radian
         elif function in INVARIANT_UFUNCS:
             pass
         else:
@@ -191,10 +193,16 @@ class Quantity(np.ndarray):
         # Find out which ufunc is being used
         function = context[0]
 
-        # If context is a trig function and we are not in radians, need to
-        # recompute since there was no way to change the value before
+        # If context is a trig function and we are not in radians, or context
+        # is a dimensionless function and we are not in dimensionless unscaled,
+        # need to recompute since there was no way to change the value before
         if function in TRIG_UFUNCS and self.unit is not radian:
-            obj = Quantity(function(self.to(radian).value), unit=dimensionless_unscaled)
+            obj = Quantity(function(self.to(radian).value),
+                           unit=dimensionless_unscaled)
+        elif function in DIMENSIONLESS_UFUNCS | INVTRIG_UFUNCS and \
+                self.unit is not dimensionless_unscaled:
+            obj = Quantity(function(self.to(dimensionless_unscaled).value),
+                           unit=obj._unit)
 
         return obj
 

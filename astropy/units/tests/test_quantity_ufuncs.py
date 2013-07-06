@@ -121,7 +121,7 @@ class TestQuantityTrigonometricFuncs(object):
         with pytest.raises(TypeError) as exc:
             np.arcsin(3. * u.m)
         assert exc.value.args[0] == ("Can only apply inverse trigonometric "
-                                     "functions to dimensionless and unscaled "
+                                     "functions to dimensionless "
                                      "quantities")
 
     def test_cos_scalar(self):
@@ -155,7 +155,7 @@ class TestQuantityTrigonometricFuncs(object):
         with pytest.raises(TypeError) as exc:
             np.arccos(3. * u.s)
         assert exc.value.args[0] == ("Can only apply inverse trigonometric "
-                                     "functions to dimensionless and unscaled "
+                                     "functions to dimensionless "
                                      "quantities")
 
     def test_tan_scalar(self):
@@ -187,7 +187,7 @@ class TestQuantityTrigonometricFuncs(object):
         with pytest.raises(TypeError) as exc:
             np.arctan(np.array([1,2,3]) * u.N)
         assert exc.value.args[0] == ("Can only apply inverse trigonometric "
-                                     "functions to dimensionless and unscaled "
+                                     "functions to dimensionless "
                                      "quantities")
 
 
@@ -216,6 +216,14 @@ class TestQuantityMathFuncs(object):
         assert np.all(q.value
                       == function(np.array([1. / 3., 1. / 2., 1.])))
 
+    # should also work on quantities that can be made dimensionless
+    @pytest.mark.parametrize('function', (np.exp, np.log, np.log2, np.log10, np.log1p))
+    def test_exp_array(self, function):
+        q = function(np.array([2., 3., 6.]) * u.m / (6. * u.cm))
+        assert q.unit == u.dimensionless_unscaled
+        assert_allclose(q.value,
+                        function(np.array([100. / 3., 100. / 2., 100.])))
+
     @pytest.mark.parametrize('function', (np.exp, np.log, np.log2, np.log10, np.log1p))
     def test_exp_invalid_units(self, function):
 
@@ -225,11 +233,6 @@ class TestQuantityMathFuncs(object):
         assert exc.value.args[0] == ("Can only apply {0} function to dimensionless "
                                      "quantities".format(function.__name__))
 
-        # Also can't use exp() with dimensionless scaled quantities
-        with pytest.raises(TypeError) as exc:
-            function(3. * u.m / u.km)
-        assert exc.value.args[0] == ("Can only apply {0} function to dimensionless "
-                                     "quantities".format(function.__name__))
 
 class TestInvariantUfuncs(object):
 
