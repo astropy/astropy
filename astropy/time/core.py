@@ -838,12 +838,12 @@ class Time(object):
         # ?? SHOULD this be self.vals?  Should data return an array always?
         return self.val
 
-    def __table_replicate__(self, data):
+    def __table_replicate__(self, table):
         """
         Replicate the current column but using a new ``data`` ndarray.
         """
-        jd1 = data['{0}__jd1'.format(self.name)]
-        jd2 = data['{0}__jd2'.format(self.name)]
+        jd1 = table._data['{0}__jd1'.format(self.name)]
+        jd2 = table._data['{0}__jd2'.format(self.name)]
         return self.replicate(jd1=jd1, jd2=jd2)
 
     def __table_add_column__(self, table, index=None):

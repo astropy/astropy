@@ -84,7 +84,7 @@ class FunctionColumn(object):
 
 
 class ViewColumn(object):
-    def __init__(self, col, data=None, name=None):
+    def __init__(self, col, table=None, name=None):
         from .table import BaseColumn
         if isinstance(col, BaseColumn):
             self.data_name = col.name
@@ -93,13 +93,13 @@ class ViewColumn(object):
             self._col = col.copy(copy_data=False)  # data=col.data ?
         elif isinstance(col, self.__class__):
             self.data_name = col.data_name
-            if data is None:
-                raise ValueError('Must supply `data` when constucting new ViewColumn '
+            if table is None:
+                raise ValueError('Must supply `table` when constucting new ViewColumn '
                                  'from existing ViewColumn object')
             # Since `col` is already a ViewColumn we need to go down one layer and
             # get the existing _col (which is a plain Column or MaskedColumn) and
             # copy it.  In this case we update the data reference.
-            self._col = col._col.copy(data=data[col.data_name], copy_data=False)
+            self._col = col._col.copy(data=table._data[col.data_name], copy_data=False)
         self.dependencies = [self.data_name]
         self.name = name
         self.format = col.format
@@ -136,18 +136,16 @@ class ViewColumn(object):
     def format(self, value):
         self.__print_format__ = value
 
-    def __table_replicate__(self, data):
+    def __table_replicate__(self, table):
         """
         Replicate the current column but using a new ``data`` ndarray.
         """
-        newcol = ViewColumn(self, data, name=self.name)
+        newcol = ViewColumn(self, table, name=self.name)
         return newcol
 
     def __table_add_column__(self, table, index):
         from .table import TableColumns
         print 'Here in table add column'
-        if index is None:
-            index = len(table.columns)
 
         if isinstance(self, ViewColumn):
             columns = TableColumns()
@@ -156,6 +154,6 @@ class ViewColumn(object):
                 if i_column == index:
                     columns[self.name] = self
                 columns[column.name] = column
-            if index is None or index == len(table.columns):
+            else:
                 columns[self.name] = self
             table.columns = columns

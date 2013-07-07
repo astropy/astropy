@@ -1334,7 +1334,7 @@ class Table(object):
         for name, col in zip(names, cols):
             print col.name, type(col)
             if hasattr(col, '__table_replicate__'):
-                newcol = col.__table_replicate__(data)
+                newcol = col.__table_replicate__(table)
             else:
                 newcol = col.copy(data=data[name], copy_data=False)
             newcol.name = name
