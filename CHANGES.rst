@@ -30,7 +30,9 @@ New Features
 
   - Allow multiplication and division of TimeDelta objects by
     constants and arrays, as well as changing sign (negation) and
-    taking the absolute value of TimeDelta objects [#1082]
+    taking the absolute value of TimeDelta objects [#1082].
+    
+  - Allow comparisons of Time and TimeDelta objects [#1171].
 
 - ``astropy.stats``
 
@@ -62,6 +64,10 @@ API Changes
     string "".  This now corresponds to the behavior of other table readers like
     ``numpy.genfromtxt``.  To restore the previous behavior set ``fill_values=None`` in the
     call to ``ascii.read()``.
+    
+  - The ``read`` and ``write`` methods of ``astropy.io.ascii`` now have a ``format``
+    argument for specifying the file format.  This is the preferred way to choose
+    the format instead of the ``Reader`` and ``Writer`` arguments [#961].
 
 - ``astropy.io.fits``
 
