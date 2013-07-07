@@ -15,10 +15,10 @@ class FunctionColumn(object):
     meta : dict-like or None
         Meta-data associated with the column
     """
-    def __init__(self, func, col_names, name=None, description=None, units=None, format=None):
-        self._col_dependencies = col_names
+    def __init__(self, func, cols, name=None, description=None, units=None, format=None):
+        self._col_dependencies = [col.name for col in cols]
         self.func = func
-        self.col_names = col_names
+        self.cols = cols
         self.name = name
         self.__print_format__ = format
         self.description = description
@@ -30,8 +30,7 @@ class FunctionColumn(object):
 
     @property
     def data(self):
-        col_datas = [self.parent_table[name].data for name in self.col_names]
-        return self.func(*col_datas)
+        return self.func(*self.cols)
 
     def __len__(self):
         return len(self.parent_table)
@@ -83,7 +82,7 @@ class FunctionColumn(object):
         table.columns = columns
 
 
-class ViewColumn(object):
+class ViewColumnOrig(object):
     def __init__(self, col, table=None, name=None):
         from .table import BaseColumn
         if isinstance(col, BaseColumn):
