@@ -109,7 +109,10 @@ extensions = [
 try:
     import matplotlib.sphinxext.plot_directive
     extensions += [matplotlib.sphinxext.plot_directive.__name__]
-except ImportError:
+# AttributeError is checked here in case matplotlib is installed but
+# Sphinx isn't.  Note that this module is imported by the config file
+# generator, even if we're not building the docs.
+except (ImportError, AttributeError):
     warnings.warn(
         "matplotlib's plot_directive could not be imported. " +
         "Inline plots will not be included in the output")
