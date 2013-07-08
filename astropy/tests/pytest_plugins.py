@@ -317,8 +317,8 @@ def pytest_report_header(config):
         s += "Matplotlib: not available\n"
 
     try:
-        import h5py
-        s += "h5py: {0}\n".format(h5py.__version__)
+        import h5py.version
+        s += "h5py: {0}\n".format(h5py.version.version)
     except:
         s += "h5py: not available\n"
 
