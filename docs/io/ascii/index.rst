@@ -125,7 +125,7 @@ tables is given below.  The ``Write`` column indicates which formats support wri
 functionality.
 
 ========================= ===== ============================================================================================
-           Format               Write                                          Description
+           Format         Write                                          Description
 ========================= ===== ============================================================================================
 ``aastex``                  Yes :class:`~astropy.io.ascii.latex.AASTex`: AASTeX deluxetable used for AAS journals
 ``basic``                   Yes :class:`~astropy.io.ascii.basic.Basic`: Basic table with custom delimiters
