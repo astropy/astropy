@@ -25,15 +25,25 @@ the number of transverse proper kpc corresponding to an arcminute at z=3:
 
   >>> from astropy import cosmology
   >>> cosmology.H(0)
-  70.4
+  <Quantity 70.4 km / (Mpc s)>
   >>> cosmology.kpc_proper_per_arcmin(3)
-  472.8071851564037
+  <Quantity 472.8071851564037 kpc / arcmin>
 
 All the functions available are listed in the `Reference/API`_
 section. These will use the "current" cosmology to calculate the
 values (see `The Current Cosmology`_ section below for more
 details). If you haven't set this explicitly, they will use the 7-year
 WMAP cosmological parameters and print a warning message.
+
+Also note that the cosmology subpackage makes use of `~astropy.units`, so
+in many cases returns values with units attached -- consult the documentation
+for that subpackage for more details, but, briefly, to access the floating
+point (or array) values:
+
+  >>> from astropy import cosmology
+  >>> H0 = cosmology.H(0)
+  >>> H0.value, H0.unit
+  (70.4, Unit("km / (Mpc s)"))
 
 There are also several standard cosmologies already defined. These are
 objects with methods and attributes that calculate cosmological
@@ -42,7 +52,7 @@ the 5-year WMAP parameters:
 
   >>> from astropy.cosmology import WMAP5
   >>> WMAP5.comoving_distance(4)
-  7329.328120760829
+  <Quantity 7329.328120760829 Mpc>
 
 A full list of the pre-defined cosmologies is given by
 `cosmology.parameters.available`.
@@ -80,17 +90,17 @@ section are instances of `~astropy.cosmology.core.FlatLambdaCDM`, and have
 the same methods. So we can find the luminosity distance in Mpc to
 redshift 4 by:
 
-  >>> cosmo.luminosity_distance(4)
+  >>> cosmo.luminosity_distance(4).value
   35842.35374316948
 
 or the age of the universe at z = 0 in Gyr:
 
   >>> cosmo.age(0)
-  13.461701807287566
+  <Quantity 13.461701807287566 Gyr>
 
 They also accept arrays of redshifts:
 
-  >>> cosmo.age([0.5, 1, 1.5])
+  >>> cosmo.age([0.5, 1, 1.5]).value
   array([ 8.42128059,  5.74698062,  4.1964541 ])
 
 See the `~astropy.cosmology.core.FLRW` and
@@ -101,11 +111,11 @@ non-flat varieties are supported such as
 standard cosmologies with the parameters already defined:
 
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
-  >>> WMAP7.critical_density(0)       # critical density at z = 0 in g/cm^3
-  9.31000313202047e-30
+  >>> WMAP7.critical_density(0)       # critical density at z = 0
+  <Quantity 9.31000313202047e-30 g / cm3>
 
   >>> from astropy.cosmology import WMAP5   # WMAP 5-year
-  >>> WMAP5.H(3)                    # Hubble parameter at z = 3 in km/s/Mpc
+  >>> WMAP5.H(3).value                 # Hubble parameter at z = 3 in km/s/Mpc
   301.71804314602889
 
 You can see how the density parameters evolve with redshift as well
@@ -116,7 +126,8 @@ You can see how the density parameters evolve with redshift as well
    array([ 0.72791572,  0.25055062,  0.09010261]))
 
 Note that these don't quite add up to one even though WMAP7 assumes a
-flat Universe because photons and neutrinos are included.
+flat Universe because photons and neutrinos are included, and that
+they are not `~astropy.units.Quantity` objects because they are dimensionless.
 
 In addition to the `~astropy.cosmology.core.LambdaCDM` object, there
 are convenience functions that calculate some of these quantities
@@ -125,9 +136,9 @@ methods available if you work directly with the cosmology object.
 
   >>> from astropy import cosmology
   >>> cosmology.kpc_proper_per_arcmin(3)
-  472.8071851564037
+  <Quantity 472.8071851564037 kpc / arcmin>
   >>> cosmology.arcsec_per_kpc_proper(3)
-  0.12690162477152736
+  <Quantity 0.12690162477152736 arcsec / kpc>
 
 These functions will perform calculations using the "current"
 cosmology. This is a specific cosmology that is currently active in
@@ -168,10 +179,10 @@ message:
 The 9-year WMAP and Planck 2013 cosmologies are also available
 
   >>> from astropy.cosmology import WMAP9   # WMAP 9-year
-  >>> WMAP9.lookback_time(2)                # lookback time in Gyr at z=2
+  >>> WMAP9.lookback_time(2).value          # lookback time in Gyr at z=2
   10.442114507
   >>> from astropy.cosmology import Planck13  # Planck 2013
-  >>> Planck13.lookback_time(2)             # lookback time in Gyr at z=2
+  >>> Planck13.lookback_time(2).value       # lookback time in Gyr at z=2
   10.522149614
 
 .. note::
