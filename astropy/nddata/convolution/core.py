@@ -18,6 +18,7 @@ import abc
 
 import numpy as np
 import copy
+from astropy.nddata.convolution.utils import KernelSizeError
 
 
 class Kernel(object):
@@ -149,7 +150,8 @@ class Kernel(object):
             return kernel
         elif isinstance(value, Kernel):
             #Convolve the two kernels with each other
-            pass
+            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
+                            .format(self.__class__, type(value)))
         else:
             raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
                             .format(self.__class__, type(value)))
@@ -165,7 +167,8 @@ class Kernel(object):
             return kernel
         elif isinstance(value, Kernel):
             #Convolve the two kernels with each other
-            pass
+            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
+                            .format(self.__class__, type(value)))
         else:
             raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
                             .format(self.__class__, type(value)))
@@ -174,16 +177,64 @@ class Kernel(object):
 class Kernel1D(Kernel):
     """
     Base class for 1D filter kernels
+
+    Parameters
+    ----------
+    width : float
+        Width of the kernel model.
+    size : odd int
+        Size of the kernel mask.
     """
-    def __init__(self, mask):
+    def __init__(self, size):
         self.axes = 0
+        if not isinstance(size, int):
+            raise TypeError("Size must be integer.")
+        if not size % 2 == 0:
+            raise KernelSizeError("Kernel size must be odd.")
+        self._odd = True
+        mask = self._init_mask(size)
         super(Kernel1D, self).__init__(mask)
+
+    def _init_mask(self, size):
+        """
+        Evaluate kernel model on grid.
+
+        Parameters
+        ----------
+        size : odd int
+            Total size of the mask.
+        """
+        x = np.arange(-size / 2, size / 2 + 1)
+        return self._model(x)
 
 
 class Kernel2D(Kernel):
     """
     Abstract base class for 1D filter kernels
     """
-    def __init__(self):
+    def __init__(self, shape):
         super(Kernel2D, self).__init__()
+
+        if not np.all([isinstance(number, int) for number in shape]):
+            raise TypeError("Size must be integer.")
+        if not np.all([number % 2 == 0 for number in shape]):
+            raise KernelSizeError("Kernel size must be odd.")
+        self._odd = True
+        mask = self._init_mask(shape)
+        super(Kernel1D, self).__init__(mask)
+
+    def _init_mask(self, shape):
+        """
+        Evaluate kernel model on grid.
+
+        Parameters
+        ----------
+        shape : tuple
+            Shape of the mask. Sizes must be odd.
+        """
+        x = np.arange(-shape[1] / 2, shape[1] / 2 + 1)
+        y = np.arange(-shape[0] / 2, shape[0] / 22 + 1)
+        x, y = np.meshgrid(x, y)
+        return self._model(x, y)
+
 

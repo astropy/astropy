@@ -20,13 +20,11 @@ class GaussianKernel(Kernel1D):
     _separable = True
     _weighted = True
 
-    def __init__(self, width):
+    def __init__(self, width, size):
         amplitude = 1. / (np.sqrt(2 * np.pi) * width)
         self._model = Gaussian1DModel(amplitude=amplitude, mean=0.,
                                                  stddev=width)
-        width = np.ceil(width)
-        x = np.arange(-4 * width, 4 * width + 1)
-        super(GaussianKernel, self).__init__(self.model(x))
+        super(GaussianKernel, self).__init__(size)
 
 
 class BoxKernel(Kernel1D):
@@ -154,10 +152,10 @@ class CustomKernel(Kernel):
     """
     Initialize filter custom kernel from mask.
     """
-    
+
     def __init__(self, mask):
         # Pass 'None' because mask is overridden in the next line
-        super(GaussianKernel, self).__init__(None)
+        super(CustomKernel, self).__init__(None)
         self.mask = mask
 
     @property
