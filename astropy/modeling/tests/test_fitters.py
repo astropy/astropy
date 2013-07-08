@@ -164,20 +164,20 @@ class TestNonLinearFitters(object):
         yerror = rsn.normal(0, sigma)
         self.ydata = func(self.initial_values, self.xdata) + yerror
 
-    def test_estmated_vs_analytic_deriv(self):
+    def test_estimated_vs_analytic_deriv(self):
         g1 = models.Gaussian1DModel(100, 5, stddev=1)
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.xdata, self.ydata)
-        g1e = models.Gaussian1DModel(100, 5.0, stddev=1, jacobian_func='estimated')
+        g1e = models.Gaussian1DModel(100, 5.0, stddev=1)
         efitter = fitting.NonLinearLSQFitter(g1e)
-        efitter(self.xdata, self.ydata)
+        efitter(self.xdata, self.ydata, estimate_jacobian=True)
         utils.assert_allclose(g1.parameters, g1e.parameters, rtol=10 ** (-3))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_with_optimize(self):
-        g1 = models.Gaussian1DModel(100, 5, stddev=1, jacobian_func='estimated')
+        g1 = models.Gaussian1DModel(100, 5, stddev=1)
         fitter = fitting.NonLinearLSQFitter(g1)
-        fitter(self.xdata, self.ydata)
+        fitter(self.xdata, self.ydata, estimate_jacobian=True)
         func = lambda p, x: p[0] * np.exp(-0.5 / p[2] ** 2 * (x - p[1]) ** 2)
         errf = lambda p, x, y: (func(p, x) - y)
         result = optimize.leastsq(errf, self.initial_values, args=(self.xdata, self.ydata))

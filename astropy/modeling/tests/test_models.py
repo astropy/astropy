@@ -147,10 +147,64 @@ def test_pickle():
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_powerlaw(scale=5., alpha=2.):
-    x = np.linspace(10, 100)
-    y = scale * (x) ** (-alpha)
-    plm = models.PowerLawModel(1, 1)  # start with a bad guess
-    fitter = fitting.NonLinearLSQFitter(plm)
-    fitter(x, y)
-    assert np.all((fitter.fitpars - np.array([scale, alpha])) < 0.001)
+def test_custom_model(amplitude=4, frequency=1):
+    def f(x, amplitude=4, frequency=1):
+        """
+        Model function
+        """
+        return amplitude * np.sin(2 * np.pi * frequency * x)
+    x = np.linspace(0, 4, 50)
+    sin_model = models.Custom1DModel(f)
+    np.random.seed(0)
+    data = sin_model(x) + np.random.rand(50) - 0.5
+    fitter = fitting.NonLinearLSQFitter(sin_model)
+    fitter(x, data)
+    assert np.all((fitter.fitpars - np.array([amplitude, frequency])) < 0.001)
+
+
+models_1D = [
+            (models.Gaussian1DModel, [1, 0, 1], [[0, np.sqrt(2), -np.sqrt(2)],
+                                [1, 1. / np.exp(1), 1. / np.exp(1)]], [-10, 10]),
+            (models.Sine1DModel, [1, 1], [[0, 0.25], [0, 1]], [-10, 10]),
+            (models.Const1DModel, [1], [[-1, 1, np.pi, -42., 0], [1, 1, 1, 1, 1]], [-10, 10]),
+            (models.Box1DModel, [1, 0, 1], [[-0.5, 0.5, 0, -1, 1], [1, 1, 1, 0, 0]], [-2, 2]),
+            (models.Linear1DModel, [1, 0], [[0, np.pi, 42], [0, np.pi, 42]], [-10, 10]),
+            (models.PowerLaw1DModel, [1, 2], [[2, 1, 10.], [0.25, 1, 0.01]], [1, 2])
+            ]
+
+
+class TestParametricModel(object):
+    """
+    Test class for all parametric objects
+    """
+
+    def setup_class(self):
+        self.N = 100
+
+    @pytest.mark.parametrize(('model_class', 'params', 'values', 'range'), models_1D)
+    def test_eval1D(self, model_class, params, values, range):
+        """
+        Test model values add certain given points
+        """
+        model = model_class(*params)
+        x = values[0]
+        y = values[1]
+        assert np.all((np.abs(model(x) - y) < 0.0001))
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.parametrize(('model_class', 'params', 'values', 'range'), models_1D)
+    def test_fitter1D(self, model_class, params, values, range):
+        """
+        Test if the parametric model works with the fitter.
+        """
+        model = model_class(*params)
+        if model == models.PowerLaw1DModel:
+            x = np.logspace(range[0], range[1], self.N)
+        else:
+            x = np.linspace(range[0], range[1], self.N)
+        np.random.seed(0)
+        # add 1% noise to the amplitude
+        data = model(x) + 0.1 * params[0] * (np.random.rand(self.N) - 0.5)
+        fitter = fitting.NonLinearLSQFitter(model)
+        fitter(x, data)
+        assert np.all((fitter.fitpars - np.array(params) < 0.01))

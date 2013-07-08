@@ -5,7 +5,18 @@ This module provides utility functions for the models package
 from __future__ import division
 import numpy as np
 
-__all__ = ['poly_map_domain', 'comb', 'InputParameterError']
+__all__ = ['poly_map_domain', 'comb', 'InputParameterError', 'ModelDefinitionError']
+
+
+class ModelDefinitionError(Exception):
+    """
+    Called when models are defined in a wrong way
+    """
+    def __init__(self, message):
+        self._message = message
+
+    def __str__(self):
+        return self._message
 
 
 class InputParameterError(Exception):

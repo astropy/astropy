@@ -6,13 +6,15 @@ from __future__ import division
 import collections
 import numpy as np
 from . import parameters
-from .core import ParametricModel, Model, _convert_input, _convert_output
-from .utils import InputParameterError
+from .core import ParametricModel, Parametric1DModel, Model, _convert_input, _convert_output
+from .utils import InputParameterError, ModelDefinitionError
 
-__all__ = ['Gaussian1DModel', 'Gaussian2DModel',  'ScaleModel', 'ShiftModel', 'PowerLawModel']
+__all__ = ['Gaussian1DModel', 'Gaussian2DModel', 'ScaleModel', 'ShiftModel',
+           'Custom1DModel', 'Sine1DModel', 'Linear1DModel', 'PowerLaw1DModel',
+           'Const1DModel', 'Lorentz1DModel', 'Box1DModel']
 
 
-class Gaussian1DModel(ParametricModel):
+class Gaussian1DModel(Parametric1DModel):
 
     """
 
@@ -26,112 +28,29 @@ class Gaussian1DModel(ParametricModel):
         Mean of the gaussian
     stddev : float
         Standard deviation of the gaussian
-        Either fwhm or stddev must be specified
-    fwhm : float
-        Full width at half maximum
-        Either fwhm or stddev must be specified
-    jacobian_func : callable, 'estimated' or None
-        if callable - a function to compute the Jacobian of
-        func with derivatives across the rows.
-        if 'estimated' - the Jacobian will be estimated
-        if None - if the model has a deriv method, it will be used,
-        if not the Jacobian will be estimated.
-
     """
 
     param_names = ['amplitude', 'mean', 'stddev']
 
-    def __init__(self, amplitude, mean, stddev=None, fwhm=None,
-                 jacobian_func=None, **cons):
+    def __init__(self, amplitude, mean, stddev, **cons):
+        super(Gaussian1DModel, self).__init__(locals(), **cons)
 
-        try:
-            param_dim = len(amplitude)
-        except TypeError:
-            param_dim = 1
-
-        if stddev is None and fwhm is None:
-            raise InputParameterError(
-                "Either fwhm or stddev must be specified")
-        elif stddev is not None and fwhm is not None:
-            raise InputParameterError("Cannot specify both fwhm and stddev")
-        elif stddev is not None:
-            stddev_val = stddev
-        else:
-            try:
-                stddev_val = 0.42466 * fwhm
-            except TypeError:
-                stddev_val = [0.42466 * n for n in fwhm]
-
-        self._stddev = parameters.Parameter('stddev', stddev_val, self, param_dim)
-        self._mean = parameters.Parameter('mean', mean, self, param_dim)
-        self._amplitude = parameters.Parameter('amplitude', amplitude, self, param_dim)
-
-        super(Gaussian1DModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
-                                              param_dim=param_dim, **cons)
-
-        self.linear = False
-        if jacobian_func is 'estimated':
-            self.deriv = None
-        elif callable(jacobian_func):
-            self.deriv = jacobian_func
-        else:
-            self.deriv = self.gderiv
-
-    def eval(self, x, params):
+    def eval(self, x, amplitude, mean, stddev):
         """
-        Evaluate the model.
-
-        Parameters
-        ----------
-        x : array like or a number
-            input
-        params : list
-            a list of float parameters returned by the optimization algorithm
+        Model function Gauss1D
         """
-        return params[0] * np.exp(- 0.5 * (x - params[1]) ** 2 / params[2] ** 2)
+        return amplitude * np.exp(- 0.5 * (x - mean) ** 2 / stddev ** 2)
 
-    def gderiv(self, params, x, dummy=None):
+    def deriv(self, x, amplitude, mean, stddev):
         """
-        Analytical Gaussian derivative
-
-        Parameters
-        ----------
-        params : list
-            Parameter list
-        x : array
-            Array of X-values at which to evaluate derivative
-        dummy : None
-            A dummy variable required by scipy's optimize techniques
-
-        Returns
-        -------
-        The derivatives along each parameter with shape [npars, len(x)]
+        Model function derivatives Gauss1D
         """
-        amplitude, mean, stddev = params
-
-        deriv_dict = {}
-        deriv_dict['amplitude'] = np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
-        deriv_dict['mean'] = (amplitude
-                              * np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
-                              * (x - mean) / stddev ** 2)
-        deriv_dict['stddev'] = (amplitude
-                                * np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
-                                * (x - mean) ** 2 / stddev ** 3)
-        derivval = [deriv_dict[par] for par in self.param_names]
-        return np.array(derivval).T
-
-    def __call__(self, x):
-        """
-        Transforms data using this model.
-
-        Parameters
-        --------------
-        x : array like or a number
-
-        """
-        x, fmt = _convert_input(x, self.param_dim)
-        result = self.eval(x, self.param_sets)
-        return _convert_output(result, fmt)
+        d_amplitude = np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
+        d_mean = (amplitude * np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
+                            * (x - mean) / stddev ** 2)
+        d_stddev = (amplitude * np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
+                              * (x - mean) ** 2 / stddev ** 3)
+        return [d_amplitude, d_mean, d_stddev]
 
 
 class Gaussian2DModel(ParametricModel):
@@ -361,7 +280,7 @@ class ScaleModel(Model):
         return _convert_output(result, fmt)
 
 
-class PowerLawModel(ParametricModel):
+class PowerLaw1DModel(Parametric1DModel):
 
     """
     A power law model.
@@ -375,59 +294,326 @@ class PowerLawModel(ParametricModel):
         Model scale
     alpha : float
         power
+
+    Notes
+    -----
+    Model formula:
+        f(x) = scale * x ** (-alpha)
     """
     param_names = ['scale', 'alpha']
 
-    def __init__(self, scale, alpha, param_dim=1):
-        self._scale = parameters.Parameter(name='scale', val=scale,
-                                           mclass=self, param_dim=param_dim)
-        self._alpha = parameters.Parameter(name='alpha', val=alpha,
-                                           mclass=self, param_dim=param_dim)
-        super(PowerLawModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
-                                            param_dim=param_dim)
-        self.linear = False
+    def __init__(self, scale, alpha):
+        super(PowerLaw1DModel, self).__init__(locals())
 
-    def eval(self, x, params):
+    def eval(self, x, scale, alpha):
         """
-        Evaluate the model
-
-        Parameters
-        ----------
-        x : array like or a number
-            input
-        params : array
-            parameter sets
-
+        Model function PowerLaw1D
         """
-        return params[0] * ((x) ** (-params[1]))
+        return scale * x ** (-alpha)
 
-    def deriv(self, params, x, dummy):
+    def deriv(self, x, scale, alpha):
         """
-        Parameters
-        ----------
-        params : list
-            a list of float parameters returned by the optimization algorithm
-        x : array like or a number
-            input
-        dummy : None
-            A dummy variable required by scipy's optimize techniques
+        Model derivative PowerLaw1D
+        """
+        d_scale = x ** (-alpha)
+        d_alpha = scale * ((x) ** (-alpha)) * np.log(x)
+        return [d_scale, d_alpha]
 
-        """
-        deriv_dict = {
-            'scale': ((x) ** (-params[1])),
-            'alpha': params[0] * ((x) ** (-params[1])) * np.log(x)}
-        derivval = [deriv_dict[par] for par in self.param_names]
-        return np.array(derivval).T
 
-    def __call__(self, x):
-        """
-        Transforms data using this model.
+class Sine1DModel(Parametric1DModel):
 
-        Parameters
-        ----------
-        x : array like or a number
-            input
+    """
+    One dimensional sine model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Oscillation amplitude
+    frequency : float
+        Oscillation frequency
+
+    Notes
+    -----
+    Model formula:
+        f(x) = amplitude * np.sin(2 * np.pi * frequency * x)
+    """
+    param_names = ['amplitude', 'frequency']
+
+    def __init__(self, amplitude, frequency):
+        super(Sine1DModel, self).__init__(locals())
+
+    def eval(self, x, amplitude, frequency):
         """
-        x, fmt = _convert_input(x, self.param_dim)
-        result = self.eval(x, self.param_sets)
-        return _convert_output(result, fmt)
+        Model function Sine1D
+        """
+        return amplitude * np.sin(2 * np.pi * frequency * x)
+
+    def deriv(self, x, amplitude, frequency):
+        """
+        Model function Sine1D
+        """
+        d_amplitude = np.sin(2 * np.pi * frequency * x)
+        d_frequency = (2 * np.pi * x * amplitude
+                                   * np.cos(2 * np.pi * frequency * x))
+        return [d_amplitude, d_frequency]
+
+
+class Linear1DModel(Parametric1DModel):
+
+    """
+    Simple one dimensional straight line model.
+
+    Parameters
+    ----------
+    slope : float
+        Slope of the straight line
+
+    intercept : float
+        Intercept of the straight line
+
+    Notes
+    -----
+    Model formula:
+        f(x) = slope * x + intercept
+    """
+    param_names = ['slope', 'intercept']
+
+    def __init__(self, slope, intercept):
+        super(Linear1DModel, self).__init__(locals())
+        self.linear = True
+
+    def eval(self, x, slope, intercept):
+        """
+        Model function Linear1D
+        """
+        return slope * x + intercept
+
+    def deriv(self, x, slope, intercept):
+        """
+        Model function derivatives Linear1D
+        """
+        d_slope = x
+        d_intercept = np.ones_like(x)
+        return [d_slope, d_intercept]
+
+
+class Lorentz1DModel(Parametric1DModel):
+
+    """
+    One dimensional Lorentzian function.
+
+    Parameters
+    ----------
+    amplitude : float
+        Peak value
+    x_0 : float
+        Position of the peak
+    fwhm : float
+        Full width at half maximum
+
+    Notes
+    -----
+    Model formula:
+        f(x) = amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.) ** 2)
+    """
+    param_names = ['amplitude', 'x_0', 'fwhm']
+
+    def __init__(self, amplitude, x_0, fwhm):
+        super(Lorentz1DModel, self).__init__(locals())
+
+    def eval(self, x, amplitude, x_0, fwhm):
+        """
+        Model function Lorentz1D
+        """
+        return amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.) ** 2)
+
+
+class Const1DModel(Parametric1DModel):
+
+    """
+    One dimensional constant function.
+
+    Parameters
+    ----------
+    amplitude : float
+        Value of the constant function
+
+    Notes
+    -----
+    Model formula:
+        f(x) = amplitude
+    """
+    param_names = ['amplitude']
+
+    def __init__(self, amplitude):
+        super(Const1DModel, self).__init__(locals())
+
+    def eval(self, x, amplitude):
+        """
+        Model function Const1D
+        """
+        return amplitude
+
+    def deriv(self, x, amplitude):
+        """
+        Model function derivatives Const1D
+        """
+        d_amplitude = np.ones_like(x)
+        return [d_amplitude]
+
+
+class Const2DModel(ParametricModel):
+
+    """
+    Two dimensional constant function.
+    """
+    def __init__(self):
+        raise ModelDefinitionError("Not implemented")
+
+
+class Disk2DModel(ParametricModel):
+
+    """
+    Two dimensional radial symmetric box function.
+    """
+    def __init__(self):
+        raise ModelDefinitionError("Not implemented")
+
+
+class Delta1DModel(Parametric1DModel):
+
+    """
+    One dimensional Dirac delta function
+    """
+    def __init__(self):
+        raise ModelDefinitionError("Not implemented")
+
+
+class Box1DModel(Parametric1DModel):
+
+    """
+    One dimensional box function.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude A
+    x_0 : float
+        Position of the center of the box function
+    width : float
+        Width of the box
+
+    Notes
+    -----
+    Model function:
+        f(x) = np.select([x >= x_0 - width / 2., x <= x_0 + width / 2.],
+                         [amplitude, amplitude])
+
+    Note that at f(x_0 - width / 2.) = f(x_0 + width / 2.) = amplitude.
+    """
+    param_names = ['amplitude', 'x_0', 'width']
+
+    def __init__(self, amplitude, x_0, width):
+        super(Box1DModel, self).__init__(locals())
+
+    def eval(self, x, amplitude, x_0, width):
+        """
+        Model function Box1D
+        """
+        return np.select([np.logical_and(x >= x_0 - width / 2., x <= x_0 + width / 2.)],
+                         [amplitude])
+
+    def deriv(self, x, amplitude, x_0, width):
+        """
+        Model function derivatives Box1D
+        """
+        d_amplitude = self.eval(x, 1, x_0, width)
+        d_x_0 = np.zeros_like(x)
+        d_width = np.zeros_like(x)
+        return [d_amplitude, d_x_0, d_width]
+
+
+class Box2DModel(ParametricModel):
+
+    """
+    Two dimensional box function.
+    """
+    def __init__(self):
+        raise ModelDefinitionError("Not implemented")
+
+
+class MexicanHat1DModel(ParametricModel):
+
+    """
+    One dimensional mexican hat function.
+    """
+    def __init__(self):
+        raise ModelDefinitionError("Not implemented")
+
+
+class MexicanHat2DModel(ParametricModel):
+
+    """
+    Two dimensional mexican hat function.
+    """
+    def __init__(self):
+        raise ModelDefinitionError("Not implemented")
+
+
+class Custom1DModel(Parametric1DModel):
+
+    """
+    Create one dimensional model from a user defined function.
+
+    IMPORTANT: All model parameters have to be defined as KEYWORD ARGUMENTS
+    with default values in the model function.
+
+    If you want to work with parameter sets, the parameters have to be defined
+    as lists.
+
+    Parameters
+    ----------
+    func : function
+        Function which defines the model
+    func_deriv : function
+        Function which defines the model derivatives default = None
+
+    Examples
+    --------
+    Define a sinusoidal model function:
+
+        >>> from astropy.modeling.models import Custom1DModel
+        >>> import numpy as np
+        >>> def f(x, amplitude=1., frequency=1.):
+        ...     return amplitude * np.sin(2 * np.pi * frequency * x)
+
+    And create a custom one dimensional model from it:
+
+        >>> sin_model = Custom1DModel(f)
+        >>> sin_model(0.25)
+        1.0
+
+    This model instance can now be used like a usual astropy model.
+    """
+
+    def __init__(self, func, func_deriv=None):
+        if callable(func):
+            self._func = func
+        else:
+            raise ModelDefinitionError("Not callable. Must be function")
+
+        param_values = func.func_defaults
+
+        # Check if all parameters are keyword arguments
+        if func.func_code.co_argcount == len(param_values) + 1:
+            self.param_names = func.func_code.co_varnames[1:1 + len(param_values)]
+        else:
+            raise ModelDefinitionError("All parameters must be keyword arguments")
+        param_dict = dict(zip(self.param_names, param_values))
+        super(Custom1DModel, self).__init__(param_dict)
+
+    def eval(self, x, *params):
+        """
+        Model function Custom1D
+        """
+        return self._func(x, *params)
