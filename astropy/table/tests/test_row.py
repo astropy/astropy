@@ -3,6 +3,7 @@ import sys
 
 from distutils import version
 import numpy as np
+import warnings
 
 from ...tests.helper import pytest
 from ... import table
