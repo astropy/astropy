@@ -87,8 +87,8 @@ def join(left, right, keys=None, join_type='inner',
     right : Table object or a value that will initialize a Table object
         Right side table in the join
     keys : str or list of str
-        Column(s) used to match rows of left and right tables.  Default
-        is to use all columns which are common to both tables.
+        Name(s) of column(s) used to match rows of left and right tables.
+        Default is to use all columns which are common to both tables.
     join_type : str
         Join type ('inner' | 'outer' | 'left' | 'right'), default is 'inner'
     uniq_col_name : str or None
