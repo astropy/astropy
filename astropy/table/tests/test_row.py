@@ -142,7 +142,10 @@ class TestRow():
     
     def test_deprecated_attributes(self, table_types):
         self._setup(table_types)
-        c = Row(self.t, 2)
+        r = Row(self.t, 2)
         
-        # make sure .dtpyes calls raise DeprecationWarning
-        pytest.deprecated_call(lambda: c.dtypes)
+        with warnings.catch_warnings(record=True) as warning_lines:
+            warnings.resetwarnings()
+            warnings.simplefilter("always", DeprecationWarning, append=True)
+            r.dtypes
+            assert warning_lines[0].category == DeprecationWarning
