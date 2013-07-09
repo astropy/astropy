@@ -423,9 +423,16 @@ class Time(object):
         tm: Time object
             Replica of this object
         """
-        tm = self.__class__(self._time.jd1, self._time.jd2,
-                            format='jd', scale=self.scale, copy=copy)
-
+        # To avoid recalculating integer day + fraction, no longer just
+        # instantiate a new class instance, but rather do the steps by hand.
+        # This also avoids quite a bit of unnecessary work in __init__
+        ###  tm = self.__class__(self._time.jd1, self._time.jd2,
+        ###                      format='jd', scale=self.scale, copy=copy)
+        tm = super(Time, self.__class__).__new__(self.__class__)
+        tm._time = TimeJD(self._time.jd1.copy() if copy else self._time.jd1,
+                          self._time.jd2.copy() if copy else self._time.jd2,
+                          self.scale, self.precision,
+                          self.in_subfmt, self.out_subfmt, from_jd=True)
         # Optional or non-arg attributes
         attrs = ('is_scalar', '_delta_ut1_utc', '_delta_tdb_tt',
                  'lat', 'lon', 'precision', 'in_subfmt', 'out_subfmt')
@@ -621,6 +628,8 @@ class Time(object):
             raise OperandTypeError(self, other)
 
         other_tai = other.tai
+        # Note: jd1 is exact, and jd2 carry-over is done in
+        # Time/TimeDelta initialisation
         jd1 = self_tai.jd1 - other_tai.jd1
         jd2 = self_tai.jd2 - other_tai.jd2
 
@@ -649,6 +658,8 @@ class Time(object):
             raise OperandTypeError(self, other)
 
         other_tai = other.tai
+        # Note: jd1 is exact, and jd2 carry-over is done in
+        # Time/TimeDelta initialisation
         jd1 = self_tai.jd1 + other_tai.jd1
         jd2 = self_tai.jd2 + other_tai.jd2
 
@@ -742,7 +753,6 @@ class TimeDelta(Time):
 
     def __abs__(self):
         """Absolute value of a `TimeDelta` object."""
-        #TODO: for safety, ensure round-off errors are taken into account
         jd1, jd2 = self._time.jd1, self._time.jd2
         negative = jd1 + jd2 < 0
         new = self.copy()
@@ -756,9 +766,8 @@ class TimeDelta(Time):
         # would enter here again (via __rmul__)
         if isinstance(other, Time):
             raise OperandTypeError(self, other)
-        #TODO: ensure round-off errors in jd1 are taken into account!!!
-        jd1 = self.jd1 * other
-        jd2 = self.jd2 * other
+
+        jd1, jd2 = dayfrac(self.jd1, self.jd2, factor=other)
         out = TimeDelta(jd1, jd2, format='jd')
         if self.format != 'jd':
             out = out.replicate(format=self.format)
@@ -770,12 +779,16 @@ class TimeDelta(Time):
 
     def __div__(self, other):
         """Division of `TimeDelta` objects by numbers/arrays."""
-        #TODO: ensure round-off errors in jd1 are taken into account!!!
-        return self.__mul__(1. / other)
+        return self.__truediv__(other)
 
     def __truediv__(self, other):
         """Division of `TimeDelta` objects by numbers/arrays."""
-        return self.__mul__(1. / other)
+        # cannot do __mul__(1./other) as that looses precision
+        jd1, jd2 = dayfrac(self.jd1, self.jd2, divisor=other)
+        out = TimeDelta(jd1, jd2, format='jd')
+        if self.format != 'jd':
+            out = out.replicate(format=self.format)
+        return out
 
 
 class TimeFormat(object):
@@ -883,8 +896,7 @@ class TimeJD(TimeFormat):
 
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
-        self.jd1 = val1
-        self.jd2 = val2
+        self.jd1, self.jd2 = dayfrac(val1, val2)
 
     @property
     def vals(self):
@@ -901,8 +913,8 @@ class TimeMJD(TimeFormat):
         # values in a vectorized operation.  But in most practical cases the
         # first one is probably biggest.
         self._check_scale(self._scale)  # Validate scale.
-        self.jd1 = val1 + MJD_ZERO
-        self.jd2 = val2
+        self.jd1, self.jd2 = dayfrac(val1, val2)
+        self.jd1 += MJD_ZERO
 
     @property
     def vals(self):
@@ -939,8 +951,15 @@ class TimeFromEpoch(TimeFormat):
         # is that every day is exactly 86400 seconds, so in principle this
         # is doing the math incorrectly, *except* that it matches the definition
         # of Unix time which does not include leap seconds.
-        jd1 = self.epoch.jd1 + val2 * self.unit
-        jd2 = self.epoch.jd2 + val1 * self.unit
+
+        # note: use divisor=1./self.unit, since this is either 1 or 1/86400,
+        # and 1/86400 is not exactly representable as a float64, so multiplying
+        # by that will cause rounding errors. (But inverting it as a float64
+        # recovers the exact number)
+        day, frac = dayfrac(val1, val2, divisor=1./self.unit)
+
+        jd1 = self.epoch.jd1 + day
+        jd2 = self.epoch.jd2 + frac
 
         # Create a temporary Time object corresponding to the current new (jd1, jd2) in
         # the epoch scale (e.g. UTC for TimeUnix) then convert that to the desired time
@@ -1416,8 +1435,7 @@ class TimeDeltaSec(TimeDeltaFormat):
 
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
-        self.jd1 = val1 / SECS_PER_DAY
-        self.jd2 = val2 / SECS_PER_DAY
+        self.jd1, self.jd2 = dayfrac(val1, val2, divisor=SECS_PER_DAY)
 
     @property
     def vals(self):
@@ -1430,8 +1448,7 @@ class TimeDeltaJD(TimeDeltaFormat):
 
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
-        self.jd1 = val1
-        self.jd2 = val2
+        self.jd1, self.jd2 = dayfrac(val1, val2)
 
     @property
     def vals(self):
@@ -1480,6 +1497,74 @@ def _make_1d_array(val, copy=False):
         val = np.asarray(val, dtype=np.float64)
 
     return val, val_ndim
+
+
+def dayfrac(val1, val2, factor=1., divisor=1.):
+    """Sum two floats, scale/divide, and return integer plus fractional day."""
+    # turn sum into a pair with aligned mantissas ("double-double")
+    val1, val2 = two_sum(val1, val2)
+    if np.any(factor != 1.):
+        val1, carry = two_product(val1, factor)
+        carry += val2 * factor
+        val1, val2 = two_sum(val1, carry)
+    if np.any(divisor != 1.):
+        q1 = val1 / divisor
+        p1, p2 = two_product(q1, divisor)
+        d1, d2 = two_sum(val1, -p1)
+        d2 += val2
+        d2 -= p2
+        q2 = (d1+d2) / divisor  # 3-part float fine here; nothing can be lost
+        val1, val2 = two_sum(q1, q2)
+    # get integer fraction
+    day = np.round(val1)
+    extra, frac = two_sum(val1, -day)
+    frac += extra + val2
+    return day, frac
+
+
+def two_sum(a, b):
+    """Sum to floats, returning aligned double-double
+
+    Using the procedure of Shewchuk, 1997,
+    Discrete & Computational Geometry 18(3):305-363
+    http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf
+    """
+    x = a+b
+    eb = x-a
+    eb = b-eb
+    ea = x-b
+    ea = a-ea
+    return x, ea+eb
+
+
+def two_product(a, b):
+    """Multiply two floats, returning aligned double-double
+
+    Uses the procedure of Shewchuk, 1997,
+    Discrete & Computational Geometry 18(3):305-363
+    http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf
+    """
+    x = a*b
+    ah,al = split(a)
+    bh,bl = split(b)
+    y1 = ah*bh
+    y = x-y1
+    y2 = al*bh
+    y -= y2
+    y3 = ah*bl
+    y -= y3
+    y4 = al*bl
+    y = y4-y
+    return x, y
+
+
+def split(a):
+    """Split float64 in two aligned parts."""
+    c = 134217729.*a  # 2**27+1.
+    abig = c-a
+    ah = c-abig
+    al = a-ah
+    return ah, al
 
 
 class OperandTypeError(TypeError):

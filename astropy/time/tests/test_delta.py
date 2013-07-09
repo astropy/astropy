@@ -6,9 +6,11 @@ import numpy as np
 from ...tests.helper import pytest
 from .. import Time, TimeDelta, OperandTypeError
 
-allclose_jd = functools.partial(np.allclose, rtol=1e-15, atol=0)
-allclose_sec = functools.partial(np.allclose, rtol=1e-15, atol=1e-9)  # 1 nanosec atol
-
+allclose_jd = functools.partial(np.allclose, rtol=2.**-52, atol=0)
+allclose_jd2 = functools.partial(np.allclose, rtol=2.**-52,
+                                 atol=2.**-52)  # 20 ps atol
+allclose_sec = functools.partial(np.allclose, rtol=2.**-52,
+                                 atol=2.**-52*24*3600)  # 20 ps atol
 
 class TestTimeDelta():
     """Test TimeDelta class"""
@@ -145,3 +147,17 @@ class TestTimeDelta():
             self.dt * self.t
         with pytest.raises(TypeError):
             2. / self.dt
+
+    def test_precision(self):
+        t = Time(2455555., 0.5, format='jd', scale='utc')
+        dt_tiny = TimeDelta(2.**-52, format='jd')
+        t_dt = t+dt_tiny
+        assert t_dt.jd1 == t.jd1 and t_dt.jd2 != t.jd2
+        t2 = t_dt - dt_tiny
+        assert t2.jd1 == t.jd1 and t2.jd2 == t.jd2
+        dt_small = 6*dt_tiny
+        # pick a number that will leave remainder if divided by 6.
+        dt_big = TimeDelta(20000., format='jd')
+        dt_big_small_by_6 = (dt_big+dt_small)/6.
+        dt_frac = dt_big_small_by_6 - TimeDelta(3333., format='jd')
+        assert allclose_jd2(dt_frac.jd2, 0.33333333333333354)
