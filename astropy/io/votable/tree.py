@@ -1461,7 +1461,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
             column.description = self.description
         if self.unit is not None:
             # TODO: Use units framework when it's available
-            column.units = self.unit
+            column.unit = self.unit
         if isinstance(self.converter, converters.FloatingPoint):
             column.format = self.converter.output_format
 
@@ -1477,8 +1477,8 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
             if val is not None:
                 kwargs[key] = val
         # TODO: Use the unit framework when available
-        if column.units is not None:
-            kwargs['unit'] = column.units
+        if column.unit is not None:
+            kwargs['unit'] = column.unit
         kwargs['name'] = column.name
         result = converters.table_column_to_votable_datatype(column)
         kwargs.update(result)

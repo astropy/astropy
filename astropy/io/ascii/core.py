@@ -769,7 +769,7 @@ class TableOutputter(BaseOutputter):
         for col, out_col in zip(cols, out.columns.values()):
             if masked and hasattr(col, 'mask'):
                 out_col.data.mask = col.mask
-            for attr in ('format', 'units', 'description'):
+            for attr in ('format', 'unit', 'description'):
                 if hasattr(col, attr):
                     setattr(out_col, attr, getattr(col, attr))
 

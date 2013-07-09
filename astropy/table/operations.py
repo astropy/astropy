@@ -21,14 +21,14 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1):
     """
     Merge column meta data for the ``out`` table.
 
-    This merges column meta, which includes attributes units, format,
+    This merges column meta, which includes attributes unit, format,
     and description, as well as the actual `meta` atttribute.  It is
     assumed that the ``out`` table was created by merging ``tables``.
     The ``col_name_map`` provides the mapping from col name in ``out``
     back to the original name (which may be different).
     """
     # Set column meta
-    attrs = ('units', 'format', 'description')
+    attrs = ('unit', 'format', 'description')
     for out_col in out.columns.values():
         for idx_table, table in enumerate(tables):
             left_col = out_col

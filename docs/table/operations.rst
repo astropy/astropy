@@ -378,21 +378,21 @@ recursive algorithm with four rules:
 Merging column attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In addition to the table and column ``meta`` attributes, the column attributes ``units``,
+In addition to the table and column ``meta`` attributes, the column attributes ``unit``,
 ``format``, and ``description`` are merged by going through the input tables in
 order and taking the first value which is defined (i.e. is not None).  For example::
 
   >>> from astropy.table import Column, Table, vstack
   >>> col1 = Column([1], name='a')
-  >>> col2 = Column([2], name='a', units='cm')
-  >>> col3 = Column([3], name='a', units='m')
+  >>> col2 = Column([2], name='a', unit='cm')
+  >>> col3 = Column([3], name='a', unit='m')
   >>> t1 = Table([col1])
   >>> t2 = Table([col2])
   >>> t3 = Table([col3])
   >>> out = vstack([t1, t2, t3])
-  WARNING: MergeConflictWarning: In merged column 'a' the 'units' attribute does
+  WARNING: MergeConflictWarning: In merged column 'a' the 'unit' attribute does
   not match (cm != m).  Using cm for merged output [astropy.table.table]
-  >>> out['a'].units
+  >>> out['a'].unit
   Unit("cm")
 
 In this case there was a conflict so a warning is shown.

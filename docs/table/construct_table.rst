@@ -41,7 +41,7 @@ size, columns, or data are not known.
 
   >>> t = Table()
   >>> t['a'] = [1, 4]
-  >>> t['b'] = Column([2.0, 5.0], units='cm', description='Velocity')
+  >>> t['b'] = Column([2.0, 5.0], unit='cm', description='Velocity')
   >>> t['c'] = ['x', 'y']
 
   >>> t = Table(names=('a', 'b', 'c'), dtypes=('f4', 'i4', 'S2'))
@@ -527,8 +527,8 @@ these values:
     Data type for column
 ``description`` : str
     Full description of column
-``units`` : str
-    Physical units
+``unit`` : str
+    Physical unit
 ``format`` : str or function
     `Format specifier`_ for outputting column values
 ``meta`` : dict
@@ -672,9 +672,9 @@ So now look at the ways to select columns from a |TableColumns| object:
 ::
 
   >>> t.columns[1]  # Choose columns by index
-  <Column name='b' units=None format=None description=None>
+  <Column name='b' unit=None format=None description=None>
   array([], dtype=float64)
 
   >>> t.columns['b']  # Choose column by name
-  <Column name='b' units=None format=None description=None>
+  <Column name='b' unit=None format=None description=None>
   array([], dtype=float64)

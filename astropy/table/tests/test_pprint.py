@@ -22,7 +22,12 @@ class MaskedTable(table.Table):
 # (MaskedArray) column.
 @pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
 def table_type(request):
-    return MaskedTable if request.param else table.Table
+    # return MaskedTable if request.param else table.Table
+    try:
+        request.param
+        return MaskedTable
+    except AttributeError:
+        return table.Table
 
 
 @pytest.mark.usefixtures('table_type')
@@ -72,8 +77,9 @@ class TestPprint():
         self.tb = table_type(BIG_WIDE_ARR)
         self.tb['col0'].format = '%e'
         self.tb['col1'].format = '%.6f'
-        self.tb['col0'].units = 'km**2'
-        self.tb['col19'].units = 'kg s m**-2'
+
+        self.tb['col0'].unit = 'km**2'
+        self.tb['col19'].unit = 'kg s m**-2'
         self.ts = table_type(SMALL_ARR)
 
     def test_format0(self, table_type):
@@ -102,9 +108,10 @@ class TestPprint():
                          '1.980000e+03 1981.000000 ... 1999.0']
 
     def test_format2(self, table_type):
-        """Include the units header row"""
+        """Include the unit header row"""
         self._setup(table_type)
-        lines = self.tb.pformat(max_lines=8, max_width=40, show_units=True)
+        lines = self.tb.pformat(max_lines=8, max_width=40, show_unit=True)
+
         print(lines)
         assert lines == ['    col0         col1    ...   col19  ',
                          '    km2                  ... kg s / m2',
@@ -155,7 +162,7 @@ class TestPprint():
         """max lines below hard limit of 6 and output longer than 6
         """
         self._setup(table_type)
-        lines = self.ts.pformat(max_lines=3, max_width=-1, show_units=True)
+        lines = self.ts.pformat(max_lines=3, max_width=-1, show_unit=True)
         assert lines == ['col0 col1 col2',
                          '              ',
                          '---- ---- ----',
@@ -168,7 +175,7 @@ class TestPprint():
         of 10
         """
         self._setup(table_type)
-        lines = self.ts.pformat(max_lines=3, max_width=1, show_units=True)
+        lines = self.ts.pformat(max_lines=3, max_width=1, show_unit=True)
         assert lines == ['col0 ...',
                          '     ...',
                          '---- ...',

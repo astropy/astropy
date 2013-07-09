@@ -74,13 +74,13 @@ class TestSingleTable(object):
     def test_with_units(self, tmpdir):
         filename = str(tmpdir.join('test_with_units.fits'))
         t1 = Table(self.data)
-        t1['a'].units = u.m
-        t1['c'].units = u.km / u.s
+        t1['a'].unit = u.m
+        t1['c'].unit = u.km / u.s
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename)
         assert equal_data(t1, t2)
-        assert t2['a'].units == u.m
-        assert t2['c'].units == u.km / u.s
+        assert t2['a'].unit == u.m
+        assert t2['c'].unit == u.km / u.s
 
     def test_masked(self, tmpdir):
         filename = str(tmpdir.join('test_masked.fits'))

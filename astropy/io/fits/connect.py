@@ -155,7 +155,7 @@ def read_table_fits(input, hdu=None):
     # Copy over units
     for col in table.columns:
         if col.unit is not None:
-            t[col.name].units = u.Unit(
+            t[col.name].unit = u.Unit(
                 col.unit, format='fits', parse_strict='warn')
 
     # TODO: deal properly with unsigned integers
@@ -224,8 +224,8 @@ def write_table_fits(input, output, overwrite=False):
 
     # Set units for output HDU
     for col in table_hdu.columns:
-        if input[col.name].units is not None:
-            col.unit = input[col.name].units.to_string(format='fits')
+        if input[col.name].unit is not None:
+            col.unit = input[col.name].unit.to_string(format='fits')
 
     for key, value in input.meta.items():
 

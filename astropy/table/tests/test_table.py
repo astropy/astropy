@@ -486,7 +486,7 @@ class TestAddRow(SetupData):
 
     def test_add_none_to_empty_table(self, table_types):
         self._setup(table_types)
-        t = table_types.Table(names=('a', 'b'), dtypes=('i', 'S4'))
+        t = table_types.Table(names=('a', 'b'), dtype=('i', 'S4'))
         t.add_row()
         assert t['a'][0] == 0
         assert t['b'][0] == b''
@@ -496,7 +496,7 @@ class TestAddRow(SetupData):
 
     def test_add_stuff_to_empty_table(self, table_types):
         self._setup(table_types)
-        t = table_types.Table(names=('a', 'b'), dtypes=('i', 'S8'))
+        t = table_types.Table(names=('a', 'b'), dtype=('i', 'S8'))
         t.add_row([1, 'hello'])
         assert t['a'][0] == 1
         assert t['b'][0] == b'hello'
