@@ -358,8 +358,12 @@ class Quantity(np.ndarray):
             return Quantity(self.value + other.to(self.unit).value,
                             unit=self.unit)
         else:
-            try:
-                return self.__add__(other * Unit(1))
+            try:  # in case the Quantity is dimensionless
+                # Here we have to ensure that self is converted to an unscaled
+                # dimensionless quantity (if possible) otherwise the result
+                # might be given in e.g. m/km.
+                from . import dimensionless_unscaled
+                return self.to(dimensionless_unscaled) + other * dimensionless_unscaled
             except TypeError:
                 raise TypeError(
                     "Object of type '{0}' cannot be added with a Quantity "
@@ -378,8 +382,12 @@ class Quantity(np.ndarray):
             return Quantity(self.value - other.to(self.unit).value,
                             unit=self.unit)
         else:
-            try:
-                return self.__sub__(other * Unit(1))
+            try:  # in case the Quantity is dimensionless
+                # Here we have to ensure that self is converted to an unscaled
+                # dimensionless quantity (if possible) otherwise the result
+                # might be given in e.g. m/km.
+                from . import dimensionless_unscaled
+                return self.to(dimensionless_unscaled) - other * dimensionless_unscaled
             except TypeError:
                 raise TypeError(
                     "Object of type '{0}' cannot be subtracted from a Quantity "
