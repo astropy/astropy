@@ -790,7 +790,7 @@ class Row(object):
     or when iterating over a table::
 
       >>> table = Table([(1, 2), (3, 4)], names=('a', 'b'),
-      ...               dtypes=('int32', 'int32'))
+      ...               dtype=('int32', 'int32'))
       >>> row = table[1]
       >>> row
       <Row 1 of table
