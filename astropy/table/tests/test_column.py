@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from distutils import version
 import numpy as np
+import warnings
 
 from ... import units as u
 from ...tests.helper import pytest
@@ -83,26 +84,23 @@ class TestColumn():
     def test_deprecated_attributes(self, Column, recwarn):
         d = Column([1, 2, 3], name='a', dtype="f8", unit="m")
         
-        # make sure .units calls raise DeprecationWarning
-        d.units
-        w = recwarn.pop(DeprecationWarning)
-        assert issubclass(w.category, DeprecationWarning)
-        assert w.filename
-        assert w.lineno
+        with warnings.catch_warnings(record=True) as warning_lines:
+            warnings.resetwarnings()
+            warnings.simplefilter("always", DeprecationWarning, append=True)
+            d.units
+            assert warning_lines[0].category == DeprecationWarning
         
-        # plural dtypes should raise a DeprecationWarning
-        c = Column([1,2,3], name='a', dtypes="f8", unit="m")
-        w = recwarn.pop(DeprecationWarning)
-        assert issubclass(w.category, DeprecationWarning)
-        assert w.filename
-        assert w.lineno
+        with warnings.catch_warnings(record=True) as warning_lines:
+            warnings.resetwarnings()
+            warnings.simplefilter("always", DeprecationWarning, append=True)
+            c = Column([1,2,3], name='a', dtypes="f8", unit="m")
+            assert warning_lines[0].category == DeprecationWarning
         
-        # plural units should raise a DeprecationWarning
-        c = Column([1,2,3], name='a', dtype="f8", units="m")
-        w = recwarn.pop(DeprecationWarning)
-        assert issubclass(w.category, DeprecationWarning)
-        assert w.filename
-        assert w.lineno
+        with warnings.catch_warnings(record=True) as warning_lines:
+            warnings.resetwarnings()
+            warnings.simplefilter("always", DeprecationWarning, append=True)
+            c = Column([1,2,3], name='a', dtype="f8", units="m")
+            assert warning_lines[0].category == DeprecationWarning
         
     def test_array_wrap(self):
         """Test that the __array_wrap__ method converts a reduction ufunc
