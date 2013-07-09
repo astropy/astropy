@@ -347,7 +347,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 col.raw_type = header_vals[1][i].strip(' -')
                 col.type = self.get_col_type(col)
             if len(header_vals) > 2:
-                col.units = header_vals[2][i].strip() # Can't strip dashes here
+                col.unit = header_vals[2][i].strip() # Can't strip dashes here
             if len(header_vals) > 3:
                 # The IPAC null value corresponds to the io.ascii bad_value.
                 # In this case there isn't a fill_value defined, so just put
@@ -423,10 +423,10 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 dtypelist.append('double')
             else:
                 dtypelist.append('char')
-            if col.units is None:
+            if col.unit is None:
                 unitlist.append('')
             else:
-                unitlist.append(str(col.units))
+                unitlist.append(str(col.unit))
         nullist = [getattr(col, 'fill_value', 'null') for col in self.cols]
         return [namelist, dtypelist, unitlist, nullist]
 

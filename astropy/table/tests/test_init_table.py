@@ -42,7 +42,7 @@ class BaseInitFrom():
 
     def test_set_dtypes(self, table_type):
         self._setup(table_type)
-        t = table_type(self.data, names=('a', 'b', 'c'), dtypes=('i4', 'f4', 'f8'))
+        t = table_type(self.data, names=('a', 'b', 'c'), dtype=('i4', 'f4', 'f8'))
         assert t.colnames == ['a', 'b', 'c']
         assert np.all(t['a'] == np.array([1, 3], dtype='i4'))
         assert np.all(t['b'] == np.array([2, 4], dtype='f4'))
@@ -55,13 +55,12 @@ class BaseInitFrom():
     def test_names_dtypes_mismatch(self, table_type):
         self._setup(table_type)
         with pytest.raises(ValueError):
-            table_type(self.data, names=('a',), dtypes=('i4', 'f4', 'i4'))
+            table_type(self.data, names=('a',), dtype=('i4', 'f4', 'i4'))
 
     def test_names_cols_mismatch(self, table_type):
         self._setup(table_type)
         with pytest.raises(ValueError):
-            table_type(self.data, names=('a',), dtypes=('i4'))
-
+            table_type(self.data, names=('a',), dtype=('i4'))
 
 @pytest.mark.usefixtures('table_type')
 class BaseInitFromListLike(BaseInitFrom):
@@ -69,12 +68,12 @@ class BaseInitFromListLike(BaseInitFrom):
     def test_names_cols_mismatch(self, table_type):
         self._setup(table_type)
         with pytest.raises(ValueError):
-            table_type(self.data, names=['a'], dtypes=[int])
+            table_type(self.data, names=['a'], dtype=[int])
 
     def test_names_copy_false(self, table_type):
         self._setup(table_type)
         with pytest.raises(ValueError):
-            table_type(self.data, names=['a'], dtypes=[int], copy=False)
+            table_type(self.data, names=['a'], dtype=[int], copy=False)
 
 
 @pytest.mark.usefixtures('table_type')
@@ -109,7 +108,7 @@ class TestInitFromNdarrayHomo(BaseInitFromListLike):
 
     def test_partial_names_dtypes(self, table_type):
         self._setup(table_type)
-        t = table_type(self.data, names=['a', None, 'c'], dtypes=[None, None, 'f8'])
+        t = table_type(self.data, names=['a', None, 'c'], dtype=[None, None, 'f8'])
         assert t.colnames == ['a', 'col1', 'c']
         assert t['a'].dtype.type == np.int32
         assert t['col1'].dtype.type == np.int32
@@ -144,7 +143,7 @@ class TestInitFromListOfLists(BaseInitFromListLike):
     def test_partial_names_dtypes(self, table_type):
         self._setup(table_type)
         t = table_type(self.data, names=['b', None, 'c'],
-                  dtypes=['f4', None, 'f8'])
+                  dtype=['f4', None, 'f8'])
         assert t.colnames == ['b', 'col1', 'c']
         assert t['b'].dtype.type == np.float32
         assert t['col1'].dtype.type == np.int32
@@ -198,7 +197,7 @@ class TestInitFromColsList(BaseInitFromListLike):
 
     def test_partial_names_dtypes(self, table_type):
         self._setup(table_type)
-        t = table_type(self.data, names=['b', None, 'c'], dtypes=['f4', None, 'f8'])
+        t = table_type(self.data, names=['b', None, 'c'], dtype=['f4', None, 'f8'])
         assert t.colnames == ['b', 'col1', 'c']
         assert t['b'].dtype.type == np.float32
         assert t['col1'].dtype.type == np.int32
@@ -233,7 +232,7 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
 
     def test_partial_names_dtypes(self, table_type):
         self._setup(table_type)
-        t = table_type(self.data, names=['e', None, 'd'], dtypes=['f4', None, 'f8'])
+        t = table_type(self.data, names=['e', None, 'd'], dtype=['f4', None, 'f8'])
         assert t.colnames == ['e', 'y', 'd']
         assert t['e'].dtype.type == np.float32
         assert t['y'].dtype.type == np.int32
@@ -306,7 +305,7 @@ class TestInitFromTable(BaseInitFromDictLike):
 
     def test_partial_names_dtypes(self, table_type):
         self._setup(table_type)
-        t = table_type(self.data, names=['e', None, 'd'], dtypes=['f4', None, 'i8'])
+        t = table_type(self.data, names=['e', None, 'd'], dtype=['f4', None, 'i8'])
         assert t.colnames == ['e', 'y', 'd']
         assert t['e'].dtype.type == np.float32
         assert t['y'].dtype.type == np.int64
@@ -354,7 +353,7 @@ class TestInitFromNone():
         assert len(t['a']) == 0
         assert len(t['b']) == 0
         assert t.colnames == ['a', 'b']
-        t = table_type(names=('a', 'b'), dtypes=('f4', 'i4'))
+        t = table_type(names=('a', 'b'), dtype=('f4', 'i4'))
         assert t['a'].dtype.type == np.float32
         assert t['b'].dtype.type == np.int32
         assert t.colnames == ['a', 'b']

@@ -3,6 +3,7 @@ import sys
 
 from distutils import version
 import numpy as np
+import warnings
 
 from ...tests.helper import pytest
 from ... import table
@@ -139,3 +140,13 @@ class TestRow():
         table = self.t
         row = table[0]
         assert format(row, "").startswith("<Row 0 of table")
+    
+    def test_deprecated_attributes(self, table_types):
+        self._setup(table_types)
+        r = Row(self.t, 2)
+        
+        with warnings.catch_warnings(record=True) as warning_lines:
+            warnings.resetwarnings()
+            warnings.simplefilter("always", DeprecationWarning, append=True)
+            r.dtypes
+            assert warning_lines[0].category == DeprecationWarning

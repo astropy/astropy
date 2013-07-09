@@ -87,7 +87,7 @@ Now examine some high-level information about the table::
 Access the data by column or row using familiar `numpy` structured array syntax::
 
   >>> t['a']       # Column 'a'
-  <Column name='a' units=None format=None description=None>
+  <Column name='a' unit=None format=None description=None>
   array([1, 4, 5])
 
   >>> t['a'][1]    # Row 1 of column 'a'

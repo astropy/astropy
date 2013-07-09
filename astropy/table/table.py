@@ -4,13 +4,14 @@ import collections
 import sys
 from copy import deepcopy
 import functools
+import warnings
 
 import numpy as np
 from numpy import ma
 
 from ..units import Unit
 from .. import log
-from ..utils import OrderedDict, isiterable
+from ..utils import OrderedDict, isiterable, deprecated, deprecated_attribute
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
 from ..utils.console import color_print
 from ..config import ConfigurationItem
@@ -135,7 +136,7 @@ class BaseColumn(object):
         # or viewcast e.g. obj.view(Column).  In either case we want to
         # init Column attributes for self from obj if possible.
         self.parent_table = None
-        for attr in ('name', 'units', 'format', 'description'):
+        for attr in ('name', 'unit', 'format', 'description'):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
@@ -184,11 +185,11 @@ class BaseColumn(object):
         return (self.name, self.dtype.str, self.shape[1:])
 
     def __repr__(self):
-        units = None if self.units is None else str(self.units)
-        out = "<{0} name={1} units={2} format={3} " \
+        unit = None if self.unit is None else str(self.unit)
+        out = "<{0} name={1} unit={2} format={3} " \
             "description={4}>\n{5}".format(
             self.__class__.__name__,
-            repr(self.name), repr(units),
+            repr(self.name), repr(unit),
             repr(self.format), repr(self.description), repr(self.data))
 
         return out
@@ -203,16 +204,16 @@ class BaseColumn(object):
         str_vals : iterator
             Column values formatted as strings
         """
-        # pprint._pformat_col_iter(col, max_lines, show_name, show_units, outs)
+        # pprint._pformat_col_iter(col, max_lines, show_name, show_unit, outs)
         # Iterate over formatted values with no max number of lines, no column
-        # name, no units, and ignoring the returned header info in outs.
+        # name, no unit, and ignoring the returned header info in outs.
         for str_val in _pformat_col_iter(self, -1, False, False, {}):
             yield str_val
 
     def attrs_equal(self, col):
         """Compare the column attributes of ``col`` to this object.
 
-        The comparison attributes are: name, units, dtype, format, description,
+        The comparison attributes are: name, unit, dtype, format, description,
         and meta.
 
         Parameters
@@ -228,12 +229,12 @@ class BaseColumn(object):
         if not isinstance(col, BaseColumn):
             raise ValueError('Comparison `col` must be a Column or MaskedColumn object')
 
-        attrs = ('name', 'units', 'dtype', 'format', 'description', 'meta')
+        attrs = ('name', 'unit', 'dtype', 'format', 'description', 'meta')
         equal = all(getattr(self, x) == getattr(col, x) for x in attrs)
 
         return equal
 
-    def pformat(self, max_lines=None, show_name=True, show_units=False):
+    def pformat(self, max_lines=None, show_name=True, show_unit=False):
         """Return a list of formatted string representation of column values.
 
         If no value of `max_lines` is supplied then the height of the screen
@@ -250,8 +251,8 @@ class BaseColumn(object):
         show_name : bool
             Include column name (default=True)
 
-        show_units : bool
-            Include a header row for units (default=False)
+        show_unit : bool
+            Include a header row for unit (default=False)
 
         Returns
         -------
@@ -259,10 +260,10 @@ class BaseColumn(object):
             List of lines with header and formatted column values
 
         """
-        lines, n_header = _pformat_col(self, max_lines, show_name, show_units)
+        lines, n_header = _pformat_col(self, max_lines, show_name, show_unit)
         return lines
 
-    def pprint(self, max_lines=None, show_name=True, show_units=False):
+    def pprint(self, max_lines=None, show_name=True, show_unit=False):
         """Print a formatted string representation of column values.
 
         If no value of `max_lines` is supplied then the height of the screen
@@ -279,17 +280,17 @@ class BaseColumn(object):
         show_name : bool
             Include column name (default=True)
 
-        show_units : bool
-            Include a header row for units (default=False)
+        show_unit : bool
+            Include a header row for unit (default=False)
         """
-        lines, n_header = _pformat_col(self, max_lines, show_name, show_units)
+        lines, n_header = _pformat_col(self, max_lines, show_name, show_unit)
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
             else:
                 print line
 
-    def more(self, max_lines=None, show_name=True, show_units=False):
+    def more(self, max_lines=None, show_name=True, show_unit=False):
         """Interactively browse column with a paging interface.
 
         Supported keys::
@@ -312,51 +313,66 @@ class BaseColumn(object):
         show_name : bool
             Include a header row for column names (default=True)
 
-        show_units : bool
-            Include a header row for units (default=False)
+        show_unit : bool
+            Include a header row for unit (default=False)
 
         """
         _more_tabcol(self, max_lines=max_lines, show_name=show_name,
-                     show_units=show_units)
+                     show_unit=show_unit)
 
     @property
-    def units(self):
+    def unit(self):
         """
-        The units associated with this column.  May be a string or a
+        The unit associated with this column.  May be a string or a
         `astropy.units.UnitBase` instance.
 
-        Setting the `units` property does not change the values of the
-        data.  To perform a unit conversion, use `convert_units_to`.
+        Setting the `unit` property does not change the values of the
+        data.  To perform a unit conversion, use `convert_unit_to`.
         """
-        return self._units
+        return self._unit
 
-    @units.setter
-    def units(self, units):
-        if units is None:
-            self._units = None
+    @unit.setter
+    def unit(self, unit):
+        if unit is None:
+            self._unit = None
         else:
-            self._units = Unit(units, parse_strict='silent')
+            self._unit = Unit(unit, parse_strict='silent')
 
-    @units.deleter
+    @unit.deleter
+    def unit(self):
+        self._unit = None
+    
+    @property
+    @deprecated('0.3', alternative=':attr:`Column.unit`')
     def units(self):
-        self._units = None
-
-    def convert_units_to(self, new_units, equivalencies=[]):
+        return self.unit
+        
+    @units.setter
+    @deprecated('0.3', alternative=':attr:`Column.unit`')
+    def units(self, unit):
+        self.unit = unit
+    
+    @units.deleter
+    @deprecated('0.3', alternative=':attr:`Column.unit`')
+    def units(self):
+        del self.unit
+    
+    def convert_unit_to(self, new_unit, equivalencies=[]):
         """
         Converts the values of the column in-place from the current
         unit to the given unit.
 
-        To change the units associated with this column without
-        actually changing the data values, simply set the `units`
+        To change the unit associated with this column without
+        actually changing the data values, simply set the `unit`
         property.
 
         Parameters
         ----------
-        new_units : str or `astropy.units.UnitBase` instance
+        new_unit : str or `astropy.units.UnitBase` instance
             The unit to convert to.
 
         equivalencies : list of equivalence pairs, optional
-           A list of equivalence pairs to try if the units are not
+           A list of equivalence pairs to try if the unit are not
            directly convertible.  See :ref:`unit_equivalencies`.
 
         Raises
@@ -364,11 +380,11 @@ class BaseColumn(object):
         astropy.units.UnitException
             If units are inconsistent
         """
-        if self.units is None:
-            raise ValueError("No units set on column")
-        self.data[:] = self.units.to(
-            new_units, self.data, equivalencies=equivalencies)
-        self.units = new_units
+        if self.unit is None:
+            raise ValueError("No unit set on column")
+        self.data[:] = self.unit.to(
+            new_unit, self.data, equivalencies=equivalencies)
+        self.unit = new_unit
 
     def __str__(self):
         lines, n_header = _pformat_col(self)
@@ -392,8 +408,8 @@ class Column(BaseColumn, np.ndarray):
         Number of row elements in column data
     description : str or None
         Full description of column
-    units : str or None
-        Physical units
+    unit : str or None
+        Physical unit
     format : str or None or function
         Format string for outputting column values.  This can be an
         "old-style" (``format % value``) or "new-style" (`str.format`)
@@ -457,8 +473,19 @@ class Column(BaseColumn, np.ndarray):
     @_check_column_new_args
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
-                description=None, units=None, format=None, meta=None):
-
+                description=None, unit=None, format=None, meta=None,
+                dtypes=None, units=None):
+        
+        if dtypes is not None:
+            dtype = dtypes
+            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
+                          DeprecationWarning)
+        
+        if units is not None:
+            unit = units
+            warnings.warn("'units' has been renamed to the singular 'unit'.",
+                          DeprecationWarning)
+            
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
             self_data = np.zeros(length, dtype=dtype)
@@ -466,8 +493,8 @@ class Column(BaseColumn, np.ndarray):
             self_data = np.asarray(data.data, dtype=dtype)
             if description is None:
                 description = data.description
-            if units is None:
-                units = units or data.units
+            if unit is None:
+                unit = unit or data.unit
             if format is None:
                 format = data.format
             if meta is None:
@@ -479,7 +506,7 @@ class Column(BaseColumn, np.ndarray):
 
         self = self_data.view(cls)
         self._name = name
-        self.units = units
+        self.unit = unit
         self.format = format
         self.description = description
         self.parent_table = None
@@ -503,7 +530,7 @@ class Column(BaseColumn, np.ndarray):
             if copy_data:
                 data = data.copy()
 
-        return Column(name=self.name, data=data, units=self.units, format=self.format,
+        return Column(name=self.name, data=data, unit=self.unit, format=self.format,
                       description=self.description, meta=deepcopy(self.meta))
 
 
@@ -528,8 +555,8 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         Number of row elements in column data
     description : str or None
         Full description of column
-    units : str or None
-        Physical units
+    unit : str or None
+        Physical unit
     format : str or None or function
         Format string for outputting column values.  This can be an
         "old-style" (``format % value``) or "new-style" (`str.format`)
@@ -596,8 +623,19 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
     @_check_column_new_args
     def __new__(cls, data=None, name=None, mask=None, fill_value=None,
                 dtype=None, shape=(), length=0,
-                description=None, units=None, format=None, meta=None):
-
+                description=None, unit=None, format=None, meta=None,
+                units=None, dtypes=None):
+        
+        if dtypes is not None:
+            dtype = dtypes
+            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
+                          DeprecationWarning)
+        
+        if units is not None:
+            unit = units
+            warnings.warn("'units' has been renamed to the singular 'unit'.",
+                          DeprecationWarning)
+        
         if NUMPY_LT_1P5:
             raise ValueError('MaskedColumn requires NumPy version 1.5 or later')
 
@@ -608,8 +646,8 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
             self_data = ma.asarray(data.data, dtype=dtype)
             if description is None:
                 description = data.description
-            if units is None:
-                units = units or data.units
+            if unit is None:
+                unit = unit or data.unit
             if format is None:
                 format = data.format
             if meta is None:
@@ -625,7 +663,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         self.mask = mask
         self.fill_value = fill_value
         self._name = name
-        self.units = units
+        self.unit = unit
         self.format = format
         self.description = description
         self.parent_table = None
@@ -712,7 +750,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         fill_value = self._fix_fill_value(fill_value)
 
         data = super(MaskedColumn, self).filled(fill_value)
-        out = Column(name=self.name, data=data, units=self.units, format=self.format,
+        out = Column(name=self.name, data=data, unit=self.unit, format=self.format,
                      description=self.description, meta=deepcopy(self.meta))
         return out
 
@@ -739,7 +777,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
             if copy_data:
                 data = data.copy()
 
-        return MaskedColumn(name=self.name, data=data, units=self.units, format=self.format,
+        return MaskedColumn(name=self.name, data=data, unit=self.unit, format=self.format,
                             # Do not include mask=self.mask since `data` has the mask
                             fill_value=self.fill_value,
                             description=self.description, meta=deepcopy(self.meta))
@@ -752,7 +790,7 @@ class Row(object):
     or when iterating over a table::
 
       >>> table = Table([(1, 2), (3, 4)], names=('a', 'b'),
-      ...               dtypes=('int32', 'int32'))
+      ...               dtype=('int32', 'int32'))
       >>> row = table[1]
       >>> row
       <Row 1 of table
@@ -843,6 +881,11 @@ class Row(object):
     @property
     def dtype(self):
         return self.data.dtype
+    
+    @property
+    @deprecated('0.3', alternative=':attr:`Row.dtype`', pending=False)
+    def dtypes(self):
+        return self.dtype
 
     def __repr__(self):
         return "<Row {0} of table\n values={1!r}\n dtype={2}>".format(
@@ -864,7 +907,7 @@ class Table(object):
     `Table` differs from `NDData` by the assumption that the input data
     consists of columns of homogeneous data, where each column has a unique
     identifier and may contain additional metadata such as the data
-    units, format, and description.
+    unit, format, and description.
 
     Parameters
     ----------
@@ -873,9 +916,9 @@ class Table(object):
     masked : boolean, optional
         Specify whether the table is masked.
     names : list, optional
-        Specify column names.
-    dtypes : list, optional
-        Specify column data types.
+        Specify column names
+    dtype : list, optional
+        Specify column data types
     meta : dict, optional
         Metadata associated with the table.
     copy : boolean, optional
@@ -883,18 +926,23 @@ class Table(object):
 
     """
 
-    def __init__(self, data=None, masked=None, names=None, dtypes=None,
-                 meta=None, copy=True):
-
+    def __init__(self, data=None, masked=None, names=None, dtype=None,
+                 meta=None, copy=True, dtypes=None):
+        
+        if dtypes is not None:
+            dtype = dtypes
+            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
+                          DeprecationWarning)
+        
         # Set up a placeholder empty table
         self._data = None
         self._set_masked(masked)
         self.columns = TableColumns()
         self._meta = OrderedDict() if meta is None else deepcopy(meta)
 
-        # Must copy if dtypes are changing
-        if not copy and dtypes is not None:
-            raise ValueError('Cannot specify dtypes when copy=False')
+        # Must copy if dtype are changing
+        if not copy and dtype is not None:
+            raise ValueError('Cannot specify dtype when copy=False')
 
         # Infer the type of the input data and set up the initialization
         # function, number of columns, and potentially the default col names
@@ -938,19 +986,19 @@ class Table(object):
             raise ValueError('Data type {0} not allowed to init Table'
                              .format(type(data)))
 
-        # Set up defaults if names and/or dtypes are not specified.
+        # Set up defaults if names and/or dtype are not specified.
         # A value of None means the actual value will be inferred
         # within the appropriate initialization routine, either from
         # existing specification or auto-generated.
 
         if names is None:
             names = default_names or [None] * n_cols
-        if dtypes is None:
-            dtypes = [None] * n_cols
-        self._check_names_dtypes(names, dtypes, n_cols)
+        if dtype is None:
+            dtype = [None] * n_cols
+        self._check_names_dtype(names, dtype, n_cols)
 
         # Finally do the real initialization
-        init_func(data, names, dtypes, n_cols, copy)
+        init_func(data, names, dtype, n_cols, copy)
 
         # Whatever happens above, the masked property should be set to a boolean
         if type(self.masked) != bool:
@@ -1028,17 +1076,17 @@ class Table(object):
 
         self.columns = TableColumns(cols)
 
-    def _check_names_dtypes(self, names, dtypes, n_cols):
-        """Make sure that names and dtypes are boths iterable and have
+    def _check_names_dtype(self, names, dtype, n_cols):
+        """Make sure that names and dtype are boths iterable and have
         the same length as data.
         """
-        for inp_list, inp_str in ((dtypes, 'dtypes'), (names, 'names')):
+        for inp_list, inp_str in ((dtype, 'dtype'), (names, 'names')):
             if not isiterable(inp_list):
                 raise ValueError('{0} must be a list or None'.format(inp_str))
 
-        if len(names) != n_cols or len(dtypes) != n_cols:
+        if len(names) != n_cols or len(dtype) != n_cols:
             raise ValueError(
-                'Arguments "names" and "dtypes" must match number of columns'
+                'Arguments "names" and "dtype" must match number of columns'
                 .format(inp_str))
 
     def _set_masked_from_cols(self, cols):
@@ -1051,7 +1099,7 @@ class Table(object):
             if any(isinstance(col, (MaskedColumn, ma.MaskedArray)) for col in cols):
                 self._set_masked(True)
 
-    def _init_from_list(self, data, names, dtypes, n_cols, copy):
+    def _init_from_list(self, data, names, dtype, n_cols, copy):
         """Initialize table from a list of columns.  A column can be a
         Column object, np.ndarray, or any other iterable object.
         """
@@ -1079,10 +1127,10 @@ class Table(object):
                         raise ValueError('Row {0} has no value for column {1}'.format(i, name))
             if all(name is None for name in names):
                 names = sorted(names_from_data)
-            self._init_from_dict(cols, names, dtypes, n_cols, copy)
+            self._init_from_dict(cols, names, dtype, n_cols, copy)
             return
 
-        for col, name, def_name, dtype in zip(data, names, def_names, dtypes):
+        for col, name, def_name, dtype in zip(data, names, def_names, dtype):
             if isinstance(col, (Column, MaskedColumn)):
                 col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype)
             elif isinstance(col, np.ndarray) or isiterable(col):
@@ -1094,7 +1142,7 @@ class Table(object):
 
         self._init_from_cols(cols)
 
-    def _init_from_ndarray(self, data, names, dtypes, n_cols, copy):
+    def _init_from_ndarray(self, data, names, dtype, n_cols, copy):
         """Initialize table from an ndarray structured array"""
 
         data_names = data.dtype.names or _auto_names(n_cols)
@@ -1108,10 +1156,10 @@ class Table(object):
         self._set_masked_from_cols(cols)
 
         if copy:
-            self._init_from_list(cols, names, dtypes, n_cols, copy)
+            self._init_from_list(cols, names, dtype, n_cols, copy)
         else:
-            dtypes = [(name, col.dtype) for name, col in zip(names, cols)]
-            self._data = data.view(dtypes).ravel()
+            dtype = [(name, col.dtype) for name, col in zip(names, cols)]
+            self._data = data.view(dtype).ravel()
             columns = TableColumns()
 
             for name in names:
@@ -1119,16 +1167,16 @@ class Table(object):
                 columns[name].parent_table = self
             self.columns = columns
 
-    def _init_from_dict(self, data, names, dtypes, n_cols, copy):
+    def _init_from_dict(self, data, names, dtype, n_cols, copy):
         """Initialize table from a dictionary of columns"""
 
         if not copy:
             raise ValueError('Cannot use copy=False with a dict data input')
 
         data_list = [data[name] for name in names]
-        self._init_from_list(data_list, names, dtypes, n_cols, copy)
+        self._init_from_list(data_list, names, dtype, n_cols, copy)
 
-    def _init_from_table(self, data, names, dtypes, n_cols, copy):
+    def _init_from_table(self, data, names, dtype, n_cols, copy):
         """Initialize table from an existing Table object """
 
         table = data  # data is really a Table, rename for clarity
@@ -1141,11 +1189,11 @@ class Table(object):
         self._set_masked_from_cols(cols)
 
         if copy:
-            self._init_from_list(cols, names, dtypes, n_cols, copy)
+            self._init_from_list(cols, names, dtype, n_cols, copy)
         else:
             names = [vals[0] or vals[1] for vals in zip(names, data_names)]
-            dtypes = [(name, col.dtype) for name, col in zip(names, cols)]
-            data = table._data.view(dtypes)
+            dtype = [(name, col.dtype) for name, col in zip(names, cols)]
+            data = table._data.view(dtype)
 
             self._update_table_from_cols(self, data, cols, names)
 
@@ -1161,9 +1209,9 @@ class Table(object):
         cols = [self.ColumnClass(name=col.name, data=col) for col in cols]
 
         names = [col.name for col in cols]
-        dtypes = [col.descr for col in cols]
+        dtype = [col.descr for col in cols]
         empty_init = ma.empty if self.masked else np.empty
-        data = empty_init(lengths.pop(), dtype=dtypes)
+        data = empty_init(lengths.pop(), dtype=dtype)
         for col in cols:
             data[col.name] = col.data
 
@@ -1209,7 +1257,7 @@ class Table(object):
         return '\n'.join(lines)
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
-               show_units=False):
+               show_unit=False):
         """Print a formatted string representation of the table.
 
         If no value of `max_lines` is supplied then the height of the screen
@@ -1232,12 +1280,12 @@ class Table(object):
         show_name : bool
             Include a header row for column names (default=True)
 
-        show_units : bool
-            Include a header row for units (default=False)
+        show_unit : bool
+            Include a header row for unit (default=False)
         """
 
         lines, n_header = _pformat_table(self, max_lines, max_width, show_name,
-                                         show_units)
+                                         show_unit)
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
@@ -1245,7 +1293,7 @@ class Table(object):
                 print line
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-                show_units=False, html=False):
+                show_unit=False, html=False):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -1269,8 +1317,8 @@ class Table(object):
         show_name : bool
             Include a header row for column names (default=True)
 
-        show_units : bool
-            Include a header row for units (default=False)
+        show_unit : bool
+            Include a header row for unit (default=False)
 
         html : bool
             Format the output as an HTML table (default=False)
@@ -1281,11 +1329,11 @@ class Table(object):
             Formatted table as a list of strings
         """
         lines, n_header = _pformat_table(self, max_lines, max_width,
-                                         show_name, show_units, html)
+                                         show_name, show_unit, html)
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
-             show_units=False):
+             show_unit=False):
         """Interactively browse table with a paging interface.
 
         Supported keys::
@@ -1311,11 +1359,11 @@ class Table(object):
         show_name : bool
             Include a header row for column names (default=True)
 
-        show_units : bool
-            Include a header row for units (default=False)
+        show_unit : bool
+            Include a header row for unit (default=False)
         """
         _more_tabcol(self, max_lines, max_width, show_name,
-                     show_units)
+                     show_unit)
 
     def _repr_html_(self):
         lines = self.pformat(html=True)

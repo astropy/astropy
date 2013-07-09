@@ -73,11 +73,11 @@ class Daophot(core.BaseReader):
       USER  name %-23s
       ...
 
-    The units and formats are available in the output table columns::
+    The unit and formats are available in the output table columns::
 
       >>> for colname in data.colnames:
       ...     col = data[colname]
-      ...     print colname, col.units, col.format
+      ...     print colname, col.unit, col.format
       ...
       ID None %-9d
       XCENTER pixels %-10.3f
@@ -174,7 +174,7 @@ class DaophotHeader(core.BaseHeader):
                         break
 
         # At this point colddef_lines has three lines corresponding to column
-        # names, units, and format.  Get the column names by splitting the
+        # names, unit, and format.  Get the column names by splitting the
         # first line on whitespace.
         self.names = coldef_lines[0].split()
         if not self.names:
@@ -198,10 +198,10 @@ class DaophotHeader(core.BaseHeader):
         # Create the list of io.ascii column objects
         self._set_cols_from_names()
 
-        # Set units and format as needed.
+        # Set unit and format as needed.
         for col in self.cols:
             if coldefs[col.name][0] != '##':
-                col.units = coldefs[col.name][0]
+                col.unit = coldefs[col.name][0]
             if coldefs[col.name][1] != '##':
                 col.format = coldefs[col.name][1]
 

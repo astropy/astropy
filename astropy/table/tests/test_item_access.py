@@ -27,11 +27,11 @@ def table_data(request):
             self.Column = table.MaskedColumn if request.param else table.Column
             self.COLS = [
                 self.Column(name='a', data=[1, 2, 3], description='da',
-                            format='fa', meta={'ma': 1}, units='ua'),
+                            format='fa', meta={'ma': 1}, unit='ua'),
                 self.Column(name='b', data=[4, 5, 6], description='db',
-                            format='fb', meta={'mb': 1}, units='ub'),
+                            format='fb', meta={'mb': 1}, unit='ub'),
                 self.Column(name='c', data=[7, 8, 9], description='dc',
-                            format='fc', meta={'mc': 1}, units='ub')]
+                            format='fc', meta={'mc': 1}, unit='ub')]
             self.DATA = self.Table(self.COLS)
     return TableData(request)
 
@@ -55,7 +55,7 @@ class TestTableColumnsItems(BaseTestItems):
         assert self.tc['a'].description == 'da'
         assert self.tc['a'].format == 'fa'
         assert self.tc['a'].meta == {'ma': 1}
-        assert self.tc['a'].units == 'ua'
+        assert self.tc['a'].unit == 'ua'
         assert self.tc['a'].attrs_equal(table_data.COLS[0])
         assert isinstance(self.tc['a'], table_data.Column)
 
@@ -73,11 +73,11 @@ class TestTableColumnsItems(BaseTestItems):
         assert self.tc[1].description == 'db'
         assert self.tc[1].format == 'fb'
         assert self.tc[1].meta == {'mb': 1}
-        assert self.tc[1].units == 'ub'
+        assert self.tc[1].unit == 'ub'
         assert self.tc[1].attrs_equal(table_data.COLS[1])
         assert isinstance(self.tc[1], table_data.Column)
 
-        assert self.tc[2].units == 'ub'
+        assert self.tc[2].unit == 'ub'
 
         self.tc[1][1] = 0
         assert self.t['b'][1] == 0
