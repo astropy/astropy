@@ -194,7 +194,7 @@ class MatrixRotation2D(Model):
 
     @property
     def angle(self):
-        return Parameter('angle', np.rad2deg(self._angle), self, param_dim=1)
+        return Parameter('angle', np.rad2deg(self._angle.value), self, param_dim=1)
 
     @angle.setter
     def angle(self, val):
@@ -213,7 +213,7 @@ class MatrixRotation2D(Model):
                         dtype=np.float64)
 
     def inverse(self):
-        nrot = np.linalg.inv(self._rotmat[0])
+        nrot = np.linalg.inv(self._rotmat.value)
         return MatrixRotation2D(rotmat=nrot)
 
     def __call__(self, x, y):
@@ -230,7 +230,7 @@ class MatrixRotation2D(Model):
         inarr = np.array([x.flatten(), y.flatten()], dtype=np.float64)
         assert inarr.shape[0] == 2 and inarr.ndim == 2, \
             "Incompatible shape in MatrixRotation"
-        result = np.dot(self._rotmat[0], inarr)
+        result = np.dot(self._rotmat.value, inarr)
         x, y = result[0], result[1]
         if x.shape != shape:
             x.shape = shape

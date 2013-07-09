@@ -6,16 +6,16 @@ Models And Fitting (`astropy.modeling`)
 
 Introduction
 ============
-`~astropy.modeling` provides a framework for representing models and 
-performing model evaluation and fitting. It supports 1D and 2D models 
+`~astropy.modeling` provides a framework for representing models and
+performing model evaluation and fitting. It supports 1D and 2D models
 and fitting with parameter constraints.
 
 It is :ref:`designed <modeling-design>` to be easily extensible and flexible.
 Models do not reference fitting algorithms explicitely
-(though exceptions are sometimes necessary) and new fitting 
+(though exceptions are sometimes necessary) and new fitting
 algorithms may be added without changing the existing models.
-In addition models can be combined in different ways using a machinery 
-that allows assigning outputs from one model into the appropriate input 
+In addition models can be combined in different ways using a machinery
+that allows assigning outputs from one model into the appropriate input
 of another in a flexible way, `~astropy.modeling.core.LabeledInput`.
 The goal is to eventually provide a rich toolset of models and fitters
 such that most users will not need to define new model classes, nor
@@ -50,11 +50,11 @@ Model: Gaussian1DModel
 Dim:   1
 Degree: N/A
 Parameter sets: 1
-Parameters: 
+Parameters:
            amplitude:  [10.141697966089579]
            mean:  [4.2140429078454309]
            stddev:  [2.0780002458907352]
-         
+
 Create data using 1D Chebyshev model
 
 >>> ch1 = models.Chebyshev1DModel(3, domain=[x.min(), x.max()])
@@ -68,7 +68,7 @@ Model: Chebyshev1DModel
 Dim:   1
 Degree: 3
 Parameter sets: 1
-Parameters: 
+Parameters:
            c0:  [1.0]
            c1:  [2.0]
            c2:  [3.0]
@@ -78,7 +78,7 @@ Parameters:
 Add some noise
 
 >>> n = np.random.randn(90)
->>> ny = y + n 
+>>> ny = y + n
 
 Fit a Chebyshev polynomial to the data
 
@@ -126,7 +126,7 @@ Model: Poly2DModel
 Dim:   2
 Degree: 2
 Parameter sets: 1
-Parameters: 
+Parameters:
            c0_0:  [0.0]
            c1_0:  [0.0]
            c2_0:  [0.0]
@@ -154,11 +154,10 @@ Using `modeling`
    new
    algorithms
    design
-   
+
 Reference/API
 =============
 .. automodapi:: astropy.modeling
-.. automodapi:: astropy.modeling.constraints
 .. automodapi:: astropy.modeling.fitting
 .. automodapi:: astropy.modeling.functional_models
 .. automodapi:: astropy.modeling.polynomial

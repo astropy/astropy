@@ -44,7 +44,6 @@ import abc
 from itertools import izip
 import numpy as np
 from . import parameters
-from . import constraints
 from .utils import InputParameterError
 
 
@@ -109,7 +108,7 @@ def _convert_output(x, fmt):
     elif fmt == 'T':
         return x.T
     elif fmt == 'S':
-        return x[0]
+        return x
     else:
         raise ValueError("Unrecognized output conversion format")
 
@@ -134,32 +133,32 @@ class _ParameterProperty(object):
         return par
 
     def __set__(self, obj, val):
+        val, _ = parameters._tofloat(val)
+        oldpar = getattr(obj, self.name)
+        par = parameters.Parameter(self.name, val, obj, obj.param_dim)
         if self.name in obj._parcheck:
             obj._parcheck[self.name](val)
         if isinstance(obj, ParametricModel):
             if not obj._parameters._changed:
                 par = parameters.Parameter(self.name, val, obj, obj.param_dim)
-                oldpar = getattr(obj, self.name)
                 if oldpar is not None and oldpar.parshape != par.parshape:
                     raise InputParameterError(
                         "Input parameter {0} does not "
                         "have the required shape".format(self.name))
                 else:
-                    setattr(obj, self.aname, par)
+                    setattr(oldpar, "value", val)
                 obj._parameters = parameters.Parameters(obj,
                                                         obj.param_names,
                                                         param_dim=obj.param_dim)
             else:
-                setattr(obj, self.aname, val)
+                setattr(oldpar, "value", val)
         else:
-            par = parameters.Parameter(self.name, val, obj, obj.param_dim)
-            oldpar = getattr(obj, self.name)
             if oldpar is not None and oldpar.parshape != par.parshape:
                 raise InputParameterError(
                     "Input parameter {0} does not "
                     "have the required shape".format(self.name))
             else:
-                setattr(obj, self.aname, par)
+                setattr(oldpar, "value", val)
 
 
 class Model(object):
@@ -266,16 +265,17 @@ class Model(object):
         This is an array where each column represents one parameter set.
         """
         parameters = [getattr(self, attr) for attr in self.param_names]
+        values = [par.value for par in parameters]
         shapes = [par.parshape for par in parameters]
         lenshapes = np.asarray([len(p.parshape) for p in parameters])
         shapes = [p.parshape for p in parameters]
         if (lenshapes > 1).any():
             if () in shapes:
-                psets = np.asarray(parameters, dtype=np.object)
+                psets = np.asarray(values, dtype=np.object)
             else:
-                psets = np.asarray(parameters)
+                psets = np.asarray(values)
         else:
-            psets = np.asarray(parameters)
+            psets = np.asarray(values)
             psets.shape = (len(self.param_names), self.param_dim)
         return psets
 
@@ -372,6 +372,45 @@ class ParametricModel(Model):
         A list of functions of length n such that
         ieqcons[j](x0,*args) >= 0.0 is a successfully optimized
         problem.
+
+    Examples
+    --------
+    >>> from astropy.modeling import models
+    >>> def tie_center(model):
+    ...         mean = 50 * model.stddev
+    ...         return mean
+    >>> tied_parameters = {'mean': tie_center}
+
+    Specify that 'mean' is a tied parameter in one of two ways:
+
+    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3,
+    ...                             tied=tied_parameters)
+
+    or
+
+    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3)
+    >>> g1.mean.tied
+    False
+    >>> g1.mean.tied = tie_center
+    >>> g1.mean.tied
+    <function tie_center at 0x...>
+
+    Fixed parameters:
+
+    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3,
+    ...                             fixed={'stddev': True})
+    >>> g1.stddev.fixed
+    True
+
+    or
+
+    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3)
+    >>> g1.stddev.fixed
+    False
+    >>> g1.stddev.fixed = True
+    >>> g1.stddev.fixed
+    True
+
     """
     __metaclass__ = abc.ABCMeta
 
@@ -384,22 +423,18 @@ class ParametricModel(Model):
         self._parameters = parameters.Parameters(self, self.param_names,
                                                  param_dim=param_dim)
         # Initialize the constraints for each parameter
-        _fixed = {}.fromkeys(self.param_names, False)
-        _tied = {}.fromkeys(self.param_names, False)
         _bounds = {}.fromkeys(self.param_names, [-1.E12, 1.E12])
         if eqcons is None:
-            eqcons = []
+            self._eqcons = []
+        else:
+            self._eqcons = eqcons
         if ineqcons is None:
-            ineqcons = []
-        self.constraints = constraints.Constraints(self, fixed=_fixed,
-                                                   tied=_tied,
-                                                   bounds=_bounds,
-                                                   eqcons=eqcons,
-                                                   ineqcons=ineqcons)
+            self._ineqcons = []
+        else:
+            self._ineqcons = ineqcons
         # Flag that indicates if the model derivatives are given in columns
         # or rows
         self.col_deriv = 1
-        
         # Set constraints
         if fixed:
             for name in fixed:
@@ -410,10 +445,41 @@ class ParametricModel(Model):
                 par = getattr(self, name)
                 setattr(par, 'tied', tied[name])
         if bounds:
-            for name in bounds:
-                par = getattr(self, name)
-                setattr(par, 'min', bounds[name][0])
-                setattr(par, 'max', bounds[name][1])
+            _bounds.update(bounds)
+        for name in _bounds:
+            par = getattr(self, name)
+            setattr(par, 'min', _bounds[name][0])
+            setattr(par, 'max', _bounds[name][1])
+
+    @property
+    def fixed(self):
+        """
+        Return a dictionary of parameter fixed attributes
+        """
+        fixed = [getattr(self, name).fixed for name in self.param_names]
+        return dict(zip(self.param_names, fixed))
+
+    @property
+    def tied(self):
+        """
+        Return a dictionary of parameter fixed attributes
+        """
+        tied = [getattr(self, name).tied for name in self.param_names]
+        return dict(zip(self.param_names, tied))
+
+    @property
+    def bounds(self):
+        pars = [getattr(self, name) for name in self.param_names]
+        bounds = [(par.min, par.max) for par in pars]
+        return dict(zip(self.param_names, bounds))
+
+    @property
+    def eqcons(self):
+        return self._eqcons
+
+    @property
+    def ineqcons(self):
+        return self._ineqcons
 
     def __repr__(self):
         try:
@@ -525,21 +591,21 @@ class LabeledInput(dict):
 
     Examples
     --------
-    >>> x, y = np.mgrid[:5, :5]
-    >>> l = np.arange(5)
+    >>> x,y = np.mgrid[:10, :10]
+    >>> l = np.arange(10)
     >>> ado = LabeledInput([x, y, l], ['x', 'y', 'pixel'])
     >>> ado.x
     array([[0, 0, 0, 0, 0],
-           [1, 1, 1, 1, 1],
-           [2, 2, 2, 2, 2],
-           [3, 3, 3, 3, 3],
-           [4, 4, 4, 4, 4]])
+    [1, 1, 1, 1, 1],
+    [2, 2, 2, 2, 2],
+    [3, 3, 3, 3, 3],
+    [4, 4, 4, 4, 4]])
     >>> ado['x']
     array([[0, 0, 0, 0, 0],
-           [1, 1, 1, 1, 1],
-           [2, 2, 2, 2, 2],
-           [3, 3, 3, 3, 3],
-           [4, 4, 4, 4, 4]])
+    [1, 1, 1, 1, 1],
+    [2, 2, 2, 2, 2],
+    [3, 3, 3, 3, 3],
+    [4, 4, 4, 4, 4]])
 
     """
     def __init__(self, data, labels):
@@ -676,15 +742,14 @@ class SCompositeModel(_CompositeModel):
     Apply a 2D rotation followed by a shift in x and y::
 
         >>> from astropy.modeling import *
-        >>> x, y = np.mgrid[:5, :5]
         >>> rot = models.MatrixRotation2D(angle=23.5)
         >>> offx = models.ShiftModel(-4.23)
         >>> offy = models.ShiftModel(2)
-        >>> linp = LabeledInput([x, y], ['x', 'y'])
+        >>> linp = LabeledInput([x, y], ["x", "y"])
         >>> scomptr = SCompositeModel([rot, offx, offy],
         ...                           inmap=[['x', 'y'], ['x'], ['y']],
         ...                           outmap=[['x', 'y'], ['x'], ['y']])
-        >>> result = scomptr(linp)
+        >>> result=scomptr(linp)
 
     """
     def __init__(self, transforms, inmap=None, outmap=None, n_inputs=None, n_outputs=None):
@@ -746,6 +811,7 @@ class SCompositeModel(_CompositeModel):
                                                   "provided when input is a labeled object")
                 for transform, incoo, outcoo in izip(self._transforms, self._inmap, self._outmap):
                     inlist = [labeled_input[label] for label in incoo]
+                    print('tr, inlist', transform, inlist)
                     result = transform(*inlist)
                     if len(outcoo) == 1:
                         result = [result]
@@ -854,7 +920,7 @@ class Parametric1DModel(ParametricModel):
         param_dim = np.size(param_dict[self.param_names[0]])
 
         # Initialize model parameters. This is preliminary as long there is
-        # no new parameter class. It may be more reasonable and clear to init 
+        # no new parameter class. It may be more reasonable and clear to init
         # the parameters in the model constructor itself, with constraints etc.
         for param_name in self.param_names:
             setattr(self, "_" + param_name, parameters.Parameter(name=param_name,
@@ -899,7 +965,7 @@ class Parametric2DModel(ParametricModel):
         param_dim = np.size(param_dict[self.param_names[0]])
 
         # Initialize model parameters. This is preliminary as long there is
-        # no new parameter class. It may be more reasonable and clear to init 
+        # no new parameter class. It may be more reasonable and clear to init
         # the parameters in the model constructor itself, with constraints etc.
         for param_name in self.param_names:
             setattr(self, "_" + param_name, parameters.Parameter(name=param_name,

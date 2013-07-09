@@ -32,18 +32,18 @@ class TestNonLinearConstraints(object):
         g1 = models.Gaussian1DModel(10, mean=14.9, stddev=.3, fixed={'amplitude': True})
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.x, self.ny1)
-        assert g1.amplitude == 10
+        assert g1.amplitude.value == 10
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def testTiedPar(self):
 
         def tied(model):
-            mean = 50 * model.stddev[0]
+            mean = 50 * model.stddev
             return mean
         g1 = models.Gaussian1DModel(10, mean=14.9, stddev=.3, tied={'mean': tied})
         fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.x, self.ny1)
-        utils.assert_allclose(g1.mean, 50 * g1.stddev[0], rtol=10 ** (-5))
+        utils.assert_allclose(g1.mean.value, 50 * g1.stddev, rtol=10 ** (-5))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def testJointFitter(self):
@@ -68,7 +68,7 @@ class TestNonLinearConstraints(object):
                   compmodel(p[0], p[3:], x2) - y2])
         fitpars, _ = optimize.leastsq(errf, p, args=(x, ny1, x, ny2))
         utils.assert_allclose(jf.fitpars, fitpars, rtol=10 ** (-5))
-        utils.assert_allclose(g1.amplitude, g2.amplitude)
+        utils.assert_allclose(g1.amplitude.value, g2.amplitude.value)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_no_constraints(self):
