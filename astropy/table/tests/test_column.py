@@ -80,28 +80,29 @@ class TestColumn():
         d.convert_unit_to("km")
         assert np.all(d.data == [0.001, 0.002, 0.003])
     
-    def test_deprecated_attributes(self, Column):
-        pytest.deprecated_call(Column, [1,2,3], name='a', 
-                               dtypes="f8", unit="m")
-        
-        pytest.deprecated_call(Column, [1,2,3], name='a', 
-                               dtype="f8", units="m")
-        
-        pytest.deprecated_call(Column, [1,2,3], name='a', 
-                               dtypes="f8", units="m")
-        
+    def test_deprecated_attributes(self, Column, recwarn):
         d = Column([1, 2, 3], name='a', dtype="f8", unit="m")
         
         # make sure .units calls raise DeprecationWarning
-        pytest.deprecated_call(lambda: d.units)
+        d.units
+        w = recwarn.pop(DeprecationWarning)
+        assert issubclass(w.category, DeprecationWarning)
+        assert w.filename
+        assert w.lineno
         
-        def assign_units(d):
-            d.units = u.km
-        pytest.deprecated_call(assign_units, d)
+        # plural dtypes should raise a DeprecationWarning
+        c = Column([1,2,3], name='a', dtypes="f8", unit="m")
+        w = recwarn.pop(DeprecationWarning)
+        assert issubclass(w.category, DeprecationWarning)
+        assert w.filename
+        assert w.lineno
         
-        def delete_units(d):
-            del d.units
-        pytest.deprecated_call(delete_units, d)
+        # plural units should raise a DeprecationWarning
+        c = Column([1,2,3], name='a', dtype="f8", units="m")
+        w = recwarn.pop(DeprecationWarning)
+        assert issubclass(w.category, DeprecationWarning)
+        assert w.filename
+        assert w.lineno
         
     def test_array_wrap(self):
         """Test that the __array_wrap__ method converts a reduction ufunc
