@@ -11,7 +11,7 @@ from numpy import ma
 
 from ..units import Unit
 from .. import log
-from ..utils import OrderedDict, isiterable, deprecated
+from ..utils import OrderedDict, isiterable, deprecated, deprecated_attribute
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
 from ..utils.console import color_print
 from ..config import ConfigurationItem
@@ -343,17 +343,17 @@ class BaseColumn(object):
         self._unit = None
     
     @property
-    @deprecated('0.3', alternative=':attr:`Column.unit`', pending=False)
+    @deprecated('0.3', alternative=':attr:`Column.unit`')
     def units(self):
         return self.unit
         
     @units.setter
-    @deprecated('0.3', alternative=':attr:`Column.unit`', pending=False)
+    @deprecated('0.3', alternative=':attr:`Column.unit`')
     def units(self, unit):
         self.unit = unit
     
     @units.deleter
-    @deprecated('0.3', alternative=':attr:`Column.unit`', pending=False)
+    @deprecated('0.3', alternative=':attr:`Column.unit`')
     def units(self):
         del self.unit
     
