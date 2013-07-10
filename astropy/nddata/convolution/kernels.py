@@ -1,13 +1,13 @@
-from .core import Kernel1D, Kernel2D, Kernel
-from .utils import KernelSizeError, NormalizationError
-
-from ...modeling.models import Gaussian1DModel
-from ...modeling.core import ParametricModel  # Box1DModel
-#from ...modeling.models import Disk2DModel, Box2DModel
-
 import numpy as np
 
-__all__ = ['GaussianKernel', 'CustomKernel']
+from .core import Kernel1D, Kernel2D, Kernel
+from .utils import KernelSizeError
+
+from ...modeling.models import Gaussian1DModel, Box1DModel, Disk2DModel
+from ...modeling.core import Parametric1DModel, Parametric2DModel
+
+
+__all__ = ['GaussianKernel', 'CustomKernel', 'BoxKernel', 'Tophat2DKernel']
 
 
 class GaussianKernel(Kernel1D):
@@ -16,11 +16,26 @@ class GaussianKernel(Kernel1D):
 
     The Gaussian filter is a filter with great smoothing properties. It is
     isotropic and does not produce artifact.
+
+    Parameters
+    ----------
+    width : number
+        Width of the filter kernel.
+    size : odd int
+        Size of the kernel mask. Default = 8 * width + 1
+
+    See Also
+    --------
+    BoxKernel : Box filter kernel.
+
     """
     _separable = True
     _weighted = True
 
-    def __init__(self, width, size):
+    def __init__(self, width, size=None):
+        if size == None:
+            #Default Kernel size for GaussianKernel
+            size = 8 * int(width) + 1
         amplitude = 1. / (np.sqrt(2 * np.pi) * width)
         self._model = Gaussian1DModel(amplitude=amplitude, mean=0.,
                                                  stddev=width)
@@ -31,16 +46,26 @@ class BoxKernel(Kernel1D):
     """
     Box filter kernel.
 
-    The Box filter or running mean is a smoothing filter. It is not isotropic 
+    The Box filter or running mean is a smoothing filter. It is not isotropic
     and can produce artifact, when applied repeatedly to the same data. It is
     faster than a Gaussian smoothing filter.
+
+    Parameters
+    ----------
+    width : number
+        Width of the filter kernel.
+
+    See Also
+    --------
+    GaussianKernel : Gaussian filter kernel.
     """
     _separable = True
+    _weighted = False
 
     def __init__(self, width):
-        amplitude = 1. / width
-        #self._model = Box1DModel(amplitude=amplitude, mean=0.,
-        #                                       stddev=width)
+        self._model = Box1DModel(amplitude=1., x_0=0., width=width)
+        super(BoxKernel, self).__init__(width)
+        self._truncation = 0
 
 
 class Tophat2DKernel(Kernel2D):
@@ -49,11 +74,17 @@ class Tophat2DKernel(Kernel2D):
 
     The Tophat filter is an isotropic smoothing filter. It can produce artifact,
     when applied repeatedly on the same data.
+
+    Parameters
+    ----------
+    radius : int
+        Radius of the filter kernel.
     """
 
     def __init__(self, radius):
-        amplitude = 1. / (np.pi * radius ** 2)
-        #self.model = Disk2DModel(amplitude=amplitude, mean=0., radius=radius)
+        self._model = Disk2DModel(amplitude=1., x_0=0., y_0=0., radius=radius)
+        super(Tophat2DKernel, self).__init__([2 * radius + 1, 2 * radius + 1])
+        self._truncation = 0
 
 
 class Ring2DKernel(Kernel2D):
@@ -64,9 +95,7 @@ class Ring2DKernel(Kernel2D):
     different width. It is useful for e.g background estimation.
     """
     def __init__(self, radius_in, radius_out):
-        pass
-        #self.model = (Disk2DModel(amplitude=1., mean=0., radius=radius_out)
-        #                     - Disk2DModel(amplitude=1., mean=0., radius=radius_in))
+        raise NotImplementedError
 
 
 class Trapezoid1DKernel(Kernel1D):
@@ -76,8 +105,7 @@ class Trapezoid1DKernel(Kernel1D):
     _weighted = True
 
     def __init__(self):
-        pass
-        #self.model = Trapezoid1DModel()
+        raise NotImplementedError
 
 
 class MexicanHat1DKernel(Kernel1D):
@@ -91,8 +119,7 @@ class MexicanHat1DKernel(Kernel1D):
     _weighted = True
 
     def __init__(self):
-        pass
-        #self.model = MexicanHat1DModel()
+        raise NotImplementedError
 
 
 class MexicanHat2DKernel(Kernel2D):
@@ -104,23 +131,41 @@ class MexicanHat2DKernel(Kernel2D):
     detection.
     """
     def __init__(self):
-        pass
-        #self.model = MexicanHat2DModel()
+        raise NotImplementedError
 
 
 class Airy2DKernel(Kernel2D):
+    """
+    Airy 2D kernel.
+    """
     def __init__(self):
-        self._separable = False
-        #self.model = Airy2DModel()
+        raise NotImplementedError
 
 
 class Model1DKernel(Kernel1D):
     """
-    Initialize kernel from astropy Parametric1DModel
+    Create kernel from astropy.models.Parametric1DModel.
+
+    Parameters
+    ----------
+    model : Parametric1DModel
+        Kernel response function model
+
+    Raises
+    ------
+    TypeError
+        If model is not an instance of astropy.models.Parametric1DModel
+
+    See also
+    --------
+    Model2DKernel : Create kernel from astropy.models.Parametric2DModel
+    CustomKernel : Create kernel from list or array
     """
+    _separable = False
+    _weighted = True
+
     def __init__(self, model):
-        self._separable = False
-        if isinstance(model, ParametricModel):
+        if isinstance(model, Parametric1DModel):
             self._model = model
         else:
             raise TypeError("Must be Parametric1DModel")
@@ -128,11 +173,26 @@ class Model1DKernel(Kernel1D):
 
 class Model2DKernel(Kernel2D):
     """
-    Initialize kernel from astropy Parametric2DModel
+    Create kernel from astropy.models.Parametric2DModel.
+
+    Parameters
+    ----------
+    model : Parametric2DModel
+        Kernel response function model
+
+    Raises
+    ------
+    TypeError
+        If model is not an instance of astropy.models.Parametric2DModel
+
+    See also
+    --------
+    Model1DKernel : Create kernel from astropy.models.Parametric1DModel
+    CustomKernel : Create kernel from list or array
     """
     def __init__(self, model):
         self._separable = False
-        if isinstance(model, ParametricModel):
+        if isinstance(model, Parametric2DModel):
             self._model = model
         else:
             raise TypeError("Must be Parametric2DModel")
@@ -150,13 +210,48 @@ class PSFKernel(Kernel2D):
 
 class CustomKernel(Kernel):
     """
-    Initialize filter custom kernel from mask.
+    Create filter kernel from list or array.
+
+    Parameters
+    ----------
+    mask : list or array
+        Filter kernel mask. Size must be odd.
+
+    Raises
+    ------
+    TypeError
+        If mask is not a list or array.
+    KernelSizeError
+        If mask size is even.
+
+    See also
+    --------
+    Model2DKernel : Create kernel from astropy.models.Parametric2DModel
+    Model1DKernel : Create kernel from astropy.models.Parametric1DModel
+
+    Examples
+    --------
+    Define one dimensional mask:
+
+        >>> from astropy.nddata.convolution.kernels import CustomKernel
+        >>> import numy as np
+        >>> mask = np.array([1, 2, 3, 2, 1])
+        >>> kernel = CustomKernel(mask)
+        >>> kernel.dimension
+        1
+
+    Define two dimensional mask:
+
+        >>> mask = np.array([[1, 1, 1], [1, 2, 1], [1, 1, 1]])
+        >>> kernel = CustomKernel(mask)
+        >>> kernel.dimension
+        2
     """
 
     def __init__(self, mask):
         # Pass 'None' because mask is overridden in the next line
-        super(CustomKernel, self).__init__(None)
         self.mask = mask
+        super(CustomKernel, self).__init__(self._mask)
 
     @property
     def mask(self):

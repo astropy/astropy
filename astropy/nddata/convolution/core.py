@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module contains the convolution and filter functionalities of astropy.
-It is in preliminary state.
 
 A few conceptual notes:
 A filter kernel is mainly characterized by its response function. In the 1D
@@ -39,7 +38,7 @@ class Kernel(object):
     @property
     def truncation(self):
         """
-        Difference of sum(mask) to 1.
+        Deviation from the normalization to one.
         """
         return self._truncation
 
@@ -65,19 +64,19 @@ class Kernel(object):
         """
         Kernel dimension.
         """
-        return len(self.mask.shape)
+        return self.mask.ndim
 
     @property
     def odd(self):
         """
-        Check if kernel size is odd in all axes.
+        Indicates if kernel size is odd in all axes.
         """
         return self._odd
 
     @property
     def center(self):
         """
-        Index of the kernels center.
+        Index of the kernel center.
         """
         return [axes_size / 2 for axes_size in self._mask.shape]
 
@@ -116,6 +115,40 @@ class Kernel(object):
         Filter kernel mask.
         """
         return self._mask
+
+
+class Kernel1D(Kernel):
+    """
+    Base class for 1D filter kernels
+
+    Parameters
+    ----------
+    width : float
+        Width of the kernel model.
+    size : odd int
+        Size of the kernel mask.
+    """
+    def __init__(self, size):
+        self.axes = 0
+        if not isinstance(size, int):
+            raise TypeError("Size must be integer.")
+        if size % 2 == 0:
+            raise KernelSizeError("Kernel size must be odd.")
+        self._odd = True
+        mask = self._init_mask(size)
+        super(Kernel1D, self).__init__(mask)
+
+    def _init_mask(self, size):
+        """
+        Evaluate kernel model on grid.
+
+        Parameters
+        ----------
+        size : odd int
+            Total size of the mask.
+        """
+        x = np.arange(-(size / 2), (size / 2) + 1)
+        return self._model(x)
 
     def __add__(self, kernel):
         """
@@ -174,54 +207,18 @@ class Kernel(object):
                             .format(self.__class__, type(value)))
 
 
-class Kernel1D(Kernel):
-    """
-    Base class for 1D filter kernels
-
-    Parameters
-    ----------
-    width : float
-        Width of the kernel model.
-    size : odd int
-        Size of the kernel mask.
-    """
-    def __init__(self, size):
-        self.axes = 0
-        if not isinstance(size, int):
-            raise TypeError("Size must be integer.")
-        if not size % 2 == 0:
-            raise KernelSizeError("Kernel size must be odd.")
-        self._odd = True
-        mask = self._init_mask(size)
-        super(Kernel1D, self).__init__(mask)
-
-    def _init_mask(self, size):
-        """
-        Evaluate kernel model on grid.
-
-        Parameters
-        ----------
-        size : odd int
-            Total size of the mask.
-        """
-        x = np.arange(-size / 2, size / 2 + 1)
-        return self._model(x)
-
-
 class Kernel2D(Kernel):
     """
     Abstract base class for 1D filter kernels
     """
     def __init__(self, shape):
-        super(Kernel2D, self).__init__()
-
         if not np.all([isinstance(number, int) for number in shape]):
             raise TypeError("Size must be integer.")
-        if not np.all([number % 2 == 0 for number in shape]):
+        if np.any([number % 2 == 0 for number in shape]):
             raise KernelSizeError("Kernel size must be odd.")
         self._odd = True
         mask = self._init_mask(shape)
-        super(Kernel1D, self).__init__(mask)
+        super(Kernel2D, self).__init__(mask)
 
     def _init_mask(self, shape):
         """
@@ -232,8 +229,8 @@ class Kernel2D(Kernel):
         shape : tuple
             Shape of the mask. Sizes must be odd.
         """
-        x = np.arange(-shape[1] / 2, shape[1] / 2 + 1)
-        y = np.arange(-shape[0] / 2, shape[0] / 22 + 1)
+        x = np.arange(-(shape[1] / 2), (shape[1] / 2) + 1)
+        y = np.arange(-(shape[0] / 2), (shape[0] / 2) + 1)
         x, y = np.meshgrid(x, y)
         return self._model(x, y)
 
