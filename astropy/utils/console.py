@@ -185,7 +185,9 @@ def color_print(*args, **kwargs):
             # versions; if this fails try creating a writer using the locale's
             # preferred encoding. If that fails too give up.
             if not IS_PY3 and isinstance(msg, bytes):
-                msg = msg.decode(locale.getpreferredencoding())
+                encoding = locale.getpreferredencoding()
+                if encoding != '':
+                    msg = msg.decode(encoding)
 
             try:
                 write(msg)
@@ -203,7 +205,9 @@ def color_print(*args, **kwargs):
                 # Support decoding bytes to unicode on Python 2; use the
                 # preferred encoding for the locale (which is *sometimes*
                 # sensible)
-                msg = msg.decode(locale.getpreferredencoding())
+                encoding = locale.getpreferredencoding()
+                if encoding != '':
+                    msg = msg.decode(encoding)
             write(msg)
         write(end)
 
