@@ -10,7 +10,7 @@ ui.py:
 
 ## Copyright (c) 2010, Smithsonian Astrophysical Observatory
 ## All rights reserved.
-## 
+##
 ## Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##     * Redistributions of source code must retain the above copyright
@@ -21,7 +21,7 @@ ui.py:
 ##     * Neither the name of the Smithsonian Astrophysical Observatory nor the
 ##       names of its contributors may be used to endorse or promote products
 ##       derived from this software without specific prior written permission.
-## 
+##
 ## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ## ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 ## WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -30,7 +30,7 @@ ui.py:
 ## (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 ## LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ## ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS  
+## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
@@ -50,6 +50,8 @@ from ...table import Table
 
 # Default setting for guess parameter in read()
 _GUESS = True
+
+
 def set_guess(guess):
     """Set the default value of the ``guess`` parameter for read()
 
@@ -57,13 +59,14 @@ def set_guess(guess):
     """
     global _GUESS
     _GUESS = guess
-    
+
+
 def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     """Initialize a table reader allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Reader class.
 
     :param Reader: Reader class (DEPRECATED) (default= :class:`Basic`)
-    :param Inputter: Inputter class 
+    :param Inputter: Inputter class
     :param Outputter: Outputter class
     :param delimiter: column delimiter string
     :param comment: regular expression defining a comment line in table
@@ -88,6 +91,7 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     reader = core._get_reader(Reader, Inputter=Inputter, Outputter=Outputter, **kwargs)
     return reader
 
+
 def _get_format_class(format, ReaderWriter, label):
     if format is not None and ReaderWriter is not None:
         raise ValueError('Cannot supply both format and {0} keywords'.format(label))
@@ -99,6 +103,7 @@ def _get_format_class(format, ReaderWriter, label):
             raise ValueError('ASCII format {0!r} not in allowed list {1}'
                              .format(format, sorted(core.FORMAT_CLASSES)))
     return ReaderWriter
+
 
 def read(table, guess=None, **kwargs):
     """Read the input ``table`` and return the table.  Most of
@@ -187,7 +192,7 @@ def _guess(table, read_kwargs):
 
         if not guess_kwargs_ok:
             # User-supplied kwarg is inconsistent with the guess-supplied kwarg, e.g.
-            # user supplies delimiter="|" but the guess wants to try delimiter=" ", 
+            # user supplies delimiter="|" but the guess wants to try delimiter=" ",
             # so skip the guess entirely.
             continue
 
@@ -197,10 +202,10 @@ def _guess(table, read_kwargs):
             # When guessing impose additional requirements on column names and number of cols
             bads = [" ", ",", "|", "\t", "'", '"']
             if (len(reader.cols) <= 1 or
-                any(_is_number(col.name) or 
-                     len(col.name) == 0 or 
-                     col.name[0] in bads or 
-                     col.name[-1] in bads for col in reader.cols)):
+                any(_is_number(col.name) or
+               len(col.name) == 0 or
+                col.name[0] in bads or
+               col.name[-1] in bads for col in reader.cols)):
                 raise ValueError
             return dat
         except (core.InconsistentTableError, ValueError, TypeError):
@@ -215,16 +220,19 @@ def _guess(table, read_kwargs):
             failed_kwargs.append(read_kwargs)
             lines = ['\nERROR: Unable to guess table for with the guesses listed below:']
             for kwargs in failed_kwargs:
-                sorted_keys = sorted([x for x in sorted(kwargs) if x not in ('Reader', 'Outputter')])
+                sorted_keys = sorted([x for x in sorted(
+                    kwargs) if x not in ('Reader', 'Outputter')])
                 reader_repr = repr(kwargs.get('Reader', basic.Basic))
                 keys_vals = ['Reader:' + re.search(r"\.(\w+)'>", reader_repr).group(1)]
                 kwargs_sorted = ((key, kwargs[key]) for key in sorted_keys)
                 keys_vals.extend(['%s: %s' % (key, repr(val)) for key, val in kwargs_sorted])
                 lines.append(' '.join(keys_vals))
             lines.append('ERROR: Unable to guess table for with the guesses listed above.')
-            lines.append('Check the table and try with guess=False and appropriate arguments to read()')
+            lines.append(
+                'Check the table and try with guess=False and appropriate arguments to read()')
             raise core.InconsistentTableError('\n'.join(lines))
-    
+
+
 def _get_guess_kwargs_list():
     guess_kwargs_list = [dict(Reader=basic.Rdb),
                          dict(Reader=basic.Tab),
@@ -244,6 +252,7 @@ def _get_guess_kwargs_list():
 
 extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
                      'names', 'include_names', 'exclude_names', 'strip_whitespace')
+
 
 def get_writer(Writer=None, **kwargs):
     """Initialize a table writer allowing for common customizations.  Most of the
@@ -265,6 +274,7 @@ def get_writer(Writer=None, **kwargs):
         kwargs['strip_whitespace'] = True
     writer = core._get_writer(Writer, **kwargs)
     return writer
+
 
 def write(table, output=sys.stdout,  format=None, Writer=None, **kwargs):
     """Write the input ``table`` to ``filename``.  Most of the default behavior
@@ -302,7 +312,7 @@ def write(table, output=sys.stdout,  format=None, Writer=None, **kwargs):
     writer = get_writer(Writer=Writer, **kwargs)
     lines = writer.write(table)
 
-    # Write the lines to output 
+    # Write the lines to output
     outstr = os.linesep.join(lines)
     if not hasattr(output, 'write'):
         output = open(output, 'w')

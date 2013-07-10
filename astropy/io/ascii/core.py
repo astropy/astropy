@@ -149,7 +149,7 @@ class BaseInputter(object):
         """
         try:
             if (hasattr(table, 'read') or
-                ('\n' not in table and '\r' not in table + '')):
+                    ('\n' not in table and '\r' not in table + '')):
                 with get_readable_fileobj(table) as file_obj:
                     table = file_obj.read()
             lines = table.splitlines()
@@ -281,12 +281,12 @@ class DefaultSplitter(BaseSplitter):
             delimiter = self.delimiter
 
         csv_reader = csv.reader(lines,
-                                delimiter = delimiter,
-                                doublequote = self.doublequote,
-                                escapechar =self.escapechar,
-                                quotechar = self.quotechar,
-                                quoting = self.quoting,
-                                skipinitialspace = self.skipinitialspace
+                                delimiter=delimiter,
+                                doublequote=self.doublequote,
+                                escapechar=self.escapechar,
+                                quotechar=self.quotechar,
+                                quoting=self.quoting,
+                                skipinitialspace=self.skipinitialspace
                                 )
         for vals in csv_reader:
             if self.process_val:
@@ -421,7 +421,7 @@ class BaseHeader(object):
             for i, line in enumerate(self.process_lines(lines)):
                 if i == start_line:
                     break
-            else: # No header line matching
+            else:  # No header line matching
                 raise ValueError('No header line found in table')
 
             self.names = next(self.splitter([line]))
@@ -474,7 +474,7 @@ class BaseHeader(object):
             return self.col_type_map[type_map_key.lower()]
         except KeyError:
             raise ValueError('Unknown data type ""%s"" for column "%s"' % (
-                    col.raw_type, col.name))
+                col.raw_type, col.name))
 
 
 class BaseData(object):
@@ -554,7 +554,7 @@ class BaseData(object):
                 if ~hasattr(col, 'fill_values'):
                     col.fill_values = {}
 
-            #if input is only one <fill_spec>, then make it a list
+            # if input is only one <fill_spec>, then make it a list
             try:
                 self.fill_values[0] + ''
                 self.fill_values = [self.fill_values]
@@ -624,6 +624,7 @@ class BaseData(object):
         for col in self.cols:
             if col.name in self.formats:
                 col.format = self.formats[col.name]
+
 
 class DictLikeNumpy(dict):
     """Provide minimal compatibility with numpy rec array API for BaseOutputter
@@ -702,6 +703,7 @@ def convert_numpy(numpy_type):
     def converter(vals):
         return numpy.array(vals, numpy_type)
     return converter, converter_type
+
 
 class BaseOutputter(object):
     """Output table as a dict of column objects keyed on column name.  The
@@ -882,11 +884,11 @@ class BaseReader(object):
             if len(str_vals) != n_data_cols:
                 str_vals = self.inconsistent_handler(str_vals, n_data_cols)
 
-                #if str_vals is None, we skip this row
+                # if str_vals is None, we skip this row
                 if str_vals is None:
                     continue
 
-                #otherwise, we raise an error only if it is still inconsistent
+                # otherwise, we raise an error only if it is still inconsistent
                 if len(str_vals) != n_data_cols:
                     errmsg = ('Number of header columns (%d) inconsistent with '
                               'data columns (%d) at data line %d\n'
@@ -921,7 +923,7 @@ class BaseReader(object):
             raised in read().  Can also be None, in which case the row will be
             skipped.
         """
-        #an empty list will always trigger an InconsistentTableError in read()
+        # an empty list will always trigger an InconsistentTableError in read()
         return str_vals
 
     @property
@@ -952,6 +954,7 @@ class BaseReader(object):
         self.data.write(lines)
 
         return lines
+
 
 class ContinuationLinesInputter(BaseInputter):
     """Inputter where lines ending in ``continuation_char`` are joined
@@ -1013,6 +1016,7 @@ extra_reader_pars = ('Reader', 'Inputter', 'Outputter',
                      'names', 'include_names', 'exclude_names',
                      'fill_values', 'fill_include_names', 'fill_exclude_names')
 
+
 def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     """Initialize a table reader allowing for common customizations.  See ui.get_reader()
     for param docs.  This routine is for internal (package) use only and is useful
@@ -1065,11 +1069,12 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
 
     return reader
 
-extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats', 
+extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
                      'strip_whitespace',
                      'names', 'include_names', 'exclude_names',
                      'fill_values', 'fill_include_names',
                      'fill_exclude_names')
+
 
 def _get_writer(Writer, **kwargs):
     """Initialize a table writer allowing for common customizations. This

@@ -8,7 +8,7 @@ fixedwidth.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-## 
+##
 ## Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##     * Redistributions of source code must retain the above copyright
@@ -19,7 +19,7 @@ fixedwidth.py:
 ##     * Neither the name of the Smithsonian Astrophysical Observatory nor the
 ##       names of its contributors may be used to endorse or promote products
 ##       derived from this software without specific prior written permission.
-## 
+##
 ## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ## ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 ## WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -28,13 +28,14 @@ fixedwidth.py:
 ## (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 ## LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ## ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS  
+## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
 import itertools
 from . import core
 from .core import io, next, izip, any
+
 
 class FixedWidthSplitter(core.BaseSplitter):
     """Split line based on fixed start and end positions for each ``col`` in
@@ -43,7 +44,7 @@ class FixedWidthSplitter(core.BaseSplitter):
     This class requires that the Header class will have defined ``col.start``
     and ``col.end`` for each column.  The reference to the ``header.cols`` gets
     put in the splitter object by the base Reader.read() function just in time
-    for splitting data lines by a ``data`` object. 
+    for splitting data lines by a ``data`` object.
 
     Note that the ``start`` and ``end`` positions are defined in the pythonic
     style so line[start:end] is the desired substring for a column.  This splitter
@@ -101,7 +102,7 @@ class FixedWidthHeader(core.BaseHeader):
         for i, line in enumerate(self.process_lines(lines)):
             if i == index:
                 break
-        else: # No header line matching
+        else:  # No header line matching
             raise InconsistentTableError('No header line found in table')
         return line
 
@@ -129,7 +130,8 @@ class FixedWidthHeader(core.BaseHeader):
                 raise ValueError("Cannot set position_line without also setting header_start")
             data_lines = self.data.process_lines(lines)
             if not data_lines:
-                raise InconsistentTableError('No data lines found so cannot autogenerate column names')
+                raise InconsistentTableError(
+                    'No data lines found so cannot autogenerate column names')
             vals, starts, ends = self.get_fixedwidth_params(data_lines[0])
 
             if self.names is None:
@@ -161,12 +163,12 @@ class FixedWidthHeader(core.BaseHeader):
             # Possibly override the column names with user-supplied values
             if self.names is None:
                 self.names = vals
-        
+
         # Filter self.names using include_names and exclude_names, then create
         # the actual Column objects.
         self._set_cols_from_names()
         self.n_data_cols = len(self.cols)
-        
+
         # Set column start and end positions.  Also re-index the cols because
         # the FixedWidthSplitter does NOT return the ignored cols (as is the
         # case for typical delimiter-based splitters)
@@ -191,7 +193,7 @@ class FixedWidthHeader(core.BaseHeader):
         # figure out positions between delimiters.
         if self.col_starts is not None and self.col_ends is not None:
             starts = list(self.col_starts)  # could be any iterable, e.g. np.array
-            ends = [x + 1 for x in self.col_ends] # user supplies inclusive endpoint
+            ends = [x + 1 for x in self.col_ends]  # user supplies inclusive endpoint
             if len(starts) != len(ends):
                 raise ValueError('Fixed width col_starts and col_ends must have the same length')
             vals = [line[start:end].strip() for start, end in zip(starts, ends)]
@@ -273,22 +275,22 @@ class FixedWidth(core.BaseReader):
     names and positions.  Examples::
 
       # Bar delimiter in header and data
-      
+
       |  Col1 |   Col2      |  Col3 |
       |  1.2  | hello there |     3 |
       |  2.4  | many words  |     7 |
-      
+
       # Bar delimiter in header only
-      
-      Col1 |   Col2      | Col3 
-      1.2    hello there    3 
-      2.4    many words     7 
-      
+
+      Col1 |   Col2      | Col3
+      1.2    hello there    3
+      2.4    many words     7
+
       # No delimiter with column positions specified as input
-      
-      Col1       Col2Col3 
-       1.2hello there   3 
-       2.4many words    7 
+
+      Col1       Col2Col3
+       1.2hello there   3
+       2.4many words    7
 
     See the :ref:`fixed_width_gallery` for specific usage examples.
 
@@ -332,14 +334,14 @@ class FixedWidthNoHeader(FixedWidth):
     Examples::
 
       # Bar delimiter in header and data
-      
+
       |  1.2  | hello there |     3 |
       |  2.4  | many words  |     7 |
-      
+
       # Compact table having no delimiter and column positions specified as input
 
-      1.2hello there3 
-      2.4many words 7 
+      1.2hello there3
+      2.4many words 7
 
     This class is just a convenience wrapper around the ``FixedWidth`` reader
     but with ``header.start_line = None`` and ``data.start_line = 0``.
@@ -360,7 +362,7 @@ class FixedWidthNoHeader(FixedWidth):
         self.header.start_line = None
         self.data.start_line = 0
 
-        
+
 class FixedWidthTwoLine(FixedWidth):
     """Read or write a fixed width table which has two header lines.  The first
     header line defines the column names and the second implicitly defines the
@@ -373,7 +375,7 @@ class FixedWidthTwoLine(FixedWidth):
         1     bee flies     <== data_start = 2
         2     fish swims
 
-      # Pretty-printed table 
+      # Pretty-printed table
 
       +------+------------+
       | Col1 |   Col2     |
@@ -399,5 +401,3 @@ class FixedWidthTwoLine(FixedWidth):
         self.data.start_line = position_line + 1
         self.header.splitter.delimiter = ' '
         self.data.splitter.delimiter = ' '
-
-        
