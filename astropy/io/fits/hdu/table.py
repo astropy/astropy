@@ -246,6 +246,10 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         else:
             raise TypeError('Table data has incorrect type.')
 
+        # returning the data signals to lazyproperty that we've already handled
+        # setting self.__dict__['data']
+        return data
+
     @lazyproperty
     def _theap(self):
         size = self._header['NAXIS1'] * self._header['NAXIS2']

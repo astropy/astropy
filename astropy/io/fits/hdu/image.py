@@ -235,6 +235,10 @@ class _ImageBaseHDU(_ValidHDU):
 
         self.update_header()
 
+        # returning the data signals to lazyproperty that we've already handled
+        # setting self.__dict__['data']
+        return data
+
     def update_header(self):
         """
         Update the header keywords to agree with the data.
