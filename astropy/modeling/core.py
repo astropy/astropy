@@ -329,10 +329,9 @@ class ParametricModel(Model):
 
     Notes
     -----
-    All models which can be fit to data and provide a `deriv` method
-    should subclass this class.
+    All models which can be fit to data should subclass this class.
 
-    Sets the parameters attributes.
+    Sets the ``parameters`` attributes.
 
     Parameters
     ----------
@@ -415,8 +414,14 @@ class ParametricModel(Model):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, param_names, n_inputs, n_outputs, param_dim=1, fittable=True,
-                 fixed=None, tied=None, bounds=None, eqcons=None, ineqcons=None):
+                 **cons):
         self.linear = True
+        bounds = cons.pop('bounds', None)
+        fixed = cons.pop('fixed', None)
+        tied = cons.pop('tied', None)
+        eqcons = cons.pop('eqcons', None)
+        ineqcons = cons.pop('ineqcons', None)
+
         super(ParametricModel, self).__init__(param_names, n_inputs, n_outputs,
                                               param_dim=param_dim)
         self.fittable = fittable
@@ -446,6 +451,7 @@ class ParametricModel(Model):
                 setattr(par, 'tied', tied[name])
         if bounds:
             _bounds.update(bounds)
+
         for name in _bounds:
             par = getattr(self, name)
             setattr(par, 'min', _bounds[name][0])
@@ -811,7 +817,6 @@ class SCompositeModel(_CompositeModel):
                                                   "provided when input is a labeled object")
                 for transform, incoo, outcoo in izip(self._transforms, self._inmap, self._outmap):
                     inlist = [labeled_input[label] for label in incoo]
-                    print('tr, inlist', transform, inlist)
                     result = transform(*inlist)
                     if len(outcoo) == 1:
                         result = [result]
@@ -899,6 +904,7 @@ class PCompositeModel(_CompositeModel):
 
 
 class Parametric1DModel(ParametricModel):
+
     """
     Base class for one dimensional parametric models
 
@@ -915,16 +921,16 @@ class Parametric1DModel(ParametricModel):
     deriv = None
     linear = False
 
-    def __init__(self, param_dict, **constraints):
+    def __init__(self, param_dict):
         # Get parameter dimension
         param_dim = np.size(param_dict[self.param_names[0]])
-
+        cons = param_dict.pop('constraints', {})
         # Initialize model parameters. This is preliminary as long there is
         # no new parameter class. It may be more reasonable and clear to init
         # the parameters in the model constructor itself, with constraints etc.
         for param_name in self.param_names:
             setattr(self, "_" + param_name, parameters.Parameter(name=param_name,
-                            val=param_dict[param_name], mclass=self, param_dim=param_dim))
+                                                                 val=param_dict[param_name], mclass=self, param_dim=param_dim))
 
         super(Parametric1DModel, self).__init__(self.param_names, n_inputs=1,
                                                 n_outputs=1, param_dim=param_dim, **constraints)

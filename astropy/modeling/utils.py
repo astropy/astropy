@@ -9,6 +9,7 @@ __all__ = ['poly_map_domain', 'comb', 'InputParameterError', 'ModelDefinitionErr
 
 
 class ModelDefinitionError(Exception):
+
     """
     Called when models are defined in a wrong way
     """

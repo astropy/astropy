@@ -48,7 +48,7 @@ class Gaussian1DModel(Parametric1DModel):
     param_names = ['amplitude', 'mean', 'stddev']
 
     def __init__(self, amplitude, mean, stddev, **constraints):
-        super(Gaussian1DModel, self).__init__(locals(), **constraints)
+        super(Gaussian1DModel, self).__init__(locals())
 
     def eval(self, x, amplitude, mean, stddev):
         """
@@ -97,7 +97,7 @@ class Gaussian2DModel(Parametric2DModel):
 
         .. math::
 
-            f(x, y) = A e^{-a\\left(x - x_{0}\\right)^{2}  -b\\left(x - x_{0}\\right) 
+            f(x, y) = A e^{-a\\left(x - x_{0}\\right)^{2}  -b\\left(x - x_{0}\\right)
             \\left(y - y_{0}\\right)  -c\\left(y - y_{0}\\right)^{2}}
 
     Using the following definitions:
@@ -109,7 +109,7 @@ class Gaussian2DModel(Parametric2DModel):
             b = \\left(\\frac{\\sin{\\left (2 \\theta \\right )}}{2 \\sigma_{y}^{2}} -
             \\frac{\\sin{\\left (2 \\theta \\right )}}{2 \\sigma_{x}^{2}}\\right)
 
-            c = \\left(\\frac{\\cos^{2}{\\left (\\theta \\right )}}{2 \\sigma_{y}^{2}} + 
+            c = \\left(\\frac{\\cos^{2}{\\left (\\theta \\right )}}{2 \\sigma_{y}^{2}} +
             \\frac{\\sin^{2}{\\left (\\theta \\right )}}{2 \\sigma_{x}^{2}}\\right)
 
 
@@ -123,7 +123,6 @@ class Gaussian2DModel(Parametric2DModel):
 
     def __init__(self, amplitude, x_mean, y_mean, x_stddev=None, y_stddev=None,
                  theta=0.0, cov_matrix=None, **constraints):
-
         if y_stddev is None and cov_matrix is None:
             raise InputParameterError(
                 "Either y_stddev must be specified, or a "
@@ -145,7 +144,7 @@ class Gaussian2DModel(Parametric2DModel):
             y_vec = eig_vecs[:, 0]
             theta = np.arctan2(y_vec[1], y_vec[0])
 
-        super(Gaussian2DModel, self).__init__(locals(), **constraints)
+        super(Gaussian2DModel, self).__init__(locals())
 
     def eval(self, x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
         """
@@ -313,7 +312,7 @@ class PowerLaw1DModel(Parametric1DModel):
     param_names = ['scale', 'alpha']
 
     def __init__(self, scale, alpha, **constraints):
-        super(PowerLaw1DModel, self).__init__(locals(), **constraints)
+        super(PowerLaw1DModel, self).__init__(locals())
 
     def eval(self, x, scale, alpha):
         """
@@ -356,7 +355,7 @@ class Sine1DModel(Parametric1DModel):
     param_names = ['amplitude', 'frequency']
 
     def __init__(self, amplitude, frequency, **constraints):
-        super(Sine1DModel, self).__init__(locals(), **constraints)
+        super(Sine1DModel, self).__init__(locals())
 
     def eval(self, x, amplitude, frequency):
         """
@@ -370,7 +369,7 @@ class Sine1DModel(Parametric1DModel):
         """
         d_amplitude = np.sin(2 * np.pi * frequency * x)
         d_frequency = (2 * np.pi * x * amplitude
-                                   * np.cos(2 * np.pi * frequency * x))
+                       * np.cos(2 * np.pi * frequency * x))
         return [d_amplitude, d_frequency]
 
 
@@ -400,7 +399,7 @@ class Linear1DModel(Parametric1DModel):
     param_names = ['slope', 'intercept']
 
     def __init__(self, slope, intercept, **constraints):
-        super(Linear1DModel, self).__init__(locals(), **constraints)
+        super(Linear1DModel, self).__init__(locals())
         self.linear = True
 
     def eval(self, x, slope, intercept):
@@ -447,7 +446,7 @@ class Lorentz1DModel(Parametric1DModel):
     param_names = ['amplitude', 'x_0', 'fwhm']
 
     def __init__(self, amplitude, x_0, fwhm, **constraints):
-        super(Lorentz1DModel, self).__init__(locals(), **constraints)
+        super(Lorentz1DModel, self).__init__(locals())
 
     def eval(self, x, amplitude, x_0, fwhm):
         """
@@ -634,7 +633,7 @@ class Box1DModel(Parametric1DModel):
     param_names = ['amplitude', 'x_0', 'width']
 
     def __init__(self, amplitude, x_0, width, **constraints):
-        super(Box1DModel, self).__init__(locals(), **constraints)
+        super(Box1DModel, self).__init__(locals())
 
     def eval(self, x, amplitude, x_0, width):
         """

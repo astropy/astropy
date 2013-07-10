@@ -179,16 +179,16 @@ class Fitter(object):
         if any(self.fixed) or any(self.tied):
             pars = self.model._parameters
             if z is None:
-                fullderiv = self.model.deriv(pars, x, y)
+                fullderiv = np.array(self.model.deriv(x, *pars))
             else:
-                fullderiv = self.model.deriv(pars, x, y, z)
+                fullderiv = np.array(self.model.deriv(x, y, *pars))
             ind = range(len(self.model.param_names))
             fix_tie_ind = list(np.nonzero(self.fixed)[0])
             fix_tie_ind.extend(np.nonzero(self.tied)[0])
             for index in fix_tie_ind:
                 ind.remove(index)
             res = np.empty((fullderiv.shape[0], fullderiv.shape[1] - len(ind)))
-            res = fullderiv[:, ind]
+            res = fullderiv[ind, :]
             return [np.ravel(_) for _ in res]
         else:
             pars = p[:]
@@ -498,7 +498,7 @@ class NonLinearLSQFitter(Fitter):
             return None
 
     def __call__(self, x, y, z=None, weights=None, maxiter=MAXITER,
-                                epsilon=EPS, estimate_jacobian=False):
+                 epsilon=EPS, estimate_jacobian=False):
         """
         Fit data to this model.
 
@@ -558,6 +558,9 @@ class NonLinearLSQFitter(Fitter):
         self.fit_info['status'] = status
         self.fit_info['message'] = mess
         self.fit_info['ierr'] = ierr
+        if ierr not in [1, 2, 3, 4]:
+            warnings.warn("The fit may be unsuccessful; check fit_info['message'] for "
+                          "more information.")
 
 
 class SLSQPFitter(Fitter):
@@ -621,8 +624,8 @@ class SLSQPFitter(Fitter):
         Set this as a dummy method because the SLSQP fitter
         handles bounds internally.
         """
-        self._fitpars[:] = fps
-        self.model.parameters = fps
+        self._fitpars[:] = fitpars
+        self.model.parameters = fitpars
 
     def __call__(self, x, y, z=None, weights=None, verblevel=0,
                  maxiter=MAXITER, epsilon=EPS):
@@ -650,15 +653,14 @@ class SLSQPFitter(Fitter):
 
         """
         from scipy import optimize
+        # update constraints to pick up changes to parameters
         self._update_constraints()
         x = np.asarray(x, dtype=np.float)
-
         self.weights = weights
         if self.model._parameters.param_dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit "
                              "one data set at a time")
-
         if z is None:
             if x.shape[0] != y.shape[0]:
                 raise ValueError("x and y should have the same shape")
@@ -680,6 +682,9 @@ class SLSQPFitter(Fitter):
         self.fit_info['numiter'] = numiter
         self.fit_info['exit_mode'] = exit_mode
         self.fit_info['message'] = mess
+        if exit_mode != 0:
+            warnings.warn("The fit may be unsuccessful; check fit_info['message'] "
+                          " for more information.")
 
 
 class JointFitter(object):

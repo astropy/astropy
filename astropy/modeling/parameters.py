@@ -41,8 +41,10 @@ def _tofloat(value):
             "float".format(type(value)))
     return _value, shape
 
+
 def getval(self, name):
     return getattr(self, '_' + name).value
+
 
 class Parameter(object):
 
@@ -103,6 +105,9 @@ class Parameter(object):
         self._tied = tied
         self._min = min
         self._max = max
+
+    def __repr__(self):
+        return repr(self.value)
 
     @property
     def param_dim(self):
