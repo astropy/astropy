@@ -10,6 +10,7 @@ from . import parameters
 from .core import (Parametric1DModel, Parametric2DModel, Model,
                    _convert_input, _convert_output)
 from .utils import InputParameterError, ModelDefinitionError
+from .docstrings import constraints_docstring
 
 __all__ = sorted(['AiryDisk2DModel', 'Beta1DModel', 'Beta2DModel',
            'Box1DModel', 'Box2DModel', 'Const1DModel', 'Const2DModel',
@@ -44,6 +45,7 @@ class Gaussian1DModel(Parametric1DModel):
     --------
     Gaussian2DModel, Box1DModel, Beta1DModel, Lorentz1DModel
     """
+    __doc__.join(constraints_docstring)
 
     param_names = ['amplitude', 'mean', 'stddev']
 

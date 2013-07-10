@@ -415,7 +415,7 @@ class ParametricModel(Model):
 
     def __init__(self, param_names, n_inputs, n_outputs, param_dim=1, fittable=True,
                  **cons):
-        self.linear = True
+        self.linear = False
         bounds = cons.pop('bounds', None)
         fixed = cons.pop('fixed', None)
         tied = cons.pop('tied', None)
@@ -518,7 +518,7 @@ class ParametricModel(Model):
             degree = 'N/A'
         fmt = """
         Model: {0}
-        Dim:   {1}
+        n_inputs:   {1}
         Degree: {2}
         Parameter sets: {3}
         Parameters:
@@ -919,7 +919,6 @@ class Parametric1DModel(ParametricModel):
 
     """
     deriv = None
-    linear = False
 
     def __init__(self, param_dict):
         # Get parameter dimension
