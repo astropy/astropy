@@ -133,8 +133,8 @@ class CdsHeader(core.BaseHeader):
             match = re_col_def.match(line)
             if match:
                 col = core.Column(name=match.group('name'), index=i)
-                col.start = int(re.sub(r'[-\s]', '', match.group(
-                    'start') or match.group('end'))) - 1
+                col.start = int(re.sub(r'[-\s]', '',
+                                       match.group('start') or match.group('end'))) - 1
                 col.end = int(match.group('end'))
                 col.unit = match.group('units')
                 if col.unit == '---':

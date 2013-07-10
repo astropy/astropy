@@ -203,9 +203,9 @@ def _guess(table, read_kwargs):
             bads = [" ", ",", "|", "\t", "'", '"']
             if (len(reader.cols) <= 1 or
                 any(_is_number(col.name) or
-               len(col.name) == 0 or
-                col.name[0] in bads or
-               col.name[-1] in bads for col in reader.cols)):
+                    len(col.name) == 0 or
+                    col.name[0] in bads or
+                    col.name[-1] in bads for col in reader.cols)):
                 raise ValueError
             return dat
         except (core.InconsistentTableError, ValueError, TypeError):
@@ -220,16 +220,16 @@ def _guess(table, read_kwargs):
             failed_kwargs.append(read_kwargs)
             lines = ['\nERROR: Unable to guess table for with the guesses listed below:']
             for kwargs in failed_kwargs:
-                sorted_keys = sorted([x for x in sorted(
-                    kwargs) if x not in ('Reader', 'Outputter')])
+                sorted_keys = sorted([x for x in sorted(kwargs)
+                                      if x not in ('Reader', 'Outputter')])
                 reader_repr = repr(kwargs.get('Reader', basic.Basic))
                 keys_vals = ['Reader:' + re.search(r"\.(\w+)'>", reader_repr).group(1)]
                 kwargs_sorted = ((key, kwargs[key]) for key in sorted_keys)
                 keys_vals.extend(['%s: %s' % (key, repr(val)) for key, val in kwargs_sorted])
                 lines.append(' '.join(keys_vals))
             lines.append('ERROR: Unable to guess table for with the guesses listed above.')
-            lines.append(
-                'Check the table and try with guess=False and appropriate arguments to read()')
+            lines.append('Check the table and try with guess=False '
+                         'and appropriate arguments to read()')
             raise core.InconsistentTableError('\n'.join(lines))
 
 

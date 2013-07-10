@@ -397,20 +397,20 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 countnamelist[col.name.lower()] += 1
             doublenames = [x for x in countnamelist if countnamelist[x] > 1]
             if doublenames != []:
-                raise IpacFormatE(
-                    'IPAC DBMS tables are not case sensitive. This causes duplicate column names: {0}'.format(doublenames))
+                raise IpacFormatE('IPAC DBMS tables are not case sensitive. '
+                                  'This causes duplicate column names: {0}'.format(doublenames))
 
         for name in namelist:
             m = re.match('\w+', name)
             if m.end() != len(name):
-                raise IpacFormatE(
-                    '{0} - Only alphanumaric characters and _ are allowed in column names.'.format(name))
+                raise IpacFormatE('{0} - Only alphanumaric characters and _ '
+                                  'are allowed in column names.'.format(name))
             if self.DBMS and not(name[0].isalpha() or (name[0] == '_')):
                 raise IpacFormatE('Column name cannot start with numbers: {}'.format(name))
             if self.DBMS:
                 if name in ['x', 'y', 'z', 'X', 'Y', 'Z']:
-                    raise IpacFormatE(
-                        '{0} - x, y, z, X, Y, Z are reserved names and cannot be used as column names.'.format(name))
+                    raise IpacFormatE('{0} - x, y, z, X, Y, Z are reserved names and '
+                                      'cannot be used as column names.'.format(name))
                 if len(name) > 16:
                     raise IpacFormatE(
                         '{0} - Maximum length for column name is 16 characters'.format(name))
