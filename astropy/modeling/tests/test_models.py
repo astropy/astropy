@@ -169,7 +169,20 @@ models_1D = [
             (models.Const1DModel, [1], [[-1, 1, np.pi, -42., 0], [1, 1, 1, 1, 1]], [-10, 10]),
             (models.Box1DModel, [1, 0, 1], [[-0.5, 0.5, 0, -1, 1], [1, 1, 1, 0, 0]], [-2, 2]),
             (models.Linear1DModel, [1, 0], [[0, np.pi, 42], [0, np.pi, 42]], [-10, 10]),
-            (models.PowerLaw1DModel, [1, 2], [[2, 1, 10.], [0.25, 1, 0.01]], [1, 2])
+            (models.PowerLaw1DModel, [1, 2], [[2, 1, 10.], [0.25, 1, 0.01]], [1, 2]),
+            (models.MexicanHat1DModel, [1, 0, 1], [[0], [1]], [-10, 10]),
+            (models.Trapezoid1DModel, [1, 0, 1, 1], [[0], [1]], [-2, 2]),
+            (models.Lorentz1DModel, [1, 0, 1], [[0], [1]], [-10, 10])
+            ]
+
+models_2D = [
+            (models.Gaussian2DModel, [1, 0, 0, 1, 1], [[0, np.sqrt(2), -np.sqrt(2)],
+                                [0, np.sqrt(2), -np.sqrt(2)], [1, 1. / np.exp(1)**2, 1. / np.exp(1)**2]], [-10, 10]),
+            (models.Const2DModel, [1], [[-1, 1, np.pi, -42., 0], [-1, 1, np.pi, -42., 0], [1, 1, 1, 1, 1]], [-10, 10]),
+            (models.Box2DModel, [1, 0, 0, 1, 1], [[-0.5, 0.5, 0, -1, 1], [-0.5, 0.5, 0, -1, 1], [1, 1, 1, 0, 0]], [-2, 2]),
+            (models.MexicanHat2DModel, [1, 0, 0, 1], [[0], [0], [1]], [-10, 10]),
+            (models.TrapezoidDisk2DModel, [1, 0, 0, 1, 1], [[0], [0], [1]], [-3, 3]),
+            (models.Airy2DModel, [1, 0, 0, 1], [[0], [0], [1]], [-10, 10])
             ]
 
 
@@ -207,4 +220,15 @@ class TestParametricModel(object):
         data = model(x) + 0.1 * params[0] * (np.random.rand(self.N) - 0.5)
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(x, data)
-        assert np.all((fitter.fitpars - np.array(params) < 0.01))
+        assert np.all((fitter.fitpars - np.array(params) < 0.1))
+
+    @pytest.mark.parametrize(('model_class', 'params', 'values', 'range'), models_2D)
+    def test_eval2D(self, model_class, params, values, range):
+        """
+        Test model values add certain given points
+        """
+        model = model_class(*params)
+        x = values[0]
+        y = values[1]
+        z = values[2]
+        assert np.all((np.abs(model(x, y) - z) < 0.0001))
