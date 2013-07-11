@@ -144,8 +144,8 @@ def test_read_no_header_names():
     and third rows also have hanging spaces after final |."""
     table = """
 |  John  | 555-1234 |192.168.1.10|
-|  Mary  | 555-2134 |192.168.1.12|  
-|   Bob  | 555-4527 | 192.168.1.9|  
+|  Mary  | 555-2134 |192.168.1.12|
+|   Bob  | 555-4527 | 192.168.1.9|
 """
     dat = asciitable.read(table, Reader=asciitable.FixedWidth, guess=False,
                           header_start=None, data_start=0,
@@ -175,8 +175,8 @@ def test_read_no_header_names_NoHeader():
     and third rows also have hanging spaces after final |."""
     table = """
 |  John  | 555-1234 |192.168.1.10|
-|  Mary  | 555-2134 |192.168.1.12|  
-|   Bob  | 555-4527 | 192.168.1.9|  
+|  Mary  | 555-2134 |192.168.1.12|
+|   Bob  | 555-4527 | 192.168.1.9|
 """
     dat = asciitable.read(table, Reader=asciitable.FixedWidthNoHeader,
                           names=('Name', 'Phone', 'TCP'))
@@ -225,16 +225,18 @@ def test_write_normal():
 |  2.4 | 's worlds |    2 |    2 |
 """)
 
+
 def test_write_fill_values():
     """Write a table as a normal fixed width table."""
     out = io.StringIO()
-    asciitable.write(dat, out, Writer=asciitable.FixedWidth, 
-                     fill_values = ('a', 'N/A'))
+    asciitable.write(dat, out, Writer=asciitable.FixedWidth,
+                     fill_values=('a', 'N/A'))
     assert_equal_splitlines(out.getvalue(), """\
 | Col1 |      Col2 | Col3 | Col4 |
 |  1.2 |   "hello" |    1 |  N/A |
 |  2.4 | 's worlds |    2 |    2 |
 """)
+
 
 def test_write_no_pad():
     """Write a table as a fixed width table with no padding."""
@@ -330,9 +332,9 @@ def test_read_twoline_normal():
     """Typical fixed format table with two header lines (with some cruft
     thrown in to test column positioning"""
     table = """
-  Col1    Col2 
-  ----  --------- 
-   1.2xx"hello" 
+  Col1    Col2
+  ----  ---------
+   1.2xx"hello"
   2.4   's worlds
 """
     dat = asciitable.read(table, Reader=asciitable.FixedWidthTwoLine)
@@ -346,9 +348,9 @@ def test_read_twoline_ReST():
     """Read restructured text table"""
     table = """
 ======= ===========
-  Col1    Col2 
+  Col1    Col2
 ======= ===========
-  1.2   "hello" 
+  1.2   "hello"
   2.4   's worlds
 ======= ===========
 """

@@ -133,13 +133,13 @@ def test_missing_file():
 
 
 def test_set_names():
-    names = ('c1','c2','c3', 'c4', 'c5', 'c6')
+    names = ('c1', 'c2', 'c3', 'c4', 'c5', 'c6')
     data = asciitable.read('t/simple3.txt', names=names, delimiter='|')
     assert_equal(data.dtype.names, names)
 
 
 def test_set_include_names():
-    names = ('c1','c2','c3', 'c4', 'c5', 'c6')
+    names = ('c1', 'c2', 'c3', 'c4', 'c5', 'c6')
     include_names = ('c1', 'c3')
     data = asciitable.read('t/simple3.txt', names=names, include_names=include_names,
                            delimiter='|')
@@ -261,18 +261,18 @@ def test_comment_lines():
 def test_fill_values():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, fill_values=('a','1'), **testfile['opts'])
-    assert_true((data['a'].mask==[False,True]).all())
-    assert_true((data['a']==[1,1]).all())
-    assert_true((data['b'].mask==[False,True]).all())
-    assert_true((data['b']==[2,1]).all())
+    data = asciitable.read(f, fill_values=('a', '1'), **testfile['opts'])
+    assert_true((data['a'].mask == [False, True]).all())
+    assert_true((data['a'] == [1, 1]).all())
+    assert_true((data['b'].mask == [False, True]).all())
+    assert_true((data['b'] == [2, 1]).all())
 
 
 @pytest.mark.xfail('numpy_lt_1p5')
 def test_fill_values_col():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, fill_values=('a','1', 'b'), **testfile['opts'])
+    data = asciitable.read(f, fill_values=('a', '1', 'b'), **testfile['opts'])
     check_fill_values(data)
 
 
@@ -280,7 +280,7 @@ def test_fill_values_col():
 def test_fill_values_include_names():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, fill_values=('a','1'),
+    data = asciitable.read(f, fill_values=('a', '1'),
                            fill_include_names = ['b'], **testfile['opts'])
     check_fill_values(data)
 
@@ -289,7 +289,7 @@ def test_fill_values_include_names():
 def test_fill_values_exclude_names():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, fill_values=('a','1'),
+    data = asciitable.read(f, fill_values=('a', '1'),
                            fill_exclude_names = ['a'], **testfile['opts'])
     check_fill_values(data)
 
@@ -297,23 +297,23 @@ def test_fill_values_exclude_names():
 @pytest.mark.xfail('numpy_lt_1p5')
 def check_fill_values(data):
     """compare array column by column with expectation """
-    assert_true((data['a'].mask==[False,False]).all())
-    assert_true((data['a']==['1','a']).all())
-    assert_true((data['b'].mask==[False,True]).all())
+    assert_true((data['a'].mask == [False, False]).all())
+    assert_true((data['a'] == ['1', 'a']).all())
+    assert_true((data['b'].mask == [False, True]).all())
     # Check that masked value is "do not care" in comparison
-    assert_true((data['b']==[2, -999]).all())
+    assert_true((data['b'] == [2, -999]).all())
     data['b'].mask = False  # explicitly unmask for comparison
-    assert_true((data['b']==[2,1]).all())
+    assert_true((data['b'] == [2, 1]).all())
 
 
 @pytest.mark.xfail('numpy_lt_1p5')
 def test_fill_values_list():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, fill_values=[('a','42'),('1','42','a')],
+    data = asciitable.read(f, fill_values=[('a', '42'), ('1', '42', 'a')],
                            **testfile['opts'])
     data['a'].mask = False  # explicitly unmask for comparison
-    assert_true((data['a']==[42,42]).all())
+    assert_true((data['a'] == [42, 42]).all())
 
 
 @pytest.mark.xfail('numpy_lt_1p5')
@@ -609,7 +609,7 @@ def get_testfiles(name=None):
          'name': 't/latex2.tex',
          'nrows': 3,
          'opts': {'Reader': asciitable.AASTex}},
-         ]
+    ]
 
     if name is not None:
         return [x for x in testfiles if x['name'] == name][0]

@@ -34,19 +34,20 @@ latex.py:
 import re
 from . import core
 
-latexdicts ={'AA':  {'tabletype': 'table',
-                 'header_start': r'\hline \hline', 'header_end': r'\hline',
-                 'data_end': r'\hline'},
-             'doublelines': {'tabletype': 'table',
-                 'header_start': r'\hline \hline', 'header_end': r'\hline\hline',
-                 'data_end': r'\hline\hline'},
-             'template': {'tabletype': 'tabletype', 'caption': 'caption',
-                          'col_align': 'col_align', 'preamble': 'preamble',
-                          'header_start': 'header_start',
-                          'header_end': 'header_end', 'data_start': 'data_start',
-                          'data_end': 'data_end', 'tablefoot': 'tablefoot',
-                          'units': {'col1': 'unit of col1', 'col2': 'unit of col2'}}
-             }
+latexdicts = {'AA':  {'tabletype': 'table',
+                      'header_start': r'\hline \hline', 'header_end': r'\hline',
+                      'data_end': r'\hline'},
+              'doublelines': {'tabletype': 'table',
+                              'header_start': r'\hline \hline', 'header_end': r'\hline\hline',
+                              'data_end': r'\hline\hline'},
+              'template': {'tabletype': 'tabletype', 'caption': 'caption',
+                           'col_align': 'col_align', 'preamble': 'preamble',
+                           'header_start': 'header_start',
+                           'header_end': 'header_end', 'data_start': 'data_start',
+                           'data_end': 'data_end', 'tablefoot': 'tablefoot',
+                           'units': {'col1': 'unit of col1', 'col2': 'unit of col2'}}
+              }
+
 
 def add_dictval_to_list(adict, key, alist):
     '''add a value from a dictionary to a list
@@ -61,6 +62,7 @@ def add_dictval_to_list(adict, key, alist):
         else:
             alist.extend(adict[key])
 
+
 def find_latex_line(lines, latex):
     '''Find the first line which matches a patters
 
@@ -69,7 +71,7 @@ def find_latex_line(lines, latex):
     :returns: line number or None, if no match was found
     '''
     re_string = re.compile(latex.replace('\\', '\\\\'))
-    for i,line in enumerate(lines):
+    for i, line in enumerate(lines):
         if re_string.match(line):
             return i
     else:
@@ -93,7 +95,7 @@ class LatexHeader(core.BaseHeader):
         lines.append(r'\begin{' + self.latex['tabletype'] + r'}')
         add_dictval_to_list(self.latex, 'preamble', lines)
         if 'caption' in self.latex.keys():
-            lines.append(r'\caption{' + self.latex['caption'] +'}')
+            lines.append(r'\caption{' + self.latex['caption'] + '}')
         lines.append(self.header_start + r'{' + self.latex['col_align'] + r'}')
         add_dictval_to_list(self.latex, 'header_start', lines)
         lines.append(self.splitter.join([x.name for x in self.cols]))
@@ -101,7 +103,6 @@ class LatexHeader(core.BaseHeader):
             lines.append(self.splitter.join([self.latex['units'].get(x.name, ' ')
                                              for x in self.cols]))
         add_dictval_to_list(self.latex, 'header_end', lines)
-
 
 
 class LatexData(core.BaseData):
@@ -129,7 +130,6 @@ class LatexData(core.BaseData):
         lines.append(r'\end{' + self.latex['tabletype'] + '}')
 
 
-
 class LatexSplitter(core.BaseSplitter):
     '''Split LaTeX table date. Default delimiter is `&`.
     '''
@@ -140,7 +140,7 @@ class LatexSplitter(core.BaseSplitter):
         \\ at end of line"""
         line = line.split('%')[0]
         line = line.strip()
-        if line[-2:] ==r'\\':
+        if line[-2:] == r'\\':
             line = line.strip(r'\\')
         else:
             raise core.InconsistentTableError(r'Lines in LaTeX table have to end with \\')
@@ -157,6 +157,7 @@ class LatexSplitter(core.BaseSplitter):
         '''Join values together and add a few extra spaces for readability'''
         delimiter = ' ' + self.delimiter + ' '
         return delimiter.join(x.strip() for x in vals) + r' \\'
+
 
 class Latex(core.BaseReader):
     r'''Write and read LaTeX tables.
@@ -262,8 +263,8 @@ class Latex(core.BaseReader):
     _io_registry_suffix = '.tex'
     _description = 'LaTeX table'
 
-    def __init__(self, ignore_latex_commands = ['hline', 'vspace', 'tableline'],
-                 latexdict = {}, caption ='', col_align = None):
+    def __init__(self, ignore_latex_commands=['hline', 'vspace', 'tableline'],
+                 latexdict={}, caption='', col_align=None):
 
         core.BaseReader.__init__(self)
         self.header = LatexHeader()
@@ -281,13 +282,15 @@ class Latex(core.BaseReader):
         self.data.latex = self.latex
         self.latex['tabletype'] = 'table'
         self.latex.update(latexdict)
-        if caption: self.latex['caption'] = caption
-        if col_align: self.latex['col_align'] = col_align
+        if caption:
+            self.latex['caption'] = caption
+        if col_align:
+            self.latex['col_align'] = col_align
 
         self.ignore_latex_commands = ignore_latex_commands
-        self.header.comment = '%|' + '|'.join([r'\\' + command for command in self.ignore_latex_commands])
+        self.header.comment = '%|' + '|'.join(
+            [r'\\' + command for command in self.ignore_latex_commands])
         self.data.comment = self.header.comment
-
 
     def write(self, table=None):
         self.header.start_line = None
@@ -312,10 +315,11 @@ class AASTexHeader(LatexHeader):
         lines.append(r'\begin{' + self.latex['tabletype'] + r'}{' + self.latex['col_align'] + r'}')
         add_dictval_to_list(self.latex, 'preamble', lines)
         if 'caption' in self.latex.keys():
-            lines.append(r'\tablecaption{' + self.latex['caption'] +'}')
+            lines.append(r'\tablecaption{' + self.latex['caption'] + '}')
         tablehead = ' & '.join([r'\colhead{' + x.name + '}' for x in self.cols])
         if 'units' in self.latex.keys():
-            tablehead += r'\\ ' + (self.splitter.join([ self.latex['units'].get(x.name, ' ') for x in self.cols]))
+            tablehead += r'\\ ' + (self.splitter.join([self.latex[
+                                   'units'].get(x.name, ' ') for x in self.cols]))
         lines.append(r'\tablehead{' + tablehead + '}')
 
 
@@ -335,6 +339,7 @@ class AASTexData(LatexData):
         add_dictval_to_list(self.latex, 'tablefoot', lines)
         lines.append(r'\end{' + self.latex['tabletype'] + r'}')
 
+
 class AASTexHeaderSplitter(LatexSplitter):
     '''extract column names from a `deluxetable`
 
@@ -346,17 +351,16 @@ class AASTexHeaderSplitter(LatexSplitter):
         """extract column names from tablehead
         """
         line = line.split('%')[0]
-        line = line.replace(r'\tablehead','')
+        line = line.replace(r'\tablehead', '')
         line = line.strip()
-        if (line[0] =='{') and (line[-1] == '}'):
+        if (line[0] == '{') and (line[-1] == '}'):
             line = line[1:-1]
         else:
             raise core.InconsistentTableError(r'\tablehead is missing {}')
-        return line.replace(r'\colhead','')
+        return line.replace(r'\colhead', '')
 
     def join(self, vals):
         return ' & '.join([r'\colhead{' + str(x) + '}' for x in vals])
-
 
 
 class AASTex(Latex):
@@ -380,7 +384,8 @@ class AASTex(Latex):
         Latex.__init__(self, **kwargs)
         self.header = AASTexHeader()
         self.data = AASTexData()
-        self.header.comment = '%|' + '|'.join([r'\\' + command for command in self.ignore_latex_commands])
+        self.header.comment = '%|' + '|'.join(
+            [r'\\' + command for command in self.ignore_latex_commands])
         self.header.splitter = AASTexHeaderSplitter()
         self.data.splitter = LatexSplitter()
         self.data.comment = self.header.comment

@@ -38,6 +38,7 @@ from . import basic
 from . import fixedwidth
 from ...utils import OrderedDict
 
+
 class Daophot(core.BaseReader):
     """Read a DAOphot file.
     Example::
@@ -157,7 +158,7 @@ class DaophotHeader(core.BaseHeader):
         re_colformat_def = re.compile(r'#F([^#]+)')
         for line in lines:
             if not line.startswith('#'):
-                break # End of header lines
+                break  # End of header lines
             else:
                 formatmatch = re_colformat_def.search(line)
                 if formatmatch:
