@@ -103,7 +103,7 @@ class SExtractorHeader(core.BaseHeader):
                 match = re_name_def.search(line)
                 if match:
                     words = match.group(0).strip().strip('#').split()
-                    colnumber = int(words[0]) # First string is the column number
+                    colnumber = int(words[0])  # First string is the column number
                     colname = words[1]   # second string is the column name
                     columns[colnumber] = colname
         # Handle skipped column numbers
@@ -111,7 +111,7 @@ class SExtractorHeader(core.BaseHeader):
         previous_column = 0
         for n in colnumbers:
             if n != previous_column + 1:
-                for c in range(previous_column+1,n):
+                for c in range(previous_column+1, n):
                     column_name = columns[previous_column]+"_%d" % (c-previous_column)
                     columns[c] = column_name
             previous_column = n

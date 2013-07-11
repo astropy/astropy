@@ -18,7 +18,7 @@ def test_read_generic(filename):
 
 def test_write_generic(tmpdir):
     t = Table()
-    t.add_column(Column(name='a', data=[1,2,3]))
+    t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
     t.write(str(tmpdir.join("test")), format='ascii')
 
@@ -47,7 +47,7 @@ def test_read_latex_noformat():
 
 def test_write_latex(tmpdir):
     t = Table()
-    t.add_column(Column(name='a', data=[1,2,3]))
+    t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
     path = str(tmpdir.join("data.tex"))
     t.write(path, format='latex')
@@ -55,7 +55,7 @@ def test_write_latex(tmpdir):
 
 def test_write_latex_noformat(tmpdir):
     t = Table()
-    t.add_column(Column(name='a', data=[1,2,3]))
+    t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
     path = str(tmpdir.join("data.tex"))
     t.write(path)
@@ -71,7 +71,7 @@ def test_read_rdb_noformat():
 
 def test_write_rdb(tmpdir):
     t = Table()
-    t.add_column(Column(name='a', data=[1,2,3]))
+    t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
     path = str(tmpdir.join("data.rdb"))
     t.write(path, format='rdb')
@@ -79,7 +79,7 @@ def test_write_rdb(tmpdir):
 
 def test_write_rdb_noformat(tmpdir):
     t = Table()
-    t.add_column(Column(name='a', data=[1,2,3]))
+    t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
     path = str(tmpdir.join("data.rdb"))
     t.write(path)

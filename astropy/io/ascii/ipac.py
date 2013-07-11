@@ -41,12 +41,12 @@ from . import fixedwidth
 from ...utils import OrderedDict
 
 
-
 class IpacFormatErrorDBMS(Exception):
     def __str__(self):
         return '{0}\nSee {1}'.format(
             super(Exception, self).__str__(),
             'http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html')
+
 
 class IpacFormatError(Exception):
     def __str__(self):
@@ -138,7 +138,7 @@ class Ipac(fixedwidth.FixedWidth):
     _io_registry_can_write = True
     _description = 'IPAC format table'
 
-    def __init__(self, definition='ignore', DBMS = False):
+    def __init__(self, definition='ignore', DBMS=False):
         super(fixedwidth.FixedWidth, self).__init__()
         self.header = IpacHeader(definition=definition)
         self.data = IpacData()
@@ -166,7 +166,7 @@ class Ipac(fixedwidth.FixedWidth):
             for comment in table.meta['comments']:
                 if len(str(comment)) > 78:
                     warn('Comment string > 78 characters was automatically wrapped.',
-                          UserWarning)
+                         UserWarning)
                 for line in wrap(str(comment), 80, initial_indent='\\ ', subsequent_indent='\\ '):
                     lines.append(line)
         if 'keywords' in table.meta:
@@ -195,7 +195,6 @@ class Ipac(fixedwidth.FixedWidth):
         return lines
 
 
-
 class IpacHeaderSplitter(core.BaseSplitter):
     '''Splitter for Ipac Headers.
 
@@ -218,9 +217,10 @@ class IpacHeaderSplitter(core.BaseSplitter):
         padded_delim = pad + delimiter + pad
         bookend_left = delimiter + pad
         bookend_right = pad + delimiter
- 
+
         vals = [' ' * (width - len(val)) + val for val, width in zip(vals, widths)]
         return bookend_left + padded_delim.join(vals) + bookend_right
+
 
 class IpacHeader(fixedwidth.FixedWidthHeader):
     """IPAC table header"""
@@ -241,7 +241,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                     'c': core.StrType}
 
     def __init__(self, definition='ignore'):
-       
+
         fixedwidth.FixedWidthHeader.__init__(self)
         if definition in ['ignore', 'left', 'right']:
             self.ipac_definition = definition
@@ -347,7 +347,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 col.raw_type = header_vals[1][i].strip(' -')
                 col.type = self.get_col_type(col)
             if len(header_vals) > 2:
-                col.unit = header_vals[2][i].strip() # Can't strip dashes here
+                col.unit = header_vals[2][i].strip()  # Can't strip dashes here
             if len(header_vals) > 3:
                 # The IPAC null value corresponds to the io.ascii bad_value.
                 # In this case there isn't a fill_value defined, so just put
@@ -384,35 +384,40 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             col.index = i
 
     def str_vals(self):
-        
+
         if self.DBMS:
             IpacFormatE = IpacFormatErrorDBMS
         else:
             IpacFormatE = IpacFormatError
-        
+
         namelist = [col.name for col in self.cols]
         if self.DBMS:
             countnamelist = defaultdict(int)
             for col in self.cols:
-                countnamelist[col.name.lower()] += 1 
+                countnamelist[col.name.lower()] += 1
             doublenames = [x for x in countnamelist if countnamelist[x] > 1]
             if doublenames != []:
-                raise IpacFormatE('IPAC DBMS tables are not case sensitive. This causes duplicate column names: {0}'.format(doublenames))
+                raise IpacFormatE('IPAC DBMS tables are not case sensitive. '
+                                  'This causes duplicate column names: {0}'.format(doublenames))
 
         for name in namelist:
             m = re.match('\w+', name)
             if m.end() != len(name):
-                raise IpacFormatE('{0} - Only alphanumaric characters and _ are allowed in column names.'.format(name))
-            if self.DBMS and not(name[0].isalpha() or (name[0] =='_')):
+                raise IpacFormatE('{0} - Only alphanumaric characters and _ '
+                                  'are allowed in column names.'.format(name))
+            if self.DBMS and not(name[0].isalpha() or (name[0] == '_')):
                 raise IpacFormatE('Column name cannot start with numbers: {}'.format(name))
             if self.DBMS:
-                if name in ['x','y','z', 'X', 'Y','Z']:
-                    raise IpacFormatE('{0} - x, y, z, X, Y, Z are reserved names and cannot be used as column names.'.format(name))
+                if name in ['x', 'y', 'z', 'X', 'Y', 'Z']:
+                    raise IpacFormatE('{0} - x, y, z, X, Y, Z are reserved names and '
+                                      'cannot be used as column names.'.format(name))
                 if len(name) > 16:
-                    raise IpacFormatE('{0} - Maximum length for column name is 16 characters'.format(name))
+                    raise IpacFormatE(
+                        '{0} - Maximum length for column name is 16 characters'.format(name))
             else:
                 if len(name) > 40:
-                    raise IpacFormatE('{0} - Maximum length for column name is 40 characters.'.format(name))
+                    raise IpacFormatE(
+                        '{0} - Maximum length for column name is 40 characters.'.format(name))
 
         dtypelist = []
         unitlist = []
@@ -442,10 +447,10 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             lines.append(self.splitter.join(vals, widths))
         return lines
 
+
 class IpacData(fixedwidth.FixedWidthData):
     """IPAC table data reader"""
     comment = r'[|\\]'
-
 
     def str_vals(self):
         '''return str vals for each in the table'''
@@ -457,7 +462,6 @@ class IpacData(fixedwidth.FixedWidthData):
             vals_list.append(vals)
 
         return vals_list
-
 
     def write(self, lines, widths, vals_list):
         """ IPAC writer, modified from FixedWidth writer """
