@@ -16,7 +16,7 @@ def kpc_comoving_per_arcmin(z, cosmo=None):
 
     Returns
     -------
-    d : ndarray, or float if input scalar
+    d : astropy.units.Quantity
       The distance in comoving kpc corresponding to an arcmin at each
       input redshift.
     """
@@ -36,7 +36,7 @@ def kpc_proper_per_arcmin(z, cosmo=None):
 
     Returns
     -------
-    d : ndarray, or float if input scalar
+    d : astropy.units.Quantity
       The distance in proper kpc corresponding to an arcmin at each
       input redshift.
     """
@@ -56,7 +56,7 @@ def arcsec_per_kpc_comoving(z, cosmo=None):
 
     Returns
     -------
-    theta : ndarray, or float if input scalar
+    theta : astropy.units.Quantity
       The angular separation in arcsec corresponding to a comoving kpc
       at each input redshift.
     """
@@ -76,7 +76,7 @@ def arcsec_per_kpc_proper(z, cosmo=None):
 
     Returns
     -------
-    theta : ndarray, or float if input scalar
+    theta : astropy.units.Quantity
       The angular separation in arcsec corresponding to a proper kpc
       at each input redshift.
     """
@@ -116,7 +116,7 @@ def H(z, cosmo=None):
 
     Returns
     -------
-    H : ndarray, or float if input scalar
+    H : astropy.units.Quantity
       Hubble parameter at each input redshift.
     """
     if cosmo is None:
@@ -136,7 +136,7 @@ def scale_factor(z, cosmo=None):
 
     Returns
     -------
-    distmod : ndarray, or float if input scalar
+    scalefac : ndarray, or float if input scalar
       Scale factor at each input redshift.
     """
     if cosmo is None:
@@ -154,7 +154,7 @@ def critical_density(z, cosmo=None):
 
     Returns
     -------
-    critdens : ndarray, or float if input scalar
+    critdens : astropy.units.Quantity
       Critical density at each input redshift.
     """
     if cosmo is None:
@@ -175,7 +175,7 @@ def lookback_time(z, cosmo=None):
 
     Returns
     -------
-    t : ndarray, or float if input scalar
+    t : astropy.units.Quantity
       Lookback time at each input redshift.
     """
     if cosmo is None:
@@ -196,7 +196,7 @@ def comoving_distance(z, cosmo=None):
 
     Returns
     -------
-    codist : ndarray, or float if input scalar
+    codist : astropy.units.Quantity
       Comoving distance at each input redshift.
     """
     if cosmo is None:
@@ -218,7 +218,7 @@ def angular_diameter_distance(z, cosmo=None):
 
     Returns
     -------
-    angdist : ndarray, or float if input scalar
+    angdist : astropy.units.Quantity
       Angular diameter distance at each input redshift.
     """
     if cosmo is None:
@@ -239,7 +239,7 @@ def luminosity_distance(z, cosmo=None):
 
     Returns
     -------
-    lumdist : ndarray, or float if input scalar
+    lumdist : astropy.units.Quantity
       Angular diameter distance at each input redshift.
     """
     if cosmo is None:
