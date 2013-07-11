@@ -66,14 +66,12 @@ DIMENSIONLESS_UFUNCS = (INVTRIG_UFUNCS |
 IS_UNITY_UFUNCS = set([np.modf, np.frexp])
 
 # ufuncs that return a value with the same unit as the input
-INVARIANT_UFUNCS = set([np.absolute, np.conj, np.conjugate, np.negative,
-                        np.ones_like,
-                        np.round, np.around, np.rint, np.fix,
+INVARIANT_UFUNCS = set([np.absolute, np.fabs, np.conj, np.conjugate,
+                        np.negative, np.spacing, np.rint,
                         np.floor, np.ceil, np.trunc])
 
 # ufuncs that return a boolean and do not care about the unit
-TEST_UFUNCS = set([np.isreal, np.iscomplex, np.isfinite, np.isinf, np.isnan,
-                   np.sign, np.signbit])
+TEST_UFUNCS = set([np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 # two-argument ufuncs that need special treatment
 DIVISION_UFUNCS = set([np.divide, np.true_divide, np.floor_divide])
@@ -85,7 +83,8 @@ INVTRIG_TWOARG_UFUNCS = set([np.arctan2])
 
 # ufuncs that return an argument with the same unit as that of the two inputs
 INVARIANT_TWOARG_UFUNCS = set([np.add, np.subtract, np.hypot,
-                               np.maximum, np.minimum, np.nextafter,
+                               np.maximum, np.minimum, np.fmin, np.fmax,
+                               np.nextafter,
                                np.remainder, np.mod, np.fmod])
 
 # ufuncs that return a boolean based on two inputs
@@ -94,11 +93,6 @@ COMPARISON_UFUNCS = set([np.greater, np.greater_equal, np.less,
 
 # ufuncs that return a unitless value based on two unitless inputs
 DIMENSIONLESS_TWOARG_UFUNCS = set([np.logaddexp, np.logaddexp2])
-
-# all ufunc's that need two arguments
-TWOARG_UFUNCS = (SPECIAL_TWOARG_UFUNCS | INVTRIG_TWOARG_UFUNCS |
-                 INVARIANT_TWOARG_UFUNCS | DIMENSIONLESS_TWOARG_UFUNCS |
-                 COMPARISON_UFUNCS)
 
 
 def _is_unity(value):
@@ -212,6 +206,10 @@ class Quantity(np.ndarray):
         if function in TEST_UFUNCS:
             return obj
 
+        elif function in UNSUPPORTED_UFUNCS:
+            raise TypeError("Cannot use function '{0}' with quantities"
+                            .format(function.__name__))
+
         from . import dimensionless_unscaled
         from .si import radian, degree
 
@@ -263,7 +261,8 @@ class Quantity(np.ndarray):
                 raise TypeError("Can only apply '{0}' function to quantities "
                                 "with angle units".format(function.__name__))
 
-        elif function in TWOARG_UFUNCS:
+        elif len(context[1]) > 1:  # should always be the case here
+
             # identify other argument
             result._other = 1 if self is context[1][0] else 0
             other = context[1][result._other]
@@ -367,10 +366,6 @@ class Quantity(np.ndarray):
                                     .format(function.__name__))
             if other_scale != 1.:
                 result._other_scale = other_scale
-
-        elif function in UNSUPPORTED_UFUNCS:
-            raise TypeError("Cannot use function '{0}' with quantities"
-                            .format(function.__name__))
 
         else:
             raise TypeError("Unknown ufunc {0}.  Please raise issue on "

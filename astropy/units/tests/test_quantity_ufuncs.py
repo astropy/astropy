@@ -8,6 +8,29 @@ from ...tests.helper import pytest
 from ...tests.compat import assert_allclose
 
 
+class TestUfuncCoverage(object):
+    """Test that we cover all ufunc's"""
+    def test_coverage(self):
+        q = u.quantity
+        all_np_ufuncs = set([np.__dict__[i] for i in np.__dict__
+                             if getattr(np.__dict__[i],
+                                        '__class__', None) == np.ufunc])
+        all_q_ufuncs = (q.UNSUPPORTED_UFUNCS |
+                        q.SPECIAL_UFUNCS |
+                        q.ANGLE_UFUNCS |
+                        q.DIMENSIONLESS_UFUNCS |
+                        q.IS_UNITY_UFUNCS |
+                        q.INVARIANT_UFUNCS |
+                        q.TEST_UFUNCS |
+                        q.SPECIAL_TWOARG_UFUNCS |
+                        q.INVTRIG_TWOARG_UFUNCS |
+                        q.INVARIANT_TWOARG_UFUNCS |
+                        q.DIMENSIONLESS_TWOARG_UFUNCS |
+                        q.COMPARISON_UFUNCS)
+        assert all_np_ufuncs - all_q_ufuncs == set([])
+        assert all_q_ufuncs - all_np_ufuncs == set([])
+
+
 class TestQuantityStatsFuncs(object):
     """
     Test statistical functions
@@ -391,8 +414,9 @@ class TestQuantityMathFuncs(object):
 
 class TestInvariantUfuncs(object):
 
-    @pytest.mark.parametrize(('ufunc'), [np.absolute, np.conjugate,
-                                         np.negative, np.ones_like, np.rint,
+    @pytest.mark.parametrize(('ufunc'), [np.absolute, np.fabs,
+                                         np.conj, np.conjugate,
+                                         np.negative, np.spacing, np.rint,
                                          np.floor, np.ceil])
     def test_invariant_scalar(self, ufunc):
 
