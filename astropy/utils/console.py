@@ -546,7 +546,7 @@ class ProgressBar(object):
             steps = max(int(float(len(items)) / step_size), 1)
             if not multiprocess:
                 for i, item in enumerate(items):
-                    function(item)
+                    results.append(function(item))
                     if (i % steps) == 0:
                         bar.update(i)
             else:
