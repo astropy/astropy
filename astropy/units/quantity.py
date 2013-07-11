@@ -34,53 +34,67 @@ __all__ = ["Quantity"]
 
 # list of ufunc's:
 # http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
-NOT_IMPLEMENTED_UFUNCS = set([np.multiply, np.divide, np.true_divide,
-                              np.floor_divide,
-                              np.reciprocal,
-                              np.remainder, np.mod, np.modf, np.sign,
-                              np.degrees, np.radians, np.unwrap,
-                              np.deg2rad, np.rad2deg,
-                              np.prod, np.cumprod, np.cross, np.trapz,
-                              np.signbit, np.bitwise_and, np.bitwise_or,
-                              np.bitwise_xor, np.invert, np.left_shift,
-                              np.right_shift, np.logical_and, np.logical_or,
-                              np.logical_xor, np.logical_not,
-                              np.nextafter,
-                              np.ldexp, np.frexp, np.fmod])
+
+UNSUPPORTED_UFUNCS = set([np.bitwise_and, np.bitwise_or,
+                          np.bitwise_xor, np.invert, np.left_shift,
+                          np.right_shift, np.logical_and, np.logical_or,
+                          np.logical_xor, np.logical_not])
+
 # Numpy ufuncs handled as special cases
-SPECIAL_UFUNCS = set([np.sqrt, np.square])
+SPECIAL_UFUNCS = set([np.sqrt, np.square, np.reciprocal])
+
 # ufuncs that return a unitless value from an input with angle units
-TRIG_UFUNCS = set([np.cos, np.sin, np.tan, np.cosh, np.sinh, np.tanh,
-                   np.sinc])
+TRIG_UFUNCS = set([np.cos, np.sin, np.tan, np.cosh, np.sinh, np.tanh])
+
+# ufuncs that return an angle in randians/degrees from another angle
+DEG2RAD_UFUNCS = set([np.radians, np.deg2rad])
+RAD2DEG_UFUNCS = set([np.degrees, np.rad2deg])
+
+# all ufuncs that operate on angles
+ANGLE_UFUNCS = TRIG_UFUNCS | DEG2RAD_UFUNCS | RAD2DEG_UFUNCS
+
 # ufuncs that return an angle from a unitless input
 INVTRIG_UFUNCS = set([np.arccos, np.arcsin, np.arctan,
                       np.arccosh, np.arcsinh, np.arctanh])
-# Numpy ufuncs that require dimensionless input
+
+# ufuncs that require dimensionless input
 DIMENSIONLESS_UFUNCS = (INVTRIG_UFUNCS |
                         set([np.exp, np.expm1, np.exp2,
                              np.log, np.log10, np.log2, np.log1p]))
+
+# ufuncs that require dimensionless unscaled input
+IS_UNITY_UFUNCS = set([np.modf, np.frexp])
+
 # ufuncs that return a value with the same unit as the input
 INVARIANT_UFUNCS = set([np.absolute, np.conj, np.conjugate, np.negative,
                         np.ones_like,
                         np.round, np.around, np.rint, np.fix,
-                        np.floor, np.ceil, np.trunc,
-                        np.sum, np.nansum, np.cumsum,
-                        np.diff, np.ediff1d])
+                        np.floor, np.ceil, np.trunc])
+
 # ufuncs that return a boolean and do not care about the unit
 TEST_UFUNCS = set([np.isreal, np.iscomplex, np.isfinite, np.isinf, np.isnan,
-                   np.signbit])
+                   np.sign, np.signbit])
+
 # two-argument ufuncs that need special treatment
-SPECIAL_TWOARG_UFUNCS = set([np.copysign, np.power])
+DIVISION_UFUNCS = set([np.divide, np.true_divide, np.floor_divide])
+SPECIAL_TWOARG_UFUNCS = (DIVISION_UFUNCS |
+                         set([np.copysign, np.multiply, np.power, np.ldexp]))
+
 # ufuncs that return an angle based on two input values
 INVTRIG_TWOARG_UFUNCS = set([np.arctan2])
+
 # ufuncs that return an argument with the same unit as that of the two inputs
 INVARIANT_TWOARG_UFUNCS = set([np.add, np.subtract, np.hypot,
-                               np.maximum, np.minimum])
+                               np.maximum, np.minimum, np.nextafter,
+                               np.remainder, np.mod, np.fmod])
+
 # ufuncs that return a boolean based on two inputs
 COMPARISON_UFUNCS = set([np.greater, np.greater_equal, np.less,
                          np.less_equal, np.not_equal, np.equal])
+
 # ufuncs that return a unitless value based on two unitless inputs
 DIMENSIONLESS_TWOARG_UFUNCS = set([np.logaddexp, np.logaddexp2])
+
 # all ufunc's that need two arguments
 TWOARG_UFUNCS = (SPECIAL_TWOARG_UFUNCS | INVTRIG_TWOARG_UFUNCS |
                  INVARIANT_TWOARG_UFUNCS | DIMENSIONLESS_TWOARG_UFUNCS |
@@ -199,7 +213,7 @@ class Quantity(np.ndarray):
             return obj
 
         from . import dimensionless_unscaled
-        from .si import radian
+        from .si import radian, degree
 
         scale = 1.
 
@@ -211,6 +225,8 @@ class Quantity(np.ndarray):
                 result._unit = self._unit ** 0.5
             elif function is np.square:
                 result._unit = self._unit ** 2
+            elif function is np.reciprocal:
+                result._unit = dimensionless_unscaled / self._unit
 
         elif function in DIMENSIONLESS_UFUNCS:
             try:
@@ -222,36 +238,81 @@ class Quantity(np.ndarray):
             result._unit = (radian if function in INVTRIG_UFUNCS
                             else dimensionless_unscaled)
 
-        elif function in TRIG_UFUNCS:
+        elif function in IS_UNITY_UFUNCS:
+            if not _is_unity(self.unit):
+                raise TypeError("Can only apply '{0}' function to unscaled "
+                                "dimensionless quantities"
+                                .format(function.__name__))
+            else:
+                # output makes no sense as quantity object
+                return obj
+
+        elif function in ANGLE_UFUNCS:
+            if function in DEG2RAD_UFUNCS:
+                target_unit = degree
+                result._unit = radian
+            else:
+                target_unit = radian
+                if function in TRIG_UFUNCS:
+                    result._unit = dimensionless_unscaled
+                else:
+                    result._unit = degree
             try:
-                scale = self.unit.to(radian)
+                scale = self.unit.to(target_unit)
             except:
-                raise TypeError("Can only apply trigonometric functions to "
-                                "quantities with angle units")
-            result._unit = dimensionless_unscaled
+                raise TypeError("Can only apply '{0}' function to quantities "
+                                "with angle units".format(function.__name__))
 
         elif function in TWOARG_UFUNCS:
-
             # identify other argument
             result._other = 1 if self is context[1][0] else 0
             other = context[1][result._other]
             other_scale = 1.
 
             if function in SPECIAL_TWOARG_UFUNCS:
-                if function is np.copysign and result._other == 0:
-                    # if self is second argument, first cannot be a quantity
-                    return obj
+
+                if function is np.multiply:
+                    try:
+                        result._unit = self.unit * other.unit
+                    except AttributeError:  # other is not a quantity
+                        pass
+
+                elif function in DIVISION_UFUNCS:
+                    try:  # order is guaranteed if other is a quantity
+                        result._unit = self.unit / other.unit
+                    except AttributeError:  # but not if it is not
+                        if result._other == 0:
+                            result._unit = dimensionless_unscaled / self._unit
+
                 elif function is np.power:
                     if result._other == 1:
                         result._unit = self.unit ** other
-                    else:
-                        # if self is second argument, first cannot be quantity
+                    else:  # if self is second, first cannot be a quantity
                         try:
                             scale = self.unit.to(dimensionless_unscaled)
                         except:
                             raise TypeError("Can only raise something to a "
                                             "dimensionless quantity")
                         result._unit = dimensionless_unscaled
+
+                elif function is np.ldexp:
+                    # 2nd argument also gets checked in numpy, but that
+                    # only checks whether it is integer
+                    if(result._other == 0 or
+                       result._other == 1 and hasattr(other, 'unit')):
+                        raise TypeError("Cannot use ldexp with a quantity "
+                                        "as second argument.")
+
+                elif function is np.copysign:
+                    if result._other == 0:
+                        # if self is second argument, first cannot be quantity
+                        return obj
+
+                else:  # really should never get here!
+                    raise TypeError("Unknown special two-argument ufunc {0}."
+                                    "Please raise issue on "
+                                    "https://github.com/astropy/astropy"
+                                    .format(function.__name__))
 
             elif function in DIMENSIONLESS_TWOARG_UFUNCS:
                 try:
@@ -279,30 +340,42 @@ class Quantity(np.ndarray):
                     try:
                         scale = self.unit.to(dimensionless_unscaled)
                     except:
-                        raise TypeError("Can only apply '{0}' function to "
-                                        "dimensionless quantities if other "
-                                        "argument is not a quantity"
-                                        .format(function.__name__))
+                        raise UnitsException("Can only apply '{0}' function "
+                                             "to dimensionless quantities if "
+                                             "other argument is not a quantity"
+                                             .format(function.__name__))
                     result._unit = dimensionless_unscaled
                 except:
-                    raise TypeError("Can only apply '{0}' function to "
-                                    "quantities with compatible dimensions"
-                                    .format(function.__name__))
+                    raise UnitsException("Can only apply '{0}' function to "
+                                         "quantities with compatible "
+                                         "dimensions"
+                                         .format(function.__name__))
 
                 if function in INVARIANT_TWOARG_UFUNCS:
                     pass
+
                 elif function in COMPARISON_UFUNCS:
                     result._unit = None  # causes array_wrap to remove unit
+
                 elif function in INVTRIG_TWOARG_UFUNCS:
                     result._unit = radian
+
                 else:  # really should never get here!
-                    raise TypeError("Unknown two-argument ufunc {0}"
+                    raise TypeError("Unknown two-argument ufunc {0}."
+                                    "Please raise issue on "
+                                    "https://github.com/astropy/astropy"
                                     .format(function.__name__))
             if other_scale != 1.:
                 result._other_scale = other_scale
 
+        elif function in UNSUPPORTED_UFUNCS:
+            raise TypeError("Cannot use function '{0}' with quantities"
+                            .format(function.__name__))
+
         else:
-            raise TypeError("Unknown ufunc {0}".format(function.__name__))
+            raise TypeError("Unknown ufunc {0}.  Please raise issue on "
+                            "https://github.com/astropy/astropy"
+                            .format(function.__name__))
 
         if scale != 1.:
             result._scale = scale
@@ -876,11 +949,31 @@ class Quantity(np.ndarray):
         value = np.ndarray.dot(self, b)
         return value * b.unit
 
+    def diff(self, axis=None, dtype=None, out=None):
+        return np.diff(self.value, axis=axis, dtype=dtype) * self.unit
+
+    def ediff1d(self, axis=None, dtype=None, out=None):
+        return np.ediff1d(self.value, axis=axis, dtype=dtype) * self.unit
+
+    def nansum(self, axis=None, dtype=None, out=None):
+        return np.nansum(self.value, axis=axis, dtype=dtype) * self.unit
+
+    def sum(self, axis=None, dtype=None, out=None):
+        return np.sum(self.value, axis=axis, dtype=dtype) * self.unit
+
     def cumsum(self, axis=None, dtype=None, out=None):
-        return np.ndarray.cumsum(self.value, axis=axis, dtype=dtype) * self.unit
+        return np.cumsum(self.value, axis=axis, dtype=dtype) * self.unit
+
+    def prod(self, axis=None, dtype=None, out=None):
+        if _is_unity(self.unit):
+            return np.prod(self.value, axis=axis, dtype=dtype) * self.unit
+        else:
+            raise ValueError("cannot use prod on scaled or "
+                             "non-dimensionless Quantity arrays")
 
     def cumprod(self, axis=None, dtype=None, out=None):
         if _is_unity(self.unit):
-            return np.ndarray.cumprod(self.value, axis=axis, dtype=dtype) * self.unit
+            return np.cumprod(self.value, axis=axis, dtype=dtype) * self.unit
         else:
-            raise ValueError("cannot use cumprod on non-dimensionless Quantity arrays")
+            raise ValueError("cannot use cumprod on scaled or "
+                             "non-dimensionless Quantity arrays")
