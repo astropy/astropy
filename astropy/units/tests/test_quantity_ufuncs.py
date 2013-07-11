@@ -120,9 +120,8 @@ class TestQuantityTrigonometricFuncs(object):
     def test_arcsin_invalid_units(self):
         with pytest.raises(TypeError) as exc:
             np.arcsin(3. * u.m)
-        assert exc.value.args[0] == ("Can only apply inverse trigonometric "
-                                     "functions to dimensionless "
-                                     "quantities")
+        assert exc.value.args[0] == ("Can only apply 'arcsin' function to "
+                                     "dimensionless quantities")
 
     def test_cos_scalar(self):
         q = np.cos(np.pi / 3. * u.radian)
@@ -154,9 +153,8 @@ class TestQuantityTrigonometricFuncs(object):
     def test_arccos_invalid_units(self):
         with pytest.raises(TypeError) as exc:
             np.arccos(3. * u.s)
-        assert exc.value.args[0] == ("Can only apply inverse trigonometric "
-                                     "functions to dimensionless "
-                                     "quantities")
+        assert exc.value.args[0] == ("Can only apply 'arccos' function to "
+                                     "dimensionless quantities")
 
     def test_tan_scalar(self):
         q = np.tan(np.pi / 3. * u.radian)
@@ -179,16 +177,34 @@ class TestQuantityTrigonometricFuncs(object):
 
     def test_tan_invalid_units(self):
         with pytest.raises(TypeError) as exc:
-            np.sin(np.array([1,2,3]) * u.N)
+            np.tan(np.array([1,2,3]) * u.N)
         assert exc.value.args[0] == ("Can only apply trigonometric functions "
                                      "to quantities with angle units")
 
     def test_arctan_invalid_units(self):
         with pytest.raises(TypeError) as exc:
             np.arctan(np.array([1,2,3]) * u.N)
-        assert exc.value.args[0] == ("Can only apply inverse trigonometric "
-                                     "functions to dimensionless "
-                                     "quantities")
+        assert exc.value.args[0] == ("Can only apply 'arctan' function to "
+                                     "dimensionless quantities")
+
+    def test_arctan2_valid(self):
+        q1 = np.array([10., 30., 70., 80.]) * u.m
+        q2 = 2.0 * u.km
+        assert np.arctan2(q1, q2).unit == u.radian
+        assert_allclose(np.arctan2(q1, q2).value,
+                        np.arctan2(q1.value, q2.to(q1.unit).value))
+        q3 = q1/q2
+        q4 = 1.
+        at2 = np.arctan2(q3, q4)
+        assert_allclose(at2, np.arctan2(q3.to(1).value, q4))
+
+    def test_arctan2_invalid_units(self):
+        with pytest.raises(TypeError) as exc:
+            np.arctan2(np.array([1,2,3]) * u.N, 1. * u.s)
+        assert "compatible dimensions" in exc.value.args[0]
+        with pytest.raises(TypeError) as exc:
+            np.arctan2(np.array([1,2,3]) * u.N, 1.)
+        assert "dimensionless quantities if other arg" in exc.value.args[0]
 
 
 class TestQuantityMathFuncs(object):
@@ -202,6 +218,33 @@ class TestQuantityMathFuncs(object):
     def test_sqrt_array(self):
         assert np.all(np.sqrt(np.array([1., 4., 9.]) * u.m)
                       == np.array([1., 2., 3.]) * u.m ** 0.5)
+
+    def test_square_scalar(self):
+        assert np.square(4. * u.m) == 16. * u.m ** 2
+
+    def test_square_array(self):
+        assert np.all(np.square(np.array([1., 2., 3.]) * u.m)
+                      == np.array([1., 4., 9.]) * u.m ** 2)
+
+    def test_power_scalar(self):
+        assert np.power(4. * u.m, 2.) == 16. * u.m ** 2
+        assert np.power(4., 200.*u.cm/u.m) == \
+            u.Quantity(16., u.dimensionless_unscaled)
+
+    def test_power_array(self):
+        assert np.all(np.power(np.array([1., 2., 3.]) * u.m, 3.)
+                      == np.array([1., 8., 27.]) * u.m ** 3)
+
+    def test_power_invalid(self):
+        with pytest.raises(TypeError) as exc:
+            np.power(3., 4.*u.m)
+        assert "raise something to a dimensionless" in exc.value.args[0]
+        with pytest.raises(ValueError) as exc:
+            np.power(2.*u.m, 4.6)
+        assert "must be integers" in exc.value.args[0]
+        with pytest.raises(TypeError) as exc:
+            np.power(2.*u.m, 400.*u.cm/u.m)
+        assert "dimensionless scalar quantities" in exc.value.args[0]
 
     @pytest.mark.parametrize('function', (np.exp, np.log, np.log2, np.log10, np.log1p))
     def test_exp_scalar(self, function):
@@ -230,8 +273,25 @@ class TestQuantityMathFuncs(object):
         # Can't use exp() with non-dimensionless quantities
         with pytest.raises(TypeError) as exc:
             function(3. * u.m / u.s)
-        assert exc.value.args[0] == ("Can only apply {0} function to dimensionless "
-                                     "quantities".format(function.__name__))
+        assert exc.value.args[0] == ("Can only apply '{0}' function to "
+                                     "dimensionless quantities"
+                                     .format(function.__name__))
+
+    @pytest.mark.parametrize('function', (np.logaddexp, np.logaddexp2))
+    def test_dimensionless_twoarg_array(self, function):
+        q = function(np.array([2., 3., 6.]) * u.m / (6. * u.cm), 1.)
+        assert q.unit == u.dimensionless_unscaled
+        assert_allclose(q.value,
+                        function(np.array([100. / 3., 100. / 2., 100.]), 1.))
+
+    @pytest.mark.parametrize('function', (np.logaddexp, np.logaddexp2))
+    def test_dimensionless_twoarg_invalid_units(self, function):
+
+        with pytest.raises(TypeError) as exc:
+            function(1. * u.km / u.s, 3. * u.m / u.s)
+        assert exc.value.args[0] == ("Can only apply '{0}' function to "
+                                     "dimensionless quantities"
+                                     .format(function.__name__))
 
 
 class TestInvariantUfuncs(object):
@@ -257,3 +317,64 @@ class TestInvariantUfuncs(object):
         assert isinstance(q_o, u.Quantity)
         assert q_o.unit == q_i.unit
         assert np.all(q_o.value == ufunc(q_i.value))
+
+    @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
+                                         np.maximum, np.minimum])
+    def test_invariant_twoarg_scalar(self, ufunc):
+
+        q_i1 = 4.7 * u.m
+        q_i2 = 9.4 * u.km
+        q_o = ufunc(q_i1, q_i2)
+        assert isinstance(q_o, u.Quantity)
+        assert q_o.unit == q_i1.unit
+        assert np.all(q_o.value == ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
+
+    @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
+                                         np.maximum, np.minimum])
+    def test_invariant_twoarg_array(self, ufunc):
+
+        q_i1 = np.array([-3.3, 2.1, 10.2]) * u.kg / u.s
+        q_i2 = np.array([10., -5., 1.e6]) * u.g / u.Ms
+        q_o = ufunc(q_i1, q_i2)
+        assert isinstance(q_o, u.Quantity)
+        assert q_o.unit == q_i1.unit
+        assert np.all(q_o.value == ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
+
+    @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
+                                         np.maximum, np.minimum])
+    def test_invariant_twoarg_invalid_units(self, ufunc):
+
+        q_i1 = 4.7 * u.m
+        q_i2 = 9.4 * u.s
+        with pytest.raises(TypeError) as exc:
+            ufunc(q_i1, q_i2)
+        assert "compatible dimensions" in exc.value.args[0]
+
+
+class TestComparisonUfuncs(object):
+
+    @pytest.mark.parametrize(('ufunc'), [np.greater, np.greater_equal,
+                                         np.less, np.less_equal,
+                                         np.not_equal, np.equal])
+    def test_comparison_valid_units(self, ufunc):
+        q_i1 = np.array([-3.3, 2.1, 10.2]) * u.kg / u.s
+        q_i2 = np.array([10., -5., 1.e6]) * u.g / u.Ms
+        q_o = ufunc(q_i1, q_i2)
+        assert not isinstance(q_o, u.Quantity)
+        assert q_o.dtype == np.bool
+        assert np.all(q_o == ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
+        q_o2 = ufunc(q_i1/q_i2, 2.)
+        assert not isinstance(q_o2, u.Quantity)
+        assert q_o2.dtype == np.bool
+        assert np.all(q_o2 == ufunc((q_i1/q_i2).to(1).value, 2.))
+
+    @pytest.mark.parametrize(('ufunc'), [np.greater, np.greater_equal,
+                                         np.less, np.less_equal,
+                                         np.not_equal, np.equal])
+    def test_invariant_twoarg_invalid_units(self, ufunc):
+
+        q_i1 = 4.7 * u.m
+        q_i2 = 9.4 * u.s
+        with pytest.raises(TypeError) as exc:
+            ufunc(q_i1, q_i2)
+        assert "compatible dimensions" in exc.value.args[0]

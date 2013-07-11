@@ -32,15 +32,59 @@ WARN_IMPLICIT_NUMERIC_CONVERSION = ConfigurationItem(
 
 __all__ = ["Quantity"]
 
-# Numpy ufuncs that return unitless values
-DIMENSIONLESS_UFUNCS = set([np.exp, np.log, np.log1p, np.log2, np.log10])
-
-TRIG_UFUNCS = set([np.cos, np.sin, np.tan])
-
-INVTRIG_UFUNCS = set([np.arccos, np.arcsin, np.arctan])
-
-INVARIANT_UFUNCS = set([np.absolute, np.conjugate, np.negative, np.ones_like,
-                        np.rint, np.floor, np.ceil])
+# list of ufunc's:
+# http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
+NOT_IMPLEMENTED_UFUNCS = set([np.multiply, np.divide, np.true_divide,
+                              np.floor_divide,
+                              np.reciprocal,
+                              np.remainder, np.mod, np.modf, np.sign,
+                              np.degrees, np.radians, np.unwrap,
+                              np.deg2rad, np.rad2deg,
+                              np.prod, np.cumprod, np.cross, np.trapz,
+                              np.signbit, np.bitwise_and, np.bitwise_or,
+                              np.bitwise_xor, np.invert, np.left_shift,
+                              np.right_shift, np.logical_and, np.logical_or,
+                              np.logical_xor, np.logical_not,
+                              np.nextafter,
+                              np.ldexp, np.frexp, np.fmod])
+# Numpy ufuncs handled as special cases
+SPECIAL_UFUNCS = set([np.sqrt, np.square])
+# ufuncs that return a unitless value from an input with angle units
+TRIG_UFUNCS = set([np.cos, np.sin, np.tan, np.cosh, np.sinh, np.tanh,
+                   np.sinc])
+# ufuncs that return an angle from a unitless input
+INVTRIG_UFUNCS = set([np.arccos, np.arcsin, np.arctan,
+                      np.arccosh, np.arcsinh, np.arctanh])
+# Numpy ufuncs that require dimensionless input
+DIMENSIONLESS_UFUNCS = (INVTRIG_UFUNCS |
+                        set([np.exp, np.expm1, np.exp2,
+                             np.log, np.log10, np.log2, np.log1p]))
+# ufuncs that return a value with the same unit as the input
+INVARIANT_UFUNCS = set([np.absolute, np.conj, np.conjugate, np.negative,
+                        np.ones_like,
+                        np.round, np.around, np.rint, np.fix,
+                        np.floor, np.ceil, np.trunc,
+                        np.sum, np.nansum, np.cumsum,
+                        np.diff, np.ediff1d])
+# ufuncs that return a boolean and do not care about the unit
+TEST_UFUNCS = set([np.isreal, np.iscomplex, np.isfinite, np.isinf, np.isnan,
+                   np.signbit])
+# two-argument ufuncs that need special treatment
+SPECIAL_TWOARG_UFUNCS = set([np.copysign, np.power])
+# ufuncs that return an angle based on two input values
+INVTRIG_TWOARG_UFUNCS = set([np.arctan2])
+# ufuncs that return an argument with the same unit as that of the two inputs
+INVARIANT_TWOARG_UFUNCS = set([np.add, np.subtract, np.hypot,
+                               np.maximum, np.minimum])
+# ufuncs that return a boolean based on two inputs
+COMPARISON_UFUNCS = set([np.greater, np.greater_equal, np.less,
+                         np.less_equal, np.not_equal, np.equal])
+# ufuncs that return a unitless value based on two unitless inputs
+DIMENSIONLESS_TWOARG_UFUNCS = set([np.logaddexp, np.logaddexp2])
+# all ufunc's that need two arguments
+TWOARG_UFUNCS = (SPECIAL_TWOARG_UFUNCS | INVTRIG_TWOARG_UFUNCS |
+                 INVARIANT_TWOARG_UFUNCS | DIMENSIONLESS_TWOARG_UFUNCS |
+                 COMPARISON_UFUNCS)
 
 
 def _is_unity(value):
@@ -150,61 +194,162 @@ class Quantity(np.ndarray):
         # Find out which ufunc is being used
         function = context[0]
 
-        # If function is one of the is* ones, we should return a plain Numpy array
-        if function.__name__.startswith('is'):
+        # For test functions (isreal, signbit, etc.), return plain Numpy array
+        if function in TEST_UFUNCS:
             return obj
 
         from . import dimensionless_unscaled
         from .si import radian
 
-        # Temporary, just return the same
-        if function is np.sqrt:
-            result._unit = self._unit ** 0.5
+        scale = 1.
+
+        if function in INVARIANT_UFUNCS:
+            pass
+
+        elif function in SPECIAL_UFUNCS:
+            if function is np.sqrt:
+                result._unit = self._unit ** 0.5
+            elif function is np.square:
+                result._unit = self._unit ** 2
+
         elif function in DIMENSIONLESS_UFUNCS:
             try:
-                result.unit.to(dimensionless_unscaled)
+                scale = self.unit.to(dimensionless_unscaled)
             except:
-                raise TypeError("Can only apply {0} function to dimensionless quantities".format(function.__name__))
-            result._unit = dimensionless_unscaled
+                raise TypeError("Can only apply '{0}' function to "
+                                "dimensionless quantities"
+                                .format(function.__name__))
+            result._unit = (radian if function in INVTRIG_UFUNCS
+                            else dimensionless_unscaled)
+
         elif function in TRIG_UFUNCS:
             try:
-                result.unit.to(radian)
+                scale = self.unit.to(radian)
             except:
-                raise TypeError("Can only apply trigonometric functions to quantities with angle units")
+                raise TypeError("Can only apply trigonometric functions to "
+                                "quantities with angle units")
             result._unit = dimensionless_unscaled
-        elif function in INVTRIG_UFUNCS:
-            try:
-                result.unit.to(dimensionless_unscaled)
-            except:
-                raise TypeError("Can only apply inverse trigonometric functions to dimensionless quantities")
-            result._unit = radian
-        elif function in INVARIANT_UFUNCS:
-            pass
+
+        elif function in TWOARG_UFUNCS:
+
+            # identify other argument
+            result._other = 1 if self is context[1][0] else 0
+            other = context[1][result._other]
+            other_scale = 1.
+
+            if function in SPECIAL_TWOARG_UFUNCS:
+                if function is np.copysign and result._other == 0:
+                    # if self is second argument, first cannot be a quantity
+                    return obj
+                elif function is np.power:
+                    if result._other == 1:
+                        result._unit = self.unit ** other
+                    else:
+                        # if self is second argument, first cannot be quantity
+                        try:
+                            scale = self.unit.to(dimensionless_unscaled)
+                        except:
+                            raise TypeError("Can only raise something to a "
+                                            "dimensionless quantity")
+                        result._unit = dimensionless_unscaled
+
+            elif function in DIMENSIONLESS_TWOARG_UFUNCS:
+                try:
+                    scale = self.unit.to(dimensionless_unscaled)
+                except:
+                    raise TypeError("Can only apply '{0}' function to "
+                                    "dimensionless quantities"
+                                    .format(function.__name__))
+                try:
+                    other_scale = other.unit.to(dimensionless_unscaled)
+                except AttributeError:  # other argument is not a quantity
+                    pass
+                except:
+                    raise TypeError("Can only apply '{0}' function to "
+                                    "dimensionless quantities"
+                                    .format(function.__name__))
+                result._unit = dimensionless_unscaled
+
+            else:
+                # for all other two-argument ufuncs, check dimensions of
+                # the two arguments are compatible
+                try:
+                    other_scale = other.unit.to(self.unit)
+                except AttributeError:  # other argument is not a quantity
+                    try:
+                        scale = self.unit.to(dimensionless_unscaled)
+                    except:
+                        raise TypeError("Can only apply '{0}' function to "
+                                        "dimensionless quantities if other "
+                                        "argument is not a quantity"
+                                        .format(function.__name__))
+                    result._unit = dimensionless_unscaled
+                except:
+                    raise TypeError("Can only apply '{0}' function to "
+                                    "quantities with compatible dimensions"
+                                    .format(function.__name__))
+
+                if function in INVARIANT_TWOARG_UFUNCS:
+                    pass
+                elif function in COMPARISON_UFUNCS:
+                    result._unit = None  # causes array_wrap to remove unit
+                elif function in INVTRIG_TWOARG_UFUNCS:
+                    result._unit = radian
+                else:  # really should never get here!
+                    raise TypeError("Unknown two-argument ufunc {0}"
+                                    .format(function.__name__))
+            if other_scale != 1.:
+                result._other_scale = other_scale
+
         else:
-            raise TypeError("Unknown ufunc:" + function.__name__)
+            raise TypeError("Unknown ufunc {0}".format(function.__name__))
+
+        if scale != 1.:
+            result._scale = scale
 
         return result
 
     def __array_wrap__(self, obj, context=None):
 
-        from . import dimensionless_unscaled
-        from .si import radian
+        if hasattr(obj, '_other'):  # two-argument function
+            other = obj.__dict__.pop('_other')
+            other_scale = obj.__dict__.pop('_other_scale', None)
+            self_scale = obj.__dict__.pop('_scale', None)
+            if other_scale or self_scale:  # need to recalculate
+                function = context[0]
+                try:
+                    other_value = context[1][other].value
+                except AttributeError:
+                    other_value = context[1][other]
+                if other_scale:  # don't use "*="; could change input!
+                    other_value = other_value * other_scale
 
-        # Find out which ufunc is being used
-        function = context[0]
+                if self_scale:
+                    self_value = self.value * self_scale
+                else:
+                    self_value = self.value
 
-        # If context is a trig function and we are not in radians, or context
-        # is a dimensionless function and we are not in dimensionless unscaled,
-        # need to recompute since there was no way to change the value before
-        if function in TRIG_UFUNCS and self.unit is not radian:
-            obj = Quantity(function(self.to(radian).value),
-                           unit=dimensionless_unscaled)
-        elif function in DIMENSIONLESS_UFUNCS | INVTRIG_UFUNCS and \
-                self.unit is not dimensionless_unscaled:
-            obj = Quantity(function(self.to(dimensionless_unscaled).value),
-                           unit=obj._unit)
+                args = [self_value, other_value] if other == 1 \
+                    else [other_value, self_value]
+                result = function(*args)
+                if obj._unit is None:
+                    return result
+                else:
+                    return Quantity(result, unit=obj._unit)
+            else:
+                if obj._unit is None:  # used for COMPARISON_UFUNCS
+                    return obj.value
+                else:
+                    return obj
 
-        return obj
+        else:
+            if hasattr(obj, '_scale'):  # need to recalculate, scale!=1
+                function = context[0]
+                return Quantity(function(self.value *
+                                         obj.__dict__.pop('_scale')),
+                                unit=obj._unit)
+            else:
+                return obj
 
     def to(self, unit, equivalencies=None):
         """ Returns a new `Quantity` object with the specified units.
