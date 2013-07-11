@@ -803,22 +803,22 @@ class FLRW(Cosmology):
         if (z2 < z1).any():
             z1, z2 = z2, z1
 
-        dm1 = self.comoving_transverse_distance(z1)
-        dm2 = self.comoving_transverse_distance(z2)
-        dh_2 = self._hubble_distance ** 2
+        dm1 = self.comoving_transverse_distance(z1).value
+        dm2 = self.comoving_transverse_distance(z2).value
+        dh_2 = self._hubble_distance.value ** 2
         
         if Ok0 == 0:
             # Common case worth checking
             out = (dm2 - dm1) / (1. + z2)
         else:
-            out = (dm2 * np.sqrt(1. + Ok0 * dm1.value ** 2 / dh_2.value) -
-                   dm1 * np.sqrt(1. + Ok0 * dm2.value ** 2 / dh_2.value)) /\
+            out = (dm2 * np.sqrt(1. + Ok0 * dm1 ** 2 / dh_2) -
+                   dm1 * np.sqrt(1. + Ok0 * dm2 ** 2 / dh_2)) /\
                    (1. + z2)
 
         if outscalar:
-            return out[0]
+            return u.Quantity(out[0], 'Mpc')
 
-        return out
+        return u.Quantity(out, 'Mpc')
 
     def absorption_distance(self, z):
         """ Absorption distance at redshift `z`.
@@ -863,8 +863,8 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        distmod : float or ndarray
-          Distance modulus at each input redshift.
+        distmod : float, or ndarray
+          Distance modulus at each input redshift, in magnitudes
         """
 
         # Remember that the luminosity distance is in Mpc
