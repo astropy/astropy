@@ -162,19 +162,6 @@ def test_custom_model(amplitude=4, frequency=1):
     assert np.all((fitter.fitpars - np.array([amplitude, frequency])) < 0.001)
 
 
-models_1D = [
-            (models.Gaussian1DModel, [1, 0, 1], [[0, np.sqrt(2), -np.sqrt(2)],
-                                [1, 1. / np.exp(1), 1. / np.exp(1)]], [-10, 10]),
-            (models.Sine1DModel, [1, 1], [[0, 0.25], [0, 1]], [-10, 10]),
-            (models.Const1DModel, [1], [[-1, 1, np.pi, -42., 0], [1, 1, 1, 1, 1]], [-10, 10]),
-            (models.Box1DModel, [1, 0, 1], [[-0.5, 0.5, 0, -1, 1], [1, 1, 1, 0, 0]], [-2, 2]),
-            (models.Linear1DModel, [1, 0], [[0, np.pi, 42], [0, np.pi, 42]], [-10, 10]),
-            (models.PowerLaw1DModel, [1, 2], [[2, 1, 10.], [0.25, 1, 0.01]], [1, 2]),
-            (models.MexicanHat1DModel, [1, 0, 1], [[0], [1]], [-10, 10]),
-            (models.Trapezoid1DModel, [1, 0, 1, 1], [[0], [1]], [-2, 2]),
-            (models.Lorentz1DModel, [1, 0, 1], [[0], [1]], [-10, 10])
-            ]
-
 models_2D = [
             (models.Gaussian2DModel, [1, 0, 0, 1, 1], [[0, np.sqrt(2), -np.sqrt(2)],
                                 [0, np.sqrt(2), -np.sqrt(2)], [1, 1. / np.exp(1)**2, 1. / np.exp(1)**2]], [-10, 10]),
@@ -194,7 +181,7 @@ class TestParametricModel(object):
     def setup_class(self):
         self.N = 100
 
-    @pytest.mark.parametrize(('model_class', 'params', 'values', 'range'), models_1D)
+    @pytest.mark.parametrize(('model_class', 'test_parameters'), models_1D)
     def test_eval1D(self, model_class, params, values, range):
         """
         Test model values add certain given points
