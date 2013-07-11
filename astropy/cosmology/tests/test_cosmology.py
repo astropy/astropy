@@ -35,6 +35,7 @@ def test_units():
     assert cosmo.critical_density(1.0).unit == u.g / u.cm**3
     assert cosmo.comoving_volume(1.0).unit == u.Mpc**3
     assert cosmo.age(1.0).unit == u.Gyr
+    assert cosmo.distmod(1.0).unit == u.mag
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_flat_z1():
@@ -203,7 +204,8 @@ def test_convenience():
     assert funcs.kpc_comoving_per_arcmin(3).unit == u.kpc / u.arcmin
     assert np.allclose(funcs.kpc_proper_per_arcmin(3).value, 472.918828)
     assert funcs.kpc_proper_per_arcmin(3).unit == u.kpc / u.arcmin
-    assert np.allclose(funcs.distmod(3), 47.075902)
+    assert np.allclose(funcs.distmod(3).value, 47.075902)
+    assert funcs.distmod(3).unit == u.mag
     assert np.allclose(funcs.H(3).value, 299.80813491298068)
     assert funcs.H(3).unit == u.km / (u.Mpc * u.s)
     assert np.allclose(funcs.scale_factor(3), 0.25)
@@ -228,7 +230,8 @@ def test_convenience():
                        [121.2859701, 551.66511804])
     assert np.allclose(funcs.kpc_proper_per_arcmin([0.1, 0.5]).value,
                        [110.25997282, 367.77674536])
-    assert np.allclose(funcs.distmod([0.1, 0.5]), [38.30738567, 42.27020333])
+    assert np.allclose(funcs.distmod([0.1, 0.5]).value,
+                       [38.30738567, 42.27020333])
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -431,8 +434,8 @@ def test_distmod():
     # WMAP7 but with Omega_relativisitic = 0
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     core.set_current(tcos)
-    assert np.allclose(tcos.distmod([1, 5]), [44.124857, 48.40167258])
-    assert np.allclose(funcs.distmod([1, 5], cosmo=tcos),
+    assert np.allclose(tcos.distmod([1, 5]).value, [44.124857, 48.40167258])
+    assert np.allclose(funcs.distmod([1, 5], cosmo=tcos).value,
                        [44.124857, 48.40167258])
 
 

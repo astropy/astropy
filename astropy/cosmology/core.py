@@ -28,9 +28,6 @@ __doctest_requires__ = {'*': ['scipy.integrate']}
 
 # Constants
 
-# speed of light in km/s
-c_kms = const.c.to('km/s')
-
 # Mpc in km
 Mpc_km = (1 * u.Mpc).to(u.km)
 
@@ -123,14 +120,14 @@ class FLRW(Cosmology):
         else:
             self._H0 = float(H0) * u.km / u.s / u.Mpc
 
-        # H0 in s^-1
-        H0_s = self._H0.to(1.0 / u.s)
         # 100 km/s/Mpc * h = H0 (so h is dimensionless)
         self._h = self._H0.value / 100.
-        # Hubble time
+        # Hubble distance
+        self._hubble_distance = (const.c / self._H0).to(u.Mpc)
+        # H0 in s^-1
+        H0_s = self._H0.to(1.0 / u.s)
+        # Hubble time 
         self._hubble_time = (1. / H0_s).to(u.Gyr)
-        # Hubble distance in Mpc
-        self._hubble_distance = c_kms / self._H0
 
         # critical density at z=0 (grams per cubic cm)
         self._critical_density0 = (3. * H0_s ** 2 /
@@ -863,12 +860,13 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        distmod : float, or ndarray
+        distmod : astropy.units.Quantity
           Distance modulus at each input redshift, in magnitudes
         """
 
         # Remember that the luminosity distance is in Mpc
-        return 5. * np.log10(self.luminosity_distance(z).value * 1.e5)
+        val = 5. * np.log10(self.luminosity_distance(z).value * 1.e5)
+        return u.Quantity(val, u.mag)
 
     def comoving_volume(self, z):
         """ Comoving volume in cubic Mpc at redshift `z`.

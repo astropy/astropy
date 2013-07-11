@@ -98,7 +98,7 @@ def distmod(z, cosmo=None):
 
     Returns
     -------
-    distmod : ndarray, or float if input scalar
+    distmod : astropy.units.Quantity
       Distance modulus at each input redshift.
     """
     if cosmo is None:
