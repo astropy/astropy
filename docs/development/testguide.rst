@@ -482,6 +482,30 @@ if the user does not have py.test installed. This is so that users need not
 install py.test to run AstroPy's tests.
 
 
+Testing warnings
+-----------------
+
+In order to test that warnings are triggered as expected in certain situations, you can use
+the `warnings.catch_warnings` context manager in the standard library `warnings` module.  Here is
+a real-world example, which starts by resetting the list of warnings to make sure the test in
+question starts with a clean slate::
+
+  with warnings.catch_warnings(record=True) as warning_lines:
+      warnings.resetwarnings()
+      warnings.simplefilter("always", metadata.MergeConflictWarning, append=True)
+
+      # Test code which triggers a MergeConflictWarning
+      out = table.vstack([t1, t2, t4], join_type='outer')
+
+      assert warning_lines[0].category == metadata.MergeConflictWarning
+      assert ("In merged column 'a' the 'units' attribute does not match (cm != m)"
+              in str(warning_lines[0].message))
+
+Within ``py.test`` there is also the option of using the ``recwarn`` function argument
+to test that warnings are triggered.  This method has been found to be problematic
+in at least one case (`pull request 1174 <https://github.com/astropy/astropy/pull/1174#issuecomment-20249309>`_)
+so the `warnings` module context manager is preferred.
+
 .. _doctests:
 
 Writing doctests
