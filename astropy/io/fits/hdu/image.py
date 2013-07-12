@@ -209,7 +209,7 @@ class _ImageBaseHDU(_ValidHDU):
         else:
             self._data_replaced = True
 
-        if self.data is not None and not isinstance(data, np.ndarray):
+        if data is not None and not isinstance(data, np.ndarray):
             # Try to coerce the data into a numpy array--this will work, on
             # some level, for most objects
             try:

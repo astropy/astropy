@@ -218,6 +218,13 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
         self._modified = True
 
+        if data is None and self.columns:
+            # Create a new table with the same columns, but empty rows
+            formats = ','.join(self.columns._recformats)
+            data = np.rec.array(None, formats=formats,
+                                names=self.columns.names,
+                                shape=0)
+
         if isinstance(data, np.ndarray) and data.dtype.fields is not None:
             if not isinstance(data, self._data_type):
                 data = data.view(self._data_type)
