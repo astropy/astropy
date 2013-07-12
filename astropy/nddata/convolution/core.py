@@ -33,7 +33,11 @@ class Kernel(object):
     def __init__(self, mask):
         self._mask = mask
         self._normalization = 1. / self._mask.sum()
-        self._truncation = 1. - 1. / self._normalization
+        if self._normalization > 0.001:
+            self._truncation = 1. - 1. / self._normalization
+        else:
+            # There kernels that are normalized to zero
+            self._truncation = self._mask.sum()
 
     @property
     def truncation(self):

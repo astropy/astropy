@@ -3,11 +3,14 @@ import numpy as np
 from .core import Kernel1D, Kernel2D, Kernel
 from .utils import KernelSizeError
 
-from ...modeling.models import Gaussian1DModel, Box1DModel, Disk2DModel
+from ...modeling.models import *
 from ...modeling.core import Parametric1DModel, Parametric2DModel
+from astropy.modeling.functional_models import Trapezoid1DModel
 
 
-__all__ = ['GaussianKernel', 'CustomKernel', 'BoxKernel', 'Tophat2DKernel']
+__all__ = ['GaussianKernel', 'CustomKernel', 'BoxKernel', 'Tophat2DKernel',
+           'Trapezoid1DKernel', 'MexicanHat1DKernel', 'MexicanHat2DKernel',
+           'Airy2DKernel']
 
 
 class GaussianKernel(Kernel1D):
@@ -83,7 +86,7 @@ class Tophat2DKernel(Kernel2D):
 
     def __init__(self, radius):
         self._model = Disk2DModel(amplitude=1., x_0=0., y_0=0., radius=radius)
-        super(Tophat2DKernel, self).__init__([2 * radius + 1, 2 * radius + 1])
+        super(Tophat2DKernel, self).__init__([2 * int(radius) + 1, 2 * int(radius) + 1])
         self._truncation = 0
 
 
@@ -104,8 +107,11 @@ class Trapezoid1DKernel(Kernel1D):
     """
     _weighted = True
 
-    def __init__(self):
-        raise NotImplementedError
+    def __init__(self, width, slope=1):
+        self._model = Trapezoid1DModel(amplitude=1, x_0=0., width=width, slope=slope)
+        size = 2 * int(width / 2. + 1. / slope) + 1 
+        super(Trapezoid1DKernel, self).__init__(size)
+        self._truncation = 0
 
 
 class MexicanHat1DKernel(Kernel1D):
@@ -118,8 +124,12 @@ class MexicanHat1DKernel(Kernel1D):
     """
     _weighted = True
 
-    def __init__(self):
-        raise NotImplementedError
+    def __init__(self, width, size=None):
+        if size == None:
+            #Default Kernel size for GaussianKernel
+            size = 8 * int(width) + 1
+        self._model = MexicanHat1DModel(amplitude=1, x_0=0., width=width)
+        super(MexicanHat1DKernel, self).__init__(size)
 
 
 class MexicanHat2DKernel(Kernel2D):
@@ -130,16 +140,24 @@ class MexicanHat2DKernel(Kernel2D):
     filter. It does not conserve the mean. It is useful for peak or multi-scale
     detection.
     """
-    def __init__(self):
-        raise NotImplementedError
+    def __init__(self, width, shape=None):
+        if shape == None:
+            #Default Kernel size for GaussianKernel
+            shape = (8 * int(width) + 1, 8 * int(width) + 1)
+        self._model = MexicanHat2DModel(amplitude=1, x_0=0., y_0=0, width=width)
+        super(MexicanHat2DKernel, self).__init__(shape)
 
 
 class Airy2DKernel(Kernel2D):
     """
     Airy 2D kernel.
     """
-    def __init__(self):
-        raise NotImplementedError
+    def __init__(self, width, shape=None):
+        if shape == None:
+            #Default Kernel size for GaussianKernel
+            shape = (8 * int(width) + 1, 8 * int(width) + 1)
+        self._model = Airy2DModel(amplitude=1, x_0=0., y_0=0, width=width)
+        super(Airy2DKernel, self).__init__(shape)
 
 
 class Model1DKernel(Kernel1D):
