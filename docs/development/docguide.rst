@@ -5,12 +5,12 @@ Writing Documentation
 =====================
 
 High-quality, consistent documentation for astronomy code is one of
-the major goals of the Astropy project.  Hence, we describe our 
+the major goals of the Astropy project.  Hence, we describe our
 documentation procedures and rules here.  For the astropy core
 project we try to keep to these as closely as possible, while the
-standards for affiliated packages are somewhat looser.  
+standards for affiliated packages are somewhat looser.
 (These procedures and guidelines are still recommended for affilated
-packages, as they encourage useful documentation, a characteristic 
+packages, as they encourage useful documentation, a characteristic
 often lacking in professional astronomy software.)
 
 
@@ -118,17 +118,17 @@ edit_on_github Extension
 numpydoc Extension
 ^^^^^^^^^^^^^^^^^^
 This extension (and some related extensions) are a port of the
-`numpydoc <http://pypi.python.org/pypi/numpydoc/0.3.1>`_ extension 
-written by the NumPy_ and SciPy_, projects, with some tweaks for 
+`numpydoc <http://pypi.python.org/pypi/numpydoc/0.3.1>`_ extension
+written by the NumPy_ and SciPy_, projects, with some tweaks for
 Astropy.  Its main purposes is to reprocess docstrings from code into
 a form sphinx understands. Generally, there's no need to interact with
-it directly, as docstrings following the doc:`docrules` will be 
+it directly, as docstrings following the doc:`docrules` will be
 processed automatically.
 
 
 Other Extensions
 ^^^^^^^^^^^^^^^^
-`astropy.spinx.ext` includes a few other extensions that are primarily 
+`astropy.spinx.ext` includes a few other extensions that are primarily
 helpers for the other extensions or workarounds for undesired behavior.
 Their APIs are not included here because we may change them in the
 future.

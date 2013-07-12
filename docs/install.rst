@@ -82,7 +82,7 @@ The tests should run and print out any failures, which you can report at
 the `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_.
 
 .. note::
-    
+
     This way of running the tests may not work if you do it in the
     astropy source distribution.  See :ref:`sourcebuildtest` for how to
     run the tests from the source code directory, or :ref:`running-tests`
@@ -265,6 +265,20 @@ packages:
     - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or later
 
     - `Graphviz <http://www.graphviz.org>`_
+
+.. note::
+
+    Sphinx also requires a reasonably modern LaTeX installation to render
+    equations.  Per the `Sphinx documentation
+    <http://sphinx-doc.org/builders.html?highlight=latex#sphinx.builders.latex.LaTeXBuilder>`_,
+    For the TexLive distribution the following packages are required to be
+    installed:
+
+    * latex-recommended
+    * latex-extra
+    * font-recommended
+
+    For other LaTeX distributions your mileage may vary.
 
 There are two ways to build the Astropy documentation. The most straightforward
 way is to execute the command (from the astropy source directory)::
