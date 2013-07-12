@@ -173,12 +173,15 @@ class TestParametricModels(object):
     @pytest.mark.parametrize(('model_class'), models_1D.keys())
     def test_eval1D(self, model_class):
         """
-        Test model values add certain given points
+        Test model values at certain given points
         """
-        model = model_class(*models_1D[model_class]['parameters'])
-        x = models_1D[model_class]['x_values']
-        y = models_1D[model_class]['y_values']
-        assert np.all((np.abs(model(x) - y) < self.eval_error))
+        if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
+            pass
+        else:
+            model = model_class(*models_1D[model_class]['parameters'])
+            x = models_1D[model_class]['x_values']
+            y = models_1D[model_class]['y_values']
+            assert np.all((np.abs(model(x) - y) < self.eval_error))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     @pytest.mark.parametrize(('model_class'), models_1D.keys())
@@ -211,11 +214,14 @@ class TestParametricModels(object):
         """
         Test model values add certain given points
         """
-        model = model_class(*models_2D[model_class]['parameters'])
-        x = models_2D[model_class]['x_values']
-        y = models_2D[model_class]['y_values']
-        z = models_2D[model_class]['z_values']
-        assert np.all((np.abs(model(x, y) - z) < self.eval_error))
+        if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
+            pass
+        else:
+            model = model_class(*models_2D[model_class]['parameters'])
+            x = models_2D[model_class]['x_values']
+            y = models_2D[model_class]['y_values']
+            z = models_2D[model_class]['z_values']
+            assert np.all((np.abs(model(x, y) - z) < self.eval_error))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     @pytest.mark.parametrize(('model_class'), models_2D.keys())

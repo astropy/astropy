@@ -97,5 +97,7 @@ models_2D[Airy2DModel] = {'parameters': [1, 0, 0, 1],
                           'y_values': [0],
                           'z_values': [1],
                           'x_lim': [-10, 10],
-                          'y_lim': [-10, 10]}
+                          'y_lim': [-10, 10],
+                          'requires_scipy': True}
+
  
