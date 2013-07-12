@@ -619,7 +619,6 @@ class Box2DModel(Parametric2DModel):
     y_width : float
         Width in y direction of the box
 
-
     See Also
     --------
     Box1DModel
@@ -646,11 +645,12 @@ class Box2DModel(Parametric2DModel):
 
 
 class Trapezoid1DModel(Parametric1DModel):
+
     """
     One dimensional trapezoid model.
 
     Parameters
-    ---------
+    ----------
     amplitude : float
         Amplitude of the trapezoid
     x_0 : float
@@ -659,6 +659,10 @@ class Trapezoid1DModel(Parametric1DModel):
         Width of the constant part of the trapezoid.
     slope : float
         Slope of the tails of the trapezoid
+
+    See Also
+    --------
+    Box1DModel, Gaussian1DModel
     """
     param_names = ['amplitude', 'x_0', 'width', 'slope']
 
@@ -679,11 +683,12 @@ class Trapezoid1DModel(Parametric1DModel):
 
 
 class TrapezoidDisk2DModel(Parametric2DModel):
+
     """
     Two dimensional circular trapezoid model.
 
     Parameters
-    ---------
+    ----------
     amplitude : float
         Amplitude of the trapezoid
     x_0 : float
@@ -694,7 +699,12 @@ class TrapezoidDisk2DModel(Parametric2DModel):
         Width in x direction of the constant part of the trapezoid.
     slope : float
         Slope of the tails of the trapezoid in x direction.
+
+    See Also
+    --------
+    Disk2DModel, Box2DModel
     """
+
     param_names = ['amplitude', 'x_0', 'y_0', 'radius', 'slope']
 
     def __init__(self, amplitude, x_0, y_0, radius, slope):
@@ -725,6 +735,10 @@ class MexicanHat1DModel(Parametric1DModel):
         Position of the peak
     width : float
         Width of the mexican hat
+
+    See Also
+    --------
+    Box1DModel, Gaussian1DModel, Trapezoid1DModel
 
     Notes
     -----
@@ -801,6 +815,7 @@ class Airy2DModel(Parametric2DModel):
         y position of the maximum of the Airy function.
     width : float
         Width of the Airy function.
+
     Notes
     -----
     Model formula:
