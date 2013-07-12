@@ -806,7 +806,7 @@ class Airy2DModel(Parametric2DModel):
     Two dimensional symmetric Airy model.
 
     Parameters
-    ---------
+    ----------
     amplitude : float
         Amplitude of the Airy function.
     x_0 : float
