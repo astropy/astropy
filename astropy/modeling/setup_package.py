@@ -2,4 +2,4 @@
 
 
 def get_package_data():
-    return {'astropy.modeling.tests': ['data/*.fits']}
+    return {'astropy.modeling.tests': ['data/*.fits', '../../wcs/tests/maps/*.hdr']}

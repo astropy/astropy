@@ -108,7 +108,10 @@ def _convert_output(x, fmt):
     elif fmt == 'T':
         return x.T
     elif fmt == 'S':
-        return x
+        try:
+            return x[0]
+        except IndexError:
+            return x
     else:
         raise ValueError("Unrecognized output conversion format")
 
@@ -421,6 +424,8 @@ class ParametricModel(Model):
         tied = cons.pop('tied', None)
         eqcons = cons.pop('eqcons', None)
         ineqcons = cons.pop('ineqcons', None)
+        if cons != {}:
+            raise TypeError("Unrecognized constraints type: {0}".format(repr(cons.keys())))
 
         super(ParametricModel, self).__init__(param_names, n_inputs, n_outputs,
                                               param_dim=param_dim)
@@ -428,7 +433,7 @@ class ParametricModel(Model):
         self._parameters = parameters.Parameters(self, self.param_names,
                                                  param_dim=param_dim)
         # Initialize the constraints for each parameter
-        _bounds = {}.fromkeys(self.param_names, [-1.E12, 1.E12])
+        _bounds = {}.fromkeys(self.param_names, [None, None])
         if eqcons is None:
             self._eqcons = []
         else:
@@ -597,7 +602,7 @@ class LabeledInput(dict):
 
     Examples
     --------
-    >>> x,y = np.mgrid[:10, :10]
+    >>> x,y = np.mgrid[:5, :5]
     >>> l = np.arange(10)
     >>> ado = LabeledInput([x, y, l], ['x', 'y', 'pixel'])
     >>> ado.x
@@ -748,6 +753,7 @@ class SCompositeModel(_CompositeModel):
     Apply a 2D rotation followed by a shift in x and y::
 
         >>> from astropy.modeling import *
+        >>> x, y = np.mgrid[:5, :5]
         >>> rot = models.MatrixRotation2D(angle=23.5)
         >>> offx = models.ShiftModel(-4.23)
         >>> offy = models.ShiftModel(2)

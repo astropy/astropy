@@ -212,8 +212,11 @@ class Parameter(object):
         """
         Set a minimum value of a parameter.
         """
-        assert isinstance(val, numbers.Number), "Min value must be a number"
-        self._min = float(val)
+        if val is not None:
+            assert isinstance(val, numbers.Number), "Min value must be a number"
+            self._min = float(val)
+        else:
+            self._min = None
 
     @property
     def max(self):
@@ -227,8 +230,11 @@ class Parameter(object):
         """
         Set a maximum value of a parameter.
         """
-        assert isinstance(val, numbers.Number), "Max value must be a number"
-        self._max = float(val)
+        if val is not None:
+            assert isinstance(val, numbers.Number), "Max value must be a number"
+            self._max = float(val)
+        else:
+            self._max = None
 
     def __getitem__(self, i):
         return self._value[i]
@@ -274,7 +280,7 @@ class Parameter(object):
         return np.asarray(self._value) / val
 
     def __rtruediv__(self, val):
-        return val / np.asarray(self)
+        return val / np.asarray(self._value)
 
     def __eq__(self, val):
         return (np.asarray(self._value) == np.asarray(val)).all()

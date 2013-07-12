@@ -265,11 +265,11 @@ def test_unset_tied():
 
 def test_set_bounds_1():
     gauss = models.Gaussian1DModel(amplitude=20, mean=2, stddev=1,
-                                   bounds={'stddev': (0, 10 ** 12)})
+                                   bounds={'stddev': (0, None)})
     gfit = fitting.NonLinearLSQFitter(gauss)
-    assert gauss.bounds == {'amplitude': (-10 ** 12, 10 ** 12),
-                            'mean': (-10 ** 12, 10 ** 12),
-                            'stddev': (0.0, 10 ** 12)}
+    assert gauss.bounds == {'amplitude': (None, None),
+                            'mean': (None, None),
+                            'stddev': (0.0, None)}
     assert gfit.bounds == [(-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12), (0.0, 10 ** 12)]
 
 
@@ -277,19 +277,20 @@ def test_set_bounds_2():
     gauss = models.Gaussian1DModel(amplitude=20, mean=2, stddev=1)
     gfit = fitting.NonLinearLSQFitter(gauss)
     gauss.stddev.min = 0.
-    assert gauss.bounds == {'amplitude': (-10 ** 12, 10 ** 12),
-                            'mean': (-10 ** 12, 10 ** 12),
-                            'stddev': (0.0, 10 ** 12)}
+    assert gauss.bounds == {'amplitude': (None, None),
+                            'mean': (None, None),
+                            'stddev': (0.0, None)}
     gfit._update_constraints()
     assert gfit.bounds == [(-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12), (0.0, 10 ** 12)]
 
-# def test_unset_bounds():
-    # gauss = models.Gaussian1DModel(amplitude=20, mean=2, stddev=1,
-                                   # bounds={'stddev': (0, 2)})
-    # gfit = fitting.NonLinearLSQFitter(gauss)
-    # gauss.stddev.min = False
-    # gauss.stddev.max = False
-    # assert gauss.bounds == {'amplitude': (-10**12, 10**12),
-                            #'mean': (-10**12, 10**12),
-                            #'stddev': (-10**12, 10**12)}
-    # assert gfit.bounds == [(-10**12, 10**12),(-10**12, 10**12), (-10**12, 10**12)]
+
+def test_unset_bounds():
+    gauss = models.Gaussian1DModel(amplitude=20, mean=2, stddev=1,
+                                   bounds={'stddev': (0, 2)})
+    gauss.stddev.min = None
+    gauss.stddev.max = None
+    assert gauss.bounds == {'amplitude': (None, None),
+                            'mean': (None, None),
+                            'stddev': (None, None)}
+    gfit = fitting.NonLinearLSQFitter(gauss)
+    assert gfit.bounds == [(-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12)]

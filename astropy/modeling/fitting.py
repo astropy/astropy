@@ -14,6 +14,7 @@ There are currently two non-linear fitters which use `~scipy.optimize.leastsq` a
 from __future__ import division
 import abc
 from functools import reduce
+import numbers
 import warnings
 import numpy as np
 from numpy import linalg
@@ -74,13 +75,28 @@ class Fitter(object):
 
     def __init__(self, model):
         self._model = model
-        pars = [getattr(self.model, name) for name in self.model.param_names]
-        self.bounds = [(par.min, par.max) for par in pars]
-        self.fixed = [par.fixed for par in pars]
-        self.tied = [par.tied for par in pars]
+        self.bounds = []
+        self.fixed = []
+        self.tied = []
+        self._set_constraints()
         self._fitpars = self._model_to_fit_pars()
         self._validate_constraints()
         self._weights = None
+
+    def _set_constraints(self):
+        pars = [getattr(self.model, name) for name in self.model.param_names]
+        self.fixed = [par.fixed for par in pars]
+        self.tied = [par.tied for par in pars]
+        min_values = [par.min for par in pars]
+        max_values = [par.max for par in pars]
+        b = []
+        for i, j in zip(min_values, max_values):
+            if i is None:
+                i = -10**12
+            if j is None:
+                j = 10**12
+            b.append((i, j))
+        self.bounds = b[:]
 
     @property
     def model(self):
@@ -115,14 +131,21 @@ class Fitter(object):
         if any(self.fixed) or any(self.tied):
             fitpars = list(fps[:])
             mpars = []
-            for i in range(len(self.model.param_names)):
+            for i, name in enumerate(self.model.param_names):
                 if self.fixed[i] is True:
-                    mpars.extend([getattr(self.model, self.model.param_names[i]).value])
+                    par = getattr(self.model, name)
+                    if len(par.parshape) == 0:
+                        mpars.extend([par.value])
+                    else:
+                        mpars.extend(par.value)
                 elif self.tied[i] is not False:
                     val = self.tied[i](self.model)
-                    mpars.extend([val])
+                    if isinstance(val, numbers.Number):
+                        mpars.append(val)
+                    else:
+                        mpars.extend(val)
                 else:
-                    sl = self.model._parameters.parinfo[self.model.param_names[i]][0]
+                    sl = self.model._parameters.parinfo[name][0]
                     plen = sl.stop - sl.start
                     mpars.extend(fitpars[:plen])
                     del fitpars[:plen]
@@ -130,7 +153,7 @@ class Fitter(object):
         elif any([b != (-1E12, 1E12) for b in self.bounds]):
             self._set_bounds(fps)
         else:
-            self.model.parameters = fps
+            self.model.parameters[:] = fps
 
     def _model_to_fit_pars(self):
         """
@@ -140,7 +163,7 @@ class Fitter(object):
         """
         if any(self.model.fixed.values()) or any(self.model.tied.values()):
             pars = self.model._parameters[:]
-            for item in self.model.param_names:
+            for item in self.model.param_names[::-1]:
                 if self.model.fixed[item] or self.model.tied[item]:
                     sl = self.model._parameters.parinfo[item][0]
                     del pars[sl]
@@ -239,10 +262,7 @@ class Fitter(object):
         self._weights = val
 
     def _update_constraints(self):
-        pars = [getattr(self.model, name) for name in self.model.param_names]
-        self.bounds = [(par.min, par.max) for par in pars]
-        self.fixed = [par.fixed for par in pars]
-        self.tied = [par.tied for par in pars]
+        self._set_constraints()
         self._fitpars = self._model_to_fit_pars()
 
     @abc.abstractmethod

@@ -115,7 +115,7 @@ class Pix2Sky_AZP(Zenithal):
     @mu.setter
     def mu(self, val):
         self.check_mu(val)
-        self._mu = parameters.Parameter('mu', val, self, 1)
+        self._mu.value = val
 
     @property
     def gamma(self):
@@ -123,7 +123,7 @@ class Pix2Sky_AZP(Zenithal):
 
     @gamma.setter
     def gamma(self, val):
-        self._gamma = parameters.Parameter('gamma', np.deg2rad(val), self, 1)
+        self._gamma.value = np.deg2rad(val)
 
     def check_mu(self, val):
         if val == -1:
@@ -191,7 +191,7 @@ class Sky2Pix_AZP(Zenithal):
     @mu.setter
     def mu(self, val):
         self.check_mu(val)
-        self._mu = parameters.Parameter('mu', val, self, 1)
+        self._mu.value = val
 
     @property
     def gamma(self):
@@ -199,7 +199,7 @@ class Sky2Pix_AZP(Zenithal):
 
     @gamma.setter
     def gamma(self, val):
-        self._gamma = parameters.Parameter('gamma', np.deg2rad(val), self, 1)
+        self._gamma.value = np.deg2rad(val)
 
     def check_mu(self, val):
         if val == -1:
@@ -411,8 +411,26 @@ class Pix2Sky_CYP(Cylindrical):
         if val == -self.mu:
             raise ValueError("CYP projection is not defined for mu = -lambda")
 
+    @property
+    def mu(self):
+        return self._mu.value
+
+    @mu.setter
+    def mu(self, val):
+        self.check_mu(val)
+        self._mu.value = val
+
+    @property
+    def lam(self):
+        return self._lam.value
+
+    @lam.setter
+    def lam(self, val):
+        self.check_lam(val)
+        self._lam._value = val
+
     def inverse(self):
-        return Sky2Pix_CYP(self.mu, self.lam)
+        return Sky2Pix_CYP(self.mu.value, self.lam.value)
 
     def __call__(self, x, y):
         x = np.asarray(x) + 0.
@@ -448,11 +466,28 @@ class Sky2Pix_CYP(Cylindrical):
         if val == -self.mu:
             raise ValueError("CYP projection is not defined for mu = -lambda")
 
+    @property
+    def mu(self):
+        return self._mu.value
+
+    @mu.setter
+    def mu(self, val):
+        self.check_mu(val)
+        self._mu.value = val
+
+    @property
+    def lam(self):
+        return self._lam.value
+
+    @lam.setter
+    def lam(self, val):
+        self.check_lam(val)
+        self._lam._value = val
+
     def inverse(self):
         return Pix2Sky_CYP(self.mu, self.lam)
 
     def __call__(self, phi, theta):
-        # phi = np.asarray(np.deg2rad(phi)) +0.
         theta = np.asarray(np.deg2rad(theta))
         x = self._lam * phi
         y = self.r0 * ((self.mu + self.lam) / (self.mu + np.cos(theta))) * \
@@ -472,12 +507,19 @@ class Pix2Sky_CEA(Cylindrical):
         self._lam = parameters.Parameter('lam', lam, self, 1)
         super(Pix2Sky_CEA, self).__init__(param_names=self.param_names)
 
+    @property
+    def lam(self):
+        return self._lam.value
+
+    @lam.setter
+    def lam(self, val):
+        self._lam.value = val
+
     def inverse(self):
         return Sky2Pix_CEA(self.lam)
 
     def __call__(self, x, y):
         phi = np.asarray(x)
-        # lam = np.asarray(self._lam)
         theta = np.rad2deg(np.arcsin(1 / self.r0 * self.lam * y))
         return phi, theta
 
