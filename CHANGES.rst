@@ -119,6 +119,9 @@ API Changes
     where appropriate. The original attributes are still present in this version
     as deprecated attributes, but will be removed in the next version [#1174].
 
+  - The ``copy`` methods of ``Column`` and ``MaskedColumn`` were changed so that
+    the first argument is now ``order='C'``.  This is required for compatibility
+    with Numpy 1.8 which is currently in development [#1250].
 
 Bug Fixes
 ^^^^^^^^^^
