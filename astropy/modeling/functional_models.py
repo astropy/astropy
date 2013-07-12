@@ -3,38 +3,6 @@
 Mathematical models.
 """
 
-#Here is a template for implementing new models:
-#
-#class Name1DModel(Parametric1DModel):
-#    """
-#    One dimensional name model.
-#
-#    Parameters
-#    ---------
-#
-#    Notes
-#    -----
-#    Model formula:
-#
-#    """
-#    def __init__(self):
-#        super(Name1DModel, self).__init__(locals())
-#
-#    def eval(self, x):
-#        """
-#        Model function name.
-#        """
-#        return
-#
-#    def deriv(self, x):
-#        """
-#        Model function derivatives name.
-#        """
-#        return []
-#
-#
-#If no derivative function is provided it should be removed completely!
-
 from __future__ import division
 import collections
 import numpy as np
@@ -330,8 +298,13 @@ class PowerLaw1DModel(Parametric1DModel):
 
     Notes
     -----
-    Model formula:
+    Model formula Python:
         f(x) = scale * x ** (-alpha)
+
+    Model formula:
+
+    .. math:: f(x) = A x^{-\\alpha}
+
     """
     param_names = ['scale', 'alpha']
 
@@ -444,10 +417,20 @@ class Lorentz1DModel(Parametric1DModel):
     fwhm : float
         Full width at half maximum
 
+    See Also
+    --------
+    Gaussian1DModel, Box1DModel, MexicanHat1DModel
+
     Notes
     -----
-    Model formula:
+    Model formula Python:
         f(x) = amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.) ** 2)
+
+    Model formula:
+
+    .. math::
+
+        f(x) = \\frac{A \\gamma^{2}}{\\gamma^{2} + \\left(x - x_{0}\\right)^{2}}
     """
     param_names = ['amplitude', 'x_0', 'fwhm']
 
@@ -456,9 +439,18 @@ class Lorentz1DModel(Parametric1DModel):
 
     def eval(self, x, amplitude, x_0, fwhm):
         """
-        Model function Lorentz1D
+        Model function Lorentz1D.
         """
         return amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.) ** 2)
+
+    def deriv(self, x, amplitude, x_0, fwhm):
+        """
+        Model function derivatives Lorentz1D.
+        """
+        d_amplitude = fwhm ** 2 / (fwhm ** 2 + (x - x_0) ** 2)
+        d_x_0 = amplitude * d_amplitude * (2 * x - 2 * x_0) / (fwhm ** 2 + (x - x_0) ** 2)
+        d_fwhm = 2 * amplitude * d_amplitude / fwhm * (1 - d_amplitude)
+        return [d_amplitude, d_x_0, d_fwhm]
 
 
 class Const1DModel(Parametric1DModel):
@@ -511,14 +503,7 @@ class Const2DModel(Parametric2DModel):
         """
         return amplitude * np.ones_like(x)
 
-    def deriv(self, x, y, amplitude):
-        """
-        Model function derivatives Const2D
-        """
-        d_amplitude = np.ones_like(x)
-        return [d_amplitude]
-
-
+ 
 class Disk2DModel(Parametric2DModel):
 
     """
@@ -746,6 +731,13 @@ class MexicanHat1DModel(Parametric1DModel):
     Model formula:
         f(x) =  (amplitude * (1 - (x - x_0) ** 2 / (2 * width ** 2))
                 * np.exp(- 0.5 * (x - x_0) ** 2 / width ** 2))
+    Model formula:
+
+    .. math::
+
+        f(x) = A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}\\right) 
+        e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}
+
     """
     param_names = ['amplitude', 'x_0', 'width']
 
