@@ -623,13 +623,8 @@ class Box2DModel(Parametric2DModel):
     --------
     Box1DModel
 
-    Notes
-    -----
-    Model formula:
-        f(x) = np.select([x >= x_0 - x_width / 2., x >= x_0 + x_width / 2.,
-                                         y >= y_0 - y_width / 2., y <= y_0 + y_width / 2.],
-                         [amplitude, 0, amplitude, 0])
     """
+
     param_names = ['amplitude', 'x_0', 'y_0', 'x_width', 'y_width']
 
     def __init__(self, amplitude, x_0, y_0, x_width, y_width):
@@ -743,14 +738,11 @@ class MexicanHat1DModel(Parametric1DModel):
     Notes
     -----
     Model formula:
-        f(x) =  (amplitude * (1 - (x - x_0) ** 2 / (2 * width ** 2))
-                * np.exp(- 0.5 * (x - x_0) ** 2 / width ** 2))
-    Model formula:
 
     .. math::
 
-        f(x) = A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}\\right) 
-        e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}
+        f(x) = {A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}\\right)
+        e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}}
 
     """
     param_names = ['amplitude', 'x_0', 'width']
@@ -787,6 +779,7 @@ class MexicanHat2DModel(Parametric2DModel):
     Model formula:
         f(x, y) = amplitude * (1 - ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * width ** 2))
                 * np.exp(- 0.5 * ((x - x_0) ** 2 + (y - y_0) ** 2) / width ** 2))
+
     """
     param_names = ['amplitude', 'x_0', 'y_0', 'width']
 
