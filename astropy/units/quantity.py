@@ -387,12 +387,17 @@ class Quantity(np.ndarray):
         #         self, obj, context))
 
         if hasattr(obj, '_self_unit'):
-            self.unit = obj.__dict__.pop('_self_unit')
+            old_self_unit = obj.__dict__.pop('_self_unit')
+            if self.__array_interface__ != obj.__array_interface__:
+                self.unit = old_self_unit
 
         if hasattr(obj, '_other'):  # two-argument function
             other = context[1][obj.__dict__.pop('_other')]
             if hasattr(obj, '_other_unit'):
-                other.unit = obj.__dict__.pop('_other_unit')
+                old_other_unit = obj.__dict__.pop('_other_unit')
+                if other.__array_interface__ != obj.__array_interface__:
+                    other.unit = old_other_unit
+
         if hasattr(obj, '_unit') and obj._unit is None:
             return obj.__array__()
         else:
