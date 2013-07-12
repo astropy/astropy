@@ -191,7 +191,8 @@ class Quantity(np.ndarray):
             self._unit = obj._unit
 
     def __array_prepare__(self, obj, context=None):
-
+        # print("prepare: self={}\nobj={}\ncontext={}".format(
+        #         self, obj, context))
         result = obj.view(type(self))
         result._unit = self.unit
 
@@ -364,60 +365,38 @@ class Quantity(np.ndarray):
                                     "Please raise issue on "
                                     "https://github.com/astropy/astropy"
                                     .format(function.__name__))
-            if other_scale != 1.:
-                result._other_scale = other_scale
+
+            if context[2] == 0 and other_scale != 1.:
+                # will only be the case when other=quantity
+                result._other_unit = other.unit
+                other.unit = Unit(1./other_scale * other.unit)
 
         else:
             raise TypeError("Unknown ufunc {0}.  Please raise issue on "
                             "https://github.com/astropy/astropy"
                             .format(function.__name__))
 
-        if scale != 1.:
-            result._scale = scale
+        if context[2] == 0 and scale != 1.:
+            result._self_unit = self.unit
+            self.unit = Unit(1./scale * self.unit)
 
         return result
 
     def __array_wrap__(self, obj, context=None):
+        # print("wrap: self={}\nobj={}\ncontext={}".format(
+        #         self, obj, context))
+
+        if hasattr(obj, '_self_unit'):
+            self.unit = obj.__dict__.pop('_self_unit')
 
         if hasattr(obj, '_other'):  # two-argument function
-            other = obj.__dict__.pop('_other')
-            other_scale = obj.__dict__.pop('_other_scale', None)
-            self_scale = obj.__dict__.pop('_scale', None)
-            if other_scale or self_scale:  # need to recalculate
-                function = context[0]
-                try:
-                    other_value = context[1][other].value
-                except AttributeError:
-                    other_value = context[1][other]
-                if other_scale:  # don't use "*="; could change input!
-                    other_value = other_value * other_scale
-
-                if self_scale:
-                    self_value = self.value * self_scale
-                else:
-                    self_value = self.value
-
-                args = [self_value, other_value] if other == 1 \
-                    else [other_value, self_value]
-                result = function(*args)
-                if obj._unit is None:
-                    return result
-                else:
-                    return Quantity(result, unit=obj._unit)
-            else:
-                if obj._unit is None:  # used for COMPARISON_UFUNCS
-                    return obj.value
-                else:
-                    return obj
-
+            other = context[1][obj.__dict__.pop('_other')]
+            if hasattr(obj, '_other_unit'):
+                other.unit = obj.__dict__.pop('_other_unit')
+        if hasattr(obj, '_unit') and obj._unit is None:
+            return obj.__array__()
         else:
-            if hasattr(obj, '_scale'):  # need to recalculate, scale!=1
-                function = context[0]
-                return Quantity(function(self.value *
-                                         obj.__dict__.pop('_scale')),
-                                unit=obj._unit)
-            else:
-                return obj
+            return obj
 
     def to(self, unit, equivalencies=None):
         """ Returns a new `Quantity` object with the specified units.
@@ -449,14 +428,20 @@ class Quantity(np.ndarray):
         else:
             return self.view(np.ndarray)
 
-    @property
-    def unit(self):
+    def get_unit(self):
         """
         A `~astropy.units.UnitBase` object representing the unit of this
         quantity.
         """
 
         return self._unit
+
+    def set_unit(self, new_unit):
+        self_values = self.__array__()
+        self_values *= self.unit.to(new_unit)
+        self._unit = Unit(new_unit)
+
+    unit = property(get_unit, set_unit)
 
     @property
     def equivalencies(self):
@@ -815,10 +800,12 @@ class Quantity(np.ndarray):
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
     def __str__(self):
-        return "{0} {1:s}".format(self.value, self.unit.to_string())
+        return "{0} {1:s}".format(self.value, self.unit.to_string()
+                                  if self.unit is not None else '()')
 
     def __repr__(self):
-        return "<Quantity {0} {1:s}>".format(self.value, self.unit.to_string())
+        return "<Quantity {0} {1:s}>".format(self.value, self.unit.to_string()
+                                             if self.unit is not None else '()')
 
     def _repr_latex_(self):
         """

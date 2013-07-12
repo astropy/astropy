@@ -447,7 +447,7 @@ class TestInvariantUfuncs(object):
         q_o = ufunc(q_i1, q_i2)
         assert isinstance(q_o, u.Quantity)
         assert q_o.unit == q_i1.unit
-        assert np.all(q_o.value == ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
+        assert_allclose(q_o.value, ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
 
     @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
                                          np.maximum, np.minimum, np.nextafter,
@@ -455,11 +455,11 @@ class TestInvariantUfuncs(object):
     def test_invariant_twoarg_array(self, ufunc):
 
         q_i1 = np.array([-3.3, 2.1, 10.2]) * u.kg / u.s
-        q_i2 = np.array([10., -5., 1.e6]) * u.g / u.Ms
+        q_i2 = np.array([10., -5., 1.e6]) * u.g / u.us
         q_o = ufunc(q_i1, q_i2)
         assert isinstance(q_o, u.Quantity)
         assert q_o.unit == q_i1.unit
-        assert np.all(q_o.value == ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
+        assert_allclose(q_o.value, ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
 
     @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
                                          np.maximum, np.minimum, np.nextafter,

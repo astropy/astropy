@@ -64,8 +64,11 @@ class TestQuantityCreation(object):
         # test getting and setting 'unit' attribute
         q1 = u.Quantity(11.4, unit=u.meter)
 
-        with pytest.raises(AttributeError):
-            q1.unit = u.centimeter
+        q1.unit = u.cm
+        assert q1.value == 1140.
+
+        with pytest.raises(u.UnitsException):
+            q1.unit = u.s
 
 
 class TestQuantityOperations(object):
@@ -506,9 +509,6 @@ def test_quantity_mutability():
     with pytest.raises(AttributeError):
         q.value = 3
 
-    with pytest.raises(AttributeError):
-        q.unit = u.kg
-
 
 def test_quantity_initialized_with_quantity():
     q1 = u.Quantity(60, u.second)
@@ -586,4 +586,3 @@ def test_equality_numpy_scalar():
     assert 10 != 10. * u.m
     assert np.int64(10) != 10 * u.m
     assert 10 * u.m != np.int64(10)
-
