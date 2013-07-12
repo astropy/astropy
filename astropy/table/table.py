@@ -521,14 +521,14 @@ class Column(BaseColumn, np.ndarray):
     def data(self):
         return self.view(np.ndarray)
 
-    def copy(self, data=None, copy_data=True):
+    def copy(self, order='C', data=None, copy_data=True):
         """Return a copy of the current Column instance.  If ``data`` is supplied
         then a view (reference) of ``data`` is used, and ``copy_data`` is ignored.
         """
         if data is None:
             data = self.view(np.ndarray)
             if copy_data:
-                data = data.copy()
+                data = data.copy(order)
 
         return Column(name=self.name, data=data, unit=self.unit, format=self.format,
                       description=self.description, meta=deepcopy(self.meta))
@@ -754,7 +754,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
                      description=self.description, meta=deepcopy(self.meta))
         return out
 
-    def copy(self, data=None, copy_data=True):
+    def copy(self, order='C', data=None, copy_data=True):
         """
         Return a copy of the current MaskedColumn instance.  If ``data`` is supplied
         then a view (reference) of ``data`` is used, and ``copy_data`` is ignored.
@@ -775,7 +775,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         if data is None:
             data = self.view(ma.MaskedArray)
             if copy_data:
-                data = data.copy()
+                data = data.copy(order)
 
         return MaskedColumn(name=self.name, data=data, unit=self.unit, format=self.format,
                             # Do not include mask=self.mask since `data` has the mask
