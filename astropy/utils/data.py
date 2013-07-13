@@ -156,7 +156,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         if _is_url(name_or_obj):
             name_or_obj = download_file(
                 name_or_obj, cache=cache, show_progress=show_progress,
-                timeout=timteout)
+                timeout=timeout)
         if PY3K:
             fileobj = io.FileIO(name_or_obj, 'r')
         else:
