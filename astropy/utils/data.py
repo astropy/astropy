@@ -345,7 +345,7 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
     This will retrieve a data file and its contents for the `astropy.wcs`
     tests::
 
-        from astropy.config import get_pkg_data_fileobj
+        from astropy.utils.data import get_pkg_data_fileobj
 
         with get_pkg_data_fileobj('data/3d_cd.hdr') as fobj:
             fcontents = fobj.read()
@@ -355,7 +355,7 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
     source distribution.  It will also save the file locally so the
     next time it is accessed it won't need to be downloaded.::
 
-        from astropy.config import get_pkg_data_fileobj
+        from astropy.utils.data import get_pkg_data_fileobj
 
         with get_pkg_data_fileobj('standards/vega.fits') as fobj:
             fcontents = fobj.read()
@@ -434,7 +434,7 @@ def get_pkg_data_filename(data_name, show_progress=True):
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 
-        from astropy.config import get_pkg_data_filename
+        from astropy.utils.data import get_pkg_data_filename
 
         fn = get_pkg_data_filename('data/3d_cd.hdr')
         with open(fn) as f:
@@ -444,7 +444,7 @@ def get_pkg_data_filename(data_name, show_progress=True):
     This retrieves a data file by hash either locally or from the astropy data
     server::
 
-        from astropy.config import get_pkg_data_filename
+        from astropy.utils.data import get_pkg_data_filename
 
         fn = get_pkg_data_filename('hash/da34a7b07ef153eede67387bf950bb32')
         with open(fn) as f:
@@ -579,7 +579,7 @@ def get_pkg_data_filenames(datadir, pattern='*'):
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 
-        from astropy.config import get_pkg_data_filenames
+        from astropy.utils.data import get_pkg_data_filenames
 
         for fn in get_pkg_data_filename('maps', '*.hdr'):
             with open(fn) as f:
@@ -650,7 +650,7 @@ def get_pkg_data_fileobjs(datadir, pattern='*', encoding=None):
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 
-        from astropy.config import get_pkg_data_filenames
+        from astropy.utils.data import get_pkg_data_filenames
 
         for fd in get_pkg_data_filename('maps', '*.hdr'):
             fcontents = fd.read()
