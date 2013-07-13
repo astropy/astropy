@@ -388,14 +388,14 @@ class Quantity(np.ndarray):
 
         if hasattr(obj, '_self_unit'):
             old_self_unit = obj.__dict__.pop('_self_unit')
-            if self.__array_interface__ != obj.__array_interface__:
+            if self.base is not obj.base.base:
                 self.unit = old_self_unit
 
         if hasattr(obj, '_other'):  # two-argument function
             other = context[1][obj.__dict__.pop('_other')]
             if hasattr(obj, '_other_unit'):
                 old_other_unit = obj.__dict__.pop('_other_unit')
-                if other.__array_interface__ != obj.__array_interface__:
+                if other.base is not obj.base.base:
                     other.unit = old_other_unit
 
         if hasattr(obj, '_unit') and obj._unit is None:
