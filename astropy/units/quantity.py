@@ -10,29 +10,19 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 # Standard library
-import copy
 import numbers
-import warnings
 
 import numpy as np
 
 # AstroPy
-from .core import Unit, UnitBase, CompositeUnit, UnitsException
-from ..config import ConfigurationItem
+from .core import Unit, UnitBase, UnitsException
 from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
 
 
-WARN_IMPLICIT_NUMERIC_CONVERSION = ConfigurationItem(
-                                          "warn_implicit_numeric_conversion",
-                                          True,
-                                          "Whether to show a warning message "
-                                          "in the log when converting a "
-                                          "Quantity to a float/int")
-
 __all__ = ["Quantity"]
 
-# list of ufunc's:
+# list of ufuncs:
 # http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
 
 UNSUPPORTED_UFUNCS = set([np.bitwise_and, np.bitwise_or,
@@ -40,64 +30,11 @@ UNSUPPORTED_UFUNCS = set([np.bitwise_and, np.bitwise_or,
                           np.right_shift, np.logical_and, np.logical_or,
                           np.logical_xor, np.logical_not])
 
-# Numpy ufuncs handled as special cases
-SPECIAL_UFUNCS = set([np.sqrt, np.square, np.reciprocal])
-
-# ufuncs that return a unitless value from an input with angle units
-TRIG_UFUNCS = set([np.cos, np.sin, np.tan, np.cosh, np.sinh, np.tanh])
-
-# ufuncs that return an angle in randians/degrees from another angle
-DEG2RAD_UFUNCS = set([np.radians, np.deg2rad])
-RAD2DEG_UFUNCS = set([np.degrees, np.rad2deg])
-
-# all ufuncs that operate on angles
-ANGLE_UFUNCS = TRIG_UFUNCS | DEG2RAD_UFUNCS | RAD2DEG_UFUNCS
-
-# ufuncs that return an angle from a unitless input
-INVTRIG_UFUNCS = set([np.arccos, np.arcsin, np.arctan,
-                      np.arccosh, np.arcsinh, np.arctanh])
-
-# ufuncs that require dimensionless input
-DIMENSIONLESS_UFUNCS = (INVTRIG_UFUNCS |
-                        set([np.exp, np.expm1, np.exp2,
-                             np.log, np.log10, np.log2, np.log1p]))
-
-# ufuncs that require dimensionless unscaled input
-IS_UNITY_UFUNCS = set([np.modf, np.frexp])
-
-# ufuncs that return a value with the same unit as the input
-INVARIANT_UFUNCS = set([np.absolute, np.fabs, np.conj, np.conjugate,
-                        np.negative, np.spacing, np.rint,
-                        np.floor, np.ceil, np.trunc])
-
 # ufuncs that return a boolean and do not care about the unit
 TEST_UFUNCS = set([np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
-# two-argument ufuncs that need special treatment
-DIVISION_UFUNCS = set([np.divide, np.true_divide, np.floor_divide])
-SPECIAL_TWOARG_UFUNCS = (DIVISION_UFUNCS |
-                         set([np.copysign, np.multiply, np.power, np.ldexp]))
 
-# ufuncs that return an angle based on two input values
-INVTRIG_TWOARG_UFUNCS = set([np.arctan2])
-
-# ufuncs that return an argument with the same unit as that of the two inputs
-INVARIANT_TWOARG_UFUNCS = set([np.add, np.subtract, np.hypot,
-                               np.maximum, np.minimum, np.fmin, np.fmax,
-                               np.nextafter,
-                               np.remainder, np.mod, np.fmod])
-
-# ufuncs that return a boolean based on two inputs
-COMPARISON_UFUNCS = set([np.greater, np.greater_equal, np.less,
-                         np.less_equal, np.not_equal, np.equal])
-
-# ufuncs that return a unitless value based on two unitless inputs
-DIMENSIONLESS_TWOARG_UFUNCS = set([np.logaddexp, np.logaddexp2])
-
-
-def _is_unity(value):
-    x = value.decompose()
-    return (len(x.bases) == 0 and x.scale == 1.0)
+from .quantity_helper import _is_unity
 
 
 def _validate_value(value):
@@ -191,8 +128,6 @@ class Quantity(np.ndarray):
             self._unit = obj._unit
 
     def __array_prepare__(self, obj, context=None):
-        # print("prepare: self={}\nobj={}\ncontext={}".format(
-        #     self, obj, context))
 
         # If no context is set, just return input
         if context is None:
@@ -204,22 +139,11 @@ class Quantity(np.ndarray):
         # For test functions (isreal, signbit, etc.), return plain Numpy array
         if function in TEST_UFUNCS:
             return obj
-
         elif function in UNSUPPORTED_UFUNCS:
             raise TypeError("Cannot use function '{0}' with quantities"
                             .format(function.__name__))
 
-        from . import dimensionless_unscaled
-        from .si import radian, degree
-
-        # get arguments and see if they have units
-        args = context[1][:function.nin]
-        arg_has_units = [hasattr(arg, 'unit') for arg in args]
-        arg_units = [getattr(arg, 'unit', dimensionless_unscaled)
-                     for arg in args]
-
-        scales = np.ones(len(arg_units))
-        arg0_unit = arg_units[0]
+        args = context[1]
 
         unit1 = args[0].unit if hasattr(args[0], 'unit') else None
 
@@ -228,30 +152,32 @@ class Quantity(np.ndarray):
         if function.nin == 1:
 
             if function in UFUNC_HELPERS:
-                scales[0], result_unit = UFUNC_HELPERS[function](function, unit1)
+                scale1, result_unit = UFUNC_HELPERS[function](function, unit1)
             else:
                 raise TypeError("Unknown one-argument ufunc {0}.  Please raise"
                                 " issue on https://github.com/astropy/astropy"
                                 .format(function.__name__))
 
+            scale2 = None
+
         elif function.nin == 2:
 
             unit2 = args[1].unit if hasattr(args[1], 'unit') else None
 
-            arg1_unit = arg_units[1]
-
             if function in UFUNC_HELPERS:
-                scales[0], scales[1], result_unit = UFUNC_HELPERS[function](function, unit1, unit2)
+                scale1, scale2, result_unit = UFUNC_HELPERS[function](function, unit1, unit2)
             else:
                 raise TypeError("Unknown two-argument ufunc {0}."
                                 "Please raise issue on "
                                 "https://github.com/astropy/astropy"
                                 .format(function.__name__))
 
+            # TODO: deal with this special case better
             if function is np.power and result_unit is not None:
                 if unit2 is None:
                     result_unit = result_unit ** args[1]
                 else:
+                    from . import dimensionless_unscaled
                     result_unit = result_unit ** args[1].to(dimensionless_unscaled)
 
         else:
@@ -261,16 +187,10 @@ class Quantity(np.ndarray):
                             "https://github.com/astropy/astropy"
                             .format(function.nin, function.__name__))
 
-        if context[2] == 0:
-            for arg, scale, arg_unit in zip(args, scales, arg_units):
-                if scale != 1.:
-                    if obj.base is not arg.base:
-                        arg._old_unit = arg_unit
-                    arg.to(Unit(1./scale * arg_unit), copy=False)
-        else:
-            for arg in args:
-                if obj.base is arg.base and hasattr(arg, '_old_unit'):
-                    delattr(arg, '_old_unit')
+        # Remember the scale so that we can fix the output in __array_wrap__
+        self._scale1 = scale1
+        if scale2 is not None:
+            self._scale2 = scale2
 
         if self is obj:  # happens if self is an output
             # cannot set unit itself, since self may also be an input
@@ -285,16 +205,42 @@ class Quantity(np.ndarray):
             return result
 
     def __array_wrap__(self, obj, context=None):
-        # print("wrap: self={}\nobj={}\ncontext={}".format(
-        #     self, obj, context))
 
         if context is not None:
-            for arg in context[1][:context[0].nin]:
-                if hasattr(arg, '_old_unit'):
-                    arg.to(arg.__dict__.pop('_old_unit'), copy=False)
 
-        if hasattr(obj, '_result_unit'):
-            obj._unit = obj.__dict__.pop('_result_unit')
+            function = context[0]
+
+            if function in TEST_UFUNCS:
+                return obj
+
+            args = context[1]
+
+            # In cases where the scale is not one, we have to re-compute the output
+
+            if function.nin == 1:
+
+                if self._scale1 != 1.:
+                    return function(args[0].value * self._scale1) * obj._unit
+                    del self._scale1
+
+            elif function.nin == 2:
+
+                if isinstance(args[0], Quantity):
+                    x = args[0].value * self._scale1
+                    del self._scale1
+                else:
+                    x = args[0]
+
+                if isinstance(args[1], Quantity):
+                    y = args[1].value * self._scale2
+                    del self._scale2
+                else:
+                    y = args[1]
+
+                if hasattr(obj, '_unit'):
+                    return function(x, y) * obj._unit
+                else:
+                    return function(x, y)
 
         return obj
 

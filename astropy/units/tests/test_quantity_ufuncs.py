@@ -7,26 +7,87 @@ from ... import units as u
 from ...tests.helper import pytest
 from ...tests.compat import assert_allclose
 
+# list of ufuncs:
+# http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
+
+UNSUPPORTED_UFUNCS = set([np.bitwise_and, np.bitwise_or,
+                          np.bitwise_xor, np.invert, np.left_shift,
+                          np.right_shift, np.logical_and, np.logical_or,
+                          np.logical_xor, np.logical_not])
+
+# Numpy ufuncs handled as special cases
+SPECIAL_UFUNCS = set([np.sqrt, np.square, np.reciprocal])
+
+# ufuncs that return a unitless value from an input with angle units
+TRIG_UFUNCS = set([np.cos, np.sin, np.tan, np.cosh, np.sinh, np.tanh])
+
+# ufuncs that return an angle in randians/degrees from another angle
+DEG2RAD_UFUNCS = set([np.radians, np.deg2rad])
+RAD2DEG_UFUNCS = set([np.degrees, np.rad2deg])
+
+# all ufuncs that operate on angles
+ANGLE_UFUNCS = TRIG_UFUNCS | DEG2RAD_UFUNCS | RAD2DEG_UFUNCS
+
+# ufuncs that return an angle from a unitless input
+INVTRIG_UFUNCS = set([np.arccos, np.arcsin, np.arctan,
+                      np.arccosh, np.arcsinh, np.arctanh])
+
+# ufuncs that require dimensionless input
+DIMENSIONLESS_UFUNCS = (INVTRIG_UFUNCS |
+                        set([np.exp, np.expm1, np.exp2,
+                             np.log, np.log10, np.log2, np.log1p]))
+
+# ufuncs that require dimensionless unscaled input
+IS_UNITY_UFUNCS = set([np.modf, np.frexp])
+
+# ufuncs that return a value with the same unit as the input
+INVARIANT_UFUNCS = set([np.absolute, np.fabs, np.conj, np.conjugate,
+                        np.negative, np.spacing, np.rint,
+                        np.floor, np.ceil, np.trunc])
+
+# ufuncs that return a boolean and do not care about the unit
+TEST_UFUNCS = set([np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
+
+# two-argument ufuncs that need special treatment
+DIVISION_UFUNCS = set([np.divide, np.true_divide, np.floor_divide])
+SPECIAL_TWOARG_UFUNCS = (DIVISION_UFUNCS |
+                         set([np.copysign, np.multiply, np.power, np.ldexp]))
+
+# ufuncs that return an angle based on two input values
+INVTRIG_TWOARG_UFUNCS = set([np.arctan2])
+
+# ufuncs that return an argument with the same unit as that of the two inputs
+INVARIANT_TWOARG_UFUNCS = set([np.add, np.subtract, np.hypot,
+                               np.maximum, np.minimum, np.fmin, np.fmax,
+                               np.nextafter,
+                               np.remainder, np.mod, np.fmod])
+
+# ufuncs that return a boolean based on two inputs
+COMPARISON_UFUNCS = set([np.greater, np.greater_equal, np.less,
+                         np.less_equal, np.not_equal, np.equal])
+
+# ufuncs that return a unitless value based on two unitless inputs
+DIMENSIONLESS_TWOARG_UFUNCS = set([np.logaddexp, np.logaddexp2])
+
 
 class TestUfuncCoverage(object):
     """Test that we cover all ufunc's"""
     def test_coverage(self):
-        q = u.quantity
         all_np_ufuncs = set([np.__dict__[i] for i in np.__dict__
                              if getattr(np.__dict__[i],
                                         '__class__', None) == np.ufunc])
-        all_q_ufuncs = (q.UNSUPPORTED_UFUNCS |
-                        q.SPECIAL_UFUNCS |
-                        q.ANGLE_UFUNCS |
-                        q.DIMENSIONLESS_UFUNCS |
-                        q.IS_UNITY_UFUNCS |
-                        q.INVARIANT_UFUNCS |
-                        q.TEST_UFUNCS |
-                        q.SPECIAL_TWOARG_UFUNCS |
-                        q.INVTRIG_TWOARG_UFUNCS |
-                        q.INVARIANT_TWOARG_UFUNCS |
-                        q.DIMENSIONLESS_TWOARG_UFUNCS |
-                        q.COMPARISON_UFUNCS)
+        all_q_ufuncs = (UNSUPPORTED_UFUNCS |
+                        SPECIAL_UFUNCS |
+                        ANGLE_UFUNCS |
+                        DIMENSIONLESS_UFUNCS |
+                        IS_UNITY_UFUNCS |
+                        INVARIANT_UFUNCS |
+                        TEST_UFUNCS |
+                        SPECIAL_TWOARG_UFUNCS |
+                        INVTRIG_TWOARG_UFUNCS |
+                        INVARIANT_TWOARG_UFUNCS |
+                        DIMENSIONLESS_TWOARG_UFUNCS |
+                        COMPARISON_UFUNCS)
         assert all_np_ufuncs - all_q_ufuncs == set([])
         assert all_q_ufuncs - all_np_ufuncs == set([])
 
