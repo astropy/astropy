@@ -244,8 +244,8 @@ class Quantity(np.ndarray):
 
         return obj
 
-    def to(self, unit, equivalencies=None, copy=True):
-        """ Returns a `Quantity` object with the specified units.
+    def to(self, unit, equivalencies=None):
+        """ Returns a new `Quantity` object with the specified units.
 
         Parameters
         ----------
@@ -259,24 +259,12 @@ class Quantity(np.ndarray):
             directly convertible.  See :ref:`unit_equivalencies`.  If
             not provided, the equivalencies that were provided in the
             constructor will be used.
-
-        copy : bool, optional
-            Whether to copy the Quantity object before doing the
-            transformation, or doing the transformation to the new units
-            in place.
         """
         if equivalencies is None:
             equivalencies = self._equivalencies
+        new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
         new_unit = Unit(unit)
-        if copy:
-            new_val = self.unit.to(new_unit, self.value,
-                                   equivalencies=equivalencies)
-            return Quantity(new_val, new_unit)
-        else:
-            self_values = self.__array__()
-            self_values *= self.unit.to(new_unit)
-            self._unit = Unit(new_unit)
-            return self
+        return Quantity(new_val, new_unit)
 
     @property
     def value(self):
