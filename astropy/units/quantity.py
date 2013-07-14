@@ -222,55 +222,11 @@ class Quantity(np.ndarray):
         arg0_unit = arg_units[0]
 
         if function.nin == 1:
-            # if argument has no unit, treat it as dimensionless_unscaled
-            if function in INVARIANT_UFUNCS:
-                result_unit = arg0_unit
 
-            elif function in SPECIAL_UFUNCS:
-                if function is np.sqrt:
-                    result_unit = arg0_unit ** 0.5
-                elif function is np.square:
-                    result_unit = arg0_unit ** 2
-                elif function is np.reciprocal:
-                    result_unit = dimensionless_unscaled / arg0_unit
+            from .quantity_helper import UFUNC_HELPERS
 
-            elif function in DIMENSIONLESS_UFUNCS:
-                try:
-                    scales[0] = arg0_unit.to(dimensionless_unscaled)
-                except:
-                    raise TypeError("Can only apply '{0}' function to "
-                                    "dimensionless quantities"
-                                    .format(function.__name__))
-                result_unit = (radian if function in INVTRIG_UFUNCS
-                               else dimensionless_unscaled)
-
-            elif function in IS_UNITY_UFUNCS:
-                if not _is_unity(arg0_unit):
-                    raise TypeError("Can only apply '{0}' function to "
-                                    "unscaled dimensionless quantities"
-                                    .format(function.__name__))
-
-                result_unit = None  # causes to return array below
-                # since output makes no sense as quantity object
-                # OR??? result_unit = dimensionless_unscaled
-
-            elif function in ANGLE_UFUNCS:
-                if function in DEG2RAD_UFUNCS:
-                    target_unit = degree
-                    result_unit = radian
-                else:
-                    target_unit = radian
-                    if function in TRIG_UFUNCS:
-                        result_unit = dimensionless_unscaled
-                    else:
-                        result_unit = degree
-                try:
-                    scales[0] = arg0_unit.to(target_unit)
-                except:
-                    raise TypeError("Can only apply '{0}' function to "
-                                    "quantities with angle units"
-                                    .format(function.__name__))
-
+            if function in UFUNC_HELPERS:
+                scales[0], result_unit = UFUNC_HELPERS[function](function, arg0_unit)
             else:
                 raise TypeError("Unknown one-argument ufunc {0}.  Please raise"
                                 " issue on https://github.com/astropy/astropy"
