@@ -1,3 +1,6 @@
+# The idea for this module (but no code) was borrowed from the
+# quantities (http://pythonhosted.org/quantities/) package.
+
 import numpy as np
 from .core import UnitsException
 
