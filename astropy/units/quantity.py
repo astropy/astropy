@@ -221,12 +221,14 @@ class Quantity(np.ndarray):
         scales = np.ones(len(arg_units))
         arg0_unit = arg_units[0]
 
+        unit1 = args[0].unit if hasattr(args[0], 'unit') else None
+
+        from .quantity_helper import UFUNC_HELPERS
+
         if function.nin == 1:
 
-            from .quantity_helper import UFUNC_HELPERS
-
             if function in UFUNC_HELPERS:
-                scales[0], result_unit = UFUNC_HELPERS[function](function, arg0_unit)
+                scales[0], result_unit = UFUNC_HELPERS[function](function, unit1)
             else:
                 raise TypeError("Unknown one-argument ufunc {0}.  Please raise"
                                 " issue on https://github.com/astropy/astropy"
@@ -234,108 +236,30 @@ class Quantity(np.ndarray):
 
         elif function.nin == 2:
 
+            unit2 = args[1].unit if hasattr(args[1], 'unit') else None
+
             arg1_unit = arg_units[1]
 
-            if function in SPECIAL_TWOARG_UFUNCS:
-
-                if function is np.multiply:
-                    result_unit = arg0_unit * arg1_unit
-
-                elif function in DIVISION_UFUNCS:
-                    result_unit = arg0_unit / arg1_unit
-
-                elif function is np.power:
-                    if arg_has_units[1]:
-                        try:
-                            scales[1] = arg1_unit.to(dimensionless_unscaled)
-                            if not args[1].isscalar:
-                                raise
-                        except:
-                            raise TypeError("Can only raise something to a "
-                                            "scalar dimensionless quantity")
-                        arg1_value = args[1].value * scales[1]
-                    else:
-                        arg1_value = args[1]
-
-                    result_unit = arg0_unit ** arg1_value
-
-                elif function is np.ldexp:
-                    # 2nd argument also gets checked in numpy, but that
-                    # only checks whether it is integer
-                    if arg_has_units[1]:
-                        raise TypeError("Cannot use ldexp with a quantity "
-                                        "as second argument.")
-                    result_unit = arg0_unit
-
-                elif function is np.copysign:
-                    if not arg_has_units[0]:
-                        # if first arg is not a quantity, just return output
-                        result_unit = None  # causes to return array below
-                    else:
-                        result_unit = arg0_unit
-
-                else:  # really should never get here!
-                    raise TypeError("Unknown special two-argument ufunc {0}."
-                                    "Please raise issue on "
-                                    "https://github.com/astropy/astropy"
-                                    .format(function.__name__))
-
-            elif function in DIMENSIONLESS_TWOARG_UFUNCS:
-                for i in range(2):
-                    try:
-                        scales[i] = arg_units[i].to(dimensionless_unscaled)
-                    except:
-                        raise TypeError("Can only apply '{0}' function to "
-                                        "dimensionless quantities"
-                                        .format(function.__name__))
-
-                result_unit = dimensionless_unscaled
-
+            if function in UFUNC_HELPERS:
+                scales[0], scales[1], result_unit = UFUNC_HELPERS[function](function, unit1, unit2)
             else:
-                # for all other two-argument ufuncs, check dimensions of
-                # the two arguments are compatible
-                # if second argument has units, rescale that one
-                if any(arg_has_units):
-                    main, other = (0, 1) if arg_has_units[1] else (1, 0)
-                    try:
-                        scales[other] = arg_units[other].to(arg_units[main])
-                    except UnitsException:
-                        if all(arg_has_units):
-                            raise UnitsException(
-                                "Can only apply '{0}' function to quantities "
-                                "with compatible dimensions"
+                raise TypeError("Unknown two-argument ufunc {0}."
+                                "Please raise issue on "
+                                "https://github.com/astropy/astropy"
                                 .format(function.__name__))
-                        else:  # main has no units
-                            # only allow it if all zero
-                            if np.any(args[main]):
-                                raise UnitsException(
-                                    "Can only apply '{0}' function to "
-                                    "dimensionless quantities when other "
-                                    "argument is not a quantity and not zero"
-                                    .format(function.__name__))
-                            else:
-                                main, other = other, main
 
-                if function in INVARIANT_TWOARG_UFUNCS:
-                    result_unit = arg_units[main]
+            if function is np.power and result_unit is not None:
+                if unit2 is None:
+                    result_unit = result_unit ** args[1]
+                else:
+                    result_unit = result_unit ** args[1].to(dimensionless_unscaled)
 
-                elif function in COMPARISON_UFUNCS:
-                    result_unit = None  # causes to return array below
-                    # OR??? result_unit = dimensionless_unscaled
-
-                elif function in INVTRIG_TWOARG_UFUNCS:
-                    result_unit = radian
-
-                else:  # really should never get here!
-                    raise TypeError("Unknown two-argument ufunc {0}."
-                                    "Please raise issue on "
-                                    "https://github.com/astropy/astropy"
-                                    .format(function.__name__))
         else:
-            raise TypeError("Unknown >2-argument ufunc {0}."
+
+            raise TypeError("Unknown {0}-argument ufunc {1}."
                             "Please raise issue on "
                             "https://github.com/astropy/astropy"
-                            .format(function.__name__))
+                            .format(function.nin, function.__name__))
 
         if context[2] == 0:
             for arg, scale, arg_unit in zip(args, scales, arg_units):

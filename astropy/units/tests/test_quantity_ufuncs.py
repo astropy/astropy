@@ -315,7 +315,7 @@ class TestQuantityMathFuncs(object):
     def test_power_invalid(self):
         with pytest.raises(TypeError) as exc:
             np.power(3., 4.*u.m)
-        assert "raise something to a scalar dimensionless" in exc.value.args[0]
+        assert "raise something to a dimensionless" in exc.value.args[0]
         with pytest.raises(ValueError) as exc:
             np.power(2.*u.m, 4.6)
         assert "must be integers" in exc.value.args[0]
