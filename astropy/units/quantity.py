@@ -192,13 +192,11 @@ class Quantity(np.ndarray):
 
     def __array_prepare__(self, obj, context=None):
         # print("prepare: self={}\nobj={}\ncontext={}".format(
-        #         self, obj, context))
-        result = obj.view(type(self))
-        result._unit = self.unit
+        #     self, obj, context))
 
         # If no context is set, just return input
         if context is None:
-            return result
+            return obj
 
         # Find out which ufunc is being used
         function = context[0]
@@ -214,99 +212,111 @@ class Quantity(np.ndarray):
         from . import dimensionless_unscaled
         from .si import radian, degree
 
-        scale = 1.
+        # get arguments and see if they have units
+        args = context[1][:function.nin]
+        arg_has_units = [hasattr(arg, 'unit') for arg in args]
+        arg_units = [getattr(arg, 'unit', dimensionless_unscaled)
+                     for arg in args]
 
-        if function in INVARIANT_UFUNCS:
-            pass
+        scales = np.ones(len(arg_units))
+        arg0_unit = arg_units[0]
 
-        elif function in SPECIAL_UFUNCS:
-            if function is np.sqrt:
-                result._unit = self._unit ** 0.5
-            elif function is np.square:
-                result._unit = self._unit ** 2
-            elif function is np.reciprocal:
-                result._unit = dimensionless_unscaled / self._unit
+        if function.nin == 1:
+            # if argument has no unit, treat it as dimensionless_unscaled
+            if function in INVARIANT_UFUNCS:
+                result_unit = arg0_unit
 
-        elif function in DIMENSIONLESS_UFUNCS:
-            try:
-                scale = self.unit.to(dimensionless_unscaled)
-            except:
-                raise TypeError("Can only apply '{0}' function to "
-                                "dimensionless quantities"
-                                .format(function.__name__))
-            result._unit = (radian if function in INVTRIG_UFUNCS
-                            else dimensionless_unscaled)
+            elif function in SPECIAL_UFUNCS:
+                if function is np.sqrt:
+                    result_unit = arg0_unit ** 0.5
+                elif function is np.square:
+                    result_unit = arg0_unit ** 2
+                elif function is np.reciprocal:
+                    result_unit = dimensionless_unscaled / arg0_unit
 
-        elif function in IS_UNITY_UFUNCS:
-            if not _is_unity(self.unit):
-                raise TypeError("Can only apply '{0}' function to unscaled "
-                                "dimensionless quantities"
-                                .format(function.__name__))
-            else:
-                # output makes no sense as quantity object
-                return obj
+            elif function in DIMENSIONLESS_UFUNCS:
+                try:
+                    scales[0] = arg0_unit.to(dimensionless_unscaled)
+                except:
+                    raise TypeError("Can only apply '{0}' function to "
+                                    "dimensionless quantities"
+                                    .format(function.__name__))
+                result_unit = (radian if function in INVTRIG_UFUNCS
+                               else dimensionless_unscaled)
 
-        elif function in ANGLE_UFUNCS:
-            if function in DEG2RAD_UFUNCS:
-                target_unit = degree
-                result._unit = radian
-            else:
-                target_unit = radian
-                if function in TRIG_UFUNCS:
-                    result._unit = dimensionless_unscaled
+            elif function in IS_UNITY_UFUNCS:
+                if not _is_unity(arg0_unit):
+                    raise TypeError("Can only apply '{0}' function to "
+                                    "unscaled dimensionless quantities"
+                                    .format(function.__name__))
+
+                result_unit = None  # causes to return array below
+                # since output makes no sense as quantity object
+                # OR??? result_unit = dimensionless_unscaled
+
+            elif function in ANGLE_UFUNCS:
+                if function in DEG2RAD_UFUNCS:
+                    target_unit = degree
+                    result_unit = radian
                 else:
-                    result._unit = degree
-            try:
-                scale = self.unit.to(target_unit)
-            except:
-                raise TypeError("Can only apply '{0}' function to quantities "
-                                "with angle units".format(function.__name__))
+                    target_unit = radian
+                    if function in TRIG_UFUNCS:
+                        result_unit = dimensionless_unscaled
+                    else:
+                        result_unit = degree
+                try:
+                    scales[0] = arg0_unit.to(target_unit)
+                except:
+                    raise TypeError("Can only apply '{0}' function to "
+                                    "quantities with angle units"
+                                    .format(function.__name__))
 
-        elif len(context[1]) > 1:  # should always be the case here
+            else:
+                raise TypeError("Unknown one-argument ufunc {0}.  Please raise"
+                                " issue on https://github.com/astropy/astropy"
+                                .format(function.__name__))
 
-            # identify other argument
-            result._other = 1 if self is context[1][0] else 0
-            other = context[1][result._other]
-            other_scale = 1.
+        elif function.nin == 2:
+
+            arg1_unit = arg_units[1]
 
             if function in SPECIAL_TWOARG_UFUNCS:
 
                 if function is np.multiply:
-                    try:
-                        result._unit = self.unit * other.unit
-                    except AttributeError:  # other is not a quantity
-                        pass
+                    result_unit = arg0_unit * arg1_unit
 
                 elif function in DIVISION_UFUNCS:
-                    try:  # order is guaranteed if other is a quantity
-                        result._unit = self.unit / other.unit
-                    except AttributeError:  # but not if it is not
-                        if result._other == 0:
-                            result._unit = dimensionless_unscaled / self._unit
+                    result_unit = arg0_unit / arg1_unit
 
                 elif function is np.power:
-                    if result._other == 1:
-                        result._unit = self.unit ** other
-                    else:  # if self is second, first cannot be a quantity
+                    if arg_has_units[1]:
                         try:
-                            scale = self.unit.to(dimensionless_unscaled)
+                            scales[1] = arg1_unit.to(dimensionless_unscaled)
+                            if not args[1].isscalar:
+                                raise
                         except:
                             raise TypeError("Can only raise something to a "
-                                            "dimensionless quantity")
-                        result._unit = dimensionless_unscaled
+                                            "scalar dimensionless quantity")
+                        arg1_value = args[1].value * scales[1]
+                    else:
+                        arg1_value = args[1]
+
+                    result_unit = arg0_unit ** arg1_value
 
                 elif function is np.ldexp:
                     # 2nd argument also gets checked in numpy, but that
                     # only checks whether it is integer
-                    if(result._other == 0 or
-                       result._other == 1 and hasattr(other, 'unit')):
+                    if arg_has_units[1]:
                         raise TypeError("Cannot use ldexp with a quantity "
                                         "as second argument.")
+                    result_unit = arg0_unit
 
                 elif function is np.copysign:
-                    if result._other == 0:
-                        # if self is second argument, first cannot be quantity
-                        return obj
+                    if not arg_has_units[0]:
+                        # if first arg is not a quantity, just return output
+                        result_unit = None  # causes to return array below
+                    else:
+                        result_unit = arg0_unit
 
                 else:  # really should never get here!
                     raise TypeError("Unknown special two-argument ufunc {0}."
@@ -315,96 +325,101 @@ class Quantity(np.ndarray):
                                     .format(function.__name__))
 
             elif function in DIMENSIONLESS_TWOARG_UFUNCS:
-                try:
-                    scale = self.unit.to(dimensionless_unscaled)
-                except:
-                    raise TypeError("Can only apply '{0}' function to "
-                                    "dimensionless quantities"
-                                    .format(function.__name__))
-                try:
-                    other_scale = other.unit.to(dimensionless_unscaled)
-                except AttributeError:  # other argument is not a quantity
-                    pass
-                except:
-                    raise TypeError("Can only apply '{0}' function to "
-                                    "dimensionless quantities"
-                                    .format(function.__name__))
-                result._unit = dimensionless_unscaled
+                for i in range(2):
+                    try:
+                        scales[i] = arg_units[i].to(dimensionless_unscaled)
+                    except:
+                        raise TypeError("Can only apply '{0}' function to "
+                                        "dimensionless quantities"
+                                        .format(function.__name__))
+
+                result_unit = dimensionless_unscaled
 
             else:
                 # for all other two-argument ufuncs, check dimensions of
                 # the two arguments are compatible
-                try:
-                    other_scale = other.unit.to(self.unit)
-                except AttributeError:  # other argument is not a quantity
+                # if second argument has units, rescale that one
+                if any(arg_has_units):
+                    main, other = (0, 1) if arg_has_units[1] else (1, 0)
                     try:
-                        scale = self.unit.to(dimensionless_unscaled)
-                    except:
-                        raise UnitsException("Can only apply '{0}' function "
-                                             "to dimensionless quantities if "
-                                             "other argument is not a quantity"
-                                             .format(function.__name__))
-                    result._unit = dimensionless_unscaled
-                except:
-                    raise UnitsException("Can only apply '{0}' function to "
-                                         "quantities with compatible "
-                                         "dimensions"
-                                         .format(function.__name__))
+                        scales[other] = arg_units[other].to(arg_units[main])
+                    except UnitsException:
+                        if all(arg_has_units):
+                            raise UnitsException(
+                                "Can only apply '{0}' function to quantities "
+                                "with compatible dimensions"
+                                .format(function.__name__))
+                        else:  # main has no units
+                            # only allow it if all zero
+                            if np.any(args[main]):
+                                raise UnitsException(
+                                    "Can only apply '{0}' function to "
+                                    "dimensionless quantities when other "
+                                    "argument is not a quantity and not zero"
+                                    .format(function.__name__))
+                            else:
+                                main, other = other, main
 
                 if function in INVARIANT_TWOARG_UFUNCS:
-                    pass
+                    result_unit = arg_units[main]
 
                 elif function in COMPARISON_UFUNCS:
-                    result._unit = None  # causes array_wrap to remove unit
+                    result_unit = None  # causes to return array below
+                    # OR??? result_unit = dimensionless_unscaled
 
                 elif function in INVTRIG_TWOARG_UFUNCS:
-                    result._unit = radian
+                    result_unit = radian
 
                 else:  # really should never get here!
                     raise TypeError("Unknown two-argument ufunc {0}."
                                     "Please raise issue on "
                                     "https://github.com/astropy/astropy"
                                     .format(function.__name__))
-
-            if context[2] == 0 and other_scale != 1.:
-                # will only be the case when other=quantity
-                result._other_unit = other.unit
-                other.unit = Unit(1./other_scale * other.unit)
-
         else:
-            raise TypeError("Unknown ufunc {0}.  Please raise issue on "
+            raise TypeError("Unknown >2-argument ufunc {0}."
+                            "Please raise issue on "
                             "https://github.com/astropy/astropy"
                             .format(function.__name__))
 
-        if context[2] == 0 and scale != 1.:
-            result._self_unit = self.unit
-            self.unit = Unit(1./scale * self.unit)
+        if context[2] == 0:
+            for arg, scale, arg_unit in zip(args, scales, arg_units):
+                if scale != 1.:
+                    if obj.base is not arg.base:
+                        arg._old_unit = arg_unit
+                    arg.to(Unit(1./scale * arg_unit), copy=False)
+        else:
+            for arg in args:
+                if obj.base is arg.base and hasattr(arg, '_old_unit'):
+                    delattr(arg, '_old_unit')
 
-        return result
+        if self is obj:  # happens if self is an output
+            # cannot set unit itself, since self may also be an input
+            # and its unit may still be needed for another output
+            self._result_unit = result_unit
+            return self
+        elif result_unit is None:  # do not want a Quantity output
+            return obj
+        else:  # set up output as a Quantity
+            result = obj.view(type(self))
+            result._unit = result_unit
+            return result
 
     def __array_wrap__(self, obj, context=None):
         # print("wrap: self={}\nobj={}\ncontext={}".format(
-        #         self, obj, context))
+        #     self, obj, context))
 
-        if hasattr(obj, '_self_unit'):
-            old_self_unit = obj.__dict__.pop('_self_unit')
-            if self.base is not obj.base.base:
-                self.unit = old_self_unit
+        if context is not None:
+            for arg in context[1][:context[0].nin]:
+                if hasattr(arg, '_old_unit'):
+                    arg.to(arg.__dict__.pop('_old_unit'), copy=False)
 
-        if hasattr(obj, '_other'):  # two-argument function
-            other = context[1][obj.__dict__.pop('_other')]
-            if hasattr(obj, '_other_unit'):
-                old_other_unit = obj.__dict__.pop('_other_unit')
-                if other.base is not obj.base.base:
-                    other.unit = old_other_unit
+        if hasattr(obj, '_result_unit'):
+            obj._unit = obj.__dict__.pop('_result_unit')
 
-        if hasattr(obj, '_unit') and obj._unit is None:
-            return obj.__array__()
-        else:
-            return obj
+        return obj
 
-    def to(self, unit, equivalencies=None):
-        """ Returns a new `Quantity` object with the specified units.
+    def to(self, unit, equivalencies=None, copy=True):
+        """ Returns a `Quantity` object with the specified units.
 
         Parameters
         ----------
@@ -418,12 +433,24 @@ class Quantity(np.ndarray):
             directly convertible.  See :ref:`unit_equivalencies`.  If
             not provided, the equivalencies that were provided in the
             constructor will be used.
+
+        copy : bool, optional
+            Whether to copy the Quantity object before doing the
+            transformation, or doing the transformation to the new units
+            in place.
         """
         if equivalencies is None:
             equivalencies = self._equivalencies
-        new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
         new_unit = Unit(unit)
-        return Quantity(new_val, new_unit)
+        if copy:
+            new_val = self.unit.to(new_unit, self.value,
+                                   equivalencies=equivalencies)
+            return Quantity(new_val, new_unit)
+        else:
+            self_values = self.__array__()
+            self_values *= self.unit.to(new_unit)
+            self._unit = Unit(new_unit)
+            return self
 
     @property
     def value(self):
@@ -433,20 +460,14 @@ class Quantity(np.ndarray):
         else:
             return self.view(np.ndarray)
 
-    def get_unit(self):
+    @property
+    def unit(self):
         """
         A `~astropy.units.UnitBase` object representing the unit of this
         quantity.
         """
 
         return self._unit
-
-    def set_unit(self, new_unit):
-        self_values = self.__array__()
-        self_values *= self.unit.to(new_unit)
-        self._unit = Unit(new_unit)
-
-    unit = property(get_unit, set_unit)
 
     @property
     def equivalencies(self):
@@ -551,72 +572,26 @@ class Quantity(np.ndarray):
             return value
 
     # Arithmetic operations
-    def __add__(self, other):
-        """ Addition between `Quantity` objects and other objects.  If
-        they are both `Quantity` objects, results in the units of the
-        **left** object if they are compatible, otherwise this fails.
-        """
-
-        if isinstance(other, Quantity):
-            return Quantity(self.value + other.to(self.unit).value,
-                            unit=self.unit)
-        else:
-            try:  # in case the Quantity is dimensionless
-                # Here we have to ensure that self is converted to an unscaled
-                # dimensionless quantity (if possible) otherwise the result
-                # might be given in e.g. m/km.
-                from . import dimensionless_unscaled
-                return self.to(dimensionless_unscaled) + other * dimensionless_unscaled
-            except TypeError:
-                raise TypeError(
-                    "Object of type '{0}' cannot be added with a Quantity "
-                    "object. Addition is only supported between Quantity "
-                    "objects with compatible units.".format(other.__class__))
-
-    __radd__ = __add__
-
-    def __sub__(self, other):
-        """ Subtraction between `Quantity` objects and other objects.
-        If they are both `Quantity` objects, results in the units of the
-        **left** object if they are compatible, otherwise this fails.
-        """
-
-        if isinstance(other, Quantity):
-            return Quantity(self.value - other.to(self.unit).value,
-                            unit=self.unit)
-        else:
-            try:  # in case the Quantity is dimensionless
-                # Here we have to ensure that self is converted to an unscaled
-                # dimensionless quantity (if possible) otherwise the result
-                # might be given in e.g. m/km.
-                from . import dimensionless_unscaled
-                return self.to(dimensionless_unscaled) - other * dimensionless_unscaled
-            except TypeError:
-                raise TypeError(
-                    "Object of type '{0}' cannot be subtracted from a Quantity "
-                    "object. Subtraction is only supported between Quantity "
-                    "objects with compatible units.".format(other.__class__))
-
-    def __rsub__(self, other):
-        return -__sub__(self, other)
-
     def __mul__(self, other):
         """ Multiplication between `Quantity` objects and other objects."""
 
-        if isinstance(other, Quantity):
-            return Quantity(self.value * other.value,
-                            unit=self.unit * other.unit)
-        elif isinstance(other, basestring):
+        if isinstance(other, basestring):
             return Quantity(self.value, unit=Unit(other) * self.unit)
         elif isinstance(other, UnitBase):
             return Quantity(self.value, unit=other * self.unit)
         else:
-            try:
-                return Quantity(other * self.value, unit=self.unit)
-            except TypeError:
-                raise TypeError(
-                    "Object of type '{0}' cannot be multiplied with a "
-                    "Quantity object.".format(other.__class__))
+            return np.multiply(self, other)
+
+    def __imul__(self, other):
+        """In-place multiplication between `Quantity` objects and others."""
+        if isinstance(other, basestring):
+            self._unit = Unit(other) * self.unit
+        elif isinstance(other, UnitBase):
+            self._unit = other * self.unit
+        else:
+            return np.multiply(self, other, out=self)
+
+        return self
 
     def __rmul__(self, other):
         """ Right Multiplication between `Quantity` objects and other
@@ -628,118 +603,71 @@ class Quantity(np.ndarray):
     def __div__(self, other):
         """ Division between `Quantity` objects and other objects."""
 
-        if isinstance(other, Quantity):
-            return Quantity(self.value / other.value,
-                            unit=self.unit / other.unit)
-        elif isinstance(other, basestring):
+        if isinstance(other, basestring):
             return Quantity(self.value, unit=self.unit / Unit(other))
         elif isinstance(other, UnitBase):
             return Quantity(self.value, unit=self.unit / other)
         else:
-            try:
-                return Quantity(self.value / other, unit=self.unit)
-            except TypeError:
-                raise TypeError(
-                    "Object of type '{0}' cannot be diveded with a Quantity "
-                    "object.".format(other.__class__))
+            return np.true_divide(self, other)
+
+    def __idiv__(self, other):
+        """Inplace division between `Quantity` objects and other objects."""
+
+        if isinstance(other, basestring):
+            self._unit = self.unit / Unit(other)
+        elif isinstance(other, UnitBase):
+            self._unit = self.unit / other
+        else:
+            return np.true_divide(self, other, out=self)
+
+        return self
 
     def __rdiv__(self, other):
         """ Right Division between `Quantity` objects and other objects."""
 
-        if isinstance(other, Quantity):
-            return Quantity(other.value / self.value,
-                            unit=other.unit / self.unit)
-        elif isinstance(other, basestring):
+        if isinstance(other, basestring):
             return Quantity(self.value, unit=Unit(other) / self.unit)
         elif isinstance(other, UnitBase):
             return Quantity(1. / self.value, unit=other / self.unit)
         else:
-            try:
-                return Quantity(other / self.value, unit=1. / self.unit)
-            except TypeError:
-                raise TypeError(
-                    "Object of type '{0}' cannot be diveded with a Quantity "
-                    "object.".format(other.__class__))
+            return np.divide(other, self)
 
     def __truediv__(self, other):
         """ Division between `Quantity` objects. """
         return self.__div__(other)
 
+    def __itruediv__(self, other):
+        """ Division between `Quantity` objects. """
+        return self.__idiv__(other)
+
     def __rtruediv__(self, other):
         """ Division between `Quantity` objects. """
         return self.__rdiv__(other)
 
-    def __pow__(self, p):
-        """ Raise `Quantity` object to a power. """
-
-        if hasattr(p, 'unit'):
-            raise TypeError(
-                'Cannot raise a Quantity object to a power of something '
-                'with a unit')
-        return Quantity(self.value ** p, unit=self.unit ** p)
-
-    def __neg__(self):
-        """
-        Minus the quantity. This is useful for doing -q where q is a quantity.
-        """
-
-        return Quantity(-self.value, unit=self.unit)
-
     def __pos__(self):
         """
         Plus the quantity. This is implemented in case users use +q where q is
-        a quantity.
+        a quantity.  (Required for scalar case.)
         """
 
         return Quantity(self.value, unit=self.unit)
 
-    def __abs__(self):
-        """
-        Absolute value of the quantity.
-        """
-
-        return Quantity(abs(self.value), unit=self.unit)
-
     # Comparison operations
     def __eq__(self, other):
-        if hasattr(other, 'value') and hasattr(other, 'to'):
-            return self.value == other.to(self.unit).value
-        else:
+        try:
+            return np.equal(self, other)
+        except Exception as exc:
+            if isinstance(other, Quantity):
+                raise exc
             return False
 
     def __ne__(self, other):
-        if hasattr(other, 'value') and hasattr(other, 'to'):
-            return self.value != other.to(self.unit).value
-        else:
+        try:
+            return np.not_equal(self, other)
+        except Exception as exc:
+            if isinstance(other, Quantity):
+                raise exc
             return True
-
-    def __lt__(self, other):
-        if isinstance(other, Quantity):
-            return self.value < other.to(self.unit).value
-        else:
-            raise TypeError("Quantity object cannot be compared to an object "
-                            "of type {0}".format(other.__class__))
-
-    def __le__(self, other):
-        if isinstance(other, Quantity):
-            return self.value <= other.to(self.unit).value
-        else:
-            raise TypeError("Quantity object cannot be compared to an object "
-                            "of type {0}".format(other.__class__))
-
-    def __gt__(self, other):
-        if isinstance(other, Quantity):
-            return self.value > other.to(self.unit).value
-        else:
-            raise TypeError("Quantity object cannot be compared to an object "
-                            "of type {0}".format(other.__class__))
-
-    def __ge__(self, other):
-        if isinstance(other, Quantity):
-            return self.value >= other.to(self.unit).value
-        else:
-            raise TypeError("Quantity object cannot be compared to an object "
-                            "of type {0}".format(other.__class__))
 
     #other overrides of special functions
     def __hash__(self):
@@ -805,12 +733,10 @@ class Quantity(np.ndarray):
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
     def __str__(self):
-        return "{0} {1:s}".format(self.value, self.unit.to_string()
-                                  if self.unit is not None else '()')
+        return "{0} {1:s}".format(self.value, self.unit.to_string())
 
     def __repr__(self):
-        return "<Quantity {0} {1:s}>".format(self.value, self.unit.to_string()
-                                             if self.unit is not None else '()')
+        return "<Quantity {0} {1:s}>".format(self.value, self.unit.to_string())
 
     def _repr_latex_(self):
         """
@@ -896,71 +822,93 @@ class Quantity(np.ndarray):
 
         return Quantity(new_value, new_unit)
 
-    # These ufuncs need to be overridden to take into account the units
+    # These functions need to be overridden to take into account the units
 
     def var(self, axis=None, dtype=None, out=None, ddof=0):
-        value = np.var(self.value, axis=axis, dtype=dtype, ddof=ddof)
-        return Quantity(value, self.unit ** 2)
+        result_unit = self.unit ** 2
+        if out is not None:
+            out = out.view(type(self))
+            out._unit = result_unit
+        return Quantity(np.var(self.value, axis=axis, dtype=dtype, ddof=ddof),
+                        result_unit)
 
     def std(self, axis=None, dtype=None, out=None, ddof=0):
-        value = np.std(self.value, axis=axis, dtype=dtype, ddof=ddof)
+        out = out and out.view(type(self))
+        value = np.std(self.value, axis=axis, dtype=dtype, out=out, ddof=ddof)
         return Quantity(value, self.unit)
 
     def mean(self, axis=None, dtype=None, out=None):
-        value = np.mean(self.value, axis=axis, dtype=dtype)
-        return Quantity(value, self.unit)
-
-    def ptp(self, axis=None, dtype=None, out=None):
-        value = np.ptp(self.value, axis=axis, dtype=dtype)
+        out = out and out.view(type(self))
+        value = np.mean(self.value, axis=axis, dtype=dtype, out=out)
         return Quantity(value, self.unit)
 
     def ptp(self, axis=None, out=None):
-        value = np.ptp(self.value, axis=axis)
+        out = out and out.view(type(self))
+        value = np.ptp(self.value, axis=axis, out=out)
         return Quantity(value, self.unit)
 
     def max(self, axis=None, out=None, keepdims=False):
+        out = out and out.view(type(self))
         try:
-            value = np.max(self.value, axis=axis, keepdims=keepdims)
+            value = np.max(self.value, axis=axis, out=out, keepdims=keepdims)
         except:  # numpy < 1.7
-            value = np.max(self.value, axis=axis)
+            value = np.max(self.value, axis=axis, out=out)
         return Quantity(value, self.unit)
 
     def min(self, axis=None, out=None, keepdims=False):
+        out = out and out.view(type(self))
         try:
-            value = np.min(self.value, axis=axis, keepdims=keepdims)
+            value = np.min(self.value, axis=axis, out=out, keepdims=keepdims)
         except:  # numpy < 1.7
-            value = np.min(self.value, axis=axis)
+            value = np.min(self.value, axis=axis, out=out)
         return Quantity(value, self.unit)
 
     def dot(self, b, out=None):
-        value = np.ndarray.dot(self, b)
-        return value * b.unit
+        result_unit = self.unit * getattr(b, 'unit', 1.)
+        if out is not None:
+            out = out.view(type(self))
+            out._unit = result_unit
+        value = np.ndarray.dot(self, b, out=out)
+        return Quantity(value, result_unit)
 
-    def diff(self, axis=None, dtype=None, out=None):
-        return np.diff(self.value, axis=axis, dtype=dtype) * self.unit
+    def diff(self, n=1, axis=-1):
+        value = np.diff(self.value, n=n, axis=axis)
+        return Quantity(value, self.unit)
 
-    def ediff1d(self, axis=None, dtype=None, out=None):
-        return np.ediff1d(self.value, axis=axis, dtype=dtype) * self.unit
+    def ediff1d(self, to_end=None, to_begin=None):
+        value = np.ediff1d(self.value, to_end=to_end, to_begin=to_begin)
+        return Quantity(value, self.unit)
 
-    def nansum(self, axis=None, dtype=None, out=None):
-        return np.nansum(self.value, axis=axis, dtype=dtype) * self.unit
+    def nansum(self, axis=None):
+        value = np.nansum(self.value, axis=axis)
+        return Quantity(value, self.unit)
 
-    def sum(self, axis=None, dtype=None, out=None):
-        return np.sum(self.value, axis=axis, dtype=dtype) * self.unit
+    def sum(self, axis=None, dtype=None, out=None, keepdims=False):
+        out = out and out.view(type(self))
+        value = np.sum(self.value, axis=axis, dtype=dtype,
+                       out=out, keepdims=keepdims)
+        return Quantity(value, self.unit)
 
     def cumsum(self, axis=None, dtype=None, out=None):
-        return np.cumsum(self.value, axis=axis, dtype=dtype) * self.unit
+        out = out and out.view(type(self))
+        value = np.cumsum(self.value, axis=axis, dtype=dtype, out=out)
+        return Quantity(value, self.unit)
 
-    def prod(self, axis=None, dtype=None, out=None):
+    def prod(self, axis=None, dtype=None, out=None, keepdims=False):
         if _is_unity(self.unit):
-            return np.prod(self.value, axis=axis, dtype=dtype) * self.unit
+            out = out and out.view(type(self))
+            value = np.prod(self.value, axis=axis, dtype=dtype,
+                            out=out, keepdims=keepdims)
+            return Quantity(value, self.unit)
         else:
             raise ValueError("cannot use prod on scaled or "
                              "non-dimensionless Quantity arrays")
 
     def cumprod(self, axis=None, dtype=None, out=None):
         if _is_unity(self.unit):
-            return np.cumprod(self.value, axis=axis, dtype=dtype) * self.unit
+            out = out and out.view(type(self))
+            value = np.cumprod(self.value, axis=axis, dtype=dtype, out=out)
+            return Quantity(value, self.unit)
         else:
             raise ValueError("cannot use cumprod on scaled or "
                              "non-dimensionless Quantity arrays")
