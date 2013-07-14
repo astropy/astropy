@@ -392,7 +392,7 @@ class TestQuantityMathFuncs(object):
     def test_ldexp_invalid(self):
         with pytest.raises(TypeError) as exc:
             np.ldexp(3.*u.m, 4.)
-        assert "not supported" in exc.value.args[0]
+        # built-in TypeError, so can't check content of exception
         with pytest.raises(TypeError) as exc:
             np.ldexp(3., 4*u.m)
         assert "Cannot use ldexp" in exc.value.args[0]
