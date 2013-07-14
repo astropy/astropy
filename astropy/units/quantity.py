@@ -699,8 +699,12 @@ class Quantity(np.ndarray):
 
     def sum(self, axis=None, dtype=None, out=None, keepdims=False):
         out = out and out.view(type(self))
-        value = np.sum(self.value, axis=axis, dtype=dtype,
-                       out=out, keepdims=keepdims)
+        try:
+            value = np.sum(self.value, axis=axis, dtype=dtype,
+                           out=out, keepdims=keepdims)
+        except:  # numpy < 1.7
+            value = np.sum(self.value, axis=axis, dtype=dtype,
+                           out=out)
         return Quantity(value, self.unit)
 
     def cumsum(self, axis=None, dtype=None, out=None):
@@ -711,8 +715,12 @@ class Quantity(np.ndarray):
     def prod(self, axis=None, dtype=None, out=None, keepdims=False):
         if _is_unity(self.unit):
             out = out and out.view(type(self))
-            value = np.prod(self.value, axis=axis, dtype=dtype,
-                            out=out, keepdims=keepdims)
+            try:
+                value = np.prod(self.value, axis=axis, dtype=dtype,
+                                out=out, keepdims=keepdims)
+            except:  # numpy < 1.7
+                value = np.prod(self.value, axis=axis, dtype=dtype,
+                                out=out)
             return Quantity(value, self.unit)
         else:
             raise ValueError("cannot use prod on scaled or "

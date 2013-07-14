@@ -70,6 +70,7 @@ COMPARISON_UFUNCS = set([np.greater, np.greater_equal, np.less,
 DIMENSIONLESS_TWOARG_UFUNCS = set([np.logaddexp, np.logaddexp2])
 
 
+@pytest.mark.xfail
 class TestUfuncCoverage(object):
     """Test that we cover all ufunc's"""
     def test_coverage(self):
@@ -485,7 +486,7 @@ class TestInvariantUfuncs(object):
         assert q_o.value == ufunc(q_i.value)
 
     @pytest.mark.parametrize(('ufunc'), [np.absolute, np.conjugate,
-                                         np.negative, np.ones_like, np.rint,
+                                         np.negative, np.rint,
                                          np.floor, np.ceil])
     def test_invariant_array(self, ufunc):
 
