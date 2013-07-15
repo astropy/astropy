@@ -227,33 +227,38 @@ def helper_two_arg_dimensionless(f, unit1, unit2):
 UFUNC_HELPERS[np.logaddexp] = helper_two_arg_dimensionless
 UFUNC_HELPERS[np.logaddexp2] = helper_two_arg_dimensionless
 
-def find_scales(f, unit1, unit2):
+def find_scales(f, *units):
 
     from . import dimensionless_unscaled
 
-    if unit1 is None:
-        scale1 = 1.
+    scales = [1., 1.]
+    # no units for any input -- e.g., np.arctan2(a1, a2, out=q)
+    if all(unit is None for unit in units):
+        return scales
+
+    fixed, changeable = (1, 0) if units[1] is None else (0, 1)
+    if units[fixed] is None:
         try:
-            scale2 = unit2.to(dimensionless_unscaled)
+            scales[changeable] = units[changeable].to(dimensionless_unscaled)
         except UnitsException:
+            # could have special case here: OK if unitless number is zero
+            # this needs to be signalled up, e.g., with: scales[fixed] = 0.
             raise UnitsException(
                     "Can only apply '{0}' function to "
                     "dimensionless quantities when other "
-                    "argument is not a quantity and not zero"
+                    "argument is not a quantity"
                     .format(f.__name__))
-    elif unit2 is None:
-        scale2, scale1 = find_scales(f, unit2, unit1)
+
     else:
-        scale1 = 1.
         try:
-            scale2 = unit2.to(unit1)
+            scales[changeable] = units[changeable].to(units[fixed])
         except UnitsException:
             raise UnitsException(
                 "Can only apply '{0}' function to quantities "
                 "with compatible dimensions"
                 .format(f.__name__))
 
-    return [scale1, scale2]
+    return scales
 
 def helper_twoarg_invariant(f, unit1, unit2):
     from . import dimensionless_unscaled
