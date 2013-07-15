@@ -1684,6 +1684,95 @@ class Table(object):
 
         self._init_from_cols(newcols)
 
+    def remove_row(self, index):
+        """
+        Remove a row from the table.
+
+        Parameters
+        ----------
+        index: int
+            Index of row to remove
+
+        Examples
+        --------
+        Create a table with three columns 'a', 'b' and 'c'::
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
+            ...           names=('a', 'b', 'c'))
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
+
+        Remove row 1 from the table::
+
+            >>> t.remove_row(1)
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              3 0.3   z
+
+        To remove several rows at the same time use remove_rows.
+        """
+        # check the index against the types that work with np.delete
+        if not isinstance(index, (int, long, np.integer)):
+            raise TypeError("Row index must be an integer")
+        self.remove_rows(index)
+
+    def remove_rows(self, row_specifier):
+        """
+        Remove rows from the table.
+
+        Parameters
+        ----------
+        row_specifier: slice, int, or array of ints
+            Specification for rows to remove
+
+        Examples
+        --------
+        Create a table with three columns 'a', 'b' and 'c'::
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
+            ...           names=('a', 'b', 'c'))
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
+
+        Remove rows 0 and 2 from the table::
+
+            >>> t.remove_rows([0, 2])
+            >>> print t
+             a   b   c
+            --- --- ---
+              2 0.2   y
+
+
+        Note that there are no warnings if the slice operator extends
+        outside the data
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
+            ...           names=('a', 'b', 'c'))
+            >>> t.remove_rows(slice(10, 20, 1))
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
+        """
+        table = np.delete(self._data, row_specifier, axis=0)
+        self._data = table
+
+        # after updating the row data, the column views will be out of date
+        # and should be updated:
+        self._rebuild_table_column_views()
+
     def remove_column(self, name):
         """
         Remove a column from the table.
