@@ -131,6 +131,14 @@ def _do_download(version, download_base, to_dir, download_delay):
                                       to_dir, download_delay)
         _build_egg(egg, tarball, to_dir)
     sys.path.insert(0, egg)
+    # Modified for Astropy by Erik Bray <erik.m.bray@gmail.com>
+    # Make absolutely certain that pkg_resources is not already imported before
+    # importing setuptools; on Ubuntu and other Debian-based distros there may
+    # be a separate pkg_resources module already imported, because
+    # pkg_resources is shipped as its own OS package separate from
+    # Distribute/setuptools
+    if 'pkg_resources' in sys.modules:
+        del sys.modules['pkg_resources']
     import setuptools
     setuptools.bootstrap_install_from = egg
 
