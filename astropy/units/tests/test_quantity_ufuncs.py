@@ -7,88 +7,16 @@ from ... import units as u
 from ...tests.helper import pytest
 from ...tests.compat import assert_allclose
 
-# list of ufuncs:
-# http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
 
-UNSUPPORTED_UFUNCS = set([np.bitwise_and, np.bitwise_or,
-                          np.bitwise_xor, np.invert, np.left_shift,
-                          np.right_shift, np.logical_and, np.logical_or,
-                          np.logical_xor, np.logical_not])
-
-# Numpy ufuncs handled as special cases
-SPECIAL_UFUNCS = set([np.sqrt, np.square, np.reciprocal])
-
-# ufuncs that return a unitless value from an input with angle units
-TRIG_UFUNCS = set([np.cos, np.sin, np.tan, np.cosh, np.sinh, np.tanh])
-
-# ufuncs that return an angle in randians/degrees from another angle
-DEG2RAD_UFUNCS = set([np.radians, np.deg2rad])
-RAD2DEG_UFUNCS = set([np.degrees, np.rad2deg])
-
-# all ufuncs that operate on angles
-ANGLE_UFUNCS = TRIG_UFUNCS | DEG2RAD_UFUNCS | RAD2DEG_UFUNCS
-
-# ufuncs that return an angle from a unitless input
-INVTRIG_UFUNCS = set([np.arccos, np.arcsin, np.arctan,
-                      np.arccosh, np.arcsinh, np.arctanh])
-
-# ufuncs that require dimensionless input
-DIMENSIONLESS_UFUNCS = (INVTRIG_UFUNCS |
-                        set([np.exp, np.expm1, np.exp2,
-                             np.log, np.log10, np.log2, np.log1p]))
-
-# ufuncs that require dimensionless unscaled input
-IS_UNITY_UFUNCS = set([np.modf, np.frexp])
-
-# ufuncs that return a value with the same unit as the input
-INVARIANT_UFUNCS = set([np.absolute, np.fabs, np.conj, np.conjugate,
-                        np.negative, np.spacing, np.rint,
-                        np.floor, np.ceil, np.trunc])
-
-# ufuncs that return a boolean and do not care about the unit
-TEST_UFUNCS = set([np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
-
-# two-argument ufuncs that need special treatment
-DIVISION_UFUNCS = set([np.divide, np.true_divide, np.floor_divide])
-SPECIAL_TWOARG_UFUNCS = (DIVISION_UFUNCS |
-                         set([np.copysign, np.multiply, np.power, np.ldexp]))
-
-# ufuncs that return an angle based on two input values
-INVTRIG_TWOARG_UFUNCS = set([np.arctan2])
-
-# ufuncs that return an argument with the same unit as that of the two inputs
-INVARIANT_TWOARG_UFUNCS = set([np.add, np.subtract, np.hypot,
-                               np.maximum, np.minimum, np.fmin, np.fmax,
-                               np.nextafter,
-                               np.remainder, np.mod, np.fmod])
-
-# ufuncs that return a boolean based on two inputs
-COMPARISON_UFUNCS = set([np.greater, np.greater_equal, np.less,
-                         np.less_equal, np.not_equal, np.equal])
-
-# ufuncs that return a unitless value based on two unitless inputs
-DIMENSIONLESS_TWOARG_UFUNCS = set([np.logaddexp, np.logaddexp2])
-
-
-@pytest.mark.xfail
 class TestUfuncCoverage(object):
     """Test that we cover all ufunc's"""
     def test_coverage(self):
         all_np_ufuncs = set([np.__dict__[i] for i in np.__dict__
                              if getattr(np.__dict__[i],
                                         '__class__', None) == np.ufunc])
-        all_q_ufuncs = (UNSUPPORTED_UFUNCS |
-                        SPECIAL_UFUNCS |
-                        ANGLE_UFUNCS |
-                        DIMENSIONLESS_UFUNCS |
-                        IS_UNITY_UFUNCS |
-                        INVARIANT_UFUNCS |
-                        TEST_UFUNCS |
-                        SPECIAL_TWOARG_UFUNCS |
-                        INVTRIG_TWOARG_UFUNCS |
-                        INVARIANT_TWOARG_UFUNCS |
-                        DIMENSIONLESS_TWOARG_UFUNCS |
-                        COMPARISON_UFUNCS)
+        qh = u.quantity_helper
+        all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |
+                        set(qh.UFUNC_HELPERS.keys()))
         assert all_np_ufuncs - all_q_ufuncs == set([])
         assert all_q_ufuncs - all_np_ufuncs == set([])
 
@@ -427,32 +355,41 @@ class TestQuantityMathFuncs(object):
                                      "dimensionless quantities"
                                      .format(function.__name__))
 
-    @pytest.mark.parametrize('function', (np.modf, np.frexp))
-    def test_modf_frexp_scalar(self, function):
-        q = function(3. * u.m / (6. * u.m))
+    def test_modf_scalar(self):
+        q = np.modf(9. * u.m / (600. * u.cm))
+        assert q == (0.5 * u.dimensionless_unscaled,
+                     1. * u.dimensionless_unscaled)
+
+    def test_modf_array(self):
+        v = np.arange(10.) * u.m / (500.*u.cm)
+        q = np.modf(v)
+        n = np.modf(v.to(1).value)
+        assert q[0].unit == u.dimensionless_unscaled
+        assert q[1].unit == u.dimensionless_unscaled
+        assert all(q[0].value == n[0])
+        assert all(q[1].value == n[1])
+
+    def test_frexp_scalar(self):
+        q = np.frexp(3. * u.m / (6. * u.m))
         assert q == (np.array(0.5), np.array(0.0))
 
-    @pytest.mark.parametrize('function', (np.modf, np.frexp))
-    def test_modf_frexp_array(self, function):
-        q = function(np.array([2., 3., 6.]) * u.m / (6. * u.m))
-        assert all((_q0,_q1) == function(_d) for _q0, _q1, _d
+    def test_frexp_array(self):
+        q = np.frexp(np.array([2., 3., 6.]) * u.m / (6. * u.m))
+        assert all((_q0,_q1) == np.frexp(_d) for _q0, _q1, _d
                    in zip(q[0], q[1], [1. / 3., 1. / 2., 1.]))
 
-    @pytest.mark.parametrize('function', (np.modf, np.frexp))
-    def test_mod_frexp_invalid_units(self, function):
+    def test_frexp_invalid_units(self):
         # Can't use prod() with non-dimensionless quantities
         with pytest.raises(TypeError) as exc:
-            function(3. * u.m / u.s)
-        assert exc.value.args[0] == ("Can only apply '{0}' function to "
-                                     "unscaled dimensionless quantities"
-                                     .format(function.__name__))
+            np.frexp(3. * u.m / u.s)
+        assert exc.value.args[0] == ("Can only apply 'frexp' function to "
+                                     "unscaled dimensionless quantities")
 
         # also does not work on quantities that can be made dimensionless
         with pytest.raises(TypeError) as exc:
-            function(np.array([2., 3., 6.]) * u.m / (6. * u.cm))
-        assert exc.value.args[0] == ("Can only apply '{0}' function to "
-                                     "unscaled dimensionless quantities"
-                                     .format(function.__name__))
+            np.frexp(np.array([2., 3., 6.]) * u.m / (6. * u.cm))
+        assert exc.value.args[0] == ("Can only apply 'frexp' function to "
+                                     "unscaled dimensionless quantities")
 
     @pytest.mark.parametrize('function', (np.logaddexp, np.logaddexp2))
     def test_dimensionless_twoarg_array(self, function):
@@ -562,16 +499,46 @@ class TestComparisonUfuncs(object):
 
 class TestInplaceUfuncs(object):
 
-    @pytest.mark.xfail
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_one_argument_ufunc_inplace(self, value):
+        # without scaling
         s = value*u.rad
         check = s
         np.sin(s, out=s)
         assert check is s
         assert check.unit == u.dimensionless_unscaled
+        # with scaling
+        s2 = (value*u.rad).to(u.deg)
+        check2 = s2
+        np.sin(s2, out=s2)
+        assert check2 is s2
+        assert check2.unit == u.dimensionless_unscaled
+        assert_allclose(s.value, s2.value)
 
-    @pytest.mark.xfail
+    @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
+    def test_one_argument_two_output_ufunc_inplace(self, value):
+        v = 100. * value * u.cm / u.m
+        v_copy = v.copy()
+        tmp = v.copy()
+        check = v
+        np.modf(v, tmp, v)  # cannot use out1,out2 keywords with numpy 1.7
+        assert check is v
+        assert check.unit == u.dimensionless_unscaled
+        v2 = v_copy.to(1)
+        check2 = v2
+        np.modf(v2, tmp, v2)
+        assert check2 is v2
+        assert check2.unit == u.dimensionless_unscaled
+        # can also replace in last position if no scaling is needed
+        v3 = v_copy.to(1)
+        check3 = v3
+        np.modf(v3, v3, tmp)
+        assert check3 is v3
+        assert check3.unit == u.dimensionless_unscaled
+        # but cannot replace input with first output if scaling is needed
+        with pytest.raises(TypeError):
+            np.modf(v_copy, v_copy, tmp)
+
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_two_argument_ufunc_inplace(self, value):
         s = value*u.cycle
@@ -585,10 +552,22 @@ class TestInplaceUfuncs(object):
         s *= 2. * u.s
         assert check is s
         assert np.all(check == value * u.cycle)
-        np.arctan2(s,s,out=s)
+        # now with different units in output
+        s = value*u.cycle
+        check = s
+        np.arctan2(s, s, out=s)
         assert check is s
         assert check.unit == u.radian
         with pytest.raises(u.UnitsException):
             s += 1.*u.m
         assert check is s
         assert check.unit == u.radian
+        np.arctan2(1.*u.deg, s, out=s)
+        assert check is s
+        assert check.unit == u.radian
+        np.add(1.*u.deg, s, out=s)
+        assert check is s
+        assert check.unit == u.deg
+        np.multiply(2./u.s, s, out=s)
+        assert check is s
+        assert check.unit == u.deg/u.s

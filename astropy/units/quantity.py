@@ -22,17 +22,6 @@ from ..utils.compat.misc import override__dir__
 
 __all__ = ["Quantity"]
 
-# list of ufuncs:
-# http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
-
-UNSUPPORTED_UFUNCS = set([np.bitwise_and, np.bitwise_or,
-                          np.bitwise_xor, np.invert, np.left_shift,
-                          np.right_shift, np.logical_and, np.logical_or,
-                          np.logical_xor, np.logical_not])
-
-# ufuncs that return a boolean and do not care about the unit
-TEST_UFUNCS = set([np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
-
 
 from .quantity_helper import _is_unity
 
@@ -136,111 +125,125 @@ class Quantity(np.ndarray):
         # Find out which ufunc is being used
         function = context[0]
 
-        # For test functions (isreal, signbit, etc.), return plain Numpy array
-        if function in TEST_UFUNCS:
-            return obj
-        elif function in UNSUPPORTED_UFUNCS:
+        from .quantity_helper import UNSUPPORTED_UFUNCS, UFUNC_HELPERS
+
+        if function in UNSUPPORTED_UFUNCS:
             raise TypeError("Cannot use function '{0}' with quantities"
                             .format(function.__name__))
 
-        args = context[1]
+        args = context[1][:function.nin]
+        units = [getattr(arg, 'unit', None) for arg in args]
 
-        unit1 = args[0].unit if hasattr(args[0], 'unit') else None
-
-        from .quantity_helper import UFUNC_HELPERS
-
-        if function.nin == 1:
-
-            if function in UFUNC_HELPERS:
-                scale1, result_unit = UFUNC_HELPERS[function](function, unit1)
-            else:
-                raise TypeError("Unknown one-argument ufunc {0}.  Please raise"
-                                " issue on https://github.com/astropy/astropy"
-                                .format(function.__name__))
-
-            scale2 = None
-
-        elif function.nin == 2:
-
-            unit2 = args[1].unit if hasattr(args[1], 'unit') else None
-
-            if function in UFUNC_HELPERS:
-                scale1, scale2, result_unit = UFUNC_HELPERS[function](function, unit1, unit2)
-            else:
-                raise TypeError("Unknown two-argument ufunc {0}."
-                                "Please raise issue on "
-                                "https://github.com/astropy/astropy"
-                                .format(function.__name__))
-
-            # TODO: deal with this special case better
-            if function is np.power and result_unit is not None:
-                if unit2 is None:
-                    result_unit = result_unit ** args[1]
-                else:
-                    from . import dimensionless_unscaled
-                    result_unit = result_unit ** args[1].to(dimensionless_unscaled)
-
+        if function in UFUNC_HELPERS:
+            scales, result_unit = UFUNC_HELPERS[function](function, *units)
         else:
-
-            raise TypeError("Unknown {0}-argument ufunc {1}."
-                            "Please raise issue on "
+            raise TypeError("Unknown ufunc {0}.  Please raise issue on "
                             "https://github.com/astropy/astropy"
-                            .format(function.nin, function.__name__))
+                            .format(function.__name__))
 
-        # Remember the scale so that we can fix the output in __array_wrap__
-        self._scale1 = scale1
-        if scale2 is not None:
-            self._scale2 = scale2
+        # TODO: deal with this special case better
+        if function is np.power and result_unit is not None:
+            if units[1] is None:
+                result_unit = result_unit ** args[1]
+            else:
+                from . import dimensionless_unscaled
+                result_unit = result_unit ** args[1].to(dimensionless_unscaled)
 
-        if self is obj:  # happens if self is an output
-            # cannot set unit itself, since self may also be an input
-            # and its unit may still be needed for another output
-            self._result_unit = result_unit
-            return self
-        elif result_unit is None:  # do not want a Quantity output
-            return obj
-        else:  # set up output as a Quantity
+        if self is obj:  # happens if self is an output, e.g., q1 += q2
+            if result_unit is None:
+                raise TypeError("Cannot store non-quantity output from {0} "
+                                "function in Quantity object"
+                                .format(function.__name__))
+
+            result = self  # no need for a view
+            # in principle, if self is also an argument, it could be rescaled
+            # here, since it won't be needed anymore.  But maybe not change
+            # inputs before the calculation even if they will get destroyed
+        else:  # normal case: set up output as a Quantity
             result = obj.view(type(self))
-            result._unit = result_unit
-            return result
+
+        if any(scale != 1. for scale in scales):
+            # calculation will not be right; will need to fix in __array_wrap__
+
+            # if self is both output and input, it will get overwritten with
+            # junk.  To avoid that, hide it in a new object
+            if self is obj and any(self is arg for arg in args):
+                # but with two outputs it would become unhidden too soon
+                # [ie., np.modf(q1, q1, other)].  Bail.
+                if context[2] < function.nout-1:
+                    raise TypeError("Cannot apply multi-output {0} function "
+                                    "to quantities with in-place replacement "
+                                    "of an input by any but the last output."
+                                    .format(function.__name__))
+                result = self.copy()
+                result._result = self
+
+            # ensure we remember the scales we need
+            result._scales = scales
+
+        # unit output will get (setting _unit could prematurely change input)
+        result._result_unit = result_unit
+        return result
 
     def __array_wrap__(self, obj, context=None):
 
         if context is not None:
 
-            function = context[0]
+            if hasattr(obj, '_scales'):  # we need to recalculate
+                scales = obj._scales
+                del obj._scales
+                # since output is junk, can use it as storage for scaled input;
+                # (array view, to ensure pure ndarray recalculation)
+                storage = [obj.view(np.ndarray)]
 
-            if function in TEST_UFUNCS:
-                return obj
-
-            args = context[1]
-
-            # In cases where the scale is not one, we have to re-compute the output
-
-            if function.nin == 1:
-
-                if self._scale1 != 1.:
-                    return function(args[0].value * self._scale1) * obj._unit
-                    del self._scale1
-
-            elif function.nin == 2:
-
-                if isinstance(args[0], Quantity):
-                    x = args[0].value * self._scale1
-                    del self._scale1
+                if hasattr(obj, '_result'):
+                    # real obj was one of the inputs, so was hidden. Retrieve
+                    result_unit = obj._result_unit
+                    obj = obj._result
+                    obj._result_unit = result_unit
+                    # this means we also have more in/out storage space
+                    storage.append(obj.view(np.ndarray))
+                    junk_out = storage[0]  # only useful for nout>1
                 else:
-                    x = args[0]
+                    junk_out = None
 
-                if isinstance(args[1], Quantity):
-                    y = args[1].value * self._scale2
-                    del self._scale2
-                else:
-                    y = args[1]
+                # array view to ensure pure ndarray recalculation
+                obj_array = storage[-1]
 
-                if hasattr(obj, '_unit'):
-                    return function(x, y) * obj._unit
+                function = context[0]
+                args = context[1][:function.nin]
+
+                # set the inputs, rescaling as necessary
+                inputs = []
+                for arg, scale in zip(args, scales):
+                    if scale != 1.:
+                        # if possible, use storage for scaled input Quantity
+                        if(storage != [] and
+                           storage[0].shape == arg.shape and
+                           storage[0].dtype == arg.dtype):
+                            inputs.append(np.multiply(arg.view(np.ndarray),
+                                                      scale,
+                                                      out=storage.pop(0)))
+                        else:
+                            inputs.append(arg.value * scale)
+                    else:  # for scale==1, input is not necessarily a Quantity
+                        inputs.append(getattr(arg, 'value', arg))
+
+                if function.nout == 1:
+                    function(*inputs, out=obj_array)
+                else:  # 2-output function (np.modf, np.frexp); 1 input
+                    if context[2] == 0:
+                        function(inputs[0], obj_array, junk_out)
+                    else:
+                        function(inputs[0], junk_out, obj_array)
+
+            if hasattr(obj, '_result_unit'):
+                result_unit = obj._result_unit
+                del obj._result_unit
+                if result_unit is None:  # we're returning a plain array
+                    obj = obj.view(np.ndarray)
                 else:
-                    return function(x, y)
+                    obj._unit = result_unit
 
         return obj
 
@@ -333,7 +336,7 @@ class Quantity(np.ndarray):
     def copy(self):
         """ Return a copy of this `Quantity` instance """
 
-        return self.__class__(self.value.copy(), unit=self.unit)
+        return self.__class__(self, unit=self.unit)
 
     @override__dir__
     def __dir__(self):
