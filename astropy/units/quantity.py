@@ -188,6 +188,19 @@ class Quantity(np.ndarray):
                             "https://github.com/astropy/astropy"
                             .format(function.__name__))
 
+        if any(scale == 0. for scale in scales):
+            # if we could not convert a unit to a non-quantity array/number
+            # it is OK if the latter is (all) zero(s)
+            # (this allows, e.g., `q > 0.` independent of unit)
+            maybe_zero_arg = args[scales.index(0.)]
+            if np.any(maybe_zero_arg):
+                raise UnitsError("Can only apply '{0}' function to "
+                                 "dimensionless quantities when other "
+                                 "argument is not a quantity and not zero"
+                                 .format(function.__name__))
+            else:
+                scales = [1., 1.]
+
         # In the case of np.power, the unit itself needs to be modified by an
         # amount that depends on one of the input values, so we need to treat
         # this as a special case.
