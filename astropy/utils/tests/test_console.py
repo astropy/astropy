@@ -13,6 +13,7 @@ from .. import console
 def test_color_text():
     assert console._color_text("foo", "green") == u'\033[0;32mfoo\033[0m'
 
+
 def test_color_print():
     # This stuff is hard to test, at least smoke test it
     console.color_print("foo", "green")
@@ -30,6 +31,7 @@ def test_color_print2():
     stream = io.StringIO()
     console.color_print("foo", "green", "bar", "red", "baz", file=stream)
     assert stream.getvalue() == u'foobarbaz\n'
+
 
 @pytest.mark.skipif("sys.platform.startswith('win')")
 def test_color_print3():
