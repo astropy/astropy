@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from distutils import version
 import numpy as np
-import warnings
 
 from ... import units as u
-from ...tests.helper import pytest
+from ...tests.helper import pytest, catch_warnings
 from ... import table
 
 numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
@@ -80,28 +79,22 @@ class TestColumn():
         d = Column([1, 2, 3], name='a', dtype="f8", unit="m")
         d.convert_unit_to("km")
         assert np.all(d.data == [0.001, 0.002, 0.003])
-    
+
     def test_deprecated_attributes(self, Column, recwarn):
         d = Column([1, 2, 3], name='a', dtype="f8", unit="m")
-        
-        with warnings.catch_warnings(record=True) as warning_lines:
-            warnings.resetwarnings()
-            warnings.simplefilter("always", DeprecationWarning, append=True)
+
+        with catch_warnings(DeprecationWarning) as warning_lines:
             d.units
             assert warning_lines[0].category == DeprecationWarning
-        
-        with warnings.catch_warnings(record=True) as warning_lines:
-            warnings.resetwarnings()
-            warnings.simplefilter("always", DeprecationWarning, append=True)
+
+        with catch_warnings(DeprecationWarning) as warning_lines:
             c = Column([1,2,3], name='a', dtypes="f8", unit="m")
             assert warning_lines[0].category == DeprecationWarning
-        
-        with warnings.catch_warnings(record=True) as warning_lines:
-            warnings.resetwarnings()
-            warnings.simplefilter("always", DeprecationWarning, append=True)
+
+        with catch_warnings(DeprecationWarning) as warning_lines:
             c = Column([1,2,3], name='a', dtype="f8", units="m")
             assert warning_lines[0].category == DeprecationWarning
-        
+
     def test_array_wrap(self):
         """Test that the __array_wrap__ method converts a reduction ufunc
         output that has a different shape into an ndarray view.  Without this a

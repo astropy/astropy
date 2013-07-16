@@ -1,9 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from distutils import version
 import numpy as np
-import warnings
 
-from ...tests.helper import pytest
+from ...tests.helper import pytest, catch_warnings
 from ...table import Table
 from ...utils import OrderedDict, metadata
 from .. import np_utils
@@ -303,10 +302,7 @@ class TestJoin():
         t2['c'].format = '%6s'
         t2['c'].description = 't2_c'
 
-        with warnings.catch_warnings(record=True) as warning_lines:
-            warnings.resetwarnings()
-            warnings.simplefilter("always", metadata.MergeConflictWarning, append=True)
-
+        with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
             t12 = table.join(t1, t2, keys=['a', 'b'])
 
             assert t12['a'].unit == 'cm'
@@ -453,9 +449,7 @@ class TestVStack():
         t2['c'].format = '%6s'
         t2['c'].description = 't2_c'
 
-        with warnings.catch_warnings(record=True) as warning_lines:
-            warnings.resetwarnings()
-            warnings.simplefilter("always", metadata.MergeConflictWarning, append=True)
+        with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
             out = table.vstack([t1, t2, t4], join_type='outer')
 
             assert out['a'].unit == 'cm'
@@ -592,10 +586,7 @@ class TestHStack():
         t3['d'].format = '%6s'
         t3['d'].description = 't3_c'
 
-        with warnings.catch_warnings(record=True) as warning_lines:
-            warnings.resetwarnings()
-            warnings.simplefilter("always", metadata.MergeConflictWarning, append=True)
-
+        with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
             out = table.vstack([t1, t3, t4], join_type='outer')
 
             for t in [t1, t3, t4]:
