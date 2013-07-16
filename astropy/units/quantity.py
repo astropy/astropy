@@ -160,7 +160,9 @@ class Quantity(np.ndarray):
             # here, since it won't be needed anymore.  But maybe not change
             # inputs before the calculation even if they will get destroyed
         else:  # normal case: set up output as a Quantity
-            result = obj.view(type(self))
+            # We should use Quantity here otherwise we might re-cast as e.g.
+            # an EMConstant, which is not what is wanted.
+            result = obj.view(Quantity)
 
         if any(scale != 1. for scale in scales):
             # calculation will not be right; will need to fix in __array_wrap__
@@ -644,28 +646,28 @@ class Quantity(np.ndarray):
     def var(self, axis=None, dtype=None, out=None, ddof=0):
         result_unit = self.unit ** 2
         if out is not None:
-            out = out.view(type(self))
+            out = out.view(Quantity)
             out._unit = result_unit
         return Quantity(np.var(self.value, axis=axis, dtype=dtype, ddof=ddof),
                         result_unit)
 
     def std(self, axis=None, dtype=None, out=None, ddof=0):
-        out = out and out.view(type(self))
+        out = out and out.view(Quantity)
         value = np.std(self.value, axis=axis, dtype=dtype, out=out, ddof=ddof)
         return Quantity(value, self.unit)
 
     def mean(self, axis=None, dtype=None, out=None):
-        out = out and out.view(type(self))
+        out = out and out.view(Quantity)
         value = np.mean(self.value, axis=axis, dtype=dtype, out=out)
         return Quantity(value, self.unit)
 
     def ptp(self, axis=None, out=None):
-        out = out and out.view(type(self))
+        out = out and out.view(Quantity)
         value = np.ptp(self.value, axis=axis, out=out)
         return Quantity(value, self.unit)
 
     def max(self, axis=None, out=None, keepdims=False):
-        out = out and out.view(type(self))
+        out = out and out.view(Quantity)
         try:
             value = np.max(self.value, axis=axis, out=out, keepdims=keepdims)
         except:  # numpy < 1.7
@@ -673,7 +675,7 @@ class Quantity(np.ndarray):
         return Quantity(value, self.unit)
 
     def min(self, axis=None, out=None, keepdims=False):
-        out = out and out.view(type(self))
+        out = out and out.view(Quantity)
         try:
             value = np.min(self.value, axis=axis, out=out, keepdims=keepdims)
         except:  # numpy < 1.7
@@ -683,7 +685,7 @@ class Quantity(np.ndarray):
     def dot(self, b, out=None):
         result_unit = self.unit * getattr(b, 'unit', 1.)
         if out is not None:
-            out = out.view(type(self))
+            out = out.view(Quantity)
             out._unit = result_unit
         value = np.ndarray.dot(self, b, out=out)
         return Quantity(value, result_unit)
@@ -701,7 +703,7 @@ class Quantity(np.ndarray):
         return Quantity(value, self.unit)
 
     def sum(self, axis=None, dtype=None, out=None, keepdims=False):
-        out = out and out.view(type(self))
+        out = out and out.view(Quantity)
         try:
             value = np.sum(self.value, axis=axis, dtype=dtype,
                            out=out, keepdims=keepdims)
@@ -711,13 +713,13 @@ class Quantity(np.ndarray):
         return Quantity(value, self.unit)
 
     def cumsum(self, axis=None, dtype=None, out=None):
-        out = out and out.view(type(self))
+        out = out and out.view(Quantity)
         value = np.cumsum(self.value, axis=axis, dtype=dtype, out=out)
         return Quantity(value, self.unit)
 
     def prod(self, axis=None, dtype=None, out=None, keepdims=False):
         if _is_unity(self.unit):
-            out = out and out.view(type(self))
+            out = out and out.view(Quantity)
             try:
                 value = np.prod(self.value, axis=axis, dtype=dtype,
                                 out=out, keepdims=keepdims)
@@ -731,7 +733,7 @@ class Quantity(np.ndarray):
 
     def cumprod(self, axis=None, dtype=None, out=None):
         if _is_unity(self.unit):
-            out = out and out.view(type(self))
+            out = out and out.view(Quantity)
             value = np.cumprod(self.value, axis=axis, dtype=dtype, out=out)
             return Quantity(value, self.unit)
         else:
