@@ -4,6 +4,7 @@ This module contains helper functions for handling metadata.
 """
 
 from copy import deepcopy
+import numpy as np
 
 
 class MergeConflictError(TypeError):
@@ -32,6 +33,10 @@ def concat(left, right):
         raise MergeConflictError()
     if any(isinstance(left, cls) for cls in (tuple, list)):
         return left + right
+    elif left == right:
+        return left
+    elif np.isnan(left) and np.isnan(right):
+        return left
     else:
         raise MergeConflictError()
 
