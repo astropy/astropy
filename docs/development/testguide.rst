@@ -486,14 +486,14 @@ Testing warnings
 -----------------
 
 In order to test that warnings are triggered as expected in certain
-situations, you can use the `astropy.tests.helpers.catch_warnings`
+situations, you can use the `astropy.tests.helper.catch_warnings`
 context manager.  Unlike the `warnings.catch_warnings` context manager
 in the standard library, this one will reset all warning state before
 hand so one is assured to get the warnings reported, regardless of
 what errors may have been emitted by other tests previously.  Here is
 a real-world example::
 
-  from astropy.tests.helpers import catch_warnings
+  from astropy.tests.helper import catch_warnings
 
   with catch_warnings(MergeConflictWarning) as warning_lines:
       # Test code which triggers a MergeConflictWarning
@@ -508,7 +508,7 @@ function argument to test that warnings are triggered.  This method
 has been found to be problematic in at least one case (`pull request
 1174
 <https://github.com/astropy/astropy/pull/1174#issuecomment-20249309>`_)
-so the `astropy.tests.helpers.catch_warnings` context manager is
+so the `astropy.tests.helper.catch_warnings` context manager is
 preferred.
 
 .. _doctests:
