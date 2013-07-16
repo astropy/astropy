@@ -77,8 +77,8 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        H0 : float or scalar astropy.units.Quanitity
-          Hubble constant in [km/sec/Mpc] at z=0
+        H0 : float or scalar astropy.units.Quantity
+          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
         Om0 : float
           Omega matter: density of non-relativistic matter in units
@@ -88,11 +88,12 @@ class FLRW(Cosmology):
           Omega dark energy: density of dark energy in units
           of the critical density at z=0.
 
-        Tcmb0 : float or scalar astropy.units.Quanitity
-          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+        Tcmb0 : float or scalar astropy.units.Quantity
+          Temperature of the CMB z=0.  If a float, must be in [K].
+          Default: 2.725.
 
         Neff : float
-          Effective number of Neutrino species (def: 3.04)
+          Effective number of Neutrino species. Default 3.04.
 
         name : string
           Optional name for this cosmological object.
@@ -368,7 +369,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        Tcmb : astropy.units.Quanitity
+        Tcmb : astropy.units.Quantity
           The temperature of the CMB in K.
         """
 
@@ -750,7 +751,7 @@ class FLRW(Cosmology):
         if isiterable(z):
             z = np.asarray(z)
 
-        return self.comoving_transverse_distance(z) * (1. + z)
+        return (1. + z) * self.comoving_transverse_distance(z)
 
     def angular_diameter_distance_z1z2(self, z1, z2):
         """ Angular diameter distance between objects at 2 redshifts.
@@ -763,7 +764,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : astropy.units.Quanitity, shape (N,) or single if input scalar
+        d : astropy.units.Quantity, shape (N,) or single if input scalar
           The angular diameter distance between each input redshift
           pair.
 
@@ -808,14 +809,14 @@ class FLRW(Cosmology):
             # Common case worth checking
             out = (dm2 - dm1) / (1. + z2)
         else:
-            out = (dm2 * np.sqrt(1. + Ok0 * dm1 ** 2 / dh_2) -
-                   dm1 * np.sqrt(1. + Ok0 * dm2 ** 2 / dh_2)) /\
-                   (1. + z2)
+            out = ((dm2 * np.sqrt(1. + Ok0 * dm1 ** 2 / dh_2) -
+                    dm1 * np.sqrt(1. + Ok0 * dm2 ** 2 / dh_2)) /
+                   (1. + z2))
 
         if outscalar:
-            return u.Quantity(out[0], 'Mpc')
+            return u.Quantity(out[0], u.Mpc)
 
-        return u.Quantity(out, 'Mpc')
+        return u.Quantity(out, u.Mpc)
 
     def absorption_distance(self, z):
         """ Absorption distance at redshift `z`.
@@ -842,10 +843,10 @@ class FLRW(Cosmology):
 
         from scipy.integrate import quad
         if not isiterable(z):
-            return u.Quantity(quad(self._xfunc, 0, z)[0], 'Mpc')
+            return u.Quantity(quad(self._xfunc, 0, z)[0], u.Mpc)
 
         out = [quad(self._xfunc, 0, redshift)[0] for redshift in z]
-        return u.Quantity(out, 'Mpc')
+        return u.Quantity(out, u.Mpc)
 
     def distmod(self, z):
         """ Distance modulus at redshift `z`.
@@ -884,7 +885,7 @@ class FLRW(Cosmology):
         Returns
         -------
         V : astropy.units.Quantity
-          Comoving volume in Mpc^3 at each input redshift.
+          Comoving volume in :math:`Mpc^3` at each input redshift.
         """
 
         Ok0 = self._Ok0
@@ -917,8 +918,8 @@ class FLRW(Cosmology):
           The distance in comoving kpc corresponding to an arcmin at each
           input redshift.
         """
-        return self.comoving_transverse_distance(z).to(u.kpc) *\
-            arcmin_in_radians / u.arcmin
+        return (self.comoving_transverse_distance(z).to(u.kpc) *
+                arcmin_in_radians / u.arcmin)
 
     def kpc_proper_per_arcmin(self, z):
         """ Separation in transverse proper kpc corresponding to an
@@ -935,8 +936,8 @@ class FLRW(Cosmology):
           The distance in proper kpc corresponding to an arcmin at each
           input redshift.
         """
-        return self.angular_diameter_distance(z).to(u.kpc) * \
-            arcmin_in_radians / u.arcmin
+        return (self.angular_diameter_distance(z).to(u.kpc) *
+                arcmin_in_radians / u.arcmin)
 
     def arcsec_per_kpc_comoving(self, z):
         """ Angular separation in arcsec corresponding to a comoving kpc
@@ -954,7 +955,7 @@ class FLRW(Cosmology):
           at each input redshift.
         """
         return u.arcsec / (self.comoving_transverse_distance(z).to(u.kpc) *
-                    arcsec_in_radians)
+                           arcsec_in_radians)
 
     def arcsec_per_kpc_proper(self, z):
         """ Angular separation in arcsec corresponding to a proper kpc at
@@ -967,7 +968,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        theta : astropy.units.Quanitity
+        theta : astropy.units.Quantity
           The angular separation in arcsec corresponding to a proper kpc
           at each input redshift.
         """
@@ -997,8 +998,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        H0 : float or astropy.units.Quanitity
-          Hubble constant in [km/sec/Mpc] at z=0
+        H0 : float or astropy.units.Quantity
+          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
         Om0 : float
           Omega matter: density of non-relativistic matter in units
@@ -1008,11 +1009,12 @@ class LambdaCDM(FLRW):
           Omega dark energy: density of the cosmological constant in units
           of the critical density at z=0.
 
-        Tcmb0 : float or astropy.units.Quanitity
-          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+        Tcmb0 : float or astropy.units.Quantity
+          Temperature of the CMB z=0.  If a float, must be in [K].
+          Default: 2.725.
 
         Neff : float
-          Effective number of Neutrino species (def: 3.04)
+          Effective number of Neutrino species. Default 3.04.
 
         name : string
           Optional name for this cosmological object.
@@ -1141,18 +1143,19 @@ class FlatLambdaCDM(LambdaCDM):
 
         Parameters
         ----------
-        H0 : float or astropy.units.Quanitity
-          Hubble constant in [km/sec/Mpc] at z=0
+        H0 : float or astropy.units.Quantity
+          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
         Om0 : float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Tcmb0 : float or astropy.units.Quanitity
-          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+        Tcmb0 : float or astropy.units.Quantity
+          Temperature of the CMB z=0.  If a float, must be in [K].
+          Default: 2.725.
 
         Neff : float
-          Effective number of Neutrino species (def: 3.04)
+          Effective number of Neutrino species. Default 3.04.
 
         name : string
           Optional name for this cosmological object.
@@ -1245,8 +1248,8 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        H0 : float or astropy.units.Quanitity
-          Hubble constant in [km/sec/Mpc] at z=0
+        H0 : float or astropy.units.Quantity
+          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
         Om0 : float
           Omega matter: density of non-relativistic matter in units
@@ -1261,11 +1264,12 @@ class wCDM(FLRW):
           This is pressure/density for dark energy in units where c=1.
           A cosmological constant has w0=-1.0.
 
-        Tcmb0 : float or astropy.units.Quanitity
-          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+        Tcmb0 : float or astropy.units.Quantity
+          Temperature of the CMB z=0.  If a float, must be in [K].
+          Default: 2.725.
 
         Neff : float
-          Effective number of Neutrino species (def: 3.04)
+          Effective number of Neutrino species. Default 3.04.
 
         name : string
           Optional name for this cosmological object.
@@ -1409,8 +1413,8 @@ class FlatwCDM(wCDM):
 
         Parameters
         ----------
-        H0 : float or astropy.units.Quanitity
-          Hubble constant in [km/sec/Mpc] at z=0
+        H0 : float or astropy.units.Quantity
+          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
         Om0 : float
           Omega matter: density of non-relativistic matter in units
@@ -1421,11 +1425,12 @@ class FlatwCDM(wCDM):
           This is pressure/density for dark energy in units where c=1.
           A cosmological constant has w0=-1.0.
 
-        Tcmb0 : float or astropy.units.Quanitity
-          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+        Tcmb0 : float or astropy.units.Quantity
+          Temperature of the CMB z=0.  If a float, must be in [K].
+          Default: 2.725.
 
         Neff : float
-          Effective number of Neutrino species (def: 3.04)
+          Effective number of Neutrino species. Default 3.04.
 
         name: string
           Optional name for this cosmological object.
@@ -1521,8 +1526,8 @@ class w0waCDM(FLRW):
 
         Parameters
         ----------
-        H0 : float or astropy.units.Quanitity
-          Hubble constant in [km/sec/Mpc] at z=0
+        H0 : float or astropy.units.Quantity
+          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
         Om0 : float
           Omega matter: density of non-relativistic matter in units
@@ -1541,11 +1546,12 @@ class w0waCDM(FLRW):
           with respect to the scale factor.  A cosmological constant has
           w0=-1.0 and wa=0.0.
 
-        Tcmb0 : float or astropy.units.Quanitity
-          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+        Tcmb0 : float or astropy.units.Quantity
+          Temperature of the CMB z=0.  If a float, must be in [K].
+          Default: 2.725.
 
         Neff : float
-          Effective number of Neutrino species (def: 3.04)
+          Effective number of Neutrino species. Default 3.04.
 
         name : string
           Optional name for this cosmological object.
@@ -1651,8 +1657,8 @@ class Flatw0waCDM(w0waCDM):
 
         Parameters
         ----------
-        H0 : float or astropy.units.Quanitity
-          Hubble constant in [km/sec/Mpc] at z=0
+        H0 : float or astropy.units.Quantity
+          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
         Om0 : float
           Omega matter: density of non-relativistic matter in units
@@ -1667,11 +1673,12 @@ class Flatw0waCDM(w0waCDM):
           with respect to the scale factor.  A cosmological constant has
           w0=-1.0 and wa=0.0.
 
-        Tcmb0 : float or astropy.units.Quanitity
-          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+        Tcmb0 : float or astropy.units.Quantity
+          Temperature of the CMB z=0.  If a float, must be in [K].
+          Default: 2.725.
 
         Neff : float
-          Effective number of Neutrino species (def: 3.04)
+          Effective number of Neutrino species. Default 3.04.
 
         name : string
           Optional name for this cosmological object.
@@ -1717,8 +1724,8 @@ class wpwaCDM(FLRW):
 
         Parameters
         ----------
-        H0 : float or astropy.units.Quanitity
-          Hubble constant in [km/sec/Mpc] at z=0
+        H0 : float or astropy.units.Quantity
+          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
         Om0 : float
           Omega matter: density of non-relativistic matter in units
@@ -1740,11 +1747,12 @@ class wpwaCDM(FLRW):
         zp : float
           Pivot redshift -- the redshift where w(z) = wp
 
-        Tcmb0 : float or astropy.units.Quanitity
-          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+        Tcmb0 : float or astropy.units.Quantity
+          Temperature of the CMB z=0.  If a float, must be in [K].
+          Default: 2.725.
 
         Neff : float
-          Effective number of Neutrino species (def: 3.04)
+          Effective number of Neutrino species. Default 3.04.
 
         name : string
           Optional name for this cosmological object.
@@ -1864,8 +1872,8 @@ class w0wzCDM(FLRW):
 
         Parameters
         ----------
-        H0 : float or astropy.units.Quanitity
-          Hubble constant in [km/sec/Mpc] at z=0
+        H0 : float or astropy.units.Quantity
+          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
         Om0 : float
           Omega matter: density of non-relativistic matter in units
@@ -1887,11 +1895,12 @@ class w0wzCDM(FLRW):
         wz : float
           Derivative of the dark energy equation of state with respect to z.
 
-        Tcmb0 : float or astropy.units.Quanitity
-          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+        Tcmb0 : float or astropy.units.Quantity
+          Temperature of the CMB z=0.  If a float, must be in [K].
+          Default: 2.725.
 
         Neff : float
-          Effective number of Neutrino species (def: 3.04)
+          Effective number of Neutrino species. Default 3.04.
 
         name : string
           Optional name for this cosmological object.
