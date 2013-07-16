@@ -67,6 +67,9 @@ USE_UNICODE = ConfigurationItem(
 IS_PY3 = sys.version_info[0] == 3
 
 
+_DEFAULT_ENCODING = 'utf-8'
+
+
 def isatty(file):
     """
     Returns `True` if `file` is a tty.
@@ -134,6 +137,61 @@ def _color_text(text, color):
     return u'\033[{0}m{1}\033[0m'.format(color_code, text)
 
 
+def _decode_preferred_encoding(s):
+    """Decode the supplied byte string using the preferred encoding
+    for the locale (`locale.getpreferredencoding`) or, if the default encoding
+    is invalid, fall back first on utf-8, then on latin-1 if the message cannot
+    be decoded with utf-8.
+    """
+
+    enc = locale.getpreferredencoding()
+    try:
+        try:
+            return s.decode(enc)
+        except LookupError:
+            enc = _DEFAULT_ENCODING
+        return s.decode(enc)
+    except UnicodeDecodeError:
+        return s.decode('latin-1')
+
+
+def _write_with_fallback(s, write, fileobj):
+    """Write the supplied string with the given write function like
+    ``write(s)``, but use a writer for the locale's preferred encoding in case
+    of a UnicodeEncodeError.  Failing that attempt to write with 'utf-8' or
+    'latin-1'.
+    """
+
+    try:
+        write(s)
+        return write
+    except UnicodeEncodeError:
+        # Let's try the next approach...
+        pass
+
+    enc = locale.getpreferredencoding()
+    try:
+        Writer = codecs.getwriter(enc)
+    except LookupError:
+        Writer = codes.getwriter(_DEFAULT_ENCODING)
+
+    f = Writer(fileobj)
+    write = f.write
+
+    try:
+        write(s)
+        return write
+    except UnicodeEncodeError:
+        Writer = codecs.getwriter('latin-1')
+        f = Writer(fileobj)
+        write = f.write
+
+    # If this doesn't work let the exception bubble up; I'm out of ideas
+    write(s)
+    return write
+
+
+
 def color_print(*args, **kwargs):
     """
     Prints colors and styles to the terminal uses ANSI escape
@@ -185,15 +243,9 @@ def color_print(*args, **kwargs):
             # versions; if this fails try creating a writer using the locale's
             # preferred encoding. If that fails too give up.
             if not IS_PY3 and isinstance(msg, bytes):
-                msg = msg.decode(locale.getpreferredencoding())
+                msg = _decode_preferred_encoding(msg)
 
-            try:
-                write(msg)
-            except UnicodeEncodeError:
-                Writer = codecs.getwriter(locale.getpreferredencoding())
-                file = Writer(file)
-                write = file.write
-                write(msg)
+            write = _write_with_fallback(msg, write, file)
 
         write(end)
     else:
@@ -203,9 +255,10 @@ def color_print(*args, **kwargs):
                 # Support decoding bytes to unicode on Python 2; use the
                 # preferred encoding for the locale (which is *sometimes*
                 # sensible)
-                msg = msg.decode(locale.getpreferredencoding())
+                msg = _decode_preferred_encoding(msg)
             write(msg)
         write(end)
+
 
 def strip_ansi_codes(s):
     """
