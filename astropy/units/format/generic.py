@@ -9,11 +9,9 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 import re
-import sys
 
 from . import utils
 from .base import Base
-from ...utils.compat.fractions import Fraction
 
 
 class Generic(Base):
@@ -369,15 +367,8 @@ class Generic(Base):
             if power == 1:
                 out.append(self._get_unit_name(base))
             else:
-                if not isinstance(power, Fraction):
-                    if power % 1.0 != 0.0:
-                        frac = Fraction.from_float(power)
-                        power = frac.limit_denominator(10)
-                        if power.denominator == 1:
-                            power = int(power.numerator)
-                    else:
-                        power = int(power)
-                if isinstance(power, Fraction):
+                power = utils.format_power(power)
+                if '/' in power:
                     out.append('{0}({1})'.format(
                         self._get_unit_name(base), power))
                 else:

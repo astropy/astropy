@@ -47,7 +47,11 @@ class Unicode(console.Console):
             '7': '⁷',
             '8': '⁸',
             '9': '⁹',
-            '-': '⁻'}
+            '-': '⁻',
+            # This is actually a "raised omission bracket", but it's
+            # the closest thing I could find to a superscript solidus.
+            '/': '⸍',
+            }
         output = []
         for c in number:
             output.append(mapping[c])

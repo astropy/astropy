@@ -186,3 +186,13 @@ def test_console_out():
 
 def test_flexible_float():
     assert u.min._represents.to_string('latex') == ur'$\mathrm{60\,s}$'
+
+
+def test_fraction_repr():
+    area = u.cm ** 2.0
+    assert '.' not in area.to_string('latex')
+
+    fractional = u.cm ** 2.5
+    assert '5/2' in fractional.to_string('latex')
+
+    assert fractional.to_string('unicode') == 'cm⁵⸍²'
