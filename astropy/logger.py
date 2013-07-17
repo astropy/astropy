@@ -337,7 +337,7 @@ class AstropyLogger(Logger):
             color_print(record.levelname, 'brown', end='')
         else:
             color_print(record.levelname, 'red', end='')
-        print(": " + record.msg + " [{0:s}]".format(record.origin))
+        print(": {0} [{1:s}]".format(record.msg, record.origin))
 
     @contextmanager
     def log_to_file(self, filename, filter_level=None, filter_origin=None):
