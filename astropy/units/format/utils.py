@@ -117,7 +117,7 @@ def format_power(power):
     if not isinstance(power, Fraction):
         if power % 1.0 != 0.0:
             frac = Fraction.from_float(power)
-            power = frac.limit_denominator(10)
+            power = frac.limit_denominator()
             if power.denominator == 1:
                 power = int(power.numerator)
         else:
