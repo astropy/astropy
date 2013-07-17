@@ -52,6 +52,11 @@ def _validate_value(value):
     return value_obj
 
 
+class UnitNotSet(NotImplementedError):
+    def to_string(self):
+        return "Uninitialised"
+
+
 class Quantity(np.ndarray):
     """ A `Quantity` represents a number with some associated unit.
 
@@ -357,6 +362,9 @@ class Quantity(np.ndarray):
         """
 
         return self._unit
+
+    # this ensures that if we do a view, __repr__ and __str__ do not balk
+    _unit = UnitNotSet()
 
     @property
     def equivalencies(self):
