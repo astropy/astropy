@@ -1,4 +1,4 @@
-# coding: utf-8
+# Coding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module defines the `Quantity` object, which represents a number with some
@@ -154,6 +154,12 @@ class Quantity(np.ndarray):
                 raise TypeError("Cannot store non-quantity output from {0} "
                                 "function in Quantity object"
                                 .format(function.__name__))
+            # for integer output, be a bit less helpful than numpy
+            # in getting people to shoot themselves in the foot
+            if(any(not np.can_cast(arg, obj.dtype) for arg in args) or
+               np.any(np.array(scales, dtype=obj.dtype) != np.array(scales))):
+                raise TypeError("Arguments cannot be cast safely to inplace "
+                                "output with dtype={}".format(self.dtype))
 
             result = self  # no need for a view
             # in principle, if self is also an argument, it could be rescaled
@@ -167,7 +173,7 @@ class Quantity(np.ndarray):
         if any(scale != 1. for scale in scales):
             # calculation will not be right; will need to fix in __array_wrap__
 
-            # if self is both output and input, it will get overwritten with
+            # if self is both output and input, input will get overwritten with
             # junk.  To avoid that, hide it in a new object
             if self is obj and any(self is arg for arg in args):
                 # but with two outputs it would become unhidden too soon
@@ -177,7 +183,8 @@ class Quantity(np.ndarray):
                                     "to quantities with in-place replacement "
                                     "of an input by any but the last output."
                                     .format(function.__name__))
-                result = self.copy()
+                # cannot use self.copy(), as it can change dtype
+                result = self.view(np.ndarray).copy().view(Quantity)
                 result._result = self
 
             # ensure we remember the scales we need
@@ -191,26 +198,34 @@ class Quantity(np.ndarray):
 
         if context is not None:
 
+            if hasattr(obj, '_result_unit'):
+                result_unit = obj._result_unit
+                del obj._result_unit
+            else:
+                result_unit = None
+
             if hasattr(obj, '_scales'):  # we need to recalculate
                 scales = obj._scales
                 del obj._scales
                 # since output is junk, can use it as storage for scaled input;
                 # (array view, to ensure pure ndarray recalculation)
-                storage = [obj.view(np.ndarray)]
 
                 if hasattr(obj, '_result'):
-                    # real obj was one of the inputs, so was hidden. Retrieve
-                    result_unit = obj._result_unit
+                    # real output was also one of the inputs, so was hidden.
+                    # junked copy still useful as storage for scaled inputs
+                    # and possible junk output
+                    junk = obj.view(np.ndarray)
+                    storage = [junk]
+                    # Retrieve real object
                     obj = obj._result
-                    obj._result_unit = result_unit
-                    # this means we also have more in/out storage space
-                    storage.append(obj.view(np.ndarray))
-                    junk_out = storage[0]  # only useful for nout>1
                 else:
-                    junk_out = None
+                    junk = None
+                    storage = []
 
-                # array view to ensure pure ndarray recalculation
-                obj_array = storage[-1]
+                # take array view to which output can be written without
+                # getting back here
+                obj_array = obj.view(np.ndarray)
+                storage.append(obj_array)
 
                 function = context[0]
                 args = context[1][:function.nin]
@@ -222,7 +237,8 @@ class Quantity(np.ndarray):
                         # if possible, use storage for scaled input Quantity
                         if(storage != [] and
                            storage[0].shape == arg.shape and
-                           storage[0].dtype == arg.dtype):
+                           storage[0].dtype == arg.dtype and
+                           np.array(scale, storage[0].dtype) == scale):
                             inputs.append(np.multiply(arg.view(np.ndarray),
                                                       scale,
                                                       out=storage.pop(0)))
@@ -231,21 +247,33 @@ class Quantity(np.ndarray):
                     else:  # for scale==1, input is not necessarily a Quantity
                         inputs.append(getattr(arg, 'value', arg))
 
-                if function.nout == 1:
-                    function(*inputs, out=obj_array)
-                else:  # 2-output function (np.modf, np.frexp); 1 input
-                    if context[2] == 0:
-                        function(inputs[0], obj_array, junk_out)
-                    else:
-                        function(inputs[0], junk_out, obj_array)
+                # scaling may change whether or not output can be written to
+                if(result_unit is not None and
+                   any(not np.can_cast(scaled_arg, obj_array.dtype)
+                       for scaled_arg in inputs)):
+                    obj_array = None
 
-            if hasattr(obj, '_result_unit'):
-                result_unit = obj._result_unit
-                del obj._result_unit
-                if result_unit is None:  # we're returning a plain array
-                    obj = obj.view(np.ndarray)
+                if function.nin == 1:
+                    if function.nout == 1:
+                        out = function(inputs[0], obj_array)
+                    else:  # 2-output function (np.modf, np.frexp); 1 input
+                        if context[2] == 0:
+                            out, _ = function(inputs[0], obj_array, junk)
+                        else:
+                            _, out = function(inputs[0], junk, obj_array)
                 else:
-                    obj._unit = result_unit
+                    out = function(inputs[0], inputs[1], obj_array)
+
+                if obj_array is None:
+                    if type(out) != np.ndarray:  # array scalar; cannot view
+                        return Quantity(out, result_unit)
+                    else:
+                        obj = out.view(Quantity)
+
+            if result_unit is None:  # we're returning a plain array
+                obj = obj.view(np.ndarray)
+            else:
+                obj._unit = result_unit
 
         return obj
 
@@ -274,10 +302,11 @@ class Quantity(np.ndarray):
     @property
     def value(self):
         """ The numerical value of this quantity. """
-        if not self.shape:
-            return self.item()
+        value = self.view(np.ndarray)
+        if self.shape:
+            return value
         else:
-            return self.view(np.ndarray)
+            return value.item()
 
     @property
     def unit(self):
@@ -463,6 +492,15 @@ class Quantity(np.ndarray):
         """ Division between `Quantity` objects. """
         return self.__rdiv__(other)
 
+    def __divmod__(self, other):
+        from . import dimensionless_unscaled
+        other_value = self._to_own_unit(other)
+        result_tuple = super(Quantity, self.__class__).__divmod__(
+            self.view(np.ndarray), other_value)
+
+        return (Quantity(result_tuple[0], dimensionless_unscaled),
+                Quantity(result_tuple[1], self.unit))
+
     def __pos__(self):
         """
         Plus the quantity. This is implemented in case users use +q where q is
@@ -512,6 +550,14 @@ class Quantity(np.ndarray):
                 "indexing".format(cls=self.__class__.__name__))
         else:
             return Quantity(self.value[key], unit=self.unit)
+
+    def __setitem__(self, i, value):
+        self.view(np.ndarray).__setitem__(i, self._to_own_unit(value))
+
+    def __setslice__(self, i, j, value):
+        self.view(np.ndarray).__setslice__(i, j, self._to_own_unit(value))
+
+    # __contains__ is OK
 
     def __nonzero__(self):
         """Quantities should always be treated as non-False; there is too much
@@ -642,6 +688,106 @@ class Quantity(np.ndarray):
         return Quantity(new_value, new_unit)
 
     # These functions need to be overridden to take into account the units
+    # Array conversion
+    # http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html#array-conversion
+
+    def item(self, *args):
+        return Quantity(self.view(np.ndarray).item(*args), self.unit)
+
+    def list(self):
+        raise NotImplementedError("cannot make a list of Quantities.  Get "
+                                  "list of values with q.value.list()")
+
+    def _to_own_unit(self, value, check_precision=True):
+        from . import dimensionless_unscaled
+        try:
+            value = value.to(self.unit).value
+        except AttributeError:
+            value = dimensionless_unscaled.to(self.unit, value)
+
+        if(check_precision and
+           np.any(np.array(value, self.dtype) != np.array(value))):
+            raise TypeError("cannot convert value type to array type without "
+                            "precision loss")
+        return value
+
+    def itemset(self, *args):
+        if len(args) == 0:
+            raise ValueError("itemset must have at least one argument")
+
+        self.view(np.ndarray).itemset(*(args[:-1] +
+                                        (self._to_own_unit(args[1]),)))
+
+    def tostring(self, order='C'):
+        raise NotImplementedError("cannot write Quantities to string.  Write "
+                                  "array with q.value.tostring(...).")
+
+    def tofile(self, fid, sep="", format="%s"):
+        raise NotImplementedError("cannot write Quantities to file.  Write "
+                                  "array with q.value.tofile(...)")
+
+    def dump(self, file):
+        raise NotImplementedError("cannot dump Quantities to file.  Write "
+                                  "array with q.value.dump()")
+
+    def dumps(self):
+        raise NotImplementedError("cannot dump Quantities to string.  Write "
+                                  "array with q.value.dumps()")
+
+    # astype, byteswap OK as is
+    # copy done above
+    # view, getfield, setflags OK as is
+
+    def fill(self, value):
+        self.view(np.ndarray).fill(self._to_own_unit(value))
+
+    # Shape manipulation: resize cannot be done (does not own data), but
+    # shape, transpose, swapaxes, flatten, ravel, squeeze all OK.
+
+    # Item selection and manipulation
+    # take, repeat, sort, compress, diagonal OK
+    def put(self, indices, values, mode='raise'):
+        self.view(np.ndarray).put(indices, self._to_own_unit(values), mode)
+
+    def choose(self, choices, out=None, mode='raise'):
+        raise NotImplementedError("cannot choose based on quantity.  Choose "
+                                  "using array with q.value.choose(...)")
+
+    # ensure we do not return indices as quantities
+    def argsort(self, axis=-1, kind='quicksort', order=None):
+        return self.view(np.ndarray).argsort(axis=axis, kind=kind, order=order)
+
+    def searchsorted(self, v, *args, **kwargs):
+        return np.searchsorted(np.array(self),
+                               self._to_own_unit(v, check_precision=False),
+                               *args, **kwargs)  # avoid numpy 1.6 problem
+
+    # Calculation
+
+    # ensure we do not return indices as quantities
+    # conj OK
+    def argmax(self, axis=None, out=None):
+        return self.view(np.ndarray).argmax(axis=axis, out=out)
+
+    def argmin(self, axis=None, out=None):
+        return self.view(np.ndarray).argmin(axis=axis, out=out)
+
+    def clip(self, a_min, a_max, out=None):
+        if out is not None:
+            out = out.view(Quantity)
+            out._unit = self.unit
+        return super(Quantity, self.__class__).clip(self,
+                                                    self._to_own_unit(a_min),
+                                                    self._to_own_unit(a_max),
+                                                    out=out)
+
+    def trace(self, offset=0, axis1=0, axis2=1, dtype=None, out=None):
+        if out is not None:
+            out = out.view(Quantity)
+            out._unit = self.unit
+        return Quantity(np.trace(self.value, offset=offset, axis1=axis1,
+                                 axis2=axis2, dtype=None, out=out),
+                        self.unit)
 
     def var(self, axis=None, dtype=None, out=None, ddof=0):
         result_unit = self.unit ** 2
@@ -739,3 +885,11 @@ class Quantity(np.ndarray):
         else:
             raise ValueError("cannot use cumprod on scaled or "
                              "non-dimensionless Quantity arrays")
+
+    def all(self, axis=None, out=None):
+        raise NotImplementedError("cannot evaluate truth value of quantities. "
+                                  "Evaluate array with q.value.all(...)")
+
+    def any(self, axis=None, out=None):
+        raise NotImplementedError("cannot evaluate truth value of quantities. "
+                                  "Evaluate array with {0}.value.any(...)")

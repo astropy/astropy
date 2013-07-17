@@ -210,14 +210,37 @@ class TestQuantityOperations(object):
             new_q = q1 + q2
 
     def test_dimensionless_operations(self):
+        # test conversion to dimensionless
+        dq = 3. * u.m / u.km
+        dq1 = dq + 1. * u.mm / u.km
+        assert dq1.value == 3.001
+        assert dq1.unit == dq.unit
+
+        dq2 = dq + 1.
+        assert dq2.value == 1.003
+        assert dq2.unit == u.dimensionless_unscaled
+
         # this test will check that operations with dimensionless Quantities
         # don't work
-
         with pytest.raises(u.UnitsException):
             self.q1 + u.Quantity(0.1, unit=u.Unit(""))
 
         with pytest.raises(u.UnitsException):
             self.q1 - u.Quantity(0.1, unit=u.Unit(""))
+
+        # and test that scaling of integers works
+        q = np.array([1,2,3]) * u.m / u.km
+        q2 = q + np.array([4,5,6])
+        assert q2.unit == u.dimensionless_unscaled
+        assert_allclose(q2.value, np.array([4.001, 5.002, 6.003]))
+        # but not if doing it inplace
+        with pytest.raises(TypeError):
+            q += np.array([1,2,3])
+        # except if it is actually possible
+        q = np.array([1,2,3]) * u.km / u.m
+        q += np.array([4,5,6])
+        assert q.unit == u.dimensionless_unscaled
+        assert np.all(q.value == np.array([1004, 2005, 3006]))
 
     def test_complicated_operation(self):
         """ Perform a more complicated test """

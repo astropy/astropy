@@ -244,10 +244,12 @@ def find_scales(f, *units):
             # could have special case here: OK if unitless number is zero
             # this needs to be signalled up, e.g., with: scales[fixed] = 0.
             raise UnitsException(
-                    "Can only apply '{0}' function to "
-                    "dimensionless quantities when other "
-                    "argument is not a quantity"
-                    .format(f.__name__))
+                "Can only apply '{0}' function to "
+                "dimensionless quantities when other "
+                "argument is not a quantity"
+                .format(f.__name__))
+
+        return scales, dimensionless_unscaled
 
     else:
         try:
@@ -258,15 +260,11 @@ def find_scales(f, *units):
                 "with compatible dimensions"
                 .format(f.__name__))
 
-    return scales
+        return scales, units[fixed]
 
 def helper_twoarg_invariant(f, unit1, unit2):
     from . import dimensionless_unscaled
-    scales = find_scales(f, unit1, unit2)
-    if unit1 is None:
-        return scales, dimensionless_unscaled
-    else:
-        return scales, unit1  # is this correct?
+    return find_scales(f, unit1, unit2)
 
 UFUNC_HELPERS[np.add] = helper_twoarg_invariant
 UFUNC_HELPERS[np.subtract] = helper_twoarg_invariant
@@ -281,7 +279,7 @@ UFUNC_HELPERS[np.mod] = helper_twoarg_invariant
 UFUNC_HELPERS[np.fmod] = helper_twoarg_invariant
 
 def helper_twoarg_comparison(f, unit1, unit2):
-    scales = find_scales(f, unit1, unit2)
+    scales, _ = find_scales(f, unit1, unit2)
     return scales, None
 
 UFUNC_HELPERS[np.greater] = helper_twoarg_comparison
@@ -293,7 +291,7 @@ UFUNC_HELPERS[np.equal] = helper_twoarg_comparison
 
 def helper_twoarg_invtrig(f, unit1, unit2):
     from .si import radian
-    scales = find_scales(f, unit1, unit2)
+    scales, _ = find_scales(f, unit1, unit2)
     return scales, radian
 
 UFUNC_HELPERS[np.arctan2] = helper_twoarg_invtrig
