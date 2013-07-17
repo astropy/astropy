@@ -45,7 +45,8 @@ class Console(base.Base):
             else:
                 out.append('{0}{1}'.format(
                     self._get_unit_name(base),
-                    self._format_superscript(str(power))))
+                    self._format_superscript(
+                            utils.format_power(power))))
         return ' '.join(out)
 
     def _format_exponential_notation(self, val):
