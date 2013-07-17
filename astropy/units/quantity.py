@@ -25,6 +25,8 @@ __all__ = ["Quantity"]
 
 from .quantity_helper import _is_unity
 
+UNIT_NOT_INITIALISED = "(Unit not initialised)"
+
 
 def _validate_value(value):
     """ Make sure that the input is a Python or Numpy numeric type.
@@ -50,11 +52,6 @@ def _validate_value(value):
                         "type.")
 
     return value_obj
-
-
-class UnitNotSet(NotImplementedError):
-    def to_string(self):
-        return "Uninitialised"
 
 
 class Quantity(np.ndarray):
@@ -364,7 +361,7 @@ class Quantity(np.ndarray):
         return self._unit
 
     # this ensures that if we do a view, __repr__ and __str__ do not balk
-    _unit = UnitNotSet()
+    _unit = None
 
     @property
     def equivalencies(self):
@@ -647,10 +644,16 @@ class Quantity(np.ndarray):
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
     def __str__(self):
-        return "{0} {1:s}".format(self.value, self.unit.to_string())
+        return "{0} {1:s}".format(self.value,
+                                  self.unit.to_string() if
+                                  self.unit is not None
+                                  else UNIT_NOT_INITIALISED)
 
     def __repr__(self):
-        return "<Quantity {0} {1:s}>".format(self.value, self.unit.to_string())
+        return "<Quantity {0} {1:s}>".format(self.value,
+                                             self.unit.to_string() if
+                                             self.unit is not None
+                                             else UNIT_NOT_INITIALISED)
 
     def _repr_latex_(self):
         """
@@ -670,7 +673,9 @@ class Quantity(np.ndarray):
 
         # Format unit
         # [1:-1] strips the '$' on either side needed for math mode
-        latex_unit = self.unit._repr_latex_()[1:-1]  # note this is unicode
+        latex_unit = (self.unit._repr_latex_()[1:-1]  # note this is unicode
+                      if self.unit is not None
+                      else UNIT_NOT_INITIALISED)
 
         return u'${0} \; {1}$'.format(latex_value, latex_unit)
 
