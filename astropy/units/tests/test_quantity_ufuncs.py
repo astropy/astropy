@@ -14,6 +14,11 @@ class TestUfuncCoverage(object):
         all_np_ufuncs = set([np.__dict__[i] for i in np.__dict__
                              if getattr(np.__dict__[i],
                                         '__class__', None) == np.ufunc])
+
+        # Prior to Numpy 1.7, np.ones_like was included in the list of ufuncs,
+        # but is not really a ufunc, so we remove it
+        all_np_ufuncs -= set([np.ones_like])
+
         qh = u.quantity_helper
         all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |
                         set(qh.UFUNC_HELPERS.keys()))
