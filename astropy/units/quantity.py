@@ -118,7 +118,13 @@ class Quantity(np.ndarray):
 
     def __array_prepare__(self, obj, context=None):
 
-        # If no context is set, just return input
+        # This method gets called by Numpy whenever a ufunc is called on the
+        # array. The object passed in ``obj`` is an empty version of the
+        # output array which we can e.g. change to an array sub-class, add
+        # attributes to, etc. After this is called, then the ufunc is called
+        # and the values in this empty array are set.
+
+        # If no context is set, just return the input
         if context is None:
             return obj
 
@@ -127,13 +133,21 @@ class Quantity(np.ndarray):
 
         from .quantity_helper import UNSUPPORTED_UFUNCS, UFUNC_HELPERS
 
+        # Check whether we even support this ufunc
         if function in UNSUPPORTED_UFUNCS:
             raise TypeError("Cannot use function '{0}' with quantities"
                             .format(function.__name__))
 
+        # Now find out what arguments were passed to the ufunc, usually, this
+        # will include at least the present object, and another, which could
+        # be a Quantity, or a Numpy array, etc. when using two-argument ufuncs.
         args = context[1][:function.nin]
         units = [getattr(arg, 'unit', None) for arg in args]
 
+        # If the ufunc is supported, then we call a helper function (defined
+        # in quantity_helper.py) which returns the scale by which the inputs
+        # should be multiplied before being passed to the ufunc, as well as
+        # the unit the output from the ufunc will have.
         if function in UFUNC_HELPERS:
             scales, result_unit = UFUNC_HELPERS[function](function, *units)
         else:
@@ -141,7 +155,10 @@ class Quantity(np.ndarray):
                             "https://github.com/astropy/astropy"
                             .format(function.__name__))
 
-        # TODO: deal with this special case better
+        # In the case of np.power, the unit itself needs to be modified by an
+        # amount that depends on one of the input values, so we need to treat
+        # this as a special case.
+        # TODO: find a better way to deal with this case
         if function is np.power and result_unit is not None:
             if units[1] is None:
                 result_unit = result_unit ** args[1]
@@ -149,32 +166,49 @@ class Quantity(np.ndarray):
                 from . import dimensionless_unscaled
                 result_unit = result_unit ** args[1].to(dimensionless_unscaled)
 
-        if self is obj:  # happens if self is an output, e.g., q1 += q2
+        # We now prepare the output object
+
+        if self is obj:  # happens if the output object is self, which happens
+                         # for in-place operations such as q1 += q2
+
+            # In some cases, the result of a ufunc should be a plain Numpy
+            # array, which we can't do if we are doing an in-place operation.
             if result_unit is None:
                 raise TypeError("Cannot store non-quantity output from {0} "
                                 "function in Quantity object"
                                 .format(function.__name__))
-            # for integer output, be a bit less helpful than numpy
-            # in getting people to shoot themselves in the foot
+
+            # If the Quantity has an integer dtype, in-place operations are
+            # dangerous because in some cases the quantity will be e.g.
+            # decomposed, which involves being scaled by a float, but since
+            # the array is an integer the output then gets converted to an int
+            # and truncated.
             if(any(not np.can_cast(arg, obj.dtype) for arg in args) or
                np.any(np.array(scales, dtype=obj.dtype) != np.array(scales))):
                 raise TypeError("Arguments cannot be cast safely to inplace "
                                 "output with dtype={0}".format(self.dtype))
 
-            result = self  # no need for a view
+            result = self  # no need for a view since we are returning the object itself
+
             # in principle, if self is also an argument, it could be rescaled
             # here, since it won't be needed anymore.  But maybe not change
             # inputs before the calculation even if they will get destroyed
+
         else:  # normal case: set up output as a Quantity
+
             # We should use Quantity here otherwise we might re-cast as e.g.
             # an EMConstant, which is not what is wanted.
             result = obj.view(Quantity)
 
+        # We now need to treat the case where the inputs have to be scaled -
+        # the issue is that we can't actually scale the inputs since that
+        # would be changing the objects passed to the ufunc, which would not
+        # be expected by the user.
         if any(scale != 1. for scale in scales):
-            # calculation will not be right; will need to fix in __array_wrap__
 
-            # if self is both output and input, input will get overwritten with
-            # junk.  To avoid that, hide it in a new object
+            # If self is both output and input (which happens for in-place
+            # operations), input will get overwritten with junk. To avoid
+            # that, hide it in a new object
             if self is obj and any(self is arg for arg in args):
                 # but with two outputs it would become unhidden too soon
                 # [ie., np.modf(q1, q1, other)].  Bail.
@@ -204,16 +238,22 @@ class Quantity(np.ndarray):
             else:
                 result_unit = None
 
-            if hasattr(obj, '_scales'):  # we need to recalculate
+            # We now need to re-calculate quantities for which the input
+            # needed to be scaled.
+            if hasattr(obj, '_scales'):
+
                 scales = obj._scales
                 del obj._scales
-                # since output is junk, can use it as storage for scaled input;
-                # (array view, to ensure pure ndarray recalculation)
+
+                # since values were not initially scaled, the output is junk,
+                # so we can use it as storage for scaled input; (array view,
+                # to ensure pure ndarray recalculation)
 
                 if hasattr(obj, '_result'):
-                    # real output was also one of the inputs, so was hidden.
-                    # junked copy still useful as storage for scaled inputs
-                    # and possible junk output
+                    # real output was also one of the inputs (happend when
+                    # using an in-place ufunc), so was hidden. junked copy
+                    # still useful as storage for scaled inputs and possible
+                    # junk output
                     junk = obj.view(np.ndarray)
                     storage = [junk]
                     # Retrieve real object
@@ -227,6 +267,7 @@ class Quantity(np.ndarray):
                 obj_array = obj.view(np.ndarray)
                 storage.append(obj_array)
 
+                # Find out which ufunc was called and with which inputs
                 function = context[0]
                 args = context[1][:function.nin]
 
