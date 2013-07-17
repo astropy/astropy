@@ -159,7 +159,7 @@ class Quantity(np.ndarray):
             if(any(not np.can_cast(arg, obj.dtype) for arg in args) or
                np.any(np.array(scales, dtype=obj.dtype) != np.array(scales))):
                 raise TypeError("Arguments cannot be cast safely to inplace "
-                                "output with dtype={}".format(self.dtype))
+                                "output with dtype={0}".format(self.dtype))
 
             result = self  # no need for a view
             # in principle, if self is also an argument, it could be rescaled
