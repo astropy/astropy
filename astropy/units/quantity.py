@@ -175,6 +175,10 @@ class Quantity(np.ndarray):
         # this as a special case.
         # TODO: find a better way to deal with this case
         if function is np.power and result_unit is not None:
+            if not np.isscalar(args[1]):
+                raise ValueError(
+                    "Quantities may only be raised to a scalar power")
+
             if units[1] is None:
                 result_unit = result_unit ** args[1]
             else:

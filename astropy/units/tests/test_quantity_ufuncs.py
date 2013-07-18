@@ -4,7 +4,7 @@
 import numpy as np
 
 from ... import units as u
-from ...tests.helper import pytest
+from ...tests.helper import pytest, raises
 from ...tests.compat import assert_allclose
 
 NUMPY_LT_1P6 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 6]
@@ -206,6 +206,14 @@ class TestQuantityMathFuncs(object):
     def test_power_array(self):
         assert np.all(np.power(np.array([1., 2., 3.]) * u.m, 3.)
                       == np.array([1., 8., 27.]) * u.m ** 3)
+
+    @raises(ValueError)
+    def test_power_array_array(self):
+        np.power(4. * u.m, [2., 4.])
+
+    @raises(ValueError)
+    def test_power_array_array2(self):
+        np.power([2., 4.] * u.m, [2., 4.])
 
     def test_power_invalid(self):
         with pytest.raises(TypeError) as exc:
