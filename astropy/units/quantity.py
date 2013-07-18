@@ -91,7 +91,10 @@ class Quantity(np.ndarray):
         from ..utils.misc import isiterable
 
         if isinstance(value, Quantity):
-            _value = _validate_value(value.to(unit).value)
+            if unit is None:
+                _value = _validate_value(value.value)
+            else:
+                _value = _validate_value(value.to(unit).value)
         elif isiterable(value) and all(isinstance(v, Quantity) for v in value):
             _value = _validate_value([q.to(unit).value for q in value])
         else:
@@ -105,7 +108,10 @@ class Quantity(np.ndarray):
         self = super(Quantity, cls).__new__(cls, _value.shape, dtype=dtype,
                                             buffer=_value.data)
         if unit is None:
-            self._unit = Unit(1)
+            if isinstance(value, Quantity):
+                self._unit = value.unit
+            else:
+                self._unit = Unit(1)
         else:
             self._unit = Unit(unit)
         self._equivalencies = Unit._normalize_equivalencies(equivalencies)
@@ -219,8 +225,7 @@ class Quantity(np.ndarray):
                                     "to quantities with in-place replacement "
                                     "of an input by any but the last output."
                                     .format(function.__name__))
-                # cannot use self.copy(), as it can change dtype
-                result = self.view(np.ndarray).copy().view(Quantity)
+                result = self.copy()
                 result._result = self
 
             # ensure we remember the scales we need
@@ -393,7 +398,7 @@ class Quantity(np.ndarray):
     def copy(self):
         """ Return a copy of this `Quantity` instance """
 
-        return self.__class__(self, unit=self.unit)
+        return self.__class__(self)
 
     @override__dir__
     def __dir__(self):

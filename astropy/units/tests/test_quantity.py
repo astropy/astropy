@@ -67,6 +67,17 @@ class TestQuantityCreation(object):
         with pytest.raises(AttributeError):
             q1.unit = u.cm
 
+    def test_preserve_dtype(self):
+
+        # If unit is not sepcified, preserve dtype (at least to the extent
+        # that Numpy does when copying, i.e. int32 -> int64, not float64)
+
+        q1 = u.Quantity(12, unit=u.m / u.s, dtype=int)
+        q2 = u.Quantity(q1)
+
+        assert q1.value == q2.value
+        assert q1.unit == q2.unit
+        assert q1.dtype == q2.dtype
 
 class TestQuantityOperations(object):
     q1 = u.Quantity(11.42, u.meter)
@@ -598,11 +609,23 @@ def test_quantity_iterability():
     pytest.raises(TypeError, iter, q2)
 
 
-# def test_equality_numpy_scalar():
-#     """
-#     A regression test to ensure that numpy scalars are correctly compared
-#     (which originally failed due to the lack of ``__array_priority__``).
-#     """
-#     assert 10 != 10. * u.m
-#     assert np.int64(10) != 10 * u.m
-#     assert 10 * u.m != np.int64(10)
+def test_copy():
+
+    q1 = u.Quantity(np.array([1., 2., 3.]), unit=u.m)
+    q2 = q1.copy()
+
+    assert np.all(q1.value == q2.value)
+    assert q1.unit == q2.unit
+    assert q1.dtype == q2.dtype
+
+    assert q1.value is not q2.value
+
+
+def test_equality_numpy_scalar():
+    """
+    A regression test to ensure that numpy scalars are correctly compared
+    (which originally failed due to the lack of ``__array_priority__``).
+    """
+    assert 10 != 10. * u.m
+    assert np.int64(10) != 10 * u.m
+    assert 10 * u.m != np.int64(10)
