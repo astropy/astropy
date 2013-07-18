@@ -261,7 +261,7 @@ class Quantity(np.ndarray):
                 function = context[0]
                 args = context[1][:function.nin]
 
-                # set the inputs, rescaling as necessary
+                # Set the inputs, rescaling as necessary
                 inputs = []
                 for arg, scale in zip(args, scales):
                     if scale != 1.:
@@ -269,12 +269,13 @@ class Quantity(np.ndarray):
                     else:  # for scale==1, input is not necessarily a Quantity
                         inputs.append(getattr(arg, 'value', arg))
 
-                # scaling may change whether or not output can be written to
+                # Scaling may change whether or not output can be written to
                 if(result_unit is not None and
                    any(not np.can_cast(scaled_arg, obj_array.dtype)
                        for scaled_arg in inputs)):
                     obj_array = None
 
+                # Re-compute the output using the ufunc
                 if function.nin == 1:
                     if function.nout == 1:
                         out = function(inputs[0], obj_array)
