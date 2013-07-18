@@ -247,27 +247,15 @@ class Quantity(np.ndarray):
                 scales = obj._scales
                 del obj._scales
 
-                # since values were not initially scaled, the output is junk,
-                # so we can use it as storage for scaled input; (array view,
-                # to ensure pure ndarray recalculation)
-
+                # For in-place operations, input will get overwritten with
+                # junk. To avoid that, we hid it in a new object in
+                # __array_prepare__ and retrieve it here.
                 if hasattr(obj, '_result'):
-                    # real output was also one of the inputs (happend when
-                    # using an in-place ufunc), so was hidden. junked copy
-                    # still useful as storage for scaled inputs and possible
-                    # junk output
-                    junk = obj.view(np.ndarray)
-                    storage = [junk]
-                    # Retrieve real object
                     obj = obj._result
-                else:
-                    junk = None
-                    storage = []
 
                 # take array view to which output can be written without
                 # getting back here
                 obj_array = obj.view(np.ndarray)
-                storage.append(obj_array)
 
                 # Find out which ufunc was called and with which inputs
                 function = context[0]
@@ -277,16 +265,7 @@ class Quantity(np.ndarray):
                 inputs = []
                 for arg, scale in zip(args, scales):
                     if scale != 1.:
-                        # if possible, use storage for scaled input Quantity
-                        if(storage != [] and
-                           storage[0].shape == arg.shape and
-                           storage[0].dtype == arg.dtype and
-                           np.array(scale, storage[0].dtype) == scale):
-                            inputs.append(np.multiply(arg.view(np.ndarray),
-                                                      scale,
-                                                      out=storage.pop(0)))
-                        else:
-                            inputs.append(arg.value * scale)
+                        inputs.append(arg.value * scale)
                     else:  # for scale==1, input is not necessarily a Quantity
                         inputs.append(getattr(arg, 'value', arg))
 
@@ -301,9 +280,9 @@ class Quantity(np.ndarray):
                         out = function(inputs[0], obj_array)
                     else:  # 2-output function (np.modf, np.frexp); 1 input
                         if context[2] == 0:
-                            out, _ = function(inputs[0], obj_array, junk)
+                            out, _ = function(inputs[0], obj_array, None)
                         else:
-                            _, out = function(inputs[0], junk, obj_array)
+                            _, out = function(inputs[0], None, obj_array)
                 else:
                     out = function(inputs[0], inputs[1], obj_array)
 
@@ -313,7 +292,7 @@ class Quantity(np.ndarray):
                     else:
                         obj = out.view(Quantity)
 
-            if result_unit is None:  # we're returning a plain array
+            if result_unit is None:  # return a plain array
                 obj = obj.view(np.ndarray)
             else:
                 obj._unit = result_unit
