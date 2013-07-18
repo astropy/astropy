@@ -33,27 +33,27 @@ Conversion to different units involves obtaining a conversion function
 and then applying it to the value, or values to be converted.
 
   >>> cms = u.cm / u.s
-  >>> cms_to_mph = cms.get_converter(u.mile / u.hour)
-  >>> cms_to_mph(100.)
-  2.2366936292054402
-  >>> cms_to_mph([1000, 2000])
-  array([ 22.36936292,  44.73872584])
+  >>> cms_to_kmph = cms.get_converter(u.km / u.hour)
+  >>> cms_to_kmph(100.)
+  3.6000000000000005
+  >>> cms_to_kmph([1000, 2000])
+  array([ 36.,  72.])
 
 Incompatible Conversions
 ------------------------
 
 If you attempt to convert to a incompatible unit, an exception will result:
 
-  >>> cms.to(u.mile)
+  >>> cms.to(u.km)
   ...
   UnitsError: 'cm / s' (speed) and 'mi' (length) are not convertible
 
 You can check whether a particular conversion is possible using the
 `~astropy.units.core.UnitBase.is_equivalent` method::
 
-  >>> u.m.is_equivalent(u.foot)
+  >>> u.m.is_equivalent(u.pc)
   True
   >>> u.m.is_equivalent("second")
   False
-  >>> (u.m ** 2).is_equivalent(u.acre)
+  >>> (u.m ** 3).is_equivalent(u.l)
   True
