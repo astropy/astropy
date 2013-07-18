@@ -23,6 +23,14 @@ from ..utils.compat.misc import override__dir__
 __all__ = ["Quantity"]
 
 
+def _can_cast(arg, dtype):
+    """
+    This is needed for compatibility with Numpy < 1.6, in which ``can_cast``
+    can only take a dtype or type as its first argument.
+    """
+    return np.can_cast(getattr(arg, 'dtype', type(arg)), dtype)
+
+
 from .quantity_helper import _is_unity
 
 UNIT_NOT_INITIALISED = "(Unit not initialised)"
@@ -191,7 +199,7 @@ class Quantity(np.ndarray):
             # decomposed, which involves being scaled by a float, but since
             # the array is an integer the output then gets converted to an int
             # and truncated.
-            if(any(not np.can_cast(arg, obj.dtype) for arg in args) or
+            if(any(not _can_cast(arg, obj.dtype) for arg in args) or
                np.any(np.array(scales, dtype=obj.dtype) != np.array(scales))):
                 raise TypeError("Arguments cannot be cast safely to inplace "
                                 "output with dtype={0}".format(self.dtype))
@@ -276,7 +284,7 @@ class Quantity(np.ndarray):
 
                 # Scaling may change whether or not output can be written to
                 if(result_unit is not None and
-                   any(not np.can_cast(scaled_arg, obj_array.dtype)
+                   any(not _can_cast(scaled_arg, obj_array.dtype)
                        for scaled_arg in inputs)):
                     obj_array = None
 
@@ -468,7 +476,7 @@ class Quantity(np.ndarray):
         elif isinstance(other, UnitBase):
             self._unit = other * self.unit
         else:
-            return np.multiply(self, other, out=self)
+            return np.multiply(self, other, self)
 
         return self
 
@@ -497,7 +505,7 @@ class Quantity(np.ndarray):
         elif isinstance(other, UnitBase):
             self._unit = self.unit / other
         else:
-            return np.true_divide(self, other, out=self)
+            return np.true_divide(self, other, self)
 
         return self
 

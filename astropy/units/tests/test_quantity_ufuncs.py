@@ -7,6 +7,8 @@ from ... import units as u
 from ...tests.helper import pytest
 from ...tests.compat import assert_allclose
 
+NUMPY_LT_1P6 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 6]
+
 
 class TestUfuncCoverage(object):
     """Test that we cover all ufunc's"""
@@ -402,6 +404,7 @@ class TestComparisonUfuncs(object):
 
 class TestInplaceUfuncs(object):
 
+    @pytest.mark.skipif("NUMPY_LT_1P6")
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_one_argument_ufunc_inplace(self, value):
         # without scaling
@@ -443,7 +446,7 @@ class TestInplaceUfuncs(object):
             np.modf(v_copy, v_copy, tmp)
 
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
-    def test_two_argument_ufunc_inplace(self, value):
+    def test_two_argument_ufunc_inplace_1(self, value):
         s = value*u.cycle
         check = s
         s /= 2.
@@ -455,7 +458,10 @@ class TestInplaceUfuncs(object):
         s *= 2. * u.s
         assert check is s
         assert np.all(check == value * u.cycle)
-        # now with different units in output
+
+    @pytest.mark.skipif("NUMPY_LT_1P6")
+    @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
+    def test_two_argument_ufunc_inplace_2(self, value):
         s = value*u.cycle
         check = s
         np.arctan2(s, s, out=s)
