@@ -130,7 +130,14 @@ Bug Fixes
 
   - The ``write()`` function was ignoring the ``fill_values`` argument (#910).
 
-0.2.3 (unreleased)
+
+0.2.4 (unreleased)
+------------------
+
+ - Nothing yet.
+
+
+0.2.3 (2013-05-30)
 ------------------
 
 Bug Fixes
