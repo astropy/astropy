@@ -34,6 +34,7 @@ import copy
 import io
 import os
 import sys
+import textwrap
 import warnings
 
 # THIRD-PARTY
@@ -48,6 +49,7 @@ except ImportError:
     _wcs = None
 from ..utils import deprecated, deprecated_attribute
 from .. import log
+from ..utils import data
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -62,7 +64,12 @@ else:  # pragma: py2
 
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'DistortionLookupTable', 'Sip', 'Tabprm', 'UnitConverter',
-           'Wcsprm', 'WCSBase']
+           'Wcsprm', 'WCSBase', 'validate', 'WcsError', 'SingularMatrixError',
+           'InconsistentAxisTypesError', 'InvalidTransformError',
+           'InvalidCoordinateError', 'NoSolutionError',
+           'InvalidSubimageSpecificationError',
+           'NonseparableSubimageCoordinateSystemError',
+           'NoWcsKeywordsFoundError', 'InvalidTabularParametersError']
 
 
 if _wcs is not None:
@@ -72,6 +79,17 @@ if _wcs is not None:
     UnitConverter = _wcs.UnitConverter
     Wcsprm = _wcs.Wcsprm
     Tabprm = _wcs.Tabprm
+    WcsError = _wcs.WcsError
+    SingularMatrixError = _wcs.SingularMatrixError
+    InconsistentAxisTypesError = _wcs.InconsistentAxisTypesError
+    InvalidTransformError = _wcs.InvalidTransformError
+    InvalidCoordinateError = _wcs.InvalidCoordinateError
+    NoSolutionError = _wcs.NoSolutionError
+    InvalidSubimageSpecificationError = _wcs.InvalidSubimageSpecificationError
+    NonseparableSubimageCoordinateSystemError = _wcs.NonseparableSubimageCoordinateSystemError
+    NoWcsKeywordsFoundError = _wcs.NoWcsKeywordsFoundError
+    InvalidTabularParametersError = _wcs.InvalidTabularParametersError
+
     # Copy all the constants from the C extension into this module's namespace
     for key, val in _wcs.__dict__.items():
         if (key.startswith('WCSSUB') or
@@ -90,6 +108,16 @@ else:
     Sip = object
     UnitConverter = object
     Tabprm = object
+    WcsError = None
+    SingularMatrixError = None
+    InconsistentAxisTypesError = None
+    InvalidTransformError = None
+    InvalidCoordinateError = None
+    NoSolutionError = None
+    InvalidSubimageSpecificationError = None
+    NonseparableSubimageCoordinateSystemError = None
+    NoWcsKeywordsFoundError = None
+    InvalidTabularParametersError = None
 
 
 # Additional relax bit flags
@@ -347,23 +375,16 @@ naxis kwarg.
 
             header_naxis = header.get('NAXIS', None)
             if header_naxis is not None and header_naxis < wcsprm.naxis:
-                log.info(
+                warnings.warn(
                     "The WCS transformation has more axes ({0:d}) than the "
                     "image it is associated with ({1:d})".format(
-                        wcsprm.naxis, header_naxis))
-
-        if fix:
-            fixes = wcsprm.fix()
-            for key, val in fixes.iteritems():
-                if val != "No change":
-                    warnings.warn(
-                        ("'{0}' made the change '{1}'. "
-                         "This FITS header contains non-standard content.").
-                        format(key, val),
-                        FITSFixedWarning)
+                        wcsprm.naxis, header_naxis), FITSFixedWarning)
 
         self._get_naxis(header)
         WCSBase.__init__(self, sip, cpdis, wcsprm, det2im)
+
+        if fix:
+            self.fix()
 
         for fd in close_fds:
             fd.close()
@@ -416,6 +437,20 @@ naxis kwarg.
         return copy
     if _wcs is not None:
         sub.__doc__ = _wcs.Wcsprm.sub.__doc__
+
+    def fix(self):
+        """
+        Perform the fix operations from wcslib, and warn about any
+        changes it has made.
+        """
+        if self.wcs is not None:
+            fixes = self.wcs.fix()
+            for key, val in fixes.iteritems():
+                if val != "No change":
+                    warnings.warn(
+                        ("'{0}' made the change '{1}'.").
+                        format(key, val),
+                        FITSFixedWarning)
 
     def calcFootprint(self, header=None, undistort=True, axes=None):
         """
@@ -486,14 +521,14 @@ naxis kwarg.
 
         if not isinstance(fobj, fits.HDUList):
             return (None, None)
-        
-        try:            
+
+        try:
             axiscorr = header['AXISCORR']
             d2imdis = self._read_d2im_old_format(header, fobj, axiscorr)
             return d2imdis
         except KeyError:
             pass
-        
+
         dist = 'D2IMDIS'
         d_kw = 'D2IM'
         err_kw = 'D2IMERR'
@@ -548,7 +583,7 @@ naxis kwarg.
             return (None, None)
         except AttributeError:
             return (None, None)
-        
+
         d2im_data = np.array([d2im_data])
         d2im_hdr = fobj[('D2IMARR', 1)].header
         naxis = d2im_hdr['NAXIS']
@@ -579,7 +614,7 @@ naxis kwarg.
         dist = 'D2IMDIS'
         d_kw = 'D2IM'
         err_kw = 'D2IMERR'
-        
+
         def write_d2i(num, det2im):
             if det2im is None:
                 return
@@ -688,9 +723,9 @@ naxis kwarg.
             if cpdis is None:
                 return
 
-            hdulist[0].header['{0}{1:d}'.format(dist, num)] = ('LOOKUP', 
+            hdulist[0].header['{0}{1:d}'.format(dist, num)] = ('LOOKUP',
                                         'Prior distortion function type')
-            hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)] = (num, 
+            hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)] = (num,
                                         'Version number of WCSDVARR extension')
             hdulist[0].header['{0}{1:d}.NAXES'.format(d_kw, num)] = (len(cpdis.data.shape),
                  'Number of independent variables in distortion function')
@@ -1333,10 +1368,10 @@ naxis kwarg.
               write.  See :ref:`relaxwrite` for details.
 
         key : string
-            The name of a particular WCS transform to use.  This may be 
-            either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"`` 
+            The name of a particular WCS transform to use.  This may be
+            either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"``
             part of the ``CTYPEia`` cards.
-            
+
         Returns
         -------
         hdulist : `astropy.io.fits.HDUList`
@@ -1380,8 +1415,8 @@ naxis kwarg.
             - `int`: a bit field selecting specific extensions to
               write.  See :ref:`relaxwrite` for details.
         key : string
-            The name of a particular WCS transform to use.  This may be 
-            either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"`` 
+            The name of a particular WCS transform to use.  This may be
+            either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"``
             part of the ``CTYPEia`` cards.
 
         Returns
@@ -1419,8 +1454,8 @@ naxis kwarg.
              `to_header` tries hard to write meaningful comments.
 
           8. Keyword order may be changed.
-        
-        
+
+
         """
         if key is not None:
             self.wcs.alt = key
@@ -1492,8 +1527,8 @@ naxis kwarg.
         self._naxis1 = 0
         self._naxis2 = 0
         if header is not None and not isinstance(header, string_types):
-            self.naxis1 = header.get('NAXIS1', 0)
-            self.naxis2 = header.get('NAXIS2', 0)
+            self._naxis1 = header.get('NAXIS1', 0)
+            self._naxis2 = header.get('NAXIS2', 0)
 
     def rotateCD(self, theta):
         _theta = np.deg2rad(theta)
@@ -1655,7 +1690,8 @@ def __WCS_unpickle__(cls, dct, fits_data):
     return self
 
 
-def find_all_wcs(header, relax=True, keysel=None):
+def find_all_wcs(header, relax=True, keysel=None, fix=True,
+                 _do_set=True):
     """
     Find all the WCS transformations in the given header.
 
@@ -1695,6 +1731,12 @@ def find_all_wcs(header, relax=True, keysel=None):
         ``WCSNna`` and ``TWCSna``) are selected by both 'binary' and
         'pixel'.
 
+    fix : bool, optional
+        When `True` (default), call `~astropy.wcs._wcs.Wcsprm.fix` on
+        the resulting objects to fix any non-standard uses in the
+        header.  `FITSFixedWarning` warnings will be emitted if any
+        changes were made.
+
     Returns
     -------
     wcses : list of `WCS` objects
@@ -1719,8 +1761,121 @@ def find_all_wcs(header, relax=True, keysel=None):
 
     result = []
     for wcsprm in wcsprms:
-        subresult = WCS()
+        subresult = WCS(fix=False)
         subresult.wcs = wcsprm
         result.append(subresult)
 
+        if fix:
+            subresult.fix()
+
+        if _do_set:
+            subresult.wcs.set()
+
     return result
+
+
+def validate(source):
+    """
+    Prints a WCS validation report for the given FITS file.
+
+    Parameters
+    ----------
+    source : str path, readable file-like object or `astropy.io.fits.HDUList` object
+        The FITS file to validate.
+
+    Returns
+    -------
+    results : WcsValidateResults instance
+        The result is returned as nested lists.  The first level
+        corresponds to the HDUs in the given file.  The next level has
+        an entry for each WCS found in that header.  The special
+        subclass of list will pretty-print the results as a table when
+        printed.
+    """
+    class _WcsValidateWcsResult(list):
+        def __init__(self, key):
+            self._key = key
+
+        def __repr__(self):
+            result = ["  WCS key '{0}':".format(self._key or ' ')]
+            if len(self):
+                for entry in self:
+                    for i, line in enumerate(entry.splitlines()):
+                        if i == 0:
+                            initial_indent = '    - '
+                        else:
+                            initial_indent = '      '
+                        result.extend(
+                            textwrap.wrap(
+                                line,
+                                initial_indent=initial_indent,
+                                subsequent_indent='      '))
+            else:
+                result.append("    No issues.")
+            return '\n'.join(result)
+
+    class _WcsValidateHduResult(list):
+        def __init__(self, hdu_index, hdu_name):
+            self._hdu_index = hdu_index
+            self._hdu_name = hdu_name
+            list.__init__(self)
+
+        def __repr__(self):
+            if len(self):
+                if self._hdu_name:
+                    hdu_name = ' ({0})'.format(self._hdu_name)
+                else:
+                    hdu_name = ''
+                result = ['HDU {0}{1}:'.format(self._hdu_index, hdu_name)]
+                for wcs in self:
+                    result.append(repr(wcs))
+                return '\n'.join(result)
+            return ''
+
+    class _WcsValidateResults(list):
+        def __repr__(self):
+            result = []
+            for hdu in self:
+                content = repr(hdu)
+                if len(content):
+                    result.append(content)
+            return '\n\n'.join(result)
+
+    global __warningregistry__
+
+    if isinstance(source, fits.HDUList):
+        hdulist = source
+    else:
+        hdulist = fits.open(source)
+
+    results = _WcsValidateResults()
+
+    for i, hdu in enumerate(hdulist):
+        hdu_results = _WcsValidateHduResult(i, hdu.name)
+        results.append(hdu_results)
+
+        with warnings.catch_warnings(record=True) as warning_lines:
+            wcses = find_all_wcs(
+                hdu.header, relax=True, fix=False, _do_set=False)
+
+        for wcs in wcses:
+            wcs_results = _WcsValidateWcsResult(wcs.wcs.name)
+            hdu_results.append(wcs_results)
+
+            del __warningregistry__
+
+            with warnings.catch_warnings(record=True) as warning_lines:
+                warnings.resetwarnings()
+                warnings.simplefilter(
+                    "always", FITSFixedWarning, append=True)
+
+                try:
+                    WCS(hdu.header,
+                        key=wcs.wcs.name or ' ',
+                        relax=True, fix=True)
+                except WcsError as e:
+                    wcs_results.append(str(e))
+
+                wcs_results.extend([str(x.message) for x in warning_lines])
+
+    return results

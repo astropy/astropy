@@ -300,6 +300,7 @@ def get_package_data():
     # Installs the testing data files
     return {
         'astropy.wcs.tests': ['data/*.hdr', 'data/*.fits',
+                              'data/*.txt',
                               'maps/*.hdr', 'spectra/*.hdr'],
         'astropy.wcs': ['include/*.h']}
 

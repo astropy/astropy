@@ -100,6 +100,8 @@ convert_rejections_to_warnings() {
       }
     }
 
+    *(dst++) = '\n';
+
     /* For the second line, remove everything up to and including the
        first colon */
     for (; *src != 0; ++src) {
@@ -640,11 +642,6 @@ PyWcsprm_find_all_wcs(
     }
 
     subresult->x.flag = 0;
-    if (PyWcsprm_cset(subresult, 0)) {
-      Py_DECREF(result);
-      wcsvfree(&nwcs, &wcs);
-      return NULL;
-    }
     wcsprm_c2python(&subresult->x);
   }
 
