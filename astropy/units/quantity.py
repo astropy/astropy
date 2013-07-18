@@ -34,13 +34,17 @@ def _can_cast(arg, dtype):
 UNIT_NOT_INITIALISED = "(Unit not initialised)"
 
 
-def _validate_value(value):
+def _validate_value(value, dtype):
     """ Make sure that the input is a Python or Numpy numeric type.
 
     Parameters
     ----------
     value : number
         An object that will be checked whether it is a numeric type or not.
+
+    dtype : Numpy dtype or None
+        The dtype of the resulting value.  If None, the dtype of the
+        input value is used or automatically computed.
 
     Returns
     -------
@@ -52,7 +56,7 @@ def _validate_value(value):
 
     if (isinstance(value, (numbers.Number, np.number, np.ndarray)) or
             isiterable(value)):
-        value_obj = np.array(value, copy=True)
+        value_obj = np.array(value, copy=True, dtype=dtype)
     else:
         raise TypeError("The value must be a valid Python or Numpy numeric "
                         "type.")
@@ -98,18 +102,15 @@ class Quantity(np.ndarray):
 
         if isinstance(value, Quantity):
             if unit is None:
-                _value = _validate_value(value.value)
+                _value = _validate_value(value.value, dtype)
             else:
-                _value = _validate_value(value.to(unit).value)
+                _value = _validate_value(value.to(unit).value, dtype)
         elif isiterable(value) and all(isinstance(v, Quantity) for v in value):
-            _value = _validate_value([q.to(unit).value for q in value])
+            _value = _validate_value([q.to(unit).value for q in value], dtype)
         else:
-            _value = _validate_value(value)
+            _value = _validate_value(value, dtype)
 
-        if dtype is not None and dtype != _value.dtype:
-            _value = _value.astype(dtype)
-        else:
-            dtype = _value.dtype
+        dtype = _value.dtype
 
         self = super(Quantity, cls).__new__(cls, _value.shape, dtype=dtype,
                                             buffer=_value.data)
