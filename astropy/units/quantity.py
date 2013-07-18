@@ -536,6 +536,9 @@ class Quantity(np.ndarray):
 
     def __divmod__(self, other):
         from . import dimensionless_unscaled
+        if isinstance(other, (basestring, UnitBase)):
+            return (self / other, Quantity(0, dimensionless_unscaled))
+
         other_value = self._to_own_unit(other)
         result_tuple = super(Quantity, self.__class__).__divmod__(
             self.view(np.ndarray), other_value)
