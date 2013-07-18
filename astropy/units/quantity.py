@@ -31,8 +31,6 @@ def _can_cast(arg, dtype):
     return np.can_cast(getattr(arg, 'dtype', type(arg)), dtype)
 
 
-from .quantity_helper import _is_unity
-
 UNIT_NOT_INITIALISED = "(Unit not initialised)"
 
 
@@ -614,21 +612,21 @@ class Quantity(np.ndarray):
 
     # Numerical types
     def __float__(self):
-        if not self.isscalar or not _is_unity(self.unit):
+        if not self.isscalar or not self.unit.is_unity():
             raise TypeError('Only dimensionless scalar quantities can be '
                             'converted to Python scalars')
         else:
             return float(self.value)
 
     def __int__(self):
-        if not self.isscalar or not _is_unity(self.unit):
+        if not self.isscalar or not self.unit.is_unity():
             raise TypeError('Only dimensionless scalar quantities can be '
                             'converted to Python scalars')
         else:
             return int(self.value)
 
     def __long__(self):
-        if not self.isscalar or not _is_unity(self.unit):
+        if not self.isscalar or not self.unit.is_unity():
             raise TypeError('Only dimensionless scalar quantities can be '
                             'converted to Python scalars')
         else:
@@ -911,7 +909,7 @@ class Quantity(np.ndarray):
         return Quantity(value, self.unit)
 
     def prod(self, axis=None, dtype=None, out=None, keepdims=False):
-        if _is_unity(self.unit):
+        if self.unit.is_unity():
             out = out and out.view(Quantity)
             try:
                 value = np.prod(self.value, axis=axis, dtype=dtype,
@@ -925,7 +923,7 @@ class Quantity(np.ndarray):
                              "non-dimensionless Quantity arrays")
 
     def cumprod(self, axis=None, dtype=None, out=None):
-        if _is_unity(self.unit):
+        if self.unit.is_unity():
             out = out and out.view(Quantity)
             value = np.cumprod(self.value, axis=axis, dtype=dtype, out=out)
             return Quantity(value, self.unit)

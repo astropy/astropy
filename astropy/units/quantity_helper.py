@@ -4,9 +4,6 @@
 import numpy as np
 from .core import UnitsException
 
-def _is_unity(value):
-    x = value.decompose()
-    return (len(x.bases) == 0 and x.scale == 1.0)
 
 def _d(unit):
     from . import dimensionless_unscaled
@@ -159,7 +156,7 @@ UFUNC_HELPERS[np.tanh] = helper_radian_to_dimensionless
 # ufuncs that require dimensionless_unscaled input and return non-quantities
 
 def helper_dimensionless_to_none(f, unit):
-    if not _is_unity(unit):
+    if not unit.is_unity():
         raise TypeError("Can only apply '{0}' function to "
                         "unscaled dimensionless quantities"
                         .format(f.__name__))
