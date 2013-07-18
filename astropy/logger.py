@@ -40,7 +40,6 @@ class _AstLogIPYExc(Exception):
 
 
 # Read in configuration
-
 LOG_LEVEL = ConfigurationItem('log_level', 'INFO',
                               "Threshold for the logging messages. Logging "
                               "messages that are less severe than this level "
@@ -91,6 +90,38 @@ def _init_log():
         logging.setLoggerClass(orig_logger_cls)
 
     return log
+
+
+def _teardown_log():
+    """Shut down exception and warning logging (if enabled) and clear all
+    Astropy loggers from the logging module's cache.
+
+    This involves poking some logging module interals, so much if it is 'at
+    your own risk' and is allowed to pass silently if any exceptions occur.
+    """
+
+    global log
+
+    if log.exception_logging_enabled():
+        log.disable_exception_logging()
+
+    if log.warnings_logging_enabled():
+        log.disable_warnings_logging()
+
+    del log
+
+    # Now for the fun stuff...
+    try:
+        logging._acquireLock()
+        try:
+            loggerDict = logging.Logger.manager.loggerDict
+            for key in loggerDict.keys():
+                if key == 'astropy' or key.starswith('astropy.'):
+                    del loggerDict[key]
+        finally:
+            logging._releaseLock()
+    except:
+        pass
 
 
 Logger = logging.getLoggerClass()

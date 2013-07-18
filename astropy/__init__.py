@@ -139,7 +139,17 @@ def _initialize_astropy():
                       'a source checkout; please run `./setup.py develop` or '
                       '`./setup.py build_ext --inplace` first so that '
                       'extension modules can be compiled and made importable.')
-            sys.exit(1)
+            # Now disable exception logging to avoid an annoying error in the
+            # exception logger before we raise the import error:
+            _teardown_log()
+
+            # Roll back any astropy sub-modules that have been imported thus
+            # far
+
+            for key in sys.modules.keys():
+                if key.startswith('astropy.'):
+                    del sys.modules[key]
+            raise ImportError('astropy')
         else:
             # Outright broken installation; don't be nice.
             raise
@@ -163,7 +173,7 @@ log = logging.getLogger()
 
 
 if not _ASTROPY_SETUP_:
-    from .logger import _init_log
+    from .logger import _init_log, _teardown_log
 
     log = _init_log()
 
