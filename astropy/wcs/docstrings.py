@@ -2265,3 +2265,62 @@ zsource = """
 
 An undefined value is represented by NaN.
 """
+
+WcsError = """
+Base class of all invalid WCS errors.
+"""
+
+SingularMatrix = """
+SingularMatrixError()
+
+The linear transformation matrix is singular.
+"""
+
+InconsistentAxisTypes = """
+InconsistentAxisTypesError()
+
+The WCS header inconsistent or unrecognized coordinate axis type(s).
+"""
+
+InvalidTransform = """
+InvalidTransformError()
+
+The WCS transformation is invalid, or the transformation parameters
+are invalid.
+"""
+
+InvalidCoordinate = """
+InvalidCoordinateError()
+
+One or more of the world coordinates is invalid.
+"""
+
+NoSolution = """
+NoSolutionError()
+
+No solution can be found in the given interval.
+"""
+
+InvalidSubimageSpecification = """
+InvalidSubimageSpecificationError()
+
+The subimage specification is invalid.
+"""
+
+NonseparableSubimageCoordinateSystem = """
+NonseparableSubimageCoordinateSystemError()
+
+Non-separable subimage coordinate system.
+"""
+
+NoWcsKeywordsFound = """
+NoWcsKeywordsFoundError()
+
+No WCS keywords were found in the given header.
+"""
+
+InvalidTabularParameters = """
+InvalidTabularParametersError()
+
+The given tabular parameters are invalid.
+"""
