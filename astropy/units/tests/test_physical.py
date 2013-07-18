@@ -15,15 +15,15 @@ from ...tests.helper import raises
 
 
 def test_simple():
-    assert u.mile.physical_type == 'length'
+    assert u.m.physical_type == 'length'
 
 
 def test_power():
-    assert (u.foot ** 3).physical_type == 'volume'
+    assert (u.cm ** 3).physical_type == 'volume'
 
 
 def test_speed():
-    assert (u.mile / u.h).physical_type == 'speed'
+    assert (u.km / u.h).physical_type == 'speed'
 
 
 def test_unknown():

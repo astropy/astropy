@@ -21,7 +21,15 @@ Getting Started
   >>> u.pc.to(u.m)
   30856775814671916.0
   >>> cms = u.cm / u.s
-  >>> mph = u.mile / u.hour
+
+  >>> # Enable imperial units...
+  >>> from astropy.units import imperial
+  >>> u.add_enabled_units(imperial)
+
+  >>> # ...and then use some imperial units
+  >>> mph = imperial.mile / u.hour
+
+  >>> # And do some conversions
   >>> cms.to(mph, 1)
   0.02236936292054402
   >>> cms.to(mph, [1., 1000., 5000.])
@@ -75,8 +83,8 @@ their units::
 Quantities can also easily provide their values in another unit::
 
    >>> q = 15.1 * u.meter
-   >>> q.inch
-   39.370078740157474
+   >>> q.parsec
+   4.893576727099331e-16
 
 Using `astropy.units`
 =====================

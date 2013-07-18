@@ -334,8 +334,8 @@ class Generic(Base):
 
     @classmethod
     def _parse_unit(cls, s):
-        from ..core import _UnitRegistry
-        registry = _UnitRegistry().registry
+        from ..core import get_current_unit_registry
+        registry = get_current_unit_registry().registry
         if s == '%':
             return registry['percent']
         elif s in registry:

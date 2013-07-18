@@ -10,12 +10,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ..utils.compat.fractions import Fraction
 
 from . import si
-from .core import UnitBase, def_unit, _UnitRegistry
+from .core import UnitBase, def_unit
 
 
-_UnitRegistry().namespace = globals()
+_ns = globals()
 
-def_unit(['cm', 'centimeter'], si.cm, register=True, prefixes=False)
+def_unit(['cm', 'centimeter'], si.cm, namespace=_ns, prefixes=False)
 g = si.g
 s = si.s
 C = si.C
@@ -29,7 +29,7 @@ mol = si.mol
 ##########################################################################
 # ACCELERATION
 
-def_unit(['Gal', 'gal'], cm / s ** 2, register=True, prefixes=True,
+def_unit(['Gal', 'gal'], cm / s ** 2, namespace=_ns, prefixes=True,
          doc="Gal: CGS unit of acceleration")
 
 
@@ -37,14 +37,14 @@ def_unit(['Gal', 'gal'], cm / s ** 2, register=True, prefixes=True,
 # ENERGY
 
 # Use CGS definition of erg
-def_unit(['erg'], g * cm ** 2 / s ** 2, register=True, prefixes=True,
+def_unit(['erg'], g * cm ** 2 / s ** 2, namespace=_ns, prefixes=True,
          doc="erg: CGS unit of energy")
 
 
 ##########################################################################
 # FORCE
 
-def_unit(['dyn', 'dyne'], g * cm / s ** 2, register=True,
+def_unit(['dyn', 'dyne'], g * cm / s ** 2, namespace=_ns,
          prefixes=True,
          doc="dyne: CGS unit of force")
 
@@ -52,7 +52,7 @@ def_unit(['dyn', 'dyne'], g * cm / s ** 2, register=True,
 ##########################################################################
 # PRESSURE
 
-def_unit(['Ba', 'Barye', 'barye'], g / (cm * s ** 2), register=True,
+def_unit(['Ba', 'Barye', 'barye'], g / (cm * s ** 2), namespace=_ns,
          prefixes=True,
          doc="Barye: CGS unit of pressure")
 
@@ -60,7 +60,7 @@ def_unit(['Ba', 'Barye', 'barye'], g / (cm * s ** 2), register=True,
 ##########################################################################
 # DYNAMIC VISCOSITY
 
-def_unit(['P', 'poise'], g / (cm * s), register=True,
+def_unit(['P', 'poise'], g / (cm * s), namespace=_ns,
          prefixes=True,
          doc="poise: CGS unit of dynamic viscosity")
 
@@ -68,7 +68,7 @@ def_unit(['P', 'poise'], g / (cm * s), register=True,
 ##########################################################################
 # KINEMATIC VISCOSITY
 
-def_unit(['St', 'stokes'], cm ** 2 / s, register=True,
+def_unit(['St', 'stokes'], cm ** 2 / s, namespace=_ns,
          prefixes=True,
          doc="stokes: CGS unit of kinematic viscosity")
 
@@ -76,7 +76,7 @@ def_unit(['St', 'stokes'], cm ** 2 / s, register=True,
 ##########################################################################
 # WAVENUMBER
 
-def_unit(['k', 'Kayser', 'kayser'], cm ** -1, register=True,
+def_unit(['k', 'Kayser', 'kayser'], cm ** -1, namespace=_ns,
          prefixes=True,
          doc="kayser: CGS unit of wavenumber")
 
@@ -85,28 +85,28 @@ def_unit(['k', 'Kayser', 'kayser'], cm ** -1, register=True,
 # ELECTRICAL
 
 def_unit(['D', 'Debye', 'debye'], Fraction(1, 3) * 1e-29 * C * si.m,
-         register=True,
+         namespace=_ns,
          doc="Debye: CGS unit of electric dipole moment")
 
 def_unit(['Fr', 'Franklin', 'statcoulomb', 'statC', 'esu'],
          g ** Fraction(1, 2) * cm ** Fraction(3, 2) * s ** -1,
-         register=True,
+         namespace=_ns,
          doc='Franklin: CGS (ESU) unit of charge')
 
-def_unit(['statA', 'statampere'], Fr * s ** -1, register=True,
+def_unit(['statA', 'statampere'], Fr * s ** -1, namespace=_ns,
          doc='statampere: CGS (ESU) unit of current')
 
 def_unit(['Bi', 'Biot', 'abA', 'abampere', 'emu'],
-         g ** Fraction(1, 2) * cm ** Fraction(1, 2) * s ** -1, register=True,
+         g ** Fraction(1, 2) * cm ** Fraction(1, 2) * s ** -1, namespace=_ns,
          doc='Biot: CGS (EMU) unit of current')
 
-def_unit(['abC', 'abcoulomb'], Bi * s, register=True,
+def_unit(['abC', 'abcoulomb'], Bi * s, namespace=_ns,
          doc='abcoulomb: CGS (EMU) of charge')
 
 ###########################################################################
 # MAGNETIC
 
-def_unit(['G', 'Gauss', 'gauss'], 1e-4 * si.T, register=True, prefixes=True,
+def_unit(['G', 'Gauss', 'gauss'], 1e-4 * si.T, namespace=_ns, prefixes=True,
          doc="Gauss: CGS unit for magnetic field")
 
 

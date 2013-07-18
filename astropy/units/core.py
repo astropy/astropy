@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 
+import contextlib
 import inspect
 import numbers
 import re
@@ -21,6 +22,7 @@ from numpy import ma
 
 from ..utils.compat.fractions import Fraction
 from ..utils.exceptions import AstropyWarning
+from ..utils.misc import isiterable
 from .utils import is_effectively_unity
 from . import format as unit_format
 
@@ -29,27 +31,54 @@ from . import format as unit_format
 __all__ = [
     'UnitsError', 'UnitsException', 'UnitsWarning', 'UnitBase',
     'NamedUnit', 'IrreducibleUnit', 'Unit', 'def_unit',
-    'CompositeUnit', 'PrefixUnit', 'UnrecognizedUnit']
+    'CompositeUnit', 'PrefixUnit', 'UnrecognizedUnit',
+    'get_current_unit_registry', 'set_enabled_units',
+    'add_enabled_units', 'set_enabled_units_context',
+    'add_enabled_units_context']
+
+
+def _flatten_units_collection(items):
+    """
+    Given a list of sequences, modules or dictionaries of units, or
+    single units, return a flat set of all the units found.
+    """
+    if not isinstance(items, list):
+        items = [items]
+
+    result = set()
+    for item in items:
+        if isinstance(item, UnitBase):
+            result.add(item)
+        else:
+            if isinstance(item, dict):
+                units = item.values()
+            elif inspect.ismodule(item):
+                units = vars(item).values()
+            elif isiterable(item):
+                units = item
+            else:
+                continue
+
+            for unit in units:
+                if isinstance(unit, UnitBase):
+                    result.add(unit)
+
+    return result
 
 
 class _UnitRegistry(object):
     """
-    A singleton class to manage a registry of all defined units.
+    Manages a registry of the enabled units.
     """
+    def __init__(self, init=[]):
+        self._reset()
+        self.add_enabled_units(init)
 
-    _all_units = set()
-    _non_prefix_units = set()
-    _registry = {}
-    _namespace = {}
-    _by_physical_type = {}
-
-    @property
-    def namespace(self):
-        return self._namespace
-
-    @namespace.setter
-    def namespace(self, namespace):
-        self.__class__._namespace = namespace
+    def _reset(self):
+        self._all_units = set()
+        self._non_prefix_units = set()
+        self._registry = {}
+        self._by_physical_type = {}
 
     @property
     def registry(self):
@@ -63,84 +92,64 @@ class _UnitRegistry(object):
     def non_prefix_units(self):
         return self._non_prefix_units
 
-    @classmethod
-    def register_unit(cls, unit, add_to_namespace=False):
+    def set_enabled_units(self, units):
         """
-        Add a unit to the unit registry.
+        Sets the units enabled in the unit registry.
+
+        These units are searched when using
+        `UnitBase.find_equivalent_units`, for example.
 
         Parameters
         ----------
-        add_to_namespace : bool, optional
-            When `True`, register the unit in the external namespace
-            last assigned to `_UnitRegistry().namespace` as well as
-            the central registry.  (Default is `False`).
+        units : list of sequences, dicts, or modules containing units, or units
+            This is a list of things in which units may be found
+            (sequences, dicts or modules), or units themselves.  The
+            entire set will be "enabled" for searching through by
+            methods like `UnitBase.find_equivalent_units` and
+            `UnitBase.compose`.
         """
-        if not unit._names:
-            raise UnitsError("unit has no string representation")
+        self._reset()
+        return self.add_enabled_units(units)
 
-        # Loop through all of the names first, to ensure all of them
-        # are new, then add them all as a single "transaction" below.
-        for st in unit._names:
-            if not re.match("^[A-Za-z_]+$", st):
-                # will cause problems for simple string parser in
-                # unit() factory
-                raise ValueError(
-                    "Invalid unit name {0!r}".format(st))
-
-            if ((add_to_namespace and st in cls._namespace) or
-                st in cls._registry and unit != cls._registry[st]):
-                raise ValueError(
-                    "Object with name {0!r} already exists in namespace.  To "
-                    "redefine a unit, call its deregister() method "
-                    "first".format(st))
-
-        for st in unit._names:
-            if add_to_namespace:
-                cls._namespace[st] = unit
-
-            cls._registry[st] = unit
-
-        cls._all_units.add(unit)
-        if not isinstance(unit, PrefixUnit):
-            cls._non_prefix_units.add(unit)
-
-        hash = unit._get_physical_type_id()
-        cls._by_physical_type.setdefault(hash, set()).add(unit)
-
-    @classmethod
-    def deregister_unit(cls, unit, remove_from_namespace=False):
+    def add_enabled_units(self, units):
         """
-        Deregisters the unit from the unit registry.  It will no
-        longer be used in methods that search through the unit
-        registry, such as `find_equivalent_units` and `compose`.
+        Adds to the set of units enabled in the unit registry.
+
+        These units are searched when using
+        `UnitBase.find_equivalent_units`, for example.
 
         Parameters
         ----------
-        remove_from_namespace : bool, optional
-            When `True`, remove the unit in the external namespace
-            last assigned to `_UnitRegistry()._namespace` as well as the
-            central registry.  (Default is `False`).
+        units : list of sequences, dicts, or modules containing units, or units
+            This is a list of things in which units may be found
+            (sequences, dicts or modules), or units themselves.  The
+            entire set will be added to the "enabled" set for
+            searching through by methods like
+            `UnitBase.find_equivalent_units` and `UnitBase.compose`.
         """
-        if unit not in cls._all_units:
-            raise ValueError("unit is not already registered")
+        units = _flatten_units_collection(units)
 
-        for st in unit._names:
-            if remove_from_namespace:
-                if st in cls._namespace and cls._namespace[st] is unit:
-                    del cls._namespace[st]
+        for unit in units:
+            # Loop through all of the names first, to ensure all of them
+            # are new, then add them all as a single "transaction" below.
+            for st in unit._names:
+                if (st in self._registry and unit != self._registry[st]):
+                    raise ValueError(
+                        "Object with name {0!r} already exists in namespace. "
+                        "Filter the set of units to avoid name classes before "
+                        "enabling them.".format(st))
 
-            if st in cls._registry and cls._registry[st] is unit:
-                del cls._registry[st]
+            for st in unit._names:
+                self._registry[st] = unit
 
-        cls._all_units.remove(unit)
-        if not isinstance(unit, PrefixUnit):
-            cls._non_prefix_units.remove(unit)
+            self._all_units.add(unit)
+            if not isinstance(unit, PrefixUnit):
+                self._non_prefix_units.add(unit)
 
-        hash = unit._get_physical_type_id()
-        cls._by_physical_type[hash].remove(unit)
+            hash = unit._get_physical_type_id()
+            self._by_physical_type.setdefault(hash, set()).add(unit)
 
-    @classmethod
-    def get_units_with_physical_type(cls, unit):
+    def get_units_with_physical_type(self, unit):
         """
         Get all units in the registry with the same physical type as
         the given unit.
@@ -149,9 +158,87 @@ class _UnitRegistry(object):
         ----------
         unit : UnitBase instance
         """
-        return cls._by_physical_type.get(
+        return self._by_physical_type.get(
             unit._get_physical_type_id(),
             set())
+
+
+_current_unit_registry = _UnitRegistry()
+def get_current_unit_registry():
+    return _current_unit_registry
+
+
+def set_enabled_units(units):
+    return get_current_unit_registry().set_enabled_units(units)
+set_enabled_units.__doc__ = _UnitRegistry.set_enabled_units.__doc__
+
+
+def add_enabled_units(units):
+    return get_current_unit_registry().add_enabled_units(units)
+add_enabled_units.__doc__ = _UnitRegistry.add_enabled_units.__doc__
+
+
+@contextlib.contextmanager
+def set_enabled_units_context(units):
+    """
+    A context manager for temporarily setting the set of units that
+    are searched by methods like `UnitBase.find_equivalent_units`.
+
+    Parameters
+    ----------
+    units : list of sequences, dicts, or modules containing units, or units
+        See `set_enabled_units`.
+
+    Example
+    -------
+
+    >>> from astropy import units as u
+    >>> with u.set_enabled_units_context([u.pc]):
+    ...     u.m.find_equivalent_units()
+    ...
+      Primary name | Unit definition | Aliases
+    [
+      pc           | 3.08568e+16 m   | parsec  ,
+    ]
+    >>> u.m.find_equivalent_units()
+      Primary name | Unit definition | Aliases
+    [
+      AU           | 1.49598e+11 m   | au           ,
+      Angstrom     | 1e-10 m         | AA, angstrom ,
+      cm           | 0.01 m          | centimeter   ,
+      lyr          | 9.46073e+15 m   | lightyear    ,
+      m            | irreducible     | meter        ,
+      micron       | 1e-06 m         |              ,
+      pc           | 3.08568e+16 m   | parsec       ,
+      solRad       | 6.95508e+08 m   | R_sun, Rsun  ,
+    ]
+    """
+    global _current_unit_registry
+    old_registry = get_current_unit_registry()
+    _current_unit_registry = _UnitRegistry()
+    set_enabled_units(units)
+    yield
+    _current_unit_registry = old_registry
+
+
+@contextlib.contextmanager
+def add_enabled_units_context(units):
+    """
+    A context manager for temporarily adding to the set of units that
+    are searched by methods like `UnitBase.find_equivalent_units`.
+
+    Parameters
+    ----------
+    units : list of sequences, dicts, or modules containing units, or units
+        See `add_enabled_units`.
+    """
+    global _current_unit_registry
+    old_registry = get_current_unit_registry()
+    _current_unit_registry = _UnitRegistry()
+    add_enabled_units(old_registry.all_units)
+    add_enabled_units(units)
+    yield
+    _current_unit_registry = old_registry
 
 
 class UnitsError(Exception):
@@ -763,13 +850,13 @@ class UnitBase(object):
             units = filter_units(self._get_units_with_same_physical_type(
                 equivalencies=equivalencies))
             if len(units) == 0:
-                units = _UnitRegistry().non_prefix_units
+                units = get_current_unit_registry().non_prefix_units
         elif isinstance(units, dict):
             units = set(filter_units(six.itervalues(units)))
         elif inspect.ismodule(units):
             units = filter_units(six.itervalues(vars(units)))
         else:
-            units = set(units)
+            units = filter_units(_flatten_units_collection(units))
 
         if not len(units):
             raise UnitsError("No units to compose into.")
@@ -880,14 +967,15 @@ class UnitBase(object):
             See :ref:`unit_equivalencies`.  It must already be
             normalized using `_normalize_equivalencies`.
         """
-        units = set(_UnitRegistry.get_units_with_physical_type(self))
+        unit_registry = get_current_unit_registry()
+        units = set(unit_registry.get_units_with_physical_type(self))
         for funit, tunit, a, b in equivalencies:
             if funit not in units:
                 units.update(
-                    _UnitRegistry.get_units_with_physical_type(funit))
+                    unit_registry.get_units_with_physical_type(funit))
             if tunit not in units:
                 units.update(
-                    _UnitRegistry.get_units_with_physical_type(tunit))
+                    unit_registry.get_units_with_physical_type(tunit))
         return units
 
     class EquivalentUnitsList(list):
@@ -975,11 +1063,12 @@ class NamedUnit(UnitBase):
     st : str or list of str
         The name of the unit.  If a list, the first element is the
         canonical (short) name, and the rest of the elements are
-        aliases.
+        aliases.  Each name must be a valid Python identifier.
 
-    register : boolean, optional
-        When `True`, also register the unit in the standard unit
-        namespace.  Default is `False`.
+    namespace : dict, optional
+        When provided, inject the unit, and all of its aliases, in the
+        given namespace dictionary.  If a unit by the same name is
+        already in the namespace, a ValueError is raised.
 
     doc : str, optional
         A docstring describing the unit.
@@ -1000,7 +1089,16 @@ class NamedUnit(UnitBase):
     ValueError
         If any of the given unit names are not valid Python tokens.
     """
-    def __init__(self, st, register=False, doc=None, format=None):
+    def __init__(self, st, register=None, doc=None, format=None,
+                 namespace=None):
+        if register is not None:
+            warnings.warn(
+                "The registry kwarg was removed in astropy 0.3. "
+                "Use the namespace kwarg to inject the unit into "
+                "a namespace and add_enabled_units() to enable it "
+                "in the global unit registry.",
+                DeprecationWarning)
+
         UnitBase.__init__(self)
 
         if isinstance(st, six.string_types):
@@ -1023,7 +1121,7 @@ class NamedUnit(UnitBase):
 
         self.__doc__ = doc
 
-        self.register(register)
+        self._inject(namespace)
 
     def _generate_doc(self):
         """
@@ -1079,36 +1177,39 @@ class NamedUnit(UnitBase):
         return self._names[1:]
 
     def register(self, add_to_namespace=False):
-        """
-        Registers the unit in the registry, and optionally in another
-        namespace.  It is registered under all of the names and
-        aliases given to the constructor.
-
-        Parameters
-        ----------
-        add_to_namespace : bool, optional
-            When `True`, register the unit in the external namespace
-            last assigned to `_UnitRegistry().namespace` as well as the
-            central registry.  (Default is `False`).
-        """
-        _UnitRegistry().register_unit(
-            self, add_to_namespace=add_to_namespace)
+        raise NotImplementedError(
+            "The register method has been removed in astropy 0.3. "
+            "Use add_enabled_units/set_enabled_units instead.")
 
     def deregister(self, remove_from_namespace=False):
-        """
-        Deregisters the unit from the unit registry.  It will no
-        longer be used in methods that search through the unit
-        registry, such as `find_equivalent_units` and `compose`.
+        raise NotImplementedError(
+            "The deregister method has been removed in astropy 0.3. "
+            "Use add_enabled_units/set_enabled_units instead.")
 
-        Parameters
-        ----------
-        remove_from_namespace : bool, optional
-            When `True`, remove the unit in the external namespace
-            last assigned to `_UnitRegistry().namespace` as well as the
-            central registry.  (Default is `False`).
+    def _inject(self, namespace=None):
         """
-        _UnitRegistry().deregister_unit(
-            self, remove_from_namespace=remove_from_namespace)
+        Injects the unit, and all of its aliases, in the given
+        namespace dictionary.
+        """
+        if namespace is None:
+            return
+
+        # Loop through all of the names first, to ensure all of them
+        # are new, then add them all as a single "transaction" below.
+        for name in self._names:
+            # Names must be valid Python identifier
+            if not re.match("^[A-Za-z_]+$", name):
+                raise ValueError(
+                    "Invalid unit name {0!r}".format(st))
+
+        for name in self._names:
+            if name in namespace and self != namespace[name]:
+                raise ValueError(
+                    "Object with name {0!r} already exists in "
+                    "given namespace.".format(name))
+
+        for name in self._names:
+            namespace[name] = self
 
 
 def _recreate_irreducible_unit(names, registered):
@@ -1116,11 +1217,13 @@ def _recreate_irreducible_unit(names, registered):
     This is used to reconstruct units when passed around by
     multiprocessing.
     """
-    namespace = _UnitRegistry().namespace
-    if names[0] in namespace:
-        return namespace[names[0]]
+    registry = get_current_unit_registry().registry
+    if names[0] in registry:
+        return registry[names[0]]
     else:
-        return IrreducibleUnit(names, register=registered)
+        unit = IrreducibleUnit(names)
+        if registered:
+            get_current_unit_registry().add_enabled_units([unit])
 
 
 class IrreducibleUnit(NamedUnit):
@@ -1138,9 +1241,9 @@ class IrreducibleUnit(NamedUnit):
         # objects, or they will be considered "unconvertible".
         # Therefore, we have a custom pickler/unpickler that
         # understands how to recreate the Unit on the other side.
-        namespace = _UnitRegistry().namespace
+        registry = get_current_unit_registry().registry
         return (_recreate_irreducible_unit,
-                (list(self.names), self.name in namespace),
+                (list(self.names), self.name in registry),
                 self.__dict__)
 
     @property
@@ -1204,9 +1307,6 @@ class UnrecognizedUnit(IrreducibleUnit):
     def to_string(self, format='generic'):
         return self.name
 
-    def register(self, register):
-        pass
-
     def _unrecognized_operator(self, *args, **kwargs):
         raise ValueError(
             "The unit {0!r} is unrecognized, so all arithmetic operations "
@@ -1248,7 +1348,7 @@ class _UnitMetaClass(type):
     can return an existing one.
     """
 
-    def __call__(self, s, represents=None, format=None, register=False,
+    def __call__(self, s, represents=None, format=None, namespace=None,
                  doc=None, parse_strict='raise'):
 
         from .quantity import Quantity
@@ -1277,7 +1377,7 @@ class _UnitMetaClass(type):
             # This has the effect of calling the real __new__ and
             # __init__ on the Unit class.
             return super(_UnitMetaClass, self).__call__(
-                s, represents, format=format, register=register, doc=doc)
+                s, represents, format=format, namespace=namespace, doc=doc)
 
         elif isinstance(s, UnitBase):
             return s
@@ -1379,10 +1479,6 @@ class Unit(NamedUnit):
     represents : UnitBase instance
         The unit that this named unit represents.
 
-    register : boolean, optional
-        When `True`, also register the unit in the standard unit
-        namespace.  Default is `False`.
-
     doc : str, optional
         A docstring describing the unit.
 
@@ -1394,6 +1490,10 @@ class Unit(NamedUnit):
 
             {'latex': r'\\Omega'}
 
+    namespace : dictionary, optional
+        When provided, inject the unit (and all of its aliases) into
+        the given namespace.
+
     Raises
     ------
     ValueError
@@ -1403,13 +1503,21 @@ class Unit(NamedUnit):
         If any of the given unit names are not valid Python tokens.
     """
 
-    def __init__(self, st, represents=None, register=False, doc=None,
-                 format=None):
+    def __init__(self, st, represents=None, register=None, doc=None,
+                 format=None, namespace=None):
+
+        if register is not None:
+            warnings.warn(
+                "The registry kwarg was removed in astropy 0.3. "
+                "Use the namespace kwarg to inject the unit into "
+                "a namespace and add_enabled_units() to enable it "
+                "in the global unit registry.",
+                DeprecationWarning)
 
         represents = Unit(represents)
         self._represents = represents
 
-        NamedUnit.__init__(self, st, register=register, doc=doc,
+        NamedUnit.__init__(self, st, namespace=namespace, doc=doc,
                            format=format)
 
     def decompose(self, bases=set()):
@@ -1613,7 +1721,7 @@ si_prefixes = [
 ]
 
 
-def _add_prefixes(u, excludes=[], register=False):
+def _add_prefixes(u, excludes=[], namespace=None):
     """
     Set up all of the standard metric prefixes for a unit.  This
     function should not be used directly, but instead use the
@@ -1625,9 +1733,9 @@ def _add_prefixes(u, excludes=[], register=False):
         Any prefixes to exclude from creation to avoid namespace
         collisions.
 
-    register : bool, optional
-        When `True`, also register the unit in the standard unit
-        namespace.  Default is `False`.
+    namespace : dict, optional
+        When provided, inject the unit (and all of its aliases) into
+        the given namespace dictionary.
     """
     for short, full, factor in si_prefixes:
         names = []
@@ -1658,11 +1766,12 @@ def _add_prefixes(u, excludes=[], register=False):
 
         if len(names):
             PrefixUnit(names, CompositeUnit(factor, [u], [1]),
-                       register=register, format=format)
+                       namespace=namespace, format=format)
 
 
 def def_unit(s, represents=None, register=None, doc=None,
-             format=None, prefixes=False, exclude_prefixes=[]):
+             format=None, prefixes=False, exclude_prefixes=[],
+             namespace=None):
     """
     Factory function for defining new units.
 
@@ -1676,10 +1785,6 @@ def def_unit(s, represents=None, register=None, doc=None,
     represents : UnitBase instance, optional
         The unit that this named unit represents.  If not provided,
         a new `IrreducibleUnit` is created.
-
-    register : boolean, optional
-        When `True`, also register the unit in the standard unit
-        namespace.  Default is `False`.
 
     doc : str, optional
         A docstring describing the unit.
@@ -1707,23 +1812,33 @@ def def_unit(s, represents=None, register=None, doc=None,
         prefixes for `a`, `exclude_prefixes` should be set to
         ``["P"]``.
 
+    namespace : dict, optional
+        When provided, inject the unit (and all of its aliases and
+        prefixes), into the given namespace dictionary.
+
     Returns
     -------
     unit : `UnitBase` object
         The newly-defined unit, or a matching unit that was already
         defined.
     """
+    if register is not None:
+        warnings.warn(
+            "The registry kwarg was removed in astropy 0.3. "
+            "Use the namespace kwarg to inject the unit into "
+            "a namespace and add_enabled_units() to enable it "
+            "in the global unit registry.",
+            DeprecationWarning)
 
-    if register is None:
-        register = False
     if represents is not None:
-        result = Unit(s, represents, register=register, doc=doc,
+        result = Unit(s, represents, namespace=namespace, doc=doc,
                       format=format)
     else:
-        result = IrreducibleUnit(s, register=register, doc=doc, format=format)
+        result = IrreducibleUnit(
+            s, namespace=namespace, doc=doc, format=format)
 
     if prefixes:
-        _add_prefixes(result, excludes=exclude_prefixes, register=register)
+        _add_prefixes(result, excludes=exclude_prefixes, namespace=namespace)
     return result
 
 
