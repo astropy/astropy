@@ -7,7 +7,6 @@ are not enabled.  To enable them, do::
 
     >>> from astropy.units import imperial
     >>> imperial.enable()  # doctest: +SKIP
-
 """
 
 from __future__ import (absolute_import, division, print_function,
