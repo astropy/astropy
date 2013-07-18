@@ -116,7 +116,7 @@ def _teardown_log():
         try:
             loggerDict = logging.Logger.manager.loggerDict
             for key in loggerDict.keys():
-                if key == 'astropy' or key.starswith('astropy.'):
+                if key == 'astropy' or key.startswith('astropy.'):
                     del loggerDict[key]
         finally:
             logging._releaseLock()
