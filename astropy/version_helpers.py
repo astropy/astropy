@@ -160,12 +160,12 @@ release = {rel}
 debug = {debug}
 
 try:
-    from astropy.utils._compiler import compiler
+    from .utils._compiler import compiler
 except ImportError:
     compiler = "unknown"
 
 try:
-    from astropy.cython_version import cython_version
+    from .cython_version import cython_version
 except ImportError:
     cython_version = "unknown"
 """[1:]
