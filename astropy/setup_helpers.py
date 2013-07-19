@@ -359,7 +359,7 @@ def register_commands(package, version, release):
 
          # The exact form of the build_ext command depends on whether or not
          # we're building a release version
-         'build_ext': generate_build_ext_command(release),
+         'build_ext': generate_build_ext_command(package, release),
 
          # We have a custom build_py to generate the default configuration file
          'build_py': AstropyBuildPy,
@@ -407,7 +407,7 @@ def generate_test_command(package_name):
                 {'package_name': package_name})
 
 
-def generate_build_ext_command(release):
+def generate_build_ext_command(packagename, release):
     """
     Creates a custom 'build_ext' command that allows for manipulating some of
     the C extension options at build time.  We use a function to build the
@@ -418,7 +418,7 @@ def generate_build_ext_command(release):
     Uses the default distutils.command.build_ext by default.
     """
 
-    uses_cython = should_build_with_cython(release)
+    uses_cython = should_build_with_cython(packagename, release)
 
     if uses_cython:
         from Cython.Distutils import build_ext as basecls
@@ -497,8 +497,8 @@ def generate_build_ext_command(release):
         except ImportError:
             cython_version = 'unknown'
         if self.uses_cython and self.uses_cython != cython_version:
-            astropy_dir = os.path.relpath(os.path.dirname(__file__))
-            cython_py = os.path.join(astropy_dir, 'cython_version.py')
+            package_dir = os.path.relpath(packagename)
+            cython_py = os.path.join(package_dir, 'cython_version.py')
             with open(cython_py, 'w') as f:
                 f.write('# Generated file; do not modify\n')
                 f.write('cython_version = {0!r}\n'.format(self.uses_cython))
@@ -1089,22 +1089,28 @@ def iter_pyx_files(srcdir):
                 yield (extmod, fullfn)
 
 
-def should_build_with_cython(release=None):
+def should_build_with_cython(package, release=None):
     """Returns the previously used Cython version (or 'unknown' if not
     previously built) if Cython should be used to build extension modules from
     pyx files.  If the ``release`` parameter is not specified an attempt is
     made to determine the release flag from `astropy.version`.
     """
 
-    if release is None:
+    try:
+        version_module = __import__(package + '.cython_version',
+                                    fromlist=['release', 'cython_version'])
+    except ImportError:
+        version_module = None
+
+    if release is None and version_module is not None:
         try:
-            from .version import release
-        except ImportError:
+            release = version_module.release
+        except AttributeError:
             pass
 
     try:
-        from .version import cython_version
-    except ImportError:
+        cython_version = version_module.cython_version
+    except AttributeError:
         cython_version = 'unknown'
 
     # Only build with Cython if, of course, Cython is installed, we're in a
