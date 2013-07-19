@@ -127,16 +127,22 @@ Astropy repository clone.
    repository will always be immediately available next time you start a Python
    interpreter and ``import astropy``.
 
-   Develop mode can be easily disabled again by running
-   ``setup.py develop -u``. 
+#. Develop mode can be easily disabled again by running
+   ``setup.py develop -u``.  Without having the package installed in develop
+   mode, if you change directories from the root of the repository clone the
+   ``astropy`` package will no longer be importable, and other features may not
+   work properly.
 
    Another useful technique to avoid having to switch develop mode on and off
    without disrupting production use of Astropy is to use virtualenv as
    explained :ref:`below<using-virtualenv>`.
 
-#. If you change directories from the root of the repository clone the
-   ``astropy`` package will no longer be importable, and other features may not
-   work properly.
+   It should be noted that ``setup.py develop`` will *not* work with Python 3,
+   as Astropy currently uses ``2to3`` to convert the source code to a format
+   compatible with Python 3.  Because of this it is not possible to ``import
+   astropy`` directly from a source checkout with Python 3.  In the future
+   Astropy may move to a cross-compatible coding style that works natively in
+   both Python 2 and 3.
 
 .. note::
 
