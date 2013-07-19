@@ -1,10 +1,13 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
+from __future__ import division
 
 import functools
 import itertools
 import mmap
 import os
+import platform
 import signal
+import sys
 import tempfile
 import textwrap
 import threading
@@ -355,10 +358,33 @@ def _array_to_file(arr, outfile):
     """Write a numpy array to a file or a file-like object."""
 
     if isfile(outfile):
-        arr.tofile(outfile)
+        def write(a, f):
+            a.tofile(f)
     else:
         # treat as file-like object with "write" method
-        _write_string(outfile, arr.tostring())
+        def write(a, f):
+            _write_string(f, a.tostring())
+
+    # Implements a workaround for a bug deep in OSX's stdlib file writing
+    # functions; on 64-bit OSX it is not possible to correctly write a number
+    # of bytes greater than 2 ** 32 and divisble by 4096 (or possibly 8192--
+    # whatever the default blocksize for the filesystem is).
+    # This issue should have a workaround in Numpy too, but hasn't been
+    # implemented there yet: https://github.com/astropy/astropy/issues/839
+    osx_write_limit = (2 ** 32) - 1
+
+    if sys.platform == 'darwin' and platform.architecture()[0] == '64bit':
+        if arr.nbytes >= osx_write_limit + 1 and arr.nbytes % 4096 == 0:
+            idx = 0
+            # chunksize is a count of elements in the array, not bytes
+            chunksize = osx_write_limit // arr.itemsize
+            while idx < arr.nbytes:
+                write(arr[idx:idx + chunksize], outfile)
+                idx += chunksize
+
+            return
+
+    write(arr, outfile)
 
 
 def _write_string(f, s):
