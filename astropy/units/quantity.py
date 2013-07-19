@@ -1,4 +1,4 @@
-# Coding: utf-8
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module defines the `Quantity` object, which represents a number with some
@@ -31,7 +31,7 @@ def _can_cast(arg, dtype):
     return np.can_cast(getattr(arg, 'dtype', type(arg)), dtype)
 
 
-UNIT_NOT_INITIALISED = "(Unit not initialised)"
+_UNIT_NOT_INITIALISED = "(Unit not initialised)"
 
 
 def _validate_value(value, dtype):
@@ -285,7 +285,10 @@ class Quantity(np.ndarray):
                     else:  # for scale==1, input is not necessarily a Quantity
                         inputs.append(getattr(arg, 'value', arg))
 
-                # Scaling may change whether or not output can be written to
+                # For output arrays that require scaling, we can reuse the
+                # output array to perform the scaling in place, as long as the
+                # array is not integral. Here, we set the obj_array to `None`
+                # when it can not be used to store the scaled result.
                 if(result_unit is not None and
                    any(not _can_cast(scaled_arg, obj_array.dtype)
                        for scaled_arg in inputs)):
@@ -646,13 +649,13 @@ class Quantity(np.ndarray):
         return "{0} {1:s}".format(self.value,
                                   self.unit.to_string() if
                                   self.unit is not None
-                                  else UNIT_NOT_INITIALISED)
+                                  else _UNIT_NOT_INITIALISED)
 
     def __repr__(self):
         return "<Quantity {0} {1:s}>".format(self.value,
                                              self.unit.to_string() if
                                              self.unit is not None
-                                             else UNIT_NOT_INITIALISED)
+                                             else _UNIT_NOT_INITIALISED)
 
     def _repr_latex_(self):
         """
@@ -674,7 +677,7 @@ class Quantity(np.ndarray):
         # [1:-1] strips the '$' on either side needed for math mode
         latex_unit = (self.unit._repr_latex_()[1:-1]  # note this is unicode
                       if self.unit is not None
-                      else UNIT_NOT_INITIALISED)
+                      else _UNIT_NOT_INITIALISED)
 
         return u'${0} \; {1}$'.format(latex_value, latex_unit)
 
