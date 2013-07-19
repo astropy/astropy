@@ -202,6 +202,30 @@ use the system `libexpat`, add the following to the `setup.cfg` file::
     [build]
     use_system_expat=1
 
+
+The Windows installer can't find Python in the registry
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This is a common issue with Windows installers for Python packages that do not
+support the new User Access Control (UAC) framework added in Windows Vista and
+later.  In particular, when a Python is installed "for all users" (as opposed
+to for a single user) it adds entries for that Python installation under the
+``HKEY_LOCAL_MACHINE`` (HKLM) hierarchy and *not* under the
+``HKEY_CURRENT_USER`` (HKCU) hierarchy.  However, depending on your UAC
+settings, if the Astropy installer is not executed with elevated privileges it
+will not be able to check in HKLM for the required information about your
+Python installation.
+
+In short: If you encounter this problem it's because you need the appropriate
+entries in the Windows registry for Python. You can download `this script`__
+and execute it with the same Python as the one you want to install Astropy
+into.  For example to add the missing registry entries to your Python 2.7::
+
+    C:\>C:\Python27\python.exe C:\Path\To\Downloads\win_register_python.py
+
+__ https://gist.github.com/iguananaut/6042780#file-win_register_python-py
+
+
 Compatibility packages
 ^^^^^^^^^^^^^^^^^^^^^^
 
