@@ -170,6 +170,12 @@ class TestQuantityTrigonometricFuncs(object):
         assert_allclose(q4.value, 3.)
         assert q4.unit == u.radian
 
+        with pytest.raises(TypeError):
+            np.deg2rad(3. * u.m)
+
+        with pytest.raises(TypeError):
+            np.radians(3. * u.m)
+
     def test_degrees(self):
 
         # the following doesn't make much sense in terms of the name of the
@@ -189,6 +195,12 @@ class TestQuantityTrigonometricFuncs(object):
         q4 = np.degrees(np.pi * u.radian)
         assert_allclose(q4.value, 180.)
         assert q4.unit == u.degree
+
+        with pytest.raises(TypeError):
+            np.rad2deg(3. * u.m)
+
+        with pytest.raises(TypeError):
+            np.degrees(3. * u.m)
 
 
 class TestQuantityMathFuncs(object):
@@ -290,6 +302,11 @@ class TestQuantityMathFuncs(object):
         assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1.) == -np.array([1., 2., 3.]) * u.s)
         assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1. * u.m) == -np.array([1., 2., 3.]) * u.s)
         assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, np.array([-2.,2.,-4.]) * u.m) == np.array([-1., 2., -3.]) * u.s)
+
+        q = np.copysign(np.array([1., 2., 3.]), -3 * u.m)
+        assert np.all(q == np.array([-1., -2., -3.]))
+        assert not isinstance(q, u.Quantity)
+
 
     def test_ldexp_scalar(self):
         assert np.ldexp(4. * u.m, 2) == 16. * u.m
