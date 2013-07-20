@@ -123,12 +123,41 @@ API Changes
     the first argument is now ``order='C'``.  This is required for compatibility
     with Numpy 1.8 which is currently in development [#1250].
 
+- ``astropy.units``
+
+  - The ``Quantity`` class now inherits from the Numpy array class, and
+    includes the following API changes [#929]:
+
+    - Using ``float(...)``, ``int(...)``, and ``long(...)`` on a quantity will
+      now only work if the quantity is dimensionless and unscaled.
+
+    - All Numpy ufuncs should now treat units correctly (or raise an exception
+      if not supported), rather than extract the value of quantities and
+      operate on this, emitting a warning about the implicit loss of units.
+
+    - When using relevant Numpy ufuncs on dimensionless quantities (e.g.
+      ``np.exp(h * nu / (k_B * T))``), or combining dimensionless quantities
+      with Python scalars or plain Numpy arrays ``1 + v / c``, the
+      dimensionless Quantity will automatically be converted to an unscaled
+      dimensionless Quantity.
+
+    - When initializing a quantity from a value with no unit, it is now set to
+      be dimensionless and unscaled by default. When initializing a Quantity
+      from another Quantity and with no unit specified in the initializer, the
+      unit is now taken from the unit of the Quantity being initialized from.
+
 Bug Fixes
 ^^^^^^^^^^
 
 - ``astropy.io.ascii``
 
-  - The ``write()`` function was ignoring the ``fill_values`` argument (#910).
+  - The ``write()`` function was ignoring the ``fill_values`` argument [#910].
+
+- ``astropy.units``
+
+  - Fixed a bug that caused the order of multiplication/division of plain
+    Numpy arrays with Quantities to matter (i.e. if the plain array comes
+    first the units were not preserved in the output) [#899].
 
 
 0.2.4 (unreleased)
