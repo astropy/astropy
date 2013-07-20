@@ -289,25 +289,39 @@ class TestQuantityOperations(object):
 
     def test_numeric_converters(self):
 
-        q = u.Quantity(1.23, u.m)
+        q1 = u.Quantity(1.23, u.m)
 
         with pytest.raises(TypeError) as exc:
-            assert float(q) == 1.23
+            assert float(q1) == 1.23
         assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
 
         with pytest.raises(TypeError) as exc:
-            assert int(q) == 1
+            assert int(q1) == 1
         assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
 
         with pytest.raises(TypeError) as exc:
-            assert long(q) == 1L
+            assert long(q1) == 1L
         assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
 
-        q = u.Quantity(1.23, u.dimensionless_unscaled)
+        q2 = u.Quantity(1.23, u.m / u.km)
 
-        assert float(q) == 1.23
-        assert int(q) == 1
-        assert long(q) == 1L
+        with pytest.raises(TypeError) as exc:
+            assert float(q2) == 1.23
+        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+
+        with pytest.raises(TypeError) as exc:
+            assert int(q2) == 1
+        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+
+        with pytest.raises(TypeError) as exc:
+            assert long(q2) == 1L
+        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+
+        q3 = u.Quantity(1.23, u.dimensionless_unscaled)
+
+        assert float(q3) == 1.23
+        assert int(q3) == 1
+        assert long(q3) == 1L
 
 
     def test_array_converters(self):
