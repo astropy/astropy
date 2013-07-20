@@ -540,6 +540,9 @@ def test_quantity_mutability():
     with pytest.raises(AttributeError):
         q.value = 3
 
+    with pytest.raises(AttributeError):
+        q.unit = u.kg
+
 
 def test_quantity_initialized_with_quantity():
     q1 = u.Quantity(60, u.second)
