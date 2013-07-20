@@ -126,9 +126,7 @@ class Quantity(np.ndarray):
         return self
 
     def __array_finalize__(self, obj):
-        if obj is None:
-            return
-        elif isinstance(obj, Quantity):
+        if isinstance(obj, Quantity):
             self._unit = obj._unit
 
     def __array_prepare__(self, obj, context=None):
