@@ -231,7 +231,7 @@ def find_scales(f, *units):
     scales = [1., 1.]
     # no units for any input -- e.g., np.arctan2(a1, a2, out=q)
     if all(unit is None for unit in units):
-        return scales
+        return scales, None
 
     fixed, changeable = (1, 0) if units[1] is None else (0, 1)
     if units[fixed] is None:

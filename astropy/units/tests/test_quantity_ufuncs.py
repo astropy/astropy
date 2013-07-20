@@ -556,3 +556,10 @@ class TestInplaceUfuncs(object):
         np.multiply(2. / u.s, s, out=s)
         assert check is s
         assert check.unit == u.deg / u.s
+
+    @pytest.mark.skipif("NUMPY_LT_1P6")
+    def test_two_argument_ufunc_inplace_3(self):
+        s = np.array([1., 2., 3.]) * u.dimensionless_unscaled
+        np.arctan2(np.array([1., 2., 3.]), np.array([1., 2., 3.]) * 2., out=s)
+        assert_allclose(s.value, np.arctan2(1., 2.))
+        assert s.unit == u.radian
