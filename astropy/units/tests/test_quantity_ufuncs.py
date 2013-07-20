@@ -21,7 +21,8 @@ class TestUfuncCoverage(object):
         # but is not really a ufunc, so we remove it
         all_np_ufuncs -= set([np.ones_like])
 
-        qh = u.quantity_helper
+        from .. import quantity_helper as qh
+
         all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |
                         set(qh.UFUNC_HELPERS.keys()))
         assert all_np_ufuncs - all_q_ufuncs == set([])
@@ -149,6 +150,46 @@ class TestQuantityTrigonometricFuncs(object):
             np.arctan2(np.array([1, 2, 3]) * u.N, 1.)
         assert "dimensionless quantities when other arg" in exc.value.args[0]
 
+    def test_radians(self):
+
+        q1 = np.deg2rad(180. * u.degree)
+        assert_allclose(q1.value, np.pi)
+        assert q1.unit == u.radian
+
+        q2 = np.radians(180. * u.degree)
+        assert_allclose(q2.value, np.pi)
+        assert q2.unit == u.radian
+
+        # the following doesn't make much sense in terms of the name of the
+        # routine, but we check it gives the correct result.
+        q3 = np.deg2rad(3. * u.radian)
+        assert_allclose(q3.value, 3.)
+        assert q3.unit == u.radian
+
+        q4 = np.radians(3. * u.radian)
+        assert_allclose(q4.value, 3.)
+        assert q4.unit == u.radian
+
+    def test_degrees(self):
+
+        # the following doesn't make much sense in terms of the name of the
+        # routine, but we check it gives the correct result.
+        q1 = np.rad2deg(60. * u.degree)
+        assert_allclose(q1.value, 60.)
+        assert q1.unit == u.degree
+
+        q2 = np.degrees(60. * u.degree)
+        assert_allclose(q2.value, 60.)
+        assert q2.unit == u.degree
+
+        q3 = np.rad2deg(np.pi * u.radian)
+        assert_allclose(q3.value, 180.)
+        assert q3.unit == u.degree
+
+        q4 = np.degrees(np.pi * u.radian)
+        assert_allclose(q4.value, 180.)
+        assert q4.unit == u.degree
+
 
 class TestQuantityMathFuncs(object):
     """
@@ -238,6 +279,17 @@ class TestQuantityMathFuncs(object):
         with pytest.raises(ValueError) as exc:
             np.power(2. * u.m, 4.6)
         assert "must be integers" in exc.value.args[0]
+
+    def test_copysign_scalar(self):
+        assert np.copysign(3 * u.m, 1.) == 3. * u.m
+        assert np.copysign(3 * u.m, 1. * u.s) == 3. * u.m
+        assert np.copysign(3 * u.m, -1.) == -3. * u.m
+        assert np.copysign(3 * u.m, -1. * u.s) == -3. * u.m
+
+    def test_copysign_array(self):
+        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1.) == -np.array([1., 2., 3.]) * u.s)
+        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, -1. * u.m) == -np.array([1., 2., 3.]) * u.s)
+        assert np.all(np.copysign(np.array([1., 2., 3.]) * u.s, np.array([-2.,2.,-4.]) * u.m) == np.array([-1., 2., -3.]) * u.s)
 
     def test_ldexp_scalar(self):
         assert np.ldexp(4. * u.m, 2) == 16. * u.m

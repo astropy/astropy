@@ -130,8 +130,8 @@ def helper_radian_to_degree(f, unit):
                         .format(f.__name__))
     return [scale], degree
 
-UFUNC_HELPERS[np.degrees] = helper_degree_to_radian
-UFUNC_HELPERS[np.rad2deg] = helper_degree_to_radian
+UFUNC_HELPERS[np.degrees] = helper_radian_to_degree
+UFUNC_HELPERS[np.rad2deg] = helper_radian_to_degree
 
 # ufuncs that require input in radians and give dimensionless output
 
