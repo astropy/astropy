@@ -31,6 +31,13 @@ WARN_IMPLICIT_NUMERIC_CONVERSION = ConfigurationItem(
 
 __all__ = ["Quantity"]
 
+# Numpy ufuncs that return unitless values
+DIMENSIONLESS_UFUNCS = set([np.exp, np.log, np.log1p, np.log2, np.log10])
+
+TRIG_UFUNCS = set([np.cos, np.sin, np.tan])
+
+INVTRIG_UFUNCS = set([np.arccos, np.arcsin, np.arctan])
+
 
 def _is_unity(value):
     x = value.decompose()
@@ -96,6 +103,33 @@ class Quantity(object):
     # Need to set a class-level default for _equivalencies, or
     # Constants can not initialize properly
     _equivalencies = []
+
+    # Make sure that __rmul__ of units gets called over the __mul__ of Numpy
+    # arrays to avoid element-wise multiplication.
+    __array_priority__ = 1000.
+
+    def __array_prepare__(self, array, context=None):
+        return array
+
+    def __array_wrap__(self, out, context=None):
+        if context:
+            # Numpy will take the output of the ufuncs and try and convert it
+            # to an array, which means that it will convert it to an array of
+            # Quantity objects (because __len__ is defined, Numpy thinks it can
+            # do that). Kind of a waste of computation to try and piece back
+            # together the Quantity array, so we do the following, which is at
+            # least correct.
+            from . import dimensionless_unscaled
+            from .si import radian
+            if context[0] is np.sqrt:
+                return Quantity(self.value ** 0.5, self.unit ** 0.5)
+            elif context[0] in DIMENSIONLESS_UFUNCS:
+                return Quantity(context[0](self.value), dimensionless_unscaled)
+            elif context[0] in TRIG_UFUNCS:
+                return Quantity(context[0](self.to(radian).value), dimensionless_unscaled)
+            elif context[0] in INVTRIG_UFUNCS:
+                return Quantity(context[0](self.value), radian)
+        return self.__class__(out, unit=self._unit)
 
     def __init__(self, value, unit, equivalencies=[]):
         from ..utils.misc import isiterable
@@ -260,10 +294,15 @@ class Quantity(object):
             return Quantity(self.value + other.to(self.unit).value,
                             unit=self.unit)
         else:
-            raise TypeError(
-                "Object of type '{0}' cannot be added with a Quantity "
-                "object. Addition is only supported between Quantity "
-                "objects with compatible units.".format(other.__class__))
+            try:
+                return self.__add__(other * Unit(1))
+            except TypeError:
+                raise TypeError(
+                    "Object of type '{0}' cannot be added with a Quantity "
+                    "object. Addition is only supported between Quantity "
+                    "objects with compatible units.".format(other.__class__))
+
+    __radd__ = __add__
 
     def __sub__(self, other):
         """ Subtraction between `Quantity` objects and other objects.
@@ -275,10 +314,16 @@ class Quantity(object):
             return Quantity(self.value - other.to(self.unit).value,
                             unit=self.unit)
         else:
-            raise TypeError(
-                "Object of type '{0}' cannot be subtracted from a Quantity "
-                "object. Subtraction is only supported between Quantity "
-                "objects with compatible units.".format(other.__class__))
+            try:
+                return self.__sub__(other * Unit(1))
+            except TypeError:
+                raise TypeError(
+                    "Object of type '{0}' cannot be subtracted from a Quantity "
+                    "object. Subtraction is only supported between Quantity "
+                    "objects with compatible units.".format(other.__class__))
+
+    def __rsub__(self, other):
+        return -__sub__(self, other)
 
     def __mul__(self, other):
         """ Multiplication between `Quantity` objects and other objects."""
@@ -380,6 +425,100 @@ class Quantity(object):
 
         return Quantity(abs(self.value), unit=self.unit)
 
+    # Statistical methods
+
+    def mean(self, axis=None, dtype=None, out=None):
+        value = np.mean(self.value, axis=axis, dtype=dtype, out=out)
+        return Quantity(value, unit=self.unit)
+
+    def std(self, axis=None, dtype=None, out=None, ddof=0):
+        value = np.std(self.value, axis=axis, dtype=dtype, out=out, ddof=ddof)
+        return Quantity(value, self._unit)
+
+    # Trigonometric methods (these get called when np.cos/np.sin/np.tan are used)
+
+    def cos(self):
+        from . import dimensionless_unscaled
+        from .si import radian
+        try:
+            return Quantity(np.cos(self.to(radian).value), unit=dimensionless_unscaled)
+        except UnitsException:
+            raise TypeError("Can only apply trigonometric functions to quantities with angle units")
+
+    def sin(self):
+        from . import dimensionless_unscaled
+        from .si import radian
+        try:
+            return Quantity(np.sin(self.to(radian).value), unit=dimensionless_unscaled)
+        except UnitsException:
+            raise TypeError("Can only apply trigonometric functions to quantities with angle units")
+
+    def tan(self):
+        from . import dimensionless_unscaled
+        from .si import radian
+        try:
+            print(self.to(radian).value)
+            print(np.tan(self.to(radian).value))
+            return Quantity(np.tan(self.to(radian).value), unit=dimensionless_unscaled)
+        except UnitsException:
+            raise TypeError("Can only apply trigonometric functions to quantities with angle units")
+
+    def arccos(self):
+        from .si import radian
+        if _is_unity(self.unit):
+            return Quantity(np.arccos(self.value), unit=radian)
+        else:
+            raise TypeError("Can only apply inverse trigonometric functions to dimensionless and unscaled quantities")
+
+    def arcsin(self):
+        from .si import radian
+        if _is_unity(self.unit):
+            return Quantity(np.arcsin(self.value), unit=radian)
+        else:
+            raise TypeError("Can only apply inverse trigonometric functions to dimensionless and unscaled quantities")
+
+    def arctan(self):
+        from .si import radian
+        if _is_unity(self.unit):
+            return Quantity(np.arctan(self.value), unit=radian)
+        else:
+            raise TypeError("Can only apply inverse trigonometric functions to dimensionless and unscaled quantities")
+
+    # Mathematical methods (these get called when np.sqrt/np.exp/etc. are used)
+
+    def sqrt(self):
+        return Quantity(self.value ** 0.5, self.unit ** 0.5)
+
+    def exp(self):
+        if _is_unity(self._unit):
+            return np.exp(self.value)
+        else:
+            raise TypeError("Can only apply exp function to dimensionless quantities")
+
+    def log(self):
+        if _is_unity(self._unit):
+            return np.log(self.value)
+        else:
+            raise TypeError("Can only apply log function to dimensionless quantities")
+
+    def log2(self):
+        if _is_unity(self._unit):
+            return np.log2(self.value)
+        else:
+            raise TypeError("Can only apply log2 function to dimensionless quantities")
+
+    def log10(self):
+        if _is_unity(self._unit):
+            return np.log10(self.value)
+        else:
+            raise TypeError("Can only apply log10 function to dimensionless quantities")
+
+    def log1p(self):
+        if _is_unity(self._unit):
+            return np.log1p(self.value)
+        else:
+            raise TypeError("Can only apply log1p function to dimensionless quantities")
+
     # Comparison operations
     def __eq__(self, other):
         if hasattr(other, 'value') and hasattr(other, 'to'):
@@ -462,46 +601,25 @@ class Quantity(object):
 
     # Numerical types
     def __float__(self):
-        if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to '
-                            'Python scalars')
-        # We show a warning unless the unit is equivalent to unity (i.e. not
-        # just dimensionless, but also with a scale of 1)
-        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            warnings.warn("Converting Quantity object in units '{0}' to a "
-                          "Python scalar".format(self.unit))
-        return float(self.value)
+        if not self.isscalar or not _is_unity(self.unit):
+            raise TypeError('Only dimensionless scalar quantities can be '
+                            'converted to Python scalars')
+        else:
+            return float(self.value)
 
     def __int__(self):
-        if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to '
-                            'Python scalars')
-        # We show a warning unless the unit is equivalent to unity (i.e. not
-        # just dimensionless, but also with a scale of 1)
-        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            warnings.warn("Converting Quantity object in units '{0}' to a "
-                          "Python scalar".format(self.unit))
-        return int(self.value)
+        if not self.isscalar or not _is_unity(self.unit):
+            raise TypeError('Only dimensionless scalar quantities can be '
+                            'converted to Python scalars')
+        else:
+            return int(self.value)
 
     def __long__(self):
-        if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to '
-                            'Python scalars')
-        # We show a warning unless the unit is equivalent to unity (i.e. not
-        # just dimensionless, but also with a scale of 1)
-        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            warnings.warn("Converting Quantity object in units '{0}' to a "
-                          "Python scalar".format(self.unit))
-        return long(self.value)
-
-    # Array types
-    def __array__(self):
-        # We show a warning unless the unit is equivalent to unity (i.e. not
-        # just dimensionless, but also with a scale of 1)
-        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            warnings.warn("Converting Quantity object in units '{0}' to a "
-                          "Numpy array".format(self.unit))
-        return np.array(self.value)
+        if not self.isscalar or not _is_unity(self.unit):
+            raise TypeError('Only dimensionless scalar quantities can be '
+                            'converted to Python scalars')
+        else:
+            return long(self.value)
 
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
