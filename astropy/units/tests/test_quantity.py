@@ -79,6 +79,7 @@ class TestQuantityCreation(object):
         assert q1.unit == q2.unit
         assert q1.dtype == q2.dtype
 
+
 class TestQuantityOperations(object):
     q1 = u.Quantity(11.42, u.meter)
     q2 = u.Quantity(8.0, u.centimeter)
@@ -240,16 +241,16 @@ class TestQuantityOperations(object):
             self.q1 - u.Quantity(0.1, unit=u.Unit(""))
 
         # and test that scaling of integers works
-        q = np.array([1,2,3]) * u.m / u.km
-        q2 = q + np.array([4,5,6])
+        q = np.array([1, 2, 3]) * u.m / u.km
+        q2 = q + np.array([4, 5, 6])
         assert q2.unit == u.dimensionless_unscaled
         assert_allclose(q2.value, np.array([4.001, 5.002, 6.003]))
         # but not if doing it inplace
         with pytest.raises(TypeError):
-            q += np.array([1,2,3])
+            q += np.array([1, 2, 3])
         # except if it is actually possible
-        q = np.array([1,2,3]) * u.km / u.m
-        q += np.array([4,5,6])
+        q = np.array([1, 2, 3]) * u.km / u.m
+        q += np.array([4, 5, 6])
         assert q.unit == u.dimensionless_unscaled
         assert np.all(q.value == np.array([1004, 2005, 3006]))
 
@@ -323,7 +324,6 @@ class TestQuantityOperations(object):
         assert int(q3) == 1
         assert long(q3) == 1L
 
-
     def test_array_converters(self):
 
         # Scalar quantity
@@ -393,6 +393,7 @@ def test_cgs():
 
 
 class TestQuantityComparison(object):
+
     def test_quantity_equality(self):
         assert u.Quantity(1000, unit='m') == u.Quantity(1, unit='km')
         assert not (u.Quantity(1, unit='m') == u.Quantity(1, unit='km'))

@@ -231,7 +231,7 @@ class Quantity(np.ndarray):
             if self is obj and any(self is arg for arg in args):
                 # but with two outputs it would become unhidden too soon
                 # [ie., np.modf(q1, q1, other)].  Bail.
-                if context[2] < function.nout-1:
+                if context[2] < function.nout - 1:
                     raise TypeError("Cannot apply multi-output {0} function "
                                     "to quantities with in-place replacement "
                                     "of an input by any but the last output."
@@ -574,7 +574,7 @@ class Quantity(np.ndarray):
                 raise exc
             return True
 
-    #other overrides of special functions
+    # other overrides of special functions
     def __hash__(self):
         return hash(self.value) ^ hash(self.unit)
 

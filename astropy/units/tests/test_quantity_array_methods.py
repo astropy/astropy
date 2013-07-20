@@ -14,52 +14,52 @@ class TestQuantityStatsFuncs(object):
     """
 
     def test_mean(self):
-        q1 = np.array([1.,2.,4.,5.,6.]) * u.m
+        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         assert np.mean(q1) == 3.6 * u.m
         assert np.mean(q1).unit == u.m
         assert np.mean(q1).value == 3.6
 
     def test_std(self):
-        q1 = np.array([1.,2.]) * u.m
+        q1 = np.array([1., 2.]) * u.m
         assert np.std(q1) == 0.5 * u.m
         assert np.std(q1).unit == u.m
         assert np.std(q1).value == 0.5
 
     def test_var(self):
-        q1 = np.array([1.,2.]) * u.m
+        q1 = np.array([1., 2.]) * u.m
         assert np.var(q1) == 0.25 * u.m ** 2
         assert np.var(q1).unit == u.m ** 2
         assert np.var(q1).value == 0.25
 
     def test_median(self):
-        q1 = np.array([1.,2.,4.,5.,6.]) * u.m
+        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         assert np.median(q1) == 4. * u.m
         assert np.median(q1).unit == u.m
         assert np.median(q1).value == 4.
 
     def test_min(self):
-        q1 = np.array([1.,2.,4.,5.,6.]) * u.m
+        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         assert np.min(q1) == 1. * u.m
         assert np.min(q1).unit == u.m
         assert np.min(q1).value == 1.
 
     def test_max(self):
-        q1 = np.array([1.,2.,4.,5.,6.]) * u.m
+        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         assert np.max(q1) == 6. * u.m
         assert np.max(q1).unit == u.m
         assert np.max(q1).value == 6.
 
     def test_clip(self):
-        q1 = np.array([1.,2.,4.,5.,6.]) * u.km / u.m
-        c1 = q1.clip(1500, 5.5*u.Mm/u.km)
-        assert all(c1 == np.array([1.5,2.,4.,5.,5.5]) * u.km/u.m)
+        q1 = np.array([1., 2., 4., 5., 6.]) * u.km / u.m
+        c1 = q1.clip(1500, 5.5 * u.Mm / u.km)
+        assert all(c1 == np.array([1.5, 2., 4., 5., 5.5]) * u.km / u.m)
 
     def test_conj(self):
-        q1 = np.array([1.,2.,4.,5.,6.]) * u.km / u.m
+        q1 = np.array([1., 2., 4., 5., 6.]) * u.km / u.m
         assert all(q1.conj() == q1)
 
     def test_ptp(self):
-        q1 = np.array([1.,2.,4.,5.,6.]) * u.m
+        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         assert np.ptp(q1) == 5. * u.m
         assert np.ptp(q1).unit == u.m
         assert np.ptp(q1).value == 5.
@@ -74,7 +74,7 @@ class TestQuantityStatsFuncs(object):
         assert np.all(q1.sum() == 9. * u.m)
         assert np.all(np.sum(q1) == 9. * u.m)
 
-        q2 = np.array([[4., 5., 9.], [1.,1.,1.]]) * u.s
+        q2 = np.array([[4., 5., 9.], [1., 1., 1.]]) * u.s
         assert np.all(q2.sum(0) == np.array([5., 6., 10.]) * u.s)
         assert np.all(np.sum(q2, 0) == np.array([5., 6., 10.]) * u.s)
 
@@ -125,53 +125,53 @@ class TestArrayConversion(object):
     """
 
     def test_item(self):
-        q1 = np.array([1, 2, 3]) * u.m/u.km
-        assert q1.item(1) == 2*q1.unit
+        q1 = np.array([1, 2, 3]) * u.m / u.km
+        assert q1.item(1) == 2 * q1.unit
         q1.itemset(1, 1)
-        assert q1.item(1) == 1000*u.m/u.km
-        q1.itemset(1, 100*u.cm/u.km)
-        assert q1.item(1) == 1*u.m/u.km
+        assert q1.item(1) == 1000 * u.m / u.km
+        q1.itemset(1, 100 * u.cm / u.km)
+        assert q1.item(1) == 1 * u.m / u.km
         with pytest.raises(TypeError):
-            q1.itemset(1, 1.5*u.m/u.km)
+            q1.itemset(1, 1.5 * u.m / u.km)
         with pytest.raises(ValueError):
             q1.itemset()
 
         q1[1] = 1
-        assert q1[1] == 1000*u.m/u.km
-        q1[1] = 100*u.cm/u.km
-        assert q1[1] == 1*u.m/u.km
+        assert q1[1] == 1000 * u.m / u.km
+        q1[1] = 100 * u.cm / u.km
+        assert q1[1] == 1 * u.m / u.km
         with pytest.raises(TypeError):
-            q1[1] = 1.5*u.m/u.km
+            q1[1] = 1.5 * u.m / u.km
 
-        q1 = np.array([1, 2, 3])*u.m/u.km
-        assert all(q1.take((0,2)) == np.array([1,3])*u.m/u.km)
-        q1.put((1,2), (3,4))
-        assert np.all(q1.take((1,2)) == np.array([3000,4000]) * q1.unit)
-        q1.put(0,500*u.cm/u.km)
-        assert q1.item(0) == 5*u.m/u.km
+        q1 = np.array([1, 2, 3]) * u.m / u.km
+        assert all(q1.take((0, 2)) == np.array([1, 3]) * u.m / u.km)
+        q1.put((1, 2), (3, 4))
+        assert np.all(q1.take((1, 2)) == np.array([3000, 4000]) * q1.unit)
+        q1.put(0, 500 * u.cm / u.km)
+        assert q1.item(0) == 5 * u.m / u.km
 
     def test_slice(self):
-        q2 = np.array([[1, 2, 3], [4, 5, 6]]) * u.km/u.m
+        q2 = np.array([[1, 2, 3], [4, 5, 6]]) * u.km / u.m
         q1 = q2.copy()
-        q2[0,0] = 10000
+        q2[0, 0] = 10000
         assert q2.unit == q1.unit
-        assert q2[0,0].value == 10
+        assert q2[0, 0].value == 10
         q2[0] = 9 * u.Mm / u.km
         assert all(q2.flatten()[:3].value == np.array([9, 9, 9]))
-        q2[0,:-1] = 8000
+        q2[0, :-1] = 8000
         assert all(q2.flatten()[:3].value == np.array([8, 8, 9]))
         with pytest.raises(u.UnitsException):
-            q2[1,1] = 10 * u.s
+            q2[1, 1] = 10 * u.s
         with pytest.raises(TypeError):
-            q2[0,1] = 1.5 * u.km/u.m
+            q2[0, 1] = 1.5 * u.km / u.m
 
     def test_fill(self):
-        q1 = np.array([1, 2, 3]) * u.m/u.km
+        q1 = np.array([1, 2, 3]) * u.m / u.km
         q1.fill(2)
-        assert np.all(q1 == 2000*u.m/u.km)
+        assert np.all(q1 == 2000 * u.m / u.km)
 
     def test_repeat_compress_diagonal(self):
-        q1 = np.array([1, 2, 3]) * u.m/u.km
+        q1 = np.array([1, 2, 3]) * u.m / u.km
         q2 = q1.repeat(2)
         assert q2.unit == q1.unit
         assert all(q2.value == q1.value.repeat(2))
@@ -181,13 +181,13 @@ class TestArrayConversion(object):
         assert q2.unit == q1.unit
         assert all(q2.value == q1.value.compress(np.array([True, True,
                                                            False, False])))
-        q1 = np.array([[1, 2], [3, 4]]) * u.m/u.km
+        q1 = np.array([[1, 2], [3, 4]]) * u.m / u.km
         q2 = q1.diagonal()
         assert q2.unit == q1.unit
         assert all(q2.value == q1.value.diagonal())
 
     def test_byte_type_view_field_changes(self):
-        q1 = np.array([1, 2, 3]) * u.m/u.km
+        q1 = np.array([1, 2, 3]) * u.m / u.km
         q2 = q1.byteswap()
         assert q2.unit == q1.unit
         assert all(q2.value == q1.value.byteswap())
@@ -202,7 +202,7 @@ class TestArrayConversion(object):
         assert all(q2b.byteswap() == q2a)
 
     def test_sort(self):
-        q1 = np.array([1.,5.,2.,4.]) * u.km/u.m
+        q1 = np.array([1., 5., 2., 4.]) * u.km / u.m
         i = q1.argsort()
         assert not hasattr(i, 'unit')
         q1.sort()
@@ -212,10 +212,10 @@ class TestArrayConversion(object):
             u.dimensionless_unscaled).value.searchsorted([1500, 2500]))
 
     def test_not_implemented(self):
-        q1 = np.array([1, 2, 3]) * u.m/u.km
+        q1 = np.array([1, 2, 3]) * u.m / u.km
 
         with pytest.raises(NotImplementedError):
-            q1.choose([0,0,1])
+            q1.choose([0, 0, 1])
 
         with pytest.raises(NotImplementedError):
             q1.list()

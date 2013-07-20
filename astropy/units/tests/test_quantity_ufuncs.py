@@ -120,13 +120,13 @@ class TestQuantityTrigonometricFuncs(object):
 
     def test_tan_invalid_units(self):
         with pytest.raises(TypeError) as exc:
-            np.tan(np.array([1,2,3]) * u.N)
+            np.tan(np.array([1, 2, 3]) * u.N)
         assert exc.value.args[0] == ("Can only apply 'tan' function "
                                      "to quantities with angle units")
 
     def test_arctan_invalid_units(self):
         with pytest.raises(TypeError) as exc:
-            np.arctan(np.array([1,2,3]) * u.N)
+            np.arctan(np.array([1, 2, 3]) * u.N)
         assert exc.value.args[0] == ("Can only apply 'arctan' function to "
                                      "dimensionless quantities")
 
@@ -136,17 +136,17 @@ class TestQuantityTrigonometricFuncs(object):
         assert np.arctan2(q1, q2).unit == u.radian
         assert_allclose(np.arctan2(q1, q2).value,
                         np.arctan2(q1.value, q2.to(q1.unit).value))
-        q3 = q1/q2
+        q3 = q1 / q2
         q4 = 1.
         at2 = np.arctan2(q3, q4)
         assert_allclose(at2, np.arctan2(q3.to(1).value, q4))
 
     def test_arctan2_invalid(self):
         with pytest.raises(u.UnitsException) as exc:
-            np.arctan2(np.array([1,2,3]) * u.N, 1. * u.s)
+            np.arctan2(np.array([1, 2, 3]) * u.N, 1. * u.s)
         assert "compatible dimensions" in exc.value.args[0]
         with pytest.raises(u.UnitsException) as exc:
-            np.arctan2(np.array([1,2,3]) * u.N, 1.)
+            np.arctan2(np.array([1, 2, 3]) * u.N, 1.)
         assert "dimensionless quantities when other arg" in exc.value.args[0]
 
 
@@ -162,7 +162,7 @@ class TestQuantityMathFuncs(object):
 
     def test_multiply_array(self):
         assert np.all(np.multiply(np.arange(3.) * u.m, 2. / u.s) ==
-                      np.arange(0,6.,2.) * u.m / u.s)
+                      np.arange(0, 6., 2.) * u.m / u.s)
 
     @pytest.mark.parametrize('function', (np.divide, np.true_divide,
                                           np.floor_divide))
@@ -216,7 +216,7 @@ class TestQuantityMathFuncs(object):
 
     def test_power_scalar(self):
         assert np.power(4. * u.m, 2.) == 16. * u.m ** 2
-        assert np.power(4., 200.*u.cm/u.m) == \
+        assert np.power(4., 200. * u.cm / u.m) == \
             u.Quantity(16., u.dimensionless_unscaled)
 
     def test_power_array(self):
@@ -233,25 +233,25 @@ class TestQuantityMathFuncs(object):
 
     def test_power_invalid(self):
         with pytest.raises(TypeError) as exc:
-            np.power(3., 4.*u.m)
+            np.power(3., 4. * u.m)
         assert "raise something to a dimensionless" in exc.value.args[0]
         with pytest.raises(ValueError) as exc:
-            np.power(2.*u.m, 4.6)
+            np.power(2. * u.m, 4.6)
         assert "must be integers" in exc.value.args[0]
 
     def test_ldexp_scalar(self):
         assert np.ldexp(4. * u.m, 2) == 16. * u.m
 
     def test_ldexp_array(self):
-        assert np.all(np.ldexp(np.array([1., 2., 3.]) * u.m, [3,2,1])
+        assert np.all(np.ldexp(np.array([1., 2., 3.]) * u.m, [3, 2, 1])
                       == np.array([8., 8., 6.]) * u.m)
 
     def test_ldexp_invalid(self):
         with pytest.raises(TypeError) as exc:
-            np.ldexp(3.*u.m, 4.)
+            np.ldexp(3. * u.m, 4.)
         # built-in TypeError, so can't check content of exception
         with pytest.raises(TypeError) as exc:
-            np.ldexp(3., 4*u.m)
+            np.ldexp(3., 4 * u.m)
         assert "Cannot use ldexp" in exc.value.args[0]
 
     @pytest.mark.parametrize('function', (np.exp, np.expm1, np.exp2,
@@ -290,7 +290,7 @@ class TestQuantityMathFuncs(object):
                      1. * u.dimensionless_unscaled)
 
     def test_modf_array(self):
-        v = np.arange(10.) * u.m / (500.*u.cm)
+        v = np.arange(10.) * u.m / (500. * u.cm)
         q = np.modf(v)
         n = np.modf(v.to(1).value)
         assert q[0].unit == u.dimensionless_unscaled
@@ -304,7 +304,7 @@ class TestQuantityMathFuncs(object):
 
     def test_frexp_array(self):
         q = np.frexp(np.array([2., 3., 6.]) * u.m / (6. * u.m))
-        assert all((_q0,_q1) == np.frexp(_d) for _q0, _q1, _d
+        assert all((_q0, _q1) == np.frexp(_d) for _q0, _q1, _d
                    in zip(q[0], q[1], [1. / 3., 1. / 2., 1.]))
 
     def test_frexp_invalid_units(self):
@@ -410,10 +410,10 @@ class TestComparisonUfuncs(object):
         assert not isinstance(q_o, u.Quantity)
         assert q_o.dtype == np.bool
         assert np.all(q_o == ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
-        q_o2 = ufunc(q_i1/q_i2, 2.)
+        q_o2 = ufunc(q_i1 / q_i2, 2.)
         assert not isinstance(q_o2, u.Quantity)
         assert q_o2.dtype == np.bool
-        assert np.all(q_o2 == ufunc((q_i1/q_i2).to(1).value, 2.))
+        assert np.all(q_o2 == ufunc((q_i1 / q_i2).to(1).value, 2.))
 
     @pytest.mark.parametrize(('ufunc'), [np.greater, np.greater_equal,
                                          np.less, np.less_equal,
@@ -432,13 +432,13 @@ class TestInplaceUfuncs(object):
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_one_argument_ufunc_inplace(self, value):
         # without scaling
-        s = value*u.rad
+        s = value * u.rad
         check = s
         np.sin(s, out=s)
         assert check is s
         assert check.unit == u.dimensionless_unscaled
         # with scaling
-        s2 = (value*u.rad).to(u.deg)
+        s2 = (value * u.rad).to(u.deg)
         check2 = s2
         np.sin(s2, out=s2)
         assert check2 is s2
@@ -471,14 +471,14 @@ class TestInplaceUfuncs(object):
 
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_two_argument_ufunc_inplace_1(self, value):
-        s = value*u.cycle
+        s = value * u.cycle
         check = s
         s /= 2.
         assert check is s
-        assert np.all(check.value == value/2.)
+        assert np.all(check.value == value / 2.)
         s /= u.s
         assert check is s
-        assert check.unit == u.cycle/u.s
+        assert check.unit == u.cycle / u.s
         s *= 2. * u.s
         assert check is s
         assert np.all(check == value * u.cycle)
@@ -486,21 +486,21 @@ class TestInplaceUfuncs(object):
     @pytest.mark.skipif("NUMPY_LT_1P6")
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_two_argument_ufunc_inplace_2(self, value):
-        s = value*u.cycle
+        s = value * u.cycle
         check = s
         np.arctan2(s, s, out=s)
         assert check is s
         assert check.unit == u.radian
         with pytest.raises(u.UnitsException):
-            s += 1.*u.m
+            s += 1. * u.m
         assert check is s
         assert check.unit == u.radian
-        np.arctan2(1.*u.deg, s, out=s)
+        np.arctan2(1. * u.deg, s, out=s)
         assert check is s
         assert check.unit == u.radian
-        np.add(1.*u.deg, s, out=s)
+        np.add(1. * u.deg, s, out=s)
         assert check is s
         assert check.unit == u.deg
-        np.multiply(2./u.s, s, out=s)
+        np.multiply(2. / u.s, s, out=s)
         assert check is s
-        assert check.unit == u.deg/u.s
+        assert check.unit == u.deg / u.s
