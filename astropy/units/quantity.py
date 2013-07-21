@@ -889,7 +889,10 @@ class Quantity(np.ndarray):
     def dot(self, b, out=None):
         result_unit = self.unit * getattr(b, 'unit', 1.)
         self._prepare_out(out=out, unit=result_unit)
-        value = np.dot(self, b, out=out)
+        try:
+            value = np.dot(self, b, out=out)
+        except TypeError:  # numpy < 1.7
+            value = np.dot(self, b)
         return Quantity(value, result_unit)
 
     def diff(self, n=1, axis=-1):

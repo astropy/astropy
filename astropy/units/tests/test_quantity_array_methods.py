@@ -7,6 +7,8 @@ from ... import units as u
 from ...tests.helper import pytest
 from ...tests.compat import assert_allclose
 
+NUMPY_LT_1P6 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 6]
+
 
 class TestQuantityStatsFuncs(object):
     """
@@ -38,6 +40,7 @@ class TestQuantityStatsFuncs(object):
         q1 = np.array([1., 2.]) * u.m
         assert np.var(q1) == 0.25 * u.m ** 2
 
+    @pytest.mark.xfail("NUMPY_LT_1P6")
     def test_var_inplace(self):
         q1 = np.array([1., 2.]) * u.m
         qi = 1.5 * u.s
