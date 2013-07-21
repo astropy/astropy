@@ -7,8 +7,7 @@ from ... import units as u
 from ...tests.helper import pytest
 from ...tests.compat import assert_allclose
 
-NUMPY_LT_1P6 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 6]
-
+NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
 
 class TestQuantityStatsFuncs(object):
     """
@@ -29,8 +28,12 @@ class TestQuantityStatsFuncs(object):
         q1 = np.array([1., 2.]) * u.m
         assert np.std(q1) == 0.5 * u.m
 
-    @pytest.mark.xfail
     def test_std_inplace(self):
+
+        # can't use decorator since test causes a segfault in Numpy < 1.7, and
+        # py.test will run the test anyway to see if it works
+        pytest.xfail()
+
         q1 = np.array([1., 2.]) * u.m
         qi = 1.5 * u.s
         np.std(q1, out=qi)
@@ -40,8 +43,13 @@ class TestQuantityStatsFuncs(object):
         q1 = np.array([1., 2.]) * u.m
         assert np.var(q1) == 0.25 * u.m ** 2
 
-    @pytest.mark.xfail("NUMPY_LT_1P6")
     def test_var_inplace(self):
+
+        # can't use decorator since test causes a segfault in Numpy < 1.7, and
+        # py.test will run the test anyway to see if it works
+        if NUMPY_LT_1P7:
+            pytest.xfail()
+
         q1 = np.array([1., 2.]) * u.m
         qi = 1.5 * u.s
         np.var(q1, out=qi)
