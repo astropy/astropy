@@ -80,7 +80,7 @@ class TestQuantityStatsFuncs(object):
 
     def test_argmax(self):
         q1 = np.array([5., 2., 4., 5., 6.]) * u.m
-        assert np.argmax(q1) == 5
+        assert np.argmax(q1) == 4
 
     def test_clip(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.km / u.m
