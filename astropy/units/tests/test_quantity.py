@@ -46,6 +46,7 @@ class TestQuantityCreation(object):
             quantity = 182.234 % u.meter
 
     def test_2(self):
+
         # create objects using the Quantity constructor:
         q1 = u.Quantity(11.412, unit=u.meter)
         q2 = u.Quantity(21.52, "cm")
@@ -54,6 +55,9 @@ class TestQuantityCreation(object):
         # By default quantities that don't specify a unit are unscaled
         # dimensionless
         assert q3.unit == u.Unit(1)
+
+        with pytest.raises(TypeError):
+            q4 = u.Quantity(object(), unit=u.m)
 
     def test_3(self):
         # with pytest.raises(u.UnitsException):
@@ -528,6 +532,12 @@ def test_array_indexing_slicing():
     q = np.array([1., 2., 3.]) * u.m
     assert q[0] == 1. * u.m
     assert np.all(q[0:2] == u.Quantity([1., 2.], u.m))
+
+
+def test_array_setslice():
+    q = np.array([1., 2., 3. ]) * u.m
+    q[1:2] = np.array([400.]) * u.cm
+    assert np.all(q == np.array([1., 4., 3.]) * u.m)
 
 
 def test_inverse_quantity():

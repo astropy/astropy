@@ -820,54 +820,58 @@ class Quantity(np.ndarray):
 
     # ensure we do not return indices as quantities
     # conj OK
+
     def argmax(self, axis=None, out=None):
         return self.view(np.ndarray).argmax(axis=axis, out=out)
 
     def argmin(self, axis=None, out=None):
         return self.view(np.ndarray).argmin(axis=axis, out=out)
 
-    def clip(self, a_min, a_max, out=None):
-        if out is not None:
-            out = out.view(Quantity)
+    def _prepare_out(self, out=None, unit=None):
+        if out is None:
+            return
+        if not isinstance(out, Quantity):
+            raise TypeError("out= should be a Quantity instance")
+        if unit is None:
             out._unit = self.unit
-        return super(Quantity, self.__class__).clip(self,
-                                                    self._to_own_unit(a_min),
-                                                    self._to_own_unit(a_max),
-                                                    out=out)
+        else:
+            out._unit = unit
+
+    def clip(self, a_min, a_max, out=None):
+        self._prepare_out(out=out)
+        value = np.clip(self.value, self._to_own_unit(a_min),
+                                self._to_own_unit(a_max), out=out)
+        return Quantity(value, self.unit)
 
     def trace(self, offset=0, axis1=0, axis2=1, dtype=None, out=None):
-        if out is not None:
-            out = out.view(Quantity)
-            out._unit = self.unit
-        return Quantity(np.trace(self.value, offset=offset, axis1=axis1,
-                                 axis2=axis2, dtype=None, out=out),
-                        self.unit)
+        self._prepare_out(out=out)
+        value = np.trace(self.value, offset=offset, axis1=axis1,
+                                 axis2=axis2, dtype=None, out=out)
+        return Quantity(value, self.unit)
 
     def var(self, axis=None, dtype=None, out=None, ddof=0):
         result_unit = self.unit ** 2
-        if out is not None:
-            out = out.view(Quantity)
-            out._unit = result_unit
-        return Quantity(np.var(self.value, axis=axis, dtype=dtype, ddof=ddof),
-                        result_unit)
+        self._prepare_out(out=out, unit=result_unit)
+        value = np.var(self.value, axis=axis, dtype=dtype, out=out, ddof=ddof),
+        return Quantity(value, result_unit)
 
     def std(self, axis=None, dtype=None, out=None, ddof=0):
-        out = out and out.view(Quantity)
+        self._prepare_out(out=out)
         value = np.std(self.value, axis=axis, dtype=dtype, out=out, ddof=ddof)
         return Quantity(value, self.unit)
 
     def mean(self, axis=None, dtype=None, out=None):
-        out = out and out.view(Quantity)
+        self._prepare_out(out=out)
         value = np.mean(self.value, axis=axis, dtype=dtype, out=out)
         return Quantity(value, self.unit)
 
     def ptp(self, axis=None, out=None):
-        out = out and out.view(Quantity)
+        self._prepare_out(out=out)
         value = np.ptp(self.value, axis=axis, out=out)
         return Quantity(value, self.unit)
 
     def max(self, axis=None, out=None, keepdims=False):
-        out = out and out.view(Quantity)
+        self._prepare_out(out=out)
         try:
             value = np.max(self.value, axis=axis, out=out, keepdims=keepdims)
         except:  # numpy < 1.7
@@ -875,7 +879,7 @@ class Quantity(np.ndarray):
         return Quantity(value, self.unit)
 
     def min(self, axis=None, out=None, keepdims=False):
-        out = out and out.view(Quantity)
+        self._prepare_out(out=out)
         try:
             value = np.min(self.value, axis=axis, out=out, keepdims=keepdims)
         except:  # numpy < 1.7
@@ -884,10 +888,8 @@ class Quantity(np.ndarray):
 
     def dot(self, b, out=None):
         result_unit = self.unit * getattr(b, 'unit', 1.)
-        if out is not None:
-            out = out.view(Quantity)
-            out._unit = result_unit
-        value = np.ndarray.dot(self, b, out=out)
+        self._prepare_out(out=out, unit=result_unit)
+        value = np.dot(self, b, out=out)
         return Quantity(value, result_unit)
 
     def diff(self, n=1, axis=-1):
@@ -903,7 +905,7 @@ class Quantity(np.ndarray):
         return Quantity(value, self.unit)
 
     def sum(self, axis=None, dtype=None, out=None, keepdims=False):
-        out = out and out.view(Quantity)
+        self._prepare_out(out=out)
         try:
             value = np.sum(self.value, axis=axis, dtype=dtype,
                            out=out, keepdims=keepdims)
@@ -913,13 +915,13 @@ class Quantity(np.ndarray):
         return Quantity(value, self.unit)
 
     def cumsum(self, axis=None, dtype=None, out=None):
-        out = out and out.view(Quantity)
+        self._prepare_out(out=out)
         value = np.cumsum(self.value, axis=axis, dtype=dtype, out=out)
         return Quantity(value, self.unit)
 
     def prod(self, axis=None, dtype=None, out=None, keepdims=False):
         if self.unit.is_unity():
-            out = out and out.view(Quantity)
+            self._prepare_out(out=out)
             try:
                 value = np.prod(self.value, axis=axis, dtype=dtype,
                                 out=out, keepdims=keepdims)
@@ -933,7 +935,7 @@ class Quantity(np.ndarray):
 
     def cumprod(self, axis=None, dtype=None, out=None):
         if self.unit.is_unity():
-            out = out and out.view(Quantity)
+            self._prepare_out(out=out)
             value = np.cumprod(self.value, axis=axis, dtype=dtype, out=out)
             return Quantity(value, self.unit)
         else:

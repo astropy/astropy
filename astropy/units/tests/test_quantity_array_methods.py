@@ -16,38 +16,71 @@ class TestQuantityStatsFuncs(object):
     def test_mean(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         assert np.mean(q1) == 3.6 * u.m
-        assert np.mean(q1).unit == u.m
-        assert np.mean(q1).value == 3.6
+
+    def test_mean_inplace(self):
+        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
+        qi = 1.5 * u.s
+        np.mean(q1, out=qi)
+        assert qi == 3.6 * u.m
 
     def test_std(self):
         q1 = np.array([1., 2.]) * u.m
         assert np.std(q1) == 0.5 * u.m
-        assert np.std(q1).unit == u.m
-        assert np.std(q1).value == 0.5
+
+    @pytest.mark.xfail
+    def test_std_inplace(self):
+        q1 = np.array([1., 2.]) * u.m
+        qi = 1.5 * u.s
+        np.std(q1, out=qi)
+        assert qi == 0.5 * u.m
 
     def test_var(self):
         q1 = np.array([1., 2.]) * u.m
         assert np.var(q1) == 0.25 * u.m ** 2
-        assert np.var(q1).unit == u.m ** 2
-        assert np.var(q1).value == 0.25
+
+    def test_var_inplace(self):
+        q1 = np.array([1., 2.]) * u.m
+        qi = 1.5 * u.s
+        np.var(q1, out=qi)
+        assert qi == 0.25 * u.m ** 2
 
     def test_median(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         assert np.median(q1) == 4. * u.m
-        assert np.median(q1).unit == u.m
-        assert np.median(q1).value == 4.
+
+    def test_median_inplace(self):
+        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
+        qi = 1.5 * u.s
+        np.median(q1, out=qi)
+        assert qi == 4 * u.m
 
     def test_min(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         assert np.min(q1) == 1. * u.m
-        assert np.min(q1).unit == u.m
-        assert np.min(q1).value == 1.
+
+    def test_min_inplace(self):
+        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
+        qi = 1.5 * u.s
+        np.min(q1, out=qi)
+        assert qi == 1. * u.m
+
+    def test_argmin(self):
+        q1 = np.array([6., 2., 4., 5., 6.]) * u.m
+        assert np.argmin(q1) == 1
 
     def test_max(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         assert np.max(q1) == 6. * u.m
-        assert np.max(q1).unit == u.m
-        assert np.max(q1).value == 6.
+
+    def test_max_inplace(self):
+        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
+        qi = 1.5 * u.s
+        np.max(q1, out=qi)
+        assert qi == 6. * u.m
+
+    def test_argmax(self):
+        q1 = np.array([5., 2., 4., 5., 6.]) * u.m
+        assert np.argmax(q1) == 5
 
     def test_clip(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.km / u.m
@@ -61,8 +94,13 @@ class TestQuantityStatsFuncs(object):
     def test_ptp(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         assert np.ptp(q1) == 5. * u.m
-        assert np.ptp(q1).unit == u.m
-        assert np.ptp(q1).value == 5.
+
+    @pytest.mark.xfail
+    def test_ptp_inplace(self):
+        q1 = np.array([1., 2., 4., 5., 6.]) * u.m
+        qi = 1.5 * u.s
+        np.ptp(q1, out=qi)
+        assert qi == 5. * u.m
 
     def test_round(self):
         q1 = np.array([1.2, 2.2, 3.2]) * u.kg
@@ -78,6 +116,12 @@ class TestQuantityStatsFuncs(object):
         assert np.all(q2.sum(0) == np.array([5., 6., 10.]) * u.s)
         assert np.all(np.sum(q2, 0) == np.array([5., 6., 10.]) * u.s)
 
+    def test_sum_inplace(self):
+        q1 = np.array([1., 2., 6.]) * u.m
+        qi = 1.5 * u.s
+        np.sum(q1, out=qi)
+        assert qi == 9. * u.m
+
     def test_cumsum(self):
 
         q1 = np.array([1, 2, 6]) * u.m
@@ -87,6 +131,22 @@ class TestQuantityStatsFuncs(object):
         q2 = np.array([4, 5, 9]) * u.s
         assert np.all(q2.cumsum() == np.array([4, 9, 18]) * u.s)
         assert np.all(np.cumsum(q2) == np.array([4, 9, 18]) * u.s)
+
+    def test_cumsum_inplace(self):
+        q1 = np.array([1, 2, 6]) * u.m
+        qi = np.ones(3) * u.s
+        np.cumsum(q1, out=qi)
+        assert np.all(qi == np.array([1, 3, 9]) * u.m)
+
+    def test_nansum(self):
+
+        q1 = np.array([1., 2., np.nan]) * u.m
+        assert np.all(q1.nansum() == 3. * u.m)
+        assert np.all(np.nansum(q1) == 3. * u.m)
+
+        q2 = np.array([[np.nan, 5., 9.], [1., np.nan, 1.]]) * u.s
+        assert np.all(q2.nansum(0) == np.array([1., 5., 10.]) * u.s)
+        assert np.all(np.nansum(q2, 0) == np.array([1., 5., 10.]) * u.s)
 
     def test_prod(self):
 
@@ -117,6 +177,71 @@ class TestQuantityStatsFuncs(object):
         q2 = np.array([3, 4, 5]) * u.Unit(1)
         assert np.all(q2.cumprod() == np.array([3, 12, 60]) * u.Unit(1))
         assert np.all(np.cumprod(q2) == np.array([3, 12, 60]) * u.Unit(1))
+
+    def test_diff(self):
+
+        q1 = np.array([1., 2., 4., 10.]) * u.m
+        assert np.all(q1.diff() == np.array([1., 2., 6.]) * u.m)
+        assert np.all(np.diff(q1) == np.array([1., 2., 6.]) * u.m)
+
+    def test_ediff1d(self):
+
+        q1 = np.array([1., 2., 4., 10.]) * u.m
+        assert np.all(q1.ediff1d() == np.array([1., 2., 6.]) * u.m)
+        assert np.all(np.ediff1d(q1) == np.array([1., 2., 6.]) * u.m)
+
+    @pytest.mark.xfail
+    def test_dot_func(self):
+
+        q1 = np.array([1., 2., 4., 10.]) * u.m
+        q2 = np.array([3., 4., 5., 6.]) * u.s
+        q3 = np.dot(q1, q2)
+        assert q3.value == np.dot(q1.value, q2.value)
+        assert q3.unit == u.m * u.s
+
+    def test_dot_meth(self):
+
+        q1 = np.array([1., 2., 4., 10.]) * u.m
+        q2 = np.array([3., 4., 5., 6.]) * u.s
+        q3 = q1.dot(q2)
+        assert q3.value == np.dot(q1.value, q2.value)
+        assert q3.unit == u.m * u.s
+
+    @pytest.mark.xfail
+    def test_trace_func(self):
+
+        q = np.array([[1.,2.],[3.,4.]]) * u.m
+        assert np.trace(q) == 5. * u.m
+
+    def test_trace_meth(self):
+
+        q1 = np.array([[1.,2.],[3.,4.]]) * u.m
+        assert q1.trace() == 5. * u.m
+
+        cont = u.Quantity(4., u.s)
+
+        q2 = np.array([[3.,4.],[5.,6.]]) * u.m
+        q2.trace(out=cont)
+        assert cont == 9. * u.m
+
+    def test_clip_func(self):
+
+        q = np.arange(10) * u.m
+        assert np.all(np.clip(q, 3 * u.m, 6 * u.m) == np.array([3., 3.,3.,3.,4.,5.,6.,6.,6.,6.]) * u.m)
+
+    def test_clip_meth(self):
+
+        expected = np.array([3.,3.,3.,3.,4.,5.,6.,6.,6.,6.]) * u.m
+
+        q1 = np.arange(10) * u.m
+        q3 = q1.clip(3 * u.m, 6 * u.m)
+        assert np.all(q1.clip(3 * u.m, 6 * u.m) == expected)
+
+        cont = np.zeros(10) * u.s
+
+        q1.clip(3 * u.m, 6 * u.m, out=cont)
+
+        assert np.all(cont == expected)
 
 
 class TestArrayConversion(object):
