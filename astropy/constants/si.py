@@ -30,6 +30,10 @@ c = Constant('c', "Speed of light in vacuum", 2.99792458e8, 'm / (s)', 0.,
 G = Constant('G', "Gravitational constant", 6.67384e-11, 'm3 / (kg s2)',
              0.00080e-11, 'CODATA 2010', system='si')
 
+# Standard acceleration of gravity
+g0 = Constant('g0', "Standard acceleration of gravity", 9.80665, 'm / s2', 0.0,
+              'CODATA 2010', system='si')
+
 # Proton mass
 m_p = Constant('m_p', "Proton mass", 1.672621777e-27, 'kg', 0.000000074e-27,
                'CODATA 2010', system='si')
