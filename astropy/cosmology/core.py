@@ -881,7 +881,7 @@ class FLRW(Cosmology):
         dh = self._hubble_distance
         dm = self.comoving_transverse_distance(z)
         term1 = 4. * pi * dh ** 3 / (2. * Ok0)
-        term2 = dm / dh * sqrt(1 + Ok0 * (dm / dh) ** 2)
+        term2 = dm / dh * np.sqrt(1 + Ok0 * (dm / dh) ** 2)
         term3 = sqrt(abs(Ok0)) * dm / dh
 
         if Ok0 > 0:
