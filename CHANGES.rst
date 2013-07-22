@@ -4,10 +4,86 @@
 Bug Fixes
 ^^^^^^^^^
 
+- ``astropy.coordinates``
+
+  - Fixed the angle parser to support parsing the string "1 degree". [#1168]
+
+- ``astropy.io.ascii``
+
+  - Fixed a bug that prevented saving changes to the comment symbol when
+    writing changes to a table. [#1167]
+
 - ``astropy.io.fits``
 
   - Added a workaround for a bug in 64-bit OSX that could cause truncation when
     writing files greater than 2^32 bytes in size. [#839]
+
+- ``astropy.io.votable``
+
+  - Fixed incorrect reading of tables containing multiple ``<RESOURCE>``
+    elements. [#1223]
+
+- ``astropy.table``
+
+  - Fixed a bug where ``Table.remove_column`` and ``Table.rename_column``
+    could cause a maksed table to lose its masking. [#1120]
+
+  - Fixed bugs where subclasses of ``Table`` did not preserver their class in
+    certain operations. [#1142]
+
+  - Fixed a bug where slicing a masked table did not preserve the mask. [#1187]
+
+- ``astropy.units``
+
+  - Fixed a bug where the ``.si`` and ``.cgs`` properties of dimensionless
+    ``Quantity`` objects raised a ``ZeroDivisionError``. [#1150]
+
+  - Fixed a bug where multiple subsequent calls to the ``.decompose()`` method
+    on array quantities applied a scale factor each time. [#1163]
+
+- Misc
+
+  - Fixed an installation crash that could occur sometimes on Debian/Ubuntu
+    and other \*NIX systems where ``pkg_resources`` can be installed without
+    installing ``setuptools``. [#1150]
+
+  - Updated the ``distribute_setup.py`` bootstrapper to use setuptools >= 0.7
+    when installing on systems that don't already have an up to date version
+    of distribute/setuptools. [#1180]
+
+  - Changed the ``version.py`` template so that Astropy affiliated packages can
+    (and they should) use their own ``cython_version.py`` and
+    ``utils._compiler`` modules where appropriate. This issue only pertains to
+    affiliated package maintainers. [#1198]
+
+  - Fixed a corner case where the default config file generation could crash
+    if building with matplotlib but *not* Sphinx installed in a virtualenv.
+    [#1225]
+
+  - Fixed a crash that could occur in the logging module on systems that
+    don't have a default preferred encoding (in particular this happened
+    in some versions of PyCharm). [#1244]
+
+  - The Astropy log now supports passing non-string objects (and calling
+    ``str()`` on them by default) to the logging methods, in line with Python's
+    standard logging API. [#1267]
+
+  - Minor documentation fixes [#582, #696, #1154, #1194, #1212, #1213, #1246,
+    #1252]
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- ``astropy.cosmology``
+
+  - Added a new ``Plank13`` object representing the Plank 2013 results. WMAP7
+    remains the default cosmology so this should not affect any existing
+    computations using the defaults. [#895]
+
+- ``astropy.units``
+
+  - Performance improvements in initialization of ``Quantity`` objects with
+    a large number of elements. [#1231]
 
 
 0.2.3 (2013-05-30)
