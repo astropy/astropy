@@ -162,13 +162,32 @@ class TestParametricModels(object):
     """
     Test class for all parametric models.
 
-    Test values have to be defined in model_lists.py
+    Test values have to be defined in model_lists.py. It currently test the model
+    with different input types, evaluates the model at different positions and
+    assures that it gives the correct values. And test the model with the model
+    with the NonLinearFitter.
     """
 
     def setup_class(self):
         self.N = 100
         self.eval_error = 0.0001
         self.fit_error = 0.1
+        self.x = 5.3
+        self.y = 6.7
+        self.x1 = np.arange(1, 10, .1)
+        self.y1 = np.arange(1, 10, .1)
+        self.x2, self.y2 = np.mgrid[:10, :8]
+
+    @pytest.mark.parametrize(('model_class'), models_1D.keys())
+    def test_input1D(self, model_class):
+        """
+        Test model with different input types.
+        """
+        parameters = models_1D[model_class]['parameters']
+        model = model_class(*parameters)
+        model(self.x)
+        model(self.x1)
+        model(self.x2)
 
     @pytest.mark.parametrize(('model_class'), models_1D.keys())
     def test_eval1D(self, model_class):
@@ -208,6 +227,17 @@ class TestParametricModels(object):
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(x, data)
         assert np.all((fitter.fitpars - np.array(parameters) < self.fit_error))
+
+    @pytest.mark.parametrize(('model_class'), models_2D.keys())
+    def test_input2D(self, model_class):
+        """
+        Test model with different input types.
+        """
+        parameters = models_2D[model_class]['parameters']
+        model = model_class(*parameters)
+        model(self.x, self.y)
+        model(self.x1, self.y1)
+        model(self.x2, self.y2)
 
     @pytest.mark.parametrize(('model_class'), models_2D.keys())
     def test_eval2D(self, model_class):

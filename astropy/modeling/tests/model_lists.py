@@ -49,10 +49,10 @@ models_1D[Const1DModel] = {'parameters': [1],
                            'x_lim': [-10, 10]}
 
 models_1D[PowerLaw1DModel] = {'parameters': [1, 2],
-                           'x_values': [1, 10, 100],
-                           'y_values': [1.0, 0.01, 0.0001],
-                           'x_lim': [1, 100],
-                           'log_fit': True}
+                              'x_values': [1, 10, 100],
+                              'y_values': [1.0, 0.01, 0.0001],
+                              'x_lim': [1, 100],
+                              'log_fit': True}
 
 #2D Models
 models_2D = {}
@@ -79,16 +79,17 @@ models_2D[Box2DModel] = {'parameters': [1, 0, 0, 1, 1],
                          'y_lim': [-2, 2]}
 
 models_2D[MexicanHat2DModel] = {'parameters': [1, 0, 0, 1],
-                                'x_values': [0],
-                                'y_values': [0],
-                                'z_values': [1],
+                                'x_values': [0, 0, 0, 0, 0, 1, -1, 3, -3],
+                                'y_values': [0, 1, -1, 3, -3, 0, 0, 0, 0],
+                                'z_values': [1.0, 0.303265, 0.303265, -0.038881, -0.038881,
+                                             0.303265, 0.303265, -0.038881, -0.038881],
                                 'x_lim': [-10, 10],
                                 'y_lim': [-10, 10]}
 
 models_2D[TrapezoidDisk2DModel] = {'parameters': [1, 0, 0, 1, 1],
-                                   'x_values': [0],
-                                   'y_values': [0],
-                                   'z_values': [1],
+                                   'x_values': [0, 0.5, 0, 1.5],
+                                   'y_values': [0, 0.5, 1.5, 0],
+                                   'z_values': [1, 1, 0.5, 0.5],
                                    'x_lim': [-3, 3],
                                    'y_lim': [-3, 3]}
 
@@ -99,5 +100,3 @@ models_2D[Airy2DModel] = {'parameters': [1, 0, 0, 1],
                           'x_lim': [-10, 10],
                           'y_lim': [-10, 10],
                           'requires_scipy': True}
-
- 

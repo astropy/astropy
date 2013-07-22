@@ -503,7 +503,7 @@ class Const2DModel(Parametric2DModel):
         """
         return amplitude * np.ones_like(x)
 
- 
+
 class Disk2DModel(Parametric2DModel):
 
     """
@@ -710,10 +710,10 @@ class TrapezoidDisk2DModel(Parametric2DModel):
         Model function Trapezoid2D.
         """
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
-        range_1 = r <= radius / 2.
-        range_2 = np.logical_and(r >= radius / 2.,  r <= radius / 2. + amplitude / slope)
+        range_1 = r <= radius
+        range_2 = np.logical_and(r >= radius,  r <= radius + amplitude / slope)
         val_1 = amplitude
-        val_2 = amplitude + slope * (radius / 2. - r)
+        val_2 = amplitude + slope * (radius - r)
         return np.select([range_1, range_2], [val_1, val_2])
 
 

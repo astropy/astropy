@@ -18,18 +18,13 @@ except ImportError:
 model1d_pars = [(models.Poly1DModel, [2]),
                 (models.Legendre1DModel, [2]),
                 (models.Chebyshev1DModel, [2]),
-                (models.Gaussian1DModel, [10, 3.4, 1.1]),
                 (models.ShiftModel, [2]),
                 (models.ScaleModel, [2]),
-                (models.Sine1DModel, [5, 2]),
-                (models.Linear1DModel, [5, 2]),
-                (models.PowerLaw1DModel, [5, 2])
                 ]
 
 model2d_pars = [(models.Poly2DModel, [2]),
                 (models.Legendre2DModel, [1, 2]),
                 (models.Chebyshev2DModel, [1, 2]),
-                (models.Gaussian2DModel, [10, 3.4, 3.3, 1.2, 1.1]),
                 ]
 
 

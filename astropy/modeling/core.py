@@ -845,7 +845,7 @@ class Parametric1DModel(ParametricModel):
     deriv = None
     linear = False
 
-    def __init__(self, param_dict, **cons):
+    def __init__(self, param_dict, **constraints):
         # Get parameter dimension
         param_dim = np.size(param_dict[self.param_names[0]])
 
@@ -857,7 +857,7 @@ class Parametric1DModel(ParametricModel):
                             val=param_dict[param_name], mclass=self, param_dim=param_dim))
 
         super(Parametric1DModel, self).__init__(self.param_names, n_inputs=1,
-                                                n_outputs=1, param_dim=param_dim, **cons)
+                                                n_outputs=1, param_dim=param_dim, **constraints)
 
     def __call__(self, x):
         """
@@ -890,7 +890,7 @@ class Parametric2DModel(ParametricModel):
     deriv = None
     linear = False
 
-    def __init__(self, param_dict, **cons):
+    def __init__(self, param_dict, **constraints):
         # Get parameter dimension
         param_dim = np.size(param_dict[self.param_names[0]])
 
@@ -902,7 +902,7 @@ class Parametric2DModel(ParametricModel):
                             val=param_dict[param_name], mclass=self, param_dim=param_dim))
 
         super(Parametric2DModel, self).__init__(self.param_names, n_inputs=2,
-                                                n_outputs=1, param_dim=param_dim, **cons)
+                                                n_outputs=1, param_dim=param_dim, **constraints)
 
     def __call__(self, x, y):
         """
