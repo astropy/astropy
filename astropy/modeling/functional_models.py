@@ -35,8 +35,8 @@ class Gaussian1DModel(Parametric1DModel):
 
     param_names = ['amplitude', 'mean', 'stddev']
 
-    def __init__(self, amplitude, mean, stddev, **cons):
-        super(Gaussian1DModel, self).__init__(locals(), **cons)
+    def __init__(self, amplitude, mean, stddev, **constraints):
+        super(Gaussian1DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, amplitude, mean, stddev):
         """
@@ -96,7 +96,7 @@ class Gaussian2DModel(ParametricModel):
 
     def __init__(self, amplitude, x_mean, y_mean, x_stddev=None, y_stddev=None,
                  theta=0.0, x_fwhm=None, y_fwhm=None, cov_matrix=None,
-                 jacobian_func=None, **cons):
+                 jacobian_func=None, **constraints):
 
         try:
             param_dim = len(amplitude)
@@ -145,7 +145,7 @@ class Gaussian2DModel(ParametricModel):
         self._theta = parameters.Parameter('theta', theta, self, param_dim)
 
         super(Gaussian2DModel, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
-                                              param_dim=param_dim, **cons)
+                                              param_dim=param_dim, **constraints)
         self.linear = False
         if jacobian_func:
             self.deriv = jacobian_func
@@ -209,14 +209,14 @@ class ShiftModel(Model):
     """
     param_names = ['offsets']
 
-    def __init__(self, offsets):
+    def __init__(self, offsets, **constraints):
         if not isinstance(offsets, collections.Sequence):
             param_dim = 1
         else:
             param_dim = len(offsets)
         self._offsets = parameters.Parameter('offsets', offsets, self, param_dim)
         super(ShiftModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
-                                         param_dim=param_dim)
+                                         param_dim=param_dim, **constraints)
 
     def inverse(self):
         if self.param_dim == 1:
@@ -252,14 +252,14 @@ class ScaleModel(Model):
     """
     param_names = ['factors']
 
-    def __init__(self, factors):
+    def __init__(self, factors, **constraints):
         if not isinstance(factors, collections.Sequence):
             param_dim = 1
         else:
             param_dim = len(factors)
         self._factors = parameters.Parameter('factors', factors, self, param_dim)
         super(ScaleModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
-                                         param_dim=param_dim)
+                                         param_dim=param_dim, **constraints)
 
     def inverse(self):
         if self.param_dim == 1:
@@ -308,8 +308,8 @@ class PowerLaw1DModel(Parametric1DModel):
     """
     param_names = ['scale', 'alpha']
 
-    def __init__(self, scale, alpha):
-        super(PowerLaw1DModel, self).__init__(locals())
+    def __init__(self, scale, alpha, **constraints):
+        super(PowerLaw1DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, scale, alpha):
         """
@@ -345,8 +345,8 @@ class Sine1DModel(Parametric1DModel):
     """
     param_names = ['amplitude', 'frequency']
 
-    def __init__(self, amplitude, frequency):
-        super(Sine1DModel, self).__init__(locals())
+    def __init__(self, amplitude, frequency, **constraints):
+        super(Sine1DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, amplitude, frequency):
         """
@@ -384,8 +384,8 @@ class Linear1DModel(Parametric1DModel):
     """
     param_names = ['slope', 'intercept']
 
-    def __init__(self, slope, intercept):
-        super(Linear1DModel, self).__init__(locals())
+    def __init__(self, slope, intercept, **constraints):
+        super(Linear1DModel, self).__init__(locals(), **constraints)
         self.linear = True
 
     def eval(self, x, slope, intercept):
@@ -434,8 +434,8 @@ class Lorentz1DModel(Parametric1DModel):
     """
     param_names = ['amplitude', 'x_0', 'fwhm']
 
-    def __init__(self, amplitude, x_0, fwhm):
-        super(Lorentz1DModel, self).__init__(locals())
+    def __init__(self, amplitude, x_0, fwhm, **constraints):
+        super(Lorentz1DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, amplitude, x_0, fwhm):
         """
@@ -470,8 +470,8 @@ class Const1DModel(Parametric1DModel):
     """
     param_names = ['amplitude']
 
-    def __init__(self, amplitude):
-        super(Const1DModel, self).__init__(locals())
+    def __init__(self, amplitude, **constraints):
+        super(Const1DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, amplitude):
         """
@@ -494,8 +494,8 @@ class Const2DModel(Parametric2DModel):
     """
     param_names = ['amplitude']
 
-    def __init__(self, amplitude):
-        super(Const2DModel, self).__init__(locals())
+    def __init__(self, amplitude, **constraints):
+        super(Const2DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, y, amplitude):
         """
@@ -528,8 +528,8 @@ class Disk2DModel(Parametric2DModel):
     """
     param_names = ['amplitude', 'x_0', 'y_0', 'radius']
 
-    def __init__(self, amplitude, x_0, y_0, radius):
-        super(Disk2DModel, self).__init__(locals())
+    def __init__(self, amplitude, x_0, y_0, radius, **constraints):
+        super(Disk2DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, y, amplitude, x_0, y_0, radius):
         """
@@ -581,8 +581,8 @@ class Box1DModel(Parametric1DModel):
     """
     param_names = ['amplitude', 'x_0', 'width']
 
-    def __init__(self, amplitude, x_0, width):
-        super(Box1DModel, self).__init__(locals())
+    def __init__(self, amplitude, x_0, width, **constraints):
+        super(Box1DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, amplitude, x_0, width):
         """
@@ -627,8 +627,8 @@ class Box2DModel(Parametric2DModel):
 
     param_names = ['amplitude', 'x_0', 'y_0', 'x_width', 'y_width']
 
-    def __init__(self, amplitude, x_0, y_0, x_width, y_width):
-        super(Box2DModel, self).__init__(locals())
+    def __init__(self, amplitude, x_0, y_0, x_width, y_width, **constraints):
+        super(Box2DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, y, amplitude, x_0, y_0, x_width, y_width):
         """
@@ -661,8 +661,8 @@ class Trapezoid1DModel(Parametric1DModel):
     """
     param_names = ['amplitude', 'x_0', 'width', 'slope']
 
-    def __init__(self, amplitude, x_0, width, slope):
-        super(Trapezoid1DModel, self).__init__(locals())
+    def __init__(self, amplitude, x_0, width, slope, **constraints):
+        super(Trapezoid1DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, amplitude, x_0, width, slope):
         """
@@ -702,8 +702,8 @@ class TrapezoidDisk2DModel(Parametric2DModel):
 
     param_names = ['amplitude', 'x_0', 'y_0', 'radius', 'slope']
 
-    def __init__(self, amplitude, x_0, y_0, radius, slope):
-        super(TrapezoidDisk2DModel, self).__init__(locals())
+    def __init__(self, amplitude, x_0, y_0, radius, slope, **constraints):
+        super(TrapezoidDisk2DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, y, amplitude, x_0, y_0, radius, slope):
         """
@@ -747,8 +747,8 @@ class MexicanHat1DModel(Parametric1DModel):
     """
     param_names = ['amplitude', 'x_0', 'width']
 
-    def __init__(self, amplitude, x_0, width):
-        super(MexicanHat1DModel, self).__init__(locals())
+    def __init__(self, amplitude, x_0, width, **constraints):
+        super(MexicanHat1DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, amplitude, x_0, width):
         """
@@ -783,8 +783,8 @@ class MexicanHat2DModel(Parametric2DModel):
     """
     param_names = ['amplitude', 'x_0', 'y_0', 'width']
 
-    def __init__(self, amplitude, x_0, y_0, width):
-        super(MexicanHat2DModel, self).__init__(locals())
+    def __init__(self, amplitude, x_0, y_0, width, **constraints):
+        super(MexicanHat2DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, y, amplitude, x_0, y_0, width):
         """
@@ -818,13 +818,13 @@ class Airy2DModel(Parametric2DModel):
     """
     param_names = ['amplitude', 'x_0', 'y_0', 'width']
 
-    def __init__(self, amplitude, x_0, y_0, width):
+    def __init__(self, amplitude, x_0, y_0, width, **constraints):
         try:
             from scipy.special import j1
             self._j1 = j1
         except ImportError:
             raise ImportError("Could not import scipy.special.")
-        super(Airy2DModel, self).__init__(locals())
+        super(Airy2DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, y, amplitude, x_0, y_0, width):
         """
@@ -870,7 +870,7 @@ class Custom1DModel(Parametric1DModel):
     This model instance can now be used like a usual astropy model.
     """
 
-    def __init__(self, func, func_deriv=None):
+    def __init__(self, func, func_deriv=None, **constraints):
         if callable(func):
             self._func = func
         else:
@@ -884,7 +884,7 @@ class Custom1DModel(Parametric1DModel):
         else:
             raise ModelDefinitionError("All parameters must be keyword arguments")
         param_dict = dict(zip(self.param_names, param_values))
-        super(Custom1DModel, self).__init__(param_dict)
+        super(Custom1DModel, self).__init__(param_dict, **constraints)
 
     def eval(self, x, *params):
         """
