@@ -57,7 +57,7 @@ is_valid_alt_key(
 static int
 convert_rejections_to_warnings() {
   char buf[1024];
-  char *src;
+  const char *src;
   char *dst;
   int last_was_space;
   PyObject *wcs_module = NULL;
@@ -578,12 +578,12 @@ PyWcsprm_find_all_wcs(
     PyErr_SetString(
         PyExc_MemoryError,
         "Memory allocation error.");
-    return -1;
+    return NULL;
   }
 
   if (convert_rejections_to_warnings(wcsprintf_buf())) {
     wcsvfree(&nwcs, &wcs);
-    return -1;
+    return NULL;
   }
 
   Py_BEGIN_ALLOW_THREADS

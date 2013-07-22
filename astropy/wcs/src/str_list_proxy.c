@@ -127,9 +127,6 @@ PyStrListProxy_setitem(
     Py_ssize_t index,
     PyObject* arg) {
 
-  char* value;
-  Py_ssize_t value_length;
-
   if (index > self->size) {
     PyErr_SetString(PyExc_IndexError, "index out of range");
     return -1;
