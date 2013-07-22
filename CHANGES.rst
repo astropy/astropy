@@ -1,7 +1,13 @@
 0.2.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.io.fits``
+
+  - Added a workaround for a bug in 64-bit OSX that could cause truncation when
+    writing files greater than 2^32 bytes in size. [#839]
 
 
 0.2.3 (2013-05-30)
