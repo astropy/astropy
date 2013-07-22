@@ -235,7 +235,7 @@ class TestParametricModels(object):
         """
         Test model with different input types.
         """
-        if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
+        if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
             pass
         parameters = models_2D[model_class]['parameters']
         model = model_class(*parameters)

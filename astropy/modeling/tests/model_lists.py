@@ -38,9 +38,9 @@ models_1D[MexicanHat1DModel] = {'parameters': [1, 0, 1],
                            'y_values': [1.0, 0.303265, 0.303265, -0.038881, -0.038881],
                            'x_lim': [-10, 10]}
 
-models_1D[Trapezoid1DModel] = {'parameters': [1, 0, 1, 1],
-                           'x_values': [0],
-                           'y_values': [1],
+models_1D[Trapezoid1DModel] = {'parameters': [1, 0, 2, 1],
+                           'x_values': [0, 1, -1, 1.5, -1.5, 2, 2],
+                           'y_values': [1, 1, 1, 0.5, 0.5, 0, 0],
                            'x_lim': [-10, 10]}
 
 models_1D[Const1DModel] = {'parameters': [1],
