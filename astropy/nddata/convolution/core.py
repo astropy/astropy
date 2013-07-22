@@ -24,7 +24,6 @@ class Kernel(object):
     """
     Abstract convolution kernel class
     """
-    __metaclass__ = abc.ABCMeta
     _odd = True
     _separable = False
     _weighted = False
