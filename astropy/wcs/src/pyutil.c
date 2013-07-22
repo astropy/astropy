@@ -225,10 +225,11 @@ PyObject** wcs_errexc[14];
 static PyObject*
 _new_exception_with_doc(char *name, char *doc, PyObject *base)
 {
-#if PY_VERSION_HEX >= 0x02070000
+#if ((PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION >= 7) || \
+     (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 2))
   return PyErr_NewExceptionWithDoc(name, doc, base, NULL);
 #else
-  /* Python 2.6 doesn't have PyErr_NewExceptionWithDoc */
+  /* Python 2.6 and 3.1 don't have PyErr_NewExceptionWithDoc */
   PyObject *dict;
   PyObject *docobj;
   int result;
@@ -239,7 +240,7 @@ _new_exception_with_doc(char *name, char *doc, PyObject *base)
   }
 
   if (doc != NULL) {
-    docobj = PyString_FromString(doc);
+    docobj = PyUnicode_FromString(doc);
     if (docobj == NULL) {
       Py_DECREF(dict);
       return NULL;
