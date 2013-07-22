@@ -93,10 +93,10 @@ models_2D[TrapezoidDisk2DModel] = {'parameters': [1, 0, 0, 1, 1],
                                    'x_lim': [-3, 3],
                                    'y_lim': [-3, 3]}
 
-models_2D[Airy2DModel] = {'parameters': [1, 0, 0, 1],
-                          'x_values': [0],
-                          'y_values': [0],
-                          'z_values': [1],
+models_2D[AiryDisk2DModel] = {'parameters': [1, 0, 0, 1],
+                          'x_values': [0, 1, -1, -0.5, -0.5],
+                          'y_values': [0, -1, 0.5, 0.5, -0.5],
+                          'z_values': [1, 0.057894, 0.000788, -0.096890, -0.096890],
                           'x_lim': [-10, 10],
                           'y_lim': [-10, 10],
                           'requires_scipy': True}

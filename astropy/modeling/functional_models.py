@@ -15,7 +15,7 @@ __all__ = ['Gaussian1DModel', 'Gaussian2DModel', 'ScaleModel', 'ShiftModel',
            'Custom1DModel', 'Sine1DModel', 'Linear1DModel', 'PowerLaw1DModel',
            'Const1DModel', 'Const2DModel', 'Lorentz1DModel', 'Box1DModel',
            'Box2DModel', 'Disk2DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel',
-           'MexicanHat1DModel', 'MexicanHat2DModel', 'Airy2DModel']
+           'MexicanHat1DModel', 'MexicanHat2DModel', 'AiryDisk2DModel']
 
 
 class Gaussian1DModel(Parametric1DModel):
@@ -745,16 +745,16 @@ class MexicanHat1DModel(Parametric1DModel):
         e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}}
 
     """
-    param_names = ['amplitude', 'x_0', 'width']
+    param_names = ['amplitude', 'x_0', 'sigma']
 
-    def __init__(self, amplitude, x_0, width, **constraints):
+    def __init__(self, amplitude, x_0, sigma, **constraints):
         super(MexicanHat1DModel, self).__init__(locals(), **constraints)
 
-    def eval(self, x, amplitude, x_0, width):
+    def eval(self, x, amplitude, x_0, sigma):
         """
         Model function MexicanHat1DModel.
         """
-        xx_ww = (x - x_0) ** 2 / (2 * width ** 2)
+        xx_ww = (x - x_0) ** 2 / (2 * sigma ** 2)
         return amplitude * (1 - xx_ww) * np.exp(-xx_ww)
 
 
@@ -777,24 +777,30 @@ class MexicanHat2DModel(Parametric2DModel):
     Notes
     -----
     Model formula:
-        f(x, y) = amplitude * (1 - ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * width ** 2))
-                * np.exp(- 0.5 * ((x - x_0) ** 2 + (y - y_0) ** 2) / width ** 2))
+
+    .. math::
+
+        f(x, y) = A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}
+        + \\left(y - y_{0}\\right)^{2}}{2 \\sigma^{2}}\\right)
+        e^{\\frac{- \\left(x - x_{0}\\right)^{2}
+        - \\left(y - y_{0}\\right)^{2}}{2 \\sigma^{2}}}
+
 
     """
-    param_names = ['amplitude', 'x_0', 'y_0', 'width']
+    param_names = ['amplitude', 'x_0', 'y_0', 'sigma']
 
-    def __init__(self, amplitude, x_0, y_0, width, **constraints):
+    def __init__(self, amplitude, x_0, y_0, sigma, **constraints):
         super(MexicanHat2DModel, self).__init__(locals(), **constraints)
 
-    def eval(self, x, y, amplitude, x_0, y_0, width):
+    def eval(self, x, y, amplitude, x_0, y_0, sigma):
         """
         Model function MexicanHat2DModel.
         """
-        rr_ww = ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * width ** 2)
+        rr_ww = ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * sigma ** 2)
         return amplitude * (1 - rr_ww) * np.exp(- rr_ww)
 
 
-class Airy2DModel(Parametric2DModel):
+class AiryDisk2DModel(Parametric2DModel):
     """
     Two dimensional symmetric Airy model.
 
@@ -824,13 +830,13 @@ class Airy2DModel(Parametric2DModel):
             self._j1 = j1
         except ImportError:
             raise ImportError("Could not import scipy.special.")
-        super(Airy2DModel, self).__init__(locals(), **constraints)
+        super(AiryDisk2DModel, self).__init__(locals(), **constraints)
 
     def eval(self, x, y, amplitude, x_0, y_0, width):
         """
         Model function Airy2D.
         """
-        r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
+        r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / width
         return np.select([r == 0], [1], amplitude * self._j1(2 * np.pi * r) / (np.pi * r))
 
 
