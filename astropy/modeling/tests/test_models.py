@@ -185,11 +185,12 @@ class TestParametricModels(object):
         """
         if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
             pass
-        parameters = models_1D[model_class]['parameters']
-        model = model_class(*parameters)
-        model(self.x)
-        model(self.x1)
-        model(self.x2)
+        else:
+            parameters = models_1D[model_class]['parameters']
+            model = model_class(*parameters)
+            model(self.x)
+            model(self.x1)
+            model(self.x2)
 
     @pytest.mark.parametrize(('model_class'), models_1D.keys())
     def test_eval1D(self, model_class):
@@ -237,11 +238,12 @@ class TestParametricModels(object):
         """
         if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
             pass
-        parameters = models_2D[model_class]['parameters']
-        model = model_class(*parameters)
-        model(self.x, self.y)
-        model(self.x1, self.y1)
-        model(self.x2, self.y2)
+        else:
+            parameters = models_2D[model_class]['parameters']
+            model = model_class(*parameters)
+            model(self.x, self.y)
+            model(self.x1, self.y1)
+            model(self.x2, self.y2)
 
     @pytest.mark.parametrize(('model_class'), models_2D.keys())
     def test_eval2D(self, model_class):
