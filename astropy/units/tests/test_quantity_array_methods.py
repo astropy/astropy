@@ -323,7 +323,7 @@ class TestArrayConversion(object):
         assert all(q2.value == q1.value.diagonal())
 
     def test_byte_type_view_field_changes(self):
-        q1 = np.array([1, 2, 3]) * u.m / u.km
+        q1 = np.array([1, 2, 3], dtype=np.int64) * u.m / u.km
         q2 = q1.byteswap()
         assert q2.unit == q1.unit
         assert all(q2.value == q1.value.byteswap())
