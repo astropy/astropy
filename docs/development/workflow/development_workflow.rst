@@ -40,8 +40,9 @@ the same applies to other packages:
 
    .. image:: forking_button.png
 
-   After a short pause and some 'Hardcore forking action', you should find
-   yourself at the home page for your own forked copy of Astropy_.
+   After a short pause and an animation of Octocat scanning a book on a flatbed
+   scanner, you should find yourself at the home page for your own forked copy
+   of Astropy_.
 
 Setting up the fork to work on
 ------------------------------
