@@ -52,7 +52,7 @@ Planck13 = dict(
     Neff=3.046,
     flat=True,
     reference=("Planck Collaboration 2013, Paper XVI, arXiv:1303.5076"
-               " Table 5 (Planck + WP + lensing + highL + BAO)")
+               " Table 5 (Planck + WP + highL + BAO)")
 )
 
 
