@@ -433,7 +433,7 @@ def test_find_all_wcs_crash():
     """
     with open(get_pkg_data_filename("data/too_many_pv.hdr")) as fd:
         header = fd.read()
-    wcses = wcs.find_all_wcs(header)
+    wcses = wcs.find_all_wcs(header, fix=False)
 
 
 def test_validate():
