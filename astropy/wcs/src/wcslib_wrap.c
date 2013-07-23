@@ -939,13 +939,6 @@ PyWcsprm_get_pv(
     /*@unused@*/ PyObject* args,
     /*@unused@*/ PyObject* kwds) {
 
-  if (self->x.pv == NULL) {
-    PyErr_SetString(
-        PyExc_AssertionError,
-        "No PVi_ma records present.");
-    return NULL;
-  }
-
   return get_pvcards("pv", self->x.pv, self->x.npv);
 }
 
