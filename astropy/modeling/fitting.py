@@ -183,7 +183,7 @@ class Fitter(object):
             if z is None:
                 return self.model.deriv(x, *pars)
             else:
-                return self.model.deriv(x, y, *pars)
+                return [np.ravel(_) for _ in self.model.deriv(x, y, *pars)]
 
     def _validate_constraints(self):
         fname = self.__class__.__name__
