@@ -433,6 +433,9 @@ def test_find_all_wcs_crash():
     """
     with open(get_pkg_data_filename("data/too_many_pv.hdr")) as fd:
         header = fd.read()
+    # We have to set fix=False here, because one of the fixing tasks is to
+    # remove redundant SCAMP distortion parameters when SIP distortion
+    # parameters are also present.
     wcses = wcs.find_all_wcs(header, fix=False)
 
 
