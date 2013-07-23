@@ -447,7 +447,8 @@ naxis kwarg.
 
         See https://github.com/astropy/astropy/issues/299.
         """
-        if self.wcs is not None and self.wcs.get_pv() and all(ctype.endswith('-SIP') for ctype in self.wcs.ctype):
+        if self.wcs is not None and self.wcs.get_pv() and \
+                all(ctype.endswith('-SIP') for ctype in self.wcs.ctype):
             self.wcs.set_pv([])
             warnings.warn("Removed redundant SCAMP distortion parameters " +
                 "because SIP parameters are also present", FITSFixedWarning)
