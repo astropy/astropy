@@ -8,6 +8,11 @@ Bug Fixes
 
   - Fixed the angle parser to support parsing the string "1 degree". [#1168]
 
+- ``astropy.cosmology``
+
+  - Fixed a crash in the ``comoving_volume`` method on non-flat cosmologies
+    when passing it an array of redshifts.
+
 - ``astropy.io.ascii``
 
   - Fixed a bug that prevented saving changes to the comment symbol when
