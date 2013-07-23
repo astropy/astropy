@@ -922,8 +922,8 @@ set_pvcards(
     (*pv)[i].i = ival;
     (*pv)[i].m = mval;
     (*pv)[i].value = dblvalue;
-    (*npv) = i + 1;
   }
+  (*npv) = i;
 
   return 0;
 }
