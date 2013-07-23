@@ -726,12 +726,16 @@ get_pscards(
   Py_ssize_t i         = 0;
 
   if (nps < 0) {
-    PyErr_SetString(PyExc_ValueError, "Object has no pscards");
-    return NULL;
+    nps = 0;
   }
 
   result = PyList_New((Py_ssize_t)nps);
   if (result == NULL) {
+    return NULL;
+  }
+
+  if (nps && ps == NULL) {
+    PyErr_SetString(PyExc_MemoryError, "NULL pointer");
     return NULL;
   }
 
@@ -833,12 +837,16 @@ get_pvcards(
   Py_ssize_t i         = 0;
 
   if (npv < 0) {
-    PyErr_SetString(PyExc_ValueError, "Object has no pvcards");
-    return NULL;
+    npv = 0;
   }
 
   result = PyList_New((Py_ssize_t)npv);
   if (result == NULL) {
+    return NULL;
+  }
+
+  if (npv && pv == NULL) {
+    PyErr_SetString(PyExc_MemoryError, "NULL pointer");
     return NULL;
   }
 

@@ -923,13 +923,6 @@ PyWcsprm_get_ps(
     /*@unused@*/ PyObject* args,
     /*@unused@*/ PyObject* kwds) {
 
-  if (self->x.ps == NULL) {
-    PyErr_SetString(
-        PyExc_AssertionError,
-        "No PSi_ma records present.");
-    return NULL;
-  }
-
   return get_pscards("ps", self->x.ps, self->x.nps);
 }
 
