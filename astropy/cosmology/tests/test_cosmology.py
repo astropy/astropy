@@ -198,19 +198,23 @@ def test_comoving_volume():
     c_open = core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.0, Tcmb0=0.0)
     c_closed = core.LambdaCDM(H0=70, Om0=2, Ode0=0.0, Tcmb0=0.0)
 
-    redshifts = 0.5, 1, 2, 3, 5, 9
-
     # test against ned wright's calculator (cubic Gpc)
-    wright_flat = 29.123, 159.529, 630.427, 1178.531, 2181.485, 3654.802
-    wright_open = 20.501, 99.019, 380.278, 747.049, 1558.363, 3123.814
-    wright_closed = 12.619, 44.708, 114.904, 173.709, 258.82, 358.992
-    for i,z in enumerate(redshifts):
-        assert np.allclose(c_flat.comoving_volume(z), wright_flat[i] * 1e9,
-                           rtol=1e-2)
-        assert np.allclose(c_open.comoving_volume(z), wright_open[i] * 1e9,
-                           rtol=1e-2)
-        assert np.allclose(c_closed.comoving_volume(z), wright_closed[i] * 1e9,
-                          rtol=1e-3)
+    redshifts = np.array([0.5, 1, 2, 3, 5, 9])
+    wright_flat = np.array([29.123, 159.529, 630.427, 1178.531, 2181.485,
+                            3654.802]) * 1e9 # convert to Mpc**3
+    wright_open = np.array([20.501, 99.019, 380.278, 747.049, 1558.363,
+                            3123.814]) * 1e9
+    wright_closed = np.array([12.619, 44.708, 114.904, 173.709, 258.82,
+                              358.992]) * 1e9
+    # The wright calculator isn't very accurate, so we use a rather
+    # modest precision
+    assert np.allclose(c_flat.comoving_volume(redshifts), wright_flat,
+                       rtol=1e-2)
+    assert np.allclose(c_open.comoving_volume(redshifts), wright_open,
+                       rtol=1e-2)
+    assert np.allclose(c_closed.comoving_volume(redshifts), wright_closed,
+                       rtol=1e-2)
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_flat_open_closed_icosmo():
