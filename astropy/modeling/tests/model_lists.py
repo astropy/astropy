@@ -2,8 +2,41 @@
 """
 Here are all the test parameters and values for the ParametricModels
 defined. There is a dictionary for 1D and a dictionary for 2D models.
+
+Explanation of keywords of the dictionaries:
+
+"parameters" : list
+    Model parameters, the model is tested with. Make sure you keep the right order.
+
+"x_values" : list
+    x values where the model is evaluated.
+
+"y_values" : list
+    Reference y values for the in x_values given positions.
+
+"z_values" : list
+    Reference z values for the in x_values and y_values given positions.
+    (2D model option)
+
+"x_lim" : list
+    x test range for the model fitter. Depending on the model this can
+    differ e.g. the PowerLaw model should be tested over a few magnitudes.
+
+"y_lim" : list
+    y test range for the model fitter. Depending on the model this can
+    differ e.g. the PowerLaw model should be tested over a few magnitudes.
+    (2D model option)
+
+"log_fit" : bool
+    PowerLaw models should be tested over a few magnitudes. So log_fit
+    should be true.
+
+"requires_scipy" : bool
+    If a model requires scipy (Bessel functions etc.) set this flag.
 """
+
 from ..functional_models import *
+from ..models import *
 import numpy as np
 
 #1D Models
@@ -46,6 +79,11 @@ models_1D[Trapezoid1DModel] = {'parameters': [1, 0, 2, 1],
 models_1D[Const1DModel] = {'parameters': [1],
                            'x_values': [-1, 1, np.pi, -42., 0],
                            'y_values': [1, 1, 1, 1, 1],
+                           'x_lim': [-10, 10]}
+
+models_1D[Beta1DModel] = {'parameters': [1, 0, 1, 2],
+                           'x_values': [0, 1, -1, 3, -3],
+                           'y_values': [1.0, 0.25, 0.25, 0.01, 0.01],
                            'x_lim': [-10, 10]}
 
 models_1D[PowerLaw1DModel] = {'parameters': [1, 2],
@@ -100,3 +138,10 @@ models_2D[AiryDisk2DModel] = {'parameters': [1, 0, 0, 1],
                           'x_lim': [-10, 10],
                           'y_lim': [-10, 10],
                           'requires_scipy': True}
+
+models_2D[Beta2DModel] = {'parameters': [1, 0, 0, 1, 2],
+                          'x_values': [0, 1, -1, 3, -3],
+                          'y_values': [0, -1, 3, 1, -3],
+                          'z_values': [1.0, 0.111111, 0.008264, 0.008264, 0.00277],
+                          'x_lim': [-3, 3],
+                          'y_lim': [-3, 3]}
