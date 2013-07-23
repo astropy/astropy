@@ -81,6 +81,9 @@ def test_g0():
     assert g0.reference
     assert g0.unit
 
+    # Check that its unit have the correct physical type
+    assert g0.unit.physical_type == 'acceleration'
+
 
 def test_unit():
 
