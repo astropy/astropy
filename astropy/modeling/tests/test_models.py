@@ -164,8 +164,8 @@ class TestParametricModels(object):
 
     Test values have to be defined in model_lists.py. It currently test the model
     with different input types, evaluates the model at different positions and
-    assures that it gives the correct values. And test the model with the model
-    with the NonLinearFitter.
+    assures that it gives the correct values. And tests if the  model works with 
+    the NonLinearFitter.
     """
 
     def setup_class(self):
@@ -225,7 +225,7 @@ class TestParametricModels(object):
             x = np.linspace(x_lim[0], x_lim[1], self.N)
 
         np.random.seed(0)
-        # add 1% noise to the amplitude
+        # add 10% noise to the amplitude
         data = model(x) + 0.1 * parameters[0] * (np.random.rand(self.N) - 0.5)
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(x, data)
@@ -283,7 +283,7 @@ class TestParametricModels(object):
         xv, yv = np.meshgrid(x, y)
 
         np.random.seed(0)
-        # add 1% noise to the amplitude
+        # add 10% noise to the amplitude
         data = model(xv, yv) + 0.1 * parameters[0] * (np.random.rand(self.N, self.N) - 0.5)
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(xv, yv, data)
