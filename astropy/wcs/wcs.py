@@ -437,12 +437,28 @@ naxis kwarg.
     if _wcs is not None:
         sub.__doc__ = _wcs.Wcsprm.sub.__doc__
 
+    def _fix_scamp(self):
+        """
+        Remove SCAMP's PVi_m distortion parameters if SIP distortion parameters
+        are also present. Some projects (e.g., Palomar Transient Factory)
+        convert SCAMP's distortion parameters (which abuse the PVi_m cards) to
+        SIP. However, wcslib gets confused by the presence of both SCAMP and
+        SIP distortion parameters.
+
+        See https://github.com/astropy/astropy/issues/299.
+        """
+        if self.wcs is not None and self.wcs.get_pv() and all(ctype.endswith('-SIP') for ctype in self.wcs.ctype):
+            self.wcs.set_pv([])
+            warnings.warn("Removed redundant SCAMP distortion parameters " +
+                "because SIP parameters are also present", FITSFixedWarning)
+
     def fix(self):
         """
         Perform the fix operations from wcslib, and warn about any
         changes it has made.
         """
         if self.wcs is not None:
+            self._fix_scamp()
             fixes = self.wcs.fix()
             for key, val in six.iteritems(fixes):
                 if val != "No change":
