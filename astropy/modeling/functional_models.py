@@ -15,7 +15,8 @@ __all__ = ['Gaussian1DModel', 'Gaussian2DModel', 'ScaleModel', 'ShiftModel',
            'Custom1DModel', 'Sine1DModel', 'Linear1DModel', 'PowerLaw1DModel',
            'Const1DModel', 'Const2DModel', 'Lorentz1DModel', 'Box1DModel',
            'Box2DModel', 'Disk2DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel',
-           'MexicanHat1DModel', 'MexicanHat2DModel', 'AiryDisk2DModel']
+           'MexicanHat1DModel', 'MexicanHat2DModel', 'AiryDisk2DModel', 'Beta1DModel',
+           'Beta2DModel']
 
 
 class Gaussian1DModel(Parametric1DModel):
@@ -621,7 +622,7 @@ class Box2DModel(Parametric2DModel):
 
     See Also
     --------
-    Box1DModel
+    Box1DModel, Gaussian2DModel, Beta2DModel
 
     """
 
@@ -657,7 +658,7 @@ class Trapezoid1DModel(Parametric1DModel):
 
     See Also
     --------
-    Box1DModel, Gaussian1DModel
+    Box1DModel, Gaussian1DModel, Beta1DModel
     """
     param_names = ['amplitude', 'x_0', 'width', 'slope']
 
@@ -838,6 +839,111 @@ class AiryDisk2DModel(Parametric2DModel):
         """
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / width
         return np.select([r == 0], [1], amplitude * self._j1(2 * np.pi * r) / (np.pi * r))
+
+
+class Beta1DModel(Parametric1DModel):
+    """
+    One dimensional Beta model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude of the model.
+    x_0 : float
+        x position of the maximum of the Beta model.
+    gamma : float
+        Core width of the Beta model.
+    alpha : float
+        Power index of the beta model.
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        f(x) = A \\left(1 + \\frac{\\left(x - x_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
+
+    See Also
+    --------
+    Gaussian1DModel, Box1DModel
+
+    """
+    param_names = ['amplitude', 'x_0', 'gamma', 'alpha']
+
+    def __init__(self, amplitude, x_0, gamma, alpha, **constraints):
+        super(Beta1DModel, self).__init__(locals(), **constraints)
+
+    def eval(self, x, amplitude, x_0, gamma, alpha):
+        """
+        Model function Beta1D.
+        """
+        return amplitude * (1 + ((x - x_0) / gamma) ** 2) ** (-alpha)
+
+    def deriv(self, x, amplitude, x_0, gamma, alpha):
+        """
+        Model function derivatives Beta1D.
+        """
+        d_A = (1 + (x - x_0) ** 2 / gamma ** 2) ** (-alpha)
+        d_x_0 = - amplitude * alpha * d_A * (-2 * x + 2 * x_0) / (gamma ** 2 * d_A ** alpha)
+        d_gamma = 2 * amplitude * alpha * d_A * (x - x_0) ** 2 / (gamma ** 3 * d_A ** alpha)
+        d_alpha = -amplitude * d_A * np.log(1 + (x - x_0) ** 2 / gamma ** 2)
+        return [d_A, d_x_0, d_gamma, d_alpha]
+
+
+class Beta2DModel(Parametric2DModel):
+    """
+    Two dimensional Beta model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude of the model.
+    x_0 : float
+        x position of the maximum of the Beta model.
+    y_0 : float
+        y position of the maximum of the Beta model.
+    gamma : float
+        Core width of the Beta model.
+    alpha : float
+        Power index of the beta model.
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        f(x, y) = A \\left(1 + \\frac{\\left(x - x_{0}\\right)^{2} +
+        \\left(y - y_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
+
+    See Also
+    --------
+    Gaussian2DModel, Box2Dmodel
+    """
+    param_names = ['amplitude', 'x_0', 'y_0', 'gamma', 'alpha']
+
+    def __init__(self, amplitude, x_0, y_0, gamma, alpha, **constraints):
+        super(Beta2DModel, self).__init__(locals())
+
+    def eval(self, x, y, amplitude, x_0, y_0, gamma, alpha):
+        """
+        Model function Beta2D.
+        """
+        rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
+        return amplitude * (1 + rr_gg) ** (-alpha)
+
+    def deriv(self, x, y, amplitude, x_0, y_0, gamma, alpha):
+        """
+        Model function derivatives Beta2D.
+        """
+        rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
+        d_A = (1 + rr_gg) ** (-alpha)
+        d_x_0 = - amplitude * alpha * d_A * (-2 * x + 2 * x_0) / (gamma ** 2 * (1 + rr_gg))
+        d_y_0 = - amplitude * alpha * d_A * (-2 * y + 2 * y_0) / (gamma ** 2 * (1 + rr_gg))
+        d_alpha = - amplitude * d_A * np.log(1 + rr_gg)
+        d_gamma = 2 * amplitude * alpha * d_A * (rr_gg / (gamma * (1 + rr_gg)))
+        return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
 
 
 class Custom1DModel(Parametric1DModel):
