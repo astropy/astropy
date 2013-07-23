@@ -51,9 +51,9 @@ Planck13 = dict(
     Tcmb0 = 2.7255,
     Neff = 3.046,
     flat = True,
-    reference = ("Planck Collaboration 2013, Paper XVI, arXiv:1303.5076"
-                 " Table 5 (Planck + WP + lensing + highL + BAO)")
-    )
+    reference=("Planck Collaboration 2013, Paper XVI, arXiv:1303.5076"
+               " Table 5 (Planck + WP + highL + BAO)")
+)
 
 
 # Hinshaw et al. 2012, WMAP9 + eCMB + BAO + H0 (Table 4, last column)
