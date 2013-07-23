@@ -175,6 +175,13 @@ class TestCore(FitsTestCase):
                 hdu.req_cards('TESTKW', None, None, None, 'fix', errs)
                 return errs
 
+            @classmethod
+            def match_header(cls, header):
+                # Since creating this HDU class adds it to the registry we
+                # don't want the file reader to possibly think any actual
+                # HDU from a file should be handled by this class
+                return False
+
         hdu = TestHDU(header=fits.Header())
         hdu.verify('fix')
 
