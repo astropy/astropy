@@ -875,66 +875,50 @@ set_pvcards(
     int *npv,
     int *npvmax) {
 
-  PyObject*  subvalue  = NULL;
-  int        i         = 0;
-  Py_ssize_t size      = 0;
-  int        ival      = 0;
-  int        mval      = 0;
-  double     dblvalue  = 0.0;
-  void*      newmem    = NULL;
+  PyObject* fastseq = NULL;
+  struct pvcard* newmem = NULL;
+  Py_ssize_t size;
+  int ret = -1;
+  int i;
 
-  if (!PySequence_Check(value)) {
+  fastseq = PySequence_Fast(value, "Expected sequence type");
+  if (!fastseq)
+    goto done;
+
+  size = PySequence_Fast_GET_SIZE(value);
+  newmem = malloc(sizeof(struct pvcard) * size);
+
+  /* Raise exception if size is nonzero but newmem
+   * could not be allocated. */
+  if (size && !newmem) {
+    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory.");
     return -1;
   }
-  size = PySequence_Size(value);
-  if (size > 0x7fffffff) {
-    return -1;
-  }
 
-  if (size > (Py_ssize_t)*npvmax) {
-    newmem = malloc(sizeof(struct pvcard) * size);
-    if (newmem == NULL) {
-      PyErr_SetString(PyExc_MemoryError, "Could not allocate memory.");
-      return -1;
+  for (i = 0; i < size; ++i)
+  {
+    if (!PyArg_ParseTuple(PySequence_Fast_GET_ITEM(value, i), "iid",
+        &newmem[i].i, &newmem[i].m, &newmem[i].value))
+    {
+      goto done;
     }
+  }
+
+  if (size < (Py_ssize_t)*npvmax) {
+    memcpy(*pv, newmem, sizeof(struct pvcard) * size);
+  } else { /* (size > (Py_ssize_t)*npvmax) */
     free(*pv);
+    *npv = (int)size;
     *pv = newmem;
-    *npvmax = (int)size;
+    newmem = NULL;
   }
+  *npv = (int)size;
 
-  /* Verify the entire list for correct types first, so we don't have
-     to undo anything copied into the canonical array. */
-  for (i = 0; i < size; ++i) {
-    subvalue = PySequence_GetItem(value, i);
-    if (subvalue == NULL) {
-      return -1;
-    }
-    if (!PyArg_ParseTuple(subvalue, "iid", &ival, &mval, &dblvalue)) {
-      Py_DECREF(subvalue);
-      return -1;
-    }
-    Py_DECREF(subvalue);
-  }
-
-  for (i = 0; i < size; ++i) {
-    subvalue = PySequence_GetItem(value, i);
-    if (subvalue == NULL) {
-      return -1;
-    }
-    if (!PyArg_ParseTuple(subvalue, "iid", &ival, &mval, &dblvalue)) {
-      Py_DECREF(subvalue);
-      return -1;
-    }
-    Py_DECREF(subvalue);
-
-    (*pv)[i].i = ival;
-    (*pv)[i].m = mval;
-    (*pv)[i].value = dblvalue;
-    (*npv) = i + 1;
-  }
-  (*npv) = i;
-
-  return 0;
+  ret = 0;
+done:
+  Py_XDECREF(fastseq);
+  free(newmem);
+  return ret;
 }
 
 PyObject*

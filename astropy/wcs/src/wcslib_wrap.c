@@ -1489,18 +1489,14 @@ PyWcsprm_set_pv(
 
   if (is_null(self->x.pv)) {
     return NULL;
-  }
-
-  if (set_pvcards("pv", arg, &self->x.pv, &self->x.npv, &self->x.npvmax)) {
-    self->x.m_pv = self->x.pv;
+  } else if (set_pvcards("pv", arg, &self->x.pv, &self->x.npv, &self->x.npvmax)) {
     return NULL;
+  } else {
+    self->x.m_pv = self->x.pv;
+    note_change(self);
+    Py_INCREF(Py_None);
+    return Py_None;
   }
-  self->x.m_pv = self->x.pv;
-
-  note_change(self);
-
-  Py_INCREF(Py_None);
-  return Py_None;
 }
 
 /* TODO: This is convenient for debugging for now -- but it's not very
