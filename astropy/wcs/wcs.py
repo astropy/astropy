@@ -1074,6 +1074,11 @@ naxis kwarg.
 
         {1}
 
+        tolerance : float, optional
+            Tolerance of solution. Iteration terminates when the iterative
+            solver estimates that the true solution is within this many pixels
+            current estimate. Default value is 1e-6 (pixels).
+
         Returns
         -------
 
@@ -1122,7 +1127,7 @@ naxis kwarg.
     def wcs_pix2sky(self, *args, **kwargs):
         return self.wcs_pix2world(*args, **kwargs)
 
-    def _all_world2pix(self, world, origin, **kwargs):
+    def _all_world2pix(self, world, origin, tolerance, **kwargs):
         try:
             import scipy.optimize
         except ImportError:
@@ -1139,13 +1144,16 @@ naxis kwarg.
             # Scipy version, (b) provides an option for the absolute tolerance,
             # and (c) is suitable for small-scale problems (i.e., a few
             # variables, rather than hundreds of variables).
-            soln = scipy.optimize.broyden1(func, x0, x_tol=1e-6)
+            soln = scipy.optimize.broyden1(func, x0, x_tol=tolerance)
             pixes.append(soln.flatten())
         return np.asarray(pixes)
     def all_world2pix(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
-        return self._array_converter(self._all_world2pix, 'input', *args,
+        tolerance = kwargs.pop('tolerance', 1e-6)
+        return self._array_converter(lambda *args, **kwargs:
+            self._all_world2pix(*args, tolerance=tolerance, **kwargs),
+            'input', *args,
             **kwargs)
     all_world2pix.__doc__ = """
         Transforms world coordinates to pixel coordinates, using numerical
