@@ -48,6 +48,33 @@ simply by using `quantity.SOME_UNIT`, for example::
     >>> q.radian
     3.141592653589793
 
+Quantity are now fully-fledged Numpy arrays, and common Numpy ufuncs (such as
+``np.mean``, ``np.cos``, ``np.log10``, etc.) will now correctly treat the
+units:
+
+    >>> q = np.array([1., 2., 3., 4.]) * u.m / u.s
+    >>> np.mean(q)
+    <Quantity 2.5 m / s>
+    >>> np.std(q)
+    <Quantity 1.11803398875 m / s>
+
+including functions that only accept specific units such as angles::
+
+    >>> q = 30. * u.deg
+    >>> np.sin(q)
+    <Quantity 0.5 >
+
+or dimensionless quantities::
+
+    >>> nu = 3 * u.GHz
+    >>> T = 30 * u.K
+    >>> np.exp(- h * nu / (k_B * T))
+    <Quantity 0.995212254619 >
+
+.. note:: Not *all* Numpy functions (in particular non-ufuncs) and functions
+          outside Numpy will treat units correctly, so be aware that units may
+          be implicitly dropped without a warning. Always check that the
+          function you are using treats the units correctly.
 
 Virtual Observatory Simple Cone Search
 --------------------------------------
