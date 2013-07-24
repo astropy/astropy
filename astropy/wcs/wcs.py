@@ -1134,7 +1134,7 @@ naxis kwarg.
             raise ImportError(
                 "You must have Scipy installed to use this method. " +
                 "See <http://www.scipy.org>.")
-        pixes = []
+        pix = []
         for i in range(len(world)):
             x0 = self.wcs_world2pix(np.atleast_2d(world[i]), origin,
                 **kwargs).flatten()
@@ -1145,8 +1145,8 @@ naxis kwarg.
             # and (c) is suitable for small-scale problems (i.e., a few
             # variables, rather than hundreds of variables).
             soln = scipy.optimize.broyden1(func, x0, x_tol=tolerance)
-            pixes.append(soln.flatten())
-        return np.asarray(pixes)
+            pix.append(soln.flatten())
+        return np.asarray(pix)
     def all_world2pix(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
