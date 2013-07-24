@@ -5,7 +5,7 @@ import warnings
 
 import numpy as np
 from numpy.testing import (
-    assert_array_almost_equal, assert_array_almost_equal_nulp)
+    assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp)
 
 from ...tests.helper import raises, catch_warnings
 from ... import wcs
@@ -415,3 +415,23 @@ def test_validate():
     with open(get_pkg_data_filename("data/validate.txt"), "r") as fd:
         assert set([x.strip() for x in fd.readlines()]) == set([
             x.strip() for x in results_txt.splitlines()])
+
+
+def test_all_world2pix():
+    """Test all_world2pix, iterative inverse of all_pix2world"""
+    fits = get_pkg_data_filename('data/sip.fits')
+    w = wcs.WCS(fits)
+
+    tolerance = 1e-6
+    world = 0.1 * np.random.randn(100, 2)
+    for i in range(len(w.wcs.crval)):
+        world[:, i] += w.wcs.crval[i]
+    all_pix = w.all_world2pix(world, 0, tolerance=tolerance)
+    wcs_pix = w.wcs_world2pix(world, 0)
+    all_world = w.all_pix2world(all_pix, 0)
+
+    # First, check that the SIP distortion correction at least produces
+    # some different answers from the WCS-only transform.
+    assert np.any(all_pix != wcs_pix)
+
+    assert_allclose(all_world, world, rtol=0, atol=tolerance)
