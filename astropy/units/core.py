@@ -883,6 +883,13 @@ class UnitBase(object):
             x._bases[0] for x in results if len(x._bases) == 1]
         return self.EquivalentUnitsList(results)
 
+    def is_unity(self):
+        """
+        Returns `True` if the unit is unscaled and dimensionless.
+        """
+        raise NotImplementedError(
+            "Must be implemented in subclass")
+
 
 class NamedUnit(UnitBase):
     """
@@ -1095,6 +1102,9 @@ class IrreducibleUnit(NamedUnit):
         return CompositeUnit(1, [self], [1])
     decompose.__doc__ = UnitBase.decompose.__doc__
 
+    def is_unity(self):
+        return False
+
 
 class UnrecognizedUnit(IrreducibleUnit):
     """
@@ -1150,6 +1160,9 @@ class UnrecognizedUnit(IrreducibleUnit):
 
     def get_format_name(self, format):
         return self.name
+
+    def is_unity(self):
+        return False
 
 
 class _UnitMetaClass(type):
@@ -1487,6 +1500,10 @@ class CompositeUnit(UnitBase):
             raise UnitsException(
                 "'{0}' is not dimensionless".format(self.to_string()))
         return c
+
+    def is_unity(self):
+        unit = self.decompose()
+        return len(unit.bases) == 0 and unit.scale == 1.0
 
 
 si_prefixes = [
