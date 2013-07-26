@@ -224,6 +224,11 @@ def test_unknown_unit3():
     assert unit.name == "FOO"
 
 
+def test_cds_power():
+    unit = u.Unit("10+22/cm2", format="cds", parse_strict='silent')
+    assert unit.scale == 1e22
+
+
 def test_register():
     try:
         u.def_unit("foo", u.m ** 3, register=True)
