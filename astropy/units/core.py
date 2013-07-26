@@ -209,8 +209,9 @@ class UnitBase(object):
         useful as a dictionary key.
         """
         unit = self.decompose()
-        r = zip([unicode(x) for x in unit.bases], unit.powers)
-        r.sort()
+        r = zip([x.name for x in unit.bases], unit.powers)
+        # bases and powers are already sorted in a unique way
+        # r.sort()
         r = tuple(r)
         return r
 
@@ -259,15 +260,25 @@ class UnitBase(object):
             normalized.append((funit, tunit, a, b))
         return normalized
 
-    def __pow__(self, p):
+    def _validate_power(self, p):
         if isinstance(p, tuple) and len(p) == 2:
-            p = Fraction(p[0], p[1])
+            if p[1] in (1, 2, 4, 8, 16, 32, 64):
+                p = float(p[0] / p[1])
+            else:
+                p = Fraction(p[0] / p[1])
         else:
+            p = float(p)
+
             # allow two possible floating point fractions, all others illegal
             if not int(2 * p) == 2 * p:
                 raise ValueError(
                     "floating values for unit powers must be integers or "
-                    "integers + 0.5")
+                    "integers + 0.5.  To use other fractions, use a tuple "
+                    "or `fractions.Fraction` instance.")
+
+        return p
+
+    def __pow__(self, p):
         return CompositeUnit(1, [self], [p])._simplify()
 
     def __div__(self, m):
@@ -536,7 +547,8 @@ class UnitBase(object):
         """
         raise NotImplementedError()
 
-    def _compose(self, equivalencies=[], namespace=[], max_depth=2, depth=0):
+    def _compose(self, equivalencies=[], namespace=[], max_depth=2, depth=0,
+                 cached_results=None):
         def is_final_result(unit):
             # Returns True if this result contains only the expected
             # units
@@ -545,38 +557,20 @@ class UnitBase(object):
                     return False
             return True
 
-        def sort_results(results):
-            if not len(results):
-                return []
-
-            # Sort the results so the simplest ones appear first.
-            # Simplest is defined as "the minimum sum of absolute
-            # powers" (i.e. the fewest bases), and preference should
-            # be given to results where the sum of powers is positive
-            # and the scale is exactly equal to 1.0
-            results = list(results)
-            results.sort(key=lambda x: np.abs(x.scale))
-            results.sort(key=lambda x: np.sum(np.abs(x.powers)))
-            results.sort(key=lambda x: np.sum(x.powers) < 0.0)
-            results.sort(key=lambda x: not np.allclose(x.scale, 1.0))
-
-            last_result = results[0]
-            filtered = [last_result]
-            for result in results[1:]:
-                if str(result) != str(last_result):
-                    filtered.append(result)
-                last_result = result
-
-            return filtered
-
         unit = self.decompose()
+        h = hash(unit)
+
+        cached = cached_results.get(h)
+        if cached is not None:
+            if isinstance(cached, Exception):
+                raise cached
+            return cached
 
         # Prevent too many levels of recursion
-        if depth >= max_depth:
-            return [unit]
-
-        # Special case for dimensionless unit
-        if len(unit._bases) == 0:
+        # And special case for dimensionless unit
+        if (depth >= max_depth or
+            len(unit._bases) == 0):
+            cached_results[h] = [unit]
             return [unit]
 
         # Make a list including all of the equivalent units
@@ -620,7 +614,8 @@ class UnitBase(object):
         # Do we have any minimal results?
         for final_result in final_results:
             if len(final_result):
-                return sort_results(final_result)
+                cached_results[h] = final_result
+                return final_result
 
         partial_results.sort(key=lambda x: x[0])
 
@@ -629,8 +624,10 @@ class UnitBase(object):
         for len_bases, composed, tunit in partial_results:
             try:
                 composed_list = composed._compose(
-                    equivalencies=equivalencies, namespace=namespace,
-                    max_depth=max_depth, depth=depth + 1)
+                    equivalencies=equivalencies,
+                    namespace=namespace,
+                    max_depth=max_depth, depth=depth + 1,
+                    cached_results=cached_results)
             except UnitsException:
                 composed_list = []
             for subcomposed in composed_list:
@@ -648,17 +645,21 @@ class UnitBase(object):
                 else:
                     factored = composed * tunit
                     if is_final_result(factored):
-                        subresults.add(composed * tunit)
+                        subresults.add(factored)
 
             if len(subresults):
-                return sort_results(subresults)
+                cached_results[h] = subresults
+                return subresults
 
         for base in self.bases:
             if base not in namespace:
-                raise UnitsException(
+                result = UnitsException(
                     "Cannot represent unit {0} in terms of the given "
                     "units".format(self))
+                cached_results[h] = result
+                raise result
 
+        cached_results[h] = [self]
         return [self]
 
     def compose(self, equivalencies=[], units=None, max_depth=2,
@@ -722,9 +723,33 @@ class UnitBase(object):
         if not len(units):
             raise UnitsException("No units to compose into.")
 
-        return self._compose(
+        def sort_results(results):
+            if not len(results):
+                return []
+
+            # Sort the results so the simplest ones appear first.
+            # Simplest is defined as "the minimum sum of absolute
+            # powers" (i.e. the fewest bases), and preference should
+            # be given to results where the sum of powers is positive
+            # and the scale is exactly equal to 1.0
+            results = list(results)
+            results.sort(key=lambda x: np.abs(x.scale))
+            results.sort(key=lambda x: np.sum(np.abs(x.powers)))
+            results.sort(key=lambda x: np.sum(x.powers) < 0.0)
+            results.sort(key=lambda x: not np.allclose(x.scale, 1.0))
+
+            last_result = results[0]
+            filtered = [last_result]
+            for result in results[1:]:
+                if str(result) != str(last_result):
+                    filtered.append(result)
+                last_result = result
+
+            return filtered
+
+        return sort_results(self._compose(
             equivalencies=equivalencies, namespace=units,
-            max_depth=max_depth, depth=0)
+            max_depth=max_depth, depth=0, cached_results={}))
 
     def to_system(self, system):
         """
@@ -1380,6 +1405,7 @@ class CompositeUnit(UnitBase):
             if not isinstance(base, UnitBase):
                 raise TypeError("bases must be sequence of UnitBase instances")
         self._bases = bases
+        powers = [self._validate_power(p) for p in powers]
         self._powers = powers
         self._decomposed_cache = None
 
@@ -1394,8 +1420,7 @@ class CompositeUnit(UnitBase):
                 return 'Unit(dimensionless)'
 
     def __hash__(self):
-        parts = zip((unicode(x) for x in self._bases), self._powers)
-        parts.sort()
+        parts = zip((tuple(x.names) for x in self._bases), self._powers)
         return hash(tuple([self._scale] + parts))
 
     @property
@@ -1449,7 +1474,7 @@ class CompositeUnit(UnitBase):
                 scale = add_unit(b, p, scale)
 
         new_parts = [x for x in new_parts.items() if x[1] != 0]
-        new_parts.sort(key=lambda x: x[1], reverse=True)
+        new_parts.sort(key=lambda x: (x[1], x[0].name), reverse=True)
 
         self._bases = [x[0] for x in new_parts]
         self._powers = [x[1] for x in new_parts]

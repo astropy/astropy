@@ -402,7 +402,7 @@ def test_compose_issue_579():
 
     assert len(result) == 1
     assert result[0]._bases == [u.s, u.N, u.m]
-    assert result[0]._powers == [4, 1, -2]
+    assert result[0]._powers == [4, 1, -1]
 
 
 def test_self_compose():
