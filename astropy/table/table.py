@@ -2019,7 +2019,7 @@ class Table(object):
                 self._data = ma.resize(self._data, (newlen,))
         else:
             self._data.resize((newlen,), refcheck=False)
-	# Create a table with one row to test the operation on
+        # Create a table with one row to test the operation on
         test_data = (ma.zeros if self.masked else np.zeros)(1, dtype=self._data.dtype)
 
         if _is_mapping(vals):
@@ -2073,14 +2073,14 @@ class Table(object):
         else:
             raise TypeError('Vals must be an iterable or mapping or None')
 
-	# If no errors have been raised, then the table can be resized
+        # If no errors have been raised, then the table can be resized
         if self.masked:
             self._data = ma.resize(self._data, (newlen,))
         else:
             self._data.resize((newlen,), refcheck=False)
 
-	# Assign the new row
-	self._data[-1] = test_data[-1]
+    # Assign the new row
+    self._data[-1] = test_data[-1]
 
         self._rebuild_table_column_views()
 
