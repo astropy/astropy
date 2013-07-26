@@ -5,8 +5,10 @@ defined. There is a dictionary for 1D and a dictionary for 2D models.
 
 Explanation of keywords of the dictionaries:
 
-"parameters" : list
+"parameters" : list or dict
     Model parameters, the model is tested with. Make sure you keep the right order.
+    For polynomials you can also use a dict to specify the coefficients. See examples
+    below.
 
 "x_values" : list
     x values where the model is evaluated.
@@ -92,6 +94,11 @@ models_1D[PowerLaw1DModel] = {'parameters': [1, 2],
                               'x_lim': [1, 100],
                               'log_fit': True}
 
+models_1D[Poly1DModel] = {'parameters': {'degree': 2, 'c0': 1., 'c1': 1., 'c2': 1.},
+                            'x_values': [1, 10, 100],
+                            'y_values': [3, 111, 10101],
+                            'x_lim': [1, 100]}
+
 #2D Models
 models_2D = {}
 models_2D[Gaussian2DModel] = {'parameters': [1, 0, 0, 1, 1],
@@ -145,3 +152,10 @@ models_2D[Beta2DModel] = {'parameters': [1, 0, 0, 1, 2],
                           'z_values': [1.0, 0.111111, 0.008264, 0.008264, 0.00277],
                           'x_lim': [-3, 3],
                           'y_lim': [-3, 3]}
+
+models_2D[Poly2DModel] = {'parameters': {'degree': 1, 'c0_0': 1., 'c1_0': 1., 'c0_1': 1.},
+                            'x_values': [1, 2, 3],
+                            'y_values': [1, 3, 2],
+                            'z_values': [3, 6, 6],
+                            'x_lim': [1, 100],
+                            'y_lim': [1, 100]}

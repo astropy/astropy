@@ -7,8 +7,8 @@ from __future__ import division
 import collections
 import numpy as np
 from . import parameters
-from .core import (ParametricModel, Parametric1DModel, Parametric2DModel,
-                   Model, _convert_input, _convert_output)
+from .core import (Parametric1DModel, Parametric2DModel, Model,
+                   _convert_input, _convert_output)
 from .utils import InputParameterError, ModelDefinitionError
 
 __all__ = ['Gaussian1DModel', 'Gaussian2DModel', 'ScaleModel', 'ShiftModel',
@@ -32,6 +32,17 @@ class Gaussian1DModel(Parametric1DModel):
         Mean of the gaussian
     stddev : float
         Standard deviation of the gaussian
+
+    Notes
+    -----
+
+    Model formula:
+
+        .. math::
+
+    See Also
+    --------
+    Gaussian2DModel, Box1DModel, Beta1DModel, Lorentz1DModel
     """
 
     param_names = ['amplitude', 'mean', 'stddev']
@@ -55,11 +66,11 @@ class Gaussian1DModel(Parametric1DModel):
         return [d_amplitude, d_mean, d_stddev]
 
 
-class Gaussian2DModel(ParametricModel):
+class Gaussian2DModel(Parametric2DModel):
 
     """
 
-    2D Gaussian.
+    2D Gaussian model.
 
     Parameters
     ----------
@@ -77,59 +88,41 @@ class Gaussian2DModel(ParametricModel):
         Either y_fwhm or y_stddev must be specified
     theta : float
         Rotation angle in radians. Note: increases clockwise.
-    x_fwhm : float
-        Full width at half maximum in x
-        Either x_fwhm or x_stddev must be specified
-    y_fwhm : float
-        Full width at half maximum in y
-        Either y_fwhm or y_stddev must be specified
-    jacobian_func : callable or None
-        if callable - a function to compute the Jacobian of
-        func with derivatives across the rows.
-        if None - the Jacobian will be estimated
     cov_matrix : ndarray
         A 2x2 covariance matrix. If specified, overrides stddev, fwhm, and
         theta specification.
+
+    Notes
+    -----
+    Model formula:
+
+        .. math::
+
+    See Also
+    --------
+    Gaussian1DModel, Box2DModel, Beta2DModel
     """
 
     param_names = ['amplitude', 'x_mean', 'y_mean',
                    'x_stddev', 'y_stddev', 'theta']
 
     def __init__(self, amplitude, x_mean, y_mean, x_stddev=None, y_stddev=None,
-                 theta=0.0, x_fwhm=None, y_fwhm=None, cov_matrix=None,
-                 jacobian_func=None, **constraints):
+                 theta=0.0, cov_matrix=None, **constraints):
 
-        try:
-            param_dim = len(amplitude)
-        except TypeError:
-            param_dim = 1
-
-        if y_stddev is None and y_fwhm is None and cov_matrix is None:
+        if y_stddev is None and cov_matrix is None:
             raise InputParameterError(
-                "Either y_fwhm or y_stddev must be specified, or a "
+                "Either y_stddev must be specified, or a "
                 "covariance matrix.")
-        elif x_stddev is None and x_fwhm is None and cov_matrix is None:
+        elif x_stddev is None and cov_matrix is None:
             raise InputParameterError(
-                "Either x_fwhm or x_stddev must be specified, or a "
+                "Either x_stddev must be specified, or a "
                 "covariance matrix.")
-        elif x_stddev is not None and x_fwhm is not None:
-            raise InputParameterError("Cannot specify both x_fwhm and x_stddev")
-        elif y_stddev is not None and y_fwhm is not None:
-            raise InputParameterError("Cannot specify both y_fwhm and y_stddev")
         elif cov_matrix is not None and (x_stddev is not None or
-                                         y_stddev is not None or
-                                         x_fwhm is not None or
-                                         y_fwhm is not None):
-            raise InputParameterError("Cannot specify both cov_matrix and x/y_stddev or x/y_fwhm")
+                                         y_stddev is not None):
+            raise InputParameterError("Cannot specify both cov_matrix and x/y_stddev")
 
-        self._amplitude = parameters.Parameter('amplitude', amplitude,
-                                               self, param_dim)
-        if cov_matrix is None:
-            if x_stddev is None:
-                x_stddev = 0.42466 * x_fwhm
-            if y_stddev is None:
-                y_stddev = 0.42466 * y_fwhm
-        else:
+        # Compute principle coordinate system transformation
+        elif cov_matrix is not None:
             cov_matrix = np.array(cov_matrix)
             assert cov_matrix.shape == (2, 2), "Covariance matrix must be 2D"
             eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
@@ -137,62 +130,49 @@ class Gaussian2DModel(ParametricModel):
             y_vec = eig_vecs[:, 0]
             theta = np.arctan2(y_vec[1], y_vec[0])
 
-        self._x_stddev = parameters.Parameter('x_stddev', x_stddev,
-                                              self, param_dim)
-        self._y_stddev = parameters.Parameter('y_stddev', y_stddev,
-                                              self, param_dim)
-        self._x_mean = parameters.Parameter('x_mean', x_mean, self, param_dim)
-        self._y_mean = parameters.Parameter('y_mean', y_mean, self, param_dim)
-        self._theta = parameters.Parameter('theta', theta, self, param_dim)
+        super(Gaussian2DModel, self).__init__(locals(), **constraints)
 
-        super(Gaussian2DModel, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
-                                              param_dim=param_dim, **constraints)
-        self.linear = False
-        if jacobian_func:
-            self.deriv = jacobian_func
-        else:
-            self.deriv = None
-
-    def eval(self, x, y, params):
+    def eval(self, x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
         """
-        Evaluate the model.
-
-        Parameters
-        ----------
-        x : array like or a number
-            input
-        y : dummy variable - array like or a number
-            input
-        params : array
-            parameter sets
+        Model function Gaussian2D
         """
-        a = 0.5 * ((np.cos(params[5]) / params[3]) ** 2 +
-                   (np.sin(params[5]) / params[4]) ** 2)
-        b = 0.5 * (np.cos(params[5]) * np.sin(params[5]) *
-                   (1. / params[3] ** 2 - 1. / params[4] ** 2))
-        c = 0.5 * ((np.sin(params[5]) / params[3]) ** 2 +
-                   (np.cos(params[5]) / params[4]) ** 2)
+        a = 0.5 * ((np.cos(theta) / x_stddev) ** 2 +
+                         (np.sin(theta) / y_stddev) ** 2)
+        b = 0.5 * (np.cos(theta) * np.sin(theta) *
+                         (1. / x_stddev ** 2 - 1. / y_stddev ** 2))
+        c = 0.5 * ((np.sin(theta) / x_stddev) ** 2 +
+                         (np.cos(theta) / y_stddev) ** 2)
 
-        return params[0] * np.exp(-(a * (x - params[1]) ** 2 +
-                                    b * (x - params[1]) * (y - params[2]) +
-                                    c * (y - params[2]) ** 2))
+        return amplitude * np.exp(-(a * (x - x_mean) ** 2 +
+                                    b * (x - x_mean) * (y - y_mean) +
+                                    c * (y - y_mean) ** 2))
 
-    def __call__(self, x, y):
+    def deriv(self, x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
         """
-        Transforms data using this model.
-
-        Parameters
-        ----------
-        x : array like or a number
-            input
-        y : array like or a number
-            input
-
+        Model function derivatives Gaussian2D.
         """
-        x, _ = _convert_input(x, self.param_dim)
-        y, fmt = _convert_input(y, self.param_dim)
-        result = self.eval(x, y, self.param_sets)
-        return _convert_output(result, fmt)
+
+        # Helper quantities
+        a = 0.5 * ((np.cos(theta) / x_stddev) ** 2 +
+                         (np.sin(theta) / y_stddev) ** 2)
+        b = 0.5 * (np.cos(theta) * np.sin(theta) *
+                         (1. / x_stddev ** 2 - 1. / y_stddev ** 2))
+        c = 0.5 * ((np.sin(theta) / x_stddev) ** 2 +
+                         (np.cos(theta) / y_stddev) ** 2)
+
+        d_A = np.exp(- a * (x - x_mean) ** 2
+                     - b * (x - x_mean) * (y - y_mean)
+                     - c * (y - y_mean) ** 2)
+        d_theta = np.ones_like(x)
+        d_y_stddev = amplitude * ((x - x_mean) ** 2 * np.sin(theta) ** 2
+                    + (x - x_mean) * (y - y_mean) * np.sin(2 * theta)
+                    + (y - y_mean) ** 2 * np.cos(theta) ** 2) * d_A / y_stddev**3
+        d_x_stddev = amplitude * ((x - x_mean) ** 2 * np.cos(theta) ** 2
+                    - (x - x_mean) * (y - y_mean) * np.sin(2 * theta)
+                    + (y - y_mean) ** 2 * np.sin(theta) ** 2) * d_A / x_stddev**3
+        d_y_mean = amplitude * ((x - x_mean) * b - 2 * (y - y_mean) * c) * d_A
+        d_x_mean = amplitude * ((y - y_mean) * b - 2 * (x - x_mean) * a) * d_A
+        return [d_A, d_x_mean, d_y_mean, d_x_stddev, d_y_stddev, d_theta]
 
 
 class ShiftModel(Model):

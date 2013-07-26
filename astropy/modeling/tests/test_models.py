@@ -4,6 +4,7 @@ Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 from __future__ import division
+import py
 from .. import models
 from ..core import *
 import numpy as np
@@ -11,6 +12,9 @@ from numpy.testing import utils
 from ...tests.helper import pytest
 from .. import fitting
 from .model_lists import models_1D, models_2D
+from astropy.modeling.core import Parametric1DModel, Parametric2DModel
+from astropy.modeling.polynomial import PolynomialModel
+
 
 try:
     from scipy import optimize
@@ -178,32 +182,49 @@ class TestParametricModels(object):
         self.y1 = np.arange(1, 10, .1)
         self.x2, self.y2 = np.mgrid[:10, :8]
 
+    def create_model(self, model_class, parameters):
+        """
+        Create instance of model class.
+        """
+        constraints = {}
+        if model_class.__base__ == Parametric1DModel:
+            if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
+                py.test.skip("SciPy not found")
+            if 'constraints' in models_1D[model_class]:
+                constraints = models_1D[model_class]['constraints']
+            return model_class(*parameters, **constraints)
+
+        elif model_class.__base__ == Parametric2DModel:
+            if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
+                py.test.skip("SciPy not found")
+            if 'constraints' in models_2D[model_class]:
+                constraints = models_2D[model_class]['constraints']
+            return model_class(*parameters, **constraints)
+
+        elif model_class.__base__ == PolynomialModel:
+            return model_class(**parameters)
+
     @pytest.mark.parametrize(('model_class'), models_1D.keys())
     def test_input1D(self, model_class):
         """
         Test model with different input types.
         """
-        if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
-            pass
-        else:
-            parameters = models_1D[model_class]['parameters']
-            model = model_class(*parameters)
-            model(self.x)
-            model(self.x1)
-            model(self.x2)
+        parameters = models_1D[model_class]['parameters']
+        model = self.create_model(model_class, parameters)
+        model(self.x)
+        model(self.x1)
+        model(self.x2)
 
     @pytest.mark.parametrize(('model_class'), models_1D.keys())
     def test_eval1D(self, model_class):
         """
         Test model values at certain given points
         """
-        if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
-            pass
-        else:
-            model = model_class(*models_1D[model_class]['parameters'])
-            x = models_1D[model_class]['x_values']
-            y = models_1D[model_class]['y_values']
-            assert np.all((np.abs(model(x) - y) < self.eval_error))
+        parameters = models_1D[model_class]['parameters']
+        model = self.create_model(model_class, parameters)
+        x = models_1D[model_class]['x_values']
+        y = models_1D[model_class]['y_values']
+        assert np.all((np.abs(model(x) - y) < self.eval_error))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     @pytest.mark.parametrize(('model_class'), models_1D.keys())
@@ -211,53 +232,47 @@ class TestParametricModels(object):
         """
         Test if the parametric model works with the fitter.
         """
-        parameters = models_1D[model_class]['parameters']
         x_lim = models_1D[model_class]['x_lim']
-        if 'constraints' in models_1D[model_class]:
-            constraints = models_1D[model_class]['constraints']
-        else:
-            constraints = {}
-        model = model_class(*parameters, **constraints)
+        parameters = models_1D[model_class]['parameters']
+        model = self.create_model(model_class, parameters)
+        if isinstance(parameters, dict):
+            parameters.pop('degree')
+            parameters = parameters.values()
         if "log_fit" in models_1D[model_class]:
             if models_1D[model_class]['log_fit']:
                 x = np.logspace(x_lim[0], x_lim[1], self.N)
         else:
             x = np.linspace(x_lim[0], x_lim[1], self.N)
-
         np.random.seed(0)
         # add 10% noise to the amplitude
         data = model(x) + 0.1 * parameters[0] * (np.random.rand(self.N) - 0.5)
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(x, data)
-        assert np.all((fitter.fitpars - np.array(parameters) < self.fit_error))
+        assert np.all(np.abs((fitter.fitpars - np.array(parameters))
+                              < self.fit_error))
 
     @pytest.mark.parametrize(('model_class'), models_2D.keys())
     def test_input2D(self, model_class):
         """
         Test model with different input types.
         """
-        if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
-            pass
-        else:
-            parameters = models_2D[model_class]['parameters']
-            model = model_class(*parameters)
-            model(self.x, self.y)
-            model(self.x1, self.y1)
-            model(self.x2, self.y2)
+        parameters = models_2D[model_class]['parameters']
+        model = self.create_model(model_class, parameters)
+        model(self.x, self.y)
+        model(self.x1, self.y1)
+        model(self.x2, self.y2)
 
     @pytest.mark.parametrize(('model_class'), models_2D.keys())
     def test_eval2D(self, model_class):
         """
         Test model values add certain given points
         """
-        if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
-            pass
-        else:
-            model = model_class(*models_2D[model_class]['parameters'])
-            x = models_2D[model_class]['x_values']
-            y = models_2D[model_class]['y_values']
-            z = models_2D[model_class]['z_values']
-            assert np.all((np.abs(model(x, y) - z) < self.eval_error))
+        parameters = models_2D[model_class]['parameters']
+        model = self.create_model(model_class, parameters)
+        x = models_2D[model_class]['x_values']
+        y = models_2D[model_class]['y_values']
+        z = models_2D[model_class]['z_values']
+        assert np.all((np.abs(model(x, y) - z) < self.eval_error))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     @pytest.mark.parametrize(('model_class'), models_2D.keys())
@@ -265,14 +280,15 @@ class TestParametricModels(object):
         """
         Test if the parametric model works with the fitter.
         """
-        parameters = models_2D[model_class]['parameters']
         x_lim = models_2D[model_class]['x_lim']
         y_lim = models_2D[model_class]['y_lim']
-        if 'constraints' in models_2D[model_class]:
-            constraints = models_2D[model_class]['constraints']
-        else:
-            constraints = {}
-        model = model_class(*parameters, **constraints)
+
+        parameters = models_2D[model_class]['parameters']
+        model = self.create_model(model_class, parameters)
+        if isinstance(parameters, dict):
+            parameters.pop('degree')
+            parameters = parameters.values()
+
         if "log_fit" in models_2D[model_class]:
             if models_2D[model_class]['log_fit']:
                 x = np.logspace(x_lim[0], x_lim[1], self.N)
@@ -287,4 +303,5 @@ class TestParametricModels(object):
         data = model(xv, yv) + 0.1 * parameters[0] * (np.random.rand(self.N, self.N) - 0.5)
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(xv, yv, data)
-        assert np.all((fitter.fitpars - np.array(parameters) < self.fit_error))
+        assert np.all((np.abs(fitter.fitpars - np.array(parameters))
+                        < self.fit_error))
