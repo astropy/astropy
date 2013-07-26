@@ -22,7 +22,7 @@ __all__ = ['Gaussian1DModel', 'Gaussian2DModel', 'ScaleModel', 'ShiftModel',
 class Gaussian1DModel(Parametric1DModel):
 
     """
-    Implements 1D Gaussian model.
+    One dimensional Gaussian model.
 
     Parameters
     ----------
@@ -38,7 +38,7 @@ class Gaussian1DModel(Parametric1DModel):
 
     Model formula:
 
-        .. math::
+        .. math:: f(x) = A e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}
 
     See Also
     --------
@@ -69,8 +69,7 @@ class Gaussian1DModel(Parametric1DModel):
 class Gaussian2DModel(Parametric2DModel):
 
     """
-
-    2D Gaussian model.
+    Two dimensional Gaussian model.
 
     Parameters
     ----------
@@ -97,6 +96,22 @@ class Gaussian2DModel(Parametric2DModel):
     Model formula:
 
         .. math::
+
+            f(x, y) = A e^{-a\\left(x - x_{0}\\right)^{2}  -b\\left(x - x_{0}\\right) 
+            \\left(y - y_{0}\\right)  -c\\left(y - y_{0}\\right)^{2}}
+
+    Using the following definitions:
+
+        .. math::
+            a = \\left(- \\frac{\\sin^{2}{\\left (\\theta \\right )}}{2 \\sigma_{y}^{2}} -
+            \\frac{\\cos^{2}{\\left (\\theta \\right )}}{2 \\sigma_{x}^{2}}\\right)
+
+            b = \\left(\\frac{\\sin{\\left (2 \\theta \\right )}}{2 \\sigma_{y}^{2}} -
+            \\frac{\\sin{\\left (2 \\theta \\right )}}{2 \\sigma_{x}^{2}}\\right)
+
+            c = \\left(\\frac{\\cos^{2}{\\left (\\theta \\right )}}{2 \\sigma_{y}^{2}} + 
+            \\frac{\\sin^{2}{\\left (\\theta \\right )}}{2 \\sigma_{x}^{2}}\\right)
+
 
     See Also
     --------
@@ -153,6 +168,7 @@ class Gaussian2DModel(Parametric2DModel):
         """
 
         # Helper quantities
+        # Derivatives are not checked yet
         a = 0.5 * ((np.cos(theta) / x_stddev) ** 2 +
                          (np.sin(theta) / y_stddev) ** 2)
         b = 0.5 * (np.cos(theta) * np.sin(theta) *
@@ -160,10 +176,15 @@ class Gaussian2DModel(Parametric2DModel):
         c = 0.5 * ((np.sin(theta) / x_stddev) ** 2 +
                          (np.cos(theta) / y_stddev) ** 2)
 
+        d_a = np.sin(theta) * np.cos(theta) * (1 / x_stddev ** 2 - 1 / y_stddev ** 2)
+        d_b = np.cos(2 * theta) * (1 / y_stddev ** 2 - 1 / x_stddev ** 2)
+        d_c = -d_a
+
         d_A = np.exp(- a * (x - x_mean) ** 2
                      - b * (x - x_mean) * (y - y_mean)
                      - c * (y - y_mean) ** 2)
-        d_theta = np.ones_like(x)
+        d_theta = amplitude * ((x - x_mean) ** 2 * d_a - (x - x_mean) *
+                               (y - y_mean) * d_b + (y - y_mean) ** 2 * d_c) * d_A
         d_y_stddev = amplitude * ((x - x_mean) ** 2 * np.sin(theta) ** 2
                     + (x - x_mean) * (y - y_mean) * np.sin(2 * theta)
                     + (y - y_mean) ** 2 * np.cos(theta) ** 2) * d_A / y_stddev**3
@@ -265,7 +286,7 @@ class ScaleModel(Model):
 class PowerLaw1DModel(Parametric1DModel):
 
     """
-    A power law model.
+    One dimensional Power Law model.
 
     The model is of the form :math:`A x^\\alpha`, where :math:`A` is
     the `scale` parameter, and :math:`\\alpha` is `alpha`.
@@ -277,14 +298,16 @@ class PowerLaw1DModel(Parametric1DModel):
     alpha : float
         power
 
+    See Also
+    --------
+    Const1DModel, Linear1DModel
+
+
     Notes
     -----
-    Model formula Python:
-        f(x) = scale * x ** (-alpha)
-
     Model formula:
 
-    .. math:: f(x) = A x^{-\\alpha}
+        .. math:: f(x) = A x^{-\\alpha}
 
     """
     param_names = ['scale', 'alpha']
@@ -310,7 +333,7 @@ class PowerLaw1DModel(Parametric1DModel):
 class Sine1DModel(Parametric1DModel):
 
     """
-    One dimensional sine model.
+    One dimensional Sine model.
 
     Parameters
     ----------
@@ -319,10 +342,16 @@ class Sine1DModel(Parametric1DModel):
     frequency : float
         Oscillation frequency
 
+    See Also
+    --------
+    Const1DModel, Linear1DModel
+
+
     Notes
     -----
     Model formula:
-        f(x) = amplitude * np.sin(2 * np.pi * frequency * x)
+
+        .. math:: f(x) = A \\sin(2 \\pi f x)
     """
     param_names = ['amplitude', 'frequency']
 
@@ -348,7 +377,7 @@ class Sine1DModel(Parametric1DModel):
 class Linear1DModel(Parametric1DModel):
 
     """
-    Simple one dimensional straight line model.
+    One dimensional Line model.
 
     Parameters
     ----------
@@ -358,10 +387,15 @@ class Linear1DModel(Parametric1DModel):
     intercept : float
         Intercept of the straight line
 
+    See Also
+    --------
+    Const1DModel
+
     Notes
     -----
     Model formula:
-        f(x) = slope * x + intercept
+
+        .. math:: f(x) = a x + b
     """
     param_names = ['slope', 'intercept']
 
@@ -387,7 +421,7 @@ class Linear1DModel(Parametric1DModel):
 class Lorentz1DModel(Parametric1DModel):
 
     """
-    One dimensional Lorentzian function.
+    One dimensional Lorentzian model.
 
     Parameters
     ----------
@@ -404,9 +438,6 @@ class Lorentz1DModel(Parametric1DModel):
 
     Notes
     -----
-    Model formula Python:
-        f(x) = amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.) ** 2)
-
     Model formula:
 
     .. math::
@@ -437,17 +468,22 @@ class Lorentz1DModel(Parametric1DModel):
 class Const1DModel(Parametric1DModel):
 
     """
-    One dimensional constant function.
+    One dimensional Constant model.
 
     Parameters
     ----------
     amplitude : float
         Value of the constant function
 
+    See Also
+    --------
+    Const2DModel
+
     Notes
     -----
     Model formula:
-        f(x) = amplitude
+
+        .. math:: f(x) = A
     """
     param_names = ['amplitude']
 
@@ -471,7 +507,22 @@ class Const1DModel(Parametric1DModel):
 class Const2DModel(Parametric2DModel):
 
     """
-    Two dimensional constant function.
+    Two dimensional Constant model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Value of the constant function
+
+    See Also
+    --------
+    Const1DModel
+
+    Notes
+    -----
+    Model formula:
+
+        .. math:: f(x, y) = A
     """
     param_names = ['amplitude']
 
@@ -488,7 +539,7 @@ class Const2DModel(Parametric2DModel):
 class Disk2DModel(Parametric2DModel):
 
     """
-    Two dimensional radial symmetric box function.
+    Two dimensional radial symmetric Disk model.
 
     Parameters
     ----------
@@ -498,26 +549,37 @@ class Disk2DModel(Parametric2DModel):
         x position center of the disk
     y_0 : float
         y position center of the disk
-    radius : float
+    R_0 : float
         Radius of the disk
+
+    See Also
+    --------
+    Box2DModel, TrapezoidDisk2DModel
 
     Notes
     -----
     Model formula:
-        rr = (x - x_0) ** 2 + (y - y_0) ** 2
-        f(x) = np.select([rr >= radius], [amplitude])
-    """
-    param_names = ['amplitude', 'x_0', 'y_0', 'radius']
 
-    def __init__(self, amplitude, x_0, y_0, radius, **constraints):
+        .. math::
+
+            f(r) = \\left \\{
+                     \\begin{array}{ll}
+                       A & : r < R_0 \\\\
+                       0 & : r \\geq R_0
+                     \\end{array}
+                   \\right.
+    """
+    param_names = ['amplitude', 'x_0', 'y_0', 'R_0']
+
+    def __init__(self, amplitude, x_0, y_0, R_0, **constraints):
         super(Disk2DModel, self).__init__(locals(), **constraints)
 
-    def eval(self, x, y, amplitude, x_0, y_0, radius):
+    def eval(self, x, y, amplitude, x_0, y_0, R_0):
         """
         Model function Disk2D.
         """
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
-        return np.select([rr <= radius ** 2], [amplitude])
+        return np.select([rr <= R_0 ** 2], [amplitude])
 
 
 class Delta1DModel(Parametric1DModel):
@@ -541,7 +603,7 @@ class Delta2DModel(Parametric2DModel):
 class Box1DModel(Parametric1DModel):
 
     """
-    One dimensional box function.
+    One dimensional Box model.
 
     Parameters
     ----------
@@ -552,13 +614,22 @@ class Box1DModel(Parametric1DModel):
     width : float
         Width of the box
 
+    See Also
+    --------
+    Box2DModel, TrapezoidDisk2DModel
+
     Notes
     -----
-    Model function:
-        f(x) = np.select([x >= x_0 - width / 2., x <= x_0 + width / 2.],
-                         [amplitude, amplitude])
+    Model formula:
 
-    Note that f(x_0 - width / 2.) = f(x_0 + width / 2.) = amplitude.
+      .. math::
+
+            f(x) = \\left \\{
+                     \\begin{array}{ll}
+                       A & : x_0 - w/2 \\geq x \\geq x_0 + w/2 \\\\
+                       0 & : \\textnormal{else}
+                     \\end{array}
+                   \\right.
     """
     param_names = ['amplitude', 'x_0', 'width']
 
@@ -585,7 +656,7 @@ class Box1DModel(Parametric1DModel):
 class Box2DModel(Parametric2DModel):
 
     """
-    Two dimensional box function.
+    Two dimensional Box model.
 
     Parameters
     ----------
@@ -603,6 +674,20 @@ class Box2DModel(Parametric2DModel):
     See Also
     --------
     Box1DModel, Gaussian2DModel, Beta2DModel
+
+    Notes
+    -----
+    Model formula:
+
+      .. math::
+
+            f(x, y) = \\left \\{
+                     \\begin{array}{ll}
+                       A & : x_0 - w_x/2 \\geq x \\geq x_0 + w_x/2 \\\\
+                       A & : y_0 - w_y/2 \\geq y \\geq y_0 + w_y/2 \\\\
+                       0 & : \\textnormal{else}
+                     \\end{array}
+                   \\right.
 
     """
 
@@ -623,7 +708,7 @@ class Box2DModel(Parametric2DModel):
 class Trapezoid1DModel(Parametric1DModel):
 
     """
-    One dimensional trapezoid model.
+    One dimensional Trapezoid model.
 
     Parameters
     ----------
@@ -661,7 +746,7 @@ class Trapezoid1DModel(Parametric1DModel):
 class TrapezoidDisk2DModel(Parametric2DModel):
 
     """
-    Two dimensional circular trapezoid model.
+    Two dimensional circular Trapezoid model.
 
     Parameters
     ----------
@@ -671,8 +756,8 @@ class TrapezoidDisk2DModel(Parametric2DModel):
         x position of the center of the trapezoid
     y_0 : float
         y position of the center of the trapezoid
-    width : float
-        Width in x direction of the constant part of the trapezoid.
+    R_0 : float
+        Radius of the constant part of the trapezoid.
     slope : float
         Slope of the tails of the trapezoid in x direction.
 
@@ -681,27 +766,27 @@ class TrapezoidDisk2DModel(Parametric2DModel):
     Disk2DModel, Box2DModel
     """
 
-    param_names = ['amplitude', 'x_0', 'y_0', 'radius', 'slope']
+    param_names = ['amplitude', 'x_0', 'y_0', 'R_0', 'slope']
 
-    def __init__(self, amplitude, x_0, y_0, radius, slope, **constraints):
+    def __init__(self, amplitude, x_0, y_0, R_0, slope, **constraints):
         super(TrapezoidDisk2DModel, self).__init__(locals(), **constraints)
 
-    def eval(self, x, y, amplitude, x_0, y_0, radius, slope):
+    def eval(self, x, y, amplitude, x_0, y_0, R_0, slope):
         """
-        Model function Trapezoid2D.
+        Model function TrapezoidDisk2D.
         """
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
-        range_1 = r <= radius
-        range_2 = np.logical_and(r >= radius,  r <= radius + amplitude / slope)
+        range_1 = r <= R_0
+        range_2 = np.logical_and(r >= R_0,  r <= R_0 + amplitude / slope)
         val_1 = amplitude
-        val_2 = amplitude + slope * (radius - r)
+        val_2 = amplitude + slope * (R_0 - r)
         return np.select([range_1, range_2], [val_1, val_2])
 
 
 class MexicanHat1DModel(Parametric1DModel):
 
     """
-    One dimensional mexican hat function.
+    One dimensional Mexican Hat model.
 
     Parameters
     ----------
@@ -714,7 +799,7 @@ class MexicanHat1DModel(Parametric1DModel):
 
     See Also
     --------
-    Box1DModel, Gaussian1DModel, Trapezoid1DModel
+    MexicanHat2DModel, Box1DModel, Gaussian1DModel, Trapezoid1DModel
 
     Notes
     -----
@@ -742,7 +827,7 @@ class MexicanHat1DModel(Parametric1DModel):
 class MexicanHat2DModel(Parametric2DModel):
 
     """
-    Two dimensional symmetrical mexican hat function.
+    Two dimensional symmetric Mexican Hat model.
 
     Parameters
     ----------
@@ -755,6 +840,10 @@ class MexicanHat2DModel(Parametric2DModel):
     width : float
         Width of the mexican hat
 
+    See Also
+    --------
+    MexicanHat1DModel, Gaussian2DModel
+
     Notes
     -----
     Model formula:
@@ -765,8 +854,6 @@ class MexicanHat2DModel(Parametric2DModel):
         + \\left(y - y_{0}\\right)^{2}}{2 \\sigma^{2}}\\right)
         e^{\\frac{- \\left(x - x_{0}\\right)^{2}
         - \\left(y - y_{0}\\right)^{2}}{2 \\sigma^{2}}}
-
-
     """
     param_names = ['amplitude', 'x_0', 'y_0', 'sigma']
 
@@ -783,7 +870,7 @@ class MexicanHat2DModel(Parametric2DModel):
 
 class AiryDisk2DModel(Parametric2DModel):
     """
-    Two dimensional symmetric Airy model.
+    Two dimensional Airy disk model.
 
     Parameters
     ----------
@@ -796,12 +883,18 @@ class AiryDisk2DModel(Parametric2DModel):
     width : float
         Width of the Airy function.
 
+    See Also
+    --------
+    Box2DModel, TrapezoidDisk2DModel, Gaussian2DModel
+
+
     Notes
     -----
     Model formula:
-        f(r) = amplitude * j1(2 * pi * r) / (pi * r)
 
-        Where j1 is the first order Bessel function of first kind.
+        .. math:: f(r) = A \\frac{J_1(2 \\pi r)}{\\pi r}
+
+    Where J1 is the first order Bessel function of first kind.
     """
     param_names = ['amplitude', 'x_0', 'y_0', 'width']
 
@@ -836,6 +929,10 @@ class Beta1DModel(Parametric1DModel):
     alpha : float
         Power index of the beta model.
 
+    See Also
+    --------
+    Gaussian1DModel, Box1DModel
+
     Notes
     -----
     Model formula:
@@ -843,10 +940,6 @@ class Beta1DModel(Parametric1DModel):
     .. math::
 
         f(x) = A \\left(1 + \\frac{\\left(x - x_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
-
-    See Also
-    --------
-    Gaussian1DModel, Box1DModel
 
     """
     param_names = ['amplitude', 'x_0', 'gamma', 'alpha']
@@ -888,6 +981,10 @@ class Beta2DModel(Parametric2DModel):
     alpha : float
         Power index of the beta model.
 
+    See Also
+    --------
+    Gaussian2DModel, Box2DModel
+
     Notes
     -----
     Model formula:
@@ -896,10 +993,6 @@ class Beta2DModel(Parametric2DModel):
 
         f(x, y) = A \\left(1 + \\frac{\\left(x - x_{0}\\right)^{2} +
         \\left(y - y_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
-
-    See Also
-    --------
-    Gaussian2DModel, Box2Dmodel
     """
     param_names = ['amplitude', 'x_0', 'y_0', 'gamma', 'alpha']
 
