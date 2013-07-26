@@ -517,7 +517,7 @@ class Poly1DModel(PolynomialModel):
         super(Poly1DModel, self).__init__(degree, n_inputs=1, n_outputs=1,
                                           param_dim=param_dim, **pars)
 
-    def deriv(self, pars=None, x=None, y=None):
+    def deriv(self, x, *pars):
         """
         Computes the Vandermonde matrix.
 
@@ -536,7 +536,6 @@ class Poly1DModel(PolynomialModel):
             The Vandermonde matrix
 
         """
-        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.deg + 1,) + x.shape, dtype=np.float)
         v[0] = x * 0 + 1
         v[1] = x
@@ -628,7 +627,7 @@ class Poly2DModel(PolynomialModel):
             r0 = coeff[n + 1]
         return r0 + r1 + r2
 
-    def deriv(self, pars=None, x=None, y=None, z=None):
+    def deriv(self, x, y, *pars):
         """
         Computes the Vandermonde matrix.
 
