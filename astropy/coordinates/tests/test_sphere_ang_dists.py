@@ -102,5 +102,5 @@ def test_angsep():
 
     for (lon1, lat1, lon2, lat2), corrsep in zip(coords, correct_seps):
         angsep = AngularSeparation(lon1=lon1, lat1=lat1, lon2=lon2, lat2=lat2,
-                                   units=u.deg, _supresslatlonswap_warning=True)
-        assert fabs(angsep.degrees - corrsep) < correctness_margin
+                                   unit=u.deg, _supresslatlonswap_warning=True)
+        assert fabs(angsep.degree - corrsep) < correctness_margin

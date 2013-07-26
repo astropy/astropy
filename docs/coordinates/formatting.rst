@@ -9,14 +9,14 @@ treating the components (e.g., RA and Dec) separately.  For example::
   >>> str(c.ra) + ' ' + str(c.dec)
   '187d42m21.31200s 12d23m28.03200s'
 
-To get better control over the formatting, you can use the angles' 
-`~astropy.coordinates.angle.Angle.format` method (see :doc:`angles` for
-more).  For example::
+To get better control over the formatting, you can use the angles'
+`~astropy.coordinates.angle.Angle.to_string` method (see :doc:`angles`
+for more).  For example::
 
-  >>> rahmsstr = c.ra.format(u.hour)
+  >>> rahmsstr = c.ra.to_string(u.hour)
   >>>> rahmsstr
   '12h30m49.42080s'
-  >>> decdmsstr = c.dec.format(u.degree, alwayssign=True)
+  >>> decdmsstr = c.dec.to_string(u.degree, alwayssign=True)
   >>> decdmsstr
   '+12d23m28.03200s'
   >>> rahmsstr + ' ' + decdmsstr

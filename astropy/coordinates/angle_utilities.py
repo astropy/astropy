@@ -36,7 +36,8 @@ class _AngleParser(object):
 
     @classmethod
     def _get_simple_unit_names(cls):
-        simple_units = set(u.radian.find_equivalent_units())
+        simple_units = set(
+            u.radian.find_equivalent_units(include_prefix_units=True))
         simple_units.remove(u.deg)
         simple_units.remove(u.hourangle)
         simple_unit_names = set()
@@ -78,13 +79,17 @@ class _AngleParser(object):
             t.value = float(t.value + '1')
             return t
 
+        def t_SIMPLE_UNIT(t):
+            t.value = u.Unit(t.value)
+            return t
+        t_SIMPLE_UNIT.__doc__ = '|'.join(
+            '(?:{0})'.format(x) for x in cls._get_simple_unit_names())
+
         t_COLON = ':'
         t_DEGREE = r'd(eg(ree(s)?)?)?|°'
         t_HOUR = r'hour(s)?|h(r)?|ʰ'
         t_MINUTE = r'm(in(ute(s)?)?)?|′|\''
         t_SECOND = r's(ec(ond(s)?)?)?|″|\"'
-        t_SIMPLE_UNIT = '|'.join(
-            '({0})'.format(x) for x in cls._get_simple_unit_names())
 
         # A string containing ignored characters (spaces)
         t_ignore = ' '

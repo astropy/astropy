@@ -17,11 +17,30 @@ def test_angle_arrays():
     from .. import Angle
 
     # Tests incomplete
-    with pytest.raises(NotImplementedError):
-        a1 = Angle([0, 45, 90, 180, 270, 360], unit=u.degree)
+    a1 = Angle([0, 45, 90, 180, 270, 360, 720.], unit=u.degree)
+    npt.assert_almost_equal([0., 45., 90., 180., 270., 360., 360.], a1.value)
 
-    with pytest.raises(NotImplementedError):
-        a2 = Angle(np.array([0, 45, 90, 180, 270, 360]), unit=u.degree)
+    a2 = Angle(np.array([-90, -45, 0, 45, 90, 180, 270, 360]), unit=u.degree,
+               bounds=(0, 360))
+    npt.assert_almost_equal([270., 315., 0., 45., 90., 180., 270., 360.],
+                            a2.value)
 
-    with pytest.raises(NotImplementedError):
-        a3 = Angle(["12 degrees", "3 hours", "5 deg", "4rad"])
+    a3 = Angle(["12 degrees", "3 hours", "5 deg", "4rad"])
+    npt.assert_almost_equal([0.01745329, 0.26179939, 0.01745329, 4.], a3.value)
+    assert a3.unit == u.radian
+
+    a4 = Angle(["12 degrees", "3 hours", "5 deg", "4rad"], u.degree)
+    npt.assert_almost_equal(a4.radian, a3.value)
+    assert a4.unit == u.degree
+
+    a5 = Angle([0, 45, 90, 180, 270, 360], unit=u.degree, bounds=(0, 360))
+    a6 = a5.sum()
+    npt.assert_almost_equal(a6.value, 225.0)
+    assert a6.unit is u.degree
+    assert a6.bounds == (Angle(0, u.degree), Angle(360, u.degree))
+
+    with pytest.raises(TypeError):
+        # Arrays of Angle objects are not supported -- that's really
+        # tricky to do correctly, if at all, due to the possibility of
+        # nesting.
+        a7 = Angle([a1, a2, a3], unit=u.degree)

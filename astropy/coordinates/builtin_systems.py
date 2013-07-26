@@ -73,8 +73,8 @@ class ICRSCoordinates(SphericalCoordinatesBase):
             diststr = ''
 
         msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.ra.degrees,
-                          self.dec.degrees, diststr)
+        return msg.format(self.__class__.__name__, self.ra.degree,
+                          self.dec.degree, diststr)
 
     @property
     def lonangle(self):
@@ -142,8 +142,8 @@ class FK5Coordinates(SphericalCoordinatesBase):
             diststr = ''
 
         msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.ra.degrees,
-                          self.dec.degrees, diststr)
+        return msg.format(self.__class__.__name__, self.ra.degree,
+                          self.dec.degree, diststr)
 
     @property
     def lonangle(self):
@@ -239,8 +239,8 @@ class FK4Coordinates(SphericalCoordinatesBase):
             diststr = ''
 
         msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.ra.degrees,
-                          self.dec.degrees, diststr)
+        return msg.format(self.__class__.__name__, self.ra.degree,
+                          self.dec.degree, diststr)
 
     @property
     def lonangle(self):
@@ -335,8 +335,8 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
             diststr = ''
 
         msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.ra.degrees,
-                          self.dec.degrees, diststr)
+        return msg.format(self.__class__.__name__, self.ra.degree,
+                          self.dec.degree, diststr)
 
     @property
     def lonangle(self):
@@ -446,8 +446,8 @@ class GalacticCoordinates(SphericalCoordinatesBase):
             diststr = ''
 
         msg = "<{0} l={1:.5f} deg, b={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.l.degrees,
-                          self.b.degrees, diststr)
+        return msg.format(self.__class__.__name__, self.l.degree,
+                          self.b.degree, diststr)
 
     @property
     def lonangle(self):
@@ -504,8 +504,8 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
             diststr = ''
 
         msg = "<{0} az={1:.5f} deg, el={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.az.degrees,
-                          self.el.degrees, diststr)
+        return msg.format(self.__class__.__name__, self.az.degree,
+                          self.el.degree, diststr)
 
     @property
     def lonangle(self):
@@ -707,9 +707,9 @@ def _fk5_to_gal(fk5coords):
     # needed mainly to support inverse from galactic
     jequinox = 2000 if fk5coords.equinox is None else fk5coords.equinox.jyear
 
-    mat1 = rotation_matrix(180 - GalacticCoordinates._lon0_J2000.degrees, 'z')
-    mat2 = rotation_matrix(90 - GalacticCoordinates._ngp_J2000.dec.degrees, 'y')
-    mat3 = rotation_matrix(GalacticCoordinates._ngp_J2000.ra.degrees, 'z')
+    mat1 = rotation_matrix(180 - GalacticCoordinates._lon0_J2000.degree, 'z')
+    mat2 = rotation_matrix(90 - GalacticCoordinates._ngp_J2000.dec.degree, 'y')
+    mat3 = rotation_matrix(GalacticCoordinates._ngp_J2000.ra.degree, 'z')
     # transpose gets equinox -> J2000
     matprec = _precess_from_J2000_Capitaine(jequinox).T
     return mat1 * mat2 * mat3 * matprec
@@ -728,9 +728,9 @@ def _fk4_to_gal(fk4coords):
     # needed mainly to support inverse from galactic
     bequinox = 1950 if fk4coords.equinox is None else fk4coords.equinox.byear
 
-    mat1 = rotation_matrix(180 - GalacticCoordinates._lon0_B1950.degrees, 'z')
-    mat2 = rotation_matrix(90 - GalacticCoordinates._ngp_B1950.dec.degrees, 'y')
-    mat3 = rotation_matrix(GalacticCoordinates._ngp_B1950.ra.degrees, 'z')
+    mat1 = rotation_matrix(180 - GalacticCoordinates._lon0_B1950.degree, 'z')
+    mat2 = rotation_matrix(90 - GalacticCoordinates._ngp_B1950.dec.degree, 'y')
+    mat3 = rotation_matrix(GalacticCoordinates._ngp_B1950.ra.degree, 'z')
     matprec = _precession_matrix_besselian(bequinox, 1950)
     return mat1 * mat2 * mat3 * matprec
 
