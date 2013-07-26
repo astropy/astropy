@@ -5,7 +5,7 @@ import functools
 import numpy as np
 
 from ...tests.helper import pytest
-from .. import Time, ScaleValueError, sofa_time
+from .. import Time, ScaleValueError, erfa_time
 
 allclose_jd = functools.partial(np.allclose, rtol=1e-15, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=1e-15, atol=1e-11)  # 1 microsec atol
@@ -429,7 +429,7 @@ class TestSubFormat():
 
 
 class TestSofaErrors():
-    """Test that sofa_time.pyx handles sofa status return values correctly"""
+    """Test that erfa_time.pyx handles erfa status return values correctly"""
 
     def test_bad_time(self):
         iy = np.array([2000], dtype=np.intc)
@@ -438,11 +438,11 @@ class TestSofaErrors():
         djm0 = np.array([0], dtype=np.double)
         djm = np.array([0], dtype=np.double)
         with pytest.raises(ValueError):  # bad month, fatal error
-            sofa_time.cal2jd(iy, im, id, djm0, djm)
+            erfa_time.cal2jd(iy, im, id, djm0, djm)
 
         # Set month to a good value so now the bad day just gives a warning
         im[0] = 2
-        sofa_time.cal2jd(iy, im, id, djm0, djm)
+        erfa_time.cal2jd(iy, im, id, djm0, djm)
         assert allclose_jd(djm0, [2400000.5])
         assert allclose_jd(djm, [53574.])
 

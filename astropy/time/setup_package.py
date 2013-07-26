@@ -8,18 +8,18 @@ TIMEROOT = os.path.relpath(os.path.dirname(__file__))
 
 
 def get_extensions():
-    sources = [os.path.join(TIMEROOT, "sofa_time.pyx")]
+    sources = [os.path.join(TIMEROOT, "erfa_time.pyx")]
     include_dirs = ['numpy']
     libraries = []
 
-    if setup_helpers.use_system_library('sofa'):
-        libraries.append('sofa_c')
+    if setup_helpers.use_system_library('erfa'):
+        libraries.append('erfa')
     else:
-        sources.append("cextern/sofa/sofa.c")
-        include_dirs.append('cextern/sofa')
+        sources.append("cextern/erfa/erfa.c")
+        include_dirs.append('cextern/erfa')
 
     time_ext = Extension(
-        name="astropy.time.sofa_time",
+        name="astropy.time.erfa_time",
         sources=sources,
         include_dirs=include_dirs,
         libraries=libraries,
@@ -28,4 +28,4 @@ def get_extensions():
     return [time_ext]
 
 def get_external_libraries():
-    return ['sofa']
+    return ['erfa']

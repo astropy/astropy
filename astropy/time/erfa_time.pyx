@@ -6,51 +6,51 @@ import cython
 
 ctypedef np.double_t DOUBLE_T
 
-cdef extern from "sofa.h":
-    double iauEpb(double dj1, double dj2)
-    double iauEpj(double dj1, double dj2)
-    void iauEpj2jd(double epj, double *djm0, double *djm)
-    void iauEpb2jd(double epb, double *djm0, double *djm)
-    int iauCal2jd(int iy, int im, int id, double *djm0, double *djm)
-    int iauJd2cal(double dj1, double dj2,int *iy, int *im, int *id, double *fd)
-    int iauJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
+cdef extern from "erfa.h":
+    double eraEpb(double dj1, double dj2)
+    double eraEpj(double dj1, double dj2)
+    void eraEpj2jd(double epj, double *djm0, double *djm)
+    void eraEpb2jd(double epb, double *djm0, double *djm)
+    int eraCal2jd(int iy, int im, int id, double *djm0, double *djm)
+    int eraJd2cal(double dj1, double dj2,int *iy, int *im, int *id, double *fd)
+    int eraJdcalf(int ndp, double dj1, double dj2, int iymdf[4])
 
     # Internal JD to/from datetime format converters
-    int iauD2dtf(char *scale, int ndp, double d1, double d2, int *iy, int *im, int *id, int ihmsf[4])
-    int iauDtf2d(char *scale, int iy, int im, int id, int ihr, int imn, double sec, double *d1, double *d2)
+    int eraD2dtf(char *scale, int ndp, double d1, double d2, int *iy, int *im, int *id, int ihmsf[4])
+    int eraDtf2d(char *scale, int iy, int im, int id, int ihr, int imn, double sec, double *d1, double *d2)
 
     # Time scale helper routines
-    double iauDtdb(double date1, double date2, double ut, double elong, double u, double v)
-    int iauDat(int iy, int im, int id, double fd, double *deltat)
+    double eraDtdb(double date1, double date2, double ut, double elong, double u, double v)
+    int eraDat(int iy, int im, int id, double fd, double *deltat)
 
     # Time scale conversion routines
-    int iauTaitt(double tai1, double tai2, double *tt1, double *tt2)
-    int iauTttai(double tt1, double tt2, double *tai1, double *tai2)
-    int iauTaiutc(double tai1, double tai2, double *utc1, double *utc2)
-    int iauUtctai(double utc1, double utc2, double *tai1, double *tai2)
-    int iauTcbtdb(double tcb1, double tcb2, double *tdb1, double *tdb2)
-    int iauTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
-    int iauTcgtt(double tcg1, double tcg2, double *tt1, double *tt2)
-    int iauTttcg(double tt1, double tt2, double *tcg1, double *tcg2)
+    int eraTaitt(double tai1, double tai2, double *tt1, double *tt2)
+    int eraTttai(double tt1, double tt2, double *tai1, double *tai2)
+    int eraTaiutc(double tai1, double tai2, double *utc1, double *utc2)
+    int eraUtctai(double utc1, double utc2, double *tai1, double *tai2)
+    int eraTcbtdb(double tcb1, double tcb2, double *tdb1, double *tdb2)
+    int eraTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
+    int eraTcgtt(double tcg1, double tcg2, double *tt1, double *tt2)
+    int eraTttcg(double tt1, double tt2, double *tcg1, double *tcg2)
 
-    int iauTaiut1(double tai1, double tai2, double dta, double *ut11, double *ut12)
-    int iauUt1tai(double ut11, double ut12, double dta, double *tai1, double *tai2)
-    int iauTtut1(double tt1, double tt2, double dt, double *ut11, double *ut12)
-    int iauUt1tt(double ut11, double ut12, double dt, double *tt1, double *tt2)
-    int iauTdbtt(double tdb1, double tdb2, double dtr, double *tt1, double *tt2)
-    int iauTttdb(double tt1, double tt2, double dtr, double *tdb1, double *tdb2)
-    int iauUt1utc(double ut11, double ut12, double dut1, double *utc1, double *utc2)
-    int iauUtcut1(double utc1, double utc2, double dut1, double *ut11, double *ut12)
+    int eraTaiut1(double tai1, double tai2, double dta, double *ut11, double *ut12)
+    int eraUt1tai(double ut11, double ut12, double dta, double *tai1, double *tai2)
+    int eraTtut1(double tt1, double tt2, double dt, double *ut11, double *ut12)
+    int eraUt1tt(double ut11, double ut12, double dt, double *tt1, double *tt2)
+    int eraTdbtt(double tdb1, double tdb2, double dtr, double *tt1, double *tt2)
+    int eraTttdb(double tt1, double tt2, double dtr, double *tdb1, double *tdb2)
+    int eraUt1utc(double ut11, double ut12, double dut1, double *utc1, double *utc2)
+    int eraUtcut1(double utc1, double utc2, double dut1, double *ut11, double *ut12)
 
     # Geodetic
-    int iauAf2a(char s, int ideg, int iamin, double asec, double *rad)
-    int iauGd2gc(int n, double elong, double phi, double height, double xyz[3])
+    int eraAf2a(char s, int ideg, int iamin, double asec, double *rad)
+    int eraGd2gc(int n, double elong, double phi, double height, double xyz[3])
 
 DUBIOUS = 'dubious year for UTC (before 1960.0 or 5 years ' \
           'beyond last known leap second)'
 
 def check_return(ret, func_name, warns={}, errors={}):
-    """Check the return value from an iau routine"""
+    """Check the return value from an era routine"""
     if ret in warns:
         warnings.warn('{0}: {1}'.format(func_name, warns[ret]))
     elif ret in errors:
@@ -69,7 +69,7 @@ def cal2jd(
     np.ndarray[double, ndim=1] djm0,
     np.ndarray[double, ndim=1] djm):
     """
-    int iauCal2jd(int iy, int im, int id, double *djm0, double *djm)
+    int eraCal2jd(int iy, int im, int id, double *djm0, double *djm)
     Calendar date to high-precision JD.
 
     **  Given:
@@ -107,8 +107,8 @@ def cal2jd(
     errs = {-1: 'Bad input year',
              -2: 'Bad input month'}
     for i in range(n):
-        ret = iauCal2jd( iy[i], im[i], id[i], &djm0[i], &djm[i])
-        check_return(ret, 'iauCal2jd', warns, errs)
+        ret = eraCal2jd( iy[i], im[i], id[i], &djm0[i], &djm[i])
+        check_return(ret, 'eraCal2jd', warns, errs)
     return
 
 @cython.wraparound(False)
@@ -118,7 +118,7 @@ def d_tai_utc(np.ndarray[int, ndim=1] iy,
               np.ndarray[int, ndim=1] id,
               np.ndarray[double, ndim=1] fd):
     """
-    int iauDat(int iy, int im, int id, double fd, double *deltat)
+    int eraDat(int iy, int im, int id, double fd, double *deltat)
     For a given UTC date, calculate delta(AT) = TAI-UTC.
 
     **  Given:
@@ -202,9 +202,9 @@ def d_tai_utc(np.ndarray[int, ndim=1] iy,
              -3: 'bad day (must be within normal calendar date for a month)',
              -4: 'bad fraction of day'}
     for i in range(n):
-        ret = iauDat(iy[i], im[i], id[i], fd[i],
+        ret = eraDat(iy[i], im[i], id[i], fd[i],
                      &out[i])
-        check_return(ret, 'iauDat', warns, errs)
+        check_return(ret, 'eraDat', warns, errs)
 
     return out
 
@@ -215,7 +215,7 @@ def jd_dtf(scale, ndp,
               np.ndarray[double, ndim=1] d1,
               np.ndarray[double, ndim=1] d2):
     """
-    int iauD2dtf(const char *scale, int ndp, double d1, double d2,
+    int eraD2dtf(const char *scale, int ndp, double d1, double d2,
              int *iy, int *im, int *id, int ihmsf[4])
 
     **  Given:
@@ -266,9 +266,9 @@ def jd_dtf(scale, ndp,
     **
     **  5) The warning status "dubious year" flags UTCs that predate the
     **     introduction of the time scale and that are too far in the future
-    **     to be trusted.  See iauDat for further details.
+    **     to be trusted.  See eraDat for further details.
     **
-    **  6) For calendar conventions and limitations, see iauCal2jd.
+    **  6) For calendar conventions and limitations, see eraCal2jd.
     """
     cdef int i
     cdef int n = d1.shape[0]
@@ -282,9 +282,9 @@ def jd_dtf(scale, ndp,
     errs = {-1: 'unacceptable date'}
 
     for i in range(n):
-        ret = iauD2dtf(scale, ndp, d1[i], d2[i],
+        ret = eraD2dtf(scale, ndp, d1[i], d2[i],
                      &iy[i], &im[i], &id[i], &ihmsf[i, 0])
-        check_return(ret, 'iauD2dtf', warns, errs)
+        check_return(ret, 'eraD2dtf', warns, errs)
 
     return iy, im, id, ihmsf
 
@@ -298,7 +298,7 @@ def dtf_jd(scale,
               np.ndarray[int, ndim=1] imn,
               np.ndarray[double, ndim=1] sec):
     """
-    int iauDtf2d(char *scale, int iy, int im, int id, int ihr, int imn, double sec, double *d1, double *d2)
+    int eraDtf2d(char *scale, int iy, int im, int id, int ihr, int imn, double sec, double *d1, double *d2)
 
     **  Given:
     **     scale     char[]  time scale ID (Note 1)
@@ -327,7 +327,7 @@ def dtf_jd(scale,
     **     case) is significant, and enables handling of leap seconds (see
     **     Note 4).
     **
-    **  2) For calendar conventions and limitations, see iauCal2jd.
+    **  2) For calendar conventions and limitations, see eraCal2jd.
     **
     **  3) The sum of the results, d1+d2, is Julian Date, where normally d1
     **     is the Julian Day Number and d2 is the fraction of a day.  In the
@@ -346,7 +346,7 @@ def dtf_jd(scale,
     **
     **  6) The warning status "dubious year" flags UTCs that predate the
     **     introduction of the time scale and that are too far in the future
-    **     to be trusted.  See iauDat for further details.
+    **     to be trusted.  See eraDat for further details.
     **
     **  7) Only in the case of continuous and regular time scales (TAI, TT,
     **     TCG, TCB and TDB) is the result d1+d2 a Julian Date, strictly
@@ -375,9 +375,9 @@ def dtf_jd(scale,
             -6: 'bad second (< 0)'}
 
     for i in range(n):
-        ret = iauDtf2d(scale, iy[i], im[i], id[i], ihr[i], imn[i], sec[i],
+        ret = eraDtf2d(scale, iy[i], im[i], id[i], ihr[i], imn[i], sec[i],
                        &out1[i], &out2[i])
-        check_return(ret, 'iauDtf2d', warns, errs)
+        check_return(ret, 'eraDtf2d', warns, errs)
 
     return out1, out2
 
@@ -388,7 +388,7 @@ def tai_tt(
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
-    int iauTaitt(double tai1, double tai2, double *tt1, double *tt2)
+    int eraTaitt(double tai1, double tai2, double *tt1, double *tt2)
 
     **  Given:
     **     tai1,tai2  double    TAI as a 2-part Julian Date
@@ -413,8 +413,8 @@ def tai_tt(
     cdef np.ndarray[double, ndim=1] out2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        ret = iauTaitt(in1[i], in2[i], &out1[i], &out2[i])
-        check_return(ret, 'iauTaitt')
+        ret = eraTaitt(in1[i], in2[i], &out1[i], &out2[i])
+        check_return(ret, 'eraTaitt')
 
     return out1, out2
 
@@ -425,7 +425,7 @@ def tcb_tdb(
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
-    int iauTcbtdb(double tcb1, double tcb2, double *tdb1, double *tdb2)
+    int eraTcbtdb(double tcb1, double tcb2, double *tdb1, double *tdb2)
 
     **  Given:
     **     tcb1,tcb2  double    TCB as a 2-part Julian Date
@@ -469,8 +469,8 @@ def tcb_tdb(
     cdef np.ndarray[double, ndim=1] out2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        ret = iauTcbtdb(in1[i], in2[i], &out1[i], &out2[i])
-        check_return(ret, 'iauTcbtdb')
+        ret = eraTcbtdb(in1[i], in2[i], &out1[i], &out2[i])
+        check_return(ret, 'eraTcbtdb')
 
     return out1, out2
 
@@ -481,7 +481,7 @@ def tcg_tt(
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
-   int iauTcgtt(double tcg1, double tcg2, double *tt1, double *tt2)
+   int eraTcgtt(double tcg1, double tcg2, double *tt1, double *tt2)
 
    **  Given:
    **     tcg1,tcg2  double    TCG as a 2-part Julian Date
@@ -500,8 +500,8 @@ def tcg_tt(
     cdef np.ndarray[double, ndim=1] out2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        ret = iauTcgtt(in1[i], in2[i], &out1[i], &out2[i])
-        check_return(ret, 'iauTcgtt')
+        ret = eraTcgtt(in1[i], in2[i], &out1[i], &out2[i])
+        check_return(ret, 'eraTcgtt')
 
     return out1, out2
 
@@ -512,7 +512,7 @@ def tdb_tcb(
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
-    int iauTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
+    int eraTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
 
     **  Given:
     **     tdb1,tdb2  double    TDB as a 2-part Julian Date
@@ -530,8 +530,8 @@ def tdb_tcb(
     cdef np.ndarray[double, ndim=1] out2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        ret = iauTdbtcb(in1[i], in2[i], &out1[i], &out2[i])
-        check_return(ret, 'iauTdbtcb')
+        ret = eraTdbtcb(in1[i], in2[i], &out1[i], &out2[i])
+        check_return(ret, 'eraTdbtcb')
 
     return out1, out2
 
@@ -542,7 +542,7 @@ def tt_tai(
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
-    int iauTttai(double tt1, double tt2, double *tai1, double *tai2)
+    int eraTttai(double tt1, double tt2, double *tai1, double *tai2)
 
     **  Given:
     **     tt1,tt2    double    TT as a 2-part Julian Date
@@ -560,8 +560,8 @@ def tt_tai(
     cdef np.ndarray[double, ndim=1] out2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        ret = iauTttai(in1[i], in2[i], &out1[i], &out2[i])
-        check_return(ret, 'iauTttai')
+        ret = eraTttai(in1[i], in2[i], &out1[i], &out2[i])
+        check_return(ret, 'eraTttai')
 
     return out1, out2
 
@@ -572,7 +572,7 @@ def tt_tcg(
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
-    int iauTttcg(double tt1, double tt2, double *tcg1, double *tcg2)
+    int eraTttcg(double tt1, double tt2, double *tcg1, double *tcg2)
     **  Given:
     **     tt1,tt2    double    TT as a 2-part Julian Date
     **
@@ -589,8 +589,8 @@ def tt_tcg(
     cdef np.ndarray[double, ndim=1] out2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        ret = iauTttcg(in1[i], in2[i], &out1[i], &out2[i])
-        check_return(ret, 'iauTttcg')
+        ret = eraTttcg(in1[i], in2[i], &out1[i], &out2[i])
+        check_return(ret, 'eraTttcg')
 
     return out1, out2
 
@@ -601,7 +601,7 @@ def utc_tai(
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
-    int iauUtctai(double utc1, double utc2, double *tai1, double *tai2)
+    int eraUtctai(double utc1, double utc2, double *tai1, double *tai2)
 
     **  Given:
     **     utc1,utc2  double   UTC as a 2-part quasi Julian Date (Notes 1-4)
@@ -627,9 +627,9 @@ def utc_tai(
     **
     **  3) The warning status "dubious year" flags UTCs that predate the
     **     introduction of the time scale and that are too far in the future
-    **     to be trusted.  See iauDat  for further details.
+    **     to be trusted.  See eraDat  for further details.
     **
-    **  4) The function iauDtf2d converts from calendar date and time of day
+    **  4) The function eraDtf2d converts from calendar date and time of day
     **     into 2-part Julian Date, and in the case of UTC implements the
     **     leap-second-ambiguity convention described above.
     **
@@ -647,8 +647,8 @@ def utc_tai(
     errs = {-1: 'unacceptable date'}
 
     for i in range(n):
-        ret = iauUtctai(in1[i], in2[i], &out1[i], &out2[i])
-        check_return(ret, 'iauUtctai', warns, errs)
+        ret = eraUtctai(in1[i], in2[i], &out1[i], &out2[i])
+        check_return(ret, 'eraUtctai', warns, errs)
 
     return out1, out2
 
@@ -659,7 +659,7 @@ def tai_utc(
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2):
     """
-    int iauTaiutc(double tai1, double tai2, double *utc1, double *utc2)
+    int eraTaiutc(double tai1, double tai2, double *utc1, double *utc2)
 
     **  Given:
     **     tai1,tai2  double   TAI as a 2-part Julian Date (Note 1)
@@ -686,13 +686,13 @@ def tai_utc(
     **     function is that the JD day represents UTC days whether the
     **     length is 86399, 86400 or 86401 SI seconds.
     **
-    **  3) The function iauD2dtf can be used to transform the UTC quasi-JD
+    **  3) The function eraD2dtf can be used to transform the UTC quasi-JD
     **     into calendar date and clock time, including UTC leap second
     **     handling.
     **
     **  4) The warning status "dubious year" flags UTCs that predate the
     **     introduction of the time scale and that are too far in the future
-    **     to be trusted.  See iauDat for further details.
+    **     to be trusted.  See eraDat for further details.
         """
     assert in1.shape[0] == in2.shape[0]
     cdef unsigned n = in1.shape[0]
@@ -704,8 +704,8 @@ def tai_utc(
     errs = {-1: 'unacceptable date'}
 
     for i in range(n):
-        ret = iauTaiutc(in1[i], in2[i], &out1[i], &out2[i])
-        check_return(ret, 'iauTaiutc', warns, errs)
+        ret = eraTaiutc(in1[i], in2[i], &out1[i], &out2[i])
+        check_return(ret, 'eraTaiutc', warns, errs)
 
     return out1, out2
 
@@ -717,7 +717,7 @@ def tai_ut1(
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
     """
-    int iauTaiut1(double tai1, double tai2, double dta, double *ut11, double *ut12)
+    int eraTaiut1(double tai1, double tai2, double dta, double *ut11, double *ut12)
 
     **  Given:
     **     tai1,tai2  double    TAI as a 2-part Julian Date
@@ -746,8 +746,8 @@ def tai_ut1(
     cdef np.ndarray[double, ndim=1] out2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        ret = iauTaiut1(in1[i], in2[i], dt[i], &out1[i], &out2[i])
-        check_return(ret, 'iauTaiut1')
+        ret = eraTaiut1(in1[i], in2[i], dt[i], &out1[i], &out2[i])
+        check_return(ret, 'eraTaiut1')
 
     return out1, out2
 
@@ -759,7 +759,7 @@ def ut1_tai(
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
     """
-    int iauUt1tai(double ut11, double ut12, double dta, double *tai1, double *tai2)
+    int eraUt1tai(double ut11, double ut12, double dta, double *tai1, double *tai2)
 
     **  Given:
     **     ut11,ut12  double    UT1 as a 2-part Julian Date
@@ -788,8 +788,8 @@ def ut1_tai(
     cdef np.ndarray[double, ndim=1] out2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        ret = iauUt1tai(in1[i], in2[i], dt[i], &out1[i], &out2[i])
-        check_return(ret, 'iauUt1tai')
+        ret = eraUt1tai(in1[i], in2[i], dt[i], &out1[i], &out2[i])
+        check_return(ret, 'eraUt1tai')
 
     return out1, out2
 
@@ -801,7 +801,7 @@ def tt_ut1(
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
     """
-    int iauTtut1(double tt1, double tt2, double dt, double *ut11, double *ut12)
+    int eraTtut1(double tt1, double tt2, double dt, double *ut11, double *ut12)
 
     **  Given:
     **     tt1,tt2    double    TT as a 2-part Julian Date
@@ -829,8 +829,8 @@ def tt_ut1(
     cdef np.ndarray[double, ndim=1] out2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        ret = iauTtut1(in1[i], in2[i], dt[i], &out1[i], &out2[i])
-        check_return(ret, 'iauTtut1')
+        ret = eraTtut1(in1[i], in2[i], dt[i], &out1[i], &out2[i])
+        check_return(ret, 'eraTtut1')
 
     return out1, out2
 
@@ -842,7 +842,7 @@ def ut1_tt(
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
     """
-    int iauUt1tt(double ut11, double ut12, double dt, double *tt1, double *tt2)
+    int eraUt1tt(double ut11, double ut12, double dt, double *tt1, double *tt2)
 
     **  Given:
     **     ut11,ut12  double    UT1 as a 2-part Julian Date
@@ -870,8 +870,8 @@ def ut1_tt(
     cdef np.ndarray[double, ndim=1] out2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        ret = iauUt1tt(in1[i], in2[i], dt[i], &out1[i], &out2[i])
-        check_return(ret, 'iauUt1tt')
+        ret = eraUt1tt(in1[i], in2[i], dt[i], &out1[i], &out2[i])
+        check_return(ret, 'eraUt1tt')
 
     return out1, out2
 
@@ -883,7 +883,7 @@ def tdb_tt(
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
     """
-    int iauTdbtt(double tdb1, double tdb2, double dtr, double *tt1, double *tt2)
+    int eraTdbtt(double tdb1, double tdb2, double dtr, double *tt1, double *tt2)
 
     **  Given:
     **     tdb1,tdb2  double    TDB as a 2-part Julian Date
@@ -907,7 +907,7 @@ def tdb_tt(
     **     adopted solar-system ephemeris, and can be obtained by numerical
     **     integration, by interrogating a precomputed time ephemeris or by
     **     evaluating a model such as that implemented in the SOFA function
-    **     iauDtdb.   The quantity is dominated by an annual term of 1.7 ms
+    **     eraDtdb.   The quantity is dominated by an annual term of 1.7 ms
     **     amplitude.
     **
     **  3) TDB is essentially the same as Teph, the time argument for the
@@ -920,8 +920,8 @@ def tdb_tt(
     cdef np.ndarray[double, ndim=1] out2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        ret = iauTdbtt(in1[i], in2[i], dt[i], &out1[i], &out2[i])
-        check_return(ret, 'iauTdbtt')
+        ret = eraTdbtt(in1[i], in2[i], dt[i], &out1[i], &out2[i])
+        check_return(ret, 'eraTdbtt')
 
     return out1, out2
 
@@ -933,7 +933,7 @@ def tt_tdb(
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
     """
-    int iauTttdb(double tt1, double tt2, double dtr, double *tdb1, double *tdb2)
+    int eraTttdb(double tt1, double tt2, double dtr, double *tdb1, double *tdb2)
 
     **  Given:
     **     tt1,tt2    double    TT as a 2-part Julian Date
@@ -957,7 +957,7 @@ def tt_tdb(
     **     adopted solar-system ephemeris, and can be obtained by numerical
     **     integration, by interrogating a precomputed time ephemeris or by
     **     evaluating a model such as that implemented in the SOFA function
-    **     iauDtdb.   The quantity is dominated by an annual term of 1.7 ms
+    **     eraDtdb.   The quantity is dominated by an annual term of 1.7 ms
     **     amplitude.
     **
     **  3) TDB is essentially the same as Teph, the time argument for the JPL
@@ -970,8 +970,8 @@ def tt_tdb(
     cdef np.ndarray[double, ndim=1] out2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        ret = iauTttdb(in1[i], in2[i], dt[i], &out1[i], &out2[i])
-        check_return(ret, 'iauTttdb')
+        ret = eraTttdb(in1[i], in2[i], dt[i], &out1[i], &out2[i])
+        check_return(ret, 'eraTttdb')
 
     return out1, out2
 
@@ -983,7 +983,7 @@ def ut1_utc(
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
     """
-    int iauUt1utc(double ut11, double ut12, double dut1, double *utc1, double *utc2)
+    int eraUt1utc(double ut11, double ut12, double dut1, double *utc1, double *utc2)
 
     **  Given:
     **     ut11,ut12  double   UT1 as a 2-part Julian Date (Note 1)
@@ -1016,13 +1016,13 @@ def ut1_utc(
     **     function is that the returned quasi JD day UTC1+UTC2 represents
     **     UTC days whether the length is 86399, 86400 or 86401 SI seconds.
     **
-    **  4) The function iauD2dtf can be used to transform the UTC quasi-JD
+    **  4) The function eraD2dtf can be used to transform the UTC quasi-JD
     **     into calendar date and clock time, including UTC leap second
     **     handling.
     **
     **  5) The warning status "dubious year" flags UTCs that predate the
     **     introduction of the time scale and that are too far in the future
-    **     to be trusted.  See iauDat for further details.
+    **     to be trusted.  See eraDat for further details.
     """
     assert in1.shape[0] == in2.shape[0] == dt.shape[0]
     cdef unsigned n = in1.shape[0]
@@ -1034,8 +1034,8 @@ def ut1_utc(
     errs = {-1: 'unacceptable date'}
 
     for i in range(n):
-        ret = iauUt1utc(in1[i], in2[i], dt[i], &out1[i], &out2[i])
-        check_return(ret, 'iauUt1utc', warns, errs)
+        ret = eraUt1utc(in1[i], in2[i], dt[i], &out1[i], &out2[i])
+        check_return(ret, 'eraUt1utc', warns, errs)
 
     return out1, out2
 
@@ -1047,7 +1047,7 @@ def utc_ut1(
     np.ndarray[double, ndim=1] in2,
     np.ndarray[double, ndim=1] dt):
     """
-    int iauUtcut1(double utc1, double utc2, double dut1, double *ut11, double *ut12)
+    int eraUtcut1(double utc1, double utc2, double dut1, double *ut11, double *ut12)
 
     **  Given:
     **     utc1,utc2  double   UTC as a 2-part quasi Julian Date (Notes 1-4)
@@ -1074,9 +1074,9 @@ def utc_ut1(
     **
     **  3) The warning status "dubious year" flags UTCs that predate the
     **     introduction of the time scale and that are too far in the future
-    **     to be trusted.  See iauDat  for further details.
+    **     to be trusted.  See eraDat  for further details.
     **
-    **  4) The function iauDtf2d  converts from calendar date and time of
+    **  4) The function eraDtf2d  converts from calendar date and time of
     **     day into 2-part Julian Date, and in the case of UTC implements
     **     the leap-second-ambiguity convention described above.
     **
@@ -1090,7 +1090,7 @@ def utc_ut1(
     **
     **  7) The warning status "dubious year" flags UTCs that predate the
     **     introduction of the time scale and that are too far in the future
-    **     to be trusted.  See iauDat for further details.
+    **     to be trusted.  See eraDat for further details.
     """
     assert in1.shape[0] == in2.shape[0] == dt.shape[0]
     cdef unsigned n = in1.shape[0]
@@ -1102,8 +1102,8 @@ def utc_ut1(
     errs = {-1: 'unacceptable date'}
 
     for i in range(n):
-        ret = iauUtcut1(in1[i], in2[i], dt[i], &out1[i], &out2[i])
-        check_return(ret, 'iauUtcut1', warns, errs)
+        ret = eraUtcut1(in1[i], in2[i], dt[i], &out1[i], &out2[i])
+        check_return(ret, 'eraUtcut1', warns, errs)
 
     return out1, out2
 
@@ -1116,7 +1116,7 @@ def d_tdb_tt(np.ndarray[double, ndim=1] in1,
              elong, u, v):
     """
     compute DTR = TDB-TT
-    double iauDtdb(double date1, double date2, double ut,
+    double eraDtdb(double date1, double date2, double ut,
                    double elong, double u, double v)
 
     **  Given:
@@ -1225,13 +1225,13 @@ def d_tdb_tt(np.ndarray[double, ndim=1] in1,
     cdef double c_v = v
 
     for i in range(n):
-        out[i] = iauDtdb(in1[i], in2[i], ut[i], c_elong, c_u, c_v)
+        out[i] = eraDtdb(in1[i], in2[i], ut[i], c_elong, c_u, c_v)
     return out
 
 
-def iau_af2a(sign, ideg, iamin, asec):
+def era_af2a(sign, ideg, iamin, asec):
     """
-    int iauAf2a(char s, int ideg, int iamin, double asec, double *rad)
+    int eraAf2a(char s, int ideg, int iamin, double asec, double *rad)
 
     **  Given:
     **     s         char    sign:  '-' = negative, otherwise positive
@@ -1265,15 +1265,15 @@ def iau_af2a(sign, ideg, iamin, asec):
              2: 'iamin outside range 0-59',
              3: 'asec outside range 0-59.999...'}
 
-    ret = iauAf2a(s, ideg, iamin, asec, &rad)
-    check_return(ret, 'iauAf2a', warns)
+    ret = eraAf2a(s, ideg, iamin, asec, &rad)
+    check_return(ret, 'eraAf2a', warns)
 
     return rad
 
-def iau_gd2gc(n, elong, phi, height):
+def era_gd2gc(n, elong, phi, height):
     """
     Wrap
-    int iauGd2gc(int n, double elong, double phi, double height, double xyz[3])
+    int eraGd2gc(int n, double elong, double phi, double height, double xyz[3])
 
     **  Given:
     **     n       int        ellipsoid identifier (Note 1)
@@ -1312,15 +1312,15 @@ def iau_gd2gc(n, elong, phi, height):
     **     lead to arithmetic exceptions.  In all error cases, xyz is set
     **     to zeros.
     **
-    **  4) The inverse transformation is performed in the function iauGc2gd.
+    **  4) The inverse transformation is performed in the function eraGc2gd.
     """
     cdef np.ndarray[double, ndim=1] xyz = np.empty(3, dtype=np.double)
 
     errs = {-1: 'illegal identifier',
              -2: 'illegal case'}
 
-    ret = iauGd2gc(n, elong, phi, height, &xyz[0])
-    check_return(ret, 'iauGd2gc', errors=errs)
+    ret = eraGd2gc(n, elong, phi, height, &xyz[0])
+    check_return(ret, 'eraGd2gc', errors=errs)
 
     return xyz
 
@@ -1329,7 +1329,7 @@ def iau_gd2gc(n, elong, phi, height):
 @cython.boundscheck(False)
 def jd_julian_epoch(np.ndarray[double, ndim=1] jd1,
                     np.ndarray[double, ndim=1] jd2):
-    """ Wrap double iauEpj(double dj1, double dj2)
+    """ Wrap double eraEpj(double dj1, double dj2)
     **  Julian Date to Julian Epoch.
 
     **  Given:
@@ -1352,14 +1352,14 @@ def jd_julian_epoch(np.ndarray[double, ndim=1] jd1,
     cdef np.ndarray[double, ndim=1] epd = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        epd[i] = iauEpj(jd1[i], jd2[i])
+        epd[i] = eraEpj(jd1[i], jd2[i])
     return epd
 
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def julian_epoch_jd(np.ndarray[double, ndim=1] epd):
-    """ Wrap void iauEpj2jd(double epj, double *djm0, double *djm)
+    """ Wrap void eraEpj2jd(double epj, double *djm0, double *djm)
     **  Julian Epoch to Julian Date.
     **  Given:
     **     epj      double    Julian Epoch (e.g. 1996.8D0)
@@ -1374,7 +1374,7 @@ def julian_epoch_jd(np.ndarray[double, ndim=1] epd):
     cdef np.ndarray[double, ndim=1] jd2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        iauEpj2jd(epd[i], &jd1[i], &jd2[i])
+        eraEpj2jd(epd[i], &jd1[i], &jd2[i])
     return jd1, jd2
 
 
@@ -1382,7 +1382,7 @@ def julian_epoch_jd(np.ndarray[double, ndim=1] epd):
 @cython.boundscheck(False)
 def jd_besselian_epoch(np.ndarray[double, ndim=1] jd1,
                        np.ndarray[double, ndim=1] jd2):
-    """ Wrap double iauEpb(double dj1, double dj2)
+    """ Wrap double eraEpb(double dj1, double dj2)
     **  Julian Date to Besselian Epoch.
 
     **  Given:
@@ -1405,14 +1405,14 @@ def jd_besselian_epoch(np.ndarray[double, ndim=1] jd1,
     cdef np.ndarray[double, ndim=1] epd = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        epd[i] = iauEpb(jd1[i], jd2[i])
+        epd[i] = eraEpb(jd1[i], jd2[i])
     return epd
 
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def besselian_epoch_jd(np.ndarray[double, ndim=1] epd):
-    """ Wrap void iauEpb2jd(double epj, double *djm0, double *djm)
+    """ Wrap void eraEpb2jd(double epj, double *djm0, double *djm)
     **  Besselian Epoch to Julian Date.
 
     **  Given:
@@ -1435,5 +1435,5 @@ def besselian_epoch_jd(np.ndarray[double, ndim=1] epd):
     cdef np.ndarray[double, ndim=1] jd2 = np.empty(n, dtype=np.double)
 
     for i in range(n):
-        iauEpb2jd(epd[i], &jd1[i], &jd2[i])
+        eraEpb2jd(epd[i], &jd1[i], &jd2[i])
     return jd1, jd2
