@@ -10,7 +10,7 @@ import warnings
 
 import numpy as np
 
-from ...tests.helper import pytest, raises
+from ...tests.helper import pytest, raises, catch_warnings
 from ...tests.compat import assert_allclose
 from ...utils.compat.fractions import Fraction
 
@@ -80,7 +80,7 @@ def test_parallax():
     assert_allclose(a, 0.10)
     b = u.pc.to(u.arcsecond, a, u.parallax())
     assert_allclose(b, 10)
-    
+
     a = u.arcminute.to(u.au, 1, u.parallax())
     assert_allclose(a, 3437.7467916)
     b = u.au.to(u.arcminute, a, u.parallax())
@@ -90,7 +90,7 @@ def test_parallax():
 def test_parallax2():
     a = u.arcsecond.to(u.pc, [0.1, 2.5], u.parallax())
     assert_allclose(a, [10, 0.4])
-    
+
 
 def test_spectral():
     a = u.AA.to(u.Hz, 1, u.spectral())
@@ -178,6 +178,7 @@ def test_units_conversion():
     assert_allclose(u.Mpc.to(u.kpc), 1000)
     assert_allclose(u.yr.to(u.Myr), 1.e-6)
     assert_allclose(u.AU.to(u.pc), 4.84813681e-6)
+    assert_allclose(u.cycle.to(u.rad), 6.283185307179586)
 
 
 def test_units_manipulation():
@@ -203,27 +204,43 @@ def test_equivalent_units2():
     match = set(
         [u.AU, u.Angstrom, u.BTU, u.Hz, u.J, u.Ry, u.cal, u.cm, u.eV,
          u.erg, u.ft, u.inch, u.kcal, u.lyr, u.m, u.mi, u.micron,
-         u.pc, u.solRad, u.yd])
+         u.pc, u.solRad, u.yd, u.Bq, u.Ci, u.nmi])
     assert units == match
 
 
+def test_dimensionless_to_si():
+    """
+    Issue #1150: Test for conversion of dimensionless quantities
+                 to the SI system
+    """
+
+    testunit = ((1.0 * u.kpc) / (1.0 * u.Mpc))
+
+    assert testunit.unit.physical_type == 'dimensionless'
+    assert_allclose(testunit.si, 0.001)
+
+def test_dimensionless_to_cgs():
+    """
+    Issue #1150: Test for conversion of dimensionless quantities
+                 to the CGS system
+    """
+
+    testunit = ((1.0 * u.m) / (1.0 * u.km))
+
+    assert testunit.unit.physical_type == 'dimensionless'
+    assert_allclose(testunit.cgs, 0.001)
+
 def test_unknown_unit():
-    with warnings.catch_warnings(record=True) as warning_lines:
-        warnings.resetwarnings()
-        warnings.simplefilter("always", u.UnitsWarning, append=True)
+    with catch_warnings(u.UnitsWarning) as warning_lines:
         u.Unit("FOO", parse_strict='warn')
 
-    assert warning_lines[0].category == u.UnitsWarning
     assert 'FOO' in str(warning_lines[0].message)
 
 
 def test_unknown_unit2():
-    with warnings.catch_warnings(record=True) as warning_lines:
-        warnings.resetwarnings()
-        warnings.simplefilter("always", u.UnitsWarning, append=True)
+    with catch_warnings(u.UnitsWarning) as warning_lines:
         assert u.Unit("m/s/kg", parse_strict='warn').to_string() == 'm/s/kg'
 
-    assert warning_lines[0].category == u.UnitsWarning
     assert 'm/s/kg' in str(warning_lines[0].message)
 
 
@@ -426,7 +443,7 @@ def test_compose_best_unit_first():
     assert results[0].bases[0] is u.l
 
     results = (u.s ** -1).compose()
-    assert results[0].bases[0] is u.Hz
+    assert results[0].bases[0] in (u.Hz, u.Bq)
 
     results = (u.Ry.decompose()).compose()
     assert results[0].bases[0] is u.Ry
@@ -486,9 +503,14 @@ def test_pickling():
 
     assert other is u.m
 
-    new_unit = u.IrreducibleUnit(['foo'], register=False, format={'baz': 'bar'})
+    new_unit = u.IrreducibleUnit(['foo'], register=True, format={'baz': 'bar'})
+    new_unit.deregister()
     p = cPickle.dumps(new_unit)
     new_unit_copy = cPickle.loads(p)
-    assert new_unit is not new_unit_copy
     assert new_unit_copy.names == ['foo']
     assert new_unit_copy.get_format_name('baz') == 'bar'
+
+
+@raises(ValueError)
+def test_duplicate_define():
+    u.def_unit('m')

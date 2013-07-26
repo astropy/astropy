@@ -13,15 +13,16 @@ from . import console
 
 class Unicode(console.Console):
     """
-    Output-only format for to display pretty formatting at the console
+    Output-only format to display pretty formatting at the console
     using Unicode characters.
 
     For example::
 
-      >>> print u.Ry.decompose().to_string('unicode')
-                 m² kg
-      2.18×10-¹⁸ ─────
-                  s²
+      >>> import astropy.units as u
+      >>> print(u.Ry.decompose().to_string('unicode'))
+                   m² kg
+      2.1...×10⁻¹⁸ ─────
+                    s²
     """
 
     def __init__(self):
@@ -46,7 +47,11 @@ class Unicode(console.Console):
             '7': '⁷',
             '8': '⁸',
             '9': '⁹',
-            '-': '⁻'}
+            '-': '⁻',
+            # This is actually a "raised omission bracket", but it's
+            # the closest thing I could find to a superscript solidus.
+            '/': '⸍',
+            }
         output = []
         for c in number:
             output.append(mapping[c])

@@ -2,14 +2,18 @@
 # -*- coding: utf-8 -*-
 
 import io
+import locale
 import sys
 
-from ...tests.helper import raises
+from ...tests.helper import pytest, raises
 
 from .. import console
 
+
+@pytest.mark.skipif("sys.platform.startswith('win')")
 def test_color_text():
     assert console._color_text("foo", "green") == u'\033[0;32mfoo\033[0m'
+
 
 def test_color_print():
     # This stuff is hard to test, at least smoke test it
@@ -30,6 +34,7 @@ def test_color_print2():
     assert stream.getvalue() == u'foobarbaz\n'
 
 
+@pytest.mark.skipif("sys.platform.startswith('win')")
 def test_color_print3():
     # Test that this things the FakeTTY is a tty and applies colors.
     class FakeTTY(io.StringIO):
@@ -51,6 +56,32 @@ def test_color_print_unicode():
 
 def test_color_print_invalid_color():
     console.color_print("foo", "unknown")
+
+
+@pytest.mark.skipif('sys.version_info[0] > 2')
+def test_color_print_no_default_encoding():
+    """Regression test for #1244
+
+    In some environments `locale.getpreferredencoding` can return ``''``;
+    make sure there are some reasonable fallbacks.
+    """
+
+    # Not sure of a reliable way to force getpreferredencoding() to return
+    # an empty string other than to temporarily patch it
+    orig_func = locale.getpreferredencoding
+    locale.getpreferredencoding = lambda: ''
+    try:
+        # Try printing a string that can be utf-8 decoded (the default)
+        stream = io.StringIO()
+        console.color_print(b'\xe2\x98\x83', 'white', file=stream)
+        assert stream.getvalue() == u'☃\n'
+
+        # Test the latin-1 fallback
+        stream = io.StringIO()
+        console.color_print(b'\xcd\xef', 'red', file=stream)
+        assert stream.getvalue() == u'Íï\n'
+    finally:
+        locale.getpreferredencoding = orig_func
 
 
 def test_progress_bar():

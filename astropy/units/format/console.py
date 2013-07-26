@@ -19,10 +19,11 @@ class Console(base.Base):
 
     For example::
 
-      >>> print fluxunit.to_string('console')
-       erg
-      ------
-      s cm^2
+      >>> import astropy.units as u
+      >>> print(u.Ry.decompose().to_string('console'))
+                    m^2 kg
+      2.1...*10^-18 ------
+                     s^2
     """
     def __init__(self):
         pass
@@ -44,7 +45,8 @@ class Console(base.Base):
             else:
                 out.append('{0}{1}'.format(
                     self._get_unit_name(base),
-                    self._format_superscript(str(power))))
+                    self._format_superscript(
+                            utils.format_power(power))))
         return ' '.join(out)
 
     def _format_exponential_notation(self, val):

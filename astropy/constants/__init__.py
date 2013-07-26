@@ -10,7 +10,7 @@ A typical use case might be::
     >>> m = m_e
     >>> E = m * c**2
     >>> E.to('MeV')
-    <Quantity 0.510998927603 MeV>
+    <Quantity 0.51099... MeV>
 
 """
 

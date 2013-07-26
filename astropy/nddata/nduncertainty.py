@@ -3,20 +3,23 @@ import abc
 
 import numpy as np
 
-__all__ = ['MissingDataAssociationException', 'IncompatibleUncertaintiesException', 'NDUncertainty',
+__all__ = ['MissingDataAssociationException',
+           'IncompatibleUncertaintiesException', 'NDUncertainty',
            'StdDevUncertainty']
 
 
 class IncompatibleUncertaintiesException(Exception):
     """
-    This exception should be used to indicate cases in which uncertainties with two different classes can not be propagated.
+    This exception should be used to indicate cases in which uncertainties
+    with two different classes can not be propagated.
     """
     pass
 
 
 class MissingDataAssociationException(Exception):
     """
-    This exception should be used to indicate that an uncertainty instance has not been associated with a parent `~astropy.nddata.nddata.NDData` object.
+    This exception should be used to indicate that an uncertainty instance has
+    not been associated with a parent `~astropy.nddata.nddata.NDData` object.
     """
     pass
 
@@ -155,7 +158,6 @@ class StdDevUncertainty(NDUncertainty):
         else:
             self.array = np.array(array, copy=copy, subok=True)
 
-
     @property
     def parent_nddata(self):
         try:
@@ -165,7 +167,6 @@ class StdDevUncertainty(NDUncertainty):
                 return self._parent_nddata
         except AttributeError:
             raise MissingDataAssociationException("Uncertainty is not associated with an NDData object")
-
 
     @parent_nddata.setter
     def parent_nddata(self, value):
@@ -301,9 +302,9 @@ class StdDevUncertainty(NDUncertainty):
             raise ValueError("standard deviation values are not set in other_nddata")
 
         result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = np.sqrt((self.array / self.data) ** 2
-                               + (other_nddata.uncertainty.array / other_nddata.data) ** 2) \
-                               * result_data
+        result_uncertainty.array = (np.sqrt((self.array / self.data) ** 2
+                                            + (other_nddata.uncertainty.array / other_nddata.data) ** 2)
+                                    * result_data)
 
         return result_uncertainty
 
@@ -339,8 +340,8 @@ class StdDevUncertainty(NDUncertainty):
             raise ValueError("standard deviation values are not set in other_nddata")
 
         result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = np.sqrt((self.array / self.data) ** 2
-                               + (other_nddata.uncertainty.array / other_nddata.data) ** 2) \
-                               * result_data
+        result_uncertainty.array = (np.sqrt((self.array / self.data) ** 2
+                                            + (other_nddata.uncertainty.array / other_nddata.data) ** 2)
+                                    * result_data)
 
         return result_uncertainty

@@ -40,7 +40,8 @@ class Latex(base.Base):
                 out.append(self._get_unit_name(base))
             else:
                 out.append('{0}^{{{1}}}'.format(
-                    self._get_unit_name(base), power))
+                    self._get_unit_name(base),
+                    utils.format_power(power)))
         return r'\,'.join(out)
 
     def _format_exponential_notation(self, val):

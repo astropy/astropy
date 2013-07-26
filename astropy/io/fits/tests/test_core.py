@@ -2,6 +2,7 @@
 
 import gzip
 import io
+import mmap
 import os
 import warnings
 import zipfile
@@ -9,17 +10,22 @@ import zipfile
 import numpy as np
 
 from ....io import fits
-from ....tests.helper import pytest, raises
+from ....tests.helper import pytest, raises, catch_warnings
 
 from . import FitsTestCase
 from .util import ignore_warnings
 from ..convenience import _getext
+from ..file import _File
 
 
 class TestCore(FitsTestCase):
     def test_with_statement(self):
         with fits.open(self.data('ascii.fits')) as f:
             pass
+
+    @raises(IOError)
+    def test_missing_file(self):
+        fits.open(self.temp('does-not-exist.fits'))
 
     def test_naxisj_check(self):
         hdulist = fits.open(self.data('o4sp040b0_raw.fits'))
@@ -169,6 +175,13 @@ class TestCore(FitsTestCase):
                 hdu.req_cards('TESTKW', None, None, None, 'fix', errs)
                 return errs
 
+            @classmethod
+            def match_header(cls, header):
+                # Since creating this HDU class adds it to the registry we
+                # don't want the file reader to possibly think any actual
+                # HDU from a file should be handled by this class
+                return False
+
         hdu = TestHDU(header=fits.Header())
         hdu.verify('fix')
 
@@ -182,7 +195,7 @@ class TestCore(FitsTestCase):
         hdu = fits.ImageHDU()
         # The default here would be to issue a warning; ensure that no warnings
         # or exceptions are raised
-        with warnings.catch_warnings():
+        with catch_warnings():
             warnings.simplefilter('error')
             del hdu.header['NAXIS']
             try:
@@ -282,7 +295,7 @@ class TestCore(FitsTestCase):
 
         offset = 0
         with fits.open(self.data('test0.fits')) as hdul:
-            hdulen = hdul[0]._datLoc + hdul[0]._datSpan
+            hdulen = hdul[0]._data_offset + hdul[0]._data_size
             hdu = fits.PrimaryHDU.fromstring(dat[:hdulen])
             assert isinstance(hdu, fits.PrimaryHDU)
             assert hdul[0].header == hdu.header
@@ -299,7 +312,7 @@ class TestCore(FitsTestCase):
         with fits.open(self.data('test0.fits'))as hdul:
             for ext_hdu in hdul[1:]:
                 offset += hdulen
-                hdulen = len(str(ext_hdu.header)) + ext_hdu._datSpan
+                hdulen = len(str(ext_hdu.header)) + ext_hdu._data_size
                 hdu = fits.ImageHDU.fromstring(dat[offset:offset + hdulen])
                 assert isinstance(hdu, fits.ImageHDU)
                 assert ext_hdu.header == hdu.header
@@ -307,9 +320,10 @@ class TestCore(FitsTestCase):
 
     def test_nonstandard_hdu(self):
         """
-        Regression test for #157.  Tests that "Nonstandard" HDUs with SIMPLE =
-        F are read and written without prepending a superfluous and unwanted
-        standard primary HDU.
+        Regression test for https://trac.assembla.com/pyfits/ticket/157
+
+        Tests that "Nonstandard" HDUs with SIMPLE = F are read and written
+        without prepending a superfluous and unwanted standard primary HDU.
         """
 
         data = np.arange(100, dtype=np.uint8)
@@ -345,8 +359,9 @@ class TestConvenienceFunctions(FitsTestCase):
 
     def test_writeto_2(self):
         """
-        Test of `writeto()` with a trivial header containing a single keyword;
-        regression for #107.
+        Regression test for https://trac.assembla.com/pyfits/ticket/107
+
+        Test of `writeto()` with a trivial header containing a single keyword.
         """
 
         data = np.zeros((100,100))
@@ -433,7 +448,7 @@ class TestFileFunctions(FitsTestCase):
             gf.close()
 
     def test_open_gzip_file_for_writing(self):
-        """Regression test for #195."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/195."""
 
         gf = self._make_gzip_file()
         with fits.open(gf, mode='update') as h:
@@ -455,8 +470,10 @@ class TestFileFunctions(FitsTestCase):
 
     def test_updated_file_permissions(self):
         """
-        Regression test for #79.  Tests that when a FITS file is modified in
-        update mode, the file permissions are preserved.
+        Regression test for https://trac.assembla.com/pyfits/ticket/79
+
+        Tests that when a FITS file is modified in update mode, the file
+        permissions are preserved.
         """
 
         filename = self.temp('test.fits')
@@ -472,6 +489,40 @@ class TestFileFunctions(FitsTestCase):
         hdul.close()
 
         assert old_mode == os.stat(filename).st_mode
+
+    def test_mmap_unwriteable(self):
+        """Regression test for https://github.com/astropy/astropy/issues/968
+
+        Temporarily patches mmap.mmap to exhibit platform-specific bad
+        behavior.
+        """
+
+        class MockMmap(mmap.mmap):
+            def flush(self):
+                raise mmap.error('flush is broken on this platform')
+
+        old_mmap = mmap.mmap
+        mmap.mmap = MockMmap
+
+        # Force the mmap test to be rerun
+        _File._mmap_available = None
+
+        try:
+            self.copy_file('test0.fits')
+            with warnings.catch_warnings(record=True) as w:
+                with fits.open(self.temp('test0.fits'), mode='update',
+                               memmap=True) as h:
+                    h[1].data[0, 0] = 999
+
+                assert len(w) == 1
+                assert 'mmap.flush is unavailable' in str(w[0].message)
+
+            # Double check that writing without mmap still worked
+            with fits.open(self.temp('test0.fits')) as h:
+                assert h[1].data[0, 0] == 999
+        finally:
+            mmap.mmap = old_mmap
+            _File._mmap_available = None
 
     def _make_gzip_file(self, filename='test0.fits.gz'):
         gzfile = self.temp(filename)

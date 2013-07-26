@@ -6,7 +6,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import functools
-import re
+
+from ...utils.compat.fractions import Fraction
 
 
 def get_grouped_by_powers(bases, powers):
@@ -107,6 +108,23 @@ def decompose_to_known_units(unit, func):
         return unit
 
 
+def format_power(power):
+    """
+    Converts a value for a power (which may be floating point or a
+    `fractions.Fraction` object), into a string either looking like
+    an integer or a fraction.
+    """
+    if not isinstance(power, Fraction):
+        if power % 1.0 != 0.0:
+            frac = Fraction.from_float(power)
+            power = frac.limit_denominator(10)
+            if power.denominator == 1:
+                power = int(power.numerator)
+        else:
+            power = int(power)
+    return unicode(power)
+
+
 DEBUG = False
 
 
@@ -128,11 +146,3 @@ def _trace(func):
         return functools.update_wrapper(run, func)
     else:
         return func
-
-
-def cleanup_pyparsing_error(e):
-    """
-    Given a pyparsing.ParseException, returns a string that has the
-    line and column numbers removed.
-    """
-    return re.sub(", \(line:[0-9]+, col:[0-9]+\)", "", str(e))

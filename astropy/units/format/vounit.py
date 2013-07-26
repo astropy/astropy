@@ -19,12 +19,11 @@ class VOUnit(generic.Generic):
     <http://www.ivoa.net/Documents/VOUnits/>`_.
     """
     def __init__(self):
+        super(VOUnit, self).__init__()
+
         if not '_units' in VOUnit.__dict__:
             unit_names = VOUnit._generate_unit_names()
             VOUnit._units, VOUnit._deprecated_units = unit_names
-
-        if not '_parser' in VOUnit.__dict__:
-            VOUnit._parser = self._make_parser()
 
     @staticmethod
     def _generate_unit_names():
@@ -65,13 +64,9 @@ class VOUnit(generic.Generic):
         return names, deprecated_names
 
     @classmethod
-    def _parse_unit(cls, s, loc, toks):
-        from ...extern import pyparsing as p
-
-        unit = toks[0]
-
+    def _parse_unit(cls, unit):
         if unit not in cls._units:
-            raise p.ParseException(
+            raise ValueError(
                 "Unit {0!r} not supported by the VOUnit "
                 "standard.".format(unit))
 

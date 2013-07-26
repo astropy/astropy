@@ -6,7 +6,8 @@ import warnings
 import numpy as np
 
 from ....io import fits
-from ....tests.helper import pytest
+from ....io.fits.verify import VerifyWarning
+from ....tests.helper import pytest, catch_warnings
 
 from . import FitsTestCase
 from .util import ignore_warnings
@@ -68,12 +69,6 @@ class TestOldApiHeaderFunctions(FitsTestCase):
         assert header.cards[1].value == 0
         assert header[''] == [0, 1, 2, 3, '', '', 4]
 
-    def test_has_key(self):
-        header = fits.Header([('A', 'B', 'C'), ('D', 'E', 'F')])
-        assert header.has_key('A')
-        assert header.has_key('D')
-        assert not header.has_key('C')
-
     def test_totxtfile(self):
         hdul = fits.open(self.data('test0.fits'))
         hdul[0].header.toTxtFile(self.temp('header.txt'))
@@ -81,15 +76,15 @@ class TestOldApiHeaderFunctions(FitsTestCase):
         hdu.header.update('MYKEY', 'FOO', 'BAR')
         hdu.header.fromTxtFile(self.temp('header.txt'), replace=True)
         assert len(hdul[0].header.ascard) == len(hdu.header.ascard)
-        assert not hdu.header.has_key('MYKEY')
-        assert not hdu.header.has_key('EXTENSION')
-        assert hdu.header.has_key('SIMPLE')
+        assert 'MYKEY' not in hdu.header
+        assert 'EXTENSION' not in hdu.header
+        assert 'SIMPLE' in hdu.header
 
         # Write the hdu out and read it back in again--it should be recognized
         # as a PrimaryHDU
         hdu.writeto(self.temp('test.fits'), output_verify='ignore')
-        assert (isinstance(fits.open(self.temp('test.fits'))[0],
-                           fits.PrimaryHDU))
+        assert isinstance(fits.open(self.temp('test.fits'))[0],
+                          fits.PrimaryHDU)
 
         hdu = fits.ImageHDU()
         hdu.header.update('MYKEY', 'FOO', 'BAR')
@@ -97,16 +92,16 @@ class TestOldApiHeaderFunctions(FitsTestCase):
         # hdu.header should have MYKEY keyword, and also adds PCOUNT and
         # GCOUNT, giving it 3 more keywords in total than the original
         assert len(hdul[0].header.ascard) == len(hdu.header.ascard) - 3
-        assert hdu.header.has_key('MYKEY')
-        assert not hdu.header.has_key('EXTENSION')
-        assert hdu.header.has_key('SIMPLE')
+        assert 'MYKEY' in hdu.header
+        assert 'EXTENSION' not in hdu.header
+        assert 'SIMPLE' in hdu.header
 
         with ignore_warnings():
             hdu.writeto(self.temp('test.fits'), output_verify='ignore',
                         clobber=True)
         hdul2 = fits.open(self.temp('test.fits'))
         assert len(hdul2) == 2
-        assert hdul2[1].header.has_key('MYKEY')
+        assert 'MYKEY' in hdul2[1].header
 
     def test_update_comment(self):
         hdul = fits.open(self.data('arange.fits'))
@@ -158,8 +153,9 @@ class TestOldApiHeaderFunctions(FitsTestCase):
 
     def test_assign_boolean(self):
         """
-        Regression test for #123. Tests assigning Python and Numpy boolean
-        values to keyword values.
+        Regression test for https://trac.assembla.com/pyfits/ticket/123
+
+        Tests assigning Python and Numpy boolean values to keyword values.
         """
 
         fooimg = _pad('FOO     =                    T')
@@ -189,7 +185,7 @@ class TestOldApiHeaderFunctions(FitsTestCase):
         assert h.ascard['BAR'].cardimage == barimg
 
     def test_cardlist_list_methods(self):
-        """Regression test for #190."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/190"""
 
         header = fits.Header()
         header.update('A', 'B', 'C')
@@ -197,17 +193,17 @@ class TestOldApiHeaderFunctions(FitsTestCase):
         # The old header.update method won't let you append a duplicate keyword
         header.append(('D', 'G', 'H'))
 
-        assert header.ascardlist().index(header.cards['A']) == 0
-        assert header.ascardlist().index(header.cards['D']) == 1
-        assert header.ascardlist().index(header.cards[('D', 1)]) == 2
+        assert header.ascard.index(header.cards['A']) == 0
+        assert header.ascard.index(header.cards['D']) == 1
+        assert header.ascard.index(header.cards[('D', 1)]) == 2
 
         # Since the original CardList class really only works on card objects
         # the count method is mostly useless since cards didn't used to compare
         # equal sensibly
-        assert header.ascardlist().count(header.cards['A']) == 1
-        assert header.ascardlist().count(header.cards['D']) == 1
-        assert header.ascardlist().count(header.cards[('D', 1)]) == 1
-        assert header.ascardlist().count(fits.Card('A', 'B', 'C')) == 0
+        assert header.ascard.count(header.cards['A']) == 1
+        assert header.ascard.count(header.cards['D']) == 1
+        assert header.ascard.count(header.cards[('D', 1)]) == 1
+        assert header.ascard.count(fits.Card('A', 'B', 'C')) == 0
 
 
 class TestHeaderFunctions(FitsTestCase):
@@ -248,7 +244,7 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card('floatnum', -467374636747637647347374734737437.)
 
         if (str(c) != _pad("FLOATNUM= -4.6737463674763E+32") and
-            str(c) != _pad("FLOATNUM= -4.6737463674763E+032")):
+                str(c) != _pad("FLOATNUM= -4.6737463674763E+032")):
             assert str(c) == _pad("FLOATNUM= -4.6737463674763E+32")
 
     def test_complex_value_card(self):
@@ -284,7 +280,7 @@ class TestHeaderFunctions(FitsTestCase):
     def test_keyword_too_long(self):
         """Test that long Card keywords are allowed, but with a warning"""
 
-        with warnings.catch_warnings():
+        with catch_warnings():
             warnings.simplefilter('error')
             pytest.raises(UserWarning, fits.Card, 'abcdefghi', 'long')
 
@@ -298,10 +294,10 @@ class TestHeaderFunctions(FitsTestCase):
         # keyword like 'abc+' was simply not allowed.  Now it should create a
         # HIERARCH card.
 
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             c = fits.Card('abc+', 9)
-            assert len(w) == 1
-            assert c.image == _pad('HIERARCH abc+ =                    9')
+        assert len(w) == 1
+        assert c.image == _pad('HIERARCH abc+ =                    9')
 
     def test_commentary_cards(self):
         # commentary cards
@@ -395,23 +391,23 @@ class TestHeaderFunctions(FitsTestCase):
     def test_verify_invalid_equal_sign(self):
         # verification
         c = fits.Card.fromstring('abc= a6')
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             c.verify()
-            err_text1 = ("Card 'ABC' is not FITS standard (equal sign not at "
-                         "column 8)")
-            err_text2 = ("Card 'ABC' is not FITS standard (invalid value "
-                         "string: a6")
-            assert len(w) == 4
-            assert err_text1 in str(w[1].message)
-            assert err_text2 in str(w[2].message)
+        err_text1 = ("Card 'ABC' is not FITS standard (equal sign not at "
+                     "column 8)")
+        err_text2 = ("Card 'ABC' is not FITS standard (invalid value "
+                     "string: a6")
+        assert len(w) == 4
+        assert err_text1 in str(w[1].message)
+        assert err_text2 in str(w[2].message)
 
     def test_fix_invalid_equal_sign(self):
         c = fits.Card.fromstring('abc= a6')
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             c.verify('fix')
-            fix_text = "Fixed 'ABC' card to meet the FITS standard."
-            assert len(w) == 4
-            assert fix_text in str(w[1].message)
+        fix_text = "Fixed 'ABC' card to meet the FITS standard."
+        assert len(w) == 4
+        assert fix_text in str(w[1].message)
         assert str(c) == _pad("ABC     = 'a6      '")
 
     def test_long_string_value(self):
@@ -425,8 +421,26 @@ class TestHeaderFunctions(FitsTestCase):
             "CONTINUE  '&' / comment long comment long comment long comment long comment     "
             "CONTINUE  '&' / long comment                                                    ")
 
+    def test_long_unicode_string(self):
+        """Regression test for
+        https://github.com/spacetelescope/PyFITS/issues/1
+
+        So long as a unicode string can be converted to ASCII it should have no
+        different behavior in this regard from a byte string.
+        """
+
+        h1 = fits.Header()
+        h1['TEST'] = 'abcdefg' * 30
+
+        h2 = fits.Header()
+        with warnings.catch_warnings(record=True) as w:
+            h2['TEST'] = u'abcdefg' * 30
+            assert len(w) == 0
+
+        assert str(h1) == str(h2)
+
     def test_long_string_repr(self):
-        """Regression test for #193
+        """Regression test for https://trac.assembla.com/pyfits/ticket/193
 
         Ensure that the __repr__() for cards represented with CONTINUE cards is
         split across multiple lines (broken at each *physical* card).
@@ -448,7 +462,7 @@ class TestHeaderFunctions(FitsTestCase):
              str(fits.Card('TEST3', 'Regular value', 'Regular comment'))])
 
     def test_blank_keyword_long_value(self):
-        """Regression test for #194
+        """Regression test for https://trac.assembla.com/pyfits/ticket/194
 
         Test that a blank keyword ('') can be assigned a too-long value that is
         continued across multiple cards with blank keywords, just like COMMENT
@@ -511,7 +525,7 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_continue_card_with_equals_in_value(self):
         """
-        Regression test for #117.
+        Regression test for https://trac.assembla.com/pyfits/ticket/117
         """
 
         c = fits.Card.fromstring(
@@ -527,25 +541,85 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_hierarch_card_creation(self):
         # Test automatic upgrade to hierarch card
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             c = fits.Card('ESO INS SLIT2 Y1FRML',
                           'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)')
-            assert len(w) == 1
-            assert 'HIERARCH card will be created' in str(w[0].message)
-            assert (str(c) ==
-                    "HIERARCH ESO INS SLIT2 Y1FRML= "
-                    "'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
+        assert len(w) == 1
+        assert 'HIERARCH card will be created' in str(w[0].message)
+        assert (str(c) ==
+                "HIERARCH ESO INS SLIT2 Y1FRML= "
+                "'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
 
         # Test manual creation of hierarch card
         c = fits.Card('hierarch abcdefghi', 10)
-        assert (str(c) ==
-            "HIERARCH abcdefghi = "
-            "10                                                         ")
+        assert str(c) == _pad("HIERARCH abcdefghi = 10")
         c = fits.Card('HIERARCH ESO INS SLIT2 Y1FRML',
-                      'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)')
+                        'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)')
         assert (str(c) ==
-            "HIERARCH ESO INS SLIT2 Y1FRML= "
-            "'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
+                "HIERARCH ESO INS SLIT2 Y1FRML= "
+                "'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
+
+    def test_hierarch_with_abbrev_value_indicator(self):
+        """Regression test for
+        https://github.com/spacetelescope/PyFITS/issues/5
+        """
+
+        c = fits.Card.fromstring("HIERARCH key.META_4='calFileVersion'")
+        assert c.keyword == 'key.META_4'
+        assert c.value == 'calFileVersion'
+        assert c.comment == ''
+
+    def test_hierarch_keyword_whitespace(self):
+        """
+        Regression test for
+        https://github.com/spacetelescope/PyFITS/issues/6
+
+        Make sure any leading or trailing whitespace around HIERARCH
+        keywords is stripped from the actual keyword value.
+        """
+
+        c = fits.Card.fromstring(
+                "HIERARCH  key.META_4    = 'calFileVersion'")
+        assert c.keyword == 'key.META_4'
+        assert c.value == 'calFileVersion'
+        assert c.comment == ''
+
+        # Test also with creation via the Card constructor
+        c = fits.Card('HIERARCH  key.META_4', 'calFileVersion')
+        assert c.keyword == 'key.META_4'
+        assert c.value == 'calFileVersion'
+        assert c.comment == ''
+
+    def test_verify_mixed_case_hierarch(self):
+        """Regression test for
+        https://github.com/spacetelescope/PyFITS/issues/7
+
+        Assures that HIERARCH keywords with lower-case characters and other
+        normally invalid keyword characters are not considered invalid.
+        """
+
+        c = fits.Card('HIERARCH WeirdCard.~!@#_^$%&', 'The value',
+                        'a comment')
+        # This should not raise any exceptions
+        c.verify('exception')
+        assert c.keyword == 'WeirdCard.~!@#_^$%&'
+        assert c.value == 'The value'
+        assert c.comment == 'a comment'
+
+        # Test also the specific case from the original bug report
+        header = fits.Header([
+            ('simple', True),
+            ('BITPIX', 8),
+            ('NAXIS', 0),
+            ('EXTEND', True, 'May contain datasets'),
+            ('HIERARCH key.META_0', 'detRow')
+        ])
+        hdu = fits.PrimaryHDU(header=header)
+        hdu.writeto(self.temp('test.fits'))
+        with fits.open(self.temp('test.fits')) as hdul:
+            header2 = hdul[0].header
+            assert (str(header.cards[header.index('key.META_0')]) ==
+                    str(header2.cards[header2.index('key.META_0')]))
 
     def test_missing_keyword(self):
         """Test that accessing a non-existent keyword raises a KeyError."""
@@ -563,18 +637,22 @@ class TestHeaderFunctions(FitsTestCase):
         header['hierarch abcdefghi'] = 10
         assert 'abcdefghi' in header
         assert header['abcdefghi'] == 10
+        # This used to be assert_false, but per ticket
+        # https://trac.assembla.com/pyfits/ticket/155 hierarch keywords
+        # should be treated case-insensitively when performing lookups
         assert 'ABCDEFGHI' in header
 
     def test_hierarch_create_and_update(self):
         """
-        Regression test for #158.  Tests several additional use cases for
-        working with HIERARCH cards.
+        Regression test for https://trac.assembla.com/pyfits/ticket/158
+
+        Tests several additional use cases for working with HIERARCH cards.
         """
 
         msg = 'a HIERARCH card will be created'
 
         header = fits.Header()
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings(VerifyWarning) as w:
             header.update('HIERARCH BLAH BLAH', 'TESTA')
             assert len(w) == 0
             assert 'BLAH BLAH' in header
@@ -627,16 +705,17 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_short_hierarch_create_and_update(self):
         """
-        Regression test for #158.  Tests several additional use cases for
-        working with HIERARCH cards, specifically where the keyword is fewer
-        than 8 characters, but contains invalid characters such that it can
-        only be created as a HIERARCH card.
+        Regression test for https://trac.assembla.com/pyfits/ticket/158
+
+        Tests several additional use cases for working with HIERARCH cards,
+        specifically where the keyword is fewer than 8 characters, but contains
+        invalid characters such that it can only be created as a HIERARCH card.
         """
 
         msg = 'a HIERARCH card will be created'
 
         header = fits.Header()
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings(VerifyWarning) as w:
             header.update('HIERARCH BLA BLA', 'TESTA')
             assert len(w) == 0
             assert 'BLA BLA' in header
@@ -663,10 +742,11 @@ class TestHeaderFunctions(FitsTestCase):
             assert header['bla bla'], 'TESTE'
 
         header = fits.Header()
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings(VerifyWarning) as w:
             # Create a HIERARCH card containing invalid characters without
             # explicitly stating 'HIERARCH'
             header.update('BLA BLA', 'TESTA')
+            print([x.category for x in w])
             assert len(w) == 1
             assert msg in str(w[0].message)
 
@@ -1150,6 +1230,7 @@ class TestHeaderFunctions(FitsTestCase):
         # a little more clear)
         header.append('')
         assert len(header) == 4
+
         assert header.keys()[-1] == ''
         assert header[''] == ''
         assert header.comments[''] == ''
@@ -1256,19 +1337,19 @@ class TestHeaderFunctions(FitsTestCase):
         header['HISTORY'] = 'DEF'
         header['HISTORY'] = 'GHI'
 
-        assert header['HISTORY'], ['ABC', 'DEF' == 'GHI']
+        assert header['HISTORY'] == ['ABC', 'DEF', 'GHI']
 
         # Single value update
         header['HISTORY'][0] = 'FOO'
-        assert header['HISTORY'], ['FOO', 'DEF' == 'GHI']
+        assert header['HISTORY'] == ['FOO', 'DEF', 'GHI']
 
         # Single value partial slice update
         header['HISTORY'][1:] = 'BAR'
-        assert header['HISTORY'], ['FOO', 'BAR' == 'BAR']
+        assert header['HISTORY'] == ['FOO', 'BAR', 'BAR']
 
         # Multi-value update
         header['HISTORY'][:] = ['BAZ', 'QUX']
-        assert header['HISTORY'], ['BAZ', 'QUX' == 'BAR']
+        assert header['HISTORY'] == ['BAZ', 'QUX', 'BAR']
 
     def test_long_commentary_card(self):
         header = fits.Header()
@@ -1290,7 +1371,7 @@ class TestHeaderFunctions(FitsTestCase):
         assert str(header.cards[2]).rstrip() == 'HISTORY ' + longval[72:]
 
     def test_header_fromtextfile(self):
-        """Regression test for #122.
+        """Regression test for https://trac.assembla.com/pyfits/ticket/122
 
         Manually write a text file containing some header cards ending with
         newlines and ensure that fromtextfile can read them back in.
@@ -1308,7 +1389,7 @@ class TestHeaderFunctions(FitsTestCase):
         assert header == header2
 
     def test_header_fromtextfile_with_end_card(self):
-        """Regression test for #154.
+        """Regression test for https://trac.assembla.com/pyfits/ticket/154
 
         Make sure that when a Header is read from a text file that the END card
         is ignored.
@@ -1331,7 +1412,7 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_append_end_card(self):
         """
-        Regression test 2 for #154.
+        Regression test 2 for https://trac.assembla.com/pyfits/ticket/154
 
         Manually adding an END card to a header should simply result in a
         ValueError (as was the case in PyFITS 3.0 and earlier).
@@ -1350,7 +1431,7 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_unnecessary_move(self):
         """
-        Regression test for #125.
+        Regression test for https://trac.assembla.com/pyfits/ticket/125
 
         Ensures that a header is not modified when setting the position of a
         keyword that's already in its correct position.
@@ -1389,7 +1470,7 @@ class TestHeaderFunctions(FitsTestCase):
         assert not header._modified
 
     def test_invalid_float_cards(self):
-        """Regression test for #137."""
+        """Regression test for https://trac.assembla.com/pyfits/ticket/137"""
 
         # Create a header containing two of the problematic cards in the test
         # case where this came up:
@@ -1436,7 +1517,7 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_invalid_float_cards2(self, capsys):
         """
-        Regression test for #140.
+        Regression test for https://trac.assembla.com/pyfits/ticket/140
         """
 
         # The example for this test requires creating a FITS file containing a
@@ -1452,26 +1533,26 @@ class TestHeaderFunctions(FitsTestCase):
             f.write(encode_ascii('e'))
 
         hdul = fits.open(self.temp('test.fits'))
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             hdul.writeto(self.temp('temp.fits'), output_verify='warn')
-            assert len(w) == 5
-            # The first two warnings are just the headers to the actual warning
-            # message (HDU 0, Card 4).  I'm still not sure things like that
-            # should be output as separate warning messages, but that's
-            # something to think about...
-            msg = str(w[3].message)
-            assert '(invalid value string: 5.0022221e-07)' in msg
+        assert len(w) == 5
+        # The first two warnings are just the headers to the actual warning
+        # message (HDU 0, Card 4).  I'm still not sure things like that
+        # should be output as separate warning messages, but that's
+        # something to think about...
+        msg = str(w[3].message)
+        assert '(invalid value string: 5.0022221e-07)' in msg
 
     def test_leading_zeros(self):
         """
-        Regression test for #137, part 2.
+        Regression test for https://trac.assembla.com/pyfits/ticket/137, part 2
 
-        Ticket #137 also showed that in float values like 0.001 the leading
-        zero was unnecessarily being stripped off when rewriting the header.
-        Though leading zeros should be removed from integer values to prevent
-        misinterpretation as octal by python (for now PyFITS will still
-        maintain the leading zeros if now changes are made to the value, but
-        will drop them if changes are made).
+        Ticket https://trac.assembla.com/pyfits/ticket/137 also showed that in
+        float values like 0.001 the leading zero was unnecessarily being
+        stripped off when rewriting the header.  Though leading zeros should be
+        removed from integer values to prevent misinterpretation as octal by
+        python (for now PyFITS will still maintain the leading zeros if now
+        changes are made to the value, but will drop them if changes are made).
         """
 
         c = fits.Card.fromstring("APERTURE= +0.000000000000E+000")
@@ -1486,8 +1567,9 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_assign_boolean(self):
         """
-        Regression test for #123. Tests assigning Python and Numpy boolean
-        values to keyword values.
+        Regression test for https://trac.assembla.com/pyfits/ticket/123
+
+        Tests assigning Python and Numpy boolean values to keyword values.
         """
 
         fooimg = _pad('FOO     =                    T')
@@ -1518,8 +1600,10 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_header_method_keyword_normalization(self):
         """
-        Regression test for #149.  Basically ensures that all public Header
-        methods are case-insensitive w.r.t. keywords.
+        Regression test for https://trac.assembla.com/pyfits/ticket/149
+
+        Basically ensures that all public Header methods are case-insensitive
+        w.r.t. keywords.
 
         Provides a reasonably comprehensive test of several methods at once.
         """
@@ -1557,7 +1641,7 @@ class TestHeaderFunctions(FitsTestCase):
         assert len(h) == 2
         assert h.setdefault('aBc', 1) == 1
         assert len(h) == 3
-        assert h.keys(), ['GEH', 'DEF' == 'ABC']
+        assert h.keys() == ['GEH', 'DEF', 'ABC']
 
         h.update({'GeH': 1, 'iJk': 4})
         assert len(h) == 4
@@ -1573,8 +1657,10 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_end_in_comment(self):
         """
-        Regression test for #142.  Tests a case where the comment of a card
-        ends with END, and is followed by several blank cards.
+        Regression test for https://trac.assembla.com/pyfits/ticket/142
+
+        Tests a case where the comment of a card ends with END, and is followed
+        by several blank cards.
         """
 
         data = np.arange(100).reshape((10, 10))
@@ -1611,10 +1697,11 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_assign_unicode(self):
         """
-        Regression test for #134.  Assigning a unicode literal as a header
-        value should not fail silently.  If the value can be converted to ASCII
-        then it should just work.  Otherwise it should fail with an appropriate
-        value error.
+        Regression test for https://trac.assembla.com/pyfits/ticket/134
+
+        Assigning a unicode literal as a header value should not fail silently.
+        If the value can be converted to ASCII then it should just work.
+        Otherwise it should fail with an appropriate value error.
 
         Also tests unicode for keywords and comments.
         """
@@ -1631,7 +1718,6 @@ class TestHeaderFunctions(FitsTestCase):
         assert h[u'FOO'] == 'BAR'
         assert repr(h) == _pad("FOO     = 'BAR     '")
         pytest.raises(ValueError, assign, erikku, 'BAR')
-
 
         h['FOO'] = u'BAZ'
         assert h[u'FOO'] == 'BAZ'
@@ -1659,8 +1745,9 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_header_strip_whitespace(self):
         """
-        Regression test for #146, and for the solution that is optional
-        stripping of whitespace from the end of a header value.
+        Regression test for https://trac.assembla.com/pyfits/ticket/146, and
+        for the solution that is optional stripping of whitespace from the end
+        of a header value.
 
         By default extra whitespace is stripped off, but if
         fits.STRIP_HEADER_WHITESPACE = False it should not be stripped.
@@ -1691,7 +1778,7 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_keep_duplicate_history_in_orig_header(self):
         """
-        Regression test for #156.
+        Regression test for https://trac.assembla.com/pyfits/ticket/156
 
         When creating a new HDU from an existing Header read from an existing
         FITS file, if the origianl header contains duplicate HISTORY values
@@ -1724,8 +1811,9 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_invalid_keyword_cards(self):
         """
-        Test for #109.  Allow opening files with headers containing invalid
-        keywords.
+        Test for https://trac.assembla.com/pyfits/ticket/109
+
+        Allow opening files with headers containing invalid keywords.
         """
 
         # Create a header containing a few different types of BAD headers.
@@ -1735,18 +1823,20 @@ class TestHeaderFunctions(FitsTestCase):
 
         hdu = fits.PrimaryHDU()
         # This should work with some warnings
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             hdu.header.append(c1)
             hdu.header.append(c2)
             hdu.header.append(c3)
-            assert len(w) == 3
+        assert len(w) == 3
 
         hdu.writeto(self.temp('test.fits'))
 
-        with warnings.catch_warnings(record=True) as w:
+        with catch_warnings() as w:
             with fits.open(self.temp('test.fits')) as hdul:
                 # Merely opening the file should blast some warnings about the
                 # invalid keywords
+                assert len(w) == 3
+
                 header = hdul[0].header
                 assert 'CLFIND2D' in header
                 assert 'Just som' in header
@@ -1763,13 +1853,29 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_fix_hierarch_with_invalid_value(self, capsys):
         """
-        Regression test for #172.  Ensures that when fixing a hierarch card it
-        remains a hierarch card.
+        Regression test for https://trac.assembla.com/pyfits/ticket/172
+
+        Ensures that when fixing a hierarch card it remains a hierarch card.
         """
 
         c = fits.Card.fromstring('HIERARCH ESO DET CHIP PXSPACE = 5e6')
         c.verify('fix')
         assert str(c) == _pad('HIERARCH ESO DET CHIP PXSPACE = 5E6')
+
+    def test_assign_inf_nan(self):
+        """
+        Regression test for https://github.com/spacetelescope/PyFITS/issues/11
+
+        For the time being it should not be possible to assign the floating
+        point values inf or nan to a header value, since this is not defined by
+        the FITS standard.
+        """
+
+        h = fits.Header()
+        pytest.raises(ValueError, h.set, 'TEST', float('nan'))
+        pytest.raises(ValueError, h.set, 'TEST', np.nan)
+        pytest.raises(ValueError, h.set, 'TEST', float('inf'))
+        pytest.raises(ValueError, h.set, 'TEST', np.inf)
 
 
 class TestRecordValuedKeywordCards(FitsTestCase):
@@ -1813,7 +1919,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         c = fits.Card.fromstring("DP1     = 'NAXIS: a'")
         assert c.keyword == 'DP1'
         assert c.value == 'NAXIS: a'
-        assert c.field_specifier == None
+        assert c.field_specifier is None
 
         c = fits.Card('DP1', 'NAXIS: 2')
         assert c.keyword == 'DP1.NAXIS'
@@ -1828,7 +1934,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         c = fits.Card('DP1', 'NAXIS: a')
         assert c.keyword == 'DP1'
         assert c.value == 'NAXIS: a'
-        assert c.field_specifier == None
+        assert c.field_specifier is None
 
         c = fits.Card('DP1.NAXIS', 2)
         assert c.keyword == 'DP1.NAXIS'
@@ -1844,7 +1950,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
             c = fits.Card('DP1.NAXIS', 'a')
         assert c.keyword == 'DP1.NAXIS'
         assert c.value == 'a'
-        assert c.field_specifier == None
+        assert c.field_specifier is None
 
     def test_parse_field_specifier(self):
         """
@@ -1905,8 +2011,8 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         string of the first card with that keyword.
 
         This test was changed to reflect the requirement in ticket
-        #184--previously it required _test_header['DP1'] to return the parsed
-        float value.
+        https://trac.assembla.com/pyfits/ticket/184--previously it required
+        _test_header['DP1'] to return the parsed float value.
         """
 
         assert self._test_header['DP1'] == 'NAXIS: 2'
@@ -2060,7 +2166,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
     def test_overly_permissive_parsing(self):
         """
-        Regression test for #183.
+        Regression test for https://trac.assembla.com/pyfits/ticket/183
 
         Ensures that cards with standard commentary keywords are never treated
         as RVKCs.  Also ensures that cards not stricly matching the RVKC
@@ -2081,8 +2187,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         h = fits.Header()
         h['HISTORY'] = 'Date: 2012-09-19T13:58:53.756061'
         assert 'HISTORY.Date' not in h
-        assert (str(h.cards[0]) ==
-                _pad('HISTORY Date: 2012-09-19T13:58:53.756061'))
+        assert str(h.cards[0]) == _pad('HISTORY Date: 2012-09-19T13:58:53.756061')
 
         c = fits.Card.fromstring(
             "        'Date: 2012-09-19T13:58:53.756061'")
@@ -2098,7 +2203,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
     def test_overly_aggressive_rvkc_lookup(self):
         """
-        Regression test for #184.
+        Regression test for https://trac.assembla.com/pyfits/ticket/184
 
         Ensures that looking up a RVKC by keyword only (without the
         field-specifier) in a header returns the full string value of that card

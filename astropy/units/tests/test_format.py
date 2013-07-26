@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Regression tests for the units.format package
@@ -27,7 +29,7 @@ def test_unit_grammar():
         (["m**2", "m2", "m**(2)", "m**+2", "m+2", "m^(+2)"], u.m ** 2),
         (["m**-3", "m-3", "m^(-3)", "/m3"], u.m ** -3),
         (["m**(1.5)", "m(3/2)", "m**(3/2)", "m^(3/2)"], u.m ** 1.5),
-        (["2.54cm"], u.Unit(u.cm * 2.54)),
+        (["2.54 cm"], u.Unit(u.cm * 2.54)),
         (["10+8m"], u.Unit(u.m * 1e8)),
         # This is the VOUnits documentation, but doesn't seem to follow the
         # unity grammar (["3.45 10**(-4)Jy"], 3.45 * 1e-4 * u.Jy)
@@ -159,16 +161,22 @@ def test_wcs_parse():
 
 
 def test_flatten_to_known():
-    myunit = u.def_unit("FOOBAR", u.erg / u.Hz)
-    assert myunit.to_string('fits') == 'erg Hz-1'
-    myunit2 = myunit * u.bit ** 3
-    assert myunit2.to_string('fits') == 'bit3 erg Hz-1'
+    myunit = u.def_unit("FOOBAR_One", u.erg / u.Hz)
+    try:
+        assert myunit.to_string('fits') == 'erg Hz-1'
+        myunit2 = myunit * u.bit ** 3
+        assert myunit2.to_string('fits') == 'bit3 erg Hz-1'
+    finally:
+        myunit.deregister()
 
 
 @raises(ValueError)
 def test_flatten_impossible():
-    myunit = u.def_unit("FOOBAR")
-    myunit.to_string('fits')
+    myunit = u.def_unit("FOOBAR_Two")
+    try:
+        myunit.to_string('fits')
+    finally:
+        myunit.deregister()
 
 
 def test_console_out():
@@ -180,3 +188,13 @@ def test_console_out():
 
 def test_flexible_float():
     assert u.min._represents.to_string('latex') == ur'$\mathrm{60\,s}$'
+
+
+def test_fraction_repr():
+    area = u.cm ** 2.0
+    assert '.' not in area.to_string('latex')
+
+    fractional = u.cm ** 2.5
+    assert '5/2' in fractional.to_string('latex')
+
+    assert fractional.to_string('unicode') == 'cm⁵⸍²'

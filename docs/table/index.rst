@@ -21,8 +21,8 @@ notable features of this package are:
 * Specify a description, units and output formatting for columns.
 * Interactively scroll through long tables similar to using ``more``.
 * Create a new table by selecting rows or columns from a table.
-* Create a new table by joining two tables on specified key columns.
-* Full support for multidimensional columns.
+* Perform :ref:`table_operations` like database joins and concatenation.
+* Manipulate multidimensional columns.
 * Methods for :ref:`read_write_tables` to files
 
 Currently `astropy.table` is used when reading an ASCII table using
@@ -87,7 +87,7 @@ Now examine some high-level information about the table::
 Access the data by column or row using familiar `numpy` structured array syntax::
 
   >>> t['a']       # Column 'a'
-  <Column name='a' units=None format=None description=None>
+  <Column name='a' unit=None format=None description=None>
   array([1, 4, 5])
 
   >>> t['a'][1]    # Row 1 of column 'a'
@@ -123,7 +123,7 @@ Modifying table values in place is flexible and works as one would expect::
   >>> t['a'][2] = 30              # Set row 2 of column 'a'
   >>> t[1] = (8, 9.0, "W")        # Set all row values
   >>> t[1]['b'] = -9              # Set column 'b' of row 1
-  >>> t[0:2]['b'] = 100.0         # Set column 'c' of rows 0 and 1
+  >>> t[0:2]['b'] = 100.0         # Set column 'b' of rows 0 and 1
   >>> print(t)
    a    b    c
   --- ----- ---
@@ -171,14 +171,52 @@ Using `table`
 
 The details of using `astropy.table` are provided in the following sections:
 
+Construct table
+---------------
+
 .. toctree::
    :maxdepth: 2
 
    construct_table.rst
+
+Access table
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
    access_table.rst
+
+Modify table
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
    modify_table.rst
+
+Table operations
+-----------------
+
+.. toctree::
+   :maxdepth: 2
+
    operations.rst
+
+Masking
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
    masking.rst
+
+I/O with tables
+----------------
+
+.. toctree::
+   :maxdepth: 2
+
    io.rst
 
 Reference/API

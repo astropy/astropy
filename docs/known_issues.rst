@@ -66,3 +66,35 @@ tests themselves do not pass, but it does cause some Astropy functionality to
 fail.  
 
 The solution is to use a more recent version of Numpy.
+
+mmap support for ``astropy.io.fits`` on GNU Hurd
+------------------------------------------------
+
+On Hurd and possibly other platforms ``flush()`` on memory-mapped files is not
+implemented, so writing changes to a mmap'd FITS file may not be reliable and is
+thus disabled.  Attempting to open a FITS file in writeable mode with mmap will
+result in a warning (and mmap will be disabled on the file automatically).
+
+See: https://github.com/astropy/astropy/issues/968
+
+Crash on upgrading from Astropy 0.2 to a newer version
+------------------------------------------------------
+
+It is possible for installation of a new version of Astropy, or upgrading of an
+existing installation to crash due to not having permissions on the
+``~/.astropy/`` directory (in your home directory) or some file or subdirectory
+in that directory.  In particular this can occur if you installed Astropy as
+the root user (such as with ``sudo``) at any point.  This can manifest in
+several ways, but the most common is a traceback ending with ``ImportError:
+cannot import name config``.  To resolve this issue either run ``sudo chown -R
+<your_username> ~/.astropy`` or, if you don't need anything in it you can blow
+it away with ``sudo rm -rf ~/.astropy``.
+
+See for example: https://github.com/astropy/astropy/issues/987
+
+Color printing on Windows
+-------------------------
+
+Colored printing of log messages and other colored text does work in Windows
+but only when running in the IPython console.  Colors are not currently
+supported in the basic Python command-line interpreter on Windows.

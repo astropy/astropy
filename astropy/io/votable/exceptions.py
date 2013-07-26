@@ -599,11 +599,11 @@ class W20(VOTableSpecWarning):
 class W21(UnimplementedWarning):
     """
     Unknown issues may arise using ``vo.table`` with VOTable files
-    from a version other than 1.1 or 1.2.
+    from a version other than 1.1, 1.2 or 1.3.
     """
 
     message = (
-        'vo.table is designed for VOTable version 1.1 and 1.2, but ' +
+        'vo.table is designed for VOTable version 1.1, 1.2 and 1.3, but ' +
         'this file is %s')
     default_args = ('x',)
 
@@ -949,10 +949,16 @@ class W45(VOWarning, ValueError):
 
         query, hints, doc, location
 
+    And in VOTable 1.3, additionally::
+
+        type
+
     **References**: `1.1
     <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`__,
     `1.2
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`__
+    `1.3
+    <http://www.ivoa.net/documents/VOTable/20130315/PR-VOTable-1.3-20130315.html#sec:link>`__
     """
 
     message = "content-role attribute '%s' invalid"
@@ -989,7 +995,8 @@ class W48(VOTableSpecWarning):
 
 class W49(VOTableSpecWarning):
     """
-    Empty cell illegal for integer fields.
+    Prior to VOTable 1.3, the empty cell was illegal for integer
+    fields.
 
     If a \"null\" value was specified for the cell, it will be used
     for the value, otherwise, 0 will be used.
@@ -1019,6 +1026,17 @@ class W51(VOTableSpecWarning):
 
     message = "Value '%s' is out of range for a %s integer field"
     default_args = ('x', 'n-bit')
+
+
+class W52(VOTableSpecWarning):
+    """
+    The BINARY2 format was introduced in VOTable 1.3.  It should
+    not be present in files marked as an earlier version.
+    """
+
+    message = ("The BINARY2 format was introduced in VOTable 1.3, but "
+               "this file is declared as version '%s'")
+    default_args = ('1.2',)
 
 
 class E01(VOWarning, ValueError):

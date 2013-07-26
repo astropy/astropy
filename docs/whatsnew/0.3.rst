@@ -13,14 +13,23 @@ compliant.
 
 The included version of `wcslib` has been upgraded to version 4.17.
 
+io.votable
+----------
+
+`io.votable` now includes support for the `VOTable 1.3 proposed
+recommendation
+<http://www.ivoa.net/documents/VOTable/20130315/PR-VOTable-1.3-20130315.html>`_.
+Notably, this includes a new binary representation that supports
+masking of any data type.
+
 Backwards-Incompatible Changes
 ------------------------------
 
 * The `coordinates.angles.AngularSeparation`'s initializer argument order
-  has been changed from ``lat1, lon1, lat2, lon2`` to 
-  ``lon1, lat1, lon2, lat2``.  A warning will be shown in this version 
-  indicating that the change occurred, but this will be removed in the 
-  next version.  
+  has been changed from ``lat1, lon1, lat2, lon2`` to
+  ``lon1, lat1, lon2, lat2``.  A warning will be shown in this version
+  indicating that the change occurred, but this will be removed in the
+  next version.
 
 
 Warnings about backwards incompatible changes can be disabled by doing::
@@ -38,3 +47,80 @@ simply by using `quantity.SOME_UNIT`, for example::
     >>> q = 180.0 * u.degree
     >>> q.radian
     3.141592653589793
+
+Quantity are now fully-fledged Numpy arrays, and common Numpy ufuncs (such as
+``np.mean``, ``np.cos``, ``np.log10``, etc.) will now correctly treat the
+units:
+
+    >>> q = np.array([1., 2., 3., 4.]) * u.m / u.s
+    >>> np.mean(q)
+    <Quantity 2.5 m / s>
+    >>> np.std(q)
+    <Quantity 1.11803398875 m / s>
+
+including functions that only accept specific units such as angles::
+
+    >>> q = 30. * u.deg
+    >>> np.sin(q)
+    <Quantity 0.5 >
+
+or dimensionless quantities::
+
+    >>> nu = 3 * u.GHz
+    >>> T = 30 * u.K
+    >>> np.exp(- h * nu / (k_B * T))
+    <Quantity 0.995212254619 >
+
+.. note:: Not *all* Numpy functions (in particular non-ufuncs) and functions
+          outside Numpy will treat units correctly, so be aware that units may
+          be implicitly dropped without a warning. Always check that the
+          function you are using treats the units correctly.
+
+Virtual Observatory Simple Cone Search
+--------------------------------------
+
+:ref:`astropy_vo` is added. Example showing Cone Search for a radius of
+0.1 degrees around M31 from a selected 2MASS catalog:
+
+    >>> from astropy.vo.client import conesearch
+    >>> conesearch.list_catalogs()
+    [u'Guide Star Catalog 2.3 1',
+     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 1',
+     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 2',
+     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 3',
+     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 4',
+     u'SDSS DR8 - Sloan Digital Sky Survey Data Release 8 1',
+     u'SDSS DR8 - Sloan Digital Sky Survey Data Release 8 2',
+     u'The HST Guide Star Catalog, Version 1.1 (Lasker+ 1992) 1',
+     u'The HST Guide Star Catalog, Version 1.2 (Lasker+ 1996) 1',
+     u'The HST Guide Star Catalog, Version GSC-ACT (Lasker+ 1996-99) 1',
+     u'The PMM USNO-A1.0 Catalogue (Monet 1997) 1',
+     u'The USNO-A2.0 Catalogue (Monet+ 1998) 1',
+     u'Two Micron All Sky Survey (2MASS) 1',
+     u'Two Micron All Sky Survey (2MASS) 2',
+     u'USNO-A2 Catalogue 1',
+     u'USNO-A2.0 1']
+    >>> my_catname = 'Two Micron All Sky Survey (2MASS) 1'
+    >>> from astropy import coordinates as coord
+    >>> c = coord.ICRSCoordinates.from_name('M31')
+    >>> result = conesearch.conesearch(
+    ...     c.ra.degrees, c.dec.degrees, 0.1, catalog_db=my_catname)
+    Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
+    Downloading ...
+    WARNING: W06: ... UCD has invalid character '?' in '??' [...]
+    WARNING: W50: ... Invalid unit string 'yyyy-mm-dd' [...]
+    WARNING: W50: ... Invalid unit string 'Julian days' [...]
+    >>> result
+    <astropy.io.votable.tree.Table at 0x41e8610>
+    >>> result.url
+    u'http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&DSATAB=twomass_psc&'
+    >>> result.array.size
+    2008
+    >>> result.array['ra']
+    masked_array(data = [10.620983 10.672264 10.651166 ..., 10.805599],
+                 mask = [False False False ..., False],
+           fill_value = 1e+20)
+    >>> result.array['dec']
+    masked_array(data = [41.192303 41.19426 41.19445 ..., 41.262123],
+                 mask = [False False False ..., False],
+           fill_value = 1e+20)

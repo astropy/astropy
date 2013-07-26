@@ -9,23 +9,22 @@
 
 Examples
 --------
-Running inside Python:
+Running inside Python::
 
->>> import astropy
->>> astropy.test('vo.validator', remote_data=True)
+    >>> import astropy
+    >>> astropy.test('vo.validator', remote_data=True)
 
 Running from top level via command line::
 
-    python setup.py test -P vo.validator --remote-data
+    $ python setup.py test -P vo.validator --remote-data
 
 Running from ``astropy/vo/validator/tests`` directory::
 
-    setenv ASTROPY_USE_SYSTEM_PYTEST 1
-    py.test test_validate.py --remote-data
+    $ setenv ASTROPY_USE_SYSTEM_PYTEST 1
+    $ py.test test_validate.py --remote-data
 
 """
 # STDLIB
-import filecmp
 import json
 import os
 import shutil
@@ -38,6 +37,9 @@ from ...client.vos_catalog import BASEURL
 from ....tests.helper import pytest, remote_data
 from ....utils.data import _find_pkg_data_path, get_pkg_data_filename
 from ....utils.data import REMOTE_TIMEOUT
+
+
+__doctest_skip__ = ['*']
 
 
 @remote_data
@@ -68,7 +70,7 @@ class TestConeSearchValidation(object):
             validate.check_conesearch_sites(
                 destdir=self.out_dir, parallel=parallel, url_list=None)
         except AssertionError as e:
-            if parallel and sys.version_info >= (3,3):
+            if parallel and sys.version_info >= (3, 3):
                 pytest.xfail('See http://bugs.python.org/issue16307')
             else:
                 raise
@@ -117,7 +119,10 @@ class TestConeSearchResults(object):
         out_file = os.path.join(self.out_dir, oname)
         with open(out_file, 'w') as fout:
             func(fout=fout, *args, **kwargs)
-        assert filecmp.cmp(dat_file, out_file, shallow=False)
+
+        with open(dat_file) as f1:
+            with open(out_file) as f2:
+                assert f1.read() == f2.read()
 
     def test_tally(self):
         self.gen_cmp(self.r.tally, 'tally.out')

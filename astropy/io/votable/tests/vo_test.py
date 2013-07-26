@@ -26,7 +26,7 @@ from ..util import IS_PY3K
 from ..exceptions import VOTableSpecError, VOWarning
 from ..xmlutil import validate_schema
 from ....utils.data import get_pkg_data_filename, get_pkg_data_fileobj, get_pkg_data_filenames
-from ....tests.helper import pytest, raises
+from ....tests.helper import pytest, raises, catch_warnings
 from ....utils.compat import gzip
 
 numpy_has_complex_bug = (
@@ -52,12 +52,12 @@ def teardown_module():
     shutil.rmtree(TMP_DIR)
 
 
-def assert_validate_schema(filename):
+def assert_validate_schema(filename, version):
     if sys.platform.startswith('win'):
         return
 
     try:
-        rc, stdout, stderr = validate_schema(filename, '1.1')
+        rc, stdout, stderr = validate_schema(filename, version)
     except OSError:
         # If xmllint is not installed, we want the test to pass anyway
         return
@@ -89,7 +89,7 @@ def test_parse_single_table3():
         table_number=3, pedantic=False)
 
 
-def _test_regression(_python_based=False):
+def _test_regression(_python_based=False, binary_mode=1):
     # Read the VOTABLE
     votable = parse(
         get_pkg_data_filename('data/regression.xml'),
@@ -138,12 +138,24 @@ def _test_regression(_python_based=False):
 
     votable.to_xml(join(TMP_DIR, "regression.tabledata.xml"),
                    _debug_python_based_parser=_python_based)
-    assert_validate_schema(join(TMP_DIR, "regression.tabledata.xml"))
-    votable.get_first_table().format = 'binary'
+    assert_validate_schema(
+        join(TMP_DIR, "regression.tabledata.xml"),
+        votable.version)
+
+    if binary_mode == 1:
+        votable.get_first_table().format = 'binary'
+        votable.version = '1.1'
+    elif binary_mode == 2:
+        votable.get_first_table()._config['version_1_3_or_later'] = True
+        votable.get_first_table().format = 'binary2'
+        votable.version = '1.3'
+
     # Also try passing a file handle
     with open(join(TMP_DIR, "regression.binary.xml"), "wb") as fd:
         votable.to_xml(fd, _debug_python_based_parser=_python_based)
-    assert_validate_schema(join(TMP_DIR, "regression.binary.xml"))
+    assert_validate_schema(
+        join(TMP_DIR, "regression.binary.xml"),
+        votable.version)
     # Also try passing a file handle
     with open(join(TMP_DIR, "regression.binary.xml"), "rb") as fd:
         votable2 = parse(fd, pedantic=False,
@@ -152,10 +164,14 @@ def _test_regression(_python_based=False):
     votable2.to_xml(join(TMP_DIR, "regression.bin.tabledata.xml"),
                     _astropy_version="testing",
                     _debug_python_based_parser=_python_based)
-    assert_validate_schema(join(TMP_DIR, "regression.bin.tabledata.xml"))
+    assert_validate_schema(
+        join(TMP_DIR, "regression.bin.tabledata.xml"),
+        votable.version)
 
     with io.open(
-        get_pkg_data_filename('data/regression.bin.tabledata.truth.xml'),
+        get_pkg_data_filename(
+            'data/regression.bin.tabledata.truth.{0}.xml'.format(
+                votable.version)),
         'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
     with io.open(
@@ -195,6 +211,11 @@ def test_regression():
 @pytest.mark.xfail('legacy_float_repr')
 def test_regression_python_based_parser():
     _test_regression(True)
+
+
+@pytest.mark.xfail('legacy_float_repr')
+def test_regression_binary2():
+    _test_regression(False, 2)
 
 
 class TestFixups:
@@ -608,7 +629,8 @@ class TestThroughTableData(TestParse):
         self.mask = self.table.array.mask
 
     def test_schema(self):
-        assert_validate_schema(join(TMP_DIR, "test_through_tabledata.xml"))
+        assert_validate_schema(
+            join(TMP_DIR, "test_through_tabledata.xml"), '1.1')
 
 
 class TestThroughBinary(TestParse):
@@ -635,6 +657,27 @@ class TestThroughBinary(TestParse):
 
     def test_bit_array2_mask(self):
         assert not np.any(self.mask['bitarray2'])
+
+
+class TestThroughBinary2(TestParse):
+    def setup_class(self):
+        votable = parse(
+            get_pkg_data_filename('data/regression.xml'),
+            pedantic=False)
+        votable.version = '1.3'
+        votable.get_first_table()._config['version_1_3_or_later'] = True
+        votable.get_first_table().format = 'binary2'
+
+        votable.to_xml(join(TMP_DIR, "test_through_binary2.xml"))
+        self.votable = parse(join(TMP_DIR, "test_through_binary2.xml"),
+                           pedantic=False)
+        self.table = self.votable.get_first_table()
+        self.array = self.table.array
+        self.mask = self.table.array.mask
+
+    def test_get_coosys_by_id(self):
+        # No COOSYS in VOTable 1.2 or later
+        pass
 
 
 def table_from_scratch():
@@ -779,9 +822,7 @@ def test_gzip_filehandles():
 
 
 def test_from_scratch_example():
-    with warnings.catch_warnings(record=True) as warning_lines:
-        warnings.resetwarnings()
-        warnings.simplefilter("always", VOWarning, append=True)
+    with catch_warnings(VOWarning) as warning_lines:
         try:
             _run_test_from_scratch_example()
         except ValueError as e:
@@ -852,3 +893,50 @@ def test_nonstandard_units():
 
     assert not isinstance(
         votable.get_first_table().fields[0].unit, u.UnrecognizedUnit)
+
+
+def test_resource_structure():
+    # Based on issue #1223, as reported by @astro-friedel and @RayPlante
+    from astropy.io.votable import tree as vot
+
+    vtf = vot.VOTableFile()
+
+    r1 = vot.Resource()
+    vtf.resources.append(r1)
+    t1 = vot.Table(vtf)
+    t1.name = "t1"
+    t2 = vot.Table(vtf)
+    t2.name = 't2'
+    r1.tables.append(t1)
+    r1.tables.append(t2)
+
+    r2 = vot.Resource()
+    vtf.resources.append(r2)
+    t3 = vot.Table(vtf)
+    t3.name = "t3"
+    t4 = vot.Table(vtf)
+    t4.name = "t4"
+    r2.tables.append(t3)
+    r2.tables.append(t4)
+
+    r3 = vot.Resource()
+    vtf.resources.append(r3)
+    t5 = vot.Table(vtf)
+    t5.name = "t5"
+    t6 = vot.Table(vtf)
+    t6.name = "t6"
+    r3.tables.append(t5)
+    r3.tables.append(t6)
+
+    buff = io.BytesIO()
+    vtf.to_xml(buff)
+
+    buff.seek(0)
+    vtf2 = parse(buff)
+
+    assert len(vtf2.resources) == 3
+
+    for r in xrange(len(vtf2.resources)):
+        res = vtf2.resources[r]
+        assert len(res.tables) == 2
+        assert len(res.resources) == 0

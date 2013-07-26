@@ -66,6 +66,7 @@ def test_create_angles():
     a5 = Angle("54.12412 degrees")
     a6 = Angle(u"54.12412°") # because we like Unicode
     a7 = Angle((54, 7, 26.832), unit=u.degree)
+    a8 = Angle(u"54°07'26.832\"")
     # (deg,min,sec) *tuples* are acceptable, but lists/arrays are *not*
     # because of the need to eventually support arrays of coordinates
     with raises(NotImplementedError):
@@ -87,6 +88,11 @@ def test_create_angles():
     a14 = Angle("12h43m32") # no trailing 's', but unambiguous
 
     a15 = Angle("5h4m3s") # single digits, no decimal
+
+    a16 = Angle("1 d")
+    a17 = Angle("1 degree")
+    assert a16.degrees == 1
+    assert a17.degrees == 1
 
     #ensure the above angles that should match do
     assert a1 == a2 == a3 == a4 == a5 == a6 == a7
@@ -148,7 +154,7 @@ def test_angle_ops():
     with raises(NotImplementedError):
         a1 * a2
 
-    assert (a1 * 2).hours == 2 * 3.60827466667
+    npt.assert_almost_equal((a1 * 2).hours, 2 * 3.6082746666700003)
     assert abs((a1 / 3.123456).hours - 3.60827466667 / 3.123456) < 1e-10
 
     # commutativity

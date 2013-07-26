@@ -11,7 +11,7 @@ import itertools
 import numpy as np
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
-           'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimePlotDate',
+           'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS', 'TimePlotDate',
            'TimeDatetime',
            'TimeString', 'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
            'TimeBesselianEpoch', 'TimeJulianEpoch', 'TimeDeltaFormat',
@@ -20,6 +20,8 @@ __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeBesselianEpochString', 'TimeJulianEpochString',
            'TIME_FORMATS', 'TIME_DELTA_FORMATS', 'TIME_SCALES',
            'TIME_DELTA_SCALES']
+
+__doctest_skip__ = ['TimePlotDate']
 
 try:
     # Not guaranteed available at setup time
@@ -60,7 +62,7 @@ class Time(object):
     """
     Represent and manipulate times and dates for astronomy.
 
-    A Time object is initialized with one or more times in the ``val``
+    A `Time` object is initialized with one or more times in the ``val``
     argument.  The input times in ``val`` must conform to the specified
     ``format`` and must correspond to the specified time ``scale``.  The
     optional ``val2`` time input should be supplied only for numeric input
@@ -72,13 +74,11 @@ class Time(object):
     val : sequence, str, number, or `~astropy.time.Time` object
         Value(s) to initialize the time or times.
     val2 : sequence, str, or number; optional
-        Value(s) to initialize the time or times
+        Value(s) to initialize the time or times.
     format : str, optional
         Format of input value(s)
     scale : str, optional
         Time scale of input value(s)
-    opt : dict, optional
-        options
     lat : float, optional
         Earth latitude of observer (decimal degrees)
     lon : float, optional
@@ -133,23 +133,40 @@ class Time(object):
         some basic input validation.
         """
 
-        # Coerce val into a 1-d array
-        val, val_ndim = _make_1d_array(val, copy)
-
-        # If val2 is None then replace with zeros of the same length
-        if val2 is None:
-            val2 = np.zeros(len(val), dtype=np.double)
-            val2_ndim = val_ndim
+        # check whether input is some form of list of Time objects,
+        # since these should be treated separately
+        try:
+            val0 = val[0]
+        except:
+            isiterable_of_times = False
         else:
-            val2, val2_ndim = _make_1d_array(val2, copy)
+            isiterable_of_times = isinstance(val0, self.__class__)
 
-        # Consistency checks
-        if len(val) != len(val2):
-            raise ValueError('Input val and val2 must match in length')
 
-        self.is_scalar = (val_ndim == 0)
-        if val_ndim != val2_ndim:
-            raise ValueError('Input val and val2 must have same dimensions')
+        if isiterable_of_times:
+            if val2 is not None:
+                raise ValueError(
+                    'non-None second value for list of {0!r} objects'
+                    .format(self.__class__.__name__))
+            self.is_scalar = False
+        else:
+            # Coerce val into a 1-d array
+            val, val_ndim = _make_1d_array(val, copy)
+
+            # If val2 is None then replace with zeros of the same length
+            if val2 is None:
+                val2 = np.zeros(len(val), dtype=np.double)
+                val2_ndim = val_ndim
+            else:
+                val2, val2_ndim = _make_1d_array(val2, copy)
+
+            # Consistency checks
+            if len(val) != len(val2):
+                raise ValueError('Input val and val2 must match in length')
+
+            self.is_scalar = (val_ndim == 0)
+            if val_ndim != val2_ndim:
+                raise ValueError('Input val and val2 must have same dimensions')
 
         if scale is not None and scale not in self.SCALES:
             raise ScaleValueError("Scale {0} is not in the allowed scales {1}"
@@ -169,7 +186,8 @@ class Time(object):
         available formats and stop when one matches.
         """
 
-        if format is None and val.dtype.kind in ('S', 'U', 'O'):
+        if format is None and (isinstance(val[0], self.__class__) or
+                               val.dtype.kind in ('S', 'U', 'O')):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeUnique)]
             err_msg = 'any of the formats where the format keyword is optional {0}'.format(
@@ -192,6 +210,28 @@ class Time(object):
                 pass
         else:
             raise ValueError('Input values did not match {0}'.format(err_msg))
+
+    @classmethod
+    def now(cls):
+        """
+        Creates a new object corresponding to the instant in time this
+        method is called.
+
+        .. note::
+            "Now" is determined using the `datetime.utcnow` function, so
+            its accuracy and precision is determined by that function.
+            Generally that means it is set by the accuracy of your
+            system clock.
+
+        Returns
+        -------
+        nowtime
+            A new `Time` object (or a subclass of `Time` if this is called from
+            such a subclass) at the current time.
+        """
+        #call `utcnow` immediately to be sure it's ASAP
+        dtnow = datetime.utcnow()
+        return cls(val=dtnow, format='datetime', scale='utc')
 
     @property
     def format(self):
@@ -437,6 +477,24 @@ class Time(object):
         """
         return self.copy()
 
+    def __getitem__(self, item):
+        if self.is_scalar:
+            raise TypeError('scalar {0!r} object is not subscriptable.'.format(
+                self.__class__.__name__))
+        tm = self.replicate()
+        jd1 = self._time.jd1[item]
+        tm.is_scalar = jd1.ndim == 0
+        def keepasarray(x, is_scalar=tm.is_scalar):
+            return np.array([x]) if is_scalar else x
+        tm._time.jd1 = keepasarray(jd1)
+        tm._time.jd2 = keepasarray(self._time.jd2[item])
+        attrs = ('_delta_ut1_utc', '_delta_tdb_tt')
+        for attr in attrs:
+            if hasattr(self, attr):
+                val = getattr(self, attr)
+                setattr(tm, attr, keepasarray(val[item]))
+        return tm
+
     def _getAttributeNames(self):
         """
         Add dynamic attribute names for IPython completer.
@@ -575,11 +633,13 @@ class Time(object):
         self_time = not self_delta  # only 2 possibilities
         other_time = not other_delta
         if (self_delta and other_delta) or (self_time and other_time):
-            return TimeDelta(jd1, jd2, format='jd')
+            out = TimeDelta(jd1, jd2, format='jd')
+            if self_delta:
+                out = out.replicate(format=self.format)
+            return out
         elif (self_time and other_delta):
-            self_tai._time.jd1 = jd1
-            self_tai._time.jd2 = jd2
-            return getattr(self_tai, self.scale)
+            tai = Time(jd1, jd2, format='jd', scale='tai', copy=False)
+            return getattr(tai.replicate(format=self.format), self.scale)
         else:
             raise OperandTypeError(self, other)
 
@@ -601,15 +661,43 @@ class Time(object):
         self_time = not self_delta  # only 2 possibilities
         other_time = not other_delta
         if (self_delta and other_delta):
-            return TimeDelta(jd1, jd2, format='jd')
+            out = TimeDelta(jd1, jd2, format='jd')
+            return out.replicate(format=self.format)
         elif (self_time and other_delta) or (self_delta and other_time):
-            tai = self_tai if self_time else other_tai
+            format = self.format if self_time else other.format
             scale = self.scale if self_time else other.scale
-            tai._time.jd1 = jd1
-            tai._time.jd2 = jd2
-            return getattr(tai, scale)
+            tai = Time(jd1, jd2, format='jd', scale='tai', copy=False)
+            return getattr(tai.replicate(format=format), scale)
         else:
             raise OperandTypeError(self, other)
+
+    def _tai_difference(self, other):
+        """If other is of same class as self, return difference in TAI.
+        Otherwise, raise OperandTypeError.
+        """
+        if other.__class__ is not self.__class__:
+            raise OperandTypeError(self, other)
+        self_tai = self.tai
+        other_tai = other.tai
+        return (self_tai.jd1 - other_tai.jd1) + (self_tai.jd2 - other_tai.jd2)
+
+    def __lt__(self, other):
+        return self._tai_difference(other) < 0.
+
+    def __le__(self, other):
+        return self._tai_difference(other) <= 0.
+
+    def __eq__(self, other):
+        return self._tai_difference(other) == 0.
+
+    def __ne__(self, other):
+        return self._tai_difference(other) != 0.
+
+    def __gt__(self, other):
+        return self._tai_difference(other) > 0.
+
+    def __ge__(self, other):
+        return self._tai_difference(other) >= 0.
 
 
 class TimeDelta(Time):
@@ -644,6 +732,50 @@ class TimeDelta(Time):
         # from Time.
         if not isinstance(val, self.__class__):
             self._init_from_vals(val, val2, format, 'tai', copy)
+
+    def __neg__(self):
+        """Negation of a `TimeDelta` object."""
+        new = self.copy()
+        new._time.jd1 = -self._time.jd1
+        new._time.jd2 = -self._time.jd2
+        return new
+
+    def __abs__(self):
+        """Absolute value of a `TimeDelta` object."""
+        #TODO: for safety, ensure round-off errors are taken into account
+        jd1, jd2 = self._time.jd1, self._time.jd2
+        negative = jd1 + jd2 < 0
+        new = self.copy()
+        new._time.jd1 = np.where(negative, -jd1, jd1)
+        new._time.jd2 = np.where(negative, -jd2, jd2)
+        return new
+
+    def __mul__(self, other):
+        """Multiplication of `TimeDelta` objects by numbers/arrays."""
+        # check needed since otherwise the self.jd1 * other multiplication
+        # would enter here again (via __rmul__)
+        if isinstance(other, Time):
+            raise OperandTypeError(self, other)
+        #TODO: ensure round-off errors in jd1 are taken into account!!!
+        jd1 = self.jd1 * other
+        jd2 = self.jd2 * other
+        out = TimeDelta(jd1, jd2, format='jd')
+        if self.format != 'jd':
+            out = out.replicate(format=self.format)
+        return out
+
+    def __rmul__(self, other):
+        """Multiplication of numbers/arrays with `TimeDelta` objects."""
+        return self.__mul__(other)
+
+    def __div__(self, other):
+        """Division of `TimeDelta` objects by numbers/arrays."""
+        #TODO: ensure round-off errors in jd1 are taken into account!!!
+        return self.__mul__(1. / other)
+
+    def __truediv__(self, other):
+        """Division of `TimeDelta` objects by numbers/arrays."""
+        return self.__mul__(1. / other)
 
 
 class TimeFormat(object):
@@ -789,30 +921,48 @@ class TimeFromEpoch(TimeFormat):
         # Initialize the reference epoch which is a single time defined in subclasses
         epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
                      format=self.epoch_format)
-        # Convert the epoch time to TAI so that calculations involving adding/subtracting
-        # JDs are always linear and well-defined (a JD in TAI is always 86400 uniform
-        # seconds, unlike other scales, in particular UTC where one JD isn't always the
-        # same duration).
-        self.epoch = epoch.tai
+        self.epoch = epoch
+
+        # Now create the TimeFormat object as normal
         super(TimeFromEpoch, self).__init__(val1, val2, scale, precision,
                                             in_subfmt, out_subfmt, from_jd)
 
     def set_jds(self, val1, val2):
-        # Form new JDs based on epoch time (TAI) + time from epoch (converted to JD)
+        """
+        Initialize the internal jd1 and jd2 attributes given val1 and val2.  For an
+        TimeFromEpoch subclass like TimeUnix these will be floats giving the effective
+        seconds since an epoch time (e.g. 1970-01-01 00:00:00).
+        """
+        # Form new JDs based on epoch time + time from epoch (converted to JD).
+        # One subtlety that might not be obvious is that 1.000 Julian days in UTC
+        # can be 86400 or 86401 seconds.  For the TimeUnix format the assumption
+        # is that every day is exactly 86400 seconds, so in principle this
+        # is doing the math incorrectly, *except* that it matches the definition
+        # of Unix time which does not include leap seconds.
         jd1 = self.epoch.jd1 + val2 * self.unit
         jd2 = self.epoch.jd2 + val1 * self.unit
 
-        # Create a Time object corresponding to the new (jd1, jd2) in TAI, then convert
-        # that to the time scale for this object.
-        tm = getattr(Time(jd1, jd2, scale='tai', format='jd'), self.scale)
+        # Create a temporary Time object corresponding to the current new (jd1, jd2) in
+        # the epoch scale (e.g. UTC for TimeUnix) then convert that to the desired time
+        # scale for this object.
+        #
+        # A known limitation is that the transform from self.epoch_scale to self.scale
+        # cannot involve any metadata like lat or lon.
+        tm = getattr(Time(jd1, jd2, scale=self.epoch_scale, format='jd'), self.scale)
 
         self.jd1 = tm.jd1
         self.jd2 = tm.jd2
 
     @property
     def vals(self):
-        # Convert current JDs to TAI
-        tm = Time(self.jd1, self.jd2, scale=self.scale, format='jd').tai
+        # Create a temporary Time object corresponding to the parent Time, then transform
+        # that to the epoch scale.  From there do the simple math to compute delta time
+        # from the epoch in Julian days, and then in the desired output units
+        # (e.g. seconds).
+        #
+        # A known limitation is that the transform from self.scale to self.epoch_scale
+        # cannot involve any metadata like lat or lon.
+        tm = getattr(Time(self.jd1, self.jd2, scale=self.scale, format='jd'), self.epoch_scale)
         time_from_epoch = ((tm.jd1 - self.epoch.jd1) +
                            (tm.jd2 - self.epoch.jd2)) / self.unit
         return time_from_epoch
@@ -843,6 +993,21 @@ class TimeCxcSec(TimeFromEpoch):
     epoch_val = '1998-01-01 00:00:00'
     epoch_val2 = None
     epoch_scale = 'tt'
+    epoch_format = 'iso'
+
+
+class TimeGPS(TimeFromEpoch):
+    """GPS time: seconds from 1980-01-06 00:00:00 UTC
+
+    GPS time includes leap seconds.  For details, see
+    http://tycho.usno.navy.mil/gpstt.html
+    """
+    name = 'gps'
+    unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
+    epoch_val = '1980-01-06 00:00:19'
+    # above epoch is the same as Time('1980-01-06 00:00:00', scale='utc').tai
+    epoch_val2 = None
+    epoch_scale = 'tai'
     epoch_format = 'iso'
 
 

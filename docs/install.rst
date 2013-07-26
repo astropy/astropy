@@ -34,17 +34,42 @@ Using `pip`
 
 To install Astropy with `pip`, simply run::
 
-    pip install astropy
+    pip install --no-deps astropy
 
-.. note:: You will need a C compiler (e.g. ``gcc`` or ``clang``) to be
-          installed (see `Building from source`_ below) for the installation
-          to succeed.
+.. note::
+
+    You will need a C compiler (e.g. ``gcc`` or ``clang``) to be installed (see
+    `Building from source`_ below) for the installation to succeed.
+
+.. note::
+
+    The ``--no-deps`` flag is optional, but highly recommended if you already
+    have Numpy installed, since otherwise pip will sometimes try to "help" you
+    by upgrading your Numpy installation, which may not always be desired.
+
+.. note::
+
+    If you get a ``PermissionError`` this means that you do not have the
+    required administrative access to install new packages to your Python
+    installation.  In this case you may consider using the ``--user`` option
+    to install the package into your home directory.  You can read more about
+    how to do this in the `pip documentation <http://www.pip-installer.org/en/1.2.1/other-tools.html#using-pip-with-the-user-scheme>`_.
+
+    Alternatively, if you intend to do development on other software that uses
+    Astropy, such as an affiliated package, consider installing Astropy into a
+    :ref:`virtualenv<using-virtualenv>`.
+
+    Do **not** install Astropy or other third-party packages using ``sudo``
+    unless you are fully aware of the risks.
+
 
 Binary installers
 -----------------
 
 Binary installers are available on Windows for Python 2.6, 2.7, 3.1, and 3.2
 at `PyPI <https://pypi.python.org/pypi/astropy>`_.
+
+.. _testing_installed_astropy:
 
 Testing an installed Astropy
 ----------------------------
@@ -59,7 +84,7 @@ The tests should run and print out any failures, which you can report at
 the `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_.
 
 .. note::
-    
+
     This way of running the tests may not work if you do it in the
     astropy source distribution.  See :ref:`sourcebuildtest` for how to
     run the tests from the source code directory, or :ref:`running-tests`
@@ -179,6 +204,30 @@ use the system `libexpat`, add the following to the `setup.cfg` file::
     [build]
     use_system_expat=1
 
+
+The Windows installer can't find Python in the registry
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This is a common issue with Windows installers for Python packages that do not
+support the new User Access Control (UAC) framework added in Windows Vista and
+later.  In particular, when a Python is installed "for all users" (as opposed
+to for a single user) it adds entries for that Python installation under the
+``HKEY_LOCAL_MACHINE`` (HKLM) hierarchy and *not* under the
+``HKEY_CURRENT_USER`` (HKCU) hierarchy.  However, depending on your UAC
+settings, if the Astropy installer is not executed with elevated privileges it
+will not be able to check in HKLM for the required information about your
+Python installation.
+
+In short: If you encounter this problem it's because you need the appropriate
+entries in the Windows registry for Python. You can download `this script`__
+and execute it with the same Python as the one you want to install Astropy
+into.  For example to add the missing registry entries to your Python 2.7::
+
+    C:\>C:\Python27\python.exe C:\Path\To\Downloads\win_register_python.py
+
+__ https://gist.github.com/iguananaut/6042780#file-win_register_python-py
+
+
 Compatibility packages
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -242,6 +291,20 @@ packages:
     - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or later
 
     - `Graphviz <http://www.graphviz.org>`_
+
+.. note::
+
+    Sphinx also requires a reasonably modern LaTeX installation to render
+    equations.  Per the `Sphinx documentation
+    <http://sphinx-doc.org/builders.html?highlight=latex#sphinx.builders.latex.LaTeXBuilder>`_,
+    For the TexLive distribution the following packages are required to be
+    installed:
+
+    * latex-recommended
+    * latex-extra
+    * font-recommended
+
+    For other LaTeX distributions your mileage may vary.
 
 There are two ways to build the Astropy documentation. The most straightforward
 way is to execute the command (from the astropy source directory)::

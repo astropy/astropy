@@ -109,7 +109,10 @@ extensions = [
 try:
     import matplotlib.sphinxext.plot_directive
     extensions += [matplotlib.sphinxext.plot_directive.__name__]
-except ImportError:
+# AttributeError is checked here in case matplotlib is installed but
+# Sphinx isn't.  Note that this module is imported by the config file
+# generator, even if we're not building the docs.
+except (ImportError, AttributeError):
     warnings.warn(
         "matplotlib's plot_directive could not be imported. " +
         "Inline plots will not be included in the output")
@@ -133,7 +136,12 @@ html_theme_path = [path.abspath(path.join(path.dirname(__file__), 'themes'))]
 html_theme = 'bootstrap-astropy'
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {'**': ['localtoc.html']}
+html_sidebars = {
+    '**': ['localtoc.html'],
+    'search': [],
+    'genindex': [],
+    'py-modindex': [],
+}
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32

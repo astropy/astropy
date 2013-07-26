@@ -34,6 +34,7 @@ import copy
 import io
 import os
 import sys
+import textwrap
 import warnings
 
 # THIRD-PARTY
@@ -48,6 +49,7 @@ except ImportError:
     _wcs = None
 from ..utils import deprecated, deprecated_attribute
 from .. import log
+from ..utils import data
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -62,7 +64,12 @@ else:  # pragma: py2
 
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'DistortionLookupTable', 'Sip', 'Tabprm', 'UnitConverter',
-           'Wcsprm', 'WCSBase']
+           'Wcsprm', 'WCSBase', 'validate', 'WcsError', 'SingularMatrixError',
+           'InconsistentAxisTypesError', 'InvalidTransformError',
+           'InvalidCoordinateError', 'NoSolutionError',
+           'InvalidSubimageSpecificationError',
+           'NonseparableSubimageCoordinateSystemError',
+           'NoWcsKeywordsFoundError', 'InvalidTabularParametersError']
 
 
 if _wcs is not None:
@@ -72,6 +79,17 @@ if _wcs is not None:
     UnitConverter = _wcs.UnitConverter
     Wcsprm = _wcs.Wcsprm
     Tabprm = _wcs.Tabprm
+    WcsError = _wcs.WcsError
+    SingularMatrixError = _wcs.SingularMatrixError
+    InconsistentAxisTypesError = _wcs.InconsistentAxisTypesError
+    InvalidTransformError = _wcs.InvalidTransformError
+    InvalidCoordinateError = _wcs.InvalidCoordinateError
+    NoSolutionError = _wcs.NoSolutionError
+    InvalidSubimageSpecificationError = _wcs.InvalidSubimageSpecificationError
+    NonseparableSubimageCoordinateSystemError = _wcs.NonseparableSubimageCoordinateSystemError
+    NoWcsKeywordsFoundError = _wcs.NoWcsKeywordsFoundError
+    InvalidTabularParametersError = _wcs.InvalidTabularParametersError
+
     # Copy all the constants from the C extension into this module's namespace
     for key, val in _wcs.__dict__.items():
         if (key.startswith('WCSSUB') or
@@ -90,6 +108,16 @@ else:
     Sip = object
     UnitConverter = object
     Tabprm = object
+    WcsError = None
+    SingularMatrixError = None
+    InconsistentAxisTypesError = None
+    InvalidTransformError = None
+    InvalidCoordinateError = None
+    NoSolutionError = None
+    InvalidSubimageSpecificationError = None
+    NonseparableSubimageCoordinateSystemError = None
+    NoWcsKeywordsFoundError = None
+    InvalidTabularParametersError = None
 
 
 # Additional relax bit flags
@@ -347,23 +375,16 @@ naxis kwarg.
 
             header_naxis = header.get('NAXIS', None)
             if header_naxis is not None and header_naxis < wcsprm.naxis:
-                log.info(
+                warnings.warn(
                     "The WCS transformation has more axes ({0:d}) than the "
                     "image it is associated with ({1:d})".format(
-                        wcsprm.naxis, header_naxis))
-
-        if fix:
-            fixes = wcsprm.fix()
-            for key, val in fixes.iteritems():
-                if val != "No change":
-                    warnings.warn(
-                        ("'{0}' made the change '{1}'. "
-                         "This FITS header contains non-standard content.").
-                        format(key, val),
-                        FITSFixedWarning)
+                        wcsprm.naxis, header_naxis), FITSFixedWarning)
 
         self._get_naxis(header)
         WCSBase.__init__(self, sip, cpdis, wcsprm, det2im)
+
+        if fix:
+            self.fix()
 
         for fd in close_fds:
             fd.close()
@@ -417,6 +438,20 @@ naxis kwarg.
     if _wcs is not None:
         sub.__doc__ = _wcs.Wcsprm.sub.__doc__
 
+    def fix(self):
+        """
+        Perform the fix operations from wcslib, and warn about any
+        changes it has made.
+        """
+        if self.wcs is not None:
+            fixes = self.wcs.fix()
+            for key, val in fixes.iteritems():
+                if val != "No change":
+                    warnings.warn(
+                        ("'{0}' made the change '{1}'.").
+                        format(key, val),
+                        FITSFixedWarning)
+
     def calcFootprint(self, header=None, undistort=True, axes=None):
         """
         Calculates the footprint of the image on the sky.
@@ -453,7 +488,7 @@ naxis kwarg.
                     naxis1 = self._naxis1
                     naxis2 = self._naxis2
                 except AttributeError:
-                    print("Need a valid header in order to calculate footprint\n")
+                    warnings.warn("Need a valid header in order to calculate footprint\n")
                     return None
             else:
                 naxis1 = header.get('NAXIS1', None)
@@ -481,27 +516,74 @@ naxis kwarg.
         Create a `Paper IV`_ type lookup table for detector to image
         plane correction.
         """
-        cpdis = [None, None]
-        crpix = [0., 0.]
-        crval = [0., 0.]
-        cdelt = [1., 1.]
-
         if fobj is None:
             return (None, None)
 
         if not isinstance(fobj, fits.HDUList):
             return (None, None)
 
-        d_error = header.get('D2IMERR', 0.0)
-        if d_error < err:
-            return (None, None)
+        try:
+            axiscorr = header['AXISCORR']
+            d2imdis = self._read_d2im_old_format(header, fobj, axiscorr)
+            return d2imdis
+        except KeyError:
+            pass
 
+        dist = 'D2IMDIS'
+        d_kw = 'D2IM'
+        err_kw = 'D2IMERR'
+        tables = {}
+        for i in range(1, self.naxis + 1):
+            d_error = header.get(err_kw + str(i), 0.0)
+            if d_error < err:
+                tables[i] = None
+                continue
+            distortion = dist + str(i)
+            if distortion in header:
+                dis = header[distortion].lower()
+                if dis == 'lookup':
+                    assert isinstance(fobj, fits.HDUList), ('An astropy.io.fits.HDUList'
+                                'is required for Lookup table distortion.')
+                    dp = (d_kw + str(i)).strip()
+                    d_extver = header.get(dp + '.EXTVER', 1)
+                    if i == header[dp + '.AXIS.{0:d}'.format(i)]:
+                        d_data = fobj['D2IMARR', d_extver].data
+                    else:
+                        d_data = (fobj['D2IMARR', d_extver].data).transpose()
+                    d_header = fobj['D2IMARR', d_extver].header
+                    d_crpix = (d_header.get('CRPIX1', 0.0), d_header.get('CRPIX2', 0.0))
+                    d_crval = (d_header.get('CRVAL1', 0.0), d_header.get('CRVAL2', 0.0))
+                    d_cdelt = (d_header.get('CDELT1', 1.0), d_header.get('CDELT2', 1.0))
+                    d_lookup = DistortionLookupTable(d_data, d_crpix,
+                                                     d_crval, d_cdelt)
+                    tables[i] = d_lookup
+                else:
+                    warnings.warn('Polynomial distortion is not implemented.\n')
+            else:
+                tables[i] = None
+        if not tables:
+            return (None, None)
+        else:
+            return (tables.get(1), tables.get(2))
+
+    def _read_d2im_old_format(self, header, fobj, axiscorr):
+        warnings.warn("The use of ``AXISCORR`` for D2IM correction has been deprecated."
+                      "The new style of this correction is described at"
+                      ""
+                      "PyWCS will read in files with ``AXISCORR`` but to_fits() will write"
+                      "out files in the new style",
+                      DeprecationWarning)
+        cpdis = [None, None]
+        crpix = [0., 0.]
+        crval = [0., 0.]
+        cdelt = [1., 1.]
         try:
             d2im_data = fobj[('D2IMARR', 1)].data
         except KeyError:
             return (None, None)
         except AttributeError:
             return (None, None)
+
         d2im_data = np.array([d2im_data])
         d2im_hdr = fobj[('D2IMARR', 1)].header
         naxis = d2im_hdr['NAXIS']
@@ -513,12 +595,13 @@ naxis kwarg.
 
         cpdis = DistortionLookupTable(d2im_data, crpix, crval, cdelt)
 
-        axiscorr = header.get('AXISCORR', None)
-
         if axiscorr == 1:
             return (cpdis, None)
-        else:
+        elif axiscorr == 2:
             return (None, cpdis)
+        else:
+            warnings.warn("Expected AXISCORR to be 1 or 2")
+            return (None, None)
 
     def _write_det2im(self, hdulist):
         """
@@ -526,30 +609,45 @@ naxis kwarg.
         `astropy.io.fits.HDUList`.
         """
 
-        det2im1 = self.det2im1
-        det2im2 = self.det2im2
-        if det2im1 is not None and det2im2 is None:
-            hdulist[0].header.update('AXISCORR', 1)
-            det2im = det2im1
-        elif det2im1 is None and det2im2 is not None:
-            hdulist[0].header.update('AXISCORR', 0)
-            det2im = det2im2
-        elif det2im1 is None and det2im2 is None:
+        if self.det2im1 is None and self.det2im2 is None:
             return
-        else:
-            raise ValueError("Saving both distortion images is not supported")
+        dist = 'D2IMDIS'
+        d_kw = 'D2IM'
+        err_kw = 'D2IMERR'
 
-        image = fits.ImageHDU(det2im.data[0], name='D2IMARR')
-        header = image.header
+        def write_d2i(num, det2im):
+            if det2im is None:
+                return
+            '{0}{1:d}'.format(dist, num),
+            hdulist[0].header['{0}{1:d}'.format(dist, num)] = ('LOOKUP',
+                                     'Detector to image correction type')
+            hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)] = (num,
+                                     'Version number of WCSDVARR extension')
+            hdulist[0].header['{0}{1:d}.NAXES'.format(d_kw, num)] = (len(det2im.data.shape),
+                                        'Number of independent variables in d2im function')
+            for i in range(det2im.data.ndim):
+                hdulist[0].header['{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i + 1)] = (i + 1,
+                                'Axis number of the jth independent variable in a d2im function')
 
-        header.update('CRPIX1', det2im.crpix[0])
-        header.update('CRPIX2', det2im.crpix[1])
-        header.update('CRVAL1', det2im.crval[0])
-        header.update('CRVAL2', det2im.crval[1])
-        header.update('CDELT1', det2im.cdelt[0])
-        header.update('CDELT2', det2im.cdelt[1])
+            image = fits.ImageHDU(det2im.data, name='D2IMARR')
+            header = image.header
 
-        hdulist.append(image)
+            header['CRPIX1'] = (det2im.crpix[0],
+                                'Coordinate system reference pixel')
+            header['CRPIX2'] = (det2im.crpix[1],
+                            'Coordinate system reference pixel')
+            header['CRVAL1'] = (det2im.crval[0],
+                            'Coordinate system value at reference pixel')
+            header['CRVAL2'] = (det2im.crval[1],
+                                'Coordinate system value at reference pixel')
+            header['CDELT1'] = (det2im.cdelt[0],
+                                'Coordinate increment along axis')
+            header['CDELT2'] = (det2im.cdelt[1],
+                                'Coordinate increment along axis')
+            image.update_ext_version(int(hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)]))
+            hdulist.append(image)
+        write_d2i(1, self.det2im1)
+        write_d2i(2, self.det2im2)
 
     def _read_distortion_kw(self, header, fobj, dist='CPDIS', err=0.0):
         """
@@ -589,18 +687,15 @@ naxis kwarg.
                         d_data = fobj['WCSDVARR', d_extver].data
                     else:
                         d_data = (fobj['WCSDVARR', d_extver].data).transpose()
+
                     d_header = fobj['WCSDVARR', d_extver].header
-                    d_crpix = (d_header.get('CRPIX1', 0.0),
-                               d_header.get('CRPIX2', 0.0))
-                    d_crval = (d_header.get('CRVAL1', 0.0),
-                               d_header.get('CRVAL2', 0.0))
-                    d_cdelt = (d_header.get('CDELT1', 1.0),
-                               d_header.get('CDELT2', 1.0))
-                    d_lookup = DistortionLookupTable(d_data, d_crpix,
-                                                     d_crval, d_cdelt)
+                    d_crpix = (d_header.get('CRPIX1', 0.0), d_header.get('CRPIX2', 0.0))
+                    d_crval = (d_header.get('CRVAL1', 0.0), d_header.get('CRVAL2', 0.0))
+                    d_cdelt = (d_header.get('CDELT1', 1.0), d_header.get('CDELT2', 1.0))
+                    d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
                     tables[i] = d_lookup
                 else:
-                    print('Polynomial distortion is not implemented.\n')
+                    warnings.warn('Polynomial distortion is not implemented.\n')
             else:
                 tables[i] = None
 
@@ -628,47 +723,29 @@ naxis kwarg.
             if cpdis is None:
                 return
 
-            hdulist[0].header.update(
-                '{0}{1:d}'.format(dist, num),
-                ('LOOKUP', 'Prior distortion function type'))
-            hdulist[0].header.update(
-                '{0}{1:d}.EXTVER'.format(d_kw, num),
-                (num, 'Version number of WCSDVARR extension'))
-            hdulist[0].header.update(
-                '{0}{1:d}.NAXES'.format(d_kw, num),
-                (len(cpdis.data.shape),
-                 'Number of independent variables in distortion function'))
+            hdulist[0].header['{0}{1:d}'.format(dist, num)] = ('LOOKUP',
+                                        'Prior distortion function type')
+            hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)] = (num,
+                                        'Version number of WCSDVARR extension')
+            hdulist[0].header['{0}{1:d}.NAXES'.format(d_kw, num)] = (len(cpdis.data.shape),
+                 'Number of independent variables in distortion function')
 
             for i in range(cpdis.data.ndim):
-                hdulist[0].header.update(
-                    '{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i + 1),
-                    (i + 1, 'Axis number of the jth independent variable in a '
-                     'distortion function'))
+                hdulist[0].header['{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i + 1)] = (i + 1,
+                                    'Axis number of the jth independent variable in'
+                                    'a distortion function')
 
             image = fits.ImageHDU(cpdis.data, name='WCSDVARR')
             header = image.header
 
-            header.update(
-                'CRPIX1',
-                (cpdis.crpix[0], 'Coordinate system reference pixel'))
-            header.update(
-                'CRPIX2',
-                (cpdis.crpix[1], 'Coordinate system reference pixel'))
-            header.update(
-                'CRVAL1',
-                (cpdis.crval[0], 'Coordinate system value at reference pixel'))
-            header.update(
-                'CRVAL2',
-                (cpdis.crval[1], 'Coordinate system value at reference pixel'))
-            header.update(
-                'CDELT1',
-                (cpdis.cdelt[0], 'Coordinate increment along axis'))
-            header.update(
-                'CDELT2',
-                (cpdis.cdelt[1], 'Coordinate increment along axis'))
+            header['CRPIX1'] = (cpdis.crpix[0], 'Coordinate system reference pixel')
+            header['CRPIX2'] = (cpdis.crpix[1], 'Coordinate system reference pixel')
+            header['CRVAL1'] = (cpdis.crval[0], 'Coordinate system value at reference pixel')
+            header['CRVAL2'] = (cpdis.crval[1], 'Coordinate system value at reference pixel')
+            header['CDELT1'] = (cpdis.cdelt[0], 'Coordinate increment along axis')
+            header['CDELT2'] = (cpdis.cdelt[1], 'Coordinate increment along axis')
             image.update_ext_version(
                 int(hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)]))
-
             hdulist.append(image)
 
         write_dist(1, self.cpdis1)
@@ -685,7 +762,7 @@ naxis kwarg.
             # TODO: Parse SIP from a string without pyfits around
             return None
 
-        if "A_ORDER" in header:
+        if "A_ORDER" in header and header['A_ORDER'] > 1:
             if "B_ORDER" not in header:
                 raise ValueError(
                     "A_ORDER provided without corresponding B_ORDER "
@@ -698,11 +775,15 @@ naxis kwarg.
                     a[i, j] = header.get(("A_{0}_{1}".format(i, j)), 0.0)
 
             m = int(header["B_ORDER"])
-            b = np.zeros((m + 1, m + 1), np.double)
-            for i in range(m + 1):
-                for j in range(m - i + 1):
-                    b[i, j] = header.get(("B_{0}_{1}".format(i, j)), 0.0)
-        elif "B_ORDER" in header:
+            if m > 1:
+                b = np.zeros((m + 1, m + 1), np.double)
+                for i in range(m + 1):
+                    for j in range(m - i + 1):
+                        b[i, j] = header.get(("B_{0}_{1}".format(i, j)), 0.0)
+            else:
+                a = None
+                b = None
+        elif "B_ORDER" in header and header['B_ORDER'] > 1:
             raise ValueError(
                 "B_ORDER provided without corresponding A_ORDER " +
                 "keyword for SIP distortion")
@@ -710,7 +791,7 @@ naxis kwarg.
             a = None
             b = None
 
-        if "AP_ORDER" in header:
+        if "AP_ORDER" in header and header['AP_ORDER'] > 1:
             if "BP_ORDER" not in header:
                 raise ValueError(
                     "AP_ORDER provided without corresponding BP_ORDER "
@@ -723,11 +804,15 @@ naxis kwarg.
                     ap[i, j] = header.get("AP_{0}_{1}".format(i, j), 0.0)
 
             m = int(header["BP_ORDER"])
-            bp = np.zeros((m + 1, m + 1), np.double)
-            for i in range(m + 1):
-                for j in range(m - i + 1):
-                    bp[i, j] = header.get("BP_{0}_{1}".format(i, j), 0.0)
-        elif "BP_ORDER" in header:
+            if m > 1:
+                bp = np.zeros((m + 1, m + 1), np.double)
+                for i in range(m + 1):
+                    for j in range(m - i + 1):
+                        bp[i, j] = header.get("BP_{0}_{1}".format(i, j), 0.0)
+            else:
+                ap = None
+                bp = None
+        elif "BP_ORDER" in header and header['BP_ORDER'] > 1:
             raise ValueError(
                 "BP_ORDER provided without corresponding AP_ORDER "
                 "keyword for SIP distortion")
@@ -772,9 +857,6 @@ naxis kwarg.
         write_array('B', self.sip.b)
         write_array('AP', self.sip.ap)
         write_array('BP', self.sip.bp)
-
-        keywords['CRPIX1'] = self.sip.crpix[0]
-        keywords['CRPIX2'] = self.sip.crpix[1]
 
         return keywords
 
@@ -892,7 +974,7 @@ naxis kwarg.
                     for i in range(sky.shape[1])]
 
         raise TypeError(
-            "Expected 2 or {0} arguments, {0} given".format(
+            "Expected 2 or {0} arguments, {1} given".format(
                 self.naxis + 1, len(args)))
 
     def all_pix2world(self, *args, **kwargs):
@@ -1262,7 +1344,7 @@ naxis kwarg.
         """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('pixel coordinates', 8))
 
-    def to_fits(self, relax=False):
+    def to_fits(self, relax=False, key=None):
         """
         Generate an `astropy.io.fits.HDUList` object with all of the
         information stored in this object.  This should be logically identical
@@ -1285,12 +1367,17 @@ naxis kwarg.
             - `int`: a bit field selecting specific extensions to
               write.  See :ref:`relaxwrite` for details.
 
+        key : string
+            The name of a particular WCS transform to use.  This may be
+            either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"``
+            part of the ``CTYPEia`` cards.
+
         Returns
         -------
         hdulist : `astropy.io.fits.HDUList`
         """
 
-        header = self.to_header(relax=relax)
+        header = self.to_header(relax=relax, key=key)
 
         hdu = fits.PrimaryHDU(header=header)
         hdulist = fits.HDUList(hdu)
@@ -1300,7 +1387,7 @@ naxis kwarg.
 
         return hdulist
 
-    def to_header(self, relax=False):
+    def to_header(self, relax=False, key=None):
         """
         Generate an `astropy.io.fits.Header` object with the basic WCS and SIP
         information stored in this object.  This should be logically
@@ -1327,6 +1414,10 @@ naxis kwarg.
 
             - `int`: a bit field selecting specific extensions to
               write.  See :ref:`relaxwrite` for details.
+        key : string
+            The name of a particular WCS transform to use.  This may be
+            either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"``
+            part of the ``CTYPEia`` cards.
 
         Returns
         -------
@@ -1363,7 +1454,11 @@ naxis kwarg.
              `to_header` tries hard to write meaningful comments.
 
           8. Keyword order may be changed.
+
+
         """
+        if key is not None:
+            self.wcs.alt = key
 
         if relax not in (True, False):
             do_sip = relax & WCSHDO_SIP
@@ -1379,7 +1474,7 @@ naxis kwarg.
 
         if do_sip and self.sip is not None:
             for key, val in self._write_sip_kw().items():
-                header.update(key, val)
+                header[key] = val
 
         return header
 
@@ -1432,8 +1527,8 @@ naxis kwarg.
         self._naxis1 = 0
         self._naxis2 = 0
         if header is not None and not isinstance(header, string_types):
-            self.naxis1 = header.get('NAXIS1', 0)
-            self.naxis2 = header.get('NAXIS2', 0)
+            self._naxis1 = header.get('NAXIS1', 0)
+            self._naxis2 = header.get('NAXIS2', 0)
 
     def rotateCD(self, theta):
         _theta = np.deg2rad(theta)
@@ -1453,10 +1548,17 @@ naxis kwarg.
                 self.wcs.cd[0, 0], self.wcs.cd[0, 1]))
             print('CD_21  CD_22: {!r} {!r}'.format(
                 self.wcs.cd[1, 0], self.wcs.cd[1, 1]))
+        else:
+            print('PC_11  PC_12: {!r} {!r}'.format(
+                self.wcs.pc[0, 0], self.wcs.pc[0, 1]))
+            print('PC_21  PC_22: {!r} {!r}'.format(
+                self.wcs.pc[1, 0], self.wcs.pc[1, 1]))
         print('CRVAL    : {!r} {!r}'.format(
             self.wcs.crval[0], self.wcs.crval[1]))
         print('CRPIX    : {!r} {!r}'.format(
             self.wcs.crpix[0], self.wcs.crpix[1]))
+        print('CDELT    : {!r} {!r}'.format(
+            self.wcs.cdelt[0], self.wcs.cdelt[1]))
         print('NAXIS    : {!r} {!r}'.format(
             self.naxis1, self.naxis2))
 
@@ -1588,7 +1690,8 @@ def __WCS_unpickle__(cls, dct, fits_data):
     return self
 
 
-def find_all_wcs(header, relax=True, keysel=None):
+def find_all_wcs(header, relax=True, keysel=None, fix=True,
+                 _do_set=True):
     """
     Find all the WCS transformations in the given header.
 
@@ -1628,6 +1731,12 @@ def find_all_wcs(header, relax=True, keysel=None):
         ``WCSNna`` and ``TWCSna``) are selected by both 'binary' and
         'pixel'.
 
+    fix : bool, optional
+        When `True` (default), call `~astropy.wcs._wcs.Wcsprm.fix` on
+        the resulting objects to fix any non-standard uses in the
+        header.  `FITSFixedWarning` warnings will be emitted if any
+        changes were made.
+
     Returns
     -------
     wcses : list of `WCS` objects
@@ -1652,8 +1761,121 @@ def find_all_wcs(header, relax=True, keysel=None):
 
     result = []
     for wcsprm in wcsprms:
-        subresult = WCS()
+        subresult = WCS(fix=False)
         subresult.wcs = wcsprm
         result.append(subresult)
 
+        if fix:
+            subresult.fix()
+
+        if _do_set:
+            subresult.wcs.set()
+
     return result
+
+
+def validate(source):
+    """
+    Prints a WCS validation report for the given FITS file.
+
+    Parameters
+    ----------
+    source : str path, readable file-like object or `astropy.io.fits.HDUList` object
+        The FITS file to validate.
+
+    Returns
+    -------
+    results : WcsValidateResults instance
+        The result is returned as nested lists.  The first level
+        corresponds to the HDUs in the given file.  The next level has
+        an entry for each WCS found in that header.  The special
+        subclass of list will pretty-print the results as a table when
+        printed.
+    """
+    class _WcsValidateWcsResult(list):
+        def __init__(self, key):
+            self._key = key
+
+        def __repr__(self):
+            result = ["  WCS key '{0}':".format(self._key or ' ')]
+            if len(self):
+                for entry in self:
+                    for i, line in enumerate(entry.splitlines()):
+                        if i == 0:
+                            initial_indent = '    - '
+                        else:
+                            initial_indent = '      '
+                        result.extend(
+                            textwrap.wrap(
+                                line,
+                                initial_indent=initial_indent,
+                                subsequent_indent='      '))
+            else:
+                result.append("    No issues.")
+            return '\n'.join(result)
+
+    class _WcsValidateHduResult(list):
+        def __init__(self, hdu_index, hdu_name):
+            self._hdu_index = hdu_index
+            self._hdu_name = hdu_name
+            list.__init__(self)
+
+        def __repr__(self):
+            if len(self):
+                if self._hdu_name:
+                    hdu_name = ' ({0})'.format(self._hdu_name)
+                else:
+                    hdu_name = ''
+                result = ['HDU {0}{1}:'.format(self._hdu_index, hdu_name)]
+                for wcs in self:
+                    result.append(repr(wcs))
+                return '\n'.join(result)
+            return ''
+
+    class _WcsValidateResults(list):
+        def __repr__(self):
+            result = []
+            for hdu in self:
+                content = repr(hdu)
+                if len(content):
+                    result.append(content)
+            return '\n\n'.join(result)
+
+    global __warningregistry__
+
+    if isinstance(source, fits.HDUList):
+        hdulist = source
+    else:
+        hdulist = fits.open(source)
+
+    results = _WcsValidateResults()
+
+    for i, hdu in enumerate(hdulist):
+        hdu_results = _WcsValidateHduResult(i, hdu.name)
+        results.append(hdu_results)
+
+        with warnings.catch_warnings(record=True) as warning_lines:
+            wcses = find_all_wcs(
+                hdu.header, relax=True, fix=False, _do_set=False)
+
+        for wcs in wcses:
+            wcs_results = _WcsValidateWcsResult(wcs.wcs.name)
+            hdu_results.append(wcs_results)
+
+            del __warningregistry__
+
+            with warnings.catch_warnings(record=True) as warning_lines:
+                warnings.resetwarnings()
+                warnings.simplefilter(
+                    "always", FITSFixedWarning, append=True)
+
+                try:
+                    WCS(hdu.header,
+                        key=wcs.wcs.name or ' ',
+                        relax=True, fix=True)
+                except WcsError as e:
+                    wcs_results.append(str(e))
+
+                wcs_results.extend([str(x.message) for x in warning_lines])
+
+    return results

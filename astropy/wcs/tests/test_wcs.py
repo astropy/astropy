@@ -7,7 +7,7 @@ import numpy as np
 from numpy.testing import (
     assert_array_almost_equal, assert_array_almost_equal_nulp)
 
-from ...tests.helper import raises
+from ...tests.helper import raises, catch_warnings
 from ... import wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
@@ -215,14 +215,13 @@ def test_fixes():
             'data/nonstandard_units.hdr', encoding='binary')
         w = wcs.WCS(header)
 
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
+    with catch_warnings(wcs.FITSFixedWarning) as w:
         run()
-        assert len(w) == 2
-        for item in w:
-            assert issubclass(item.category, wcs.FITSFixedWarning)
-            if 'unitfix' in str(item.message):
-                assert 'Hz' in str(item.message)
+
+    assert len(w) == 2
+    for item in w:
+        if 'unitfix' in str(item.message):
+            assert 'Hz' in str(item.message)
 
 
 def test_outside_sky():
@@ -367,13 +366,12 @@ def test_warning_about_defunct_keywords():
             'data/defunct_keywords.hdr', encoding='binary')
         w = wcs.WCS(header)
 
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
+    with catch_warnings(wcs.FITSFixedWarning) as w:
         run()
-        assert len(w) == 4
-        for item in w:
-            assert issubclass(item.category, wcs.FITSFixedWarning)
-            assert 'PCi_ja' in str(item.message)
+
+    assert len(w) == 4
+    for item in w:
+        assert 'PCi_ja' in str(item.message)
 
 
 @raises(wcs.FITSFixedWarning)
@@ -383,8 +381,8 @@ def test_warning_about_defunct_keywords_exception():
             'data/defunct_keywords.hdr', encoding='binary')
         w = wcs.WCS(header)
 
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("error")
+    with catch_warnings(wcs.FITSFixedWarning) as w:
+        warnings.simplefilter("error", wcs.FITSFixedWarning)
         run()
 
 
@@ -399,3 +397,21 @@ def test_to_header_string():
 def test_to_fits():
     w = wcs.WCS()
     w.to_fits()
+
+
+@raises(wcs.InvalidTransformError)
+def test_find_all_wcs_crash():
+    """
+    Causes a double free without a recent fix in wcslib_wrap.C
+    """
+    with open(get_pkg_data_filename("data/too_many_pv.hdr")) as fd:
+        header = fd.read()
+    wcses = wcs.find_all_wcs(header)
+
+
+def test_validate():
+    results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
+    results_txt = repr(results)
+    with open(get_pkg_data_filename("data/validate.txt"), "r") as fd:
+        assert set([x.strip() for x in fd.readlines()]) == set([
+            x.strip() for x in results_txt.splitlines()])

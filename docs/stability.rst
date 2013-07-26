@@ -79,7 +79,7 @@ The current planned and existing sub-packages are:
                 <img alt="dev" src="_images/dev.png">
             </td>
             <td>
-                New in v0.2
+                New in v0.2, significant API changes in v0.3
             </td>
         </tr>
         <tr>
@@ -124,6 +124,17 @@ The current planned and existing sub-packages are:
             </td>
             <td>
                 Originally developed as <tt class="docutils literal"><span class="pre">vo.table</span></tt>, and has a stable API.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                astropy.modeling
+            </td>
+            <td align='center'>
+                <img alt="dev" src="_images/dev.png">
+            </td>
+            <td>
+                New in v0.3
             </td>
         </tr>
         <tr>

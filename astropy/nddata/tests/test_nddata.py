@@ -29,6 +29,7 @@ def test_nddata_empty():
     with pytest.raises(TypeError):
         NDData()  # empty initializer should fail
 
+
 def test_nddata_simple():
     with NumpyRNGContext(123):
         nd = NDData(np.random.random((10, 10)))
@@ -51,19 +52,19 @@ def test_nddata_mask_invalid_shape(shape):
 
 
 def test_nddata_uncertainty_init():
-    u =  StdDevUncertainty(array=np.ones((5, 5)))
+    u = StdDevUncertainty(array=np.ones((5, 5)))
     d = NDData(np.ones((5, 5)), uncertainty=u)
 
 
 def test_nddata_uncertainty_init_invalid_shape_1():
-    u =  StdDevUncertainty(array=np.ones((6, 6)))
+    u = StdDevUncertainty(array=np.ones((6, 6)))
     with pytest.raises(ValueError) as exc:
         NDData(np.ones((5, 5)), uncertainty=u)
     assert exc.value.args[0] == 'parent shape does not match array data shape'
 
 
 def test_nddata_uncertainty_init_invalid_shape_2():
-    u =  StdDevUncertainty()
+    u = StdDevUncertainty()
     NDData(np.ones((5, 5)), uncertainty=u)
     with pytest.raises(ValueError) as exc:
         u.array = np.ones((6, 6))
@@ -208,18 +209,20 @@ def test_convert_unit_to():
 def test_invalid_unit():
     d = NDData(np.ones((5, 5)), unit="NotAValidUnit")
 
+
 def test_simple_slicing():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     d1 = NDData(np.ones((5, 5)), uncertainty=u1)
-    assert d1.shape == (5,5)
+    assert d1.shape == (5, 5)
     d2 = d1[2:3, 2:3]
-    assert d2.shape == (1,1)
+    assert d2.shape == (1, 1)
+
 
 def test_slicing_reference():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     d1 = NDData(np.ones((5, 5)), uncertainty=u1)
     d2 = d1[2:3, 2:3]
-    #asserting that the new nddata contains references to the original nddata
+    # asserting that the new nddata contains references to the original nddata
     assert d2.data.base is d1.data
     assert d2.uncertainty.array.base is d1.uncertainty.array
 
@@ -237,6 +240,7 @@ def test_initializing_from_nduncertainty():
 
     assert u1.array is u2.array
 
+
 def test_meta2ordered_dict():
     hdr = fits.header.Header()
     hdr.set('observer', 'Edwin Hubble')
@@ -245,10 +249,12 @@ def test_meta2ordered_dict():
     d1 = NDData(np.ones((5, 5)), meta=hdr)
     assert d1.meta['OBSERVER'] == 'Edwin Hubble'
 
+
 @raises(TypeError)
 def test_meta2ordered_dict_fail():
     hdr = 'this is not a valid header'
     d1 = NDData(np.ones((5, 5)), meta=hdr)
+
 
 def test_masked_array_input():
 
@@ -258,11 +264,11 @@ def test_masked_array_input():
 
     nd = NDData(marr)
 
-    #check that masks and data match
+    # check that masks and data match
     assert_array_equal(nd.mask, marr.mask)
     assert_array_equal(nd.data, marr.data)
 
-    #check that they are both by reference
+    # check that they are both by reference
     marr.mask[10] = ~marr.mask[10]
     marr.data[11] = 123456789
 

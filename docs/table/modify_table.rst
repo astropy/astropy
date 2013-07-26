@@ -76,6 +76,13 @@ columns to a table.  In both cases the new columns must be specified as |Column|
 
   >>> t.add_row([-8, -9])
 
+**Remove rows**
+::
+
+  >>> t.remove_row(0)
+  >>> t.remove_rows(slice(4, 5))
+  >>> t.remove_rows([1, 2])
+
 **Sort by one more more columns**
 ::
 

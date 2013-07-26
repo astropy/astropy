@@ -4,6 +4,7 @@ This module prvoides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest` testing framework.
 """
 
+import errno
 import shlex
 import sys
 import base64
@@ -13,6 +14,7 @@ import os
 import subprocess
 import shutil
 import tempfile
+import warnings
 
 try:
     # Import pkg_resources to prevent it from issuing warnings upon being
@@ -54,6 +56,36 @@ else:
     pytest = importer.load_module('pytest')
 
 
+# Monkey-patch py.test to work around issue #811
+# https://github.com/astropy/astropy/issues/811
+from _pytest.assertion import rewrite as _rewrite
+_orig_write_pyc = _rewrite._write_pyc
+
+
+def _write_pyc_wrapper(co, source_path, pyc):
+    """Wraps the internal _write_pyc method in py.test to recognize
+    PermissionErrors and just stop trying to cache its generated pyc files if
+    it can't write them to the __pycache__ directory.
+
+    When py.test scans for test modules, it actually rewrites the bytecode
+    of each test module it discovers--this is how it manages to add extra
+    instrumentation to the assert builtin.  Normally it caches these
+    rewritten bytecode files--``_write_pyc()`` is just a function that handles
+    writing the rewritten pyc file to the cache.  If it returns ``False`` for
+    any reason py.test will stop trying to cache the files altogether.  The
+    original function catches some cases, but it has a long-standing bug of
+    not catching permission errors on the ``__pycache__`` directory in Python
+    3.  Hence this patch.
+    """
+
+    try:
+        return _orig_write_pyc(co, source_path, pyc)
+    except IOError as e:
+        if e.errno == errno.EACCES:
+            return False
+_rewrite._write_pyc = _write_pyc_wrapper
+
+
 # pytest marker to mark tests which get data from the web
 remote_data = pytest.mark.remote_data
 
@@ -64,7 +96,7 @@ class TestRunner(object):
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
-                  pdb=False, coverage=False, open_files=False):
+                  pdb=False, coverage=False, open_files=False, parallel=0):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
@@ -141,7 +173,7 @@ class TestRunner(object):
                 coveragerc_content = coveragerc_content.replace(
                     "{ignore_python_version}", ignore_python_version)
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                    tmp.write(coveragerc_content)
+                    tmp.write(coveragerc_content.encode('utf-8'))
 
                 all_args += (
                     ' --cov-report html --cov astropy'
@@ -162,6 +194,25 @@ class TestRunner(object):
             all_args += ' --open-files'
 
             print("Checking for unclosed files")
+
+        if parallel != 0:
+            try:
+                import xdist
+            except ImportError:
+                raise ImportError(
+                    'Parallel testing requires the pytest-xdist plugin '
+                    'https://pypi.python.org/pypi/pytest-xdist')
+
+            try:
+                parallel = int(parallel)
+            except ValueError:
+                raise ValueError(
+                    "parallel must be an int, got {0}".format(parallel))
+
+            if parallel < 0:
+                import multiprocessing
+                parallel = multiprocessing.cpu_count()
+            all_args += ' -n {0}'.format(parallel)
 
         try:
             all_args = shlex.split(
@@ -204,7 +255,12 @@ class astropy_test(Command, object):
          'Same as specifying `--pdb` in `args`.'),
         ('coverage', 'c', 'Create a coverage report. Requires the pytest-cov '
          'plugin is installed'),
-        ('open-files', 'o', 'Fail if any tests leave files open')
+        ('open-files', 'o', 'Fail if any tests leave files open'),
+        ('parallel=', 'n',  'Run the tests in parallel on the specified '
+         'number of CPUs.  If parallel is negative, it will use the all '
+         'the cores on the machine.  Requires the `pytest-xdist` plugin '
+         'is installed.')
+
     ]
 
     package_name = None
@@ -221,6 +277,7 @@ class astropy_test(Command, object):
         self.pdb = False
         self.coverage = False
         self.open_files = False
+        self.parallel = 0
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -239,6 +296,7 @@ class astropy_test(Command, object):
         tmp_dir = tempfile.mkdtemp(prefix='astropy-test-')
         testing_path = os.path.join(tmp_dir, os.path.basename(new_path))
         shutil.copytree(new_path, testing_path)
+        shutil.copy('setup.cfg', testing_path)
 
         try:
 
@@ -266,11 +324,12 @@ class astropy_test(Command, object):
                    'pep8={1.pep8!r}, '
                    'pdb={1.pdb!r}, '
                    'coverage={1.coverage!r}, '
-                   'open_files={1.open_files!r}))')
+                   'open_files={1.open_files!r}, '
+                   'parallel={1.parallel!r}))')
             cmd = cmd.format(set_flag, self)
 
-            #override the config locations to not make a new directory nor use
-            #existing cache or config
+            # override the config locations to not make a new directory nor use
+            # existing cache or config
             os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
             os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
             os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
@@ -299,7 +358,7 @@ class astropy_test(Command, object):
         raise SystemExit(retcode)
 
 
-class raises:
+class raises(object):
     """
     A decorator to mark that a test should raise a given exception.
     Use as follows::
@@ -317,3 +376,40 @@ class raises:
         def run_raises_test(*args, **kwargs):
             pytest.raises(self._exc, func, *args, **kwargs)
         return run_raises_test
+
+
+class catch_warnings(warnings.catch_warnings):
+    """
+    A high-powered version of warnings.catch_warnings to use for testing
+    and to make sure that there is no dependence on the order in which
+    the tests are run.
+
+    This completely blitzes any memory of any warnings that have
+    appeared before so that all warnings will be caught and displayed.
+
+    *args is a set of warning classes to collect.  If no arguments are
+    provided, all warnings are collected.
+
+    Use as follows::
+
+        with catch_warnings(MyCustomWarning) as w:
+            do.something.bad()
+        assert len(w) > 0
+    """
+    def __init__(self, *classes):
+        for module in sys.modules.values():
+            if hasattr(module, '__warningregistry__'):
+                del module.__warningregistry__
+        super(catch_warnings, self).__init__(record=True)
+        self.classes = classes
+
+    def __enter__(self):
+        warning_list = super(catch_warnings, self).__enter__()
+        warnings.resetwarnings()
+        if len(self.classes) == 0:
+            warnings.simplefilter('always')
+        else:
+            warnings.simplefilter('ignore')
+            for cls in self.classes:
+                warnings.simplefilter('always', cls)
+        return warning_list

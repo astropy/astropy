@@ -18,6 +18,7 @@ from .common import (raises, numpy_lt_1p5,
                      assert_equal, assert_almost_equal, assert_true,
                      setup_function, teardown_function)
 
+
 def test_types_from_dat():
     converters = {'a': [asciitable.convert_numpy(np.float)],
                   'e': [asciitable.convert_numpy(np.str)]}

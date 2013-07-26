@@ -41,7 +41,7 @@ size, columns, or data are not known.
 
   >>> t = Table()
   >>> t['a'] = [1, 4]
-  >>> t['b'] = Column([2.0, 5.0], units='cm', description='Velocity')
+  >>> t['b'] = Column([2.0, 5.0], unit='cm', description='Velocity')
   >>> t['c'] = ['x', 'y']
 
   >>> t = Table(names=('a', 'b', 'c'), dtypes=('f4', 'i4', 'S2'))
@@ -112,11 +112,11 @@ Notice that in the third column the existing column name ``'axis'`` is used.
 
 You can also initialize a table with row values.  This is constructed as a
 list of dict objects.  The keys determine the column names::
-  
+
   >>> data = [{'a': 5, 'b': 10}, {'a': 15, 'b': 20}]
   >>> Table(data)
   <Table rows=2 names=('a','b')>
-  array([(5, 10), (15, 30)], 
+  array([(5, 10), (15, 30)],
         dtype=[('a', '<i8'), ('b', '<i8')])
 
 Every row must have the same set of keys or a ValueError will be thrown::
@@ -393,7 +393,7 @@ for the ``data`` argument.
     ``names`` in length.
 
 **list-of-dicts**
-    Similar to Python's builtin ``csv.DictReader``, each item in the 
+    Similar to Python's builtin ``csv.DictReader``, each item in the
     ``data`` list provides a row of data values and must be a dict.  The
     key values in each dict define the column names and each row must
     have identical column names.  The ``names`` argument may be supplied
@@ -401,7 +401,7 @@ for the ``data`` argument.
     default to alphabetical.  The ``dtypes`` list may be specified, and must
     correspond to the order of output columns.  If any row's keys do no match
     the rest of the rows, a ValueError will be thrown.
-    
+
 
 **None**
     Initialize a zero-length table.  If ``names`` and optionally ``dtypes``
@@ -527,10 +527,10 @@ these values:
     Data type for column
 ``description`` : str
     Full description of column
-``units`` : str
-    Physical units
-``format`` : str
-    `Format string`_ for outputting column values
+``unit`` : str
+    Physical unit
+``format`` : str or function
+    `Format specifier`_ for outputting column values
 ``meta`` : dict
     Meta-data associated with the column
 
@@ -573,14 +573,20 @@ The column data values, shape, and data type are specified in one of two ways:
   single cell in the column.  The default ``shape`` is () which means a single value in
   each element.
 
+.. note::
+
+   After setting the type for a column, that type cannot be changed.
+   If data values of a different type are assigned to the column then they
+   will be cast to the existing column type.
+
 .. _table_format_string:
 
-Format string
-'''''''''''''
+Format specifier
+''''''''''''''''
 
-The format string controls the output of column values when a table or column
-is printed or written to an ASCII table.  The format string can be either
-"old-style" or "new-style":
+The format specifier controls the output of column values when a table or column
+is printed or written to an ASCII table.  The format specifier can be either
+a "old-style" or "new-style" format string or a function:
 
 **Old-style**
 
@@ -603,6 +609,31 @@ This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in
 
 Note that in either case any Python format string that formats exactly
 one value is valid, so ``{:.4f} angstroms`` or ``Value: %12.2f`` would both work.
+
+**Function**
+
+The greatest flexibility can be achieved by setting a formatting function. This
+function must accept a single argument (the value) and return a string. In the
+following example this is used to make a LaTeX ready output::
+
+    >>> t = Table([[1,2],[1.234e9,2.34e-12]], names = ('a','b'))
+    >>> def latex_exp(value):
+            val = '{:8.2}'.format(value)
+            mant, exp = val.split('e')
+            # remove leading zeros
+            exp = exp[0] + exp[1:].lstrip('0')
+            return '$ {0} \\times 10^{{ {1} }}$' .format(mant, exp)
+    >>> t['b'].format = latex_exp
+    >>> t['a'].format = '{0:.4f}'
+    >>> t.write(sys.stdout, format = 'latex')
+    \begin{table}
+    \begin{tabular}{cc}
+    a & b \\
+    1.0000 & $ 1.2\times 10^{+9}$ \\
+    2.0000 & $ 2.3\times 10^{-12}$ \\
+    \end{tabular}
+    \end{table}
+
 
 TableColumns
 """"""""""""
@@ -641,9 +672,9 @@ So now look at the ways to select columns from a |TableColumns| object:
 ::
 
   >>> t.columns[1]  # Choose columns by index
-  <Column name='b' units=None format=None description=None>
+  <Column name='b' unit=None format=None description=None>
   array([], dtype=float64)
 
   >>> t.columns['b']  # Choose column by name
-  <Column name='b' units=None format=None description=None>
+  <Column name='b' unit=None format=None description=None>
   array([], dtype=float64)

@@ -46,9 +46,9 @@ class TestConvolve1D(object):
         y = np.array([1.], dtype='float64')
 
         z = convolve_fft(x, y, boundary=boundary,
-                interpolate_nan=interpolate_nan,
-                normalize_kernel=normalize_kernel,
-                ignore_edge_zeros=ignore_edge_zeros)
+                         interpolate_nan=interpolate_nan,
+                         normalize_kernel=normalize_kernel,
+                         ignore_edge_zeros=ignore_edge_zeros)
 
         assert_array_almost_equal_nulp(z, x, 10)
 
@@ -64,9 +64,9 @@ class TestConvolve1D(object):
         y = np.array([0., 1., 0.], dtype='float64')
 
         z = convolve_fft(x, y, boundary=boundary,
-                interpolate_nan=interpolate_nan,
-                normalize_kernel=normalize_kernel,
-                ignore_edge_zeros=ignore_edge_zeros)
+                         interpolate_nan=interpolate_nan,
+                         normalize_kernel=normalize_kernel,
+                         ignore_edge_zeros=ignore_edge_zeros)
 
         assert_array_almost_equal_nulp(z, x, 10)
 
@@ -82,20 +82,20 @@ class TestConvolve1D(object):
         y = np.array([1., 1., 1.], dtype='float64')
 
         z = convolve_fft(x, y, boundary=boundary,
-                interpolate_nan=interpolate_nan,
-                normalize_kernel=normalize_kernel,
-                ignore_edge_zeros=ignore_edge_zeros)
+                         interpolate_nan=interpolate_nan,
+                         normalize_kernel=normalize_kernel,
+                         ignore_edge_zeros=ignore_edge_zeros)
 
         answer_dict = {
-                'sum': np.array([1., 4., 3.], dtype='float64'),
-                'sum_zeros': np.array([1., 4., 3.], dtype='float64'),
-                'sum_nozeros': np.array([1., 4., 3.], dtype='float64'),
-                'average': np.array([1 / 3., 4 / 3., 1.], dtype='float64'),
-                'sum_wrap':  np.array([4., 4., 4.], dtype='float64'),
-                'average_wrap': np.array([4 / 3., 4 / 3., 4 / 3.], dtype='float64'),
-                'average_zeros': np.array([1 / 3., 4 / 3., 1.], dtype='float64'),
-                'average_nozeros': np.array([0.5, 4 / 3., 1.5], dtype='float64'),
-                }
+            'sum': np.array([1., 4., 3.], dtype='float64'),
+            'sum_zeros': np.array([1., 4., 3.], dtype='float64'),
+            'sum_nozeros': np.array([1., 4., 3.], dtype='float64'),
+            'average': np.array([1 / 3., 4 / 3., 1.], dtype='float64'),
+            'sum_wrap': np.array([4., 4., 4.], dtype='float64'),
+            'average_wrap': np.array([4 / 3., 4 / 3., 4 / 3.], dtype='float64'),
+            'average_zeros': np.array([1 / 3., 4 / 3., 1.], dtype='float64'),
+            'average_nozeros': np.array([0.5, 4 / 3., 1.5], dtype='float64'),
+        }
 
         if normalize_kernel:
             answer_key = 'average'
@@ -126,9 +126,9 @@ class TestConvolve1D(object):
         y = np.array([0., 1., 0.], dtype='float64')
 
         z = convolve_fft(x, y, boundary=boundary,
-                interpolate_nan=interpolate_nan,
-                normalize_kernel=normalize_kernel,
-                ignore_edge_zeros=ignore_edge_zeros)
+                         interpolate_nan=interpolate_nan,
+                         normalize_kernel=normalize_kernel,
+                         ignore_edge_zeros=ignore_edge_zeros)
 
         # for whatever reason, numpy's fft has very limited precision, and
         # the comparison fails unless you cast the float64 to a float16
@@ -136,14 +136,15 @@ class TestConvolve1D(object):
         # ASSERT equality to better than 16 bit but worse than 32 bit precision
         assert np.all(np.abs(z - np.array([1., 0., 3.])) < 1e-14)
 
-    inputs = (np.array([1., np.nan, 3.], dtype='float64'), 
-              np.array([1., np.inf, 3.], dtype='float64')) 
-    outputs = (np.array([1., 0., 3.], dtype='float64'), 
-              np.array([1., 0., 3.], dtype='float64')) 
+    inputs = (np.array([1., np.nan, 3.], dtype='float64'),
+              np.array([1., np.inf, 3.], dtype='float64'))
+    outputs = (np.array([1., 0., 3.], dtype='float64'),
+               np.array([1., 0., 3.], dtype='float64'))
     options_unity1withnan = list(itertools.product(BOUNDARY_OPTIONS, (True, False), (True, False), (True, False), inputs, outputs))
-    @pytest.mark.parametrize(option_names + ('inval','outval'), options_unity1withnan)
+
+    @pytest.mark.parametrize(option_names + ('inval', 'outval'), options_unity1withnan)
     def test_unity_1_withnan(self, boundary, interpolate_nan, normalize_kernel,
-            ignore_edge_zeros, inval, outval):
+                             ignore_edge_zeros, inval, outval):
         '''
         Test that a unit kernel with three elements returns the same array
         (except when boundary is None). This version includes a NaN value in
@@ -155,9 +156,9 @@ class TestConvolve1D(object):
         y = np.array([1.], dtype='float64')
 
         z = convolve_fft(x, y, boundary=boundary,
-                interpolate_nan=interpolate_nan,
-                normalize_kernel=normalize_kernel,
-                ignore_edge_zeros=ignore_edge_zeros)
+                         interpolate_nan=interpolate_nan,
+                         normalize_kernel=normalize_kernel,
+                         ignore_edge_zeros=ignore_edge_zeros)
 
         # for whatever reason, numpy's fft has very limited precision, and
         # the comparison fails unless you cast the float64 to a float16
@@ -166,7 +167,7 @@ class TestConvolve1D(object):
 
     @pytest.mark.parametrize(option_names, options)
     def test_uniform_3_withnan(self, boundary, interpolate_nan,
-            normalize_kernel, ignore_edge_zeros):
+                               normalize_kernel, ignore_edge_zeros):
         '''
         Test that the different modes are producing the correct results using
         a uniform kernel with three elements. This version includes a NaN
@@ -178,26 +179,26 @@ class TestConvolve1D(object):
         y = np.array([1., 1., 1.], dtype='float64')
 
         z = convolve_fft(x, y, boundary=boundary,
-                interpolate_nan=interpolate_nan,
-                normalize_kernel=normalize_kernel,
-                ignore_edge_zeros=ignore_edge_zeros)
+                         interpolate_nan=interpolate_nan,
+                         normalize_kernel=normalize_kernel,
+                         ignore_edge_zeros=ignore_edge_zeros)
 
         answer_dict = {
-                'sum': np.array([1., 4., 3.], dtype='float64'),
-                'sum_nozeros': np.array([1., 4., 3.], dtype='float64'),
-                'sum_zeros': np.array([1., 4., 3.], dtype='float64'),
-                'sum_zeros_noignan': np.array([1., 4., 3.], dtype='float64'),
-                'sum_nozeros_noignan': np.array([1., 4., 3.], dtype='float64'),
-                'average': np.array([1., 2., 3.], dtype='float64'),
-                'sum_wrap':  np.array([4., 4., 4.], dtype='float64'),
-                'sum_wrap_noignan':  np.array([4., 4., 4.], dtype='float64'),
-                'average_wrap': np.array([(1 + 3) / 2., 2., 2.], dtype='float64'),
-                'average_wrap_noignan': np.array([4 / 3., 4 / 3., 4 / 3.], dtype='float64'),
-                'average_nozeros': np.array([1, 2, 3], dtype='float64'),
-                'average_nozeros_noignan': np.array([1 / 2., 4 / 3., 3 / 2.], dtype='float64'),
-                'average_zeros': np.array([1 / 2., 4 / 2., 3 /2.], dtype='float64'),
-                'average_zeros_noignan': np.array([1/3., 4/3., 3/3.], dtype='float64'),
-                }
+            'sum': np.array([1., 4., 3.], dtype='float64'),
+            'sum_nozeros': np.array([1., 4., 3.], dtype='float64'),
+            'sum_zeros': np.array([1., 4., 3.], dtype='float64'),
+            'sum_zeros_noignan': np.array([1., 4., 3.], dtype='float64'),
+            'sum_nozeros_noignan': np.array([1., 4., 3.], dtype='float64'),
+            'average': np.array([1., 2., 3.], dtype='float64'),
+            'sum_wrap': np.array([4., 4., 4.], dtype='float64'),
+            'sum_wrap_noignan': np.array([4., 4., 4.], dtype='float64'),
+            'average_wrap': np.array([(1 + 3) / 2., 2., 2.], dtype='float64'),
+            'average_wrap_noignan': np.array([4 / 3., 4 / 3., 4 / 3.], dtype='float64'),
+            'average_nozeros': np.array([1, 2, 3], dtype='float64'),
+            'average_nozeros_noignan': np.array([1 / 2., 4 / 3., 3 / 2.], dtype='float64'),
+            'average_zeros': np.array([1 / 2., 4 / 2., 3 / 2.], dtype='float64'),
+            'average_zeros_noignan': np.array([1 / 3., 4 / 3., 3 / 3.], dtype='float64'),
+        }
 
         if normalize_kernel:
             answer_key = 'average'
@@ -223,7 +224,7 @@ class TestConvolve2D(object):
 
     @pytest.mark.parametrize(option_names, options)
     def test_unity_1x1_none(self, boundary, interpolate_nan, normalize_kernel,
-            ignore_edge_zeros):
+                            ignore_edge_zeros):
         '''
         Test that a 1x1 unit kernel returns the same array
         '''
@@ -235,9 +236,9 @@ class TestConvolve2D(object):
         y = np.array([[1.]], dtype='float64')
 
         z = convolve_fft(x, y, boundary=boundary,
-                interpolate_nan=interpolate_nan,
-                normalize_kernel=normalize_kernel,
-                ignore_edge_zeros=ignore_edge_zeros)
+                         interpolate_nan=interpolate_nan,
+                         normalize_kernel=normalize_kernel,
+                         ignore_edge_zeros=ignore_edge_zeros)
 
         assert_array_almost_equal_nulp(z, x, 10)
 
@@ -257,12 +258,12 @@ class TestConvolve2D(object):
                       [0., 0., 0.]], dtype='float64')
 
         z = convolve_fft(x, y, boundary=boundary,
-                interpolate_nan=interpolate_nan,
-                normalize_kernel=normalize_kernel,
-                ignore_edge_zeros=ignore_edge_zeros)
+                         interpolate_nan=interpolate_nan,
+                         normalize_kernel=normalize_kernel,
+                         ignore_edge_zeros=ignore_edge_zeros)
 
         assert_array_almost_equal_nulp(z, x, 10)
-        #assert np.all( np.abs(z-x) < np.spacing(np.where(z>x,z,x))*2 )
+        # assert np.all( np.abs(z-x) < np.spacing(np.where(z>x,z,x))*2 )
 
     @pytest.mark.parametrize(option_names, options)
     def test_uniform_3x3(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros):
@@ -280,21 +281,21 @@ class TestConvolve2D(object):
                       [1., 1., 1.]], dtype='float64')
 
         z = convolve_fft(x, y, boundary=boundary,
-                interpolate_nan=interpolate_nan,
-                normalize_kernel=normalize_kernel,
-                ignore_edge_zeros=ignore_edge_zeros)
+                         interpolate_nan=interpolate_nan,
+                         normalize_kernel=normalize_kernel,
+                         ignore_edge_zeros=ignore_edge_zeros)
 
         w = np.array([[4., 6., 4.],
                       [6., 9., 6.],
                       [4., 6., 4.]], dtype='float64')
         answer_dict = {
-                'sum': np.array([[1., 4., 3.],
-                                 [3., 6., 5.],
-                                 [3., 3., 2.]], dtype='float64'),
-                'sum_wrap': np.array([[6., 6., 6.],
-                                      [6., 6., 6.],
-                                      [6., 6., 6.]], dtype='float64'),
-                }
+            'sum': np.array([[1., 4., 3.],
+                             [3., 6., 5.],
+                             [3., 3., 2.]], dtype='float64'),
+            'sum_wrap': np.array([[6., 6., 6.],
+                                  [6., 6., 6.],
+                                  [6., 6., 6.]], dtype='float64'),
+        }
         answer_dict['average'] = answer_dict['sum'] / w
         answer_dict['average_wrap'] = answer_dict['sum_wrap'] / 9.
         answer_dict['average_withzeros'] = answer_dict['sum'] / 9.
@@ -336,10 +337,10 @@ class TestConvolve2D(object):
                       [0., 0., 0.]], dtype='float64')
 
         z = convolve_fft(x, y, boundary=boundary,
-                interpolate_nan=interpolate_nan,
-                normalize_kernel=normalize_kernel,
-                ignore_edge_zeros=ignore_edge_zeros,
-                )
+                         interpolate_nan=interpolate_nan,
+                         normalize_kernel=normalize_kernel,
+                         ignore_edge_zeros=ignore_edge_zeros,
+                         )
 
         a = x
         a[1, 1] = 0
@@ -366,10 +367,10 @@ class TestConvolve2D(object):
                       [1., 1., 1.]], dtype='float64')
 
         z = convolve_fft(x, y, boundary=boundary,
-                interpolate_nan=interpolate_nan,
-                normalize_kernel=normalize_kernel,
-                ignore_edge_zeros=ignore_edge_zeros,
-                )
+                         interpolate_nan=interpolate_nan,
+                         normalize_kernel=normalize_kernel,
+                         ignore_edge_zeros=ignore_edge_zeros,
+                         )
 
         w_n = np.array([[3., 5., 3.],
                         [5., 8., 5.],
@@ -378,13 +379,13 @@ class TestConvolve2D(object):
                         [6., 9., 6.],
                         [4., 6., 4.]], dtype='float64')
         answer_dict = {
-                'sum': np.array([[1., 4., 3.],
-                                 [3., 6., 5.],
-                                 [3., 3., 2.]], dtype='float64'),
-                'sum_wrap': np.array([[6., 6., 6.],
-                                      [6., 6., 6.],
-                                      [6., 6., 6.]], dtype='float64'),
-                }
+            'sum': np.array([[1., 4., 3.],
+                             [3., 6., 5.],
+                             [3., 3., 2.]], dtype='float64'),
+            'sum_wrap': np.array([[6., 6., 6.],
+                                  [6., 6., 6.],
+                                  [6., 6., 6.]], dtype='float64'),
+        }
         answer_dict['average'] = answer_dict['sum'] / w_z
         answer_dict['average_ignan'] = answer_dict['sum'] / w_n
         answer_dict['average_wrap_ignan'] = answer_dict['sum_wrap'] / 8.

@@ -143,6 +143,46 @@ Enable PEP8 compliance testing with ``pep8=True`` in the call to
     variable (see :doc:`/configs/index`) or the `py.test` method described
     above.
 
+Tox
+---
+
+`Tox <http://tox.readthedocs.org>`_ is a sort of meta-test runner for Python.
+It installs a project into one or more virtualenvs (usually one for each Python
+version supported), build and installs the project into each virtualenv, and
+runs the projects tests (or any other build processes one might want to test).
+This is a good way to run the tests against multiple installed Python versions
+locally without pushing to a continous integration system.
+
+Tox works by detecting the presence of a file called ``tox.ini`` in the root of
+a Python project and using that to configuire the desired virtualenvs and start
+the tests.  So to run the Astropy tests on multiple Python versions using tox,
+simply install Tox::
+
+    $ pip install tox
+
+and then from the root of an Astropy repository clone run::
+
+    $ tox
+
+The Astropy tox configuration currently tests against Python versions 2.6, 2.7,
+3.2, and 3.3.  Tox will automatically skip any Python versions you do not have
+installed, but best results are achieved if you first install all supported
+Python versions and make sure they are on your ``$PATH``.
+
+.. note::
+
+    Tox creates its virtualenvs in the root of your project under a ``.tox``
+    directory (which is automatically ignored by ``.gitignore``).  It's worth
+    making note of this, however, as it is common practice to sometimes clean
+    up a git repository and delete any untracked files by running the ``git
+    clean -dfx`` command.  As it can take a long time to rebuild the tox
+    virtualenvs you may want to exclude the ``.tox`` directory from any
+    cleanup.  This can be achieved by running ``git clean -dfx -e .tox``,
+    though it is probably worth defining a `git alias
+    <https://git.wiki.kernel.org/index.php/Aliases>`_ to do this.
+
+
+
 Regression tests
 ================
 
@@ -441,6 +481,139 @@ You may need to adjust the relative import to work for the depth of your module.
 if the user does not have py.test installed. This is so that users need not
 install py.test to run AstroPy's tests.
 
+
+Testing warnings
+-----------------
+
+In order to test that warnings are triggered as expected in certain
+situations, you can use the `astropy.tests.helper.catch_warnings`
+context manager.  Unlike the `warnings.catch_warnings` context manager
+in the standard library, this one will reset all warning state before
+hand so one is assured to get the warnings reported, regardless of
+what errors may have been emitted by other tests previously.  Here is
+a real-world example::
+
+  from astropy.tests.helper import catch_warnings
+
+  with catch_warnings(MergeConflictWarning) as warning_lines:
+      # Test code which triggers a MergeConflictWarning
+      out = table.vstack([t1, t2, t4], join_type='outer')
+
+      assert warning_lines[0].category == metadata.MergeConflictWarning
+      assert ("In merged column 'a' the 'units' attribute does not match (cm != m)"
+              in str(warning_lines[0].message))
+
+Within ``py.test`` there is also the option of using the ``recwarn``
+function argument to test that warnings are triggered.  This method
+has been found to be problematic in at least one case (`pull request
+1174
+<https://github.com/astropy/astropy/pull/1174#issuecomment-20249309>`_)
+so the `astropy.tests.helper.catch_warnings` context manager is
+preferred.
+
+.. _doctests:
+
+Writing doctests
+================
+
+A doctest in Python is a special kind of test that is embedded in a function,
+class, or module's docstring and is formatted to look like a Python interactive
+session--that is, they show lines of Python code entered at a ``>>>`` prompt
+followed by the output that would be expected (if any) when running that code
+in an interactive session.
+
+The idea is to write usage examples in docstrings that users can enter
+verbatim and check their output against the expected output to confirm that
+they are using the interface properly.
+
+Furthermore, Python includes a :mod:`doctest` module that can detect these
+doctests and execute them as part of a project's automated test suite.  This
+way we can automatically ensure that all doctest-like examples in our
+docstrings are correct.
+
+The Astropy test suite automatically detects and runs any doctests in the
+Astropy source code, or in affiliated packages using the Astropy test running
+framework. For example doctests and detailed documentation on how to write
+them, see the full :mod:`doctest` documentation.
+
+Skipping doctests
+-----------------
+
+Sometimes it is necessary to write examples that look like doctests but that
+are not actually executable verbatim. An example may depend on some external
+conditions being fulfilled, for example. In these cases there are a few ways to
+skip a doctest:
+
+1. Next to the example add a comment like: ``# doctest: +SKIP``.  For example::
+
+    >>> import os
+    >>> os.listdir('.')  # doctest: +SKIP
+
+  In the above example we want to direct the user to run ``os.listdir('.')``
+  but we don't want that line to be executed as part of the doctest.
+  The downside to this approach is that the ``# doctest: +SKIP`` line will
+  appear in the documentation and may be distracting or confusing, but the
+  upside is that can prevent a single line of an example from being run as a
+  doctest.
+
+2. Astropy's test framework adds support for a special ``__doctest_skip__``
+   variable that can be placed at the module level of any module to list
+   functions, classes, and methods in that module whose doctests should not
+   be run.  That is, if it doesn't make sense to run a function's example
+   usage as a doctest, the entire function can be skipped in the doctest
+   collection phase.
+
+   The value of ``__doctest_skip__`` should be a list of wildcard patterns
+   for all functions/classes whose doctests should be skipped.  For example::
+
+       __doctest_skip__ = ['myfunction', 'MyClass', 'MyClass.*']
+
+   skips the doctests in a function called ``myfunction``, the doctest for a
+   class called ``MyClass``, and all *methods* of ``MyClass``.
+
+   Module docstrings may contain doctests as well.  To skip the module-level
+   doctests include the string ``'.'`` in ``__doctest_skip__``.
+
+3. ``__doctest_requires__`` is a way to list dependencies for specific
+   doctests.  It should be a dictionary mapping wildcard patterns (in the same
+   format as ``__doctest_skip__``) to a list of one or more modules that should
+   be *importable* in order for the tests to run.  For example, if some tests
+   require the scipy module to work they will be skipped unless ``import
+   scipy`` is possible.  It is also possible to use a tuple of wildcard
+   patterns as a key in this dict::
+
+            __doctest_requires__ = {('func1', 'func2'): ['scipy']}
+
+   Having this module-level variable will require ``scipy`` to be importable
+   in order to run the doctests for functions ``func1`` and ``func2`` in that
+   module.
+
+Skipping output
+---------------
+
+One of the important aspects of writing doctests is that the example output
+can be accurately compared to the actual output produced when running the
+test.
+
+The doctest system compares the actual output to the example output verbatim
+by default, but this not always feasible.  For example the example output may
+contain the ``__repr__`` of an object which displays its id (which will change
+on each run), or a test that expects an exception may output a traceback.
+
+The simplest way to generalize the example output is to use the elipses
+``...``.  For example::
+
+    >>> 1 / 0
+    Traceback (most recent call last):
+    ...
+    ZeroDivisionError: integer division or modulo by zero
+
+This doctest expects an exception with a traceback, but the text of the
+traceback is skipped in the example output--only the first and last lines
+of the output are checked.  See the :module:``doctest`` documentation for
+more examples of skipping output.
+
+
 Using data in tests
 ===================
 
@@ -531,3 +704,25 @@ To use it from Python, do::
 
     >>> import astropy
     >>> astropy.test(open_files=True)
+
+
+Running tests in parallel
+=========================
+
+It is possible to speed up astropy's tests using the `pytest-xdist`
+plugin.  This plugin can be installed using `pip`::
+
+    pip install pytest-xdist
+
+Once installed, tests can be run in parallel using the `--parallel`
+commandline option.  For example, to use 4 processes::
+
+    python setup.py test --parallel=4
+
+Pass a negative number to `--parallel` to create the same number of
+processes as cores on your machine.
+
+Similarly, this feature can be invoked from Python::
+
+    >>> import astropy
+    >>> astropy.test(parallel=4)

@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 import sys
+import inspect
 from itertools import izip
 
 from .. import log
@@ -10,11 +11,12 @@ from ..config import ConfigurationItem
 _format_funcs = {None: lambda format_, val: str(val)}
 
 MAX_LINES = ConfigurationItem('max_lines', 25, 'Maximum number of lines for '
-    'the pretty-printer to use if it cannot determine the terminal size. '
-    'Negative numbers mean no limit.')
+                              'the pretty-printer to use if it cannot determine the terminal size. '
+                              'Negative numbers mean no limit.')
 MAX_WIDTH = ConfigurationItem('max_width', 80, 'Maximum number of characters '
-    'for the pretty-printer to use per line if it cannot determine the '
-    'terminal size.  Negative numbers mean no limit.')
+                              'for the pretty-printer to use per line if it cannot determine the '
+                              'terminal size.  Negative numbers mean no limit.')
+
 
 def _get_pprint_size(max_lines=None, max_width=None):
     """Get the output size (number of lines and character width) for Column and
@@ -77,34 +79,46 @@ def _get_pprint_size(max_lines=None, max_width=None):
 
 def _auto_format_func(format_, val):
     """Format ``val`` according to ``format_`` for both old- and new-
-    style format specifications.  More importantly, determine and cache
-    (in _format_funcs) a function that will do this subsequently.  In
-    this way this complicated logic is only done for the first value.
+    style format specifications or using a user supplied function.
+    More importantly, determine and cache (in _format_funcs) a function
+    that will do this subsequently.  In this way this complicated logic is
+    only done for the first value.
 
     Returns the formatted value.
     """
-    try:
-        # Convert val to Python object with tolist().  See
-        # https://github.com/astropy/astropy/issues/148#issuecomment-3930809
-        out = format_.format(val.tolist())
-        # Require that the format statement actually did something
-        if out == format_:
-            raise ValueError
-        format_func = lambda format_, val: format_.format(val.tolist())
-    except:  # Not sure what exceptions might be raised
+    if inspect.isfunction(format_):
+        format_func = lambda format_, val: format_(val.tolist())
         try:
-            out = format_ % val
+            out = format_func(format_, val)
+            if not isinstance(out, basestring):
+                raise ValueError('Format function for value {0} returned {1} instead of string type'
+                                 .format(val, type(val)))
+        except Exception as err:
+            raise ValueError('Format function for value {0} failed: {1}'
+                             .format(val, err))
+    else:
+        try:
+            # Convert val to Python object with tolist().  See
+            # https://github.com/astropy/astropy/issues/148#issuecomment-3930809
+            out = format_.format(val.tolist())
+            # Require that the format statement actually did something
             if out == format_:
                 raise ValueError
-            format_func = lambda format_, val: format_ % val
-        except:
-            raise ValueError('Unable to parse format string {0}'
-                             .format(format_))
+            format_func = lambda format_, val: format_.format(val.tolist())
+        except:  # Not sure what exceptions might be raised
+            try:
+                out = format_ % val
+                if out == format_:
+                    raise ValueError
+                format_func = lambda format_, val: format_ % val
+            except:
+                raise ValueError('Unable to parse format string {0}'
+                                 .format(format_))
     _format_funcs[format_] = format_func
     return out
 
 
-def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
+def _pformat_col(col, max_lines=None, show_name=True, show_unit=False):
     """Return a list of formatted string representation of column values.
 
     Parameters
@@ -115,8 +129,8 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
     show_name : bool
         Include column name (default=True)
 
-    show_units : bool
-        Include a header row for units (default=False)
+    show_unit : bool
+        Include a header row for unit (default=False)
 
     Returns
     -------
@@ -128,7 +142,7 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
 
     """
     outs = {}  # Some values from _pformat_col_iter iterator that are needed here
-    col_strs = list(_pformat_col_iter(col, max_lines, show_name, show_units, outs))
+    col_strs = list(_pformat_col_iter(col, max_lines, show_name, show_unit, outs))
     col_width = max(len(x) for x in col_strs)
 
     # Center line content and generate dashed headerline
@@ -144,7 +158,7 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
     return col_strs, outs['n_header']
 
 
-def _pformat_col_iter(col, max_lines, show_name, show_units, outs):
+def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
     """Iterator which yields formatted string representation of column values.
 
     Parameters
@@ -155,8 +169,8 @@ def _pformat_col_iter(col, max_lines, show_name, show_units, outs):
     show_name : bool
         Include column name (default=True)
 
-    show_units : bool
-        Include a header row for units (default=False)
+    show_unit : bool
+        Include a header row for unit (default=False)
 
     out : dict
         Must be a dict which is used to pass back additional values
@@ -182,11 +196,11 @@ def _pformat_col_iter(col, max_lines, show_name, show_units, outs):
             col_name = col.name
         n_header += 1
         yield col_name
-    if show_units:
+    if show_unit:
         i_centers.append(n_header)
         n_header += 1
-        yield str(col.units or '')
-    if show_units or show_name:
+        yield str(col.unit or '')
+    if show_unit or show_name:
         i_dashes = n_header
         n_header += 1
         yield '---'
@@ -220,8 +234,9 @@ def _pformat_col_iter(col, max_lines, show_name, show_units, outs):
     outs['i_centers'] = i_centers
     outs['i_dashes'] = i_dashes
 
+
 def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
-                   show_units=False, html=False):
+                   show_unit=False, html=False):
     """Return a list of lines for the formatted string representation of
     the table.
 
@@ -236,8 +251,8 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     show_name : bool
         Include a header row for column names (default=True)
 
-    show_units : bool
-        Include a header row for units (default=False)
+    show_unit : bool
+        Include a header row for unit (default=False)
 
     html : bool
         Format the output as an HTML table (default=False)
@@ -256,7 +271,7 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     cols = []
     for col in table.columns.values():
         lines, n_header = _pformat_col(col, max_lines, show_name,
-                                       show_units)
+                                       show_unit)
         cols.append(lines)
 
     if not cols:
@@ -300,7 +315,7 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
 
 
 def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
-                show_units=False):
+                 show_unit=False):
     """Interactive "more" of a table or column.
 
     Parameters
@@ -314,8 +329,8 @@ def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
     show_name : bool
         Include a header row for column names (default=True)
 
-    show_units : bool
-        Include a header row for units (default=False)
+    show_unit : bool
+        Include a header row for unit (default=False)
     """
     allowed_keys = 'f br<>qhpn'
 
@@ -323,13 +338,13 @@ def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
     n_header = 0
     if show_name:
         n_header += 1
-    if show_units:
+    if show_unit:
         n_header += 1
-    if show_name or show_units:
+    if show_name or show_unit:
         n_header += 1
 
     # Set up kwargs for pformat call.  Only Table gets max_width.
-    kwargs = dict(max_lines=-1, show_name=show_name, show_units=show_units)
+    kwargs = dict(max_lines=-1, show_name=show_name, show_unit=show_unit)
     if hasattr(tabcol, 'columns'):  # tabcol is a table
         kwargs['max_width'] = max_width
 
@@ -337,7 +352,7 @@ def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
     # This is because get_pprint_size leaves 6 extra lines so that in
     # ipython you normally see the last input line.
     max_lines1, max_width = _get_pprint_size(max_lines, max_width)
-    if max_lines == None:
+    if max_lines is None:
         max_lines1 += 2
     delta_lines = max_lines1 - n_header
 

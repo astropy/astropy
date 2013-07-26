@@ -7,9 +7,9 @@ documentationfor Astropy packages and affiliated packages.
 `automodapi` directive
 ======================
 This directive takes a single argument that must be module or package.
-Itwill produce a Documentation section named "Reference/API" that
-includes the docstring for the package, an `automodsumm` directive, and
-an `automod-diagram` if there are any classes in the module.
+It will produce a block of documentation that includes the docstring for
+the package, an `automodsumm` directive, and an `automod-diagram` if
+there are any classes in the module.
 
 It accepts the following options:
 
@@ -35,8 +35,6 @@ It accepts the following options:
         happy. Defaults to "-^", which matches the convention used for
         Python's documentation, assuming the automodapi call is inside a
         top-level section (which usually uses '=').
-
-
 
 This extension also adds a sphinx configuration option
 `automodapi_toctreedirnm`. It must be a string that specifies the name of

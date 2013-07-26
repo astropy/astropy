@@ -38,6 +38,10 @@ import re
 from . import core
 from . import fixedwidth
 
+
+__doctest_skip__ = ['*']
+
+
 class CdsHeader(core.BaseHeader):
     col_type_map = {'e': core.FloatType,
                     'f': core.FloatType,
@@ -48,7 +52,7 @@ class CdsHeader(core.BaseHeader):
         match = re.match(r'\d*(\S)', col.raw_type.lower())
         if not match:
             raise ValueError('Unrecognized CDS format "%s" for column "%s"' % (
-                    col.raw_type, col.name))
+                col.raw_type, col.name))
         return match.group(1)
 
     def __init__(self, readme=None):
@@ -77,7 +81,7 @@ class CdsHeader(core.BaseHeader):
         # me file ``self.readme``.
         if self.readme and self.data.table_name:
             in_header = False
-            f = open(self.readme,"r")
+            f = open(self.readme, "r")
             # Header info is not in data lines but in a separate file.
             lines = []
             comment_lines = 0
@@ -91,11 +95,11 @@ class CdsHeader(core.BaseHeader):
                             break
                 else:
                     match = re.match(r'Byte-by-byte Description of file: (?P<name>.+)$',
-                            line, re.IGNORECASE)
+                                     line, re.IGNORECASE)
                     if match:
                         # Split 'name' in case in contains multiple files
                         names = [s for s in re.split('[, ]+', match.group('name'))
-                                                                        if s]
+                                 if s]
                         # Iterate on names to find if one matches the tablename
                         # including wildcards.
                         for pattern in names:
@@ -106,7 +110,7 @@ class CdsHeader(core.BaseHeader):
 
             else:
                 raise core.InconsistentTableError("Cant' find table {0} in {1}".format(
-                        self.data.table_name, self.readme))
+                    self.data.table_name, self.readme))
             f.close()
 
         for i_col_def, line in enumerate(lines):
@@ -129,16 +133,18 @@ class CdsHeader(core.BaseHeader):
             match = re_col_def.match(line)
             if match:
                 col = core.Column(name=match.group('name'), index=i)
-                col.start = int(re.sub(r'[-\s]', '', match.group('start') or match.group('end'))) - 1
+                col.start = int(re.sub(r'[-\s]', '',
+                                       match.group('start') or match.group('end'))) - 1
                 col.end = int(match.group('end'))
-                col.units = match.group('units')
-                if col.units == '---':
-                    col.units = None  # "---" is the marker for no units in CDS table
+                col.unit = match.group('units')
+                if col.unit == '---':
+                    col.unit = None  # "---" is the marker for no unit in CDS table
                 col.description = match.group('descr').strip()
                 col.raw_type = match.group('format')
                 col.type = self.get_col_type(col)
 
-                match = re.match(r'\? (?P<equal> =)? (?P<nullval> \S*)', col.description, re.VERBOSE)
+                match = re.match(
+                    r'\? (?P<equal> =)? (?P<nullval> \S*)', col.description, re.VERBOSE)
                 if match:
                     if issubclass(col.type, core.FloatType):
                         fillval = 'nan'
@@ -192,7 +198,7 @@ class CdsData(core.BaseData):
                       if x.startswith('------') or x.startswith('=======')]
         if not i_sections:
             raise core.InconsistentTableError('No CDS section delimiter found')
-        return lines[i_sections[-1]+1 : ]
+        return lines[i_sections[-1]+1:]
 
 
 class Cds(core.BaseReader):
@@ -279,10 +285,15 @@ class Cds(core.BaseReader):
 
     Caveats:
 
-    * The Units and Explanations are available in the column ``units`` and
+    * The Units and Explanations are available in the column ``unit`` and
       ``description`` attributes, respectively.
     * The other metadata defined by this format is not available in the output table.
     """
+    _format_name = 'cds'
+    _io_registry_format_aliases = ['cds']
+    _io_registry_can_write = False
+    _description = 'CDS format table'
+
     def __init__(self, readme=None):
         core.BaseReader.__init__(self)
         self.header = CdsHeader(readme)

@@ -74,6 +74,8 @@ class _UnitRegistry(object):
         if not unit._names:
             raise UnitsException("unit has no string representation")
 
+        # Loop through all of the names first, to ensure all of them
+        # are new, then add them all as a single "transaction" below.
         for st in unit._names:
             if not re.match("^[A-Za-z_]+$", st):
                 # will cause problems for simple string parser in
@@ -81,11 +83,15 @@ class _UnitRegistry(object):
                 raise ValueError(
                     "Invalid unit name {0!r}".format(st))
 
+            if ((add_to_namespace and st in cls._namespace) or
+                st in cls._registry and unit != cls._registry[st]):
+                raise ValueError(
+                    "Object with name {0!r} already exists in namespace.  To "
+                    "redefine a unit, call its deregister() method "
+                    "first".format(st))
+
+        for st in unit._names:
             if add_to_namespace:
-                if st in cls._namespace:
-                    raise ValueError(
-                        "Object with name {0!r} already exists "
-                        "in namespace".format(st))
                 cls._namespace[st] = unit
 
             cls._registry[st] = unit
@@ -655,7 +661,8 @@ class UnitBase(object):
 
         return [self]
 
-    def compose(self, equivalencies=[], units=None, max_depth=2):
+    def compose(self, equivalencies=[], units=None, max_depth=2,
+                include_prefix_units=False):
         """
         Return the simplest possible composite unit(s) that represent
         the given unit.  Since there may be multiple equally simple
@@ -676,6 +683,10 @@ class UnitBase(object):
             The maximum recursion depth to use when composing into
             composite units.
 
+        include_prefix_units : bool, optional
+            When `True`, include prefixed units in the result.
+            Default is `False`.
+
         Returns
         -------
         units : list of `CompositeUnit`
@@ -691,7 +702,8 @@ class UnitBase(object):
             filtered_namespace = set()
             for tunit in units:
                 if (isinstance(tunit, UnitBase) and
-                        not isinstance(tunit, PrefixUnit)):
+                    (include_prefix_units or
+                     not isinstance(tunit, PrefixUnit))):
                     filtered_namespace.add(tunit)
             return filtered_namespace
 
@@ -739,11 +751,19 @@ class UnitBase(object):
         bases = set(system.bases)
 
         def score(compose):
-            sum = 0
-            for base in compose._bases:
-                if base in bases:
-                    sum += 1
-            return sum / float(len(compose._bases))
+            # In case that compose._bases has no elements we return
+            # 'np.inf' as 'score value'.  It does not really matter which
+            # number we would return. This case occurs for instance for
+            # dimensionless quantities:
+            if len(compose._bases) == 0:
+                return np.inf
+            else:
+                sum = 0
+                for base in compose._bases:
+                    if base in bases:
+                        sum += 1
+
+                return sum / float(len(compose._bases))
 
         x = self.decompose(bases=bases)
         composed = x.compose(units=system)
@@ -757,8 +777,10 @@ class UnitBase(object):
 
         Examples
         --------
-        >>> u.m.physical_type
-        'length'
+        >>> from astropy import units as u
+        >>> print(u.m.physical_type)
+        length
+
         """
         from . import physical
         return physical.get_physical_type(self)
@@ -823,7 +845,8 @@ class UnitBase(object):
                          [']'])
                 return '\n'.join(lines)
 
-    def find_equivalent_units(self, equivalencies=[], units=None):
+    def find_equivalent_units(self, equivalencies=[], units=None,
+                              include_prefix_units=False):
         """
         Return a list of all the units that are the same type as the
         specified unit.
@@ -842,6 +865,10 @@ class UnitBase(object):
             equivalencies.  Otherwise, may be a dict, module or
             sequence containing the units to search for equivalencies.
 
+        include_prefix_units : bool, optional
+            When `True`, include prefixed units in the result.
+            Default is `False`.
+
         Returns
         -------
         units : list of `UnitBase`
@@ -850,10 +877,18 @@ class UnitBase(object):
             pretty-prints the list of units when output.
         """
         results = self.compose(
-            equivalencies=equivalencies, units=units, max_depth=1)
+            equivalencies=equivalencies, units=units, max_depth=1,
+            include_prefix_units=include_prefix_units)
         results = [
             x._bases[0] for x in results if len(x._bases) == 1]
         return self.EquivalentUnitsList(results)
+
+    def is_unity(self):
+        """
+        Returns `True` if the unit is unscaled and dimensionless.
+        """
+        raise NotImplementedError(
+            "Must be implemented in subclass")
 
 
 class NamedUnit(UnitBase):
@@ -1067,6 +1102,9 @@ class IrreducibleUnit(NamedUnit):
         return CompositeUnit(1, [self], [1])
     decompose.__doc__ = UnitBase.decompose.__doc__
 
+    def is_unity(self):
+        return False
+
 
 class UnrecognizedUnit(IrreducibleUnit):
     """
@@ -1122,6 +1160,9 @@ class UnrecognizedUnit(IrreducibleUnit):
 
     def get_format_name(self, format):
         return self.name
+
+    def is_unity(self):
+        return False
 
 
 class _UnitMetaClass(type):
@@ -1194,7 +1235,7 @@ class _UnitMetaClass(type):
             return CompositeUnit(s, [], [])
 
         elif s is None:
-            raise ValueError("None is not a valid Unit")
+            raise TypeError("None is not a valid Unit")
 
         else:
             raise TypeError("{0} can not be converted to a Unit".format(s))
@@ -1459,6 +1500,10 @@ class CompositeUnit(UnitBase):
             raise UnitsException(
                 "'{0}' is not dimensionless".format(self.to_string()))
         return c
+
+    def is_unity(self):
+        unit = self.decompose()
+        return len(unit.bases) == 0 and unit.scale == 1.0
 
 
 si_prefixes = [

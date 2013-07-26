@@ -11,8 +11,7 @@ from numpy import ma
 
 from ..units import Unit
 from .. import log
-from ..utils import OrderedDict, isiterable, meta
-from .structhelper import _drop_fields
+from ..utils import OrderedDict, isiterable, deprecated, deprecated_attribute
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
 from ..utils.console import color_print
 from ..config import ConfigurationItem
@@ -57,59 +56,6 @@ def _check_column_new_args(func):
 
 def _auto_names(n_cols):
     return [AUTO_COLNAME().format(i) for i in range(n_cols)]
-
-
-def _merge_col_meta(out, left, right, col_name_map):
-    """
-    Merge column meta data for the ``out`` table.
-
-    This merges column meta, which includes attributes units, format,
-    and description, as well as the actual `meta` atttribute.  It is
-    assumed that the ``out`` table was created by merging ``left``
-    and ``right`` (e.g. by joining).  The ``col_name_map`` provides
-    the mapping from col name in ``out`` back to the original name
-    (which may be different).
-
-    If a column was derived from both left and right tables (e.g.
-    a key column in a join) then ``meta`` values are merged.  The
-    attributes (units, format, description) are set from the logical
-    "or" of the left and right values, e.g. (left.units or right.units).
-    This selects the first non-trivial value, and does not check for
-    conflicts.
-    """
-    # Set column meta
-    attrs = ('units', 'format', 'description')
-    for out_col in out.columns.values():
-        left_name, right_name = col_name_map[out_col.name]
-        left_col = (left[left_name] if left_name else None)
-        right_col = (right[right_name] if right_name else None)
-
-        if left_name and right_name:
-            out_col.meta = meta.merge(left_col.meta, right_col.meta)
-            for attr in attrs:
-                left_attr = getattr(left_col, attr)
-                right_attr = getattr(right_col, attr)
-                merge_attr = left_attr or right_attr
-                setattr(out_col, attr, merge_attr)
-                if left_attr and right_attr and left_attr != right_attr:
-                    warnings.warn('Left and right column {0} attributes do not match '
-                                  '({1} != {2}) using left for merged output'
-                                  .format(attr, left_attr, right_attr),
-                                  meta.MergeConflictWarning)
-        elif left_name:
-            out_col.meta = deepcopy(left_col.meta)
-            for attr in attrs:
-                setattr(out_col, attr, getattr(left_col, attr))
-        elif right_name:
-            out_col.meta = deepcopy(right_col.meta)
-            for attr in attrs:
-                setattr(out_col, attr, getattr(right_col, attr))
-        else:
-            raise ValueError('Unexpected column names')
-
-
-def _merge_table_meta(out, left, right):
-    out.meta = meta.merge(left.meta, right.meta)
 
 
 class TableColumns(OrderedDict):
@@ -191,7 +137,7 @@ class BaseColumn(object):
         # or viewcast e.g. obj.view(Column).  In either case we want to
         # init Column attributes for self from obj if possible.
         self.parent_table = None
-        for attr in ('name', 'units', 'format', 'description'):
+        for attr in ('name', 'unit', 'format', 'description'):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
@@ -240,11 +186,11 @@ class BaseColumn(object):
         return (self.name, self.dtype.str, self.shape[1:])
 
     def __repr__(self):
-        units = None if self.units is None else str(self.units)
-        out = "<{0} name={1} units={2} format={3} " \
+        unit = None if self.unit is None else str(self.unit)
+        out = "<{0} name={1} unit={2} format={3} " \
             "description={4}>\n{5}".format(
             self.__class__.__name__,
-            repr(self.name), repr(units),
+            repr(self.name), repr(unit),
             repr(self.format), repr(self.description), repr(self.data))
 
         return out
@@ -259,16 +205,16 @@ class BaseColumn(object):
         str_vals : iterator
             Column values formatted as strings
         """
-        # pprint._pformat_col_iter(col, max_lines, show_name, show_units, outs)
+        # pprint._pformat_col_iter(col, max_lines, show_name, show_unit, outs)
         # Iterate over formatted values with no max number of lines, no column
-        # name, no units, and ignoring the returned header info in outs.
+        # name, no unit, and ignoring the returned header info in outs.
         for str_val in _pformat_col_iter(self, -1, False, False, {}):
             yield str_val
 
     def attrs_equal(self, col):
         """Compare the column attributes of ``col`` to this object.
 
-        The comparison attributes are: name, units, dtype, format, description,
+        The comparison attributes are: name, unit, dtype, format, description,
         and meta.
 
         Parameters
@@ -284,12 +230,12 @@ class BaseColumn(object):
         if not isinstance(col, BaseColumn):
             raise ValueError('Comparison `col` must be a Column or MaskedColumn object')
 
-        attrs = ('name', 'units', 'dtype', 'format', 'description', 'meta')
+        attrs = ('name', 'unit', 'dtype', 'format', 'description', 'meta')
         equal = all(getattr(self, x) == getattr(col, x) for x in attrs)
 
         return equal
 
-    def pformat(self, max_lines=None, show_name=True, show_units=False):
+    def pformat(self, max_lines=None, show_name=True, show_unit=False):
         """Return a list of formatted string representation of column values.
 
         If no value of `max_lines` is supplied then the height of the screen
@@ -306,8 +252,8 @@ class BaseColumn(object):
         show_name : bool
             Include column name (default=True)
 
-        show_units : bool
-            Include a header row for units (default=False)
+        show_unit : bool
+            Include a header row for unit (default=False)
 
         Returns
         -------
@@ -315,10 +261,10 @@ class BaseColumn(object):
             List of lines with header and formatted column values
 
         """
-        lines, n_header = _pformat_col(self, max_lines, show_name, show_units)
+        lines, n_header = _pformat_col(self, max_lines, show_name, show_unit)
         return lines
 
-    def pprint(self, max_lines=None, show_name=True, show_units=False):
+    def pprint(self, max_lines=None, show_name=True, show_unit=False):
         """Print a formatted string representation of column values.
 
         If no value of `max_lines` is supplied then the height of the screen
@@ -335,17 +281,17 @@ class BaseColumn(object):
         show_name : bool
             Include column name (default=True)
 
-        show_units : bool
-            Include a header row for units (default=False)
+        show_unit : bool
+            Include a header row for unit (default=False)
         """
-        lines, n_header = _pformat_col(self, max_lines, show_name, show_units)
+        lines, n_header = _pformat_col(self, max_lines, show_name, show_unit)
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
             else:
                 print line
 
-    def more(self, max_lines=None, show_name=True, show_units=False):
+    def more(self, max_lines=None, show_name=True, show_unit=False):
         """Interactively browse column with a paging interface.
 
         Supported keys::
@@ -368,51 +314,66 @@ class BaseColumn(object):
         show_name : bool
             Include a header row for column names (default=True)
 
-        show_units : bool
-            Include a header row for units (default=False)
+        show_unit : bool
+            Include a header row for unit (default=False)
 
         """
         _more_tabcol(self, max_lines=max_lines, show_name=show_name,
-                     show_units=show_units)
+                     show_unit=show_unit)
 
     @property
-    def units(self):
+    def unit(self):
         """
-        The units associated with this column.  May be a string or a
+        The unit associated with this column.  May be a string or a
         `astropy.units.UnitBase` instance.
 
-        Setting the `units` property does not change the values of the
-        data.  To perform a unit conversion, use `convert_units_to`.
+        Setting the `unit` property does not change the values of the
+        data.  To perform a unit conversion, use `convert_unit_to`.
         """
-        return self._units
+        return self._unit
 
-    @units.setter
-    def units(self, units):
-        if units is None:
-            self._units = None
+    @unit.setter
+    def unit(self, unit):
+        if unit is None:
+            self._unit = None
         else:
-            self._units = Unit(units, parse_strict='silent')
+            self._unit = Unit(unit, parse_strict='silent')
 
-    @units.deleter
+    @unit.deleter
+    def unit(self):
+        self._unit = None
+    
+    @property
+    @deprecated('0.3', alternative=':attr:`Column.unit`')
     def units(self):
-        self._units = None
-
-    def convert_units_to(self, new_units, equivalencies=[]):
+        return self.unit
+        
+    @units.setter
+    @deprecated('0.3', alternative=':attr:`Column.unit`')
+    def units(self, unit):
+        self.unit = unit
+    
+    @units.deleter
+    @deprecated('0.3', alternative=':attr:`Column.unit`')
+    def units(self):
+        del self.unit
+    
+    def convert_unit_to(self, new_unit, equivalencies=[]):
         """
         Converts the values of the column in-place from the current
         unit to the given unit.
 
-        To change the units associated with this column without
-        actually changing the data values, simply set the `units`
+        To change the unit associated with this column without
+        actually changing the data values, simply set the `unit`
         property.
 
         Parameters
         ----------
-        new_units : str or `astropy.units.UnitBase` instance
+        new_unit : str or `astropy.units.UnitBase` instance
             The unit to convert to.
 
         equivalencies : list of equivalence pairs, optional
-           A list of equivalence pairs to try if the units are not
+           A list of equivalence pairs to try if the unit are not
            directly convertible.  See :ref:`unit_equivalencies`.
 
         Raises
@@ -420,11 +381,11 @@ class BaseColumn(object):
         astropy.units.UnitException
             If units are inconsistent
         """
-        if self.units is None:
-            raise ValueError("No units set on column")
-        self.data[:] = self.units.to(
-            new_units, self.data, equivalencies=equivalencies)
-        self.units = new_units
+        if self.unit is None:
+            raise ValueError("No unit set on column")
+        self.data[:] = self.unit.to(
+            new_unit, self.data, equivalencies=equivalencies)
+        self.unit = new_unit
 
     def __str__(self):
         lines, n_header = _pformat_col(self)
@@ -448,8 +409,8 @@ class Column(BaseColumn, np.ndarray):
         Number of row elements in column data
     description : str or None
         Full description of column
-    units : str or None
-        Physical units
+    unit : str or None
+        Physical unit
     format : str or None or function
         Format string for outputting column values.  This can be an
         "old-style" (``format % value``) or "new-style" (`str.format`)
@@ -512,9 +473,20 @@ class Column(BaseColumn, np.ndarray):
 
     @_check_column_new_args
     def __new__(cls, data=None, name=None,
-                 dtype=None, shape=(), length=0,
-                 description=None, units=None, format=None, meta=None):
-
+                dtype=None, shape=(), length=0,
+                description=None, unit=None, format=None, meta=None,
+                dtypes=None, units=None):
+        
+        if dtypes is not None:
+            dtype = dtypes
+            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
+                          DeprecationWarning)
+        
+        if units is not None:
+            unit = units
+            warnings.warn("'units' has been renamed to the singular 'unit'.",
+                          DeprecationWarning)
+            
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
             self_data = np.zeros(length, dtype=dtype)
@@ -522,8 +494,8 @@ class Column(BaseColumn, np.ndarray):
             self_data = np.asarray(data.data, dtype=dtype)
             if description is None:
                 description = data.description
-            if units is None:
-                units = units or data.units
+            if unit is None:
+                unit = unit or data.unit
             if format is None:
                 format = data.format
             if meta is None:
@@ -535,7 +507,7 @@ class Column(BaseColumn, np.ndarray):
 
         self = self_data.view(cls)
         self._name = name
-        self.units = units
+        self.unit = unit
         self.format = format
         self.description = description
         self.parent_table = None
@@ -550,16 +522,16 @@ class Column(BaseColumn, np.ndarray):
     def data(self):
         return self.view(np.ndarray)
 
-    def copy(self, data=None, copy_data=True):
+    def copy(self, order='C', data=None, copy_data=True):
         """Return a copy of the current Column instance.  If ``data`` is supplied
         then a view (reference) of ``data`` is used, and ``copy_data`` is ignored.
         """
         if data is None:
             data = self.view(np.ndarray)
             if copy_data:
-                data = data.copy()
+                data = data.copy(order)
 
-        return Column(name=self.name, data=data, units=self.units, format=self.format,
+        return Column(name=self.name, data=data, unit=self.unit, format=self.format,
                       description=self.description, meta=deepcopy(self.meta))
 
 
@@ -584,8 +556,8 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         Number of row elements in column data
     description : str or None
         Full description of column
-    units : str or None
-        Physical units
+    unit : str or None
+        Physical unit
     format : str or None or function
         Format string for outputting column values.  This can be an
         "old-style" (``format % value``) or "new-style" (`str.format`)
@@ -651,9 +623,20 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
 
     @_check_column_new_args
     def __new__(cls, data=None, name=None, mask=None, fill_value=None,
-                 dtype=None, shape=(), length=0,
-                 description=None, units=None, format=None, meta=None):
-
+                dtype=None, shape=(), length=0,
+                description=None, unit=None, format=None, meta=None,
+                units=None, dtypes=None):
+        
+        if dtypes is not None:
+            dtype = dtypes
+            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
+                          DeprecationWarning)
+        
+        if units is not None:
+            unit = units
+            warnings.warn("'units' has been renamed to the singular 'unit'.",
+                          DeprecationWarning)
+        
         if NUMPY_LT_1P5:
             raise ValueError('MaskedColumn requires NumPy version 1.5 or later')
 
@@ -664,8 +647,8 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
             self_data = ma.asarray(data.data, dtype=dtype)
             if description is None:
                 description = data.description
-            if units is None:
-                units = units or data.units
+            if unit is None:
+                unit = unit or data.unit
             if format is None:
                 format = data.format
             if meta is None:
@@ -681,7 +664,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         self.mask = mask
         self.fill_value = fill_value
         self._name = name
-        self.units = units
+        self.unit = unit
         self.format = format
         self.description = description
         self.parent_table = None
@@ -768,11 +751,11 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         fill_value = self._fix_fill_value(fill_value)
 
         data = super(MaskedColumn, self).filled(fill_value)
-        out = Column(name=self.name, data=data, units=self.units, format=self.format,
+        out = Column(name=self.name, data=data, unit=self.unit, format=self.format,
                      description=self.description, meta=deepcopy(self.meta))
         return out
 
-    def copy(self, data=None, copy_data=True):
+    def copy(self, order='C', data=None, copy_data=True):
         """
         Return a copy of the current MaskedColumn instance.  If ``data`` is supplied
         then a view (reference) of ``data`` is used, and ``copy_data`` is ignored.
@@ -793,9 +776,9 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         if data is None:
             data = self.view(ma.MaskedArray)
             if copy_data:
-                data = data.copy()
+                data = data.copy(order)
 
-        return MaskedColumn(name=self.name, data=data, units=self.units, format=self.format,
+        return MaskedColumn(name=self.name, data=data, unit=self.unit, format=self.format,
                             # Do not include mask=self.mask since `data` has the mask
                             fill_value=self.fill_value,
                             description=self.description, meta=deepcopy(self.meta))
@@ -807,12 +790,13 @@ class Row(object):
     A Row object is returned when a Table object is indexed with an integer
     or when iterating over a table::
 
-      >>> table = Table([(1, 2), (3, 4)], names=('a', 'b'))
+      >>> table = Table([(1, 2), (3, 4)], names=('a', 'b'),
+      ...               dtype=('int32', 'int32'))
       >>> row = table[1]
       >>> row
       <Row 1 of table
        values=(2, 4)
-       dtype=[('a', '<i8'), ('b', '<i8')]>
+       dtype=[('a', '<i4'), ('b', '<i4')]>
       >>> row['a']
       2
       >>> row[1]
@@ -898,6 +882,11 @@ class Row(object):
     @property
     def dtype(self):
         return self.data.dtype
+    
+    @property
+    @deprecated('0.3', alternative=':attr:`Row.dtype`', pending=False)
+    def dtypes(self):
+        return self.dtype
 
     def __repr__(self):
         return "<Row {0} of table\n values={1!r}\n dtype={2}>".format(
@@ -919,37 +908,42 @@ class Table(object):
     `Table` differs from `NDData` by the assumption that the input data
     consists of columns of homogeneous data, where each column has a unique
     identifier and may contain additional metadata such as the data
-    units, format, and description.
+    unit, format, and description.
 
     Parameters
     ----------
     data : numpy ndarray, dict, list, or Table, optional
         Data to initialize table.
-    mask : numpy ndarray, dict, list, optional
-        The mask to initialize the table
+    masked : boolean, optional
+        Specify whether the table is masked.
     names : list, optional
         Specify column names
-    dtypes : list, optional
+    dtype : list, optional
         Specify column data types
     meta : dict, optional
-        Metadata associated with the table
+        Metadata associated with the table.
     copy : boolean, optional
         Copy the input data (default=True).
 
     """
 
-    def __init__(self, data=None, masked=None, names=None, dtypes=None,
-                 meta=None, copy=True):
-
+    def __init__(self, data=None, masked=None, names=None, dtype=None,
+                 meta=None, copy=True, dtypes=None):
+        
+        if dtypes is not None:
+            dtype = dtypes
+            warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
+                          DeprecationWarning)
+        
         # Set up a placeholder empty table
         self._data = None
         self._set_masked(masked)
         self.columns = TableColumns()
-        self.meta = OrderedDict() if meta is None else deepcopy(meta)
+        self._meta = OrderedDict() if meta is None else deepcopy(meta)
 
-        # Must copy if dtypes are changing
-        if not copy and dtypes is not None:
-            raise ValueError('Cannot specify dtypes when copy=False')
+        # Must copy if dtype are changing
+        if not copy and dtype is not None:
+            raise ValueError('Cannot specify dtype when copy=False')
 
         # Infer the type of the input data and set up the initialization
         # function, number of columns, and potentially the default col names
@@ -993,19 +987,19 @@ class Table(object):
             raise ValueError('Data type {0} not allowed to init Table'
                              .format(type(data)))
 
-        # Set up defaults if names and/or dtypes are not specified.
+        # Set up defaults if names and/or dtype are not specified.
         # A value of None means the actual value will be inferred
         # within the appropriate initialization routine, either from
         # existing specification or auto-generated.
 
         if names is None:
             names = default_names or [None] * n_cols
-        if dtypes is None:
-            dtypes = [None] * n_cols
-        self._check_names_dtypes(names, dtypes, n_cols)
+        if dtype is None:
+            dtype = [None] * n_cols
+        self._check_names_dtype(names, dtype, n_cols)
 
         # Finally do the real initialization
-        init_func(data, names, dtypes, n_cols, copy)
+        init_func(data, names, dtype, n_cols, copy)
 
         # Whatever happens above, the masked property should be set to a boolean
         if type(self.masked) != bool:
@@ -1039,7 +1033,7 @@ class Table(object):
             data = [col.filled(fill_value) for col in self.columns.values()]
         else:
             data = self
-        return Table(data, meta=deepcopy(self.meta))
+        return self.__class__(data, meta=deepcopy(self.meta))
 
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).
@@ -1083,17 +1077,17 @@ class Table(object):
 
         self.columns = TableColumns(cols)
 
-    def _check_names_dtypes(self, names, dtypes, n_cols):
-        """Make sure that names and dtypes are boths iterable and have
+    def _check_names_dtype(self, names, dtype, n_cols):
+        """Make sure that names and dtype are boths iterable and have
         the same length as data.
         """
-        for inp_list, inp_str in ((dtypes, 'dtypes'), (names, 'names')):
+        for inp_list, inp_str in ((dtype, 'dtype'), (names, 'names')):
             if not isiterable(inp_list):
                 raise ValueError('{0} must be a list or None'.format(inp_str))
 
-        if len(names) != n_cols or len(dtypes) != n_cols:
+        if len(names) != n_cols or len(dtype) != n_cols:
             raise ValueError(
-                'Arguments "names" and "dtypes" must match number of columns'
+                'Arguments "names" and "dtype" must match number of columns'
                 .format(inp_str))
 
     def _set_masked_from_cols(self, cols):
@@ -1106,7 +1100,7 @@ class Table(object):
             if any(isinstance(col, (MaskedColumn, ma.MaskedArray)) for col in cols):
                 self._set_masked(True)
 
-    def _init_from_list(self, data, names, dtypes, n_cols, copy):
+    def _init_from_list(self, data, names, dtype, n_cols, copy):
         """Initialize table from a list of columns.  A column can be a
         Column object, np.ndarray, or any other iterable object.
         """
@@ -1134,10 +1128,10 @@ class Table(object):
                         raise ValueError('Row {0} has no value for column {1}'.format(i, name))
             if all(name is None for name in names):
                 names = sorted(names_from_data)
-            self._init_from_dict(cols, names, dtypes, n_cols, copy)
+            self._init_from_dict(cols, names, dtype, n_cols, copy)
             return
 
-        for col, name, def_name, dtype in zip(data, names, def_names, dtypes):
+        for col, name, def_name, dtype in zip(data, names, def_names, dtype):
             if isinstance(col, (Column, MaskedColumn)):
                 col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype)
             elif isinstance(col, np.ndarray) or isiterable(col):
@@ -1149,7 +1143,7 @@ class Table(object):
 
         self._init_from_cols(cols)
 
-    def _init_from_ndarray(self, data, names, dtypes, n_cols, copy):
+    def _init_from_ndarray(self, data, names, dtype, n_cols, copy):
         """Initialize table from an ndarray structured array"""
 
         data_names = data.dtype.names or _auto_names(n_cols)
@@ -1163,10 +1157,10 @@ class Table(object):
         self._set_masked_from_cols(cols)
 
         if copy:
-            self._init_from_list(cols, names, dtypes, n_cols, copy)
+            self._init_from_list(cols, names, dtype, n_cols, copy)
         else:
-            dtypes = [(name, col.dtype) for name, col in zip(names, cols)]
-            self._data = data.view(dtypes).ravel()
+            dtype = [(name, col.dtype) for name, col in zip(names, cols)]
+            self._data = data.view(dtype).ravel()
             columns = TableColumns()
 
             for name in names:
@@ -1174,32 +1168,33 @@ class Table(object):
                 columns[name].parent_table = self
             self.columns = columns
 
-    def _init_from_dict(self, data, names, dtypes, n_cols, copy):
+    def _init_from_dict(self, data, names, dtype, n_cols, copy):
         """Initialize table from a dictionary of columns"""
 
         if not copy:
             raise ValueError('Cannot use copy=False with a dict data input')
 
         data_list = [data[name] for name in names]
-        self._init_from_list(data_list, names, dtypes, n_cols, copy)
+        self._init_from_list(data_list, names, dtype, n_cols, copy)
 
-    def _init_from_table(self, data, names, dtypes, n_cols, copy):
+    def _init_from_table(self, data, names, dtype, n_cols, copy):
         """Initialize table from an existing Table object """
 
         table = data  # data is really a Table, rename for clarity
         data_names = table.colnames
-        self.meta = deepcopy(table.meta)
+        self.meta.clear()
+        self.meta.update(deepcopy(table.meta))
         cols = table.columns.values()
 
         # Set self.masked appropriately from cols
         self._set_masked_from_cols(cols)
 
         if copy:
-            self._init_from_list(cols, names, dtypes, n_cols, copy)
+            self._init_from_list(cols, names, dtype, n_cols, copy)
         else:
             names = [vals[0] or vals[1] for vals in zip(names, data_names)]
-            dtypes = [(name, col.dtype) for name, col in zip(names, cols)]
-            data = table._data.view(dtypes)
+            dtype = [(name, col.dtype) for name, col in zip(names, cols)]
+            data = table._data.view(dtype)
 
             self._update_table_from_cols(self, data, cols, names)
 
@@ -1215,9 +1210,9 @@ class Table(object):
         cols = [self.ColumnClass(name=col.name, data=col) for col in cols]
 
         names = [col.name for col in cols]
-        dtypes = [col.descr for col in cols]
+        dtype = [col.descr for col in cols]
         empty_init = ma.empty if self.masked else np.empty
-        data = empty_init(lengths.pop(), dtype=dtypes)
+        data = empty_init(lengths.pop(), dtype=dtype)
         for col in cols:
             data[col.name] = col.data
 
@@ -1226,8 +1221,9 @@ class Table(object):
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""
 
-        table = Table()
-        table.meta = deepcopy(self.meta)
+        table = self.__class__(masked=self.masked)
+        table.meta.clear()
+        table.meta.update(deepcopy(self.meta))
         cols = self.columns.values()
         names = [col.name for col in cols]
         data = self._data[slice_]
@@ -1262,7 +1258,7 @@ class Table(object):
         return '\n'.join(lines)
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
-               show_units=False):
+               show_unit=False):
         """Print a formatted string representation of the table.
 
         If no value of `max_lines` is supplied then the height of the screen
@@ -1285,12 +1281,12 @@ class Table(object):
         show_name : bool
             Include a header row for column names (default=True)
 
-        show_units : bool
-            Include a header row for units (default=False)
+        show_unit : bool
+            Include a header row for unit (default=False)
         """
 
         lines, n_header = _pformat_table(self, max_lines, max_width, show_name,
-                                         show_units)
+                                         show_unit)
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
@@ -1298,7 +1294,7 @@ class Table(object):
                 print line
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-                show_units=False, html=False):
+                show_unit=False, html=False):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -1322,8 +1318,8 @@ class Table(object):
         show_name : bool
             Include a header row for column names (default=True)
 
-        show_units : bool
-            Include a header row for units (default=False)
+        show_unit : bool
+            Include a header row for unit (default=False)
 
         html : bool
             Format the output as an HTML table (default=False)
@@ -1334,11 +1330,11 @@ class Table(object):
             Formatted table as a list of strings
         """
         lines, n_header = _pformat_table(self, max_lines, max_width,
-                                         show_name, show_units, html)
+                                         show_name, show_unit, html)
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
-               show_units=False):
+             show_unit=False):
         """Interactively browse table with a paging interface.
 
         Supported keys::
@@ -1364,11 +1360,11 @@ class Table(object):
         show_name : bool
             Include a header row for column names (default=True)
 
-        show_units : bool
-            Include a header row for units (default=False)
+        show_unit : bool
+            Include a header row for unit (default=False)
         """
         _more_tabcol(self, max_lines, max_width, show_name,
-                     show_units)
+                     show_unit)
 
     def _repr_html_(self):
         lines = self.pformat(html=True)
@@ -1386,7 +1382,7 @@ class Table(object):
                 return self._new_from_slice(item)
             elif (all(x in self.colnames for x in item)):
                 # Item is a tuple of strings that are valid column names
-                return Table([self[x] for x in item], meta=deepcopy(self.meta))
+                return self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
             else:
                 raise ValueError('Illegal item for table item access')
 
@@ -1527,7 +1523,6 @@ class Table(object):
         else:
             self._data = ma.array(self._data)
 
-
     def index_column(self, name):
         """
         Return the positional index of column ``name``.
@@ -1547,7 +1542,7 @@ class Table(object):
         Create a table with three columns 'a', 'b' and 'c'::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
-                            names=('a', 'b', 'c'))
+            ...           names=('a', 'b', 'c'))
             >>> print t
              a   b   c
             --- --- ---
@@ -1602,17 +1597,17 @@ class Table(object):
               2 0.2   y
               3 0.3   z
 
-        Add column 'c' at position 1. Note that the column is inserted
+        Add column 'd' at position 1. Note that the column is inserted
         before the given index::
 
-            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
-            >>> t.add_column(col_c, 1)
+            >>> col_d = Column(name='d', data=['a', 'b', 'c'])
+            >>> t.add_column(col_d, 1)
             >>> print t
-             a   c   b
-            --- --- ---
-              1   x 0.1
-              2   y 0.2
-              3   z 0.3
+             a   d   b   c
+            --- --- --- ---
+              1   a 0.1   x
+              2   b 0.2   y
+              3   c 0.3   z
 
         To add several columns use add_columns.
         """
@@ -1661,6 +1656,7 @@ class Table(object):
         Add column 'c' at position 0 and column 'd' at position 1. Note that
         the columns are inserted before the given position::
 
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
             >>> col_c = Column(name='c', data=['x', 'y', 'z'])
             >>> col_d = Column(name='d', data=['u', 'v', 'w'])
             >>> t.add_columns([col_c, col_d], [0, 1])
@@ -1689,6 +1685,95 @@ class Table(object):
 
         self._init_from_cols(newcols)
 
+    def remove_row(self, index):
+        """
+        Remove a row from the table.
+
+        Parameters
+        ----------
+        index: int
+            Index of row to remove
+
+        Examples
+        --------
+        Create a table with three columns 'a', 'b' and 'c'::
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
+            ...           names=('a', 'b', 'c'))
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
+
+        Remove row 1 from the table::
+
+            >>> t.remove_row(1)
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              3 0.3   z
+
+        To remove several rows at the same time use remove_rows.
+        """
+        # check the index against the types that work with np.delete
+        if not isinstance(index, (int, long, np.integer)):
+            raise TypeError("Row index must be an integer")
+        self.remove_rows(index)
+
+    def remove_rows(self, row_specifier):
+        """
+        Remove rows from the table.
+
+        Parameters
+        ----------
+        row_specifier: slice, int, or array of ints
+            Specification for rows to remove
+
+        Examples
+        --------
+        Create a table with three columns 'a', 'b' and 'c'::
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
+            ...           names=('a', 'b', 'c'))
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
+
+        Remove rows 0 and 2 from the table::
+
+            >>> t.remove_rows([0, 2])
+            >>> print t
+             a   b   c
+            --- --- ---
+              2 0.2   y
+
+
+        Note that there are no warnings if the slice operator extends
+        outside the data
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
+            ...           names=('a', 'b', 'c'))
+            >>> t.remove_rows(slice(10, 20, 1))
+            >>> print t
+             a   b   c
+            --- --- ---
+              1 0.1   x
+              2 0.2   y
+              3 0.3   z
+        """
+        table = np.delete(self._data, row_specifier, axis=0)
+        self._data = table
+
+        # after updating the row data, the column views will be out of date
+        # and should be updated:
+        self._rebuild_table_column_views()
+
     def remove_column(self, name):
         """
         Remove a column from the table.
@@ -1707,7 +1792,7 @@ class Table(object):
         Create a table with three columns 'a', 'b' and 'c'::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
-                            names=('a', 'b', 'c'))
+            ...           names=('a', 'b', 'c'))
             >>> print t
              a   b   c
             --- --- ---
@@ -1744,7 +1829,7 @@ class Table(object):
         Create a table with three columns 'a', 'b' and 'c'::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
-                    names=('a', 'b', 'c'))
+            ...     names=('a', 'b', 'c'))
             >>> print t
              a   b   c
             --- --- ---
@@ -1764,6 +1849,8 @@ class Table(object):
 
         Specifying only a single column also works. Remove column 'b' from the table:
 
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
+            ...     names=('a', 'b', 'c'))
             >>> t.remove_columns('b')
             >>> print t
              a   c
@@ -1782,7 +1869,25 @@ class Table(object):
         for name in names:
             self.columns.pop(name)
 
-        self._data = _drop_fields(self._data, names)
+        newdtype = [(name, self._data.dtype[name]) for name in self._data.dtype.names
+                if name not in names]
+        newdtype = np.dtype(newdtype)
+
+        if newdtype:
+            if self.masked:
+                table = np.ma.empty(self._data.shape, dtype=newdtype)
+            else:
+                table = np.empty(self._data.shape, dtype=newdtype)
+
+            for field in newdtype.fields:
+                table[field] = self._data[field]
+                if self.masked:
+                    table[field].fill_value = self._data[field].fill_value
+        else:
+            table = None
+
+        self._data = table
+
 
     def keep_columns(self, names):
         '''
@@ -1799,7 +1904,7 @@ class Table(object):
         Create a table with three columns 'a', 'b' and 'c'::
 
             >>> t = Table([[1, 2, 3],[0.1, 0.2, 0.3],['x', 'y', 'z']],
-                            names=('a', 'b', 'c'))
+            ...           names=('a', 'b', 'c'))
             >>> print t
              a   b   c
             --- --- ---
@@ -1821,6 +1926,8 @@ class Table(object):
         Specifying a list of column names is keeps is also possible.
         Keep columns 'a' and 'c' of the table::
 
+            >>> t = Table([[1, 2, 3],[0.1, 0.2, 0.3],['x', 'y', 'z']],
+            ...           names=('a', 'b', 'c'))
             >>> t.keep_columns(['a', 'c'])
             >>> print t
              a   c
@@ -1963,7 +2070,7 @@ class Table(object):
 
                 test_data.mask[-1] = mask
 
-        elif vals is not None:
+        else:
             raise TypeError('Vals must be an iterable or mapping or None')
 
 	# If no errors have been raised, then the table can be resized
@@ -2003,46 +2110,25 @@ class Table(object):
     read = classmethod(io_registry.read)
     write = io_registry.write
 
-    def join(self, right, keys=None, join_type='inner',
-             uniq_col_name='{col_name}_{table_name}',
-             table_names=['1', '2']):
-        """
-        Perform a join of this (left) table with the right table on specified keys.
+    @property
+    def meta(self):
+        return self._meta
+
+    def copy(self, copy_data=True):
+        '''
+        Return a copy of the table
+
 
         Parameters
         ----------
-        right : Table object or a value that will initialize a Table object
-            Right side table in the join
-        keys : str or list of str
-            Column(s) used to match rows of left and right tables.  Default
-            is to use all columns which are common to both tables.
-        join_type : str
-            Join type ('inner' | 'outer' | 'left' | 'right'), default is 'inner'
-        uniq_col_name : str or None
-            String generate a unique output column name in case of a conflict.
-            The default is '{col_name}_{table_name}'.
-        table_names : list of str or None
-            Two-element list of table names used when generating unique output
-            column names.  The default is ['1', '2'].
+        copy_data : bool
+            If True (the default), copy the underlying data array.
+            Otherwise, use the same data array
+        '''
+        return self.__class__(self, copy=copy_data)
 
-        """
-        # In "t1.join(t2)" self (i.e. t1) is the left table.
-        left = self
+    def __deepcopy__(self, memo=None):
+        return self.copy(True)
 
-        # If right isn't a table, use right as the data for a new Table
-        # that has the same class as left.
-        if not isinstance(right, Table):
-            right = left.__class__(right)
-        col_name_map = {}
-        out_data = np_utils.join(left._data, right._data, keys, join_type,
-                                 uniq_col_name, table_names, col_name_map)
-        # Create the output (Table or subclass of Table)
-        out = left.__class__(out_data)
-
-        # Merge the column and table meta data.  In this context 'self' is
-        # just the left input table.  Table subclasses might override these
-        # methods for custom merge behavior.
-        _merge_col_meta(out, left, right, col_name_map)
-        _merge_table_meta(out, left, right)
-
-        return out
+    def __copy__(self):
+        return self.copy(False)

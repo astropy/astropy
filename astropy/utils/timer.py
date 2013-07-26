@@ -20,6 +20,9 @@ from .. import log
 __all__ = ['timefunc', 'RunTimePredictor']
 
 
+__doctest_skip__ = ['timefunc']
+
+
 def timefunc(num_tries=1, verbose=True):
     """Decorator to time a function or method.
 
@@ -112,27 +115,33 @@ class RunTimePredictor(object):
     get the function output values:
 
     >>> p.time_func(range(10, 1000, 200))
-    >>> p.results
-    {10: 10000000000,
-     210: 10000000000...L,
-     410: 10000000000...L,
-     610: 10000000000...L,
-     810: 10000000000...L}
+    >>> for input, result in sorted(p.results.items()):
+    ...     print("pow(10, {0})\\n{1}".format(input, result))
+    pow(10, 10)
+    10000000000
+    pow(10, 210)
+    10000000000...
+    pow(10, 410)
+    10000000000...
+    pow(10, 610)
+    10000000000...
+    pow(10, 810)
+    10000000000...
 
     Fit a straight line assuming ``arg**1`` relationship
     (coefficients are returned):
 
-    >>> p.do_fit()
+    >>> p.do_fit()  # doctest: +SKIP
     array([  1.00135803e-08,   1.16777420e-05])
 
     Predict run time for ``10**5000``:
 
-    >>> p.predict_time(5000)
+    >>> p.predict_time(5000)  # doctest: +SKIP
     6.174564361572262e-05
 
     Plot the prediction:
 
-    >>> p.plot(xlabeltext='Power of 10')
+    >>> p.plot(xlabeltext='Power of 10')  # doctest: +SKIP
 
     .. image:: ../../docs/_static/timer_prediction_pow10.png
         :width: 450px
@@ -143,8 +152,8 @@ class RunTimePredictor(object):
 
     >>> p = RunTimePredictor(lambda x: pow(x, 2))
     >>> p.time_func([2,3,5])
-    >>> p.results
-    {2: 4, 3: 9, 5: 25}
+    >>> sorted(p.results.items())
+    [(2, 4), (3, 9), (5, 25)]
 
     """
     def __init__(self, func, *args, **kwargs):

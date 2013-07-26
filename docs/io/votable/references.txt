@@ -1,4 +1,5 @@
 .. _BINARY: http://www.ivoa.net/Documents/PR/VOTable/VOTable-20040322.html#ToC27
+.. _BINARY2: http://www.ivoa.net/documents/VOTable/20130315/PR-VOTable-1.3-20130315.html#sec:BIN2
 .. _COOSYS: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC19
 .. _DESCRIPTION: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC19
 .. _FIELD: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC24

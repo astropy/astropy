@@ -36,6 +36,7 @@ import re
 from . import core
 from .core import io, next, izip, any
 
+
 class Basic(core.BaseReader):
     """Read a character-delimited table with a single header line at the top
     followed by data lines to the end of the table.  Lines beginning with # as
@@ -62,6 +63,9 @@ class Basic(core.BaseReader):
       1 2 3
       4 5 6
     """
+    _format_name = 'basic'
+    _description = 'Basic table with custom delimiters'
+
     def __init__(self):
         core.BaseReader.__init__(self)
         self.header.splitter.delimiter = ' '
@@ -83,6 +87,9 @@ class NoHeader(Basic):
       1 2 "hello there"
       3 4 world
     """
+    _format_name = 'no_header'
+    _description = 'Basic table with no headers'
+
     def __init__(self):
         Basic.__init__(self)
         self.header.start_line = None
@@ -118,6 +125,9 @@ class CommentedHeader(core.BaseReader):
       1 2 3
       4 5 6
     """
+    _format_name = 'commented_header'
+    _description = 'Column names in a commented line'
+
     def __init__(self):
         core.BaseReader.__init__(self)
         self.header = CommentedHeaderHeader()
@@ -144,6 +154,9 @@ class Tab(Basic):
       # Comment line
       1 <tab> 2 <tab> 5
     """
+    _format_name = 'tab'
+    _description = 'Basic table with tab-separated values'
+
     def __init__(self):
         Basic.__init__(self)
         self.header.splitter.delimiter = '\t'
@@ -166,6 +179,11 @@ class Rdb(Tab):
 
     In this reader the second line is just ignored.
     """
+    _format_name = 'rdb'
+    _io_registry_format_aliases = ['rdb']
+    _io_registry_suffix = '.rdb'
+    _description = 'Tab-separated with a type definition header line'
+
     def __init__(self):
         Tab.__init__(self)
         self.header = RdbHeader()

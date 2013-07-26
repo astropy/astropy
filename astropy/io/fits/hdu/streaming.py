@@ -121,8 +121,8 @@ class StreamingHDU(object):
         # values to be modified in undesired ways...need to have a better way
         # of doing this
         tmp_hdu._header = self._header
-        self._hdrLoc = tmp_hdu._writeheader(self._ffo)[0]
-        self._datLoc = self._ffo.tell()
+        self._header_offset = tmp_hdu._writeheader(self._ffo)[0]
+        self._data_offset = self._ffo.tell()
         self._size = self.size
 
         if self._size != 0:
@@ -167,7 +167,7 @@ class StreamingHDU(object):
         `TypeError` exception is raised.
         """
 
-        curDataSize = self._ffo.tell() - self._datLoc
+        curDataSize = self._ffo.tell() - self._data_offset
 
         if self.writecomplete or curDataSize + data.nbytes > self._size:
             raise IOError('Attempt to write more data to the stream than the '
@@ -187,7 +187,7 @@ class StreamingHDU(object):
 
         self._ffo.writearray(output)
 
-        if self._ffo.tell() - self._datLoc == self._size:
+        if self._ffo.tell() - self._data_offset == self._size:
 #
 #           the stream is full so pad the data to the next FITS block
 #

@@ -4,7 +4,12 @@ These plugins modify the behavior of py.test and are meant to be imported
 into conftest.py in the root directory.
 """
 
+import doctest
+import fnmatch
+import imp
 import io
+import locale
+import math
 import os
 import sys
 
@@ -14,11 +19,166 @@ PY3K = sys.version_info[0] >= 3
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
+
+
 def pytest_addoption(parser):
     parser.addoption("--remote-data", action="store_true",
-        help="run tests with online data")
+                     help="run tests with online data")
     parser.addoption("--open-files", action="store_true",
-        help="fail if any test leaves files open")
+                     help="fail if any test leaves files open")
+
+    parser.addoption("--doctest-plus", action="store_true",
+            help="enable running doctests with additional features not "
+                 "found in the normal doctest plugin")
+
+    parser.addini("doctest_plus", "enable running doctests with additional "
+                  "features not found in the normal doctest plugin")
+
+    parser.addini("doctest_norecursedirs",
+                  "like the norecursedirs option but applies only to doctest "
+                  "collection", type="args", default=())
+
+
+def pytest_configure(config):
+    doctest_plugin = config.pluginmanager.getplugin('doctest')
+
+    if (doctest_plugin is None or config.option.doctestmodules or not
+            (config.getini('doctest_plus') or config.option.doctest_plus)):
+        return
+
+    class DocTestModulePlus(doctest_plugin.DoctestModule):
+        def runtest(self):
+            if self.fspath.basename == 'conftest.py':
+                module = self.config._conftest.importconftest(self.fspath)
+            else:
+                module = self.fspath.pyimport()
+
+            finder = DocTestFinderPlus(exclude_empty=False)
+            opts = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
+            runner = doctest.DebugRunner(verbose=False, optionflags=opts)
+
+            for test in finder.find(module):
+                runner.run(test)
+
+            failed, tot = doctest.TestResults(runner.failures, runner.tries)
+
+    config.pluginmanager.register(DoctestPlus(DocTestModulePlus),
+                                  'doctestplus')
+
+
+class DoctestPlus(object):
+    def __init__(self, doctest_module_item_cls):
+        """
+        doctest_module_item_cls should be a class inheriting
+        `pytest.doctest.DoctestItem` and `pytest.File`.  This class handles
+        running of a single doctest found in a Python module.  This is passed
+        in as an argument because the actual class to be used may not be
+        available at import time, depending on whether or not the doctest
+        plugin for py.test is available.
+        """
+
+        self._doctest_module_item_cls = doctest_module_item_cls
+
+
+    def pytest_ignore_collect(self, path, config):
+        """Skip paths that match any of the doctest_norecursedirs patterns."""
+
+        for pattern in config.getini("doctest_norecursedirs"):
+            if path.check(fnmatch=pattern):
+                return True
+
+
+    def pytest_collect_file(self, path, parent):
+        """Implements an enhanced version of the doctest module from py.test
+        (specifically, as enabled by the --doctest-modules option) which
+        supports skipping all doctests in a specific docstring by way of a
+        special ``__doctest_skip__`` module-level variable.  It can also skip
+        tests that have special requirements by way of
+        ``__doctest_requires__``.
+
+        ``__doctest_skip__`` should be a list of functions, classes, or class
+        methods whose docstrings should be ignored when collecting doctests.
+
+        This also supports wildcard patterns.  For example, to run doctests in
+        a class's docstring, but skip all doctests in its modules use, at the
+        module level::
+
+            __doctest_skip__ = ['ClassName.*']
+
+        You may also use the string ``'.'`` in ``__doctest_skip__`` to refer
+        to the module itself, in case its module-level docstring contains
+        doctests.
+
+        ``__doctest_requires__`` should be a dictionary mapping wildcard
+        patterns (in the same format as ``__doctest_skip__``) to a list of one
+        or more modules that should be *importable* in order for the tests to
+        run.  For example, if some tests require the scipy module to work they
+        will be skipped unless ``import scipy`` is possible.  It is also
+        possible to use a tuple of wildcard patterns as a key in this dict::
+
+            __doctest_requires__ = {('func1', 'func2'): ['scipy']}
+
+        """
+
+        config = parent.config
+        if path.ext == '.py':
+            # Don't override the built-in doctest plugin
+            return self._doctest_module_item_cls(path, parent)
+
+
+class DocTestFinderPlus(doctest.DocTestFinder):
+    """Extension to the default `doctest.DoctestFinder` that supports
+    ``__doctest_skip__`` magic.  See `pytest_collect_file` for more details.
+    """
+
+    # Caches the results of import attempts
+    _import_cache = {}
+
+    def find(self, obj, name=None, module=None, globs=None,
+             extraglobs=None):
+        tests = doctest.DocTestFinder.find(self, obj, name, module, globs,
+                                           extraglobs)
+        if (hasattr(obj, '__doctest_skip__') or
+                hasattr(obj, '__doctest_requires__')):
+            if name is None and hasattr(obj, '__name__'):
+                name = obj.__name__
+            else:
+               raise ValueError("DocTestFinder.find: name must be given "
+                                "when obj.__name__ doesn't exist: %r" %
+                                (type(obj),))
+
+            def test_filter(test):
+                for pat in getattr(obj, '__doctest_skip__', []):
+                    if pat == '*':
+                        return False
+                    elif pat == '.' and test.name == name:
+                        return False
+                    elif fnmatch.fnmatch(test.name, '.'.join((name, pat))):
+                        return False
+
+                reqs = getattr(obj, '__doctest_requires__', {})
+                for pats, mods in reqs.items():
+                    if not isinstance(pats, tuple):
+                        pats = (pats,)
+                    for pat in pats:
+                        if not fnmatch.fnmatch(test.name,
+                                               '.'.join((name, pat))):
+                            continue
+                        for mod in mods:
+                            if mod in self._import_cache:
+                                return self._import_cache[mod]
+                            try:
+                                imp.find_module(mod)
+                            except ImportError:
+                                self._import_cache[mod] = False
+                                return False
+                            else:
+                                self._import_cache[mod] = True
+                return True
+
+            tests = filter(test_filter, tests)
+
+        return tests
 
 
 # Open file detection.
@@ -54,7 +214,7 @@ def _get_open_file_list():
 
         if (mapping.get(b'f') and
             mapping.get(b'a', b' ') != b' ' and
-            mapping.get(b't') == b'REG'):
+                mapping.get(b't') == b'REG'):
             # Ignore extension modules -- they may be imported by a
             # test but are never again closed by the runtime.  That's
             # ok.
@@ -74,7 +234,7 @@ def pytest_runtest_setup(item):
         item.open_files = _get_open_file_list()
 
     if ('remote_data' in item.keywords and
-        not item.config.getvalue("remote_data")):
+            not item.config.getvalue("remote_data")):
         pytest.skip("need --remote-data option to run")
 
 
@@ -84,7 +244,7 @@ if SUPPORTS_OPEN_FILE_DETECTION:
         # pytest_runtest_setup, so therefore won't have an
         # "open_files" member
         if (not item.config.getvalue('open_files') or
-            not hasattr(item, 'open_files')):
+                not hasattr(item, 'open_files')):
             return
 
         start_open_files = item.open_files
@@ -128,6 +288,19 @@ def pytest_report_header(config):
     s += "Executable: {0}\n\n".format(sys.executable)
     s += "Full Python Version: \n{0}\n\n".format(sys.version)
 
+    s += "encodings: sys: {0}, locale: {1}, filesystem: {2}".format(
+        sys.getdefaultencoding(),
+        locale.getpreferredencoding(),
+        sys.getfilesystemencoding())
+    if sys.version_info < (3, 3, 0):
+        s += ", unicode bits: {0}".format(
+            int(math.log(sys.maxunicode, 2)))
+    s += '\n'
+
+    s += "byteorder: {0}\n".format(sys.byteorder)
+    s += "float info: dig: {0.dig}, mant_dig: {0.dig}\n\n".format(
+        sys.float_info)
+
     import numpy
     s += "Numpy: {0}\n".format(numpy.__version__)
 
@@ -144,8 +317,8 @@ def pytest_report_header(config):
         s += "Matplotlib: not available\n"
 
     try:
-        import h5py
-        s += "h5py: {0}\n".format(h5py.__version__)
+        import h5py.version
+        s += "h5py: {0}\n".format(h5py.version.version)
     except:
         s += "h5py: not available\n"
 
@@ -189,7 +362,7 @@ def modarg(request):
         os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
 
         def teardown():
-            #wipe the config/cache tmpdirs and restore the envars
+            # wipe the config/cache tmpdirs and restore the envars
             shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
             shutil.rmtree(os.environ['XDG_CACHE_HOME'])
             if oldconfigdir is None:

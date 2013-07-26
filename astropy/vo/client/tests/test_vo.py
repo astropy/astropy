@@ -3,19 +3,19 @@
 
 Examples
 --------
-Running inside Python:
+Running inside Python::
 
->>> import astropy
->>> astropy.test('vo.client', remote_data=True)
+    >>> import astropy
+    >>> astropy.test('vo.client', remote_data=True)
 
 Running from top level via command line::
 
-    python setup.py test -P vo.client --remote-data
+    $ python setup.py test -P vo.client --remote-data
 
 Running from ``astropy/vo/client/tests`` directory::
 
-    setenv ASTROPY_USE_SYSTEM_PYTEST 1
-    py.test test_vo.py --remote-data
+    $ setenv ASTROPY_USE_SYSTEM_PYTEST 1
+    $ py.test test_vo.py --remote-data
 
 """
 # STDLIB
@@ -29,6 +29,9 @@ from .. import conesearch, vos_catalog
 from ....tests.helper import pytest, remote_data
 from ....utils.data import get_pkg_data_filename
 from ....utils.data import REMOTE_TIMEOUT
+
+
+__doctest_skip__ = ['*']
 
 
 @remote_data

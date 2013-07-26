@@ -49,17 +49,17 @@ We can then read in a FITS table with::
 
 In practice, it would be nice to have the ``read`` method automatically
 identify that this file was a FITS file, so we can construct a function that
-can recognize FITS files, which we refer to here as an *identifier*
-function. An identifier function should take three arguments: the first
-should be a string which indicates whether the identifier is being called
-from ``read`` or ``write``, and the second and third are the positional and
-keyword arguments passed to ``Table.read`` respectively (and are therefore a
-list and a dictionary). We can write a simplistic function that only looks
-at filenames (but in practice, this function could even look at the first
-few bytes of the file for example). The only requirement is that it return a
+can recognize FITS files, which we refer to here as an *identifier* function.
+An identifier function should take a first argument that should be a string
+which indicates whether the identifier is being called from ``read`` or
+``write``, and should then accept arbitrary number of positional and keyword
+arguments via ``*args`` and ``**kwargs``, which are the arguments passed to
+``Table.read``. We can write a simplistic function that only looks at
+filenames (but in practice, this function could even look at the first few
+bytes of the file for example). The only requirement is that it return a
 boolean indicating whether the input matches that expected for the format::
 
-    def fits_identify(origin, args, kwargs):
+    def fits_identify(origin, *args, **kwargs):
         return isinstance(args[0], basestring) and \
                args[0].lower().split('.')[-1] in ['fits', 'fit']
 

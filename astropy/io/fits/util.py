@@ -1,10 +1,13 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
+from __future__ import division
 
 import functools
 import itertools
 import mmap
 import os
+import platform
 import signal
+import sys
 import tempfile
 import textwrap
 import threading
@@ -19,8 +22,6 @@ def itersubclasses(cls, _seen=None):
 
     Generator over all subclasses of a given class, in depth first order.
 
-    >>> list(itersubclasses(int)) == [bool]
-    True
     >>> class A(object): pass
     >>> class B(A): pass
     >>> class C(A): pass
@@ -34,7 +35,7 @@ def itersubclasses(cls, _seen=None):
     E
     C
     >>> # get ALL (new-style) classes currently defined
-    >>> [cls.__name__ for cls in itersubclasses(object)] #doctest: +ELLIPSIS
+    >>> [cls.__name__ for cls in itersubclasses(object)]
     ['type', ...'tuple', ...]
 
     From http://code.activestate.com/recipes/576949/
@@ -329,6 +330,7 @@ def fill(text, width, *args, **kwargs):
     """
 
     paragraphs = text.split('\n\n')
+
     def maybe_fill(t):
         if all(len(l) < width for l in t.splitlines()):
             return t
@@ -356,10 +358,31 @@ def _array_to_file(arr, outfile):
     """Write a numpy array to a file or a file-like object."""
 
     if isfile(outfile):
-        arr.tofile(outfile)
+        def write(a, f):
+            a.tofile(f)
     else:
         # treat as file-like object with "write" method
-        _write_string(outfile, arr.tostring())
+        def write(a, f):
+            _write_string(f, a.tostring())
+
+    # Implements a workaround for a bug deep in OSX's stdlib file writing
+    # functions; on 64-bit OSX it is not possible to correctly write a number
+    # of bytes greater than 2 ** 32 and divisble by 4096 (or possibly 8192--
+    # whatever the default blocksize for the filesystem is).
+    # This issue should have a workaround in Numpy too, but hasn't been
+    # implemented there yet: https://github.com/astropy/astropy/issues/839
+    osx_write_limit = (2 ** 32) - 1
+
+    if (sys.platform == 'darwin' and platform.architecture()[0] == '64bit' and
+            arr.nbytes >= osx_write_limit + 1 and arr.nbytes % 4096 == 0):
+        idx = 0
+        # chunksize is a count of elements in the array, not bytes
+        chunksize = osx_write_limit // arr.itemsize
+        while idx < arr.nbytes:
+            write(arr[idx:idx + chunksize], outfile)
+            idx += chunksize
+    else:
+        write(arr, outfile)
 
 
 def _write_string(f, s):
@@ -382,13 +405,17 @@ def _write_string(f, s):
 def _convert_array(array, dtype):
     """
     Converts an array to a new dtype--if the itemsize of the new dtype is
-    the same as the old dtype, a view is returned.  Otherwise a new array must
-    be created.
+    the same as the old dtype and both types are not numeric, a view is
+    returned.  Otherwise a new array must be created.
     """
 
     if array.dtype == dtype:
         return array
-    elif array.dtype.itemsize == dtype.itemsize:
+    elif (array.dtype.itemsize == dtype.itemsize and not
+            (np.issubdtype(array.dtype, np.number) and
+             np.issubdtype(dtype, np.number))):
+        # Includes a special case when both dtypes are at least numeric to
+        # account for ticket #218: https://trac.assembla.com/pyfits/ticket/218
         return array.view(dtype)
     else:
         return array.astype(dtype)

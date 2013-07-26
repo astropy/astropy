@@ -46,6 +46,9 @@ def_unit(['rad', 'radian'], register=True, prefixes=True,
 def_unit(['deg', 'degree'], _numpy.pi / 180.0 * rad, register=True,
          doc="degree: angular measurement 1/360 of full rotation",
          format={'latex': r'{}^{\circ}', 'unicode': '°'})
+def_unit(['hourangle'], 15.0 * deg, register=True, prefixes=False,
+         doc="hour angle: angular measurement with 24 in a full circle",
+         format={'latex': r'{}^{h}', 'unicode': 'ʰ'})
 def_unit(['arcmin', 'arcminute'], 1.0 / 60.0 * deg, register=True,
          prefixes=True,
          doc="arc minute: angular measurement",
@@ -182,6 +185,14 @@ def_unit(['lm', 'lumen'], cd * sr, register=True, prefixes=True,
          doc="lumen: luminous flux")
 def_unit(['lx', 'lux'], lm * m ** -2, register=True, prefixes=True,
          doc="lux: luminous emittence")
+
+###########################################################################
+# RADIOACTIVITY
+
+def_unit(['Bq', 'becquerel'], Hz, register=True, prefixes=False,
+         doc="becquerel: unit of radioactivity")
+def_unit(['Ci', 'curie'], Bq / 3.7e10, register=True, prefixes=False,
+         doc="curie: unit of radioactivity")
 
 
 ###########################################################################

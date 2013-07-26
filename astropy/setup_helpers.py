@@ -359,7 +359,7 @@ def register_commands(package, version, release):
 
          # The exact form of the build_ext command depends on whether or not
          # we're building a release version
-         'build_ext': generate_build_ext_command(release),
+         'build_ext': generate_build_ext_command(package, release),
 
          # We have a custom build_py to generate the default configuration file
          'build_py': AstropyBuildPy,
@@ -378,6 +378,8 @@ def register_commands(package, version, release):
 
     if HAVE_SPHINX:
         _registered_commands['build_sphinx'] = AstropyBuildSphinx
+    else:
+         _registered_commands['build_sphinx'] = FakeBuildSphinx
 
     # Need to override the __name__ here so that the commandline options are
     # presented as being related to the "build" command, for example; normally
@@ -405,7 +407,7 @@ def generate_test_command(package_name):
                 {'package_name': package_name})
 
 
-def generate_build_ext_command(release):
+def generate_build_ext_command(packagename, release):
     """
     Creates a custom 'build_ext' command that allows for manipulating some of
     the C extension options at build time.  We use a function to build the
@@ -416,7 +418,7 @@ def generate_build_ext_command(release):
     Uses the default distutils.command.build_ext by default.
     """
 
-    uses_cython = should_build_with_cython(release)
+    uses_cython = should_build_with_cython(packagename, release)
 
     if uses_cython:
         from Cython.Distutils import build_ext as basecls
@@ -495,8 +497,8 @@ def generate_build_ext_command(release):
         except ImportError:
             cython_version = 'unknown'
         if self.uses_cython and self.uses_cython != cython_version:
-            astropy_dir = os.path.relpath(os.path.dirname(__file__))
-            cython_py = os.path.join(astropy_dir, 'cython_version.py')
+            package_dir = os.path.relpath(packagename)
+            cython_py = os.path.join(package_dir, 'cython_version.py')
             with open(cython_py, 'w') as f:
                 f.write('# Generated file; do not modify\n')
                 f.write('cython_version = {0!r}\n'.format(self.uses_cython))
@@ -533,6 +535,30 @@ def generate_build_ext_command(release):
 
 
 class AstropyBuildPy(SetuptoolsBuildPy):
+
+    def finalize_options(self):
+        # Update build_lib settings from the build command to always put
+        # build files in platform-specific subdirectories of build/, even
+        # for projects with only pure-Python source (this is desirable
+        # specifically for support of multiple Python version).
+        build_cmd = self.get_finalized_command('build')
+        plat_specifier = '.{0}-{1}'.format(build_cmd.plat_name,
+                                           sys.version[0:3])
+        # Do this unconditionally
+        build_purelib = os.path.join(build_cmd.build_base,
+                                     'lib' + plat_specifier)
+        build_cmd.build_purelib = build_purelib
+        build_cmd.build_lib = build_purelib
+
+        # Ugly hack: We also need to 'fix' the build_lib option on the
+        # install command--it would be better just to override that command
+        # entirely, but we can get around that extra effort by doing it here
+        install_cmd = self.get_finalized_command('install')
+        install_cmd.build_lib = build_purelib
+        install_lib_cmd = self.get_finalized_command('install_lib')
+        install_lib_cmd.build_dir = build_purelib
+        self.build_lib = build_purelib
+        SetuptoolsBuildPy.finalize_options(self)
 
     def run(self):
         # first run the normal build_py
@@ -764,7 +790,6 @@ if HAVE_SPHINX:
             SphinxBuildDoc.finalize_options(self)
 
         def run(self):
-            import atexit
             import webbrowser
 
             from os.path import split, join, abspath
@@ -775,6 +800,10 @@ if HAVE_SPHINX:
                 from urllib.request import pathname2url
             else:
                 from urllib import pathname2url
+
+            # This is used at the very end of `run` to decide if sys.exit should
+            # be called. If it's None, it won't be.
+            retcode = None
 
             # If possible, create the _static dir
             if self.build_dir is not None:
@@ -805,8 +834,8 @@ if HAVE_SPHINX:
             subproccode = textwrap.dedent("""
             from sphinx.setup_command import *
 
-            os.chdir('{srcdir}')
-            sys.path.insert(0,'{build_cmd_path}')
+            os.chdir({srcdir!r})
+            sys.path.insert(0, {build_cmd_path!r})
 
             """).format(build_cmd_path=build_cmd_path, srcdir=self.source_dir)
             #runlines[1:] removes 'def run(self)' on the first line
@@ -854,9 +883,17 @@ if HAVE_SPHINX:
                     retcode = 1
 
                 if retcode != 0:
-                    def overrideexitcode():
-                        raise SystemExit(retcode)
-                    atexit.register(overrideexitcode)
+                    if os.environ.get('TRAVIS', None) == 'true':
+                        #this means we are in the travis build, so customize
+                        #the message appropriately.
+                        msg = ('The build_sphinx travis build FAILED '
+                               'because sphinx issued documentation '
+                               'warnings (scroll up to see the warnings).')
+                    else:  # standard failure message
+                        msg = ('build_sphinx returning a non-zero exit '
+                               'code because sphinx issued documentation '
+                               'warnings.')
+                    log.warn(msg)
 
             else:
                 proc = Popen([sys.executable], stdin=PIPE)
@@ -874,6 +911,13 @@ if HAVE_SPHINX:
             else:
                 log.warn('Sphinx Documentation subprocess failed with return '
                          'code ' + str(proc.returncode))
+
+            if retcode is not None:
+                # this is potentially dangerous in that there might be something
+                # after the call to `setup` in `setup.py`, and exiting here will
+                # prevent that from running.  But there's no other apparent way
+                # to signal what the return code should be.
+                sys.exit(retcode)
 
 
 def get_distutils_display_options():
@@ -1045,22 +1089,28 @@ def iter_pyx_files(srcdir):
                 yield (extmod, fullfn)
 
 
-def should_build_with_cython(release=None):
+def should_build_with_cython(package, release=None):
     """Returns the previously used Cython version (or 'unknown' if not
     previously built) if Cython should be used to build extension modules from
     pyx files.  If the ``release`` parameter is not specified an attempt is
     made to determine the release flag from `astropy.version`.
     """
 
-    if release is None:
+    try:
+        version_module = __import__(package + '.cython_version',
+                                    fromlist=['release', 'cython_version'])
+    except ImportError:
+        version_module = None
+
+    if release is None and version_module is not None:
         try:
-            from .version import release
-        except ImportError:
+            release = version_module.release
+        except AttributeError:
             pass
 
     try:
-        from .version import cython_version
-    except ImportError:
+        cython_version = version_module.cython_version
+    except AttributeError:
         cython_version = 'unknown'
 
     # Only build with Cython if, of course, Cython is installed, we're in a
@@ -1605,3 +1655,42 @@ class bdist_dmg(Command):
 
         # Remove temporary disk image
         os.remove(dmg_path_tmp)
+
+
+class FakeBuildSphinx(Command):
+    """
+    A dummy build_sphinx command that is called if Sphinx is not
+    installed and displays a relevant error message
+    """
+
+    #user options inherited from sphinx.setup_command.BuildDoc
+    user_options = [
+         ('fresh-env', 'E', '' ),
+         ('all-files', 'a', ''),
+         ('source-dir=', 's', ''),
+         ('build-dir=', None, ''),
+         ('config-dir=', 'c', ''),
+         ('builder=', 'b', ''),
+         ('project=', None, ''),
+         ('version=', None, ''),
+         ('release=', None, ''),
+         ('today=', None, ''),
+         ('link-index', 'i', ''),
+     ]
+
+    #user options appended in astropy.setup_helpers.AstropyBuildSphinx
+    user_options.append(('warnings-returncode', 'w',''))
+    user_options.append(('clean-docs', 'l', ''))
+    user_options.append(('no-intersphinx', 'n', ''))
+    user_options.append(('open-docs-in-browser', 'o',''))
+
+
+
+    def initialize_options(self):
+        try:
+            raise RuntimeError("Sphinx must be installed for build_sphinx")
+        except:
+            log.error('error : Sphinx must be installed for build_sphinx')
+            sys.exit(1)
+
+

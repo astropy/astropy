@@ -35,13 +35,18 @@ import sys
 import re
 import csv
 import itertools
+import functools
 import numpy
 from contextlib import contextmanager
-from copy import deepcopy
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
 from ...utils import OrderedDict
+from . import connect
+
+# Global dictionary mapping format arg to the corresponding Reader class
+FORMAT_CLASSES = {}
+
 
 class InconsistentTableError(ValueError):
     pass
@@ -144,7 +149,7 @@ class BaseInputter(object):
         """
         try:
             if (hasattr(table, 'read') or
-                ('\n' not in table and '\r' not in table + '')):
+                    ('\n' not in table and '\r' not in table + '')):
                 with get_readable_fileobj(table) as file_obj:
                     table = file_obj.read()
             lines = table.splitlines()
@@ -276,12 +281,12 @@ class DefaultSplitter(BaseSplitter):
             delimiter = self.delimiter
 
         csv_reader = csv.reader(lines,
-                                delimiter = delimiter,
-                                doublequote = self.doublequote,
-                                escapechar =self.escapechar,
-                                quotechar = self.quotechar,
-                                quoting = self.quoting,
-                                skipinitialspace = self.skipinitialspace
+                                delimiter=delimiter,
+                                doublequote=self.doublequote,
+                                escapechar=self.escapechar,
+                                quotechar=self.quotechar,
+                                quoting=self.quoting,
+                                skipinitialspace=self.skipinitialspace
                                 )
         for vals in csv_reader:
             if self.process_val:
@@ -297,12 +302,12 @@ class DefaultSplitter(BaseSplitter):
 
         if self.csv_writer is None:
             self.csv_writer = csv.writer(self.csv_writer_out,
-                                         delimiter = self.delimiter,
-                                         doublequote = self.doublequote,
-                                         escapechar = self.escapechar,
-                                         quotechar = self.quotechar,
-                                         quoting = self.quoting,
-                                         lineterminator = '',
+                                         delimiter=delimiter,
+                                         doublequote=self.doublequote,
+                                         escapechar=self.escapechar,
+                                         quotechar=self.quotechar,
+                                         quoting=self.quoting,
+                                         lineterminator='',
                                          )
         self.csv_writer_out.seek(0)
         self.csv_writer_out.truncate()
@@ -416,7 +421,7 @@ class BaseHeader(object):
             for i, line in enumerate(self.process_lines(lines)):
                 if i == start_line:
                     break
-            else: # No header line matching
+            else:  # No header line matching
                 raise ValueError('No header line found in table')
 
             self.names = next(self.splitter([line]))
@@ -469,7 +474,7 @@ class BaseHeader(object):
             return self.col_type_map[type_map_key.lower()]
         except KeyError:
             raise ValueError('Unknown data type ""%s"" for column "%s"' % (
-                    col.raw_type, col.name))
+                col.raw_type, col.name))
 
 
 class BaseData(object):
@@ -543,7 +548,13 @@ class BaseData(object):
 
         """
         if self.fill_values:
-            #if input is only one <fill_spec>, then make it a list
+            # when we write tables the columns may be astropy.table.Columns
+            # which don't carry a fill_values by default
+            for col in cols:
+                if ~hasattr(col, 'fill_values'):
+                    col.fill_values = {}
+
+            # if input is only one <fill_spec>, then make it a list
             try:
                 self.fill_values[0] + ''
                 self.fill_values = [self.fill_values]
@@ -581,6 +592,14 @@ class BaseData(object):
                     col.str_vals[i] = col.fill_values[str_val]
                     col.mask[i] = True
 
+    def _replace_vals(self, cols):
+        """Replace string values in col.str_vals"""
+        if self.fill_values:
+            for col in (col for col in cols if col.fill_values):
+                for i, str_val in ((i, x) for i, x in enumerate(col.str_vals)
+                                   if x in col.fill_values):
+                    col.str_vals[i] = col.fill_values[str_val]
+
     def write(self, lines):
         if hasattr(self.start_line, '__call__'):
             raise TypeError('Start_line attribute cannot be callable for write()')
@@ -590,27 +609,22 @@ class BaseData(object):
         while len(lines) < data_start_line:
             lines.append(itertools.cycle(self.write_spacer_lines))
 
-        with self._set_col_formats(self.cols, self.formats):
-            col_str_iters = [col.iter_str_vals() for col in self.cols]
-            for vals in izip(*col_str_iters):
-                lines.append(self.splitter.join(vals))
+        self._set_fill_values(self.cols)
+        self._set_col_formats()
+        for col in self.cols:
+            col.str_vals = list(col.iter_str_vals())
+        self._replace_vals(self.cols)
+        col_str_iters = [col.str_vals for col in self.cols]
+        for vals in zip(*col_str_iters):
+            lines.append(self.splitter.join(vals))
 
-    @contextmanager
-    def _set_col_formats(self, cols, formats):
+    def _set_col_formats(self):
         """
-        Context manager to save the internal column formats in `cols` and
-        override with any custom `formats`.
         """
-        orig_formats = [col.format for col in cols]
-        for col in cols:
-            if col.name in formats:
-                col.format = formats[col.name]
+        for col in self.cols:
+            if col.name in self.formats:
+                col.format = self.formats[col.name]
 
-        yield  # execute the nested context manager block
-
-        # Restore the original column format values
-        for col, orig_format in izip(cols, orig_formats):
-            col.format = orig_format
 
 class DictLikeNumpy(dict):
     """Provide minimal compatibility with numpy rec array API for BaseOutputter
@@ -690,6 +704,7 @@ def convert_numpy(numpy_type):
         return numpy.array(vals, numpy_type)
     return converter, converter_type
 
+
 class BaseOutputter(object):
     """Output table as a dict of column objects keyed on column name.  The
     table data are stored as plain python lists within the column objects.
@@ -756,11 +771,36 @@ class TableOutputter(BaseOutputter):
         for col, out_col in zip(cols, out.columns.values()):
             if masked and hasattr(col, 'mask'):
                 out_col.data.mask = col.mask
-            for attr in ('format', 'units', 'description'):
+            for attr in ('format', 'unit', 'description'):
                 if hasattr(col, attr):
                     setattr(out_col, attr, getattr(col, attr))
 
         return out
+
+
+class MetaBaseReader(type):
+    def __init__(cls, name, bases, dct):
+        super(MetaBaseReader, cls).__init__(name, bases, dct)
+
+        format = dct.get('_format_name')
+        if format is None:
+            return
+
+        FORMAT_CLASSES[format] = cls
+
+        io_formats = ['ascii.' + format] + dct.get('_io_registry_format_aliases', [])
+
+        if dct.get('_io_registry_suffix'):
+            func = functools.partial(connect.io_identify, dct['_io_registry_suffix'])
+            connect.io_registry.register_identifier(io_formats[0], Table, func)
+
+        for io_format in io_formats:
+            func = functools.partial(connect.io_read, io_format)
+            connect.io_registry.register_reader(io_format, Table, func)
+
+            if dct.get('_io_registry_can_write', True):
+                func = functools.partial(connect.io_write, io_format)
+                connect.io_registry.register_writer(io_format, Table, func)
 
 
 class BaseReader(object):
@@ -776,6 +816,8 @@ class BaseReader(object):
     The default behavior is to raise an InconsistentTableError.
 
     """
+    __metaclass__ = MetaBaseReader
+
     def __init__(self):
         self.header = BaseHeader()
         self.data = BaseData()
@@ -842,11 +884,11 @@ class BaseReader(object):
             if len(str_vals) != n_data_cols:
                 str_vals = self.inconsistent_handler(str_vals, n_data_cols)
 
-                #if str_vals is None, we skip this row
+                # if str_vals is None, we skip this row
                 if str_vals is None:
                     continue
 
-                #otherwise, we raise an error only if it is still inconsistent
+                # otherwise, we raise an error only if it is still inconsistent
                 if len(str_vals) != n_data_cols:
                     errmsg = ('Number of header columns (%d) inconsistent with '
                               'data columns (%d) at data line %d\n'
@@ -881,7 +923,7 @@ class BaseReader(object):
             raised in read().  Can also be None, in which case the row will be
             skipped.
         """
-        #an empty list will always trigger an InconsistentTableError in read()
+        # an empty list will always trigger an InconsistentTableError in read()
         return str_vals
 
     @property
@@ -912,6 +954,7 @@ class BaseReader(object):
         self.data.write(lines)
 
         return lines
+
 
 class ContinuationLinesInputter(BaseInputter):
     """Inputter where lines ending in ``continuation_char`` are joined
@@ -973,6 +1016,7 @@ extra_reader_pars = ('Reader', 'Inputter', 'Outputter',
                      'names', 'include_names', 'exclude_names',
                      'fill_values', 'fill_include_names', 'fill_exclude_names')
 
+
 def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     """Initialize a table reader allowing for common customizations.  See ui.get_reader()
     for param docs.  This routine is for internal (package) use only and is useful
@@ -1025,10 +1069,12 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
 
     return reader
 
-extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats', 'strip_whitespace',
+extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
+                     'strip_whitespace',
                      'names', 'include_names', 'exclude_names',
                      'fill_values', 'fill_include_names',
                      'fill_exclude_names')
+
 
 def _get_writer(Writer, **kwargs):
     """Initialize a table writer allowing for common customizations. This
@@ -1041,9 +1087,9 @@ def _get_writer(Writer, **kwargs):
     if 'delimiter' in kwargs:
         writer.header.splitter.delimiter = kwargs['delimiter']
         writer.data.splitter.delimiter = kwargs['delimiter']
-    if 'write_comment' in kwargs:
-        writer.header.write_comment = kwargs['write_comment']
-        writer.data.write_comment = kwargs['write_comment']
+    if 'comment' in kwargs:
+        writer.header.write_comment = kwargs['comment']
+        writer.data.write_comment = kwargs['comment']
     if 'quotechar' in kwargs:
         writer.header.splitter.quotechar = kwargs['quotechar']
         writer.data.splitter.quotechar = kwargs['quotechar']

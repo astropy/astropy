@@ -9,6 +9,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 
 from ... import units as u
+from ...constants import hbar
 
 
 def test_simple():
@@ -29,3 +30,7 @@ def test_unknown():
 
 def test_dimensionless():
     assert (u.m / u.m).physical_type == 'dimensionless'
+
+
+def test_angular_momentum():
+    assert hbar.unit.physical_type == 'angular momentum'

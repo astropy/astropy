@@ -2,7 +2,7 @@
 import sys
 import warnings
 
-from .helper import pytest
+from .helper import pytest, catch_warnings
 from .. import log
 from ..logger import LoggingError
 
@@ -71,7 +71,7 @@ def test_warnings_logging_overridden():
 def test_warnings_logging():
 
     # Without warnings logging
-    with warnings.catch_warnings(record=True) as warn_list:
+    with catch_warnings() as warn_list:
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning")
     assert len(log_list) == 0
@@ -79,7 +79,7 @@ def test_warnings_logging():
     assert warn_list[0].message.args[0] == "This is a warning"
 
     # With warnings logging
-    with warnings.catch_warnings(record=True) as warn_list:
+    with catch_warnings() as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning")
@@ -91,7 +91,7 @@ def test_warnings_logging():
     assert log_list[0].origin == 'astropy.tests.test_logger'
 
     # Without warnings logging
-    with warnings.catch_warnings(record=True) as warn_list:
+    with catch_warnings() as warn_list:
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning")
     assert len(log_list) == 0
@@ -104,7 +104,7 @@ def test_warnings_logging_with_custom_class():
         pass
 
     # With warnings logging
-    with warnings.catch_warnings(record=True) as warn_list:
+    with catch_warnings() as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning", CustomWarningClass)
@@ -119,7 +119,7 @@ def test_warnings_logging_with_custom_class():
 def test_warning_logging_with_io_votable_warning():
     from ..io.votable.exceptions import W02, vo_warn
 
-    with warnings.catch_warnings(record=True) as warn_list:
+    with catch_warnings() as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
             vo_warn(W02, ('a', 'b'))
