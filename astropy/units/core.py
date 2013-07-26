@@ -1219,16 +1219,19 @@ class _UnitMetaClass(type):
             f = unit_format.get_format(format)
             try:
                 return f.parse(s)
-            except ValueError as e:
-                msg = "'{0}' did not parse as unit format '{1}': {2}".format(
-                    s, format, str(e))
-                if parse_strict == 'raise':
-                    raise ValueError(msg)
-                elif parse_strict == 'warn':
-                    warnings.warn(msg, UnitsWarning)
-                elif parse_strict != 'silent':
-                    raise ValueError(
-                        "'parse_strict' must be 'warn', 'raise' or 'silent'")
+            except Exception as e:
+                if parse_strict == 'silent':
+                    pass
+                else:
+                    msg = "'{0}' did not parse as unit format '{1}': {2}".format(
+                        s, format, str(e))
+                    if parse_strict == 'raise':
+                        raise ValueError(msg)
+                    elif parse_strict == 'warn':
+                        warnings.warn(msg, UnitsWarning)
+                    else:
+                        raise ValueError(
+                            "'parse_strict' must be 'warn', 'raise' or 'silent'")
                 return UnrecognizedUnit(s)
 
         elif isinstance(s, (int, float, np.floating, np.integer)):
