@@ -80,8 +80,9 @@ class Distance(object):
             if len(args) > 0 or len(kwargs) > 0:
                 raise TypeError('Cannot give both distance and redshift')
 
-            self._value = cosmo.luminosity_distance(z)
-            self._unit = u.Mpc
+            ld = cosmo.luminosity_distance(z)
+            self._value = ld.value
+            self._unit = ld.unit
         else:
             if len(args) == 0:
                 value = kwargs.pop('value', None)
@@ -231,7 +232,7 @@ class Distance(object):
 
         # FIXME: array: need to make this calculation more vector-friendly
 
-        f = lambda z, d, cos: (luminosity_distance(z, cos) - d) ** 2
+        f = lambda z, d, cos: (luminosity_distance(z, cos).value - d) ** 2
         return optimize.brent(f, (self.Mpc, cosmology))
 
 
