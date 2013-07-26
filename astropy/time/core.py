@@ -10,6 +10,8 @@ import time
 import itertools
 import numpy as np
 
+from ..utils.compat.misc import override__dir__
+
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS', 'TimePlotDate',
            'TimeDatetime',
@@ -495,20 +497,10 @@ class Time(object):
                 setattr(tm, attr, keepasarray(val[item]))
         return tm
 
-    def _getAttributeNames(self):
-        """
-        Add dynamic attribute names for IPython completer.
-        """
-        return list(self.SCALES) + self.FORMATS.keys()
-
     def __getattr__(self, attr):
         """
         Get dynamic attributes to output format or do timescale conversion.
         """
-        # The following is needed for the IPython completer
-        if attr == 'trait_names':
-            return []
-
         if attr in self.SCALES:
             tm = self.replicate()
             tm._set_scale(attr)
@@ -528,6 +520,10 @@ class Time(object):
         else:
             # Should raise AttributeError
             return self.__getattribute__(attr)
+
+    @override__dir__
+    def __dir__(self):
+        return set(list(self.SCALES) + self.FORMATS.keys())
 
     def _match_len(self, val):
         """
