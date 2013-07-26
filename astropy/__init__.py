@@ -17,6 +17,7 @@ except NameError:
         import __builtin__ as builtins
     builtins._ASTROPY_SETUP_ = False
     del version_info
+    del builtins
 
 try:
     from .version import version as __version__
@@ -28,9 +29,6 @@ try:
 except ImportError:
     # TODO: Issue a warning using the logging framework
     __githash__ = ''
-
-
-import logging
 
 
 # The location of the online documentation for astropy
@@ -124,20 +122,14 @@ def test(package=None, test_path=None, args=None, plugins=None,
         parallel=parallel)
 
 
-# Use the root logger as a dummy log before initilizing Astropy's logger
-log = logging.getLogger()
-
 # if we are *not* in setup mode, import the logger and possibly populate the
 # configuration file with the defaults
-if not _ASTROPY_SETUP_:
-    from .logger import _init_log
+def _initialize_astropy():
     from . import config
 
     import os
     import sys
     from warnings import warn
-
-    log = _init_log()
 
     try:
         from .utils import _compiler
@@ -162,6 +154,17 @@ if not _ASTROPY_SETUP_:
         wmsg = (e.args[0] + " Cannot install default profile. If you are "
                 "importing from source, this is expected.")
         warn(config.configuration.ConfigurationDefaultMissingWarning(wmsg))
-        del e
 
-    del _init_log, os, warn, config_dir  # clean up namespace
+
+import logging
+
+# Use the root logger as a dummy log before initilizing Astropy's logger
+log = logging.getLogger()
+
+
+if not _ASTROPY_SETUP_:
+    from .logger import _init_log
+
+    log = _init_log()
+
+    _initialize_astropy()
