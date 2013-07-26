@@ -120,7 +120,7 @@ class Angle(u.Quantity):
                 ang, new_unit = util.parse_angle(str(input), None)
                 output[...] = new_unit.to(unit, ang)
             angle = it.operands[1]
-        elif angle.dtype.kind not in b'iuf':
+        elif angle.dtype.kind not in 'iuf':
             raise TypeError("Unsupported dtype '{0}'".format(angle.dtype))
 
         if unit is None:

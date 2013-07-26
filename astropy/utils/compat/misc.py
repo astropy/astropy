@@ -130,9 +130,11 @@ def override__dir__(f):
             members.update(f(self))
             return sorted(members)
     else:
+        # http://bugs.python.org/issue12166
+
         @wraps(f)
         def override__dir__wrapper(self):
-            members = set(super(self.__class__, self).__dir__())
+            members = set(object.__dir__(self))
             members.update(f(self))
             return sorted(members)
 
