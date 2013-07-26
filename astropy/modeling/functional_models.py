@@ -11,12 +11,12 @@ from .core import (Parametric1DModel, Parametric2DModel, Model,
                    _convert_input, _convert_output)
 from .utils import InputParameterError, ModelDefinitionError
 
-__all__ = ['Gaussian1DModel', 'Gaussian2DModel', 'ScaleModel', 'ShiftModel',
-           'Custom1DModel', 'Sine1DModel', 'Linear1DModel', 'PowerLaw1DModel',
-           'Const1DModel', 'Const2DModel', 'Lorentz1DModel', 'Box1DModel',
-           'Box2DModel', 'Disk2DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel',
-           'MexicanHat1DModel', 'MexicanHat2DModel', 'AiryDisk2DModel', 'Beta1DModel',
-           'Beta2DModel']
+__all__ = sorted(['AiryDisk2DModel', 'Beta1DModel', 'Beta2DModel',
+           'Box1DModel', 'Box2DModel', 'Const1DModel', 'Const2DModel',
+           'Custom1DModel', 'Disk2DModel', 'Gaussian1DModel', 'Gaussian2DModel',
+           'Linear1DModel', 'Lorentz1DModel', 'MexicanHat1DModel',
+           'MexicanHat2DModel', 'PowerLaw1DModel', 'ScaleModel', 'ShiftModel',
+           'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel'])
 
 
 class Gaussian1DModel(Parametric1DModel):
