@@ -35,9 +35,9 @@ matrix:
 
         # now try do scipy on 2.7 and an appropriate 3.x build (with latest numpy)
         - python: 2.7
-          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true
+          env: SETUP_CMD='test --parallel=8' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true LC_CTYPE=C.ascii
         - python: 3.2
-          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true
+          env: SETUP_CMD='test' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=true LC_CTYPE=C.ascii
 
         # try alternate numpy versions
         - python: 2.7
