@@ -427,7 +427,10 @@ class ProgressBar(object):
             arr = np.fromstring(data, dtype=np.int16)
             terminal_width = arr[1]
         else:
-            terminal_width = os.environ.get('COLUMNS', 78)
+            try:
+                terminal_width = int(os.environ.get('COLUMNS'))
+            except ValueError:
+                terminal_width = 78
         self._bar_length = terminal_width - 37
 
     def __enter__(self):
