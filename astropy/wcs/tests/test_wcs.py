@@ -7,12 +7,19 @@ import numpy as np
 from numpy.testing import (
     assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp)
 
-from ...tests.helper import raises, catch_warnings
+from ...tests.helper import raises, catch_warnings, pytest
 from ... import wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from ...tests.helper import pytest
 
+
+try:
+    import scipy
+except ImportError:
+    HAS_SCIPY = False
+else:
+    HAS_SCIPY = True
 
 # test_maps() is a generator
 def test_maps():
@@ -417,6 +424,7 @@ def test_validate():
             x.strip() for x in results_txt.splitlines()])
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_all_world2pix():
     """Test all_world2pix, iterative inverse of all_pix2world"""
     fits = get_pkg_data_filename('data/sip.fits')
