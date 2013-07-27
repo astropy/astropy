@@ -429,7 +429,7 @@ class ProgressBar(object):
         else:
             try:
                 terminal_width = int(os.environ.get('COLUMNS'))
-            except ValueError:
+            except (TypeError, ValueError):
                 terminal_width = 78
         self._bar_length = terminal_width - 37
 
