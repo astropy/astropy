@@ -90,6 +90,7 @@ def isatty(file):
         return file.isatty()
     return False
 
+
 def _color_text(text, color):
     """
     Returns a string wrapped in ANSI color codes for coloring the
@@ -189,7 +190,6 @@ def _write_with_fallback(s, write, fileobj):
     # If this doesn't work let the exception bubble up; I'm out of ideas
     write(s)
     return write
-
 
 
 def color_print(*args, **kwargs):
@@ -300,7 +300,7 @@ def human_time(seconds):
         (u'h', 60 * 60),
         (u'm', 60),
         (u's', 1),
-        ]
+    ]
 
     seconds = int(seconds)
 
@@ -450,7 +450,7 @@ class ProgressBar(object):
 
     def next(self):
         try:
-            rv =  next(self._items)
+            rv = next(self._items)
         except StopIteration:
             self.__exit__(None, None, None)
             raise
