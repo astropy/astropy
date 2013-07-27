@@ -130,6 +130,10 @@ Bug Fixes
 
   - The ``write()`` function was ignoring the ``fill_values`` argument (#910).
 
+- ``astropy.time``
+
+  - The module uses internally free software library ERFA instead of 
+    non-free library SOFA (#1195)
 
 0.2.4 (unreleased)
 ------------------
