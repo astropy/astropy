@@ -91,7 +91,7 @@ def cal2jd(
     **  1) The algorithm used is valid from -4800 March 1, but this
     **     implementation rejects dates before -4799 January 1.
     **
-    **  2) The Julian Date is returned in two pieces, in the usual SOFA
+    **  2) The Julian Date is returned in two pieces, in the usual ERFA
     **     manner, which is designed to preserve time resolution.  The
     **     Julian Date is available as a single number by adding djm0 and
     **     djm.
@@ -260,7 +260,7 @@ def jd_dtf(scale, ndp,
     **     next note.
     **
     **  4) JD cannot unambiguously represent UTC during a leap second unless
-    **     special measures are taken.  The SOFA internal convention is that
+    **     special measures are taken.  The ERFA internal convention is that
     **     the quasi-JD day represents UTC days whether the length is 86399,
     **     86400 or 86401 SI seconds.
     **
@@ -335,7 +335,7 @@ def dtf_jd(scale,
     **     conventions apply:  see the next note.
     **
     **  4) JD cannot unambiguously represent UTC during a leap second unless
-    **     special measures are taken.  The SOFA internal convention is that
+    **     special measures are taken.  The ERFA internal convention is that
     **     the quasi-JD day represents UTC days whether the length is 86399,
     **     86400 or 86401 SI seconds.
     **
@@ -906,7 +906,7 @@ def tdb_tt(
     **     GR transformation between TT and TCB.  It is dependent upon the
     **     adopted solar-system ephemeris, and can be obtained by numerical
     **     integration, by interrogating a precomputed time ephemeris or by
-    **     evaluating a model such as that implemented in the SOFA function
+    **     evaluating a model such as that implemented in the ERFA function
     **     eraDtdb.   The quantity is dominated by an annual term of 1.7 ms
     **     amplitude.
     **
@@ -956,7 +956,7 @@ def tt_tdb(
     **     GR transformation between TT and TCB.  It is dependent upon the
     **     adopted solar-system ephemeris, and can be obtained by numerical
     **     integration, by interrogating a precomputed time ephemeris or by
-    **     evaluating a model such as that implemented in the SOFA function
+    **     evaluating a model such as that implemented in the ERFA function
     **     eraDtdb.   The quantity is dominated by an annual term of 1.7 ms
     **     amplitude.
     **
@@ -1300,8 +1300,8 @@ def era_gd2gc(n, elong, phi, height):
     **        2     GRS80
     **        3     WGS72
     **
-    **     The n value has no significance outside the SOFA software.  For
-    **     convenience, symbols WGS84 etc. are defined in sofam.h.
+    **     The n value has no significance outside the ERFA software.  For
+    **     convenience, symbols WGS84 etc. are defined in erfam.h.
     **
     **  2) The height (height, given) and the geocentric vector (xyz,
     **     returned) are in meters.
@@ -1340,7 +1340,7 @@ def jd_julian_epoch(np.ndarray[double, ndim=1] jd1,
     **
     **  Note:
     **
-    **     The Julian Date is supplied in two pieces, in the usual SOFA
+    **     The Julian Date is supplied in two pieces, in the usual ERFA
     **     manner, which is designed to preserve time resolution.  The
     **     Julian Date is available as a single number by adding dj1 and
     **     dj2.  The maximum resolution is achieved if dj1 is 2451545D0
@@ -1393,7 +1393,7 @@ def jd_besselian_epoch(np.ndarray[double, ndim=1] jd1,
     **
     **  Note:
     **
-    **     The Julian Date is supplied in two pieces, in the usual SOFA
+    **     The Julian Date is supplied in two pieces, in the usual ERFA
     **     manner, which is designed to preserve time resolution.  The
     **     Julian Date is available as a single number by adding dj1 and
     **     dj2.  The maximum resolution is achieved if dj1 is 2451545D0
@@ -1424,7 +1424,7 @@ def besselian_epoch_jd(np.ndarray[double, ndim=1] epd):
     **
     **  Note:
     **
-    **     The Julian Date is returned in two pieces, in the usual SOFA
+    **     The Julian Date is returned in two pieces, in the usual ERFA
     **     manner, which is designed to preserve time resolution.  The
     **     Julian Date is available as a single number by adding djm0 and
     **     djm.

@@ -543,10 +543,10 @@ class Time(object):
             raise ValueError('Attribute length must match Time object length')
         return val
 
-    # Property for SOFA DUT arg = UT1 - UTC
+    # Property for ERFA DUT arg = UT1 - UTC
     def _get_delta_ut1_utc(self, jd1=None, jd2=None):
         """
-        Get SOFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
+        Get ERFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
         jd2 args because it gets called that way when converting time scales.
         The current code ignores these, but when the IERS table is interpolated
         by this module they will be used.
@@ -570,7 +570,7 @@ class Time(object):
     delta_ut1_utc = property(_get_delta_ut1_utc, _set_delta_ut1_utc)
     """UT1 - UTC time scale offset"""
 
-    # Property for SOFA DTR arg = TDB - TT
+    # Property for ERFA DTR arg = TDB - TT
     def _get_delta_tdb_tt(self, jd1=None, jd2=None):
         if not hasattr(self, '_delta_tdb_tt'):
             # If jd1 and jd2 are not provided (which is the case for property
@@ -896,7 +896,7 @@ class TimeMJD(TimeFormat):
     name = 'mjd'
 
     def set_jds(self, val1, val2):
-        # TODO - this routine and vals should be Cythonized to follow the SOFA
+        # TODO - this routine and vals should be Cythonized to follow the ERFA
         # convention of preserving precision by adding to the larger of the two
         # values in a vectorized operation.  But in most practical cases the
         # first one is probably biggest.

@@ -12,9 +12,9 @@ Introduction
 The `astropy.time` package provides functionality for manipulating times and
 dates.  Specific emphasis is placed on supporting time scales (e.g. UTC, TAI, UT1) and
 time representations (e.g. JD, MJD, ISO 8601) that are used in astronomy.
-It uses Cython to wrap the C language `SOFA`_ time and calendar
+It uses Cython to wrap the C language `ERFA`_ time and calendar
 routines.  All time scale conversions are done by Cython vectorized versions
-of the `SOFA`_ routines and are fast and memory efficient.
+of the `ERFA`_ routines and are fast and memory efficient.
 
 Getting Started
 ===============
@@ -221,8 +221,8 @@ the Julian Date for that time relative to the given `time scale`_.  Users
 requiring no better than microsecond precision over human time scales (~100
 years) can safely ignore the internal representation details and skip this section.
 
-This representation is driven by the underlying SOFA C-library implementation.
-The SOFA routines take care throughout to maintain overall precision of the
+This representation is driven by the underlying ERFA C-library implementation.
+The ERFA routines take care throughout to maintain overall precision of the
 double pair.  The user is free to choose the way in which total JD is
 distributed between the two values.
 
@@ -328,7 +328,7 @@ precision
 The `precision` setting affects string formats when outputting a value that
 includes seconds.  It must be an integer between 0 and 9.  There is no effect
 when inputting time values from strings.  The default precision is 3.  Note
-that the limit of 9 digits is driven by the way that SOFA handles fractional
+that the limit of 9 digits is driven by the way that ERFA handles fractional
 seconds.  In practice this should should not be an issue.  ::
 
   >>> t = Time('B1950.0', scale='utc', precision=3)
@@ -383,7 +383,7 @@ lat and lon
 These optional parameters specify the observer latitude and longitude in
 decimal degrees.  They default to 0.0 and are used for time scales that are
 sensitive to observer position.  Currently the only time scale for which this
-applies is TDB, which relies on the SOFA routine ``iauDtdb`` to determine the
+applies is TDB, which relies on the ERFA routine ``eraDtdb`` to determine the
 time offset between TDB and TT.
 
 Getting the Current Time
@@ -492,7 +492,7 @@ UT1 - UTC and TDB - TT, respectively.  As an example::
 In the case of the TDB to TT offset, most users need only provide the ``lat``
 and ``lon`` values when creating the |Time| object.  If the
 :attr:`~astropy.time.Time.delta_tdb_tt` attribute is not explicitly set
-then the SOFA C-library routine ``iauDtdb`` will be used to compute the
+then the ERFA C-library routine ``eraDtdb`` will be used to compute the
 TDB to TT offset.  Note that ``lat`` and ``lon`` are initialized to 0.0 by
 default, so those defaults will be used if they are not provided.
 
@@ -539,7 +539,7 @@ following operations are available:
 .. note::
     As implemented, the arithmetic is not guaranteed to be good beyond
     float64, as round-off errors are not yet properly carried between the 
-    two values representing the date.  Like for SOFA, taking the first
+    two values representing the date.  Like for ERFA, taking the first
     value as (half-)integer helps, as this can be represented exactly
     by a float64 (at least for all but multiply and divide).
 
@@ -596,8 +596,10 @@ Reference/API
 Acknowledgments and Licenses
 ============================
 
-This package makes use of the `SOFA Software
-<http://www.iausofa.org/index.html>`_ ANSI C library.  The copyright of the SOFA
-Software belongs to the Standards Of Fundamental Astronomy Board of the
-International Astronomical Union.  This library is made available under the
-terms of the `SOFA license <http://www.iausofa.org/tandc.html>`_.
+This package makes use of the `ERFA Software
+<https://github.com/liberfa/erfa>`_ ANSI C library. The copyright of the ERFA
+software belongs to the NumFOCUS Foundation. The library is made available 
+under the terms of the "BSD-three clauses" license.
+
+ERFA is derived, with permission, from the 
+`SOFA software <http://www.iausofa.org/>`_.
