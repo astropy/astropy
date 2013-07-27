@@ -173,7 +173,7 @@ def _write_with_fallback(s, write, fileobj):
     try:
         Writer = codecs.getwriter(enc)
     except LookupError:
-        Writer = codes.getwriter(_DEFAULT_ENCODING)
+        Writer = codecs.getwriter(_DEFAULT_ENCODING)
 
     f = Writer(fileobj)
     write = f.write
