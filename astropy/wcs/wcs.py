@@ -1147,6 +1147,7 @@ naxis kwarg.
             soln = scipy.optimize.broyden1(func, x0, x_tol=tolerance)
             pix.append(soln.flatten())
         return np.asarray(pix)
+
     def all_world2pix(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
