@@ -264,6 +264,9 @@ class UnitBase(object):
             p = Fraction(p[0], p[1])
         else:
             # allow two possible floating point fractions, all others illegal
+            # wkerzendorf that's not quite right. we want to allow natural fractions
+            # so here's a method http://stackoverflow.com/questions/95727/how-to-convert-floats-to-human-readable-fractions
+
             if not int(2 * p) == 2 * p:
                 raise ValueError(
                     "floating values for unit powers must be integers or "
