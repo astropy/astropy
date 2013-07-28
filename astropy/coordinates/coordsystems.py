@@ -694,3 +694,14 @@ class SphericalCoordinatesBase(object):
             return icrs
         else:
             return icrs.transform_to(cls)
+
+    def format(self,**kwargs):
+        """
+        Return the format string in sexagesimal form.  See
+        `astropy.coordinates.Angle.format` for details and keyword arguments
+        (lonangle and latangle are both `Angle` instances)
+        """
+
+        coord_string = (self.lonangle.format(**kwargs) + " " +
+                        self.latangle.format(**kwargs))
+        return coord_string
