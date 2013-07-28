@@ -702,6 +702,11 @@ class SphericalCoordinatesBase(object):
         (lonangle and latangle are both `Angle` instances)
         """
 
-        coord_string = (self.lonangle.format(**kwargs) + " " +
-                        self.latangle.format(**kwargs))
+        lonunit, latunit = u.deg, u.deg
+
+        if isinstance(self.lonangle, RA):
+            lonunit = u.hour
+
+        coord_string = (self.lonangle.format(unit=lonunit, **kwargs) + " " +
+                        self.latangle.format(unit=latunit, **kwargs))
         return coord_string
