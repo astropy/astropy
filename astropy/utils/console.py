@@ -89,6 +89,7 @@ def isatty(file):
         return file.isatty()
     return False
 
+
 def _color_text(text, color):
     """
     Returns a string wrapped in ANSI color codes for coloring the
@@ -172,7 +173,7 @@ def _write_with_fallback(s, write, fileobj):
     try:
         Writer = codecs.getwriter(enc)
     except LookupError:
-        Writer = codes.getwriter(_DEFAULT_ENCODING)
+        Writer = codecs.getwriter(_DEFAULT_ENCODING)
 
     f = Writer(fileobj)
     write = f.write
@@ -188,7 +189,6 @@ def _write_with_fallback(s, write, fileobj):
     # If this doesn't work let the exception bubble up; I'm out of ideas
     write(s)
     return write
-
 
 
 def color_print(*args, **kwargs):
@@ -299,7 +299,7 @@ def human_time(seconds):
         (u'h', 60 * 60),
         (u'm', 60),
         (u's', 1),
-        ]
+    ]
 
     seconds = int(seconds)
 
@@ -410,7 +410,10 @@ class ProgressBar(object):
             arr = np.fromstring(data, dtype=np.int16)
             terminal_width = arr[1]
         else:
-            terminal_width = os.environ.get('COLUMNS', 78)
+            try:
+                terminal_width = int(os.environ.get('COLUMNS'))
+            except (TypeError, ValueError):
+                terminal_width = 78
         self._bar_length = terminal_width - 37
 
     def __enter__(self):
