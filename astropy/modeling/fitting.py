@@ -19,7 +19,6 @@ import numpy as np
 from numpy import linalg
 from ..logger import log
 from .utils import poly_map_domain
-from .polynomial import PolynomialModel
 
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
@@ -443,10 +442,6 @@ class NonLinearLSQFitter(Fitter):
         if self.model.linear:
             warnings.warn('Model is linear in parameters, '
                           'consider using linear fitting methods.')
-        if isinstance(self.model, PolynomialModel):
-            self.col_deriv = 0
-        else:
-            self.col_deriv = 1
 
     def errorfunc(self, fps, *args):
         self.fitpars = fps
@@ -539,7 +534,7 @@ class NonLinearLSQFitter(Fitter):
 
         self.fitpars, status, dinfo, mess, ierr = optimize.leastsq(
             self.errorfunc, self.fitpars, args=farg, Dfun=self.dfunc,
-            col_deriv=self.col_deriv, maxfev=maxiter, epsfcn=epsilon, full_output=True)
+            col_deriv=self.model.col_deriv, maxfev=maxiter, epsfcn=epsilon, full_output=True)
         self.fit_info.update(dinfo)
         self.fit_info['status'] = status
         self.fit_info['message'] = mess

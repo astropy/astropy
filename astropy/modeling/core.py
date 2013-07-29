@@ -396,6 +396,10 @@ class ParametricModel(Model):
                                                    bounds=_bounds,
                                                    eqcons=eqcons,
                                                    ineqcons=ineqcons)
+        # Flag that indicates if the model derivatives are given in columns
+        # or rows
+        self.col_deriv = 1
+        
         # Set constraints
         if fixed:
             for name in fixed:

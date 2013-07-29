@@ -54,6 +54,7 @@ class PolynomialModel(ParametricModel):
             self.set_coeff(pardim=param_dim, **pars)
         super(PolynomialModel, self).__init__(self.param_names, n_inputs=n_inputs,
                                               n_outputs=n_outputs, param_dim=param_dim)
+        self.col_deriv = 0
 
     def _invlex(self):
         c = []
@@ -182,6 +183,7 @@ class OrthogPolyBase(ParametricModel):
             self.set_coeff(pardim=param_dim, **pars)
         super(OrthogPolyBase, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
                                              param_dim=param_dim)
+        self.col_deriv = 0
 
     def _generate_coeff_names(self):
         names = []
