@@ -44,25 +44,27 @@ class CDS(Base):
             'A', 'C', 'cd', 'eV', 'F', 'g', 'H', 'Hz', 'J', 'K',
             'lm', 'lx', 'm', 'mol', 'N', 'Ohm', 'Pa', 'rad', 's', 'S',
             'sr', 'T', 'V', 'W', 'Wb']
+        astro_bases = [
+            'a', 'AU', 'arcmin', 'arcsec', 'barn', 'bit', 'byte',
+            'ct', 'D', 'd', 'deg', 'h', 'Jy', 'mag', 'min', 'pc',
+            'pix', 'Ry', 'solLum', 'solMass', 'solRad', 'Sun', 'yr']
 
         prefixes = [
             'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
             '', 'da', 'h', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 
-        for base in bases:
+        for base in bases + astro_bases:
             for prefix in prefixes:
                 key = prefix + base
                 if keyword.iskeyword(key):
                     continue
                 names[key] = getattr(u, key)
 
-        simple_bases = [
-            'a', 'AU', 'arcmin', 'arcsec', 'barn', 'bit',
-            'byte', 'ct', 'D', 'd', 'deg', 'h', 'Jy', 'mag', 'mas',
-            'min', 'pc', 'pix', 'Ry', 'solLum', 'solMass', 'solRad',
-            'Sun', 'yr']
+        unprefixable = [
+            'mas',                        # as specified by the CDS standard
+            ]
 
-        for base in simple_bases:
+        for base in unprefixable:
             names[base] = getattr(u, base)
 
         return names

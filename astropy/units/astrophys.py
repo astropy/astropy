@@ -33,8 +33,8 @@ def_unit(['AU', 'au'], _si.au.value * si.m, register=True, prefixes=True,
 def_unit(['pc', 'parsec'], _si.pc.value * si.m, register=True, prefixes=True,
          doc="parsec: approximately 3.26 light-years.")
 
-def_unit(['solRad', 'R_sun'], _si.R_sun.value * si.m, register=True,
-         doc="Solar radius",
+def_unit(['solRad', 'R_sun'], _si.R_sun.value * si.m, prefixes=True,
+         register=True, doc="Solar radius",
          format={'latex': r'R_{\odot}', 'unicode': 'R⊙'})
 def_unit(['lyr', 'lightyear'], _si.c.value * si.yr.to(si.s) * si.m, register=True,
          doc="Light year")
@@ -74,7 +74,8 @@ def_unit(['u', 'Da', 'Dalton'], 1.6605387e-27 * si.kg, register=True,
 ##########################################################################
 # ENERGY
 
-def_unit(['Ry', 'rydberg'], 13.605692 * si.eV, register=True,
+def_unit(['Ry', 'rydberg'], 13.605692 * si.eV, prefixes=True,
+         register=True,
          doc="Rydberg: Energy of a photon whose wavenumber is the Rydberg "
          "constant",
          format={'latex': r'R_{\infty}', 'unicode': 'R∞'})
@@ -112,14 +113,14 @@ def_unit(['mag'], register=True, prefixes=True,
 # Maybe they should be moved into the FITS format class?
 # TODO: This is defined by the FITS standard as "relative to the sun".
 # Is that mass, volume, what?
-def_unit(['Sun'], register=True)
+def_unit(['Sun'], prefixes=True, register=True)
 
 
 ###########################################################################
 # EVENTS
 
-def_unit(['ct', 'count'], register=True)
-def_unit(['pix', 'pixel'], register=True)
+def_unit(['ct', 'count'], prefixes=True, register=True)
+def_unit(['pix', 'pixel'], prefixes=True, register=True)
 
 
 ###########################################################################

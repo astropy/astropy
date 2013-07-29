@@ -43,7 +43,8 @@ def_unit(['l', 'L', 'liter'], 1000 * cm ** 3.0, register=True, prefixes=True,
 def_unit(['rad', 'radian'], register=True, prefixes=True,
          doc="radian: angular measurement of the ratio between the length "
          "on an arc and its radius")
-def_unit(['deg', 'degree'], _numpy.pi / 180.0 * rad, register=True,
+def_unit(['deg', 'degree'], _numpy.pi / 180.0 * rad, prefixes=True,
+         register=True,
          doc="degree: angular measurement 1/360 of full rotation",
          format={'latex': r'{}^{\circ}', 'unicode': '°'})
 def_unit(['hourangle'], 15.0 * deg, register=True, prefixes=False,
@@ -75,9 +76,11 @@ def_unit(['s', 'second'], register=True, prefixes=True,
          exclude_prefixes=['a'],
          doc="second: base unit of time in SI.")
 
-def_unit(['min', 'minute'], 60 * s, register=True)
-def_unit(['h', 'hour', 'hr'], 3600 * s, register=True)
-def_unit(['d', 'day'], 24 * h, register=True)
+def_unit(['min', 'minute'], 60 * s, prefixes=True, register=True)
+def_unit(['h', 'hour', 'hr'], 3600 * s, prefixes=True, register=True,
+         exclude_prefixes=['p'])
+def_unit(['d', 'day'], 24 * h, prefixes=True, register=True,
+         exclude_prefixes=['c', 'y'])
 def_unit(['sday'], 86164.09053 * s, register=True,
          doc="Sidereal day (sday) is the time of one rotation of the Earth.")
 def_unit(['wk', 'week'], 7 * day, register=True)
