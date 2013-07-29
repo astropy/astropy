@@ -4,7 +4,8 @@ This file contains a contains the high-level functions to read a
 VOTable file.
 """
 
-from __future__ import division, absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
+from ...extern import six
 
 # STDLIB
 import io
@@ -119,7 +120,7 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         'filename'     :     filename,
         'unit_format'  :  unit_format}
 
-    if filename is None and isinstance(source, basestring):
+    if filename is None and isinstance(source, six.string_types):
         config['filename'] = source
 
     with iterparser.get_xml_iterator(
@@ -217,7 +218,7 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
     content_buffer.seek(0)
 
     if filename is None:
-        if isinstance(source, basestring):
+        if isinstance(source, six.string_types):
             filename = source
         elif hasattr(source, 'name'):
             filename = source.name
@@ -236,7 +237,7 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
     lines = [str(x.message) for x in warning_lines] + lines
 
     content_buffer.seek(0)
-    output.write(u"Validation report for {0}\n\n".format(filename))
+    output.write("Validation report for {0}\n\n".format(filename))
 
     if len(lines):
         xml_lines = iterparser.xml_readlines(content_buffer)
@@ -246,7 +247,7 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
 
             if not w['is_something']:
                 output.write(w['message'])
-                output.write(u'\n\n')
+                output.write('\n\n')
             else:
                 line = xml_lines[w['nline'] - 1]
                 warning = w['warning']
@@ -255,18 +256,18 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
                 else:
                     color = 'red'
                 color_print(
-                    u'{0:d}: '.format(w['nline']), '',
+                    '{0:d}: '.format(w['nline']), '',
                     warning or 'EXC', color,
-                    u': ', '',
+                    ': ', '',
                     textwrap.fill(
                         w['message'],
-                        initial_indent=u'          ',
-                        subsequent_indent=u'  ').lstrip(),
+                        initial_indent='          ',
+                        subsequent_indent='  ').lstrip(),
                     file=output)
                 print_code_line(line, w['nchar'], file=output)
-            output.write(u'\n')
+            output.write('\n')
     else:
-        output.write(u'astropy.io.votable found no violations.\n\n')
+        output.write('astropy.io.votable found no violations.\n\n')
 
     success = 0
     if xmllint and os.path.exists(filename):
@@ -281,10 +282,10 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
 
         if success != 0:
             output.write(
-                u'xmllint schema violations:\n\n')
+                'xmllint schema violations:\n\n')
             output.write(stderr)
         else:
-            output.write(u'xmllint passed\n')
+            output.write('xmllint passed\n')
 
     if return_as_str:
         return output.getvalue()

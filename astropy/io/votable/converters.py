@@ -4,13 +4,15 @@ This module handles the conversion of various VOTABLE datatypes
 to/from TABLEDATA_ and BINARY_ formats.
 """
 
-from __future__ import division, absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
+from ...extern import six
+from ...extern.six.moves import xrange
 
 # STDLIB
 import re
 import sys
-from struct import unpack as struct_unpack
-from struct import pack as struct_pack
+from struct import unpack as _struct_unpack
+from struct import pack as _struct_pack
 
 # THIRD-PARTY
 import numpy as np
@@ -22,7 +24,6 @@ from ...utils.xml.writer import xml_escape_cdata
 # LOCAL
 from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,
     W30, W31, W39, W46, W47, W49, W51, E01, E02, E03, E04, E05, E06)
-from .util import IS_PY3K
 
 
 __all__ = ['get_converter', 'Converter', 'table_column_to_votable_datatype']
@@ -40,6 +41,17 @@ files in the wild use them.
 _zero_int = b'\0\0\0\0'
 _empty_bytes = b''
 _zero_byte = b'\0'
+
+
+if six.PY3:
+    struct_unpack = _struct_unpack
+    struct_pack = _struct_pack
+else:
+    def struct_unpack(format, s):
+        return _struct_unpack(format.encode('ascii'), s)
+
+    def struct_pack(format, *args):
+        return _struct_pack(format.encode('ascii'), *args)
 
 
 if sys.byteorder == 'little':
@@ -90,7 +102,7 @@ def bitarray_to_bool(data, length):
     """
     results = []
     for byte in data:
-        if not IS_PY3K:
+        if not six.PY3:
             byte = ord(byte)
         for bit_no in range(7, -1, -1):
             bit = byte & (1 << bit_no)
@@ -326,7 +338,7 @@ class Char(Converter):
 
     def output(self, value, mask):
         if mask:
-            return u''
+            return ''
         if not isinstance(value, str):
             value = value.decode('ascii')
         return xml_escape_cdata(value)
@@ -343,7 +355,7 @@ class Char(Converter):
         return s, False
 
     def _binoutput_var(self, value, mask):
-        if mask or value is None or value == u'':
+        if mask or value is None or value == '':
             return _zero_int
         return self._write_length(len(value)) + value
 
@@ -359,7 +371,7 @@ class UnicodeChar(Converter):
 
     Missing values are not handled for string or unicode types.
     """
-    default = u''
+    default = ''
 
     def __init__(self, field, config={}, pos=None):
         Converter.__init__(self, field, config, pos)
@@ -390,8 +402,8 @@ class UnicodeChar(Converter):
 
     def output(self, value, mask):
         if mask:
-            return u''
-        return xml_escape_cdata(unicode(value))
+            return ''
+        return xml_escape_cdata(six.text_type(value))
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
@@ -413,7 +425,7 @@ class UnicodeChar(Converter):
 
     def _binoutput_fixed(self, value, mask):
         if mask:
-            value = u''
+            value = ''
         return struct_pack(self._struct_format, value.encode('utf_16_be'))
 
 
@@ -458,7 +470,7 @@ class VarArray(Array):
     def output(self, value, mask):
         output = self._base.output
         result = [output(x, m) for x, m in np.broadcast(value, value.mask)]
-        return u' '.join(result)
+        return ' '.join(result)
 
     def binparse(self, read):
         length = self._parse_length(read)
@@ -554,7 +566,7 @@ class NumericArray(Array):
         self.default[...] = self._base.default
 
     def parse(self, value, config={}, pos=None):
-        if config['version_1_3_or_later'] and value == u'':
+        if config['version_1_3_or_later'] and value == '':
             return np.zeros(self._arraysize, dtype=self._base.format), True
         parts = self._splitter(value, config, pos)
         if len(parts) != self._items:
@@ -589,7 +601,7 @@ class NumericArray(Array):
         base_output = self._base.output
         value = np.asarray(value)
         mask = np.asarray(mask)
-        return u' '.join(base_output(x, m) for x, m in
+        return ' '.join(base_output(x, m) for x, m in
                          zip(value.flat, mask.flat))
 
     def binparse(self, read):
@@ -644,26 +656,26 @@ class FloatingPoint(Numeric):
 
         precision = field.precision
         width = field.width
-        format_parts = [u'%']
+        format_parts = ['%']
 
         if width is not None:
-            format_parts.append(unicode(width))
+            format_parts.append(six.text_type(width))
 
         if precision is None:
-            format_parts.append(u's')
+            format_parts.append('s')
         elif precision.startswith("E"):
-            format_parts.append(u'.%dg' % int(precision[1:]))
+            format_parts.append('.%dg' % int(precision[1:]))
         elif precision.startswith("F"):
-            format_parts.append(u'.%df' % int(precision[1:]))
+            format_parts.append('.%df' % int(precision[1:]))
         else:
-            format_parts.append(u'.%df' % int(precision))
+            format_parts.append('.%df' % int(precision))
 
-        self._output_format = u''.join(format_parts)
+        self._output_format = ''.join(format_parts)
 
         self.nan = np.array(np.nan, self.format)
 
         if self.null is None:
-            self._null_output = u'NaN'
+            self._null_output = 'NaN'
             self._null_binoutput = self.binoutput(self.nan, False)
             self.filter_array = self._filter_nan
         else:
@@ -702,16 +714,16 @@ class FloatingPoint(Numeric):
             return self._null_output
         if np.isfinite(value):
             result = self._output_format % value
-            if (self._output_format[-1] == u's' and
-                result.endswith(u'.0')):
+            if (self._output_format[-1] == 's' and
+                result.endswith('.0')):
                 result = result[:-2]
             return result
         elif np.isnan(value):
-            return u'NaN'
+            return 'NaN'
         elif np.isposinf(value):
-            return u'+InF'
+            return '+InF'
         elif np.isneginf(value):
-            return u'-InF'
+            return '-InF'
         # Should never raise
         vo_raise("Invalid floating point value '%s'" % value)
 
@@ -755,7 +767,7 @@ class Integer(Numeric):
 
     def parse(self, value, config={}, pos=None):
         mask = False
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             value = value.lower()
             if value == '':
                 if config['version_1_3_or_later']:
@@ -795,9 +807,9 @@ class Integer(Numeric):
         if mask:
             if self.null is None:
                 warn_or_raise(W31, W31)
-                return u'NaN'
-            return unicode(self.null)
-        return unicode(value)
+                return 'NaN'
+            return six.text_type(self.null)
+        return six.text_type(value)
 
     def binoutput(self, value, mask):
         if mask:
@@ -969,17 +981,17 @@ class Complex(FloatingPoint, Array):
     def output(self, value, mask):
         if mask:
             if self.null is None:
-                return u'NaN'
+                return 'NaN'
             else:
                 value = self.null
         real = self._output_format % value.real
         imag = self._output_format % value.imag
-        if self._output_format[-1] == u's':
-            if real.endswith(u'.0'):
+        if self._output_format[-1] == 's':
+            if real.endswith('.0'):
                 real = real[:-2]
-            if imag.endswith(u'.0'):
+            if imag.endswith('.0'):
                 imag = imag[:-2]
-        return real + u' ' + imag
+        return real + ' ' + imag
 
 
 class FloatComplex(Complex):
@@ -1021,8 +1033,8 @@ class BitArray(NumericArray):
 
     def output(self, value, mask):
         value = np.asarray(value)
-        mapping = {False: u'0', True: u'1'}
-        return u''.join(mapping[x] for x in value.flat)
+        mapping = {False: '0', True: '1'}
+        return ''.join(mapping[x] for x in value.flat)
 
     def binparse(self, read):
         data = read(self._bytes)
@@ -1069,9 +1081,9 @@ class Bit(Converter):
             vo_warn(W39)
 
         if value:
-            return u'1'
+            return '1'
         else:
-            return u'0'
+            return '0'
 
     def binparse(self, read):
         data = read(1)
@@ -1101,7 +1113,7 @@ class BooleanArray(NumericArray):
         result = []
         result_mask = []
         for char in data:
-            if not IS_PY3K:
+            if not six.PY3:
                 char = ord(char)
             value, mask = binparse(char)
             result.append(value)
@@ -1137,7 +1149,7 @@ class Boolean(Converter):
         Converter.__init__(self, field, config, pos)
 
     def parse(self, value, config={}, pos=None):
-        if value == u'':
+        if value == '':
             return False, True
         if value is False:
             return False, True
@@ -1158,10 +1170,10 @@ class Boolean(Converter):
 
     def output(self, value, mask):
         if mask:
-            return u'?'
+            return '?'
         if value:
-            return u'T'
-        return u'F'
+            return 'T'
+        return 'F'
 
     def binparse(self, read):
         value = ord(read(1))
@@ -1295,7 +1307,7 @@ def _all_bytes(column):
 
 def _all_unicode(column):
     for x in column:
-        if not isinstance(x, unicode):
+        if not isinstance(x, six.text_type):
             return False
     return True
 
@@ -1392,7 +1404,7 @@ def table_column_to_votable_datatype(column):
         if isinstance(column[0], bytes):
             if _all_bytes(column[1:]):
                 return {'datatype': 'char', 'arraysize': '*'}
-        elif isinstance(column[0], unicode):
+        elif isinstance(column[0], six.text_type):
             if _all_unicode(column[1:]):
                 return {'datatype': 'unicodeChar', 'arraysize': '*'}
         elif isinstance(column[0], np.ndarray):

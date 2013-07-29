@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
-u"""
+"""
 .. _warnings:
 
 Warnings
@@ -31,15 +31,13 @@ Exceptions
 {exceptions}
 """
 
-from __future__ import division, absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
+from ...extern import six
 
 # STDLIB
 import io
 import re
 from warnings import warn
-
-# LOCAL
-from .util import IS_PY3K
 
 
 __all__ = [
@@ -162,7 +160,7 @@ def parse_vowarning(line):
         result['is_exception'] = False
         result['is_other'] = False
         result['is_something'] = False
-        if not isinstance(line, unicode):
+        if not isinstance(line, six.text_type):
             line = line.decode('utf-8')
         result['message'] = line
 
@@ -408,7 +406,7 @@ class W08(VOTableSpecWarning):
     make more sense.
     """
 
-    if IS_PY3K:
+    if six.PY3:
         message = "'%s' must be a str or bytes object"
     else:
         message = "'%s' must be a str or unicode object"
@@ -1237,7 +1235,7 @@ class E12(VOWarning, ValueError):
 
 
 class E13(VOWarning, ValueError):
-    u"""
+    """
     From the VOTable 1.2 spec:
 
         A table cell can contain an array of a given primitive type,
@@ -1379,7 +1377,7 @@ class E21(VOWarning, ValueError):
 
 def _get_warning_and_exception_classes(prefix):
     classes = []
-    for key, val in globals().iteritems():
+    for key, val in six.iteritems(globals()):
         if re.match(prefix + "[0-9]{2}", key):
             classes.append((key, val))
     classes.sort()
@@ -1395,29 +1393,29 @@ def _build_doc_string():
         out = io.StringIO()
 
         for name, cls in classes:
-            out.write(u".. _%s:\n\n" % name)
+            out.write(".. _%s:\n\n" % name)
             msg = "%s: %s" % (cls.__name__, cls.get_short_name())
-            if not isinstance(msg, unicode):
+            if not isinstance(msg, six.text_type):
                 msg = msg.decode('utf-8')
             out.write(msg)
-            out.write(u'\n')
-            out.write(u'~' * len(msg))
-            out.write(u'\n\n')
+            out.write('\n')
+            out.write('~' * len(msg))
+            out.write('\n\n')
             doc = cls.__doc__
-            if not isinstance(doc, unicode):
+            if not isinstance(doc, six.text_type):
                 doc = doc.decode('utf-8')
             out.write(dedent(doc))
-            out.write(u'\n\n')
+            out.write('\n\n')
 
         return out.getvalue()
 
-    warnings = generate_set(u'W')
-    exceptions = generate_set(u'E')
+    warnings = generate_set('W')
+    exceptions = generate_set('E')
 
-    return {u'warnings': warnings,
-            u'exceptions': exceptions}
+    return {'warnings': warnings,
+            'exceptions': exceptions}
 
 __doc__ = __doc__.format(**_build_doc_string())
 
-__all__.extend([x[0] for x in _get_warning_and_exception_classes(u'W')])
-__all__.extend([x[0] for x in _get_warning_and_exception_classes(u'E')])
+__all__.extend([x[0] for x in _get_warning_and_exception_classes('W')])
+__all__.extend([x[0] for x in _get_warning_and_exception_classes('E')])
