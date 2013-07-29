@@ -19,6 +19,7 @@ from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
                     _get_array_mmap, _array_to_file)
 from ..verify import _Verify, _ErrList
 
+from ....extern.six import string_types, next
 from ....utils import lazyproperty, deprecated
 from ....utils.exceptions import AstropyUserWarning
 
@@ -59,8 +60,9 @@ def _hdu_class_from_header(cls, header):
             except Exception as e:
                 warnings.warn(
                     'An exception occurred matching an HDU header to the '
-                    'appropriate HDU type: %s' % unicode(e), AstropyUserWarning)
-                warnings.warn('The HDU will be treated as corrupted.', AstropyUserWarning)
+                    'appropriate HDU type: {0}'.format(e), AstropyUserWarning)
+                warnings.warn('The HDU will be treated as corrupted.',
+                              AstropyUserWarning)
                 klass = _CorruptedHDU
                 break
 
@@ -139,7 +141,7 @@ class _BaseHDU(object):
 
     @name.setter
     def name(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, string_types):
             raise TypeError("'name' attribute must be a string")
         if not EXTENSION_NAME_CASE_SENSITIVE():
             value = value.upper()
@@ -345,8 +347,9 @@ class _BaseHDU(object):
 
         if isinstance(data, Header):
             header = data
+            first_key = next(iter(header))
             if (not len(header) or
-                    header.keys()[0] not in ('SIMPLE', 'XTENSION')):
+                    first_key[0] not in ('SIMPLE', 'XTENSION')):
                 raise ValueError('Block does not begin with SIMPLE or '
                                  'XTENSION')
         else:
@@ -907,7 +910,8 @@ class _ValidHDU(_BaseHDU, _Verify):
         case?  Not sure...
         """
 
-        return header.keys()[0] not in ('SIMPLE', 'XTENSION')
+        first_key = next(iter(header))
+        return first_key not in ('SIMPLE', 'XTENSION')
 
     @property
     def size(self):
@@ -1137,7 +1141,7 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         # Verify that the EXTNAME keyword exists and is a string
         if 'EXTNAME' in self._header:
-            if not isinstance(self._header['EXTNAME'], basestring):
+            if not isinstance(self._header['EXTNAME'], string_types):
                 err_text = 'The EXTNAME keyword must have a string value.'
                 fix_text = 'Converted the EXTNAME keyword to a string value.'
 
@@ -1710,7 +1714,7 @@ class NonstandardExtHDU(ExtensionHDU):
 
         card = header.cards[0]
         xtension = card.value
-        if isinstance(xtension, basestring):
+        if isinstance(xtension, string_types):
             xtension = xtension.rstrip()
         # A3DTABLE is not really considered a 'standard' extension, as it was
         # sort of the prototype for BINTABLE; however, since our BINTABLE

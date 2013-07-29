@@ -2,7 +2,7 @@
 
 import warnings
 
-from .util import u
+from ...extern.six import u
 from ...utils import indent
 from ...utils.exceptions import AstropyUserWarning
 

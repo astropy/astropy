@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import sys
-
-PY3 = sys.version_info[0] >= 3
+from ...extern.six import PY3
 
 if PY3:  # pragma: py3
     # Stuff to do if Python 3
@@ -50,16 +48,6 @@ if PY3:  # pragma: py3
             return ns
         return s
     util.decode_ascii = decode_ascii
-
-    # Replacements for b and u marks on strings
-    def b(s):
-        return s.encode('latin-1')
-
-    def u(s):
-        return s
-
-    util.b = b
-    util.u = u
 
     # See the docstring for astropy.io.fits.util.fileobj_open for why we need
     # to replace this function
@@ -192,29 +180,3 @@ if PY3:  # pragma: py3
             return old_File.readarray(self, size, offset, dtype, shape)
         readarray.__doc__ = old_File.readarray.__doc__
     file._File = _File
-
-    # Replace astropy.io.fits.util.maketrans and translate with versions that
-    # work with Python 3 unicode strings
-    util.maketrans = str.maketrans
-
-    def translate(s, table, deletechars):
-        if deletechars:
-            table = table.copy()
-            for c in deletechars:
-                table[ord(c)] = None
-        return s.translate(table)
-    util.translate = translate
-else:
-    # Stuff to do if not Python 3
-    import string
-    from . import util
-    util.maketrans = string.maketrans
-
-    def b(s):
-        return s
-
-    def u(s):
-        return unicode(s, 'unicode_escape')
-
-    util.b = b
-    util.u = u

@@ -22,6 +22,7 @@ from ..fitsrec import FITS_rec
 from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
 
+from ....extern.six import string_types
 from ....utils import deprecated, lazyproperty
 from ....utils.exceptions import AstropyUserWarning
 
@@ -247,7 +248,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             else:
                 raise TypeError('Table data has incorrect type.')
 
-        if not (isinstance(self._header[0], basestring) and
+        if not (isinstance(self._header[0], string_types) and
                 self._header[0].rstrip() == self._extension):
             self._header[0] = (self._extension, self._ext_comment)
 
@@ -497,7 +498,7 @@ class TableHDU(_TableBaseHDU):
     def match_header(cls, header):
         card = header.cards[0]
         xtension = card.value
-        if isinstance(xtension, basestring):
+        if isinstance(xtension, string_types):
             xtension = xtension.rstrip()
         return card.keyword == 'XTENSION' and xtension == cls._extension
 
@@ -583,7 +584,7 @@ class BinTableHDU(_TableBaseHDU):
     def match_header(cls, header):
         card = header.cards[0]
         xtension = card.value
-        if isinstance(xtension, basestring):
+        if isinstance(xtension, string_types):
             xtension = xtension.rstrip()
         return (card.keyword == 'XTENSION' and
                 xtension in (cls._extension, 'A3DTABLE'))
@@ -807,7 +808,7 @@ class BinTableHDU(_TableBaseHDU):
         files = [datafile, cdfile, hfile]
 
         for f in files:
-            if isinstance(f, basestring):
+            if isinstance(f, string_types):
                 if os.path.exists(f) and os.path.getsize(f) != 0:
                     if clobber:
                         warnings.warn("Overwriting existing file '%s'." % f, AstropyUserWarning)
@@ -935,7 +936,7 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, basestring):
+        if isinstance(fileobj, string_types):
             fileobj = open(fileobj, 'w')
             close_file = True
 
@@ -996,7 +997,7 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, basestring):
+        if isinstance(fileobj, string_types):
             fileobj = open(fileobj, 'w')
             close_file = True
 
@@ -1021,7 +1022,7 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, basestring):
+        if isinstance(fileobj, string_types):
             fileobj = open(fileobj, 'r')
             close_file = True
 
@@ -1146,7 +1147,7 @@ class BinTableHDU(_TableBaseHDU):
 
         close_file = False
 
-        if isinstance(fileobj, basestring):
+        if isinstance(fileobj, string_types):
             fileobj = open(fileobj, 'r')
             close_file = True
 

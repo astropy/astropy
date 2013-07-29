@@ -16,6 +16,8 @@ from numpy import memmap as Memmap
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
                    _array_to_file, _write_string, b)
+from ...extern.six import b, string_types
+from ...utils import deprecated
 from ...utils.exceptions import AstropyUserWarning
 
 
@@ -103,7 +105,7 @@ class _File(object):
         if mode not in PYFITS_MODES:
             raise ValueError("Mode '%s' not recognized" % mode)
 
-        if (isinstance(fileobj, basestring) and
+        if (isinstance(fileobj, string_types) and
                 mode not in ('ostream', 'append') and
                 not os.path.exists(fileobj)):
 
@@ -142,7 +144,7 @@ class _File(object):
         # Initialize the internal self.__file object
         if _is_random_access_file_backed(fileobj):
             self._open_fileobj(fileobj, mode, clobber)
-        elif isinstance(fileobj, basestring):
+        elif isinstance(fileobj, string_types):
             self._open_filename(fileobj, mode, clobber)
         else:
             self._open_filelike(fileobj, mode, clobber)

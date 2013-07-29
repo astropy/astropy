@@ -15,6 +15,8 @@ from ..fitsrec import FITS_rec
 from ..header import Header
 from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 
+from ....extern.six import string_types
+from ....extern.six.moves import xrange
 from ....utils import lazyproperty, deprecated
 from ....utils.exceptions import AstropyPendingDeprecationWarning, AstropyUserWarning
 
@@ -400,7 +402,7 @@ class CompImageHDU(BinTableHDU):
             return False
 
         xtension = card.value
-        if isinstance(xtension, basestring):
+        if isinstance(xtension, string_types):
             xtension = xtension.rstrip()
 
         if xtension not in ('BINTABLE', 'A3DTABLE'):

@@ -14,6 +14,7 @@ from .card import Card
 from .util import pairwise, _is_int, _convert_array, encode_ascii
 from .verify import VerifyError
 
+from ...extern.six import string_types
 from ...utils import lazyproperty
 
 
@@ -490,7 +491,7 @@ class Column(object):
         # Validate the disp option
         # TODO: Add full parsing and validation of TDISPn keywords
         if disp is not None and null != '':
-            if not isinstance(disp, basestring):
+            if not isinstance(disp, string_types):
                 raise TypeError('Column disp option (TDISPn) must be a '
                                 'string (got %r).' % disp)
             if (isinstance(format, _AsciiColumnFormat) and
@@ -522,7 +523,7 @@ class Column(object):
         if dim is not None and isinstance(format, _AsciiColumnFormat):
             warnings.warn('Column dim option (TDIMn) is not allowed for ASCII '
                           'table columns (got %r).' % dim)
-        if isinstance(dim, basestring):
+        if isinstance(dim, string_types):
             self._dims = _parse_tdim(dim)
         elif isinstance(dim, tuple):
             self._dims = dim
@@ -1365,7 +1366,7 @@ def _get_index(names, key):
 
     if _is_int(key):
         indx = int(key)
-    elif isinstance(key, basestring):
+    elif isinstance(key, string_types):
         # try to find exact match first
         try:
             indx = names.index(key.rstrip())

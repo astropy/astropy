@@ -16,19 +16,19 @@ import io
 import textwrap
 
 from collections import defaultdict
-from itertools import islice, izip
+from itertools import islice
 
 import numpy as np
 
 from ... import __version__
-from ...extern.six.moves import reduce
+from ...extern.six import u, string_types
+from ...extern.six.moves import zip, xrange, reduce
 from ...utils import indent
 from .card import Card, BLANK_CARD
 from .header import Header
 # HDUList is used in one of the doctests
 from .hdu.hdulist import fitsopen, HDUList  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
-from .util import u
 
 
 __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
@@ -225,7 +225,7 @@ class FITSDiff(_BaseDiff):
             (default: True).
         """
 
-        if isinstance(a, basestring):
+        if isinstance(a, string_types):
             try:
                 a = fitsopen(a)
             except Exception as e:
@@ -235,7 +235,7 @@ class FITSDiff(_BaseDiff):
         else:
             close_a = False
 
-        if isinstance(b, basestring):
+        if isinstance(b, string_types):
             try:
                 b = fitsopen(b)
             except Exception as e:
@@ -551,9 +551,9 @@ class HeaderDiff(_BaseDiff):
         # (excluding keywords in ignore_keywords or in ignore_comments)
         self.diff_keyword_comments = defaultdict(lambda: [])
 
-        if isinstance(a, basestring):
+        if isinstance(a, string_types):
             a = Header.fromstring(a)
-        if isinstance(b, basestring):
+        if isinstance(b, string_types):
             b = Header.fromstring(b)
 
         if not (isinstance(a, Header) and isinstance(b, Header)):
@@ -579,7 +579,7 @@ class HeaderDiff(_BaseDiff):
             comments = {}
             for card in cards:
                 value = card.value
-                if self.ignore_blanks and isinstance(value, basestring):
+                if self.ignore_blanks and isinstance(value, string_types):
                     value = value.rstrip()
                 values.setdefault(card.keyword, []).append(value)
                 comments.setdefault(card.keyword, []).append(card.comment)
@@ -795,7 +795,7 @@ class ImageDataDiff(_BaseDiff):
             numdiffs = self.numdiffs
 
         self.diff_pixels = [(idx, (self.a[idx], self.b[idx]))
-                            for idx in islice(izip(*diffs), 0, numdiffs)]
+                            for idx in islice(zip(*diffs), 0, numdiffs)]
         self.diff_ratio = float(self.diff_total) / float(len(self.a.flat))
 
     def _report(self):
@@ -1194,7 +1194,7 @@ def report_diff_values(fileobj, a, b, ind=0):
         diff_indices = np.where(a != b)
         num_diffs = reduce(lambda x, y: x * y,
                            (len(d) for d in diff_indices), 1)
-        for idx in islice(izip(*diff_indices), 3):
+        for idx in islice(zip(*diff_indices), 3):
             fileobj.write(indent('  at %r:\n' % list(idx), ind))
             report_diff_values(fileobj, a[idx], b[idx], ind=ind + 1)
 

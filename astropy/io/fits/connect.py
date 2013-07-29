@@ -8,12 +8,13 @@ import warnings
 
 import numpy as np
 
-from ...utils import OrderedDict
-from ...utils.exceptions import AstropyUserWarning
 from .. import registry as io_registry
-from ...table import Table
 from ... import log
 from ... import units as u
+from ...extern.six import string_types
+from ...table import Table
+from ...utils import OrderedDict
+from ...utils.exceptions import AstropyUserWarning
 
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .hdu.hdulist import fitsopen as fits_open
@@ -207,7 +208,7 @@ def write_table_fits(input, output, overwrite=False):
     """
 
     # Check if output file already exists
-    if isinstance(output, basestring) and os.path.exists(output):
+    if isinstance(output, string_types) and os.path.exists(output):
         if overwrite:
             os.remove(output)
         else:

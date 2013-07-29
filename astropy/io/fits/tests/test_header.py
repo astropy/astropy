@@ -5,6 +5,7 @@ import warnings
 
 import numpy as np
 
+from ....extern.six import u
 from ....io import fits
 from ....io.fits.verify import VerifyWarning
 from ....tests.helper import pytest, catch_warnings
@@ -434,7 +435,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         h2 = fits.Header()
         with warnings.catch_warnings(record=True) as w:
-            h2['TEST'] = u'abcdefg' * 30
+            h2['TEST'] = u('abcdefg' * 30)
             assert len(w) == 0
 
         assert str(h1) == str(h2)
@@ -1706,37 +1707,37 @@ class TestHeaderFunctions(FitsTestCase):
         Also tests unicode for keywords and comments.
         """
 
-        erikku = u'\u30a8\u30ea\u30c3\u30af'
+        erikku = u('\u30a8\u30ea\u30c3\u30af')
 
         def assign(keyword, val):
             h[keyword] = val
 
         h = fits.Header()
-        h[u'FOO'] = 'BAR'
+        h[u('FOO')] = 'BAR'
         assert 'FOO' in h
         assert h['FOO'] == 'BAR'
-        assert h[u'FOO'] == 'BAR'
+        assert h[u('FOO')] == 'BAR'
         assert repr(h) == _pad("FOO     = 'BAR     '")
         pytest.raises(ValueError, assign, erikku, 'BAR')
 
-        h['FOO'] = u'BAZ'
-        assert h[u'FOO'] == 'BAZ'
-        assert h[u'FOO'] == u'BAZ'
+        h['FOO'] = u('BAZ')
+        assert h[u('FOO')] == 'BAZ'
+        assert h[u('FOO')] == u('BAZ')
         assert repr(h) == _pad("FOO     = 'BAZ     '")
         pytest.raises(ValueError, assign, 'FOO', erikku)
 
-        h['FOO'] = ('BAR', u'BAZ')
+        h['FOO'] = ('BAR', u('BAZ'))
         assert h['FOO'] == 'BAR'
-        assert h['FOO'] == u'BAR'
+        assert h['FOO'] == u('BAR')
         assert h.comments['FOO'] == 'BAZ'
-        assert h.comments['FOO'] == u'BAZ'
+        assert h.comments['FOO'] == u('BAZ')
         assert repr(h) == _pad("FOO     = 'BAR     '           / BAZ")
 
-        h['FOO'] = (u'BAR', u'BAZ')
+        h['FOO'] = (u('BAR'), u('BAZ'))
         assert h['FOO'] == 'BAR'
-        assert h['FOO'] == u'BAR'
+        assert h['FOO'] == u('BAR')
         assert h.comments['FOO'] == 'BAZ'
-        assert h.comments['FOO'] == u'BAZ'
+        assert h.comments['FOO'] == u('BAZ')
         assert repr(h) == _pad("FOO     = 'BAR     '           / BAZ")
 
         pytest.raises(ValueError, assign, 'FOO', ('BAR', erikku))

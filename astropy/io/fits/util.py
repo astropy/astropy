@@ -9,6 +9,7 @@ import mmap
 import os
 import platform
 import signal
+import string
 import sys
 import tempfile
 import textwrap
@@ -16,7 +17,10 @@ import threading
 import warnings
 
 import numpy as np
+
+from ...extern.six import PY3, string_types, integer_types, text_type
 from ...utils.exceptions import AstropyUserWarning
+
 
 def itersubclasses(cls, _seen=None):
     """
@@ -214,7 +218,7 @@ def fileobj_name(f):
     string f itself is returned.
     """
 
-    if isinstance(f, basestring):
+    if isinstance(f, string_types):
         return f
     elif hasattr(f, 'name'):
         return f.name
@@ -453,21 +457,33 @@ def fileobj_is_binary(f):
         return True
 
 
-def translate(s, table, deletechars):
-    """
-    This is a version of string/unicode.translate() that can handle string or
-    unicode strings the same way using a translation table made with
-    string.maketrans.
-    """
+if PY3:
+    maketrans = str.maketrans
 
-    if isinstance(s, str):
-        return s.translate(table, deletechars)
-    elif isinstance(s, unicode):
-        table = dict((x, ord(table[x])) for x in range(256)
-                     if ord(table[x]) != x)
-        for c in deletechars:
-            table[ord(c)] = None
+    def translate(s, table, deletechars):
+        if deletechars:
+            table = table.copy()
+            for c in deletechars:
+                table[ord(c)] = None
         return s.translate(table)
+else:
+    maketrans = string.maketrans
+
+    def translate(s, table, deletechars):
+        """
+        This is a version of string/unicode.translate() that can handle string
+        or unicode strings the same way using a translation table made with
+        `string.maketrans`.
+        """
+
+        if isinstance(s, str):
+            return s.translate(table, deletechars)
+        elif isinstance(s, text_type):
+            table = dict((x, ord(table[x])) for x in range(256)
+                         if ord(table[x]) != x)
+            for c in deletechars:
+                table[ord(c)] = None
+            return s.translate(table)
 
 
 def fill(text, width, *args, **kwargs):
@@ -544,9 +560,9 @@ def _write_string(f, s):
     # binary
     binmode = fileobj_is_binary(f)
 
-    if binmode and isinstance(s, unicode):
+    if binmode and isinstance(s, text_type):
         s = encode_ascii(s)
-    elif not binmode and not isinstance(f, unicode):
+    elif not binmode and not isinstance(f, text_type):
         s = decode_ascii(s)
     f.write(s)
 
@@ -585,7 +601,7 @@ def _is_pseudo_unsigned(dtype):
 
 
 def _is_int(val):
-    return isinstance(val, (int, long, np.integer))
+    return isinstance(val, (integer_types, np.integer))
 
 
 def _str_to_num(val):
