@@ -74,12 +74,15 @@ package_data = {'astropy': ['data/*']}
 # A dictionary to keep track of extra packagedir mappings
 package_dirs = {}
 
+# A list of packages that should skip 2to3
+skip_2to3 = []
+
 # Update extensions, package_data, packagenames and package_dirs from
 # any sub-packages that define their own extension modules and package
 # data.  See the docstring for setup_helpers.update_package_files for
 # more details.
 update_package_files(NAME, extensions, package_data, packagenames,
-                     package_dirs)
+                     package_dirs, skip_2to3)
 
 # Currently the only entry points installed by Astropy are hooks to
 # zest.releaser for doing Astropy's releases
@@ -125,5 +128,6 @@ setup(name=NAME,
       cmdclass=cmdclassd,
       zip_safe=False,
       use_2to3=True,
+      skip_2to3=skip_2to3,
       entry_points=entry_points
 )

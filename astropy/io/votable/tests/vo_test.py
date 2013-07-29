@@ -3,7 +3,9 @@
 This is a set of regression tests for vo.
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
+from ....extern import six
+from ....extern.six.moves import xrange
 
 # STDLIB
 import difflib
@@ -13,7 +15,6 @@ import os
 import shutil
 import sys
 import tempfile
-import warnings
 
 # THIRD-PARTY
 from numpy.testing import assert_array_equal
@@ -22,10 +23,9 @@ import numpy as np
 # LOCAL
 from ..table import parse, parse_single_table, validate
 from .. import tree
-from ..util import IS_PY3K
 from ..exceptions import VOTableSpecError, VOWarning
 from ..xmlutil import validate_schema
-from ....utils.data import get_pkg_data_filename, get_pkg_data_fileobj, get_pkg_data_filenames
+from ....utils.data import get_pkg_data_filename, get_pkg_data_filenames
 from ....tests.helper import pytest, raises, catch_warnings
 from ....utils.compat import gzip
 
@@ -98,40 +98,40 @@ def _test_regression(_python_based=False, binary_mode=1):
     table = votable.get_first_table()
 
     dtypes = [
-        (('string test', 'string_test'), '|O8'),
-        (('fixed string test', 'string_test_2'), '|S10'),
-        ('unicode_test', '|O8'),
-        (('unicode test', 'fixed_unicode_test'), '<U10'),
-        (('string array test', 'string_array_test'), '|S4'),
-        ('unsignedByte', '|u1'),
-        ('short', '<i2'),
-        ('int', '<i4'),
-        ('long', '<i8'),
-        ('double', '<f8'),
-        ('float', '<f4'),
-        ('array', '|O8'),
-        ('bit', '|b1'),
-        ('bitarray', '|b1', (3, 2)),
-        ('bitvararray', '|O8'),
-        ('bitvararray2', '|O8'),
-        ('floatComplex', '<c8'),
-        ('doubleComplex', '<c16'),
-        ('doubleComplexArray', '|O8'),
-        ('doubleComplexArrayFixed', '<c16', (2,)),
-        ('boolean', '|b1'),
-        ('booleanArray', '|b1', (4,)),
-        ('nulls', '<i4'),
-        ('nulls_array', '<i4', (2, 2)),
-        ('precision1', '<f8'),
-        ('precision2', '<f8'),
-        ('doublearray', '|O8'),
-        ('bitarray2', '|b1', (16,))
+        ((str('string test'), str('string_test')), str('|O8')),
+        ((str('fixed string test'), str('string_test_2')), str('|S10')),
+        (str('unicode_test'), str('|O8')),
+        ((str('unicode test'), str('fixed_unicode_test')), str('<U10')),
+        ((str('string array test'), str('string_array_test')), str('|S4')),
+        (str('unsignedByte'), str('|u1')),
+        (str('short'), str('<i2')),
+        (str('int'), str('<i4')),
+        (str('long'), str('<i8')),
+        (str('double'), str('<f8')),
+        (str('float'), str('<f4')),
+        (str('array'), str('|O8')),
+        (str('bit'), str('|b1')),
+        (str('bitarray'), str('|b1'), (3, 2)),
+        (str('bitvararray'), str('|O8')),
+        (str('bitvararray2'), str('|O8')),
+        (str('floatComplex'), str('<c8')),
+        (str('doubleComplex'), str('<c16')),
+        (str('doubleComplexArray'), str('|O8')),
+        (str('doubleComplexArrayFixed'), str('<c16'), (2,)),
+        (str('boolean'), str('|b1')),
+        (str('booleanArray'), str('|b1'), (4,)),
+        (str('nulls'), str('<i4')),
+        (str('nulls_array'), str('<i4'), (2, 2)),
+        (str('precision1'), str('<f8')),
+        (str('precision2'), str('<f8')),
+        (str('doublearray'), str('|O8')),
+        (str('bitarray2'), str('|b1'), (16,))
         ]
     if sys.byteorder == 'big':
         new_dtypes = []
         for dtype in dtypes:
             dtype = list(dtype)
-            dtype[1] = dtype[1].replace('<', '>')
+            dtype[1] = dtype[1].replace(b'<', b'>')
             new_dtypes.append(tuple(dtype))
         dtypes = new_dtypes
     assert table.array.dtype == dtypes
@@ -203,17 +203,17 @@ def _test_regression(_python_based=False, binary_mode=1):
     assert truth == output
 
 
-@pytest.mark.xfail('legacy_float_repr')
+@pytest.mark.xfail(str('legacy_float_repr'))
 def test_regression():
     _test_regression(False)
 
 
-@pytest.mark.xfail('legacy_float_repr')
+@pytest.mark.xfail(str('legacy_float_repr'))
 def test_regression_python_based_parser():
     _test_regression(True)
 
 
-@pytest.mark.xfail('legacy_float_repr')
+@pytest.mark.xfail(str('legacy_float_repr'))
 def test_regression_binary2():
     _test_regression(False, 2)
 
@@ -327,17 +327,17 @@ class TestParse:
         assert issubclass(self.array['unicode_test'].dtype.type,
                           np.object_)
         assert_array_equal(self.array['unicode_test'],
-                           [u"Ce\xe7i n'est pas un pipe",
-                            u'\u0bb5\u0ba3\u0b95\u0bcd\u0b95\u0bae\u0bcd',
-                            u'XXXX', u'', u''])
+                           ["Ce\xe7i n'est pas un pipe",
+                            '\u0bb5\u0ba3\u0b95\u0bcd\u0b95\u0bae\u0bcd',
+                            'XXXX', '', ''])
 
     def test_fixed_unicode_test(self):
         assert issubclass(self.array['fixed_unicode_test'].dtype.type,
                           np.unicode_)
         assert_array_equal(self.array['fixed_unicode_test'],
-                           [u"Ce\xe7i n'est",
-                            u'\u0bb5\u0ba3\u0b95\u0bcd\u0b95\u0bae\u0bcd',
-                            u'0123456789', u'', u''])
+                           ["Ce\xe7i n'est",
+                            '\u0bb5\u0ba3\u0b95\u0bcd\u0b95\u0bae\u0bcd',
+                            '0123456789', '', ''])
 
     def test_unsignedByte(self):
         assert issubclass(self.array['unsignedByte'].dtype.type,
@@ -503,7 +503,7 @@ class TestParse:
                 assert issubclass(a0.dtype.type, np.bool_)
                 assert_array_equal(a0, b0)
 
-    @pytest.mark.xfail('numpy_has_complex_bug')
+    @pytest.mark.xfail(str('numpy_has_complex_bug'))
     def test_floatComplex(self):
         assert issubclass(self.array['floatComplex'].dtype.type,
                           np.complex64)
@@ -512,7 +512,7 @@ class TestParse:
         assert_array_equal(self.mask['floatComplex'],
                            [True, False, False, True, True])
 
-    @pytest.mark.xfail('numpy_has_complex_bug')
+    @pytest.mark.xfail(str('numpy_has_complex_bug'))
     def test_doubleComplex(self):
         assert issubclass(self.array['doubleComplex'].dtype.type,
                           np.complex128)
@@ -522,7 +522,7 @@ class TestParse:
         assert_array_equal(self.mask['doubleComplex'],
                            [True, False, False, True, True])
 
-    @pytest.mark.xfail('numpy_has_complex_bug')
+    @pytest.mark.xfail(str('numpy_has_complex_bug'))
     def test_doubleComplexArray(self):
         assert issubclass(self.array['doubleComplexArray'].dtype.type,
                           np.object_)
@@ -763,8 +763,8 @@ def test_build_from_scratch():
     assert_array_equal(
         table.array.mask, np.array([(False, [[False, False], [False, False]]),
                                     (False, [[False, False], [False, False]])],
-                                    dtype=[('filename', '?'),
-                                           ('matrix', '?', (2, 2))]))
+                                    dtype=[(str('filename'), str('?')),
+                                           (str('matrix'), str('?'), (2, 2))]))
 
 
 def test_validate():
@@ -793,7 +793,7 @@ def test_validate():
     output = output[1:-1]
 
     for line in difflib.unified_diff(truth, output):
-        if IS_PY3K:
+        if six.PY3:
             sys.stdout.write(
                 line.replace('\\n', '\n'))
         else:

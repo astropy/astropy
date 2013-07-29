@@ -3,25 +3,21 @@
 Various utilities and cookbook-like things.
 """
 
-from __future__ import division, with_statement, absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
+from ...extern import six
 
 # STDLIB
 import contextlib
 from distutils import version
 import io
 import re
-import sys
 
 
 __all__ = [
     'convert_to_writable_filelike',
     'stc_reference_frames',
     'coerce_range_list_param',
-    'is_callable'
     ]
-
-
-IS_PY3K = sys.hexversion >= 0x03000000
 
 
 @contextlib.contextmanager
@@ -47,7 +43,7 @@ def convert_to_writable_filelike(fd, compressed=False):
     -------
     fd : writable file-like object
     """
-    if isinstance(fd, basestring):
+    if isinstance(fd, six.string_types):
         if fd.endswith('.gz') or compressed:
             from ...utils.compat import gzip
             with gzip.GzipFile(fd, 'wb') as real_fd:
@@ -61,7 +57,7 @@ def convert_to_writable_filelike(fd, compressed=False):
                 yield real_fd
                 return
     elif hasattr(fd, 'write'):
-        assert is_callable(fd.write)
+        assert six.callable(fd.write)
 
         if compressed:
             from ...utils.compat import gzip
@@ -71,7 +67,7 @@ def convert_to_writable_filelike(fd, compressed=False):
         # object
         needs_wrapper = False
         try:
-            fd.write(u'')
+            fd.write('')
         except TypeError:
             needs_wrapper = True
 
@@ -158,7 +154,7 @@ def coerce_range_list_param(p, frames=None, numeric=True):
             return str_or_none(x)
 
     def is_frame_of_reference(x):
-        return isinstance(x, basestring)
+        return isinstance(x, six.string_types)
 
     if p is None:
         return None, 0
@@ -181,7 +177,7 @@ def coerce_range_list_param(p, frames=None, numeric=True):
 
         return out, length
 
-    elif isinstance(p, basestring):
+    elif isinstance(p, six.string_types):
         number = r'([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)?'
         if not numeric:
             number = r'(' + number + ')|([A-Z_]+)'
@@ -218,19 +214,3 @@ def version_compare(a, b):
     bv = version_to_tuple(b)
     # Can't use cmp because it was removed from Python 3.x
     return (av > bv) - (av < bv)
-
-
-if IS_PY3K:  # pragma: py3
-    import collections
-
-    def is_callable(o):
-        """
-        Returns `True` if `o` is callable.
-        """
-        return isinstance(o, collections.Callable)
-else:  # pragma: py2
-    def is_callable(o):
-        """
-        Returns `True` if `o` is callable.
-        """
-        return callable(o)
