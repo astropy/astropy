@@ -4,17 +4,14 @@ Tests for model evaluation.
 Compare the results of some models with other programs.
 """
 from __future__ import division
-import py
 from .. import models
 from ..core import *
+from ..polynomial import PolynomialModel
 import numpy as np
 from numpy.testing import utils
 from ...tests.helper import pytest
 from .. import fitting
 from .model_lists import models_1D, models_2D
-from astropy.modeling.core import Parametric1DModel, Parametric2DModel
-from astropy.modeling.polynomial import PolynomialModel
-
 
 try:
     from scipy import optimize
@@ -189,14 +186,14 @@ class TestParametricModels(object):
         constraints = {}
         if model_class.__base__ == Parametric1DModel:
             if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
-                py.test.skip("SciPy not found")
+                pytest.skip("SciPy not found")
             if 'constraints' in models_1D[model_class]:
                 constraints = models_1D[model_class]['constraints']
             return model_class(*parameters, **constraints)
 
         elif model_class.__base__ == Parametric2DModel:
             if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
-                py.test.skip("SciPy not found")
+                pytest.skip("SciPy not found")
             if 'constraints' in models_2D[model_class]:
                 constraints = models_2D[model_class]['constraints']
             return model_class(*parameters, **constraints)
