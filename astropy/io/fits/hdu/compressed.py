@@ -1437,7 +1437,6 @@ class CompImageHDU(BinTableHDU):
                 else:
                     _min = np.minimum.reduce(self.data.flat)
                     _max = np.maximum.reduce(self.data.flat)
-                    self.data.shape = dims
 
                     if _type == np.uint8:  # uint8 case
                         _zero = _min
