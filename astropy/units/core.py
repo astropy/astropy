@@ -262,19 +262,20 @@ class UnitBase(object):
 
     def _validate_power(self, p):
         if isinstance(p, tuple) and len(p) == 2:
-            if p[1] in (1, 2, 4, 8, 16, 32, 64):
-                p = float(p[0] / p[1])
-            else:
-                p = Fraction(p[0] / p[1])
+            p = Fraction(p[0], p[1])
+
+        if isinstance(p, Fraction):
+            # If the fractional power can be represented *exactly* as
+            # a floating point number, we convert it to a float, to
+            # make the math much faster, otherwise, we use a
+            # `fractions.Fraction` object to avoid losing precision.
+            denom = p.denominator
+            # This is bit-twiddling hack to see if the integer is a
+            # power of two
+            if (denom & (denom - 1)) == 0:
+                p = float(p)
         else:
             p = float(p)
-
-            # allow two possible floating point fractions, all others illegal
-            if not int(2 * p) == 2 * p:
-                raise ValueError(
-                    "floating values for unit powers must be integers or "
-                    "integers + 0.5.  To use other fractions, use a tuple "
-                    "or `fractions.Fraction` instance.")
 
         return p
 

@@ -29,9 +29,12 @@ def test_getting_started():
     assert_allclose(x, [2.23693629e-02, 2.23693629e+01, 1.11846815e+02])
 
 
-@raises(ValueError)
 def test_invalid_power():
-    u.m ** 0.3
+    x = u.m ** (1, 3)
+    assert isinstance(x.powers[0], Fraction)
+
+    x = u.m ** (1, 2)
+    assert isinstance(x.powers[0], float)
 
 
 def test_invalid_compare():
@@ -402,7 +405,7 @@ def test_compose_issue_579():
 
     assert len(result) == 1
     assert result[0]._bases == [u.s, u.N, u.m]
-    assert result[0]._powers == [4, 1, -1]
+    assert result[0]._powers == [4, 1, -2]
 
 
 def test_self_compose():
