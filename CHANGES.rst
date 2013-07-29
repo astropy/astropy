@@ -57,8 +57,8 @@ New Features
   - New package added to support Virtual Observatory Simple Cone Search query
     and service validation [#552].
 
-- ``astropy.units.equivalencies`` 
-   
+- ``astropy.units.equivalencies``
+
   - Added new spectroscopic equivalencies for velocity conversions
     (relativistic, optical, and radio conventions are supported)
 
@@ -164,7 +164,13 @@ Bug Fixes
     first the units were not preserved in the output) [#899].
 
 
-0.2.4 (unreleased)
+0.2.5 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
+0.2.4 (2013-07-24)
 ------------------
 
 Bug Fixes
