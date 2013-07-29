@@ -179,7 +179,7 @@ def update(filename):
         output_verify = 'silentfix' if OPTIONS.compliance else 'ignore'
         hdulist.writeto(filename, checksum=OPTIONS.checksum_kind, clobber=True,
                         output_verify=output_verify)
-    except pyfits.VerifyError:
+    except fits.VerifyError:
         pass  # unfixable errors already noted during verification phase
     finally:
         hdulist.close()

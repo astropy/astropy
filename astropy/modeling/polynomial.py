@@ -1137,7 +1137,7 @@ class SIPModel(SCompositeModel):
         return fmt
 
     def __str__(self):
-        models = [self.shifta, self.shiftb, self.sip1da, sip1db]
+        models = [self.shifta, self.shiftb, self.sip1da, self.sip1db]
         fmt = """
             Model:  {0}
             """.format(self.__class__.__name__, self.sip1d.coeff_prefix)

@@ -7,7 +7,7 @@ import numpy as np
 
 from ... import ascii
 
-__all__ = ['raises', 'numpy_lt_1p5'
+__all__ = ['raises', 'numpy_lt_1p5',
            'assert_equal', 'assert_almost_equal', 'assert_true',
            'setup_function', 'teardown_function', 'has_isnan']
 
