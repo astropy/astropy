@@ -177,13 +177,13 @@ class Fitter(object):
                 ind.remove(index)
             res = np.empty((fullderiv.shape[1] - len(ind), fullderiv.shape[0]))
             res = fullderiv[ind, :]
-            return res
+            return [np.ravel(_) for _ in res]
         else:
             pars = p[:]
             if z is None:
                 return self.model.deriv(x, *pars)
             else:
-                return self.model.deriv(x, y, *pars)
+                return [np.ravel(_) for _ in self.model.deriv(x, y, *pars)]
 
     def _validate_constraints(self):
         fname = self.__class__.__name__
@@ -534,7 +534,7 @@ class NonLinearLSQFitter(Fitter):
 
         self.fitpars, status, dinfo, mess, ierr = optimize.leastsq(
             self.errorfunc, self.fitpars, args=farg, Dfun=self.dfunc,
-            col_deriv=1, maxfev=maxiter, epsfcn=epsilon, full_output=True)
+            col_deriv=self.model.col_deriv, maxfev=maxiter, epsfcn=epsilon, full_output=True)
         self.fit_info.update(dinfo)
         self.fit_info['status'] = status
         self.fit_info['message'] = mess

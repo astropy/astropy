@@ -6,10 +6,12 @@ Compare the results of some models with other programs.
 from __future__ import division
 from .. import models
 from ..core import *
+from ..polynomial import PolynomialModel
 import numpy as np
 from numpy.testing import utils
 from ...tests.helper import pytest
 from .. import fitting
+from .model_lists import models_1D, models_2D
 
 try:
     from scipy import optimize
@@ -120,11 +122,6 @@ class TestPComposite(object):
             pcomp = PCompositeModel([p2, ch2])
 
 
-def test_gaussian2d_eval():
-    m = models.Gaussian2DModel(2., 3., 4., x_stddev=1., y_stddev=5., theta=30.)
-    assert m(3., 4.) == 2.
-
-
 def test_pickle():
     import copy_reg
     import types
@@ -162,49 +159,146 @@ def test_custom_model(amplitude=4, frequency=1):
     assert np.all((fitter.fitpars - np.array([amplitude, frequency])) < 0.001)
 
 
-models_1D = [
-            (models.Gaussian1DModel, [1, 0, 1], [[0, np.sqrt(2), -np.sqrt(2)],
-                                [1, 1. / np.exp(1), 1. / np.exp(1)]], [-10, 10]),
-            (models.Sine1DModel, [1, 1], [[0, 0.25], [0, 1]], [-10, 10]),
-            (models.Const1DModel, [1], [[-1, 1, np.pi, -42., 0], [1, 1, 1, 1, 1]], [-10, 10]),
-            (models.Box1DModel, [1, 0, 1], [[-0.5, 0.5, 0, -1, 1], [1, 1, 1, 0, 0]], [-2, 2]),
-            (models.Linear1DModel, [1, 0], [[0, np.pi, 42], [0, np.pi, 42]], [-10, 10]),
-            (models.PowerLaw1DModel, [1, 2], [[2, 1, 10.], [0.25, 1, 0.01]], [1, 2])
-            ]
-
-
-class TestParametricModel(object):
+class TestParametricModels(object):
     """
-    Test class for all parametric objects
+    Test class for all parametric models.
+
+    Test values have to be defined in model_lists.py. It currently test the model
+    with different input types, evaluates the model at different positions and
+    assures that it gives the correct values. And tests if the  model works with 
+    the NonLinearFitter.
     """
 
     def setup_class(self):
         self.N = 100
+        self.eval_error = 0.0001
+        self.fit_error = 0.1
+        self.x = 5.3
+        self.y = 6.7
+        self.x1 = np.arange(1, 10, .1)
+        self.y1 = np.arange(1, 10, .1)
+        self.x2, self.y2 = np.mgrid[:10, :8]
 
-    @pytest.mark.parametrize(('model_class', 'params', 'values', 'range'), models_1D)
-    def test_eval1D(self, model_class, params, values, range):
+    def create_model(self, model_class, parameters):
         """
-        Test model values add certain given points
+        Create instance of model class.
         """
-        model = model_class(*params)
-        x = values[0]
-        y = values[1]
-        assert np.all((np.abs(model(x) - y) < 0.0001))
+        constraints = {}
+        if model_class.__base__ == Parametric1DModel:
+            if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
+                pytest.skip("SciPy not found")
+            if 'constraints' in models_1D[model_class]:
+                constraints = models_1D[model_class]['constraints']
+            return model_class(*parameters, **constraints)
+
+        elif model_class.__base__ == Parametric2DModel:
+            if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
+                pytest.skip("SciPy not found")
+            if 'constraints' in models_2D[model_class]:
+                constraints = models_2D[model_class]['constraints']
+            return model_class(*parameters, **constraints)
+
+        elif model_class.__base__ == PolynomialModel:
+            return model_class(**parameters)
+
+    @pytest.mark.parametrize(('model_class'), models_1D.keys())
+    def test_input1D(self, model_class):
+        """
+        Test model with different input types.
+        """
+        parameters = models_1D[model_class]['parameters']
+        model = self.create_model(model_class, parameters)
+        model(self.x)
+        model(self.x1)
+        model(self.x2)
+
+    @pytest.mark.parametrize(('model_class'), models_1D.keys())
+    def test_eval1D(self, model_class):
+        """
+        Test model values at certain given points
+        """
+        parameters = models_1D[model_class]['parameters']
+        model = self.create_model(model_class, parameters)
+        x = models_1D[model_class]['x_values']
+        y = models_1D[model_class]['y_values']
+        assert np.all((np.abs(model(x) - y) < self.eval_error))
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    @pytest.mark.parametrize(('model_class', 'params', 'values', 'range'), models_1D)
-    def test_fitter1D(self, model_class, params, values, range):
+    @pytest.mark.parametrize(('model_class'), models_1D.keys())
+    def test_fitter1D(self, model_class):
         """
         Test if the parametric model works with the fitter.
         """
-        model = model_class(*params)
-        if model == models.PowerLaw1DModel:
-            x = np.logspace(range[0], range[1], self.N)
+        x_lim = models_1D[model_class]['x_lim']
+        parameters = models_1D[model_class]['parameters']
+        model = self.create_model(model_class, parameters)
+        if isinstance(parameters, dict):
+            parameters.pop('degree')
+            parameters = parameters.values()
+        if "log_fit" in models_1D[model_class]:
+            if models_1D[model_class]['log_fit']:
+                x = np.logspace(x_lim[0], x_lim[1], self.N)
         else:
-            x = np.linspace(range[0], range[1], self.N)
+            x = np.linspace(x_lim[0], x_lim[1], self.N)
         np.random.seed(0)
-        # add 1% noise to the amplitude
-        data = model(x) + 0.1 * params[0] * (np.random.rand(self.N) - 0.5)
+        # add 10% noise to the amplitude
+        data = model(x) + 0.1 * parameters[0] * (np.random.rand(self.N) - 0.5)
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(x, data)
-        assert np.all((fitter.fitpars - np.array(params) < 0.01))
+        assert np.all(np.abs((fitter.fitpars - np.array(parameters))
+                              < self.fit_error))
+
+    @pytest.mark.parametrize(('model_class'), models_2D.keys())
+    def test_input2D(self, model_class):
+        """
+        Test model with different input types.
+        """
+        parameters = models_2D[model_class]['parameters']
+        model = self.create_model(model_class, parameters)
+        model(self.x, self.y)
+        model(self.x1, self.y1)
+        model(self.x2, self.y2)
+
+    @pytest.mark.parametrize(('model_class'), models_2D.keys())
+    def test_eval2D(self, model_class):
+        """
+        Test model values add certain given points
+        """
+        parameters = models_2D[model_class]['parameters']
+        model = self.create_model(model_class, parameters)
+        x = models_2D[model_class]['x_values']
+        y = models_2D[model_class]['y_values']
+        z = models_2D[model_class]['z_values']
+        assert np.all((np.abs(model(x, y) - z) < self.eval_error))
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.parametrize(('model_class'), models_2D.keys())
+    def test_fitter2D(self, model_class):
+        """
+        Test if the parametric model works with the fitter.
+        """
+        x_lim = models_2D[model_class]['x_lim']
+        y_lim = models_2D[model_class]['y_lim']
+
+        parameters = models_2D[model_class]['parameters']
+        model = self.create_model(model_class, parameters)
+        if isinstance(parameters, dict):
+            parameters.pop('degree')
+            parameters = parameters.values()
+
+        if "log_fit" in models_2D[model_class]:
+            if models_2D[model_class]['log_fit']:
+                x = np.logspace(x_lim[0], x_lim[1], self.N)
+                y = np.logspace(y_lim[0], y_lim[1], self.N)
+        else:
+            x = np.linspace(x_lim[0], x_lim[1], self.N)
+            y = np.linspace(y_lim[0], y_lim[1], self.N)
+        xv, yv = np.meshgrid(x, y)
+
+        np.random.seed(0)
+        # add 10% noise to the amplitude
+        data = model(xv, yv) + 0.1 * parameters[0] * (np.random.rand(self.N, self.N) - 0.5)
+        fitter = fitting.NonLinearLSQFitter(model)
+        fitter(xv, yv, data)
+        assert np.all((np.abs(fitter.fitpars - np.array(parameters))
+                        < self.fit_error))
