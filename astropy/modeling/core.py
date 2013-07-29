@@ -50,7 +50,7 @@ from .utils import InputParameterError
 
 __all__ = ['Model', 'ParametricModel', 'PCompositeModel', 'SCompositeModel',
            'LabeledInput', '_convert_input', '_convert_output',
-           'Parametric1DModel']
+           'Parametric1DModel', 'Parametric2DModel']
 
 
 def _convert_input(x, pdim):
@@ -396,6 +396,10 @@ class ParametricModel(Model):
                                                    bounds=_bounds,
                                                    eqcons=eqcons,
                                                    ineqcons=ineqcons)
+        # Flag that indicates if the model derivatives are given in columns
+        # or rows
+        self.col_deriv = 1
+        
         # Set constraints
         if fixed:
             for name in fixed:
@@ -845,7 +849,7 @@ class Parametric1DModel(ParametricModel):
     deriv = None
     linear = False
 
-    def __init__(self, param_dict, **cons):
+    def __init__(self, param_dict, **constraints):
         # Get parameter dimension
         param_dim = np.size(param_dict[self.param_names[0]])
 
@@ -857,7 +861,7 @@ class Parametric1DModel(ParametricModel):
                             val=param_dict[param_name], mclass=self, param_dim=param_dim))
 
         super(Parametric1DModel, self).__init__(self.param_names, n_inputs=1,
-                                                n_outputs=1, param_dim=param_dim, **cons)
+                                                n_outputs=1, param_dim=param_dim, **constraints)
 
     def __call__(self, x):
         """
@@ -871,3 +875,50 @@ class Parametric1DModel(ParametricModel):
         x, fmt = _convert_input(x, self.param_dim)
         result = self.eval(x, *self.param_sets)
         return _convert_output(result, fmt)
+
+
+class Parametric2DModel(ParametricModel):
+    """
+    Base class for two dimensional parametric models
+
+    This class provides an easier interface to defining new models.
+    Examples can be found in functional_models.py
+
+    Parameters
+    ----------
+    parameter_dict : dictionary
+        Dictionary of model parameters with initialization values
+        {'parameter_name': 'parameter_value'}
+
+    """
+    deriv = None
+    linear = False
+
+    def __init__(self, param_dict, **constraints):
+        # Get parameter dimension
+        param_dim = np.size(param_dict[self.param_names[0]])
+
+        # Initialize model parameters. This is preliminary as long there is
+        # no new parameter class. It may be more reasonable and clear to init 
+        # the parameters in the model constructor itself, with constraints etc.
+        for param_name in self.param_names:
+            setattr(self, "_" + param_name, parameters.Parameter(name=param_name,
+                            val=param_dict[param_name], mclass=self, param_dim=param_dim))
+
+        super(Parametric2DModel, self).__init__(self.param_names, n_inputs=2,
+                                                n_outputs=1, param_dim=param_dim, **constraints)
+
+    def __call__(self, x, y):
+        """
+        Transforms data using this model.
+
+        Parameters
+        ----------
+        x : array like or a number
+            input
+        """
+        x, _ = _convert_input(x, self.param_dim)
+        y, fmt = _convert_input(y, self.param_dim)
+        result = self.eval(x, y, *self.param_sets)
+        return _convert_output(result, fmt)
+
