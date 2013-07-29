@@ -2699,12 +2699,12 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         fields = self.fields
         array = self.array
         if mode == 1:
-            tag_name = u'BINARY'
+            tag_name = 'BINARY'
         else:
-            tag_name = u'BINARY2'
+            tag_name = 'BINARY2'
 
         with w.tag(tag_name):
-            with w.tag(u'STREAM', encoding='base64'):
+            with w.tag('STREAM', encoding='base64'):
                 fields_basic = [(i, field.converter.binoutput)
                                 for (i, field) in enumerate(fields)]
 
