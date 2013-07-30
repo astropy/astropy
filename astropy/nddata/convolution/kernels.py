@@ -10,7 +10,7 @@ from astropy.modeling.functional_models import Trapezoid1DModel
 
 __all__ = ['GaussianKernel', 'CustomKernel', 'BoxKernel', 'Tophat2DKernel',
            'Trapezoid1DKernel', 'MexicanHat1DKernel', 'MexicanHat2DKernel',
-           'Airy2DKernel']
+           'AiryDisk2DKernel']
 
 
 class GaussianKernel(Kernel1D):
@@ -85,7 +85,7 @@ class Tophat2DKernel(Kernel2D):
     """
 
     def __init__(self, radius):
-        self._model = Disk2DModel(amplitude=1., x_0=0., y_0=0., radius=radius)
+        self._model = Disk2DModel(amplitude=1., x_0=0., y_0=0., R_0=radius)
         super(Tophat2DKernel, self).__init__([2 * int(radius) + 1, 2 * int(radius) + 1])
         self._truncation = 0
 
@@ -128,7 +128,7 @@ class MexicanHat1DKernel(Kernel1D):
         if size == None:
             #Default Kernel size for GaussianKernel
             size = 8 * int(width) + 1
-        self._model = MexicanHat1DModel(amplitude=1, x_0=0., width=width)
+        self._model = MexicanHat1DModel(amplitude=1, x_0=0., sigma=width)
         super(MexicanHat1DKernel, self).__init__(size)
 
 
@@ -144,11 +144,11 @@ class MexicanHat2DKernel(Kernel2D):
         if shape == None:
             #Default Kernel size for GaussianKernel
             shape = (8 * int(width) + 1, 8 * int(width) + 1)
-        self._model = MexicanHat2DModel(amplitude=1, x_0=0., y_0=0, width=width)
+        self._model = MexicanHat2DModel(amplitude=1, x_0=0., y_0=0, sigma=width)
         super(MexicanHat2DKernel, self).__init__(shape)
 
 
-class Airy2DKernel(Kernel2D):
+class AiryDisk2DKernel(Kernel2D):
     """
     Airy 2D kernel.
     """
@@ -156,8 +156,8 @@ class Airy2DKernel(Kernel2D):
         if shape == None:
             #Default Kernel size for GaussianKernel
             shape = (8 * int(width) + 1, 8 * int(width) + 1)
-        self._model = Airy2DModel(amplitude=1, x_0=0., y_0=0, width=width)
-        super(Airy2DKernel, self).__init__(shape)
+        self._model = AiryDisk2DModel(amplitude=1, x_0=0., y_0=0, width=width)
+        super(AiryDisk2DKernel, self).__init__(shape)
 
 
 class Model1DKernel(Kernel1D):
