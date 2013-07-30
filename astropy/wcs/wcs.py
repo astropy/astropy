@@ -1074,6 +1074,11 @@ naxis kwarg.
 
         {1}
 
+        tolerance : float, optional
+            Tolerance of solution. Iteration terminates when the iterative
+            solver estimates that the true solution is within this many pixels
+            current estimate. Default value is 1e-6 (pixels).
+
         Returns
         -------
 
@@ -1121,6 +1126,94 @@ naxis kwarg.
     @deprecated("0.0", name="wcs_pix2sky", alternative="wcs_pix2world")
     def wcs_pix2sky(self, *args, **kwargs):
         return self.wcs_pix2world(*args, **kwargs)
+
+    def _all_world2pix(self, world, origin, tolerance, **kwargs):
+        try:
+            import scipy.optimize
+        except ImportError:
+            raise ImportError(
+                "You must have Scipy installed to use this method. " +
+                "See <http://www.scipy.org>.")
+        pix = []
+        for i in range(len(world)):
+            x0 = self.wcs_world2pix(np.atleast_2d(world[i]), origin,
+                **kwargs).flatten()
+            func = lambda pix: (self.all_pix2world(np.atleast_2d(pix),
+                origin, **kwargs) - world[i]).flatten()
+            # Use Broyden inverse because it is (a) present in a wide range of
+            # Scipy version, (b) provides an option for the absolute tolerance,
+            # and (c) is suitable for small-scale problems (i.e., a few
+            # variables, rather than hundreds of variables).
+            soln = scipy.optimize.broyden1(func, x0, x_tol=tolerance)
+            pix.append(soln.flatten())
+        return np.asarray(pix)
+
+    def all_world2pix(self, *args, **kwargs):
+        if self.wcs is None:
+            raise ValueError("No basic WCS settings were created.")
+        tolerance = kwargs.pop('tolerance', 1e-6)
+        return self._array_converter(lambda *args, **kwargs:
+            self._all_world2pix(*args, tolerance=tolerance, **kwargs),
+            'input', *args,
+            **kwargs)
+    all_world2pix.__doc__ = """
+        Transforms world coordinates to pixel coordinates, using numerical
+        iteration to invert the method `~astropy.wcs.WCS.all_pix2world` within a
+        tolerance of 1e-6 pixels.
+
+        Note that to use this function, you must have Scipy installed.
+
+        Parameters
+        ----------
+        {0}
+
+            For a transformation that is not two-dimensional, the
+            two-argument form must be used.
+
+        {1}
+
+        Returns
+        -------
+
+        {2}
+
+        Notes
+        -----
+        The order of the axes for the input world array is determined by
+        the `CTYPEia` keywords in the FITS header, therefore it may
+        not always be of the form (*ra*, *dec*).  The
+        `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
+        `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
+        members can be used to determine the order of the axes.
+
+        Raises
+        ------
+        MemoryError
+            Memory allocation failed.
+
+        SingularMatrixError
+            Linear transformation matrix is singular.
+
+        InconsistentAxisTypesError
+            Inconsistent or unrecognized coordinate axis types.
+
+        ValueError
+            Invalid parameter value.
+
+        ValueError
+            Invalid coordinate transformation parameters.
+
+        ValueError
+            x- and y-coordinate arrays are not the same size.
+
+        InvalidTransformError
+            Invalid coordinate transformation parameters.
+
+        InvalidTransformError
+            Ill-conditioned coordinate transformation parameters.
+        """.format(__.TWO_OR_MORE_ARGS('naxis', 8),
+                   __.RA_DEC_ORDER(8),
+                   __.RETURNS('pixel coordinates', 8))
 
     def wcs_world2pix(self, *args, **kwargs):
         if self.wcs is None:
