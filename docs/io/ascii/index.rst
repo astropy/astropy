@@ -88,6 +88,7 @@ The |write| function provides a way to write a data table as a formatted ASCII
 table.  For example the following writes a table as a simple space-delimited
 file::
 
+  >>> from astropy.table import Table
   >>> x = np.array([1, 2, 3])
   >>> y = x ** 2
   >>> data = Table([x, y], names=['x', 'y'])
