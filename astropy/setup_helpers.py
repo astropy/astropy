@@ -970,7 +970,7 @@ def is_distutils_display_option():
 
 
 def update_package_files(srcdir, extensions, package_data, packagenames,
-                         package_dirs, skip_2to3):
+                         package_dirs, skip_2to3=[]):
     """
     Extends existing extensions, package_data, packagenames and
     package_dirs collections by iterating through all packages in
