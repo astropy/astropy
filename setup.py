@@ -18,7 +18,7 @@ except:  # There are several types of exceptions that can occur here
 
 import glob
 import os
-from setuptools import setup, find_packages
+from setuptools import setup
 
 #A dirty hack to get around some early import/configurations ambiguities
 if sys.version_info[0] >= 3:
@@ -29,8 +29,7 @@ builtins._ASTROPY_SETUP_ = True
 
 import astropy
 from astropy.setup_helpers import (register_commands, adjust_compiler,
-                                   filter_packages, update_package_files,
-                                   get_debug_option)
+                                   get_package_info, get_debug_option)
 from astropy.version_helpers import get_git_devstr, generate_version_py
 
 NAME = 'astropy'
@@ -58,31 +57,17 @@ adjust_compiler(NAME)
 # Freeze build information in version.py
 generate_version_py(NAME, VERSION, RELEASE, get_debug_option())
 
-# Use the find_packages tool to locate all packages and modules
-packagenames = filter_packages(find_packages())
-
 # Treat everything in scripts except README.rst as a script to be installed
 scripts = [fname for fname in glob.glob(os.path.join('scripts', '*'))
            if os.path.basename(fname) != 'README.rst']
 
-# Additional C extensions that are not Cython-based should be added here.
-extensions = []
+# Get configuration information from all of the various subpackages.
+# See the docstring for setup_helpers.update_package_files for more
+# details.
+package_info = get_package_info(NAME)
 
-# A dictionary to keep track of all package data to install
-package_data = {'astropy': ['data/*']}
-
-# A dictionary to keep track of extra packagedir mappings
-package_dirs = {}
-
-# A list of packages that should skip 2to3
-skip_2to3 = []
-
-# Update extensions, package_data, packagenames and package_dirs from
-# any sub-packages that define their own extension modules and package
-# data.  See the docstring for setup_helpers.update_package_files for
-# more details.
-update_package_files(NAME, extensions, package_data, packagenames,
-                     package_dirs, skip_2to3)
+# Add the project-global data
+package_info['package_data']['astropy'] = ['data/*']
 
 # Currently the only entry points installed by Astropy are hooks to
 # zest.releaser for doing Astropy's releases
@@ -98,10 +83,6 @@ for hook in [('prereleaser', 'middle'), ('releaser', 'middle'),
 setup(name=NAME,
       version=VERSION,
       description='Community-developed python astronomy tools',
-      packages=packagenames,
-      package_data=package_data,
-      package_dir=package_dirs,
-      ext_modules=extensions,
       scripts=scripts,
       requires=['numpy'],  # scipy not required, but strongly recommended
       install_requires=['numpy'],
@@ -128,6 +109,6 @@ setup(name=NAME,
       cmdclass=cmdclassd,
       zip_safe=False,
       use_2to3=True,
-      skip_2to3=skip_2to3,
-      entry_points=entry_points
+      entry_points=entry_points,
+      **package_info
 )
