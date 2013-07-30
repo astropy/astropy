@@ -29,7 +29,7 @@ flexibility in the format for writing.  The example below writes the data as a
 LaTeX table, using the option to send the output to ``sys.stdout`` instead of a
 file::
 
-  >>> ascii.write(data, sys.stdout, format='latex')
+  >>> ascii.write(data, format='latex')
   \begin{table}
   \begin{tabular}{cc}
   x & y \\
@@ -62,7 +62,7 @@ serve as input to the |write| function.
     >>> data = Table({'a': [1, 2, 3],
                       'b': [4.0, 5.0, 6.0]},
                      names=['a', 'b'])
-    >>> ascii.write(data, sys.stdout)
+    >>> ascii.write(data)
     a b
     1 4.0
     2 5.0
@@ -70,7 +70,7 @@ serve as input to the |write| function.
 
     >>> data = np.array([(1, 2., 'Hello'), (2, 3., "World")],
                         dtype=('i4,f4,a10'))
-    >>> ascii.write(data, sys.stdout)
+    >>> ascii.write(data)
     f0 f1 f2
     1 2.0 Hello
     2 3.0 World
@@ -94,7 +94,7 @@ A list of Python lists (or any iterable object) can be used as input::
     >>> z = ['hello', 'world', '!!!']
     >>> data = [x, y, z]
 
-    >>> ascii.write(data, sys.stdout)
+    >>> ascii.write(data)
     col0 col1 col2
     1 4.0 hello
     2 5.2 world
@@ -105,7 +105,7 @@ The `data` object does not contain information about the column names so
 `names` keyword argument.  This example also shows excluding one of the columns
 from the output::
 
-    >>> ascii.write(data, sys.stdout, names=['x', 'y', 'z'], exclude_names=['y'])
+    >>> ascii.write(data, names=['x', 'y', 'z'], exclude_names=['y'])
     x z
     1 hello
     2 world
@@ -127,7 +127,7 @@ unpredictable unless the ``names`` argument is provided.
     >>> data = {'x': [1, 2, 3], 
                 'y': [4, 5.2, 6.1], 
                 'z': ['hello', 'world', '!!!']}
-    >>> ascii.write(data, sys.stdout, names=['x', 'y', 'z'])
+    >>> ascii.write(data, names=['x', 'y', 'z'])
     x y z
     1 4.0 hello
     2 5.2 world
@@ -206,7 +206,7 @@ of these classes for details.
   you need to provide the string representation (stripped of whitespace) for each value.
   Example::
 
-    astropy.io.ascii.write(table, sys.stdout, fill_values = [('nan', 'no data'),
+    astropy.io.ascii.write(table, fill_values = [('nan', 'no data'),
                                                        ('-999.0', 'no data')])
 
 **fill_include_names**: list of column names, which are affected by ``fill_values``.
