@@ -1,7 +1,8 @@
+from __future__ import division
 import numpy as np
 
 from .core import Kernel1D, Kernel2D, Kernel
-from .utils import KernelSizeError
+from .utils import KernelSizeError, next_larger_odd
 
 from ...modeling.models import *
 from ...modeling.core import Parametric1DModel, Parametric2DModel
@@ -25,24 +26,23 @@ class GaussianKernel(Kernel1D):
     width : number
         Width of the filter kernel.
     size : odd int
-        Size of the kernel array. Default = 8 * width + 1
+        Size of the kernel array. Default = 8 * width
 
     See Also
     --------
-    BoxKernel : Box filter kernel.
+    BoxKernel
 
     """
     _separable = True
     _weighted = True
 
     def __init__(self, width, size=None):
-        if size == None:
-            #Default Kernel size for GaussianKernel
-            size = 8 * int(width) + 1
         amplitude = 1. / (np.sqrt(2 * np.pi) * width)
         self._model = Gaussian1DModel(amplitude=amplitude, mean=0.,
                                                  stddev=width)
+        self._default_size = next_larger_odd(8 * width)
         super(GaussianKernel, self).__init__(size)
+        self._truncation = np.abs(1. - 1 / self._normalization)
 
 
 class BoxKernel(Kernel1D):
@@ -60,13 +60,14 @@ class BoxKernel(Kernel1D):
 
     See Also
     --------
-    GaussianKernel : Gaussian filter kernel.
+    GaussianKernel
     """
     _separable = True
     _weighted = False
 
     def __init__(self, width):
         self._model = Box1DModel(amplitude=1., x_0=0., width=width)
+        self._default_size = next_larger_odd(width)
         super(BoxKernel, self).__init__(width)
         self._truncation = 0
 
@@ -86,7 +87,8 @@ class Tophat2DKernel(Kernel2D):
 
     def __init__(self, radius):
         self._model = Disk2DModel(amplitude=1., x_0=0., y_0=0., R_0=radius)
-        super(Tophat2DKernel, self).__init__([2 * int(radius) + 1, 2 * int(radius) + 1])
+        self._default_size = (next_larger_odd(2 * radius), next_larger_odd(2 * radius))
+        super(Tophat2DKernel, self).__init__(None)
         self._truncation = 0
 
 
@@ -109,8 +111,8 @@ class Trapezoid1DKernel(Kernel1D):
 
     def __init__(self, width, slope=1):
         self._model = Trapezoid1DModel(amplitude=1, x_0=0., width=width, slope=slope)
-        size = 2 * int(width / 2. + 1. / slope) + 1 
-        super(Trapezoid1DKernel, self).__init__(size)
+        self._default_size = next_larger_odd(width + 2. / slope)
+        super(Trapezoid1DKernel, self).__init__(None)
         self._truncation = 0
 
 
@@ -125,11 +127,10 @@ class MexicanHat1DKernel(Kernel1D):
     _weighted = True
 
     def __init__(self, width, size=None):
-        if size == None:
-            #Default Kernel size for GaussianKernel
-            size = 8 * int(width) + 1
+        self._default_size = next_larger_odd(8 * width)
         self._model = MexicanHat1DModel(amplitude=1, x_0=0., sigma=width)
         super(MexicanHat1DKernel, self).__init__(size)
+        self._truncation = np.abs(self._array.sum() / self._array.size)
 
 
 class MexicanHat2DKernel(Kernel2D):
@@ -141,11 +142,10 @@ class MexicanHat2DKernel(Kernel2D):
     detection.
     """
     def __init__(self, width, shape=None):
-        if shape == None:
-            #Default Kernel size for GaussianKernel
-            shape = (8 * int(width) + 1, 8 * int(width) + 1)
+        self._default_size = (next_larger_odd(8 * width), next_larger_odd(8 * width))
         self._model = MexicanHat2DModel(amplitude=1, x_0=0., y_0=0, sigma=width)
         super(MexicanHat2DKernel, self).__init__(shape)
+        self._truncation = np.abs(self._array.sum() / self._array.size)
 
 
 class AiryDisk2DKernel(Kernel2D):
@@ -153,9 +153,7 @@ class AiryDisk2DKernel(Kernel2D):
     Airy 2D kernel.
     """
     def __init__(self, width, shape=None):
-        if shape == None:
-            #Default Kernel size for GaussianKernel
-            shape = (8 * int(width) + 1, 8 * int(width) + 1)
+        self._default_size = (next_larger_odd(8 * width), next_larger_odd(8 * width))
         self._model = AiryDisk2DModel(amplitude=1, x_0=0., y_0=0, width=width)
         super(AiryDisk2DKernel, self).__init__(shape)
 

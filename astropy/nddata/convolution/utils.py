@@ -20,3 +20,14 @@ class KernelSizeError(Exception):
 
     def __str__(self):
         return self._message
+
+
+def next_larger_odd(number):
+    """
+    Round int to next larger odd int.
+    """
+    number = int(number + 0.5)
+    if number % 2 == 0:
+        return number + 1
+    else:
+        return number

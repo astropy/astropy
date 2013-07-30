@@ -15,12 +15,12 @@ integrates to one per default.
 
 import numpy as np
 import copy
-from astropy.nddata.convolution.utils import KernelSizeError
+from .utils import KernelSizeError
 
 
 class Kernel(object):
     """
-    Abstract convolution kernel class
+    Convolution kernel base class.
     """
     _odd = True
     _separable = False
@@ -30,11 +30,6 @@ class Kernel(object):
     def __init__(self, array):
         self._array = array
         self._normalization = 1. / self._array.sum()
-        if self._normalization > 0.001:
-            self._truncation = 1. - 1. / self._normalization
-        else:
-            # There kernels that are normalized to zero
-            self._truncation = self._array.sum()
 
     @property
     def truncation(self):
@@ -130,7 +125,8 @@ class Kernel1D(Kernel):
         Size of the kernel array.
     """
     def __init__(self, size):
-        self.axes = 0
+        if size == None:
+            size = self._default_size
         if not isinstance(size, int):
             raise TypeError("Size must be integer.")
         if size % 2 == 0:
@@ -157,7 +153,7 @@ class Kernel1D(Kernel):
         """
         # As convolution is linear we can add two kernels
         # This will fail, if the kernel shapes don't match
-        add_kernel = Kernel1D(self._array + kernel._array)
+        add_kernel = Kernel1D()
         add_kernel._separable = self._separable and kernel._separable
         add_kernel._weighted = self._weighted or kernel._weighted
         return add_kernel
@@ -213,6 +209,8 @@ class Kernel2D(Kernel):
     Abstract base class for 1D filter kernels
     """
     def __init__(self, shape):
+        if shape == None:
+            shape = self._default_size
         if not np.all([isinstance(number, int) for number in shape]):
             raise TypeError("Size must be integer.")
         if np.any([number % 2 == 0 for number in shape]):
