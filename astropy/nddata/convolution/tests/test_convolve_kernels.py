@@ -11,7 +11,7 @@ import itertools
 
 
 widths = [3, 5, 7, 9]
-kernel_types = [GaussianKernel, BoxKernel, Tophat2DKernel, MexicanHat1DKernel, AiryDisk2DKernel]
+kernel_types = [GaussianKernel, BoxKernel, Tophat2DKernel, MexicanHat1DKernel]
 
 
 class Test2DConvolutions(object):
