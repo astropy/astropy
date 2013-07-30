@@ -143,7 +143,6 @@ class Gaussian2DModel(Parametric2DModel):
             x_stddev, y_stddev = np.sqrt(eig_vals)
             y_vec = eig_vecs[:, 0]
             theta = np.arctan2(y_vec[1], y_vec[0])
-
         super(Gaussian2DModel, self).__init__(locals())
 
     def eval(self, x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
@@ -693,7 +692,7 @@ class Box2DModel(Parametric2DModel):
     param_names = ['amplitude', 'x_0', 'y_0', 'x_width', 'y_width']
 
     def __init__(self, amplitude, x_0, y_0, x_width, y_width, **constraints):
-        super(Box2DModel, self).__init__(locals(), **constraints)
+        super(Box2DModel, self).__init__(locals())
 
     def eval(self, x, y, amplitude, x_0, y_0, x_width, y_width):
         """
@@ -727,7 +726,7 @@ class Trapezoid1DModel(Parametric1DModel):
     param_names = ['amplitude', 'x_0', 'width', 'slope']
 
     def __init__(self, amplitude, x_0, width, slope, **constraints):
-        super(Trapezoid1DModel, self).__init__(locals(), **constraints)
+        super(Trapezoid1DModel, self).__init__(locals())
 
     def eval(self, x, amplitude, x_0, width, slope):
         """
@@ -768,7 +767,7 @@ class TrapezoidDisk2DModel(Parametric2DModel):
     param_names = ['amplitude', 'x_0', 'y_0', 'R_0', 'slope']
 
     def __init__(self, amplitude, x_0, y_0, R_0, slope, **constraints):
-        super(TrapezoidDisk2DModel, self).__init__(locals(), **constraints)
+        super(TrapezoidDisk2DModel, self).__init__(locals())
 
     def eval(self, x, y, amplitude, x_0, y_0, R_0, slope):
         """
@@ -813,7 +812,7 @@ class MexicanHat1DModel(Parametric1DModel):
     param_names = ['amplitude', 'x_0', 'sigma']
 
     def __init__(self, amplitude, x_0, sigma, **constraints):
-        super(MexicanHat1DModel, self).__init__(locals(), **constraints)
+        super(MexicanHat1DModel, self).__init__(locals())
 
     def eval(self, x, amplitude, x_0, sigma):
         """
@@ -857,7 +856,7 @@ class MexicanHat2DModel(Parametric2DModel):
     param_names = ['amplitude', 'x_0', 'y_0', 'sigma']
 
     def __init__(self, amplitude, x_0, y_0, sigma, **constraints):
-        super(MexicanHat2DModel, self).__init__(locals(), **constraints)
+        super(MexicanHat2DModel, self).__init__(locals())
 
     def eval(self, x, y, amplitude, x_0, y_0, sigma):
         """
@@ -903,7 +902,7 @@ class AiryDisk2DModel(Parametric2DModel):
             self._j1 = j1
         except ImportError:
             raise ImportError("Could not import scipy.special.")
-        super(AiryDisk2DModel, self).__init__(locals(), **constraints)
+        super(AiryDisk2DModel, self).__init__(locals())
 
     def eval(self, x, y, amplitude, x_0, y_0, width):
         """
@@ -944,7 +943,7 @@ class Beta1DModel(Parametric1DModel):
     param_names = ['amplitude', 'x_0', 'gamma', 'alpha']
 
     def __init__(self, amplitude, x_0, gamma, alpha, **constraints):
-        super(Beta1DModel, self).__init__(locals(), **constraints)
+        super(Beta1DModel, self).__init__(locals())
 
     def eval(self, x, amplitude, x_0, gamma, alpha):
         """

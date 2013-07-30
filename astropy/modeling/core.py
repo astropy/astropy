@@ -416,8 +416,7 @@ class ParametricModel(Model):
     """
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, param_names, n_inputs, n_outputs, param_dim=1, fittable=True,
-                 **cons):
+    def __init__(self, param_names, n_inputs, n_outputs, param_dim=1, fittable=True, **cons):
         self.linear = False
         bounds = cons.pop('bounds', None)
         fixed = cons.pop('fixed', None)
@@ -938,7 +937,7 @@ class Parametric1DModel(ParametricModel):
                                                                  val=param_dict[param_name], mclass=self, param_dim=param_dim))
 
         super(Parametric1DModel, self).__init__(self.param_names, n_inputs=1,
-                                                n_outputs=1, param_dim=param_dim, **constraints)
+                                                n_outputs=1, param_dim=param_dim, **cons)
 
     def __call__(self, x):
         """
@@ -969,12 +968,12 @@ class Parametric2DModel(ParametricModel):
 
     """
     deriv = None
-    linear = False
+    #linear = False
 
-    def __init__(self, param_dict, **constraints):
+    def __init__(self, param_dict):
         # Get parameter dimension
         param_dim = np.size(param_dict[self.param_names[0]])
-
+        cons = param_dict.pop('constraints', {})
         # Initialize model parameters. This is preliminary as long there is
         # no new parameter class. It may be more reasonable and clear to init
         # the parameters in the model constructor itself, with constraints etc.
@@ -983,7 +982,7 @@ class Parametric2DModel(ParametricModel):
                             val=param_dict[param_name], mclass=self, param_dim=param_dim))
 
         super(Parametric2DModel, self).__init__(self.param_names, n_inputs=2,
-                                                n_outputs=1, param_dim=param_dim, **constraints)
+                                                n_outputs=1, param_dim=param_dim, **cons)
 
     def __call__(self, x, y):
         """
