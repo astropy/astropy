@@ -244,15 +244,14 @@ class CustomKernel(Kernel):
 
     See also
     --------
-    Model2DKernel : Create kernel from astropy.models.Parametric2DModel
-    Model1DKernel : Create kernel from astropy.models.Parametric1DModel
+    Model2DKernel, Model1DKernel
 
     Examples
     --------
     Define one dimensional mask:
 
         >>> from astropy.nddata.convolution.kernels import CustomKernel
-        >>> import numy as np
+        >>> import numpy as np
         >>> mask = np.array([1, 2, 3, 2, 1])
         >>> kernel = CustomKernel(mask)
         >>> kernel.dimension
