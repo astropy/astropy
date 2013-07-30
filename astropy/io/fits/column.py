@@ -7,6 +7,8 @@ import sys
 import warnings
 import weakref
 
+from functools import reduce
+
 import numpy as np
 from numpy import char as chararray
 
@@ -14,7 +16,8 @@ from .card import Card
 from .util import pairwise, _is_int, _convert_array, encode_ascii
 from .verify import VerifyError
 
-from ...extern.six import string_types
+from ...extern.six import string_types, iteritems
+from ...extern.six.moves import map, zip
 from ...utils import lazyproperty
 
 
@@ -824,8 +827,8 @@ class ColDefs(object):
         for col in columns:
             if not isinstance(col, Column):
                 raise TypeError(
-                       'Element %d in the ColDefs input is not a Column.'
-                       % input.index(col))
+                    'Element {0} in the ColDefs input is not a '
+                    'Column.'.format(input.index(col)))
 
         self._init_from_coldefs(columns)
 
@@ -1035,7 +1038,7 @@ class ColDefs(object):
         if not isinstance(other, (list, tuple)):
             other = [other]
         _other = [_get_index(self.names, key) for key in other]
-        indx = range(len(self))
+        indx = list(range(len(self)))
         for x in _other:
             indx.remove(x)
         tmp = [self[i] for i in indx]
@@ -1308,7 +1311,8 @@ class _VLF(np.ndarray):
                 # equally, beautiful!
                 input = [chararray.array(x, itemsize=1) for x in input]
             except:
-                raise ValueError('Inconsistent input data array: %s' % input)
+                raise ValueError(
+                    'Inconsistent input data array: {0}'.format(input))
 
         a = np.array(input, dtype=np.object)
         self = np.ndarray.__new__(cls, shape=(len(input),), buffer=a,

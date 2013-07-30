@@ -349,7 +349,7 @@ class _BaseHDU(object):
             header = data
             first_key = next(iter(header))
             if (not len(header) or
-                    first_key[0] not in ('SIMPLE', 'XTENSION')):
+                    first_key not in ('SIMPLE', 'XTENSION')):
                 raise ValueError('Block does not begin with SIMPLE or '
                                  'XTENSION')
         else:

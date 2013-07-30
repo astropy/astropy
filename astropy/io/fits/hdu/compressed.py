@@ -16,7 +16,7 @@ from ..header import Header
 from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 
 from ....extern.six import string_types
-from ....extern.six.moves import xrange
+from ....extern.six.moves import xrange, filter
 from ....utils import lazyproperty, deprecated
 from ....utils.exceptions import AstropyPendingDeprecationWarning, AstropyUserWarning
 
@@ -717,7 +717,7 @@ class CompImageHDU(BinTableHDU):
                     # user specified tile size is too small
                     raise ValueError('Hcompress minimum tile dimension is '
                                      '4 pixels')
-                major_dims = len(filter(lambda x: x > 1, tile_size))
+                major_dims = len(list(filter(lambda x: x > 1, tile_size)))
                 if major_dims > 2:
                     raise ValueError(
                         'HCOMPRESS can only support 2-dimensional tile sizes.'

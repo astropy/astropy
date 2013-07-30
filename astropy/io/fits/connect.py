@@ -18,6 +18,7 @@ from ...utils.exceptions import AstropyUserWarning
 
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .hdu.hdulist import fitsopen as fits_open
+from .util import first
 
 
 # FITS file signature as per RFC 4047
@@ -104,13 +105,12 @@ def read_table_fits(input, hdu=None):
                 tables[ihdu] = hdu_item
 
         if len(tables) > 1:
-
             if hdu is None:
                 warnings.warn("hdu= was not specified but multiple tables"
                               " are present, reading in first available"
-                              " table (hdu={0})".format(tables.keys()[0]),
+                              " table (hdu={0})".format(first(tables)),
                               AstropyUserWarning)
-                hdu = tables.keys()[0]
+                hdu = first(tables)
 
             # hdu might not be an integer, so we first need to convert it
             # to the correct HDU index
@@ -122,7 +122,7 @@ def read_table_fits(input, hdu=None):
                 raise ValueError("No table found in hdu={0}".format(hdu))
 
         elif len(tables) == 1:
-            table = tables[tables.keys()[0]]
+            table = tables[first(tables)]
         else:
             raise ValueError("No table found")
 

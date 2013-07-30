@@ -5,7 +5,6 @@ from ...extern.six import PY3
 if PY3:  # pragma: py3
     # Stuff to do if Python 3
     import builtins
-    import io
 
     # Bring back the cmp() function
     builtins.cmp = lambda a, b: (a > b) - (a < b)
@@ -48,40 +47,6 @@ if PY3:  # pragma: py3
             return ns
         return s
     util.decode_ascii = decode_ascii
-
-    # See the docstring for astropy.io.fits.util.fileobj_open for why we need
-    # to replace this function
-    def fileobj_open(filename, mode):
-        return open(filename, mode, buffering=0)
-    util.fileobj_open = fileobj_open
-
-    # Support the io.IOBase.readable/writable methods
-    from .util import isreadable as _isreadable
-
-    def isreadable(f):
-        if hasattr(f, 'readable'):
-            return f.readable()
-        return _isreadable(f)
-    util.isreadable = isreadable
-
-    from .util import iswritable as _iswritable
-
-    def iswritable(f):
-        if hasattr(f, 'writable'):
-            return f.writable()
-        return _iswritable(f)
-    util.iswritable = iswritable
-
-    # isfile needs to support the higher-level wrappers around FileIO
-    def isfile(f):
-        if isinstance(f, io.FileIO):
-            return True
-        elif hasattr(f, 'buffer'):
-            return isfile(f.buffer)
-        elif hasattr(f, 'raw'):
-            return isfile(f.raw)
-        return False
-    util.isfile = isfile
 
     # Here we monkey patch (yes, I know) numpy to fix a few numpy Python 3
     # bugs.  The only behavior that's modified is that bugs are fixed, so that

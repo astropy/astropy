@@ -5,6 +5,8 @@ import operator
 import warnings
 import weakref
 
+from functools import reduce
+
 import numpy as np
 
 from numpy import char as chararray
@@ -14,7 +16,7 @@ from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
                      _wrapx, _unwrapx, _makep, _convert_ascii_format, Delayed)
 from .util import decode_ascii
 from ...extern.six import string_types
-from ...extern.six.moves import xrange
+from ...extern.six.moves import xrange, map
 from ...utils import lazyproperty
 from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 

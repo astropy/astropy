@@ -4,7 +4,6 @@ from __future__ import print_function
 import numpy as np
 from numpy import char as chararray
 
-from ....extern.six.moves import xrange
 from ....io import fits
 from ....tests.helper import pytest
 
@@ -1427,7 +1426,7 @@ class TestTableFunctions(FitsTestCase):
 
         i = 0
         for row in tbhdu1.data:
-            for j in xrange(len(row)):
+            for j in range(len(row)):
                 if isinstance(row[j], np.ndarray):
                     assert (row[j] == tbhdu.data[i][j]).all()
                 else:

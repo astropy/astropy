@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import itertools
 import warnings
 
 import numpy as np
 
-from ....extern.six import u
+from ....extern.six import u, iterkeys, itervalues, iteritems
+from ....extern.six.moves import zip
 from ....io import fits
 from ....io.fits.verify import VerifyWarning
 from ....tests.helper import pytest, catch_warnings
@@ -959,21 +959,21 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_header_items(self):
         header = fits.Header([('A', 'B'), ('C', 'D')])
-        assert header.items() == list(header.iteritems())
+        assert list(header.items()) == list(iteritems(header))
 
     def test_header_iterkeys(self):
         header = fits.Header([('A', 'B'), ('C', 'D')])
-        for a, b in itertools.izip(header.iterkeys(), header):
+        for a, b in zip(iterkeys(header), header):
             assert a == b
 
     def test_header_itervalues(self):
         header = fits.Header([('A', 'B'), ('C', 'D')])
-        for a, b in itertools.izip(header.itervalues(), ['B', 'D']):
+        for a, b in zip(itervalues(header), ['B', 'D']):
             assert a == b
 
     def test_header_keys(self):
         hdul = fits.open(self.data('arange.fits'))
-        assert (hdul[0].header.keys() ==
+        assert (list(hdul[0].header) ==
                 ['SIMPLE', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2', 'NAXIS3',
                  'EXTEND'])
 
@@ -984,17 +984,17 @@ class TestHeaderFunctions(FitsTestCase):
         last = header.pop()
         assert last == 'H'
         assert len(header) == 3
-        assert header.keys() == ['A', 'C', 'E']
+        assert list(header) == ['A', 'C', 'E']
 
         mid = header.pop(1)
         assert mid == 'D'
         assert len(header) == 2
-        assert header.keys() == ['A', 'E']
+        assert list(header) == ['A', 'E']
 
         first = header.pop(0)
         assert first == 'B'
         assert len(header) == 1
-        assert header.keys() == ['E']
+        assert list(header) == ['E']
 
         pytest.raises(IndexError, header.pop, 42)
 
@@ -1006,17 +1006,17 @@ class TestHeaderFunctions(FitsTestCase):
         last = header.pop('G')
         assert last == 'H'
         assert len(header) == 3
-        assert header.keys() == ['A', 'C', 'E']
+        assert list(header) == ['A', 'C', 'E']
 
         mid = header.pop('C')
         assert mid == 'D'
         assert len(header) == 2
-        assert header.keys() == ['A', 'E']
+        assert list(header) == ['A', 'E']
 
         first = header.pop('A')
         assert first == 'B'
         assert len(header) == 1
-        assert header.keys() == ['E']
+        assert list(header) == ['E']
 
         default = header.pop('X', 'Y')
         assert default == 'Y'
@@ -1109,7 +1109,7 @@ class TestHeaderFunctions(FitsTestCase):
         # operation when the header is coming from another HDU
         hdu.header.extend(hdu2.header, strip=False)
         assert len(hdu.header) == 11
-        assert hdu.header.keys()[5] == 'XTENSION'
+        assert list(hdu.header)[5] == 'XTENSION'
         assert hdu.header[-1] == 'some val'
         assert ('MYKEY', 1) in hdu.header
 
@@ -1222,7 +1222,7 @@ class TestHeaderFunctions(FitsTestCase):
         header = fits.Header([('A', 'B'), ('C', 'D')])
         header.append('E')
         assert len(header) == 3
-        assert header.keys()[-1] == 'E'
+        assert list(header)[-1] == 'E'
         assert header[-1] == ''
         assert header.comments['E'] == ''
 
@@ -1232,7 +1232,7 @@ class TestHeaderFunctions(FitsTestCase):
         header.append('')
         assert len(header) == 4
 
-        assert header.keys()[-1] == ''
+        assert list(header)[-1] == ''
         assert header[''] == ''
         assert header.comments[''] == ''
 
@@ -1302,7 +1302,7 @@ class TestHeaderFunctions(FitsTestCase):
     def test_commentary_slicing(self):
         header = fits.Header()
 
-        indices = range(5)
+        indices = list(range(5))
 
         for idx in indices:
             header['HISTORY'] = idx
@@ -1362,7 +1362,7 @@ class TestHeaderFunctions(FitsTestCase):
         header['HISTORY'] = longval
 
         assert len(header) == 7
-        assert header.keys()[2] == 'FRED'
+        assert list(header)[2] == 'FRED'
         assert str(header.cards[3]) == 'HISTORY ' + longval[:72]
         assert str(header.cards[4]).rstrip() == 'HISTORY ' + longval[72:]
 
@@ -1441,33 +1441,33 @@ class TestHeaderFunctions(FitsTestCase):
         header = fits.Header([('A', 'B'), ('B', 'C'), ('C', 'D')])
 
         header.set('B', before=2)
-        assert header.keys() == ['A', 'B', 'C']
+        assert list(header) == ['A', 'B', 'C']
         assert not header._modified
 
         header.set('B', after=0)
-        assert header.keys() == ['A', 'B', 'C']
+        assert list(header) == ['A', 'B', 'C']
         assert not header._modified
 
         header.set('B', before='C')
-        assert header.keys() == ['A', 'B', 'C']
+        assert list(header) == ['A', 'B', 'C']
         assert not header._modified
 
         header.set('B', after='A')
-        assert header.keys() == ['A', 'B', 'C']
+        assert list(header) == ['A', 'B', 'C']
         assert not header._modified
 
         header.set('B', before=2)
-        assert header.keys() == ['A', 'B', 'C']
+        assert list(header) == ['A', 'B', 'C']
         assert not header._modified
 
         # 123 is well past the end, and C is already at the end, so it's in the
         # right place already
         header.set('C', before=123)
-        assert header.keys() == ['A', 'B', 'C']
+        assert list(header) == ['A', 'B', 'C']
         assert not header._modified
 
         header.set('C', after=123)
-        assert header.keys() == ['A', 'B', 'C']
+        assert list(header) == ['A', 'B', 'C']
         assert not header._modified
 
     def test_invalid_float_cards(self):
@@ -1610,7 +1610,7 @@ class TestHeaderFunctions(FitsTestCase):
         """
 
         h = fits.Header([('abC', 1), ('Def', 2), ('GeH', 3)])
-        assert h.keys() == ['ABC', 'DEF', 'GEH']
+        assert list(h) == ['ABC', 'DEF', 'GEH']
         assert 'abc' in h
         assert 'dEf' in h
 
@@ -1626,14 +1626,14 @@ class TestHeaderFunctions(FitsTestCase):
         assert len(h) == 3
 
         del h['gEh']
-        assert h.keys() == ['ABC', 'DEF']
+        assert list(h) == ['ABC', 'DEF']
         assert len(h) == 2
         assert h.get('def') == 2
 
         h.set('Abc', 3)
         assert h['ABC'] == 3
         h.set('gEh', 3, before='Abc')
-        assert h.keys() == ['GEH', 'ABC', 'DEF']
+        assert list(h) == ['GEH', 'ABC', 'DEF']
 
         assert h.pop('abC') == 3
         assert len(h) == 2
@@ -1642,11 +1642,11 @@ class TestHeaderFunctions(FitsTestCase):
         assert len(h) == 2
         assert h.setdefault('aBc', 1) == 1
         assert len(h) == 3
-        assert h.keys() == ['GEH', 'DEF', 'ABC']
+        assert list(h) == ['GEH', 'DEF', 'ABC']
 
         h.update({'GeH': 1, 'iJk': 4})
         assert len(h) == 4
-        assert h.keys() == ['GEH', 'DEF', 'ABC', 'IJK']
+        assert list(h) == ['GEH', 'DEF', 'ABC', 'IJK']
         assert h['GEH'] == 1
 
         assert h.count('ijk') == 1
@@ -1654,7 +1654,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         h.remove('Def')
         assert len(h) == 3
-        assert h.keys() == ['GEH', 'ABC', 'IJK']
+        assert list(h) == ['GEH', 'ABC', 'IJK']
 
     def test_end_in_comment(self):
         """
@@ -2071,9 +2071,9 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
         del self._test_header['DP1.AXIS.1']
         assert len(self._test_header) == 7
-        assert self._test_header.keys()[0] == 'DP1.NAXIS'
+        assert list(self._test_header)[0] == 'DP1.NAXIS'
         assert self._test_header[0] == 2
-        assert self._test_header.keys()[1] == 'DP1.AXIS.2'
+        assert list(self._test_header)[1] == 'DP1.AXIS.2'
         assert self._test_header[1] == 2
 
     def test_pattern_matching_keys(self):
@@ -2111,9 +2111,9 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
         del self._test_header['DP1.A*...']
         assert len(self._test_header) == 2
-        assert self._test_header.keys()[0] == 'DP1.NAXIS'
+        assert list(self._test_header)[0] == 'DP1.NAXIS'
         assert self._test_header[0] == 2
-        assert self._test_header.keys()[1] == 'DP1.NAUX'
+        assert list(self._test_header)[1] == 'DP1.NAUX'
         assert self._test_header[1] == 2
 
     def test_successive_pattern_matching(self):
@@ -2144,7 +2144,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         """
 
         cl = self._test_header['DP1.AXIS.*']
-        assert cl.keys() == ['DP1.AXIS.1', 'DP1.AXIS.2']
+        assert list(cl) == ['DP1.AXIS.1', 'DP1.AXIS.2']
 
     def test_rvkc_in_cardlist_values(self):
         """
@@ -2153,7 +2153,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         """
 
         cl = self._test_header['DP1.AXIS.*']
-        assert cl.values() == [1.0, 2.0]
+        assert list(cl.values()) == [1.0, 2.0]
 
     def test_rvkc_value_attribute(self):
         """
