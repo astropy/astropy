@@ -7,13 +7,11 @@ A filter kernel is mainly characterized by its response function. In the 1D
 case we speak of "impulse response function", in the 2D case we call it
 "point spread function". This response function is given for every kernel
 by an astropy ParametricModel, which is evaluated on a grid to obtain a filter
-mask, which can then be applied to binned data.
+array, which can then be applied to binned data.
 
-The model is centered on the mask and should have an amplitude such that the mask
+The model is centered on the array and should have an amplitude such that the array
 integrates to one per default.
 """
-
-import abc
 
 import numpy as np
 import copy
@@ -29,14 +27,14 @@ class Kernel(object):
     _weighted = False
     _model = None
 
-    def __init__(self, mask):
-        self._mask = mask
-        self._normalization = 1. / self._mask.sum()
+    def __init__(self, array):
+        self._array = array
+        self._normalization = 1. / self._array.sum()
         if self._normalization > 0.001:
             self._truncation = 1. - 1. / self._normalization
         else:
             # There kernels that are normalized to zero
-            self._truncation = self._mask.sum()
+            self._truncation = self._array.sum()
 
     @property
     def truncation(self):
@@ -67,7 +65,7 @@ class Kernel(object):
         """
         Kernel dimension.
         """
-        return self.mask.ndim
+        return self.array.ndim
 
     @property
     def odd(self):
@@ -81,7 +79,7 @@ class Kernel(object):
         """
         Index of the kernel center.
         """
-        return [axes_size / 2 for axes_size in self._mask.shape]
+        return [axes_size / 2 for axes_size in self._array.shape]
 
     @property
     def normalization(self):
@@ -93,31 +91,31 @@ class Kernel(object):
     @property
     def shape(self):
         """
-        Shape of the kernel mask.
+        Shape of the kernel array.
         """
-        return self._mask.shape
+        return self._array.shape
 
     @property
     def separable(self):
         """
         Indicates if the filter kernel is separable.
 
-        A 2D filter is separable, when its filter mask can be written as the
-        outer product of two 1D masks.
+        A 2D filter is separable, when its filter array can be written as the
+        outer product of two 1D arrays.
 
         If a filter kernel is separable, higher dimension convolutions will be
-        performed by applying the 1D filter mask consecutively on every dimension.
-        This is significantly faster, than using a filter mask with the same
+        performed by applying the 1D filter array consecutively on every dimension.
+        This is significantly faster, than using a filter array with the same
         dimension.
         """
         return self._separable
 
     @property
-    def mask(self):
+    def array(self):
         """
-        Filter kernel mask.
+        Filter kernel array.
         """
-        return self._mask
+        return self._array
 
 
 class Kernel1D(Kernel):
@@ -129,7 +127,7 @@ class Kernel1D(Kernel):
     width : float
         Width of the kernel model.
     size : odd int
-        Size of the kernel mask.
+        Size of the kernel array.
     """
     def __init__(self, size):
         self.axes = 0
@@ -138,17 +136,17 @@ class Kernel1D(Kernel):
         if size % 2 == 0:
             raise KernelSizeError("Kernel size must be odd.")
         self._odd = True
-        mask = self._init_mask(size)
-        super(Kernel1D, self).__init__(mask)
+        array = self._init_array(size)
+        super(Kernel1D, self).__init__(array)
 
-    def _init_mask(self, size):
+    def _init_array(self, size):
         """
         Evaluate kernel model on grid.
 
         Parameters
         ----------
         size : odd int
-            Total size of the mask.
+            Total size of the array.
         """
         x = np.arange(-(size / 2), (size / 2) + 1)
         return self._model(x)
@@ -159,7 +157,7 @@ class Kernel1D(Kernel):
         """
         # As convolution is linear we can add two kernels
         # This will fail, if the kernel shapes don't match
-        add_kernel = Kernel1D(self._mask + kernel._mask)
+        add_kernel = Kernel1D(self._array + kernel._array)
         add_kernel._separable = self._separable and kernel._separable
         add_kernel._weighted = self._weighted or kernel._weighted
         return add_kernel
@@ -170,7 +168,7 @@ class Kernel1D(Kernel):
         """
         # As convolution is linear we can subtract two kernels
         # This will fail, if the kernel shapes don't match
-        sub_kernel = Kernel1D(self._mask - kernel._mask)
+        sub_kernel = Kernel1D(self._array - kernel._array)
         sub_kernel._separable = self._separable and kernel._separable
         sub_kernel._weighted = self._weighted or kernel._weighted
         return sub_kernel
@@ -220,17 +218,17 @@ class Kernel2D(Kernel):
         if np.any([number % 2 == 0 for number in shape]):
             raise KernelSizeError("Kernel size must be odd.")
         self._odd = True
-        mask = self._init_mask(shape)
-        super(Kernel2D, self).__init__(mask)
+        array = self._init_array(shape)
+        super(Kernel2D, self).__init__(array)
 
-    def _init_mask(self, shape):
+    def _init_array(self, shape):
         """
         Evaluate kernel model on grid.
 
         Parameters
         ----------
         shape : tuple
-            Shape of the mask. Sizes must be odd.
+            Shape of the array. Sizes must be odd.
         """
         x = np.arange(-(shape[1] / 2), (shape[1] / 2) + 1)
         y = np.arange(-(shape[0] / 2), (shape[0] / 2) + 1)
