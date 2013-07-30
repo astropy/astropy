@@ -27,8 +27,8 @@ class Test2DConvolutions(object):
         xslice = [slice(sh // 2, sh // 2) for sh in kernel.shape]
         x[xslice] = 1.0
 
-        c2 = convolve_fft(x, kernel.mask, boundary='fill')
-        c1 = convolve(x, kernel.mask, boundary='fill')
+        c2 = convolve_fft(x, kernel.array, boundary='fill')
+        c1 = convolve(x, kernel.array, boundary='fill')
 
         assert_almost_equal(c1, c2, decimal=12)
 
@@ -45,8 +45,8 @@ class Test2DConvolutions(object):
 
         x = np.random.randn(*kernel.shape)
 
-        c2 = convolve_fft(x, kernel.mask, boundary='fill')
-        c1 = convolve(x, kernel.mask, boundary='fill')
+        c2 = convolve_fft(x, kernel.array, boundary='fill')
+        c1 = convolve(x, kernel.array, boundary='fill')
 
         # not clear why, but these differ by a couple ulps...
         assert_almost_equal(c1, c2, decimal=12)
@@ -82,7 +82,7 @@ class Test2DConvolutions(object):
         """
         box = BoxKernel(width)
         kernel1 = np.ones([width, width])
-        kernel2 = np.outer(box.mask, box.mask)
+        kernel2 = np.outer(box.array, box.array)
 
         x = np.zeros(kernel2.shape)
         xslice = [slice(sh // 2, sh // 2) for sh in kernel2.shape]
