@@ -102,10 +102,10 @@ supported in the basic Python command-line interpreter on Windows.
 Installation fails on Mageia-2 or Mageia-3 distributions
 --------------------------------------------------------
 
-Usual command line ``python ./setup.py install`` fails with traditional debug 
-messages ``unable to find 'pow' or 'sincos'`` ... at the link phase of process.
-python-2.7.3-7.1.mga3 next packages for python2 and python 3 next packages should
-fix the bug.
-Immediate workaround is to edit the file :
- ``/usr/lib/python2.7/config/Makefile``
-and remove ``-Wl,--no-undefined`` from the LDFLAGS def on line 71.
+Command line ``python ./setup.py install`` fails with libm linking error  
+``unable to find 'pow' or 'sincos'`` ...
+Next packages for python2 and python 3 next packages should fix the bug.
+See: https://bugs.mageia.org/show_bug.cgi?id=10102
+
+Immediate workaround is to edit the file : ``/usr/lib/python2.7/config/Makefile``
+and remove ``-Wl,--no-undefined`` from the LDFLAGS def.
