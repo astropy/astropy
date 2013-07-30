@@ -4,8 +4,7 @@ import warnings
 
 import numpy as np
 from ...config import ConfigurationItem
-
-
+from .core import Kernel
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -29,7 +28,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
         The array to convolve. This should be a 1, 2, or 3-dimensional array
         or a list or a set of nested lists representing a 1, 2, or
         3-dimensional array.
-    kernel : `numpy.ndarray`
+    kernel : `numpy.ndarray` or nddata.convolution.Kernel
         The convolution kernel. The number of dimensions should match those
         for the array, and the dimensions should be odd in all directions.
     boundary : str, optional
@@ -90,6 +89,10 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     # It is always necessary to make a copy of kernel (since it is modified),
     # but, if we just so happen to be lucky enough to have the input array
     # have exactly the desired type, we just alias to array_internal
+    # Check that the arguments are lists or Numpy arrays
+    # Check if kernel is kernel instance 
+    if isinstance(kernel, Kernel):
+        kernel = kernel.array
     if isinstance(array, list):
         array_internal = np.array(array, dtype=np.float)
         array_dtype = array_internal.dtype
@@ -117,6 +120,19 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     if array_internal.ndim != kernel_internal.ndim:
         raise Exception('array and kernel have differing number of'
                         'dimensions')
+
+    # The .dtype.type attribute returns the datatype without the endian. We can
+    # use this to check that the arrays are 32- or 64-bit arrays
+    if array.dtype.kind == 'i':
+        array = array.astype(float)
+    elif array.dtype.kind != 'f':
+        raise TypeError('array should be an integer or a '
+                        'floating-point Numpy array')
+    if kernel.dtype.kind == 'i':
+        kernel = kernel.astype(float)
+    elif kernel.dtype.kind != 'f':
+        raise TypeError('kernel should be an integer or a '
+                        'floating-point Numpy array')
 
     # Because the Cython routines have to normalize the kernel on the fly, we
     # explicitly normalize the kernel here, and then scale the image at the
@@ -326,6 +342,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
     # returned! Note that this always makes a copy.
+    # Check kernel is kernel instance 
+    if isinstance(kernel, Kernel):
+        kernel = kernel.array
     array = np.asarray(array, dtype=np.complex)
     kernel = np.asarray(kernel, dtype=np.complex)
 
