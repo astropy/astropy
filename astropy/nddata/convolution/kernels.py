@@ -25,7 +25,7 @@ class GaussianKernel(Kernel1D):
     width : number
         Width of the filter kernel.
     size : odd int
-        Size of the kernel mask. Default = 8 * width + 1
+        Size of the kernel array. Default = 8 * width + 1
 
     See Also
     --------
@@ -232,15 +232,15 @@ class CustomKernel(Kernel):
 
     Parameters
     ----------
-    mask : list or array
-        Filter kernel mask. Size must be odd.
+    array : list or array
+        Filter kernel array. Size must be odd.
 
     Raises
     ------
     TypeError
-        If mask is not a list or array.
+        If array is not a list or array.
     KernelSizeError
-        If mask size is even.
+        If array size is even.
 
     See also
     --------
@@ -248,57 +248,57 @@ class CustomKernel(Kernel):
 
     Examples
     --------
-    Define one dimensional mask:
+    Define one dimensional array:
 
         >>> from astropy.nddata.convolution.kernels import CustomKernel
         >>> import numpy as np
-        >>> mask = np.array([1, 2, 3, 2, 1])
-        >>> kernel = CustomKernel(mask)
+        >>> array = np.array([1, 2, 3, 2, 1])
+        >>> kernel = CustomKernel(array)
         >>> kernel.dimension
         1
 
-    Define two dimensional mask:
+    Define two dimensional array:
 
-        >>> mask = np.array([[1, 1, 1], [1, 2, 1], [1, 1, 1]])
-        >>> kernel = CustomKernel(mask)
+        >>> array = np.array([[1, 1, 1], [1, 2, 1], [1, 1, 1]])
+        >>> kernel = CustomKernel(array)
         >>> kernel.dimension
         2
     """
 
-    def __init__(self, mask):
-        # Pass 'None' because mask is overridden in the next line
-        self.mask = mask
-        super(CustomKernel, self).__init__(self._mask)
+    def __init__(self, array):
+        # Pass 'None' because array is overridden in the next line
+        self.array = array
+        super(CustomKernel, self).__init__(self._array)
 
     @property
-    def mask(self):
+    def array(self):
         """
-        Filter kernel mask.
+        Filter kernel array.
         """
-        return self._mask
+        return self._array
 
-    @mask.setter
-    def mask(self, mask):
+    @array.setter
+    def array(self, array):
         """
-        Filter kernel mask setter
+        Filter kernel array setter
         """
-        if isinstance(mask, np.ndarray):
-            self._mask = mask
-        elif isinstance(mask, list):
-            self._mask = np.array(mask)
+        if isinstance(array, np.ndarray):
+            self._array = array
+        elif isinstance(array, list):
+            self._array = np.array(array)
         else:
             raise TypeError("Must be list or array.")
 
-        #Check if mask is odd in all axis
+        #Check if array is odd in all axis
         self._odd = np.all([axes_size % 2 != 0 for axes_size in self.shape])
 
         if not self.odd:
             raise KernelSizeError("Kernel size must be odd.")
 
-        # Check if mask is weighted
-        ones = self._mask == 1.
-        zeros = self._mask == 0
+        # Check if array is weighted
+        ones = self._array == 1.
+        zeros = self._array == 0
         self._weighted = not np.all(np.logical_or(ones, zeros))
 
         # Set normalization
-        self._normalization = 1. / self._mask.sum()
+        self._normalization = 1. / self._array.sum()
