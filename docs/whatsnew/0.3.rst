@@ -11,6 +11,10 @@ When reading FITS headers, warnings will be displayed about any
 non-standard WCS keywords that were fixed up to become standard
 compliant.
 
+For users who have Scipy installed, the `wcs.WCS` class features a new
+method `all_world2pix` for converting from world coordinates to pixel
+space, including inversion of the astrometric distortion correction.
+
 The included version of `wcslib` has been upgraded to version 4.17.
 
 io.votable
