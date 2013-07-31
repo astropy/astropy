@@ -954,6 +954,7 @@ class Parametric1DModel(ParametricModel):
 
 
 class Parametric2DModel(ParametricModel):
+
     """
     Base class for two dimensional parametric models
 
@@ -968,7 +969,6 @@ class Parametric2DModel(ParametricModel):
 
     """
     deriv = None
-    #linear = False
 
     def __init__(self, param_dict):
         # Get parameter dimension
@@ -979,7 +979,7 @@ class Parametric2DModel(ParametricModel):
         # the parameters in the model constructor itself, with constraints etc.
         for param_name in self.param_names:
             setattr(self, "_" + param_name, parameters.Parameter(name=param_name,
-                            val=param_dict[param_name], mclass=self, param_dim=param_dim))
+                                                                 val=param_dict[param_name], mclass=self, param_dim=param_dim))
 
         super(Parametric2DModel, self).__init__(self.param_names, n_inputs=2,
                                                 n_outputs=1, param_dim=param_dim, **cons)
@@ -997,4 +997,3 @@ class Parametric2DModel(ParametricModel):
         y, fmt = _convert_input(y, self.param_dim)
         result = self.eval(x, y, *self.param_sets)
         return _convert_output(result, fmt)
-
