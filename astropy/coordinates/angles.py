@@ -165,6 +165,15 @@ class Angle(u.Quantity):
 
     @staticmethod
     def _bounds_check(angle, bounds, unit):
+        def raise_error(original_angle, lower_angle, upper_angle, unit):
+            raise BoundsError(
+                "The angle(s) {0} falls outside of the specified "
+                "bounds ({1}, {2}) (in {3})".format(
+                    u.radian.to(unit, original_angle),
+                    u.radian.to(unit, lower_angle),
+                    u.radian.to(unit, upper_angle),
+                    unit))
+
         if bounds is None:
             return angle, None
 
@@ -203,12 +212,7 @@ class Angle(u.Quantity):
             while np.any(too_big):
                 angle = np.where(too_big, angle - TWOPI, angle)
                 if np.any(angle < lower_angle):
-                    raise BoundsError(
-                        "The angle(s) {0} falls outside of the specified "
-                        "bounds ({1}, {2})".format(
-                            u.radian.to(unit, original_angle),
-                            u.radian.to(unit, lower_angle),
-                            u.radian.to(unit, upper_angle)))
+                    raise_error(original_angle, lower_angle, upper_angle, unit)
 
                 too_big = angle > upper_angle
 
@@ -216,12 +220,7 @@ class Angle(u.Quantity):
             while np.any(too_small):
                 angle = np.where(too_small, angle + TWOPI, angle)
                 if np.any(angle > upper_angle):
-                    raise BoundsError(
-                        "The angle(s) {0} falls outside of the specified "
-                        "bounds ({1} rad, {2} rad)".format(
-                            u.radian.to(unit, original_angle),
-                            u.radian.to(unit, lower_angle),
-                            u.radian.to(unit, upper_angle)))
+                    raise_error(original_angle, lower_angle, upper_angle, unit)
 
                 too_small = angle < lower_angle
 
