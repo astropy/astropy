@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  WCSLIB 4.18 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.h,v 4.17 2013/01/29 05:29:20 cal103 Exp $
+  $Id: prj.h,v 4.18 2013/07/13 10:00:04 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.17 - C routines that implement the spherical map projections
+* WCSLIB 4.18 - C routines that implement the spherical map projections
 * recognized by the FITS World Coordinate System (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -97,6 +97,7 @@
 *   - cscset(), cscx2s(), cscs2x():   CSC (COBE spherical cube)
 *   - qscset(), qscx2s(), qscs2x():   QSC (quadrilateralized spherical cube)
 *   - hpxset(), hpxx2s(), hpxs2x():   HPX (HEALPix)
+*   - xphset(), xphx2s(), xphs2x():   XPH (HEALPix polar, aka "butterfly")
 *
 * Argument checking (projection routines):
 * ----------------------------------------
@@ -564,7 +565,7 @@ extern const int CONIC, CONVENTIONAL, CYLINDRICAL, POLYCONIC,
 extern const char prj_categories[9][32];
 
 extern const int  prj_ncode;
-extern const char prj_codes[27][4];
+extern const char prj_codes[28][4];
 
 #ifdef PRJX2S_ARGS
 #undef PRJX2S_ARGS
@@ -742,6 +743,10 @@ int qscs2x(PRJS2X_ARGS);
 int hpxset(struct prjprm *prj);
 int hpxx2s(PRJX2S_ARGS);
 int hpxs2x(PRJS2X_ARGS);
+
+int xphset(struct prjprm *prj);
+int xphx2s(PRJX2S_ARGS);
+int xphs2x(PRJS2X_ARGS);
 
 
 /* Deprecated. */

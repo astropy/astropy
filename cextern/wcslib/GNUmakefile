@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 4.17
+# GNU makefile for building WCSLIB 4.18
 #
 # Summary of the main targets
 # ---------------------------
@@ -32,7 +32,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 4.17 2013/01/29 05:29:22 cal103 Exp $
+# $Id: GNUmakefile,v 4.18 2013/07/13 10:00:06 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include makedefs
@@ -187,9 +187,9 @@ dist :
 	   chmod 444 $(WCSLIBPKG).tar.bz2
 
 install_dist :
-	   scp -p $(WCSLIBPKG).tar.bz2 venice:/nfs/ftp/software/wcslib/
+	   scp -p $(WCSLIBPKG).tar.bz2 cal103@venice:/nfs/ftp/software/wcslib/
 	   mv -f  $(WCSLIBPKG).tar.bz2 ../wcslib-releases/
-	   ssh venice "cd /nfs/ftp/software/wcslib/ && \
+	   ssh cal103@venice "cd /nfs/ftp/software/wcslib/ && \
 	     rm -f wcslib.tar.bz2 && \
 	     ln -s $(WCSLIBPKG).tar.bz2 wcslib.tar.bz2"
 	   cp -fp CHANGES wcslib.pdf ~/public_html/WCS/

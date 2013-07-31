@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  WCSLIB 4.18 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.c,v 4.17 2013/01/29 05:29:20 cal103 Exp $
+  $Id: wcsfix.c,v 4.18 2013/07/13 10:00:04 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -583,7 +583,7 @@ int celfix(struct wcsprm *wcs)
          * might be effected by adjusting CRPIXja but that is complicated by
          * the linear transformation and instead is accomplished here by
          * setting theta_0. */
-        if (wcs->npvmax < wcs->npv + 2) {
+        if (wcs->npvmax < wcs->npv + 3) {
           /* Allocate space for three more PVi_ja keyvalues. */
           if (wcs->m_flag == WCSSET && wcs->pv == wcs->m_pv) {
             if (!(wcs->pv = calloc(wcs->npv+3, sizeof(struct pvcard)))) {
