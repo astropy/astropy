@@ -26,7 +26,7 @@ def test_angle_arrays():
                             a2.value)
 
     a3 = Angle(["12 degrees", "3 hours", "5 deg", "4rad"])
-    npt.assert_almost_equal([0.01745329, 0.26179939, 0.01745329, 4.], a3.value)
+    npt.assert_almost_equal([0.20943951, 0.78539816, 0.08726646, 4], a3.value)
     assert a3.unit == u.radian
 
     a4 = Angle(["12 degrees", "3 hours", "5 deg", "4rad"], u.degree)

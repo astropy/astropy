@@ -93,6 +93,9 @@ def test_angle_string():
     a = Angle('1.0uarcsec')
     assert a.value == 1.0
     assert a.unit == u.microarcsecond
+    a = Angle("3d")
+    assert_allclose(a.value, 3.0)
+    assert a.unit == u.degree
 
 
 def test_angle_repr():

@@ -173,8 +173,10 @@ class _AngleParser(object):
                 | sign UINT HOUR UINT MINUTE ufloat SECOND
                 | generic HOUR
             '''
-            if len(p) in (3, 4):
+            if len(p) == 3:
                 p[0] = (p[1], u.hourangle)
+            elif len(p) == 4:
+                p[0] = (p[1] * p[2], u.hourangle)
             elif len(p) in (5, 6):
                 p[0] = ((p[1] * p[2], p[4], 0.0), u.hourangle)
             elif len(p) in (7, 8):
@@ -189,8 +191,10 @@ class _AngleParser(object):
                 | sign UINT DEGREE UINT MINUTE ufloat SECOND
                 | generic DEGREE
             '''
-            if len(p) in (3, 4):
+            if len(p) == 3:
                 p[0] = (p[1], u.degree)
+            elif len(p) == 4:
+                p[0] = (p[1] * p[2], u.degree)
             elif len(p) in (5, 6):
                 p[0] = ((p[1] * p[2], p[4], 0.0), u.degree)
             elif len(p) in (7, 8):
