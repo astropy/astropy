@@ -115,11 +115,16 @@ class Angle(u.Quantity):
         if angle.dtype.type in (np.string_, np.unicode_):
             if unit is None:
                 unit = u.radian
-            it = np.nditer([angle, None], op_dtypes=[None, float])
-            for input, output in it:
-                ang, new_unit = util.parse_angle(str(input), None)
-                output[...] = new_unit.to(unit, ang)
-            angle = it.operands[1]
+
+            def convert_string_to_angle(x):
+                ang, new_unit = util.parse_angle(str(x), None)
+                return new_unit.to(unit, ang)
+
+            convert_string_to_angle_ufunc = np.vectorize(
+                convert_string_to_angle,
+                otypes=[np.float_])
+            angle = convert_string_to_angle_ufunc(angle)
+
         elif angle.dtype.kind not in 'iuf':
             raise TypeError("Unsupported dtype '{0}'".format(angle.dtype))
 
@@ -379,14 +384,14 @@ class Angle(u.Quantity):
             raise u.UnitsException(
                 "The unit value provided is not an angular unit.")
 
-        it = np.nditer([values, None], op_dtypes=[None, object])
-        for val, out in it:
-            formatter = func(float(val))
-            if alwayssign and not formatter.startswith('-'):
-                formatter = '+' + formatter
-            out[...] = formatter
+        def format(val):
+            s = func(float(val))
+            if alwayssign and not s.startswith('-'):
+                s = '+' + s
+            return s
 
-        return str(it.operands[1])
+        format_ufunc = np.vectorize(format, otypes=[object])
+        return format_ufunc(values)
 
     @deprecated("0.3", name="format", alternative="to_string")
     def format(self, unit=u.degree, decimal=False, sep='fromunit', precision=5,
@@ -396,7 +401,7 @@ class Angle(u.Quantity):
             alwayssign=alwayssign, pad=pad)
 
     def __str__(self):
-        return self.to_string()
+        return str(self.to_string())
 
 
 class RA(Angle):
