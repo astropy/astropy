@@ -65,12 +65,11 @@ class Angle(u.Quantity):
         argument.  Pass `None` to perform no bounds checking.  By
         default the bounds are `(-360, 360)` degrees.
 
-    dtype : Numpy dtype, optional
-        See `Quantity`.
-
+    dtype : ~numpy.dtype, optional
+        See `~astropy.units.Quantity`.
 
     equivalencies : list of equivalence pairs, optional
-        See `Quantity`.
+        See `~astropy.units.Quantity`.
 
     Raises
     ------

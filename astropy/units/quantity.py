@@ -79,7 +79,7 @@ class Quantity(np.ndarray):
         Must be an `~astropy.units.UnitBase` object or a string parseable by
         the `units` package.
 
-    dtype : Numpy dtype, optional
+    dtype : ~numpy.dtype, optional
         The dtype of the resulting Numpy array or scalar that will
         hold the value.  If not provided, is is determined
         automatically from the input value.
