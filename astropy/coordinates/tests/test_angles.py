@@ -2,7 +2,8 @@
 
 # Test initalization of angles not already covered by the API tests
 
-from ..angles import Angle, RA, Dec
+from ..angles import Angle, RA, Dec, BoundsError
+from ...tests.helper import pytest
 from ...tests.compat import assert_allclose
 from ... import units as u
 
@@ -98,3 +99,18 @@ def test_angle_repr():
     assert 'Angle' in repr(Angle(0, u.deg))
     assert 'RA' in repr(RA(0, u.deg))
     assert 'Dec' in repr(Dec(0, u.deg))
+
+
+def test_angle_bounds_check():
+    a1 = RA(45, u.degree)
+    a2 = Dec(45, u.degree)
+
+    with pytest.raises(BoundsError):
+        a1 + a2
+
+    a3 = u.Quantity(15, u.degree)
+    a2 + a3
+
+    a4 = u.Quantity(50, u.degree)
+    with pytest.raises(BoundsError):
+        a2 + a4

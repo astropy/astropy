@@ -142,13 +142,17 @@ class Angle(u.Quantity):
         return self
 
     @staticmethod
+    def _get_default_bounds():
+        return (Angle(-360, u.degree, bounds=None),
+                Angle(360, u.degree, bounds=None))
+
+    @staticmethod
     def _bounds_check(angle, bounds, unit):
         if bounds is None:
             return angle, None
 
         if bounds == ():
-            bounds = (Angle(-360, u.degree, bounds=None),
-                      Angle(360, u.degree, bounds=None))
+            bounds = Angle._get_default_bounds()
         else:
             if len(bounds) != 2:
                 raise ValueError(
@@ -168,7 +172,7 @@ class Angle(u.Quantity):
         # Convert everything to radians, and keep a copy of the
         # original (unmoved) values for any resulting error messages.
         original_angle = unit.to(u.radian, angle)
-        angle = original_angle.copy()
+        angle = np.array(original_angle)
         lower_angle = lower_bound.radian
         upper_angle = upper_bound.radian
 
@@ -232,12 +236,23 @@ class Angle(u.Quantity):
         return super(Angle, self).__quantity_instance__(
             val, unit, dtype=dtype, equivalencies=equivalencies)
 
+    def __array_wrap__(self, obj, context=None):
+        obj = super(Angle, self).__array_wrap__(obj, context=context)
+
+        if isinstance(obj, Angle):
+            return Angle(obj.value, obj.unit, bounds=obj.bounds)
+
+        return obj
+
     def _bounds_match_check(self, other, operation):
-        if (isinstance(other, type(self)) and
+        if (isinstance(other, Angle) and
             self.bounds != other.bounds):
-            msg = "Can't {0} angles because bounds don't match: {1} and {2}"
-            raise ValueError(msg.format(
-                operation, self.bounds, other.bounds))
+            default_bounds = self._get_default_bounds()
+            if (self.bounds != default_bounds and
+                other.bounds != default_bounds):
+                msg = "Can't {0} angles because bounds don't match: {1} and {2}"
+                raise BoundsError(msg.format(
+                        operation, self.bounds, other.bounds))
 
     def __add__(self, other):
         self._bounds_match_check(other, 'add')
