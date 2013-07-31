@@ -26,12 +26,13 @@ def test_angle_arrays():
                             a2.value)
 
     a3 = Angle(["12 degrees", "3 hours", "5 deg", "4rad"])
-    npt.assert_almost_equal([0.20943951, 0.78539816, 0.08726646, 4], a3.value)
-    assert a3.unit == u.radian
+    npt.assert_almost_equal([12., 45., 5., 229.18311805],
+                            a3.value)
+    assert a3.unit == u.degree
 
-    a4 = Angle(["12 degrees", "3 hours", "5 deg", "4rad"], u.degree)
-    npt.assert_almost_equal(a4.radian, a3.value)
-    assert a4.unit == u.degree
+    a4 = Angle(["12 degrees", "3 hours", "5 deg", "4rad"], u.radian)
+    npt.assert_almost_equal(a4.degree, a3.value)
+    assert a4.unit == u.radian
 
     a5 = Angle([0, 45, 90, 180, 270, 360], unit=u.degree, bounds=(0, 360))
     a6 = a5.sum()
@@ -44,3 +45,13 @@ def test_angle_arrays():
         # tricky to do correctly, if at all, due to the possibility of
         # nesting.
         a7 = Angle([a1, a2, a3], unit=u.degree)
+
+    a8 = Angle(["04:02:02", "03:02:01", "06:02:01"], unit=u.degree)
+    npt.assert_almost_equal(a8.value, [4.03388889, 3.03361111, 6.03361111])
+
+    a9 = Angle(np.array(["04:02:02", "03:02:01", "06:02:01"]), unit=u.degree)
+    npt.assert_almost_equal(a9.value, a8.value)
+
+    with pytest.raises(u.UnitsException):
+        a10 = Angle(["04:02:02", "03:02:01", "06:02:01"])
+

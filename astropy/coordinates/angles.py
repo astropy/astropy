@@ -47,8 +47,8 @@ class Angle(u.Quantity):
         will be interpreted following the rules described above.
 
         If `angle` is a sequence or array of strings, the resulting
-        values will be in the given `unit`, or if none is provided,
-        the values will be in radians.
+        values will be in the given `unit`, or if None is provided,
+        the unit will be taken from the first given value.
 
     unit : `~astropy.units.UnitBase`, str, optional
         The unit of the value specified for the angle.  This may be
@@ -97,32 +97,31 @@ class Angle(u.Quantity):
         elif isinstance(angle, basestring):
             angle, unit = util.parse_angle(angle, unit)
 
-        if isinstance(angle, tuple):
-            # TODO: Numpy array of tuples?
-            if unit is u.hourangle:
-                util.check_hms_ranges(*angle)
-                angle = util.hms_to_hours(*angle)
-            elif unit is u.degree:
-                angle = util.dms_to_degrees(*angle)
-            else:
-                raise u.UnitsException(
-                    "Can not parse '{0}' as unit '{1}'".format(
-                        angle, unit))
+        angle = cls._tuple_to_float(angle, unit)
 
         angle = np.asarray(angle)
 
         if angle.dtype.type in (np.string_, np.unicode_):
-            if unit is None:
-                unit = u.radian
+            # We need to modify this value from within
+            # convert_string_to_angle, and the only way to do that
+            # across Python 2.6 - 3.3 is to use this "store it in a
+            # list" trick.
+            determined_unit = [unit]
 
             def convert_string_to_angle(x):
-                ang, new_unit = util.parse_angle(str(x), None)
-                return new_unit.to(unit, ang)
+                ang, new_unit = util.parse_angle(str(x), unit)
+                if determined_unit[0] is None:
+                    determined_unit[0] = new_unit
+                    return cls._tuple_to_float(ang, unit)
+                else:
+                    return new_unit.to(
+                        determined_unit[0], cls._tuple_to_float(ang, unit))
 
             convert_string_to_angle_ufunc = np.vectorize(
                 convert_string_to_angle,
                 otypes=[np.float_])
             angle = convert_string_to_angle_ufunc(angle)
+            unit = determined_unit[0]
 
         elif angle.dtype.kind not in 'iuf':
             raise TypeError("Unsupported dtype '{0}'".format(angle.dtype))
@@ -139,6 +138,25 @@ class Angle(u.Quantity):
         self._bounds = bounds
 
         return self
+
+    @staticmethod
+    def _tuple_to_float(angle, unit):
+        """
+        Converts an angle represented as a 3-tuple into a floating
+        point number in the given unit.
+        """
+        if isinstance(angle, tuple):
+            # TODO: Numpy array of tuples?
+            if unit is u.hourangle:
+                util.check_hms_ranges(*angle)
+                angle = util.hms_to_hours(*angle)
+            elif unit is u.degree:
+                angle = util.dms_to_degrees(*angle)
+            else:
+                raise u.UnitsException(
+                    "Can not parse '{0}' as unit '{1}'".format(
+                        angle, unit))
+        return angle
 
     @staticmethod
     def _get_default_bounds():

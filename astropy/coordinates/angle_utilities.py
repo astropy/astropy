@@ -239,9 +239,7 @@ class _AngleParser(object):
             unit = u.Unit(unit)
             if (found_unit is not None and
                 found_unit is not unit):
-                raise u.UnitsException(
-                    "Unit in string ({0}) does not match requested unit "
-                    "({1})".format(found_unit, unit))
+                found_angle = found_unit.to(unit, found_angle)
         else:
             if found_unit is None:
                 raise u.UnitsException("No unit specified")
