@@ -530,6 +530,11 @@ Bug Fixes
 
   - Fixed ``TypeError`` when calling ``WCS.to_header_string()``. [#822]
 
+  - Added new method `WCS.all_world2pix` for converting from world coordinates
+    to pixel space, including inversion of the astrometric distortion
+    correction. [#1066, #1281]
+
+
 - Misc
 
   - Fixed a minor issue when installing with ``./setup.py develop`` on a fresh
