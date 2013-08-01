@@ -4,7 +4,7 @@
 New Features
 ^^^^^^^^^^^^
 
-- `astropy.io.votable`
+- ``astropy.io.votable``
 
   - The format of the units of a VOTable file can be specified using
     the `unit_format` parameter.  Note that units are still always
@@ -64,6 +64,39 @@ New Features
 
 API Changes
 ^^^^^^^^^^^
+
+- ``astropy.coordinates``
+
+  - The `astropy.coordinates.Angle` class is now a subclass of
+    `astropy.units.Quantity`.
+
+    - All angular units are now supported, not just `radian`, `degree`
+      and `hour`, but now `arcsecond` and `arcminute` as well.  The
+      object will retain its native unit, so when printing out a value
+      initially provided in hours, its `to_string()` will, by default,
+      also be expressed in hours.
+
+    - The `Angle` class now supports arrays of angles.
+
+    - To be consistent with `units.Unit`, `Angle.format` has been
+      deprecated and renamed to `Angle.to_string`.
+
+    - To be consistent with `astropy.units`, all plural forms of unit
+      names have been removed.  Therefore, the following properties of
+      `astropy.coordinates.Angle` should be renamed:
+
+      - ``radians`` -> ``radian``
+      - ``degrees`` -> ``degree``
+      - ``hours`` -> ``hour``
+
+    - Multiplication and division of two `Angle` objects used to raise
+      `NotImplementedError`.  Now they raise `TypeError`.
+
+  - `astropy.coordinates.angles.rotation_matrix` and
+    `astropy.coordinates.angles.angle_axis` now take a `unit` kwarg
+    instead of `degrees` kwarg to specify the units of the angles.
+    `rotation_matrix` will also take the unit from the given `Angle`
+    object if no unit is provided.
 
 - ``astropy.io.ascii``
 

@@ -80,6 +80,17 @@ or dimensionless quantities::
           be implicitly dropped without a warning. Always check that the
           function you are using treats the units correctly.
 
+Coordinates
+-----------
+
+`astropy.coordinates.Angle` is now a subclass of
+`astropy.units.Quantity`.  All angular units are now supported, not
+just `radian`, `degree` and `hour`, but now `arcsecond` and
+`arcminute` as well.  The object will retain its native unit, so when
+printing out a value initially provided in hours, its `to_string()`
+will, by default, also be expressed in hours.  Additionally, `Angle`
+can now store an array of angles.
+
 Virtual Observatory Simple Cone Search
 --------------------------------------
 

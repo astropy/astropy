@@ -32,13 +32,13 @@ syntactic sugar for the `transform_to` method::
     >>> ic.transform_to(FK5Coordinates)
     <FK5Coordinates RA=0.00001 deg, Dec=45.00000 deg>
 
-The full list of supported coordinate systems and transformations is in the
-`astropy.coordinates` API documentation below.
+The full list of supported coordinate systems and transformations is
+in the `astropy.coordinates` API documentation below.
 
-Additionally, some coordinate systems support precessing the coordinate to
-produce a new coordinate in the same system but at a different equinox.  Note 
-that these systems have a default equinox they start with if you don't specify 
-one::
+Additionally, some coordinate systems support precessing the
+coordinate to produce a new coordinate in the same system but at a
+different equinox.  Note that these systems have a default equinox
+they start with if you don't specify one::
 
     >>> fk5c = FK5Coordinates('02h31m49.09s +89d15m50.8s')
     >>> fk5c.equinox
@@ -48,19 +48,22 @@ one::
     >>> fk5c.precess_to(Time(2100, format='jyear', scale='utc'))
     <FK5Coordinates RA=88.32396 deg, Dec=89.54057 deg>
 
-You can also specify the equinox when you create a coordinate using an 
+You can also specify the equinox when you create a coordinate using an
 `astropy.time.Time` object::
 
     >>> from astropy.time import Time
-    >>> fk5c = FK5Coordinates('02h31m49.09s +89d15m50.8s', equinox=Time('J1970', scale='utc'))
+    >>> fk5c = FK5Coordinates('02h31m49.09s +89d15m50.8s',
+                              equinox=Time('J1970', scale='utc'))
     <FK5Coordinates RA=37.95454 deg, Dec=89.26411 deg>
     >>> fk5c.precess_to(Time(2000, format='jyear', scale='utc'))
     <FK5Coordinates RA=48.02317 deg, Dec=89.38672 deg>
 
-Coordinate systems do not necessarily all support an equinox nor precession, as it is a
-meaningless action for coordinate systems that do not depend on a particular equinox.
+Coordinate systems do not necessarily all support an equinox nor
+precession, as it is a meaningless action for coordinate systems that
+do not depend on a particular equinox.
 
-Furthermore, coordinates typically have an `obstime` attribute, intended to record the
-time of the observation.  Some systems (especially FK4) require this information due
-to being non-inertial frames (i.e., they rotate over time due to motions of the
-defining stars).
+Furthermore, coordinates typically have an `obstime` attribute,
+intended to record the time of the observation.  Some systems
+(especially FK4) require this information due to being non-inertial
+frames (i.e., they rotate over time due to motions of the defining
+stars).

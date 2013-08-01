@@ -887,8 +887,7 @@ class UnitBase(object):
         """
         Returns `True` if the unit is unscaled and dimensionless.
         """
-        raise NotImplementedError(
-            "Must be implemented in subclass")
+        return False
 
 
 class NamedUnit(UnitBase):

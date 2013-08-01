@@ -28,17 +28,17 @@ def test_transform_classes():
     Tests the class-based/OO syntax for creating transforms
     """
     t.FunctionTransform(TestCoo1, TestCoo2,
-        lambda c: TestCoo2(c.ra.radians, c.dec.radians, unit=(u.radian, u.radian)))
+        lambda c: TestCoo2(c.ra.radian, c.dec.radian, unit=(u.radian, u.radian)))
 
-    c1 = TestCoo1(1, 2, unit=(u.radian, u.radian))
+    c1 = TestCoo1(1, 0.5, unit=(u.radian, u.radian))
     c1._make_cart()
     c2 = c1.transform_to(TestCoo2)
-    npt.assert_almost_equal(c2.ra.radians, 1)
-    npt.assert_almost_equal(c2.dec.radians, 2)
+    npt.assert_almost_equal(c2.ra.radian, 1)
+    npt.assert_almost_equal(c2.dec.radian, 0.5)
 
     def matfunc(coo):
         return [[1, 0, 0],
-                [0, coo.ra.degrees, 0],
+                [0, coo.ra.degree, 0],
                 [0, 0, 1]]
     t.DynamicMatrixTransform(TestCoo1, TestCoo2, matfunc)
 
@@ -46,8 +46,8 @@ def test_transform_classes():
     c3._make_cart()
     c4 = c3.transform_to(TestCoo2)
 
-    npt.assert_almost_equal(c4.ra.degrees, 1)
-    npt.assert_almost_equal(c4.ra.degrees, 1)
+    npt.assert_almost_equal(c4.ra.degree, 1)
+    npt.assert_almost_equal(c4.ra.degree, 1)
 
 
 def test_transform_decos():
@@ -58,12 +58,12 @@ def test_transform_decos():
 
     @t.transform_function(TestCoo1, TestCoo2)
     def trans(coo1):
-        return TestCoo2(coo1.ra.radians, coo1.dec.radians * 2, unit=(u.radian, u.radian))
+        return TestCoo2(coo1.ra.radian, coo1.dec.radian * 2, unit=(u.radian, u.radian))
 
     c1._make_cart()
     c2 = c1.transform_to(TestCoo2)
-    npt.assert_almost_equal(c2.ra.degrees, 1)
-    npt.assert_almost_equal(c2.dec.degrees, 4)
+    npt.assert_almost_equal(c2.ra.degree, 1)
+    npt.assert_almost_equal(c2.dec.degree, 4)
 
     c3 = TestCoo1(x=1, y=1, z=2, unit=u.pc)
 
@@ -89,8 +89,8 @@ def test_coo_alias():
     t.FunctionTransform(TestCoo1, TestCoo2, lambda c: TestCoo2(c.ra, c.dec))
 
     c1 = TestCoo1(1, 2, unit=(u.degree, u.degree))
-    assert c1.coo2.ra.degrees == c1.ra.degrees
-    assert c1.coo2.dec.degrees == c1.dec.degrees
+    assert c1.coo2.ra.degree == c1.ra.degree
+    assert c1.coo2.dec.degree == c1.dec.degree
 
 def test_shortest_path():
     class FakeTransform(object):
@@ -204,25 +204,25 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     coo2 = coo1.transform_to(tosys[0])
     if tosys[0] is FK4Coordinates:
         coo2_prec = coo2.precess_to(Time('B1950', scale='utc'))
-        assert fabs(coo2_prec.lonangle.degrees - tocoo[0]) < convert_precision  # <1 arcsec
-        assert fabs(coo2_prec.latangle.degrees - tocoo[1]) < convert_precision
+        assert fabs(coo2_prec.lonangle.degree - tocoo[0]) < convert_precision  # <1 arcsec
+        assert fabs(coo2_prec.latangle.degree - tocoo[1]) < convert_precision
     else:
-        assert fabs(coo2.lonangle.degrees - tocoo[0]) < convert_precision  # <1 arcsec
-        assert fabs(coo2.latangle.degrees - tocoo[1]) < convert_precision
+        assert fabs(coo2.lonangle.degree - tocoo[0]) < convert_precision  # <1 arcsec
+        assert fabs(coo2.latangle.degree - tocoo[1]) < convert_precision
     assert fabs(coo2.distance.kpc - m31_dist.kpc) < dist_precision
 
     if fromsys[1] is not None:
         coo1_2 = getattr(coo2, fromsys[1])  # implicit `transform_to` call.
 
         #check round-tripping
-        assert fabs(coo1_2.lonangle.degrees - fromcoo[0]) < roundtrip_precision
-        assert fabs(coo1_2.latangle.degrees - fromcoo[1]) < roundtrip_precision
+        assert fabs(coo1_2.lonangle.degree - fromcoo[0]) < roundtrip_precision
+        assert fabs(coo1_2.latangle.degree - fromcoo[1]) < roundtrip_precision
         assert fabs(coo1_2.distance.kpc - m31_dist.kpc) < dist_precision
 
         if tosys[1] is not None:
             coo2_2 = getattr(coo1_2, tosys[1])
-            assert fabs(coo2_2.lonangle.degrees - coo2.lonangle.degrees) < roundtrip_precision
-            assert fabs(coo2_2.latangle.degrees - coo2.latangle.degrees) < roundtrip_precision
+            assert fabs(coo2_2.lonangle.degree - coo2.lonangle.degree) < roundtrip_precision
+            assert fabs(coo2_2.latangle.degree - coo2.latangle.degree) < roundtrip_precision
             assert fabs(coo2_2.distance.kpc - m31_dist.kpc) < dist_precision
 
 
@@ -237,12 +237,12 @@ def test_precession():
     j1975 = Time('J1975', scale='utc')
     b1975 = Time('B1975', scale='utc')
 
-    fk4 = FK4Coordinates(1, 2, unit=(u.radian, u.radian))
+    fk4 = FK4Coordinates(1, 0.5, unit=(u.radian, u.radian))
     assert fk4.equinox.byear == b1950.byear
     fk4_2 = fk4.precess_to(b1975)
     assert fk4_2.equinox.byear == b1975.byear
 
-    fk5 = FK5Coordinates(1, 2, unit=(u.radian, u.radian))
+    fk5 = FK5Coordinates(1, 0.5, unit=(u.radian, u.radian))
     assert fk5.equinox.jyear == j2000.jyear
     fk5_2 = fk5.precess_to(j1975)
     assert fk5_2.equinox.jyear == j1975.jyear
@@ -302,5 +302,5 @@ def test_obstime():
 
     # now check that the resulting coordinates are *different* - they should be,
     # because the obstime is different
-    assert (icrs_50.ra.degrees != icrs_75.ra.degrees and
-            icrs_50.dec.degrees != icrs_75.dec.degrees)
+    assert (icrs_50.ra.degree != icrs_75.ra.degree and
+            icrs_50.dec.degree != icrs_75.dec.degree)
