@@ -99,7 +99,10 @@ class Angle(u.Quantity):
 
         angle = cls._tuple_to_float(angle, unit)
 
-        angle = np.asarray(angle)
+        try:
+            angle = np.asarray(angle)
+        except ValueError as e:
+            raise TypeError(str(e))
 
         if angle.dtype.type in (np.string_, np.unicode_):
             # We need to modify this value from within
