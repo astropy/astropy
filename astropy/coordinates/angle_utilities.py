@@ -12,6 +12,8 @@ import math
 import os
 from warnings import warn
 
+import numpy as np
+
 from .errors import *
 from ..utils import format_exception
 from .. import units as u
@@ -36,7 +38,8 @@ class _AngleParser(object):
 
     @classmethod
     def _get_simple_unit_names(cls):
-        simple_units = set(u.radian.find_equivalent_units())
+        simple_units = set(
+            u.radian.find_equivalent_units(include_prefix_units=True))
         simple_units.remove(u.deg)
         simple_units.remove(u.hourangle)
         simple_unit_names = set()
@@ -78,13 +81,17 @@ class _AngleParser(object):
             t.value = float(t.value + '1')
             return t
 
+        def t_SIMPLE_UNIT(t):
+            t.value = u.Unit(t.value)
+            return t
+        t_SIMPLE_UNIT.__doc__ = '|'.join(
+            '(?:{0})'.format(x) for x in cls._get_simple_unit_names())
+
         t_COLON = ':'
         t_DEGREE = r'd(eg(ree(s)?)?)?|°'
         t_HOUR = r'hour(s)?|h(r)?|ʰ'
         t_MINUTE = r'm(in(ute(s)?)?)?|′|\''
         t_SECOND = r's(ec(ond(s)?)?)?|″|\"'
-        t_SIMPLE_UNIT = '|'.join(
-            '({0})'.format(x) for x in cls._get_simple_unit_names())
 
         # A string containing ignored characters (spaces)
         t_ignore = ' '
@@ -168,8 +175,10 @@ class _AngleParser(object):
                 | sign UINT HOUR UINT MINUTE ufloat SECOND
                 | generic HOUR
             '''
-            if len(p) in (3, 4):
+            if len(p) == 3:
                 p[0] = (p[1], u.hourangle)
+            elif len(p) == 4:
+                p[0] = (p[1] * p[2], u.hourangle)
             elif len(p) in (5, 6):
                 p[0] = ((p[1] * p[2], p[4], 0.0), u.hourangle)
             elif len(p) in (7, 8):
@@ -184,8 +193,10 @@ class _AngleParser(object):
                 | sign UINT DEGREE UINT MINUTE ufloat SECOND
                 | generic DEGREE
             '''
-            if len(p) in (3, 4):
+            if len(p) == 3:
                 p[0] = (p[1], u.degree)
+            elif len(p) == 4:
+                p[0] = (p[1] * p[2], u.degree)
             elif len(p) in (5, 6):
                 p[0] = ((p[1] * p[2], p[4], 0.0), u.degree)
             elif len(p) in (7, 8):
@@ -230,9 +241,7 @@ class _AngleParser(object):
             unit = u.Unit(unit)
             if (found_unit is not None and
                 found_unit is not unit):
-                raise u.UnitsException(
-                    "Unit in string ({0}) does not match requested unit "
-                    "({1})".format(found_unit, unit))
+                found_angle = found_unit.to(unit, found_angle)
         else:
             if found_unit is None:
                 raise u.UnitsException("No unit specified")
@@ -246,22 +255,22 @@ def _check_hour_range(hrs):
     """
     Checks that the given value is in the range (-24, 24).
     """
-    if math.fabs(hrs) == 24.:
+    if np.any(np.abs(hrs) == 24.):
         warn(IllegalHourWarning(hrs, 'Treating as 24 hr'))
-    elif not -24. < hrs < 24.:
+    elif np.any(hrs < -24.) or np.any(hrs > 24.):
         raise IllegalHourError(hrs)
 
 
-def _check_minute_range(min):
+def _check_minute_range(m):
     """
     Checks that the given value is in the range [0,60].  If the value
     is equal to 60, then a warning is raised.
     """
-    if min == 60.:
-        warn(IllegalMinuteWarning(min, 'Treating as 0 min, +1 hr/deg'))
-    elif not 0. <= min < 60.:
+    if np.any(m == 60.):
+        warn(IllegalMinuteWarning(m, 'Treating as 0 min, +1 hr/deg'))
+    elif np.any(m < 0.) or np.any(m > 60.):
         # "Error: minutes not in range [0,60) ({0}).".format(min))
-        raise IllegalMinuteError(min)
+        raise IllegalMinuteError(m)
 
 
 def _check_second_range(sec):
@@ -269,9 +278,9 @@ def _check_second_range(sec):
     Checks that the given value is in the range [0,60].  If the value
     is equal to 60, then a warning is raised.
     """
-    if sec == 60.:
+    if np.any(sec == 60.):
         warn(IllegalSecondWarning(sec, 'Treating as 0 sec, +1 min'))
-    elif not 0. <= sec < 60.:
+    elif np.any(sec < 0.) or np.any(sec > 60.):
         # "Error: seconds not in range [0,60) ({0}).".format(sec))
         raise IllegalSecondError(sec)
 
@@ -326,16 +335,16 @@ def degrees_to_dms(d):
     Convert a floating-point degree value into a ``(degree, arcminute,
     arcsecond)`` tuple.
     """
-    sign = math.copysign(1.0, d)
+    sign = np.copysign(1.0, d)
 
-    (df, d) = math.modf(abs(d))  # (degree fraction, degree)
-    (mf, m) = math.modf(df * 60.)  # (minute fraction, minute)
+    (df, d) = np.modf(np.abs(d))  # (degree fraction, degree)
+    (mf, m) = np.modf(df * 60.)  # (minute fraction, minute)
     s = mf * 60.
 
     _check_minute_range(m)
     _check_second_range(s)
 
-    return (float(sign * d), int(sign * m), sign * s)
+    return np.floor(sign * d), np.floor(m), s
 
 
 def dms_to_degrees(d, m, s):
@@ -347,15 +356,15 @@ def dms_to_degrees(d, m, s):
     _check_second_range(s)
 
     # determine sign
-    sign = math.copysign(1.0, d)
+    sign = np.copysign(1.0, d)
 
     # TODO: This will fail if d or m have values after the decimal
     # place
 
     try:
-        d = int(abs(d))
-        m = int(abs(m))
-        s = float(abs(s))
+        d = np.floor(np.abs(np.asarray(d)))
+        m = np.floor(np.abs(np.asarray(m)))
+        s = np.abs(s)
     except ValueError:
         raise ValueError(format_exception(
             "{func}: dms values ({1[0]},{2[1]},{3[2]}) could not be "
@@ -372,15 +381,15 @@ def hms_to_hours(h, m, s):
     check_hms_ranges(h, m, s)
 
     # determine sign
-    sign = math.copysign(1.0, h)
+    sign = np.copysign(1.0, h)
 
     # TODO: This will fail if d or m have values after the decimal
     # place
 
     try:
-        h = int(abs(h))
-        m = int(abs(m))
-        s = float(abs(s))
+        h = np.floor(np.abs(h))
+        m = np.floor(np.abs(m))
+        s = np.abs(s)
     except ValueError:
         raise ValueError(format_exception(
             "{func}: HMS values ({1[0]},{2[1]},{3[2]}) could not be "
@@ -436,15 +445,15 @@ def hours_to_hms(h):
     second)`` tuple.
     """
 
-    sign = math.copysign(1.0, h)
+    sign = np.copysign(1.0, h)
 
-    (hf, h) = math.modf(abs(h))  # (degree fraction, degree)
-    (mf, m) = math.modf(hf * 60.0)  # (minute fraction, minute)
+    (hf, h) = np.modf(np.abs(h))  # (degree fraction, degree)
+    (mf, m) = np.modf(hf * 60.0)  # (minute fraction, minute)
     s = mf * 60.0
 
     check_hms_ranges(h, m, s)  # throws exception if out of range
 
-    return (float(sign * h), int(sign * m), sign * s)
+    return (np.floor(sign * h), np.floor(m), s)
 
 
 def radians_to_degrees(r):
@@ -485,7 +494,7 @@ def hours_to_string(h, precision=5, pad=False, sep=('h', 'm', 's')):
     Takes a decimal hour value and returns a string formatted as hms with
     separator specified by the 'sep' parameter.
 
-    TODO: More detailed description here!
+    `h` must be a scalar.
     """
 
     if pad:
@@ -512,7 +521,7 @@ def hours_to_string(h, precision=5, pad=False, sep=('h', 'm', 's')):
     literal = ('{0:0{pad}.0f}{sep[0]}{1:02d}{sep[1]}{2:0{width}.{precision}f}'
                '{sep[2]}')
     h, m, s = hours_to_hms(h)
-    return literal.format(h, abs(m), abs(s), sep=sep, pad=pad,
+    return literal.format(h, int(abs(m)), abs(s), sep=sep, pad=pad,
                           width=(precision + 3), precision=precision)
 
 
@@ -520,6 +529,8 @@ def degrees_to_string(d, precision=5, pad=False, sep=':'):
     """
     Takes a decimal hour value and returns a string formatted as dms with
     separator specified by the 'sep' parameter.
+
+    `d` must be a scalar.
     """
 
     if pad:
@@ -544,7 +555,7 @@ def degrees_to_string(d, precision=5, pad=False, sep=':'):
     literal = ('{0:0{pad}.0f}{sep[0]}{1:02d}{sep[1]}{2:0{width}.{precision}f}'
                '{sep[2]}')
     d, m, s = degrees_to_dms(d)
-    return literal.format(d, abs(m), abs(s), sep=sep, pad=pad,
+    return literal.format(d, int(abs(m)), abs(s), sep=sep, pad=pad,
                           width=(precision + 3), precision=precision)
 
 

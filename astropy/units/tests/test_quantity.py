@@ -649,6 +649,20 @@ def test_copy():
     assert q1.value is not q2.value
 
 
+def test_deepcopy():
+    from copy import deepcopy
+
+    q1 = u.Quantity(np.array([1., 2., 3.]), unit=u.m)
+    q2 = deepcopy(q1)
+
+    assert isinstance(q2, u.Quantity)
+    assert np.all(q1.value == q2.value)
+    assert q1.unit == q2.unit
+    assert q1.dtype == q2.dtype
+
+    assert q1.value is not q2.value
+
+
 def test_equality_numpy_scalar():
     """
     A regression test to ensure that numpy scalars are correctly compared
