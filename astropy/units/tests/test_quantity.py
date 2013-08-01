@@ -683,6 +683,7 @@ def test_equality_numpy_scalar():
     assert np.int64(10) != 10 * u.m
     assert 10 * u.m != np.int64(10)
 
+
 def test_quantity_pickelability():
     """
     Testing pickleability of quantity
@@ -695,3 +696,17 @@ def test_quantity_pickelability():
 
     assert np.all(q1.value == q2.value)
     assert q1.unit is q2.unit
+
+
+def test_quantity_from_string():
+    with pytest.raises(ValueError):
+        q = "5" * u.m
+
+    with pytest.raises(TypeError):
+        q = u.Quantity('5', u.m)
+
+    with pytest.raises(TypeError):
+        q = u.Quantity(['5'], u.m)
+
+    with pytest.raises(TypeError):
+        q = u.Quantity(np.array(['5']), u.m)
