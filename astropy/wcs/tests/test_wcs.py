@@ -256,7 +256,6 @@ def test_backward_compatible():
     fits = get_pkg_data_filename('data/sip.fits')
     w = wcs.WCS(fits)
 
-    #data = np.random.rand(100, 2)
     data = rsn.rand(100, 2)
     assert np.all(w.wcs_pix2world(data, 0) == w.wcs_pix2sky(data, 0))
     assert np.all(w.wcs_world2pix(data, 0) == w.wcs_sky2pix(data, 0))
