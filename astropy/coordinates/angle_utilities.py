@@ -344,11 +344,7 @@ def degrees_to_dms(d):
     _check_minute_range(m)
     _check_second_range(s)
 
-    result = np.empty(tuple(list(d.shape) + [3]))
-    result[..., 0] = np.floor(sign * d)
-    result[..., 1] = np.floor(m)
-    result[..., 2] = s
-    return result
+    return np.floor(sign * d), np.floor(m), s
 
 
 def dms_to_degrees(d, m, s):
@@ -457,11 +453,7 @@ def hours_to_hms(h):
 
     check_hms_ranges(h, m, s)  # throws exception if out of range
 
-    result = np.empty(tuple(list(h.shape) + [3]))
-    result[..., 0] = np.floor(sign * h)
-    result[..., 1] = np.floor(m)
-    result[..., 2] = s
-    return result
+    return (np.floor(sign * h), np.floor(m), s)
 
 
 def radians_to_degrees(r):
