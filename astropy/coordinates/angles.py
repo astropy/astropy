@@ -421,7 +421,7 @@ class Angle(u.Quantity):
                 s = '+' + s
             return s
 
-        format_ufunc = np.vectorize(format, otypes=[np.unicode_])
+        format_ufunc = np.vectorize(format, otypes=[np.object])
         return format_ufunc(values)
 
     @deprecated("0.3", name="format", alternative="to_string")
