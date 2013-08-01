@@ -81,10 +81,13 @@ cdoc = """
 
 """
 
-models_with_constraints = [Chebyshev1DModel, Chebyshev2DModel, Legendre2DModel,
-                           Legendre1DModel, Poly1DModel, Poly2DModel, Gaussian1DModel,
-                           Gaussian2DModel, Sine1DModel, Linear1DModel, PowerLaw1DModel,
-                           Lorentz1DModel, Box1DModel
+models_with_constraints = [AiryDisk2DModel, Beta1DModel, Beta2DModel,
+                           Box1DModel, Box2DModel, Const1DModel, Const2DModel,
+                           Disk2DModel, Gaussian1DModel, Gaussian2DModel,
+                           Linear1DModel, Lorentz1DModel, MexicanHat1DModel,
+                           MexicanHat2DModel, PowerLaw1DModel, Sine1DModel, Trapezoid1DModel,
+                           TrapezoidDisk2DModel, Chebyshev1DModel, Chebyshev2DModel,
+                           Legendre2DModel, Legendre1DModel, Poly1DModel, Poly2DModel
                            ]
 
 for item in models_with_constraints:

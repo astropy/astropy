@@ -209,14 +209,14 @@ class ShiftModel(Model):
     """
     param_names = ['offsets']
 
-    def __init__(self, offsets, **constraints):
+    def __init__(self, offsets):
         if not isinstance(offsets, collections.Sequence):
             param_dim = 1
         else:
             param_dim = len(offsets)
         self._offsets = parameters.Parameter('offsets', offsets, self, param_dim)
         super(ShiftModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
-                                         param_dim=param_dim, **constraints)
+                                         param_dim=param_dim)
 
     def inverse(self):
         if self.param_dim == 1:
@@ -252,14 +252,14 @@ class ScaleModel(Model):
     """
     param_names = ['factors']
 
-    def __init__(self, factors, **constraints):
+    def __init__(self, factors):
         if not isinstance(factors, collections.Sequence):
             param_dim = 1
         else:
             param_dim = len(factors)
         self._factors = parameters.Parameter('factors', factors, self, param_dim)
         super(ScaleModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
-                                         param_dim=param_dim, **constraints)
+                                         param_dim=param_dim)
 
     def inverse(self):
         if self.param_dim == 1:
@@ -486,7 +486,7 @@ class Const1DModel(Parametric1DModel):
     param_names = ['amplitude']
 
     def __init__(self, amplitude, **constraints):
-        super(Const1DModel, self).__init__(locals(), **constraints)
+        super(Const1DModel, self).__init__(locals())
 
     def eval(self, x, amplitude):
         """
@@ -525,7 +525,7 @@ class Const2DModel(Parametric2DModel):
     param_names = ['amplitude']
 
     def __init__(self, amplitude, **constraints):
-        super(Const2DModel, self).__init__(locals(), **constraints)
+        super(Const2DModel, self).__init__(locals())
 
     def eval(self, x, y, amplitude):
         """
@@ -570,7 +570,7 @@ class Disk2DModel(Parametric2DModel):
     param_names = ['amplitude', 'x_0', 'y_0', 'R_0']
 
     def __init__(self, amplitude, x_0, y_0, R_0, **constraints):
-        super(Disk2DModel, self).__init__(locals(), **constraints)
+        super(Disk2DModel, self).__init__(locals())
 
     def eval(self, x, y, amplitude, x_0, y_0, R_0):
         """
