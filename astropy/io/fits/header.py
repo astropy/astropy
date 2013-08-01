@@ -1019,7 +1019,7 @@ class Header(object):
             # This must be a legacy update()
             warnings.warn(
                 "The use of header.update() to add new keywords to a header "
-                "deprecated.  Instead, use either header.set() or simply "
+                "is deprecated.  Instead, use either header.set() or simply "
                 "`header[keyword] = value` or "
                 "`header[keyword] = (value, comment)`.  header.set() is only "
                 "necessary to use if you also want to use the before/after "
