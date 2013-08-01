@@ -1,18 +1,19 @@
 from __future__ import division
+import warnings
+
 import numpy as np
 
 from .core import Kernel1D, Kernel2D, Kernel
 from .utils import KernelSizeError
-
 from ...modeling.functional_models import *
 from ...modeling.core import Parametric1DModel, Parametric2DModel
-
 
 __all__ = sorted(['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
                   'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
                   'Trapezoid1DKernel', 'MexicanHat1DKernel',
                   'MexicanHat2DKernel', 'AiryDisk2DKernel',
-                  'Model1DKernel', 'Model2DKernel'])
+                  'Model1DKernel', 'Model2DKernel',
+                  'TrapezoidDisk2DKernel'])
 
 
 class Gaussian1DKernel(Kernel1D):
@@ -212,7 +213,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
     _weighted = True
 
     def __init__(self, width, slope=1., **kwargs):
-        self._model = TrapezoidDisk2DModel(1, 0, width, slope)
+        self._model = TrapezoidDisk2DModel(1, 0, 0, width, slope)
         self._default_size = width + 2. / slope
         super(TrapezoidDisk2DKernel, self).__init__(**kwargs)
         self._truncation = 0
@@ -242,7 +243,9 @@ class MexicanHat1DKernel(Kernel1D):
     def __init__(self, width, **kwargs):
         self._default_size = 8 * width
         self._model = MexicanHat1DModel(1, 0, width)
-        super(MexicanHat1DKernel, self).__init__(**kwargs)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            super(MexicanHat1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
         self._normalization = 0
 
@@ -274,7 +277,9 @@ class MexicanHat2DKernel(Kernel2D):
     def __init__(self, width, **kwargs):
         self._default_size = 8 * width
         self._model = MexicanHat2DModel(1, 0, 0, width)
-        super(MexicanHat2DKernel, self).__init__(**kwargs)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            super(MexicanHat2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
         self._normalization = 0
 

@@ -14,11 +14,13 @@ integrates to one per default.
 
 Currently only symmetric 2D kernels are supported.
 """
+import copy
+import warnings
 
 import numpy as np
-import copy
+
 from .utils import (discretize_model, add_kernel_arrays_1D,
-                    add_kernel_arrays_2D, NormalizationWarning)
+                    add_kernel_arrays_2D)
 
 
 class Kernel(object):
@@ -33,8 +35,11 @@ class Kernel(object):
     def __init__(self, array):
         self._array = array
         self._normalization = 1. / self._array.sum()
-        if np.abs(self._normalization) > self._array.size * self._normalization:
-            raise NormalizationWarning("Normalization factor of kernel is" +
+        # The value of 100 is kind of arbitrary
+        # there are kernel sum to zero and the user should
+        # be warned in this case
+        if np.abs(self._normalization) > 100:
+            warnings.warn("Normalization factor of kernel is" +
                                         "exceptionally large.")
 
     @property

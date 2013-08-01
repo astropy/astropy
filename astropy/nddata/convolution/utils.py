@@ -1,18 +1,8 @@
 from __future__ import division
+
 import numpy as np
 
 from ...modeling.core import Parametric1DModel, Parametric2DModel
-
-
-class NormalizationWarning(Warning):
-    """
-    Called when normalization of kernels is strange.
-    """
-    def __init__(self, message):
-        self._message = message
-
-    def __str__(self):
-        return self._message
 
 
 class DiscretizationError(Exception):

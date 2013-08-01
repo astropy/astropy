@@ -11,7 +11,10 @@ import itertools
 
 
 widths = [3, 5, 7, 9]
-kernel_types = [GaussianKernel, BoxKernel, Tophat2DKernel, MexicanHat1DKernel]
+kernel_types = [Gaussian1DKernel, Gaussian2DKernel,
+                Box1DKernel, Box2DKernel,
+                Trapezoid1DKernel, TrapezoidDisk2DKernel,
+                MexicanHat1DKernel, Tophat2DKernel]
 
 
 class Test2DConvolutions(object):
@@ -80,15 +83,13 @@ class Test2DConvolutions(object):
 
         Compares a small kernel to something produced by makekernel
         """
-        box = BoxKernel(width)
-        kernel1 = np.ones([width, width])
-        kernel2 = np.outer(box.array, box.array)
+        kernel1 = np.ones([width, width]) / width ** 2
+        kernel2 = Box2DKernel(width)
 
         x = np.zeros(kernel2.shape)
-        xslice = [slice(sh // 2, sh // 2) for sh in kernel2.shape]
-        x[xslice] = 1.0
+        x[kernel2.center] = 1.0
 
-        c2 = convolve_fft(x, kernel2, boundary='fill')
+        c2 = convolve_fft(x, kernel2.array, boundary='fill')
         c1 = convolve_fft(x, kernel1, boundary='fill')
 
         assert_almost_equal(c1, c2, decimal=12)
