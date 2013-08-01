@@ -1,10 +1,12 @@
 from __future__ import division
 import numpy as np
 
+from ...modeling.core import Parametric1DModel, Parametric2DModel
 
-class NormalizationError(Exception):
+
+class NormalizationWarning(Warning):
     """
-    Called when normalization of kernels is wrong.
+    Called when normalization of kernels is strange.
     """
     def __init__(self, message):
         self._message = message
@@ -35,23 +37,47 @@ class KernelSizeError(Exception):
         return self._message
 
 
-def next_larger_odd(number):
+def add_kernel_arrays_1D(array_1, array_2):
     """
-    Round int to next larger odd int.
+    Add two 1D kernel arrays of different size.
+
+    The arrays are added with the centers lying upon each other.
     """
-    number = int(number + 0.5)
-    if number % 2 == 0:
-        return number + 1
-    else:
-        return number
+    if array_1.size > array_2.size:
+        center = array_1.size // 2
+        slice_ = slice(center - array_2.size // 2, center + array_2.size // 2 + 1)
+        array_1[slice_] += array_2
+        return array_1
+    elif array_2.size > array_1.size:
+        center = array_2.size // 2
+        slice_ = slice(center - array_1.size // 2, center + array_1.size // 2 + 1)
+        array_2[slice_] += array_1
+        return array_2
+    return array_2 + array_1
 
 
+def add_kernel_arrays_2D(array_1, array_2):
+    """
+    Add two 1D kernel arrays of different size.
 
-default_sizes = {
-                 }
+    The arrays are added with the centers lying upon each other.
+    """
+    if array_1.size > array_2.size:
+        center = [axes_size // 2 for axes_size in array_1.shape]
+        slice_x = slice(center[1] - array_2.shape[1] // 2, center[1] + array_2.shape[1] // 2 + 1)
+        slice_y = slice(center[0] - array_2.shape[0] // 2, center[0] + array_2.shape[0] // 2 + 1)
+        array_1[slice_y, slice_x] += array_2
+        return array_1
+    elif array_2.size > array_1.size:
+        center = [axes_size // 2 for axes_size in array_2.shape]
+        slice_x = slice(center[1] - array_2.shape[1] // 2, center[1] + array_2.shape[1] // 2 + 1)
+        slice_y = slice(center[0] - array_2.shape[0] // 2, center[0] + array_2.shape[0] // 2 + 1)
+        array_2[slice_y, slice_x] += array_1
+        return array_2
+    return array_2 + array_1
 
 
-def discretize_model(model, range=None, mode='center'):
+def discretize_model(model, x_range, y_range=None, mode='center'):
     """
     Function to evaluate analytical models on a grid.
 
@@ -75,22 +101,29 @@ def discretize_model(model, range=None, mode='center'):
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-
-    Examples
-    --------
     """
-    if range == None:
-        pass
-
     if mode == "center":
-        pass
+        if isinstance(model, Parametric1DModel):
+            return discretize_center_1D(model, x_range)
+        if isinstance(model, Parametric2DModel):
+            return discretize_center_2D(model, x_range, y_range)
     elif mode == "corner":
-        pass
+        if isinstance(model, Parametric1DModel):
+            return discretize_corner_1D(model, x_range)
+        if isinstance(model, Parametric2DModel):
+            return discretize_corner_2D(model, x_range, y_range)
     elif mode == "oversample":
-        pass
+        if isinstance(model, Parametric1DModel):
+            return discretize_oversample_1D(model, x_range)
+        if isinstance(model, Parametric2DModel):
+            return discretize_oversample_2D(model, x_range, y_range)
     elif mode == "integrate":
-        pass
-    return 0
+        if isinstance(model, Parametric1DModel):
+            return discretize_integrate_1D(model, x_range)
+        if isinstance(model, Parametric2DModel):
+            return discretize_integrate_2D(model, x_range, y_range)
+    else:
+        raise DiscretizationError('Invalid mode.')
 
 
 def discretize_center_1D(model, x_range):
@@ -185,12 +218,21 @@ def discretize_oversample_2D(model, x_range, y_range, factor=10):
     return values.mean(axis=3).mean(axis=2)
 
 
-def discretize_integrate(model, range_, mode='analytical'):
+def discretize_integrate_1D(model, range_, mode='analytical'):
     """
     Discretize model by integrating the model over the bin.
     """
     if getattr(model, "integral", False):
-        raise NotImplementedError("Currently not supported")
+        raise NotImplementedError("Currently not supported.")
     else:
-        raise DiscretizationError("Model needs integrate function.")
+        raise NotImplementedError("Currently not supported.")
 
+
+def discretize_integrate_2D(model, range_, mode='analytical'):
+    """
+    Discretize model by integrating the model over the pixel.
+    """
+    if getattr(model, "integral", False):
+        raise NotImplementedError("Currently not supported.")
+    else:
+        raise NotImplementedError("Currently not supported.")

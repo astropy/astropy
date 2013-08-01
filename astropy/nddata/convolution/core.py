@@ -11,11 +11,14 @@ array, which can then be applied to binned data.
 
 The model is centered on the array and should have an amplitude such that the array
 integrates to one per default.
+
+Currently only symmetric 2D kernels are supported.
 """
 
 import numpy as np
 import copy
-from .utils import KernelSizeError
+from .utils import (discretize_model, add_kernel_arrays_1D,
+                    add_kernel_arrays_2D, NormalizationWarning)
 
 
 class Kernel(object):
@@ -30,6 +33,9 @@ class Kernel(object):
     def __init__(self, array):
         self._array = array
         self._normalization = 1. / self._array.sum()
+        if np.abs(self._normalization) > self._array.size * self._normalization:
+            raise NormalizationWarning("Normalization factor of kernel is" +
+                                        "exceptionally large.")
 
     @property
     def truncation(self):
@@ -74,7 +80,7 @@ class Kernel(object):
         """
         Index of the kernel center.
         """
-        return [axes_size / 2 for axes_size in self._array.shape]
+        return [axes_size // 2 for axes_size in self._array.shape]
 
     @property
     def normalization(self):
@@ -82,6 +88,26 @@ class Kernel(object):
         Kernel normalization factor
         """
         return self._normalization
+
+    def normalize(self, mode='integral'):
+        """
+        Force normalization of filter kernel.
+
+        Parameters
+        ----------
+        mode : string
+            One of the following modes:
+                * 'integral' (default)
+                    Kernel normalized such that its integral = 1.
+                * 'peak'
+                    Kernel normalized such that its peak = 1.
+        """
+        if mode == 'integral':
+            self._array *= self._normalization
+            self._normalization = 1.
+        if mode == 'peak':
+            self._array /= self._array.max()
+            self._normalization = 1. / self._array.sum()
 
     @property
     def shape(self):
@@ -112,6 +138,74 @@ class Kernel(object):
         """
         return self._array
 
+    def __add__(self, kernel):
+        """
+        Add two filter kernels.
+        """
+        if isinstance(self, Kernel1D) and isinstance(kernel, Kernel1D):
+            # As convolution is linear we can add two kernels
+            add_array = add_kernel_arrays_1D(self.array, kernel.array)
+            add_kernel = Kernel1D(array=add_array)
+        elif isinstance(self, Kernel2D) and isinstance(kernel, Kernel2D):
+            # As convolution is linear we can add two kernels
+            add_array = add_kernel_arrays_2D(self.array, kernel.array)
+            add_kernel = Kernel2D(array=add_array)
+        else:
+            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
+                            .format(self.__class__, type(kernel)))
+        add_kernel._separable = self._separable and kernel._separable
+        add_kernel._weighted = self._weighted or kernel._weighted
+        return add_kernel
+
+    def __sub__(self,  kernel):
+        """
+        Subtract two filter kernels.
+        """
+        if isinstance(self, Kernel1D) and isinstance(kernel, Kernel1D):
+            # As convolution is linear we can add two kernels
+            sub_array = add_kernel_arrays_1D(self.array, -kernel.array)
+            sub_kernel = Kernel1D(array=sub_array)
+        elif isinstance(self, Kernel2D) and isinstance(kernel, Kernel2D):
+            # As convolution is linear we can add two kernels
+            sub_array = add_kernel_arrays_2D(self.array, -kernel.array)
+            sub_kernel = Kernel2D(array=sub_array)
+        else:
+            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
+                            .format(self.__class__, type(kernel)))
+
+        # As convolution is linear we can subtract two kernels
+        sub_kernel._separable = self._separable and kernel._separable
+        sub_kernel._weighted = self._weighted or kernel._weighted
+        return sub_kernel
+
+    def __mul__(self, value):
+        """
+        Multiply kernel with number or convolve two kernels.
+        """
+        # As convolution is linear we can multiply with a scalar
+        if isinstance(value, (int, float)):
+            kernel = copy.copy(self)
+            kernel._array *= value
+            kernel._normalization /= value
+            return kernel
+        else:
+            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
+                            .format(self.__class__, type(value)))
+
+    def __rmul__(self, value):
+        """
+        Multiply kernel with number or convolve two kernels.
+        """
+        # As convolution is linear we can multiply with a scalar
+        if isinstance(value, (int, float)):
+            kernel = copy.copy(self)
+            kernel._array *= value
+            kernel._normalization /= value
+            return kernel
+        else:
+            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
+                            .format(self.__class__, type(value)))
+
 
 class Kernel1D(Kernel):
     """
@@ -124,113 +218,34 @@ class Kernel1D(Kernel):
     size : odd int
         Size of the kernel array.
     """
-    def __init__(self, size):
-        if size == None:
-            size = self._default_size
-        if not isinstance(size, int):
-            raise TypeError("Size must be integer.")
-        if size % 2 == 0:
-            raise KernelSizeError("Kernel size must be odd.")
-        self._odd = True
-        array = self._init_array(size)
+    def __init__(self, model=None, x_size=None, mode='center', array=None):
+        if array == None:
+            if model != None:
+                self._model = model
+            if x_size == None:
+                x_size = self._default_size
+            x_range = (-np.rint(x_size / 2), np.rint(x_size / 2) + 1)
+            array = discretize_model(self._model, x_range, mode)
+        else:
+            self._model = None
         super(Kernel1D, self).__init__(array)
-
-    def _init_array(self, size):
-        """
-        Evaluate kernel model on grid.
-
-        Parameters
-        ----------
-        size : odd int
-            Total size of the array.
-        """
-        x = np.arange(-(size / 2), (size / 2) + 1)
-        return self._model(x)
-
-    def __add__(self, kernel):
-        """
-        Add two filter kernels and do a renormalization.
-        """
-        # As convolution is linear we can add two kernels
-        # This will fail, if the kernel shapes don't match
-        add_kernel = Kernel1D()
-        add_kernel._separable = self._separable and kernel._separable
-        add_kernel._weighted = self._weighted or kernel._weighted
-        return add_kernel
-
-    def __sub__(self,  kernel):
-        """
-        Subtract two filter kernels and do a renormalization.
-        """
-        # As convolution is linear we can subtract two kernels
-        # This will fail, if the kernel shapes don't match
-        sub_kernel = Kernel1D(self._array - kernel._array)
-        sub_kernel._separable = self._separable and kernel._separable
-        sub_kernel._weighted = self._weighted or kernel._weighted
-        return sub_kernel
-
-    def __mul__(self, value):
-        """
-        Multiply kernel with number or convolve two kernels.
-        """
-        # As convolution is linear we can multiply with a scalar
-        if isinstance(value, (int, float)):
-            kernel = copy.copy(self)
-            kernel._normalization *= value
-            return kernel
-        elif isinstance(value, Kernel):
-            #Convolve the two kernels with each other
-            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
-                            .format(self.__class__, type(value)))
-        else:
-            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
-                            .format(self.__class__, type(value)))
-
-    def __rmul__(self, value):
-        """
-        Multiply kernel with number or convolve two kernels.
-        """
-        # As convolution is linear we can multiply with a scalar
-        if isinstance(value, (int, float)):
-            kernel = copy.copy(self)
-            kernel._normalization *= value
-            return kernel
-        elif isinstance(value, Kernel):
-            #Convolve the two kernels with each other
-            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
-                            .format(self.__class__, type(value)))
-        else:
-            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
-                            .format(self.__class__, type(value)))
 
 
 class Kernel2D(Kernel):
     """
     Abstract base class for 1D filter kernels
     """
-    def __init__(self, shape):
-        if shape == None:
-            shape = self._default_size
-        if not np.all([isinstance(number, int) for number in shape]):
-            raise TypeError("Size must be integer.")
-        if np.any([number % 2 == 0 for number in shape]):
-            raise KernelSizeError("Kernel size must be odd.")
-        self._odd = True
-        array = self._init_array(shape)
+    def __init__(self, x_size=None, y_size=None, mode='center', array=None):
+        if array == None:
+            if x_size == None:
+                x_size = self._default_size
+            if y_size == None:
+                y_size = x_size
+
+            # Set ranges where to evaluate the model
+            x_range = (-np.rint(x_size / 2), np.rint(x_size / 2) + 1)
+            y_range = (-np.rint(y_size / 2), np.rint(y_size / 2) + 1)
+            array = discretize_model(self._model, x_range, y_range, mode)
+        else:
+            self._model = None
         super(Kernel2D, self).__init__(array)
-
-    def _init_array(self, shape):
-        """
-        Evaluate kernel model on grid.
-
-        Parameters
-        ----------
-        shape : tuple
-            Shape of the array. Sizes must be odd.
-        """
-        x = np.arange(-(shape[1] / 2), (shape[1] / 2) + 1)
-        y = np.arange(-(shape[0] / 2), (shape[0] / 2) + 1)
-        x, y = np.meshgrid(x, y)
-        return self._model(x, y)
-
-

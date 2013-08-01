@@ -2,19 +2,20 @@ from __future__ import division
 import numpy as np
 
 from .core import Kernel1D, Kernel2D, Kernel
-from .utils import KernelSizeError, next_larger_odd
+from .utils import KernelSizeError
 
-from ...modeling.models import *
+from ...modeling.functional_models import *
 from ...modeling.core import Parametric1DModel, Parametric2DModel
-from astropy.modeling.functional_models import Trapezoid1DModel
 
 
-__all__ = ['GaussianKernel', 'CustomKernel', 'BoxKernel', 'Tophat2DKernel',
-           'Trapezoid1DKernel', 'MexicanHat1DKernel', 'MexicanHat2DKernel',
-           'AiryDisk2DKernel']
+__all__ = sorted(['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
+                  'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
+                  'Trapezoid1DKernel', 'MexicanHat1DKernel',
+                  'MexicanHat2DKernel', 'AiryDisk2DKernel',
+                  'Model1DKernel', 'Model2DKernel'])
 
 
-class GaussianKernel(Kernel1D):
+class Gaussian1DKernel(Kernel1D):
     """
     Gaussian filter kernel.
 
@@ -25,27 +26,57 @@ class GaussianKernel(Kernel1D):
     ----------
     width : number
         Width of the filter kernel.
-    size : odd int
-        Size of the kernel array. Default = 8 * width
+    x_size : odd int
+        Size of the kernel array. Default = 8 * width.
 
     See Also
     --------
-    BoxKernel
+    Box1DKernel, Trapezoid1DKernel, MexicanHat1DKernel
 
     """
     _separable = True
     _weighted = True
 
-    def __init__(self, width, size=None):
-        amplitude = 1. / (np.sqrt(2 * np.pi) * width)
-        self._model = Gaussian1DModel(amplitude=amplitude, mean=0.,
-                                                 stddev=width)
-        self._default_size = next_larger_odd(8 * width)
-        super(GaussianKernel, self).__init__(size)
+    def __init__(self, width, **kwargs):
+        self._model = Gaussian1DModel(1. / (np.sqrt(2 * np.pi) * width), 0, width)
+        self._default_size = 8 * width
+        super(Gaussian1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - 1 / self._normalization)
 
 
-class BoxKernel(Kernel1D):
+class Gaussian2DKernel(Kernel2D):
+    """
+    Gaussian filter kernel.
+
+    The Gaussian filter is a filter with great smoothing properties. It is
+    isotropic and does not produce artifact.
+
+    Parameters
+    ----------
+    width : number
+        Width of the filter kernel.
+    x_size : odd int
+        Size in x direction of the kernel array. Default = 8 * width.
+    y_size : odd int
+        Size in y direction of the kernel array. Default = 8 * width.
+
+    See Also
+    --------
+    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
+    TrapezoidDisk2DKernel, AiryDisk2DKernel
+
+    """
+    _separable = True
+    _weighted = True
+
+    def __init__(self, width, **kwargs):
+        self._model = Gaussian2DModel(1. / (2 * np.pi * width ** 2), 0, 0, width, width)
+        self._default_size = 8 * width
+        super(Gaussian2DKernel, self).__init__(**kwargs)
+        self._truncation = np.abs(1. - 1 / self._normalization)
+
+
+class Box1DKernel(Kernel1D):
     """
     Box filter kernel.
 
@@ -60,15 +91,43 @@ class BoxKernel(Kernel1D):
 
     See Also
     --------
-    GaussianKernel
+    Gaussian1DKernel, Trapezoid1DKernel, MexicanHat1DKernel
     """
     _separable = True
     _weighted = False
 
-    def __init__(self, width):
-        self._model = Box1DModel(amplitude=1., x_0=0., width=width)
-        self._default_size = next_larger_odd(width)
-        super(BoxKernel, self).__init__(width)
+    def __init__(self, width, **kwargs):
+        self._model = Box1DModel(1. / width, 0, width)
+        self._default_size = width
+        super(Box1DKernel, self).__init__(**kwargs)
+        self._truncation = 0
+
+
+class Box2DKernel(Kernel2D):
+    """
+    Box filter kernel.
+
+    The Box filter or running mean is a smoothing filter. It is not isotropic
+    and can produce artifact, when applied repeatedly to the same data. It is
+    faster than a Gaussian smoothing filter.
+
+    Parameters
+    ----------
+    width : number
+        Width of the filter kernel.
+
+    See Also
+    --------
+    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
+    TrapezoidDisk2DKernel, AiryDisk2DKernel
+    """
+    _separable = True
+    _weighted = False
+
+    def __init__(self, width, **kwargs):
+        self._model = Box2DModel(1. / width ** 2, 0, 0, width, width)
+        self._default_size = width
+        super(Box2DKernel, self).__init__(**kwargs)
         self._truncation = 0
 
 
@@ -83,12 +142,17 @@ class Tophat2DKernel(Kernel2D):
     ----------
     radius : int
         Radius of the filter kernel.
+
+    See Also
+    --------
+    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
+    TrapezoidDisk2DKernel, AiryDisk2DKernel
     """
 
-    def __init__(self, radius):
-        self._model = Disk2DModel(amplitude=1., x_0=0., y_0=0., R_0=radius)
-        self._default_size = (next_larger_odd(2 * radius), next_larger_odd(2 * radius))
-        super(Tophat2DKernel, self).__init__(None)
+    def __init__(self, radius, **kwargs):
+        self._model = Disk2DModel(1. / (np.pi * radius ** 2), 0, 0, radius)
+        self._default_size = 2 * radius
+        super(Tophat2DKernel, self).__init__(**kwargs)
         self._truncation = 0
 
 
@@ -106,13 +170,51 @@ class Ring2DKernel(Kernel2D):
 class Trapezoid1DKernel(Kernel1D):
     """
     1D trapezoid kernel.
+
+    Parameters
+    ----------
+    width : number
+        Width of the filter kernel.
+    slope : number
+        Slope of the filter kernels tails
+
+
+    See Also
+    --------
+    Box1DKernel, Gaussian1DKernel, MexicanHat1DKernel
     """
     _weighted = True
 
-    def __init__(self, width, slope=1):
-        self._model = Trapezoid1DModel(amplitude=1, x_0=0., width=width, slope=slope)
-        self._default_size = next_larger_odd(width + 2. / slope)
-        super(Trapezoid1DKernel, self).__init__(None)
+    def __init__(self, width, slope=1., **kwargs):
+        self._model = Trapezoid1DModel(1, 0, width, slope)
+        self._default_size = width + 2. / slope
+        super(Trapezoid1DKernel, self).__init__(**kwargs)
+        self._truncation = 0
+
+
+class TrapezoidDisk2DKernel(Kernel2D):
+    """
+    2D trapezoid kernel.
+
+    Parameters
+    ----------
+    width : number
+        Width of the filter kernel.
+    slope : number
+        Slope of the filter kernels tails
+
+
+    See Also
+    --------
+    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
+    TrapezoidDisk2DKernel, AiryDisk2DKernel
+    """
+    _weighted = True
+
+    def __init__(self, width, slope=1., **kwargs):
+        self._model = TrapezoidDisk2DModel(1, 0, width, slope)
+        self._default_size = width + 2. / slope
+        super(TrapezoidDisk2DKernel, self).__init__(**kwargs)
         self._truncation = 0
 
 
@@ -123,14 +225,26 @@ class MexicanHat1DKernel(Kernel1D):
     The Mexican Hat or Gaussian-Laplace filter is a background free smoothing
     filter. It does not conserve the mean. It is useful for peak or multi-scale
     detection.
+
+    Parameters
+    ----------
+    width : number
+        Width of the filter kernel.
+    x_size : odd int
+        Size in x direction of the kernel array. Default = 8 * width.
+
+    See Also
+    --------
+    Box1DKernel, Gaussian1DKernel, Trapezoid1DKernel
     """
     _weighted = True
 
-    def __init__(self, width, size=None):
-        self._default_size = next_larger_odd(8 * width)
-        self._model = MexicanHat1DModel(amplitude=1, x_0=0., sigma=width)
-        super(MexicanHat1DKernel, self).__init__(size)
+    def __init__(self, width, **kwargs):
+        self._default_size = 8 * width
+        self._model = MexicanHat1DModel(1, 0, width)
+        super(MexicanHat1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
+        self._normalization = 0
 
 
 class MexicanHat2DKernel(Kernel2D):
@@ -140,22 +254,55 @@ class MexicanHat2DKernel(Kernel2D):
     The Mexican Hat or Gaussian-Laplace filter is a background free smoothing
     filter. It does not conserve the mean. It is useful for peak or multi-scale
     detection.
+
+    Parameters
+    ----------
+    width : number
+        Width of the filter kernel.
+    x_size : odd int
+        Size in x direction of the kernel array. Default = 8 * width.
+    y_size : odd int
+        Size in y direction of the kernel array. Default = 8 * width.
+
+    See Also
+    --------
+    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
+    TrapezoidDisk2DKernel, AiryDisk2DKernel
     """
-    def __init__(self, width, shape=None):
-        self._default_size = (next_larger_odd(8 * width), next_larger_odd(8 * width))
-        self._model = MexicanHat2DModel(amplitude=1, x_0=0., y_0=0, sigma=width)
-        super(MexicanHat2DKernel, self).__init__(shape)
+    _weighted = True
+
+    def __init__(self, width, **kwargs):
+        self._default_size = 8 * width
+        self._model = MexicanHat2DModel(1, 0, 0, width)
+        super(MexicanHat2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
+        self._normalization = 0
 
 
 class AiryDisk2DKernel(Kernel2D):
     """
-    Airy 2D kernel.
+    Airy disk 2D kernel.
+
+    Parameters
+    ----------
+    width : number
+        Width of the filter kernel.
+    x_size : odd int
+        Size in x direction of the kernel array. Default = 8 * width.
+    y_size : odd int
+        Size in y direction of the kernel array. Default = 8 * width.
+
+    See Also
+    --------
+    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
+    TrapezoidDisk2DKernel, AiryDisk2DKernel
     """
-    def __init__(self, width, shape=None):
-        self._default_size = (next_larger_odd(8 * width), next_larger_odd(8 * width))
-        self._model = AiryDisk2DModel(amplitude=1, x_0=0., y_0=0, width=width)
-        super(AiryDisk2DKernel, self).__init__(shape)
+    _weighted = True
+
+    def __init__(self, width, **kwargs):
+        self._default_size = 8 * width
+        self._model = AiryDisk2DModel(1, 0, 0, width)
+        super(AiryDisk2DKernel, self).__init__(**kwargs)
 
 
 class Model1DKernel(Kernel1D):
@@ -180,11 +327,12 @@ class Model1DKernel(Kernel1D):
     _separable = False
     _weighted = True
 
-    def __init__(self, model):
+    def __init__(self, model, **kwargs):
         if isinstance(model, Parametric1DModel):
             self._model = model
         else:
             raise TypeError("Must be Parametric1DModel")
+        super(Model1DKernel, self).__init__(**kwargs)
 
 
 class Model2DKernel(Kernel2D):
@@ -206,7 +354,10 @@ class Model2DKernel(Kernel2D):
     Model1DKernel : Create kernel from astropy.models.Parametric1DModel
     CustomKernel : Create kernel from list or array
     """
-    def __init__(self, model):
+    _weighted = True
+    _separable = False
+
+    def __init__(self, model, **kwargs):
         self._separable = False
         if isinstance(model, Parametric2DModel):
             self._model = model
@@ -264,7 +415,6 @@ class CustomKernel(Kernel):
     """
 
     def __init__(self, array):
-        # Pass 'None' because array is overridden in the next line
         self.array = array
         super(CustomKernel, self).__init__(self._array)
 
@@ -291,7 +441,7 @@ class CustomKernel(Kernel):
         self._odd = np.all([axes_size % 2 != 0 for axes_size in self.shape])
 
         if not self.odd:
-            raise KernelSizeError("Kernel size must be odd.")
+            raise KernelSizeError("Kernel size must be odd in all axes.")
 
         # Check if array is weighted
         ones = self._array == 1.
