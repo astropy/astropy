@@ -404,7 +404,7 @@ class Angle(u.Quantity):
                 func = ("{0:0." + str(precision) + "}").format
             elif sep == 'fromunit':
                 values = self.to(unit).value
-                func = ("{0:0." + str(precision) + "}" + unit.name).format
+                func = ("{0:0." + str(precision) + "}" + unit.to_string()).format
             else:
                 raise ValueError(
                     "'{0}' can not be represented in sexagesimal "

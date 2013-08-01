@@ -103,6 +103,8 @@ def test_angle_repr():
     assert 'RA' in repr(RA(0, u.deg))
     assert 'Dec' in repr(Dec(0, u.deg))
 
+    a = Angle(0, u.deg)
+    repr(a)
 
 def test_angle_bounds_check():
     a1 = RA(45, u.degree)
