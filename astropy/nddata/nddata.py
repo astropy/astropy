@@ -159,6 +159,14 @@ class NDData(object):
             self.meta = meta
             self.unit = unit
 
+    def __str__(self):
+        return str(self.data)
+
+    def __repr__(self):
+        prefix = self.__class__.__name__ + '('
+        body = np.array2string(self.data, separator=', ', prefix=prefix)
+        return ''.join([prefix, body, ')'])
+
     @property
     def mask(self):
         return self._mask

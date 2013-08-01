@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import textwrap
 
 import numpy as np
 from numpy.testing import assert_array_equal
@@ -36,6 +37,42 @@ def test_nddata_simple():
     assert nd.shape == (10, 10)
     assert nd.size == 100
     assert nd.dtype == np.dtype(float)
+
+
+def test_nddata_str():
+    arr1d = NDData([1, 2, 3])
+    assert str(arr1d) == '[1 2 3]'
+
+    arr2d = NDData([[1, 2], [3, 4]])
+    assert str(arr2d) == textwrap.dedent("""
+        [[1 2]
+         [3 4]]"""[1:])
+
+    arr3d = NDData([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    assert str(arr3d) == textwrap.dedent("""
+        [[[1 2]
+          [3 4]]
+
+         [[5 6]
+          [7 8]]]"""[1:])
+
+
+def test_nddata_repr():
+    arr1d = NDData([1, 2, 3])
+    assert repr(arr1d) == 'NDData([1, 2, 3])'
+
+    arr2d = NDData([[1, 2], [3, 4]])
+    assert repr(arr2d) == textwrap.dedent("""
+        NDData([[1, 2],
+                [3, 4]])"""[1:])
+
+    arr3d = NDData([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    assert repr(arr3d) == textwrap.dedent("""
+        NDData([[[1, 2],
+                 [3, 4]],
+
+                [[5, 6],
+                 [7, 8]]])"""[1:])
 
 
 def test_nddata_mask_valid():
