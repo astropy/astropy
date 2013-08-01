@@ -259,12 +259,12 @@ def test_angle_convert():
     npt.assert_almost_equal(angle.radian, 0.944644098745)
     npt.assert_almost_equal(angle.degree, 54.12412)
 
-    assert isinstance(angle.hms, tuple)
+    assert len(angle.hms) == 3
     assert angle.hms[0] == 3
     assert angle.hms[1] == 36
     npt.assert_almost_equal(angle.hms[2], 29.78879999999947)
 
-    assert isinstance(angle.dms, tuple)
+    assert len(angle.dms) == 3
     assert angle.dms[0] == 54
     assert angle.dms[1] == 7
     npt.assert_almost_equal(angle.dms[2], 26.831999999992036)

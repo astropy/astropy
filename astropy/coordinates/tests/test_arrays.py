@@ -55,3 +55,14 @@ def test_angle_arrays():
     with pytest.raises(u.UnitsException):
         a10 = Angle(["04:02:02", "03:02:01", "06:02:01"])
 
+
+def test_dms():
+    from .. import Angle
+    from ..angle_utilities import dms_to_degrees
+
+    a1 = Angle([0, 45.5, -45.5], unit=u.degree)
+    npt.assert_almost_equal(a1.dms, [[0, 0, 0], [45, 30, 0], [-45, 30, 0]])
+
+    dms = a1.dms
+    degrees = dms_to_degrees(dms[..., 0], dms[..., 1], dms[..., 2])
+    npt.assert_almost_equal(a1.degree, degrees)

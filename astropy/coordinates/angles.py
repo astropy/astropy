@@ -316,7 +316,7 @@ class Angle(u.Quantity):
         The angle's value in hours, as a ``(h, m, s)`` tuple
         (read-only property).
         """
-        return util.radians_to_hms(self.radian)
+        return util.hours_to_hms(self.hourangle)
 
     @property
     def dms(self):
@@ -324,7 +324,7 @@ class Angle(u.Quantity):
         The angle's value in degrees, as a ``(d, m, s)`` tuple
         (read-only property).
         """
-        return util.radians_to_dms(self.radian)
+        return util.degrees_to_dms(self.degree)
 
     def to_string(self, unit=None, decimal=False, sep='fromunit',
                   precision=5, alwayssign=False, pad=False):
@@ -421,7 +421,7 @@ class Angle(u.Quantity):
                 s = '+' + s
             return s
 
-        format_ufunc = np.vectorize(format, otypes=[object])
+        format_ufunc = np.vectorize(format, otypes=[np.unicode_])
         return format_ufunc(values)
 
     @deprecated("0.3", name="format", alternative="to_string")
