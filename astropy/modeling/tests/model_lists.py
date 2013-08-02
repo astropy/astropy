@@ -60,7 +60,7 @@ models_1D[Sine1DModel] = {'parameters': [1, 0.1],
 
 models_1D[Box1DModel] = {'parameters': [1, 0, 10],
                            'x_values': [-5, 5, 0, -10, 10],
-                           'y_values': [1, 1, 1, 0, 0],
+                           'y_values': [0.5, 0.5, 1, 0, 0],
                            'x_lim': [-10, 10],
                            'integral': 10}
 
@@ -131,13 +131,13 @@ models_2D[Const2DModel] = {'parameters': [1],
                            'y_lim': [-10, 10],
                            'integral': 400}
 
-models_2D[Box2DModel] = {'parameters': [1, 0, 0, 1, 1],
-                         'x_values': [-0.5, 0.5, 0, -1, 1],
-                         'y_values': [-0.5, 0.5, 0, -1, 1],
-                         'z_values': [1, 1, 1, 0, 0],
-                         'x_lim': [-2, 2],
-                         'y_lim': [-2, 2],
-                         'integral': 1}
+models_2D[Box2DModel] = {'parameters': [1, 0, 0, 10, 10],
+                         'x_values': [-5, 5, -5, 5, 0, -10, 10],
+                         'y_values': [-5, 5, 0, 0, 0, -10, 10],
+                         'z_values': [0.25, 0.25, 0.5, 0.5, 1, 0, 0],
+                         'x_lim': [-10, 10],
+                         'y_lim': [-10, 10],
+                         'integral': 100}
 
 models_2D[MexicanHat2DModel] = {'parameters': [1, 0, 0, 1],
                                 'x_values': [0, 0, 0, 0, 0, 1, -1, 3, -3],
