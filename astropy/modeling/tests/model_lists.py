@@ -35,6 +35,9 @@ Explanation of keywords of the dictionaries:
 
 "requires_scipy" : bool
     If a model requires scipy (Bessel functions etc.) set this flag.
+
+"integral" : float
+    value of the integral between the x_lim (and y_lim).
 """
 
 from ..functional_models import *
@@ -46,53 +49,63 @@ models_1D = {}
 models_1D[Gaussian1DModel] = {'parameters': [1, 0, 1],
                            'x_values': [0, np.sqrt(2), -np.sqrt(2)],
                            'y_values': [1.0, 0.367879, 0.367879],
-                           'x_lim': [-10, 10]}
+                           'x_lim': [-10, 10],
+                           'integral': np.sqrt(2 * np.pi)}
 
-models_1D[Sine1DModel] = {'parameters': [1, 1],
-                           'x_values': [0, 0.25],
+models_1D[Sine1DModel] = {'parameters': [1, 0.1],
+                           'x_values': [0, 2.5],
                            'y_values': [0, 1],
-                           'x_lim': [-10, 10]}
+                           'x_lim': [-10, 10],
+                           'integral': 0}
 
-models_1D[Box1DModel] = {'parameters': [1, 0, 1],
-                           'x_values': [-0.5, 0.5, 0, -1, 1],
+models_1D[Box1DModel] = {'parameters': [1, 0, 10],
+                           'x_values': [-5, 5, 0, -10, 10],
                            'y_values': [1, 1, 1, 0, 0],
-                           'x_lim': [-2, 2]}
+                           'x_lim': [-10, 10],
+                           'integral': 10}
 
 models_1D[Linear1DModel] = {'parameters': [1, 0],
                            'x_values': [0, np.pi, 42, -1],
                            'y_values': [0, np.pi, 42, -1],
-                           'x_lim': [-10, 10]}
+                           'x_lim': [-10, 10],
+                           'integral': 0}
 
 models_1D[Lorentz1DModel] = {'parameters': [1, 0, 1],
                            'x_values': [0, -1, 1, 0.5, -0.5],
                            'y_values': [1., 0.2, 0.2, 0.5, 0.5],
-                           'x_lim': [-10, 10]}
+                           'x_lim': [-10, 10],
+                           'integral': 1}
 
 models_1D[MexicanHat1DModel] = {'parameters': [1, 0, 1],
                            'x_values': [0, 1, -1, 3, -3],
                            'y_values': [1.0, 0.303265, 0.303265, -0.038881, -0.038881],
-                           'x_lim': [-10, 10]}
+                           'x_lim': [-10, 10],
+                           'integral': 0}
 
 models_1D[Trapezoid1DModel] = {'parameters': [1, 0, 2, 1],
                            'x_values': [0, 1, -1, 1.5, -1.5, 2, 2],
                            'y_values': [1, 1, 1, 0.5, 0.5, 0, 0],
-                           'x_lim': [-10, 10]}
+                           'x_lim': [-10, 10],
+                           'integral': 3}
 
 models_1D[Const1DModel] = {'parameters': [1],
                            'x_values': [-1, 1, np.pi, -42., 0],
                            'y_values': [1, 1, 1, 1, 1],
-                           'x_lim': [-10, 10]}
+                           'x_lim': [-10, 10],
+                           'integral': 20}
 
 models_1D[Beta1DModel] = {'parameters': [1, 0, 1, 2],
                            'x_values': [0, 1, -1, 3, -3],
                            'y_values': [1.0, 0.25, 0.25, 0.01, 0.01],
-                           'x_lim': [-10, 10]}
+                           'x_lim': [-10, 10],
+                           'integral': 1}
 
 models_1D[PowerLaw1DModel] = {'parameters': [1, 2],
                               'x_values': [1, 10, 100],
                               'y_values': [1.0, 0.01, 0.0001],
                               'x_lim': [1, 100],
-                              'log_fit': True}
+                              'log_fit': True,
+                              'integral': 0.99}
 
 models_1D[Poly1DModel] = {'parameters': {'degree': 2, 'c0': 1., 'c1': 1., 'c2': 1.},
                             'x_values': [1, 10, 100],
@@ -107,21 +120,24 @@ models_2D[Gaussian2DModel] = {'parameters': [1, 0, 0, 1, 1],
                               'y_values': [0, np.sqrt(2), -np.sqrt(2)],
                               'z_values': [1, 1. / np.exp(1) ** 2, 1. / np.exp(1) ** 2],
                               'x_lim': [-10, 10],
-                              'y_lim': [-10, 10]}
+                              'y_lim': [-10, 10],
+                              'integral': 2 * np.pi}
 
 models_2D[Const2DModel] = {'parameters': [1],
                            'x_values': [-1, 1, np.pi, -42., 0],
                            'y_values': [0, 1, 42, np.pi, -1],
                            'z_values': [1, 1, 1, 1, 1],
                            'x_lim': [-10, 10],
-                           'y_lim': [-10, 10]}
+                           'y_lim': [-10, 10],
+                           'integral': 400}
 
 models_2D[Box2DModel] = {'parameters': [1, 0, 0, 1, 1],
                          'x_values': [-0.5, 0.5, 0, -1, 1],
                          'y_values': [-0.5, 0.5, 0, -1, 1],
                          'z_values': [1, 1, 1, 0, 0],
                          'x_lim': [-2, 2],
-                         'y_lim': [-2, 2]}
+                         'y_lim': [-2, 2],
+                         'integral': 1}
 
 models_2D[MexicanHat2DModel] = {'parameters': [1, 0, 0, 1],
                                 'x_values': [0, 0, 0, 0, 0, 1, -1, 3, -3],
@@ -129,7 +145,8 @@ models_2D[MexicanHat2DModel] = {'parameters': [1, 0, 0, 1],
                                 'z_values': [1.0, 0.303265, 0.303265, -0.038881, -0.038881,
                                              0.303265, 0.303265, -0.038881, -0.038881],
                                 'x_lim': [-10, 10],
-                                'y_lim': [-10, 10]}
+                                'y_lim': [-10, 10],
+                                'integral': 0}
 
 models_2D[TrapezoidDisk2DModel] = {'parameters': [1, 0, 0, 1, 1],
                                    'x_values': [0, 0.5, 0, 1.5],

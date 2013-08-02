@@ -36,11 +36,11 @@ class Kernel(object):
         self._array = array
         self._normalization = 1. / self._array.sum()
         # The value of 100 is kind of arbitrary
-        # there are kernel sum to zero and the user should
-        # be warned in this case
+        # there are kernel that sum to zero and
+        # the user should be warned in this case
         if np.abs(self._normalization) > 100:
             warnings.warn("Normalization factor of kernel is" +
-                                        "exceptionally large.")
+                                        "exceptionally large > 100.")
 
     @property
     def truncation(self):
