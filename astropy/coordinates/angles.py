@@ -330,7 +330,8 @@ class Angle(u.Quantity):
         return util.degrees_to_dms(self.degree)
 
     def to_string(self, unit=None, decimal=False, sep='fromunit',
-                  precision=5, alwayssign=False, pad=False):
+                  precision=5, alwayssign=False, pad=False,
+                  format=None):
         """ A string representation of the angle.
 
         Parameters
@@ -367,6 +368,15 @@ class Angle(u.Quantity):
             If `True`, include leading zeros when needed to ensure a
             fixed number of characters for sexagesimal representation.
 
+        format : str, optional
+            The format of the result.  If not provided, an unadorned
+            string is returned.  Supported values are:
+
+            - 'latex': Return a LaTeX-formatted string
+
+            - 'unicode': Return a string containing non-ASCII unicode
+              characters, such as the degree symbol
+
         Returns
         -------
         strrepr : str
@@ -376,6 +386,25 @@ class Angle(u.Quantity):
         if unit is None:
             unit = self.unit
         unit = self._convert_unit_to_angle_unit(unit)
+
+        separators = {
+            None: {
+                u.degree: 'dms',
+                u.hourangle: 'hms'},
+            'latex': {
+                u.degree: [r'^\circ', r'{}^\prime', r'{}^{\prime\prime}'],
+                u.hourangle: [r'^\mathrm{h}', r'^\mathrm{m}', r'^\mathrm{s}']},
+            'unicode': {
+                u.degree: '°′″',
+                u.hourangle: 'ʰᵐˢ'}
+            }
+
+        if sep == 'fromunit':
+            if format not in separators:
+                raise ValueError("Unknown format '{0}'".format(format))
+            seps = separators[format]
+            if unit in seps:
+                sep = seps[unit]
 
         # Create an iterator so we can format each element of what
         # might be an array.
@@ -418,13 +447,15 @@ class Angle(u.Quantity):
             raise u.UnitsException(
                 "The unit value provided is not an angular unit.")
 
-        def format(val):
+        def do_format(val):
             s = func(float(val))
             if alwayssign and not s.startswith('-'):
                 s = '+' + s
+            if format == 'latex':
+                s = '${0}$'.format(s)
             return s
 
-        format_ufunc = np.vectorize(format, otypes=[np.object])
+        format_ufunc = np.vectorize(do_format, otypes=[np.object])
         return format_ufunc(values)
 
     @deprecated("0.3", name="format", alternative="to_string")
@@ -436,6 +467,9 @@ class Angle(u.Quantity):
 
     def __str__(self):
         return str(self.to_string())
+
+    def _repr_latex_(self):
+        return str(self.to_string(format='latex'))
 
 
 class RA(Angle):

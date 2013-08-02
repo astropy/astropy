@@ -90,8 +90,8 @@ class _AngleParser(object):
         t_COLON = ':'
         t_DEGREE = r'd(eg(ree(s)?)?)?|°'
         t_HOUR = r'hour(s)?|h(r)?|ʰ'
-        t_MINUTE = r'm(in(ute(s)?)?)?|′|\''
-        t_SECOND = r's(ec(ond(s)?)?)?|″|\"'
+        t_MINUTE = r'm(in(ute(s)?)?)?|′|\'|ᵐ'
+        t_SECOND = r's(ec(ond(s)?)?)?|″|\"|ˢ'
 
         # A string containing ignored characters (spaces)
         t_ignore = ' '
