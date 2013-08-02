@@ -217,7 +217,7 @@ class Header(object):
                 # TODO: Remove this warning and make KeyError the default after
                 # a couple versions (by 3.2 or 3.3, say)
                 warnings.warn(
-                    'Deletetion of non-existent keyword %r: '
+                    'Deletion of non-existent keyword %r: '
                     'In a future Astropy version Header.__delitem__ may be '
                     'changed so that this raises a KeyError just like a dict '
                     'would. Please update your code so that KeyErrors are '
