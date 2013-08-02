@@ -200,13 +200,13 @@ class Angle(u.Quantity):
         lower_bound, upper_bound = bounds
         # Convert everything to radians, and keep a copy of the
         # original (unmoved) values for any resulting error messages.
-        original_angle = unit.to(u.radian, angle)
-        angle = np.array(original_angle)
-        lower_angle = lower_bound.radian
-        upper_angle = upper_bound.radian
+        original_angle = np.array(angle)
+        angle = angle.copy()
+        lower_angle = lower_bound.to(unit).value
+        upper_angle = upper_bound.to(unit).value
 
         # TODO: This is perhaps a candidate for something to do in C.
-        TWOPI = np.pi * 2.0
+        TWOPI = u.radian.to(unit, np.pi * 2.0)
 
         if np.all((lower_angle < angle) & (angle < upper_angle)):
             pass
@@ -227,7 +227,7 @@ class Angle(u.Quantity):
 
                 too_small = angle < lower_angle
 
-        return u.radian.to(unit, angle), bounds
+        return angle, bounds
 
     @staticmethod
     def _convert_unit_to_angle_unit(unit):
