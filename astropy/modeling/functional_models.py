@@ -563,6 +563,7 @@ class Disk2DModel(Parametric2DModel):
             f(r) = \\left \\{
                      \\begin{array}{ll}
                        A & : r < R_0 \\\\
+                       A/2 & : r = R_0 \\\\
                        0 & : r \\geq R_0
                      \\end{array}
                    \\right.
@@ -577,7 +578,7 @@ class Disk2DModel(Parametric2DModel):
         Model function Disk2D.
         """
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
-        return np.select([rr <= R_0 ** 2], [amplitude])
+        return np.select([rr < R_0 ** 2, rr == R_0 ** 2], [amplitude, amplitude / 2.])
 
 
 class Delta1DModel(Parametric1DModel):
@@ -625,6 +626,8 @@ class Box1DModel(Parametric1DModel):
             f(x) = \\left \\{
                      \\begin{array}{ll}
                        A & : x_0 - w/2 \\geq x \\geq x_0 + w/2 \\\\
+                       A/2 & :  x = x_0 + w/2 \\\\
+                       A/2 & :  x = x_0 - w/2 \\\\
                        0 & : \\textnormal{else}
                      \\end{array}
                    \\right.
@@ -638,8 +641,9 @@ class Box1DModel(Parametric1DModel):
         """
         Model function Box1D
         """
-        return np.select([np.logical_and(x >= x_0 - width / 2., x <= x_0 + width / 2.)],
-                         [amplitude])
+        return np.select([np.logical_and(x > x_0 - width / 2., x < x_0 + width / 2.), 
+                          np.logical_or(x == x_0 - width / 2., x == x_0 + width / 2.)],
+                         [amplitude, amplitude / 2.])
 
     def deriv(self, x, amplitude, x_0, width):
         """
@@ -683,6 +687,10 @@ class Box2DModel(Parametric2DModel):
                      \\begin{array}{ll}
                        A & : x_0 - w_x/2 \\geq x \\geq x_0 + w_x/2 \\\\
                        A & : y_0 - w_y/2 \\geq y \\geq y_0 + w_y/2 \\\\
+                       A/2 & :  x = x_0 + w_x/2 \\\\
+                       A/2 & :  x = x_0 - w_x/2 \\\\
+                       A/2 & :  y = y_0 + w_y/2 \\\\
+                       A/2 & :  y = y_0 - w_y/2 \\\\
                        0 & : \\textnormal{else}
                      \\end{array}
                    \\right.
@@ -698,9 +706,13 @@ class Box2DModel(Parametric2DModel):
         """
         Model function Box2DModel.
         """
-        x_range = np.logical_and(x >= x_0 - x_width / 2., x <= x_0 + x_width / 2.)
-        y_range = np.logical_and(y >= y_0 - y_width / 2., y <= y_0 + y_width / 2.)
-        return np.select([np.logical_and(x_range, y_range)], [amplitude])
+        x_range = np.logical_and(x > x_0 - x_width / 2., x < x_0 + x_width / 2.)
+        y_range = np.logical_and(y > y_0 - y_width / 2., y < y_0 + y_width / 2.)
+        x_boundary = np.logical_or(x == x_0 - x_width / 2., x == x_0 + x_width / 2.)
+        y_boundary = np.logical_or(y == y_0 - y_width / 2., y == y_0 + y_width / 2.)
+        return np.select([np.logical_and(x_range, y_range),
+                          np.logical_or(x_boundary, y_boundary)],
+                         [amplitude, amplitude / 2.])
 
 
 class Trapezoid1DModel(Parametric1DModel):
