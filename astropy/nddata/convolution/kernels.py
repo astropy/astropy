@@ -102,6 +102,7 @@ class Box1DKernel(Kernel1D):
         self._default_size = width
         super(Box1DKernel, self).__init__(**kwargs)
         self._truncation = 0
+        self.normalize()
 
 
 class Box2DKernel(Kernel2D):

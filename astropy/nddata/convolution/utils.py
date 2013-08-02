@@ -1,4 +1,5 @@
 from __future__ import division
+import warnings
 
 import numpy as np
 
@@ -67,7 +68,7 @@ def add_kernel_arrays_2D(array_1, array_2):
     return array_2 + array_1
 
 
-def discretize_model(model, x_range, y_range=None, mode='center'):
+def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
     """
     Function to evaluate analytical models on a grid.
 
@@ -103,10 +104,12 @@ def discretize_model(model, x_range, y_range=None, mode='center'):
         if isinstance(model, Parametric2DModel):
             return discretize_corner_2D(model, x_range, y_range)
     elif mode == "oversample":
+        if factor > 100:
+            warnings.warn("Oversample factor > 100 not recommended.")
         if isinstance(model, Parametric1DModel):
-            return discretize_oversample_1D(model, x_range)
+            return discretize_oversample_1D(model, x_range, factor)
         if isinstance(model, Parametric2DModel):
-            return discretize_oversample_2D(model, x_range, y_range)
+            return discretize_oversample_2D(model, x_range, y_range, factor)
     elif mode == "integrate":
         if isinstance(model, Parametric1DModel):
             return discretize_integrate_1D(model, x_range)
@@ -179,13 +182,13 @@ def discretize_oversample_1D(model, x_range, factor=10):
     """
     # Evaluate model on oversampled grid
     x = np.arange(x_range[0] - 0.5 * (1 - 1 / factor),
-                  x_range[1] - 0.5 * (1 - 1 / factor), 1. / factor)
+                  x_range[1] + 0.5 * (1 + 1 / factor), 1. / factor)
 
     values = model(x)
 
     # Reshape and compute mean
-    values = np.reshape(values, (x.size, factor))
-    return values.mean(axis=1)
+    values = np.reshape(values, (x.size / factor, factor))
+    return values.mean(axis=1)[:-1]
 
 
 def discretize_oversample_2D(model, x_range, y_range, factor=10):
@@ -194,10 +197,10 @@ def discretize_oversample_2D(model, x_range, y_range, factor=10):
     """
     # Evaluate model on oversampled grid
     x = np.arange(x_range[0] - 0.5 * (1 - 1 / factor),
-                  x_range[1] - 0.5 * (1 - 1 / factor), 1. / factor)
+                  x_range[1] + 0.5 * (1 + 1 / factor), 1. / factor)
 
     y = np.arange(y_range[0] - 0.5 * (1 - 1 / factor),
-                  y_range[1] - 0.5 * (1 - 1 / factor), 1. / factor)
+                  y_range[1] + 0.5 * (1 + 1 / factor), 1. / factor)
     x_grid, y_grid = np.meshgrid(x, y)
     values = model(x_grid, y_grid)
 
@@ -205,7 +208,7 @@ def discretize_oversample_2D(model, x_range, y_range, factor=10):
     shape = (x.size / factor, y.size / factor, factor, factor)
     values = np.reshape(values, shape)
     values.transpose((0, 2, 1, 3))
-    return values.mean(axis=3).mean(axis=2)
+    return values.mean(axis=3).mean(axis=2)[:-1, :-1]
 
 
 def discretize_integrate_1D(model, range_, mode='analytical'):
