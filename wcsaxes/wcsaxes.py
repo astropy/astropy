@@ -1,23 +1,19 @@
-import numpy as np
-
-from matplotlib.transforms import Affine2D
-from axisartist import Axes
-
-from .transforms import WCSWorld2PixelTransform
-
-import axisartist.angle_helper as angle_helper
-from axisartist import GridHelperCurveLinear
 from matplotlib.ticker import Formatter
+from matplotlib.transforms import Affine2D
+
+from axisartist import Axes, angle_helper, GridHelperCurveLinear
 
 from astropy import units as u
 from astropy.coordinates import Angle
+
+from .transforms import WCSWorld2PixelTransform
 
 # Define a formatter based on the Astropy Angle class. Of course, we can add
 # formatting options later, this is just a proof of concept.
 
 class AngleFormatter(Formatter):
 
-    def __init__(self, precision=0):
+    def __init__(self, precision=1):
         self.precision = precision
 
     def __call__(self, axis, other, value, **kwargs):
@@ -77,9 +73,9 @@ class SkyCoordinates(object):
 
         # Set up aliases for coordinates
         name_1 = self._wcs.wcs.ctype[0][:4]
-        self._coords[name_1] = self._coords[0]
+        self._coords[name_1.lower()] = self._coords[0]
         name_2 = self._wcs.wcs.ctype[1][:4]
-        self._coords[name_2] = self._coords[1]
+        self._coords[name_2.lower()] = self._coords[1]
 
         # Set up transform
         self._transform = WCSWorld2PixelTransform(self._wcs)
@@ -95,7 +91,10 @@ class SkyCoordinates(object):
                                      )
 
     def __getitem__(self, item):
-        return self._coords[item]
+        if isinstance(item, basestring):
+            return self._coords[item.lower()]
+        else:
+            return self._coords[item]
 
 
 class ScalarCoordinates(object):
