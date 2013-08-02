@@ -31,6 +31,9 @@ class SkyCoordinate(object):
         self.grid_locator = angle_helper.LocatorDMS(12)
         self.tick_formatter = AngleFormatter(precision=1)
 
+    def set_formatter_precision(self, precision):
+        self.tick_formatter.precision = precision
+
     def set_major_formatter(self, format):
         raise NotImplementedError()
 
@@ -52,8 +55,9 @@ class ScalarCoordinate(object):
 
 class SkyCoordinates(object):
 
-    def __init__(self, wcs):
+    def __init__(self, axes, wcs):
 
+        self._axes = axes
         self._wcs = wcs
 
         # The following code was taken from the demo_floating_axis example in
@@ -96,6 +100,8 @@ class SkyCoordinates(object):
         else:
             return self._coords[item]
 
+    def grid(self, *args, **kwargs):
+        self._axes.grid(*args, **kwargs)
 
 class ScalarCoordinates(object):
 
@@ -113,7 +119,7 @@ class WCSAxes(Axes):
         self.wcs = wcs
 
         # For now, assume WCS is Sky WCS
-        self.coords = SkyCoordinates(self.wcs)
+        self.coords = SkyCoordinates(self, self.wcs)
 
         Axes.__init__(self, fig, rect, adjustable=adjustable, grid_helper=self.coords.grid_helper)
 
