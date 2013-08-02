@@ -1,3 +1,37 @@
+WCSLIB version 4.18 (2013/07/13)
+--------------------------------
+
+* C library
+
+  - Implemented the butterfly projection (XPH), being the polar form of
+    the HEALPix projection with (H,K) = (4,3).  Augmented tprj1.c and
+    tprj2.c to suit.
+
+  - Bug fix in celfix() when translating GLS to SFL with non-zero
+    reference point.
+
+  - Documentation generation moved to doxygen 1.8.4 (was 1.5.6).
+
+* Fortran wrappers
+
+  - Wrappers for XPH and corresponding modifications to the test
+    programs.
+
+  - Fixed a few inconsequential warnings from gfortran 4.7.2 relating
+    to implicit type conversions in the test programs.
+
+* Utilities
+
+  - In HPXcvt, fixed incorrect axis scaling (CDELT1 and CDELT2) in the
+    XPH header, and set the PCi_ja matrix in the HPX header to a pure
+    45 degree rotation with appropriate adjustment of CDELT1 and CDELT2
+    (matching XPH).  Also set LONPOLE to 180 degree in the XPH header
+    with adjustment of CRVAL1 as recommended in the errata.  These
+    changes prompted by Paddy Leahy.  Also, modified the FITS header
+    comment for XPH - it is no longer "experimental", and accept the
+    '-x' option (i.e. without qualification) as equivalent to '-xn'.
+
+
 WCSLIB version 4.17 (2013/01/29)
 --------------------------------
 
@@ -1992,4 +2026,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 4.17 2013/01/29 05:29:22 cal103 Exp $
+$Id: CHANGES,v 4.18 2013/07/13 10:00:06 mcalabre Exp $

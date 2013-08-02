@@ -15,7 +15,14 @@ For users who have Scipy installed, the `wcs.WCS` class features a new
 method `all_world2pix` for converting from world coordinates to pixel
 space, including inversion of the astrometric distortion correction.
 
-The included version of `wcslib` has been upgraded to version 4.17.
+The included version of `wcslib` has been upgraded to version 4.18.
+The relevant changes for astropy users are:
+
+  * Implemented the butterfly projection (``XPH``), being the polar
+    form of the HEALPix projection with ``(H,K) = (4,3)``.
+
+  * Bug fix in ``celfix()`` when translating GLS to SFL with non-zero
+    reference point.
 
 io.votable
 ----------
