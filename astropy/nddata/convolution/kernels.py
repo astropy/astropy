@@ -131,7 +131,7 @@ class Box2DKernel(Kernel2D):
         self._default_size = width
         super(Box2DKernel, self).__init__(**kwargs)
         self._truncation = 0
-
+        self.normalize()
 
 class Tophat2DKernel(Kernel2D):
     """
