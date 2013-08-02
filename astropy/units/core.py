@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import inspect
+import numbers
 import re
 import sys
 import textwrap
@@ -264,7 +265,7 @@ class UnitBase(object):
         if isinstance(p, tuple) and len(p) == 2:
             p = Fraction(p[0], p[1])
 
-        if isinstance(p, Fraction):
+        if isinstance(p, numbers.Rational):
             # If the fractional power can be represented *exactly* as
             # a floating point number, we convert it to a float, to
             # make the math much faster, otherwise, we use a
@@ -550,6 +551,12 @@ class UnitBase(object):
 
     def _compose(self, equivalencies=[], namespace=[], max_depth=2, depth=0,
                  cached_results=None):
+        def make_key(unit):
+            parts = ([str(unit._scale)] +
+                     [x.name for x in unit._bases] +
+                     [str(x) for x in unit._powers])
+            return tuple(parts)
+
         def is_final_result(unit):
             # Returns True if this result contains only the expected
             # units
@@ -559,9 +566,9 @@ class UnitBase(object):
             return True
 
         unit = self.decompose()
-        h = hash(unit)
+        key = make_key(unit)
 
-        cached = cached_results.get(h)
+        cached = cached_results.get(key)
         if cached is not None:
             if isinstance(cached, Exception):
                 raise cached
@@ -571,7 +578,7 @@ class UnitBase(object):
         # And special case for dimensionless unit
         if (depth >= max_depth or
             len(unit._bases) == 0):
-            cached_results[h] = [unit]
+            cached_results[key] = [unit]
             return [unit]
 
         # Make a list including all of the equivalent units
@@ -615,7 +622,7 @@ class UnitBase(object):
         # Do we have any minimal results?
         for final_result in final_results:
             if len(final_result):
-                cached_results[h] = final_result
+                cached_results[key] = final_result
                 return final_result
 
         partial_results.sort(key=lambda x: x[0])
@@ -649,7 +656,7 @@ class UnitBase(object):
                         subresults.add(factored)
 
             if len(subresults):
-                cached_results[h] = subresults
+                cached_results[key] = subresults
                 return subresults
 
         for base in self.bases:
@@ -657,10 +664,10 @@ class UnitBase(object):
                 result = UnitsException(
                     "Cannot represent unit {0} in terms of the given "
                     "units".format(self))
-                cached_results[h] = result
+                cached_results[key] = result
                 raise result
 
-        cached_results[h] = [self]
+        cached_results[key] = [self]
         return [self]
 
     def compose(self, equivalencies=[], units=None, max_depth=2,
@@ -1423,8 +1430,10 @@ class CompositeUnit(UnitBase):
                 return 'Unit(dimensionless)'
 
     def __hash__(self):
-        parts = zip((tuple(x.names) for x in self._bases), self._powers)
-        return hash(tuple([self._scale] + parts))
+        parts = ([str(self._scale)] +
+                 [x.name for x in self._bases] +
+                 [str(x) for x in self._powers])
+        return hash(tuple(parts))
 
     @property
     def scale(self):
