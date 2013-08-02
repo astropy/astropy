@@ -161,13 +161,16 @@ class Angle(u.Quantity):
                         angle, unit))
         return angle
 
-    @staticmethod
-    def _get_default_bounds():
-        return (Angle(-360, u.degree, bounds=None),
+    @classmethod
+    def _get_default_bounds(cls):
+        if not hasattr(cls, '_default_bounds'):
+            cls._default_bounds = (
+                Angle(-360, u.degree, bounds=None),
                 Angle(360, u.degree, bounds=None))
+        return cls._default_bounds
 
-    @staticmethod
-    def _bounds_check(angle, bounds, unit):
+    @classmethod
+    def _bounds_check(cls, angle, bounds, unit):
         def raise_error(original_angle, lower_angle, upper_angle, unit):
             raise BoundsError(
                 "The angle(s) {0} falls outside of the specified "
@@ -181,7 +184,7 @@ class Angle(u.Quantity):
             return angle, None
 
         if bounds == ():
-            bounds = Angle._get_default_bounds()
+            bounds = cls._get_default_bounds()
         else:
             if len(bounds) != 2:
                 raise ValueError(
