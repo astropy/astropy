@@ -711,8 +711,10 @@ class Box2DModel(Parametric2DModel):
         x_boundary = np.logical_or(x == x_0 - x_width / 2., x == x_0 + x_width / 2.)
         y_boundary = np.logical_or(y == y_0 - y_width / 2., y == y_0 + y_width / 2.)
         return np.select([np.logical_and(x_range, y_range),
-                          np.logical_or(x_boundary, y_boundary)],
-                         [amplitude, amplitude / 2.])
+                          np.logical_and(x_boundary, y_range),
+                          np.logical_and(y_boundary, x_range),
+                          np.logical_and(y_boundary, x_boundary)],
+                         [amplitude, amplitude / 2., amplitude / 2., amplitude / 4.])
 
 
 class Trapezoid1DModel(Parametric1DModel):
