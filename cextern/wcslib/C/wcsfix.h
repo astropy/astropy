@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  WCSLIB 4.18 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.h,v 4.17 2013/01/29 05:29:20 cal103 Exp $
+  $Id: wcsfix.h,v 4.18 2013/07/13 10:00:04 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.17 - C routines that implement the FITS World Coordinate System
+* WCSLIB 4.18 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -259,10 +259,11 @@
 * celfix() translates AIPS-convention celestial projection types, NCP and
 * GLS, set in the ctype[] member of the wcsprm struct.
 *
-* Two additional pv[] keyvalues are created when translating NCP.  If the
-* pv[] array was initially allocated by wcsini() then the array will be
-* expanded if necessary.  Otherwise, error 2 will be returned if two empty
-* slots are not already available for use.
+* Two additional pv[] keyvalues are created when translating NCP, and three
+* are created when translating GLS with non-zero reference point.  If the pv[]
+* array was initially allocated by wcsini() then the array will be expanded if
+* necessary.  Otherwise, error 2 will be returned if sufficient empty slots
+* are not already available for use.
 *
 * Given and returned:
 *   wcs       struct wcsprm*

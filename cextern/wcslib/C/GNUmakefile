@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 4.17 and its test suite.
+# GNU makefile for building WCSLIB 4.18 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 4.17 2013/01/29 05:29:20 cal103 Exp $
+# $Id: GNUmakefile,v 4.18 2013/07/13 10:00:04 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include ../makedefs
@@ -344,7 +344,7 @@ getwcstab.o : getwcstab.c getwcstab.h
 
 $(PGSBOXLIB) :
 	-@ echo ''
-	   $(MAKE) -C ../pgsbox lib
+	   $(MAKE) -C ../pgsbox $(notdir $@)
 
 tofits : test/tofits.c
 	   $(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $<
