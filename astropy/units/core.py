@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import inspect
+import numbers
 import re
 import sys
 import textwrap
@@ -264,7 +265,7 @@ class UnitBase(object):
         if isinstance(p, tuple) and len(p) == 2:
             p = Fraction(p[0], p[1])
 
-        if isinstance(p, Fraction):
+        if isinstance(p, numbers.Rational):
             # If the fractional power can be represented *exactly* as
             # a floating point number, we convert it to a float, to
             # make the math much faster, otherwise, we use a
