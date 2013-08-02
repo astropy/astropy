@@ -514,7 +514,8 @@ def hours_to_string(h, precision=5, pad=False, sep=('h', 'm', 's')):
                '{sep[2]}')
     h, m, s = hours_to_hms(h)
     return literal.format(h, abs(m), abs(s), sep=sep, pad=pad,
-                          width=(precision + 3), precision=precision)
+                          width=(precision + 3 if precision > 0 else 2),
+                          precision=precision)
 
 
 def degrees_to_string(d, precision=5, pad=False, sep=':'):
@@ -546,7 +547,8 @@ def degrees_to_string(d, precision=5, pad=False, sep=':'):
                '{sep[2]}')
     d, m, s = degrees_to_dms(d)
     return literal.format(d, abs(m), abs(s), sep=sep, pad=pad,
-                          width=(precision + 3), precision=precision)
+                          width=(precision + 3 if precision > 0 else 2),
+                          precision=precision)
 
 
 #<----------Spherical angular distances------------->
