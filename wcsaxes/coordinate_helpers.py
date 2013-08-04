@@ -97,7 +97,9 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
             raise NotImplementedError()  # figure out how to swap out formatter
         elif isinstance(formatter, basestring):
             self.formatter.format = formatter
-            # need to also update locator in this case
+            if not isinstance(self.locator, FixedAngleLocator):
+                locator_class = self.formatter.get_locator()
+                self.locator = locator_class(self.locator.den)  # need to pass back correct number options
         else:
             raise TypeError("formatter should be a string for Formatter instance")
 
@@ -105,7 +107,7 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
         if values is not None:
             self.locator = FixedAngleLocator(values)
         elif number is not None:
-            self.locator = angle_helper.LocatorDMS(number)
+            self.locator = self.locator.__class__(number)  # preserve the class we are currently using
         else:
             raise NotImplementedError("spacing")
 
