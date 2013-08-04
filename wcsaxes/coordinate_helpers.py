@@ -1,5 +1,7 @@
 import abc
 
+import numpy as np
+
 from matplotlib.ticker import Formatter
 from mpl_toolkits.axisartist import angle_helper
 
@@ -57,11 +59,24 @@ class BaseCoordinateHelper(object):
         raise NotImplementedError()
 
 
+class FixedAngleLocator(object):
+    """
+    Differs from FixedLocator because it is compatible with the grid helper
+    from mpl_toolkits which requires 2 positional arguments.
+    """
+    def __init__(self, values):
+        self.values = np.array(values)
+    def __call__(self, lon_min, lon_max):
+        return self.values, len(self.values), 1.0
+
+
 class SkyCoordinateHelper(BaseCoordinateHelper):
 
-    def __init__(self):
-        self.grid_locator = angle_helper.LocatorDMS(4)
-        self.tick_formatter = AngleFormatter(precision=1)
+    def __init__(self, index=None, parent=None):
+        self._index = index
+        self._parent = parent
+        self.locator = angle_helper.LocatorDMS(4)
+        self.formatter = AngleFormatter(precision=1)
 
     def set_ticks_position(self):
         raise NotImplementedError()
@@ -73,15 +88,37 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
         if isinstance(formatter, Formatter):
             raise NotImplementedError()  # figure out how to swap out formatter
         elif isinstance(formatter, basestring):
-            self.tick_formatter.format = formatter
+            self.formatter.format = formatter
+            # need to also update locator in this case
         else:
             raise TypeError("formatter should be a string for Formatter instance")
 
-    def set_ticks(self, spacing=None, number=None):
-        raise NotImplementedError()
+    def set_ticks(self, values=None, spacing=None, number=None):
+        if values is not None:
+            self.locator = FixedAngleLocator(values)
+        elif number is not None:
+            self.locator = angle_helper.LocatorDMS(number)
+        else:
+            raise NotImplementedError("spacing")
 
     def grid(self):
         raise NotImplementedError()
+
+    @property
+    def locator(self):
+        return getattr(self._parent.grid_helper.grid_finder, 'grid_locator' + str(self._index))
+
+    @locator.setter
+    def locator(self, value):
+        self._parent.grid_helper.update_grid_finder(**{'grid_locator' + str(self._index): value})
+
+    @property
+    def formatter(self):
+        return getattr(self._parent.grid_helper.grid_finder, 'tick_formatter' + str(self._index))
+
+    @formatter.setter
+    def formatter(self, value):
+        self._parent.grid_helper.update_grid_finder(**{'tick_formatter' + str(self._index): value})
 
 
 class ScalarCoordinateHelper(BaseCoordinateHelper):
