@@ -63,10 +63,16 @@ class SkyGridHelper(BaseGridHelper):
                                                                lat_minmax = (-90., 90.)
                                                                )
 
+        # Set up transform
+        self._transform = WCSWorld2PixelTransform(self._wcs)
+
+        # Set up grid helper
+        self._grid_helper = GridHelperCurveLinear(self._transform, extreme_finder=self._extreme_finder)
+
         # Set up coordinates
         self._coords = {}
-        self._coords[0] = SkyCoordinateHelper()
-        self._coords[1] = SkyCoordinateHelper()
+        self._coords[0] = SkyCoordinateHelper(parent=self, index=1)
+        self._coords[1] = SkyCoordinateHelper(parent=self, index=2)
 
         # Set up aliases for coordinates
         name_1 = self._wcs.wcs.ctype[0][:4]
@@ -74,19 +80,9 @@ class SkyGridHelper(BaseGridHelper):
         name_2 = self._wcs.wcs.ctype[1][:4]
         self._coords[name_2.lower()] = self._coords[1]
 
-        # Set up transform
-        self._transform = WCSWorld2PixelTransform(self._wcs)
 
     @property
     def grid_helper(self):
-        if not hasattr(self, '_grid_helper'):
-            self._grid_helper = GridHelperCurveLinear(self._transform,
-                                                      extreme_finder=self._extreme_finder,
-                                                      grid_locator1=self[0].grid_locator,
-                                                      grid_locator2=self[1].grid_locator,
-                                                      tick_formatter1=self[0].tick_formatter,
-                                                      tick_formatter2=self[1].tick_formatter
-                                                      )
         return self._grid_helper
 
     def __getitem__(self, item):
