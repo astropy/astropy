@@ -72,7 +72,6 @@ class BaseCoordinateHelper(object):
         self._parent.grid_helper.update_grid_finder(**{'tick_formatter' + str(self._index): value})
 
 
-
 class FixedAngleLocator(object):
     """
     Differs from FixedLocator because it is compatible with the grid helper
@@ -80,6 +79,7 @@ class FixedAngleLocator(object):
     """
     def __init__(self, values):
         self.values = np.array(values)
+
     def __call__(self, lon_min, lon_max):
         return self.values, len(self.values), 1.0
 

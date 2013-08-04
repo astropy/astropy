@@ -80,7 +80,6 @@ class SkyGridHelper(BaseGridHelper):
         name_2 = self._wcs.wcs.ctype[1][:4]
         self._coords[name_2.lower()] = self._coords[1]
 
-
     @property
     def grid_helper(self):
         return self._grid_helper

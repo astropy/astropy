@@ -17,6 +17,7 @@ DMS_RE = re.compile('dd(:mm(:ss(.(s)+)?)?)?')
 HMS_RE = re.compile('hh(:mm(:ss(.(s)+)?)?)?')
 DDEC_RE = re.compile('d(.(d)+)?')
 
+
 def re_exact_match(pattern, string):
     m = re.match(pattern, string)
     if m is None:
