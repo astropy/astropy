@@ -12,7 +12,6 @@ class BaseCoordinateHelper(object):
 
     __metaclass__ = abc.ABCMeta
 
-    @abc.abstractmethod
     def set_ticks_position(self):
         """
         Set the axes on which the ticks for this coordinate should
@@ -21,7 +20,6 @@ class BaseCoordinateHelper(object):
         """
         raise NotImplementedError()
 
-    @abc.abstractmethod
     def set_ticklabel_position(self, position):
         """
         Set the axes on which the ticklabels for this coordinate should
@@ -50,13 +48,29 @@ class BaseCoordinateHelper(object):
         """
         raise NotImplementedError()
 
-    @abc.abstractmethod
     def grid(self):
         """
         Draw grid lines for just this coordinate. Should return a
         ``LineCollection`` instance.
         """
         raise NotImplementedError()
+
+    @property
+    def locator(self):
+        return getattr(self._parent.grid_helper.grid_finder, 'grid_locator' + str(self._index))
+
+    @locator.setter
+    def locator(self, value):
+        self._parent.grid_helper.update_grid_finder(**{'grid_locator' + str(self._index): value})
+
+    @property
+    def formatter(self):
+        return getattr(self._parent.grid_helper.grid_finder, 'tick_formatter' + str(self._index))
+
+    @formatter.setter
+    def formatter(self, value):
+        self._parent.grid_helper.update_grid_finder(**{'tick_formatter' + str(self._index): value})
+
 
 
 class FixedAngleLocator(object):
@@ -78,12 +92,6 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
         self.locator = angle_helper.LocatorDMS(4)
         self.formatter = AngleFormatter(precision=1)
 
-    def set_ticks_position(self):
-        raise NotImplementedError()
-
-    def set_ticklabel_position(self):
-        raise NotImplementedError()
-
     def set_major_formatter(self, formatter):
         if isinstance(formatter, Formatter):
             raise NotImplementedError()  # figure out how to swap out formatter
@@ -100,25 +108,6 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
             self.locator = angle_helper.LocatorDMS(number)
         else:
             raise NotImplementedError("spacing")
-
-    def grid(self):
-        raise NotImplementedError()
-
-    @property
-    def locator(self):
-        return getattr(self._parent.grid_helper.grid_finder, 'grid_locator' + str(self._index))
-
-    @locator.setter
-    def locator(self, value):
-        self._parent.grid_helper.update_grid_finder(**{'grid_locator' + str(self._index): value})
-
-    @property
-    def formatter(self):
-        return getattr(self._parent.grid_helper.grid_finder, 'tick_formatter' + str(self._index))
-
-    @formatter.setter
-    def formatter(self, value):
-        self._parent.grid_helper.update_grid_finder(**{'tick_formatter' + str(self._index): value})
 
 
 class ScalarCoordinateHelper(BaseCoordinateHelper):
