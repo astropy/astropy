@@ -57,19 +57,19 @@ class BaseCoordinateHelper(object):
 
     @property
     def locator(self):
-        return getattr(self._parent.grid_helper.grid_finder, 'grid_locator' + str(self._index))
+        return getattr(self._grid_helper.grid_finder, 'grid_locator' + str(self._index))
 
     @locator.setter
     def locator(self, value):
-        self._parent.grid_helper.update_grid_finder(**{'grid_locator' + str(self._index): value})
+        self._grid_helper.update_grid_finder(**{'grid_locator' + str(self._index): value})
 
     @property
     def formatter(self):
-        return getattr(self._parent.grid_helper.grid_finder, 'tick_formatter' + str(self._index))
+        return getattr(self._grid_helper.grid_finder, 'tick_formatter' + str(self._index))
 
     @formatter.setter
     def formatter(self, value):
-        self._parent.grid_helper.update_grid_finder(**{'tick_formatter' + str(self._index): value})
+        self._grid_helper.update_grid_finder(**{'tick_formatter' + str(self._index): value})
 
 
 class FixedAngleLocator(object):
@@ -86,16 +86,18 @@ class FixedAngleLocator(object):
 
 class SkyCoordinateHelper(BaseCoordinateHelper):
 
-    def __init__(self, index=None, parent=None):
+    def __init__(self, grid_helper=None, index=None):
         self._index = index
-        self._parent = parent
+        self._grid_helper = grid_helper
         self.locator = angle_helper.LocatorDMS(4)
-        self.formatter = AngleFormatter(precision=1)
+        self.set_major_formatter('dd:mm:ss')
 
     def set_major_formatter(self, formatter):
         if isinstance(formatter, Formatter):
             raise NotImplementedError()  # figure out how to swap out formatter
         elif isinstance(formatter, basestring):
+            if not isinstance(self.formatter, AngleFormatter):
+                self.formatter = AngleFormatter()
             self.formatter.format = formatter
             if not isinstance(self.locator, FixedAngleLocator):
                 locator_class = self.formatter.get_locator()

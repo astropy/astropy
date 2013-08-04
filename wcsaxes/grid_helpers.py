@@ -71,8 +71,8 @@ class SkyGridHelper(BaseGridHelper):
 
         # Set up coordinates
         self._coords = {}
-        self._coords[0] = SkyCoordinateHelper(parent=self, index=1)
-        self._coords[1] = SkyCoordinateHelper(parent=self, index=2)
+        self._coords[0] = SkyCoordinateHelper(grid_helper=self._grid_helper, index=1)
+        self._coords[1] = SkyCoordinateHelper(grid_helper=self._grid_helper, index=2)
 
         # Set up aliases for coordinates
         name_1 = self._wcs.wcs.ctype[0][:4]
