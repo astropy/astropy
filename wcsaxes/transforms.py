@@ -8,7 +8,6 @@ from matplotlib.transforms import Transform
 
 
 class CurvedTransform(Transform):
-
     """
     Abstract base class for non-affine curved transforms
     """
