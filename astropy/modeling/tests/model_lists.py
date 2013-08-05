@@ -78,7 +78,7 @@ models_1D[Lorentz1DModel] = {'parameters': [1, 0, 1],
 
 models_1D[MexicanHat1DModel] = {'parameters': [1, 0, 1],
                            'x_values': [0, 1, -1, 3, -3],
-                           'y_values': [1.0, 0.303265, 0.303265, -0.038881, -0.038881],
+                           'y_values': [1.0, 0.0, 0.0, -0.088872, -0.088872],
                            'x_lim': [-20, 20],
                            'integral': 0}
 
@@ -144,8 +144,8 @@ models_2D[MexicanHat2DModel] = {'parameters': [1, 0, 0, 1],
                                 'y_values': [0, 1, -1, 3, -3, 0, 0, 0, 0],
                                 'z_values': [1.0, 0.303265, 0.303265, -0.038881, -0.038881,
                                              0.303265, 0.303265, -0.038881, -0.038881],
-                                'x_lim': [-20, 20],
-                                'y_lim': [-20, 20],
+                                'x_lim': [-10, 11],
+                                'y_lim': [-10, 11],
                                 'integral': 0}
 
 models_2D[TrapezoidDisk2DModel] = {'parameters': [1, 0, 0, 1, 1],
