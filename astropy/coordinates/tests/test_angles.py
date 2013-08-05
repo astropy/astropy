@@ -87,9 +87,9 @@ def test_angle_string():
     a = Angle('-00:00:10', u.hour)
     assert str(a) == '-0h00m10.00000s'
     a = Angle(3.2, u.radian)
-    assert str(a) == '3.2rad'
+    assert str(a) == '3.20000rad'
     a = Angle(4.2, u.microarcsecond)
-    assert str(a) == '4.2uarcsec'
+    assert str(a) == '4.20000uarcsec'
     a = Angle('1.0uarcsec')
     assert a.value == 1.0
     assert a.unit == u.microarcsecond

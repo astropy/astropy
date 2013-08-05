@@ -382,7 +382,7 @@ class Angle(u.Quantity):
         if unit is u.degree:
             if decimal:
                 values = self.degree
-                func = ("{0:0." + str(precision) + "}").format
+                func = ("{0:0." + str(precision) + "f}").format
             else:
                 if sep == 'fromunit':
                     sep = 'dms'
@@ -393,7 +393,7 @@ class Angle(u.Quantity):
         elif unit is u.hourangle:
             if decimal:
                 values = self.hour
-                func = ("{0:0." + str(precision) + "}").format
+                func = ("{0:0." + str(precision) + "f}").format
             else:
                 if sep == 'fromunit':
                     sep = 'hms'
@@ -404,10 +404,10 @@ class Angle(u.Quantity):
         elif unit.is_equivalent(u.radian):
             if decimal:
                 values = self.to(unit).value
-                func = ("{0:0." + str(precision) + "}").format
+                func = ("{0:0." + str(precision) + "f}").format
             elif sep == 'fromunit':
                 values = self.to(unit).value
-                func = ("{0:0." + str(precision) + "}" + unit.to_string()).format
+                func = ("{0:0." + str(precision) + "f}" + unit.to_string()).format
             else:
                 raise ValueError(
                     "'{0}' can not be represented in sexagesimal "
