@@ -833,7 +833,7 @@ class MexicanHat1DModel(Parametric1DModel):
         Model function MexicanHat1DModel.
         """
         xx_ww = (x - x_0) ** 2 / (2 * sigma ** 2)
-        return amplitude * (1 - xx_ww) * np.exp(-xx_ww)
+        return amplitude * (1 - 2 * xx_ww) * np.exp(-xx_ww)
 
 
 class MexicanHat2DModel(Parametric2DModel):
@@ -877,7 +877,7 @@ class MexicanHat2DModel(Parametric2DModel):
         Model function MexicanHat2DModel.
         """
         rr_ww = ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * sigma ** 2)
-        return amplitude * (1 - rr_ww) * np.exp(- rr_ww)
+        return amplitude * (1 - 2 * rr_ww) * np.exp(- rr_ww)
 
 
 class AiryDisk2DModel(Parametric2DModel):
