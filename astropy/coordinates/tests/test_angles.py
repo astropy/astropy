@@ -119,13 +119,3 @@ def test_angle_bounds_check():
     a4 = u.Quantity(50, u.degree)
     with pytest.raises(BoundsError):
         a2 + a4
-
-
-def test_to_string_formats():
-    a = Angle(1.113355, unit=u.deg)
-    assert a.to_string(format='latex') == r'$1^\circ06{}^\prime48.07800{}^{\prime\prime}$'
-    assert a.to_string(format='unicode') == u'1\xb006\u203248.07800\u2033'
-
-    a = Angle(1.113355, unit=u.hour)
-    assert a.to_string(format='latex') == r'$1^\mathrm{h}06^\mathrm{m}48.07800^\mathrm{s}$'
-    assert a.to_string(format='unicode') == u'1\u02b006\u1d5048.07800\u02e2'

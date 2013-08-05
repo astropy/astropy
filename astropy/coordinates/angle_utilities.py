@@ -489,76 +489,74 @@ def radians_to_dms(r):
     return degrees_to_dms(degrees)
 
 
-def hours_to_string(h, precision=5, pad=False, sep=('h', 'm', 's')):
+def sexagesimal_to_string(values, precision=5, pad=False, sep=(':',),
+                          fields=3):
+    """
+    Given an already separated tuple of sexagesimal values, returns
+    a string.
+
+    See `hours_to_string` and `degrees_to_string` for a higher-level
+    interface to this functionality.
+    """
+    if pad:
+        if values[0] < 0:
+            pad = 3
+        else:
+            pad = 2
+    else:
+        pad = 0
+
+    if not isinstance(sep, tuple):
+        sep = tuple(sep)
+
+    if len(sep) == 1:
+        sep = sep + (sep[0], '')
+    elif len(sep) == 2:
+        sep = sep + ('',)
+    elif len(sep) != 3:
+        raise ValueError(
+            "Invalid separator specification for converting angle to string.")
+
+    if fields < 1 or fields > 3:
+        raise ValueError(
+            "fields must be 1, 2, or 3")
+
+    literal = []
+    literal.append('{0:0{pad}.0f}{sep[0]}')
+    if fields >= 2:
+        literal.append('{1:02d}{sep[1]}')
+    if fields == 3:
+        literal.append('{2:0{width}.{precision}f}{sep[2]}')
+    literal = ''.join(literal)
+    return literal.format(values[0], int(abs(values[1])), abs(values[2]),
+                          sep=sep, pad=pad,
+                          width=(precision + 3 if precision > 0 else 2),
+                          precision=precision)
+
+
+def hours_to_string(h, precision=5, pad=False, sep=('h', 'm', 's'),
+                    fields=3):
     """
     Takes a decimal hour value and returns a string formatted as hms with
     separator specified by the 'sep' parameter.
 
     `h` must be a scalar.
     """
-
-    if pad:
-        if h < 0:
-            pad = 3
-        else:
-            pad = 2
-    else:
-        pad = 0
-
-    if not isinstance(sep, tuple):
-        # Note: This will convert 'hms' to ('h', 'm', 's'); a potentially nice
-        # shortcut
-        sep = tuple(sep)
-
-    if len(sep) == 1:
-        sep = sep + (sep[0], '')
-    elif len(sep) == 2:
-        sep = sep + ('',)
-    elif len(sep) != 3:
-        raise ValueError(
-            "Invalid separator specification for converting angle to string.")
-
-    literal = ('{0:0{pad}.0f}{sep[0]}{1:02d}{sep[1]}{2:0{width}.{precision}f}'
-               '{sep[2]}')
     h, m, s = hours_to_hms(h)
-    return literal.format(h, int(abs(m)), abs(s), sep=sep, pad=pad,
-                          width=(precision + 3 if precision > 0 else 2),
-                          precision=precision)
+    return sexagesimal_to_string((h, m, s), precision=precision, pad=pad,
+                                 sep=sep, fields=fields)
 
 
-def degrees_to_string(d, precision=5, pad=False, sep=':'):
+def degrees_to_string(d, precision=5, pad=False, sep=':', fields=3):
     """
     Takes a decimal hour value and returns a string formatted as dms with
     separator specified by the 'sep' parameter.
 
     `d` must be a scalar.
     """
-
-    if pad:
-        if d < 0:
-            pad = 3
-        else:
-            pad = 2
-    else:
-        pad = 0
-
-    if not isinstance(sep, tuple):
-        sep = tuple(sep)
-
-    if len(sep) == 1:
-        sep = sep + (sep[0], '')
-    elif len(sep) == 2:
-        sep = sep + ('',)
-    elif len(sep) != 3:
-        raise ValueError(
-            "Invalid separator specification for converting angle to string.")
-
-    literal = ('{0:0{pad}.0f}{sep[0]}{1:02d}{sep[1]}{2:0{width}.{precision}f}'
-               '{sep[2]}')
     d, m, s = degrees_to_dms(d)
-    return literal.format(d, int(abs(m)), abs(s), sep=sep, pad=pad,
-                          width=(precision + 3 if precision > 0 else 2),
-                          precision=precision)
+    return sexagesimal_to_string((d, m, s), precision=precision, pad=pad,
+                                 sep=sep, fields=fields)
 
 
 #<----------Spherical angular distances------------->

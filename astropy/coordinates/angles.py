@@ -331,7 +331,7 @@ class Angle(u.Quantity):
 
     def to_string(self, unit=None, decimal=False, sep='fromunit',
                   precision=5, alwayssign=False, pad=False,
-                  format=None):
+                  fields=3, format=None):
         """ A string representation of the angle.
 
         Parameters
@@ -367,6 +367,16 @@ class Angle(u.Quantity):
         pad : bool, optional
             If `True`, include leading zeros when needed to ensure a
             fixed number of characters for sexagesimal representation.
+
+        fields : int, optional
+            Specifies the number of fields to display when outputting
+            sexagesimal notation.  For example:
+
+                - fields == 1: `'5d'`
+                - fields == 2: `'5d45m'`
+                - fields == 3: `'5d45m32.5s'`
+
+            By default, all fields are displayed.
 
         format : str, optional
             The format of the result.  If not provided, an unadorned
@@ -417,7 +427,8 @@ class Angle(u.Quantity):
                     sep = 'dms'
                 values = self.degree
                 func = lambda x: util.degrees_to_string(
-                    x, precision=precision, sep=sep, pad=pad)
+                    x, precision=precision, sep=sep, pad=pad,
+                    fields=fields)
 
         elif unit is u.hourangle:
             if decimal:
@@ -428,7 +439,8 @@ class Angle(u.Quantity):
                     sep = 'hms'
                 values = self.hour
                 func = lambda x: util.hours_to_string(
-                    x, precision=precision, sep=sep, pad=pad)
+                    x, precision=precision, sep=sep, pad=pad,
+                    fields=fields)
 
         elif unit.is_equivalent(u.radian):
             if decimal:
@@ -436,7 +448,14 @@ class Angle(u.Quantity):
                 func = ("{0:0." + str(precision) + "f}").format
             elif sep == 'fromunit':
                 values = self.to(unit).value
-                func = ("{0:0." + str(precision) + "f}" + unit.to_string()).format
+                unit_string = unit.to_string(format=format)
+                if format == 'latex':
+                    unit_string = unit_string[1:-1]
+
+                def plain_unit_format(val):
+                    return ("{0:0." + str(precision) + "f}{1}").format(
+                        val, unit_string)
+                func = plain_unit_format
             else:
                 raise ValueError(
                     "'{0}' can not be represented in sexagesimal "
