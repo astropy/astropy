@@ -4,8 +4,8 @@ from ... import units as u
 def test_to_string_precision():
 
     # There are already some tests in test_api.py, but this is a regression
-    # test for issue #... which caused incorrect formatting of the seconds for
-    # precision=0
+    # test for the bug in issue #1319 which caused incorrect formatting of the
+    # seconds for precision=0
 
     angle = Angle(-1.23456789, unit=u.degree)
 
@@ -23,7 +23,8 @@ def test_to_string_precision():
 def test_to_string_decimal():
 
     # There are already some tests in test_api.py, but this is a regression
-    # test for issue #... which caused decimal formatting to not work
+    # test for the bug in issue #1323 which caused decimal formatting to not
+    # work
 
     angle1 = Angle(2., unit=u.degree)
 
