@@ -218,27 +218,31 @@ class Angle(object):
 
         if unit is u.degree:
             if decimal:
-                res = ("{0:0." + str(precision) + "}").format(self.degrees)
+                res = ("{0:0." + str(precision) + "f}").format(self.degrees)
             else:
                 if sep == 'fromunit':
                     sep = 'dms'
-                res = util.degrees_to_string(self.degrees, precision=precision, sep=sep, pad=pad)
+                res = util.degrees_to_string(self.degrees,
+                                             precision=precision, sep=sep,
+                                             pad=pad)
 
         elif unit is u.radian:
             if decimal:
-                res = ("{0:0." + str(precision) + "}").format(self.radians)
+                res = ("{0:0." + str(precision) + "f}").format(self.radians)
             elif sep == 'fromunit':
-                res = ("{0:0." + str(precision) + "}").format(self.radians) + 'radian'
+                res = ("{0:0." + str(precision) + "f}radian").format(
+                        self.radians)
             else:
                 raise ValueError('Radians cannot be in sexagesimal representation')
 
         elif unit is u.hour:
             if decimal:
-                res = ("{0:0." + str(precision) + "}").format(self.hours)
+                res = ("{0:0." + str(precision) + "f}").format(self.hours)
             else:
                 if sep == 'fromunit':
                     sep = 'hms'
-                res = util.hours_to_string(self.hours, precision=precision, sep=sep, pad=pad)
+                res = util.hours_to_string(self.hours, precision=precision,
+                                           sep=sep, pad=pad)
         else:
             raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
 
@@ -263,7 +267,8 @@ class Angle(object):
                 msg = "Can't add angles because bounds don't match: {0} and {1}"
                 raise ValueError(msg.format(self.bounds, other.bounds))
             else:
-                return Angle(self.radians + other.radians, unit=u.radian, bounds=self.bounds)
+                return Angle(self.radians + other.radians, unit=u.radian,
+                             bounds=self.bounds)
         else:
             raise NotImplementedError("An {0} object can only be added to another "
                                       "{0} object.".format(type(self).__name__))
@@ -278,7 +283,8 @@ class Angle(object):
                 msg = "Can't add angles because bounds don't match: {0} and {1}"
                 raise ValueError(msg.format(self.bounds, other.bounds))
             else:
-                return Angle(self.radians - other.radians, unit=u.radian, bounds=self.bounds)
+                return Angle(self.radians - other.radians, unit=u.radian,
+                             bounds=self.bounds)
         else:
             raise NotImplementedError("An {0} object can only be subtracted from another "
                                       "{0} object.".format(type(self).__name__))
