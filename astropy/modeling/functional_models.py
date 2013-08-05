@@ -564,7 +564,7 @@ class Disk2DModel(Parametric2DModel):
                      \\begin{array}{ll}
                        A & : r < R_0 \\\\
                        A/2 & : r = R_0 \\\\
-                       0 & : r \\geq R_0
+                       0 & : r > R_0
                      \\end{array}
                    \\right.
     """
@@ -819,7 +819,7 @@ class MexicanHat1DModel(Parametric1DModel):
 
     .. math::
 
-        f(x) = {A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}\\right)
+        f(x) = {A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}}{\\sigma^{2}}\\right)
         e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}}
 
     """
@@ -863,7 +863,7 @@ class MexicanHat2DModel(Parametric2DModel):
     .. math::
 
         f(x, y) = A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}
-        + \\left(y - y_{0}\\right)^{2}}{2 \\sigma^{2}}\\right)
+        + \\left(y - y_{0}\\right)^{2}}{\\sigma^{2}}\\right)
         e^{\\frac{- \\left(x - x_{0}\\right)^{2}
         - \\left(y - y_{0}\\right)^{2}}{2 \\sigma^{2}}}
     """
