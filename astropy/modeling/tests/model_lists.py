@@ -37,7 +37,7 @@ Explanation of keywords of the dictionaries:
     If a model requires scipy (Bessel functions etc.) set this flag.
 
 "integral" : float
-    Approximate value of the integral between in the range x_lim (and y_lim).
+    Approximate value of the integral in the range x_lim (and y_lim).
 """
 
 from ..functional_models import *
