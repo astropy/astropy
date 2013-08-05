@@ -93,6 +93,8 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
                 Discretize model by integrating the
                 model over the bin.
     """
+    if isinstance(model, Parametric2DModel) and y_range == None:
+        raise Exception("Please specify y range.")
     if mode == "center":
         if isinstance(model, Parametric1DModel):
             return discretize_center_1D(model, x_range)
@@ -105,7 +107,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
             return discretize_corner_2D(model, x_range, y_range)
     elif mode == "oversample":
         if factor > 100:
-            warnings.warn("Oversample factor > 100 not recommended.")
+            warnings.warn("Large oversample factor, computing very slow.")
         if isinstance(model, Parametric1DModel):
             return discretize_oversample_1D(model, x_range, factor)
         if isinstance(model, Parametric2DModel):
@@ -205,10 +207,9 @@ def discretize_oversample_2D(model, x_range, y_range, factor=10):
     values = model(x_grid, y_grid)
 
     # Reshape and compute mean
-    shape = (x.size / factor, y.size / factor, factor, factor)
+    shape = (y.size / factor, factor, x.size / factor, factor)
     values = np.reshape(values, shape)
-    values.transpose((0, 2, 1, 3))
-    return values.mean(axis=3).mean(axis=2)[:-1, :-1]
+    return values.mean(axis=3).mean(axis=1)[:-1, :-1]
 
 
 def discretize_integrate_1D(model, range_, mode='analytical'):
