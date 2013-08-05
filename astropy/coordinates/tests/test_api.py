@@ -360,10 +360,10 @@ def test_angle_formatting():
     assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, precision=4,
                                                   pad=True)) == res
 
-    res = 'Angle as rad: 0.062976rad'
+    res = 'Angle as rad: 0.06298rad'
     assert "Angle as rad: {0}".format(angle.to_string(unit=u.radian)) == res
 
-    res = 'Angle as rad decimal: 0.062976'
+    res = 'Angle as rad decimal: 0.06298'
     assert "Angle as rad decimal: {0}".format(angle.to_string(unit=u.radian, decimal=True)) == res
 
 
@@ -376,7 +376,7 @@ def test_angle_formatting():
     assert angle.to_string(pad=True) == '-01d14m04.44440s'
     assert angle.to_string(unit=u.hour) == '-0h04m56.29629s'
     assert angle2.to_string(unit=u.hour, pad=True) == '-01h14m04.44440s'
-    assert angle.to_string(unit=u.radian, decimal=True) == '-0.021547'
+    assert angle.to_string(unit=u.radian, decimal=True) == '-0.02155'
 
 def test_angle_format_roundtripping():
     """
