@@ -37,7 +37,7 @@ Explanation of keywords of the dictionaries:
     If a model requires scipy (Bessel functions etc.) set this flag.
 
 "integral" : float
-    value of the integral between the x_lim (and y_lim).
+    Approximate value of the integral between in the range x_lim (and y_lim).
 """
 
 from ..functional_models import *
@@ -79,7 +79,7 @@ models_1D[Lorentz1DModel] = {'parameters': [1, 0, 1],
 models_1D[MexicanHat1DModel] = {'parameters': [1, 0, 1],
                            'x_values': [0, 1, -1, 3, -3],
                            'y_values': [1.0, 0.303265, 0.303265, -0.038881, -0.038881],
-                           'x_lim': [-10, 10],
+                           'x_lim': [-20, 20],
                            'integral': 0}
 
 models_1D[Trapezoid1DModel] = {'parameters': [1, 0, 2, 1],
@@ -144,8 +144,8 @@ models_2D[MexicanHat2DModel] = {'parameters': [1, 0, 0, 1],
                                 'y_values': [0, 1, -1, 3, -3, 0, 0, 0, 0],
                                 'z_values': [1.0, 0.303265, 0.303265, -0.038881, -0.038881,
                                              0.303265, 0.303265, -0.038881, -0.038881],
-                                'x_lim': [-10, 10],
-                                'y_lim': [-10, 10],
+                                'x_lim': [-20, 20],
+                                'y_lim': [-20, 20],
                                 'integral': 0}
 
 models_2D[TrapezoidDisk2DModel] = {'parameters': [1, 0, 0, 1, 1],
@@ -176,3 +176,11 @@ models_2D[Poly2DModel] = {'parameters': {'degree': 1, 'c0_0': 1., 'c1_0': 1., 'c
                             'z_values': [3, 6, 6],
                             'x_lim': [1, 100],
                             'y_lim': [1, 100]}
+
+models_2D[Disk2DModel] = {'parameters': [1, 0, 0, 5],
+                         'x_values': [-5, 5, -5, 5, 0, -10, 10],
+                         'y_values': [-5, 5, 0, 0, 0, -10, 10],
+                         'z_values': [0, 0, 0.5, 0.5, 1, 0, 0],
+                         'x_lim': [-10, 10],
+                         'y_lim': [-10, 10],
+                         'integral': np.pi * 5 ** 2}
