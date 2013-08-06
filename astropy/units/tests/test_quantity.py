@@ -671,3 +671,16 @@ def test_equality_numpy_scalar():
     assert 10 != 10. * u.m
     assert np.int64(10) != 10 * u.m
     assert 10 * u.m != np.int64(10)
+
+def test_quantity_pickelability():
+    """
+    Testing pickleability of quantity
+    """
+    import cPickle as pickle
+
+    q1 = np.arange(10) * u.m
+
+    q2 = pickle.loads(pickle.dumps(q1))
+
+    assert np.all(q1.value == q2.value)
+    assert q1.unit == q2.unit
