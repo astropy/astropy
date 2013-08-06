@@ -55,8 +55,8 @@ def test_to_string_formats():
     assert a.to_string(format='unicode') == u'1\u02b006\u1d5048.07800\u02e2'
 
     a = Angle(1.113355, unit=u.radian)
-    assert a.to_string(format='latex') == r'$1.1134\mathrm{rad}$'
-    assert a.to_string(format='unicode') == '1.1134rad'
+    assert a.to_string(format='latex') == r'$1.11336\mathrm{rad}$'
+    assert a.to_string(format='unicode') == '1.11336rad'
 
 
 def test_to_string_fields():
