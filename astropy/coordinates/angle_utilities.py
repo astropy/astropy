@@ -521,6 +521,17 @@ def sexagesimal_to_string(values, precision=5, pad=False, sep=(':',),
         raise ValueError(
             "fields must be 1, 2, or 3")
 
+    # Simplify the expression based on the requested precision.  For
+    # example, if the seconds will round up to 60, we should convert
+    # it to 0 and carry upwards.
+    values = list(values)
+    if values[2] >= 60.0 - (10.0 ** -precision):
+        values[2] = 0.0
+        values[1] += 1.0
+    if int(values[1]) >= 60:
+        values[1] = 0.0
+        values[0] += 1.0
+
     literal = []
     literal.append('{0:0{pad}.0f}{sep[0]}')
     if fields >= 2:
