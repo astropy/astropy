@@ -165,7 +165,7 @@ class TestParametricModels(object):
 
     Test values have to be defined in model_lists.py. It currently test the model
     with different input types, evaluates the model at different positions and
-    assures that it gives the correct values. And tests if the  model works with 
+    assures that it gives the correct values. And tests if the  model works with
     the NonLinearFitter.
     """
 

@@ -13,75 +13,135 @@ from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 
 
-def b(s):
-    return s.encode('ascii')
+def test_Projection_properties():
+    projection = projections.Sky2Pix_CAR()
+    assert projection.n_inputs == 2
+    assert projection.n_outputs == 2
+    assert projection.pdim == 1
+
+PIX_COORDINATES = [-10, 30]
+
+pars = [
+    ('TAN', projections.Sky2Pix_TAN, {}),
+    ('STG', projections.Sky2Pix_STG, {}),
+    ('SIN', projections.Sky2Pix_SIN, {}),
+    ('CEA', projections.Sky2Pix_CEA, {}),
+    ('CAR', projections.Sky2Pix_CAR, {}),
+    ('MER', projections.Sky2Pix_MER, {})
+]
 
 
-class TestProjections(object):
+@pytest.mark.parametrize(('ID', 'model', 'args'), pars)
+def test_Sky2Pix(ID, model, args):
+    """Check astropy model eval against wcslib eval"""
+    wcs_map = os.path.join("../../wcs/tests/maps", "1904-66_{0}.hdr".format(ID))
+    test_file = get_pkg_data_filename(wcs_map)
+    header = fits.Header.fromfile(test_file, endcard=False, padding=False)
+    w = wcs.WCS(header)
+    w.wcs.crval = [0., 0.]
+    w.wcs.crpix = [0, 0]
+    w.wcs.cdelt = [1, 1]
+    wcslibout = w.wcs.p2s([PIX_COORDINATES], 1)
+    wcs_pix = w.wcs.s2p(wcslibout['world'], 1)['pixcrd']
+    tinv = model(**args)
+    x, y = tinv(wcslibout['phi'], wcslibout['theta'])
+    utils.assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
+    utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
+
+pars = [
+    ('TAN', projections.Pix2Sky_TAN, {}),
+    ('STG', projections.Pix2Sky_STG, {}),
+    ('SIN', projections.Pix2Sky_SIN, {}),
+    ('CEA', projections.Pix2Sky_CEA, {}),
+    ('CAR', projections.Pix2Sky_CAR, {}),
+    ('MER', projections.Pix2Sky_MER, {}),
+]
+
+
+@pytest.mark.parametrize(('ID', 'model', 'args'), pars)
+def test_Pix2Sky(ID, model, args):
+    """Check astropy model eval against wcslib eval"""
+    wcs_map = os.path.join("../../wcs/tests/maps", "1904-66_{0}.hdr".format(ID))
+    test_file = get_pkg_data_filename(wcs_map)
+    header = fits.Header.fromfile(test_file, endcard=False, padding=False)
+    w = wcs.WCS(header)
+    w.wcs.crval = [0., 0.]
+    w.wcs.crpix = [0, 0]
+    w.wcs.cdelt = [1, 1]
+    wcslibout = w.wcs.p2s([PIX_COORDINATES], 1)
+    wcs_phi = wcslibout['phi']
+    wcs_theta = wcslibout['theta']
+    tanprj = model(**args)
+    phi, theta = tanprj(*PIX_COORDINATES)
+    utils.assert_almost_equal(np.asarray(phi), wcs_phi)
+    utils.assert_almost_equal(np.asarray(theta), wcs_theta)
+
+
+class TestAZP(object):
 
     """
-    Test composite models evaluation in series
+    Test AZP projection
     """
     def setup_class(self):
-        self.w = wcs.WCS()
-        test_file = get_pkg_data_filename(os.path.join('data', '1904-66_AZP.fits'))
-        hdr = fits.getheader(test_file)
-        self.wazp = wcs.WCS(hdr)
+        ID = 'AZP'
+        wcs_map = os.path.join("../../wcs/tests/maps", "1904-66_{0}.hdr".format(ID))
+        test_file = get_pkg_data_filename(wcs_map)
+        header = fits.Header.fromfile(test_file, endcard=False, padding=False)
+        self.wazp = wcs.WCS(header)
         self.wazp.wcs.crpix = np.array([0., 0.])
         self.wazp.wcs.crval = np.array([0., 0.])
         self.wazp.wcs.cdelt = np.array([1., 1.])
-
-    def test_TAN_p2s(self):
-        self.w.wcs.ctype = [b('RA---TAN'), b('DEC--TAN')]
-        wcslibout = self.w.wcs.p2s([[-10, 30]], 1)
-        wcs_phi = wcslibout['phi']
-        wcs_theta = wcslibout['theta']
-        tanprj = projections.Pix2Sky_TAN()
-        phi, theta = tanprj(-10, 30)
-        utils.assert_almost_equal(np.asarray(phi), wcs_phi)
-        utils.assert_almost_equal(np.asarray(theta), wcs_theta)
-
-    def test_TAN_s2p(self):
-        self.w.wcs.ctype = [b('RA---TAN'), b('DEC--TAN')]
-        wcslibout = self.w.wcs.p2s([[-10, 30]], 1)
-        wcs_pix = self.w.wcs.s2p(wcslibout['world'], 1)['pixcrd']
-        tinv = projections.Sky2Pix_TAN()
-        x, y = tinv(wcslibout['phi'], wcslibout['theta'])
-        utils.assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
-        utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
+        self.pv_kw = [kw[2] for kw in self.wazp.wcs.get_pv()]
+        proj = projections.__getattribute__("Pix2Sky_{0}".format(ID))
+        self.azp = proj(*self.pv_kw)
+        self.azpinv = self.azp.inverse()
 
     def test_AZP_p2s(self):
-        azp = projections.Pix2Sky_AZP(mu=2, gamma=30)
         wcslibout = self.wazp.wcs.p2s([[-10, 30]], 1)
         wcs_phi = wcslibout['phi']
         wcs_theta = wcslibout['theta']
-        phi, theta = azp(-10, 30)
+        phi, theta = self.azp(-10, 30)
         utils.assert_almost_equal(np.asarray(phi), wcs_phi)
         utils.assert_almost_equal(np.asarray(theta), wcs_theta)
 
     def test_AZP_s2p(self):
         wcslibout = self.wazp.wcs.p2s([[-10, 30]], 1)
         wcs_pix = self.wazp.wcs.s2p(wcslibout['world'], 1)['pixcrd']
-        azpinv = projections.Sky2Pix_AZP(mu=2, gamma=30)
-        x, y = azpinv(wcslibout['phi'], wcslibout['theta'])
+        x, y = self.azpinv(wcslibout['phi'], wcslibout['theta'])
         utils.assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
         utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
-    def test_STG_p2s(self):
-        self.w.wcs.ctype = [b('RA---STG'), b('DEC--STG')]
-        wcslibout = self.w.wcs.p2s([[-10, 30]], 1)
+
+class TestCYP(object):
+
+    """
+    Test CYP projection
+    """
+    def setup_class(self):
+        ID = "CYP"
+        wcs_map = os.path.join("../../wcs/tests/maps", "1904-66_{0}.hdr".format(ID))
+        test_file = get_pkg_data_filename(wcs_map)
+        header = fits.Header.fromfile(test_file, endcard=False, padding=False)
+        self.wazp = wcs.WCS(header)
+        self.wazp.wcs.crpix = np.array([0., 0.])
+        self.wazp.wcs.crval = np.array([0., 0.])
+        self.wazp.wcs.cdelt = np.array([1., 1.])
+        self.pv_kw = [kw[2] for kw in self.wazp.wcs.get_pv()]
+        proj = projections.__getattribute__("Pix2Sky_{0}".format(ID))
+        self.azp = proj(*self.pv_kw)
+        self.azpinv = self.azp.inverse()
+
+    def test_CYP_p2s(self):
+        wcslibout = self.wazp.wcs.p2s([[-10, 30]], 1)
         wcs_phi = wcslibout['phi']
         wcs_theta = wcslibout['theta']
-        tanprj = projections.Pix2Sky_STG()
-        phi, theta = tanprj(-10, 30)
+        phi, theta = self.azp(-10, 30)
         utils.assert_almost_equal(np.asarray(phi), wcs_phi)
         utils.assert_almost_equal(np.asarray(theta), wcs_theta)
 
-    def test_STG_s2p(self):
-        self.w.wcs.ctype = [b('RA---STG'), b('DEC--STG')]
-        wcslibout = self.w.wcs.p2s([[-10, 30]], 1)
-        wcs_pix = self.w.wcs.s2p(wcslibout['world'], 1)['pixcrd']
-        tinv = projections.Sky2Pix_STG()
-        x, y = tinv(wcslibout['phi'], wcslibout['theta'])
+    def test_CYP_s2p(self):
+        wcslibout = self.wazp.wcs.p2s([[-10, 30]], 1)
+        wcs_pix = self.wazp.wcs.s2p(wcslibout['world'], 1)['pixcrd']
+        x, y = self.azpinv(wcslibout['phi'], wcslibout['theta'])
         utils.assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
         utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])

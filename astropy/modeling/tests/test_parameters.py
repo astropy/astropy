@@ -190,7 +190,7 @@ class TestParameters(object):
     def test_non_fittable_model_parameters1d(self):
         sh1 = models.ShiftModel(2)
         sh1.offsets = 3
-        assert(sh1.offsets[0] == 3)
+        assert(sh1.offsets == 3)
 
     def test_non_fittable_model_parametersnd(self):
         sc1 = models.ScaleModel([2, 2])
@@ -245,8 +245,8 @@ class TestMultipleParameterSets(object):
 
     def test_change_parameters(self):
         self.gmodel.parameters = [13, 10, 9, 5.2, 0.4, 0.7]
-        utils.assert_almost_equal(self.gmodel.amplitude, [13., 10.])
-        utils.assert_almost_equal(self.gmodel.mean, [9., 5.2])
+        utils.assert_almost_equal(self.gmodel.amplitude.value, [13., 10.])
+        utils.assert_almost_equal(self.gmodel.mean.value, [9., 5.2])
 
     def test_object_pars(self):
         l2 = TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3), param_dim=2)
