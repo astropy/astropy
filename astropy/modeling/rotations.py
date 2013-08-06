@@ -49,27 +49,27 @@ class RotateNative2Celestial(Model):
 
     @property
     def phi(self):
-        return np.rad2deg(self._phi)
+        return np.rad2deg(self._phi.value)
 
     @phi.setter
     def phi(self, val):
-        self._phi = Parameter('phi', np.deg2rad(val), self, 1)
+        self._phi.value = np.deg2rad(val)
 
     @property
     def theta(self):
-        return np.rad2deg(self._theta)
+        return np.rad2deg(self._theta.value)
 
     @theta.setter
     def theta(self, val):
-        self._theta = Parameter('theta', np.deg2rad(val), self, 1)
+        self._theta.value = np.deg2rad(val)
 
     @property
     def psi(self):
-        return np.rad2deg(self._psi)
+        return np.rad2deg(self._psi.value)
 
     @psi.setter
     def psi(self, val):
-        self._psi = Parameter('psi', np.deg2rad(val), self, 1)
+        self._psi.value = np.deg2rad(va)
 
     def inverse(self):
         return RotateCelestial2Native(self.phi, self.theta, self.psi)
@@ -78,15 +78,15 @@ class RotateNative2Celestial(Model):
         nphi = np.deg2rad(nphi)
         ntheta = np.deg2rad(ntheta)
         calpha = np.rad2deg(self._phi + np.arctan2(-np.cos(ntheta) *
-                                                   np.sin(nphi - self._psi),
+                                                   np.sin(nphi - self.psi),
                                                    np.sin(
                                                    ntheta) * np.cos(
-                                                   self._theta) - np.cos(
+                                                   self.theta) - np.cos(
                                                    ntheta)
-                                                   * np.sin(self._theta) * np.cos(nphi - self._psi)))
-        cdelta = np.rad2deg(np.arcsin(np.sin(ntheta) * np.sin(self._theta) +
-                                      np.cos(ntheta) * np.cos(self._theta) *
-                                      np.cos(nphi - self._psi)))
+                                                   * np.sin(self.theta) * np.cos(nphi - self.psi)))
+        cdelta = np.rad2deg(np.arcsin(np.sin(ntheta) * np.sin(self.theta) +
+                                      np.cos(ntheta) * np.cos(self.theta) *
+                                      np.cos(nphi - self.psi)))
         ind = calpha < 0
         calpha[ind] += 360
         return calpha, cdelta
@@ -114,27 +114,27 @@ class RotateCelestial2Native(Model):
 
     @property
     def phi(self):
-        return np.rad2deg(self._phi)
+        return np.rad2deg(self._phi.value)
 
     @phi.setter
     def phi(self, val):
-        self._phi = Parameter('phi', np.deg2rad(val), self, 1)
+        self._phi.value = np.deg2rad(val)
 
     @property
     def theta(self):
-        return np.rad2deg(self._theta)
+        return np.rad2deg(self._theta.value)
 
     @theta.setter
     def theta(self, val):
-        self._theta = Parameter('theta', np.deg2rad(val), self, 1)
+        self._theta.value = np.deg2rad(val)
 
     @property
     def psi(self):
-        return np.rad2deg(self._psi)
+        return np.rad2deg(self._psi.value)
 
     @psi.setter
     def psi(self, val):
-        self._psi = Parameter('psi', np.deg2rad(val), self, 1)
+        self._psi.value = np.deg2rad(val)
 
     def inverse(self):
         return RotateNative2Celestial(self.phi, self.theta, self.psi)
@@ -142,13 +142,13 @@ class RotateCelestial2Native(Model):
     def __call__(self, calpha, cdelta):
         calpha = np.deg2rad(calpha)
         cdelta = np.deg2rad(cdelta)
-        nphi = np.rad2deg(self._psi + np.arctan2(-np.cos(cdelta) *
-                                                 np.sin(calpha - self._phi),
-                                                 np.sin(cdelta) * np.cos(self._theta) - np.cos(cdelta) *
-                                                 np.sin(self._theta) * np.cos(calpha - self._phi)))
-        ntheta = np.rad2deg(np.arcsin(np.sin(cdelta) * np.sin(self._theta) +
-                                      np.cos(cdelta) * np.cos(self._theta) *
-                                      np.cos(calpha - self._phi)))
+        nphi = np.rad2deg(self.psi + np.arctan2(-np.cos(cdelta) *
+                                                 np.sin(calpha - self.phi),
+                                                 np.sin(cdelta) * np.cos(self.theta) - np.cos(cdelta) *
+                                                 np.sin(self.theta) * np.cos(calpha - self.phi)))
+        ntheta = np.rad2deg(np.arcsin(np.sin(cdelta) * np.sin(self.theta) +
+                                      np.cos(cdelta) * np.cos(self.theta) *
+                                      np.cos(calpha - self.phi)))
         ind = nphi > 180
         nphi[ind] -= 360
         return nphi, ntheta
@@ -194,11 +194,12 @@ class MatrixRotation2D(Model):
 
     @property
     def angle(self):
-        return Parameter('angle', np.rad2deg(self._angle), self, param_dim=1)
+        #return Parameter('angle', np.rad2deg(self._angle.value), self, param_dim=1)
+        return np.rad2deg(self._angle.value)
 
     @angle.setter
     def angle(self, val):
-        self._angle = Parameter('angle', np.deg2rad(val), self, param_dim=1)
+        self._angle.value = np.deg2rad(val)
 
     def _validate_rotmat(self, rotmat):
         assert rotmat.ndim == 2, "Expected rotation matrix to be a 2D array"
@@ -213,7 +214,7 @@ class MatrixRotation2D(Model):
                         dtype=np.float64)
 
     def inverse(self):
-        nrot = np.linalg.inv(self._rotmat[0])
+        nrot = np.linalg.inv(self._rotmat.value)
         return MatrixRotation2D(rotmat=nrot)
 
     def __call__(self, x, y):
@@ -230,7 +231,7 @@ class MatrixRotation2D(Model):
         inarr = np.array([x.flatten(), y.flatten()], dtype=np.float64)
         assert inarr.shape[0] == 2 and inarr.ndim == 2, \
             "Incompatible shape in MatrixRotation"
-        result = np.dot(self._rotmat[0], inarr)
+        result = np.dot(self._rotmat.value, inarr)
         x, y = result[0], result[1]
         if x.shape != shape:
             x.shape = shape

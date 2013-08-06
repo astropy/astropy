@@ -12,7 +12,7 @@ A Step by Step Definition of a 1D Gaussian Model
 ------------------------------------------------
 
 The details are explained below with a 1D gaussian model as an example.
-There are two base classes for models. If the model is fittable, it 
+There are two base classes for models. If the model is fittable, it
 should inherit from `~astropy.modeling.core.ParametricModel`,
 if not it should subclass `~astropy.modeling.core.Model`. If the model
 takes parameters, their names are stored in a list as a class attribute
@@ -24,7 +24,7 @@ as an argument in the ``__init__`` method. The default for
 `~astropy.modeling.core.Model.param_dim` is set in the base class to 1.::
 
     from astropy.modeling import *
-    
+
     class Gaussian1DModel(ParametricModel):
         param_names = ['amplitude', 'mean', 'stddev']
 
@@ -39,16 +39,16 @@ parameter sets, `~astropy.modeling.Model.param_dim`::
         super(ParametricModel,self).__init__(self, self.param_names,
             n_inputs=1, n_outputs=1, param_dim=param_dim)
         self.linear = False
-    
-Parametric models can be linear or nonlinear in a regression sense. The default 
-value of the `~astropy.modeling.core.Model.linear` attribute is True. 
+
+Parametric models can be linear or nonlinear in a regression sense. The default
+value of the `~astropy.modeling.core.Model.linear` attribute is True.
 The `~astropy.modeling.core.Model.n_inputs` attribute stores the number of input
 variables the model expects.. The `~astropy.modeling.core.Model.n_outputs` attribute
 stores the number of output variables returned after evaluating the model.
 These two attributes are used with composite models.
-Each parameter must be defined as a private attribute of the model class. 
+Each parameter must be defined as a private attribute of the model class.
 Parameters are instances of `~astropy.modeling.parameters.Parameter` class which takes as
-arguments the name of the parameter, its value, the instance of the class 
+arguments the name of the parameter, its value, the instance of the class
 and the number of parameter sets.
 
 Next, provide a method, called "eval" to evaluate the model and a method,
@@ -57,7 +57,7 @@ input coordinates as separate arguments and a parameter set. For this example::
 
     def eval(self, x, params):
         return params[0] * np.exp((-(1/(2.*params[2]**2)) * (x-params[1])**2))
-                                                
+
 
 The "deriv" method takes as input all coordinates as separate arguments.
 There is an option to compute numerical derivatives for nonlinear models
@@ -77,8 +77,8 @@ must also accept a dummy variable for compatibility with `scipy.optimize`::
 
 
 Finally, the ``__call__`` method takes input coordinates as separate arguments.
-It reformats them (if necessary) and calls the eval method to perform the 
-model evaluation using model.param_sets as parameters. 
+It reformats them (if necessary) and calls the eval method to perform the
+model evaluation using model.param_sets as parameters.
 The reason there is a separate eval method is to allow fitters to call the eval
 method with different parameters which is necessary for fitting with constraints.::
 
@@ -86,7 +86,7 @@ method with different parameters which is necessary for fitting with constraints
         x, format = _convert_input(x, self.param_dim)
         result = self.eval(x, self.param_sets)
         return _convert_output(result, format)
-    
+
 A Full Example of a LineModel
 -----------------------------
 
@@ -94,27 +94,27 @@ A Full Example of a LineModel
 
     from astropy.modeling import models, parameters
     import numpy as np
-    
+
     class Line(models.PolynomialModel):
         param_names = ['slope', 'intercept']
-    
+
     def init(self, slope, intercept, param_dim=1):
         self._slope = parameters.Parameter(name='slope', val=slope, mclass=self, param_dim=param_dim)
         self._intercept = parameters.Parameter(name='intercept', val=intercept, mclass=self, param_dim=param_dim)
         super(models.ParametricModel,self).__init__(self, self.param_names, n_inputs=1, n_outputs=1, param_dim=param_dim)
-        self.linear = True 
+        self.linear = True
         self.domain = [-1, 1]
         self.window = [-1, 1]
         self._order = 2
-    
+
     def eval(self, x, params):
         return params[0] * x + params[1]
-    
+
     def call(self, x):
         x, format = models._convert_input(x, self.param_dim)
         result = self.eval(x, self.param_sets)
         return models._convert_output(result, format)
-    
+
     def deriv(self, x):
         res = np.ones((len(x), 2))
         res[:, 1] = x.copy()
@@ -134,20 +134,20 @@ The base class for all fitters is `~astropy.modeling.fitting.Fitter`.::
     class SLSQPFitter(Fitter):
         def __init__(self, model, fixed=None, tied=None, bounds=None,
                             eqcons=None, ineqcons=None):
-            super(Fitter,self).__init__(self, model, fixed=fixed, tied=tied, bounds=bounds, 
+            super(Fitter,self).__init__(self, model, fixed=fixed, tied=tied, bounds=bounds,
                                       eqcons=eqcons, ineqcons=ineqcons)
             if self.model.linear:
                 raise ModelLinearityException('Model is linear in parameters, '
                              'non-linear fitting methods should not be used.')
 
 All fitters take a model (their ``__call__`` method modifies the model's parameters).
-If the fitter does not support constraint fitting, this may be the only argument 
-passed to the constructor. In our example the rest of the arguments represent 
+If the fitter does not support constraint fitting, this may be the only argument
+passed to the constructor. In our example the rest of the arguments represent
 different types of constraints.
 
-Next, the error function takes a list of parameters returned by an iteration of the 
-fitting algorithm and input coordinates, evaluates the model with them and 
-returns some type of a measure for the fit. In the example the sum of the 
+Next, the error function takes a list of parameters returned by an iteration of the
+fitting algorithm and input coordinates, evaluates the model with them and
+returns some type of a measure for the fit. In the example the sum of the
 squared residuals is used as a measure of fitting.::
 
     def errorfunc(self, fps, *args):
@@ -155,11 +155,11 @@ squared residuals is used as a measure of fitting.::
         self.fitpars = fps
         res = self.model(*args[1:]) - meas
         return np.sum(res**2)
-    
-The ``__call__`` method performs the fitting. As a minimum it takes all coordinates 
+
+The ``__call__`` method performs the fitting. As a minimum it takes all coordinates
 as separate arguments. Additional arguments are passed as necessary.::
 
     def __call__(self, x, y , maxiter=MAXITER, epsilon=EPS):
-        self.fitpars = optimize.fmin_slsqp(self.errorfunc, p0=self.model.parameters[:], args=(y, x), 
-            bounds=self.constraints._bounds, eqcons=self.constraints.eqcons, 
-            ieqcons=self.constraints.ineqcons)
+        self.fitpars = optimize.fmin_slsqp(self.errorfunc, p0=self.model.parameters[:], args=(y, x),
+            bounds=self.bounds, eqcons=self.model.eqcons,
+            ieqcons=self.model.ineqcons)

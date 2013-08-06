@@ -42,7 +42,11 @@ def _tofloat(value):
     return _value, shape
 
 
-class Parameter(list):
+def getval(self, name):
+    return getattr(self, '_' + name).value
+
+
+class Parameter(object):
 
     """
     Wraps individual parameters.
@@ -79,7 +83,7 @@ class Parameter(list):
         self._name = name
         if self._param_dim == 1:
             val, parshape = _tofloat(val)
-            super(Parameter, self).__init__([val])
+            self._value = val
         else:
             try:
                 val0, parshape = _tofloat(val[0])
@@ -94,13 +98,16 @@ class Parameter(list):
             for shape in [_tofloat(v)[1] for v in val]:
                 assert shape == parshape, "Multiple values for the same" \
                     " parameters should have the same shape"
-            super(Parameter, self).__init__(val)
-        self.parshape = parshape
+            self._value = val[:]
+        self._parshape = parshape
         self._mclass = mclass
         self._fixed = fixed
         self._tied = tied
         self._min = min
         self._max = max
+
+    def __repr__(self):
+        return repr(self.value)
 
     @property
     def param_dim(self):
@@ -115,6 +122,27 @@ class Parameter(list):
         Number of parameter sets
         """
         self._param_dim = val
+
+    @property
+    def value(self):
+        """
+        Parameter value
+        """
+        return self._value
+
+    @value.setter
+    def value(self, val):
+        """
+        Parameter value
+        """
+        self._value = val
+
+    @property
+    def parshape(self):
+        """
+        Parameter value
+        """
+        return self._parshape
 
     @property
     def mclass(self):
@@ -155,8 +183,6 @@ class Parameter(list):
         """
         assert isinstance(val, bool), "Fixed can be True or False"
         self._fixed = val
-        self.mclass.constraints._fixed.update({self.name: val})
-        self.mclass.constraints._update()
 
     @property
     def tied(self):
@@ -173,8 +199,6 @@ class Parameter(list):
         """
         assert callable(val) or val is False, "Tied must be a callable"
         self._tied = val
-        self.mclass.constraints._tied.update({self.name: val})
-        self.mclass.constraints._update()
 
     @property
     def min(self):
@@ -188,9 +212,11 @@ class Parameter(list):
         """
         Set a minimum value of a parameter.
         """
-        assert isinstance(val, numbers.Number), "Min value must be a number"
-        self._min = float(val)
-        self.mclass.constraints.set_range({self.name: (val, self.max)})
+        if val is not None:
+            assert isinstance(val, numbers.Number), "Min value must be a number"
+            self._min = float(val)
+        else:
+            self._min = None
 
     @property
     def max(self):
@@ -204,74 +230,81 @@ class Parameter(list):
         """
         Set a maximum value of a parameter.
         """
-        assert isinstance(val, numbers.Number), "Max value must be a number"
-        self._max = float(val)
-        self.mclass.constraints.set_range({self.name: (self.min, val)})
+        if val is not None:
+            assert isinstance(val, numbers.Number), "Max value must be a number"
+            self._max = float(val)
+        else:
+            self._max = None
+
+    def __getitem__(self, i):
+        return self._value[i]
 
     def __setslice__(self, i, j, val):
-        super(Parameter, self).__setslice__(i, j, val)
-        setattr(self.mclass, self.name, self)
+        self._value[i:j] = _tofloat(val)[0]
+        setattr(self.mclass, self.name, self._value)
 
     def __setitem__(self, i, val):
-        super(Parameter, self).__setitem__(i, val)
-        setattr(self.mclass, self.name, self)
+        val = _tofloat(val)[0]
+        self._value[i] = val
+
+        setattr(self.mclass, self.name, self._value)
 
     def __add__(self, val):
-        return np.asarray(self) + val
+        return np.asarray(self._value) + val
 
     def __radd__(self, val):
-        return np.asarray(self) + val
+        return np.asarray(self._value) + val
 
     def __sub__(self, val):
-        return np.asarray(self) - val
+        return np.asarray(self._value) - val
 
     def __rsub__(self, val):
-        return val - np.asarray(self)
+        return val - np.asarray(self._value)
 
     def __mul__(self, val):
-        return np.asarray(self) * val
+        return np.asarray(self._value) * val
 
     def __rmul__(self, val):
-        return np.asarray(self) * val
+        return np.asarray(self._value) * val
 
     def __pow__(self, val):
-        return np.asarray(self) ** val
+        return np.asarray(self._value) ** val
 
     def __div__(self, val):
-        return np.asarray(self) / val
+        return np.asarray(self._value) / val
 
     def __rdiv__(self, val):
-        return val / np.asarray(self)
+        return val / np.asarray(self._value)
 
     def __truediv__(self, val):
-        return np.asarray(self) / val
+        return np.asarray(self._value) / val
 
     def __rtruediv__(self, val):
-        return val / np.asarray(self)
+        return val / np.asarray(self._value)
 
     def __eq__(self, val):
-        return (np.asarray(self) == np.asarray(val)).all()
+        return (np.asarray(self._value) == np.asarray(val)).all()
 
     def __ne__(self, val):
-        return not (np.asarray(self) == np.asarray(val)).all()
+        return not (np.asarray(self._value) == np.asarray(val)).all()
 
     def __lt__(self, val):
-        return (np.asarray(self) < np.asarray(val)).all()
+        return (np.asarray(self._value) < np.asarray(val)).all()
 
     def __gt__(self, val):
-        return (np.asarray(self) > np.asarray(val)).all()
+        return (np.asarray(self._value) > np.asarray(val)).all()
 
     def __le__(self, val):
-        return (np.asarray(self) <= np.asarray(val)).all()
+        return (np.asarray(self._value) <= np.asarray(val)).all()
 
     def __ge__(self, val):
-        return (np.asarray(self) >= np.asarray(val)).all()
+        return (np.asarray(self._value) >= np.asarray(val)).all()
 
     def __neg__(self):
-        return np.asarray(self) * (-1)
+        return np.asarray(self._value) * (-1)
 
     def __abs__(self):
-        return np.abs(np.asarray(self))
+        return np.abs(np.asarray(self._value))
 
 
 class Parameters(list):
@@ -304,7 +337,7 @@ class Parameters(list):
         # list of parameters has been changed.
         self._changed = False
         self.parinfo = {}
-        parlist = [getattr(mobj, attr) for attr in param_names]
+        parlist = [getval(mobj, attr) for attr in param_names]
         flat = self._flatten(param_names, parlist)
         super(Parameters, self).__init__(flat)
 
@@ -326,12 +359,13 @@ class Parameters(list):
         """
         for key in self.parinfo.keys():
             sl = self.parinfo[key][0]
-            par = self[sl]
-            if len(par) == 1:
-                par = Parameter(key, par[0], self.mobj, self.mobj.param_dim)
+            val = self[sl]
+            if len(val) == 1:
+                val = val[0]
             else:
-                par = Parameter(key, par, self.mobj, self.mobj.param_dim)
-            setattr(self.mobj, key, par)
+                val = val
+            par = getattr(self.mobj, key)
+            setattr(par, 'value', val)
         self._changed = False
 
     def _is_same_length(self, newpars):
