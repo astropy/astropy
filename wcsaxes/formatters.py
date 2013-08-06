@@ -33,23 +33,29 @@ class AngleFormatter(Formatter):
         if DMS_RE.match(value) is not None:
             self._decimal = False
             self._unit = u.degree
-            if len(value) > 8:
-                self._precision = len(value) - 9
+            if '.' in value:
+                self._precision = len(value) - value.index('.')
+                self._fields = 3
             else:
                 self._precision = 0
-                warnings.warn("This format is not yet supported, falling back to dd:mm:ss")
+                self._fields = value.count(':') + 1
         elif HMS_RE.match(value) is not None:
             self._decimal = False
             self._unit = u.hourangle
-            if len(value) > 8:
-                self._precision = len(value) - 9
+            if '.' in value:
+                self._precision = len(value) - value.index('.')
+                self._fields = 3
             else:
                 self._precision = 0
-                warnings.warn("This format is not yet supported, falling back to hh:mm:ss")
+                self._fields = value.count(':') + 1
         elif DDEC_RE.match(value) is not None:
             self._decimal = True
             self._unit = u.degree
-            self._precision = max(0, len(value) - 2)
+            self._fields = 1
+            if '.' in value:
+                self._precision = len(value) - value.index('.')
+            else:
+                self._precision = 0
         else:
             raise ValueError("Invalid format: {0}".format(value))
 
@@ -77,7 +83,8 @@ class AngleFormatter(Formatter):
             angles = Angle(np.asarray(value) / factor, unit=u.deg)
             string = angles.to_string(unit=self._unit,
                                       precision=self._precision,
-                                      decimal=self._decimal).tolist()
+                                      decimal=self._decimal,
+                                      fields=self._fields).tolist()
             return string
         else:
             return []
