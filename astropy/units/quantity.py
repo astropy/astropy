@@ -367,7 +367,6 @@ class Quantity(np.ndarray):
         #patch to unpickle Quantity objects (ndarray subclasses),
         #see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
-
         nd_state, own_state = state
         np.ndarray.__setstate__(self,nd_state)
 
