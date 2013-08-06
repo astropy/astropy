@@ -13,17 +13,9 @@ from mpl_toolkits.axisartist import angle_helper as af
 # formatting options later, this is just a proof of concept.
 
 
-DMS_RE = re.compile('dd(:mm(:ss(.(s)+)?)?)?')
-HMS_RE = re.compile('hh(:mm(:ss(.(s)+)?)?)?')
-DDEC_RE = re.compile('d(.(d)+)?')
-
-
-def re_exact_match(pattern, string):
-    m = re.match(pattern, string)
-    if m is None:
-        return False
-    else:
-        return m.start() == 0 and m.end() == len(string)
+DMS_RE = re.compile('^dd(:mm(:ss(.(s)+)?)?)?$')
+HMS_RE = re.compile('^hh(:mm(:ss(.(s)+)?)?)?$')
+DDEC_RE = re.compile('^d(.(d)+)?$')
 
 
 class AngleFormatter(Formatter):
@@ -38,7 +30,7 @@ class AngleFormatter(Formatter):
     @format.setter
     def format(self, value):
         self._format = value
-        if re_exact_match(DMS_RE, value) or re_exact_match(HMS_RE, value):
+        if DMS_RE.match(value) is not None:
             self._decimal = False
             self._unit = u.degree
             if len(value) > 8:
@@ -46,7 +38,7 @@ class AngleFormatter(Formatter):
             else:
                 self._precision = 0
                 warnings.warn("This format is not yet supported, falling back to dd:mm:ss")
-        elif re_exact_match(HMS_RE, value):
+        elif HMS_RE.match(value) is not None:
             self._decimal = False
             self._unit = u.hourangle
             if len(value) > 8:
@@ -54,7 +46,7 @@ class AngleFormatter(Formatter):
             else:
                 self._precision = 0
                 warnings.warn("This format is not yet supported, falling back to hh:mm:ss")
-        elif re_exact_match(DDEC_RE, value):
+        elif DDEC_RE.match(value) is not None:
             self._decimal = True
             self._unit = u.degree
             self._precision = max(0, len(value) - 2)
