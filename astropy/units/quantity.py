@@ -354,6 +354,26 @@ class Quantity(np.ndarray):
         return Quantity(
             val, unit, dtype=dtype, equivalencies=equivalencies)
 
+    def __reduce__(self):
+        #patch to pickle Quantity objects (ndarray subclasses),
+        #see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
+
+        object_state = list(np.ndarray.__reduce__(self))
+        subclass_state = (self._unit,)
+        object_state[2] = (object_state[2], subclass_state)
+        return tuple(object_state)
+
+    def __setstate__(self,state):
+        #patch to unpickle Quantity objects (ndarray subclasses),
+        #see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
+
+
+        nd_state, own_state = state
+        np.ndarray.__setstate__(self,nd_state)
+
+        unit, = own_state
+        self._unit = unit
+
     def to(self, unit, equivalencies=None):
         """ Returns a new `Quantity` object with the specified units.
 
