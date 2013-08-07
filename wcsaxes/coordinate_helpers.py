@@ -6,7 +6,7 @@ from matplotlib.ticker import Formatter
 from mpl_toolkits.axisartist import angle_helper
 
 from .formatter_locator import AngleFormatterLocator
-
+from . import six
 
 class BaseCoordinateHelper(object):
 
@@ -84,7 +84,7 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
     def set_major_formatter(self, formatter):
         if isinstance(formatter, Formatter):
             raise NotImplementedError()  # figure out how to swap out formatter
-        elif isinstance(formatter, basestring):
+        elif isinstance(formatter, six.string_types):
             self._fl_helper.format = formatter
         else:
             raise TypeError("formatter should be a string for Formatter instance")
