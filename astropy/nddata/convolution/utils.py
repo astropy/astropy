@@ -6,6 +6,9 @@ import numpy as np
 from ...modeling.core import Parametric1DModel, Parametric2DModel
 
 
+__all__ = ['discretize_model']
+
+
 class DiscretizationError(Exception):
     """
     Called when discretization of models goes wrong.
@@ -76,8 +79,10 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
     ----------
     model : Instance of ParametricModel
         Instance of a astropy.ParametricModel to be evaluated.
-    range : tuple
-        Range in which the model is evaluated.
+    x_range : tuple
+        x range in which the model is evaluated.
+    y_range : tuple
+        y range in which the model is evaluated.
     mode: string
         One of the following modes:
             * 'center'
@@ -92,6 +97,34 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
+
+    Notes
+    -----
+
+    The `oversample` mode allows to conserve the integral on a subpixel
+    scale. Here is the example of a normalized Gaussian1DModel:
+
+    .. plot::
+
+        import matplotlib.pyplot as plt
+        import numpy as np
+        from astropy.modeling.models import Gaussian1DModel
+        from astropy.nddata.convolution.utils import discretize_model
+        gauss_1D = Gaussian1DModel(1 / (0.5 * np.sqrt(2 * np.pi)), 0, 0.5)
+        y_center = discretize_model(gauss_1D, (-2, 3), mode='center')
+        y_corner = discretize_model(gauss_1D, (-2, 3), mode='corner')
+        y_oversample = discretize_model(gauss_1D, (-2, 3), mode='oversample')
+        plt.plot(y_center, label='center sum = {0:3f}'.format(y_center.sum()))
+        plt.plot(y_corner, label='corner sum = {0:3f}'.format(y_corner.sum()))
+        plt.plot(y_oversample, label='oversample sum = {0:3f}'.format(y_oversample.sum()))
+        plt.xlabel('pixels')
+        plt.ylabel('value')
+        plt.legend()
+        plt.show()
+
+
     """
     if isinstance(model, Parametric2DModel) and y_range == None:
         raise Exception("Please specify y range.")
