@@ -134,7 +134,7 @@ class AngleFormatterLocator(object):
         if self.values is not None:
 
             # values were manually specified
-            return self.values
+            return np.asarray(self.values), len(self.values), 1.0
 
         else:
 
