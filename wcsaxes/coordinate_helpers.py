@@ -54,29 +54,17 @@ class BaseCoordinateHelper(object):
 
     @property
     def locator(self):
-        return getattr(self._grid_helper.grid_finder, 'grid_locator' + str(self._index))
-
-    @locator.setter
-    def locator(self, value):
-        self._grid_helper.update_grid_finder(**{'grid_locator' + str(self._index): value})
+        return self._fl_helper.locator
 
     @property
     def formatter(self):
-        return getattr(self._grid_helper.grid_finder, 'tick_formatter' + str(self._index))
-
-    @formatter.setter
-    def formatter(self, value):
-        self._grid_helper.update_grid_finder(**{'tick_formatter' + str(self._index): value})
+        return self._fl_helper.formatter
 
 
 class SkyCoordinateHelper(BaseCoordinateHelper):
 
-    def __init__(self, grid_helper=None, index=None):
-        self._index = index
-        self._grid_helper = grid_helper
+    def __init__(self):
         self._fl_helper = AngleFormatterLocator()
-        self.locator = self._fl_helper.locator
-        self.formatter = self._fl_helper.formatter
 
     def set_major_formatter(self, formatter):
         if isinstance(formatter, Formatter):
