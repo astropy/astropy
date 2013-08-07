@@ -304,3 +304,49 @@ def mass_energy():
              lambda x: x / _si.c.value ** 2),
     ]
 
+def jytok(omega_B, nu):
+    """
+    "Antenna Gain" equivalency: Defines the conversion between Jy/beam and
+    "brightness temperature", T_B, in Kelvins.  This is a unit very commonly
+    used in radio astronomy.
+
+    :math:`T_B \equiv S_\\nu / \left(2 k \\nu^2 / c^2 \\right)`
+
+    However, the beam area is essential for this computation: the brighntess
+    temperature is inversely proportional to the beam area
+
+    Parameters
+    ----------
+    omega_B : u.sr equivalent
+        Beam area in angular units, i.e. steradian equivalent
+    nu : u.GHz spectral equivalent
+        The observed frequency / wavelength.  Must be a `spectral` equivalent
+        unit
+
+    Examples
+    --------
+    >>> # Arecibo C-band beam gain ~ 7 K/Jy
+    >>> import numpy as np
+    >>> from astropy import units as u
+    >>> omega_B = np.pi*(50*u.arcsec)**2
+    >>> freq = 5*u.GHz
+    >>> (1*u.Jy).to(u.K,jytok(omega_B,freq))
+    <Quantity 7.05258885885 K>
+    >>> # VLA synthetic beam
+    >>> omega_B = np.pi*(15*u.arcsec)**2
+    >>> freq = 5*u.GHz
+    >>> (1*u.Jy).to(u.K,jytok(omega_B,freq))
+    <Quantity 78.3620984316 K>
+    """
+    beam = omega_B.to(si.sr).value
+    nu = nu.to(si.GHz, si.spectral())
+
+    def convert_Jy_to_K(x_jybm):
+        factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
+        return (x_jybm / beam / factor)
+
+    def convert_K_to_Jy(x_K):
+        factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
+        return (x_K * beam / factor)
+
+    return [(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy)]
