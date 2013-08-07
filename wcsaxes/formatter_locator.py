@@ -18,10 +18,14 @@ class AngleFormatterLocator(object):
     """
 
     def __init__(self, values=None, number=None, spacing=None, format='dd:mm:ss'):
+
         self._values = values
         self._number = number
         self._spacing = spacing
         self.format = format
+
+        if values is None and number is None and spacing is None:
+            self._number = 5
 
     @property
     def values(self):
@@ -61,7 +65,9 @@ class AngleFormatterLocator(object):
 
     @format.setter
     def format(self, value):
+
         self._format = value
+
         if DMS_RE.match(value) is not None:
             self._decimal = False
             self._unit = u.degree
@@ -102,15 +108,21 @@ class AngleFormatterLocator(object):
     @property
     def base_spacing(self):
 
-        if self._fields == 1:
-            spacing = 1. * u.degree
-        elif self._fields == 2:
-            spacing = 1. * u.arcmin
-        elif self._fields == 3:
-            if self._precision == 0:
-                spacing = 1. * u.arcsec
-            else:
-                spacing = u.arcsec / (10. ** self.precision)
+        if self._decimal:
+
+            spacing = u.degree / (10. ** self._precision)
+
+        else:
+
+            if self._fields == 1:
+                spacing = 1. * u.degree
+            elif self._fields == 2:
+                spacing = 1. * u.arcmin
+            elif self._fields == 3:
+                if self._precision == 0:
+                    spacing = 1. * u.arcsec
+                else:
+                    spacing = u.arcsec / (10. ** self._precision)
 
         if self._unit is u.hourangle:
             spacing *= 15
@@ -118,16 +130,45 @@ class AngleFormatterLocator(object):
         return spacing
 
     def locator(self, v1, v2):
+
         if self.values is not None:
+
+            # values were manually specified
             return self.values
-        elif self.spacing is not None:
-            spacing_deg = self.spacing.degree
+
+        else:
+
+            if self.spacing is not None:
+
+                # spacing was manually specified
+                spacing_deg = self.spacing.degree
+
+            elif self.number is not None:
+
+                # number of ticks was specified, work out optimal spacing
+
+                # first compute the exact spacing
+                dv = abs(float(v2 - v1)) / self.number * u.degree
+
+                if dv < self.base_spacing:
+                    # if the spacing is less than the minimum spacing allowed by the format, simply
+                    # use the format precision instead.
+                    spacing_deg = self.base_spacing.degree
+                else:
+                    # otherwise we clip to the nearest 'sensible' spacing
+                    if self._unit is u.degree:
+                        from .utils import select_step_degree
+                        spacing_deg = select_step_degree(dv).degree
+                    else:
+                        from .utils import select_step_hour
+                        spacing_deg = select_step_hour(dv).degree
+
+            # We now find the interval values as multiples of the spacing and generate the tick
+            # positions from this
             imin = np.floor(v1 / spacing_deg)
             imax = np.ceil(v2 / spacing_deg)
-            return np.arange(imin, imax + 1) * spacing_deg
-        elif self.number is not None:
-            # do what axisartist does
-            pass
+            values = np.arange(imin, imax + 1, dtype=int) * spacing_deg
+            return values, len(values), 1.0
 
     def formatter(self, direction, factor, values, **kwargs):
         if len(values) > 0:
