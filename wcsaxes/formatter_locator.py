@@ -1,4 +1,5 @@
 import re
+import warnings
 
 import numpy as np
 
@@ -90,6 +91,14 @@ class AngleFormatterLocator(object):
         else:
             raise ValueError("Invalid format: {0}".format(value))
 
+        if self.spacing is not None and self.spacing < self.base_spacing:
+            warnings.warn("Spacing is too small - resetting spacing to match format")
+            self.spacing = self.base_spacing
+
+        if self.spacing is not None and (self.spacing % self.base_spacing) > 1e-10 * u.deg:
+            warnings.warn("Spacing is not a multiple of base spacing - resetting spacing to match format")
+            self.spacing = self.base_spacing * np.round(self.spacing / self.spacing)
+
     @property
     def base_spacing(self):
 
@@ -112,7 +121,10 @@ class AngleFormatterLocator(object):
         if self.values is not None:
             return self.values
         elif self.spacing is not None:
-            return np.arange(np.floor(v1), np.ceil(v2) + 1., self.spacing.degree)
+            spacing_deg = self.spacing.degree
+            imin = np.floor(v1 / spacing_deg)
+            imax = np.ceil(v2 / spacing_deg)
+            return np.arange(imin, imax + 1) * spacing_deg
         elif self.number is not None:
             # do what axisartist does
             pass
