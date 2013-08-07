@@ -523,13 +523,19 @@ def sexagesimal_to_string(values, precision=5, pad=False, sep=(':',),
 
     # Simplify the expression based on the requested precision.  For
     # example, if the seconds will round up to 60, we should convert
-    # it to 0 and carry upwards.
+    # it to 0 and carry upwards.  If the field is hidden (by the
+    # fields kwarg) we round up around the middle, 30.0.
     values = list(values)
-    if values[2] >= 60.0 - (10.0 ** -precision):
+    if fields == 3 and values[2] >= 60.0 - (10.0 ** -precision):
         values[2] = 0.0
         values[1] += 1.0
-    if int(values[1]) >= 60:
+    elif fields < 3 and values[2] >= 30.0:
+        values[1] += 1.0
+
+    if fields >= 2 and int(values[1]) >= 60.0:
         values[1] = 0.0
+        values[0] += 1.0
+    elif fields < 2 and int(values[1]) >= 30.0:
         values[0] += 1.0
 
     literal = []
