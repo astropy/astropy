@@ -66,13 +66,19 @@ class SkyGridHelper(BaseGridHelper):
         # Set up transform
         self._transform = WCSWorld2PixelTransform(self._wcs)
 
-        # Set up grid helper
-        self._grid_helper = GridHelperCurveLinear(self._transform, extreme_finder=self._extreme_finder)
-
         # Set up coordinates
         self._coords = {}
-        self._coords[0] = SkyCoordinateHelper(grid_helper=self._grid_helper, index=1)
-        self._coords[1] = SkyCoordinateHelper(grid_helper=self._grid_helper, index=2)
+        self._coords[0] = SkyCoordinateHelper()
+        self._coords[1] = SkyCoordinateHelper()
+
+        # Set up grid helper
+        self._grid_helper = GridHelperCurveLinear(self._transform,
+                                                  extreme_finder=self._extreme_finder,
+                                                  grid_locator1=self[0].locator,
+                                                  grid_locator2=self[1].locator,
+                                                  tick_formatter1=self[0].formatter,
+                                                  tick_formatter2=self[1].formatter,
+                                                  )
 
         # Set up aliases for coordinates
         name_1 = self._wcs.wcs.ctype[0][:4]
