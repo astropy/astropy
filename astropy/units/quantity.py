@@ -356,8 +356,7 @@ class Quantity(np.ndarray):
 
     def __reduce__(self):
         # patch to pickle Quantity objects (ndarray subclasses),
-        # see http://www.mail-archive.com/numpy-
-        # discussion@scipy.org/msg02446.html
+        # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
         object_state = list(np.ndarray.__reduce__(self))
         subclass_state = (self._unit,)
