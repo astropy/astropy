@@ -354,6 +354,25 @@ class Quantity(np.ndarray):
         return Quantity(
             val, unit, dtype=dtype, equivalencies=equivalencies)
 
+    def __reduce__(self):
+        # patch to pickle Quantity objects (ndarray subclasses),
+        # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
+
+        object_state = list(np.ndarray.__reduce__(self))
+        subclass_state = (self._unit,)
+        object_state[2] = (object_state[2], subclass_state)
+        return tuple(object_state)
+
+    def __setstate__(self, state):
+        # patch to unpickle Quantity objects (ndarray subclasses),
+        # see http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
+
+        nd_state, own_state = state
+        np.ndarray.__setstate__(self, nd_state)
+
+        unit, = own_state
+        self._unit = unit
+
     def to(self, unit, equivalencies=None):
         """ Returns a new `Quantity` object with the specified units.
 
@@ -883,13 +902,13 @@ class Quantity(np.ndarray):
     def clip(self, a_min, a_max, out=None):
         self._prepare_out(out=out)
         value = np.clip(self.value, self._to_own_unit(a_min),
-                                self._to_own_unit(a_max), out=out)
+                        self._to_own_unit(a_max), out=out)
         return self.__quantity_instance__(value, self.unit)
 
     def trace(self, offset=0, axis1=0, axis2=1, dtype=None, out=None):
         self._prepare_out(out=out)
         value = np.trace(self.value, offset=offset, axis1=axis1,
-                                 axis2=axis2, dtype=None, out=out)
+                         axis2=axis2, dtype=None, out=out)
         return self.__quantity_instance__(value, self.unit)
 
     def var(self, axis=None, dtype=None, out=None, ddof=0):
