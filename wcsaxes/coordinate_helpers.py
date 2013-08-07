@@ -5,6 +5,7 @@ from matplotlib.ticker import Formatter
 from .formatter_locator import AngleFormatterLocator
 from . import six
 
+
 class BaseCoordinateHelper(object):
 
     __metaclass__ = abc.ABCMeta
