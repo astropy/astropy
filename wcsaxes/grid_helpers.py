@@ -6,6 +6,7 @@ from .coordinate_helpers import SkyCoordinateHelper
 from .transforms import WCSWorld2PixelTransform
 from . import six
 
+
 class BaseGridHelper(object):
 
     __metaclass__ = abc.ABCMeta
