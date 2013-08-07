@@ -4,7 +4,7 @@ from mpl_toolkits.axisartist import angle_helper, GridHelperCurveLinear
 
 from .coordinate_helpers import SkyCoordinateHelper
 from .transforms import WCSWorld2PixelTransform
-
+from . import six
 
 class BaseGridHelper(object):
 
@@ -85,7 +85,7 @@ class SkyGridHelper(BaseGridHelper):
         return self._grid_helper
 
     def __getitem__(self, item):
-        if isinstance(item, basestring):
+        if isinstance(item, six.string_types):
             return self._coords[item.lower()]
         else:
             return self._coords[item]
