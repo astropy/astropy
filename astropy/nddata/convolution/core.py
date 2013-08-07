@@ -156,7 +156,7 @@ class Kernel(object):
             add_array = add_kernel_arrays_2D(self.array, kernel.array)
             add_kernel = Kernel2D(array=add_array)
         else:
-            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
+            raise TypeError("Unsupported operand type(s) for *: '{0}' and '{1}'"
                             .format(self.__class__, type(kernel)))
         add_kernel._separable = self._separable and kernel._separable
         add_kernel._weighted = self._weighted or kernel._weighted
@@ -167,15 +167,15 @@ class Kernel(object):
         Subtract two filter kernels.
         """
         if isinstance(self, Kernel1D) and isinstance(kernel, Kernel1D):
-            # As convolution is linear we can add two kernels
+            # As convolution is linear we can subtract two kernels
             sub_array = add_kernel_arrays_1D(self.array, -kernel.array)
             sub_kernel = Kernel1D(array=sub_array)
         elif isinstance(self, Kernel2D) and isinstance(kernel, Kernel2D):
-            # As convolution is linear we can add two kernels
+            # As convolution is linear we can subtract two kernels
             sub_array = add_kernel_arrays_2D(self.array, -kernel.array)
             sub_kernel = Kernel2D(array=sub_array)
         else:
-            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
+            raise TypeError("Unsupported operand type(s) for *: '{0}' and '{1}'"
                             .format(self.__class__, type(kernel)))
 
         # As convolution is linear we can subtract two kernels
@@ -194,7 +194,7 @@ class Kernel(object):
             kernel._normalization /= value
             return kernel
         else:
-            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
+            raise TypeError("Unsupported operand type(s) for *: '{0}' and '{1}'"
                             .format(self.__class__, type(value)))
 
     def __rmul__(self, value):
@@ -208,49 +208,101 @@ class Kernel(object):
             kernel._normalization /= value
             return kernel
         else:
-            raise TypeError("Unsupported operand type(s) for *: '{}' and '{}'"
+            raise TypeError("Unsupported operand type(s) for *: '{0}' and '{1}'"
                             .format(self.__class__, type(value)))
+
+    def __array__(self):
+        """
+        Array representation of the kernel.
+        """
+        return self._array
 
 
 class Kernel1D(Kernel):
     """
-    Base class for 1D filter kernels
+    Base class for 1D filter kernels.
 
     Parameters
     ----------
-    width : float
-        Width of the kernel model.
-    size : odd int
-        Size of the kernel array.
+    model : Insatnce of ParametricModel
+        Kernel reponse function model.
+    x_size : number
+        Size of the kernel array. It is rounded to int.
+    array: ndarray
+        Kernel array.
+    mode: string
+        One of the following modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
     """
-    def __init__(self, model=None, x_size=None, mode='center', array=None):
-        if array == None:
+    def __init__(self, model=None, x_size=None, array=None, **kwargs):
+        if array == None and getattr(self, '_model', False):
             if model != None:
                 self._model = model
             if x_size == None:
                 x_size = self._default_size
             x_range = (-np.rint(x_size / 2), np.rint(x_size / 2) + 1)
-            array = discretize_model(self._model, x_range, mode)
-        else:
+            array = discretize_model(self._model, x_range, **kwargs)
+        elif array != None:
             self._model = None
+        else:
+            raise TypeError("Must specify either array or model.")
         super(Kernel1D, self).__init__(array)
 
 
 class Kernel2D(Kernel):
     """
-    Abstract base class for 1D filter kernels
+    Base class for 2D filter kernels.
+
+    Parameters
+    ----------
+    model : Insatnce of ParametricModel
+        Kernel reponse function model.
+    x_size : number
+        Size of the kernel array. It is rounded to int.
+    array: ndarray
+        Kernel array.
+    mode: string
+        One of the following modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
     """
-    def __init__(self, x_size=None, y_size=None, mode='center', array=None):
-        if array == None:
+    def __init__(self, model=None, x_size=None, y_size=None, array=None, **kwargs):
+        if array == None and getattr(self, '_model', False):
             if x_size == None:
                 x_size = self._default_size
             if y_size == None:
                 y_size = x_size
-
             # Set ranges where to evaluate the model
             x_range = (-np.rint(x_size / 2), np.rint(x_size / 2) + 1)
             y_range = (-np.rint(y_size / 2), np.rint(y_size / 2) + 1)
-            array = discretize_model(self._model, x_range, y_range, mode)
-        else:
+            array = discretize_model(self._model, x_range, y_range, **kwargs)
+        elif array != None:
             self._model = None
+        else:
+            raise TypeError("Must specify either array or model.")
         super(Kernel2D, self).__init__(array)
