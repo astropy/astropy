@@ -1,9 +1,6 @@
 import abc
 
-import numpy as np
-
 from matplotlib.ticker import Formatter
-from mpl_toolkits.axisartist import angle_helper
 
 from .formatter_locator import AngleFormatterLocator
 from . import six
