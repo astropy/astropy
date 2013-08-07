@@ -1076,7 +1076,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
   <cross-domain-access>
     <policy>
       <allow-from>
-        <domain uri="http://*"/>
+        <domain uri="*"/>
       </allow-from>
       <grant-to>
         <resource path="/" include-subpaths="true"/>
