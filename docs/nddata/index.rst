@@ -65,6 +65,7 @@ Using `nddata`
 
    nddata.rst
    convolution.rst
+   kernels.rst
    subclassing.rst
 
 Reference/API

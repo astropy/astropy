@@ -1,29 +1,18 @@
 Convolution Kernels
 ===================
 
-There are a few different convolution kernels available, including standard Gaussian and Box filters,
-but also Mexican Hat or Top Hat filters. A complete list can be found on 
+There are a several built-in convolution kernels which should cover the most common applications.
 
 
 Introduction and Concept
 ------------------------
-A filter kernel is characterized by its response function. In the 1D
-case we speak of "impulse response function", in the 2D case we call it
-"point spread function". This response function is given for every kernel
-by an astropy ParametricModel, which is evaluated on a grid to obtain a filter
-array, which can then be applied to the binned data.
+A filter `~astropy.nddata.convolution.core.Kernel` is characterized by its response function. In the 1D
+case we speak of "impulse response function", in the 2D case we call it "point spread function". 
+This response function is given for every kernel by a `~astropy.modeling.core.ParametricModel`, 
+which is evaluated on a grid with `~astropy.nddata.convolution.utils.discretize_model` to obtain a 
+filter array, which can then be applied to the binned data.
 
-Currently only ``symmetric´´ 2D kernels are supported.
-
-
-Normalization
--------------
-
-The kernel models are normalized per default, but because of the discretization process, 
-the normalization can differ from one, especially for small kernels. The value of
-this deviation is stored in the truncation attribute. 
-The kernel arrays can be renormalized explicitly (Note that this is also controlled by the 
-normalize_kernel flag in the convolution functions).  
+**Note:** Currently only **symmetric** 2D kernels are supported.
 
 
 Examples
@@ -31,21 +20,18 @@ Examples
 
 
 
-
-
-
 Kernel Arithmetics
 ------------------
 
-As convolution is a linear operation, kernels can be added subtracted or multiplied with some
+As convolution is a linear operation, kernels can be added or subtracted from each other. They can aslo be multiplied with some
 number. One basic example would be the definition of a Difference of Gaussian filter:
 
 >>> gauss_1 = Gaussian1DKernel(10)
 >>> gauss_2 = Gaussian2Dkernel(16)
 >>> DoG = gauss_2 - gauss_1
 
-Another use case is to fake data and convolve it with an instrument response function, 
-which can be modeled by the sum of two Gaussians of different weight:
+Another application is to convolve faked data with an instrument response function model. 
+E.g. if the response function can be be described by the weighted sum of two Gaussians:
 
 >>> gauss_1 = Gaussian1DKernel(10)
 >>> gauss_2 = Gaussian2Dkernel(16)
@@ -56,8 +42,25 @@ Most times it will be necessary to normalize the resulting kernel by calling:
 >>> SoG.normalize()
 
 
+Available Kernels
+-----------------
 
+.. automodsumm:: astropy.nddata.convolution.kernels
+	:classes-only:
+	
 
+Normalization
+-------------
+
+The kernel models are normalized per default, i.e. :math:`\int_{-\infty}^{\infty} f(x) dx = 1`. But because of the limited 
+kernel array size the normalization for kernels with an infinite response can differ from one. 
+The value of this deviation is stored in the kernel's ``truncation`` attribute.
+
+The normalization can also differ from one, especially for small kernels, due to the discretization process.
+This can be controlled by the ``mode`` argument, when initializing the kernel (See also 
+`~astropy.nddata.convolution.utils.discretize_model`).
  
-
- 
+The kernel arrays can be renormalized explicitly by calling either the ``normalize()`` method or by setting
+the ``normalize_kernel`` argument in the `~astropy.nddata.convolution.convolve.convolve` and 
+`~astropy.nddata.convolution.convolve.convolve_fft` functions. 
+	 
