@@ -18,7 +18,7 @@ __all__ = sorted(['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
 
 class Gaussian1DKernel(Kernel1D):
     """
-    Gaussian filter kernel.
+    1D Gaussian filter kernel.
 
     The Gaussian filter is a filter with great smoothing properties. It is
     isotropic and does not produce artifact.
@@ -29,11 +29,42 @@ class Gaussian1DKernel(Kernel1D):
         Width of the filter kernel.
     x_size : odd int
         Size of the kernel array. Default = 8 * width.
+    mode: string
+        One of the following discretization modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
+
 
     See Also
     --------
     Box1DKernel, Trapezoid1DKernel, MexicanHat1DKernel
 
+
+    Notes
+    -----
+    Kernel response:
+
+     .. plot::
+
+        import matplotlib.pyplot as plt
+        from astropy.nddata.convolution import Gaussian1DKernel
+        gauss_1D_kernel = Gaussian1DKernel(10)
+        plt.plot(gauss_1D_kernel)
+        plt.xlabel('pixels')
+        plt.ylabel('value')
+        plt.show()
     """
     _separable = True
     _weighted = True
@@ -47,7 +78,7 @@ class Gaussian1DKernel(Kernel1D):
 
 class Gaussian2DKernel(Kernel2D):
     """
-    Gaussian filter kernel.
+    2D Gaussian filter kernel.
 
     The Gaussian filter is a filter with great smoothing properties. It is
     isotropic and does not produce artifact.
@@ -60,11 +91,42 @@ class Gaussian2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = 8 * width.
     y_size : odd int
         Size in y direction of the kernel array. Default = 8 * width.
+    mode: string
+        One of the following discretization modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
+
 
     See Also
     --------
-    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
+    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
     TrapezoidDisk2DKernel, AiryDisk2DKernel
+
+    Notes
+    -----
+    Kernel response:
+
+     .. plot::
+
+        import matplotlib.pyplot as plt
+        from astropy.nddata.convolution import Gaussian2DKernel
+        gaussian_2D_kernel = Gaussian2DKernel(10)
+        plt.imshow(gaussian_2D_kernel)
+        plt.xlabel('pixels')
+        plt.ylabel('pixels')
+        plt.show()
 
     """
     _separable = True
@@ -79,7 +141,7 @@ class Gaussian2DKernel(Kernel2D):
 
 class Box1DKernel(Kernel1D):
     """
-    Box filter kernel.
+    1D Box filter kernel.
 
     The Box filter or running mean is a smoothing filter. It is not isotropic
     and can produce artifact, when applied repeatedly to the same data. It is
@@ -89,10 +151,42 @@ class Box1DKernel(Kernel1D):
     ----------
     width : number
         Width of the filter kernel.
+    mode: string
+        One of the following discretization modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
 
     See Also
     --------
     Gaussian1DKernel, Trapezoid1DKernel, MexicanHat1DKernel
+
+
+    Notes
+    -----
+    Kernel response function:
+
+     .. plot::
+
+        import matplotlib.pyplot as plt
+        from astropy.nddata.convolution import Box1DKernel
+        box_1D_kernel = Box1DKernel(9)
+        plt.plot(box_1D_kernel)
+        plt.xlabel('pixels')
+        plt.ylabel('value')
+        plt.show()
+
     """
     _separable = True
     _weighted = False
@@ -107,7 +201,7 @@ class Box1DKernel(Kernel1D):
 
 class Box2DKernel(Kernel2D):
     """
-    Box filter kernel.
+    2D Box filter kernel.
 
     The Box filter or running mean is a smoothing filter. It is not isotropic
     and can produce artifact, when applied repeatedly to the same data. It is
@@ -117,11 +211,47 @@ class Box2DKernel(Kernel2D):
     ----------
     width : number
         Width of the filter kernel.
+    mode: string
+        One of the following discretization modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
+
 
     See Also
     --------
     Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
     TrapezoidDisk2DKernel, AiryDisk2DKernel
+
+    See Also
+    --------
+    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
+    TrapezoidDisk2DKernel, AiryDisk2DKernel
+
+    Notes
+    -----
+    Kernel response:
+
+     .. plot::
+
+        import matplotlib.pyplot as plt
+        from astropy.nddata.convolution import Box2DKernel
+        box_2D_kernel = Box2DKernel(9)
+        plt.imshow(box_2D_kernel)
+        plt.xlabel('pixels')
+        plt.ylabel('pixels')
+        plt.show()
     """
     _separable = True
     _weighted = False
@@ -133,9 +263,10 @@ class Box2DKernel(Kernel2D):
         self._truncation = 0
         self.normalize()
 
+
 class Tophat2DKernel(Kernel2D):
     """
-    Tophat filter kernel.
+    2D Tophat filter kernel.
 
     The Tophat filter is an isotropic smoothing filter. It can produce artifact,
     when applied repeatedly on the same data.
@@ -144,11 +275,43 @@ class Tophat2DKernel(Kernel2D):
     ----------
     radius : int
         Radius of the filter kernel.
+    mode: string
+        One of the following discretization modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
+
 
     See Also
     --------
     Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
     TrapezoidDisk2DKernel, AiryDisk2DKernel
+
+    Notes
+    -----
+    Kernel response:
+
+     .. plot::
+
+        import matplotlib.pyplot as plt
+        from astropy.nddata.convolution import Tophat2DKernel
+        tophat_2D_kernel = Tophat2DKernel(10)
+        plt.imshow(tophat_2D_kernel)
+        plt.xlabel('pixels')
+        plt.ylabel('pixels')
+        plt.show()
+
     """
 
     def __init__(self, radius, **kwargs):
@@ -179,11 +342,40 @@ class Trapezoid1DKernel(Kernel1D):
         Width of the filter kernel.
     slope : number
         Slope of the filter kernels tails
-
+    mode: string
+        One of the following discretization modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
 
     See Also
     --------
     Box1DKernel, Gaussian1DKernel, MexicanHat1DKernel
+
+    Notes
+    -----
+    Kernel response:
+
+     .. plot::
+
+        import matplotlib.pyplot as plt
+        from astropy.nddata.convolution import Trapezoid1DKernel
+        trapezoid_1D_kernel = Trapezoid1DKernel(5)
+        plt.plot(trapezoid_1D_kernel)
+        plt.xlabel('pixels')
+        plt.ylabel('pixels')
+        plt.show()
     """
     _weighted = True
 
@@ -204,12 +396,42 @@ class TrapezoidDisk2DKernel(Kernel2D):
         Width of the filter kernel.
     slope : number
         Slope of the filter kernels tails
-
+    mode: string
+        One of the following discretization modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
 
     See Also
     --------
     Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
     TrapezoidDisk2DKernel, AiryDisk2DKernel
+
+    Notes
+    -----
+    Kernel response:
+
+     .. plot::
+
+        import matplotlib.pyplot as plt
+        from astropy.nddata.convolution import TrapezoidDisk2DKernel
+        trapezoid_2D_kernel = TrapezoidDisk2DKernel(10)
+        plt.imshow(trapezoid_2D_kernel)
+        plt.xlabel('pixels')
+        plt.ylabel('pixels')
+        plt.show()
+
     """
     _weighted = True
 
@@ -234,10 +456,42 @@ class MexicanHat1DKernel(Kernel1D):
         Width of the filter kernel.
     x_size : odd int
         Size in x direction of the kernel array. Default = 8 * width.
+    mode: string
+        One of the following discretization modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
+
 
     See Also
     --------
     Box1DKernel, Gaussian1DKernel, Trapezoid1DKernel
+
+    Notes
+    -----
+    Kernel response:
+
+     .. plot::
+
+        import matplotlib.pyplot as plt
+        from astropy.nddata.convolution import MexicanHat1DKernel
+        mexicanhat_1D_kernel = MexicanHat1DKernel(10)
+        plt.plot(mexicanhat_1D_kernel)
+        plt.xlabel('pixels')
+        plt.ylabel('value')
+        plt.show()
+
     """
     _weighted = True
 
@@ -267,11 +521,42 @@ class MexicanHat2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = 8 * width.
     y_size : odd int
         Size in y direction of the kernel array. Default = 8 * width.
+    mode: string
+        One of the following discretization modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
+
 
     See Also
     --------
     Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
     TrapezoidDisk2DKernel, AiryDisk2DKernel
+
+    Notes
+    -----
+    Kernel response:
+
+     .. plot::
+
+        import matplotlib.pyplot as plt
+        from astropy.nddata.convolution import MexicanHat2DKernel
+        mexicanhat_2D_kernel = MexicanHat2DKernel(10)
+        plt.imshow(mexicanhat_2D_kernel)
+        plt.xlabel('pixels')
+        plt.ylabel('pixels')
+        plt.show()
     """
     _weighted = True
 
@@ -287,7 +572,7 @@ class MexicanHat2DKernel(Kernel2D):
 
 class AiryDisk2DKernel(Kernel2D):
     """
-    Airy disk 2D kernel.
+    2D Airy disk kernel.
 
     Parameters
     ----------
@@ -297,11 +582,41 @@ class AiryDisk2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = 8 * width.
     y_size : odd int
         Size in y direction of the kernel array. Default = 8 * width.
+    mode: string
+        One of the following discretization modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
 
     See Also
     --------
     Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
     TrapezoidDisk2DKernel, AiryDisk2DKernel
+
+    Notes
+    -----
+    Kernel response:
+
+     .. plot::
+
+        import matplotlib.pyplot as plt
+        from astropy.nddata.convolution import AiryDisk2DKernel
+        airydisk_2D_kernel = AiryDisk2DKernel(10)
+        plt.imshow(airydisk_2D_kernel)
+        plt.xlabel('pixels')
+        plt.ylabel('pixels')
+        plt.show()
     """
     _weighted = True
 
@@ -319,6 +634,22 @@ class Model1DKernel(Kernel1D):
     ----------
     model : Parametric1DModel
         Kernel response function model
+    mode: string
+        One of the following discretization modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
 
     Raises
     ------
@@ -349,6 +680,22 @@ class Model2DKernel(Kernel2D):
     ----------
     model : Parametric2DModel
         Kernel response function model
+    mode: string
+        One of the following discretization modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
 
     Raises
     ------
