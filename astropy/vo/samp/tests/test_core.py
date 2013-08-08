@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 import time
 
-from ....tests.helper import pytest
+from ....tests.helper import pytest, remote_data
 from ... import samp
 
 
@@ -52,7 +52,7 @@ def test_SAMPMsgReplierWrapper():
     samp.SAMPMsgReplierWrapper(cli)
     assert True
     
-    
+@remote_data
 def test_SAMPHubServer_run():
     """Test that SAMPHub can be run"""
     
@@ -66,7 +66,7 @@ def test_SAMPHubServer_run():
         
     assert True
     
-    
+@remote_data
 def test_SAMPClient_connect():
     """Test that SAMPClient can connect and register"""
     
@@ -94,6 +94,7 @@ def test_SAMPClient_connect():
     hub.stop()
     
     
+@remote_data
 class TestSAMPCommunication(object):
     """Test SAMP client-server communications.
     """
