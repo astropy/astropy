@@ -276,6 +276,8 @@ def test_jytok():
     nu = u.GHz * 5
     tb = 7.05258885885 * u.K
     np.testing.assert_almost_equal(tb.value,
-                                   (1*u.Jy).to(u.K, u.jytok(omega_B, nu)).value)
+                                   (1*u.Jy).to(u.K,
+                                               equivalencies=u.jytok(omega_B, nu)).value)
     np.testing.assert_almost_equal(1.0,
-                                   tb.to(u.Jy, u.jytok(omega_B, nu)).value)
+                                   tb.to(u.Jy,
+                                         equivalencies=u.jytok(omega_B, nu)).value)

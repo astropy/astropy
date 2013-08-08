@@ -330,16 +330,18 @@ def jytok(omega_B, nu):
     >>> from astropy import units as u
     >>> omega_B = np.pi*(50*u.arcsec)**2
     >>> freq = 5*u.GHz
-    >>> (1*u.Jy).to(u.K,jytok(omega_B,freq))
-    <Quantity 7.05258885885 K>
+    >>> u.Jy.to(u.K, equivalencies=u.jytok(omega_B,freq))
+    7.052588858846445
+    >>> (1*u.Jy).to(u.K, equivalencies=u.jytok(omega_B,freq))
+    <Quantity 78.3620984316 K>
     >>> # VLA synthetic beam
     >>> omega_B = np.pi*(15*u.arcsec)**2
     >>> freq = 5*u.GHz
-    >>> (1*u.Jy).to(u.K,jytok(omega_B,freq))
-    <Quantity 78.3620984316 K>
+    >>> u.Jy.to(u.K, equivalencies=u.jytok(omega_B,freq))
+    78.36209843162717
     """
     beam = omega_B.to(si.sr).value
-    nu = nu.to(si.GHz, si.spectral())
+    nu = nu.to(si.GHz, spectral())
 
     def convert_Jy_to_K(x_jybm):
         factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
