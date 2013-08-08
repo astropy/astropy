@@ -103,7 +103,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
     Notes
     -----
 
-    The `oversample` mode allows to conserve the integral on a subpixel
+    The ``oversample`` mode allows to conserve the integral on a subpixel
     scale. Here is the example of a normalized Gaussian1DModel:
 
     .. plot::

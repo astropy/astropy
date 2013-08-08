@@ -448,7 +448,7 @@ class MexicanHat1DKernel(Kernel1D):
 
     The Mexican Hat or Gaussian-Laplace filter is a background free smoothing
     filter. It does not conserve the mean. It is useful for peak or multi-scale
-    detection.
+    detection. This kernel is normalized to a peak value of 1.
 
     Parameters
     ----------
@@ -511,7 +511,7 @@ class MexicanHat2DKernel(Kernel2D):
 
     The Mexican Hat or Gaussian-Laplace filter is a background free smoothing
     filter. It does not conserve the mean. It is useful for peak or multi-scale
-    detection.
+    detection. This kernel is normalized to a peak value of 1.
 
     Parameters
     ----------
@@ -573,6 +573,9 @@ class MexicanHat2DKernel(Kernel2D):
 class AiryDisk2DKernel(Kernel2D):
     """
     2D Airy disk kernel.
+
+    This kernel models the diffraction pattern of a circular aperture. This 
+    kernel is normalized to a peak value of 1.
 
     Parameters
     ----------
