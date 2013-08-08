@@ -1295,19 +1295,6 @@ class CompImageHDU(BinTableHDU):
                 self.data.byteswap(True)
             self.data = old_data
 
-        # Chances are not all the space allocated for the compressed data was
-        # needed.  If not, go ahead and truncate the array:
-        dataspan = tbsize + heapsize
-        if len(self.compressed_data) > dataspan:
-            if self.compressed_data.flags.owndata:
-                self.compressed_data.resize(dataspan)
-            else:
-                # Need to copy to a new array; this generally shouldn't happen
-                # at all though there are some contrived cases (such as in one
-                # of the regression tests) where it can happen.
-                self.compressed_data = np.resize(self.compressed_data,
-                                                 (dataspan,))
-
         dtype = np.rec.format_parser(','.join(self.columns._recformats),
                                      self.columns.names, None).dtype
         # CFITSIO will write the compressed data in big-endian order

@@ -872,6 +872,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     unsigned long long heapsize;
 
     fitsfile* fileptr;
+    FITSfile* Fptr;
     int status = 0;
 
     if (!PyArg_ParseTuple(args, "O:compression.compress_hdu", &hdu))
@@ -891,7 +892,9 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    bitpix_to_datatypes(fileptr->Fptr->zbitpix, &datatype, &npdatatype);
+    Fptr = fileptr->Fptr;
+
+    bitpix_to_datatypes(Fptr->zbitpix, &datatype, &npdatatype);
     if (PyErr_Occurred()) {
         return NULL;
     }
@@ -911,11 +914,24 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
         goto fail;
     }
 
-    znaxis = (npy_intp) outbufsize;  // The output array is just one dimension.
+    // Previously this used outbufsize as the size to use for the new Numpy
+    // byte array. However outbufsize is usually larger than necessary to
+    // store all the compressed data exactly; instead use the exact size
+    // of the compressed data from the heapsize plus the size of the table
+    // itself
+    heapsize = (unsigned long long) Fptr->heapsize;
+    znaxis = (npy_intp) (Fptr->heapstart + heapsize);
+
+    if (znaxis < outbufsize) {
+        // Go ahead and truncate to the size in znaxis to free the
+        // redundant allocation
+        // TODO: Add error handling
+        outbuf = realloc(outbuf, (size_t) znaxis);
+    }
+
     tmp = (PyArrayObject*) PyArray_SimpleNewFromData(1, &znaxis, NPY_UBYTE,
                                                      outbuf);
 
-    heapsize = (unsigned long long) fileptr->Fptr->heapsize;
 
     // Leaves refcount of tmp untouched, so its refcount should remain as 1
     retval = Py_BuildValue("KN", heapsize, tmp);
