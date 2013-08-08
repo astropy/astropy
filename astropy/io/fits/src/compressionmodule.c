@@ -785,7 +785,7 @@ fail:
 
 
 void open_from_hdu(fitsfile** fileptr, void** buf, size_t* bufsize,
-                   PyObject* hdu, tcolumn* columns) {
+                   PyObject* hdu, tcolumn** columns) {
     PyObject* header = NULL;
     FITSfile* Fptr;
 
@@ -839,7 +839,7 @@ void open_from_hdu(fitsfile** fileptr, void** buf, size_t* bufsize,
 
     // Configure the array of table column structs from the Astropy header
     // instead of allowing CFITSIO to try to read from the header
-    tcolumns_from_header(*fileptr, header, &columns);
+    tcolumns_from_header(*fileptr, header, columns);
     if (PyErr_Occurred()) {
         goto fail;
     }
@@ -887,7 +887,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     // We just need to get the compressed bytes and Astropy will handle the
     // writing of them.
     init_output_buffer(hdu, &outbuf, &outbufsize);
-    open_from_hdu(&fileptr, &outbuf, &outbufsize, hdu, columns);
+    open_from_hdu(&fileptr, &outbuf, &outbufsize, hdu, &columns);
     if (PyErr_Occurred()) {
         return NULL;
     }
@@ -937,6 +937,11 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     retval = Py_BuildValue("KN", heapsize, tmp);
 
 fail:
+    if (columns != NULL) {
+        PyMem_Free(columns);
+        Fptr->tableptr = NULL;
+    }
+
     if (fileptr != NULL) {
         status = 1; // Disable header-related errors
         fits_close_file(fileptr, &status);
@@ -946,9 +951,6 @@ fail:
         }
     }
 
-    if (columns != NULL) {
-        PyMem_Free(columns);
-    }
     Py_XDECREF(indata);
 
     // Clear any messages remaining in CFITSIO's error stack
@@ -991,7 +993,7 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    open_from_hdu(&fileptr, &inbuf, &inbufsize, hdu, columns);
+    open_from_hdu(&fileptr, &inbuf, &inbufsize, hdu, &columns);
     if (PyErr_Occurred()) {
         return NULL;
     }
@@ -1021,6 +1023,11 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
     }
 
 fail:
+    if (columns != NULL) {
+        PyMem_Free(columns);
+        fileptr->Fptr->tableptr = NULL;
+    }
+
     if (fileptr != NULL) {
         status = 1;// Disable header-related errors
         fits_close_file(fileptr, &status);
@@ -1030,9 +1037,6 @@ fail:
         }
     }
 
-    if (columns != NULL) {
-        PyMem_Free(columns);
-    }
     PyMem_Free(znaxis);
 
     // Clear any messages remaining in CFITSIO's error stack
