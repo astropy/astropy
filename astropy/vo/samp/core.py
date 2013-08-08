@@ -85,7 +85,7 @@ __doc__ = \
         SAMPy is very simple to use for the creation of a running SAMP Hub. The only thing
         you have to do is to create a L{SAMPHubServer} instance and start it:
 
-        >>> from sampy import *
+        >>> from astropy.vo.samp import *
         >>> hub = SAMPHubServer()
         >>> hub.start()
 
@@ -103,7 +103,7 @@ __doc__ = \
         and L{SAMPHubProxy}. Here below an example of usage (see also C{iclient.py} and
         C{client.py} files distributed with SAMPy):
 
-        >>> from sampy import *
+        >>> from astropy.vo.samp import *
         >>> import time
         >>>
         >>> # Create a client
@@ -119,24 +119,22 @@ __doc__ = \
         >>> cli2.connect()
         >>>
         >>>
-        >>> print "CLI1", cli1.getPrivateKey(), cli1.getPublicId()
-        CLI1 0d7f4500225981c104a197c7666a8e4e cli#1
-        >>> print "CLI2", cli2.getPrivateKey(), cli2.getPublicId()
-        CLI2 72b8ad5ccf0fb3a997d733f6673a960e cli#2
+        >>> print("CLI1", cli1.getPrivateKey(), cli1.getPublicId())
+        >>> print("CLI2", cli2.getPrivateKey(), cli2.getPublicId())
         >>>
         >>>
         >>> # Function called when a notification is received
         ... def test_receive_notification(private_key, sender_id, mtype, params, extra):
-        ...   print "Notification:", private_key, sender_id, mtype, params, extra
+        ...   print("Notification:", private_key, sender_id, mtype, params, extra)
         ...
         >>> # Function called when a call is received
         ... def test_receive_call(private_key, sender_id, msg_id, mtype, params, extra):
-        ...   print "Call:", private_key, sender_id, msg_id, mtype, params, extra
+        ...   print("Call:", private_key, sender_id, msg_id, mtype, params, extra)
         ...   cli1.ereply(msg_id, SAMP_STATUS_OK, result = {"txt": "printed"})
         ...
         >>> # Function called when a response is received
         ... def test_receive_response(private_key, sender_id, msg_id, response):
-        ...   print "Response:", private_key, sender_id, msg_id, response
+        ...   print("Response:", private_key, sender_id, msg_id, response)
         ...
         >>> # Subscribe Client 1 to "samp.*" and "samp.app.*" MType and bind it to
         ... # the related functions
@@ -151,13 +149,13 @@ __doc__ = \
         ['cli#2']
         >>> Notification: 0d7f4500225981c104a197c7666a8e4e cli#2 samp.app.echo {'txt': 'Hello world!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
         >>>
-        >>> print cli2.getSubscribedClients("samp.app.echo")
+        >>> print(cli2.getSubscribedClients("samp.app.echo"))
         {'cli#2': {}}
         >>> # Client 2 calls to All "samp.app.echo" MType using "my-dummy-print"
         ... # as message-tag
-        ... print cli2.callAll("my-dummy-print",
+        ... print(cli2.callAll("my-dummy-print",
         ...                    {"samp.mtype": "samp.app.echo",
-        ...                     "samp.params": {"txt": "Hello world!"}})
+        ...                     "samp.params": {"txt": "Hello world!"}}))
         {'cli#1': 'msg#1;;cli#hub;;cli#2;;my-dummy-print'}
         >>> Call: 8c8eb53178cb95e168ab17ec4eac2353 cli#2 msg#1;;cli#hub;;cli#2;;my-dummy-print samp.app.echo {'txt': 'Hello world!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
         Response: d0a28636321948ccff45edaf40888c54 cli#1 my-dummy-print {'samp.status': 'samp.ok', 'samp.result': {'txt': 'printed'}}
@@ -165,12 +163,12 @@ __doc__ = \
         >>> # Client 2 calls "samp.app.echo" MType on Client 1 tagging it as
         ... # "my-dummy-print-specific"
         ... try:
-        ...   print cli2.call(cli1.getPublicId(),
+        ...   print(cli2.call(cli1.getPublicId(),
         ...                   "my-dummy-print-specific",
         ...                   {"samp.mtype": "samp.app.echo",
-        ...                    "samp.params": {"txt": "Hello Cli 1!"}})
+        ...                    "samp.params": {"txt": "Hello Cli 1!"}}))
         ... except SAMPProxyError, e:
-        ...   print "Error (%d): %s" % (e.faultCode, e.faultString)
+        ...   print("Error (%d): %s" % (e.faultCode, e.faultString))
         ...
         msg#2;;cli#hub;;cli#2;;my-dummy-print-specific
         >>> Call: 8c8eb53178cb95e168ab17ec4eac2353 cli#2 msg#2;;cli#hub;;cli#2;;my-dummy-print-specific samp.app.echo {'txt': 'Hello Cli 1!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
@@ -181,7 +179,7 @@ __doc__ = \
         >>>
         >>> # Function called to test synchronous calls
         ... def test_receive_sync_call(private_key, sender_id, msg_id, mtype, params, extra):
-        ...   print "SYNC Call:", sender_id, msg_id, mtype, params, extra
+        ...   print("SYNC Call:", sender_id, msg_id, mtype, params, extra)
         ...   time.sleep(2)
         ...   cli1.reply(msg_id, {"samp.status": SAMP_STATUS_OK,
         ...                       "samp.result": {"txt": "printed sync"}})
@@ -195,13 +193,13 @@ __doc__ = \
         >>>
         >>> try:
         ...   # Sync call
-        ...   print cli2.callAndWait(cli1.getPublicId(),
+        ...   print(cli2.callAndWait(cli1.getPublicId(),
         ...                          {"samp.mtype": "samp.test",
         ...                           "samp.params": {"txt": "Hello SYNCRO Cli 1!"}},
-        ...                          "10")
+        ...                          "10"))
         ... except SAMPProxyError, e:
         ...   # If timeout expires than a SAMPProxyError is returned
-        ...   print "Error (%s): %s" % (e.faultCode, e.faultString)
+        ...   print("Error (%s): %s" % (e.faultCode, e.faultString))
         ...
         SYNC Call: cli#2 msg#3;;cli#hub;;cli#2;;sampy::sync::call samp.test {'txt': 'Hello SYNCRO Cli 1!'} {'host': 'antigone.lambrate.inaf.it', 'user': 'unknown'}
         {'samp.status': 'samp.ok', 'samp.result': {'txt': 'printed sync'}}
@@ -2535,7 +2533,7 @@ class SAMPHubServer(object):
     """
     Return a list containing all the possible wildcarded subtypes of MType. Example:
 
-    >>> import sampy
+    >>> import astropy.vo.samp as sampy
     >>> sampy.SAMPHubServer.getMTypeSubtypes("samp.app.ping")
     ['samp.app.ping', 'samp.app.*', 'samp.*', '*']
 
@@ -4128,7 +4126,7 @@ class SAMPIntegratedClient(object):
     Easy C{notify}. It is a proxy to L{notify} method that allows to
     send the notification message in a simplified way. Example:
 
-    >>> import sampy
+    >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
     >>> cli.enotify("samp.msg.progress", msgid = "xyz", txt = "initialization", \\
@@ -4162,7 +4160,7 @@ class SAMPIntegratedClient(object):
     Easy C{notify}. It is a proxy to L{notifyAll} method that allows to
     send the notification message in a simplified way. Example:
 
-    >>> import sampy
+    >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
     >>> cli.enotifyAll("samp.msg.progress", txt = "initialization", \\
@@ -4194,7 +4192,7 @@ class SAMPIntegratedClient(object):
     Easy C{call}. It is a proxy to L{call} method that allows to
     send a call message in a simplified way. Example:
 
-    >>> import sampy
+    >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
     >>> msgid = cli.ecall("abc", "xyz", "samp.msg.progress", txt = "initialization", \\
@@ -4232,7 +4230,7 @@ class SAMPIntegratedClient(object):
     Easy C{callAll}. It is a proxy to L{callAll} method that allows to
     send the call message in a simplified way. Example:
 
-    >>> import sampy
+    >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
     >>> msgid = cli.ecallAll("xyz", "samp.msg.progress", txt = "initialization", \\
@@ -4267,7 +4265,7 @@ class SAMPIntegratedClient(object):
     Easy C{callAndWait}. It is a proxy to L{callAll} method that allows to
     send the call message in a simplified way. Example:
 
-    >>> import sampy
+    >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
     >>> cli.ecallAndWait("xyz", "samp.msg.progress", "5", txt = "initialization", \\
@@ -4314,7 +4312,7 @@ class SAMPIntegratedClient(object):
     Easy C{reply}. It is a proxy to L{callAll} method that allows to
     send a reply message in a simplified way. Example:
 
-    >>> import sampy
+    >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
     >>> cli.ereply("abd", sampy.SAMP_STATUS_ERROR, result = {}, error = {"samp.errortxt": "Test error message"})
