@@ -333,7 +333,7 @@ def jytok(omega_B, nu):
     >>> u.Jy.to(u.K, equivalencies=u.jytok(omega_B,freq))
     7.052588858...
     >>> (1*u.Jy).to(u.K, equivalencies=u.jytok(omega_B,freq))
-    <Quantity 78.3620984316 K>
+    <Quantity 78.36209...
     >>> # VLA synthetic beam
     >>> omega_B = np.pi*(15*u.arcsec)**2
     >>> freq = 5*u.GHz
