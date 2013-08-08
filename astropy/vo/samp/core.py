@@ -77,6 +77,10 @@ __all__ = ["SAMPHubServer",
            "SAMP_RESTRICT_GROUP",
            "SAMP_RESTRICT_OWNER"]
 
+
+__doctest_skip__ = ['.', 'SAMPHubServer.*', 'SAMPIntegratedClient.*']
+
+
 __doc__ = \
   """
         This module contains classes to create a SAMP Hub and/or interface 
