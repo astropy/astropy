@@ -62,5 +62,20 @@ def test_to_string_formats():
 def test_to_string_fields():
     a = Angle(1.113355, unit=u.deg)
     assert a.to_string(fields=1) == r'1d'
-    assert a.to_string(fields=2) == r'1d06m'
+    assert a.to_string(fields=2) == r'1d07m'
     assert a.to_string(fields=3) == r'1d06m48.07800s'
+
+
+def test_sexagesimal_rounding_up():
+    a = Angle(359.9999999999, unit=u.deg)
+
+    assert a.to_string(precision=4) == '360d00m00.0000s'
+    assert a.to_string(precision=5) == '360d00m00.00000s'
+    assert a.to_string(precision=6) == '360d00m00.000000s'
+    assert a.to_string(precision=7) == '359d59m59.9999996s'
+
+    a = Angle(3.999999, unit=u.deg)
+    assert a.to_string(fields=2, precision=1) == '4d00m'
+    assert a.to_string(fields=2, precision=5) == '4d00m'
+    assert a.to_string(fields=1, precision=1) == '4d'
+    assert a.to_string(fields=1, precision=5) == '4d'
