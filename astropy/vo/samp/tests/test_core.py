@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 import time
 
 from ....tests.helper import pytest
@@ -55,7 +57,7 @@ def test_SAMPHubServer_run():
     """Test that SAMPHub can be run"""
     
     try:
-        hub = samp.SAMPHubServer()
+        hub = samp.SAMPHubServer(web_profile=False)
         hub.start()
         time.sleep(1)
         hub.stop()
@@ -68,10 +70,14 @@ def test_SAMPHubServer_run():
 def test_SAMPClient_connect():
     """Test that SAMPClient can connect and register"""
     
-    hub = samp.SAMPHubServer()
+    hub = samp.SAMPHubServer(web_profile=False)
     proxy = samp.SAMPHubProxy()
     
-    hub.start()
+    try:
+        hub.start()
+    except:
+        print("Another hub is running.")
+        
     proxy.connect()
     
     cli = samp.SAMPClient(proxy, name="Client", description="Test Client")
@@ -149,7 +155,7 @@ class TestSAMPCommunication(object):
             print("Call:", private_key, sender_id, msg_id, mtype, params,
                   extra, "\n\n")
             myhub1.reply(cli1.getPrivateKey(), msg_id,
-                         {"samp.status": SAMP_STATUS_OK,
+                         {"samp.status": samp.SAMP_STATUS_OK,
                           "samp.result": {"txt": "printed"}})
         
         # Function called when a response is received
@@ -203,7 +209,7 @@ class TestSAMPCommunication(object):
             print("SYNC Call:", sender_id, msg_id, mtype, params, extra, "\n\n")
             time.sleep(1)
             self.myhub1.reply(cli1.getPrivateKey(), msg_id,
-                              {"samp.status": SAMP_STATUS_OK,
+                              {"samp.status": samp.SAMP_STATUS_OK,
                                "samp.result": {"txt": "printed sync"}})
             return ""
         
