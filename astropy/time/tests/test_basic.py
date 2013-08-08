@@ -7,12 +7,12 @@ import numpy as np
 from ...tests.helper import pytest
 from .. import Time, ScaleValueError, sofa_time
 
-allclose_jd = functools.partial(np.allclose, rtol=2.**-52, atol=0)
-allclose_jd2 = functools.partial(np.allclose, rtol=2.**-52,
-                                 atol=2.**-52)  # 20 ps atol
-allclose_sec = functools.partial(np.allclose, rtol=2.**-52,
-                                 atol=2.**-52*24*3600)  # 20 ps atol
-allclose_year = functools.partial(np.allclose, rtol=2.**-52,
+allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
+allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
+                                 atol=2. ** -52)  # 20 ps atol
+allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
+                                 atol=2. ** -52 * 24 * 3600)  # 20 ps atol
+allclose_year = functools.partial(np.allclose, rtol=2. ** -52,
                                   atol=0.)  # 14 microsec at current epoch
 
 
@@ -330,7 +330,7 @@ class TestSubFormat():
         times = ['2000-01-01 01:01',
                  '2000-01-01 01:01:01', '2000-01-01 01:01:01.123']
         t = Time(times, format='iso', scale='tai',
-                     in_subfmt='date_*')
+                 in_subfmt='date_*')
         assert np.all(t.iso == np.array(['2000-01-01 01:01:00.000',
                                          '2000-01-01 01:01:01.000',
                                          '2000-01-01 01:01:01.123']))
@@ -339,13 +339,13 @@ class TestSubFormat():
         """Failed format matching"""
         with pytest.raises(ValueError):
             Time('2000-01-01 01:01', format='iso', scale='tai',
-                     in_subfmt='date')
+                 in_subfmt='date')
 
     def test_bad_input_subformat(self):
         """Non-existent input subformat"""
         with pytest.raises(ValueError):
             Time('2000-01-01 01:01', format='iso', scale='tai',
-                     in_subfmt='doesnt exist')
+                 in_subfmt='doesnt exist')
 
     def test_output_subformat(self):
         """Input subformat selection"""
@@ -353,7 +353,7 @@ class TestSubFormat():
         times = ['2000-01-01', '2000-01-01 01:01',
                  '2000-01-01 01:01:01', '2000-01-01 01:01:01.123']
         t = Time(times, format='iso', scale='tai',
-                     out_subfmt='date_hm')
+                 out_subfmt='date_hm')
         assert np.all(t.iso == np.array(['2000-01-01 00:00',
                                          '2000-01-01 01:01',
                                          '2000-01-01 01:01',
@@ -437,8 +437,8 @@ class TestSofaErrors():
 
     def test_bad_time(self):
         iy = np.array([2000], dtype=np.intc)
-        im = np.array([2000], dtype=np.intc) # bad month
-        id = np.array([2000], dtype=np.intc) # bad day
+        im = np.array([2000], dtype=np.intc)  # bad month
+        id = np.array([2000], dtype=np.intc)  # bad day
         djm0 = np.array([0], dtype=np.double)
         djm = np.array([0], dtype=np.double)
         with pytest.raises(ValueError):  # bad month, fatal error
@@ -531,8 +531,9 @@ def test_now():
     # py < 2.7 and py3 < 3.2 doesn't have `total_seconds`
     if ((version_info[0] == 2 and version_info[1] < 7) or
         (version_info[0] == 3 and version_info[1] < 2) or
-        version_info[0] < 2):
-        total_secs = lambda td: (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10 ** 6) / 10 ** 6.
+            version_info[0] < 2):
+        total_secs = lambda td: (td.microseconds + (
+            td.seconds + td.days * 24 * 3600) * 10 ** 6) / 10 ** 6.
     else:
         total_secs = lambda td: td.total_seconds()
     assert total_secs(dt) < 0.1
