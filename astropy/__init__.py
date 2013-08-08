@@ -122,6 +122,41 @@ def test(package=None, test_path=None, args=None, plugins=None,
         parallel=parallel)
 
 
+def _monkey_patch_ipython_for_unicode_docstring_display():
+    # Prior to IPython 0.13.2, it would crash if displaying a Unicode
+    # docstring.  This monkey patch encodes any Unicode docstring to
+    # sys.stdout.encoding before passing it along to IPython's pager.
+    # We only need to do any of this on Python 2, as Python 3 already
+    # works upstream.
+
+    # https://github.com/ipython/ipython/issue/2738
+
+    import sys
+    if sys.version_info[0] >= 3:
+        return
+
+    try:
+        # Make sure IPython is actually running, not just installed
+        get_ipython()
+    except NameError:
+        pass
+    else:
+        from distutils import version
+
+        import IPython
+        if (version.LooseVersion(IPython.__version__) <
+                version.LooseVersion('0.13.2')):
+            from IPython.core import page
+            _page = page.page
+
+            def _page_monkey_patch(strng, start=0, screen_lines=0,
+                                   pager_cmd=None):
+                if isinstance(strng, unicode):
+                    strng = strng.encode(sys.stdout.encoding)
+                return _page(strng, start, screen_lines, pager_cmd)
+            page.page = _page_monkey_patch
+
+
 # if we are *not* in setup mode, import the logger and possibly populate the
 # configuration file with the defaults
 def _initialize_astropy():
@@ -154,6 +189,8 @@ def _initialize_astropy():
         wmsg = (e.args[0] + " Cannot install default profile. If you are "
                 "importing from source, this is expected.")
         warn(config.configuration.ConfigurationDefaultMissingWarning(wmsg))
+
+    _monkey_patch_ipython_for_unicode_docstring_display()
 
 
 import logging
