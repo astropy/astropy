@@ -27,7 +27,7 @@ def test_SAMPLog():
 
 def test_SAMPHubServer():
     """Test that SAMPHub can be instantiated"""
-    samp.SAMPHubServer()
+    samp.SAMPHubServer(web_profile=False)
     assert True
     
 def test_SAMPHubProxy():
@@ -94,13 +94,12 @@ def test_SAMPClient_connect():
     hub.stop()
     
     
-    
 class TestSAMPCommunication(object):
     """Test SAMP client-server communications.
     """
     def setup_class(self):
     
-        self.hub = samp.SAMPHubServer()
+        self.hub = samp.SAMPHubServer(web_profile=False)
         self.hub.start()
         
         self.myhub1 = samp.SAMPHubProxy()
@@ -154,9 +153,9 @@ class TestSAMPCommunication(object):
                               extra):
             print("Call:", private_key, sender_id, msg_id, mtype, params,
                   extra, "\n\n")
-            myhub1.reply(cli1.getPrivateKey(), msg_id,
-                         {"samp.status": samp.SAMP_STATUS_OK,
-                          "samp.result": {"txt": "printed"}})
+            self.myhub1.reply(cli1.getPrivateKey(), msg_id,
+                              {"samp.status": samp.SAMP_STATUS_OK,
+                               "samp.result": {"txt": "printed"}})
         
         # Function called when a response is received
         def test_receive_response(private_key, sender_id, msg_id, response):
