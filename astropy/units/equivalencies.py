@@ -331,14 +331,14 @@ def jytok(omega_B, nu):
     >>> omega_B = np.pi*(50*u.arcsec)**2
     >>> freq = 5*u.GHz
     >>> u.Jy.to(u.K, equivalencies=u.jytok(omega_B,freq))
-    7.052588858846445
+    7.052588858...
     >>> (1*u.Jy).to(u.K, equivalencies=u.jytok(omega_B,freq))
     <Quantity 78.3620984316 K>
     >>> # VLA synthetic beam
     >>> omega_B = np.pi*(15*u.arcsec)**2
     >>> freq = 5*u.GHz
     >>> u.Jy.to(u.K, equivalencies=u.jytok(omega_B,freq))
-    78.36209843162717
+    78.36209843...
     """
     beam = omega_B.to(si.sr).value
     nu = nu.to(si.GHz, spectral())
