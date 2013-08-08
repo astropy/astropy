@@ -25,27 +25,37 @@ def test_SAMPLog():
     samp.SAMPLog()
     assert True
 
+
+@remote_data
 def test_SAMPHubServer():
     """Test that SAMPHub can be instantiated"""
     samp.SAMPHubServer(web_profile=False)
     assert True
+
     
+@remote_data
 def test_SAMPHubProxy():
     """Test that SAMPHubProxy can be instantiated"""
     samp.SAMPHubProxy()
     assert True
+
     
+@remote_data
 def test_SAMPClient():
     """Test that SAMPClient can be instantiated"""
     proxy = samp.SAMPHubProxy()
     samp.SAMPClient(proxy)
     assert True
+
   
+@remote_data
 def test_SAMPIntegratedClient():
     """Test that SAMPIntegratedClient can be instantiated"""
     samp.SAMPIntegratedClient()
     assert True
+
     
+@remote_data
 def test_SAMPMsgReplierWrapper():
     """Test that SAMPMsgReplierWrapper can be instantiated"""
     cli = samp.SAMPIntegratedClient()
