@@ -1592,6 +1592,7 @@ class SAMPHubServer(object):
     """
 
     # General settings
+    self._is_running = False
     self._lockfilename = lockfile
     self._admin = admin
     self._addr = addr
@@ -1710,7 +1711,6 @@ class SAMPHubServer(object):
     self._thread_run = None
     self._thread_hub_timeout = None
     self._thread_client_timeout = None
-    self._is_running = False
 
     # Variables for timeout testing:
     self._last_activity_time = None
