@@ -4885,6 +4885,3 @@ def main(timeout=0):
     print("[SAMP] Error: Unexpected error:\n" + txt)
 
 
-if __name__ == "__main__":
-
-  main()
