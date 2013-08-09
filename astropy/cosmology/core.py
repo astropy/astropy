@@ -153,18 +153,18 @@ class FLRW(Cosmology):
         self._critical_density0 = (3. * H0_s ** 2 /
             (8. * pi * const.G.cgs)).cgs
 
-        # Load up neutrino masses.  
+        # Load up neutrino masses.
         self._nneutrinos = floor(self._Neff)
         # We are going to share Neff between the neutrinos equally.
         # In detail this is not correct, but it is a standard assumption
         # because propertly calculating it is a) complicated b) depends
-        # on the details of the massive nuetrinos (e.g., their weak 
+        # on the details of the massive nuetrinos (e.g., their weak
         # interactions, which could be unusual if one is considering sterile
         # neutrinos)
         self._massivenu = False
         if self._nneutrinos > 0 and self._Tcmb0.value > 0:
             self._neff_per_nu = self._Neff / self._nneutrinos
-        
+
             if isinstance(m_nu, u.Quantity):
                 # Convert to eV.  This might be tricky, since
                 # astropy.units doesn't understand mass/energy equivalence
@@ -179,8 +179,8 @@ class FLRW(Cosmology):
 
             # Now, figure out if we have massive neutrinos to deal with,
             # and, if so, get the right number of masses
-            # It is worth the effort to keep track of massless ones seperately 
-            # (since they are quite easy to deal with, and a common use case 
+            # It is worth the effort to keep track of massless ones seperately
+            # (since they are quite easy to deal with, and a common use case
             # is to set only one neutrino to have mass)
             if m_nu.isscalar:
                 # Assume all neutrinos have the same mass
@@ -206,7 +206,7 @@ class FLRW(Cosmology):
                     if len(m_nu) != self._nneutrinos:
                         raise ValueError("Unexpected number of neutrino masses")
                     # Segregate out the massless ones
-                    self._nmasslessnu = np.count(m_nu.value == 0)
+                    self._nmasslessnu = np.count_nonzero(m_nu.value == 0)
                     self._nmassivenu = self._nneutrinos - self._nmasslessnu
                     w = np.nonzero(m_nu.value > 0)[0]
                     self._massivenu_mass = m_nu[w]
@@ -278,7 +278,7 @@ class FLRW(Cosmology):
         return self._Tcmb0
 
     @property
-    def Tcmb0(self):
+    def Tnu0(self):
         """ Temperature of the neutrino background as astropy.units.Quantity at z=0"""
         return self._Tnu0
 
@@ -286,6 +286,13 @@ class FLRW(Cosmology):
     def Neff(self):
         """ Number of effective neutrino species"""
         return self._Neff
+
+    @property
+    def has_massive_nu(self):
+        """ Does this cosmology have at least one massive neutrino species?"""
+        if self._Tnu0.value == 0:
+            return False
+        return self._massivenu
 
     @property
     def m_nu(self):
@@ -300,7 +307,7 @@ class FLRW(Cosmology):
             return self._massivenu_mass
         # A mix -- the most complicated case
         return u.Quantity(np.append(np.zeros(self._nmasslessnu),
-                                    np._massivenu_mass.value), u.eV)
+                                    self._massivenu_mass.value), u.eV)
 
     @property
     def h(self):
@@ -585,7 +592,7 @@ class FLRW(Cosmology):
             curr_nu_y = self._nu_y / (1.0 + z) # only includes massive ones
             rel_mass_per = (1.0 + (0.3173 * curr_nu_y)**p)**(1.0 / p)
             rel_mass = rel_mass_per.sum() + self._nmasslessnu
-            return prefac * self._neff_per_nu
+            return prefac * self._neff_per_nu * rel_mass
         else:
             z = np.asarray(z)
             retarr = np.empty_like(z)
@@ -593,7 +600,7 @@ class FLRW(Cosmology):
                 curr_nu_y = self._nu_y / (1.0 + redshift)
                 rel_mass_per = (1.0 + (0.3173 * curr_nu_y)**p)**(1.0 / p)
                 rel_mass = rel_mass_per.sum() + self._nmasslessnu
-                retarr[i] = prefac * self._neff_per_nu
+                retarr[i] = prefac * self._neff_per_nu * rel_mass
             return retarr
 
     def _w_integrand(self, ln1pz):
@@ -2304,11 +2311,11 @@ for key in parameters.available:
     par = getattr(parameters, key)
     if par['flat']:
         cosmo = FlatLambdaCDM(par['H0'], par['Om0'], Tcmb0=par['Tcmb0'],
-                              Neff=par['Neff'], m_nu=0.0, name=key)
+                              Neff=par['Neff'], m_nu=par['m_nu'], name=key)
     else:
         cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'],
                           Tcmb0=par['Tcmb0'], Neff=par['Neff'],
-                          m_nu=0.0, name=key)
+                          m_nu=par['m_nu'], name=key)
     cosmo.__doc__ = "%s cosmology\n\n(from %s)" % (key, par['reference'])
     setattr(sys.modules[__name__], key, cosmo)
 
