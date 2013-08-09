@@ -84,6 +84,7 @@ The Gaussian kernel has better smoothing properties, compared to the Box and the
 and can produce artifact (The source appears rectangular). The Mexican-Hat filter is almost noise free, but produces a negative
 ring around the source. The best choice for the filter, strongly depends on the application.     
 
+
 Available Kernels
 -----------------
 

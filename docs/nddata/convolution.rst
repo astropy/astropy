@@ -102,3 +102,4 @@ and a 3-d array as a list::
                   [[0, 0, 0], [0, 2, 0], [0, 0, 0]]]
     >>> result = convolve(cube, kernel)
 
+For built-in convolution kernels see :doc:`kernels` documentation.
