@@ -7,10 +7,13 @@ import numpy as np
 from ...tests.helper import pytest
 from .. import Time, ScaleValueError, sofa_time
 
-allclose_jd = functools.partial(np.allclose, rtol=1e-15, atol=0)
-allclose_jd2 = functools.partial(np.allclose, rtol=1e-15, atol=1e-11)  # 1 microsec atol
-allclose_sec = functools.partial(np.allclose, rtol=1e-15, atol=1e-9)  # 1 nanosec atol
-allclose_year = functools.partial(np.allclose, rtol=1e-15, atol=0)  # 60 microsec at current epoch
+allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
+allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
+                                 atol=2. ** -52)  # 20 ps atol
+allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
+                                 atol=2. ** -52 * 24 * 3600)  # 20 ps atol
+allclose_year = functools.partial(np.allclose, rtol=2. ** -52,
+                                  atol=0.)  # 14 microsec at current epoch
 
 
 class TestBasic():
@@ -22,7 +25,8 @@ class TestBasic():
         assert (repr(t) == "<Time object: scale='utc' format='iso' "
                 "vals=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>")
         assert allclose_jd(t.jd1, np.array([2451179.5, 2455197.5]))
-        assert allclose_jd2(t.jd2, np.array([1.42889802e-06, 0.00000000e+00]))
+        assert allclose_jd2(t.jd2, np.array([1.4288980208333335e-06,
+                                             0.00000000e+00]))
 
         # Set scale to TAI
         t = t.tai
@@ -326,7 +330,7 @@ class TestSubFormat():
         times = ['2000-01-01 01:01',
                  '2000-01-01 01:01:01', '2000-01-01 01:01:01.123']
         t = Time(times, format='iso', scale='tai',
-                     in_subfmt='date_*')
+                 in_subfmt='date_*')
         assert np.all(t.iso == np.array(['2000-01-01 01:01:00.000',
                                          '2000-01-01 01:01:01.000',
                                          '2000-01-01 01:01:01.123']))
@@ -335,13 +339,13 @@ class TestSubFormat():
         """Failed format matching"""
         with pytest.raises(ValueError):
             Time('2000-01-01 01:01', format='iso', scale='tai',
-                     in_subfmt='date')
+                 in_subfmt='date')
 
     def test_bad_input_subformat(self):
         """Non-existent input subformat"""
         with pytest.raises(ValueError):
             Time('2000-01-01 01:01', format='iso', scale='tai',
-                     in_subfmt='doesnt exist')
+                 in_subfmt='doesnt exist')
 
     def test_output_subformat(self):
         """Input subformat selection"""
@@ -349,7 +353,7 @@ class TestSubFormat():
         times = ['2000-01-01', '2000-01-01 01:01',
                  '2000-01-01 01:01:01', '2000-01-01 01:01:01.123']
         t = Time(times, format='iso', scale='tai',
-                     out_subfmt='date_hm')
+                 out_subfmt='date_hm')
         assert np.all(t.iso == np.array(['2000-01-01 00:00',
                                          '2000-01-01 01:01',
                                          '2000-01-01 01:01',
@@ -433,8 +437,8 @@ class TestSofaErrors():
 
     def test_bad_time(self):
         iy = np.array([2000], dtype=np.intc)
-        im = np.array([2000], dtype=np.intc) # bad month
-        id = np.array([2000], dtype=np.intc) # bad day
+        im = np.array([2000], dtype=np.intc)  # bad month
+        id = np.array([2000], dtype=np.intc)  # bad day
         djm0 = np.array([0], dtype=np.double)
         djm = np.array([0], dtype=np.double)
         with pytest.raises(ValueError):  # bad month, fatal error
@@ -453,21 +457,14 @@ class TestSofaErrors():
 class TestCopyReplicate():
     """Test issues related to copying and replicating data"""
 
-    def test_mutable_input(self):
-        """By default if JDs are provided with copy=False then internals are
-        mutable."""
+    def test_immutable_input(self):
+        """Internals are never mutable."""
         jds = np.array([2450000.5], dtype=np.double)
         t = Time(jds, format='jd', scale='tai')
-        assert allclose_jd(t.jd, jds)
-        jds[0] = 2459009.5
-        assert allclose_jd(t.jd, jds)
-
-        t = Time(jds, format='jd', scale='tai', copy=True)
         assert allclose_jd(t.jd, jds)
         jds[0] = 2458654
         assert not allclose_jd(t.jd, jds)
 
-        # MJD does not suffer from this mutability
         mjds = np.array([50000.0], dtype=np.double)
         t = Time(mjds, format='mjd', scale='tai')
         assert allclose_jd(t.jd, [2450000.5])
@@ -534,8 +531,9 @@ def test_now():
     # py < 2.7 and py3 < 3.2 doesn't have `total_seconds`
     if ((version_info[0] == 2 and version_info[1] < 7) or
         (version_info[0] == 3 and version_info[1] < 2) or
-        version_info[0] < 2):
-        total_secs = lambda td: (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10 ** 6) / 10 ** 6.
+            version_info[0] < 2):
+        total_secs = lambda td: (td.microseconds + (
+            td.seconds + td.days * 24 * 3600) * 10 ** 6) / 10 ** 6.
     else:
         total_secs = lambda td: td.total_seconds()
     assert total_secs(dt) < 0.1

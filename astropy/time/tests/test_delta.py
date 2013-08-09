@@ -6,8 +6,11 @@ import numpy as np
 from ...tests.helper import pytest
 from .. import Time, TimeDelta, OperandTypeError
 
-allclose_jd = functools.partial(np.allclose, rtol=1e-15, atol=0)
-allclose_sec = functools.partial(np.allclose, rtol=1e-15, atol=1e-9)  # 1 nanosec atol
+allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
+allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
+                                 atol=2. ** -52)  # 20 ps atol
+allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
+                                 atol=2. ** -52 * 24 * 3600)  # 20 ps atol
 
 
 class TestTimeDelta():
@@ -17,7 +20,7 @@ class TestTimeDelta():
         self.t = Time('2010-01-01', scale='utc')
         self.t2 = Time('2010-01-02 00:00:01', scale='utc')
         self.dt = TimeDelta(100.0, format='sec')
-        self.dt_array = TimeDelta(np.arange(100,1000,100), format='sec')
+        self.dt_array = TimeDelta(np.arange(100, 1000, 100), format='sec')
 
     def test_sub(self):
         # time - time
@@ -131,14 +134,14 @@ class TestTimeDelta():
 
     def test_mul_div(self):
         for dt in (self.dt, self.dt_array):
-            dt2 = dt+dt+dt
-            dt3 = 3.*dt
+            dt2 = dt + dt + dt
+            dt3 = 3. * dt
             assert allclose_jd(dt2.jd, dt3.jd)
             dt4 = dt3 / 3.
             assert allclose_jd(dt4.jd, dt.jd)
-        dt5 = self.dt*np.arange(3)
+        dt5 = self.dt * np.arange(3)
         assert dt5[0].jd == 0.
-        assert dt5[-1].jd == (self.dt+self.dt).jd
+        assert dt5[-1].jd == (self.dt + self.dt).jd
         with pytest.raises(OperandTypeError):
             self.dt * self.dt
         with pytest.raises(OperandTypeError):
