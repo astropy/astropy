@@ -974,6 +974,9 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
 
     // Grab a pointer to the input data from the HDU's compData attribute
     get_hdu_data_base(hdu, &inbuf, &inbufsize);
+    if (PyErr_Occurred()) {
+        return NULL;
+    }
 
     open_from_hdu(&fileptr, &inbuf, &inbufsize, hdu, columns);
     if (PyErr_Occurred()) {

@@ -1,7 +1,15 @@
 0.2.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.io.fits``
+
+  - Fixed a bug that could cause a segfault when trying to decompress an
+    compressed HDU whose contents are truncated (due to a corrupt file, for
+    example). This still causes a Python traceback but better that than a
+    segfault. [#1332]
 
 
 0.2.4 (2013-07-24)
