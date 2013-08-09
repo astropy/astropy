@@ -13,6 +13,10 @@ New Features
 
 - ``astropy.time``
 
+  - Update internal time manipulations so that arithmetic with Time and
+    TimeDelta objects maintains sub-nanosecond precision over a time span
+    longer than the age of the universe [#1189].
+  
   - Add ``datetime`` format which allows converting to and from standard
     library ``datetime.datetime`` objects.
 
