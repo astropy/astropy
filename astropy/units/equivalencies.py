@@ -13,7 +13,7 @@ from . import cgs
 from . import astrophys
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
-           'doppler_optical', 'doppler_relativistic']
+           'doppler_optical', 'doppler_relativistic', 'mass_energy']
 
 
 def parallax():
@@ -284,3 +284,15 @@ def doppler_relativistic(rest):
             (si.AA, si.km/si.s, to_vel_wav, from_vel_wav),
             (si.eV, si.km/si.s, to_vel_en, from_vel_en),
             ]
+
+
+def mass_energy():
+    """
+    Returns a list of equivalence pairs that handle the conversion
+    between mass and energy.
+    """
+
+    return [(si.kg, si.J, lambda x: x * _si.c.value**2,
+             lambda x: x / _si.c.value**2),
+        ]
+
