@@ -19,6 +19,9 @@ kernel array, which can be used for discrete convolution with the binned data.
 Examples
 --------
 
+1D Kernels
+^^^^^^^^^^
+
 One application of filtering is to smooth noisy data. In this case we consider a noisy 
 Lorentz curve: 
 
@@ -46,6 +49,46 @@ cases than the astropy convolution, but will not work properly if ``NaN`` values
 
 >>> smoothed = np.convolve(data, box_kernel.array)
 
+2D Kernels
+^^^^^^^^^^
+As all 2D kernels are symmetric it is sufficient to specify the width in one direction.
+Therefore the use of 2D kernels is basically the same as for 1D kernels:
+
+>>> import numpy as np
+>>> from astropy.nddata.convolution import convolve, Gaussian2DKernel, TopHat2DKernel
+>>> from astropy.modeling.models import Gaussian2DModel
+>>> gauss = Gaussian2DModel(1, 0, 0, 3, 3)
+>>> # Fake image data including noise
+>>> x = np.arange(-100, 101)
+>>> y = np.arange(-100, 101)
+>>> x, y = np.meshgrid(x, y)
+>>> data = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
+
+Smoothing the noisy data with a `~astropy.nddata.convolution.kernels.Gaussian2DKernel` of width 2 pixels:
+
+>>> gauss_kernel = Gaussian2DKernel(2)
+>>> smoothed_data_gauss = convolve(data, gauss_kernel)
+
+Smoothing the noisy data with a `~astropy.nddata.convolution.kernels.Tophat2DKernel` of width 5 pixels:
+
+>>> tophat_kernel = TopHat2DKernel(5)
+>>> smoothed_data_tophat = convolve(data, tophat_kernel)
+
+
+The following plot illustrates the differences between several 2D kernels applied to simulated data.
+We consider a small Gaussian shaped source in the middle and added noise. 
+
+.. plot:: nddata/pyplots/2DKernelPlot.py
+
+The Gaussian kernel has better smoothing properties, compared to the Box and the Tophat. The Box filter is not isotropic
+and can produce artifact (The source appears rectangular). The Mexican-Hat filter is almost noise free, but produces a negative
+ring around the source. The best choice for the filter, strongly depends on the application.     
+
+Available Kernels
+-----------------
+
+.. automodsumm:: astropy.nddata.convolution.kernels
+	:classes-only:
 
 
 Kernel Arithmetics
@@ -68,14 +111,6 @@ E.g. if the response function can be be described by the weighted sum of two Gau
 Most times it will be necessary to normalize the resulting kernel by calling explicitly:
 
 >>> SoG.normalize()
-
-
-Available Kernels
------------------
-
-.. automodsumm:: astropy.nddata.convolution.kernels
-	:classes-only:
-	
 
 Normalization
 -------------
