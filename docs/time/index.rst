@@ -16,6 +16,14 @@ It uses Cython to wrap the C language `SOFA`_ time and calendar
 routines.  All time scale conversions are done by Cython vectorized versions
 of the `SOFA`_ routines and are fast and memory efficient.
 
+All time manipulations and arithmetic operations are done internally using two
+64-bit floats to represent time.  Floating point algorithms from [#]_ are used so
+that the |Time| object maintains sub-nanosecond precision over times spanning
+the age of the universe.
+
+.. [#] `Shewchuk, 1997, Discrete & Computational Geometry 18(3):305-363
+        <http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf>`_
+
 Getting Started
 ===============
 

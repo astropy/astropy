@@ -9,19 +9,19 @@ class TestTimeComparisons():
     """Test Comparisons of Time and TimeDelta classes"""
 
     def setup(self):
-        self.t1 = Time(np.arange(49995,50005), format='mjd', scale='utc')
-        self.t2 = Time(np.arange(49000,51000,200), format='mjd', scale='utc')
+        self.t1 = Time(np.arange(49995, 50005), format='mjd', scale='utc')
+        self.t2 = Time(np.arange(49000, 51000, 200), format='mjd', scale='utc')
 
     def test_time(self):
         t1_lt_t2 = self.t1 < self.t2
         assert np.all(t1_lt_t2 == np.array([False, False, False, False, False,
-                                            False,True, True, True, True]))
+                                            False, True, True, True, True]))
         t1_ge_t2 = self.t1 >= self.t2
         assert np.all(t1_ge_t2 != t1_lt_t2)
 
         t1_le_t2 = self.t1 <= self.t2
         assert np.all(t1_le_t2 == np.array([False, False, False, False, False,
-                                            True,True, True, True, True]))
+                                            True, True, True, True, True]))
         t1_gt_t2 = self.t1 > self.t2
         assert np.all(t1_gt_t2 != t1_le_t2)
 
