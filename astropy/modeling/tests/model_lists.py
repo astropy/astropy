@@ -180,7 +180,7 @@ models_2D[Poly2DModel] = {'parameters': {'degree': 1, 'c0_0': 1., 'c1_0': 1., 'c
 models_2D[Disk2DModel] = {'parameters': [1, 0, 0, 5],
                          'x_values': [-5, 5, -5, 5, 0, -10, 10],
                          'y_values': [-5, 5, 0, 0, 0, -10, 10],
-                         'z_values': [0, 0, 0.5, 0.5, 1, 0, 0],
+                         'z_values': [0, 0, 1, 1, 1, 0, 0],
                          'x_lim': [-10, 10],
                          'y_lim': [-10, 10],
                          'integral': np.pi * 5 ** 2}

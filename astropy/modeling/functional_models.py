@@ -562,8 +562,7 @@ class Disk2DModel(Parametric2DModel):
 
             f(r) = \\left \\{
                      \\begin{array}{ll}
-                       A & : r < R_0 \\\\
-                       A/2 & : r = R_0 \\\\
+                       A & : r \\seq R_0 \\\\
                        0 & : r > R_0
                      \\end{array}
                    \\right.
@@ -578,7 +577,7 @@ class Disk2DModel(Parametric2DModel):
         Model function Disk2D.
         """
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
-        return np.select([rr < R_0 ** 2, rr == R_0 ** 2], [amplitude, amplitude / 2.])
+        return np.select([rr <= R_0 ** 2], [amplitude])
 
 
 class Delta1DModel(Parametric1DModel):
