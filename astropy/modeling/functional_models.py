@@ -16,7 +16,7 @@ __all__ = sorted(['AiryDisk2DModel', 'Beta1DModel', 'Beta2DModel',
            'Custom1DModel', 'Disk2DModel', 'Gaussian1DModel', 'Gaussian2DModel',
            'Linear1DModel', 'Lorentz1DModel', 'MexicanHat1DModel',
            'MexicanHat2DModel', 'PowerLaw1DModel', 'ScaleModel', 'ShiftModel',
-           'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel'])
+           'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel', 'Ring2DModel'])
 
 
 class Gaussian1DModel(Parametric1DModel):
@@ -562,7 +562,7 @@ class Disk2DModel(Parametric2DModel):
 
             f(r) = \\left \\{
                      \\begin{array}{ll}
-                       A & : r \\seq R_0 \\\\
+                       A & : r \\leq R_0 \\\\
                        0 & : r > R_0
                      \\end{array}
                    \\right.
@@ -578,6 +578,61 @@ class Disk2DModel(Parametric2DModel):
         """
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
         return np.select([rr <= R_0 ** 2], [amplitude])
+
+
+class Ring2DModel(Parametric2DModel):
+
+    """
+    Two dimensional radial symmetric Ring model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Value of the disk function
+    x_0 : float
+        x position center of the disk
+    y_0 : float
+        y position center of the disk
+    R_in : float
+        Inner Radius of the ring
+    R_out : float
+        Outer Radius of the ring
+    width : float
+        width of the ring. Can be specified instead of R_out.
+
+    See Also
+    --------
+    Disk2DModel, TrapezoidDisk2DModel
+
+    Notes
+    -----
+    Model formula:
+
+        .. math::
+
+            f(r) = \\left \\{
+                     \\begin{array}{ll}
+                       A & : R_{in} \\leq r \\leq R_{out} \\\\
+                       0 & : \\textnormal{else}
+                     \\end{array}
+                   \\right.
+    """
+    param_names = ['amplitude', 'x_0', 'y_0', 'R_in', 'R_out']
+
+    def __init__(self, amplitude, x_0, y_0, R_in, R_out=None, width=None, **constraints):
+        if width != None:
+            R_out = R_in + width
+        if R_out == None:
+            raise ModelDefinitionError("Either specify R_out or width.")
+        super(Ring2DModel, self).__init__(locals())
+
+    def eval(self, x, y, amplitude, x_0, y_0, R_in, R_out):
+        """
+        Model function Ring2D.
+        """
+        rr = (x - x_0) ** 2 + (y - y_0) ** 2
+        r_range = np.logical_and(rr >= R_in ** 2, rr <= R_out ** 2)
+        return np.select([r_range], [amplitude])
 
 
 class Delta1DModel(Parametric1DModel):

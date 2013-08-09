@@ -13,7 +13,7 @@ __all__ = sorted(['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
                   'Trapezoid1DKernel', 'MexicanHat1DKernel',
                   'MexicanHat2DKernel', 'AiryDisk2DKernel',
                   'Model1DKernel', 'Model2DKernel',
-                  'TrapezoidDisk2DKernel'])
+                  'TrapezoidDisk2DKernel', 'Ring2DKernel'])
 
 
 class Gaussian1DKernel(Kernel1D):
@@ -306,7 +306,7 @@ class Tophat2DKernel(Kernel2D):
 
         import matplotlib.pyplot as plt
         from astropy.nddata.convolution import Tophat2DKernel
-        tophat_2D_kernel = Tophat2DKernel(10)
+        tophat_2D_kernel = Tophat2DKernel(40)
         plt.imshow(tophat_2D_kernel)
         plt.xlabel('pixels')
         plt.ylabel('pixels')
@@ -326,10 +326,55 @@ class Ring2DKernel(Kernel2D):
     Ring filter kernel.
 
     The Ring filter kernel is the difference between two Tophat kernels of
-    different width. It is useful for e.g background estimation.
+    different width. This kernel is useful for e.g background estimation.
+
+    Parameters
+    ----------
+    radius_in : number
+        Inner radius of the ring kernel.
+    radius_out : number
+        Outer radius of the ring kernel.
+    mode: string
+        One of the following discretization modes:
+            * 'center'
+                Discretize model by taking the value
+                at the center of the bin.
+            * 'corner'
+                Discretize model by taking average of
+                the values at the corners of the bin.
+            * 'oversample'
+                Discretize model by taking the average
+                on an oversampled grid.
+            * 'integrate'
+                Discretize model by integrating the
+                model over the bin.
+    factor : number
+        Factor of oversampling. Default = 10.
+
+    See Also
+    --------
+    Box2DKernel, Gaussian2DKernel, MexicanHat2DKernel, Tophat2DKernel
+
+    Notes
+    -----
+    Kernel response:
+
+     .. plot::
+
+        import matplotlib.pyplot as plt
+        from astropy.nddata.convolution import Ring2DKernel
+        ring_2D_kernel = Ring2DKernel(5, 7)
+        plt.plot(ring_1D_kernel)
+        plt.xlabel('pixels')
+        plt.ylabel('pixels')
+        plt.show()
     """
-    def __init__(self, radius_in, radius_out):
-        raise NotImplementedError
+    def __init__(self, radius_in, radius_out, **kwargs):
+        self._model = Ring2DModel(1. / (np.pi * (radius_out ** 2 - radius_in ** 2)), 
+                                        0, 0, radius_in, radius_out)
+        self._default_size = 2 * radius_out
+        super(Ring2DKernel, self).__init__(**kwargs)
+        self._truncation = 0
 
 
 class Trapezoid1DKernel(Kernel1D):
@@ -437,7 +482,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
 
     def __init__(self, width, slope=1., **kwargs):
         self._model = TrapezoidDisk2DModel(1, 0, 0, width, slope)
-        self._default_size = width + 2. / slope
+        self._default_size = 2 * (width + 1. / slope) - 1
         super(TrapezoidDisk2DKernel, self).__init__(**kwargs)
         self._truncation = 0
 
@@ -663,6 +708,20 @@ class Model1DKernel(Kernel1D):
     --------
     Model2DKernel : Create kernel from astropy.models.Parametric2DModel
     CustomKernel : Create kernel from list or array
+
+    Examples
+    --------
+    Define a Gaussian1D model:
+
+        >>> from astropy.modeling.models import Gaussian1DModel
+        >>> from astropy.modeling.models import Model1DKernel
+        >>> gauss = Gaussian1dmodel(1, 0, 2)
+
+    And create a custom one dimensional kernel from it:
+
+        >>> gauss_kernel = Model1DKernel(gauss, x_size=9)
+
+    This kernel can now be used like a usual astropy kernel.
     """
     _separable = False
     _weighted = True
@@ -709,6 +768,21 @@ class Model2DKernel(Kernel2D):
     --------
     Model1DKernel : Create kernel from astropy.models.Parametric1DModel
     CustomKernel : Create kernel from list or array
+
+    Examples
+    --------
+    Define a Gaussian2D model:
+
+        >>> from astropy.modeling.models import Gaussian2DModel
+        >>> from astropy.modeling.models import Model2DKernel
+        >>> gauss = Gaussian1dmodel(1, 0, 0, 2, 2)
+
+    And create a custom two dimensional kernel from it:
+
+        >>> gauss_kernel = Model2DKernel(gauss, x_size=9)
+
+    This kernel can now be used like a usual astropy kernel.
+
     """
     _weighted = True
     _separable = False
