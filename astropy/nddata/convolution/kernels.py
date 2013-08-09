@@ -323,7 +323,7 @@ class Tophat2DKernel(Kernel2D):
 
 class Ring2DKernel(Kernel2D):
     """
-    Ring filter kernel.
+    2D Ring filter kernel.
 
     The Ring filter kernel is the difference between two Tophat kernels of
     different width. This kernel is useful for e.g background estimation.
