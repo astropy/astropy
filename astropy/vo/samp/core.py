@@ -247,7 +247,7 @@ except ImportError:
   SSL_SUPPORT = False
 else:
   SSL_SUPPORT = True
-
+  
 
 PYTHON_VERSION = float(platform.python_version()[:3])
 
@@ -382,6 +382,7 @@ class _ServerProxyPoolMethod:
 
 
 class ServerProxyPool(object):
+  """This class provide a thread safe pool of xmlrpc.ServerProxy"""
 
   def __init__(self, size, proxy_class, *args, **keywords):
 
@@ -396,6 +397,8 @@ class ServerProxyPool(object):
 
 if HAS_TKINTER:
   class WebProfilePopupDialogue(tk.Tk):
+    """Pop-up dialog (Tkinter backend) which asks the user to consent
+    or reject a connection through the WebProfile"""
 
     def __init__(self, queue, screenName=None, baseName=None, className='Tk',
                  useTk=1, sync=0, use=None):
@@ -458,6 +461,9 @@ if HAS_TKINTER:
 else:
 
   class WebProfilePopupDialogue(object):
+    """Terminal dialog (no backend) which asks the user to consent
+    or reject a connection through the WebProfile"""
+    
 
     def __init__(self, queue):
 
@@ -718,6 +724,7 @@ class SAMPLog(object):
 
 
 class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
+  """XMLRPC handler of Standar Profile requests (internal use only)"""
 
   def do_GET(self):
 
@@ -1008,6 +1015,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
 
 
 class ThreadingXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer):
+  """Asynchronous multithreaded XMLRPC server (internal use only)"""
 
   def __init__(self, addr, log = None, requestHandler = SAMPSimpleXMLRPCRequestHandler,
                logRequests = True, allow_none = True, encoding = None):
@@ -1024,6 +1032,9 @@ class ThreadingXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer):
 
 
 class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
+  """Handler of XMLRPC requests performed through the WebProfile (internal use
+  only)
+  """
 
   def _send_CORS_header(self):
 
@@ -1151,6 +1162,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
 
 
 class WebProfileXMLRPCServer(ThreadingXMLRPCServer):
+  """XMLRPC server supporting the SAMP Web Profile"""
 
   def __init__(self, addr, log = None, requestHandler = WebProfileRequestHandler,
                logRequests = True, allow_none = True, encoding = None):
@@ -1172,7 +1184,9 @@ class WebProfileXMLRPCServer(ThreadingXMLRPCServer):
 if SSL_SUPPORT:
 
   class HTTPSConnection(HTTPConnection):
-    "This class allows communication via SSL (client side)."
+    """This class allows communication via SSL (client side - internal use
+    only).
+    """
 
     default_port = HTTPS_PORT
 
@@ -1206,6 +1220,7 @@ if SSL_SUPPORT:
   if PYTHON_VERSION < 3.0:
 
     class HTTPS(HTTP):
+      """Facility class fo HTTP communication (internal use only)"""
 
       _connection_class = HTTPSConnection
 
@@ -1234,7 +1249,7 @@ if SSL_SUPPORT:
 
 
   class SafeTransport(xmlrpc.Transport):
-    """Handles an HTTPS transaction to an XML-RPC server."""
+    """Handles an HTTPS transaction to an XML-RPC server. (internal use only)"""
 
     def __init__(self, key_file=None, cert_file=None,
                  cert_reqs=ssl.CERT_NONE, ca_certs=None,
@@ -1270,6 +1285,8 @@ if SSL_SUPPORT:
 
 
   class SecureXMLRPCServer(ThreadingXMLRPCServer):
+    """An XMLRPC server supporting secure sockets connections (internal use only)
+    """
 
     def __init__(self, addr, keyfile, certfile, cert_reqs, ca_certs, ssl_version,
                  log = None, requestHandler = SimpleXMLRPCRequestHandler,
@@ -1305,7 +1322,7 @@ if SSL_SUPPORT:
 if BDB_SUPPORT:
 
   class BasicAuthSimpleXMLRPCRequestHandler(SAMPSimpleXMLRPCRequestHandler):
-    """XML-RPC Request Handler for Basic Authentication support."""
+    """XML-RPC Request Handler for Basic Authentication support. (internal use only)"""
 
     def __init__(self, request, client_address, server, auth_file, access_restrict = None):
       """
@@ -1398,7 +1415,7 @@ if BDB_SUPPORT:
 
 
   class BasicAuthXMLRPCServer(ThreadingXMLRPCServer):
-    """XML-RPC server with Basic Authentication support."""
+    """XML-RPC server with Basic Authentication support. (internal use only)"""
 
     def __init__(self, addr, auth_file, access_restrict = None, log = None,
                  requestHandler = BasicAuthSimpleXMLRPCRequestHandler,
@@ -1436,6 +1453,9 @@ if BDB_SUPPORT:
 if SSL_SUPPORT and BDB_SUPPORT:
 
   class BasicAuthSecureXMLRPCServer(ThreadingXMLRPCServer):
+    """XML-RPC server with Basic Authentication support, secure socket 
+    connections and multithreaded. (internal use only)"""
+    
     def __init__(self, addr, keyfile, certfile, cert_reqs, ca_certs, ssl_version,
                  auth_file, access_restrict = None, log = None,
                  requestHandler = BasicAuthSimpleXMLRPCRequestHandler,
@@ -1475,7 +1495,7 @@ if SSL_SUPPORT and BDB_SUPPORT:
 
 class SAMPHubServer(object):
   """
-  SAMP Hub Server implementation (Standard Profile v1.0)
+  SAMP Hub Server implementation
   """
 
   def __init__(self, secret = None, addr=None, port=0, lockfile=None, timeout = 0, \
