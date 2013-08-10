@@ -33,3 +33,12 @@ def test_imports():
 
     for imper, nm, ispkg in walk_packages(pkgpath, package.__name__ + '.'):
         imper.find_module(nm)
+
+
+def test_toplevel_namespace():
+    import astropy
+    d = dir(astropy)
+    assert 'os' not in d
+    assert 'log' in d
+    assert 'test' in d
+    assert 'sys' not in d

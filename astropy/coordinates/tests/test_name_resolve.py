@@ -37,7 +37,7 @@ _cached_ngc3642["simbad"] = """# ngc 3642	#Q22523669
 
 _cached_ngc3642["vizier"] = """# ngc 3642	#Q22523677
 #=V=VizieR (local):    1
-%J 170.56 +59.08 = 11:22.2     +59:05     
+%J 170.56 +59.08 = 11:22.2     +59:05
 %I.0 {NGC} 3642
 
 
@@ -58,7 +58,7 @@ _cached_ngc3642["all"] = """# ngc3642	#Q22523722
 
 
 #=V=VizieR (local):    1
-%J 170.56 +59.08 = 11:22.2     +59:05     
+%J 170.56 +59.08 = 11:22.2     +59:05
 %I.0 {NGC} 3642
 
 
@@ -71,7 +71,7 @@ _cached_castor["all"] = """# castor	#Q22524249
 #=S=Simbad (via url):    1
 %@ 983633
 %I.0 NAME CASTOR
-%C.0 ** 
+%C.0 **
 %C.N0 12.13.00.00
 %J 113.649471640 +31.888282216 = 07:34:35.87 +31:53:17.8
 %J.E [34.72 25.95 0] A 2007A&A...474..653V
@@ -93,7 +93,7 @@ _cached_castor["simbad"] = """# castor	#Q22524495
 #=S=Simbad (via url):    1
 %@ 983633
 %I.0 NAME CASTOR
-%C.0 ** 
+%C.0 **
 %C.N0 12.13.00.00
 %J 113.649471640 +31.888282216 = 07:34:35.87 +31:53:17.8
 %J.E [34.72 25.95 0] A 2007A&A...474..653V
@@ -114,17 +114,17 @@ def test_names():
 
     with pytest.raises(NameResolveError):
         get_icrs_coordinates("m87h34hhh")
-    
+
     try:
         icrs = get_icrs_coordinates("ngc 3642")
     except NameResolveError:
         ra,dec = _parse_response(_cached_ngc3642["all"])
         icrs = ICRSCoordinates(ra, dec, unit=(u.degree, u.degree))
-        
+
     icrs_true = ICRSCoordinates("11h 22m 18.014s", "59d 04m 27.27s")
-    np.testing.assert_almost_equal(icrs.ra.degrees, icrs_true.ra.degrees, 3)
-    np.testing.assert_almost_equal(icrs.dec.degrees, icrs_true.dec.degrees, 3)
-    
+    np.testing.assert_almost_equal(icrs.ra.degree, icrs_true.ra.degree, 3)
+    np.testing.assert_almost_equal(icrs.dec.degree, icrs_true.dec.degree, 3)
+
     try:
         icrs = get_icrs_coordinates("castor")
     except NameResolveError:
@@ -132,8 +132,8 @@ def test_names():
         icrs = ICRSCoordinates(ra, dec, unit=(u.degree, u.degree))
 
     icrs_true = ICRSCoordinates("07h 34m 35.87s", "+31d 53m 17.8s")
-    np.testing.assert_almost_equal(icrs.ra.degrees, icrs_true.ra.degrees, 3)
-    np.testing.assert_almost_equal(icrs.dec.degrees, icrs_true.dec.degrees, 3)
+    np.testing.assert_almost_equal(icrs.ra.degree, icrs_true.ra.degree, 3)
+    np.testing.assert_almost_equal(icrs.dec.degree, icrs_true.dec.degree, 3)
 
 @remote_data
 def test_database_specify():

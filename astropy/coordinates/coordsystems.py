@@ -8,6 +8,7 @@ from abc import ABCMeta, abstractproperty, abstractmethod
 from .. import units as u
 from .angles import RA, Dec, Angle, AngularSeparation
 from .distances import *
+from ..utils.compat.misc import override__dir__
 
 __all__ = ['SphericalCoordinatesBase']
 
@@ -261,8 +262,8 @@ class SphericalCoordinatesBase(object):
 
         #add in the bounds, if relevant
         if anglebounds is not None and not useradec:
-            lonang = Angle(lonang.degrees, u.degree, bounds=anglebounds[0])
-            latang = Angle(latang.degrees, u.degree, bounds=anglebounds[1])
+            lonang = Angle(lonang.degree, u.degree, bounds=anglebounds[0])
+            latang = Angle(latang.degree, u.degree, bounds=anglebounds[1])
 
         # now actually set the values
         setattr(self, lonname, lonang)
@@ -365,8 +366,8 @@ class SphericalCoordinatesBase(object):
             else:
                 r = self._distance._value
                 runit = self._distance._unit
-            x, y, z = spherical_to_cartesian(r, self.latangle.radians,
-                                                self.lonangle.radians)
+            x, y, z = spherical_to_cartesian(r, self.latangle.radian,
+                                                self.lonangle.radian)
             self._cartpoint = CartesianPoints(x, y, z, runit)
 
     def separation(self, other):
@@ -388,10 +389,10 @@ class SphericalCoordinatesBase(object):
         """
         other_in_self_system = other.transform_to(self.__class__)
 
-        lon1 = self.lonangle.radians
-        lat1 = self.latangle.radians
-        lon2 = other_in_self_system.lonangle.radians
-        lat2 = other_in_self_system.latangle.radians
+        lon1 = self.lonangle.radian
+        lat1 = self.latangle.radian
+        lon2 = other_in_self_system.lonangle.radian
+        lat2 = other_in_self_system.latangle.radian
 
         return AngularSeparation(lon1, lat1, lon2, lat2, u.radian,
             _supresslatlonswap_warning=True)  # TODO: remove _supresslatlonswap_warning in v0.4
@@ -509,6 +510,7 @@ class SphericalCoordinatesBase(object):
             msg = "'{0}' object has no attribute '{1}', nor a transform."
             raise AttributeError(msg.format(self.__class__.__name__, name))
 
+    @override__dir__
     def __dir__(self):
         """
         Overriding the builtin `dir` behavior allows us to add the
@@ -517,16 +519,15 @@ class SphericalCoordinatesBase(object):
         """
         from .transformations import master_transform_graph
 
-        # the stuff `dir` normally gives
-        dir_items = dir(type(self)) + self.__dict__.keys()
+        dir_items = set()
 
         # determine the aliases that this can be transformed to.
         for alias in master_transform_graph.get_aliases():
             tosys = master_transform_graph.lookup_name(alias)
             if self.is_transformable_to(tosys):
-                dir_items.append(alias)
+                dir_items.add(alias)
 
-        return sorted(set(dir_items))
+        return dir_items
 
     # Name resolve
     @classmethod

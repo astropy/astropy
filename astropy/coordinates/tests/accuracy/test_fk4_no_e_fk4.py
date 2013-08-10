@@ -33,7 +33,7 @@ def test_fk4_no_e_fk5():
         c2 = c1.transform_to(FK4NoETermCoordinates)
 
         # Find difference
-        diff = vincenty_sphere_dist(c2.ra.radians, c2.dec.radians,
+        diff = vincenty_sphere_dist(c2.ra.radian, c2.dec.radian,
                                     np.radians(r['ra_fk4ne']), np.radians(r['dec_fk4ne']))
 
         assert np.degrees(diff) * 3600. < TOLERANCE
@@ -45,7 +45,7 @@ def test_fk4_no_e_fk5():
         c2 = c1.transform_to(FK4Coordinates)
 
         # Find difference
-        diff = vincenty_sphere_dist(c2.ra.radians, c2.dec.radians,
+        diff = vincenty_sphere_dist(c2.ra.radian, c2.dec.radian,
                                     np.radians(r['ra_fk4']), np.radians(r['dec_fk4']))
 
         assert np.degrees(diff) * 3600. < TOLERANCE

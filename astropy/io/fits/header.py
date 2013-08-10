@@ -220,7 +220,7 @@ class Header(object):
                 # TODO: Remove this warning and make KeyError the default after
                 # a couple versions (by 3.2 or 3.3, say)
                 warnings.warn(
-                    'Deletetion of non-existent keyword %r: '
+                    'Deletion of non-existent keyword %r: '
                     'In a future Astropy version Header.__delitem__ may be '
                     'changed so that this raises a KeyError just like a dict '
                     'would. Please update your code so that KeyErrors are '
@@ -1019,7 +1019,7 @@ class Header(object):
             # This must be a legacy update()
             warnings.warn(
                 "The use of header.update() to add new keywords to a header "
-                "deprecated.  Instead, use either header.set() or simply "
+                "is deprecated.  Instead, use either header.set() or simply "
                 "`header[keyword] = value` or "
                 "`header[keyword] = (value, comment)`.  header.set() is only "
                 "necessary to use if you also want to use the before/after "

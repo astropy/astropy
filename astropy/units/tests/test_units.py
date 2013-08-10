@@ -29,9 +29,12 @@ def test_getting_started():
     assert_allclose(x, [2.23693629e-02, 2.23693629e+01, 1.11846815e+02])
 
 
-@raises(ValueError)
 def test_invalid_power():
-    u.m ** 0.3
+    x = u.m ** (1, 3)
+    assert isinstance(x.powers[0], Fraction)
+
+    x = u.m ** (1, 2)
+    assert isinstance(x.powers[0], float)
 
 
 def test_invalid_compare():
@@ -248,6 +251,11 @@ def test_unknown_unit3():
     unit = u.Unit("FOO", parse_strict='silent')
     assert isinstance(unit, u.UnrecognizedUnit)
     assert unit.name == "FOO"
+
+
+def test_cds_power():
+    unit = u.Unit("10+22/cm2", format="cds", parse_strict='silent')
+    assert unit.scale == 1e22
 
 
 def test_register():

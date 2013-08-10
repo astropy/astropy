@@ -2,11 +2,6 @@
 """
 A set of tests for the util.py module
 """
-from __future__ import absolute_import, print_function
-
-# THIRD-PARTY
-from numpy.testing import assert_array_equal
-
 #LOCAL
 from .. import util
 from ....tests.helper import raises
@@ -68,4 +63,3 @@ def test_range_list9a():
 def test_range_list9():
     assert util.coerce_range_list_param(
         "52,-27.8;GALACTIC", util.stc_reference_frames)
-

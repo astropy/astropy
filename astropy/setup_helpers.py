@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
+import warnings
 
 from distutils import log
 from distutils.dist import Distribution
@@ -27,6 +28,7 @@ from setuptools.command.build_ext import build_ext as SetuptoolsBuildExt
 from setuptools.command.build_py import build_py as SetuptoolsBuildPy
 
 from setuptools.command.register import register as SetuptoolsRegister
+from setuptools import find_packages
 
 from .tests.helper import astropy_test
 from .utils import silence
@@ -50,6 +52,10 @@ except ImportError:
 
 
 PY3 = sys.version_info[0] >= 3
+
+
+# This adds a new keyword to the setup() function
+Distribution.skip_2to3 = []
 
 
 _adjusted_compiler = False
@@ -359,7 +365,7 @@ def register_commands(package, version, release):
 
          # The exact form of the build_ext command depends on whether or not
          # we're building a release version
-         'build_ext': generate_build_ext_command(release),
+         'build_ext': generate_build_ext_command(package, release),
 
          # We have a custom build_py to generate the default configuration file
          'build_py': AstropyBuildPy,
@@ -379,7 +385,7 @@ def register_commands(package, version, release):
     if HAVE_SPHINX:
         _registered_commands['build_sphinx'] = AstropyBuildSphinx
     else:
-         _registered_commands['build_sphinx'] = FakeBuildSphinx
+        _registered_commands['build_sphinx'] = FakeBuildSphinx
 
     # Need to override the __name__ here so that the commandline options are
     # presented as being related to the "build" command, for example; normally
@@ -407,7 +413,7 @@ def generate_test_command(package_name):
                 {'package_name': package_name})
 
 
-def generate_build_ext_command(release):
+def generate_build_ext_command(packagename, release):
     """
     Creates a custom 'build_ext' command that allows for manipulating some of
     the C extension options at build time.  We use a function to build the
@@ -418,7 +424,7 @@ def generate_build_ext_command(release):
     Uses the default distutils.command.build_ext by default.
     """
 
-    uses_cython = should_build_with_cython(release)
+    uses_cython = should_build_with_cython(packagename, release)
 
     if uses_cython:
         from Cython.Distutils import build_ext as basecls
@@ -497,8 +503,8 @@ def generate_build_ext_command(release):
         except ImportError:
             cython_version = 'unknown'
         if self.uses_cython and self.uses_cython != cython_version:
-            astropy_dir = os.path.relpath(os.path.dirname(__file__))
-            cython_py = os.path.join(astropy_dir, 'cython_version.py')
+            package_dir = os.path.relpath(packagename)
+            cython_py = os.path.join(package_dir, 'cython_version.py')
             with open(cython_py, 'w') as f:
                 f.write('# Generated file; do not modify\n')
                 f.write('cython_version = {0!r}\n'.format(self.uses_cython))
@@ -559,6 +565,19 @@ class AstropyBuildPy(SetuptoolsBuildPy):
         install_lib_cmd.build_dir = build_purelib
         self.build_lib = build_purelib
         SetuptoolsBuildPy.finalize_options(self)
+
+    def run_2to3(self, files, doctests=False):
+        # Filter the files to exclude things that shouldn't be 2to3'd
+        skip_2to3 = self.distribution.skip_2to3
+        filtered_files = []
+        for file in files:
+            for package in skip_2to3:
+                if file[len(self.build_lib) + 1:].startswith(package):
+                    break
+            else:
+                filtered_files.append(file)
+
+        SetuptoolsBuildPy.run_2to3(self, filtered_files, doctests)
 
     def run(self):
         # first run the normal build_py
@@ -954,31 +973,74 @@ def is_distutils_display_option():
 
 def update_package_files(srcdir, extensions, package_data, packagenames,
                          package_dirs):
-    """ Extends existing extensions, package_data, packagenames and
-    package_dirs collections by iterating through all packages in
-    ``srcdir`` and locating a ``setup_package.py`` module.  This
-    module can contain the following functions: ``get_extensions()``,
-    ``get_package_data()``, ``get_legacy_alias()``,
-    ``get_build_options()``, and ``get_external_libraries()``.
+    """
+    This function is deprecated and maintained for backward compatibility
+    with affiliated packages.  Affiliated packages should update their
+    setup.py to use `get_package_info` instead.
+    """
+    warnings.warn(
+        "astropy.setup_helpers.update_package_files is deprecated.  Update "
+        "your setup.py to use astropy.setup_helpers.get_package_info instead.",
+        DeprecationWarning)
 
-    Each of those functions take no arguments.  ``get_extensions``
-    returns a list of `distutils.extension.Extension` objects.
-    ``get_package_data()`` returns a dict formatted as required by the
-    ``package_data`` argument to ``setup()``.  ``get_legacy_alias()``
-    should call `add_legacy_alias` and return its result.
-    ``get_build_options()`` returns a list of tuples describing the
-    extra build options to add.  ``get_external_libraries()`` returns
-    a list of libraries that can optionally be built using external
-    dependencies.
+    info = get_package_info(srcdir)
+    extensions.extend(info['ext_modules'])
+    package_data.update(info['package_data'])
+    packagenames = list(set(packagenames + info['packages']))
+    package_dirs.update(info['package_dir'])
+
+
+def get_package_info(srcdir):
+    """
+    Collates all of the information for building all subpackages
+    subpackages and returns a dictionary of keyword arguments that can
+    be passed directly to `distutils.setup`.
 
     The purpose of this function is to allow subpackages to update the
     arguments to the package's ``setup()`` function in its setup.py
     script, rather than having to specify all extensions/package data
-    directly in the setup.py.  It updates existing lists in the
-    setup.py rather than returning new ones.  See Astropy's own
+    directly in the ``setup.py``.  See Astropy's own
     ``setup.py`` for example usage and the Astropy development docs
     for more details.
+
+    This function obtains that information by iterating through all
+    packages in ``srcdir`` and locating a ``setup_package.py`` module.
+    This module can contain the following functions:
+    ``get_extensions()``, ``get_package_data()``,
+    ``get_legacy_alias()``, ``get_build_options()``,
+    ``get_external_libraries()`` and ``requires_2to3()``.
+
+    Each of those functions take no arguments.
+
+    - ``get_extensions`` returns a list of
+      `distutils.extension.Extension` objects.
+
+    - ``get_package_data()`` returns a dict formatted as required by
+      the ``package_data`` argument to ``setup()``.
+
+    - ``get_legacy_alias()`` should call `add_legacy_alias` and return
+      its result.
+
+    - ``get_build_options()`` returns a list of tuples describing the
+      extra build options to add.
+
+    - ``get_external_libraries()`` returns
+      a list of libraries that can optionally be built using external
+      dependencies.
+
+    - ``requires_2to3()`` should return `True` when the source code
+      requires `2to3` processing to run on Python 3.x.  If
+      ``requires_2to3()`` is missing, it is assumed to return `True`.
+
     """
+    ext_modules = []
+    packages = []
+    package_data = {}
+    package_dir = {}
+    skip_2to3 = []
+
+    # Use the find_packages tool to locate all packages and modules
+    packages = filter_packages(find_packages())
 
     # For each of the setup_package.py modules, extract any
     # information that is needed to install them.  The build options
@@ -993,6 +1055,13 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
             libraries = setuppkg.get_external_libraries()
             for library in libraries:
                 add_external_library(library)
+        if hasattr(setuppkg, 'requires_2to3'):
+            requires_2to3 = setuppkg.requires_2to3()
+        else:
+            requires_2to3 = True
+        if not requires_2to3:
+            skip_2to3.append(
+                os.path.dirname(setuppkg.__file__))
 
     # Check if all the legacy packages are needed
     if get_distutils_build_or_install_option('enable_legacy'):
@@ -1003,8 +1072,8 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
                 if dir is None:
                     installed.append(pkg)
                 else:
-                    packagenames.append(pkg)
-                    package_dirs[pkg] = dir
+                    packages.append(pkg)
+                    package_dir[pkg] = dir
         if len(installed) > 0:
             lines = [
                 '-' * 60,
@@ -1025,27 +1094,35 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
         # get_extensions must include any Cython extensions by their .pyx
         # filename.
         if hasattr(setuppkg, 'get_extensions'):
-            extensions.extend(setuppkg.get_extensions())
+            ext_modules.extend(setuppkg.get_extensions())
         if hasattr(setuppkg, 'get_package_data'):
             package_data.update(setuppkg.get_package_data())
 
     # Locate any .pyx files not already specified, and add their extensions in.
     # The default include dirs include numpy to facilitate numerical work.
-    extensions.extend(get_cython_extensions(srcdir, extensions, ['numpy']))
+    ext_modules.extend(get_cython_extensions(srcdir, ext_modules, ['numpy']))
 
     # Now remove extensions that have the special name 'skip_cython', as they
     # exist Only to indicate that the cython extensions shouldn't be built
-    for i, ext in reversed(list(enumerate(extensions))):
+    for i, ext in reversed(list(enumerate(ext_modules))):
         if ext.name == 'skip_cython':
-            del extensions[i]
+            del ext_modules[i]
 
     # On Microsoft compilers, we need to pass the '/MANIFEST'
     # commandline argument.  This was the default on MSVC 9.0, but is
     # now required on MSVC 10.0, but it doesn't seeem to hurt to add
     # it unconditionally.
     if get_compiler_option() == 'msvc':
-        for ext in extensions:
+        for ext in ext_modules:
             ext.extra_link_args.append('/MANIFEST')
+
+    return {
+        'ext_modules': ext_modules,
+        'packages': packages,
+        'package_dir': package_dir,
+        'package_data': package_data,
+        'skip_2to3': skip_2to3
+        }
 
 
 def iter_setup_packages(srcdir):
@@ -1089,22 +1166,28 @@ def iter_pyx_files(srcdir):
                 yield (extmod, fullfn)
 
 
-def should_build_with_cython(release=None):
+def should_build_with_cython(package, release=None):
     """Returns the previously used Cython version (or 'unknown' if not
     previously built) if Cython should be used to build extension modules from
     pyx files.  If the ``release`` parameter is not specified an attempt is
     made to determine the release flag from `astropy.version`.
     """
 
-    if release is None:
+    try:
+        version_module = __import__(package + '.cython_version',
+                                    fromlist=['release', 'cython_version'])
+    except ImportError:
+        version_module = None
+
+    if release is None and version_module is not None:
         try:
-            from .version import release
-        except ImportError:
+            release = version_module.release
+        except AttributeError:
             pass
 
     try:
-        from .version import cython_version
-    except ImportError:
+        cython_version = version_module.cython_version
+    except AttributeError:
         cython_version = 'unknown'
 
     # Only build with Cython if, of course, Cython is installed, we're in a
@@ -1686,5 +1769,3 @@ class FakeBuildSphinx(Command):
         except:
             log.error('error : Sphinx must be installed for build_sphinx')
             sys.exit(1)
-
-

@@ -46,12 +46,18 @@ class TestQuantityCreation(object):
             quantity = 182.234 % u.meter
 
     def test_2(self):
+
         # create objects using the Quantity constructor:
         q1 = u.Quantity(11.412, unit=u.meter)
         q2 = u.Quantity(21.52, "cm")
+        q3 = u.Quantity(11.412)
+
+        # By default quantities that don't specify a unit are unscaled
+        # dimensionless
+        assert q3.unit == u.Unit(1)
 
         with pytest.raises(TypeError):
-            q3 = u.Quantity(11.412)
+            q4 = u.Quantity(object(), unit=u.m)
 
     def test_3(self):
         # with pytest.raises(u.UnitsException):
@@ -63,7 +69,19 @@ class TestQuantityCreation(object):
         q1 = u.Quantity(11.4, unit=u.meter)
 
         with pytest.raises(AttributeError):
-            q1.unit = u.centimeter
+            q1.unit = u.cm
+
+    def test_preserve_dtype(self):
+
+        # If unit is not sepcified, preserve dtype (at least to the extent
+        # that Numpy does when copying, i.e. int32 -> int64, not float64)
+
+        q1 = u.Quantity(12, unit=u.m / u.s, dtype=int)
+        q2 = u.Quantity(q1)
+
+        assert q1.value == q2.value
+        assert q1.unit == q2.unit
+        assert q1.dtype == q2.dtype
 
 
 class TestQuantityOperations(object):
@@ -208,14 +226,37 @@ class TestQuantityOperations(object):
             new_q = q1 + q2
 
     def test_dimensionless_operations(self):
+        # test conversion to dimensionless
+        dq = 3. * u.m / u.km
+        dq1 = dq + 1. * u.mm / u.km
+        assert dq1.value == 3.001
+        assert dq1.unit == dq.unit
+
+        dq2 = dq + 1.
+        assert dq2.value == 1.003
+        assert dq2.unit == u.dimensionless_unscaled
+
         # this test will check that operations with dimensionless Quantities
         # don't work
-
         with pytest.raises(u.UnitsException):
             self.q1 + u.Quantity(0.1, unit=u.Unit(""))
 
         with pytest.raises(u.UnitsException):
             self.q1 - u.Quantity(0.1, unit=u.Unit(""))
+
+        # and test that scaling of integers works
+        q = np.array([1, 2, 3]) * u.m / u.km
+        q2 = q + np.array([4, 5, 6])
+        assert q2.unit == u.dimensionless_unscaled
+        assert_allclose(q2.value, np.array([4.001, 5.002, 6.003]))
+        # but not if doing it inplace
+        with pytest.raises(TypeError):
+            q += np.array([1, 2, 3])
+        # except if it is actually possible
+        q = np.array([1, 2, 3]) * u.km / u.m
+        q += np.array([4, 5, 6])
+        assert q.unit == u.dimensionless_unscaled
+        assert np.all(q.value == np.array([1004, 2005, 3006]))
 
     def test_complicated_operation(self):
         """ Perform a more complicated test """
@@ -252,11 +293,40 @@ class TestQuantityOperations(object):
         assert 1. * u.cm != 1.
 
     def test_numeric_converters(self):
-        q = u.Quantity(1.23, u.m)
 
-        assert float(q) == 1.23
-        assert int(q) == 1
-        assert long(q) == 1L
+        q1 = u.Quantity(1.23, u.m)
+
+        with pytest.raises(TypeError) as exc:
+            assert float(q1) == 1.23
+        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+
+        with pytest.raises(TypeError) as exc:
+            assert int(q1) == 1
+        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+
+        with pytest.raises(TypeError) as exc:
+            assert long(q1) == 1L
+        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+
+        q2 = u.Quantity(1.23, u.m / u.km)
+
+        with pytest.raises(TypeError) as exc:
+            assert float(q2) == 1.23
+        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+
+        with pytest.raises(TypeError) as exc:
+            assert int(q2) == 1
+        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+
+        with pytest.raises(TypeError) as exc:
+            assert long(q2) == 1L
+        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+
+        q3 = u.Quantity(1.23, u.dimensionless_unscaled)
+
+        assert float(q3) == 1.23
+        assert int(q3) == 1
+        assert long(q3) == 1L
 
     def test_array_converters(self):
 
@@ -327,6 +397,7 @@ def test_cgs():
 
 
 class TestQuantityComparison(object):
+
     def test_quantity_equality(self):
         assert u.Quantity(1000, unit='m') == u.Quantity(1, unit='km')
         assert not (u.Quantity(1, unit='m') == u.Quantity(1, unit='km'))
@@ -419,14 +490,13 @@ def test_arrays():
         qsecnotarray[0]
 
     qseclen0array = u.Quantity(np.array(10), u.second)
-    # 0d numpy array should act basically like a scalar, but still keep its
-    # identity as a numpy array
+    # 0d numpy array should act basically like a scalar
     assert qseclen0array.isscalar
     with pytest.raises(TypeError):
         len(qseclen0array)
     with pytest.raises(TypeError):
         qseclen0array[0]
-    assert isinstance(qseclen0array.value, np.ndarray)
+    assert isinstance(qseclen0array.value, int)
 
     # can also create from lists, will auto-convert to arrays
     qsec = u.Quantity(range(10), u.second)
@@ -437,9 +507,9 @@ def test_arrays():
     assert_array_equal((qsec / 2).value, (np.arange(10) / 2))
     # quantity addition/subtraction should *not* work with arrays b/c unit
     # ambiguous
-    with pytest.raises(TypeError):
+    with pytest.raises(u.UnitsException):
         assert_array_equal((qsec + 2).value, (np.arange(10) + 2))
-    with pytest.raises(TypeError):
+    with pytest.raises(u.UnitsException):
         assert_array_equal((qsec - 2).value, (np.arange(10) + 2))
 
     # should create by unit multiplication, too
@@ -462,6 +532,12 @@ def test_array_indexing_slicing():
     q = np.array([1., 2., 3.]) * u.m
     assert q[0] == 1. * u.m
     assert np.all(q[0:2] == u.Quantity([1., 2.], u.m))
+
+
+def test_array_setslice():
+    q = np.array([1., 2., 3. ]) * u.m
+    q[1:2] = np.array([400.]) * u.cm
+    assert np.all(q == np.array([1., 4., 3.]) * u.m)
 
 
 def test_inverse_quantity():
@@ -559,3 +635,52 @@ def test_quantity_iterability():
     assert q2 == 15.0 * u.m
     assert not isiterable(q2)
     pytest.raises(TypeError, iter, q2)
+
+
+def test_copy():
+
+    q1 = u.Quantity(np.array([1., 2., 3.]), unit=u.m)
+    q2 = q1.copy()
+
+    assert np.all(q1.value == q2.value)
+    assert q1.unit == q2.unit
+    assert q1.dtype == q2.dtype
+
+    assert q1.value is not q2.value
+
+
+def test_deepcopy():
+    from copy import deepcopy
+
+    q1 = u.Quantity(np.array([1., 2., 3.]), unit=u.m)
+    q2 = deepcopy(q1)
+
+    assert isinstance(q2, u.Quantity)
+    assert np.all(q1.value == q2.value)
+    assert q1.unit == q2.unit
+    assert q1.dtype == q2.dtype
+
+    assert q1.value is not q2.value
+
+
+def test_equality_numpy_scalar():
+    """
+    A regression test to ensure that numpy scalars are correctly compared
+    (which originally failed due to the lack of ``__array_priority__``).
+    """
+    assert 10 != 10. * u.m
+    assert np.int64(10) != 10 * u.m
+    assert 10 * u.m != np.int64(10)
+
+def test_quantity_pickelability():
+    """
+    Testing pickleability of quantity
+    """
+    import cPickle as pickle
+
+    q1 = np.arange(10) * u.m
+
+    q2 = pickle.loads(pickle.dumps(q1))
+
+    assert np.all(q1.value == q2.value)
+    assert q1.unit is q2.unit

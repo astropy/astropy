@@ -11,11 +11,6 @@ The `~astropy.coordinates` package provides classes for representing celestial
 coordinates, as well as tools for converting between standard systems in a
 uniform way.
 
-.. note::
-    The current `~astropy.coordinates` framework only accepts scalar
-    coordinates, i.e. one coordinate per object.  In the next release it will
-    be expanded to accept arrays of coordinates.
-
 .. warning::
     `~astropy.coordinates` is currently a work-in-progress, and thus it is
     possible there will be significant API changes in later versions of
@@ -35,35 +30,41 @@ supports both numeric angle values and (limited) string parsing::
     >>> coord.ICRSCoordinates('00h42m44.3s +41d16m9s')
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
 
-The individual components of a coordinate are `~astropy.coordinates.angles.Angle`
-objects, and their values are accessed using special attributes::
+The individual components of a coordinate are
+`~astropy.coordinates.angles.Angle` objects, and their values are
+accessed using special attributes::
 
-    >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=(u.degree, u.degree))
+    >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917,
+                                  unit=(u.degree, u.degree))
     >>> c.ra
     <RA 10.68458 deg>
-    >>> c.ra.hours
-    0.7123053333333333
+    >>> c.ra.hour
+    0.7123053333333335
     >>> c.ra.hms
-    (0.0, 42, 44.2992000000001)
+    (0.0, 42, 44.299200000000525)
     >>> c.dec
     <Dec 41.26917 deg>
-    >>> c.dec.radians
+    >>> c.dec.radian
     0.7202828960652683
 
-To convert to some other coordinate system, the easiest method is to use
-attribute-style access with short names for the built-in systems, but explicit
-transformations via the `transform_to` method are also available::
+To convert to some other coordinate system, the easiest method is to
+use attribute-style access with short names for the built-in systems,
+but explicit transformations via the `transform_to` method are also
+available::
 
     >>> c.galactic
-    <GalacticCoordinates l=121.17422 deg, b=-21.57283 deg>
+    <GalacticCoordinates l=121.17430 deg, b=-21.57280 deg>
     >>> c.transform_to(coord.GalacticCoordinates)
-    <GalacticCoordinates l=121.17422 deg, b=-21.57283 deg>
+    <GalacticCoordinates l=121.17430 deg, b=-21.57280 deg>
 
-Distances from the origin (which is system-dependent, but often the Earth
-center) can also be assigned to a coordinate. This specifies a unique point
-in 3D space, which also allows conversion to cartesian coordinates::
+Distances from the origin (which is system-dependent, but often the
+Earth center) can also be assigned to a coordinate. This specifies a
+unique point in 3D space, which also allows conversion to cartesian
+coordinates::
 
-    >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=(u.degree, u.degree), distance=coord.Distance(770, u.kpc))
+    >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917,
+                                  unit=(u.degree, u.degree),
+                                  distance=coord.Distance(770, u.kpc))
     >>> c.x
     568.7128654235232
     >>> c.y
@@ -71,28 +72,31 @@ in 3D space, which also allows conversion to cartesian coordinates::
     >>> c.z
     507.88994291875713
 
-The `Coordinates` subpackage also provides a quick way to get coordinates
-for named objects (with an internet connection). All subclasses of 
-`~astropy.coordinates.coordsystems.SphericalCoordinatesBase` have a special
-class method, `from_name()`, that accepts a string and queries `Sesame 
-<http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates for
-that object::
+The `Coordinates` subpackage also provides a quick way to get
+coordinates for named objects (with an internet connection). All
+subclasses of
+`~astropy.coordinates.coordsystems.SphericalCoordinatesBase` have a
+special class method, `from_name()`, that accepts a string and queries
+`Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve
+coordinates for that object::
 
     >>> c = coord.ICRSCoordinates.from_name("M42")
     >>> c.ra, c.dec
     (<RA 83.82208 deg>, <Dec -5.39111 deg>)
 
-This works for any subclass of `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`::
-    
+This works for any subclass of
+`~astropy.coordinates.coordsystems.SphericalCoordinatesBase`::
+
     >>> c = coord.GalacticCoordinates.from_name("M42")
     >>> c.l, c.b
     (<Angle -150.98622 deg>, <Angle -19.38162 deg>)
 
 .. note::
-    
+
     This is intended to be a convenience, and is very simple. If you
-    need precise coordinates for an object you should find the appropriate 
-    reference for that measurement and input the coordinates manually.
+    need precise coordinates for an object you should find the
+    appropriate reference for that measurement and input the
+    coordinates manually.
 
 
 Using `astropy.coordinates`

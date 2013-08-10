@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import with_statement, absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
+from ....extern import six
+from ....extern.six.moves import xrange
 
 # STDLIB
 import contextlib
@@ -9,20 +11,19 @@ import os
 import re
 
 # ASTROPY
-from ....logger import log
 from ....utils.xml.writer import XMLWriter, xml_escape
 from .... import online_docs_root
 
 # VO
 from .. import exceptions
 
-html_header = u"""<?xml version="1.0" encoding="UTF-8"?>
+html_header = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html
         PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
         "http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
 """
 
-default_style = u"""
+default_style = """
 body {
 font-family: sans-serif
 }
@@ -65,12 +66,12 @@ table td {
 @contextlib.contextmanager
 def make_html_header(w):
     w.write(html_header)
-    with w.tag(u'html', xmlns=u"http://www.w3.org/1999/xhtml", lang=u"en-US"):
-        with w.tag(u'head'):
-            w.element(u'title', u'VO Validation results')
-            w.element(u'style', default_style)
+    with w.tag('html', xmlns="http://www.w3.org/1999/xhtml", lang="en-US"):
+        with w.tag('head'):
+            w.element('title', 'VO Validation results')
+            w.element('style', default_style)
 
-            with w.tag(u'body'):
+            with w.tag('body'):
                 yield
 
 
@@ -79,11 +80,11 @@ def write_source_line(w, line, nchar=0):
     char = xml_escape(line[nchar:nchar+1].decode('utf-8'))
     part2 = xml_escape(line[nchar+1:].decode('utf-8'))
 
-    w.write(u'  ')
+    w.write('  ')
     w.write(part1)
-    w.write(u'<span class="highlight">%s</span>' % char)
+    w.write('<span class="highlight">%s</span>' % char)
     w.write(part2)
-    w.write(u'\n\n')
+    w.write('\n\n')
 
 
 def write_warning(w, line, xml_lines):
@@ -91,22 +92,23 @@ def write_warning(w, line, xml_lines):
     if not warning['is_something']:
         w.data(line)
     else:
-        w.write(u'Line %d: ' % warning['nline'])
+        w.write('Line %d: ' % warning['nline'])
         if warning['warning']:
-            w.write(u'<a href="%s/%s">%s</a>: ' % (
+            w.write('<a href="%s/%s">%s</a>: ' % (
                 online_docs_root, warning['doc_url'], warning['warning']))
         msg = warning['message']
-        if not isinstance(warning['message'], unicode):
+        if not isinstance(warning['message'], six.text_type):
             msg = msg.decode('utf-8')
         w.write(xml_escape(msg))
-        w.write(u'\n')
-        write_source_line(w, xml_lines[warning['nline'] - 1], warning['nchar'])
+        w.write('\n')
+        if warning['nline'] >= 1 and warning['nline'] < len(xml_lines):
+            write_source_line(w, xml_lines[warning['nline'] - 1], warning['nchar'])
 
 
 def write_votlint_warning(w, line, xml_lines):
     match = re.search("(WARNING|ERROR|INFO) \(l.(?P<line>[0-9]+), c.(?P<column>[0-9]+)\): (?P<rest>.*)", line)
     if match:
-        w.write(u'Line %d: %s\n' %
+        w.write('Line %d: %s\n' %
                 (int(match.group('line')), xml_escape(match.group('rest'))))
         write_source_line(
             w, xml_lines[int(match.group('line')) - 1],
@@ -128,120 +130,120 @@ def write_result(result):
     with io.open(path, 'w', encoding='utf-8') as fd:
         w = XMLWriter(fd)
         with make_html_header(w):
-            with w.tag(u'p'):
-                with w.tag(u'a', href=u'vo.xml'):
+            with w.tag('p'):
+                with w.tag('a', href='vo.xml'):
                     w.data(result.url.decode('ascii'))
-            w.element(u'hr')
+            w.element('hr')
 
-            with w.tag(u'pre'):
+            with w.tag('pre'):
                 w._flush()
                 for line in result['warnings']:
                     write_warning(w, line, xml_lines)
 
             if result['xmllint'] is False:
-                w.element(u'hr')
-                w.element(u'p', 'xmllint results:')
+                w.element('hr')
+                w.element('p', 'xmllint results:')
                 content = result['xmllint_content']
-                if not isinstance(content, unicode):
+                if not isinstance(content, six.text_type):
                     content = content.decode('ascii')
                 content = content.replace(result.get_dirpath() + '/', '')
-                with w.tag(u'pre'):
+                with w.tag('pre'):
                     w.data(content)
 
             if 'votlint' in result:
                 if result['votlint'] is False:
-                    w.element(u'hr')
-                    w.element(u'p', 'votlint results:')
+                    w.element('hr')
+                    w.element('p', 'votlint results:')
                     content = result['votlint_content']
-                    if not isinstance(content, unicode):
+                    if not isinstance(content, six.text_type):
                         content = content.decode('ascii')
-                    with w.tag(u'pre'):
+                    with w.tag('pre'):
                         w._flush()
                         for line in content.splitlines():
                             write_votlint_warning(w, line, xml_lines)
 
 
 def write_result_row(w, result):
-    with w.tag(u'tr'):
-        with w.tag(u'td'):
+    with w.tag('tr'):
+        with w.tag('td'):
             if ('network_error' in result and
                     result['network_error'] is not None):
                 w.data(result.url.decode('ascii'))
             else:
-                w.element(u'a', result.url.decode('ascii'),
-                          href=u'%s/index.html' % result.get_htmlpath())
+                w.element('a', result.url.decode('ascii'),
+                          href='%s/index.html' % result.get_htmlpath())
 
         if 'network_error' in result and result['network_error'] is not None:
-            w.element(u'td', unicode(result['network_error']),
-                      attrib={u'class': u'red'})
-            w.element(u'td', '-')
-            w.element(u'td', '-')
-            w.element(u'td', '-')
-            w.element(u'td', '-')
+            w.element('td', six.text_type(result['network_error']),
+                      attrib={'class': 'red'})
+            w.element('td', '-')
+            w.element('td', '-')
+            w.element('td', '-')
+            w.element('td', '-')
         else:
-            w.element(u'td', u'-', attrib={u'class': u'green'})
+            w.element('td', '-', attrib={'class': 'green'})
 
             if result['nexceptions']:
-                cls = u'red'
-                msg = u'Fatal'
+                cls = 'red'
+                msg = 'Fatal'
             elif result['nwarnings']:
-                cls = u'yellow'
-                msg = unicode(result['nwarnings'])
+                cls = 'yellow'
+                msg = six.text_type(result['nwarnings'])
             else:
-                cls = u'green'
-                msg = u'-'
-            w.element(u'td', msg, attrib={u'class': cls})
+                cls = 'green'
+                msg = '-'
+            w.element('td', msg, attrib={'class': cls})
 
             msg = result['version']
             if result['xmllint'] is None:
-                cls = u''
+                cls = ''
             elif result['xmllint'] is False:
-                cls = u'red'
+                cls = 'red'
             else:
-                cls = u'green'
-            w.element(u'td', msg, attrib={u'class': cls})
+                cls = 'green'
+            w.element('td', msg, attrib={'class': cls})
 
             if result['expected'] == 'good':
-                cls = u'green'
-                msg = u'-'
+                cls = 'green'
+                msg = '-'
             elif result['expected'] == 'broken':
-                cls = u'red'
-                msg = u'net'
+                cls = 'red'
+                msg = 'net'
             elif result['expected'] == 'incorrect':
-                cls = u'yellow'
-                msg = u'invalid'
-            w.element(u'td', msg, attrib={u'class': cls})
+                cls = 'yellow'
+                msg = 'invalid'
+            w.element('td', msg, attrib={'class': cls})
 
             if 'votlint' in result:
                 if result['votlint']:
-                    cls = u'green'
-                    msg = u'Passed'
+                    cls = 'green'
+                    msg = 'Passed'
                 else:
-                    cls = u'red'
-                    msg = u'Failed'
+                    cls = 'red'
+                    msg = 'Failed'
             else:
-                cls = u''
+                cls = ''
                 msg = '?'
-            w.element(u'td', msg, attrib={u'class': cls})
+            w.element('td', msg, attrib={'class': cls})
 
 
 def write_table(basename, name, results, root="results", chunk_size=500):
     def write_page_links(j):
         if npages <= 1:
             return
-        with w.tag(u'center'):
+        with w.tag('center'):
             if j > 0:
-                w.element(u'a', u'<< ', href=u'%s_%02d.html' % (basename, j-1))
+                w.element('a', '<< ', href='%s_%02d.html' % (basename, j-1))
             for i in xrange(npages):
                 if i == j:
-                    w.data(unicode(i+1))
+                    w.data(six.text_type(i+1))
                 else:
                     w.element(
-                        u'a', unicode(i+1),
-                        href=u'%s_%02d.html' % (basename, i))
+                        'a', six.text_type(i+1),
+                        href='%s_%02d.html' % (basename, i))
                 w.data(' ')
             if j < npages - 1:
-                w.element(u'a', u'>>', href=u'%s_%02d.html' % (basename, j+1))
+                w.element('a', '>>', href='%s_%02d.html' % (basename, j+1))
 
     npages = int(ceil(float(len(results)) / chunk_size))
 
@@ -255,14 +257,14 @@ def write_table(basename, name, results, root="results", chunk_size=500):
 
                 w.element('h2', name)
 
-                with w.tag(u'table'):
-                    with w.tag(u'tr'):
-                        w.element(u'th', u'URL')
-                        w.element(u'th', u'Network')
-                        w.element(u'th', u'Warnings')
-                        w.element(u'th', u'Schema')
-                        w.element(u'th', u'Expected')
-                        w.element(u'th', u'votlint')
+                with w.tag('table'):
+                    with w.tag('tr'):
+                        w.element('th', 'URL')
+                        w.element('th', 'Network')
+                        w.element('th', 'Warnings')
+                        w.element('th', 'Schema')
+                        w.element('th', 'Expected')
+                        w.element('th', 'votlint')
 
                     for result in subresults:
                         write_result_row(w, result)
@@ -279,7 +281,7 @@ def add_subset(w, basename, name, subresults, inside=['p'], total=None):
         with w.tag('td'):
             for element in inside:
                 w.start(element)
-            w.element(u'a', name, href=u'%s_00.html' % basename)
+            w.element('a', name, href='%s_00.html' % basename)
             for element in reversed(inside):
                 w.end(element)
         numbers = '%d (%.2f%%)' % (len(subresults), percentage * 100.0)
@@ -292,7 +294,7 @@ def write_index(subsets, results, root='results'):
     with io.open(path, 'w', encoding='utf-8') as fd:
         w = XMLWriter(fd)
         with make_html_header(w):
-            w.element(u'h1', u'VO Validation results')
+            w.element('h1', 'VO Validation results')
 
             with w.tag('table'):
                 for subset in subsets:

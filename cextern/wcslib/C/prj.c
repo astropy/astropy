@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  WCSLIB 4.18 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.c,v 4.17 2013/01/29 05:29:20 cal103 Exp $
+  $Id: prj.c,v 4.18 2013/07/13 10:00:04 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -54,11 +54,11 @@ const char prj_categories[9][32] =
 
 
 /* Projection codes. */
-const int  prj_ncode = 27;
-const char prj_codes[27][4] =
+const int  prj_ncode = 28;
+const char prj_codes[28][4] =
   {"AZP", "SZP", "TAN", "STG", "SIN", "ARC", "ZPN", "ZEA", "AIR", "CYP",
    "CEA", "CAR", "MER", "COP", "COE", "COD", "COO", "SFL", "PAR", "MOL",
-   "AIT", "BON", "PCO", "TSC", "CSC", "QSC", "HPX"};
+   "AIT", "BON", "PCO", "TSC", "CSC", "QSC", "HPX", "XPH"};
 
 const int AZP = 101;
 const int SZP = 102;
@@ -87,6 +87,7 @@ const int TSC = 701;
 const int CSC = 702;
 const int QSC = 703;
 const int HPX = 801;
+const int XPH = 802;
 
 
 /* Map status return value to message. */
@@ -357,6 +358,8 @@ struct prjprm *prj;
     status = qscset(prj);
   } else if (strcmp(prj->code, "HPX") == 0) {
     status = hpxset(prj);
+  } else if (strcmp(prj->code, "XPH") == 0) {
+    status = xphset(prj);
   } else {
     /* Unrecognized projection code. */
     status = wcserr_set(WCSERR_SET(PRJERR_BAD_PARAM),
@@ -7841,6 +7844,327 @@ int stat[];
         /* Put the phi = 180 meridian in the expected place. */
         if (180.0 < *xp) *xp = 360.0 - *xp;
       }
+    }
+  }
+
+  return 0;
+}
+
+/*============================================================================
+*   XPH: HEALPix polar, aka "butterfly" projection.
+*
+*   Given and/or returned:
+*      prj->r0      Reset to 180/pi if 0.
+*      prj->phi0    Reset to 0.0 if undefined.
+*      prj->theta0  Reset to 0.0 if undefined.
+*
+*   Returned:
+*      prj->flag     XPH
+*      prj->code    "XPH"
+*      prj->x0      Fiducial offset in x.
+*      prj->y0      Fiducial offset in y.
+*      prj->w[0]    r0*(pi/180)/sqrt(2)
+*      prj->w[1]    (180/pi)/r0/sqrt(2)
+*      prj->w[2]    2/3
+*      prj->w[3]    tol (= 1e-4)
+*      prj->w[4]    sqrt(2/3)*(180/pi)
+*      prj->w[5]    90 - tol*sqrt(2/3)*(180/pi)
+*      prj->w[6]    sqrt(3/2)*(pi/180)
+*      prj->prjx2s  Pointer to xphx2s().
+*      prj->prjs2x  Pointer to xphs2x().
+*===========================================================================*/
+
+int xphset(prj)
+
+struct prjprm *prj;
+
+{
+  if (prj == 0x0) return PRJERR_NULL_POINTER;
+
+  prj->flag = XPH;
+  strcpy(prj->code, "XPH");
+
+  strcpy(prj->name, "butterfly");
+  prj->category  = HEALPIX;
+  prj->pvrange   = 0;
+  prj->simplezen = 0;
+  prj->equiareal = 1;
+  prj->conformal = 0;
+  prj->global    = 1;
+  prj->divergent = 0;
+
+  if (prj->r0 == 0.0) {
+    prj->r0 = R2D;
+    prj->w[0] = 1.0;
+    prj->w[1] = 1.0;
+  } else {
+    prj->w[0] = prj->r0*D2R;
+    prj->w[1] = R2D/prj->r0;
+  }
+
+  prj->w[0] /= sqrt(2.0);
+  prj->w[1] /= sqrt(2.0);
+  prj->w[2]  = 2.0/3.0;
+  prj->w[3]  = 1e-4;
+  prj->w[4]  = sqrt(prj->w[2])*R2D;
+  prj->w[5]  = 90.0 - prj->w[3]*prj->w[4];
+  prj->w[6]  = sqrt(1.5)*D2R;
+
+  prj->prjx2s = xphx2s;
+  prj->prjs2x = xphs2x;
+
+  return prjoff(prj, 0.0, 90.0);
+}
+
+/*--------------------------------------------------------------------------*/
+
+int xphx2s(prj, nx, ny, sxy, spt, x, y, phi, theta, stat)
+
+struct prjprm *prj;
+int nx, ny, sxy, spt;
+const double x[], y[];
+double phi[], theta[];
+int stat[];
+
+{
+  int mx, my, rowlen, rowoff, status;
+  double abseta, eta, sigma, xi, xr, yr;
+  register int ix, iy, *statp;
+  register const double *xp, *yp;
+  register double *phip, *thetap;
+
+
+  /* Initialize. */
+  if (prj == 0x0) return PRJERR_NULL_POINTER;
+  if (prj->flag != XPH) {
+    if ((status = xphset(prj))) return status;
+  }
+
+  if (ny > 0) {
+    mx = nx;
+    my = ny;
+  } else {
+    mx = 1;
+    my = 1;
+    ny = nx;
+  }
+
+  status = 0;
+
+
+  /* Do x dependence. */
+  xp = x;
+  rowoff = 0;
+  rowlen = nx*spt;
+  for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+    xr = (*xp + prj->x0)*prj->w[1];
+
+    phip   = phi + rowoff;
+    for (iy = 0; iy < my; iy++) {
+      *phip = xr;
+      phip  += rowlen;
+    }
+  }
+
+
+  /* Do y dependence. */
+  yp = y;
+  phip   = phi;
+  thetap = theta;
+  statp  = stat;
+  for (iy = 0; iy < ny; iy++, yp += sxy) {
+    yr = (*yp + prj->y0)*prj->w[1];
+
+    for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+      xr = *phip;
+
+      if (xr <= 0.0 && 0.0 < yr) {
+        xi  = -xr - yr;
+        eta =  xr - yr;
+        *phip = -180.0;
+      } else if (xr < 0.0 && yr <= 0.0) {
+        xi  =  xr - yr;
+        eta =  xr + yr;
+        *phip = -90.0;
+      } else if (0.0 <= xr && yr < 0.0) {
+        xi  =  xr + yr;
+        eta = -xr + yr;
+        *phip = 0.0;
+      } else {
+        xi  = -xr + yr;
+        eta = -xr - yr;
+        *phip = 90.0;
+      }
+
+      xi  += 45.0;
+      eta += 90.0;
+      abseta = fabs(eta);
+
+      if (abseta <= 90.0) {
+        if (abseta <= 45.0) {
+          /* Equatorial regime. */
+          *phip  += xi;
+          *thetap = asind(eta/67.5);
+          *(statp++) = 0;
+
+        } else {
+          /* Polar regime. */
+          sigma = (90.0 - abseta) / 45.0;
+
+          /* Ensure an exact result for points on the boundary. */
+          if (xr == 0.0) {
+            if (yr <= 0.0) {
+              *phip = 0.0;
+            } else {
+              *phip = 180.0;
+            }
+          } else if (yr == 0.0) {
+            if (xr < 0.0) {
+              *phip = 270.0;
+            } else {
+              *phip =  90.0;
+            }
+          } else {
+            *phip += 45.0 + (xi - 45.0)/sigma;
+          }
+
+          if (sigma < prj->w[3]) {
+            *thetap = 90.0 - sigma*prj->w[4];
+          } else {
+            *thetap = asind(1.0 - sigma*sigma/3.0);
+          }
+          if (eta < 0.0) *thetap = -(*thetap);
+          *(statp++) = 0;
+        }
+
+      } else {
+        /* Beyond latitude range. */
+        *phip   = 0.0;
+        *thetap = 0.0;
+        *(statp++) = 1;
+        if (!status) status = PRJERR_BAD_PIX_SET("xphx2s");
+      }
+    }
+  }
+
+  return status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int xphs2x(prj, nphi, ntheta, spt, sxy, phi, theta, x, y, stat)
+
+struct prjprm *prj;
+int nphi, ntheta, spt, sxy;
+const double phi[], theta[];
+double x[], y[];
+int stat[];
+
+{
+  int mphi, mtheta, rowlen, rowoff, status;
+  double abssin, chi, eta, psi, sigma, sinthe, xi;
+  register int iphi, itheta, *statp;
+  register const double *phip, *thetap;
+  register double *xp, *yp;
+
+
+  /* Initialize. */
+  if (prj == 0x0) return PRJERR_NULL_POINTER;
+  if (prj->flag != XPH) {
+    if ((status = xphset(prj))) return status;
+  }
+
+  if (ntheta > 0) {
+    mphi   = nphi;
+    mtheta = ntheta;
+  } else {
+    mphi   = 1;
+    mtheta = 1;
+    ntheta = nphi;
+  }
+
+
+  /* Do phi dependence. */
+  phip = phi;
+  rowoff = 0;
+  rowlen = nphi*sxy;
+  for (iphi = 0; iphi < nphi; iphi++, rowoff += sxy, phip += spt) {
+    chi = *phip;
+    if (180.0 <= fabs(chi)) {
+      chi = fmod(chi, 360.0);
+      if (chi < -180.0) {
+        chi += 360.0;
+      } else if (180.0 <= chi) {
+        chi -= 360.0;
+      }
+    }
+
+    /* phi is also recomputed from chi to avoid rounding problems. */
+    chi += 180.0;
+    psi = fmod(chi, 90.0);
+
+    xp = x + rowoff;
+    yp = y + rowoff;
+    for (itheta = 0; itheta < mtheta; itheta++) {
+      /* y[] is used to hold phi (rounded). */
+      *xp = psi;
+      *yp = chi - 180.0;
+      xp += rowlen;
+      yp += rowlen;
+    }
+  }
+
+
+  /* Do theta dependence. */
+  thetap = theta;
+  xp = x;
+  yp = y;
+  statp = stat;
+  for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+    sinthe = sind(*thetap);
+    abssin = fabs(sinthe);
+
+    for (iphi = 0; iphi < mphi; iphi++, xp += sxy, yp += sxy) {
+      if (abssin <= prj->w[2]) {
+        /* Equatorial regime. */
+        xi  = *xp;
+        eta = 67.5 * sinthe;
+
+      } else {
+        /* Polar regime. */
+        if (*thetap < prj->w[5]) {
+          sigma = sqrt(3.0*(1.0 - abssin));
+        } else {
+          sigma = (90.0 - *thetap)*prj->w[6];
+        }
+
+        xi  = 45.0 + (*xp - 45.0)*sigma;
+        eta = 45.0 * (2.0 - sigma);
+        if (*thetap < 0.0) eta = -eta;
+      }
+
+      xi  -= 45.0;
+      eta -= 90.0;
+
+      /* Recall that y[] holds phi. */
+      if (*yp < -90.0) {
+        *xp = prj->w[0]*(-xi + eta) - prj->x0;
+        *yp = prj->w[0]*(-xi - eta) - prj->y0;
+
+      } else if (*yp <  0.0) {
+        *xp = prj->w[0]*(+xi + eta) - prj->x0;
+        *yp = prj->w[0]*(-xi + eta) - prj->y0;
+
+      } else if (*yp < 90.0) {
+        *xp = prj->w[0]*( xi - eta) - prj->x0;
+        *yp = prj->w[0]*( xi + eta) - prj->y0;
+
+      } else {
+        *xp = prj->w[0]*(-xi - eta) - prj->x0;
+        *yp = prj->w[0]*( xi - eta) - prj->y0;
+      }
+
+      *(statp++) = 0;
     }
   }
 

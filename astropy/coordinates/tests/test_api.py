@@ -69,8 +69,9 @@ def test_create_angles():
     a8 = Angle(u"54°07'26.832\"")
     # (deg,min,sec) *tuples* are acceptable, but lists/arrays are *not*
     # because of the need to eventually support arrays of coordinates
-    with raises(NotImplementedError):
-        Angle([54, 7, 26.832], unit=u.degree)
+    a9 = Angle([54, 7, 26.832], unit=u.degree)
+    npt.assert_almost_equal(a9.value, [54, 7, 26.832])
+    assert a9.unit is u.degree
 
     a10 = Angle(3.60827466667, unit=u.hour)
     a11 = Angle("3:36:29.7888000120", unit=u.hour)
@@ -91,17 +92,17 @@ def test_create_angles():
 
     a16 = Angle("1 d")
     a17 = Angle("1 degree")
-    assert a16.degrees == 1
-    assert a17.degrees == 1
+    assert a16.degree == 1
+    assert a17.degree == 1
 
     #ensure the above angles that should match do
     assert a1 == a2 == a3 == a4 == a5 == a6 == a7
-    npt.assert_almost_equal(a1.radians, a2.radians)
-    npt.assert_almost_equal(a2.degrees, a3.degrees)
-    npt.assert_almost_equal(a3.radians, a4.radians)
-    npt.assert_almost_equal(a4.radians, a5.radians)
-    npt.assert_almost_equal(a5.radians, a6.radians)
-    npt.assert_almost_equal(a6.radians, a7.radians)
+    npt.assert_almost_equal(a1.radian, a2.radian)
+    npt.assert_almost_equal(a2.degree, a3.degree)
+    npt.assert_almost_equal(a3.radian, a4.radian)
+    npt.assert_almost_equal(a4.radian, a5.radian)
+    npt.assert_almost_equal(a5.radian, a6.radian)
+    npt.assert_almost_equal(a6.radian, a7.radian)
     #assert a10 == a11 == a12
 
     # check for illegal ranges / values
@@ -148,24 +149,24 @@ def test_angle_ops():
     -a1
 
     # division and multiplication have no unambiguous meaning here
-    with raises(NotImplementedError):
+    with raises(TypeError):
         a1 / a2
 
-    with raises(NotImplementedError):
+    with raises(TypeError):
         a1 * a2
 
-    npt.assert_almost_equal((a1 * 2).hours, 2 * 3.6082746666700003)
-    assert abs((a1 / 3.123456).hours - 3.60827466667 / 3.123456) < 1e-10
+    npt.assert_almost_equal((a1 * 2).hour, 2 * 3.6082746666700003)
+    assert abs((a1 / 3.123456).hour - 3.60827466667 / 3.123456) < 1e-10
 
     # commutativity
-    assert (2 * a1).hours == (a1 * 2).hours
+    assert (2 * a1).hour == (a1 * 2).hour
 
     a3 = Angle(a1)  # makes a *copy* of the object, but identical content as a1
-    npt.assert_almost_equal(a1.radians, a3.radians)
+    npt.assert_almost_equal(a1.radian, a3.radian)
     assert a1 is not a3
 
     a4 = abs(-a1)
-    assert a4.radians == a1.radians
+    assert a4.radian == a1.radian
 
     a5 = Angle(5.0, unit=u.hour)
     assert a5 > a1
@@ -192,13 +193,13 @@ def test_angle_bounds():
     '''
 
     a1 = Angle(13343, unit=u.degree)
-    npt.assert_almost_equal(a1.degrees, 23)
+    npt.assert_almost_equal(a1.degree, 23)
 
     a2 = Angle(-50, unit=u.degree)
-    assert a2.degrees == -50
+    assert a2.degree == -50
 
     a3 = Angle(-361, unit=u.degree)
-    npt.assert_almost_equal(a3.degrees, -1)
+    npt.assert_almost_equal(a3.degree, -1)
 
     # custom bounds
 
@@ -206,14 +207,14 @@ def test_angle_bounds():
         Angle(66, unit=u.degree, bounds=(-45, 45))
 
     a4 = Angle(390, unit=u.degree, bounds=(-75, 75))
-    npt.assert_almost_equal(a4.degrees, 30)
+    npt.assert_almost_equal(a4.degree, 30)
     # no BoundsError because while 390>75, 30 is within the bounds
 
     a5 = Angle(390, unit=u.degree, bounds=(-720, 720))
-    assert a5.degrees == 390
+    assert a5.degree == 390
 
     a6 = Angle(1020, unit=u.degree, bounds=None)
-    assert abs(a6.degrees - 1020) < 1e-10
+    assert abs(a6.degree - 1020) < 1e-10
 
     # bounds and operations
 
@@ -222,27 +223,27 @@ def test_angle_bounds():
         # ValueError - the bounds don't match
 
     a7 = a4 + a4
-    assert a7.bounds == (-75, 75)
+    assert a7.bounds == (Angle(-75, u.degree), Angle(75, u.degree))
     # if the bounds match, there is no error and the bound is kept
-    npt.assert_almost_equal(a7.degrees, 60)
+    npt.assert_almost_equal(a7.degree, 60)
 
     a8 = a4 - a4
-    assert a8.bounds == (-75, 75)
+    assert a8.bounds == (Angle(-75, u.degree), Angle(75, u.degree))
     # To get the default bounds back, you need to create a new object with the
     # equivalent angle
-    Angle(a4.degrees + a4.degrees, unit=u.degree)
+    Angle(a4.degree + a4.degree, unit=u.degree)
 
-    a9 = Angle(a4.degrees + a5.degrees, unit=u.degree, bounds=[-180, 180])
-    npt.assert_almost_equal(a9.degrees, 60)
+    a9 = Angle(a4.degree + a5.degree, unit=u.degree, bounds=[-180, 180])
+    npt.assert_almost_equal(a9.degree, 60)
     # if they don't match and you want to combine, just re-assign the bounds
     # yourself
 
     # bounds of None can also be operated on without complaint
     a10 = a6 - a6
-    assert a10.degrees == 0
+    assert a10.degree == 0
 
     with raises(AttributeError):
-        a10.bounds = (0,34)
+        a10.bounds = (0, 34)
 
 def test_angle_convert():
     """
@@ -254,15 +255,17 @@ def test_angle_convert():
 
     angle = Angle("54.12412", unit=u.degree)
 
-    npt.assert_almost_equal(angle.hours, 3.60827466667)
-    npt.assert_almost_equal(angle.radians, 0.944644098745)
-    npt.assert_almost_equal(angle.degrees, 54.12412)
+    npt.assert_almost_equal(angle.hour, 3.60827466667)
+    npt.assert_almost_equal(angle.radian, 0.944644098745)
+    npt.assert_almost_equal(angle.degree, 54.12412)
 
+    assert len(angle.hms) == 3
     assert isinstance(angle.hms, tuple)
     assert angle.hms[0] == 3
     assert angle.hms[1] == 36
     npt.assert_almost_equal(angle.hms[2], 29.78879999999947)
 
+    assert len(angle.dms) == 3
     assert isinstance(angle.dms, tuple)
     assert angle.dms[0] == 54
     assert angle.dms[1] == 7
@@ -291,36 +294,36 @@ def test_angle_formatting():
     angle = Angle("54.12412", unit=u.degree)
 
     #__str__ is the default `format`
-    assert str(angle) == angle.format()
+    assert str(angle) == angle.to_string()
 
     res = 'Angle as HMS: 3h36m29.78880s'
-    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour)) == res
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour)) == res
 
     res = 'Angle as HMS: 3:36:29.78880'
-    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, sep=":")) == res
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep=":")) == res
 
     res = 'Angle as HMS: 3:36:29.79'
-    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, sep=":",
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep=":",
                                       precision=2)) == res
 
     # Note that you can provide one, two, or three separators passed as a
     # tuple or list
 
     res = 'Angle as HMS: 3h36m29.7888s'
-    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour,
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour,
                                                    sep=("h", "m", "s"),
                                                    precision=4)) == res
 
     res = 'Angle as HMS: 3-36|29.7888'
-    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, sep=["-", "|"],
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep=["-", "|"],
                                                    precision=4)) == res
 
     res = 'Angle as HMS: 3-36-29.7888'
-    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, sep="-",
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep="-",
                                                     precision=4)) == res
 
     res = 'Angle as HMS: 03h36m29.7888s'
-    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, precision=4,
+    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, precision=4,
                                                   pad=True)) == res
 
     # Same as above, in degrees
@@ -328,40 +331,40 @@ def test_angle_formatting():
     angle = Angle("3 36 29.78880", unit=u.degree)
 
     res = 'Angle as DMS: 3d36m29.78880s'
-    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree)) == res
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree)) == res
 
     res = 'Angle as DMS: 3:36:29.78880'
-    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree, sep=":")) == res
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, sep=":")) == res
 
     res = 'Angle as DMS: 3:36:29.79'
-    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree, sep=":",
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, sep=":",
                                       precision=2)) == res
 
     # Note that you can provide one, two, or three separators passed as a
     # tuple or list
 
     res = 'Angle as DMS: 3d36m29.7888s'
-    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree,
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree,
                                                    sep=("d", "m", "s"),
                                                    precision=4)) == res
 
     res = 'Angle as DMS: 3-36|29.7888'
-    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree, sep=["-", "|"],
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, sep=["-", "|"],
                                                    precision=4)) == res
 
     res = 'Angle as DMS: 3-36-29.7888'
-    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree, sep="-",
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, sep="-",
                                                     precision=4)) == res
 
     res = 'Angle as DMS: 03d36m29.7888s'
-    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree, precision=4,
+    assert "Angle as DMS: {0}".format(angle.to_string(unit=u.degree, precision=4,
                                                   pad=True)) == res
 
-    res = 'Angle as rad: 0.062976radian'
-    assert "Angle as rad: {0}".format(angle.format(unit=u.radian)) == res
+    res = 'Angle as rad: 0.06298rad'
+    assert "Angle as rad: {0}".format(angle.to_string(unit=u.radian)) == res
 
-    res = 'Angle as rad decimal: 0.062976'
-    assert "Angle as rad decimal: {0}".format(angle.format(unit=u.radian, decimal=True)) == res
+    res = 'Angle as rad decimal: 0.06298'
+    assert "Angle as rad decimal: {0}".format(angle.to_string(unit=u.radian, decimal=True)) == res
 
 
     # check negative angles
@@ -369,11 +372,11 @@ def test_angle_formatting():
     angle = Angle(-1.23456789, unit=u.degree)
     angle2 = Angle(-1.23456789, unit=u.hour)
 
-    assert angle.format() == '-1d14m04.44440s'
-    assert angle.format(pad=True) == '-01d14m04.44440s'
-    assert angle.format(unit=u.hour) == '-0h04m56.29629s'
-    assert angle2.format(unit=u.hour, pad=True) == '-01h14m04.44440s'
-    assert angle.format(unit=u.radian, decimal=True) == '-0.021547'
+    assert angle.to_string() == '-1d14m04.44440s'
+    assert angle.to_string(pad=True) == '-01d14m04.44440s'
+    assert angle.to_string(unit=u.hour) == '-0h04m56.29629s'
+    assert angle2.to_string(unit=u.hour, pad=True) == '-01h14m04.44440s'
+    assert angle.to_string(unit=u.radian, decimal=True) == '-0.02155'
 
 def test_angle_format_roundtripping():
     """
@@ -387,17 +390,17 @@ def test_angle_format_roundtripping():
     a3 = Angle(0.543, unit=u.degree)
     a4 = Angle('1d2m3.4s')
 
-    assert Angle(str(a1)).degrees == a1.degrees
-    assert Angle(str(a2)).degrees == a2.degrees
-    assert Angle(str(a3)).degrees == a3.degrees
-    assert Angle(str(a4)).degrees == a4.degrees
+    assert Angle(str(a1)).degree == a1.degree
+    assert Angle(str(a2)).degree == a2.degree
+    assert Angle(str(a3)).degree == a3.degree
+    assert Angle(str(a4)).degree == a4.degree
 
     #also check RA/Dec
     ra = RA('1h2m3.4s')
     dec = Dec('1d2m3.4s')
 
-    assert Angle(str(ra)).degrees == ra.degrees
-    assert Angle(str(dec)).degrees == dec.degrees
+    npt.assert_almost_equal(Angle(str(ra)).degree, ra.degree)
+    npt.assert_almost_equal(Angle(str(dec)).degree, dec.degree)
 
 
 def test_radec():
@@ -428,7 +431,7 @@ def test_radec():
     #TODO: adjust in 0.3 for whatever behavior is decided on
 
     #ra = RA("26:34:15.345634")  # unambiguous b/c hours don't go past 24
-    #npt.assert_almost_equal(ra.degrees, 26.570929342)
+    #npt.assert_almost_equal(ra.degree, 26.570929342)
     with raises(u.UnitsException):
         ra = RA("26:34:15.345634")
 
@@ -443,7 +446,7 @@ def test_radec():
         ra = RA("garbage containing a d and no units")
 
     ra = RA("12h43m23s")
-    npt.assert_almost_equal(ra.hours, 12.7230555556)
+    npt.assert_almost_equal(ra.hour, 12.7230555556)
 
     ra = RA((56, 14, 52.52), unit=u.degree)      # can accept tuples
     #TODO: again, fix based on >24 behavior
@@ -454,8 +457,7 @@ def test_radec():
         ra = RA((12, 14, 52))  # ambiguous w/o units
     ra = RA((12, 14, 52), unit=u.hour)
 
-    with raises(NotImplementedError):
-        ra = RA([56, 64, 52.2], unit=u.degree)  # ...but not arrays (yet)
+    ra = RA([56, 64, 52.2], unit=u.degree)  # ...but not arrays (yet)
 
     # Units can be specified
     ra = RA("4:08:15.162342", unit=u.hour)
@@ -470,10 +472,10 @@ def test_radec():
 
     # The RA and Dec objects have bounds hard-coded at (0,360) and (-90,90)
     # degrees, respectively.
-    assert ra.bounds == (0, 360)
+    assert ra.bounds == (Angle(0, u.degree), Angle(360, u.degree))
     with raises(AttributeError):
         ra.bounds = (-45, 45)
-    assert dec.bounds == (-90, 90)
+    assert dec.bounds == (Angle(-90, u.degree), Angle(90, u.degree))
     with raises(AttributeError):
         dec.bounds = (-45, 45)
 
@@ -481,13 +483,13 @@ def test_radec():
     ra = RA("1:00:00", unit=u.hour)
     ha1 = ra.hour_angle(Angle(1.5, u.hour))
     assert isinstance(ha1, Angle)
-    npt.assert_almost_equal(ha1.hours, .5)
+    npt.assert_almost_equal(ha1.hour, .5)
     ha2 = ra.hour_angle(Time('2012-1-1 3:00:00', scale='utc'))
-    npt.assert_almost_equal(ha2.hours, 23.125)
+    npt.assert_almost_equal(ha2.hour, 23.125)
 
     lst = ra.lst(Angle(1.5, u.hour))
     assert isinstance(lst, Angle)
-    npt.assert_almost_equal(lst.hours, 2.5)
+    npt.assert_almost_equal(lst.hour, 2.5)
 
 def test_create_coordinate():
     """
@@ -515,7 +517,7 @@ def test_create_coordinate():
     c = ICRSCoordinates("54.12412 deg", "-41:08:15.162342 deg")
     assert isinstance(c.dec, Dec) # dec is a Dec object
 
-    npt.assert_almost_equal(dec.degrees, -41.137545095)
+    npt.assert_almost_equal(dec.degree, -41.137545095)
 
     # We should be really robust in what we accept.
     with raises(u.UnitsException):
@@ -595,16 +597,16 @@ def test_convert_api():
     dec = Dec("-41:08:15.162342", unit=u.degree)
     c = ICRSCoordinates(ra=ra, dec=dec)
 
-    npt.assert_almost_equal(c.galactic.l.degrees, -114.71902, 5)
+    npt.assert_almost_equal(c.galactic.l.degree, -114.71902, 5)
     assert isinstance(c.galactic.b, Angle)
-    npt.assert_almost_equal(c.galactic.b.degrees, -47.554501, 5)
+    npt.assert_almost_equal(c.galactic.b.degree, -47.554501, 5)
 
     # can also explicitly specify a coordinate class to convert to
     gal = c.transform_to(GalacticCoordinates)
 
     # can still convert back to equatorial using the shorthand
-    assert gal.icrs.ra.format(unit=u.hour, sep=":",
-                              precision=2) == '4:08:15.16'
+    assert gal.icrs.ra.to_string(unit=u.hour, sep=":",
+                                 precision=2) == '4:08:15.16'
 
     with raises(ConvertError):
         # there's no way to convert to alt/az without a specified location
@@ -617,8 +619,8 @@ def test_convert_api():
 
     @transform_function(ICRSCoordinates, CustomCoordinates)
     def icrs_to_custom(icrs_coo):
-        return CustomCoordinates(icrs_coo.ra.degrees,
-                                 icrs_coo.dec.degrees + 2.5,
+        return CustomCoordinates(icrs_coo.ra.degree,
+                                 icrs_coo.dec.degree + 2.5,
                                  unit=(u.degree, u.degree))
 
     try:
@@ -652,8 +654,8 @@ def test_proj_separations():
     #returns an AngularSeparation object (a subclass of Angle)
     assert isinstance(sep, AngularSeparation)
 
-    assert sep.degrees == 1
-    assert sep.arcmins == 60.
+    assert sep.degree == 1
+    npt.assert_almost_equal(sep.arcminute, 60.)
 
     # these operations have ambiguous interpretations for points on a sphere
     with raises(TypeError):
@@ -666,10 +668,10 @@ def test_proj_separations():
 
     # if there is a defined conversion between the relevant coordinate systems,
     # it will be automatically performed to get the right angular separation
-    npt.assert_almost_equal(ncp.separation(ngp.icrs).degrees, ncp.separation(ngp).degrees)
+    npt.assert_almost_equal(ncp.separation(ngp.icrs).degree, ncp.separation(ngp).degree)
 
     # distance from the north galactic pole to celestial pole
-    npt.assert_almost_equal(ncp.separation(ngp.icrs).degrees, 62.8716627659)
+    npt.assert_almost_equal(ncp.separation(ngp.icrs).degree, 62.8716627659)
 
 
     @coordinate_alias('my_coord2')
@@ -772,8 +774,8 @@ def test_distances():
     npt.assert_almost_equal(csum.x, -8.12016610185)
     npt.assert_almost_equal(csum.y, 3.19380597435)
     npt.assert_almost_equal(csum.z, -8.2294483707)
-    npt.assert_almost_equal(csum.ra.degrees, 158.529401774)
-    npt.assert_almost_equal(csum.dec.degrees, -43.3235825777)
+    npt.assert_almost_equal(csum.ra.degree, 158.529401774)
+    npt.assert_almost_equal(csum.dec.degree, -43.3235825777)
     npt.assert_almost_equal(csum.distance.kpc, 11.9942200501)
 
 

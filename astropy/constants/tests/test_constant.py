@@ -66,6 +66,25 @@ def test_e():
     assert e.esu * E == Q(e.esu.value * E.value, 'Fr V/m')
 
 
+def test_g0():
+    """Tests for #1263 demonstrating how g0 constant should behave."""
+    from .. import g0
+
+    # g0 is an exactly defined constant, so it shouldn't be changing
+    assert g0.value == 9.80665  # default is S.I.
+    assert g0.si.value == 9.80665
+    assert g0.cgs.value == 9.80665e2
+
+    # make sure it has the necessary attributes and they're not blank
+    assert g0.uncertainty == 0  # g0 is a *defined* quantity
+    assert g0.name
+    assert g0.reference
+    assert g0.unit
+
+    # Check that its unit have the correct physical type
+    assert g0.unit.physical_type == 'acceleration'
+
+
 def test_unit():
 
     from ... import units as u

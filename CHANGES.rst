@@ -4,7 +4,7 @@
 New Features
 ^^^^^^^^^^^^
 
-- `astropy.io.votable`
+- ``astropy.io.votable``
 
   - The format of the units of a VOTable file can be specified using
     the `unit_format` parameter.  Note that units are still always
@@ -13,6 +13,10 @@ New Features
 
 - ``astropy.time``
 
+  - Update internal time manipulations so that arithmetic with Time and
+    TimeDelta objects maintains sub-nanosecond precision over a time span
+    longer than the age of the universe [#1189].
+  
   - Add ``datetime`` format which allows converting to and from standard
     library ``datetime.datetime`` objects.
 
@@ -31,7 +35,7 @@ New Features
   - Allow multiplication and division of TimeDelta objects by
     constants and arrays, as well as changing sign (negation) and
     taking the absolute value of TimeDelta objects [#1082].
-    
+
   - Allow comparisons of Time and TimeDelta objects [#1171].
 
 - ``astropy.stats``
@@ -52,16 +56,54 @@ New Features
     MaskedColumn, Row, and Table are now deprecated in favor of the
     single-tense 'unit' and 'dtype' [#1174].
 
-- :ref:`astropy.vo <astropy_vo>`
+- ``astropy.vo``
 
   - New package added to support Virtual Observatory Simple Cone Search query
     and service validation [#552].
+
+- ``astropy.units.equivalencies``
+
+  - Added new spectroscopic equivalencies for velocity conversions
+    (relativistic, optical, and radio conventions are supported)
 
 - Astropy now uses the free software library ERFA in place of the 
   non-free library SOFA [#1195].
 
 API Changes
 ^^^^^^^^^^^
+
+- ``astropy.coordinates``
+
+  - The `astropy.coordinates.Angle` class is now a subclass of
+    `astropy.units.Quantity`.
+
+    - All angular units are now supported, not just `radian`, `degree`
+      and `hour`, but now `arcsecond` and `arcminute` as well.  The
+      object will retain its native unit, so when printing out a value
+      initially provided in hours, its `to_string()` will, by default,
+      also be expressed in hours.
+
+    - The `Angle` class now supports arrays of angles.
+
+    - To be consistent with `units.Unit`, `Angle.format` has been
+      deprecated and renamed to `Angle.to_string`.
+
+    - To be consistent with `astropy.units`, all plural forms of unit
+      names have been removed.  Therefore, the following properties of
+      `astropy.coordinates.Angle` should be renamed:
+
+      - ``radians`` -> ``radian``
+      - ``degrees`` -> ``degree``
+      - ``hours`` -> ``hour``
+
+    - Multiplication and division of two `Angle` objects used to raise
+      `NotImplementedError`.  Now they raise `TypeError`.
+
+  - `astropy.coordinates.angles.rotation_matrix` and
+    `astropy.coordinates.angles.angle_axis` now take a `unit` kwarg
+    instead of `degrees` kwarg to specify the units of the angles.
+    `rotation_matrix` will also take the unit from the given `Angle`
+    object if no unit is provided.
 
 - ``astropy.io.ascii``
 
@@ -70,7 +112,7 @@ API Changes
     string "".  This now corresponds to the behavior of other table readers like
     ``numpy.genfromtxt``.  To restore the previous behavior set ``fill_values=None`` in the
     call to ``ascii.read()``.
-    
+
   - The ``read`` and ``write`` methods of ``astropy.io.ascii`` now have a ``format``
     argument for specifying the file format.  This is the preferred way to choose
     the format instead of the ``Reader`` and ``Writer`` arguments [#961].
@@ -125,19 +167,148 @@ API Changes
     the first argument is now ``order='C'``.  This is required for compatibility
     with Numpy 1.8 which is currently in development [#1250].
 
+- ``astropy.units``
+
+  - The ``Quantity`` class now inherits from the Numpy array class, and
+    includes the following API changes [#929]:
+
+    - Using ``float(...)``, ``int(...)``, and ``long(...)`` on a quantity will
+      now only work if the quantity is dimensionless and unscaled.
+
+    - All Numpy ufuncs should now treat units correctly (or raise an exception
+      if not supported), rather than extract the value of quantities and
+      operate on this, emitting a warning about the implicit loss of units.
+
+    - When using relevant Numpy ufuncs on dimensionless quantities (e.g.
+      ``np.exp(h * nu / (k_B * T))``), or combining dimensionless quantities
+      with Python scalars or plain Numpy arrays ``1 + v / c``, the
+      dimensionless Quantity will automatically be converted to an unscaled
+      dimensionless Quantity.
+
+    - When initializing a quantity from a value with no unit, it is now set to
+      be dimensionless and unscaled by default. When initializing a Quantity
+      from another Quantity and with no unit specified in the initializer, the
+      unit is now taken from the unit of the Quantity being initialized from.
+
 Bug Fixes
 ^^^^^^^^^^
 
 - ``astropy.io.ascii``
 
-  - The ``write()`` function was ignoring the ``fill_values`` argument (#910).
+  - The ``write()`` function was ignoring the ``fill_values`` argument [#910].
+
+- ``astropy.units``
+
+  - Fixed a bug that caused the order of multiplication/division of plain
+    Numpy arrays with Quantities to matter (i.e. if the plain array comes
+    first the units were not preserved in the output) [#899].
 
 
-
-0.2.4 (unreleased)
+0.2.5 (unreleased)
 ------------------
 
- - Nothing yet.
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.io.fits``
+
+  - Fixed a bug that could cause a segfault when trying to decompress an
+    compressed HDU whose contents are truncated (due to a corrupt file, for
+    example). This still causes a Python traceback but better that than a
+    segfault. [#1332]
+
+
+0.2.4 (2013-07-24)
+------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.coordinates``
+
+  - Fixed the angle parser to support parsing the string "1 degree". [#1168]
+
+- ``astropy.cosmology``
+
+  - Fixed a crash in the ``comoving_volume`` method on non-flat cosmologies
+    when passing it an array of redshifts.
+
+- ``astropy.io.ascii``
+
+  - Fixed a bug that prevented saving changes to the comment symbol when
+    writing changes to a table. [#1167]
+
+- ``astropy.io.fits``
+
+  - Added a workaround for a bug in 64-bit OSX that could cause truncation when
+    writing files greater than 2^32 bytes in size. [#839]
+
+- ``astropy.io.votable``
+
+  - Fixed incorrect reading of tables containing multiple ``<RESOURCE>``
+    elements. [#1223]
+
+- ``astropy.table``
+
+  - Fixed a bug where ``Table.remove_column`` and ``Table.rename_column``
+    could cause a maksed table to lose its masking. [#1120]
+
+  - Fixed bugs where subclasses of ``Table`` did not preserver their class in
+    certain operations. [#1142]
+
+  - Fixed a bug where slicing a masked table did not preserve the mask. [#1187]
+
+- ``astropy.units``
+
+  - Fixed a bug where the ``.si`` and ``.cgs`` properties of dimensionless
+    ``Quantity`` objects raised a ``ZeroDivisionError``. [#1150]
+
+  - Fixed a bug where multiple subsequent calls to the ``.decompose()`` method
+    on array quantities applied a scale factor each time. [#1163]
+
+- Misc
+
+  - Fixed an installation crash that could occur sometimes on Debian/Ubuntu
+    and other \*NIX systems where ``pkg_resources`` can be installed without
+    installing ``setuptools``. [#1150]
+
+  - Updated the ``distribute_setup.py`` bootstrapper to use setuptools >= 0.7
+    when installing on systems that don't already have an up to date version
+    of distribute/setuptools. [#1180]
+
+  - Changed the ``version.py`` template so that Astropy affiliated packages can
+    (and they should) use their own ``cython_version.py`` and
+    ``utils._compiler`` modules where appropriate. This issue only pertains to
+    affiliated package maintainers. [#1198]
+
+  - Fixed a corner case where the default config file generation could crash
+    if building with matplotlib but *not* Sphinx installed in a virtualenv.
+    [#1225]
+
+  - Fixed a crash that could occur in the logging module on systems that
+    don't have a default preferred encoding (in particular this happened
+    in some versions of PyCharm). [#1244]
+
+  - The Astropy log now supports passing non-string objects (and calling
+    ``str()`` on them by default) to the logging methods, in line with Python's
+    standard logging API. [#1267]
+
+  - Minor documentation fixes [#582, #696, #1154, #1194, #1212, #1213, #1246,
+    #1252]
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- ``astropy.cosmology``
+
+  - Added a new ``Plank13`` object representing the Plank 2013 results. WMAP7
+    remains the default cosmology so this should not affect any existing
+    computations using the defaults. [#895]
+
+- ``astropy.units``
+
+  - Performance improvements in initialization of ``Quantity`` objects with
+    a large number of elements. [#1231]
 
 
 0.2.3 (2013-05-30)
@@ -406,6 +577,11 @@ Bug Fixes
 - ``astropy.wcs``
 
   - Fixed ``TypeError`` when calling ``WCS.to_header_string()``. [#822]
+
+  - Added new method `WCS.all_world2pix` for converting from world coordinates
+    to pixel space, including inversion of the astrometric distortion
+    correction. [#1066, #1281]
+
 
 - Misc
 

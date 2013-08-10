@@ -50,7 +50,7 @@ array([[  1.00000000e+00,   1.00000000e+00],
        [  3.91115939e-16,   3.91115939e-16],
        [ -2.99676984e-17,  -2.99676984e-17]])
 
-Fitters support constraint fitting through `~astropy.modeling.constraints.Constraints`.
+Fitters support constraint fitting.
 
 - All fitters support fixed (frozen) parameters through the `fixed`
   argument to models or setting the `~astropy.modeling.parameters.Parameter.fixed`
@@ -92,8 +92,14 @@ or
 >>> g1.mean.tied = tiedfunc
 >>> gfit = fitting.NonLinearLSQFitter(g1)
 
+Bounded fitting is supproted through the `bounds` arguments to models or by setting
+`~astropy.modeling.parameters.Parameter.min` and `~astropy.modeling.parameters.Parameter.max`
+attributes on a parameter. Bounds for the `~astropy.modeling.fitting.NonLinearLSQFitter`
+are always exactly satisfied - if the value of the parameter is outside the fitting interval,
+it will be reset to the value at the bounds. The `~astropy.modeling.fitting.SLSQPFitter` handles
+bounds internally.
 
-- Print a list of available fitting constraints
+- Different fitters support different types of constraints.
 
 >>> fitting.constraintsdef
 {'LinearLSQFitter': ['fixed'],

@@ -19,7 +19,9 @@ from __future__ import absolute_import
 from functools import wraps
 from sys import version_info
 
-__all__ = ['inspect_getmodule', 'invalidate_caches', 'override__dir__']
+__all__ = [
+    'inspect_getmodule', 'invalidate_caches', 'override__dir__',
+    'urlopen', 'urlerror']
 
 
 def _patched_getmodule(object, _filename=None):
@@ -130,10 +132,25 @@ def override__dir__(f):
             members.update(f(self))
             return sorted(members)
     else:
+        # http://bugs.python.org/issue12166
+
         @wraps(f)
         def override__dir__wrapper(self):
-            members = set(super(self.__class__, self).__dir__())
+            members = set(object.__dir__(self))
             members.update(f(self))
             return sorted(members)
 
     return override__dir__wrapper
+
+
+# Handle the different placement of urlopen on Python 2 vs. 3.  It is
+# imported from within a function to prevent importing urllib unless
+# we need it.  It looks useless, but 2to3 (which is currently still running
+# on this file) will convert it on Python 3.
+def urlopen(*args, **kwargs):
+    import urllib2
+    return urllib2.urlopen(*args, **kwargs)
+
+def urlerror():
+    import urllib2
+    return urllib2.URLError

@@ -1,4 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+from ....extern import six
+
+
 from ....tests.helper import raises
 
 # LOCAL
@@ -35,7 +40,7 @@ examples = {
 
 
 def test_check():
-    for s, p in examples.iteritems():
+    for s, p in six.iteritems(examples):
         assert ucd.parse_ucd(s, True, True) == p
         assert ucd.check_ucd(s, True, True)
 
@@ -53,5 +58,3 @@ def test_invalid_namespace():
 @raises(ValueError)
 def test_invalid_word():
     ucd.parse_ucd("-pho")
-
-

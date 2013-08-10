@@ -1,24 +1,28 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Mathematical models
+Mathematical models.
 """
+
 from __future__ import division
 import collections
 import numpy as np
 from . import parameters
-from .core import ParametricModel, Parametric1DModel, Model, _convert_input, _convert_output
+from .core import (Parametric1DModel, Parametric2DModel, Model,
+                   _convert_input, _convert_output)
 from .utils import InputParameterError, ModelDefinitionError
 
-__all__ = ['Gaussian1DModel', 'Gaussian2DModel', 'ScaleModel', 'ShiftModel',
-           'Custom1DModel', 'Sine1DModel', 'Linear1DModel', 'PowerLaw1DModel',
-           'Const1DModel', 'Lorentz1DModel', 'Box1DModel']
+__all__ = sorted(['AiryDisk2DModel', 'Beta1DModel', 'Beta2DModel',
+           'Box1DModel', 'Box2DModel', 'Const1DModel', 'Const2DModel',
+           'Custom1DModel', 'Disk2DModel', 'Gaussian1DModel', 'Gaussian2DModel',
+           'Linear1DModel', 'Lorentz1DModel', 'MexicanHat1DModel',
+           'MexicanHat2DModel', 'PowerLaw1DModel', 'ScaleModel', 'ShiftModel',
+           'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel'])
 
 
 class Gaussian1DModel(Parametric1DModel):
 
     """
-
-    Implements 1D Gaussian model.
+    One dimensional Gaussian model.
 
     Parameters
     ----------
@@ -28,12 +32,23 @@ class Gaussian1DModel(Parametric1DModel):
         Mean of the gaussian
     stddev : float
         Standard deviation of the gaussian
+
+    Notes
+    -----
+
+    Model formula:
+
+        .. math:: f(x) = A e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}
+
+    See Also
+    --------
+    Gaussian2DModel, Box1DModel, Beta1DModel, Lorentz1DModel
     """
 
     param_names = ['amplitude', 'mean', 'stddev']
 
-    def __init__(self, amplitude, mean, stddev, **cons):
-        super(Gaussian1DModel, self).__init__(locals(), **cons)
+    def __init__(self, amplitude, mean, stddev, **constraints):
+        super(Gaussian1DModel, self).__init__(locals())
 
     def eval(self, x, amplitude, mean, stddev):
         """
@@ -46,18 +61,15 @@ class Gaussian1DModel(Parametric1DModel):
         Model function derivatives Gauss1D
         """
         d_amplitude = np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
-        d_mean = (amplitude * np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
-                            * (x - mean) / stddev ** 2)
-        d_stddev = (amplitude * np.exp(-0.5 / stddev ** 2 * (x - mean) ** 2)
-                              * (x - mean) ** 2 / stddev ** 3)
+        d_mean = amplitude * d_amplitude * (x - mean) / stddev ** 2
+        d_stddev = amplitude * d_amplitude * (x - mean) ** 2 / stddev ** 3
         return [d_amplitude, d_mean, d_stddev]
 
 
-class Gaussian2DModel(ParametricModel):
+class Gaussian2DModel(Parametric2DModel):
 
     """
-
-    2D Gaussian.
+    Two dimensional Gaussian model.
 
     Parameters
     ----------
@@ -75,122 +87,111 @@ class Gaussian2DModel(ParametricModel):
         Either y_fwhm or y_stddev must be specified
     theta : float
         Rotation angle in radians. Note: increases clockwise.
-    x_fwhm : float
-        Full width at half maximum in x
-        Either x_fwhm or x_stddev must be specified
-    y_fwhm : float
-        Full width at half maximum in y
-        Either y_fwhm or y_stddev must be specified
-    jacobian_func : callable or None
-        if callable - a function to compute the Jacobian of
-        func with derivatives across the rows.
-        if None - the Jacobian will be estimated
     cov_matrix : ndarray
         A 2x2 covariance matrix. If specified, overrides stddev, fwhm, and
         theta specification.
+
+    Notes
+    -----
+    Model formula:
+
+        .. math::
+
+            f(x, y) = A e^{-a\\left(x - x_{0}\\right)^{2}  -b\\left(x - x_{0}\\right)
+            \\left(y - y_{0}\\right)  -c\\left(y - y_{0}\\right)^{2}}
+
+    Using the following definitions:
+
+        .. math::
+            a = \\left(- \\frac{\\sin^{2}{\\left (\\theta \\right )}}{2 \\sigma_{y}^{2}} -
+            \\frac{\\cos^{2}{\\left (\\theta \\right )}}{2 \\sigma_{x}^{2}}\\right)
+
+            b = \\left(\\frac{\\sin{\\left (2 \\theta \\right )}}{2 \\sigma_{y}^{2}} -
+            \\frac{\\sin{\\left (2 \\theta \\right )}}{2 \\sigma_{x}^{2}}\\right)
+
+            c = \\left(\\frac{\\cos^{2}{\\left (\\theta \\right )}}{2 \\sigma_{y}^{2}} +
+            \\frac{\\sin^{2}{\\left (\\theta \\right )}}{2 \\sigma_{x}^{2}}\\right)
+
+
+    See Also
+    --------
+    Gaussian1DModel, Box2DModel, Beta2DModel
     """
 
     param_names = ['amplitude', 'x_mean', 'y_mean',
                    'x_stddev', 'y_stddev', 'theta']
 
     def __init__(self, amplitude, x_mean, y_mean, x_stddev=None, y_stddev=None,
-                 theta=0.0, x_fwhm=None, y_fwhm=None, cov_matrix=None,
-                 jacobian_func=None, **cons):
-
-        try:
-            param_dim = len(amplitude)
-        except TypeError:
-            param_dim = 1
-
-        if y_stddev is None and y_fwhm is None and cov_matrix is None:
+                 theta=0.0, cov_matrix=None, **constraints):
+        if y_stddev is None and cov_matrix is None:
             raise InputParameterError(
-                "Either y_fwhm or y_stddev must be specified, or a "
+                "Either y_stddev must be specified, or a "
                 "covariance matrix.")
-        elif x_stddev is None and x_fwhm is None and cov_matrix is None:
+        elif x_stddev is None and cov_matrix is None:
             raise InputParameterError(
-                "Either x_fwhm or x_stddev must be specified, or a "
+                "Either x_stddev must be specified, or a "
                 "covariance matrix.")
-        elif x_stddev is not None and x_fwhm is not None:
-            raise InputParameterError("Cannot specify both x_fwhm and x_stddev")
-        elif y_stddev is not None and y_fwhm is not None:
-            raise InputParameterError("Cannot specify both y_fwhm and y_stddev")
         elif cov_matrix is not None and (x_stddev is not None or
-                                         y_stddev is not None or
-                                         x_fwhm is not None or
-                                         y_fwhm is not None):
-            raise InputParameterError("Cannot specify both cov_matrix and x/y_stddev or x/y_fwhm")
+                                         y_stddev is not None):
+            raise InputParameterError("Cannot specify both cov_matrix and x/y_stddev")
 
-        self._amplitude = parameters.Parameter('amplitude', amplitude,
-                                               self, param_dim)
-        if cov_matrix is None:
-            if x_stddev is None:
-                x_stddev = 0.42466 * x_fwhm
-            if y_stddev is None:
-                y_stddev = 0.42466 * y_fwhm
-        else:
+        # Compute principle coordinate system transformation
+        elif cov_matrix is not None:
             cov_matrix = np.array(cov_matrix)
             assert cov_matrix.shape == (2, 2), "Covariance matrix must be 2D"
             eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
             x_stddev, y_stddev = np.sqrt(eig_vals)
             y_vec = eig_vecs[:, 0]
             theta = np.arctan2(y_vec[1], y_vec[0])
+        super(Gaussian2DModel, self).__init__(locals())
 
-        self._x_stddev = parameters.Parameter('x_stddev', x_stddev,
-                                              self, param_dim)
-        self._y_stddev = parameters.Parameter('y_stddev', y_stddev,
-                                              self, param_dim)
-        self._x_mean = parameters.Parameter('x_mean', x_mean, self, param_dim)
-        self._y_mean = parameters.Parameter('y_mean', y_mean, self, param_dim)
-        self._theta = parameters.Parameter('theta', theta, self, param_dim)
-
-        super(Gaussian2DModel, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
-                                              param_dim=param_dim, **cons)
-        self.linear = False
-        if jacobian_func:
-            self.deriv = jacobian_func
-        else:
-            self.deriv = None
-
-    def eval(self, x, y, params):
+    def eval(self, x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
         """
-        Evaluate the model.
-
-        Parameters
-        ----------
-        x : array like or a number
-            input
-        y : dummy variable - array like or a number
-            input
-        params : array
-            parameter sets
+        Model function Gaussian2D
         """
-        a = 0.5 * ((np.cos(params[5]) / params[3]) ** 2 +
-                   (np.sin(params[5]) / params[4]) ** 2)
-        b = 0.5 * (np.cos(params[5]) * np.sin(params[5]) *
-                   (1. / params[3] ** 2 - 1. / params[4] ** 2))
-        c = 0.5 * ((np.sin(params[5]) / params[3]) ** 2 +
-                   (np.cos(params[5]) / params[4]) ** 2)
+        a = 0.5 * ((np.cos(theta) / x_stddev) ** 2 +
+                         (np.sin(theta) / y_stddev) ** 2)
+        b = 0.5 * (np.cos(theta) * np.sin(theta) *
+                         (1. / x_stddev ** 2 - 1. / y_stddev ** 2))
+        c = 0.5 * ((np.sin(theta) / x_stddev) ** 2 +
+                         (np.cos(theta) / y_stddev) ** 2)
 
-        return params[0] * np.exp(-(a * (x - params[1]) ** 2 +
-                                    b * (x - params[1]) * (y - params[2]) +
-                                    c * (y - params[2]) ** 2))
+        return amplitude * np.exp(-(a * (x - x_mean) ** 2 +
+                                    b * (x - x_mean) * (y - y_mean) +
+                                    c * (y - y_mean) ** 2))
 
-    def __call__(self, x, y):
+    def deriv(self, x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
         """
-        Transforms data using this model.
-
-        Parameters
-        ----------
-        x : array like or a number
-            input
-        y : array like or a number
-            input
-
+        Model function derivatives Gaussian2D.
         """
-        x, _ = _convert_input(x, self.param_dim)
-        y, fmt = _convert_input(y, self.param_dim)
-        result = self.eval(x, y, self.param_sets)
-        return _convert_output(result, fmt)
+
+        # Helper quantities
+        # Derivatives are not checked yet
+        a = 0.5 * ((np.cos(theta) / x_stddev) ** 2 +
+                         (np.sin(theta) / y_stddev) ** 2)
+        b = 0.5 * (np.cos(theta) * np.sin(theta) *
+                         (1. / x_stddev ** 2 - 1. / y_stddev ** 2))
+        c = 0.5 * ((np.sin(theta) / x_stddev) ** 2 +
+                         (np.cos(theta) / y_stddev) ** 2)
+
+        d_a = np.sin(theta) * np.cos(theta) * (1 / x_stddev ** 2 - 1 / y_stddev ** 2)
+        d_b = np.cos(2 * theta) * (1 / y_stddev ** 2 - 1 / x_stddev ** 2)
+        d_c = -d_a
+
+        d_A = np.exp(- a * (x - x_mean) ** 2
+                     - b * (x - x_mean) * (y - y_mean)
+                     - c * (y - y_mean) ** 2)
+        d_theta = amplitude * ((x - x_mean) ** 2 * d_a - (x - x_mean) *
+                               (y - y_mean) * d_b + (y - y_mean) ** 2 * d_c) * d_A
+        d_y_stddev = amplitude * ((x - x_mean) ** 2 * np.sin(theta) ** 2
+                    + (x - x_mean) * (y - y_mean) * np.sin(2 * theta)
+                    + (y - y_mean) ** 2 * np.cos(theta) ** 2) * d_A / y_stddev**3
+        d_x_stddev = amplitude * ((x - x_mean) ** 2 * np.cos(theta) ** 2
+                    - (x - x_mean) * (y - y_mean) * np.sin(2 * theta)
+                    + (y - y_mean) ** 2 * np.sin(theta) ** 2) * d_A / x_stddev**3
+        d_y_mean = amplitude * ((x - x_mean) * b - 2 * (y - y_mean) * c) * d_A
+        d_x_mean = amplitude * ((y - y_mean) * b - 2 * (x - x_mean) * a) * d_A
+        return [d_A, d_x_mean, d_y_mean, d_x_stddev, d_y_stddev, d_theta]
 
 
 class ShiftModel(Model):
@@ -283,7 +284,7 @@ class ScaleModel(Model):
 class PowerLaw1DModel(Parametric1DModel):
 
     """
-    A power law model.
+    One dimensional Power Law model.
 
     The model is of the form :math:`A x^\\alpha`, where :math:`A` is
     the `scale` parameter, and :math:`\\alpha` is `alpha`.
@@ -295,35 +296,42 @@ class PowerLaw1DModel(Parametric1DModel):
     alpha : float
         power
 
+    See Also
+    --------
+    Const1DModel, Linear1DModel
+
+
     Notes
     -----
     Model formula:
-        f(x) = scale * x ** (-alpha)
+
+        .. math:: f(x) = A x^{-\\alpha}
+
     """
     param_names = ['scale', 'alpha']
 
-    def __init__(self, scale, alpha):
+    def __init__(self, scale, alpha, **constraints):
         super(PowerLaw1DModel, self).__init__(locals())
 
     def eval(self, x, scale, alpha):
         """
-        Model function PowerLaw1D
+        Model function PowerLaw1D.
         """
         return scale * x ** (-alpha)
 
     def deriv(self, x, scale, alpha):
         """
-        Model derivative PowerLaw1D
+        Model derivative PowerLaw1D.
         """
         d_scale = x ** (-alpha)
-        d_alpha = scale * ((x) ** (-alpha)) * np.log(x)
+        d_alpha = scale * d_scale * np.log(x)
         return [d_scale, d_alpha]
 
 
 class Sine1DModel(Parametric1DModel):
 
     """
-    One dimensional sine model.
+    One dimensional Sine model.
 
     Parameters
     ----------
@@ -332,36 +340,42 @@ class Sine1DModel(Parametric1DModel):
     frequency : float
         Oscillation frequency
 
+    See Also
+    --------
+    Const1DModel, Linear1DModel
+
+
     Notes
     -----
     Model formula:
-        f(x) = amplitude * np.sin(2 * np.pi * frequency * x)
+
+        .. math:: f(x) = A \\sin(2 \\pi f x)
     """
     param_names = ['amplitude', 'frequency']
 
-    def __init__(self, amplitude, frequency):
+    def __init__(self, amplitude, frequency, **constraints):
         super(Sine1DModel, self).__init__(locals())
 
     def eval(self, x, amplitude, frequency):
         """
-        Model function Sine1D
+        Model function Sine1D.
         """
         return amplitude * np.sin(2 * np.pi * frequency * x)
 
     def deriv(self, x, amplitude, frequency):
         """
-        Model function Sine1D
+        Model function Sine1D.
         """
         d_amplitude = np.sin(2 * np.pi * frequency * x)
         d_frequency = (2 * np.pi * x * amplitude
-                                   * np.cos(2 * np.pi * frequency * x))
+                       * np.cos(2 * np.pi * frequency * x))
         return [d_amplitude, d_frequency]
 
 
 class Linear1DModel(Parametric1DModel):
 
     """
-    Simple one dimensional straight line model.
+    One dimensional Line model.
 
     Parameters
     ----------
@@ -371,26 +385,31 @@ class Linear1DModel(Parametric1DModel):
     intercept : float
         Intercept of the straight line
 
+    See Also
+    --------
+    Const1DModel
+
     Notes
     -----
     Model formula:
-        f(x) = slope * x + intercept
+
+        .. math:: f(x) = a x + b
     """
     param_names = ['slope', 'intercept']
 
-    def __init__(self, slope, intercept):
+    def __init__(self, slope, intercept, **constraints):
         super(Linear1DModel, self).__init__(locals())
         self.linear = True
 
     def eval(self, x, slope, intercept):
         """
-        Model function Linear1D
+        Model function Linear1D.
         """
         return slope * x + intercept
 
     def deriv(self, x, slope, intercept):
         """
-        Model function derivatives Linear1D
+        Model function derivatives Linear1D.
         """
         d_slope = x
         d_intercept = np.ones_like(x)
@@ -400,7 +419,7 @@ class Linear1DModel(Parametric1DModel):
 class Lorentz1DModel(Parametric1DModel):
 
     """
-    One dimensional Lorentzian function.
+    One dimensional Lorentzian model.
 
     Parameters
     ----------
@@ -411,48 +430,69 @@ class Lorentz1DModel(Parametric1DModel):
     fwhm : float
         Full width at half maximum
 
+    See Also
+    --------
+    Gaussian1DModel, Box1DModel, MexicanHat1DModel
+
     Notes
     -----
     Model formula:
-        f(x) = amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.) ** 2)
+
+    .. math::
+
+        f(x) = \\frac{A \\gamma^{2}}{\\gamma^{2} + \\left(x - x_{0}\\right)^{2}}
     """
     param_names = ['amplitude', 'x_0', 'fwhm']
 
-    def __init__(self, amplitude, x_0, fwhm):
+    def __init__(self, amplitude, x_0, fwhm, **constraints):
         super(Lorentz1DModel, self).__init__(locals())
 
     def eval(self, x, amplitude, x_0, fwhm):
         """
-        Model function Lorentz1D
+        Model function Lorentz1D.
         """
         return amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.) ** 2)
+
+    def deriv(self, x, amplitude, x_0, fwhm):
+        """
+        Model function derivatives Lorentz1D.
+        """
+        d_amplitude = fwhm ** 2 / (fwhm ** 2 + (x - x_0) ** 2)
+        d_x_0 = amplitude * d_amplitude * (2 * x - 2 * x_0) / (fwhm ** 2 + (x - x_0) ** 2)
+        d_fwhm = 2 * amplitude * d_amplitude / fwhm * (1 - d_amplitude)
+        return [d_amplitude, d_x_0, d_fwhm]
 
 
 class Const1DModel(Parametric1DModel):
 
     """
-    One dimensional constant function.
+    One dimensional Constant model.
 
     Parameters
     ----------
     amplitude : float
         Value of the constant function
 
+    See Also
+    --------
+    Const2DModel
+
     Notes
     -----
     Model formula:
-        f(x) = amplitude
+
+        .. math:: f(x) = A
     """
     param_names = ['amplitude']
 
-    def __init__(self, amplitude):
+    def __init__(self, amplitude, **constraints):
         super(Const1DModel, self).__init__(locals())
 
     def eval(self, x, amplitude):
         """
         Model function Const1D
         """
-        return amplitude
+        return amplitude * np.ones_like(x)
 
     def deriv(self, x, amplitude):
         """
@@ -462,28 +502,97 @@ class Const1DModel(Parametric1DModel):
         return [d_amplitude]
 
 
-class Const2DModel(ParametricModel):
+class Const2DModel(Parametric2DModel):
 
     """
-    Two dimensional constant function.
+    Two dimensional Constant model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Value of the constant function
+
+    See Also
+    --------
+    Const1DModel
+
+    Notes
+    -----
+    Model formula:
+
+        .. math:: f(x, y) = A
     """
-    def __init__(self):
-        raise ModelDefinitionError("Not implemented")
+    param_names = ['amplitude']
+
+    def __init__(self, amplitude, **constraints):
+        super(Const2DModel, self).__init__(locals())
+
+    def eval(self, x, y, amplitude):
+        """
+        Model function Const2D
+        """
+        return amplitude * np.ones_like(x)
 
 
-class Disk2DModel(ParametricModel):
+class Disk2DModel(Parametric2DModel):
 
     """
-    Two dimensional radial symmetric box function.
+    Two dimensional radial symmetric Disk model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Value of the disk function
+    x_0 : float
+        x position center of the disk
+    y_0 : float
+        y position center of the disk
+    R_0 : float
+        Radius of the disk
+
+    See Also
+    --------
+    Box2DModel, TrapezoidDisk2DModel
+
+    Notes
+    -----
+    Model formula:
+
+        .. math::
+
+            f(r) = \\left \\{
+                     \\begin{array}{ll}
+                       A & : r < R_0 \\\\
+                       0 & : r \\geq R_0
+                     \\end{array}
+                   \\right.
     """
-    def __init__(self):
-        raise ModelDefinitionError("Not implemented")
+    param_names = ['amplitude', 'x_0', 'y_0', 'R_0']
+
+    def __init__(self, amplitude, x_0, y_0, R_0, **constraints):
+        super(Disk2DModel, self).__init__(locals())
+
+    def eval(self, x, y, amplitude, x_0, y_0, R_0):
+        """
+        Model function Disk2D.
+        """
+        rr = (x - x_0) ** 2 + (y - y_0) ** 2
+        return np.select([rr <= R_0 ** 2], [amplitude])
 
 
 class Delta1DModel(Parametric1DModel):
 
     """
-    One dimensional Dirac delta function
+    One dimensional Dirac delta function.
+    """
+    def __init__(self):
+        raise ModelDefinitionError("Not implemented")
+
+
+class Delta2DModel(Parametric2DModel):
+
+    """
+    Two dimensional Dirac delta function.
     """
     def __init__(self):
         raise ModelDefinitionError("Not implemented")
@@ -492,7 +601,7 @@ class Delta1DModel(Parametric1DModel):
 class Box1DModel(Parametric1DModel):
 
     """
-    One dimensional box function.
+    One dimensional Box model.
 
     Parameters
     ----------
@@ -503,17 +612,26 @@ class Box1DModel(Parametric1DModel):
     width : float
         Width of the box
 
+    See Also
+    --------
+    Box2DModel, TrapezoidDisk2DModel
+
     Notes
     -----
-    Model function:
-        f(x) = np.select([x >= x_0 - width / 2., x <= x_0 + width / 2.],
-                         [amplitude, amplitude])
+    Model formula:
 
-    Note that at f(x_0 - width / 2.) = f(x_0 + width / 2.) = amplitude.
+      .. math::
+
+            f(x) = \\left \\{
+                     \\begin{array}{ll}
+                       A & : x_0 - w/2 \\geq x \\geq x_0 + w/2 \\\\
+                       0 & : \\textnormal{else}
+                     \\end{array}
+                   \\right.
     """
     param_names = ['amplitude', 'x_0', 'width']
 
-    def __init__(self, amplitude, x_0, width):
+    def __init__(self, amplitude, x_0, width, **constraints):
         super(Box1DModel, self).__init__(locals())
 
     def eval(self, x, amplitude, x_0, width):
@@ -533,31 +651,370 @@ class Box1DModel(Parametric1DModel):
         return [d_amplitude, d_x_0, d_width]
 
 
-class Box2DModel(ParametricModel):
+class Box2DModel(Parametric2DModel):
 
     """
-    Two dimensional box function.
+    Two dimensional Box model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude A
+    x_0 : float
+        x position of the center of the box function
+    x_width : float
+        Width in x direction of the box
+    y_0 : float
+        y position of the center of the box function
+    y_width : float
+        Width in y direction of the box
+
+    See Also
+    --------
+    Box1DModel, Gaussian2DModel, Beta2DModel
+
+    Notes
+    -----
+    Model formula:
+
+      .. math::
+
+            f(x, y) = \\left \\{
+                     \\begin{array}{ll}
+                       A & : x_0 - w_x/2 \\geq x \\geq x_0 + w_x/2 \\\\
+                       A & : y_0 - w_y/2 \\geq y \\geq y_0 + w_y/2 \\\\
+                       0 & : \\textnormal{else}
+                     \\end{array}
+                   \\right.
+
     """
-    def __init__(self):
-        raise ModelDefinitionError("Not implemented")
+
+    param_names = ['amplitude', 'x_0', 'y_0', 'x_width', 'y_width']
+
+    def __init__(self, amplitude, x_0, y_0, x_width, y_width, **constraints):
+        super(Box2DModel, self).__init__(locals())
+
+    def eval(self, x, y, amplitude, x_0, y_0, x_width, y_width):
+        """
+        Model function Box2DModel.
+        """
+        x_range = np.logical_and(x >= x_0 - x_width / 2., x <= x_0 + x_width / 2.)
+        y_range = np.logical_and(y >= y_0 - y_width / 2., y <= y_0 + y_width / 2.)
+        return np.select([np.logical_and(x_range, y_range)], [amplitude])
 
 
-class MexicanHat1DModel(ParametricModel):
+class Trapezoid1DModel(Parametric1DModel):
 
     """
-    One dimensional mexican hat function.
+    One dimensional Trapezoid model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude of the trapezoid
+    x_0 : float
+        Center position of the trapezoid
+    width : float
+        Width of the constant part of the trapezoid.
+    slope : float
+        Slope of the tails of the trapezoid
+
+    See Also
+    --------
+    Box1DModel, Gaussian1DModel, Beta1DModel
     """
-    def __init__(self):
-        raise ModelDefinitionError("Not implemented")
+    param_names = ['amplitude', 'x_0', 'width', 'slope']
+
+    def __init__(self, amplitude, x_0, width, slope, **constraints):
+        super(Trapezoid1DModel, self).__init__(locals())
+
+    def eval(self, x, amplitude, x_0, width, slope):
+        """
+        Model function Trapezoid1D.
+        """
+        range_1 = np.logical_and(x >= x_0 - width / 2. - amplitude / slope, x < x_0 - width / 2.)
+        range_2 = np.logical_and(x >= x_0 - width / 2., x < x_0 + width / 2.)
+        range_3 = np.logical_and(x >= x_0 + width / 2., x < x_0 + width / 2. + amplitude / slope)
+        val_1 = amplitude + slope * (x_0 + width / 2. + x)
+        val_2 = amplitude
+        val_3 = amplitude + slope * (x_0 + width / 2. - x)
+        return np.select([range_1, range_2, range_3], [val_1, val_2, val_3])
 
 
-class MexicanHat2DModel(ParametricModel):
+class TrapezoidDisk2DModel(Parametric2DModel):
 
     """
-    Two dimensional mexican hat function.
+    Two dimensional circular Trapezoid model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude of the trapezoid
+    x_0 : float
+        x position of the center of the trapezoid
+    y_0 : float
+        y position of the center of the trapezoid
+    R_0 : float
+        Radius of the constant part of the trapezoid.
+    slope : float
+        Slope of the tails of the trapezoid in x direction.
+
+    See Also
+    --------
+    Disk2DModel, Box2DModel
     """
-    def __init__(self):
-        raise ModelDefinitionError("Not implemented")
+
+    param_names = ['amplitude', 'x_0', 'y_0', 'R_0', 'slope']
+
+    def __init__(self, amplitude, x_0, y_0, R_0, slope, **constraints):
+        super(TrapezoidDisk2DModel, self).__init__(locals())
+
+    def eval(self, x, y, amplitude, x_0, y_0, R_0, slope):
+        """
+        Model function TrapezoidDisk2D.
+        """
+        r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
+        range_1 = r <= R_0
+        range_2 = np.logical_and(r >= R_0,  r <= R_0 + amplitude / slope)
+        val_1 = amplitude
+        val_2 = amplitude + slope * (R_0 - r)
+        return np.select([range_1, range_2], [val_1, val_2])
+
+
+class MexicanHat1DModel(Parametric1DModel):
+
+    """
+    One dimensional Mexican Hat model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude
+    x_0 : float
+        Position of the peak
+    width : float
+        Width of the mexican hat
+
+    See Also
+    --------
+    MexicanHat2DModel, Box1DModel, Gaussian1DModel, Trapezoid1DModel
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        f(x) = {A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}\\right)
+        e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}}
+
+    """
+    param_names = ['amplitude', 'x_0', 'sigma']
+
+    def __init__(self, amplitude, x_0, sigma, **constraints):
+        super(MexicanHat1DModel, self).__init__(locals())
+
+    def eval(self, x, amplitude, x_0, sigma):
+        """
+        Model function MexicanHat1DModel.
+        """
+        xx_ww = (x - x_0) ** 2 / (2 * sigma ** 2)
+        return amplitude * (1 - xx_ww) * np.exp(-xx_ww)
+
+
+class MexicanHat2DModel(Parametric2DModel):
+
+    """
+    Two dimensional symmetric Mexican Hat model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude
+    x_0 : float
+        x position of the peak
+    y_0 : float
+        y position of the peak
+    width : float
+        Width of the mexican hat
+
+    See Also
+    --------
+    MexicanHat1DModel, Gaussian2DModel
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        f(x, y) = A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}
+        + \\left(y - y_{0}\\right)^{2}}{2 \\sigma^{2}}\\right)
+        e^{\\frac{- \\left(x - x_{0}\\right)^{2}
+        - \\left(y - y_{0}\\right)^{2}}{2 \\sigma^{2}}}
+    """
+    param_names = ['amplitude', 'x_0', 'y_0', 'sigma']
+
+    def __init__(self, amplitude, x_0, y_0, sigma, **constraints):
+        super(MexicanHat2DModel, self).__init__(locals())
+
+    def eval(self, x, y, amplitude, x_0, y_0, sigma):
+        """
+        Model function MexicanHat2DModel.
+        """
+        rr_ww = ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * sigma ** 2)
+        return amplitude * (1 - rr_ww) * np.exp(- rr_ww)
+
+
+class AiryDisk2DModel(Parametric2DModel):
+    """
+    Two dimensional Airy disk model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude of the Airy function.
+    x_0 : float
+        x position of the maximum of the Airy function.
+    y_0 : float
+        y position of the maximum of the Airy function.
+    width : float
+        Width of the Airy function.
+
+    See Also
+    --------
+    Box2DModel, TrapezoidDisk2DModel, Gaussian2DModel
+
+
+    Notes
+    -----
+    Model formula:
+
+        .. math:: f(r) = A \\frac{J_1(2 \\pi r)}{\\pi r}
+
+    Where J1 is the first order Bessel function of first kind.
+    """
+    param_names = ['amplitude', 'x_0', 'y_0', 'width']
+
+    def __init__(self, amplitude, x_0, y_0, width, **constraints):
+        try:
+            from scipy.special import j1
+            self._j1 = j1
+        except ImportError:
+            raise ImportError("Could not import scipy.special.")
+        super(AiryDisk2DModel, self).__init__(locals())
+
+    def eval(self, x, y, amplitude, x_0, y_0, width):
+        """
+        Model function Airy2D.
+        """
+        r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / width
+        return np.select([r == 0], [1], amplitude * self._j1(2 * np.pi * r) / (np.pi * r))
+
+
+class Beta1DModel(Parametric1DModel):
+    """
+    One dimensional Beta model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude of the model.
+    x_0 : float
+        x position of the maximum of the Beta model.
+    gamma : float
+        Core width of the Beta model.
+    alpha : float
+        Power index of the beta model.
+
+    See Also
+    --------
+    Gaussian1DModel, Box1DModel
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        f(x) = A \\left(1 + \\frac{\\left(x - x_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
+
+    """
+    param_names = ['amplitude', 'x_0', 'gamma', 'alpha']
+
+    def __init__(self, amplitude, x_0, gamma, alpha, **constraints):
+        super(Beta1DModel, self).__init__(locals())
+
+    def eval(self, x, amplitude, x_0, gamma, alpha):
+        """
+        Model function Beta1D.
+        """
+        return amplitude * (1 + ((x - x_0) / gamma) ** 2) ** (-alpha)
+
+    def deriv(self, x, amplitude, x_0, gamma, alpha):
+        """
+        Model function derivatives Beta1D.
+        """
+        d_A = (1 + (x - x_0) ** 2 / gamma ** 2) ** (-alpha)
+        d_x_0 = - amplitude * alpha * d_A * (-2 * x + 2 * x_0) / (gamma ** 2 * d_A ** alpha)
+        d_gamma = 2 * amplitude * alpha * d_A * (x - x_0) ** 2 / (gamma ** 3 * d_A ** alpha)
+        d_alpha = -amplitude * d_A * np.log(1 + (x - x_0) ** 2 / gamma ** 2)
+        return [d_A, d_x_0, d_gamma, d_alpha]
+
+
+class Beta2DModel(Parametric2DModel):
+    """
+    Two dimensional Beta model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Amplitude of the model.
+    x_0 : float
+        x position of the maximum of the Beta model.
+    y_0 : float
+        y position of the maximum of the Beta model.
+    gamma : float
+        Core width of the Beta model.
+    alpha : float
+        Power index of the beta model.
+
+    See Also
+    --------
+    Gaussian2DModel, Box2DModel
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        f(x, y) = A \\left(1 + \\frac{\\left(x - x_{0}\\right)^{2} +
+        \\left(y - y_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
+    """
+    param_names = ['amplitude', 'x_0', 'y_0', 'gamma', 'alpha']
+
+    def __init__(self, amplitude, x_0, y_0, gamma, alpha, **constraints):
+        super(Beta2DModel, self).__init__(locals())
+
+    def eval(self, x, y, amplitude, x_0, y_0, gamma, alpha):
+        """
+        Model function Beta2D.
+        """
+        rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
+        return amplitude * (1 + rr_gg) ** (-alpha)
+
+    def deriv(self, x, y, amplitude, x_0, y_0, gamma, alpha):
+        """
+        Model function derivatives Beta2D.
+        """
+        rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
+        d_A = (1 + rr_gg) ** (-alpha)
+        d_x_0 = - amplitude * alpha * d_A * (-2 * x + 2 * x_0) / (gamma ** 2 * (1 + rr_gg))
+        d_y_0 = - amplitude * alpha * d_A * (-2 * y + 2 * y_0) / (gamma ** 2 * (1 + rr_gg))
+        d_alpha = - amplitude * d_A * np.log(1 + rr_gg)
+        d_gamma = 2 * amplitude * alpha * d_A * (rr_gg / (gamma * (1 + rr_gg)))
+        return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
 
 
 class Custom1DModel(Parametric1DModel):
@@ -569,7 +1026,7 @@ class Custom1DModel(Parametric1DModel):
     with default values in the model function.
 
     If you want to work with parameter sets, the parameters have to be defined
-    as lists.
+    as lists or arrays.
 
     Parameters
     ----------
@@ -596,7 +1053,7 @@ class Custom1DModel(Parametric1DModel):
     This model instance can now be used like a usual astropy model.
     """
 
-    def __init__(self, func, func_deriv=None):
+    def __init__(self, func, func_deriv=None, **constraints):
         if callable(func):
             self._func = func
         else:
@@ -610,7 +1067,7 @@ class Custom1DModel(Parametric1DModel):
         else:
             raise ModelDefinitionError("All parameters must be keyword arguments")
         param_dict = dict(zip(self.param_names, param_values))
-        super(Custom1DModel, self).__init__(param_dict)
+        super(Custom1DModel, self).__init__(param_dict, **constraints)
 
     def eval(self, x, *params):
         """
