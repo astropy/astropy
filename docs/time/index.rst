@@ -601,5 +601,6 @@ This package makes use of the `ERFA Software
 software belongs to the NumFOCUS Foundation. The library is made available 
 under the terms of the "BSD-three clauses" license.
 
-ERFA is derived, with permission, from the 
-`SOFA software <http://www.iausofa.org/>`_.
+The ERFA library is derived, with permission, from the International
+Astronomical Union's "Standards of Fundamental Astronomy" library,
+available from http://www.iausofa.org.
