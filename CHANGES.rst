@@ -57,6 +57,8 @@ New Features
   - New package added to support Virtual Observatory Simple Cone Search query
     and service validation [#552].
 
+- Astropy now uses the free software library ERFA in place of the 
+  non-free library SOFA [#1195].
 
 API Changes
 ^^^^^^^^^^^
@@ -130,10 +132,7 @@ Bug Fixes
 
   - The ``write()`` function was ignoring the ``fill_values`` argument (#910).
 
-- ``astropy.time``
 
-  - The module uses internally free software library ERFA instead of 
-    non-free library SOFA (#1195)
 
 0.2.4 (unreleased)
 ------------------
