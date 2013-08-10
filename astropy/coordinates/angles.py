@@ -56,15 +56,6 @@ class Angle(u.Quantity):
         better to give an actual unit object.  Must be an angular
         unit.
 
-    bounds : 2-sequence, optional
-        A length-2 sequence indicating the upper and lower value that
-        the new angle object may have.  Each value may be in any of
-        the forms accepted by the `angle` argument.  If no units are
-        specified, (that is the value is a float, tuple, or string
-        without an explicit unit), the unit is taken from the `unit`
-        argument.  Pass `None` to perform no bounds checking.  By
-        default the bounds are `(-360, 360)` degrees.
-
     dtype : ~numpy.dtype, optional
         See `~astropy.units.Quantity`.
 
@@ -76,7 +67,7 @@ class Angle(u.Quantity):
     `~astropy.units.core.UnitsException`
         If a unit is not provided or it is not an angular unit.
     """
-    def __new__(cls, angle, unit=None, bounds=(), dtype=None,
+    def __new__(cls, angle, unit=None, dtype=None,
                 equivalencies=[]):
         unit = cls._convert_unit_to_angle_unit(unit)
         if (unit is not None and
@@ -132,13 +123,9 @@ class Angle(u.Quantity):
         if unit is None:
             raise u.UnitsException("No unit was specified")
 
-        bounded_angle, bounds = cls._bounds_check(angle, bounds, unit)
-
         self = super(Angle, cls).__new__(
-            cls, bounded_angle, unit, dtype=dtype,
+            cls, angle, unit, dtype=dtype,
             equivalencies=equivalencies)
-
-        self._bounds = bounds
 
         return self
 
@@ -161,77 +148,6 @@ class Angle(u.Quantity):
                         angle, unit))
         return angle
 
-    @classmethod
-    def _get_default_bounds(cls):
-        if not hasattr(cls, '_default_bounds'):
-            cls._default_bounds = (
-                Angle(-360, u.degree, bounds=None),
-                Angle(360, u.degree, bounds=None))
-        return cls._default_bounds
-
-    @classmethod
-    def _bounds_check(cls, angle, bounds, unit):
-        def raise_error(original_angle, lower_angle, upper_angle, unit):
-            raise BoundsError(
-                "The angle(s) {0} falls outside of the specified "
-                "bounds ({1}, {2}) (in {3})".format(
-                    u.radian.to(unit, original_angle),
-                    u.radian.to(unit, lower_angle),
-                    u.radian.to(unit, upper_angle),
-                    unit))
-
-        if bounds is None:
-            return angle, None
-
-        if bounds == ():
-            bounds = cls._get_default_bounds()
-        else:
-            if len(bounds) != 2:
-                raise ValueError(
-                    "Bounds specified for Angle must be a two-element "
-                    "sequence, e.g. [0, 360] (was given '{0}').".format(bounds))
-
-            new_bounds = []
-            for bound in bounds:
-                if isinstance(bound, u.Quantity):
-                    bound = Angle(bound, bounds=None)
-                else:
-                    bound = Angle(bound, unit, bounds=None)
-                new_bounds.append(bound)
-            bounds = tuple(new_bounds)
-
-        lower_bound, upper_bound = bounds
-        # Convert everything to radians, and keep a copy of the
-        # original (unmoved) values for any resulting error messages.
-        original_angle = np.array(angle)
-        angle = angle.copy()
-        lower_angle = lower_bound.to(unit).value
-        upper_angle = upper_bound.to(unit).value
-
-        # TODO: This is perhaps a candidate for something to do in C.
-        TWOPI = u.radian.to(unit, np.pi * 2.0)
-
-        if np.all((lower_angle < angle) & (angle < upper_angle)):
-            pass
-        else:
-            too_big = angle > upper_angle
-            while np.any(too_big):
-                angle = np.where(too_big, angle - TWOPI, angle)
-                if np.any(angle < lower_angle):
-                    raise_error(original_angle, lower_angle, upper_angle, unit)
-
-                too_big = angle > upper_angle
-
-            too_small = angle < lower_angle
-            while np.any(too_small):
-                angle = np.where(too_small, angle + TWOPI, angle)
-                if np.any(angle > upper_angle):
-                    raise_error(original_angle, lower_angle, upper_angle, unit)
-
-                too_small = angle < lower_angle
-
-        return angle, bounds
-
     @staticmethod
     def _convert_unit_to_angle_unit(unit):
         if unit is not None:
@@ -245,7 +161,6 @@ class Angle(u.Quantity):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
             result = obj.view(Angle)
-            result._bounds = self.bounds
             return result
         return super(Angle, self).__quantity_view__(
             obj, unit)
@@ -253,7 +168,7 @@ class Angle(u.Quantity):
     def __quantity_instance__(self, val, unit, dtype=None, equivalencies=[]):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
-            return Angle(val, unit, bounds=self.bounds, dtype=dtype,
+            return Angle(val, unit, dtype=dtype,
                          equivalencies=equivalencies)
         return super(Angle, self).__quantity_instance__(
             val, unit, dtype=dtype, equivalencies=equivalencies)
@@ -262,26 +177,14 @@ class Angle(u.Quantity):
         obj = super(Angle, self).__array_wrap__(obj, context=context)
 
         if isinstance(obj, Angle):
-            return Angle(obj.value, obj.unit, bounds=obj.bounds)
+            return Angle(obj.value, obj.unit)
 
         return obj
 
-    def _bounds_match_check(self, other, operation):
-        if (isinstance(other, Angle) and
-            self.bounds != other.bounds):
-            default_bounds = self._get_default_bounds()
-            if (self.bounds != default_bounds and
-                other.bounds != default_bounds):
-                msg = "Can't {0} angles because bounds don't match: {1} and {2}"
-                raise BoundsError(msg.format(
-                        operation, self.bounds, other.bounds))
-
     def __add__(self, other):
-        self._bounds_match_check(other, 'add')
         return super(Angle, self).__add__(other)
 
     def __sub__(self, other):
-        self._bounds_match_check(other, 'subtract')
         return super(Angle, self).__sub__(other)
 
     def __mul__(self, other):
@@ -300,14 +203,6 @@ class Angle(u.Quantity):
         return super(Angle, self).__div__(other)
 
     __truediv__ = __div__
-
-    @property
-    def bounds(self):
-        """
-        The angle's bounds, an immutable property.  Returns a 2-tuple
-        of `Angle` objects.
-        """
-        return self._bounds
 
     @property
     def hour(self):
@@ -522,10 +417,7 @@ class RA(Angle):
     """
 
     def __new__(cls, angle, unit=None):
-        return super(RA, cls).__new__(
-            cls, angle, unit=unit, bounds=(
-                Angle(0, u.degree, bounds=None),
-                Angle(360, u.degree, bounds=None)))
+        return super(RA, cls).__new__(cls, angle, unit=unit)
 
     # The initializer as originally conceived allowed the unit to be unspecified
     # if it's bigger  than 24, because hours typically aren't past 24.
@@ -623,7 +515,7 @@ class RA(Angle):
             lst = Angle(np.remainder(lst.mjd, 1), unit=u.hour)
 
         return Angle(
-            lst.radian - self.radian, unit=u.radian, bounds=(0, TWOPI))
+            np.mod(lst.radian - self.radian, 2 * np.pi) , unit=u.radian)
 
     def lst(self, hour_angle):
         """
@@ -641,7 +533,7 @@ class RA(Angle):
             The local siderial time as an angle.
         """
         return Angle(
-            hour_angle.radian + self.radian, unit=u.radian, bounds=(0, TWOPI))
+            np.mod(hour_angle.radian + self.radian, 2 * np.pi), unit=u.radian)
 
 
 class Dec(Angle):
@@ -651,8 +543,7 @@ class Dec(Angle):
     This object can be created from a numeric value along with a unit,
     or else a string in any commonly represented format, e.g. "12 43
     23.53", "-32d52m29s".  Unless otherwise specified via the 'unit'
-    parameter, degrees are assumed.  Bounds are fixed to [-90,90]
-    degrees.
+    parameter, degrees are assumed.
 
     Parameters
     ----------
@@ -674,10 +565,7 @@ class Dec(Angle):
         If a unit is not provided or it is not an angular unit.
     """
     def __new__(cls, angle, unit=None):
-        return super(Dec, cls).__new__(
-            cls, angle, unit=unit,
-            bounds=(Angle(-90, u.degree, bounds=None),
-                    Angle(90, u.degree, bounds=None)))
+        return super(Dec, cls).__new__(cls, angle, unit=unit)
 
     # TODO: do here whatever is decided for the "smart" RA initializer above
     #

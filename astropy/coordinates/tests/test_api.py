@@ -174,76 +174,6 @@ def test_angle_ops():
     assert a1 < a5
     assert a1 <= a5
 
-def test_angle_bounds():
-    """
-    Tests setting and obeying of bounds for Angle objects, as well as
-    how operations interact with bounds
-    """
-    from .. import Angle, RangeError, BoundsError
-    import numpy.testing as npt
-
-    '''
-    By default the Angle object can accept any value, but will return
-    values in [-360,360] (retaining the sign that was specified).
-
-    One can also set artificial bounds for custom applications and range
-    checking. As Angle objects are intended to be immutable (the angle value
-    anyway), this provides a bound check upon creation. The units given in the
-    `bounds` keyword must match the units specified in the scalar.
-    '''
-
-    a1 = Angle(13343, unit=u.degree)
-    npt.assert_almost_equal(a1.degree, 23)
-
-    a2 = Angle(-50, unit=u.degree)
-    assert a2.degree == -50
-
-    a3 = Angle(-361, unit=u.degree)
-    npt.assert_almost_equal(a3.degree, -1)
-
-    # custom bounds
-
-    with raises(BoundsError):
-        Angle(66, unit=u.degree, bounds=(-45, 45))
-
-    a4 = Angle(390, unit=u.degree, bounds=(-75, 75))
-    npt.assert_almost_equal(a4.degree, 30)
-    # no BoundsError because while 390>75, 30 is within the bounds
-
-    a5 = Angle(390, unit=u.degree, bounds=(-720, 720))
-    assert a5.degree == 390
-
-    a6 = Angle(1020, unit=u.degree, bounds=None)
-    assert abs(a6.degree - 1020) < 1e-10
-
-    # bounds and operations
-
-    with raises(ValueError):
-        a4 + a5
-        # ValueError - the bounds don't match
-
-    a7 = a4 + a4
-    assert a7.bounds == (Angle(-75, u.degree), Angle(75, u.degree))
-    # if the bounds match, there is no error and the bound is kept
-    npt.assert_almost_equal(a7.degree, 60)
-
-    a8 = a4 - a4
-    assert a8.bounds == (Angle(-75, u.degree), Angle(75, u.degree))
-    # To get the default bounds back, you need to create a new object with the
-    # equivalent angle
-    Angle(a4.degree + a4.degree, unit=u.degree)
-
-    a9 = Angle(a4.degree + a5.degree, unit=u.degree, bounds=[-180, 180])
-    npt.assert_almost_equal(a9.degree, 60)
-    # if they don't match and you want to combine, just re-assign the bounds
-    # yourself
-
-    # bounds of None can also be operated on without complaint
-    a10 = a6 - a6
-    assert a10.degree == 0
-
-    with raises(AttributeError):
-        a10.bounds = (0, 34)
 
 def test_angle_convert():
     """
@@ -469,15 +399,6 @@ def test_radec():
     with raises(u.UnitsException):
         dec = Dec("-41:08:15.162342")
     dec = Dec("-41:08:15.162342", unit=u.degree)  # same as above
-
-    # The RA and Dec objects have bounds hard-coded at (0,360) and (-90,90)
-    # degrees, respectively.
-    assert ra.bounds == (Angle(0, u.degree), Angle(360, u.degree))
-    with raises(AttributeError):
-        ra.bounds = (-45, 45)
-    assert dec.bounds == (Angle(-90, u.degree), Angle(90, u.degree))
-    with raises(AttributeError):
-        dec.bounds = (-45, 45)
 
     #RA objects can also compute hour angle and local siderial times
     ra = RA("1:00:00", unit=u.hour)

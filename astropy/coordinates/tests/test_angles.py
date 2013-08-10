@@ -105,24 +105,3 @@ def test_angle_repr():
 
     a = Angle(0, u.deg)
     repr(a)
-
-
-def test_angle_bounds_check():
-    a1 = RA(45, u.degree)
-    a2 = Dec(45, u.degree)
-
-    with pytest.raises(BoundsError):
-        a1 + a2
-
-    a3 = u.Quantity(15, u.degree)
-    a2 + a3
-
-    a4 = u.Quantity(50, u.degree)
-    with pytest.raises(BoundsError):
-        a2 + a4
-
-
-def test_angle_bounds_check_precision():
-    a = Angle(359.0, unit=u.deg)
-    b = Angle(2.0, unit=u.deg)
-    assert (a + b).value == 1.0
