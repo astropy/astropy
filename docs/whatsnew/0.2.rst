@@ -187,7 +187,7 @@ The :ref:`astropy.time <astropy-time>` package is new in Astropy 0.2 and
 provides functionality for manipulating times and dates.  Specific emphasis is
 placed on supporting time scales (e.g. UTC, TAI, UT1) and time representations
 (e.g. JD, MJD, ISO 8601) that are used in astronomy.  The underlying
-computations are mostly done with the C language `ERFA`_ time and calendar
+computations are mostly done with the C language `SOFA`_ time and calendar
 routines.  A simple example follows::
 
   >>> from astropy.time import Time
@@ -204,7 +204,7 @@ another time ``format`` or time ``scale`` is a snap::
   >>> t.tt  # Get a new Time object with values in the TT time scale
   <Time object: scale='tt' format='iso' vals=['1999-01-01 00:01:04.307' '2010-01-01 00:01:06.184']>
 
-.. _ERFA: https://github.com/liberfa/erfa
+.. _SOFA: http://www.iausofa.org/index.html
 
 
 Units and quantities
