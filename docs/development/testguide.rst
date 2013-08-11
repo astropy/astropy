@@ -610,7 +610,7 @@ The simplest way to generalize the example output is to use the elipses
 
 This doctest expects an exception with a traceback, but the text of the
 traceback is skipped in the example output--only the first and last lines
-of the output are checked.  See the :module:``doctest`` documentation for
+of the output are checked.  See the :mod:``doctest`` documentation for
 more examples of skipping output.
 
 
