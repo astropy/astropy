@@ -537,3 +537,8 @@ def test_now():
     else:
         total_secs = lambda td: td.total_seconds()
     assert total_secs(dt) < 0.1
+
+
+def test_dir():
+    t = Time('2000:001', format='yday', scale='tai')
+    assert 'utc' in dir(t)
