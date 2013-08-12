@@ -657,7 +657,7 @@ class TestRemove(SetupData):
 
     def test_remove_nonexistent_row(self, table_types):
         self._setup(table_types)
-        with pytest.raises(ValueError):
+        with pytest.raises(IndexError):
             self.t.remove_row(4)
 
     def test_remove_row_0(self, table_types):
