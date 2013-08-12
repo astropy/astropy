@@ -8,6 +8,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import pytest
+from ...tests.compat import assert_allclose
 import numpy as np
 
 from ... import units as u
