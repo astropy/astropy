@@ -779,7 +779,7 @@ class Model2DKernel(Kernel2D):
 
         >>> from astropy.modeling.models import Gaussian2DModel
         >>> from astropy.nddata.convolution.kernels import Model2DKernel
-        >>> gauss = Gaussian1DModel(1, 0, 0, 2, 2)
+        >>> gauss = Gaussian2DModel(1, 0, 0, 2, 2)
 
     And create a custom two dimensional kernel from it:
 
