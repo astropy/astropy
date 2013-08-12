@@ -25,7 +25,7 @@ __doctest_skip__ = ['TimePlotDate']
 
 try:
     # Not guaranteed available at setup time
-    from . import sofa_time
+    from . import erfa_time
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise
@@ -293,7 +293,7 @@ class Time(object):
                     args.append(get_dt(jd1, jd2))
                     break
 
-            conv_func = getattr(sofa_time, sys1 + '_' + sys2)
+            conv_func = getattr(erfa_time, sys1 + '_' + sys2)
             jd1, jd2 = conv_func(*args)
         self._time = self.FORMATS[self.format](jd1, jd2, scale, self.precision,
                                                self.in_subfmt, self.out_subfmt,
@@ -550,10 +550,10 @@ class Time(object):
             raise ValueError('Attribute length must match Time object length')
         return val
 
-    # Property for SOFA DUT arg = UT1 - UTC
+    # Property for ERFA DUT arg = UT1 - UTC
     def _get_delta_ut1_utc(self, jd1=None, jd2=None):
         """
-        Get SOFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
+        Get ERFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
         jd2 args because it gets called that way when converting time scales.
         The current code ignores these, but when the IERS table is interpolated
         by this module they will be used.
@@ -577,7 +577,7 @@ class Time(object):
     delta_ut1_utc = property(_get_delta_ut1_utc, _set_delta_ut1_utc)
     """UT1 - UTC time scale offset"""
 
-    # Property for SOFA DTR arg = TDB - TT
+    # Property for ERFA DTR arg = TDB - TT
     def _get_delta_tdb_tt(self, jd1=None, jd2=None):
         if not hasattr(self, '_delta_tdb_tt'):
             # If jd1 and jd2 are not provided (which is the case for property
@@ -595,19 +595,19 @@ class Time(object):
             # First go from the current input time (which is either
             # TDB or TT) to an approximate UTC.  Since TT and TDB are
             # pretty close (few msec?), assume TT.
-            njd1, njd2 = sofa_time.tt_tai(jd1, jd2)
-            njd1, njd2 = sofa_time.tai_utc(njd1, njd2)
+            njd1, njd2 = erfa_time.tt_tai(jd1, jd2)
+            njd1, njd2 = erfa_time.tai_utc(njd1, njd2)
             # TODO: actually need to go to UT1 which needs DUT.
             ut = njd1 + njd2
 
             # Compute geodetic params needed for d_tdb_tt()
             phi = np.radians(self.lat)
             elon = np.radians(self.lon)
-            xyz = sofa_time.iau_gd2gc(1, elon, phi, 0.0)
+            xyz = erfa_time.era_gd2gc(1, elon, phi, 0.0)
             u = np.sqrt(xyz[0] ** 2 + xyz[1] ** 2)
             v = xyz[2]
 
-            self._delta_tdb_tt = sofa_time.d_tdb_tt(jd1, jd2, ut, elon, u, v)
+            self._delta_tdb_tt = erfa_time.d_tdb_tt(jd1, jd2, ut, elon, u, v)
 
         return self._delta_tdb_tt
 
@@ -908,7 +908,7 @@ class TimeMJD(TimeFormat):
     name = 'mjd'
 
     def set_jds(self, val1, val2):
-        # TODO - this routine and vals should be Cythonized to follow the SOFA
+        # TODO - this routine and vals should be Cythonized to follow the ERFA
         # convention of preserving precision by adding to the larger of the two
         # values in a vectorized operation.  But in most practical cases the
         # first one is probably biggest.
@@ -1133,12 +1133,12 @@ class TimeDatetime(TimeUnique):
             imin[i] = val.minute
             dsec[i] = val.second + val.microsecond / 1e6
 
-        self.jd1, self.jd2 = sofa_time.dtf_jd(self.scale.upper().encode('utf8'),
+        self.jd1, self.jd2 = erfa_time.dtf_jd(self.scale.upper().encode('utf8'),
                                               iy, im, id, ihr, imin, dsec)
 
     @property
     def vals(self):
-        iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.scale.upper()
+        iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
                                                  .encode('utf8'),
                                                  6,  # precision = 6 for microseconds
                                                  self.jd1, self.jd2)
@@ -1209,7 +1209,7 @@ class TimeString(TimeUnique):
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(timestr, self.name))
 
-        self.jd1, self.jd2 = sofa_time.dtf_jd(self.scale.upper().encode('utf8'),
+        self.jd1, self.jd2 = erfa_time.dtf_jd(self.scale.upper().encode('utf8'),
                                               iy, im, id, ihr, imin, dsec)
 
     def str_kwargs(self):
@@ -1217,7 +1217,7 @@ class TimeString(TimeUnique):
         Generator that yields a dict of values corresponding to the
         calendar date and time for the internal JD values.
         """
-        iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.scale.upper()
+        iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
                                                  .encode('utf8'),
                                                  self.precision,
                                                  self.jd1, self.jd2)
@@ -1350,12 +1350,12 @@ class TimeEpochDate(TimeFormat):
     """
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # validate scale.
-        epoch_to_jd = getattr(sofa_time, self.epoch_to_jd)
+        epoch_to_jd = getattr(erfa_time, self.epoch_to_jd)
         self.jd1, self.jd2 = epoch_to_jd(val1 + val2)
 
     @property
     def vals(self):
-        jd_to_epoch = getattr(sofa_time, self.jd_to_epoch)
+        jd_to_epoch = getattr(erfa_time, self.jd_to_epoch)
         return jd_to_epoch(self.jd1, self.jd2)
 
 
@@ -1395,12 +1395,12 @@ class TimeEpochDateString(TimeString):
                 years[i] = year
 
         self._check_scale(self._scale)  # validate scale.
-        epoch_to_jd = getattr(sofa_time, self.epoch_to_jd)
+        epoch_to_jd = getattr(erfa_time, self.epoch_to_jd)
         self.jd1, self.jd2 = epoch_to_jd(years)
 
     @property
     def vals(self):
-        jd_to_epoch = getattr(sofa_time, self.jd_to_epoch)
+        jd_to_epoch = getattr(erfa_time, self.jd_to_epoch)
         years = jd_to_epoch(self.jd1, self.jd2)
         # Use old-style format since it is a factor of 2 faster
         str_fmt = self.epoch_prefix + '%.' + str(self.precision) + 'f'

@@ -66,6 +66,11 @@ New Features
   - Added new spectroscopic equivalencies for velocity conversions
     (relativistic, optical, and radio conventions are supported)
 
+- Astropy now uses the ERFA library instead of the IAU SOFA library for 
+  fundamental time transformation routines.  
+  The ERFA library is derived, with permission, from the IAU SOFA library but 
+  is distributed under a BSD license. See ``license/ERFA.rst`` for details.
+
 API Changes
 ^^^^^^^^^^^
 
