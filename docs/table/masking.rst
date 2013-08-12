@@ -135,7 +135,7 @@ viewed and modified via the ``mask`` attribute::
    a   b 
   --- ---
     1  --
-   --   4
+    2   4
 
 Masked entries are shown as ``--`` when the table is printed.
 
