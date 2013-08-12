@@ -678,6 +678,8 @@ class Model1DKernel(Kernel1D):
     """
     Create kernel from astropy.models.Parametric1DModel.
 
+    The model has to be centered on x = 0.
+
     Parameters
     ----------
     model : Parametric1DModel
@@ -714,8 +716,8 @@ class Model1DKernel(Kernel1D):
     Define a Gaussian1D model:
 
         >>> from astropy.modeling.models import Gaussian1DModel
-        >>> from astropy.modeling.models import Model1DKernel
-        >>> gauss = Gaussian1dmodel(1, 0, 2)
+        >>> from astropy.nddata.convolution.kernels import Model1DKernel
+        >>> gauss = Gaussian1DModel(1, 0, 2)
 
     And create a custom one dimensional kernel from it:
 
@@ -737,6 +739,8 @@ class Model1DKernel(Kernel1D):
 class Model2DKernel(Kernel2D):
     """
     Create kernel from astropy.models.Parametric2DModel.
+
+    The model has to be centered on x = 0 and y= 0.
 
     Parameters
     ----------
@@ -774,8 +778,8 @@ class Model2DKernel(Kernel2D):
     Define a Gaussian2D model:
 
         >>> from astropy.modeling.models import Gaussian2DModel
-        >>> from astropy.modeling.models import Model2DKernel
-        >>> gauss = Gaussian1dmodel(1, 0, 0, 2, 2)
+        >>> from astropy.nddata.convolution.kernels import Model2DKernel
+        >>> gauss = Gaussian1DModel(1, 0, 0, 2, 2)
 
     And create a custom two dimensional kernel from it:
 
