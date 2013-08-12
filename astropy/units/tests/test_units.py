@@ -52,15 +52,6 @@ def test_convert_fail():
         (u.cm / u.s).to(u.m, 1)
 
 
-def test_is_equivalent():
-    assert u.m.is_equivalent(u.inch)
-    assert not (u.Hz.is_equivalent(u.J))
-    assert u.Hz.is_equivalent(u.J, u.spectral())
-    assert u.J.is_equivalent(u.Hz, u.spectral())
-    assert u.pc.is_equivalent(u.arcsecond, u.parallax())
-    assert u.arcminute.is_equivalent(u.au, u.parallax())
-
-
 def test_composite():
     assert (u.cm / u.s * u.h).get_converter(u.m)(1) == 36
     assert u.cm * u.cm == u.cm ** 2
@@ -76,104 +67,6 @@ def test_str():
 
 def test_repr():
     assert repr(u.cm) == 'Unit("cm")'
-
-
-def test_parallax():
-    a = u.arcsecond.to(u.pc, 10, u.parallax())
-    assert_allclose(a, 0.10)
-    b = u.pc.to(u.arcsecond, a, u.parallax())
-    assert_allclose(b, 10)
-
-    a = u.arcminute.to(u.au, 1, u.parallax())
-    assert_allclose(a, 3437.7467916)
-    b = u.au.to(u.arcminute, a, u.parallax())
-    assert_allclose(b, 1)
-
-
-def test_parallax2():
-    a = u.arcsecond.to(u.pc, [0.1, 2.5], u.parallax())
-    assert_allclose(a, [10, 0.4])
-
-
-def test_spectral():
-    a = u.AA.to(u.Hz, 1, u.spectral())
-    assert_allclose(a, 2.9979245799999995e+18)
-    b = u.Hz.to(u.AA, a, u.spectral())
-    assert_allclose(b, 1)
-
-    a = u.AA.to(u.MHz, 1, u.spectral())
-    assert_allclose(a, 2.9979245799999995e+12)
-    b = u.MHz.to(u.AA, a, u.spectral())
-    assert_allclose(b, 1)
-
-    a = u.m.to(u.Hz, 1, u.spectral())
-    assert_allclose(a, 2.9979245799999995e+8)
-    b = u.Hz.to(u.m, a, u.spectral())
-    assert_allclose(b, 1)
-
-
-def test_spectral2():
-    a = u.nm.to(u.J, 500, u.spectral())
-    assert_allclose(a, 3.972891366538605e-19)
-    b = u.J.to(u.nm, a, u.spectral())
-    assert_allclose(b, 500)
-
-    a = u.AA.to(u.Hz, 1, u.spectral())
-    b = u.Hz.to(u.J, a, u.spectral())
-    c = u.AA.to(u.J, 1, u.spectral())
-    assert_allclose(b, c)
-
-
-def test_spectral3():
-    a = u.nm.to(u.Hz, [1000, 2000], u.spectral())
-    assert_allclose(a, [2.99792458e+14, 1.49896229e+14])
-
-
-def test_spectraldensity():
-
-    a = u.AA.to(u.Jy, 1, u.spectral_density(u.eV, 2.2))
-    assert_allclose(a, 1059416252057.8357, rtol=1e-4)
-
-    b = u.Jy.to(u.AA, a, u.spectral_density(u.eV, 2.2))
-    assert_allclose(b, 1)
-
-
-def test_spectraldensity2():
-    flambda = u.erg / u.angstrom / u.cm ** 2 / u.s
-    fnu = u.erg / u.Hz / u.cm ** 2 / u.s
-
-    a = flambda.to(fnu, 1, u.spectral_density(u.AA, 3500))
-    assert_allclose(a, 4.086160166177361e-12)
-
-
-def test_spectraldensity3():
-
-    # Define F_nu in Jy
-    f_nu = u.Jy
-
-    # Convert to ergs / cm^2 / s / Hz
-    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s / u.Hz, 1.), 1.e-23, 10)
-
-    # Convert to ergs / cm^2 / s at 10 Ghz
-    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s, 1.,
-                    equivalencies=u.spectral_density(u.GHz, 10)), 1.e-13, 10)
-
-    # Convert to ergs / cm^2 / s / micron at 1 Ghz
-    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s / u.micron, 1.,
-                    equivalencies=u.spectral_density(u.Hz, 1.e9)),
-                    3.335640951981521e-20, 10)
-
-    # Define F_lambda in ergs / cm^2 / s / micron
-    f_lambda = u.erg / u.cm ** 2 / u.s / u.micron
-
-    # Convert to Jy at 1 Ghz
-    assert_allclose(f_lambda.to(u.Jy, 1.,
-                    equivalencies=u.spectral_density(u.Hz, 1.e9)),
-                    1. / 3.335640951981521e-20, 10)
-
-    # Convert to ergs / cm^2 / s at 10 microns
-    assert_allclose(f_lambda.to(u.erg / u.cm ** 2 / u.s, 1.,
-                    equivalencies=u.spectral_density(u.micron, 10.)), 10., 10)
 
 
 def test_units_conversion():
@@ -194,23 +87,6 @@ def test_decompose():
     assert u.Ry == u.Ry.decompose()
 
 
-def test_equivalent_units():
-    units = set(u.g.find_equivalent_units())
-    match = set(
-        [u.M_e, u.M_p, u.g, u.kg, u.lb, u.oz,
-         u.solMass, u.t, u.ton, u.u])
-    assert units == match
-
-
-def test_equivalent_units2():
-    units = set(u.Hz.find_equivalent_units(u.spectral()))
-    match = set(
-        [u.AU, u.Angstrom, u.BTU, u.Hz, u.J, u.Ry, u.cal, u.cm, u.eV,
-         u.erg, u.ft, u.inch, u.kcal, u.lyr, u.m, u.mi, u.micron,
-         u.pc, u.solRad, u.yd, u.Bq, u.Ci, u.nmi])
-    assert units == match
-
-
 def test_dimensionless_to_si():
     """
     Issue #1150: Test for conversion of dimensionless quantities
@@ -222,6 +98,7 @@ def test_dimensionless_to_si():
     assert testunit.unit.physical_type == 'dimensionless'
     assert_allclose(testunit.si, 0.001)
 
+
 def test_dimensionless_to_cgs():
     """
     Issue #1150: Test for conversion of dimensionless quantities
@@ -232,6 +109,7 @@ def test_dimensionless_to_cgs():
 
     assert testunit.unit.physical_type == 'dimensionless'
     assert_allclose(testunit.cgs, 0.001)
+
 
 def test_unknown_unit():
     with catch_warnings(u.UnitsWarning) as warning_lines:
