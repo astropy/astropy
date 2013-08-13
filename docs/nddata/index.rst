@@ -73,3 +73,7 @@ Reference/API
 
 .. automodapi:: astropy.nddata
     :no-inheritance-diagram:
+    
+.. automodapi:: astropy.nddata.convolution.kernels
+	:no-inheritance-diagram:
+ 
