@@ -188,6 +188,7 @@ class Model(object):
         self._n_inputs = n_inputs
         self._n_outputs = n_outputs
         self._param_names = param_names
+        self.fittable = False
         #_parcheck is a dictionary to register parameter validation funcitons
         # key: value pairs are parameter_name: parameter_validation_function_name
         # see projections.AZP for example
@@ -416,7 +417,7 @@ class ParametricModel(Model):
     """
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, param_names, n_inputs, n_outputs, param_dim=1, fittable=True, **cons):
+    def __init__(self, param_names, n_inputs, n_outputs, param_dim=1, **cons):
         self.linear = False
         bounds = cons.pop('bounds', None)
         fixed = cons.pop('fixed', None)
@@ -428,7 +429,7 @@ class ParametricModel(Model):
 
         super(ParametricModel, self).__init__(param_names, n_inputs, n_outputs,
                                               param_dim=param_dim)
-        self.fittable = fittable
+        self.fittable = True
         self._parameters = parameters.Parameters(self, self.param_names,
                                                  param_dim=param_dim)
         # Initialize the constraints for each parameter
