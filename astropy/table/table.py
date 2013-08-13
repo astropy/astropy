@@ -1347,11 +1347,13 @@ class Table(object):
             webbrowser.open('http://127.0.0.1:%s' % server.server_port)
             server.handle_request()
 
+            return server
+
         linelist = self.pformat(html=True,max_width=np.inf,max_lines=np.inf)
         css = ["<style>{0}</style>".format(css)]
         html = "\n".join(['<html>'] + css + linelist + ['</html>'])
 
-        LoadInDefaultBrowser(html)
+        return LoadInDefaultBrowser(html)
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_unit=False, html=False):
