@@ -1766,7 +1766,12 @@ class Table(object):
               2 0.2   y
               3 0.3   z
         """
-        table = np.delete(self._data, row_specifier, axis=0)
+        try:
+            table = np.delete(self._data, row_specifier, axis=0)
+        except (ValueError, IndexError):
+            # Numpy <= 1.7 raises ValueError while Numpy >= 1.8 raises IndexError
+            raise IndexError('Removing row(s) {0} from table with {1} rows failed'
+                             .format(row_specifier, len(self._data)))
         self._data = table
 
         # after updating the row data, the column views will be out of date
