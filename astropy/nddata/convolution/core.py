@@ -14,6 +14,7 @@ integrates to one per default.
 
 Currently only symmetric 2D kernels are supported.
 """
+from __future__ import division
 import copy
 import warnings
 
@@ -224,10 +225,10 @@ class Kernel1D(Kernel):
 
     Parameters
     ----------
-    model : Insatnce of ParametricModel
-        Kernel reponse function model.
+    model : Instance of ParametricModel
+        Kernel response function model.
     x_size : number
-        Size of the kernel array. It is rounded to int.
+        Size of the kernel array. It is rounded to the nearest integer.
     array: ndarray
         Kernel array.
     mode: string
@@ -268,10 +269,10 @@ class Kernel2D(Kernel):
 
     Parameters
     ----------
-    model : Insatnce of ParametricModel
-        Kernel reponse function model.
+    model : Instance of ParametricModel
+        Kernel response function model.
     x_size : number
-        Size of the kernel array. It is rounded to int.
+        Size of the kernel array. It is rounded to the nearest integer.
     array: ndarray
         Kernel array.
     mode: string

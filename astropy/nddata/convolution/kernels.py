@@ -52,16 +52,17 @@ class Gaussian1DKernel(Kernel1D):
     Box1DKernel, Trapezoid1DKernel, MexicanHat1DKernel
 
 
-    Notes
-    -----
+    Examples
+    --------
     Kernel response:
 
      .. plot::
+        :include-source:
 
         import matplotlib.pyplot as plt
         from astropy.nddata.convolution import Gaussian1DKernel
         gauss_1D_kernel = Gaussian1DKernel(10)
-        plt.plot(gauss_1D_kernel)
+        plt.plot(gauss_1D_kernel, drawstyle='steps')
         plt.xlabel('pixels')
         plt.ylabel('value')
         plt.show()
@@ -114,18 +115,20 @@ class Gaussian2DKernel(Kernel2D):
     Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
     TrapezoidDisk2DKernel, AiryDisk2DKernel
 
-    Notes
-    -----
+    Examples
+    --------
     Kernel response:
 
      .. plot::
+        :include-source:
 
         import matplotlib.pyplot as plt
         from astropy.nddata.convolution import Gaussian2DKernel
         gaussian_2D_kernel = Gaussian2DKernel(10)
-        plt.imshow(gaussian_2D_kernel)
+        plt.imshow(gaussian_2D_kernel, interpolation='none')
         plt.xlabel('pixels')
         plt.ylabel('pixels')
+        plt.colorbar()
         plt.show()
 
     """
@@ -173,16 +176,18 @@ class Box1DKernel(Kernel1D):
     Gaussian1DKernel, Trapezoid1DKernel, MexicanHat1DKernel
 
 
-    Notes
-    -----
+    Examples
+    --------
     Kernel response function:
 
      .. plot::
+        :include-source:
 
         import matplotlib.pyplot as plt
         from astropy.nddata.convolution import Box1DKernel
         box_1D_kernel = Box1DKernel(9)
-        plt.plot(box_1D_kernel)
+        plt.plot(box_1D_kernel, drawstyle='steps')
+        plt.xlim(-1, 9)
         plt.xlabel('pixels')
         plt.ylabel('value')
         plt.show()
@@ -239,18 +244,22 @@ class Box2DKernel(Kernel2D):
     Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
     TrapezoidDisk2DKernel, AiryDisk2DKernel
 
-    Notes
-    -----
+    Examples
+    --------
     Kernel response:
 
      .. plot::
+        :include-source:
 
         import matplotlib.pyplot as plt
         from astropy.nddata.convolution import Box2DKernel
         box_2D_kernel = Box2DKernel(9)
-        plt.imshow(box_2D_kernel)
+        plt.imshow(box_2D_kernel, interpolation='none')
+        plt.xlim(-1, 9)
+        plt.ylim(-1, 9)
         plt.xlabel('pixels')
         plt.ylabel('pixels')
+        plt.colorbar()
         plt.show()
     """
     _separable = True
@@ -298,18 +307,20 @@ class Tophat2DKernel(Kernel2D):
     Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
     TrapezoidDisk2DKernel, AiryDisk2DKernel
 
-    Notes
-    -----
+    Examples
+    --------
     Kernel response:
 
      .. plot::
+        :include-source:
 
         import matplotlib.pyplot as plt
         from astropy.nddata.convolution import Tophat2DKernel
         tophat_2D_kernel = Tophat2DKernel(40)
-        plt.imshow(tophat_2D_kernel)
+        plt.imshow(tophat_2D_kernel, interpolation='none')
         plt.xlabel('pixels')
         plt.ylabel('pixels')
+        plt.colorbar()
         plt.show()
 
     """
@@ -355,18 +366,20 @@ class Ring2DKernel(Kernel2D):
     --------
     Box2DKernel, Gaussian2DKernel, MexicanHat2DKernel, Tophat2DKernel
 
-    Notes
-    -----
+    Examples
+    --------
     Kernel response:
 
      .. plot::
+        :include-source:
 
         import matplotlib.pyplot as plt
         from astropy.nddata.convolution import Ring2DKernel
-        ring_2D_kernel = Ring2DKernel(5, 7)
-        plt.plot(ring_1D_kernel)
+        ring_2D_kernel = Ring2DKernel(9, 17)
+        plt.imshow(ring_2D_kernel, interpolation='none')
         plt.xlabel('pixels')
         plt.ylabel('pixels')
+        plt.colorbar()
         plt.show()
     """
     def __init__(self, radius_in, radius_out, **kwargs):
@@ -408,18 +421,21 @@ class Trapezoid1DKernel(Kernel1D):
     --------
     Box1DKernel, Gaussian1DKernel, MexicanHat1DKernel
 
-    Notes
-    -----
+    Examples
+    --------
     Kernel response:
 
      .. plot::
+        :include-source:
 
         import matplotlib.pyplot as plt
         from astropy.nddata.convolution import Trapezoid1DKernel
-        trapezoid_1D_kernel = Trapezoid1DKernel(5)
-        plt.plot(trapezoid_1D_kernel)
+        trapezoid_1D_kernel = Trapezoid1DKernel(17, slope=0.2)
+        plt.plot(trapezoid_1D_kernel, drawstyle='steps')
         plt.xlabel('pixels')
-        plt.ylabel('pixels')
+        plt.ylabel('amplitude')
+        plt.xlim(-1, 28)
+        plt.ylim(0, 1.1)
         plt.show()
     """
     _weighted = True
@@ -463,18 +479,20 @@ class TrapezoidDisk2DKernel(Kernel2D):
     Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
     TrapezoidDisk2DKernel, AiryDisk2DKernel
 
-    Notes
-    -----
+    Examples
+    --------
     Kernel response:
 
      .. plot::
+        :include-source:
 
         import matplotlib.pyplot as plt
         from astropy.nddata.convolution import TrapezoidDisk2DKernel
-        trapezoid_2D_kernel = TrapezoidDisk2DKernel(10)
-        plt.imshow(trapezoid_2D_kernel)
+        trapezoid_2D_kernel = TrapezoidDisk2DKernel(20, slope=0.2)
+        plt.imshow(trapezoid_2D_kernel, interpolation='none')
         plt.xlabel('pixels')
         plt.ylabel('pixels')
+        plt.colorbar()
         plt.show()
 
     """
@@ -523,16 +541,17 @@ class MexicanHat1DKernel(Kernel1D):
     --------
     Box1DKernel, Gaussian1DKernel, Trapezoid1DKernel
 
-    Notes
-    -----
+    Examples
+    --------
     Kernel response:
 
      .. plot::
+        :include-source:
 
         import matplotlib.pyplot as plt
         from astropy.nddata.convolution import MexicanHat1DKernel
         mexicanhat_1D_kernel = MexicanHat1DKernel(10)
-        plt.plot(mexicanhat_1D_kernel)
+        plt.plot(mexicanhat_1D_kernel, drawstyle='steps')
         plt.xlabel('pixels')
         plt.ylabel('value')
         plt.show()
@@ -589,18 +608,20 @@ class MexicanHat2DKernel(Kernel2D):
     Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
     TrapezoidDisk2DKernel, AiryDisk2DKernel
 
-    Notes
-    -----
+    Examples
+    --------
     Kernel response:
 
      .. plot::
+        :include-source:
 
         import matplotlib.pyplot as plt
         from astropy.nddata.convolution import MexicanHat2DKernel
         mexicanhat_2D_kernel = MexicanHat2DKernel(10)
-        plt.imshow(mexicanhat_2D_kernel)
+        plt.imshow(mexicanhat_2D_kernel, interpolation='none')
         plt.xlabel('pixels')
         plt.ylabel('pixels')
+        plt.colorbar()
         plt.show()
     """
     _weighted = True
@@ -652,24 +673,26 @@ class AiryDisk2DKernel(Kernel2D):
     Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
     TrapezoidDisk2DKernel, AiryDisk2DKernel
 
-    Notes
-    -----
+    Examples
+    --------
     Kernel response:
 
      .. plot::
+        :include-source:
 
         import matplotlib.pyplot as plt
         from astropy.nddata.convolution import AiryDisk2DKernel
         airydisk_2D_kernel = AiryDisk2DKernel(10)
-        plt.imshow(airydisk_2D_kernel)
+        plt.imshow(airydisk_2D_kernel, interpolation='none')
         plt.xlabel('pixels')
         plt.ylabel('pixels')
+        plt.colorbar()
         plt.show()
     """
     _weighted = True
 
     def __init__(self, width, **kwargs):
-        self._default_size = 8 * width
+        self._default_size = 4 * width
         self._model = AiryDisk2DModel(1, 0, 0, width)
         super(AiryDisk2DKernel, self).__init__(**kwargs)
 
