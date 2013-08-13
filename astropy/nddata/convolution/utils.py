@@ -89,14 +89,14 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
                 Discretize model by taking the value
                 at the center of the bin.
             * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
-                model over the bin.
+                model over the bin. Very slow.
     factor : number
         Factor of oversampling. Default = 10.
 
@@ -107,6 +107,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
     scale. Here is the example of a normalized Gaussian1DModel:
 
     .. plot::
+        :include-source:
 
         import matplotlib.pyplot as plt
         import numpy as np
@@ -135,17 +136,23 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
             return discretize_center_2D(model, x_range, y_range)
     elif mode == "corner":
         if isinstance(model, Parametric1DModel):
-            return discretize_corner_1D(model, x_range)
+            return discretize_linear_1D(model, x_range)
         if isinstance(model, Parametric2DModel):
-            return discretize_corner_2D(model, x_range, y_range)
+            return discretize_bilinear_2D(model, x_range, y_range)
     elif mode == "oversample":
-        if factor > 100:
-            warnings.warn("Large oversample factor, computing very slow.")
+        if y_range != None:
+            N = factor * (x_range[1] - x_range[0]) * (y_range[1] - y_range[0])
+        else:
+            N = factor * (x_range[1] - x_range[0])
+        if N >= 10000000:
+            warnings.warn("Large oversample factor or data, computing can be very slow.")
         if isinstance(model, Parametric1DModel):
             return discretize_oversample_1D(model, x_range, factor)
         if isinstance(model, Parametric2DModel):
             return discretize_oversample_2D(model, x_range, y_range, factor)
     elif mode == "integrate":
+        warnings.warn("Mode 'integrate' is very slow. Use only if highest " +
+                        "accuracy is required.")
         if isinstance(model, Parametric1DModel):
             return discretize_integrate_1D(model, x_range)
         if isinstance(model, Parametric2DModel):
@@ -172,9 +179,9 @@ def discretize_center_2D(model, x_range, y_range):
     return model(x, y)
 
 
-def discretize_corner_1D(model, x_range):
+def discretize_linear_1D(model, x_range):
     """
-    Discretize model by taking average of the values at the corners of the bin.
+    Discretize model by performing a linear interpolation.
     """
     # Evaluate model 0.5 pixel outside the boundaries
     x = np.arange(x_range[0] - 0.5, x_range[1] + 0.5)
@@ -184,9 +191,9 @@ def discretize_corner_1D(model, x_range):
     return np.convolve(values_intermediate_grid, [0.5, 0.5])[1:-1]
 
 
-def discretize_corner_2D(model, x_range, y_range):
+def discretize_bilinear_2D(model, x_range, y_range):
     """
-    Discretize model by taking average of the values at the corners of the pixel.
+    Discretize model by performing a bilinear interpolation.
     """
     # Evaluate model 0.5 pixel outside the boundaries
     x = np.arange(x_range[0] - 0.5, x_range[1] + 0.5)
@@ -245,21 +252,42 @@ def discretize_oversample_2D(model, x_range, y_range, factor=10):
     return values.mean(axis=3).mean(axis=1)[:-1, :-1]
 
 
-def discretize_integrate_1D(model, range_, mode='analytical'):
+def discretize_integrate_1D(model, x_range):
     """
-    Discretize model by integrating the model over the bin.
+    Discretize model by integrating numerically the model over the bin.
     """
-    if getattr(model, "integral", False):
-        raise NotImplementedError("Currently not supported.")
-    else:
-        raise NotImplementedError("Currently not supported.")
+    try:
+        from scipy.integrate import quad
+    except ImportError:
+        raise Exception("Mode 'integrate' requires scipy.")
+
+    # Set up grid
+    x = np.arange(x_range[0] - 0.5, x_range[1] + 0.5)
+    values = np.array([])
+
+    # Integrate over all bins
+    for i in range(x.size - 1):
+        values = np.append(values, quad(model, x[i], x[i + 1])[0])
+    return values
 
 
-def discretize_integrate_2D(model, range_, mode='analytical'):
+def discretize_integrate_2D(model, x_range, y_range):
     """
     Discretize model by integrating the model over the pixel.
     """
-    if getattr(model, "integral", False):
-        raise NotImplementedError("Currently not supported.")
-    else:
-        raise NotImplementedError("Currently not supported.")
+    try:
+        from scipy.integrate import dblquad
+    except ImportError:
+        raise Exception("Mode 'integrate' requires scipy.")
+
+    # Set up grid
+    x = np.arange(x_range[0] - 0.5, x_range[1] + 0.5)
+    y = np.arange(y_range[0] - 0.5, y_range[1] + 0.5)
+    values = np.empty((y.size, x.size))
+
+    # Integrate over all pixels
+    for i in range(x.size - 1):
+        for j in range(y.size - 1):
+            values[j, i] = dblquad(model, x[i], x[i + 1],
+                                   lambda x: y[j], lambda x: y[j + 1])[0]
+    return values
