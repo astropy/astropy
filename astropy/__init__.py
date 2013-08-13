@@ -152,7 +152,10 @@ def _monkey_patch_ipython_for_unicode_docstring_display():
             def _page_monkey_patch(strng, start=0, screen_lines=0,
                                    pager_cmd=None):
                 if isinstance(strng, unicode):
-                    strng = strng.encode(sys.stdout.encoding)
+                    import locale
+                    encoding = (locale.getpreferredencoding() or
+                                sys.stdout.encoding)
+                    strng = strng.encode(encoding)
                 return _page(strng, start, screen_lines, pager_cmd)
             page.page = _page_monkey_patch
 
