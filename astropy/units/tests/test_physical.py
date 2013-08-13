@@ -13,15 +13,15 @@ from ...constants import hbar
 
 
 def test_simple():
-    assert u.mile.physical_type == 'length'
+    assert u.pc.physical_type == 'length'
 
 
 def test_power():
-    assert (u.foot ** 3).physical_type == 'volume'
+    assert (u.m ** 3).physical_type == 'volume'
 
 
 def test_speed():
-    assert (u.mile / u.h).physical_type == 'speed'
+    assert (u.pc / u.h).physical_type == 'speed'
 
 
 def test_unknown():

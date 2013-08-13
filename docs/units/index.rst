@@ -21,6 +21,8 @@ Getting Started
   >>> u.pc.to(u.m)
   30856775814671916.0
   >>> cms = u.cm / u.s
+  # To get imperial units, they need to be imported
+  >>> from astropy.units import imperial
   >>> mph = u.mile / u.hour
   >>> cms.to(mph, 1)
   0.02236936292054402

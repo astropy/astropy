@@ -32,6 +32,8 @@ factor, for example when a custom equivalency table is in use.
 Conversion to different units involves obtaining a conversion function
 and then applying it to the value, or values to be converted.
 
+  # To use imperial units, they must be explicitly imported
+  >>> from astropy.units import imperial
   >>> cms = u.cm / u.s
   >>> cms_to_mph = cms.get_converter(u.mile / u.hour)
   >>> cms_to_mph(100.)

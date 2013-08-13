@@ -265,9 +265,9 @@ class TestQuantityOperations(object):
         distance = u.Quantity(15., u.meter)
         time = u.Quantity(11., u.second)
 
-        velocity = (distance / time).to(u.mile / u.hour)
+        velocity = (distance / time).to(u.pc / u.hour)
         np.testing.assert_array_almost_equal(
-            velocity.value, 3.05037, decimal=5)
+            velocity.value, 1.5909280148306073e-13, decimal=5)
 
         G = u.Quantity(6.673E-11, u.m ** 3 / u.kg / u.s ** 2)
         new_q = ((1. / (4. * np.pi * G)).to(u.pc ** -3 / u.s ** -2 * u.kg))
@@ -601,7 +601,6 @@ def test_quantity_invalid_unit_string2():
 
 def test_implicit_conversion():
     q = u.Quantity(1.0, u.meter)
-    assert_allclose(q.inch, 39.370078740157474)
     assert_allclose(q.centimeter, 100)
     assert_allclose(q.parsec, 3.240779289469756e-17)
 
@@ -611,7 +610,6 @@ def test_implicit_conversion_autocomplete():
     q.foo = 42
 
     attrs = dir(q)
-    assert 'inch' in attrs
     assert 'centimeter' in attrs
     assert 'parsec' in attrs
     assert 'foo' in attrs

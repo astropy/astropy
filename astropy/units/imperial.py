@@ -2,8 +2,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This package defines colloquially used Imperial units.  They are also
-available in the `astropy.units` namespace.
+This package defines colloquially used Imperial units.
+
+These units are not imported by default.  So that `astropy.units` can
+find them using functions like `find_equivalent_units`, first do::
+
+    from astropy.units import imperial
 
 """
 
