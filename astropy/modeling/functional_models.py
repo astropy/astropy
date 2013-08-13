@@ -969,7 +969,7 @@ class AiryDisk2DModel(Parametric2DModel):
             from scipy.special import j1
             self._j1 = j1
         except ImportError:
-            raise ImportError("Could not import scipy.special.")
+            raise ImportError("AiryDisk2DModel requires scipy.")
         super(AiryDisk2DModel, self).__init__(locals())
 
     def eval(self, x, y, amplitude, x_0, y_0, width):
@@ -977,7 +977,8 @@ class AiryDisk2DModel(Parametric2DModel):
         Model function Airy2D.
         """
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / width
-        return np.select([r == 0], [1], amplitude * self._j1(2 * np.pi * r) / (np.pi * r))
+        return np.select([r == 0], [1], amplitude * (self._j1(2 * np.pi * r)
+                                                     / (np.pi * r)) ** 2)
 
 
 class Beta1DModel(Parametric1DModel):
