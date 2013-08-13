@@ -1321,7 +1321,7 @@ class Table(object):
             else:
                 print line
 
-    def show_in_browser(self):
+    def show_in_browser(self, css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}"):
         """
         Render the table in HTML and show it in a web browser
         """
@@ -1348,7 +1348,8 @@ class Table(object):
             server.handle_request()
 
         linelist = self.pformat(html=True,max_width=np.inf,max_lines=np.inf)
-        html = "\n".join(['<html>'] + linelist + ['</html>'])
+        css = ["<style>{0}</style>".format(css)]
+        html = "\n".join(['<html>'] + css + linelist + ['</html>'])
 
         LoadInDefaultBrowser(html)
 
