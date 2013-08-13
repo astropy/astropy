@@ -1326,34 +1326,20 @@ class Table(object):
         Render the table in HTML and show it in a web browser
         """
         import webbrowser
-        import BaseHTTPServer
+        import tempfile
 
-        def LoadInDefaultBrowser(html):
-            """Display html in the default web browser without creating a temp file.
-
-            Instantiates a trivial http server and calls webbrowser.open with a URL
-            to retrieve html from that server.
-
-            see http://code.activestate.com/recipes/347810-load-data-in-a-web-browser-without-using-temp-file/
-            """
-
-            class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-                def do_GET(self):
-                    bufferSize = 1024*1024
-                    for i in xrange(0, len(html), bufferSize):
-                        self.wfile.write(html[i:i+bufferSize])
-
-            server = BaseHTTPServer.HTTPServer(('127.0.0.1', 0), RequestHandler)
-            webbrowser.open('http://127.0.0.1:%s' % server.server_port)
-            server.handle_request()
-
-            return server
+        N = tempfile.NamedTemporaryFile(suffix='.html')
 
         linelist = self.pformat(html=True,max_width=np.inf,max_lines=np.inf)
         css = ["<style>{0}</style>".format(css)]
-        html = "\n".join(['<html>'] + css + linelist + ['</html>'])
+        html = "\n".join(['<!DOCTYPE html>','<html>'] + css + linelist + ['</html>'])
 
-        return LoadInDefaultBrowser(html)
+        N.write(html)
+        N.flush()
+
+        webbrowser.open("file://"+N.name)
+
+        return N
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_unit=False, html=False):
