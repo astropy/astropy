@@ -307,6 +307,8 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
             vals = ('<{0}>{1}</{2}>'.format(td, xml_escape(col[i].strip()), td)
                     for col in cols)
             row = ('<tr>' + ''.join(vals) + '</tr>')
+            if i < n_header:
+                row = ('<thead>' + row + '</thead>')
             rows.append(row)
         rows.append('</table>')
     else:

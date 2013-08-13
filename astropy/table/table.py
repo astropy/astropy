@@ -1321,7 +1321,9 @@ class Table(object):
             else:
                 print line
 
-    def show_in_browser(self, css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}"):
+    def show_in_browser(self,
+                        css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
+                        jsviewer=False):
         """
         Render the table in HTML and show it in a web browser
         """
@@ -1331,8 +1333,21 @@ class Table(object):
         N = tempfile.NamedTemporaryFile(suffix='.html')
 
         linelist = self.pformat(html=True,max_width=np.inf,max_lines=np.inf)
+
+        if jsviewer:
+            js = ['<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>',
+                  '<script class="jsbin" src="http://datatables.net/download/build/jquery.dataTables.nightly.js"></script>',
+                  '''<script>
+                        $(document).ready(function() {
+                            $('#table').dataTable();
+                        } );
+                     </script>''']
+            for ii,L in enumerate(linelist):
+                if '<table' in L:
+                    linelist[ii] = L.replace('<table','<table id="table"')
+
         css = ["<style>{0}</style>".format(css)]
-        html = "\n".join(['<!DOCTYPE html>','<html>'] + css + linelist + ['</html>'])
+        html = "\n".join(['<!DOCTYPE html>','<html>'] + css + js + linelist + ['</html>'])
 
         N.write(html)
         N.flush()
