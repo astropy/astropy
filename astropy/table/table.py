@@ -302,6 +302,22 @@ class BaseColumn(object):
             else:
                 print line
 
+    def show_in_browser(self):
+        """
+        Render the table in HTML and show it in a web browser
+        """
+        import webbrowser
+        import tempfile
+
+        html = ['<html>'] + self.pformat(html=True,max_width=np.inf,max_lines=np.inf) + ['</html>']
+
+        N = tempfile.NamedTemporaryFile(suffix='.html')
+
+        N.write("\n".join(html))
+        N.flush()
+
+        webbrowser.open('file://'+N.name)
+
     def more(self, max_lines=None, show_name=True, show_unit=False):
         """Interactively browse column with a paging interface.
 
