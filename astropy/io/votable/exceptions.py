@@ -1037,6 +1037,15 @@ class W52(VOTableSpecWarning):
     default_args = ('1.2',)
 
 
+class W53(VOTableSpecWarning):
+    """
+    The VOTABLE element must contain at least one RESOURCE element.
+    """
+
+    message = ("VOTABLE element must contain at least one RESOURCE element.")
+    default_args = ()
+
+
 class E01(VOWarning, ValueError):
     """
     The size specifier for a ``char`` or ``unicode`` field must be
