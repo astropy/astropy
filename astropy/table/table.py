@@ -302,22 +302,6 @@ class BaseColumn(object):
             else:
                 print line
 
-    def show_in_browser(self):
-        """
-        Render the table in HTML and show it in a web browser
-        """
-        import webbrowser
-        import tempfile
-
-        html = ['<html>'] + self.pformat(html=True,max_width=np.inf,max_lines=np.inf) + ['</html>']
-
-        N = tempfile.NamedTemporaryFile(suffix='.html')
-
-        N.write("\n".join(html))
-        N.flush()
-
-        webbrowser.open('file://'+N.name)
-
     def more(self, max_lines=None, show_name=True, show_unit=False):
         """Interactively browse column with a paging interface.
 
@@ -1336,6 +1320,37 @@ class Table(object):
                 color_print(line, 'red')
             else:
                 print line
+
+    def show_in_browser(self):
+        """
+        Render the table in HTML and show it in a web browser
+        """
+        import webbrowser
+        import BaseHTTPServer
+
+        def LoadInDefaultBrowser(html):
+            """Display html in the default web browser without creating a temp file.
+
+            Instantiates a trivial http server and calls webbrowser.open with a URL
+            to retrieve html from that server.
+
+            see http://code.activestate.com/recipes/347810-load-data-in-a-web-browser-without-using-temp-file/
+            """
+
+            class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+                def do_GET(self):
+                    bufferSize = 1024*1024
+                    for i in xrange(0, len(html), bufferSize):
+                        self.wfile.write(html[i:i+bufferSize])
+
+            server = BaseHTTPServer.HTTPServer(('127.0.0.1', 0), RequestHandler)
+            webbrowser.open('http://127.0.0.1:%s' % server.server_port)
+            server.handle_request()
+
+        linelist = self.pformat(html=True,max_width=np.inf,max_lines=np.inf)
+        html = "\n".join(['<html>'] + linelist + ['</html>'])
+
+        LoadInDefaultBrowser(html)
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_unit=False, html=False):
