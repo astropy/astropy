@@ -705,8 +705,8 @@ class TestRemove(SetupData):
         self.t.add_column(self.b)
         self.t.remove_rows([0, 2])
         assert self.t['a'].meta == {'aa': [0, 1, 2, 3, 4]}
-        assert self.t.dtype == np.dtype([('a', '<i8'),
-                                         ('b', '<i8')])
+        assert self.t.dtype == np.dtype([('a', 'int'),
+                                         ('b', 'int')])
 
     def test_delitem1(self, table_types):
         self._setup(table_types)
