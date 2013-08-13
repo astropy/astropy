@@ -1012,6 +1012,26 @@ class W51(VOTableSpecWarning):
     default_args = ('x', 'n-bit')
 
 
+class W52(VOTableSpecWarning):
+    """
+    The BINARY2 format was introduced in VOTable 1.3.  It should
+    not be present in files marked as an earlier version.
+    """
+
+    message = ("The BINARY2 format was introduced in VOTable 1.3, but "
+               "this file is declared as version '%s'")
+    default_args = ('1.2',)
+
+
+class W53(VOTableSpecWarning):
+    """
+    The VOTABLE element must contain at least one RESOURCE element.
+    """
+
+    message = ("VOTABLE element must contain at least one RESOURCE element.")
+    default_args = ()
+
+
 class E01(VOWarning, ValueError):
     """
     The size specifier for a ``char`` or ``unicode`` field must be

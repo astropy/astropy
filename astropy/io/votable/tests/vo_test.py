@@ -868,3 +868,40 @@ def test_resource_structure():
         res = vtf2.resources[r]
         assert len(res.tables) == 2
         assert len(res.resources) == 0
+
+
+def test_no_resource_check():
+    output = io.StringIO()
+
+    # We can't test xmllint, because we can't rely on it being on the
+    # user's machine.
+    result = validate(get_pkg_data_filename('data/no_resource.xml'),
+                      output, xmllint=False)
+
+    assert result == False
+
+    output.seek(0)
+    output = output.readlines()
+
+    # Uncomment to generate new groundtruth
+    # with io.open('no_resource.txt', 'wt', encoding='utf-8') as fd:
+    #     fd.write(u''.join(output))
+
+    with io.open(
+        get_pkg_data_filename('data/no_resource.txt'),
+        'rt', encoding='utf-8') as fd:
+        truth = fd.readlines()
+
+    truth = truth[1:]
+    output = output[1:-1]
+
+    for line in difflib.unified_diff(truth, output):
+        if six.PY3:
+            sys.stdout.write(
+                line.replace('\\n', '\n'))
+        else:
+            sys.stdout.write(
+                line.encode('unicode_escape').
+                replace('\\n', '\n'))
+
+    assert truth == output
