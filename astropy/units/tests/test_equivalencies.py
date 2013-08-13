@@ -7,7 +7,7 @@ Separate tests specifically for equivalencies
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import pytest
+from ...tests.helper import pytest
 from ...tests.compat import assert_allclose
 import numpy as np
 
@@ -15,11 +15,13 @@ from ... import units as u
 
 functions = [u.doppler_optical, u.doppler_radio, u.doppler_relativistic]
 
+
 @pytest.mark.parametrize(('function',), zip(functions))
 def test_doppler_frequency_0(function):
     rest = 105.01 * u.GHz
     velo0 = rest.to(u.km/u.s, equivalencies=function(rest))
     assert velo0.value == 0
+
 
 @pytest.mark.parametrize(('function',), zip(functions))
 def test_doppler_wavelength_0(function):
@@ -28,12 +30,14 @@ def test_doppler_wavelength_0(function):
     velo0 = q1.to(u.km/u.s, equivalencies=function(rest))
     np.testing.assert_almost_equal(velo0.value, 0, decimal=6)
 
+
 @pytest.mark.parametrize(('function',), zip(functions))
 def test_doppler_energy_0(function):
     rest = 105.01 * u.GHz
     q1 = 0.000434286445543 * u.eV
     velo0 = q1.to(u.km/u.s, equivalencies=function(rest))
     np.testing.assert_almost_equal(velo0.value, 0, decimal=6)
+
 
 @pytest.mark.parametrize(('function',), zip(functions))
 def test_doppler_frequency_circle(function):
@@ -43,6 +47,7 @@ def test_doppler_frequency_circle(function):
     freq = velo.to(u.GHz, equivalencies=function(rest))
     np.testing.assert_almost_equal(freq.value, shifted.value, decimal=7)
 
+
 @pytest.mark.parametrize(('function',), zip(functions))
 def test_doppler_wavelength_circle(function):
     rest = 105.01 * u.nm
@@ -51,6 +56,7 @@ def test_doppler_wavelength_circle(function):
     wav = velo.to(u.nm, equivalencies=function(rest))
     np.testing.assert_almost_equal(wav.value, shifted.value, decimal=7)
 
+
 @pytest.mark.parametrize(('function',), zip(functions))
 def test_doppler_energy_circle(function):
     rest = 1.0501 * u.eV
@@ -58,6 +64,7 @@ def test_doppler_energy_circle(function):
     velo = shifted.to(u.km / u.s, equivalencies=function(rest))
     en = velo.to(u.eV, equivalencies=function(rest))
     np.testing.assert_almost_equal(en.value, shifted.value, decimal=7)
+
 
 values_ghz = (999.899940784289,999.8999307714406,999.8999357778647)
 @pytest.mark.parametrize(('function','value'),
