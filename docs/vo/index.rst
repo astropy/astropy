@@ -147,6 +147,7 @@ This package has four main components across two subpackages:
 
    client
    validator
+   samp
 
 They are designed to be used in a work flow as illustrated below:
 
