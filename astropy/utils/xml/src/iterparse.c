@@ -1131,6 +1131,7 @@ static PyObject*
 _escape_xml(PyObject* self, PyObject *args, const char** escapes)
 {
     PyObject* input_obj;
+    PyObject* input_coerce = NULL;
     PyObject* output_obj;
     int count = 0;
     Py_UNICODE* uinput = NULL;
@@ -1148,13 +1149,15 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
         return NULL;
     }
 
-    if (PyUnicode_Check(input_obj)) {
-        uinput = PyUnicode_AsUnicode(input_obj);
+    input_coerce = PyObject_Unicode(input_obj);
+    if (input_coerce) {
+        uinput = PyUnicode_AsUnicode(input_coerce);
         if (uinput == NULL) {
+            Py_DECREF(input_coerce);
             return NULL;
         }
 
-        input_len = PyUnicode_GetSize(input_obj);
+        input_len = PyUnicode_GetSize(input_coerce);
 
         for (i = 0; i < input_len; ++i) {
             for (esc = escapes; ; esc += 2) {
@@ -1170,6 +1173,7 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
         if (count) {
             uoutput = malloc((input_len + 1 + count * 5) * sizeof(Py_UNICODE));
             if (uoutput == NULL) {
+                Py_DECREF(input_coerce);
                 PyErr_SetString(PyExc_MemoryError, "Out of memory");
                 return NULL;
             }
@@ -1191,12 +1195,19 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
 
             *up = 0;
 
+            Py_DECREF(input_coerce);
             output_obj = PyUnicode_FromUnicode(uoutput, up - uoutput);
             free(uoutput);
             return output_obj;
+        } else {
+            return input_coerce;
         }
-    } else if (PyBytes_Check(input_obj)) {
-        if (PyBytes_AsStringAndSize(input_obj, &input, &input_len) == -1) {
+    }
+
+    input_coerce = PyObject_Bytes(input_obj);
+    if (input_coerce) {
+        if (PyBytes_AsStringAndSize(input_coerce, &input, &input_len) == -1) {
+            Py_DECREF(input_coerce);
             return NULL;
         }
 
@@ -1214,6 +1225,7 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
         if (count) {
             output = malloc((input_len + 1 + count * 5) * sizeof(char));
             if (output == NULL) {
+                Py_DECREF(input_coerce);
                 PyErr_SetString(PyExc_MemoryError, "Out of memory");
                 return NULL;
             }
@@ -1235,21 +1247,21 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
 
             *p = 0;
 
+            Py_DECREF(input_coerce);
             output_obj = PyBytes_FromStringAndSize(output, p - output);
             free(output);
             return output_obj;
+        } else {
+            return input_coerce;
         }
-    } else {
-        #ifdef IS_PY3K
-        PyErr_SetString(PyExc_TypeError, "must be str or bytes");
-        #else
-        PyErr_SetString(PyExc_TypeError, "must be str or unicode");
-        #endif
-        return NULL;
     }
 
-    Py_INCREF(input_obj);
-    return input_obj;
+    #ifdef IS_PY3K
+    PyErr_SetString(PyExc_TypeError, "must be convertible to str or bytes");
+    #else
+    PyErr_SetString(PyExc_TypeError, "must be convertible to str or unicode");
+    #endif
+    return NULL;
 }
 
 static PyObject*

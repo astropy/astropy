@@ -296,13 +296,16 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     # row-oriented list.
     rows = []
     if html:
+        from ..utils.xml.writer import xml_escape
+
         rows.append('<table>')
         for i in range(n_rows):
             # _pformat_col output has a header line '----' which is not needed here
             if i == n_header - 1:
                 continue
             td = 'th' if i < n_header else 'td'
-            vals = ('<{0}>{1}</{2}>'.format(td, col[i].strip(), td) for col in cols)
+            vals = ('<{0}>{1}</{2}>'.format(td, xml_escape(col[i].strip()), td)
+                    for col in cols)
             row = ('<tr>' + ''.join(vals) + '</tr>')
             rows.append(row)
         rows.append('</table>')

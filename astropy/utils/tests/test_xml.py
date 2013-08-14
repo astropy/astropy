@@ -55,3 +55,17 @@ def test_unescape_all():
     url_out = b'http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?' \
               b'DSACAT=IDR&DSATAB=Emitters&'
     assert unescaper.unescape_all(url_in) == url_out
+
+
+def test_escape_xml():
+    s = writer.xml_escape('This & That')
+    assert type(s) == unicode
+    assert s == u'This &amp; That'
+
+    s = writer.xml_escape(u'This & That')
+    assert type(s) == unicode
+    assert s == u'This &amp; That'
+
+    s = writer.xml_escape(1)
+    assert type(s) == unicode
+    assert s == u'1'
