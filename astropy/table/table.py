@@ -1339,7 +1339,11 @@ class Table(object):
                   '<script class="jsbin" src="http://datatables.net/download/build/jquery.dataTables.nightly.js"></script>',
                   '''<script>
                         $(document).ready(function() {
-                            $('#table').dataTable();
+                            $('#table').dataTable({
+                             "iDisplayLength": 50,
+                             "aLengthMenu": [[50, 100, 500, 1000, -1],
+                                             [50, 100, 500, 1000, "All"]]
+                            });
                         } );
                      </script>''']
             for ii,L in enumerate(linelist):
