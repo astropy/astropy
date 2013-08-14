@@ -186,7 +186,77 @@ class IpacHeader(core.BaseHeader):
         for i, col in enumerate(self.cols):
             col.index = i
 
-class IpacData(core.BaseData):
+        # Since the splitter returns only the actual requested columns, at this
+        # point set self.n_data_cols to be the number of requested columns.  This
+        # gets used later to validate the data as it gets read and split.
+        self.n_data_cols = len(self.cols)
+
+    def str_vals(self):
+
+        if self.DBMS:
+            IpacFormatE = IpacFormatErrorDBMS
+        else:
+            IpacFormatE = IpacFormatError
+
+        namelist = [col.name for col in self.cols]
+        if self.DBMS:
+            countnamelist = defaultdict(int)
+            for col in self.cols:
+                countnamelist[col.name.lower()] += 1
+            doublenames = [x for x in countnamelist if countnamelist[x] > 1]
+            if doublenames != []:
+                raise IpacFormatE('IPAC DBMS tables are not case sensitive. '
+                                  'This causes duplicate column names: {0}'.format(doublenames))
+
+        for name in namelist:
+            m = re.match('\w+', name)
+            if m.end() != len(name):
+                raise IpacFormatE('{0} - Only alphanumaric characters and _ '
+                                  'are allowed in column names.'.format(name))
+            if self.DBMS and not(name[0].isalpha() or (name[0] == '_')):
+                raise IpacFormatE('Column name cannot start with numbers: {}'.format(name))
+            if self.DBMS:
+                if name in ['x', 'y', 'z', 'X', 'Y', 'Z']:
+                    raise IpacFormatE('{0} - x, y, z, X, Y, Z are reserved names and '
+                                      'cannot be used as column names.'.format(name))
+                if len(name) > 16:
+                    raise IpacFormatE(
+                        '{0} - Maximum length for column name is 16 characters'.format(name))
+            else:
+                if len(name) > 40:
+                    raise IpacFormatE(
+                        '{0} - Maximum length for column name is 40 characters.'.format(name))
+
+        dtypelist = []
+        unitlist = []
+        for col in self.cols:
+            if col.dtype.kind in ['i', 'u']:
+                dtypelist.append('long')
+            elif col.dtype.kind == 'f':
+                dtypelist.append('double')
+            else:
+                dtypelist.append('char')
+            if col.unit is None:
+                unitlist.append('')
+            else:
+                unitlist.append(str(col.unit))
+        nullist = [getattr(col, 'fill_value', 'null') for col in self.cols]
+        return [namelist, dtypelist, unitlist, nullist]
+
+    def write(self, lines, widths):
+        '''Write header.
+
+        The width of each column is determined in IpacData.write. Writing the header
+        must be delayed until that time.
+        This function is called from data, once the width information is
+        available.'''
+
+        for vals in self.str_vals():
+            lines.append(self.splitter.join(vals, widths))
+        return lines
+
+
+class IpacData(fixedwidth.FixedWidthData):
     """IPAC table data reader"""
     splitter_class = fixedwidth.FixedWidthSplitter
     comment = r'[|\\]'
