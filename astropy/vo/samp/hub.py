@@ -31,12 +31,18 @@ from .constants import SAMP_HUB_MULTIPLE_INSTANCE, SAMP_STATUS_OK
 from .constants import _THREAD_STARTED_COUNT, __profile_version__, __release__
 from .errors import SAMPHubError, SAMPProxyError
 from .utils import internet_on, SAMPLog, SafeTransport, ServerProxyPool, _HubAsClient
-from .utils import WebProfileXMLRPCServer, BasicAuthSecureXMLRPCServer, SecureXMLRPCServer
-from .utils import BasicAuthXMLRPCServer, ThreadingXMLRPCServer, WebProfilePopupDialogue
+from .utils import WebProfileXMLRPCServer, SecureXMLRPCServer
+from .utils import ThreadingXMLRPCServer, WebProfilePopupDialogue
 
 # Python 2 / 3 dependent imports ... for now get from utils to avoid code duplication
 from .utils import queue, xmlrpc, io, urlopen #PYTHON_VERSION
 from .utils import urlparse # TODO: does this work?
+
+if BDB_SUPPORT:
+    from .utils import BasicAuthXMLRPCServer
+
+if SSL_SUPPORT and BDB_SUPPORT:
+    from .utils import BasicAuthSecureXMLRPCServer
 
 __all__ = ['SAMPHubServer', 'main']
 

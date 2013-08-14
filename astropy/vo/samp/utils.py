@@ -32,7 +32,7 @@ if PYTHON_VERSION >= 3.0:
   import io
   import queue  
   import http.client
-  import urllib.parse
+  import urllib.parse as urlparse
   import urllib.error
   import urllib.request
   import xmlrpc.client as xmlrpc
@@ -54,8 +54,8 @@ if PYTHON_VERSION >= 3.0:
   from urllib.request import urlopen
   from http.client import HTTPConnection, HTTPS_PORT
 
-  from http.server import *
-  from xmlrpc.server import *
+  #from http.server import *
+  from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
   from socketserver import ThreadingMixIn, BaseServer
 
 
@@ -83,8 +83,8 @@ else:
   from urllib2 import urlopen, URLError
   from httplib import HTTPConnection, HTTPS_PORT, HTTP
 
-  from SimpleHTTPServer import *
-  from SimpleXMLRPCServer import *
+  #from SimpleHTTPServer import *
+  from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
   from SocketServer import ThreadingMixIn, BaseServer
 
 from .constants import SAMP_STATUS_ERROR, SAMPY_ICON
