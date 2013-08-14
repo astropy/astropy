@@ -1351,10 +1351,11 @@ class Table(object):
 
         N = tempfile.NamedTemporaryFile(suffix='.html')
 
-        linelist = self.pformat(html=True, max_width=np.inf, max_lines=np.inf)
+        linelist = self.pformat(html=True, max_width=np.inf, max_lines=np.inf,
+                                tableid=id(self))
 
         if jsviewer:
-            js = _jsviewer(**jskwargs)
+            js = _jsviewer(tableid=id(self), **jskwargs)
         else:
             js = []
 

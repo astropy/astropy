@@ -491,7 +491,7 @@ def _jsviewer(display_length=50,
         js += ['<script class="jsbin" src="http://datatables.net/download/build/jquery.dataTables.nightly.js"></script>',
                '''<script>
                     $(document).ready(function() {{
-                        $('#table').dataTable({{
+                        $('#table{tid}').dataTable({{
                          "iDisplayLength": {display_length},
                          "aLengthMenu": {display_length_menu},
                          "bJQueryUI": true,
@@ -499,7 +499,8 @@ def _jsviewer(display_length=50,
                         }});
                     }} );
                  </script>'''.format(display_length=display_length,
-                                     display_length_menu=display_length_menu)
+                                     display_length_menu=display_length_menu,
+                                     tid=tableid)
                ]
 
     return js
