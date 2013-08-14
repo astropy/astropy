@@ -1355,6 +1355,8 @@ class Table(object):
 
         if jsviewer:
             js = _jsviewer(**jskwargs)
+        else:
+            js = []
 
         css = ["<style>{0}</style>".format(css)]
         html = "\n".join(['<!DOCTYPE html>','<html>'] + css + js + linelist + ['</html>'])
@@ -1440,7 +1442,8 @@ class Table(object):
                      show_unit)
 
     def _repr_html_(self):
-        js = _jsviewer()
+        self._id = id(self)
+        js = _jsviewer(ipynb=True, tableid=self._id)
         lines = self.pformat(html=True)
         return ''.join(js+lines)
 

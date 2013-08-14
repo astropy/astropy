@@ -431,6 +431,8 @@ Browsing keys:
 
 
 def _jsviewer(display_length=50,
+              ipynb=False,
+              tableid=None,
               css_urls=("http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css",
                         "http://jquery-datatables-editable.googlecode.com/svn/trunk/media/css/demo_page.css",
                         "http://jquery-datatables-column-filter.googlecode.com/svn/trunk/media/css/demo_table.css")):
@@ -440,20 +442,53 @@ def _jsviewer(display_length=50,
     for L in display_length_menu:
         if display_length not in L:
             L.insert(0,display_length)
-    js = (['<link rel="stylesheet" href="{css}" type="text/css">'.format(css=css) for css in css_urls] +
-          ['<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>',
-          '<script class="jsbin" src="http://datatables.net/download/build/jquery.dataTables.nightly.js"></script>',
-          '''<script>
-                $(document).ready(function() {{
-                    $('#table').dataTable({{
-                     "iDisplayLength": {display_length},
-                     "aLengthMenu": {display_length_menu},
-                     "bJQueryUI": true,
-                     "sPaginationType": "full_numbers"
-                    }});
-                }} );
-             </script>'''.format(display_length=display_length,
-                                 display_length_menu=display_length_menu)
-          ])
+    js = ['<link rel="stylesheet" href="{css}" type="text/css">'.format(css=css) for css in css_urls]
+    if ipynb:
+        js += ['<script class="jsbin" src="http://datatables.net/download/build/jquery.dataTables.nightly.js"></script>',
+               '''<script>
+                    function html_repr_full() {{
+                        var kernel = IPython.notebook.kernel;
+                        var button = $("#MakeTableBrowseable{tid}");
+                        var tablename = button.parents()[4].getElementsByClassName("input_area")[0].innerText;
+                        var command = tablename + ".pformat(html=True, max_lines=1000, max_width=1000)";
+                        var result = kernel.execute(command, {{'output': callback}}, {{silent:true}});
+                    }};
+                    function callback(output_type, out) {{
+                        var button = $("#MakeTableBrowseable{tid}");
+                        button[0].parentNode.innerHTML = out.data;
+                    }};
+                    function make_table() {{
+                        $('#table').dataTable({{
+                         "iDisplayLength": {display_length},
+                         "aLengthMenu": {display_length_menu},
+                         "bJQueryUI": true,
+                         "sPaginationType": "full_numbers"
+                        }});
+                    }};
+                    function replace_table() {{
+                        html_repr_full();
+                        make_table();
+                    }};
+                 </script>
+               <button id='MakeTableBrowseable{tid}' onclick="replace_table()">Make Table Browseable</button>
+               '''.format(display_length=display_length,
+                          display_length_menu=display_length_menu,
+                          tid=tableid)
+               ]
+    else:
+        js += ['<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>']
+        js += ['<script class="jsbin" src="http://datatables.net/download/build/jquery.dataTables.nightly.js"></script>',
+               '''<script>
+                    $(document).ready(function() {{
+                        $('#table').dataTable({{
+                         "iDisplayLength": {display_length},
+                         "aLengthMenu": {display_length_menu},
+                         "bJQueryUI": true,
+                         "sPaginationType": "full_numbers"
+                        }});
+                    }} );
+                 </script>'''.format(display_length=display_length,
+                                     display_length_menu=display_length_menu)
+               ]
 
     return js
