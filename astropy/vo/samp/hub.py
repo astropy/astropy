@@ -11,6 +11,8 @@ import select
 import threading
 import traceback
 import datetime
+from astropy.extern.six import StringIO
+from astropy.extern.six.moves import queue
 
 try:
   import ssl
@@ -35,8 +37,8 @@ from .utils import WebProfileXMLRPCServer, SecureXMLRPCServer
 from .utils import ThreadingXMLRPCServer, WebProfilePopupDialogue
 
 # Python 2 / 3 dependent imports ... for now get from utils to avoid code duplication
-from .utils import queue, xmlrpc, io, urlopen #PYTHON_VERSION
-from .utils import urlparse # TODO: does this work?
+from .utils import xmlrpc, urlopen
+from .utils import urlparse
 
 if BDB_SUPPORT:
     from .utils import BasicAuthXMLRPCServer
@@ -1188,7 +1190,7 @@ class SAMPHubServer(object):
                   recipient_private_key, sender_public_id, message)
                 break
               except:
-                err = io.StringIO()
+                err = StringIO()
                 traceback.print_exc(file=err)
                 txt = err.getvalue()
                 self._log.debug("%s XML-RPC endpoint error (attempt %d): \n%s" % (recipient_public_id, attempt + 1, txt))
@@ -1260,7 +1262,7 @@ class SAMPHubServer(object):
                   recipient_private_key, sender_public_id, msg_id, message)
                 break
               except:
-                err = io.StringIO()
+                err = StringIO()
                 traceback.print_exc(file=err)
                 txt = err.getvalue()
                 self._log.debug("%s XML-RPC endpoint error (attempt %d): \n%s" % (recipient_public_id, attempt + 1, txt))
@@ -1366,7 +1368,7 @@ class SAMPHubServer(object):
                     recipient_private_key, responder_public_id, recipient_msg_tag, response)
                   break
                 except:
-                  err = io.StringIO()
+                  err = StringIO()
                   traceback.print_exc(file=err)
                   txt = err.getvalue()
                   self._log.debug("%s XML-RPC endpoint error (attempt %d): \n%s" % (recipient_public_id, attempt + 1, txt))
@@ -1768,7 +1770,7 @@ def main(timeout=0):
   except SystemExit:
     pass
   except:
-    err = io.StringIO()
+    err = StringIO()
     traceback.print_exc(file=err)
     txt = err.getvalue()    
     print("[SAMP] Error: Unexpected error:\n" + txt)

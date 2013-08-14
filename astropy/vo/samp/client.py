@@ -8,6 +8,7 @@ import socket
 import sys
 import threading
 import traceback
+from astropy.extern.six import StringIO
 
 try:
   import ssl
@@ -24,7 +25,7 @@ from .utils import SecureXMLRPCServer, ThreadingXMLRPCServer
 from .hub import SAMPHubServer
 
 # Python 2 / 3 dependent imports ... for now get from utils to avoid code duplication
-from .utils import PYTHON_VERSION, io, xmlrpc
+from .utils import PYTHON_VERSION, xmlrpc
 
 
 __all__ = ['SAMPHubProxy', 'SAMPIntegratedClient', 'SAMPClient']
@@ -218,7 +219,7 @@ class SAMPHubProxy(object):
       else:
         raise SAMPHubError("Protocol Error %d: %s" % (p.errcode, p.errmsg))
     except:
-      err = io.StringIO()
+      err = StringIO()
       traceback.print_exc(file=err)
       txt = err.getvalue()
       if SSL_SUPPORT:
