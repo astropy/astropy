@@ -34,8 +34,7 @@ __doctest_skip__ = ['SAMPIntegratedClient.*']
 
 
 class SAMPHubProxy(object):
-  """
-  Proxy class useful to simplify the client interaction with a SAMP Hub.
+  """Proxy class useful to simplify the client interaction with a SAMP Hub.
   """
 
   def __init__(self):
@@ -44,29 +43,31 @@ class SAMPHubProxy(object):
     self.lockfile = {}
 
   def isConnected(self):
-    """
-    Testing method to verify the proxy connection with a running Hub.
+    """Testing method to verify the proxy connection with a running Hub.
 
-    @return: return True if the proxy is connected to a Hub, False otherwise
-    @rtype: boolean
+    Returns
+    -------
+    isConnected : bool
+        True if the proxy is connected to a Hub, False otherwise
     """
     return self._connected
 
 
   @staticmethod
   def getRunningHubs():
-    """
-    Return a dictionary containing the lock-file contents of all the currently
-    running hubs (single and/or multiple mode). The dictionary format is:
+    """Return a dictionary containing the lock-file contents of all the currently
+    running hubs (single and/or multiple mode).
+    
+    The dictionary format is:
+    `{<lock-file>: {<token-name>: <token-string>, ...}, ...}`
 
-    C{{<lock-file>: {<token-name>: <token-string>, ...}, ...}}
-
-    where C{<lock-file>} is the lock-file name, C{<token-name>} and C{<token-string>}
+    where `{<lock-file>}` is the lock-file name, `{<token-name>}` and `{<token-string>}`
     are the lock-file tokens (name and content).
 
-    @return: the lock-file contents of all the currently running hubs.
-    @rtype: dictionary
-
+    Returns
+    -------
+    running_hubs : dict
+        Lock-file contents of all the currently running hubs.
     """
 
     hubs = {}
@@ -116,52 +117,53 @@ class SAMPHubProxy(object):
   def connect(self, hub_params = None, user = None, password = None,
               key_file=None, cert_file=None, cert_reqs=0,
               ca_certs=None, ssl_version=1, pool_size=20):
-    """
-    Connect to the current SAMP Hub. If a SAMP Hub is not running or refuses the connection,
-    then a L{SAMPHubError} is raised.
+    """Connect to the current SAMP Hub.
+    
+    If a SAMP Hub is not running or refuses the connection, then a `SAMPHubError` is raised.
 
-    @param hub_params: Optional dictionary containig the lock-file content of the Hub
-    with which to connect. This dictionary has the form C{{<token-name>: <token-string>, ...}}.
-    @type hub_params: dictionary
+    Parameters
+    ----------
+    hub_params : dict
+        Optional dictionary containig the lock-file content of the Hub with which to connect.
+        This dictionary has the form `{<token-name>: <token-string>, ...}`.
 
-    @param user: In case of Basic Authenticated connections, C{user} specifies the user name.
-    @type user: string
+    user : str
+        In case of Basic Authenticated connections, `user` specifies the user name.
 
-    @param password: In case of Basic Authenticated connections, C{password} specifies the user
-    password.
-    @type password: string
+    password : str
+        In case of Basic Authenticated connections, `password` specifies the user password.
 
-    @param key_file: Set the file containing the private key for SSL connections. If the
-    certificate file (C{certfile}) contains the private key, then C{keyfile} can be omitted.
-    @type key_file: string
+    key_file : str
+        Set the file containing the private key for SSL connections. If the
+        certificate file (`certfile`) contains the private key, then `keyfile` can be omitted.
 
-    @param cert_file: Specify the file which contains a certificate to be used to identify the
-    local side of the secure connection.
-    @type cert_file: string
+    cert_file : str
+        Specify the file which contains a certificate to be used to identify the
+        local side of the secure connection.
+    
+    cert_reqs : int
+        The parameter `cert_reqs` specifies whether a certificate is required
+        from the server side of the connection, and whether it will be validated if provided. It
+        must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
+        (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
+        If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
+        point to a file of CA certificates.
 
-    @param cert_reqs: The parameter C{cert_reqs} specifies whether a certificate is required
-    from the server side of the connection, and whether it will be validated if provided. It
-    must be one of the three values L{ssl.CERT_NONE} (certificates ignored), L{ssl.CERT_OPTIONAL}
-    (not required, but validated if provided), or L{ssl.CERT_REQUIRED} (required and validated).
-    If the value of this parameter is not L{ssl.CERT_NONE}, then the C{ca_certs} parameter must
-    point    to a file of CA certificates.
-    @type cert_reqs: int
+    ca_certs : str
+        The `ca_certs` file contains a set of concatenated "Certification Authority" 
+        certificates, which are used to validate the certificate passed from the server end of the 
+        connection.
 
-    @param ca_certs: The C{ca_certs} file contains a set of concatenated \"Certification Authority\" 
-    certificates, which are used to validate the certificate passed from the server end of the 
-    connection.
-    @type ca_certs: string
+    ssl_version : int
+        The `ssl_version` option specifies which version of the SSL protocol to use.
+        Typically, the server chooses a particular protocol version, and the client must adapt to the
+        server's choice. Most of the versions are not interoperable with the other versions. If not
+        specified the default SSL version is `ssl.PROTOCOL_SSLv3`. This version provides the most
+        compatibility with other versions server side. Other SSL protocol versions are:                        
+        `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv23` and `ssl.PROTOCOL_TLSv1`.
 
-    @param ssl_version: The C{ssl_version} option specifies which version of the SSL protocol to use.
-    Typically, the server chooses    a particular protocol version, and the client must adapt to the
-    server's choice. Most of the versions are    not interoperable with the other versions. If not
-    specified the default SSL version is  L{ssl.PROTOCOL_SSLv3}. This version provides the most
-    compatibility with other versions server side. Other SSL protocol versions are:                        
-    L{ssl.PROTOCOL_SSLv2}, L{ssl.PROTOCOL_SSLv23} and L{ssl.PROTOCOL_TLSv1}.
-    @type ssl_version: int
-
-    @param pool_size: The number of socket connections opened to communicate with the Hub.
-    @type callable: int
+    pool_size : int
+        The number of socket connections opened to communicate with the Hub.
     """
 
     self._connected = False
@@ -232,192 +234,151 @@ class SAMPHubProxy(object):
 
 
   def disconnect(self):
-    """
-    Disconnect from the current SAMP Hub.
-    """
-
+    """Disconnect from the current SAMP Hub."""
     self.proxy = None
     self._connected = False
     self.lockfile = {}
 
   def ping(self):
-    """
-    Proxy to C{ping} SAMP Hub method (Standard Profile only)
-    """
+    """Proxy to `ping` SAMP Hub method (Standard Profile only)."""
     return self.proxy.samp.hub.ping()
 
   def setXmlrpcCallback(self, private_key, xmlrpc_addr):
-    """
-    Proxy to C{setXmlrpcCallback} SAMP Hub method (Standard Profile only)
-    """
+    """Proxy to `setXmlrpcCallback` SAMP Hub method (Standard Profile only)."""
     return self.proxy.samp.hub.setXmlrpcCallback(private_key, xmlrpc_addr)
 
   def register(self, secret):
-    """
-    Proxy to C{register} SAMP Hub method
-    """
+    """Proxy to `register` SAMP Hub method."""
     return self.proxy.samp.hub.register(secret)
 
   def unregister(self, private_key):
-    """
-    Proxy to C{unregister} SAMP Hub method
-    """
+    """Proxy to `unregister` SAMP Hub method."""
     return self.proxy.samp.hub.unregister(private_key)
 
   def declareMetadata(self, private_key, metadata):
-    """
-    Proxy to C{declareMetadata} SAMP Hub method
-    """
+    """Proxy to `declareMetadata` SAMP Hub method."""
     return self.proxy.samp.hub.declareMetadata(private_key, metadata)
 
   def getMetadata(self, private_key, client_id):
-    """
-    Proxy to C{getMetadata} SAMP Hub method
-    """
+    """Proxy to `getMetadata` SAMP Hub method."""
     return self.proxy.samp.hub.getMetadata(private_key, client_id)
 
   def declareSubscriptions(self, private_key, subscriptions):
-    """
-    Proxy to C{declareSubscriptions} SAMP Hub method
-    """
+    """Proxy to `declareSubscriptions` SAMP Hub method."""
     return self.proxy.samp.hub.declareSubscriptions(private_key, subscriptions)
 
   def getSubscriptions(self, private_key, client_id):
-    """
-    Proxy to C{getSubscriptions} SAMP Hub method
-    """
+    """Proxy to `getSubscriptions SAMP Hub method."""
     return self.proxy.samp.hub.getSubscriptions(private_key, client_id)
 
   def getRegisteredClients(self, private_key):
-    """
-    Proxy to C{getRegisteredClients} SAMP Hub method
-    """
+    """Proxy to `getRegisteredClients` SAMP Hub method."""
     return self.proxy.samp.hub.getRegisteredClients(private_key)
 
   def getSubscribedClients(self, private_key, mtype):
-    """
-    Proxy to C{getSubscribedClients} SAMP Hub method
-    """
+    """Proxy to `getSubscribedClients` SAMP Hub method."""
     return self.proxy.samp.hub.getSubscribedClients(private_key, mtype)
 
   def notify(self, private_key, recipient_id, message):
-    """
-    Proxy to C{notify} SAMP Hub method
-    """
+    """Proxy to `notify` SAMP Hub method."""
     # Add user in Basic Authentication case
     return self.proxy.samp.hub.notify(private_key, recipient_id, message)
 
   def notifyAll(self, private_key, message):
-    """
-    Proxy to C{notifyAll} SAMP Hub method
-    """
+    """Proxy to `notifyAll` SAMP Hub method."""
     return self.proxy.samp.hub.notifyAll(private_key, message)
 
   def call(self, private_key, recipient_id, msg_tag, message):
-    """
-    Proxy to C{call} SAMP Hub method
-    """
+    """Proxy to `call` SAMP Hub method."""
     return self.proxy.samp.hub.call(private_key, recipient_id, msg_tag, message)
 
   def callAll(self, private_key, msg_tag, message):
-    """
-    Proxy to C{callAll} SAMP Hub method
-    """
+    """Proxy to `callAll` SAMP Hub method."""
     return self.proxy.samp.hub.callAll(private_key, msg_tag, message)
 
   def callAndWait(self, private_key, recipient_id, message, timeout):
-    """
-    Proxy to C{callAndWait} SAMP Hub method. If timeout expires a 
-    L{SAMPProxyError} instance is raised.
+    """Proxy to `callAndWait` SAMP Hub method.
+
+    If timeout expires a `SAMPProxyError` instance is raised.
     """
     return self.proxy.samp.hub.callAndWait(private_key, recipient_id, message, timeout)
 
   def reply(self, private_key, msg_id, response):
-    """
-    Proxy to C{reply} SAMP Hub method
-    """
+    """Proxy to `reply` SAMP Hub method."""
     return self.proxy.samp.hub.reply(private_key, msg_id, response)
 
 
 class SAMPIntegratedClient(object):
-  """
+  """A Simple SAMP client.
+  
   This class is meant to simplify the client usage providing
-  a proxy class that merges the L{SAMPClient} and L{SAMPHubProxy}
+  a proxy class that merges the `SAMPClient` and `SAMPHubProxy`
   functionalities in a simplified API.
+
+    Parameters
+    ----------
+    name: str (optional)
+        Client name (corresponding to `samp.name` metadata keyword).
+    
+    description : str (optional)
+        Client description (corresponding to `samp.description.text` metadata keyword).
+    
+    metadata : dict (optional)
+        Client application metadata in the standard SAMP format. If present, `samp.name`
+        keyword and `samp.description.text` keyword are overwritten by the parameters
+        `name` and `description`.
+    
+    addr : string (optional)
+        Listening address (or IP).
+    
+    port : int (optional)
+        Listening XML-RPC server socket port.
+    
+    https : bool
+        Set the callable client running on a Secure Sockets Layer connection (HTTPS).
+        By default SSL is desabled.
+    
+    key_file : str
+        Set the file containing the private key for SSL connections. If the
+        certificate file (`cert_file`) contains the private key, then `key_file` can be omitted.
+    
+    cert_file : str
+        Specify the file which contains a certificate to be used to identify the
+        local side of the secure connection.
+    
+    cert_reqs : int
+        The parameter `cert_reqs` specifies whether a certificate is required
+        from the Hub side of the connection, and whether it will be validated if provided. It
+        must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
+        (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
+        If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
+        point to a file of CA certificates.
+    
+    ca_certs : str
+        The `ca_certs` file contains a set of concatenated "Certification Authority" 
+        certificates, which are used to validate the certificate passed from the Hub end of the 
+        connection.
+    
+    ssl_version : int
+        The `ssl_version` option specifies which version of the SSL protocol to use.
+        Typically, the server chooses a particular protocol version, and the client must adapt to the
+        server's choice. Most of the versions are not interoperable with the other versions. If not
+        specified the default SSL version is `ssl.PROTOCOL_SSLv23`. This version provides the most
+        compatibility with other versions Hub side. Other SSL protocol versions are:                        
+        `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
+    
+    callable : bool
+        Is the client callable?
   """
   def __init__(self, name = None, description = None, metadata = None,
                addr = None, port = 0, https = False, key_file=None,
                cert_file=None, cert_reqs=0, ca_certs=None, ssl_version=2,
                callable = True):
-    """
-    L{SAMPIntegratedClient} constructor.
-
-    @param name: (optional) a string containing the client name
-    (corresponding to C{samp.name} metadata keyword).
-    @type name: string
-
-    @param description: (optional) a string containing the client description
-    (corresponding to C{samp.description.text} metadata keyword).
-    @type description: string
-
-    @param metadata: (optional) a dictionary containing the client 
-    application metadata in the standard SAMP format. If present, C{samp.name}
-    keyword and C{samp.description.text} keyword are overwritten by the parameters
-    C{name} and C{description}.
-    @type metadata: dict
-
-    @param addr: (optional) listening address (or IP)
-    @type addr: string
-
-    @param port: (optional) the listening XML-RPC server socket port
-    @type port: int
-
-    @param https: set the callable client running on a Secure Sockets Layer connection (HTTPS).
-    By default SSL is desabled.
-    @type https: boolean
-
-    @param key_file: Set the file containing the private key for SSL connections. If the
-    certificate file (C{cert_file}) contains the private key, then C{key_file} can be omitted.
-    @type key_file: string
-
-    @param cert_file: Specify the file which contains a certificate to be used to identify the
-    local side of the secure connection.
-    @type cert_file: string
-
-    @param cert_reqs: The parameter C{cert_reqs} specifies whether a certificate is required
-    from the Hub side of the connection, and whether it will be validated if provided. It
-    must be one of the three values L{ssl.CERT_NONE} (certificates ignored), L{ssl.CERT_OPTIONAL}
-    (not required, but validated if provided), or L{ssl.CERT_REQUIRED} (required and validated).
-    If the value of this parameter is not L{ssl.CERT_NONE}, then the C{ca_certs} parameter must
-    point    to a file of CA certificates.
-    @type cert_reqs: int
-
-    @param ca_certs: The C{ca_certs} file contains a set of concatenated \"Certification Authority\" 
-    certificates, which are used to validate the certificate passed from the Hub end of the 
-    connection.
-    @type ca_certs: string
-
-    @param ssl_version: The C{ssl_version} option specifies which version of the SSL protocol to use.
-    Typically, the server chooses    a particular protocol version, and the client must adapt to the
-    server's choice. Most of the versions are    not interoperable with the other versions. If not
-    specified the default SSL version is  L{ssl.PROTOCOL_SSLv23}. This version provides the most
-    compatibility with other versions Hub side. Other SSL protocol versions are:                        
-    L{ssl.PROTOCOL_SSLv2}, L{ssl.PROTOCOL_SSLv3} and L{ssl.PROTOCOL_TLSv1}.
-    @type ssl_version: int
-
-    @param callable: specify whether the client is a callable client or not
-    @type callable: boolean
-
-    """
-
     self.hub = SAMPHubProxy()
 
     self.client = SAMPClient(self.hub, name, description, metadata, addr, port, \
                              https, key_file, cert_file, cert_reqs, \
                              ca_certs, ssl_version, callable)
-
-
-
 
   def __del__(self):
     try:
@@ -427,63 +388,65 @@ class SAMPIntegratedClient(object):
 
   # GENERAL
   def isConnected(self):
-    """
-    Testing method to verify the client connection with a running Hub.
+    """Testing method to verify the client connection with a running Hub.
 
-    @return: return True if the client is connected to a Hub, False otherwise
-    @rtype: boolean
+    Returns
+    -------
+    isConnected : bool
+        True if the client is connected to a Hub, False otherwise.
     """
     return self.hub.isConnected() & self.client.isRunning()
 
   def connect(self, hub_params = None, user = None, password = None,
               key_file=None, cert_file=None, cert_reqs=0,
               ca_certs=None, ssl_version=1, pool_size=20):
-    """
-    Connect with the current or specified SAMP Hub, start and register the client.
-    If a SAMP Hub is not running or    refuses the connection,    then a L{SAMPHubError} is raised.
+    """Connect with the current or specified SAMP Hub, start and register the client.
 
-    @param hub_params: Optional dictionary containig the lock-file content of the Hub
-    with which to connect. This dictionary has the form C{{<token-name>: <token-string>, ...}}.
-    @type hub_params: dictionary
+    If a SAMP Hub is not running or refuses the connection, a `SAMPHubError` is raised.
 
-    @param user: In case of Basic Authenticated connections, C{user} specifies the user name.
-    @type user: string
+    Parameters
+    ----------
+    hub_params : dict
+        Optional dictionary containig the lock-file content of the Hub
+        with which to connect. This dictionary has the form `{<token-name>: <token-string>, ...}`.
 
-    @param password: In case of Basic Authenticated connections, C{password} specifies the user
-    password.
-    @type password: string
+    user : str
+        In case of Basic Authenticated connections, `user` specifies the user name.
 
-    @param key_file: Set the file containing the private key for SSL connections. If the
-    certificate file (C{certfile}) contains the private key, then C{keyfile} can be omitted.
-    @type key_file: string
+    password : str
+        In case of Basic Authenticated connections, `password` specifies the user password.
 
-    @param cert_file: Specify the file which contains a certificate to be used to identify the
-    local side of the secure connection.
-    @type cert_file: string
+    key_file : str
+        Set the file containing the private key for SSL connections. If the
+        certificate file (`certfile`) contains the private key, then `keyfile` can be omitted.
 
-    @param cert_reqs: The parameter C{cert_reqs} specifies whether a certificate is required
-    from the server side of the connection, and whether it will be validated if provided. It
-    must be one of the three values L{ssl.CERT_NONE} (certificates ignored), L{ssl.CERT_OPTIONAL}
-    (not required, but validated if provided), or L{ssl.CERT_REQUIRED} (required and validated).
-    If the value of this parameter is not L{ssl.CERT_NONE}, then the C{ca_certs} parameter must
-    point    to a file of CA certificates.
-    @type cert_reqs: int
+    cert_file : str
+        Specify the file which contains a certificate to be used to identify the
+        local side of the secure connection.
 
-    @param ca_certs: The C{ca_certs} file contains a set of concatenated \"Certification Authority\" 
-    certificates, which are used to validate the certificate passed from the server end of the 
-    connection.
-    @type ca_certs: string
+    cert_reqs : int
+        The parameter `cert_reqs` specifies whether a certificate is required
+        from the server side of the connection, and whether it will be validated if provided. It
+        must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
+        (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
+        If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
+        point to a file of CA certificates.
 
-    @param ssl_version: The C{ssl_version} option specifies which version of the SSL protocol to use.
-    Typically, the server chooses    a particular protocol version, and the client must adapt to the
-    server's choice. Most of the versions are    not interoperable with the other versions. If not
-    specified the default SSL version is  L{ssl.PROTOCOL_SSLv3}. This version provides the most
-    compatibility with other versions server side. Other SSL protocol versions are:                        
-    L{ssl.PROTOCOL_SSLv2}, L{ssl.PROTOCOL_SSLv23} and L{ssl.PROTOCOL_TLSv1}.
-    @type ssl_version: int
+    ca_certs : str
+        The `ca_certs` file contains a set of concatenated "Certification Authority" 
+        certificates, which are used to validate the certificate passed from the server end of the 
+        connection.
 
-    @param pool_size: The number of socket connections opened to communicate with the Hub.
-    @type callable: int
+    ssl_version : int
+        The `ssl_version` option specifies which version of the SSL protocol to use.
+        Typically, the server chooses a particular protocol version, and the client must adapt to the
+        server's choice. Most of the versions are not interoperable with the other versions. If not
+        specified the default SSL version is `ssl.PROTOCOL_SSLv3`. This version provides the most
+        compatibility with other versions server side. Other SSL protocol versions are:                        
+        `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv23` and `ssl.PROTOCOL_TLSv1`.
+
+    pool_size : int
+        Number of socket connections opened to communicate with the Hub.
     """
     self.hub.connect(hub_params, user, password, key_file, cert_file, cert_reqs,
                      ca_certs, ssl_version, pool_size)
@@ -492,8 +455,8 @@ class SAMPIntegratedClient(object):
 
 
   def disconnect(self):
-    """
-    Unregister the client from the current SAMP Hub, stop the client and disconnect from the Hub.
+    """Unregister the client from the current SAMP Hub,
+    stop the client and disconnect from the Hub.
     """
     cliEx = None
     try:
@@ -510,39 +473,27 @@ class SAMPIntegratedClient(object):
 
   # HUB
   def ping(self):
-    """
-    Proxy to C{ping} SAMP Hub method (Standard Profile only)
-    """
+    """Proxy to `ping` SAMP Hub method (Standard Profile only)."""
     return self.hub.ping()
 
   def declareMetadata(self, metadata):
-    """
-    Proxy to C{declareMetadata} SAMP Hub method
-    """
+    """Proxy to `declareMetadata` SAMP Hub method."""
     return self.client.declareMetadata(metadata)
 
   def getMetadata(self, client_id):
-    """
-    Proxy to C{getMetadata} SAMP Hub method
-    """
+    """Proxy to `getMetadata` SAMP Hub method."""
     return self.hub.getMetadata(self.client.getPrivateKey(), client_id)
 
   def getSubscriptions(self, client_id):
-    """
-    Proxy to C{getSubscriptions} SAMP Hub method
-    """
+    """Proxy to `getSubscriptions` SAMP Hub method."""
     return self.hub.getSubscriptions(self.client.getPrivateKey(), client_id)
 
   def getRegisteredClients(self):
-    """
-    Proxy to C{getRegisteredClients} SAMP Hub method
-    """
+    """Proxy to `getRegisteredClients` SAMP Hub method."""
     return self.hub.getRegisteredClients(self.client.getPrivateKey())
 
   def getSubscribedClients(self, mtype):
-    """
-    Proxy to C{getSubscribedClients} SAMP Hub method
-    """
+    """Proxy to `getSubscribedClients} SAMP Hub method."""
     return self.hub.getSubscribedClients(self.client.getPrivateKey(), mtype)
 
   def _format_easy_msg(self, mtype, params):
@@ -561,185 +512,197 @@ class SAMPIntegratedClient(object):
 
 
   def notify(self, recipient_id, message):
-    """
-    Proxy to C{notify} SAMP Hub method
-    """
+    """Proxy to `notify` SAMP Hub method."""
     return self.hub.notify(self.client.getPrivateKey(), recipient_id, message)
 
   def enotify(self, recipient_id, mtype, **params):
-    """
-    Easy C{notify}. It is a proxy to L{notify} method that allows to
-    send the notification message in a simplified way. Example:
+    """Easy to use `notify`.
 
+    This is a proxy to `notify` method that allows to
+    send the notification message in a simplified way.
+    
+    Note that reserved `extra_kws` keyword is a dictionary with the special meaning of 
+    being used to add extra keywords, in addition to the standard `samp.mtype`
+    and `samp.params`, to the message sent.
+
+    Parameters
+    ----------
+    recipient_id : str
+        Recipient ID
+
+    mtype : str
+        the MType to be notified
+
+    params : dict or set of keywords
+        Variable keyword set which contains the list of parameters for 
+        the specified MType.
+
+    Example
+    -------
     >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
     >>> cli.enotify("samp.msg.progress", msgid = "xyz", txt = "initialization",
     ...             percent = "10", extra_kws = {"my.extra.info": "just an example"})
-
-    Note that reserved C{extra_kws} keyword is a dictionary with the special meaning of 
-    being used to add extra keywords, in addition to the standard C{samp.mtype}
-    and C{samp.params}, to the message sent.
-
-    @param recipient_id: the recipient ID
-    @type recipient_id: string
-
-    @param mtype: the MType to be notified
-    @type mtype: string
-
-    @param params: variable keyword set which contains the list of parameters for 
-                   the specified MType
-    @type params: dictionary or set of keywords
-
     """
     return self.notify(recipient_id, self._format_easy_msg(mtype, params))
 
   def notifyAll(self, message):
-    """
-    Proxy to C{notifyAll} SAMP Hub method
-    """
+    """Proxy to `notifyAll` SAMP Hub method."""
     return self.hub.notifyAll(self.client.getPrivateKey(), message)
 
   def enotifyAll(self, mtype, **params):
-    """
-    Easy C{notify}. It is a proxy to L{notifyAll} method that allows to
-    send the notification message in a simplified way. Example:
+    """Easy to use `notify`.
+    
+    This is a proxy to `notifyAll` method that allows to
+    send the notification message in a simplified way.
 
+
+    Note that reserved `extra_kws` keyword is a dictionary with the special meaning of 
+    being used to add extra keywords, in addition to the standard `samp.mtype`
+    and `samp.params`, to the message sent.
+
+    Parameters
+    ----------
+    mtype : str
+        MType to be notified.
+
+    params : dict or set of keywords
+        Variable keyword set which contains the list of parameters for 
+        the specified MType.
+
+    Example
+    -------
     >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
     >>> cli.enotifyAll("samp.msg.progress", txt = "initialization",
     ...                percent = "10", extra_kws = {"my.extra.info": "just an example"})
-
-    Note that reserved C{extra_kws} keyword is a dictionary with the special meaning of 
-    being used to add extra keywords, in addition to the standard C{samp.mtype}
-    and C{samp.params}, to the message sent.
-
-    @param mtype: the MType to be notified
-    @type mtype: string
-
-    @param params: variable keyword set which contains the list of parameters for 
-                   the specified MType
-    @type params: dictionary or set of keywords
-
     """
     return self.notifyAll(self._format_easy_msg(mtype, params))
 
 
   def call(self, recipient_id, msg_tag, message):
-    """
-    Proxy to C{call} SAMP Hub method
-    """
+    """Proxy to `call` SAMP Hub method."""
     return self.hub.call(self.client.getPrivateKey(), recipient_id, msg_tag, message)
 
   def ecall(self, recipient_id, msg_tag, mtype, **params):
-    """
-    Easy C{call}. It is a proxy to L{call} method that allows to
-    send a call message in a simplified way. Example:
+    """Easy to use `call`.
+    
+    This is a proxy to `call` method that allows to
+    send a call message in a simplified way.
+    
+    Note that reserved `extra_kws` keyword is a dictionary with the special meaning of 
+    being used to add extra keywords, in addition to the standard `samp.mtype`
+    and `samp.params`, to the message sent.
 
+    Parameters
+    ----------
+    recipient_id : str
+        Recipient ID
+
+    msg_tag : str
+        Message tag to use
+
+    mtype : str
+        MType to be sent
+
+    params : dict of set of keywords
+        Variable keyword set which contains the list of parameters for 
+        the specified MType.
+
+    Example
+    -------
     >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
     >>> msgid = cli.ecall("abc", "xyz", "samp.msg.progress", txt = "initialization",
     ...                   percent = "10", extra_kws = {"my.extra.info": "just an example"})
-
-    Note that reserved C{extra_kws} keyword is a dictionary with the special meaning of 
-    being used to add extra keywords, in addition to the standard C{samp.mtype}
-    and C{samp.params}, to the message sent.
-
-    @param recipient_id: the recipient ID
-    @type recipient_id: string
-
-    @param msg_tag: the message tag to use
-    @type msg_tag: string
-
-    @param mtype: the MType to be sent
-    @type mtype: string
-
-    @param params: variable keyword set which contains the list of parameters for 
-                   the specified MType
-    @type params: dictionary or set of keywords
     """
 
     return self.call(recipient_id, msg_tag, self._format_easy_msg(mtype, params))
 
 
   def callAll(self, msg_tag, message):
-    """
-    Proxy to C{callAll} SAMP Hub method
-    """
+    """Proxy to `callAll` SAMP Hub method."""
     return self.hub.callAll(self.client.getPrivateKey(), msg_tag, message)
 
   def ecallAll(self, msg_tag, mtype, **params):
-    """
-    Easy C{callAll}. It is a proxy to L{callAll} method that allows to
-    send the call message in a simplified way. Example:
+    """Easy to use `callAll`.
+    
+    This is a proxy to `callAll` method that allows to
+    send the call message in a simplified way.
+    
+    Note that reserved `extra_kws` keyword is a dictionary with the special meaning of 
+    being used to add extra keywords, in addition to the standard `samp.mtype`
+    and `samp.params`, to the message sent.
 
+    Parameters
+    ----------
+    msg_tag : str
+        Message tag to use
+
+    mtype : str
+        MType to be sent
+
+    params : dict of set of keywords
+        Variable keyword set which contains the list of parameters for 
+        the specified MType.
+
+    Example
+    -------
     >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
     >>> msgid = cli.ecallAll("xyz", "samp.msg.progress", txt = "initialization",
     ...                      percent = "10", extra_kws = {"my.extra.info": "just an example"})
-
-    Note that reserved C{extra_kws} keyword is a dictionary with the special meaning of 
-    being used to add extra keywords, in addition to the standard C{samp.mtype}
-    and C{samp.params}, to the message sent.
-
-    @param msg_tag: the message tag to use
-    @type msg_tag: string
-
-    @param mtype: the MType to be sent
-    @type mtype: string
-
-    @param params: variable keyword set which contains the list of parameters for 
-                   the specified MType
-    @type params: dictionary or set of keywords
     """
     self.callAll(msg_tag, self._format_easy_msg(mtype, params))
 
 
   def callAndWait(self, recipient_id, message, timeout):
-    """
-    Proxy to C{callAndWait} SAMP Hub method. If timeout expires a 
-    L{SAMPProxyError} instance is raised.
+    """Proxy to `callAndWait` SAMP Hub method.
+    
+    If timeout expires a `SAMPProxyError` instance is raised.
     """
     return self.hub.callAndWait(self.client.getPrivateKey(), recipient_id, message, timeout)
 
   def ecallAndWait(self, recipient_id, mtype, timeout, **params):
-    """
-    Easy C{callAndWait}. It is a proxy to L{callAll} method that allows to
-    send the call message in a simplified way. Example:
+    """Easy to use `callAndWait`.
+    
+    This is a proxy to `callAll` method that allows to
+    send the call message in a simplified way.
 
+    Note that reserved `extra_kws` keyword is a dictionary with the special meaning of 
+    being used to add extra keywords, in addition to the standard `samp.mtype`
+    and `samp.params`, to the message sent.
+
+    recipient_id : str
+        Recipient ID
+
+    mtype : str
+        MType to be sent
+
+    timeout : str
+        Call timeout in seconds
+
+    params : dict of set of keywords
+        Variable keyword set which contains the list of parameters for 
+        the specified MType.
+
+    Example
+    -------
     >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
     >>> cli.ecallAndWait("xyz", "samp.msg.progress", "5", txt = "initialization",
     ...                  percent = "10", extra_kws = {"my.extra.info": "just an example"})
-
-    Note that reserved C{extra_kws} keyword is a dictionary with the special meaning of 
-    being used to add extra keywords, in addition to the standard C{samp.mtype}
-    and C{samp.params}, to the message sent.
-
-    @param recipient_id: the recipient ID
-    @type recipient_id: string
-
-    @param mtype: the MType to be sent
-    @type mtype: string
-
-    @param timeout: the call timeout in seconds
-    @type timeout: string
-
-    @param params: variable keyword set which contains the list of parameters for 
-                   the specified MType
-    @type params: dictionary or set of keywords
     """
     return self.callAndWait(recipient_id, self._format_easy_msg(mtype, params), timeout)
 
 
   def reply(self, msg_id, response):
-    """
-    Proxy to C{reply} SAMP Hub method
-    """
+    """Proxy to `reply` SAMP Hub method."""
     return self.hub.reply(self.client.getPrivateKey(), msg_id, response)
 
   def _format_easy_response(self, status, result, error):
@@ -753,108 +716,129 @@ class SAMPIntegratedClient(object):
     return msg
 
   def ereply(self, msg_id, status, result = None, error = None):
-    """
-    Easy C{reply}. It is a proxy to L{callAll} method that allows to
-    send a reply message in a simplified way. Example:
+    """Easy to use `reply`.
+    
+    This is a proxy to `callAll` method that allows to
+    send a reply message in a simplified way.
 
+    Parameters
+    ----------
+    @msg_id : str
+        Message ID to which reply.
+
+    status : str
+        Content of the `samp.status` response keyword.
+
+    result : dict
+        Content of the `samp.result` response keyword.
+
+    error : dict
+        Content of the `samp.error` response keyword.
+    
+    Example
+    -------
     >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
-    >>> cli.ereply("abd", sampy.SAMP_STATUS_ERROR, result = {}, error = {"samp.errortxt": "Test error message"})
-
-    @param msg_id: the message ID to which reply
-    @type msg_id: string
-
-    @param status: the content of the C{samp.status} response keyword
-    @type status: string
-
-    @param result: the content of the C{samp.result} response keyword
-    @type result: dictionary
-
-    @param error: the content of the C{samp.error} response keyword
-    @type error: dictionary
+    >>> cli.ereply("abd", sampy.SAMP_STATUS_ERROR, result={},
+    ...            error={"samp.errortxt": "Test error message"})
     """
     return self.reply(msg_id, self._format_easy_response(status, result, error))
 
 
-
-
   # CLIENT
   def receiveNotification(self, private_key, sender_id, message):
-    """
-    Standard callable client C{receiveNotification} method. This method is
-    automatically handled when L{bindReceiveNotification} method is used to bind
-    distinct operations to MTypes. In case of a customized callable client
-    implementation that inherits from L{SAMPClient} class this method should
-    be overwritten. ATTENTION: when overwritten, this method must always return
-    a string result (even empty).
+    """Standard callable client `receiveNotification` method.
+    
+    This method is automatically handled when the `bindReceiveNotification`
+    method is used to bind distinct operations to MTypes.
+    In case of a customized callable client implementation that inherits from
+    the `SAMPClient` class this method should be overwritten.
+    
+    ATTENTION: When overwritten, this method must always return
+               a string result (even empty).
 
-    @param private_key: the client private key.
-    @type private_key: str
+    Parameters
+    ----------
+    private_key : str
+        Client private key.
 
-    @param sender_id: the sender public ID.
-    @type sender_id: str
+    sender_id : str
+        Sender public ID.
 
-    @param message: the message received.
-    @type message: dict
+    message : dict
+        Received message.
 
-    @return: any confirmation string.
-    @rtype: str
+    Returns
+    -------
+    confirmation : str
+        Any confirmation string.
     """
     return self.client.receiveNotification(private_key, sender_id, message)
 
   def receiveCall(self, private_key, sender_id, msg_id, message):
-    """
-    Standard callable client C{receiveCall} method. This method is
-    automatically handled when L{bindReceiveCall} method is used to bind
-    distinct operations to MTypes. In case of a customized callable client
-    implementation that inherits from L{SAMPClient} class this method should
-    be overwritten. ATTENTION: when overwritten, this method must always return
-    a string result (even empty).
+    """Standard callable client C{receiveCall} method.
+    
+    This method is automatically handled when the `bindReceiveCall` method
+    is used to bind distinct operations to MTypes.
+    In case of a customized callable client implementation that inherits from
+    the `SAMPClient` class this method should be overwritten.
+    
+    ATTENTION: When overwritten, this method must always return
+               a string result (even empty).
 
-    @param private_key: the client private key.
-    @type private_key: str
+    Parameters
+    ----------
+    private_key : str
+        Client private key.
 
-    @param sender_id: the sender public ID.
-    @type sender_id: str
+    sender_id : str
+        Sender public ID.
 
-    @param msg_id: the message ID received.
-    @type msg_id: str
+    msg_id : str
+        Received message ID.
 
-    @param message: the message received.
-    @type message: dict
+    message : dict
+        Received message.
 
-    @return: any confirmation string.
-    @rtype: str
+    Returns
+    -------
+    confirmation : str
+        Any confirmation string.
     """
     return self.client.receiveCall(private_key, sender_id, msg_id, message)
 
   def receiveResponse(self, private_key, responder_id, msg_tag, response):
-    """
-    Standard callable client C{receiveResponse} method. This method is
-    automatically handled when L{bindReceiveResponse} method is used to bind
-    distinct operations to MTypes. In case of a customized callable client
-    implementation that inherits from L{SAMPClient} class this method should
-    be overwritten. ATTENTION: when overwritten, this method must always return
-    a string result (even empty).
+    """Standard callable client `receiveResponse` method.
+    
+    This method is automatically handled when the `bindReceiveResponse` method
+    is used to bind distinct operations to MTypes.
+    In case of a customized callable client implementation that inherits from
+    the `SAMPClient` class this method should be overwritten.
+    
+    ATTENTION: When overwritten, this method must always return
+               a string result (even empty).
 
-    @param private_key: the client private key.
-    @type private_key: str
+    Parameters
+    ----------
+    private_key : str
+        Client private key.
 
-    @param responder_id: the responder public ID.
-    @type responder_id: str
+    responder_id : str
+        Responder public ID.
 
-    @param msg_tag: the response message tag.
-    @type msg_tag: str
+    msg_tag : str
+        Response message tag.
 
-    @param response: the response received.
-    @type response: dict
+    response : dict
+        Received response.
 
-    @return: any confirmation string.
-    @rtype: str
+    Returns
+    -------
+    confirmation : str
+        Any confirmation string.
     """
     return self.client.receiveResponse(private_key, responder_id, msg_tag, response)
-
 
 
   def bindReceiveMessage(self, mtype, function, declare = True, metadata = None):
@@ -862,177 +846,190 @@ class SAMPIntegratedClient(object):
     a call or a notification.
 
     The function must be of the form:
-    C{def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)}
+    `def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)`
 
-    where C{private_key} is the client private-key, C{sender_id} argument is the
-    notification sender ID, C{msg_id} is the Hub message-id (calls only, otherwise is None),
-    C{mtype} is the message MType, C{params} is the message parameter set (content of
-    "samp.params") and C{extra} is a dictionary containing any extra message map entry.
+    where `private_key` is the client private-key, the `sender_id` argument is the
+    notification sender ID, `msg_id` is the Hub message-id (calls only, otherwise is None),
+    `mtype` is the message MType, `params is the message parameter set (content of
+    "samp.params") and `extra` is a dictionary containing any extra message map entry.
     The client is automatically declared subscribed to the MType by default.
 
-    @param mtype: the MType to be catched.
-    @type mtype: str
+    Parameters
+    ----------
+    mtype : str
+        MType to be catched.
 
-    @param function: the application function to be used when C{mtype} is received.
-    @type function: function or class method
+    function : callable
+        Application function to be used when C{mtype} is received.
 
-    @param declare: specify whether the client must be automatically declared as
-    subscribed to the MType (see also L{declareSubscriptions}).
-    @type declare: boolean
+    declare : bool
+        Specify whether the client must be automatically declared as
+        subscribed to the MType (see also `declareSubscriptions`).
 
-    @param metadata: an optional map containing additional metadata to declare associated
-    with the MType subscribed to (see also L{declareSubscriptions}).
-    @type metadata: dict
+    metadata : dict
+        An optional map containing additional metadata to declare associated
+        with the MType subscribed to (see also `declareSubscriptions`).
     """
     self.client.bindReceiveMessage(mtype, function, declare = True, metadata = None)
 
   def bindReceiveNotification(self, mtype, function, declare = True, metadata = None):
-    """
-    Bind a specific MType notification to a function or class method.
+    """Bind a specific MType notification to a function or class method.
+
     The function must be of the form:
 
-    C{def my_function_or_method(<self,> private_key, sender_id, mtype, params, extra)}
+    `def my_function_or_method(<self,> private_key, sender_id, mtype, params, extra)`
 
-    where C{private_key} is the client private-key, C{sender_id} argument is 
-    the notification sender ID, C{mtype} is the message MType, C{params} is 
-    the notified message parameter set (content of "samp.params") and C{extra} is a 
+    where `private_key` is the client private-key, `sender_id` argument is 
+    the notification sender ID, `mtype` is the message MType, `params` is 
+    the notified message parameter set (content of "samp.params") and `extra` is a 
     dictionary containing any extra message map entry. The client is
     automatically declared subscribed to the MType by default.
 
-    @param mtype: the MType to be catched.
-    @type mtype: str
+    Parameters
+    ----------
+    mtype : str
+        MType to be catched.
 
-    @param function: the application function to be used when C{mtype} is received.
-    @type function: function or class method
+    function : callable
+        Application function to be used when C{mtype} is received.
 
-    @param declare: specify whether the client must be automatically declared as
-    subscribed to the MType (see alse L{declareSubscriptions}).
-    @type declare: boolean
+    declare : bool
+        Specify whether the client must be automatically declared as
+        subscribed to the MType (see alse `declareSubscriptions`).
 
-    @param metadata: an optional map containing additional metadata to declare associated
-    with the MType subscribed to (see also L{declareSubscriptions}).
-    @type metadata: dict
+    metadata : dict (optional)
+        Dictionary containing additional metadata to declare associated
+        with the MType subscribed to (see also `declareSubscriptions`).
     """
-
     self.client.bindReceiveNotification(mtype, function, declare, metadata)
 
   def bindReceiveCall(self, mtype, function, declare = True, metadata = None):
-    """
-    Bind a specific MType call to a function or class method.
+    """Bind a specific MType call to a function or class method.
+
     The function must be of the form:
 
-    C{def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)}
+    `def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)`
 
-    where C{private_key} is the client private-key, C{sender_id} argument is the
-    notification sender ID, C{msg_id} is the Hub message-id, C{mtype} is the message MType, 
-    C{params} is the message parameter set (content of "samp.params") and C{extra} is a 
+    where `private_key` is the client private-key, `sender_id` argument is the
+    notification sender ID, `msg_id` is the Hub message-id, `mtype` is the message MType, 
+    `params` is the message parameter set (content of "samp.params") and `extra` is a 
     dictionary containing any extra message map entry. The client is
     automatically declared subscribed to the MType by default.
 
-    @param mtype: the MType to be catched.
-    @type mtype: str
+    Parameters
+    ----------
+    mtype : str
+        MType to be catched.
 
-    @param function: the application function to be used when C{mtype} is received.
-    @type function: function or class method
+    function : callable
+        Application function to be used when `mtype` is received.
 
-    @param declare: specify whether the client must be automatically declared as
-    subscribed to the MType (see also L{declareSubscriptions}).
-    @type declare: boolean
+    declare : bool
+        Specify whether the client must be automatically declared as
+        subscribed to the MType (see also L`declareSubscriptions`).
 
-    @param metadata: an optional map containing additional metadata to declare associated
-    with the MType subscribed to (see also L{declareSubscriptions}).
-    @type metadata: dict
+    metadata : dict (optional)
+        Dictionary containing additional metadata to declare associated
+        with the MType subscribed to (see also `declareSubscriptions`).
     """
     self.client.bindReceiveCall(mtype, function, declare, metadata)
 
   def bindReceiveResponse(self, msg_tag, function):
-    """
-    Bind a specific msg-tag response to a function or class method.
+    """Bind a specific msg-tag response to a function or class method.
+
     The function must be of the form:
 
-    C{def my_function_or_method(<self,> private_key, responder_id, msg_tag, response)}
+    `def my_function_or_method(<self,> private_key, responder_id, msg_tag, response)`
 
-    where C{private_key} is the client private-key, C{responder_id} argument is the message
-    responder ID, C{msg_tag} is the message-tag provided at call time and C{response} is the
+    where `private_key` is the client private-key, `responder_id` argument is the message
+    responder ID, `msg_tag` is the message-tag provided at call time and `response` is the
     response received.
 
-    @param msg_tag: the message-tag to be catched.
-    @type msg_tag: str
+    Parameters
+    ----------
+    msg_tag : str
+        Message-tag to be catched.
 
-    @param function: the application function to be used when C{msg_tag} is received.
-    @type function: function or class method
+    function : callable
+        Application function to be used when `msg_tag` is received.
     """
     self.client.bindReceiveResponse(msg_tag, function)
 
   def unbindReceiveNotification(self, mtype, declare = True):
-    """
-    Remove from the notifications binding table the specified MType and unsubscribe
+    """Remove from the notifications binding table the specified MType and unsubscribe
     the client from it (if required).
 
-    @param mtype: the MType to be removed
-    @type mtype: str
+    Parameters
+    ----------
+    mtype : str
+        MType to be removed.
 
-    @param declare: specify whether the client must be automatically declared as
-    unsubscribed from the MType (see alse L{declareSubscriptions}).
-    @type declare: boolean
-
+    declare : bool
+        Specify whether the client must be automatically declared as
+        unsubscribed from the MType (see alse `declareSubscriptions`).
     """
     self.client.unbindReceiveNotification(mtype, declare)
 
   def unbindReceiveCall(self, mtype, declare = True):
-    """
-    Remove from the calls binding table the specified MType and unsubscribe
+    """Remove from the calls binding table the specified MType and unsubscribe
     the client from it (if required).
 
-    @param mtype: the MType to be removed
-    @type mtype: str
+    Parameters
+    ----------
+    mtype : str
+        MType to be removed.
 
-    @param declare: specify whether the client must be automatically declared as
-    unsubscribed from the MType (see alse L{declareSubscriptions}).
-    @type declare: boolean
+    declare : bool
+        Specify whether the client must be automatically declared as
+        unsubscribed from the MType (see alse `declareSubscriptions`).
     """
     self.client.unbindReceiveCall(mtype, declare)
 
   def unbindReceiveResponse(self, msg_tag):
-    """
-    Remove from the responses binding table the specified message-tag.
+    """Remove from the responses binding table the specified message-tag.
 
-    @param msg_tag: the message-tag to be removed
-    @type msg_tag: str
+    Parameters
+    ----------
+    msg_tag : str
+        Message-tag to be removed.
     """
     self.client.unbindReceiveResponse(msg_tag)
 
 
   def declareSubscriptions(self, subscriptions = None):
-    """
-    Declares the MTypes the client wishes to subscribe to, implicitly defined
-    with the MType binding methods L{bindReceiveNotification} and L{bindReceiveCall}.
-    An optional C{subscriptions} map can be added to the final map passed to 
-    the L{SAMPHubProxy.declareSubscriptions} operation.
+    """Declares the MTypes the client wishes to subscribe to,
+    implicitly defined with the MType binding methods `bindReceiveNotification` and `bindReceiveCall`.
+    
+    An optional `subscriptions` map can be added to the final map passed to 
+    the `SAMPHubProxy.declareSubscriptions` operation.
 
-    @param subscriptions: an optional map containing the list of MTypes to subscribe to,
-    with the same format of the C{subscriptions} map passed to the
-    L{SAMPHubProxy.declareSubscriptions} operation.
-    @type subscriptions: dict
+    Parameters
+    ----------
+    subscriptions: dict (optional)
+        Dictionary containing the list of MTypes to subscribe to,
+        with the same format of the `subscriptions` map passed to the
+        `SAMPHubProxy.declareSubscriptions` operation.
     """
     self.client.declareSubscriptions(subscriptions)
 
   def getPrivateKey(self):
-    """
-    Return the client private key used for the Standard Profile communications 
-    obtained at registration time (C{samp.private-key}).
+    """Return the client private key used for the Standard Profile communications 
+    obtained at registration time (`samp.private-key`).
 
-    @return: the client private key
-    @rtype: string
+    Returns
+    -------
+    key : str
+        The client private key
     """
     return self.client.getPrivateKey()
 
   def getPublicId(self):
-    """
-    Return public client ID obtained at registration time (C{samp.self-id}).
+    """Return public client ID obtained at registration time (`samp.self-id`).
 
-    @return: the client public ID
-    @rtype: string
+    Returns
+    -------
+    id : str
+        Client public ID
     """
     return self.client.getPublicId()
 
@@ -1041,73 +1038,67 @@ class SAMPClient(object):
   """
   Utility class which provides facilities to create and manage a SAMP compliant
   XML-RPC server that acts as SAMP callable client application. 
+
+    Parameters
+    ----------
+    hub : `SAMPHubProxy`
+        An instance of `SAMPHubProxy` to be used for messaging with the SAMP Hub.
+
+    name : str (optional)
+        Client name (corresponding to `samp.name` metadata keyword).
+
+    description : str (optional)
+        Client description (corresponding to `samp.description.text` metadata keyword).
+
+    metadata : dict (optional)
+        Client application metadata in the standard SAMP format.
+
+    addr : str
+        Listening address (or IP).
+
+    port : int (optional)
+        Listening XML-RPC server socket port
+
+    https : bool
+        Set the callable client running on a Secure Sockets Layer connection (HTTPS)?
+        By default SSL is disabled.
+
+    key_file : str
+        Set the file containing the private key for SSL connections. If the
+        certificate file (`cert_file`) contains the private key, then `key_file` can be omitted.
+
+    cert_file : str
+        Specify the file which contains a certificate to be used to identify the
+        local side of the secure connection.
+
+    cert_reqs : int
+        The parameter `cert_reqs` specifies whether a certificate is required
+        from the Hub side of the connection, and whether it will be validated if provided. It
+        must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
+        (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
+        If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
+        point to a file of CA certificates.
+
+    ca_certs : str
+        The `ca_certs` file contains a set of concatenated "Certification Authority" 
+        certificates, which are used to validate the certificate passed from the Hub end of the 
+        connection.
+
+    ssl_version : int
+        The `ssl_version` option specifies which version of the SSL protocol to use.
+        Typically, the server chooses a particular protocol version, and the client must adapt to the
+        server's choice. Most of the versions are not interoperable with the other versions. If not
+        specified the default SSL version is `ssl.PROTOCOL_SSLv23`. This version provides the most
+        compatibility with other versions Hub side. Other SSL protocol versions are:                        
+        `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
+
+    callable : bool
+        Is the client callable?
   """
 
   def __init__(self, hub, name = None, description=None, metadata = None, \
                addr = None, port = 0, https = False, key_file=None, cert_file=None, \
                cert_reqs=0, ca_certs=None, ssl_version=2, callable = True):
-    """
-    L{SAMPClient} constructor.
-
-    @param hub: an instance of L{SAMPHubProxy} to be used for messaging with the SAMP Hub.
-    @type hub: L{SAMPHubProxy}
-
-    @param name: (optional) a string containing the client name
-    (corresponding to C{samp.name} metadata keyword).
-    @type name: string
-
-    @param description: (optional) a string containing the client description
-    (corresponding to C{samp.description.text} metadata keyword).
-    @type description: string
-
-    @param metadata: (optional) a dictionary containing the client 
-    application metadata in the standard SAMP format
-    @type metadata: dict
-
-    @param addr: Listening address (or IP)
-    @type addr: string
-
-    @param port: (optional) the listening XML-RPC server socket port
-    @type port: int
-
-    @param https: set the callable client running on a Secure Sockets Layer connection (HTTPS).
-    By default SSL is desabled.
-    @type https: boolean
-
-    @param key_file: Set the file containing the private key for SSL connections. If the
-    certificate file (C{cert_file}) contains the private key, then C{key_file} can be omitted.
-    @type key_file: string
-
-    @param cert_file: Specify the file which contains a certificate to be used to identify the
-    local side of the secure connection.
-    @type cert_file: string
-
-    @param cert_reqs: The parameter C{cert_reqs} specifies whether a certificate is required
-    from the Hub side of the connection, and whether it will be validated if provided. It
-    must be one of the three values L{ssl.CERT_NONE} (certificates ignored), L{ssl.CERT_OPTIONAL}
-    (not required, but validated if provided), or L{ssl.CERT_REQUIRED} (required and validated).
-    If the value of this parameter is not L{ssl.CERT_NONE}, then the C{ca_certs} parameter must
-    point    to a file of CA certificates.
-    @type cert_reqs: int
-
-    @param ca_certs: The C{ca_certs} file contains a set of concatenated \"Certification Authority\" 
-    certificates, which are used to validate the certificate passed from the Hub end of the 
-    connection.
-    @type ca_certs: string
-
-    @param ssl_version: The C{ssl_version} option specifies which version of the SSL protocol to use.
-    Typically, the server chooses    a particular protocol version, and the client must adapt to the
-    server's choice. Most of the versions are    not interoperable with the other versions. If not
-    specified the default SSL version is  L{ssl.PROTOCOL_SSLv23}. This version provides the most
-    compatibility with other versions Hub side. Other SSL protocol versions are:                        
-    L{ssl.PROTOCOL_SSLv2}, L{ssl.PROTOCOL_SSLv3} and L{ssl.PROTOCOL_TLSv1}.
-    @type ssl_version: int
-
-    @param callable: Specify whether the client is a callable client or not
-    @type callable: boolean
-
-    """
-
     # GENERAL
     self._thread = None
     self._is_running = False
@@ -1173,22 +1164,20 @@ class SAMPClient(object):
     self.stop()
 
   def start(self):
-    """
-    Start the client in a non-blocking way.
-    """
+    """Start the client in a non-blocking way."""
     global _THREAD_STARTED_COUNT
     _THREAD_STARTED_COUNT += 1
     self._is_running = True
     self._run_client()
 
   def stop(self, timeout=0.1):
-    """
-    Stop the client.
+    """Stop the client.
 
-    @param timeout: timeout after wich the client terminates even if the threading is still alive.
-    @type timeout: float
+    Parameters
+    ----------
+    timeout : float
+        Timeout after wich the client terminates even if the threading is still alive.
     """
-
     self._is_running = False
     if self._thread is not None:
       self._thread.join(timeout)
@@ -1196,11 +1185,12 @@ class SAMPClient(object):
 
 
   def isRunning(self):
-    """
-    Return an information concerning the client running status.
+    """Return an information concerning the client running status.
 
-    @return: True if the client is running, False otherwise
-    @rtype: boolean
+    Returns
+    -------
+    running : bool
+        `True` if the client is running, `False` otherwise.
     """
     return self._is_running != None
 
@@ -1266,25 +1256,31 @@ class SAMPClient(object):
     return ""
 
   def receiveNotification(self, private_key, sender_id, message):
-    """
-    Standard callable client C{receiveNotification} method. This method is
-    automatically handled when L{bindReceiveNotification} method is used to bind
-    distinct operations to MTypes. In case of a customized callable client
-    implementation that inherits from L{SAMPClient} class this method should
-    be overwritten. ATTENTION: when overwritten, this method must always return
-    a string result (even empty).
+    """Standard callable client `receiveNotification` method.
+    
+    This method is automatically handled when the `bindReceiveNotification`
+    method is used to bind distinct operations to MTypes.
+    In case of a customized callable client implementation that inherits from
+    the `SAMPClient` class this method should be overwritten.
+    
+    ATTENTION: When overwritten, this method must always return
+               a string result (even empty).
 
-    @param private_key: the client private key.
-    @type private_key: str
+    Parameters
+    ----------
+    private_key : str
+        Client private key.
 
-    @param sender_id: the sender public ID.
-    @type sender_id: str
+    sender_id : str
+        Sender public ID.
 
-    @param message: the message received.
-    @type message: dict
+    message : dict
+        Received message.
 
-    @return: any confirmation string.
-    @rtype: str
+    Returns
+    -------
+    confirmation : str
+        Any confirmation string.
     """
     return self._handle_notification(private_key, sender_id, message)
 
@@ -1306,28 +1302,34 @@ class SAMPClient(object):
     return ""
 
   def receiveCall(self, private_key, sender_id, msg_id, message):
-    """
-    Standard callable client C{receiveCall} method. This method is
-    automatically handled when L{bindReceiveCall} method is used to bind
-    distinct operations to MTypes. In case of a customized callable client
-    implementation that inherits from L{SAMPClient} class this method should
-    be overwritten. ATTENTION: when overwritten, this method must always return
-    a string result (even empty).
+    """Standard callable client C{receiveCall} method.
+    
+    This method is automatically handled when the `bindReceiveCall` method
+    is used to bind distinct operations to MTypes.
+    In case of a customized callable client implementation that inherits from
+    the `SAMPClient` class this method should be overwritten.
+    
+    ATTENTION: When overwritten, this method must always return
+               a string result (even empty).
 
-    @param private_key: the client private key.
-    @type private_key: str
+    Parameters
+    ----------
+    private_key : str
+        Client private key.
 
-    @param sender_id: the sender public ID.
-    @type sender_id: str
+    sender_id : str
+        Sender public ID.
 
-    @param msg_id: the message ID received.
-    @type msg_id: str
+    msg_id : str
+        Message ID received.
 
-    @param message: the message received.
-    @type message: dict
+    message : dict
+        Received message.
 
-    @return: any confirmation string.
-    @rtype: str
+    Returns
+    -------
+    confimation : str
+        Any confirmation string.
     """
     return self._handle_call(private_key, sender_id, msg_id, message)
 
@@ -1337,32 +1339,36 @@ class SAMPClient(object):
     return ""
 
   def receiveResponse(self, private_key, responder_id, msg_tag, response):
-    """
-    Standard callable client C{receiveResponse} method. This method is
-    automatically handled when L{bindReceiveResponse} method is used to bind
-    distinct operations to MTypes. In case of a customized callable client
-    implementation that inherits from L{SAMPClient} class this method should
-    be overwritten. ATTENTION: when overwritten, this method must always return
-    a string result (even empty).
+    """Standard callable client `receiveResponse` method.
+    
+    This method is automatically handled when the `bindReceiveResponse` method
+    is used to bind distinct operations to MTypes.
+    In case of a customized callable client implementation that inherits from
+    the `SAMPClient` class this method should be overwritten.
+    
+    ATTENTION: When overwritten, this method must always return
+               a string result (even empty).
 
-    @param private_key: the client private key.
-    @type private_key: str
+    Parameters
+    ----------
+    private_key : str
+        Client private key.
 
-    @param responder_id: the responder public ID.
-    @type responder_id: str
+    responder_id : str
+        Responder public ID.
 
-    @param msg_tag: the response message tag.
-    @type msg_tag: str
+    msg_tag : str
+        Response message tag.
 
-    @param response: the response received.
-    @type response: dict
+    response : dict
+        Received response.
 
-    @return: any confirmation string.
-    @rtype: str
+    Returns
+    -------
+    confirmation : str
+        Any confirmation string.
     """
     return self._handle_response(private_key, responder_id, msg_tag, response)
-
-
 
 
   def bindReceiveMessage(self, mtype, function, declare = True, metadata = None):
@@ -1370,59 +1376,62 @@ class SAMPClient(object):
     a call or a notification.
 
     The function must be of the form:
-    C{def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)}
+    `def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)`
 
-    where C{private_key} is the client private-key, C{sender_id} argument is the
-    notification sender ID, C{msg_id} is the Hub message-id (calls only, otherwise is None),
-    C{mtype} is the message MType, C{params} is the message parameter set (content of
-    "samp.params") and C{extra} is a dictionary containing any extra message map entry.
+    where `private_key` is the client private-key, the `sender_id` argument is the
+    notification sender ID, `msg_id` is the Hub message-id (calls only, otherwise is `None`),
+    `mtype` is the message MType, `params` is the message parameter set (content of
+    "samp.params") and `extra` is a dictionary containing any extra message map entry.
     The client is automatically declared subscribed to the MType by default.
 
-    @param mtype: the MType to be catched.
-    @type mtype: str
+    Parameters
+    ----------
+    mtype : str
+        MType to be catched.
 
-    @param function: the application function to be used when C{mtype} is received.
-    @type function: function or class method
+    function : callable
+        Application function to be used when `mtype` is received.
 
-    @param declare: specify whether the client must be automatically declared as
-    subscribed to the MType (see also L{declareSubscriptions}).
-    @type declare: boolean
+    declare : bool
+        Specify whether the client must be automatically declared as
+        subscribed to the MType (see also `declareSubscriptions`).
 
-    @param metadata: an optional map containing additional metadata to declare associated
-    with the MType subscribed to (see also L{declareSubscriptions}).
-    @type metadata: dict
+    metadata : dict (optional)
+        Dictionary containing additional metadata to declare associated
+        with the MType subscribed to (see also `declareSubscriptions`).
     """
-
     self.bindReceiveCall(mtype, function, declare = True, metadata = None)
     self.bindReceiveNotification(mtype, function, declare = True, metadata = None)
 
 
   def bindReceiveNotification(self, mtype, function, declare = True, metadata = None):
-    """
-    Bind a specific MType notification to a function or class method.
+    """Bind a specific MType notification to a function or class method.
+
     The function must be of the form:
 
-    C{def my_function_or_method(<self,> private_key, sender_id, mtype, params, extra)}
+    `def my_function_or_method(<self,> private_key, sender_id, mtype, params, extra)`
 
-    where C{private_key} is the client private-key, C{sender_id} argument is 
-    the notification sender ID, C{mtype} is the message MType, C{params} is 
-    the notified message parameter set (content of "samp.params") and C{extra} is a 
+    where `private_key` is the client private-key, `sender_id` argument is 
+    the notification sender ID, `mtype` is the message MType, `params` is 
+    the notified message parameter set (content of "samp.params") and `extra` is a 
     dictionary containing any extra message map entry. The client is
     automatically declared subscribed to the MType by default.
 
-    @param mtype: the MType to be catched.
-    @type mtype: str
+    Parameters
+    ----------
+    mtype : str
+        MType to be catched.
 
-    @param function: the application function to be used when C{mtype} is received.
-    @type function: function or class method
+    function : callable
+        Application function to be used when `mtype` is received.
 
-    @param declare: specify whether the client must be automatically declared as
-    subscribed to the MType (see alse L{declareSubscriptions}).
-    @type declare: boolean
+    declare : bool
+        Specify whether the client must be automatically declared as
+        subscribed to the MType (see alse `declareSubscriptions`).
 
-    @param metadata: an optional map containing additional metadata to declare associated
-    with the MType subscribed to (see also L{declareSubscriptions}).
-    @type metadata: dict
+    metadata : dict (optional)
+        Dictionary containing additional metadata to declare associated
+        with the MType subscribed to (see also `declareSubscriptions`).
     """
     if self._callable:
       if not metadata:
@@ -1433,31 +1442,33 @@ class SAMPClient(object):
       raise SAMPClientError("Client not callable.")
 
   def bindReceiveCall(self, mtype, function, declare = True, metadata = None):
-    """
-    Bind a specific MType call to a function or class method.
+    """Bind a specific MType call to a function or class method.
+
     The function must be of the form:
 
-    C{def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)}
+    `def my_function_or_method(<self,> private_key, sender_id, msg_id, mtype, params, extra)`
 
-    where C{private_key} is the client private-key, C{sender_id} argument is the
-    notification sender ID, C{msg_id} is the Hub message-id, C{mtype} is the message MType, 
-    C{params} is the message parameter set (content of "samp.params") and C{extra} is a 
+    where `private_key` is the client private-key, `sender_id` argument is the
+    notification sender ID, `msg_id` is the Hub message-id, `mtype` is the message MType, 
+    `params` is the message parameter set (content of "samp.params") and `extra` is a 
     dictionary containing any extra message map entry. The client is
     automatically declared subscribed to the MType by default.
 
-    @param mtype: the MType to be catched.
-    @type mtype: str
+    Parameters
+    ----------
+    mtype : str
+        MType to be catched.
 
-    @param function: the application function to be used when C{mtype} is received.
-    @type function: function or class method
+    function : callable
+        Application function to be used when C{mtype} is received.
 
-    @param declare: specify whether the client must be automatically declared as
-    subscribed to the MType (see also L{declareSubscriptions}).
-    @type declare: boolean
+    declare : bool
+        Specify whether the client must be automatically declared as
+        subscribed to the MType (see also `declareSubscriptions`).
 
-    @param metadata: an optional map containing additional metadata to declare associated
-    with the MType subscribed to (see also L{declareSubscriptions}).
-    @type metadata: dict
+    metadata : dict (optional)
+        Dictionary containing additional metadata to declare associated
+        with the MType subscribed to (see also `declareSubscriptions`).
     """
     if self._callable:
       if not metadata:
@@ -1468,21 +1479,23 @@ class SAMPClient(object):
       raise SAMPClientError("Client not callable.")
 
   def bindReceiveResponse(self, msg_tag, function):
-    """
-    Bind a specific msg-tag response to a function or class method.
+    """Bind a specific msg-tag response to a function or class method.
+
     The function must be of the form:
 
-    C{def my_function_or_method(<self,> private_key, responder_id, msg_tag, response)}
+    `def my_function_or_method(<self,> private_key, responder_id, msg_tag, response)`
 
-    where C{private_key} is the client private-key, C{responder_id} argument is the message
-    responder ID, C{msg_tag} is the message-tag provided at call time and C{response} is the
+    where `private_key` is the client private-key, `responder_id` argument is the message
+    responder ID, `msg_tag` is the message-tag provided at call time and `response` is the
     response received.
 
-    @param msg_tag: the message-tag to be catched.
-    @type msg_tag: str
+    Parameters
+    ----------
+    msg_tag : str
+        Message-tag to be catched.
 
-    @param function: the application function to be used when C{msg_tag} is received.
-    @type function: function or class method
+    function : callable
+        Application function to be used when `msg_tag` is received.
     """
     if self._callable:
       self._response_bindings[msg_tag] = function
@@ -1490,17 +1503,17 @@ class SAMPClient(object):
       raise SAMPClientError("Client not callable.")
 
   def unbindReceiveNotification(self, mtype, declare = True):
-    """
-    Remove from the notifications binding table the specified MType and unsubscribe
+    """Remove from the notifications binding table the specified MType and unsubscribe
     the client from it (if required).
 
-    @param mtype: the MType to be removed
-    @type mtype: str
+    Parameters
+    ----------
+    mtype : str
+        MType to be removed.
 
-    @param declare: specify whether the client must be automatically declared as
-    unsubscribed from the MType (see alse L{declareSubscriptions}).
-    @type declare: boolean
-
+    declare : bool
+        Specify whether the client must be automatically declared as
+        unsubscribed from the MType (see alse `declareSubscriptions`).
     """
     if self._callable:
       del self._notification_bindings[mtype]
@@ -1509,16 +1522,17 @@ class SAMPClient(object):
       raise SAMPClientError("Client not callable.")
 
   def unbindReceiveCall(self, mtype, declare = True):
-    """
-    Remove from the calls binding table the specified MType and unsubscribe
+    """Remove from the calls binding table the specified MType and unsubscribe
     the client from it (if required).
 
-    @param mtype: the MType to be removed
-    @type mtype: str
+    Parameters
+    ----------
+    mtype : str
+        MType to be removed.
 
-    @param declare: specify whether the client must be automatically declared as
-    unsubscribed from the MType (see alse L{declareSubscriptions}).
-    @type declare: boolean
+    declare : bool
+        Specify whether the client must be automatically declared as
+        unsubscribed from the MType (see alse `declareSubscriptions`).
     """
     if self._callable:
       del self._call_bindings[mtype]
@@ -1527,11 +1541,12 @@ class SAMPClient(object):
       raise SAMPClientError("Client not callable.")
 
   def unbindReceiveResponse(self, msg_tag):
-    """
-    Remove from the responses binding table the specified message-tag.
+    """Remove from the responses binding table the specified message-tag.
 
-    @param msg_tag: the message-tag to be removed
-    @type msg_tag: str
+    Parameters
+    ----------
+    msg_tag : str
+        Message-tag to be removed.
     """
     if self._callable:
       del self._response_bindings[msg_tag]
@@ -1539,16 +1554,18 @@ class SAMPClient(object):
       raise SAMPClientError("Client not callable.")
 
   def declareSubscriptions(self, subscriptions = None):
-    """
-    Declares the MTypes the client wishes to subscribe to, implicitly defined
-    with the MType binding methods L{bindReceiveNotification} and L{bindReceiveCall}.
-    An optional C{subscriptions} map can be added to the final map passed to 
-    the L{SAMPHubProxy.declareSubscriptions} operation.
+    """Declares the MTypes the client wishes to subscribe to, implicitly defined
+    with the MType binding methods `bindReceiveNotification` and `bindReceiveCall`.
 
-    @param subscriptions: an optional map containing the list of MTypes to subscribe to,
-    with the same format of the C{subscriptions} map passed to the
-    L{SAMPHubProxy.declareSubscriptions} operation.
-    @type subscriptions: dict
+    An optional `subscriptions` map can be added to the final map passed to 
+    the `SAMPHubProxy.declareSubscriptions` operation.
+
+    Parameters
+    ----------
+    subscriptions : dict (optional)
+        Dictionary containing the list of MTypes to subscribe to,
+        with the same format of the C{subscriptions} map passed to the
+        `SAMPHubProxy.declareSubscriptions` operation.
     """
     if self._callable:
       self._declareSubscriptions(subscriptions)
@@ -1556,9 +1573,9 @@ class SAMPClient(object):
       raise SAMPClientError("Client not callable.")
 
   def register(self):
-    """
-    Register the client to the SAMP Hub. If the registration fails a L{SAMPClientError}
-    is reaised.
+    """Register the client to the SAMP Hub.
+    
+    If the registration fails a `SAMPClientError` is raised.
     """
     if self.hub.isConnected():
 
@@ -1586,9 +1603,9 @@ class SAMPClient(object):
       raise SAMPClientError("Unable to register to the SAMP Hub. Hub proxy not connected.")
 
   def unregister(self):
-    """
-    Unregister the client from the SAMP Hub. If the unregistration fails a L{SAMPClientError}
-    is reaised.
+    """Unregister the client from the SAMP Hub.
+    
+    If the unregistration fails a `SAMPClientError` is raised.
     """
     if self.hub.isConnected():
 
@@ -1637,13 +1654,14 @@ class SAMPClient(object):
       raise SAMPClientError("Unable to declare subscriptions. Hub unreachable or not connected or client not registered.")
 
   def declareMetadata(self, metadata = None):
-    """
-    Declare the client application metadata supported.
+    """Declare the client application metadata supported.
 
-    @param metadata: (optional) dictionary containig the client application metadata
-    as defined in the SAMP definition document. If omitted, then none metadata are
-    declared.
-    @type metadata: dict
+    Parameters
+    ----------
+    metadata : dict (optional)
+        Dictionary containig the client application metadata
+        as defined in the SAMP definition document. If omitted, then none metadata are
+        declared.
     """
     if self.hub.isConnected() and self._private_key != None:
 
@@ -1658,21 +1676,22 @@ class SAMPClient(object):
       raise SAMPClientError("Unable to declare metadata. Hub unreachable or not connected or client not registered.")
 
   def getPrivateKey(self):
-    """
-    Return the client private key used for the Standard Profile communications 
-    obtained at registration time (C{samp.private-key}).
+    """Return the client private key used for the Standard Profile communications 
+    obtained at registration time (`samp.private-key`).
 
-    @return: the client private key
-    @rtype: string
+    Returns
+    -------
+    key : str
+        Client private key.
     """
     return self._private_key
 
   def getPublicId(self):
-    """
-    Return public client ID obtained at registration time (C{samp.self-id}).
+    """Return public client ID obtained at registration time (`samp.self-id`).
 
-    @return: the client public ID
-    @rtype: string
+    Returns
+    -------
+    id : str
+        Client public ID.
     """
     return self._public_id
-

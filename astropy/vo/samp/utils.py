@@ -106,7 +106,7 @@ class _ServerProxyPoolMethod:
 
 
 class ServerProxyPool(object):
-  """This class provide a thread safe pool of xmlrpc.ServerProxy"""
+  """A thread-safe pool of `xmlrpc.ServerProxy` objects."""
 
   def __init__(self, size, proxy_class, *args, **keywords):
 
@@ -122,7 +122,8 @@ class ServerProxyPool(object):
 if HAS_TKINTER:
   class WebProfilePopupDialogue(tk.Tk):
     """Pop-up dialog (Tkinter backend) which asks the user to consent
-    or reject a connection through the WebProfile"""
+    or reject a connection through the WebProfile.
+    """
 
     def __init__(self, queue, screenName=None, baseName=None, className='Tk',
                  useTk=1, sync=0, use=None):
@@ -186,7 +187,8 @@ else:
 
   class WebProfilePopupDialogue(object):
     """Terminal dialog (no backend) which asks the user to consent
-    or reject a connection through the WebProfile"""
+    or reject a connection through the WebProfile
+    """
     
 
     def __init__(self, queue):
@@ -249,15 +251,16 @@ class SAMPMsgReplierWrapper(object):
   """Decorator class/function that allows to automatically grab
   errors and returned maps (if any) from a function bound
   to a SAMP call (or notify).
-  """
+  
 
-  def __init__(self, cli):
-    """Decorator initialization, accepting the instance of the
-    client that receives the call or notification.
-
-    @param cli: a SAMP client instance.
-    @type cli: L{SAMPIntegratedClient} or L{SAMPClient}
+    Parameters
+    ----------
+    cli : `SAMPIntegratedClient` or `SAMPClient`
+        SAMP client instance.
+        Decorator initialization, accepting the instance of the
+        client that receives the call or notification.
     """
+  def __init__(self, cli):
     self.cli = cli
 
   def __call__(self, f):
@@ -300,9 +303,9 @@ class SAMPMsgReplierWrapper(object):
 
 
 class SAMPLog(object):
-  """
-  SAMP Hub logging class. It provides methods for gracefully print SAMPy
-  logging messages.
+  """SAMP Hub logging class.
+  
+  Provides methods for gracefully print SAMPy logging messages.
   """
 
   #: Disable logging at all
@@ -464,7 +467,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
       """Handles the HTTP POST request.
 
       Attempts to interpret all HTTP POST requests as XML-RPC calls,
-      which are forwarded to the server's _dispatch method for handling.
+      which are forwarded to the server's `_dispatch` method for handling.
       """
 
       # Check that the path is legal
@@ -568,7 +571,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
       """Handles the HTTP POST request.
 
       Attempts to interpret all HTTP POST requests as XML-RPC calls,
-      which are forwarded to the server's _dispatch method for handling.
+      which are forwarded to the server's `_dispatch` method for handling.
       """
 
       # Check that the path is legal
@@ -659,7 +662,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
       """Handles the HTTP POST request.
 
       Attempts to interpret all HTTP POST requests as XML-RPC calls,
-      which are forwarded to the server's _dispatch method for handling.
+      which are forwarded to the server's `_dispatch` method for handling.
       """
 
       # Check that the path is legal
@@ -1046,26 +1049,25 @@ if SSL_SUPPORT:
 if BDB_SUPPORT:
 
   class BasicAuthSimpleXMLRPCRequestHandler(SAMPSimpleXMLRPCRequestHandler):
-    """XML-RPC Request Handler for Basic Authentication support. (internal use only)"""
+    """XML-RPC Request Handler for Basic Authentication support. (internal use only)
+    
+    Paramters
+    ---------
+    auth_file : str
+        Authentication file path. It is a Berkeley DB file in Hash
+        format containing a set of key=value pairs of the form:
+        `<user name>=md5(<password>)<group 1>,<group 2>,<group 3>,...`.
+    
+    access_restrict : dict
+        Dictionary containing the restriction rules for authentication.
+        If the access must be restricted to a specific user then `access_restrict` is a dictionary
+        containing `{"user"; <user name>}`. If the access must be restricted to the 
+        users belonging to a certain group, the `access_restrict` is a dictionary containing
+        `{"group"; <group name>}`. An additional key can be present: `"admin": <administrator user>`.
+        It defines the name of the administrator user with full access permission.
+    """
 
     def __init__(self, request, client_address, server, auth_file, access_restrict = None):
-      """
-      Constructor.
-
-      @param auth_file: Authentication file path. It is a Berkeley DB file in Hash
-      format containing	a set of key=value pairs of the form:
-      C{<user name>=md5(<password>)<group 1>,<group 2>,<group 3>,...}.
-      @type auth_file: string
-
-      @param access_restrict: Dictionary containing the restriction rules for authentication.
-      If the access must be restricted to a specific user then C{access_restrict} is a dictionary
-      containing C{{"user"; <user name>}}. If the access must be restricted to the 
-      users belonging to a certain group, the C{access_restrict} is a dictionary containing
-      C{{"group"; <group name>}}. An additional key can be present: C{"admin": <administrator user>}.
-      It defines the name of the administrator user with full access permission.
-      @type access_restrict: dictionary
-      """
-
       self.db = bsddb.hashopen(auth_file, "r")
       self.access_restrict = access_restrict
       SimpleXMLRPCRequestHandler.__init__(self, request, client_address, server)
@@ -1139,27 +1141,27 @@ if BDB_SUPPORT:
 
 
   class BasicAuthXMLRPCServer(ThreadingXMLRPCServer):
-    """XML-RPC server with Basic Authentication support. (internal use only)"""
+    """XML-RPC server with Basic Authentication support. (internal use only).
+
+    Parameters
+    ----------
+    auth_file : str
+        Authentication file path. It is a Berkeley DB file in Hash
+        format containing a set of key=value pairs of the form:
+        `<user name>=md5(<password>)<group 1>,<group 2>,<group 3>,...`.
+    
+    access_restrict : dict
+        Dictionary containing the restriction rules for authentication.
+        If the access must be restricted to a specific user then access_restrict is a dictionary
+        containing `{"user"; <user name>}`. If the access must be restricted to the 
+        users belonging to a certain group, the access_restrict is a dictionary containing
+        `{"group"; <group name>}`. An additional key can be present: `"admin": <administrator user>`.
+        It defines the name of the administrator user with full access permission.
+    """
 
     def __init__(self, addr, auth_file, access_restrict = None, log = None,
                  requestHandler = BasicAuthSimpleXMLRPCRequestHandler,
                  logRequests = True, allow_none = True, encoding = None):
-      """
-      Constructor.
-
-      @param auth_file: Authentication file path. It is a Berkeley DB file in Hash
-      format containing	a set of key=value pairs of the form:
-      C{<user name>=md5(<password>)<group 1>,<group 2>,<group 3>,...}.
-      @type auth_file: string
-
-      @param access_restrict: Dictionary containing the restriction rules for authentication.
-      If the access must be restricted to a specific user then access_restrict is a dictionary
-      containing C{{"user"; <user name>}}. If the access must be restricted to the 
-      users belonging to a certain group, the access_restrict is a dictionary containing
-      C{{"group"; <group name>}}. An additional key can be present: C{"admin": <administrator user>}.
-      It defines the name of the administrator user with full access permission.
-      @type access_restrict: dictionary
-      """
 
       self.auth_file = auth_file
       self.access_restrict = access_restrict
