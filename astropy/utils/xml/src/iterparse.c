@@ -1149,7 +1149,11 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
         return NULL;
     }
 
+    #ifdef IS_PY3K
+    input_coerce = PyObject_Str(input_obj);
+    #else
     input_coerce = PyObject_Unicode(input_obj);
+    #endif
     if (input_coerce) {
         uinput = PyUnicode_AsUnicode(input_coerce);
         if (uinput == NULL) {
