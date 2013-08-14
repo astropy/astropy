@@ -383,6 +383,11 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         for i, col in enumerate(self.cols):
             col.index = i
 
+        # Since the splitter returns only the actual requested columns, at this
+        # point set self.n_data_cols to be the number of requested columns.  This
+        # gets used later to validate the data as it gets read and split.
+        self.n_data_cols = len(self.cols)
+
     def str_vals(self):
 
         if self.DBMS:
