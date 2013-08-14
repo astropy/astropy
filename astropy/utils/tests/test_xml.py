@@ -39,3 +39,17 @@ def test_check_mime_content_type():
 
 def test_check_anyuri():
     assert check.check_anyuri("https://github.com/astropy/astropy")
+
+
+def test_escape_xml():
+    s = writer.xml_escape('This & That')
+    assert type(s) == unicode
+    assert s == u'This &amp; That'
+
+    s = writer.xml_escape(u'This & That')
+    assert type(s) == unicode
+    assert s == u'This &amp; That'
+
+    s = writer.xml_escape(1)
+    assert type(s) == unicode
+    assert s == u'1'
