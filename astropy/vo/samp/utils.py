@@ -9,6 +9,9 @@ import platform
 import socket
 import sys
 import traceback
+from astropy.extern.six.moves import queue
+from astropy.extern.six.moves import socketserver
+from astropy.extern.six import StringIO
 
 try:
   import bsddb
@@ -23,69 +26,50 @@ except ImportError:
   SSL_SUPPORT = False
 else:
   SSL_SUPPORT = True
-  
+
+try:
+    from astropy.extern.six.moves import tkinter as tk
+    HAS_TKINTER = True
+except:
+    HAS_TKINTER = False
+
 
 PYTHON_VERSION = float(platform.python_version()[:3])
 
 if PYTHON_VERSION >= 3.0:
-
-  import io
-  import queue  
-  import http.client
-  import urllib.parse as urlparse
-  import urllib.error
-  import urllib.request
-  import xmlrpc.client as xmlrpc
-
-
-  try:
-    import tkinter as tk
-    HAS_TKINTER = True
-  except:
-    HAS_TKINTER = False
-
-  try:
-    from urllib.parse import parse_qs
-  except ImportError:
-    from cgi import parse_qs
-
-
-  from urllib.error import URLError
-  from urllib.request import urlopen
-  from http.client import HTTPConnection, HTTPS_PORT
-
-  #from http.server import *
-  from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
-  from socketserver import ThreadingMixIn, BaseServer
-
-
+    import http.client
+    from http.client import HTTPConnection, HTTPS_PORT
+    # from http.server import *
 else:
+    import httplib
+    from httplib import HTTPConnection, HTTPS_PORT, HTTP
+    # from SimpleHTTPServer import *
 
-  import httplib
-  import urllib2
-  import urlparse
-  import xmlrpclib as xmlrpc
-  import Queue as queue
-  import StringIO as io
+if PYTHON_VERSION >= 3.0:
+    import urllib.parse as urlparse
+    import urllib.error
+    import urllib.request
+    try:
+        from urllib.parse import parse_qs
+    except ImportError:
+        from cgi import parse_qs
+    from urllib.error import URLError
+    from urllib.request import urlopen
+else:
+    import urllib2
+    import urlparse
+    try:
+        from urlparse import parse_qs
+    except ImportError:
+        from cgi import parse_qs
+    from urllib2 import urlopen, URLError
 
-  try:
-    import Tkinter as tk
-    HAS_TKINTER = True
-  except:
-    HAS_TKINTER = False
-
-  try:
-    from urlparse import parse_qs
-  except ImportError:
-    from cgi import parse_qs
-
-
-  from urllib2 import urlopen, URLError
-  from httplib import HTTPConnection, HTTPS_PORT, HTTP
-
-  #from SimpleHTTPServer import *
-  from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
-  from SocketServer import ThreadingMixIn, BaseServer
+if PYTHON_VERSION >= 3.0:
+    import xmlrpc.client as xmlrpc
+    from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
+else:
+    import xmlrpclib as xmlrpc
+    from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
 from .constants import SAMP_STATUS_ERROR, SAMPY_ICON
 
@@ -305,7 +289,7 @@ class SAMPMsgReplierWrapper(object):
                                {"samp.status": SAMP_STATUS_ERROR,
                                 "samp.result": result})
         except:
-          err = io.StringIO()
+          err = StringIO()
           traceback.print_exc(file=err)
           txt = err.getvalue()
           self.cli.hub.reply(self.cli.getPrivateKey(), args[2],
@@ -754,7 +738,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
         self.connection.shutdown(1)
 
 
-class ThreadingXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer):
+class ThreadingXMLRPCServer(socketserver.ThreadingMixIn, SimpleXMLRPCServer):
   """Asynchronous multithreaded XMLRPC server (internal use only)"""
 
   def __init__(self, addr, log = None, requestHandler = SAMPSimpleXMLRPCRequestHandler,
@@ -765,7 +749,7 @@ class ThreadingXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer):
 
   def handle_error(self, request, client_address):
     if self.log == None:
-      BaseServer.handle_error(self, request, client_address)
+      socketserver.BaseServer.handle_error(self, request, client_address)
     else:
       self.log.warning("Exception happened during processing of request from %s: %s" % (client_address, sys.exc_info()[1]))
 
