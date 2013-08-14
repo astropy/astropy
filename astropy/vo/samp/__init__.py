@@ -7,5 +7,4 @@ Before integration into `astropy` it was known as `SAMPy <https://pypi.python.or
 
 Autor: Luigi Paioro (INAF - Istituto Nazionale di Astrofisica)
 """
-
-from .core import *
+from .utils import *
