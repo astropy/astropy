@@ -573,8 +573,8 @@ class SAMPIntegratedClient(object):
     >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
-    >>> cli.enotify("samp.msg.progress", msgid = "xyz", txt = "initialization", \\
-    >>>             percent = "10", extra_kws = {"my.extra.info": "just an example"})
+    >>> cli.enotify("samp.msg.progress", msgid = "xyz", txt = "initialization",
+    ...             percent = "10", extra_kws = {"my.extra.info": "just an example"})
 
     Note that reserved C{extra_kws} keyword is a dictionary with the special meaning of 
     being used to add extra keywords, in addition to the standard C{samp.mtype}
@@ -607,8 +607,8 @@ class SAMPIntegratedClient(object):
     >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
-    >>> cli.enotifyAll("samp.msg.progress", txt = "initialization", \\
-    >>>                percent = "10", extra_kws = {"my.extra.info": "just an example"})
+    >>> cli.enotifyAll("samp.msg.progress", txt = "initialization",
+    ...                percent = "10", extra_kws = {"my.extra.info": "just an example"})
 
     Note that reserved C{extra_kws} keyword is a dictionary with the special meaning of 
     being used to add extra keywords, in addition to the standard C{samp.mtype}
@@ -639,8 +639,8 @@ class SAMPIntegratedClient(object):
     >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
-    >>> msgid = cli.ecall("abc", "xyz", "samp.msg.progress", txt = "initialization", \\
-    >>>                   percent = "10", extra_kws = {"my.extra.info": "just an example"})
+    >>> msgid = cli.ecall("abc", "xyz", "samp.msg.progress", txt = "initialization",
+    ...                   percent = "10", extra_kws = {"my.extra.info": "just an example"})
 
     Note that reserved C{extra_kws} keyword is a dictionary with the special meaning of 
     being used to add extra keywords, in addition to the standard C{samp.mtype}
@@ -677,8 +677,8 @@ class SAMPIntegratedClient(object):
     >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
-    >>> msgid = cli.ecallAll("xyz", "samp.msg.progress", txt = "initialization", \\
-    >>>                      percent = "10", extra_kws = {"my.extra.info": "just an example"})
+    >>> msgid = cli.ecallAll("xyz", "samp.msg.progress", txt = "initialization",
+    ...                      percent = "10", extra_kws = {"my.extra.info": "just an example"})
 
     Note that reserved C{extra_kws} keyword is a dictionary with the special meaning of 
     being used to add extra keywords, in addition to the standard C{samp.mtype}
@@ -712,8 +712,8 @@ class SAMPIntegratedClient(object):
     >>> import astropy.vo.samp as sampy
     >>> cli = sampy.SAMPIntegratedClient()
     >>> ...
-    >>> cli.ecallAndWait("xyz", "samp.msg.progress", "5", txt = "initialization", \\
-    >>>                  percent = "10", extra_kws = {"my.extra.info": "just an example"})
+    >>> cli.ecallAndWait("xyz", "samp.msg.progress", "5", txt = "initialization",
+    ...                  percent = "10", extra_kws = {"my.extra.info": "just an example"})
 
     Note that reserved C{extra_kws} keyword is a dictionary with the special meaning of 
     being used to add extra keywords, in addition to the standard C{samp.mtype}
