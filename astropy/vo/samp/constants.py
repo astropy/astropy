@@ -30,7 +30,7 @@ SAFE_MTYPES = ["samp.app.*", "samp.msg.progress", "table.*", "image.*",
                "coord.*", "spectrum.*", "bibcode.*", "voresource.*"]
 
 SAMPY_ICON = \
-b"""iVBORw0KGgoAAAANSUhEUgAAABgAAAAWCAYAAADafVyIAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI
+    b"""iVBORw0KGgoAAAANSUhEUgAAABgAAAAWCAYAAADafVyIAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI
 WXMAAA7DAAAOwwHHb6hkAAAAB3RJTUUH2AgFDTkeyUSsmwAAA5FJREFUSMellH9M1GUcx1/PXTfc
 MfGGguR1IQeGdZN98ThFSMGmJLIxpFwF0UgXMZXJYm3Qyrm2XLW5wtVGKx1ZOWTgmIgZ5mamaePX
 ibsRQQeJ0KEhxK9BePf01133xWOgvv/67nk+3/freT4/HiGlZLZGJkfl0csnaOqxMzo1TvjipZjD
