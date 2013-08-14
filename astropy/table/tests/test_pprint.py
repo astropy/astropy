@@ -70,6 +70,14 @@ class TestMultiD():
                          '   5 .. 60']
 
 
+def test_html_escaping():
+    t = table.Table([('<script>alert("gotcha");</script>', 2, 3)])
+    assert t._repr_html_() == (
+        '<table><tr><th>col0</th></tr><tr>'
+        '<td>&lt;script&gt;alert(&quot;gotcha&quot;);&lt;/script&gt;</td>'
+        '</tr><tr><td>2</td></tr><tr><td>3</td></tr></table>')
+
+
 @pytest.mark.usefixtures('table_type')
 class TestPprint():
 

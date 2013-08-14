@@ -9,26 +9,32 @@ import contextlib
 import textwrap
 
 
-def xml_escape_cdata(s):
-    """
-    Escapes &, < and > in an XML CDATA string.
-    """
-    s = s.replace(u"&", u"&amp;")
-    s = s.replace(u"<", u"&lt;")
-    s = s.replace(u">", u"&gt;")
-    return s
+try:
+    from . import _iterparser
+except ImportError:
+    def xml_escape_cdata(s):
+        """
+        Escapes &, < and > in an XML CDATA string.
+        """
+        s = s.replace(u"&", u"&amp;")
+        s = s.replace(u"<", u"&lt;")
+        s = s.replace(u">", u"&gt;")
+        return s
 
 
-def xml_escape(s):
-    """
-    Escapes &, ', ", < and > in an XML attribute value.
-    """
-    s = s.replace(u"&", u"&amp;")
-    s = s.replace(u"'", u"&apos;")
-    s = s.replace(u"\"", u"&quot;")
-    s = s.replace(u"<", u"&lt;")
-    s = s.replace(u">", u"&gt;")
-    return s
+    def xml_escape(s):
+        """
+        Escapes &, ', ", < and > in an XML attribute value.
+        """
+        s = s.replace(u"&", u"&amp;")
+        s = s.replace(u"'", u"&apos;")
+        s = s.replace(u"\"", u"&quot;")
+        s = s.replace(u"<", u"&lt;")
+        s = s.replace(u">", u"&gt;")
+        return s
+else:
+    xml_escape_cdata = _iterparser.escape_xml_cdata
+    xml_escape = _iterparser.escape_xml
 
 
 class XMLWriter:
@@ -65,13 +71,8 @@ class XMLWriter:
         self._data = []
         self._indentation = u" " * 64
 
-        try:
-            from . import _iterparser
-            self.xml_escape_cdata = _iterparser.escape_xml_cdata
-            self.xml_escape = _iterparser.escape_xml
-        except ImportError:
-            self.xml_escape_cdata = xml_escape_cdata
-            self.xml_escape = xml_escape
+        self.xml_escape_cdata = xml_escape_cdata
+        self.xml_escape = xml_escape
 
     def _flush(self, indent=True, wrap=False):
         """
