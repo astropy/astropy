@@ -12,7 +12,7 @@ from numpy import ma
 from ..units import Unit
 from .. import log
 from ..utils import OrderedDict, isiterable, deprecated, deprecated_attribute
-from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
+from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol, _jsviewer
 from ..utils.console import color_print
 from ..config import ConfigurationItem
 from ..io import registry as io_registry
@@ -1323,7 +1323,8 @@ class Table(object):
 
     def show_in_browser(self,
                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
-                        jsviewer=False):
+                        jsviewer=False,
+                        jskwargs={}):
         """
         Render the table in HTML and show it in a web browser.  In order to
         make a persistent html file, i.e. one that survives refresh, the
@@ -1337,6 +1338,8 @@ class Table(object):
             If True, prepends some javascript headers so that the table is
             rendered as a https://datatables.net data table.  This allows
             in-browser searching & sorting
+        jskwargs : dict
+            Passed to the `_jsviewer` generator function
 
         Returns
         -------
@@ -1348,23 +1351,10 @@ class Table(object):
 
         N = tempfile.NamedTemporaryFile(suffix='.html')
 
-        linelist = self.pformat(html=True,max_width=np.inf,max_lines=np.inf)
+        linelist = self.pformat(html=True, max_width=np.inf, max_lines=np.inf)
 
         if jsviewer:
-            js = ['<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>',
-                  '<script class="jsbin" src="http://datatables.net/download/build/jquery.dataTables.nightly.js"></script>',
-                  '''<script>
-                        $(document).ready(function() {
-                            $('#table').dataTable({
-                             "iDisplayLength": 50,
-                             "aLengthMenu": [[50, 100, 500, 1000, -1],
-                                             [50, 100, 500, 1000, "All"]]
-                            });
-                        } );
-                     </script>''']
-            for ii,L in enumerate(linelist):
-                if '<table' in L:
-                    linelist[ii] = L.replace('<table','<table id="table"')
+            js = _jsviewer(**jskwargs)
 
         css = ["<style>{0}</style>".format(css)]
         html = "\n".join(['<!DOCTYPE html>','<html>'] + css + js + linelist + ['</html>'])

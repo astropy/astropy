@@ -298,7 +298,7 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     if html:
         from ..utils.xml.writer import xml_escape
 
-        rows.append('<table>')
+        rows.append('<table id="table">')
         for i in range(n_rows):
             # _pformat_col output has a header line '----' which is not needed here
             if i == n_header - 1:
@@ -428,3 +428,32 @@ Browsing keys:
         if i0 >= len(tabcol) - delta_lines:
             i0 = len(tabcol) - delta_lines
         print "\n"
+
+
+def _jsviewer(display_length=50,
+              css_urls=("http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css",
+                        "http://jquery-datatables-editable.googlecode.com/svn/trunk/media/css/demo_page.css",
+                        "http://jquery-datatables-column-filter.googlecode.com/svn/trunk/media/css/demo_table.css")):
+
+    display_length_menu = [[50, 100, 500, 1000, -1],
+                           [50, 100, 500, 1000, "All"]]
+    for L in display_length_menu:
+        if display_length not in L:
+            L.insert(0,display_length)
+    js = (['<link rel="stylesheet" href="{css}" type="text/css">'.format(css=css) for css in css_urls] +
+          ['<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>',
+          '<script class="jsbin" src="http://datatables.net/download/build/jquery.dataTables.nightly.js"></script>',
+          '''<script>
+                $(document).ready(function() {{
+                    $('#table').dataTable({{
+                     "iDisplayLength": {display_length},
+                     "aLengthMenu": {display_length_menu},
+                     "bJQueryUI": true,
+                     "sPaginationType": "full_numbers"
+                    }});
+                }} );
+             </script>'''.format(display_length=display_length,
+                                 display_length_menu=display_length_menu)
+          ])
+
+    return js
