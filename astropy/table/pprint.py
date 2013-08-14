@@ -441,8 +441,8 @@ def _jsviewer(display_length=50,
                         "http://jquery-datatables-editable.googlecode.com/svn/trunk/media/css/demo_page.css",
                         "http://jquery-datatables-column-filter.googlecode.com/svn/trunk/media/css/demo_table.css")):
 
-    display_length_menu = [[50, 100, 500, 1000, -1],
-                           [50, 100, 500, 1000, "All"]]
+    display_length_menu = [[10, 25, 50, 100, 500, 1000, -1],
+                           [10, 25, 50, 100, 500, 1000, "All"]]
     for L in display_length_menu:
         if display_length not in L:
             L.insert(0,display_length)
