@@ -34,6 +34,21 @@ constraintsdef = {'NonLinearLSQFitter': ['fixed', 'tied', 'bounds'],
                   }
 
 
+def _convert_input(x, y, z=None):
+    x = np.asarray(x)
+    y = np.asarray(y)
+    if x.shape[0] != y.shape[0]:
+        raise ValueError("x and y should have the same shape")
+    if z is None:
+        farg = (x, y)
+    else:
+        z = np.asarray(z)
+        if x.shape != z.shape:
+            raise ValueError("x, y and z should have the same shape")
+        farg = (x, y, z)
+    return farg
+
+
 class ModelsError(Exception):
 
     """
@@ -74,6 +89,8 @@ class Fitter(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, model):
+        if not model.fittable:
+            raise ValueError("Model must be a subclass of ParametricModel")
         self._model = model
         self.bounds = []
         self.fixed = []
@@ -92,9 +109,9 @@ class Fitter(object):
         b = []
         for i, j in zip(min_values, max_values):
             if i is None:
-                i = -10**12
+                i = -10 ** 12
             if j is None:
-                j = 10**12
+                j = 10 ** 12
             b.append((i, j))
         self.bounds = b[:]
 
@@ -366,15 +383,13 @@ class LinearLSQFitter(Fitter):
         """
         super(LinearLSQFitter, self)._update_constraints()
         multiple = False
-        x = np.asarray(x, dtype=np.float)
-        y = np.asarray(y, dtype=np.float)
 
         if self.model.n_inputs == 2 and z is None:
             raise ValueError("Expected x, y and z for a 2 dimensional model.")
+        farg = _convert_input(x, y, z)
 
-        if z is None:
-            if x.shape[0] != y.shape[0]:
-                raise ValueError("Expected measured and model data to have the same size")
+        if len(farg) == 2:
+            x, y = farg
             if y.ndim == 2:
                 assert y.shape[1] == self.model._parameters.param_dim, (
                     "Number of data sets (Y array is expected to equal "
@@ -382,7 +397,6 @@ class LinearLSQFitter(Fitter):
             # map domain into window
             if hasattr(self.model, 'domain'):
                 x = self._map_domain_window(x)
-
             if any(self.model.fixed.values()):
                 lhs = self._deriv_with_constraints(x=x)
             else:
@@ -393,8 +407,7 @@ class LinearLSQFitter(Fitter):
             else:
                 rhs = y
         else:
-            if x.shape != y.shape:
-                raise ValueError("Expected x and y to have the same shape")
+            x, y, z = farg
             if x.shape[-1] != z.shape[-1]:
                 raise ValueError("x and z should have equal last dimensions")
 
@@ -414,7 +427,7 @@ class LinearLSQFitter(Fitter):
 
         if weights is not None:
             weights = np.asarray(weights, dtype=np.float)
-            if len(x) != len(y):
+            if len(x) != len(weights):
                 raise ValueError("x and weights should have the same length")
             if rhs.ndim == 2:
                 lhs *= weights[:, np.newaxis]
@@ -547,25 +560,12 @@ class NonLinearLSQFitter(Fitter):
         """
         from scipy import optimize
         self._update_constraints()
-        x = np.asarray(x, dtype=np.float)
+        farg = _convert_input(x, y, z)
         self.weights = weights
         if self.model._parameters.param_dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit one "
                              "data set at a time")
-
-        if z is None:
-            if x.shape[0] != y.shape[0]:
-                raise ValueError("x and y should have the same shape")
-            meas = np.asarray(y, dtype=np.float)
-            farg = (x, meas)
-        else:
-            if x.shape != z.shape:
-                raise ValueError("x, y and z should have the same shape")
-            y = np.asarray(y, np.float)
-            meas = np.asarray(z, dtype=np.float)
-            farg = (x, y, meas)
-
         if self._model.deriv is None or estimate_jacobian:
             self.dfunc = None
         else:
@@ -675,26 +675,15 @@ class SLSQPFitter(Fitter):
         from scipy import optimize
         # update constraints to pick up changes to parameters
         self._update_constraints()
-        x = np.asarray(x, dtype=np.float)
+        farg = _convert_input(x, y, z)
         self.weights = weights
         if self.model._parameters.param_dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit "
                              "one data set at a time")
-        if z is None:
-            if x.shape[0] != y.shape[0]:
-                raise ValueError("x and y should have the same shape")
-            meas = np.asarray(y, dtype=np.float)
-            fargs = (x, meas)
-        else:
-            if x.shape != z.shape:
-                raise ValueError("x, y and z should have the same shape")
-            y = np.asarray(y, dtype=np.float)
-            meas = np.asarray(z, dtype=np.float)
-            fargs = (x, y, meas)
         p0 = self.model._parameters[:]
         self.fitpars, final_func_val, numiter, exit_mode, mess = optimize.fmin_slsqp(
-            self.errorfunc, p0, args=fargs, disp=verblevel, full_output=1,
+            self.errorfunc, p0, args=farg, disp=verblevel, full_output=1,
             bounds=self.bounds, eqcons=self.model.eqcons,
             ieqcons=self.model.ineqcons, iter=maxiter, acc=1.E-6,
             epsilon=EPS)
