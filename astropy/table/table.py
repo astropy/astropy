@@ -1440,8 +1440,9 @@ class Table(object):
                      show_unit)
 
     def _repr_html_(self):
+        js = _jsviewer()
         lines = self.pformat(html=True)
-        return ''.join(lines)
+        return ''.join(js+lines)
 
     def __getitem__(self, item):
         if isinstance(item, basestring):
