@@ -1369,7 +1369,7 @@ class Table(object):
         return N
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-                show_unit=False, html=False):
+                show_unit=False, html=False, tableid=0):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -1399,13 +1399,18 @@ class Table(object):
         html : bool
             Format the output as an HTML table (default=False)
 
+        tableid : int or None
+            An ID number for the table, such that the html tag will be
+            id="table{id}" (optional)
+
         Returns
         -------
         lines : list
             Formatted table as a list of strings
         """
         lines, n_header = _pformat_table(self, max_lines, max_width,
-                                         show_name, show_unit, html)
+                                         show_name, show_unit, html,
+                                         tableid=tableid)
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
@@ -1444,7 +1449,7 @@ class Table(object):
     def _repr_html_(self):
         self._id = id(self)
         js = _jsviewer(ipynb=True, tableid=self._id)
-        lines = self.pformat(html=True)
+        lines = self.pformat(html=True, tableid=self._id)
         return ''.join(js+lines)
 
     def __getitem__(self, item):

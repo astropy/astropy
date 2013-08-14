@@ -236,7 +236,7 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
 
 
 def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
-                   show_unit=False, html=False):
+                   show_unit=False, html=False, tableid=0):
     """Return a list of lines for the formatted string representation of
     the table.
 
@@ -256,6 +256,10 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
 
     html : bool
         Format the output as an HTML table (default=False)
+
+    tableid : int or None
+        An ID number for the table, such that the html tag will be
+        id="table{id}" (optional)
 
     Returns
     -------
@@ -298,7 +302,7 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     if html:
         from ..utils.xml.writer import xml_escape
 
-        rows.append('<table id="table">')
+        rows.append('<table id="table{tid}">'.format(tid=tableid))
         for i in range(n_rows):
             # _pformat_col output has a header line '----' which is not needed here
             if i == n_header - 1:
@@ -450,27 +454,34 @@ def _jsviewer(display_length=50,
                         var kernel = IPython.notebook.kernel;
                         var button = $("#MakeTableBrowseable{tid}");
                         var tablename = button.parents()[4].getElementsByClassName("input_area")[0].innerText;
-                        var command = tablename + ".pformat(html=True, max_lines=1000, max_width=1000)";
-                        var result = kernel.execute(command, {{'output': callback}}, {{silent:true}});
+                        tablename = tablename.replace(/\s+/g, '');
+                        var command = "print ''.join(" + tablename + ".pformat(html=True, max_lines=1000, max_width=1000, tableid={tid}))";
+                        console.log(command)
+                        var result = kernel.execute(command, {{'output': callback}}, {{silent:false}});
+                        console.log(result);
                     }};
                     function callback(output_type, out) {{
+                        console.log(output_type);
+                        console.log(out);
                         var button = $("#MakeTableBrowseable{tid}");
                         button[0].parentNode.innerHTML = out.data;
+                        return out.data;
                     }};
-                    function make_table() {{
-                        $('#table').dataTable({{
-                         "iDisplayLength": {display_length},
-                         "aLengthMenu": {display_length_menu},
-                         "bJQueryUI": true,
-                         "sPaginationType": "full_numbers"
+                    function make_table_browseable() {{
+                        console.log("$('#table{tid}').dataTable()");
+                        $('#table{tid}').dataTable({{
+                             "iDisplayLength": {display_length},
+                             "aLengthMenu": {display_length_menu},
+                             "bJQueryUI": true,
+                             "sPaginationType": "full_numbers"
                         }});
                     }};
                     function replace_table() {{
                         html_repr_full();
-                        make_table();
+                        make_table_browseable();
                     }};
                  </script>
-               <button id='MakeTableBrowseable{tid}' onclick="replace_table()">Make Table Browseable</button>
+               <button id='MakeTableBrowseable{tid}' onclick="make_table_browseable()">Make Table Browseable</button>
                '''.format(display_length=display_length,
                           display_length_menu=display_length_menu,
                           tid=tableid)
