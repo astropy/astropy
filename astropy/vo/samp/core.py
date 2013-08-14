@@ -30,8 +30,6 @@ import uuid
 import socket
 import select
 import base64
-import random
-import getpass
 import hashlib
 import inspect
 import datetime
