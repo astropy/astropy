@@ -1325,7 +1325,23 @@ class Table(object):
                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
                         jsviewer=False):
         """
-        Render the table in HTML and show it in a web browser
+        Render the table in HTML and show it in a web browser.  In order to
+        make a persistent html file, i.e. one that survives refresh, the
+        returned file object must be kept in memory.
+        
+        Parameters
+        ----------
+        css : string
+            A valid CSS string declaring the formatting for the table
+        jsviewer : bool
+            If True, prepends some javascript headers so that the table is
+            rendered as a https://datatables.net data table.  This allows
+            in-browser searching & sorting
+
+        Returns
+        -------
+        A :py:`tempfile.NamedTemporaryFile` object pointing to the html file on
+        disk.
         """
         import webbrowser
         import tempfile
