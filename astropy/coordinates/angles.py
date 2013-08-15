@@ -375,6 +375,40 @@ class Angle(u.Quantity):
         format_ufunc = np.vectorize(do_format, otypes=[np.object])
         return format_ufunc(values)
 
+    def wrap_at(self, wrap_angle):
+        """
+        Return a new Angle object with current angle(s) wrapped at the given ``wrap_angle``.
+
+        This method forces all the angle values to be within a contiguous 360 degree
+        range so that ``wrap_angle - 360d <= angle < wrap_angle``.  For instance::
+
+          >>> from astropy.coordinates import Angle
+          >>> import astropy.units as u
+          >>> a = Angle([-20, 150, 350] * u.deg)
+
+          >>> a.wrap_at(360 * u.deg)  # Wrap into range 0 to 360 degrees
+          <Angle [u'340d00m00.00000s' u'150d00m00.00000s' u'350d00m00.00000s']>
+
+          >>> a.wrap_at('180d')  # Wrap into range -180 to 180 degrees
+          <Angle [u'-20d00m00.00000s' u'150d00m00.00000s' u'-10d00m00.00000s']>
+
+        Parameters
+        ----------
+        wrap_angle : string, Angle, angular Quantity
+            Specifies a single value for the wrap angle.  This can be any
+            object that can initialize an Angle object, e.g. '180d', 180 * u.deg,
+            or Angle(180, unit=u.deg).
+
+        Returns
+        -------
+        wrapped : Angle
+            New Angle object with angles wrapped accordingly
+        """
+        wrap_angle = Angle(wrap_angle)  # Convert to an Angle
+        wrapped = np.mod(self - wrap_angle, 360.0 * u.deg) - (360.0 * u.deg - wrap_angle)
+
+        return Angle(wrapped, unit=u.degree)
+
     @deprecated("0.3", name="format", alternative="to_string")
     def format(self, unit=u.degree, decimal=False, sep='fromunit', precision=5,
                alwayssign=False, pad=False):

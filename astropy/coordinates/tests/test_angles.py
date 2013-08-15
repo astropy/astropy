@@ -2,6 +2,7 @@
 
 # Test initalization of angles not already covered by the API tests
 
+import numpy as np
 from ..angles import Angle, RA, Dec, BoundsError
 from ...tests.helper import pytest
 from ...tests.compat import assert_allclose
@@ -105,3 +106,17 @@ def test_angle_repr():
 
     a = Angle(0, u.deg)
     repr(a)
+
+
+def test_wrap_at():
+    a = Angle([-20, 150, 350, 360] * u.deg)
+    assert np.all(a.wrap_at(360 * u.deg).degree == np.array([340., 150., 350., 0.]))
+    assert np.all(a.wrap_at(Angle(360, unit=u.deg)).degree == np.array([340., 150., 350., 0.]))
+    assert np.all(a.wrap_at('360d').degree == np.array([340., 150., 350., 0.]))
+    assert np.all(a.wrap_at('180d').degree == np.array([-20., 150., -10., 0.]))
+
+    a = Angle(np.arange(-1000.0, 1000.0, 0.125), unit=u.deg)
+    for wrap_angle in (270, 0.2, 0.0, 360.0, 500, -2000.125):
+        aw = a.wrap_at(wrap_angle * u.deg)
+        assert np.all(aw.degree >= wrap_angle - 360.0)
+        assert np.all(aw.degree < wrap_angle)
