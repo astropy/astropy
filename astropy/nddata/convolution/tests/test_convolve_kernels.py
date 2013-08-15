@@ -16,9 +16,6 @@ kerneltype = ['gaussian', 'tophat', 'boxcar']
 
 
 class Test2DConvolutions(object):
-    """
-    NOTE: in current version, convolve_fft comes before convolve always because convolve changes kernel
-    """
 
     @pytest.mark.parametrize(('shape', 'width', 'kerneltype'), list(itertools.product(shapes, widths, kerneltype)))
     def test_centered_makekernel(self, shape, width, kerneltype):
