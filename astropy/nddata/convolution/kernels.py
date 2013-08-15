@@ -707,6 +707,8 @@ class AiryDisk2DKernel(Kernel2D):
         self._default_size = 4 * width
         self._model = AiryDisk2DModel(1, 0, 0, width)
         super(AiryDisk2DKernel, self).__init__(**kwargs)
+        self.normalize()
+        self._truncation = None
 
 
 class Model1DKernel(Kernel1D):
