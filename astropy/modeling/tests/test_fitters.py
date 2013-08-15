@@ -91,7 +91,8 @@ class TestJointFitter(object):
         self.g1 = models.Gaussian1DModel(10, mean=14.9, stddev=.3)
         self.g2 = models.Gaussian1DModel(10, mean=13, stddev=.4)
         self.jf = fitting.JointFitter([self.g1, self.g2],
-                                      {self.g1: ['amplitude'], self.g2: ['amplitude']}, [9.8])
+                                      {self.g1: ['amplitude'],
+                                       self.g2: ['amplitude']}, [9.8])
         self.x = np.arange(10, 20, .1)
         y1 = self.g1(self.x)
         y2 = self.g2(self.x)
@@ -190,8 +191,9 @@ class TestNonLinearFitters(object):
         fslsqp = fitting.SLSQPFitter(g1_slsqp)
         fslsqp(self.xdata, self.ydata)
         fitter(self.xdata, self.ydata)
-        # There's a bug in the SLSQP algorithm and sometimes it gives the negative
-        # value of the result. unitl this is understood, for this test, take np.abs()
+        # There's a bug in the SLSQP algorithm and sometimes it gives the
+        # negative value of the result. unitl this is understood, for this
+        # test, take np.abs()
         utils.assert_allclose(g1.parameters, np.abs(g1_slsqp.parameters),
                               rtol=10 ** (-4))
 
@@ -204,7 +206,8 @@ class TestNonLinearFitters(object):
         fslsqp = fitting.SLSQPFitter(g1_slsqp)
         fslsqp(self.xdata, self.ydata)
         fitter(self.xdata, self.ydata)
-        # There's a bug in the SLSQP algorithm and sometimes it gives the negative
-        # value of the result. unitl this is understood, for this test, take np.abs()
+        # There's a bug in the SLSQP algorithm and sometimes it gives the
+        # negative value of the result. unitl this is understood, for this
+        # test, take np.abs()
         utils.assert_allclose(g1.parameters, np.abs(g1_slsqp.parameters),
                               rtol=10 ** (-4))

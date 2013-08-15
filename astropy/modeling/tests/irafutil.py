@@ -6,6 +6,7 @@ from __future__ import division
 from ...logger import log
 import numpy as np
 
+
 iraf_models_map = {1.: 'Chebyshev',
                    2.: 'Legendre',
                    3.: 'Spline3',
