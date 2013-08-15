@@ -407,7 +407,47 @@ class Angle(u.Quantity):
         wrap_angle = Angle(wrap_angle)  # Convert to an Angle
         wrapped = np.mod(self - wrap_angle, 360.0 * u.deg) - (360.0 * u.deg - wrap_angle)
 
-        return Angle(wrapped, unit=u.degree)
+        return wrapped
+
+    def within_bounds(self, lower=None, upper=None):
+        """
+        Check if all angle(s) satisfy ``lower <= angle < upper``
+
+        If ``lower`` is not specified (or ``None``) then no lower bounds check is
+        performed.  Likewise ``upper`` can be left unspecified.  For example::
+
+          >>> from astropy.coordinates import Angle
+          >>> import astropy.units as u
+          >>> a = Angle([-20, 150, 350] * u.deg)
+          >>> a.within_bounds('0d', '360d')
+          False
+          >>> a.within_bounds(None, '360d')
+          True
+          >>> a.within_bounds(-30 * u.deg, None)
+          True
+
+        Parameters
+        ----------
+        lower : string, Angle, angular Quantity, None
+            Specifies lower bound for checking.  This can be any object
+            that can initialize an Angle object, e.g. '180d', 180 * u.deg,
+            or Angle(180, unit=u.deg).
+        upper : string, Angle, angular Quantity, None
+            Specifies upper bound for checking.  This can be any object
+            that can initialize an Angle object, e.g. '180d', 180 * u.deg,
+            or Angle(180, unit=u.deg).
+
+        Returns
+        -------
+        within_bounds : bool
+            True if all angles satisfy ``lower <= angle < upper``
+        """
+        ok = True
+        if lower is not None:
+            ok &= np.all(Angle(lower) <= self)
+        if ok and upper is not None:
+            ok &= np.all(self < Angle(upper))
+        return bool(ok)
 
     @deprecated("0.3", name="format", alternative="to_string")
     def format(self, unit=u.degree, decimal=False, sep='fromunit', precision=5,

@@ -114,9 +114,26 @@ def test_wrap_at():
     assert np.all(a.wrap_at(Angle(360, unit=u.deg)).degree == np.array([340., 150., 350., 0.]))
     assert np.all(a.wrap_at('360d').degree == np.array([340., 150., 350., 0.]))
     assert np.all(a.wrap_at('180d').degree == np.array([-20., 150., -10., 0.]))
+    assert np.all(a.wrap_at(np.pi * u.rad).degree == np.array([-20., 150., -10., 0.]))
 
     a = Angle(np.arange(-1000.0, 1000.0, 0.125), unit=u.deg)
     for wrap_angle in (270, 0.2, 0.0, 360.0, 500, -2000.125):
         aw = a.wrap_at(wrap_angle * u.deg)
         assert np.all(aw.degree >= wrap_angle - 360.0)
         assert np.all(aw.degree < wrap_angle)
+
+        aw = a.to(u.rad).wrap_at(wrap_angle * u.deg)
+        assert np.all(aw.degree >= wrap_angle - 360.0)
+        assert np.all(aw.degree < wrap_angle)
+
+
+def test_within_bounds():
+    a = Angle([-20, 150, 350] * u.deg)
+    assert a.within_bounds('0d', '360d') is False
+    assert a.within_bounds(None, '360d') is True
+    assert a.within_bounds(-30 * u.deg, None) is True
+
+    a = Angle('-20d')
+    assert a.within_bounds('0d', '360d') is False
+    assert a.within_bounds(None, '360d') is True
+    assert a.within_bounds(-30 * u.deg, None) is True
