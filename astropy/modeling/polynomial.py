@@ -1,32 +1,37 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 This module contains predefined polynomial models.
 """
-from __future__ import division
-import collections
-import numpy as np
-from ..logger import log
-from . import parameters
-from .core import ParametricModel, Model, SerialCompositeModel
-from .core import _convert_input, _convert_output
-from .utils import poly_map_domain, comb
-from .functional_models import ShiftModel
 
-__all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'InverseSIPModel', 'Legendre2DModel',
-           'Legendre1DModel', 'Poly1DModel', 'Poly2DModel', 'SIPModel',
-           'OrthogPolyBase', 'PolynomialModel']
+from __future__ import division
+
+import collections
+
+import numpy as np
+
+from . import parameters
+from .core import (ParametricModel, Model, SerialCompositeModel,
+                   _convert_input, _convert_output, LabeledInput)
+from .functional_models import ShiftModel
+from .utils import poly_map_domain, comb
+from ..logger import log
+
+
+__all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'InverseSIPModel',
+           'Legendre1DModel', 'Legendre2DModel', 'Poly1DModel', 'Poly2DModel',
+           'SIPModel', 'OrthogPolyBase', 'PolynomialModel']
 
 
 class PolynomialModel(ParametricModel):
-
     """
-    Base class for all polynomial models.
+    Base class for polynomial models.
 
     Its main purpose is to determine how many coefficients are needed
     based on the polynomial order and dimension and to provide their
     default values, names and ordering.
-
     """
+
     def __init__(self, degree, n_inputs=1, n_outputs=1, param_dim=1, **pars):
         self.deg = degree
         self._order = self.get_numcoeff(n_inputs)
@@ -41,18 +46,24 @@ class PolynomialModel(ParametricModel):
                 lenpars = 1
             if param_dim != lenpars:
                 if param_dim == 1:
-                    log.info("Inferred {0} dimensions when creating a {1} model. "
-                             "Resetting param_dim to {2}".format(lenpars,
-                                                                 self.__class__.__name__,
-                                                                 lenpars))
+                    log.info(
+                        "Inferred {0} dimensions when creating a {1} model. "
+                        "Resetting param_dim to {2}".format(
+                            lenpars, self.__class__.__name__, lenpars))
                     param_dim = lenpars
                 else:
-                    raise ValueError("Number of coefficient sets ({0}) does not match number "
-                                     "of parameter sets ({1}).".format(lenpars, param_dim))
+                    raise ValueError(
+                        "Number of coefficient sets ({0}) does not match "
+                        "number of parameter sets ({1}).".format(
+                            lenpars, param_dim))
             self._validate_pars(**pars)
             self.set_coeff(pardim=param_dim, **pars)
-        super(PolynomialModel, self).__init__(self.param_names, n_inputs=n_inputs,
-                                              n_outputs=n_outputs, param_dim=param_dim)
+
+        super(PolynomialModel, self).__init__(self.param_names,
+                                              n_inputs=n_inputs,
+                                              n_outputs=n_outputs,
+                                              param_dim=param_dim)
+
         self.linear = True
         self.col_deriv = 0
 
@@ -87,9 +98,8 @@ class PolynomialModel(ParametricModel):
         assert(len(pars) == numcoeff)
 
     def set_coeff(self, pardim=1, **pars):
-        """
-        Set default values for coefficients
-        """
+        """Set default values for coefficients"""
+
         if not pars:
             for name in self.param_names:
                 uname = '_' + name
@@ -106,13 +116,14 @@ class PolynomialModel(ParametricModel):
                                  name, pars[name], self, pardim))
 
     def get_numcoeff(self, ndim):
-        """
-        Return the number of coefficients in one parameter set
-        """
+        """Return the number of coefficients in one parameter set"""
+
         if self.deg < 1 or self.deg > 16:
             raise ValueError("Degree of polynomial must be 1< deg < 16")
-        # deg+1 is used to account for the difference between iraf using
-        # degree and numpy using exact degree
+
+        # deg+1 is used to account for the difference between iraf using degree
+        # and numpy using exact degree
+
         if ndim != 1:
             nmixed = comb(self.deg, ndim)
         else:
@@ -122,9 +133,7 @@ class PolynomialModel(ParametricModel):
 
 
 class OrthogPolyBase(ParametricModel):
-
     """
-
     This is a base class for the 2D Chebyshev and Legendre models.
 
     The polynomials implemented here require a maximum degree in x and y.
@@ -149,8 +158,9 @@ class OrthogPolyBase(ParametricModel):
     **pars : dict
         {keyword: value} pairs, representing {parameter_name: value}
     """
-    def __init__(self, x_degree, y_degree, x_domain=None, x_window=None, y_domain=None,
-                 y_window=None, param_dim=1, **pars):
+
+    def __init__(self, x_degree, y_degree, x_domain=None, x_window=None,
+                 y_domain=None, y_window=None, param_dim=1, **pars):
         self.xdeg = x_degree
         self.ydeg = y_degree
         self._order = self.get_numcoeff()
@@ -171,18 +181,23 @@ class OrthogPolyBase(ParametricModel):
                 lenpars = 1
             if param_dim != lenpars:
                 if param_dim == 1:
-                    log.info("Inferred {0} dimensions when creating a {1} model. "
-                             "Resetting param_dim to {2}".format(lenpars,
-                                                                 self.__class__.__name__,
-                                                                 lenpars))
+                    log.info(
+                        "Inferred {0} dimensions when creating a {1} model. "
+                        "Resetting param_dim to {2}".format(
+                            lenpars, self.__class__.__name__, lenpars))
                     param_dim = lenpars
                 else:
-                    raise ValueError("Number of coefficient sets {0} does not match number "
-                                     "of parameter sets {1}".format(lenpars, param_dim))
+                    raise ValueError(
+                        "Number of coefficient sets ({0}) does not match "
+                        "number of parameter sets {1}".format(
+                            lenpars, param_dim))
+
             self._validate_pars(**pars)
             self.set_coeff(pardim=param_dim, **pars)
-        super(OrthogPolyBase, self).__init__(self.param_names, n_inputs=2, n_outputs=1,
-                                             param_dim=param_dim)
+
+        super(OrthogPolyBase, self).__init__(self.param_names, n_inputs=2,
+                                             n_outputs=1, param_dim=param_dim)
+
         self.linear = True
         self.col_deriv = 0
 
@@ -213,8 +228,8 @@ class OrthogPolyBase(ParametricModel):
         -------
         numc : int
             number of coefficients
-
         """
+
         numc = (self.xdeg + 1) * (self.ydeg + 1)
         return numc
 
@@ -223,6 +238,8 @@ class OrthogPolyBase(ParametricModel):
         assert(len(pars) == numcoeff)
 
     def _invlex(self):
+        # TODO: This is a very slow way to do this; fix it and related methods
+        # like _alpha
         c = []
         xvar = np.arange(self.xdeg + 1)
         yvar = np.arange(self.ydeg + 1)
@@ -284,9 +301,9 @@ class OrthogPolyBase(ParametricModel):
         return result
 
     def _fcache(self, x, y):
-        """
-        To be implemented by subclasses
-        """
+        # TODO: Write a docstring explaining the actual purpose of this method
+        """To be implemented by subclasses"""
+
         raise NotImplementedError("Subclasses should implement this")
 
     def __call__(self, x, y):
@@ -297,8 +314,8 @@ class OrthogPolyBase(ParametricModel):
         --------------
         x : scalar, list or array
         y : scalar, lis or array
-
         """
+
         x, _ = _convert_input(x, self.param_dim)
         y, fmt = _convert_input(y, self.param_dim)
         assert x.shape == y.shape, \
@@ -314,9 +331,7 @@ class OrthogPolyBase(ParametricModel):
 
 
 class Chebyshev1DModel(PolynomialModel):
-
     """
-
     1D Chebyshev polynomial of the 1st kind.
 
     Parameters
@@ -331,9 +346,10 @@ class Chebyshev1DModel(PolynomialModel):
         number of parameter sets
     **pars : dict
         keyword : value pairs, representing parameter_name: value
-
     """
-    def __init__(self, degree, domain=None, window=[-1, 1], param_dim=1, **pars):
+
+    def __init__(self, degree, domain=None, window=[-1, 1], param_dim=1,
+                 **pars):
         self.domain = domain
         self.window = window
         super(Chebyshev1DModel, self).__init__(degree, n_inputs=1, n_outputs=1,
@@ -343,6 +359,7 @@ class Chebyshev1DModel(PolynomialModel):
         """
         Evaluates the polynomial using Clenshaw's algorithm.
         """
+
         if isinstance(x, tuple) or isinstance(x, list):
             x = np.asarray(x)
         if len(coeff) == 1:
@@ -379,6 +396,7 @@ class Chebyshev1DModel(PolynomialModel):
         result : ndarray
             The Vandermonde matrix
         """
+
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.deg + 1,) + x.shape, dtype=x.dtype)
         v[0] = x * 0 + 1
@@ -396,8 +414,8 @@ class Chebyshev1DModel(PolynomialModel):
         --------------
         x : scalar, list or array
             input
-
         """
+
         if self.domain is not None:
             x = poly_map_domain(x, self.domain, self.window)
         x, fmt = _convert_input(x, self.param_dim)
@@ -406,9 +424,7 @@ class Chebyshev1DModel(PolynomialModel):
 
 
 class Legendre1DModel(PolynomialModel):
-
     """
-
     1D Legendre polynomial.
 
     Parameters
@@ -423,9 +439,10 @@ class Legendre1DModel(PolynomialModel):
         number of parameter sets
     **pars : dict
         keyword: value pairs, representing parameter_name: value
-
     """
-    def __init__(self, degree, domain=None, window=[-1, 1], param_dim=1, **pars):
+
+    def __init__(self, degree, domain=None, window=[-1, 1], param_dim=1,
+                 **pars):
         self.domain = domain
         self.window = window
         super(Legendre1DModel, self).__init__(degree, n_inputs=1, n_outputs=1,
@@ -468,8 +485,8 @@ class Legendre1DModel(PolynomialModel):
         -------
         result : ndarray
             The Vandermonde matrix
-
         """
+
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.deg + 1,) + x.shape, dtype=x.dtype)
         v[0] = x * 0 + 1
@@ -486,8 +503,8 @@ class Legendre1DModel(PolynomialModel):
         --------------
         x : scalar, list or array
             input
-
         """
+
         if self.domain is not None:
             x = poly_map_domain(x, self.domain, self.window)
         x, fmt = _convert_input(x, self.param_dim)
@@ -496,9 +513,7 @@ class Legendre1DModel(PolynomialModel):
 
 
 class Poly1DModel(PolynomialModel):
-
     """
-
     1D Polynomial model.
 
     Parameters
@@ -514,6 +529,7 @@ class Poly1DModel(PolynomialModel):
     **pars : dict
         keyword: value pairs, representing parameter_name: value
     """
+
     def __init__(self, degree,
                  domain=[-1, 1], window=[-1, 1],
                  param_dim=1, **pars):
@@ -562,15 +578,14 @@ class Poly1DModel(PolynomialModel):
         --------------
         x : scalar, list or array
             input
-
         """
+
         x, fmt = _convert_input(x, self.param_dim)
         result = self.horner(x, self.param_sets)
         return _convert_output(result, fmt)
 
 
 class Poly2DModel(PolynomialModel):
-
     """
     2D Polynomial  model.
 
@@ -597,8 +612,8 @@ class Poly2DModel(PolynomialModel):
         number of parameter sets
     pars : dict
         keyword: value pairs, representing parameter_name: value
-
     """
+
     def __init__(self, degree, x_domain=[-1, 1], y_domain=[-1, 1],
                  x_window=[-1, 1], y_window=[-1, 1],
                  param_dim=1, **pars):
@@ -652,6 +667,7 @@ class Poly2DModel(PolynomialModel):
         result : ndarray
             The Vandermonde matrix
         """
+
         if x.ndim == 2:
             x = x.flatten()
         if y.ndim == 2:
@@ -694,8 +710,8 @@ class Poly2DModel(PolynomialModel):
             input
         y : scalar, list or array
             input
-
         """
+
         invcoeff = self.invlex_coeff()
         x, _ = _convert_input(x, self.param_dim)
         y, fmt = _convert_input(y, self.param_dim)
@@ -707,7 +723,6 @@ class Poly2DModel(PolynomialModel):
 
 
 class Chebyshev2DModel(OrthogPolyBase):
-
     """
     2D Chebyshev polynomial of the 1st kind.
 
@@ -734,20 +749,23 @@ class Chebyshev2DModel(OrthogPolyBase):
         number of parameter sets
     pars : dict
         keyword: value pairs, representing parameter_name: value
-
     """
+
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
                  y_domain=None, y_window=[-1, 1], param_dim=1, **pars):
         super(Chebyshev2DModel, self).__init__(x_degree, y_degree,
-                                               x_domain=x_domain, y_domain=y_domain,
-                                               x_window=x_window, y_window=y_window,
+                                               x_domain=x_domain,
+                                               y_domain=y_domain,
+                                               x_window=x_window,
+                                               y_window=y_window,
                                                param_dim=param_dim, **pars)
 
     def _fcache(self, x, y):
         """
-        Calculate the individual Chebyshev functions once
-        and store them in a dictionary to be reused.
+        Calculate the individual Chebyshev functions once and store them in a
+        dictionary to be reused.
         """
+
         xterms = self.xdeg + 1
         yterms = self.ydeg + 1
         kfunc = {}
@@ -764,6 +782,7 @@ class Chebyshev2DModel(OrthogPolyBase):
     def deriv(self, pars=None, x=None, y=None, z=None):
         """
         Derivatives with respect to the coefficients.
+
         This is an array with Chebyshev polynomials:
 
         Tx0Ty0  Tx1Ty0...TxnTy0...TxnTym
@@ -783,8 +802,8 @@ class Chebyshev2DModel(OrthogPolyBase):
         -------
         result : ndarray
             The Vandermonde matrix
-
         """
+
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
         x = x.flatten()
@@ -803,6 +822,7 @@ class Chebyshev2DModel(OrthogPolyBase):
         """
         Derivative of 1D Chebyshev series
         """
+
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         d = np.empty((deg + 1, len(x)), dtype=x.dtype)
         d[0] = x * 0 + 1
@@ -815,7 +835,6 @@ class Chebyshev2DModel(OrthogPolyBase):
 
 
 class Legendre2DModel(OrthogPolyBase):
-
     """
     Legendre 2D polynomial.
 
@@ -843,20 +862,23 @@ class Legendre2DModel(OrthogPolyBase):
         number of parameter sets
     pars : dict
         keyword: value pairs, representing parameter_name: value
-
     """
+
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
                  y_domain=None, y_window=[-1, 1], param_dim=1, **pars):
         super(Legendre2DModel, self).__init__(x_degree, y_degree,
-                                              x_domain=x_domain, y_domain=y_domain,
-                                              x_window=x_window, y_window=y_window,
+                                              x_domain=x_domain,
+                                              y_domain=y_domain,
+                                              x_window=x_window,
+                                              y_window=y_window,
                                               param_dim=param_dim, **pars)
 
     def _fcache(self, x, y):
         """
-        Calculate the individual Legendre functions once
-        and store them in a dictionary to be reused.
+        Calculate the individual Legendre functions once and store them in a
+        dictionary to be reused.
         """
+
         xterms = self.xdeg + 1
         yterms = self.ydeg + 1
         kfunc = {}
@@ -865,7 +887,8 @@ class Legendre2DModel(OrthogPolyBase):
         kfunc[xterms] = np.ones(y.shape)
         kfunc[xterms + 1] = y.copy()
         for n in range(2, xterms):
-            kfunc[n] = ((2 * (n - 1) + 1) * x * kfunc[n - 1] - (n - 1) * kfunc[n - 2]) / n
+            kfunc[n] = (((2 * (n - 1) + 1) * x * kfunc[n - 1] -
+                        (n - 1) * kfunc[n - 2]) / n)
         for n in range(2, yterms):
             kfunc[n + xterms] = ((2 * (n - 1) + 1) * y * kfunc[n + xterms - 1] -
                                  (n - 1) * kfunc[n + xterms - 2]) / (n)
@@ -893,10 +916,11 @@ class Legendre2DModel(OrthogPolyBase):
         -------
         result : ndarray
             The Vandermonde matrix
-
         """
+
         if x.shape != y.shape:
             raise ValueError("x and y must have the same shape")
+
         x = x.flatten()
         y = y.flatten()
         xderiv = self._legendderiv1d(x, self.xdeg + 1).T
@@ -911,9 +935,8 @@ class Legendre2DModel(OrthogPolyBase):
         return v.T
 
     def _legendderiv1d(self, x, deg):
-        """
-        Derivative of 1D Legendre polynomial
-        """
+        """Derivative of 1D Legendre polynomial"""
+
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         d = np.empty((deg + 1,) + x.shape, dtype=x.dtype)
         d[0] = x * 0 + 1
@@ -925,14 +948,13 @@ class Legendre2DModel(OrthogPolyBase):
 
 
 class _SIP1D(Model):
-
     """
     This implements the Simple Imaging Polynomial Model (SIP) in 1D.
 
     It's unlikely it will be used in 1D so this class is private
     and SIPModel should be used instead.
-
     """
+
     def __init__(self, order, coeff_prefix, param_dim=1, **pars):
         self.order = order
         self.coeff_prefix = coeff_prefix
@@ -946,16 +968,21 @@ class _SIP1D(Model):
                 lenpars = len(p)
             else:
                 lenpars = 1
+
+            # TODO: This pattern is repeated in so many models and seems like a
+            # check that could be moved into a method
             if param_dim != lenpars:
                 if param_dim == 1:
-                    log.info("Inferred {0} dimensions when creating a {1} model. "
-                             "Resetting param_dim to {2}".format(lenpars,
-                                                                 self.__class__.__name__,
-                                                                 lenpars))
+                    log.info("Inferred {0} dimensions when creating a {1} "
+                             "model. Resetting param_dim to {0}".format(
+                                 lenpars, self.__class__.__name__))
                     param_dim = lenpars
                 else:
-                    raise ValueError("Number of coefficient sets ({0}) does not match number "
-                                     "of parameter sets ({1}).".format(lenpars, param_dim))
+                    raise ValueError(
+                        "Number of coefficient sets ({0}) does not match the "
+                        "number of parameter sets ({1}).".format(
+                            lenpars, param_dim))
+
             self._validate_pars(ndim=2, **pars)
             self.set_coeff(pardim=param_dim, **pars)
 
@@ -998,9 +1025,8 @@ class _SIP1D(Model):
         return fmt
 
     def get_numcoeff(self, ndim):
-        """
-        Return the number of coefficients in one parset
-        """
+        """Return the number of coefficients in one parset"""
+
         if self.order < 2 or self.order > 9:
             raise ValueError("Degree of polynomial must be 2< deg < 9")
         nmixed = comb(self.order - 1, ndim)
@@ -1043,13 +1069,16 @@ class _SIP1D(Model):
     def _coef_matrix(self, coeff_prefix):
         mat = np.zeros((self.order + 1, self.order + 1))
         for i in range(2, self.order + 1):
-            mat[i, 0] = getattr(self, '{0}_{1}_{2}'.format('_'+coeff_prefix, i, 0)).value
+            attr = '_{0}_{1}_{2}'.format(coeff_prefix, i, 0)
+            mat[i, 0] = getattr(self, attr).value
         for i in range(2, self.order + 1):
-            mat[0, i] = getattr(self, '{0}_{1}_{2}'.format('_'+coeff_prefix, 0, i)).value
+            attr = '_{0}_{1}_{2}'.format(coeff_prefix, 0, i)
+            mat[0, i] = getattr(self, attr).value
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i + j < self.order + 1:
-                    mat[i, j] = getattr(self, '{0}_{1}_{2}'.format('_'+coeff_prefix, i, j)).value
+                    attr = '_{0}_{1}_{2}'.format(coeff_prefix, i, j)
+                    mat[i, j] = getattr(self, attr).value
         return mat
 
     def _eval_sip(self, x, y, coef):
@@ -1072,9 +1101,7 @@ class _SIP1D(Model):
 
 
 class _SIPModel(SerialCompositeModel):
-
     """
-
     Simple Imaging Polynomial (SIP) model.
 
     The SIP convention is used to represent distortions in FITS image headers.
@@ -1108,8 +1135,8 @@ class _SIPModel(SerialCompositeModel):
     References
     ----------
     .. [1] `David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005 <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`_
-
     """
+
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
                  ap_order=None, ap_coeff=None, bp_order=None, bp_coeff=None,
                  param_dim=1):
@@ -1128,38 +1155,38 @@ class _SIPModel(SerialCompositeModel):
                               param_dim=param_dim, **a_coeff)
         self.sip1d_b = _SIP1D(b_order, coeff_prefix='B',
                               param_dim=param_dim, **b_coeff)
-        if ap_order is not None and ap_coeff is not None and \
-                bp_order is not None and bp_coeff is not None:
+        if (ap_order is not None and ap_coeff is not None and
+                bp_order is not None and bp_coeff is not None):
             self.sip1d_ap = _SIP1D(ap_order, coeff_prefix='AP', **ap_coeff)
             self.sip1d_bp = _SIP1D(bp_order, coeff_prefix='BP', **bp_coeff)
         else:
             self.sip1d_ap = None
             self.sip1d_bp = None
-        super(_SIPModel, self).__init__([self.shift_a, self.shift_b, self.sip1d_a,
-                                        self.sip1d_b], n_inputs=2, n_outputs=2)
+
+        super(_SIPModel, self).__init__([self.shift_a, self.shift_b,
+                                         self.sip1d_a, self.sip1d_b],
+                                         n_inputs=2, n_outputs=2)
 
 
 class SIPModel(_SIPModel):
-
-    __doc__ = _SIPModel.__doc__
-
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
                  ap_order=None, ap_coeff=None, bp_order=None, bp_coeff=None,
                  param_dim=1):
 
-        super(SIPModel, self).__init__(crpix, a_order, a_coeff, b_order, b_coeff,
-                                       ap_order, ap_coeff, bp_order, bp_coeff, param_dim=1)
+        super(SIPModel, self).__init__(crpix, a_order, a_coeff,
+                                       b_order, b_coeff, ap_order, ap_coeff,
+                                       bp_order, bp_coeff, param_dim=1)
 
     def inverse(self):
-        if self.ap_order is not None and self.ap_coeff is not None and self.bp_order \
-           is not None and self.bp_coeff is not None:
+        if (self.ap_order is not None and self.ap_coeff is not None and
+                self.bp_order is not None and self.bp_coeff is not None):
             return InverseSIPModel(self.crpix, self.a_order, self.a_coeff,
                                    self.b_order, self.b_coeff,
                                    self.ap_order, self.ap_coeff,
                                    self.bp_order, self.bp_coeff)
         else:
-            raise NotImplementedError("An analytical inverse transform has not been"
-                                      " implemented for this model.")
+            raise NotImplementedError("An analytical inverse transform has "
+                                      "not been implemented for this model.")
 
     def __repr__(self):
         models = [self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b]
@@ -1198,25 +1225,25 @@ class SIPModel(_SIPModel):
 
 
 class InverseSIPModel(_SIPModel):
-
-    __doc__ = _SIPModel.__doc__
-
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
                  ap_order, ap_coeff, bp_order, bp_coeff,
                  param_dim=1):
 
-        super(InverseSIPModel, self).__init__(crpix, a_order, a_coeff, b_order, b_coeff,
-                                              ap_order, ap_coeff, bp_order, bp_coeff,
-                                              param_dim=1)
+        super(InverseSIPModel, self).__init__(crpix, a_order, a_coeff,
+                                              b_order, b_coeff,
+                                              ap_order, ap_coeff,
+                                              bp_order, bp_coeff, param_dim=1)
 
     def inverse(self):
-        if self.a_order is not None and self.a_coeff is not None and self.b_order \
-           is not None and self.bp_coeff is not None:
-            return SIPModel(self.crpix, self.a_order, self.a_coeff, self.b_order, self.b_coeff,
-                            self.ap_order, self.ap_coeff, self.bp_order, self.bp_coeff)
+        if (self.a_order is not None and self.a_coeff is not None and
+                self.b_order is not None and self.bp_coeff is not None):
+            return SIPModel(self.crpix, self.a_order, self.a_coeff,
+                            self.b_order, self.b_coeff,
+                            self.ap_order, self.ap_coeff,
+                            self.bp_order, self.bp_coeff)
         else:
-            raise NotImplementedError("An analytical inverse transform has not been"
-                                      " implemented for this model.")
+            raise NotImplementedError("An analytical inverse transform has "
+                                      "not been implemented for this model.")
 
     def __call__(self, x, y):
         if self.sip1d_ap is not None and self.sip1d_bp is not None:
@@ -1226,11 +1253,12 @@ class InverseSIPModel(_SIPModel):
             y = self.shift_b.inverse()(y1)
             return x, y
         else:
-            raise NotImplementedError("An analytical inverse transform has not been"
-                                      " implemented for this model.")
+            raise NotImplementedError("An analytical inverse transform has "
+                                      "not been implemented for this model.")
 
     def __repr__(self):
-        models = [self.sip1d_ap, self.sip1d_bp, self.shift_a.inverse(), self.shift_b.inverse()]
+        models = [self.sip1d_ap, self.sip1d_bp, self.shift_a.inverse(),
+                  self.shift_b.inverse()]
         fmt = """
             Model:  {0}
             """.format(self.__class__.__name__)
@@ -1239,7 +1267,8 @@ class InverseSIPModel(_SIPModel):
         return fmt
 
     def __str__(self):
-        models = [self.sip1d_ap, self.sip1d_bp, self.shift_a.inverse(), self.shift_b.inverse()]
+        models = [self.sip1d_ap, self.sip1d_bp, self.shift_a.inverse(),
+                  self.shift_b.inverse()]
         fmt = """
             Model:  {0}
             """.format(self.__class__.__name__)

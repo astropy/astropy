@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 This module defines base classes for all models.
 The base class of all models is `~astropy.modeling.Model`.
@@ -37,12 +38,16 @@ In all these cases the output has the same shape as the input.
 
 - A model with N parameter sets works with 1D input arrays. The shape
   of the output is (M, N)
-
 """
+
 from __future__ import division
+
 import abc
+
 from itertools import izip
+
 import numpy as np
+
 from . import parameters
 from .utils import InputParameterError
 
@@ -69,6 +74,7 @@ def _convert_input(x, pdim):
     'T' - input was transposed
     'S' - input is a scalar
     """
+
     x = np.asarray(x) + 0.
     fmt = 'N'
     if pdim == 1:
@@ -103,6 +109,7 @@ def _convert_output(x, fmt):
     fmt : string
         original format
     """
+
     if fmt == 'N':
         return x
     elif fmt == 'T':
@@ -117,7 +124,6 @@ def _convert_output(x, fmt):
 
 
 class _ParameterProperty(object):
-
     """
     Create a property for a parameter.
 
@@ -125,8 +131,8 @@ class _ParameterProperty(object):
     ----------
     name: string
         the name of the parameter
-
     """
+
     def __init__(self, name):
         self.aname = '_' + name
         self.name = name
@@ -165,11 +171,10 @@ class _ParameterProperty(object):
 
 
 class Model(object):
-
     """
     Base class for all models.
 
-    This is an abstract class and should not be instanciated.
+    This is an abstract class and should not be instantiated.
 
     Notes
     -----
@@ -177,8 +182,8 @@ class Model(object):
 
     This class sets the properties for all individual parameters and performs
     parameter validation.
-
     """
+
     __metaclass__ = abc.ABCMeta
 
     param_names = []
@@ -198,37 +203,32 @@ class Model(object):
 
     @property
     def n_inputs(self):
-        """
-        Number of input variables in model evaluation.
-        """
+        """Number of input variables in model evaluation."""
+
         return self._n_inputs
 
     @property
     def n_outputs(self):
-        """
-        Number of output variables returned when a model is evaluated.
-        """
+        """Number of output variables returned when a model is evaluated."""
+
         return self._n_outputs
 
     @property
     def param_dim(self):
-        """
-        Number of parameter sets in a model.
-        """
+        """Number of parameter sets in a model."""
+
         return self._param_dim
 
     @param_dim.setter
     def param_dim(self, val):
-        """
-        Set the number of parameter sets in a model.
-        """
+        """Set the number of parameter sets in a model."""
+
         self._param_dim = val
 
     @property
     def param_names(self):
-        """
-        A list of names of the parameters defining a model.
-        """
+        """A list of names of the parameters defining a model."""
+
         return self._param_names
 
     @param_names.setter
@@ -247,7 +247,6 @@ class Model(object):
         return fmt
 
     def __str__(self):
-
         fmt = """
         Model: {0}
         Parameter sets: {1}
@@ -266,9 +265,11 @@ class Model(object):
     def param_sets(self):
         """
         Return parameters as a pset.
+
         This is an array where each column represents one parameter set.
         """
-        parameters = [getattr(self, '_'+attr) for attr in self.param_names]
+
+        parameters = [getattr(self, '_' + attr) for attr in self.param_names]
         values = [par.value for par in parameters]
         shapes = [par.parshape for par in parameters]
         lenshapes = np.asarray([len(p.parshape) for p in parameters])
@@ -283,16 +284,14 @@ class Model(object):
         return psets
 
     def inverse(self):
-        """
-        Return a callable object which does the inverse transform
-        """
-        raise NotImplementedError("An analytical inverse transform has not been"
-                                  " implemented for this model.")
+        """Returns a callable object which performs the inverse transform."""
+
+        raise NotImplementedError("An analytical inverse transform has not "
+                                  "been implemented for this model.")
 
     def invert(self):
-        """
-        Invert coordinates iteratively if possible
-        """
+        """Invert coordinates iteratively if possible."""
+
         raise NotImplementedError("Subclasses should implement this")
 
     def add_model(self, newtr, mode):
@@ -313,6 +312,7 @@ class Model(object):
         model : CompositeModel
             an instance of CompositeModel
         """
+
         if mode in ['parallel', 'p']:
             return ParallelCompositeModel([self, newtr])
         elif mode in ['serial', 's']:
@@ -326,7 +326,6 @@ class Model(object):
 
 
 class ParametricModel(Model):
-
     """
     Base class for all fittable models.
 
@@ -361,9 +360,9 @@ class ParametricModel(Model):
         property of a parameter may be used.
     bounds: dict
         a dictionary {parameter_name: boolean} of lower and upper bounds of
-        parameters. Keys  are parameter names. Values  are a list of length
-        2 giving the desired range for the parameter.
-        Alternatively the `~astropy.modeling.parameters.Parameter.min` and
+        parameters. Keys are parameter names. Values are a list of length 2
+        giving the desired range for the parameter.  Alternatively the
+        `~astropy.modeling.parameters.Parameter.min` and
         `~astropy.modeling.parameters.Parameter.max` properties of a parameter
         may be used.
     eqcons: list
@@ -412,8 +411,8 @@ class ParametricModel(Model):
     >>> g1.stddev.fixed = True
     >>> g1.stddev.fixed
     True
-
     """
+
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, param_names, n_inputs, n_outputs, param_dim=1, **cons):
@@ -423,8 +422,10 @@ class ParametricModel(Model):
         tied = cons.pop('tied', None)
         eqcons = cons.pop('eqcons', None)
         ineqcons = cons.pop('ineqcons', None)
-        if cons != {}:
-            raise TypeError("Unrecognized constraints type: {0}".format(repr(cons.keys())))
+
+        if cons:
+            raise TypeError(
+                "Unrecognized constraints type: {0}".format(repr(cons.keys())))
 
         super(ParametricModel, self).__init__(param_names, n_inputs, n_outputs,
                                               param_dim=param_dim)
@@ -441,9 +442,11 @@ class ParametricModel(Model):
             self._ineqcons = []
         else:
             self._ineqcons = ineqcons
+
         # Flag that indicates if the model derivatives are given in columns
         # or rows
         self.col_deriv = 1
+
         # Set constraints
         if fixed:
             for name in fixed:
@@ -464,16 +467,18 @@ class ParametricModel(Model):
     @property
     def fixed(self):
         """
-        Return a dictionary of parameter fixed attributes
+        A dictionary mapping parameter names to their fixed constraint.
         """
+
         fixed = [getattr(self, name).fixed for name in self.param_names]
         return dict(zip(self.param_names, fixed))
 
     @property
     def tied(self):
         """
-        Return a dictionary of parameter fixed attributes
+        A dictionary mapping parameter names to their tied constraint.
         """
+
         tied = [getattr(self, name).tied for name in self.param_names]
         return dict(zip(self.param_names, tied))
 
@@ -542,16 +547,19 @@ class ParametricModel(Model):
     def parameters(self):
         """
         An instance of `~astropy.modeling.parameters.Parameters`.
+
         Fittable parameters maintain this list and fitters modify it.
         """
+
         return self._parameters
 
     @parameters.setter
     def parameters(self, value):
         """
-        Reset the parameters attribute as an instance of
+        Resets the parameters attribute using an instance of
         `~astropy.modeling.parameters.Parameters`
         """
+
         if isinstance(value, parameters.Parameters):
             if self._parameters._is_same_length(value):
                 self._parameters = value
@@ -569,18 +577,17 @@ class ParametricModel(Model):
                     "Expected the list of parameters to be the same "
                     "length as the initial list.")
         else:
-            raise TypeError("Parameters must be of type 'list' or 'Parameters'")
+            raise TypeError("Parameters must be of type `list` or `Parameters`")
 
     def set_joint_parameters(self, jpars):
         """
-        Used by the JointFitter class to store parameters which are
+        Used by the `JointFitter` class to store parameters which are
         considered common for several models and are to be fitted together.
         """
         self.joint = jpars
 
 
 class LabeledInput(dict):
-
     """
     Create a container with all input data arrays, assigning labels for
     each one.
@@ -606,18 +613,18 @@ class LabeledInput(dict):
     >>> ado = LabeledInput([x, y, l], ['x', 'y', 'pixel'])
     >>> ado.x
     array([[0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1],
-    [2, 2, 2, 2, 2],
-    [3, 3, 3, 3, 3],
-    [4, 4, 4, 4, 4]])
+           [1, 1, 1, 1, 1],
+           [2, 2, 2, 2, 2],
+           [3, 3, 3, 3, 3],
+           [4, 4, 4, 4, 4]])
     >>> ado['x']
     array([[0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1],
-    [2, 2, 2, 2, 2],
-    [3, 3, 3, 3, 3],
-    [4, 4, 4, 4, 4]])
-
+           [1, 1, 1, 1, 1],
+           [2, 2, 2, 2, 2],
+           [3, 3, 3, 3, 3],
+           [4, 4, 4, 4, 4]])
     """
+
     def __init__(self, data, labels):
         dict.__init__(self)
         assert len(labels) == len(data)
@@ -651,8 +658,8 @@ class LabeledInput(dict):
             coordinate value
         kw : dictionary
             if given this is a dictionary of {label: value} pairs
-
         """
+
         if kw:
             if label is None or value is None:
                 self.update(kw)
@@ -686,12 +693,11 @@ class LabeledInput(dict):
 
 
 class _CompositeModel(Model):
-
     def __init__(self, transforms, n_inputs, n_outputs):
         """
         A Base class for all composite models.
-
         """
+
         self._transforms = transforms
         param_names = []
         for tr in self._transforms:
@@ -703,7 +709,8 @@ class _CompositeModel(Model):
         fmt = """
             Model:  {0}
             """.format(self.__class__.__name__)
-        fmt1 = " %s  " * len(self._transforms) % tuple([repr(tr) for tr in self._transforms])
+        fmt_args = tuple(repr(tr) for tr in self._transforms)
+        fmt1 = (" %s  " * len(self._transforms)) % fmt_args
         fmt = fmt + fmt1
         return fmt
 
@@ -711,7 +718,8 @@ class _CompositeModel(Model):
         fmt = """
             Model:  {0}
             """.format(self.__class__.__name__)
-        fmt1 = " %s  " * len(self._transforms) % tuple([str(tr) for tr in self._transforms])
+        fmt_args = tuple(str(tr) for tr in self._transforms)
+        fmt1 = (" %s  " * len(self._transforms)) % fmt_args
         fmt = fmt + fmt1
         return fmt
 
@@ -724,9 +732,7 @@ class _CompositeModel(Model):
 
 
 class SerialCompositeModel(_CompositeModel):
-
     """
-
     Execute models in series.
 
     Parameters
@@ -762,9 +768,10 @@ class SerialCompositeModel(_CompositeModel):
         ...                                  inmap=[['x', 'y'], ['x'], ['y']],
         ...                                  outmap=[['x', 'y'], ['x'], ['y']])
         >>> result = transform(labeled_input)
-
     """
-    def __init__(self, transforms, inmap=None, outmap=None, n_inputs=None, n_outputs=None):
+
+    def __init__(self, transforms, inmap=None, outmap=None, n_inputs=None,
+                 n_outputs=None):
         if n_inputs is None:
             n_inputs = max([tr.n_inputs for tr in transforms])
             # the output dimension is equal to the output dim of the last transform
@@ -773,15 +780,21 @@ class SerialCompositeModel(_CompositeModel):
             assert n_outputs is not None, "Expected n_inputs and n_outputs"
             n_inputs = n_inputs
             n_outputs = n_outputs
-        super(SerialCompositeModel, self).__init__(transforms, n_inputs, n_outputs)
+
+        super(SerialCompositeModel, self).__init__(transforms, n_inputs,
+                                                   n_outputs)
+
         if transforms and inmap and outmap:
             assert len(transforms) == len(inmap) == len(outmap), \
                 "Expected sequences of transform, " \
                 "inmap and outmap to have the same length"
+
         if inmap is None:
             inmap = [None] * len(transforms)
+
         if outmap is None:
             outmap = [None] * len(transforms)
+
         self._inmap = inmap
         self._outmap = outmap
 
@@ -799,9 +812,8 @@ class SerialCompositeModel(_CompositeModel):
         return SerialCompositeModel(transforms, inmap, outmap)
 
     def __call__(self, *data):
-        """
-        Transforms data using this model.
-        """
+        """Transforms data using this model."""
+
         if len(data) == 1:
             if not isinstance(data[0], LabeledInput):
                 assert self._transforms[0].n_inputs == 1, \
@@ -814,14 +826,19 @@ class SerialCompositeModel(_CompositeModel):
                 return result
             else:
                 labeled_input = data[0].copy()
-                # we want to return the entire labeled object because some parts
-                # of it may be used in another transform of which this
+                # we want to return the entire labeled object because some
+                # parts of it may be used in another transform of which this
                 # one is a component
-                assert self._inmap is not None, ("Parameter 'inmap' must be provided when"
-                                                 "input is a labeled object")
-                assert self._outmap is not None, ("Parameter 'outmap' must be "
-                                                  "provided when input is a labeled object")
-                for transform, incoo, outcoo in izip(self._transforms, self._inmap, self._outmap):
+                assert self._inmap is not None, \
+                    ("Parameter 'inmap' must be provided when "
+                     "input is a labeled object.")
+                assert self._outmap is not None, \
+                    ("Parameter 'outmap' must be provided when input is a "
+                     "labeled object")
+
+                for transform, incoo, outcoo in izip(self._transforms,
+                                                     self._inmap,
+                                                     self._outmap):
                     inlist = [labeled_input[label] for label in incoo]
                     result = transform(*inlist)
                     if len(outcoo) == 1:
@@ -833,8 +850,8 @@ class SerialCompositeModel(_CompositeModel):
                         setattr(labeled_input, label, res)
                 return labeled_input
         else:
-            assert self.n_inputs == len(data), "This transform expects "
-            "{0} inputs".format(self._n_inputs)
+            assert self.n_inputs == len(data), \
+                "This transform expects {0} inputs".format(self._n_inputs)
 
             result = self._transforms[0](*data)
             for transform in self._transforms[1:]:
@@ -843,9 +860,7 @@ class SerialCompositeModel(_CompositeModel):
 
 
 class ParallelCompositeModel(_CompositeModel):
-
     """
-
     Execute models in parallel.
 
     Parameters
@@ -861,24 +876,26 @@ class ParallelCompositeModel(_CompositeModel):
     Notes
     -----
     Evaluate each model separately and add the results to the input_data.
-
     """
+
     def __init__(self, transforms, inmap=None, outmap=None):
         self._transforms = transforms
         n_inputs = self._transforms[0].n_inputs
         n_outputs = n_inputs
         for transform in self._transforms:
             assert transform.n_inputs == transform.n_outputs == n_inputs, \
-                ("A ParallelCompositeModel expects n_inputs = n_outputs for all transforms")
-        super(ParallelCompositeModel, self).__init__(transforms, n_inputs, n_outputs)
+                ("A ParallelCompositeModel expects n_inputs = n_outputs for "
+                 "all transforms")
+
+        super(ParallelCompositeModel, self).__init__(transforms, n_inputs,
+                                                     n_outputs)
 
         self._inmap = inmap
         self._outmap = outmap
 
     def __call__(self, *data):
-        """
-        Transforms data using this model.
-        """
+        """Transforms data using this model."""
+
         if len(data) == 1:
             if not isinstance(data[0], LabeledInput):
                 result = data[0]
@@ -886,13 +903,16 @@ class ParallelCompositeModel(_CompositeModel):
                 deltas = sum(tr(x) for tr in self._transforms)
                 return result + deltas
             else:
-                assert self._inmap is not None, ("Parameter 'inmap' must be "
-                                                 "provided when input is a labeled object")
-                assert self._outmap is not None, ("Parameter 'outmap' must be "
-                                                  "provided when input is a labeled object")
+                assert self._inmap is not None, \
+                    ("Parameter 'inmap' must be provided when "
+                     "input is a labeled object.")
+                assert self._outmap is not None, \
+                    ("Parameter 'outmap' must be provided when input is a "
+                     "labeled object")
                 labeled_input = data[0].copy()
                 # create a list of inputs to be passed to the transforms
-                inlist = [getattr(labeled_input, label) for label in self._inmap]
+                inlist = [getattr(labeled_input, label)
+                          for label in self._inmap]
                 deltas = [np.zeros_like(x) for x in inlist]
                 for transform in self._transforms:
                     deltas = [transform(*inlist)]
@@ -910,7 +930,6 @@ class ParallelCompositeModel(_CompositeModel):
 
 
 class Parametric1DModel(ParametricModel):
-
     """
     Base class for one dimensional parametric models
 
@@ -922,8 +941,8 @@ class Parametric1DModel(ParametricModel):
     parameter_dict : dictionary
         Dictionary of model parameters with initialisation values
         {'parameter_name': 'parameter_value'}
-
     """
+
     deriv = None
 
     def __init__(self, param_dict):
@@ -934,11 +953,14 @@ class Parametric1DModel(ParametricModel):
         # no new parameter class. It may be more reasonable and clear to init
         # the parameters in the model constructor itself, with constraints etc.
         for param_name in self.param_names:
-            setattr(self, "_" + param_name, parameters.Parameter(name=param_name,
-                                                                 val=param_dict[param_name], mclass=self, param_dim=param_dim))
+            setattr(self, "_" + param_name,
+                    parameters.Parameter(name=param_name,
+                                         val=param_dict[param_name],
+                                         mclass=self, param_dim=param_dim))
 
         super(Parametric1DModel, self).__init__(self.param_names, n_inputs=1,
-                                                n_outputs=1, param_dim=param_dim, **cons)
+                                                n_outputs=1,
+                                                param_dim=param_dim, **cons)
 
     def __call__(self, x):
         """
@@ -949,13 +971,13 @@ class Parametric1DModel(ParametricModel):
         x : array like or a number
             input
         """
+
         x, fmt = _convert_input(x, self.param_dim)
         result = self.eval(x, *self.param_sets)
         return _convert_output(result, fmt)
 
 
 class Parametric2DModel(ParametricModel):
-
     """
     Base class for two dimensional parametric models
 
@@ -967,8 +989,8 @@ class Parametric2DModel(ParametricModel):
     parameter_dict : dictionary
         Dictionary of model parameters with initialization values
         {'parameter_name': 'parameter_value'}
-
     """
+
     deriv = None
 
     def __init__(self, param_dict):
@@ -979,11 +1001,14 @@ class Parametric2DModel(ParametricModel):
         # no new parameter class. It may be more reasonable and clear to init
         # the parameters in the model constructor itself, with constraints etc.
         for param_name in self.param_names:
-            setattr(self, "_" + param_name, parameters.Parameter(name=param_name,
-                                                                 val=param_dict[param_name], mclass=self, param_dim=param_dim))
+            setattr(self, "_" + param_name,
+                    parameters.Parameter(name=param_name,
+                                         val=param_dict[param_name],
+                                         mclass=self, param_dim=param_dim))
 
         super(Parametric2DModel, self).__init__(self.param_names, n_inputs=2,
-                                                n_outputs=1, param_dim=param_dim, **cons)
+                                                n_outputs=1,
+                                                param_dim=param_dim, **cons)
 
     def __call__(self, x, y):
         """
@@ -994,6 +1019,7 @@ class Parametric2DModel(ParametricModel):
         x : array like or a number
             input
         """
+
         x, _ = _convert_input(x, self.param_dim)
         y, fmt = _convert_input(y, self.param_dim)
         result = self.eval(x, y, *self.param_sets)

@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Creates a common namespace for all pre-defined models.
 """
+
 from .projections import *
 from .rotations import *
 from .polynomial import *
@@ -14,7 +16,7 @@ Attach a docstring explaining constraints to all models which support them.
 Note: add new models to this list
 """
 
-cdoc = """
+CONSTRAINTS_DOC = """
     fixed: a dict
         a dictionary {parameter_name: boolean} of parameters to not be
         varied during fitting. True means the parameter is held fixed.
@@ -79,19 +81,18 @@ cdoc = """
     >>> g1.stddev.fixed = True
     >>> g1.stddev.fixed
     True
-
 """
 
-models_with_constraints = [AiryDisk2DModel, Beta1DModel, Beta2DModel,
-                           Box1DModel, Box2DModel, Const1DModel, Const2DModel,
-                           Disk2DModel, Gaussian1DModel, Gaussian2DModel,
-                           Linear1DModel, Lorentz1DModel, MexicanHat1DModel,
-                           MexicanHat2DModel, PowerLaw1DModel, Sine1DModel, Trapezoid1DModel,
-                           TrapezoidDisk2DModel, Chebyshev1DModel, Chebyshev2DModel,
-                           Legendre2DModel, Legendre1DModel, Poly1DModel, Poly2DModel
-                           ]
 
-for item in models_with_constraints:
-    item.__doc__ += cdoc
+MODELS_WITH_CONSTRAINTS = [
+    AiryDisk2DModel, Beta1DModel, Beta2DModel, Box1DModel, Box2DModel,
+    Const1DModel, Const2DModel, Disk2DModel, Gaussian1DModel, Gaussian2DModel,
+    Linear1DModel, Lorentz1DModel, MexicanHat1DModel, MexicanHat2DModel,
+    PowerLaw1DModel, Sine1DModel, Trapezoid1DModel, TrapezoidDisk2DModel,
+    Chebyshev1DModel, Chebyshev2DModel, Legendre2DModel, Legendre1DModel,
+    Poly1DModel, Poly2DModel
+]
 
 
+for item in MODELS_WITH_CONSTRAINTS:
+    item.__doc__ += CONSTRAINTS_DOC

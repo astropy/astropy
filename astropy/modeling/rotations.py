@@ -1,34 +1,38 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Implements spherical rotations, defined in WCS Paper II [1]_
 
 RotateNative2Celestial and RotateCelestial2Native follow the convention
 in WCS paper II to rotate to/from a native sphere and the celestial sphere.
 
-The user interface uses angles in deg but internally radians are used.
-This is managed through properties. To bypass the use of Model's properties,
-an empty param_names list is passed to `~astropy.modeling.core.Model.__init__`
-and the properties are defined in the rotations classes.
+The user interface uses angles in deg but internally radians are used.  This is
+managed through properties. To bypass the use of Model's properties, an empty
+param_names list is passed to `~astropy.modeling.core.Model.__init__` and the
+properties are defined in the rotations classes.
 
 References
 ----------
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
-
 """
+
 from __future__ import division
+
 import math
 import numbers
+
 import numpy as np
+
 from .core import Model
 from .parameters import Parameter
 from .utils import InputParameterError
+
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial',
            'MatrixRotation2D']
 
 
 class RotateNative2Celestial(Model):
-
     """
     Transformation from Native to Celestial Spherical Coordinates.
 
@@ -39,13 +43,15 @@ class RotateNative2Celestial(Model):
     phi, theta, psi : float
         Euler angles in deg
     """
+
     param_names = ['phi', 'theta', 'psi']
 
     def __init__(self, phi, theta, psi):
         self._phi = Parameter('phi', np.deg2rad(phi), self, 1)
         self._theta = Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = Parameter('psi', np.deg2rad(psi), self, 1)
-        super(RotateNative2Celestial, self).__init__(param_names=[], n_inputs=2, n_outputs=2)
+        super(RotateNative2Celestial, self).__init__(param_names=[],
+                                                     n_inputs=2, n_outputs=2)
 
     @property
     def phi(self):
@@ -77,15 +83,19 @@ class RotateNative2Celestial(Model):
     def __call__(self, nphi, ntheta):
         nphi = np.deg2rad(nphi)
         ntheta = np.deg2rad(ntheta)
-        calpha = np.rad2deg(self._phi.value + np.arctan2(-np.cos(ntheta) *
-                                                   np.sin(nphi - self._psi.value),
-                                                   np.sin(ntheta) * np.cos(self._theta.value) -
-                                                   np.cos( ntheta) * 
-                                                   np.sin(self._theta.value) *
-                                                   np.cos(nphi - self._psi.value)))
-        cdelta = np.rad2deg(np.arcsin(np.sin(ntheta) * np.sin(self._theta.value) +
-                                      np.cos(ntheta) * np.cos(self._theta.value) *
-                                      np.cos(nphi - self._psi.value)))
+        phi = self._phi.value
+        psi = self._psi.value
+        theta = self._theta.value
+        calpha = np.rad2deg(
+            phi +
+            np.arctan2(-np.cos(ntheta) * np.sin(nphi - psi),
+                       np.sin(ntheta) * np.cos(theta) -
+                       np.cos(ntheta) * np.sin(theta) * np.cos(nphi - psi)))
+
+        cdelta = np.rad2deg(
+            np.arcsin(np.sin(ntheta) * np.sin(theta) +
+                      np.cos(ntheta) * np.cos(theta) * np.cos(nphi - psi)))
+
         ind = calpha < 0
         if isinstance(ind, np.ndarray):
             calpha[ind] += 360
@@ -96,7 +106,6 @@ class RotateNative2Celestial(Model):
 
 
 class RotateCelestial2Native(Model):
-
     """
     Transformation from Celestial to Native to Spherical Coordinates.
 
@@ -107,13 +116,15 @@ class RotateCelestial2Native(Model):
     phi, theta, psi : float
         Euler angles in deg
     """
+
     param_names = ['phi', 'theta', 'psi']
 
     def __init__(self, phi, theta, psi):
         self._phi = Parameter('phi', np.deg2rad(phi), self, 1)
         self._theta = Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = Parameter('psi', np.deg2rad(psi), self, 1)
-        super(RotateCelestial2Native, self).__init__(param_names=[], n_inputs=2, n_outputs=2)
+        super(RotateCelestial2Native, self).__init__(param_names=[],
+                                                     n_inputs=2, n_outputs=2)
 
     @property
     def phi(self):
@@ -145,25 +156,31 @@ class RotateCelestial2Native(Model):
     def __call__(self, calpha, cdelta):
         calpha = np.deg2rad(calpha)
         cdelta = np.deg2rad(cdelta)
-        nphi = np.rad2deg(self._psi.value + np.arctan2(-np.cos(cdelta) *
-                                                       np.sin(calpha - self._phi.value),
-                                                       np.sin(cdelta) * np.cos(self._theta.value) -
-                                                       np.cos(cdelta) * np.sin(self._theta.value) *
-                                                       np.cos(calpha - self._phi.value)))
-        ntheta = np.rad2deg(np.arcsin(np.sin(cdelta) * np.sin(self._theta.value) +
-                                      np.cos(cdelta) * np.cos(self._theta.value) *
-                                      np.cos(calpha - self._phi.value)))
+        psi = self._psi.value
+        phi = self._phi.value
+        theta = self._theta.value
+
+        nphi = np.rad2deg(
+            psi +
+            np.arctan2(-np.cos(cdelta) * np.sin(calpha - phi),
+                       np.sin(cdelta) * np.cos(theta) -
+                       np.cos(cdelta) * np.sin(theta) * np.cos(calpha - phi)))
+
+        ntheta = np.rad2deg(
+            np.arcsin(np.sin(cdelta) * np.sin(theta) +
+                      np.cos(cdelta) * np.cos(theta) * np.cos(calpha - phi)))
+
         ind = nphi > 180
         if isinstance(ind, np.ndarray):
             nphi[ind] -= 360
         else:
             if ind:
                 nphi -= 360
+
         return nphi, ntheta
 
 
 class MatrixRotation2D(Model):
-
     """
     Perform a clockwise 2D matrix rotation given either an angle or a
     rotation matrix.
@@ -177,6 +194,7 @@ class MatrixRotation2D(Model):
     angle : float
         angle of rotation in deg
     """
+
     def __init__(self, rotmat=None, angle=None):
         if rotmat is None and angle is None:
             raise InputParameterError("Expected at least one argument - "
@@ -217,7 +235,7 @@ class MatrixRotation2D(Model):
 
     def _compute_matrix(self, angle):
         return np.array([[math.cos(angle), math.sin(angle)],
-                        [-math.sin(angle), math.cos(angle)]],
+                         [-math.sin(angle), math.cos(angle)]],
                         dtype=np.float64)
 
     def inverse(self):
@@ -231,6 +249,7 @@ class MatrixRotation2D(Model):
         x, y : 1D array or list
               x and y coordinates
         """
+
         x = np.asarray(x)
         y = np.asarray(y)
         assert x.shape == y.shape

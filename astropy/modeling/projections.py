@@ -1,26 +1,31 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Implements sky projections defined in WCS Paper II [1]_
 
-All angles are set and reported in deg but internally the code works and
-keeps all angles in radians. For this to work, the mechanism of setting Model's
-properties is bypassed by passing an empty parlist to `~astropy.modeling.core.Model.__init__`.
-This also has the effect of not creating Projection.parameters.
-Projection.param_names is created within the Projection class.
-For an example see the AZP classes.
+All angles are set and reported in deg but internally the code works and keeps
+all angles in radians. For this to work, the mechanism of setting Model's
+properties is bypassed by passing an empty parlist to
+`~astropy.modeling.core.Model.__init__`.  This also has the effect of not
+creating Projection.parameters.  Projection.param_names is created within the
+Projection class.  For an example see the AZP classes.
 
 References
 ----------
 .. [1] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
-
 """
+
 from __future__ import division
+
+import numpy as np
+
 from .core import Model
 from . import parameters
-import numpy as np
+
 
 projcodes = ['TAN', 'AZP', 'SZP', 'STG', 'SIN', 'ARC', 'ZPN', 'ZEA', 'AIR',
                     'CYP', 'CEA', 'MER']
+
 
 __all__ = ['Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
            'Pix2Sky_CEA', 'Sky2Pix_CEA', 'Pix2Sky_CYP', 'Sky2Pix_CYP',
@@ -30,7 +35,6 @@ __all__ = ['Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
 
 
 class Projection(Model):
-
     """
     Base class for all sky projections.
 
@@ -39,6 +43,7 @@ class Projection(Model):
     param_names : list of strings
         parameter names
     """
+
     def __init__(self, param_names):
         super(Projection, self).__init__(param_names, n_inputs=2, n_outputs=2)
         self._pdim = 1
@@ -60,7 +65,6 @@ class Projection(Model):
 
 
 class Zenithal(Projection):
-
     """
     Base class for all Zenithal projections.
 
@@ -69,6 +73,7 @@ class Zenithal(Projection):
     param_names : list of strings
         parameter names
     """
+
     def __init__(self, param_names):
         self.phi0 = 0.
         self.theta0 = 90.
@@ -83,7 +88,6 @@ class Zenithal(Projection):
 
 
 class Pix2Sky_AZP(Zenithal):
-
     """
     AZP : Zenital perspective projection - pixel to sky.
 
@@ -94,8 +98,8 @@ class Pix2Sky_AZP(Zenithal):
         in spherical radii, default is 0.
     gamma : float
         look angle in deg, default is 0.
-
     """
+
     param_names = ['mu', 'gamma']
 
     def __init__(self, mu=0., gamma=0.):
@@ -127,7 +131,7 @@ class Pix2Sky_AZP(Zenithal):
 
     def check_mu(self, val):
         if val == -1:
-            raise ValueError("AZP projection is not defined for mu = -1")
+            raise ValueError("AZP projection is not defined for mu=-1")
 
     def inverse(self):
         return Sky2Pix_AZP(self.mu, self.gamma)
@@ -161,7 +165,6 @@ class Pix2Sky_AZP(Zenithal):
 
 
 class Sky2Pix_AZP(Zenithal):
-
     """
     AZP : Zenital perspective projection - sky to pixel.
 
@@ -172,8 +175,8 @@ class Sky2Pix_AZP(Zenithal):
         in spherical radii, default is 0.
     gamma : float
         look angle in deg, default is 0.
-
     """
+
     param_names = ['mu', 'gamma']
 
     def __init__(self, mu=0., gamma=0.):
@@ -203,7 +206,7 @@ class Sky2Pix_AZP(Zenithal):
 
     def check_mu(self, val):
         if val == -1:
-            raise ValueError("AZP projection is not defined for mu = -1")
+            raise ValueError("AZP projection is not defined for mu=-1")
 
     def inverse(self):
         return Pix2Sky_AZP(self.mu, self.gamma)
@@ -225,11 +228,10 @@ class Sky2Pix_AZP(Zenithal):
 
 
 class Pix2Sky_TAN(Zenithal):
-
     """
     TAN : Gnomonic projection - pixel to sky.
-
     """
+
     def __init__(self):
         super(Pix2Sky_TAN, self).__init__(param_names=[])
 
@@ -249,11 +251,10 @@ class Pix2Sky_TAN(Zenithal):
 
 
 class Sky2Pix_TAN(Zenithal):
-
     """
     TAN : Gnomonic Projection - sky to pixel.
-
     """
+
     def __init__(self):
         super(Sky2Pix_TAN, self).__init__(param_names=[])
 
@@ -273,11 +274,10 @@ class Sky2Pix_TAN(Zenithal):
 
 
 class Pix2Sky_STG(Zenithal):
-
     """
     STG : Stereographic Projection - pixel to sky.
-
     """
+
     def __init__(self):
         super(Pix2Sky_STG, self).__init__(param_names=[])
 
@@ -297,11 +297,10 @@ class Pix2Sky_STG(Zenithal):
 
 
 class Sky2Pix_STG(Zenithal):
-
     """
     STG : Stereographic Projection - sky to pixel.
-
     """
+
     def __init__(self):
         super(Sky2Pix_STG, self).__init__(param_names=[])
 
@@ -321,11 +320,10 @@ class Sky2Pix_STG(Zenithal):
 
 
 class Pix2Sky_SIN(Zenithal):
-
     """
     SIN : Slant orthographic projection - pixel to sky.
-
     """
+
     def __init__(self):
         super(Pix2Sky_SIN, self).__init__([])
 
@@ -345,11 +343,10 @@ class Pix2Sky_SIN(Zenithal):
 
 
 class Sky2Pix_SIN(Zenithal):
-
     """
     SIN : Slant othographic projection - sky to pixel.
-
     """
+
     def __init__(self):
         super(Sky2Pix_SIN, self).__init__([])
 
@@ -369,11 +366,10 @@ class Sky2Pix_SIN(Zenithal):
 
 
 class Cylindrical(Projection):
-
     """
     Base class for Cylindrical projections.
-
     """
+
     # TODO: define param_names
     def __init__(self, param_names):
         self.phi0 = 0.0
@@ -388,11 +384,10 @@ class Cylindrical(Projection):
 
 
 class Pix2Sky_CYP(Cylindrical):
-
     """
     CYP : Cylindrical perspective - pixel to sky.
-
     """
+
     param_names = ['mu', 'lam']
 
     def __init__(self, mu, lam):
@@ -443,11 +438,10 @@ class Pix2Sky_CYP(Cylindrical):
 
 
 class Sky2Pix_CYP(Cylindrical):
-
     """
     CYP : Cylindrical Perspective - sky to pixel.
-
     """
+
     param_names = ['mu', 'lam']
 
     def __init__(self, mu, lam):
@@ -496,11 +490,10 @@ class Sky2Pix_CYP(Cylindrical):
 
 
 class Pix2Sky_CEA(Cylindrical):
-
     """
     CEA : Cylindrical equal area projection - pixel to sky.
-
     """
+
     param_names = ['lam']
 
     def __init__(self, lam=1):
@@ -525,11 +518,10 @@ class Pix2Sky_CEA(Cylindrical):
 
 
 class Sky2Pix_CEA(Cylindrical):
-
     """
     CEA: Cylindrical equal area projection - sky to pixel.
-
     """
+
     param_names = ['lam']
 
     def __init__(self, lam=1):
@@ -547,11 +539,10 @@ class Sky2Pix_CEA(Cylindrical):
 
 
 class Pix2Sky_CAR(Cylindrical):
-
     """
     CAR: Plate carree projection - pixel to sky.
-
     """
+
     def __init__(self):
         super(Pix2Sky_CAR, self).__init__([])
 
@@ -565,11 +556,10 @@ class Pix2Sky_CAR(Cylindrical):
 
 
 class Sky2Pix_CAR(Cylindrical):
-
     """
     CAR: Plate carree projection - sky to pixel.
-
     """
+
     def __init__(self):
         super(Sky2Pix_CAR, self).__init__([])
 
@@ -583,11 +573,10 @@ class Sky2Pix_CAR(Cylindrical):
 
 
 class Pix2Sky_MER(Cylindrical):
-
     """
     MER: Mercator - pixel to sky.
-
     """
+
     def __init__(self):
         super(Pix2Sky_MER, self).__init__([])
 
@@ -601,11 +590,10 @@ class Pix2Sky_MER(Cylindrical):
 
 
 class Sky2Pix_MER(Cylindrical):
-
     """
     MER: Mercator - sky to pixel.
-
     """
+
     def __init__(self):
         super(Sky2Pix_MER, self).__init__([])
 
