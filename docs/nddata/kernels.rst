@@ -110,6 +110,7 @@ We consider a small Gaussian shaped source in the middle and added noise.
 		
 	import numpy as np
 	import matplotlib.pyplot as plt
+	import matplotlib.colors as colors
 	
 	from astropy.nddata.convolution import *
 	from astropy.modeling.models import Gaussian2DModel
@@ -123,34 +124,35 @@ We consider a small Gaussian shaped source in the middle and added noise.
 	data = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
 	
 	# Setup kernels, including unity kernel for original image
-	kernels = [[[1]],
-	           Tophat2DKernel(11),
-	           Gaussian2DKernel(11),
-	           Box2DKernel(17),
-	           MexicanHat2DKernel(11),
-	           AiryDisk2DKernel(21)]
+	# Choose normalization for linear scale space for MexicanHat
 	
+	kernels = [TrapezoidDisk2DKernel(11, slope=0.2),
+			   Tophat2DKernel(11),
+			   Gaussian2DKernel(11),
+			   Box2DKernel(22),
+			   - 11 ** 2 * MexicanHat2DKernel(11),
+			   AiryDisk2DKernel(22)]
+
+	fig, axes = plt.subplots(nrows=2, ncols=3)
+		
 	# Plot kernels
-	axisNum = 0
-	for row in range(3):
-	    for col in range(2):
-	        axisNum += 1
-	        ax = plt.subplot(2, 3, axisNum)
-	        smoothed = convolve(data, kernels[axisNum - 1])
-	        plt.imshow(smoothed)
-	        title = kernels[axisNum - 1].__class__.__name__
-	        if axisNum == 1:
-	            title = 'Original'
-	        plt.title(title)
-	        plt.colorbar()
-	        ax.set_yticklabels([])
-	        ax.set_xticklabels([])
+	for kernel, ax in zip(kernels, axes.flat):
+		smoothed = convolve(data, kernel)
+		im = ax.imshow(smoothed, vmin=-0.01, vmax=0.15)
+		title = kernel.__class__.__name__
+		ax.set_title(title)
+		ax.set_yticklabels([])
+		ax.set_xticklabels([])
+			
+	cax = fig.add_axes([0.9, 0.1, 0.03, 0.8])
+	fig.colorbar(im, cax=cax)
+	plt.subplots_adjust(left=0.05, right=0.85, top=0.95, bottom=0.05)
 	plt.show()
 	
 
 The Gaussian kernel has better smoothing properties, compared to the Box and the Tophat. The Box filter is not isotropic
 and can produce artifact (The source appears rectangular). The Mexican-Hat filter is almost noise free, but produces a negative
-ring around the source. The best choice for the filter, strongly depends on the application.     
+ring around the source. The best choice for the filter strongly depends on the application. 
 
 
 Available Kernels
@@ -197,8 +199,8 @@ The kernel arrays can be renormalized explicitly by calling either the ``normali
 the ``normalize_kernel`` argument in the `~astropy.nddata.convolution.convolve.convolve` and 
 `~astropy.nddata.convolution.convolve.convolve_fft` functions. 
 
-For `~astropy.nddata.convolution.kernels.MexicanHat1DKernel` 
+Note that for `~astropy.nddata.convolution.kernels.MexicanHat1DKernel` 
 and `~astropy.nddata.convolution.kernels.MexicanHat2DKernel` there is :math:`\int_{-\infty}^{\infty} f(x) dx = 0`. 
-Instead they are normalized to a **peak value** of one. 
+
  
 	 
