@@ -52,12 +52,16 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     Returns
     -------
     result : `numpy.ndarray`
-        An array with the same dimensions and type as the input array,
-        convolved with kernel.
+        An array with the same dimensions and as the input array,
+        convolved with kernel.  The data type depends on the input
+        array type.  If array is a floating point type, then the
+        return array keeps the same data type, otherwise the type
+        is numpy.float.
 
     Notes
     -----
-    Masked arrays are not supported at this time.
+    Masked arrays are not supported at this time.  The convolution
+    is always done at numpy.float precision.
     '''
     from .boundary_none import (convolve1d_boundary_none,
                                 convolve2d_boundary_none,
@@ -75,89 +79,95 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
                                 convolve2d_boundary_wrap,
                                 convolve3d_boundary_wrap)
 
-    # Check that the arguemnts are lists or Numpy arrays
+    # The cython routines all need float type inputs (so, a particular
+    # bit size, endianness, etc.).  So we have to convert, which also
+    # has the effect of making copies so we don't modify the inputs.
+    # After this, the variables we work with will be array_internal, and
+    # kernel_internal.  However -- we do want to keep track of what type
+    # the input array was so we can cast the result to that at the end
+    # if it's a floating point type.  Don't bother with this for lists --
+    # just always push those as np.float.
+    # It is always necessary to make a copy of kernel (since it is modified),
+    # but, if we just so happen to be lucky enough to have the input array
+    # have exactly the desired type, we just alias to array_internal
     if isinstance(array, list):
-        array = np.array(array, dtype=float)
-    elif not isinstance(array, np.ndarray):
+        array_internal = np.array(array, dtype=np.float)
+        array_dtype = array_internal.dtype
+    elif isinstance(array, np.ndarray):
+        # Note this won't copy if it doesn't have to -- which is okay
+        # because none of what follows modifies array_internal.  However,
+        # only numpy > 1.7 has support for no-copy astype, so we use
+        # a try/except because astropy supports 1.5 and 1.6
+        array_dtype = array.dtype
+        try:
+            array_internal = array.astype(float, copy=False)
+        except TypeError:
+            array_internal = array.astype(float)
+    else:
         raise TypeError("array should be a list or a Numpy array")
     if isinstance(kernel, list):
-        kernel = np.array(kernel, dtype=float)
-    elif not isinstance(kernel, np.ndarray):
+        kernel_internal = np.array(kernel, dtype=float)
+    elif isinstance(kernel, np.ndarray):
+        # Note this always makes a copy, since we will be modifying it
+        kernel_internal = kernel.astype(float)
+    else:
         raise TypeError("kernel should be a list or a Numpy array")
 
     # Check that the number of dimensions is compatible
-    if array.ndim != kernel.ndim:
-        raise Exception('array and kernel have differing number of '
+    if array_internal.ndim != kernel_internal.ndim:
+        raise Exception('array and kernel have differing number of'
                         'dimensions')
-
-    # The .dtype.type attribute returs the datatype without the endian. We can
-    # use this to check that the arrays are 32- or 64-bit arrays
-    if array.dtype.kind == 'i':
-        array = array.astype(float)
-    elif array.dtype.kind != 'f':
-        raise TypeError('array should be an integer or a '
-                        'floating-point Numpy array')
-    if kernel.dtype.kind == 'i':
-        kernel = kernel.astype(float)
-    elif kernel.dtype.kind != 'f':
-        raise TypeError('kernel should be an integer or a '
-                        'floating-point Numpy array')
 
     # Because the Cython routines have to normalize the kernel on the fly, we
     # explicitly normalize the kernel here, and then scale the image at the
     # end if normalization was not requested.
-    kernel_sum = np.sum(kernel)
-    kernel /= kernel_sum
+    kernel_sum = kernel_internal.sum()
+    kernel_internal /= kernel_sum
 
-    # The cython routines are written for np.float, but the default endian
-    # depends on platform. For that reason, we first save the original
-    # array datatype, cast to np.float, then convert back
-    array_dtype = array.dtype
-
-    if array.ndim == 0:
+    if array_internal.ndim == 0:
         raise Exception("cannot convolve 0-dimensional arrays")
-    elif array.ndim == 1:
+    elif array_internal.ndim == 1:
         if boundary == 'extend':
-            result = convolve1d_boundary_extend(array.astype(np.float),
-                                                kernel.astype(np.float))
+            result = convolve1d_boundary_extend(array_internal,
+                                                kernel_internal)
         elif boundary == 'fill':
-            result = convolve1d_boundary_fill(array.astype(np.float),
-                                              kernel.astype(np.float),
+            result = convolve1d_boundary_fill(array_internal,
+                                              kernel_internal,
                                               float(fill_value))
         elif boundary == 'wrap':
-            result = convolve1d_boundary_wrap(array.astype(np.float),
-                                              kernel.astype(np.float))
+            result = convolve1d_boundary_wrap(array_internal,
+                                              kernel_internal)
         else:
-            result = convolve1d_boundary_none(array.astype(np.float),
-                                              kernel.astype(np.float))
+            result = convolve1d_boundary_none(array_internal,
+                                              kernel_internal)
     elif array.ndim == 2:
         if boundary == 'extend':
-            result = convolve2d_boundary_extend(array.astype(np.float),
-                                                kernel.astype(np.float))
+            result = convolve2d_boundary_extend(array_internal,
+                                                kernel_internal)
         elif boundary == 'fill':
-            result = convolve2d_boundary_fill(array.astype(np.float),
-                                              kernel.astype(np.float),
+            result = convolve2d_boundary_fill(array_internal,
+                                              kernel_internal,
                                               float(fill_value))
         elif boundary == 'wrap':
-            result = convolve2d_boundary_wrap(array.astype(np.float),
-                                              kernel.astype(np.float))
+            result = convolve2d_boundary_wrap(array_internal,
+                                              kernel_internal)
         else:
-            result = convolve2d_boundary_none(array.astype(np.float),
-                                              kernel.astype(np.float))
+            result = convolve2d_boundary_none(array_internal,
+                                              kernel_internal)
     elif array.ndim == 3:
         if boundary == 'extend':
-            result = convolve3d_boundary_extend(array.astype(np.float),
-                                                kernel.astype(np.float))
+            result = convolve3d_boundary_extend(array_internal,
+                                                kernel_internal)
         elif boundary == 'fill':
-            result = convolve3d_boundary_fill(array.astype(np.float),
-                                              kernel.astype(np.float),
+            result = convolve3d_boundary_fill(array_internal,
+                                              kernel_internal,
                                               float(fill_value))
         elif boundary == 'wrap':
-            result = convolve3d_boundary_wrap(array.astype(np.float),
-                                              kernel.astype(np.float))
+            result = convolve3d_boundary_wrap(array_internal,
+                                              kernel_internal)
         else:
-            result = convolve3d_boundary_none(array.astype(np.float),
-                                              kernel.astype(np.float))
+            result = convolve3d_boundary_none(array_internal,
+                                              kernel_internal)
     else:
         raise NotImplemented('convolve only supports 1, 2, and 3-dimensional '
                              'arrays at this time')
@@ -167,9 +177,15 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     if not normalize_kernel:
         result *= kernel_sum
 
-    # Cast back to original dtype and return
-    return result.astype(array_dtype)
-
+    # Try to preserve the input type if it's a floating point type
+    if array.dtype.kind == 'f':
+        # Avoid making another copy if possible
+        try:
+            return result.astype(array_dtype, copy=False)
+        except TypeError:
+            return result.astype(array_dtype)
+    else:
+        return result
 
 def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                  return_fft=False, fft_pad=True, psf_pad=False,
@@ -309,8 +325,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
 
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
-    # returned!
-    # Check that the arguments are lists or Numpy arrays
+    # returned! Note that this always makes a copy.
     array = np.asarray(array, dtype=np.complex)
     kernel = np.asarray(kernel, dtype=np.complex)
 

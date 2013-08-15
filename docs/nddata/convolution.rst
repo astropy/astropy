@@ -50,7 +50,7 @@ uses an FFT.  Thus, the former is better for small kernels, while the latter
 is much more efficient for larger kernels.
 
 
-The input images and kernels should be lists or Numpy arrays with either both 1, 2, or 3 dimensions (and the number of dimensions should be the same for the image and kernel). The result is a Numpy array with the same dimensions as the input image.
+The input images and kernels should be lists or Numpy arrays with either both 1, 2, or 3 dimensions (and the number of dimensions should be the same for the image and kernel). The result is a Numpy array with the same dimensions as the input image. The convolution is always done as floating point.
 
 The ``convolve`` function takes an optional ``boundary=`` argument describing how to perform the convolution at the edge of the array. The values for ``boundary`` can be:
 
