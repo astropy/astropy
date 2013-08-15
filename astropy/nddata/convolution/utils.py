@@ -88,9 +88,10 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
+            * 'linear_interp'
                 Discretize model by linearly interpolating
                 between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -115,10 +116,10 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
         from astropy.nddata.convolution.utils import discretize_model
         gauss_1D = Gaussian1DModel(1 / (0.5 * np.sqrt(2 * np.pi)), 0, 0.5)
         y_center = discretize_model(gauss_1D, (-2, 3), mode='center')
-        y_corner = discretize_model(gauss_1D, (-2, 3), mode='corner')
+        y_corner = discretize_model(gauss_1D, (-2, 3), mode='linear_interp')
         y_oversample = discretize_model(gauss_1D, (-2, 3), mode='oversample')
         plt.plot(y_center, label='center sum = {0:3f}'.format(y_center.sum()))
-        plt.plot(y_corner, label='corner sum = {0:3f}'.format(y_corner.sum()))
+        plt.plot(y_corner, label='linear_interp sum = {0:3f}'.format(y_corner.sum()))
         plt.plot(y_oversample, label='oversample sum = {0:3f}'.format(y_oversample.sum()))
         plt.xlabel('pixels')
         plt.ylabel('value')
@@ -134,7 +135,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
             return discretize_center_1D(model, x_range)
         if isinstance(model, Parametric2DModel):
             return discretize_center_2D(model, x_range, y_range)
-    elif mode == "corner":
+    elif mode == "linear_interp":
         if isinstance(model, Parametric1DModel):
             return discretize_linear_1D(model, x_range)
         if isinstance(model, Parametric2DModel):

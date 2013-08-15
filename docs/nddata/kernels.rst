@@ -110,7 +110,7 @@ We consider a small Gaussian shaped source in the middle and added noise.
 		
 	import numpy as np
 	import matplotlib.pyplot as plt
-
+	
 	from astropy.nddata.convolution import *
 	from astropy.modeling.models import Gaussian2DModel
 
@@ -142,6 +142,7 @@ We consider a small Gaussian shaped source in the middle and added noise.
 	        if axisNum == 1:
 	            title = 'Original'
 	        plt.title(title)
+	        plt.colorbar()
 	        ax.set_yticklabels([])
 	        ax.set_xticklabels([])
 	plt.show()

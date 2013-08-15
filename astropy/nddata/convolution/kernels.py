@@ -34,9 +34,10 @@ class Gaussian1DKernel(Kernel1D):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -97,9 +98,10 @@ class Gaussian2DKernel(Kernel2D):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -159,9 +161,10 @@ class Box1DKernel(Kernel1D):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -221,9 +224,10 @@ class Box2DKernel(Kernel2D):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -289,9 +293,10 @@ class Tophat2DKernel(Kernel2D):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -350,9 +355,10 @@ class Ring2DKernel(Kernel2D):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -405,9 +411,10 @@ class Trapezoid1DKernel(Kernel1D):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -441,7 +448,7 @@ class Trapezoid1DKernel(Kernel1D):
 
     def __init__(self, width, slope=1., **kwargs):
         self._model = Trapezoid1DModel(1, 0, width, slope)
-        self._default_size =  2 * (width / 2 + 1. / slope) + 1 
+        self._default_size = 2 * (width / 2 + 1. / slope) + 1 
         super(Trapezoid1DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()
@@ -462,9 +469,10 @@ class TrapezoidDisk2DKernel(Kernel2D):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -525,9 +533,10 @@ class MexicanHat1DKernel(Kernel1D):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -591,9 +600,10 @@ class MexicanHat2DKernel(Kernel2D):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -657,9 +667,10 @@ class AiryDisk2DKernel(Kernel2D):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -713,9 +724,10 @@ class Model1DKernel(Kernel1D):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
@@ -775,9 +787,10 @@ class Model2DKernel(Kernel2D):
             * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
+                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.

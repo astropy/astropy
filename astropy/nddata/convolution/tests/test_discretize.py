@@ -17,7 +17,7 @@ except ImportError:
     HAS_SCIPY = False
 
 
-modes = ['center', 'corner', 'oversample']
+modes = ['center', 'linear_interp', 'oversample']
 test_models_1D = [Gaussian1DModel, Box1DModel, MexicanHat1DModel, Trapezoid1DModel]
 test_models_2D = [Gaussian2DModel, Box2DModel, MexicanHat2DModel]
 
