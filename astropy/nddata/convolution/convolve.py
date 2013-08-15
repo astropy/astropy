@@ -89,10 +89,12 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     # It is always necessary to make a copy of kernel (since it is modified),
     # but, if we just so happen to be lucky enough to have the input array
     # have exactly the desired type, we just alias to array_internal
-    # Check that the arguments are lists or Numpy arrays
-    # Check if kernel is kernel instance 
+
+    # Check if kernel is kernel instance
     if isinstance(kernel, Kernel):
         kernel = kernel.array
+
+    # Check that the arguments are lists or Numpy arrays
     if isinstance(array, list):
         array_internal = np.array(array, dtype=np.float)
         array_dtype = array_internal.dtype
@@ -120,19 +122,6 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     if array_internal.ndim != kernel_internal.ndim:
         raise Exception('array and kernel have differing number of'
                         'dimensions')
-
-    # The .dtype.type attribute returns the datatype without the endian. We can
-    # use this to check that the arrays are 32- or 64-bit arrays
-    if array.dtype.kind == 'i':
-        array = array.astype(float)
-    elif array.dtype.kind != 'f':
-        raise TypeError('array should be an integer or a '
-                        'floating-point Numpy array')
-    if kernel.dtype.kind == 'i':
-        kernel = kernel.astype(float)
-    elif kernel.dtype.kind != 'f':
-        raise TypeError('kernel should be an integer or a '
-                        'floating-point Numpy array')
 
     # Because the Cython routines have to normalize the kernel on the fly, we
     # explicitly normalize the kernel here, and then scale the image at the
