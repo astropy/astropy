@@ -588,8 +588,7 @@ class RA(Angle):
         if hasattr(lst, 'mjd'):
             lst = Angle(np.remainder(lst.mjd, 1), unit=u.hour)
 
-        return Angle(
-            np.mod(lst.radian - self.radian, 2 * np.pi) , unit=u.radian)
+        return np.mod(lst - self, 24. * u.hourangle)
 
     def lst(self, hour_angle):
         """
@@ -606,8 +605,7 @@ class RA(Angle):
         lst : `~astropy.coordinates.angle.Angle`
             The local siderial time as an angle.
         """
-        return Angle(
-            np.mod(hour_angle.radian + self.radian, 2 * np.pi), unit=u.radian)
+        return np.mod(hour_angle + self, 24 * u.hourangle)
 
 
 class Dec(Angle):
