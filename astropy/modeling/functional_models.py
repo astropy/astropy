@@ -843,7 +843,7 @@ class TrapezoidDisk2DModel(Parametric2DModel):
         """
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
         range_1 = r <= R_0
-        range_2 = np.logical_and(r >= R_0,  r <= R_0 + amplitude / slope)
+        range_2 = np.logical_and(r > R_0,  r <= R_0 + amplitude / slope)
         val_1 = amplitude
         val_2 = amplitude + slope * (R_0 - r)
         return np.select([range_1, range_2], [val_1, val_2])
