@@ -435,16 +435,16 @@ class Trapezoid1DKernel(Kernel1D):
         plt.xlabel('pixels')
         plt.ylabel('amplitude')
         plt.xlim(-1, 28)
-        plt.ylim(0, 1.1)
         plt.show()
     """
     _weighted = True
 
     def __init__(self, width, slope=1., **kwargs):
         self._model = Trapezoid1DModel(1, 0, width, slope)
-        self._default_size = width + 2. / slope
+        self._default_size =  2 * (width / 2 + 1. / slope) + 1 
         super(Trapezoid1DKernel, self).__init__(**kwargs)
         self._truncation = 0
+        self.normalize()
 
 
 class TrapezoidDisk2DKernel(Kernel2D):
@@ -476,7 +476,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
 
     See Also
     --------
-    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
+    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
     TrapezoidDisk2DKernel, AiryDisk2DKernel
 
     Examples
@@ -498,11 +498,12 @@ class TrapezoidDisk2DKernel(Kernel2D):
     """
     _weighted = True
 
-    def __init__(self, width, slope=1., **kwargs):
-        self._model = TrapezoidDisk2DModel(1, 0, 0, width, slope)
-        self._default_size = 2 * (width + 1. / slope) - 1
+    def __init__(self, radius, slope=1., **kwargs):
+        self._model = TrapezoidDisk2DModel(1, 0, 0, radius, slope)
+        self._default_size = 2 * (radius + 1. / slope) - 1
         super(TrapezoidDisk2DKernel, self).__init__(**kwargs)
         self._truncation = 0
+        self.normalize()
 
 
 class MexicanHat1DKernel(Kernel1D):
@@ -561,7 +562,7 @@ class MexicanHat1DKernel(Kernel1D):
 
     def __init__(self, width, **kwargs):
         self._default_size = 8 * width
-        self._model = MexicanHat1DModel(1, 0, width)
+        self._model = MexicanHat1DModel(-1. / (np.sqrt(2 * np.pi) * width ** 3), 0, width)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             super(MexicanHat1DKernel, self).__init__(**kwargs)
@@ -628,7 +629,7 @@ class MexicanHat2DKernel(Kernel2D):
 
     def __init__(self, width, **kwargs):
         self._default_size = 8 * width
-        self._model = MexicanHat2DModel(1, 0, 0, width)
+        self._model = MexicanHat2DModel(-1. / (np.pi * width ** 4), 0, 0, width)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             super(MexicanHat2DKernel, self).__init__(**kwargs)
