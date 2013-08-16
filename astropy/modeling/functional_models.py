@@ -209,7 +209,7 @@ class ShiftModel(Model):
     """
     param_names = ['offsets']
 
-    def __init__(self, offsets):
+    def __init__(self, offsets, param_dim=1):
         if not isinstance(offsets, collections.Sequence):
             param_dim = 1
         else:
@@ -234,7 +234,7 @@ class ShiftModel(Model):
             input
         """
         x, fmt = _convert_input(x, self.param_dim)
-        result = x + self.offsets
+        result = self._offsets +x
         return _convert_output(result, fmt)
 
 
@@ -252,7 +252,7 @@ class ScaleModel(Model):
     """
     param_names = ['factors']
 
-    def __init__(self, factors):
+    def __init__(self, factors, param_dim=1):
         if not isinstance(factors, collections.Sequence):
             param_dim = 1
         else:
@@ -277,7 +277,7 @@ class ScaleModel(Model):
             input
         """
         x, fmt = _convert_input(x, self.param_dim)
-        result = x * self.factors
+        result = self._factors * x
         return _convert_output(result, fmt)
 
 
