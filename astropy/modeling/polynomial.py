@@ -8,6 +8,8 @@ from __future__ import division
 
 import collections
 
+from textwrap import dedent
+
 import numpy as np
 
 from . import parameters
@@ -16,6 +18,7 @@ from .core import (ParametricModel, Model, SerialCompositeModel,
 from .functional_models import ShiftModel
 from .utils import poly_map_domain, comb
 from ..logger import log
+from ..utils import indent
 
 
 __all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'InverseSIPModel',
@@ -1000,11 +1003,11 @@ class _SIP1D(Model):
               self.__class__.__name__,
               self.order,
               self.coeff_prefix,
-              self._param_dim,
-              "\n                   ".join(i + ':  ' + str(getattr(self, '_'+i)) for
-                                           i in self.param_names)
-        )
-        return fmt
+              self.param_dim,
+              indent('\n'.join('{0}: {1}'.format(n, getattr(self, '_' + n))
+                     for n in self.param_names), width=19))
+
+        return dedent(fmt[1:])
 
     def __str__(self):
         fmt = """
@@ -1019,10 +1022,10 @@ class _SIP1D(Model):
               self.order,
               self.coeff_prefix,
               self.param_dim,
-              "\n                   ".join(i + ':  ' + str(getattr(self, '_'+i)) for
-                                           i in self.param_names)
-        )
-        return fmt
+              indent('\n'.join('{0}: {1}'.format(n, getattr(self, '_' + n))
+                     for n in self.param_names), width=19))
+
+        return dedent(fmt[1:])
 
     def get_numcoeff(self, ndim):
         """Return the number of coefficients in one parset"""

@@ -45,11 +45,13 @@ from __future__ import division
 import abc
 
 from itertools import izip
+from textwrap import dedent
 
 import numpy as np
 
 from . import parameters
 from .utils import InputParameterError
+from ..utils import indent
 
 
 __all__ = ['Model', 'ParametricModel', 'ParallelCompositeModel', 'SerialCompositeModel',
@@ -237,10 +239,10 @@ class Model(object):
 
     def __repr__(self):
         fmt = "{0}(".format(self.__class__.__name__)
-        for i in range(len(self.param_names)):
+        for name in self.param_names:
             fmt1 = """
             {0}={1},
-            """.format(self.param_names[i], getattr(self, self.param_names[i]))
+            """.format(name, getattr(self, name))
             fmt += fmt1
         fmt += ")"
 
@@ -250,16 +252,15 @@ class Model(object):
         fmt = """
         Model: {0}
         Parameter sets: {1}
-        Parameters:
-                   {2}
+        Parameters: \n{2}
         """.format(
               self.__class__.__name__,
               self.param_dim,
-              "\n                   ".join(i + ': ' +
-                                           str(self.__getattribute__(i)) for i in self.param_names)
-        )
+              indent('\n'.join('{0}: {1}'.format(n, getattr(self, n))
+                               for n in self.param_names),
+                     width=19))
 
-        return fmt
+        return dedent(fmt[1:])
 
     @property
     def param_sets(self):
@@ -525,23 +526,23 @@ class ParametricModel(Model):
             degree = str(self.deg)
         except AttributeError:
             degree = 'N/A'
+
         fmt = """
         Model: {0}
         n_inputs:   {1}
         Degree: {2}
         Parameter sets: {3}
-        Parameters:
-                   {4}
+        Parameters: \n{4}
         """.format(
               self.__class__.__name__,
               self.n_inputs,
               degree,
               self.param_dim,
-              "\n                   ".join(i + ': ' +
-                                           str(self.__getattribute__(i)) for i in self.param_names)
-        )
+              indent('\n'.join('{0}: {1}'.format(n, getattr(self, n))
+                     for n in self.param_names),
+                     width=19))
 
-        return fmt
+        return dedent(fmt[1:])
 
     @property
     def parameters(self):

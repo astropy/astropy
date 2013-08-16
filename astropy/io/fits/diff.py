@@ -30,11 +30,12 @@ import numpy as np
 from numpy import char
 
 from ... import __version__
+from ...utils import indent
 from .card import Card, BLANK_CARD
 from .header import Header
 from .hdu.hdulist import fitsopen, HDUList
 from .hdu.table import _TableLikeHDU
-from .util import indent, u
+from .util import u
 
 
 __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
