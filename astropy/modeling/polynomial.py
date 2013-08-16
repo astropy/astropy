@@ -274,7 +274,7 @@ class OrthoPolynomialBase(ParametricModel):
         return alpha
 
     def imhorner(self, x, y, coeff):
-        _coeff = list(coeff[:])
+        _coeff = list(coeff)
         _coeff.extend([0, 0, 0])
         alpha = self._alpha()
         r0 = _coeff[0]

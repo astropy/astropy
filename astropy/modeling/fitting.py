@@ -779,9 +779,9 @@ class JointFitter(object):
             args is always passed as a tuple from optimize.leastsq
         """
 
-        lstsqargs = list(args[:])
+        lstsqargs = list(args)
         fitted = []
-        fitparams = list(fps[:])
+        fitparams = list(fps)
         numjp = len(self.initvals)
         # make a separate list of the joint fitted parameters
         jointfitparams = fitparams[:numjp]
