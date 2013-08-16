@@ -62,7 +62,7 @@ class TestICheb2D(object):
         self.cheb2 = models.Chebyshev2DModel(2, 2)
         self.fitter = fitting.LinearLSQFitter(self.cheb2)
 
-    def test_default_pars(self):
+    def test_default_params(self):
         self.cheb2.parameters = np.arange(9)
         p = np.array([1344., 1772., 400., 1860., 2448., 552., 432., 568.,
                       128.])
@@ -105,8 +105,8 @@ class TestJointFitter(object):
         """
         Tests that the amplitude of the two models is the same
         """
-        utils.assert_allclose(self.jf.fitpars[0], self.g1.parameters[0])
-        utils.assert_allclose(self.jf.fitpars[0], self.g2.parameters[0])
+        utils.assert_allclose(self.jf.fitparams[0], self.g1.parameters[0])
+        utils.assert_allclose(self.jf.fitparams[0], self.g2.parameters[0])
 
     def test_joint_fitter(self):
         """
@@ -122,7 +122,7 @@ class TestJointFitter(object):
                                                                   x1) - y1, compmodel(p[0], p[3:], x2) - y2])
         coeff, _ = optimize.leastsq(errf, p, args=(self.x, self.ny1, self.x,
                                                    self.ny2))
-        utils.assert_allclose(coeff, self.jf.fitpars, rtol=10 ** (-2))
+        utils.assert_allclose(coeff, self.jf.fitparams, rtol=10 ** (-2))
 
 
 class TestLinearLSQFitter(object):

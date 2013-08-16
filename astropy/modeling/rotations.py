@@ -203,7 +203,8 @@ class MatrixRotation2D(Model):
             self._validate_rotmat(rotmat)
             self._rotmat = Parameter('rotmat', np.asarray(rotmat) + 0.,
                                      self, 1)
-            super(MatrixRotation2D, self).__init__(param_names=['rotmat'], n_inputs=1,
+            super(MatrixRotation2D, self).__init__(param_names=['rotmat'],
+                                                   n_inputs=1,
                                                    n_outputs=1, param_dim=1)
         else:
             self._validate_angle(angle)

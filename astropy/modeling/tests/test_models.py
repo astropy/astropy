@@ -156,7 +156,7 @@ def test_custom_model(amplitude=4, frequency=1):
     data = sin_model(x) + np.random.rand(len(x)) - 0.5
     fitter = fitting.NonLinearLSQFitter(sin_model)
     fitter(x, data)
-    assert np.all((fitter.fitpars - np.array([amplitude, frequency])) < 0.001)
+    assert np.all((fitter.fitparams - np.array([amplitude, frequency])) < 0.001)
 
 
 class TestParametricModels(object):
@@ -226,9 +226,13 @@ class TestParametricModels(object):
         data = (1 + relative_noise_amplitude * np.random.randn(len(x))) * model(x)
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(x, data)
+
         # Only check parameters that were free in the fit
-        fitted_parameters = [val for (val, fixed) in zip(parameters, fitter.fixed) if not fixed]
-        utils.assert_allclose(fitter.fitpars, fitted_parameters, atol=self.fit_error)
+        fitted_parameters = [val
+                             for (val, fixed) in zip(parameters, fitter.fixed)
+                             if not fixed]
+        utils.assert_allclose(fitter.fitparams, fitted_parameters,
+                              atol=self.fit_error)
 
     @pytest.mark.parametrize(('model_class'), models_2D.keys())
     def test_input2D(self, model_class):
@@ -282,7 +286,7 @@ class TestParametricModels(object):
         data = model(xv, yv) + 0.1 * parameters[0] * (np.random.rand(self.N, self.N) - 0.5)
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(xv, yv, data)
-        assert np.all((np.abs(fitter.fitpars - np.array(parameters))
+        assert np.all((np.abs(fitter.fitparams - np.array(parameters))
                         < self.fit_error))
 
     @pytest.mark.skipif('not HAS_SCIPY')
@@ -297,7 +301,7 @@ class TestParametricModels(object):
 
         if model_class.deriv is None:
             pytest.skip("Derivative function is not defined for model.")
-        if issubclass(model_class, (models.PolynomialModel, models.OrthogPolyBase)):
+        if issubclass(model_class, (models.PolynomialModel, models.OrthoPolynomialBase)):
             pytest.skip("Skip testing derivative of polynomials.")
 
         if "log_fit" in models_2D[model_class]:
@@ -340,7 +344,7 @@ class TestParametricModels(object):
 
         if model_class.deriv is None:
             pytest.skip("Derivative function is not defined for model.")
-        if issubclass(model_class, (models.PolynomialModel, models.OrthogPolyBase)):
+        if issubclass(model_class, (models.PolynomialModel, models.OrthoPolynomialBase)):
             pytest.skip("Skip testing derivative of polynomials.")
 
         if "log_fit" in models_1D[model_class]:
@@ -372,7 +376,7 @@ def create_model(model_class, parameters, use_constraints=True):
     if issubclass(model_class, Parametric1DModel):
         if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
             pytest.skip("SciPy not found")
-        if use_constraints:   
+        if use_constraints:
             if 'constraints' in models_1D[model_class]:
                 constraints = models_1D[model_class]['constraints']
         return model_class(*parameters, **constraints)
@@ -387,7 +391,8 @@ def create_model(model_class, parameters, use_constraints=True):
 
     elif issubclass(model_class, PolynomialModel):
         return model_class(**parameters)
-    
+
+
 def test_ShiftModel():
     # Shift by a scalar
     m = models.ShiftModel(42)
@@ -398,6 +403,7 @@ def test_ShiftModel():
     m = models.ShiftModel([42, 43])
     utils.assert_equal(m(0), [42, 43])
     utils.assert_equal(m([1, 2]), [[ 43,  44], [ 44,  45]])
+
 
 def test_ScaleModel():
     # Scale by a scalar

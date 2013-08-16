@@ -67,8 +67,8 @@ class TestNonLinearConstraints(object):
         errf = lambda p, x1, y1, x2, y2: np.ravel(
             np.r_[compmodel(p[0], p[1:3], x1) - y1,
                   compmodel(p[0], p[3:], x2) - y2])
-        fitpars, _ = optimize.leastsq(errf, p, args=(x, ny1, x, ny2))
-        utils.assert_allclose(jf.fitpars, fitpars, rtol=10 ** (-5))
+        fitparams, _ = optimize.leastsq(errf, p, args=(x, ny1, x, ny2))
+        utils.assert_allclose(jf.fitparams, fitparams, rtol=10 ** (-5))
         utils.assert_allclose(g1.amplitude.value, g2.amplitude.value)
 
     @pytest.mark.skipif('not HAS_SCIPY')

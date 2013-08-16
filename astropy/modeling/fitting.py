@@ -104,7 +104,7 @@ class Fitter(object):
         self.fixed = []
         self.tied = []
         self._set_constraints()
-        self._fitpars = self._model_to_fit_pars()
+        self._fitparams = self._model_to_fit_params()
         self._validate_constraints()
         self._weights = None
 
@@ -134,16 +134,16 @@ class Fitter(object):
         self._model = val
 
     @property
-    def fitpars(self):
-        return self._fitpars
+    def fitparams(self):
+        return self._fitparams
 
-    @fitpars.setter
-    def fitpars(self, fps):
+    @fitparams.setter
+    def fitparams(self, fps):
         """
-        Update ``.model.parameters`` from fitpars in the presence of
+        Update ``.model.parameters`` from fitparams in the presence of
         constraints.
 
-        This is the opposite of ``_model_to_fit_pars``.
+        This is the opposite of ``_model_to_fit_params``.
 
         Parameters
         ----------
@@ -152,14 +152,14 @@ class Fitter(object):
             fitting algorithm
         """
 
-        self._fitpars[:] = fps
+        self._fitparams[:] = fps
         if any(self.fixed) or any(self.tied):
-            fitpars = list(fps[:])
+            fitparams = list(fps[:])
             mpars = []
             for i, name in enumerate(self.model.param_names):
                 if self.fixed[i] is True:
                     par = getattr(self.model, name)
-                    if len(par.parshape) == 0:
+                    if len(par.shape) == 0:
                         mpars.extend([par.value])
                     else:
                         mpars.extend(par.value)
@@ -172,15 +172,15 @@ class Fitter(object):
                 else:
                     sl = self.model._parameters.parinfo[name][0]
                     plen = sl.stop - sl.start
-                    mpars.extend(fitpars[:plen])
-                    del fitpars[:plen]
+                    mpars.extend(fitparams[:plen])
+                    del fitparams[:plen]
             self.model.parameters = mpars
         elif any([b != (-1E12, 1E12) for b in self.bounds]):
             self._set_bounds(fps)
         else:
             self.model.parameters[:] = fps
 
-    def _model_to_fit_pars(self):
+    def _model_to_fit_params(self):
         """
         Create a set of parameters to be fitted.
 
@@ -227,25 +227,30 @@ class Fitter(object):
         """
 
         if any(self.fixed) or any(self.tied):
-            pars = self.model._parameters
+            params = self.model._parameters
+
             if z is None:
-                fullderiv = np.array(self.model.deriv(x, *pars))
+                full_deriv = np.array(self.model.deriv(x, *params))
             else:
-                fullderiv = np.array(self.model.deriv(x, y, *pars))
+                full_deriv = np.array(self.model.deriv(x, y, *params))
+
             ind = range(len(self.model.param_names))
             fix_tie_ind = list(np.nonzero(self.fixed)[0])
             fix_tie_ind.extend(np.nonzero(self.tied)[0])
+
             for index in fix_tie_ind:
                 ind.remove(index)
-            res = np.empty((fullderiv.shape[0], fullderiv.shape[1] - len(ind)))
-            res = fullderiv[ind, :]
+
+            res = np.empty((full_deriv.shape[0],
+                            full_deriv.shape[1] - len(ind)))
+            res = full_deriv[ind, :]
             return [np.ravel(_) for _ in res]
         else:
-            pars = p[:]
+            params = p[:]
             if z is None:
-                return self.model.deriv(x, *pars)
+                return self.model.deriv(x, *params)
             else:
-                return [np.ravel(_) for _ in self.model.deriv(x, y, *pars)]
+                return [np.ravel(_) for _ in self.model.deriv(x, y, *params)]
 
     def _validate_constraints(self):
         fname = self.__class__.__name__
@@ -288,7 +293,7 @@ class Fitter(object):
 
     def _update_constraints(self):
         self._set_constraints()
-        self._fitpars = self._model_to_fit_pars()
+        self._fitparams = self._model_to_fit_params()
 
     @abc.abstractmethod
     def __call__(self):
@@ -328,10 +333,10 @@ class LinearLSQFitter(Fitter):
         self.fit_info = {'residuals': None,
                          'rank': None,
                          'singular_values': None,
-                         'pars': None
+                         'params': None
                          }
 
-    def _deriv_with_constraints(self, pars=None, x=None, y=None):
+    def _deriv_with_constraints(self, params=None, x=None, y=None):
         if y is None:
             d = self.model.deriv(x=x)
         else:
@@ -403,7 +408,7 @@ class LinearLSQFitter(Fitter):
         if len(farg) == 2:
             x, y = farg
             if y.ndim == 2:
-                assert y.shape[1] == self.model._parameters.param_dim, (
+                assert y.shape[1] == self.model._parameters.dim, (
                     "Number of data sets (Y array is expected to equal "
                     "the number of parameter sets")
             # map domain into window
@@ -448,7 +453,7 @@ class LinearLSQFitter(Fitter):
                 lhs *= weights[:, np.newaxis]
                 rhs *= weights
 
-        if not multiple and self.model._parameters.param_dim > 1:
+        if not multiple and self.model._parameters.dim > 1:
             raise ValueError("Attempting to fit a 1D data set to a model "
                              "with multiple parameter sets")
         if rcond is None:
@@ -466,12 +471,13 @@ class LinearLSQFitter(Fitter):
         # of several 1D arrays. Otherwise the model is 2D.
         # if y.n_inputs > self.model.n_inputs:
         if multiple:
-            self.model._parameters.param_dim = multiple
+            self.model._parameters.dim = multiple
         lacoef = (lacoef.T / scl).T
-        self.fit_info['pars'] = lacoef
+        self.fit_info['params'] = lacoef
         if rank != self.model._order:
-            warnings.warn("The fit may be poorly conditioned\n", AstropyUserWarning)
-        self.fitpars = lacoef.flatten()[:]
+            warnings.warn("The fit may be poorly conditioned\n",
+                          AstropyUserWarning)
+        self.fitparams = lacoef.flatten()[:]
 
 
 class NonLinearLSQFitter(Fitter):
@@ -507,17 +513,18 @@ class NonLinearLSQFitter(Fitter):
                           'consider using linear fitting methods.', AstropyUserWarning)
 
     def errorfunc(self, fps, *args):
-        self.fitpars = fps
+        self.fitparams = fps
         meas = args[-1]
         if self.weights is None:
             return np.ravel(self.model(*args[: -1]) - meas)
         else:
             return np.ravel(self.weights * (self.model(*args[: -1]) - meas))
 
-    def _set_bounds(self, fitpars):
+    def _set_bounds(self, fitparams):
         for c in self.model.bounds.values():
             if c != (-1E12, 1E12):
-                for name, par, b in zip(self.model.param_names, fitpars, self.bounds):
+                for name, par, b in zip(self.model.param_names, fitparams,
+                                        self.bounds):
                     par = max(par, b[0])
                     par = min(par, b[1])
                     setattr(self.model, name, par)
@@ -576,7 +583,7 @@ class NonLinearLSQFitter(Fitter):
         self._update_constraints()
         farg = _convert_input(x, y, z)
         self.weights = weights
-        if self.model._parameters.param_dim != 1:
+        if self.model._parameters.dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit one "
                              "data set at a time")
@@ -585,10 +592,11 @@ class NonLinearLSQFitter(Fitter):
         else:
             self.dfunc = self._wrap_deriv
 
-        self.fitpars, status, dinfo, mess, ierr = optimize.leastsq(
-            self.errorfunc, self.fitpars, args=farg, Dfun=self.dfunc,
+        self.fitparams, status, dinfo, mess, ierr = optimize.leastsq(
+            self.errorfunc, self.fitparams, args=farg, Dfun=self.dfunc,
             col_deriv=self.model.col_deriv, maxfev=maxiter, epsfcn=epsilon,
             full_output=True)
+
         self.fit_info.update(dinfo)
         self.fit_info['status'] = status
         self.fit_info['message'] = mess
@@ -647,7 +655,7 @@ class SLSQPFitter(Fitter):
         """
 
         meas = args[-1]
-        self.fitpars = fps
+        self.fitparams = fps
         res = self.model(*args[:-1]) - meas
 
         if self.weights is None:
@@ -655,13 +663,13 @@ class SLSQPFitter(Fitter):
         else:
             return np.sum(self.weights * res ** 2)
 
-    def _set_bounds(self, fitpars):
+    def _set_bounds(self, fitparams):
         """
         Set this as a dummy method because the SLSQP fitter
         handles bounds internally.
         """
-        self._fitpars[:] = fitpars
-        self.model.parameters = fitpars
+        self._fitparams[:] = fitparams
+        self.model.parameters = fitparams
 
     def __call__(self, x, y, z=None, weights=None, verblevel=0,
                  maxiter=MAXITER, epsilon=EPS):
@@ -694,18 +702,20 @@ class SLSQPFitter(Fitter):
         self._update_constraints()
         farg = _convert_input(x, y, z)
         self.weights = weights
-        if self.model._parameters.param_dim != 1:
+        if self.model._parameters.dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit "
                              "one data set at a time")
 
         p0 = self.model._parameters[:]
-        self.fitpars, final_func_val, numiter, exit_mode, mess = \
+
+        self.fitparams, final_func_val, numiter, exit_mode, mess = \
             optimize.fmin_slsqp(
                 self.errorfunc, p0, args=farg, disp=verblevel, full_output=1,
                 bounds=self.bounds, eqcons=self.model.eqcons,
                 ieqcons=self.model.ineqcons, iter=maxiter, acc=1.E-6,
                 epsilon=EPS)
+
         self.fit_info['final_func_val'] = final_func_val
         self.fit_info['numiter'] = numiter
         self.fit_info['exit_mode'] = exit_mode
@@ -737,27 +747,27 @@ class JointFitter(object):
     def __init__(self, models, jointparameters, initvals):
         self.models = list(models)
         self.initvals = list(initvals)
-        self.jointpars = jointparameters
+        self.jointparams = jointparameters
         self._verify_input()
-        for m in self.jointpars.keys():
-            m.set_joint_parameters(self.jointpars[m])
-        self.fitpars = self._model_to_fit_pars()
+        for m in self.jointparams.keys():
+            m.set_joint_parameters(self.jointparams[m])
+        self.fitparams = self._model_to_fit_params()
 
         # a list of model.n_inputs
         self.modeldims = [m.n_inputs for m in self.models]
         # sum all model dimensions
         self.ndim = np.sum(self.modeldims)
 
-    def _model_to_fit_pars(self):
-        fpars = []
-        fpars.extend(self.initvals)
+    def _model_to_fit_params(self):
+        fparams = []
+        fparams.extend(self.initvals)
         for model in self.models:
-            pars = model._parameters[:]
+            params = model._parameters[:]
             for pname in model.joint:
                 sl = model._parameters.parinfo[pname][0]
-                del pars[sl]
-            fpars.extend(pars)
-        return fpars
+                del params[sl]
+            fparams.extend(params)
+        return fparams
 
     def errorfunc(self, fps, *args):
         """
@@ -771,42 +781,42 @@ class JointFitter(object):
 
         lstsqargs = list(args[:])
         fitted = []
-        fitpars = list(fps[:])
+        fitparams = list(fps[:])
         numjp = len(self.initvals)
         # make a separate list of the joint fitted parameters
-        jointfitpars = fitpars[:numjp]
-        del fitpars[:numjp]
+        jointfitparams = fitparams[:numjp]
+        del fitparams[:numjp]
 
         for model in self.models:
             margs = lstsqargs[:model.n_inputs + 1]
             del lstsqargs[:model.n_inputs + 1]
             # separate each model separately fitted parameters
             numfp = len(model._parameters) - len(model.joint)
-            mfpars = fitpars[:numfp]
+            mfparams = fitparams[:numfp]
 
-            del fitpars[:numfp]
+            del fitparams[:numfp]
             # recreate the model parameters
-            mpars = []
+            mparams = []
             for pname in model.param_names:
                 if pname in model.joint:
                     index = model.joint.index(pname)
                     # should do this with slices in case the
                     # parameter is not a number
-                    mpars.extend([jointfitpars[index]])
+                    mparams.extend([jointfitparams[index]])
                 else:
                     sl = model._parameters.parinfo[pname][0]
                     plen = sl.stop - sl.start
-                    mpars.extend(mfpars[:plen])
-                    del mfpars[:plen]
-            modelfit = model.eval(margs[:-1], *mpars)
+                    mparams.extend(mfparams[:plen])
+                    del mfparams[:plen]
+            modelfit = model.eval(margs[:-1], *mparams)
             fitted.extend(modelfit - margs[-1])
         return np.ravel(fitted)
 
     def _verify_input(self):
         assert(len(self.models) > 1)
-        assert(len(self.jointpars.keys()) >= 2)
-        for j in self.jointpars.keys():
-            assert(len(self.jointpars[j]) == len(self.initvals))
+        assert(len(self.jointparams.keys()) >= 2)
+        for j in self.jointparams.keys():
+            assert(len(self.jointparams[j]) == len(self.initvals))
 
     def __call__(self, *args):
         """
@@ -817,32 +827,32 @@ class JointFitter(object):
         from scipy import optimize
 
         assert(len(args) == reduce(lambda x, y: x + 1 + y + 1, self.modeldims))
-        self.fitpars[:], _ = optimize.leastsq(self.errorfunc, self.fitpars,
+        self.fitparams[:], _ = optimize.leastsq(self.errorfunc, self.fitparams,
                                               args=args)
 
-        fpars = self.fitpars[:]
+        fparams = self.fitparams[:]
         numjp = len(self.initvals)
         # make a separate list of the joint fitted parameters
-        jointfitpars = fpars[:numjp]
-        del fpars[:numjp]
+        jointfitparams = fparams[:numjp]
+        del fparams[:numjp]
 
         for model in self.models:
             # extract each model's fitted parameters
             numfp = len(model._parameters) - len(model.joint)
-            mfpars = fpars[:numfp]
+            mfparams = fparams[:numfp]
 
-            del fpars[:numfp]
+            del fparams[:numfp]
             # recreate the model parameters
-            mpars = []
+            mparams = []
             for pname in model.param_names:
                 if pname in model.joint:
                     index = model.joint.index(pname)
                     # should do this with slices in case the parameter
                     # is not a number
-                    mpars.extend([jointfitpars[index]])
+                    mparams.extend([jointfitparams[index]])
                 else:
                     sl = model._parameters.parinfo[pname][0]
                     plen = sl.stop - sl.start
-                    mpars.extend(mfpars[:plen])
-                    del mfpars[:plen]
-            model._parameters[:] = np.array(mpars)
+                    mparams.extend(mfparams[:plen])
+                    del mfparams[:plen]
+            model._parameters[:] = np.array(mparams)

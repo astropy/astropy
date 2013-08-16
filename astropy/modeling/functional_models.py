@@ -145,6 +145,7 @@ class Gaussian2DModel(Parametric2DModel):
             x_stddev, y_stddev = np.sqrt(eig_vals)
             y_vec = eig_vecs[:, 0]
             theta = np.arctan2(y_vec[1], y_vec[0])
+
         super(Gaussian2DModel, self).__init__(locals())
 
     def eval(self, x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
@@ -219,9 +220,11 @@ class ShiftModel(Model):
             param_dim = 1
         else:
             param_dim = len(offsets)
-        self._offsets = parameters.Parameter('offsets', offsets, self, param_dim)
-        super(ShiftModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
-                                         param_dim=param_dim)
+        self._offsets = parameters.Parameter('offsets', offsets, self,
+                                             param_dim)
+
+        super(ShiftModel, self).__init__(self.param_names, n_inputs=1,
+                                         n_outputs=1, param_dim=param_dim)
 
     def inverse(self):
         if self.param_dim == 1:
@@ -261,9 +264,11 @@ class ScaleModel(Model):
             param_dim = 1
         else:
             param_dim = len(factors)
-        self._factors = parameters.Parameter('factors', factors, self, param_dim)
-        super(ScaleModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
-                                         param_dim=param_dim)
+        self._factors = parameters.Parameter('factors', factors, self,
+                                             param_dim)
+
+        super(ScaleModel, self).__init__(self.param_names, n_inputs=1,
+                                         n_outputs=1, param_dim=param_dim)
 
     def inverse(self):
         if self.param_dim == 1:

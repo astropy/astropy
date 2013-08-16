@@ -152,7 +152,7 @@ class _ParameterProperty(object):
         if isinstance(obj, ParametricModel):
             if not obj._parameters._changed:
                 par = parameters.Parameter(self.name, val, obj, obj.param_dim)
-                if oldpar is not None and oldpar.parshape != par.parshape:
+                if oldpar is not None and oldpar.shape != par.shape:
                     raise InputParameterError(
                         "Input parameter {0} does not "
                         "have the required shape".format(self.name))
@@ -160,11 +160,11 @@ class _ParameterProperty(object):
                     setattr(oldpar, "value", val)
                 obj._parameters = parameters.Parameters(obj,
                                                         obj.param_names,
-                                                        param_dim=obj.param_dim)
+                                                        dim=obj.param_dim)
             else:
                 setattr(oldpar, "value", val)
         else:
-            if oldpar is not None and oldpar.parshape != par.parshape:
+            if oldpar is not None and oldpar.shape != par.shape:
                 raise InputParameterError(
                     "Input parameter {0} does not "
                     "have the required shape".format(self.name))
@@ -272,8 +272,9 @@ class Model(object):
 
         parameters = [getattr(self, '_' + attr) for attr in self.param_names]
         values = [par.value for par in parameters]
-        shapes = [par.parshape for par in parameters]
-        lenshapes = np.asarray([len(p.parshape) for p in parameters])
+        shapes = [par.shape for par in parameters]
+        lenshapes = np.asarray([len(p.shape) for p in parameters])
+
         if (lenshapes > 1).any():
             if () in shapes:
                 psets = np.asarray(values, dtype=np.object)
@@ -432,7 +433,7 @@ class ParametricModel(Model):
                                               param_dim=param_dim)
         self.fittable = True
         self._parameters = parameters.Parameters(self, self.param_names,
-                                                 param_dim=param_dim)
+                                                 dim=param_dim)
         # Initialize the constraints for each parameter
         _bounds = {}.fromkeys(self.param_names, [None, None])
         if eqcons is None:
@@ -580,12 +581,12 @@ class ParametricModel(Model):
         else:
             raise TypeError("Parameters must be of type `list` or `Parameters`")
 
-    def set_joint_parameters(self, jpars):
+    def set_joint_parameters(self, jparams):
         """
         Used by the `JointFitter` class to store parameters which are
         considered common for several models and are to be fitted together.
         """
-        self.joint = jpars
+        self.joint = jparams
 
 
 class LabeledInput(dict):
@@ -957,7 +958,7 @@ class Parametric1DModel(ParametricModel):
             setattr(self, "_" + param_name,
                     parameters.Parameter(name=param_name,
                                          val=param_dict[param_name],
-                                         mclass=self, param_dim=param_dim))
+                                         model=self, dim=param_dim))
 
         super(Parametric1DModel, self).__init__(self.param_names, n_inputs=1,
                                                 n_outputs=1,
@@ -1005,7 +1006,7 @@ class Parametric2DModel(ParametricModel):
             setattr(self, "_" + param_name,
                     parameters.Parameter(name=param_name,
                                          val=param_dict[param_name],
-                                         mclass=self, param_dim=param_dim))
+                                         model=self, dim=param_dim))
 
         super(Parametric2DModel, self).__init__(self.param_names, n_inputs=2,
                                                 n_outputs=1,
