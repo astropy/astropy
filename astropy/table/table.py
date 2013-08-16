@@ -12,7 +12,8 @@ from numpy import ma
 from ..units import Unit
 from .. import log
 from ..utils import OrderedDict, isiterable, deprecated, deprecated_attribute
-from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol, _jsviewer
+from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
+from jsviewer import JSViewer
 from ..utils.console import color_print
 from ..config import ConfigurationItem
 from ..io import registry as io_registry
@@ -1337,9 +1338,9 @@ class Table(object):
         jsviewer : bool
             If True, prepends some javascript headers so that the table is
             rendered as a https://datatables.net data table.  This allows
-            in-browser searching & sorting
+            in-browser searching & sorting.  See `JSViewer`
         jskwargs : dict
-            Passed to the `_jsviewer` generator function
+            Passed to the `JSViewer` init
 
         Returns
         -------
@@ -1355,7 +1356,8 @@ class Table(object):
                                 tableid=id(self))
 
         if jsviewer:
-            js = _jsviewer(tableid=id(self), **jskwargs)
+            jsv = JSViewer(**jskwargs)
+            js = jsv.command_line(tableid=id(self))
         else:
             js = []
 
