@@ -6,7 +6,7 @@ import os
 data_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),'data')
 
 ipynb_js_script = """ 
-<script class="jsbin" src="{datapath}/jquery.dataTables.nightly.js"></script>
+<script class="jsbin" src="{data_path}/jquery.dataTables.nightly.js"></script>
 <script>
     function html_repr_full() {{
         var kernel = IPython.notebook.kernel;
@@ -14,17 +14,17 @@ ipynb_js_script = """
         var tablename = button.parents()[4].getElementsByClassName("input_area")[0].innerText;
         tablename = tablename.replace(/\s+/g, '');
         var command = "print ''.join(" + tablename + ".pformat(html=True, max_lines=1000, max_width=1000, tableid={tid}))";
-        console.log(command)
+        console.log(command);
         var result = kernel.execute(command, {{'output': callback}}, {{silent:false}});
         console.log(result);
-    }};
+    }}
     function callback(output_type, out) {{
         console.log(output_type);
         console.log(out);
         var button = $("#MakeTableBrowseable{tid}");
         button[0].parentNode.innerHTML = out.data;
         return out.data;
-    }};
+    }}
     function make_table_browseable() {{
         console.log("$('#table{tid}').dataTable()");
         $('#table{tid}').dataTable({{
@@ -33,11 +33,11 @@ ipynb_js_script = """
              "bJQueryUI": true,
              "sPaginationType": "full_numbers"
         }});
-    }};
+    }}
     function replace_table() {{
         html_repr_full();
         make_table_browseable();
-    }};
+    }}
 </script>
 <button id='MakeTableBrowseable{tid}' onclick="make_table_browseable()">Make Table Browseable</button>
 """
