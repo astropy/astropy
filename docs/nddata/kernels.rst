@@ -61,11 +61,12 @@ The following plot illustrates the results:
 	smoothed_data_box = convolve(data, box_kernel)
 
 	# Plot data and smoothed data
-	plt.plot(data, label='Original')
-	plt.plot(smoothed_data_gauss, label='Smoothed with Gaussian1DKernel')
-	plt.plot(smoothed_data_box, label='Smoothed with Box1DKernel')
+	plt.plot(x, data, label='Original')
+	plt.plot(x, smoothed_data_gauss, label='Smoothed with Gaussian1DKernel')
+	plt.plot(x, smoothed_data_box, label='Smoothed with Box1DKernel')
 	plt.xlabel('x [a.u.]')
 	plt.ylabel('amplitude [a.u.]')
+	plt.xlim(-5, 5)
 	plt.ylim(-0.1, 1.5)
 	plt.legend(prop={'size':12})
 	plt.show()
@@ -81,7 +82,8 @@ cases than the astropy convolution, but will not work properly if ``NaN`` values
 2D Kernels
 ^^^^^^^^^^
 As all 2D kernels are symmetric it is sufficient to specify the width in one direction.
-Therefore the use of 2D kernels is basically the same as for 1D kernels:
+Therefore the use of 2D kernels is basically the same as for 1D kernels. We consider a 
+small Gaussian shaped source of amplitude one in the middle of the image and add 10% noise: 
 
 >>> import numpy as np
 >>> from astropy.nddata.convolution import convolve, Gaussian2DKernel, TopHat2DKernel
@@ -103,14 +105,32 @@ Smoothing the noisy data with a `~astropy.nddata.convolution.kernels.Tophat2DKer
 >>> tophat_kernel = TopHat2DKernel(5)
 >>> smoothed_data_tophat = convolve(data, tophat_kernel)
 
-The following plot illustrates the differences between several 2D kernels applied to simulated data.
-We consider a small Gaussian shaped source in the middle and added noise. 
+This is what the original image looks like:
+
+.. plot::
+
+	import numpy as np
+	import matplotlib.pyplot as plt
+	from astropy.modeling.models import Gaussian2DModel
+	gauss = Gaussian2DModel(1, 0, 0, 3, 3)
+	# Fake image data including noise
+	x = np.arange(-100, 101)
+	y = np.arange(-100, 101)
+	x, y = np.meshgrid(x, y)
+	data = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
+	plt.imshow(data, origin='lower')
+	plt.xlabel('x [pixels]')
+	plt.ylabel('y [pixels]')
+	plt.colorbar()
+	plt.show()
+
+The following plot illustrates the differences between several 2D kernels applied to the simulated data. 
+Note that it has a slightly different color scale compared to the original image.  
 
 .. plot:: 
 		
 	import numpy as np
 	import matplotlib.pyplot as plt
-	import matplotlib.colors as colors
 	
 	from astropy.nddata.convolution import *
 	from astropy.modeling.models import Gaussian2DModel
@@ -138,7 +158,7 @@ We consider a small Gaussian shaped source in the middle and added noise.
 	# Plot kernels
 	for kernel, ax in zip(kernels, axes.flat):
 		smoothed = convolve(data, kernel)
-		im = ax.imshow(smoothed, vmin=-0.01, vmax=0.15)
+		im = ax.imshow(smoothed, vmin=-0.01, vmax=0.15, origin='lower')
 		title = kernel.__class__.__name__
 		ax.set_title(title)
 		ax.set_yticklabels([])
@@ -150,8 +170,8 @@ We consider a small Gaussian shaped source in the middle and added noise.
 	plt.show()
 	
 
-The Gaussian kernel has better smoothing properties, compared to the Box and the Tophat. The Box filter is not isotropic
-and can produce artifact (The source appears rectangular). The Mexican-Hat filter is almost noise free, but produces a negative
+The Gaussian kernel has better smoothing properties compared to the Box and the Tophat. The Box filter is not isotropic
+and can produce artifact (the source appears rectangular). The Mexican-Hat filter is almost noise free, but produces a negative
 ring around the source. The best choice for the filter strongly depends on the application. 
 
 
@@ -191,16 +211,18 @@ kernel array size the normalization for kernels with an infinite response can di
 The value of this deviation is stored in the kernel's ``truncation`` attribute.
 
 The normalization can also differ from one, especially for small kernels, due to the discretization step.
-This can be partly resolved by the ``mode`` argument, when initializing the kernel (See also 
+This can be partly controlled by the ``mode`` argument, when initializing the kernel (See also 
 :func:`~astropy.nddata.convolution.utils.discretize_model`). Setting the ``mode`` to ``'oversample'`` allows
 to conserve the normalization even on the subpixel scale.
  
 The kernel arrays can be renormalized explicitly by calling either the ``normalize()`` method or by setting
 the ``normalize_kernel`` argument in the `~astropy.nddata.convolution.convolve.convolve` and 
-`~astropy.nddata.convolution.convolve.convolve_fft` functions. 
+`~astropy.nddata.convolution.convolve.convolve_fft` functions. The latter method leaves the kernel itself unchanged
+but works with an internal normalized version of the kernel.   
 
 Note that for `~astropy.nddata.convolution.kernels.MexicanHat1DKernel` 
 and `~astropy.nddata.convolution.kernels.MexicanHat2DKernel` there is :math:`\int_{-\infty}^{\infty} f(x) dx = 0`. 
+To define a proper normalization both filters are derived from a normalized Gaussian function. 
 
  
 	 
