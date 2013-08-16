@@ -9,21 +9,23 @@ import numpy as np
 
 # LOCAL
 from . import vos_catalog
+from .async import AsyncBase
+from ... import units as u
 from ...config.configuration import ConfigurationItem
+from ...coordinates import Angle, ICRSCoordinates, SphericalCoordinatesBase
 from ...logger import log
 from ...utils.data import REMOTE_TIMEOUT
-from ...utils.compat.futures import ThreadPoolExecutor
 from ...utils.timer import timefunc, RunTimePredictor
 from ...utils.exceptions import AstropyUserWarning
 
 
-__all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs', 'predict_search',
-           'conesearch_timer']
+__all__ = ['AsyncConeSearch', 'conesearch', 'AsyncSearchAll', 'search_all',
+           'list_catalogs', 'predict_search', 'conesearch_timer']
 
 # Skip these doctests for now;
 # TODO: Add the ability to add py.test markers (such as remote_data) to
 # doctests
-__doctest_skip__ = ['AsyncConeSearch']
+__doctest_skip__ = ['AsyncConeSearch', 'AsyncSearchAll']
 
 CONESEARCH_DBNAME = ConfigurationItem('conesearch_dbname', 'conesearch_good',
                                       'Conesearch database name.')
@@ -33,36 +35,26 @@ class ConeSearchError(Exception):  # pragma: no cover
     pass
 
 
-class AsyncConeSearch(object):
-    """Perform a Cone Search asynchronously using
-    :py:class:`concurrent.futures.ThreadPoolExecutor`.
-
-    Cone Search will be forced to run in silent
-    mode. Warnings are controled by :py:mod:`warnings`
-    module.
+class AsyncConeSearch(AsyncBase):
+    """Perform a Cone Search asynchronously and returns the result of the
+    first successful query.
 
     .. note::
 
-        Methods of the attributes can be accessed directly,
-        with priority given to ``executor``.
+        See `~astropy.vo.client.async.AsyncBase` for more details.
 
     Parameters
     ----------
     args, kwargs : see :func:`conesearch`
 
-    Attributes
-    ----------
-    executor : :py:class:`concurrent.futures.ThreadPoolExecutor`
-        Executor running :func:`conesearch` on single thread.
-
-    future : :py:class:`concurrent.futures.Future`
-        Asynchronous execution created by ``executor``.
-
     Examples
     --------
+    >>> from astropy import coordinates as coord
+    >>> from astropy import units as u
+    >>> c = coord.ICRSCoordinates(6.0223, -72.0814, unit=(u.degree, u.degree))
+    >>> sr = coord.Angle(0.5, unit=u.degree)
     >>> async_search = conesearch.AsyncConeSearch(
-    ...     6.0223, -72.0814, 0.5,
-    ...     catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1')
+    ...     c, sr, catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1')
 
     Check search status:
 
@@ -86,60 +78,32 @@ class AsyncConeSearch(object):
 
     """
     def __init__(self, *args, **kwargs):
-        kwargs['verbose'] = False
-        self.executor = ThreadPoolExecutor(1)
-        self.future = self.executor.submit(conesearch, *args, **kwargs)
-
-    def __getattr__(self, what):
-        """Expose ``executor`` and ``future`` methods."""
-        try:
-            return getattr(self.executor, what)
-        except AttributeError:
-            return getattr(self.future, what)
-
-    def get(self, timeout=None):
-        """Get result, if available, then shut down thread.
-
-        Parameters
-        ----------
-        timeout : int or float
-            Wait the given amount of time in seconds before
-            obtaining result. If not given, wait indefinitely
-            until function is done.
-
-        Returns
-        -------
-        result : `astropy.io.votable.tree.Table` object
-            First table from first successful VO service request.
-
-        Raises
-        ------
-        Exception
-            Errors raised by :py:class:`concurrent.futures.Future`.
-
-        """
-        try:
-            result = self.future.result(timeout=timeout)
-        except Exception as e:  # pragma: no cover
-            result = None
-            raise e
-        finally:
-            self.executor.shutdown(wait=False)
-            return result
+        AsyncBase.__init__(self, conesearch, *args, **kwargs)
 
 
-def conesearch(ra, dec, sr, verb=1, **kwargs):
-    """Do a Cone Search on the given catalog.
+def conesearch(centercoord, searchradius, verb=1, **kwargs):
+    """Perform Cone Search and returns the result of the
+    first successful query.
 
     Parameters
     ----------
-    ra, dec : float
-        Right-ascension and declination in the ICRS coordinate
-        system for the position of the center of the cone to
-        search, given in decimal degrees.
+    centercoord : tuple of float or :ref:`astropy-coordinates`
+        Right-ascension and declination for the position of
+        the center of the cone to search:
 
-    sr : float
-        Radius of the cone to search, given in decimal degrees.
+            - If tuple of float is given, it is assumed to be
+              ``(RA, DEC)`` in the ICRS coordinate system,
+              given in decimal degrees.
+            - If astropy coordinates object is given, it will
+              be converted internally to
+              `~astropy.coordinates.builtin_systems.ICRSCoordinates`.
+
+    searchradius : float or `~astropy.coordinates.angles.Angle` object
+        Radius of the cone to search:
+
+            - If float is given, it is assumed to be in decimal degrees.
+            - If astropy angle object is given, it is internally converted
+              to degrees.
 
     verb : {1, 2, 3}
         Verbosity indicating how many columns are to be returned
@@ -214,10 +178,13 @@ def conesearch(ra, dec, sr, verb=1, **kwargs):
         If VO service request fails.
 
     """
-    # Validate arguments
-    ra = _local_conversion(float, ra)
-    dec = _local_conversion(float, dec)
-    sr = _local_conversion(float, sr)
+    # Validate RA and DEC
+    ra, dec = _validate_coord(centercoord)
+
+    # Validate search radius
+    sr = _validate_sr(searchradius)
+
+    # Validate verbosity
     verb = _local_conversion(int, verb)
     if verb not in (1, 2, 3):  # pragma: no cover
         raise ConeSearchError('Verbosity must be 1, 2, or 3')
@@ -226,6 +193,102 @@ def conesearch(ra, dec, sr, verb=1, **kwargs):
 
     return vos_catalog.call_vo_service(CONESEARCH_DBNAME(),
                                        kwargs=args, **kwargs)
+
+
+class AsyncSearchAll(AsyncBase):
+    """Perform a Cone Search asynchronously, storing all results
+    instead of just the result from first successfull query.
+
+    .. note::
+
+        See `~astropy.vo.client.async.AsyncBase` for more details.
+
+    Parameters
+    ----------
+    args, kwargs : see :func:`search_all`
+
+    Examples
+    --------
+    >>> from astropy import coordinates as coord
+    >>> from astropy import units as u
+    >>> c = coord.ICRSCoordinates(6.0223, -72.0814, unit=(u.degree, u.degree))
+    >>> sr = coord.Angle(0.5, unit=u.degree)
+    >>> async_searchall = conesearch.AsyncSearchAll(c, sr)
+
+    Check search status:
+
+    >>> async_search.running()
+    True
+    >>> async_search.done()
+    False
+
+    Get a dictionary of all search results after a 30-second wait
+    (not to be confused with ``astropy.utils.data.REMOTE_TIMEOUT`` that
+    governs individual Cone Search queries). If search is still not
+    done after 30 seconds, ``TimeoutError`` is raised. Otherwise,
+    a dictionary is returned and can be manipulated as in
+    :ref:`Simple Cone Search Examples <vo-sec-scs-examples>`.
+    If no ``timeout`` keyword given, it waits until completion:
+
+    >>> async_allresults = async_search.get(timeout=30)
+    >>> all_catalogs = async_allresults.keys()
+    >>> first_cone_arr = async_allresults[all_catalogs[0]].array.data
+    >>> first_cone_arr.size
+    36184
+
+    """
+    def __init__(self, *args, **kwargs):
+        AsyncBase.__init__(self, search_all, *args, **kwargs)
+
+
+def search_all(*args, **kwargs):
+    """Perform Cone Search and returns the results of
+    all successful queries.
+
+    .. warning::
+
+        Could potentially take up significant run time and
+        computing resources.
+
+    Parameters
+    ----------
+    args, kwargs
+        Arguments and keywords accepted by :func:`conesearch`.
+
+    Returns
+    -------
+    all_results : dict of `astropy.io.votable.tree.Table` objects
+        A dictionary of tables from successful VO service requests,
+        with keys being the access URLs. If none is successful,
+        an empty dictionary is returned.
+
+    Raises
+    ------
+    ConeSearchError
+        When invalid inputs are passed into Cone Search.
+
+    """
+    all_results = {}
+
+    catalog_db = kwargs.get('catalog_db', None)
+    if 'catalog_db' in kwargs:
+        kwargs.pop('catalog_db')
+
+    cache = kwargs.get('cache', True)
+    verbose = kwargs.get('verbose', True)
+
+    catalogs = vos_catalog._get_catalogs(CONESEARCH_DBNAME(), catalog_db,
+                                         cache=cache, verbose=verbose)
+
+    for name, catalog in catalogs:
+        try:
+            result = conesearch(catalog_db=catalog, *args, **kwargs)
+        except vos_catalog.VOSError:
+            pass
+        else:
+            all_results[result.url] = result
+
+    return all_results
 
 
 def list_catalogs(**kwargs):
@@ -324,19 +387,20 @@ def predict_search(url, *args, **kwargs):
         If VO service request fails.
 
     """
-    if len(args) != 3 or args[2] <= 0:  # pragma: no cover
-        raise ConeSearchError(
-            'conesearch must have exactly 3 arguments and search radius '
-            'has to be > 0.')
+    if len(args) != 2:  # pragma: no cover
+        raise ConeSearchError('conesearch must have exactly 2 arguments')
 
     plot = kwargs.get('plot', False)
     if 'plot' in kwargs:  # pragma: no cover
         del kwargs['plot']
 
-    ra, dec, sr = args
+    centercoord, searchradius = args
+    sr = _validate_sr(searchradius)
+    if sr <= 0:
+        raise ConeSearchError('Search radius must be > 0 degrees')
 
     kwargs['catalog_db'] = url
-    cs_pred = RunTimePredictor(conesearch, ra, dec, **kwargs)
+    cs_pred = RunTimePredictor(conesearch, centercoord, **kwargs)
 
     # Search properties for timer extrapolation
     num_datapoints = 10  # Number of desired data points for extrapolation
@@ -420,3 +484,23 @@ def _local_conversion(func, x):
         raise ConeSearchError(str(e))
     else:
         return y
+
+
+def _validate_coord(centercoord):
+    if isinstance(centercoord, SphericalCoordinatesBase):
+        icrscoord = centercoord.transform_to(ICRSCoordinates)
+    else:
+        icrscoord = ICRSCoordinates(*centercoord, unit=(u.degree, u.degree))
+
+    return icrscoord.ra.degree, icrscoord.dec.degree
+
+
+def _validate_sr(searchradius):
+    """Validate search radius."""
+        # Validate search radius
+    if isinstance(searchradius, Angle):
+        sr_angle = searchradius
+    else:
+        sr_angle = Angle(searchradius, unit=u.degree)
+
+    return sr_angle.degree

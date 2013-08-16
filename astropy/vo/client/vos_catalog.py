@@ -212,6 +212,42 @@ def get_remote_catalog_db(dbname, cache=True, verbose=True):
     return VOSDatabase(tree)
 
 
+def _get_catalogs(service_type, catalog_db, **kwargs):
+    """Expand ``catalog_db`` to a list of catalogs.
+
+    Parameters
+    ----------
+    service_type, catalog_db
+        See :func:`call_vo_service`.
+
+    kwargs : dict
+        Keywords accepted by :func:`get_remote_catalog_db`.
+
+    Returns
+    -------
+    catalogs : list of tuple
+        List of catalogs in the form of ``(key, VOSCatalog)``.
+
+    """
+    if catalog_db is None:
+        catalog_db = get_remote_catalog_db(service_type, **kwargs)
+        catalogs = catalog_db.get_catalogs()
+    elif isinstance(catalog_db, VOSDatabase):
+        catalogs = catalog_db.get_catalogs()
+    elif isinstance(catalog_db, (VOSCatalog, basestring)):
+        catalogs = [(None, catalog_db)]
+    elif isinstance(catalog_db, list):
+        for x in catalog_db:
+            assert (isinstance(x, (VOSCatalog, basestring)) and
+                    not isinstance(x, VOSDatabase))
+        catalogs = [(None, x) for x in catalog_db]
+    else:  # pragma: no cover
+        raise VOSError('catalog_db must be a catalog database, '
+                       'a list of catalogs, or a catalog')
+
+    return catalogs
+
+
 def _vo_service_request(url, pedantic, kwargs, verbose=False):
     if len(kwargs) and not (url.endswith('?') or url.endswith('&')):
         raise VOSError("url should already end with '?' or '&'")
@@ -363,22 +399,8 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
         If VO service request fails.
 
     """
-    if catalog_db is None:
-        catalog_db = get_remote_catalog_db(service_type, cache=cache,
-                                           verbose=verbose)
-        catalogs = catalog_db.get_catalogs()
-    elif isinstance(catalog_db, VOSDatabase):
-        catalogs = catalog_db.get_catalogs()
-    elif isinstance(catalog_db, (VOSCatalog, basestring)):
-        catalogs = [(None, catalog_db)]
-    elif isinstance(catalog_db, list):
-        for x in catalog_db:
-            assert (isinstance(x, (VOSCatalog, basestring)) and
-                    not isinstance(x, VOSDatabase))
-        catalogs = [(None, x) for x in catalog_db]
-    else:  # pragma: no cover
-        raise VOSError('catalog_db must be a catalog database, '
-                       'a list of catalogs, or a catalog')
+    catalogs = _get_catalogs(service_type, catalog_db, cache=cache,
+                             verbose=verbose)
 
     if pedantic is None:  # pragma: no cover
         pedantic = VO_PEDANTIC
