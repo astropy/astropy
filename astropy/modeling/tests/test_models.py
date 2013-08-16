@@ -156,7 +156,7 @@ def test_custom_model(amplitude=4, frequency=1):
     data = sin_model(x) + np.random.rand(50) - 0.5
     fitter = fitting.NonLinearLSQFitter(sin_model)
     fitter(x, data)
-    assert np.all((fitter.fitpars - np.array([amplitude, frequency])) < 0.001)
+    assert np.all((fitter.fitparams - np.array([amplitude, frequency])) < 0.001)
 
 
 class TestParametricModels(object):
@@ -245,7 +245,7 @@ class TestParametricModels(object):
         data = model(x) + 0.1 * parameters[0] * (np.random.rand(self.N) - 0.5)
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(x, data)
-        assert np.all(np.abs((fitter.fitpars - np.array(parameters))
+        assert np.all(np.abs((fitter.fitparams - np.array(parameters))
                               < self.fit_error))
 
     @pytest.mark.parametrize(('model_class'), models_2D.keys())
@@ -300,5 +300,5 @@ class TestParametricModels(object):
         data = model(xv, yv) + 0.1 * parameters[0] * (np.random.rand(self.N, self.N) - 0.5)
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(xv, yv, data)
-        assert np.all((np.abs(fitter.fitpars - np.array(parameters))
+        assert np.all((np.abs(fitter.fitparams - np.array(parameters))
                         < self.fit_error))
