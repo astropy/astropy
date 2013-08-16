@@ -31,11 +31,9 @@ __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial',
            'MatrixRotation2D']
 
 
-class RotateNative2Celestial(Model):
+class EulerAngleRotation(Model):
     """
-    Transformation from Native to Celestial Spherical Coordinates.
-
-    Defines a ZXZ rotation.
+    Base class for Euler angle rotations.
 
     Parameters
     ----------
@@ -49,8 +47,8 @@ class RotateNative2Celestial(Model):
         self._phi = Parameter('phi', np.deg2rad(phi), self, 1)
         self._theta = Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = Parameter('psi', np.deg2rad(psi), self, 1)
-        super(RotateNative2Celestial, self).__init__(param_names=[],
-                                                     n_inputs=2, n_outputs=2)
+        super(EulerAngleRotation, self).__init__(param_names=[], n_inputs=2,
+                                                 n_outputs=2)
 
     @property
     def phi(self):
@@ -75,6 +73,19 @@ class RotateNative2Celestial(Model):
     @psi.setter
     def psi(self, val):
         self._psi.value = np.deg2rad(val)
+
+
+class RotateNative2Celestial(EulerAngleRotation):
+    """
+    Transformation from Native to Celestial Spherical Coordinates.
+
+    Defines a ZXZ rotation.
+
+    Parameters
+    ----------
+    phi, theta, psi : float
+        Euler angles in deg
+    """
 
     def inverse(self):
         return RotateCelestial2Native(self.phi, self.theta, self.psi)
@@ -104,7 +115,7 @@ class RotateNative2Celestial(Model):
         return calpha, cdelta
 
 
-class RotateCelestial2Native(Model):
+class RotateCelestial2Native(EulerAngleRotation):
     """
     Transformation from Celestial to Native to Spherical Coordinates.
 
@@ -115,39 +126,6 @@ class RotateCelestial2Native(Model):
     phi, theta, psi : float
         Euler angles in deg
     """
-
-    param_names = ['phi', 'theta', 'psi']
-
-    def __init__(self, phi, theta, psi):
-        self._phi = Parameter('phi', np.deg2rad(phi), self, 1)
-        self._theta = Parameter('theta', np.deg2rad(theta), self, 1)
-        self._psi = Parameter('psi', np.deg2rad(psi), self, 1)
-        super(RotateCelestial2Native, self).__init__(param_names=[],
-                                                     n_inputs=2, n_outputs=2)
-
-    @property
-    def phi(self):
-        return np.rad2deg(self._phi.value)
-
-    @phi.setter
-    def phi(self, val):
-        self._phi.value = np.deg2rad(val)
-
-    @property
-    def theta(self):
-        return np.rad2deg(self._theta.value)
-
-    @theta.setter
-    def theta(self, val):
-        self._theta.value = np.deg2rad(val)
-
-    @property
-    def psi(self):
-        return np.rad2deg(self._psi.value)
-
-    @psi.setter
-    def psi(self, val):
-        self._psi.value = np.deg2rad(val)
 
     def inverse(self):
         return RotateNative2Celestial(self.phi, self.theta, self.psi)
