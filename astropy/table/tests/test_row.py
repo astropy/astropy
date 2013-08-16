@@ -21,6 +21,27 @@ class MaskedTable(table.Table):
         table.Table.__init__(self, *args, **kwargs)
 
 
+def test_masked_row_with_object_col():
+    """
+    Numpy < 1.8 has a bug in masked array that prevents access a row if there is
+    a column with object type.
+    """
+    numpy_lt_1p8 = version.LooseVersion(np.__version__) < version.LooseVersion('1.8')
+    t = table.Table([[1]], dtypes=['O'], masked=True)
+    if numpy_lt_1p8:
+        with pytest.raises(ValueError):
+            t['col0'].mask = False
+            t[0]
+        with pytest.raises(ValueError):
+            t['col0'].mask = True
+            t[0]
+    else:
+        t['col0'].mask = False
+        assert t[0]['col0'] == 1
+        t['col0'].mask = True
+        assert t[0]['col0'] is np.ma.masked
+
+
 # Fixture to run all tests for both an unmasked (ndarray) and masked (MaskedArray) column.
 @pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
 def set_global_Table(request):
