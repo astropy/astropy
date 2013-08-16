@@ -8,10 +8,10 @@ import collections
 
 import numpy as np
 
-from . import parameters
-from .core import (Parametric1DModel, Parametric2DModel, Model,
-                   _convert_input, _convert_output)
-from .utils import InputParameterError, ModelDefinitionError
+from .core import (ParametricModel, Parametric1DModel, Parametric2DModel,
+                   Model, _convert_input, _convert_output,
+                   ModelDefinitionError)
+from .parameters import Parameter, InputParameterError
 
 
 __all__ = sorted(['AiryDisk2DModel', 'Beta1DModel', 'Beta2DModel',
@@ -135,7 +135,8 @@ class Gaussian2DModel(Parametric2DModel):
                 "covariance matrix.")
         elif cov_matrix is not None and (x_stddev is not None or
                                          y_stddev is not None):
-            raise InputParameterError("Cannot specify both cov_matrix and x/y_stddev")
+            raise InputParameterError(
+                "Cannot specify both cov_matrix and x/y_stddev")
 
         # Compute principle coordinate system transformation
         elif cov_matrix is not None:
@@ -220,8 +221,8 @@ class ShiftModel(Model):
             param_dim = 1
         else:
             param_dim = len(offsets)
-        self._offsets = parameters.Parameter('offsets', offsets, self,
-                                             param_dim)
+
+        self._offsets = Parameter('offsets', offsets, self, param_dim)
 
         super(ShiftModel, self).__init__(self.param_names, n_inputs=1,
                                          n_outputs=1, param_dim=param_dim)
@@ -264,8 +265,8 @@ class ScaleModel(Model):
             param_dim = 1
         else:
             param_dim = len(factors)
-        self._factors = parameters.Parameter('factors', factors, self,
-                                             param_dim)
+
+        self._factors = Parameter('factors', factors, self, param_dim)
 
         super(ScaleModel, self).__init__(self.param_names, n_inputs=1,
                                          n_outputs=1, param_dim=param_dim)

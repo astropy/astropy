@@ -3,15 +3,15 @@
 Tests models.parameters
 """
 
-from .. import models, fitting
-from . import irafutil
-from ..utils import InputParameterError
-
 import numpy as np
 from numpy.testing import utils
-from ...utils.data import get_pkg_data_filename
+
+from . import irafutil
+from .. import models, fitting
+from .. import ParametricModel
+from ..parameters import Parameter, InputParameterError
 from ...tests.helper import pytest
-from .. import ParametricModel, Parameter
+from ...utils.data import get_pkg_data_filename
 
 
 class TestParModel(ParametricModel):

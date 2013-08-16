@@ -60,30 +60,19 @@ def _convert_input(x, y, z=None):
 
 
 class ModelsError(Exception):
-    """Base Error class."""
-
-    def __init__(self, message):
-        self._message = message
-
-    def __str__(self):
-        return self._message
+    """Base class for model exceptions"""
 
 
 class ModelLinearityError(ModelsError):
     """
-    Called when a linear model is passed to a non-linear fitter and vice versa.
+    Raised when a linear model is passed to a non-linear fitter and vice versa.
     """
-    def __init__(self, message):
-        super(ModelLinearityError, self).__init__(message)
 
 
 class UnsupportedConstraintError(ModelsError):
     """
     Raised when a fitter does not support a type of constraint.
     """
-
-    def __init__(self, message):
-        super(UnsupportedConstraintError, self).__init__(message)
 
 
 class Fitter(object):

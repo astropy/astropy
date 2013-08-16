@@ -49,14 +49,17 @@ from textwrap import dedent
 
 import numpy as np
 
-from . import parameters
-from .utils import InputParameterError
+from .parameters import Parameter, Parameters, InputParameterError, _tofloat
 from ..utils import indent
 
 
-__all__ = ['Model', 'ParametricModel', 'ParallelCompositeModel', 'SerialCompositeModel',
-           'LabeledInput', '_convert_input', '_convert_output',
-           'Parametric1DModel', 'Parametric2DModel']
+__all__ = ['Model', 'ParametricModel', 'ParallelCompositeModel',
+           'SerialCompositeModel', 'LabeledInput', 'Parametric1DModel',
+           'Parametric2DModel', 'ModelDefinitionError']
+
+
+class ModelDefinitionError(Exception):
+    """Used for incorrect models definitions."""
 
 
 def _convert_input(x, pdim):
@@ -144,23 +147,22 @@ class _ParameterProperty(object):
         return par
 
     def __set__(self, obj, val):
-        val, _ = parameters._tofloat(val)
+        val, _ = _tofloat(val)
         oldpar = getattr(obj, self.name)
-        par = parameters.Parameter(self.name, val, obj, obj.param_dim)
+        par = Parameter(self.name, val, obj, obj.param_dim)
         if self.name in obj._parcheck:
             obj._parcheck[self.name](val)
         if isinstance(obj, ParametricModel):
             if not obj._parameters._changed:
-                par = parameters.Parameter(self.name, val, obj, obj.param_dim)
+                par = Parameter(self.name, val, obj, obj.param_dim)
                 if oldpar is not None and oldpar.shape != par.shape:
                     raise InputParameterError(
                         "Input parameter {0} does not "
                         "have the required shape".format(self.name))
                 else:
                     setattr(oldpar, "value", val)
-                obj._parameters = parameters.Parameters(obj,
-                                                        obj.param_names,
-                                                        dim=obj.param_dim)
+                obj._parameters = Parameters(obj, obj.param_names,
+                                             dim=obj.param_dim)
             else:
                 setattr(oldpar, "value", val)
         else:
@@ -432,8 +434,7 @@ class ParametricModel(Model):
         super(ParametricModel, self).__init__(param_names, n_inputs, n_outputs,
                                               param_dim=param_dim)
         self.fittable = True
-        self._parameters = parameters.Parameters(self, self.param_names,
-                                                 dim=param_dim)
+        self._parameters = Parameters(self, self.param_names, dim=param_dim)
         # Initialize the constraints for each parameter
         _bounds = {}.fromkeys(self.param_names, [None, None])
         if eqcons is None:
@@ -562,7 +563,7 @@ class ParametricModel(Model):
         `~astropy.modeling.parameters.Parameters`
         """
 
-        if isinstance(value, parameters.Parameters):
+        if isinstance(value, Parameters):
             if self._parameters._is_same_length(value):
                 self._parameters = value
             else:
@@ -570,7 +571,7 @@ class ParametricModel(Model):
                     "Expected the list of parameters to be the same "
                     "length as the initial list.")
         elif isinstance(value, (list, np.ndarray)):
-            _val = parameters._tofloat(value)[0]
+            _val = _tofloat(value)[0]
             if self._parameters._is_same_length(_val):
                 self._parameters._changed = True
                 self._parameters[:] = _val
@@ -956,9 +957,8 @@ class Parametric1DModel(ParametricModel):
         # the parameters in the model constructor itself, with constraints etc.
         for param_name in self.param_names:
             setattr(self, "_" + param_name,
-                    parameters.Parameter(name=param_name,
-                                         val=param_dict[param_name],
-                                         model=self, dim=param_dim))
+                    Parameter(name=param_name, val=param_dict[param_name],
+                              model=self, dim=param_dim))
 
         super(Parametric1DModel, self).__init__(self.param_names, n_inputs=1,
                                                 n_outputs=1,
@@ -1004,9 +1004,8 @@ class Parametric2DModel(ParametricModel):
         # the parameters in the model constructor itself, with constraints etc.
         for param_name in self.param_names:
             setattr(self, "_" + param_name,
-                    parameters.Parameter(name=param_name,
-                                         val=param_dict[param_name],
-                                         model=self, dim=param_dim))
+                    Parameter(name=param_name, val=param_dict[param_name],
+                              model=self, dim=param_dim))
 
         super(Parametric2DModel, self).__init__(self.param_names, n_inputs=2,
                                                 n_outputs=1,

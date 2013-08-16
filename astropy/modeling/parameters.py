@@ -14,10 +14,13 @@ import numbers
 import numpy as np
 
 from ..utils import misc
-from .utils import InputParameterError
 
 
-__all__ = ['Parameters', 'Parameter']
+__all__ = ['Parameters', 'Parameter', 'InputParameterError']
+
+
+class InputParameterError(Exception):
+    """Used for incorrect input parameter values and definitions."""
 
 
 def _tofloat(value):
