@@ -48,13 +48,13 @@ class TestMultiD():
                          '10 .. 20 30 .. 40 50 .. 60']
 
         lines = t.pformat(html=True)
-        assert lines == ['<table>',
-                         '<tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr>',
+        assert lines == ['<table id="table0">',
+                         '<thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr></thead>',
                          '<tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td></tr>',
                          '<tr><td>10 .. 20</td><td>30 .. 40</td><td>50 .. 60</td></tr>',
                          '</table>']
-        assert t._repr_html_() == ('<table><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]'
-                                   '</th></tr><tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td>'
+        assert t._repr_html_() == ('<table id="table{tid}"><thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]'.format(tid=id(t)) +
+                                   '</th></tr></thead><tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td>'
                                    '</tr><tr><td>10 .. 20</td><td>30 .. 40</td><td>50 .. 60</td>'
                                    '</tr></table>')
 
