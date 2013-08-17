@@ -10,10 +10,11 @@ python:
     - 3.3
     # This is just for "egg_info".  All other builds are explicitly given in the matrix
 env:
-    - SETUP_CMD='egg_info' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
-    # OPTIONAL_DEPS most importantly means scipy
     global:
         - PIP_WHEEL_COMMAND="pip install --find-links http://sunpy.cadair.com/wheelhouse/index.html --use-wheel --upgrade"
+    matrix:
+        - SETUP_CMD='egg_info' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
+
 matrix:
     include:
         # Check for sphinx doc build warnings - we do this first because it runs for a long time
