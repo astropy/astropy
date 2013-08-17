@@ -8,27 +8,25 @@ from numpy.testing import utils
 
 from . import irafutil
 from .. import models, fitting
-from .. import ParametricModel
+from ..core import ParametricModel
 from ..parameters import Parameter, InputParameterError
-from ...tests.helper import pytest
 from ...utils.data import get_pkg_data_filename
+from ...tests.helper import pytest
 
 
 class TestParModel(ParametricModel):
     """
     A toy model to test parameters machinery
     """
-    param_names = ['coeff', 'e']
+
+    coeff = Parameter('coeff')
+    e = Parameter('e')
 
     def __init__(self, coeff, e, param_dim=1):
-        self._coeff = Parameter(name='coeff', val=coeff, model=self, dim=param_dim)
-        self._e = Parameter(name='e', val=e, model=self, dim=param_dim)
-        ParametricModel.__init__(
-            self,
-            self.param_names,
-            n_inputs=1,
-            n_outputs=1,
-            param_dim=param_dim)
+        self._coeff = coeff
+        self._e = e
+        super(TestParModel, self).__init__(n_inputs=1, n_outputs=1,
+                                           param_dim=param_dim)
 
     def __call__(self):
         pass
@@ -82,12 +80,13 @@ class TestParameters(object):
         self.model.parameters = np.array([3, 4, 5, 6, 7])
         assert(self.model.parameters == [3., 4., 5., 6., 7.])
 
-    def test_set_as_list(self):
+    def test_set_as_tuple(self):
         """
-        Parameters can be reset only by using a list or an array
+        Tests updating parameters using a tuple.
         """
-        with pytest.raises(TypeError):
-            self.model.parameters = (1, 2, 3, 4, 5)
+
+        self.model.parameters = (1, 2, 3, 4, 5)
+        assert self.model.parameters == [1, 2, 3, 4, 5]
 
     def test_set_model_attr_seq(self):
         """
@@ -96,7 +95,7 @@ class TestParameters(object):
         """
         self.model.parameters = [0, 0., 0., 0, 0]
         self.model.c0 = 7
-        assert(self.model.parameters == [7, 0., 0., 0, 0])
+        assert self.model.parameters == [7, 0., 0., 0, 0]
 
     def test_set_model_attr_num(self):
         """
@@ -202,6 +201,7 @@ class TestParameters(object):
         sh1 = models.ShiftModel(2)
         with pytest.raises(InputParameterError):
             sh1.offsets = [3, 3]
+
 
 
 class TestMultipleParameterSets(object):

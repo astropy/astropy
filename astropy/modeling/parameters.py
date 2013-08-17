@@ -9,11 +9,14 @@ define their own models.
 
 from __future__ import division
 
+import bisect
+import inspect
+import functools
 import numbers
 
 import numpy as np
 
-from ..utils import misc
+from ..utils import isiterable, lazyproperty
 
 
 __all__ = ['Parameters', 'Parameter', 'InputParameterError']
@@ -26,10 +29,10 @@ class InputParameterError(Exception):
 def _tofloat(value):
     """Convert a parameter to float or float array"""
 
-    if misc.isiterable(value):
+    if isiterable(value):
         try:
-            _value = np.array(value, dtype=np.float)
-            shape = _value.shape
+            value = np.array(value, dtype=np.float)
+            shape = value.shape
         except (TypeError, ValueError):
             # catch arrays with strings or user errors like different
             # types of parameters in a parameter set
@@ -39,29 +42,30 @@ def _tofloat(value):
     elif isinstance(value, bool):
         raise InputParameterError(
             "Expected parameter to be of numerical type, not boolean")
-    elif isinstance(value, numbers.Number):
-        _value = float(value)
+    elif isinstance(value, (numbers.Number, np.number)):
+        value = float(value)
         shape = ()
     else:
         raise InputParameterError(
             "Don't know how to convert parameter of {0} to "
             "float".format(type(value)))
-    return _value, shape
+    return value, shape
 
 
-def getval(self, name):
-    return getattr(self, '_' + name).value
+# TODO: Is there really any need for this special exception over just, say, a
+# ValueError? Or maybe this should be a subclass of ValueError?
+class InputParameterError(Exception):
+    """
+    Called when there's a problem with input parameters.
+    """
 
 
 class Parameter(object):
     """
     Wraps individual parameters.
 
-    This class represents a model's parameter (in a somewhat broad
-    sense). To support multiple parameter sets, a parameter has a dimension
-    (dim) and is a list-like object. It supports indexing so that individual
-    parameters can be updated.
-    To support some level of validation a parameter has a shape attribute.
+    This class represents a model's parameter (in a somewhat broad sense). To
+    support multiple parameter sets, a parameter has a dimension (dim).
     Parameter objects behave like numbers.
 
     Parameters
@@ -83,76 +87,127 @@ class Parameter(object):
         the upper bound of a parameter
     """
 
-    def __init__(self, name, val, model, dim, fixed=False, tied=False,
-                 min=None, max=None):
-        self._dim = dim
-        self._name = name
+    # See the _nextid classmethod
+    _nextid = 1
 
-        if self._dim == 1:
-            val, parshape = _tofloat(val)
-            self._value = val
+    def __init__(self, name, getter=None, setter=None, fixed=False,
+                 tied=False, min=None, max=None, model=None):
+        super(Parameter, self).__init__()
+        self._name = name
+        self._attr = '_' + name
+
+        self._default_fixed = fixed
+        self._default_tied = tied
+        self._default_min = min
+        self._default_max = max
+
+        self._order = None
+
+        self._model = model
+
+        # The getter/setter functions take one or two arguments: The first
+        # argument is always the value itself (either the value returned or the
+        # value being set).  The second argument is optional, but if present
+        # will contain a reference to the model object tied to a parameter (if
+        # it exists)
+        if getter is not None:
+            self._getter = self._create_value_wrapper(getter, model)
+        else:
+            self._getter = None
+        if setter is not None:
+            self._setter = self._create_value_wrapper(setter, model)
+        else:
+            self._setter = None
+
+        if model is not None:
+            _, self._shape = self._validate_value(model, self.value)
+        else:
+            # Only Parameters declared as class-level descriptors require
+            # and ordering ID
+            self._order = self._get_nextid()
+
+
+    def __get__(self, obj, objtype):
+        return self.__class__(self._name, getter=self._getter,
+                              setter=self._setter, model=obj)
+
+    def __set__(self, obj, value):
+        value, shape = self._validate_value(obj, value)
+        # Compare the shape against the previous value's shape, if it exists
+        if hasattr(obj, self._attr):
+            oldvalue = getattr(obj, self._attr)
+            if self._getter is not None:
+                getter = self._create_value_wrapper(self._getter, obj)
+                oldvalue = getter(oldvalue)
+            oldvalue, oldshape = self._validate_value(obj, oldvalue)
+            if shape != oldshape:
+                raise InputParameterError(
+                    "Input value for parameter {0!r} does not have the "
+                    "required shape {1}".format(self.name, oldshape))
+
+        if self._setter is not None:
+            setter = self._create_value_wrapper(self._setter, obj)
+            value = setter(value)
+
+        if (hasattr(obj, '_parameters') and
+                isinstance(obj._parameters, Parameters)):
+            # Model instance has a Parameters list (in general this means it's
+            # a ParametricModel)
+            setattr(obj, self._attr, value)
+            # Rebuild the Parameters list
+            # TODO: Is this really necessary? Could we get away with just
+            # updating this parameter's value in the Parameters list?
+            obj._parameters = Parameters(obj)
+        else:
+            setattr(obj, self._attr, value)
+
+    def __len__(self):
+        if self._model is None:
+            raise TypeError('Parameter definitions do not have a length.')
+        return self._model.param_dim
+
+    def __getitem__(self, key):
+        value = self.value
+        if self._model.param_dim == 1:
+            # Wrap the value in a list so that getitem can work for sensible
+            # indcies like [0] and [-1]
+            value = [value]
+        return value[key]
+
+    def __setitem__(self, key, value):
+        # Get the existing value and check whether it even makes sense to
+        # apply this index
+        oldvalue = self.value
+        param_dim = self._model.param_dim
+
+        if param_dim == 1:
+            # Convert the single-dimension value to a list to allow some slices
+            # that would be compatible with a length-1 array like [:] and [0:]
+            oldvalue = [oldvalue]
+
+        if isinstance(key, slice):
+            if len(oldvalue[key]) == 0:
+                raise InputParameterError(
+                    "Slice assignment outside the parameter dimensions for "
+                    "{0!r}".format(self.name))
+            for idx, val in zip(range(*key.indices(len(self))), value):
+                self.__setitem__(idx, val)
         else:
             try:
-                val0, parshape = _tofloat(val[0])
-                val = [_tofloat(v)[0] for v in val]
-                if len(val) != self._dim:
-                    raise InputParameterError(
-                        "Expected parameter {0} to be of dim {1}".format(
-                            self._name, self._dim))
-            except TypeError:
-                raise InputParameterError("Expected a multivalued"
-                                          " parameter {0}".format(self._name))
-            for shape in [_tofloat(v)[1] for v in val]:
-                assert shape == parshape, "Multiple values for the same" \
-                    " parameters should have the same shape"
-
-            self._value = val[:]
-
-        self._shape = parshape
-        self._model = model
-        self._fixed = fixed
-        self._tied = tied
-        self._min = min
-        self._max = max
+                oldvalue[key] = value
+                if param_dim == 1:
+                    self.value = value
+            except IndexError:
+                raise InputParameterError(
+                    "Input dimension {0} invalid for {1!r} parameter with "
+                    "dimension {2}".format(key, self.name, param_dim))
 
     def __repr__(self):
-        return repr(self.value)
-
-    @property
-    def dim(self):
-        """Number of parameter sets"""
-
-        return self._dim
-
-    @dim.setter
-    def dim(self, val):
-        self._dim = val
-
-    @property
-    def value(self):
-        """Parameter value"""
-
-        return self._value
-
-    @value.setter
-    def value(self, val):
-        self._value = val
-
-    @property
-    def shape(self):
-        """Parameter shape"""
-
-        return self._shape
-
-    @property
-    def model(self):
-        """An instance of `~astropy.modeling.core.ParametricModel`"""
-
-        return self._model
-
-    @model.setter
-    def model(self, val):
-        self._model = val
+        if self._model is None:
+            return 'Parameter({0!r})'.format(self._name)
+        else:
+            return 'Parameter({0!r}, value={1!r})'.format(
+                self._name, self.value)
 
     @property
     def name(self):
@@ -160,9 +215,39 @@ class Parameter(object):
 
         return self._name
 
-    @name.setter
-    def name(self, val):
-        self._name = val
+    @property
+    def value(self):
+        if self._model is not None:
+            value = getattr(self._model, self._attr)
+            if self._getter is None:
+                return value
+            else:
+                return self._getter(value)
+        raise AttributeError('Parameter definition does not have a value')
+
+    @value.setter
+    def value(self, val):
+        if self._model is not None:
+            if self._setter is not None:
+                val = self._setter(val)
+            setattr(self._model, self._attr, val)
+        raise AttributeError('Cannot set a value on a parameter definition')
+
+    @property
+    def shape(self):
+        """The shape of this parameter's value array."""
+
+        return self._shape
+
+    @property
+    def size(self):
+        """The size of this parameter's value array."""
+
+        if isinstance(self.value, np.ndarray):
+            return self.value.size
+        else:
+            # A scalar value
+            return 1
 
     @property
     def fixed(self):
@@ -170,14 +255,22 @@ class Parameter(object):
         Boolean indicating if the parameter is kept fixed during fitting.
         """
 
-        return self._fixed
+        if self._model is not None:
+            fixed = self._model._constraints.setdefault('fixed', {})
+            return fixed.setdefault(self._name, self._default_fixed)
+        else:
+            return self._default_fixed
 
     @fixed.setter
-    def fixed(self, val):
-        """Fix a parameter."""
-
-        assert isinstance(val, bool), "Fixed can be True or False"
-        self._fixed = val
+    def fixed(self, value):
+        """Fix a parameter"""
+        if self._model is not None:
+            assert isinstance(value, bool), "Fixed can be True or False"
+            fixed = self._model._constraints.setdefault('fixed', {})
+            fixed[self._name] = value
+        else:
+            raise AttributeError("can't set attribute 'fixed' on Parameter "
+                                 "definition")
 
     @property
     def tied(self):
@@ -187,121 +280,235 @@ class Parameter(object):
         A callable which provides the relationship of the two parameters.
         """
 
-        return self._tied
+        if self._model is not None:
+            tied = self._model._constraints.setdefault('tied', {})
+            return tied.setdefault(self._name, self._default_tied)
+        else:
+            return self._default_tied
 
     @tied.setter
-    def tied(self, val):
-        """Tie a parameter."""
+    def tied(self, value):
+        """Tie a parameter"""
 
-        assert callable(val) or val is False, "Tied must be a callable"
-        self._tied = val
+        if self._model is not None:
+            assert callable(value) or value in (False, None), \
+                    "Tied must be a callable"
+            tied = self._model._constraints.setdefault('tied', {})
+            tied[self._name] = value
+        else:
+            raise AttributeError("can't set attribute 'tied' on Parameter "
+                                 "definition")
+
+    @property
+    def bounds(self):
+        """The minimum and maximum values of a parameter as a tuple"""
+
+        if self._model is not None:
+            bounds = self._model._constraints.setdefault('bounds', {})
+            return bounds.setdefault(self._name,
+                                     (self._default_min, self._default_max))
+        else:
+            return (self._default_min, self._default_max)
+
+    @bounds.setter
+    def bounds(self, value):
+        """Set the minimum and maximum values of a parameter from a tuple"""
+
+        if self._model is not None:
+            _min, _max = value
+            if _min is not None:
+                assert isinstance(_min, numbers.Number), \
+                        "Min value must be a number"
+                _min = float(_min)
+
+            if _max is not None:
+                assert isinstance(_max, numbers.Number), \
+                        "Max value must be a number"
+                _max = float(_max)
+
+            bounds = self._model._constraints.setdefault('bounds', {})
+            bounds[self._name] = (_min, _max)
+        else:
+            raise AttributeError("can't set attribute 'bounds' on Parameter "
+                                 "definition")
 
     @property
     def min(self):
         """A value used as a lower bound when fitting a parameter"""
 
-        return self._min
+        return self.bounds[0]
 
     @min.setter
-    def min(self, val):
-        """Set a minimum value of a parameter."""
+    def min(self, value):
+        """Set a minimum value of a parameter"""
 
-        if val is not None:
-            assert isinstance(val, numbers.Number), "Min value must be a number"
-            self._min = float(val)
+        if self._model is not None:
+            self.bounds = (value, self.max)
         else:
-            self._min = None
+            raise AttributeError("can't set attribute 'min' on Parameter "
+                                 "definition")
 
     @property
     def max(self):
         """A value used as an upper bound when fitting a parameter"""
 
-        return self._max
+        return self.bounds[1]
 
     @max.setter
-    def max(self, val):
+    def max(self, value):
         """Set a maximum value of a parameter."""
 
-        if val is not None:
-            assert isinstance(val, numbers.Number), "Max value must be a number"
-            self._max = float(val)
+        if self._model is not None:
+            self.bounds = (self.min, value)
         else:
-            self._max = None
+            raise AttributeError("can't set attribute 'max' on Parameter "
+                                 "definition")
 
-    def __getitem__(self, i):
-        return self._value[i]
+    @classmethod
+    def _get_nextid(cls):
+        """Returns a monotonically increasing ID used to order Parameter
+        descriptors delcared at the class-level of Model subclasses.
 
-    def __setslice__(self, i, j, val):
-        self._value[i:j] = _tofloat(val)[0]
-        setattr(self.model, self.name, self._value)
+        This allows the desired parameter order to be determined without
+        having to list it manually in the param_names class attribute.
+        """
 
-    def __setitem__(self, i, val):
-        val = _tofloat(val)[0]
-        self._value[i] = val
+        nextid = cls._nextid
+        cls._nextid += 1
+        return nextid
 
-        setattr(self.model, self.name, self._value)
+    def _validate_value(self, model, value):
+        if model is None:
+            return
+
+        param_dim = model.param_dim
+        if param_dim == 1:
+            # Just validate the value with _tofloat
+            return _tofloat(value)
+        else:
+            # If there are more parameter dimensions the value should
+            # be a sequence with at least one item
+            try:
+                if len(value) != param_dim:
+                    raise InputParameterError(
+                        "Expected parameter {0!r} to be of dimension "
+                        "{1}".format(self.name, param_dim))
+                # Validate each value
+                values = [_tofloat(v) for v in value]
+            except (TypeError, IndexError):
+                raise InputParameterError(
+                    "Expected a multivalued input of dimension {0} "
+                    "for parameter {1!r}".format(param_dim, self.name))
+
+            # Check that the value for each dimension has the same shape
+            shapes = set(v[1] for v in values)
+            if len(shapes) != 1:
+                raise InputParameterError(
+                    "The value for parameter {0!r} does not have the same "
+                    "shape for every dimension".format(self.name))
+
+            # Return the value for each dimension as a list, along with the
+            # shape
+            return np.array([v[0] for v in values]), shapes.pop()
+
+    def _create_value_wrapper(self, wrapper, model):
+        """Wrappers a getter/setter function to support optionally passing in
+        a reference to the model object as the second argument.
+
+        If a model is tied to this parameter and its getter/setter supports
+        a second argument then this creates a partial function using the model
+        instance as the second argument.
+        """
+
+        if isinstance(wrapper, np.ufunc):
+            if wrapper.nin != 1:
+                raise TypeError("A numpy.ufunc used for Parameter "
+                                "getter/setter may only take one input "
+                                "argument")
+        else:
+            wrapper_args = inspect.getargspec(wrapper)
+            nargs = len(wrapper_args.args)
+
+            if nargs == 1:
+                pass
+            elif nargs == 2:
+                if model is not None:
+                    # Don't make a partial function unless we're tied to a
+                    # specific model instance
+                    model_arg = wrapper_args.args[1]
+                    wrapper = functools.partial(wrapper, {model_arg: model})
+            else:
+                raise TypeError("Parameter getter/setter must be a function "
+                                "of either one or two arguments")
+
+        return wrapper
 
     def __add__(self, val):
-        return np.asarray(self._value) + val
+        return np.asarray(self) + val
 
     def __radd__(self, val):
-        return np.asarray(self._value) + val
+        return np.asarray(self) + val
 
     def __sub__(self, val):
-        return np.asarray(self._value) - val
+        return np.asarray(self) - val
 
     def __rsub__(self, val):
-        return val - np.asarray(self._value)
+        return val - np.asarray(self)
 
     def __mul__(self, val):
-        return np.asarray(self._value) * val
+        return np.asarray(self) * val
 
     def __rmul__(self, val):
-        return np.asarray(self._value) * val
+        return np.asarray(self) * val
 
     def __pow__(self, val):
-        return np.asarray(self._value) ** val
+        return np.asarray(self) ** val
 
     def __div__(self, val):
-        return np.asarray(self._value) / val
+        return np.asarray(self) / val
 
     def __rdiv__(self, val):
-        return val / np.asarray(self._value)
+        return val / np.asarray(self)
 
     def __truediv__(self, val):
-        return np.asarray(self._value) / val
+        return np.asarray(self) / val
 
     def __rtruediv__(self, val):
-        return val / np.asarray(self._value)
+        return val / np.asarray(self)
 
     def __eq__(self, val):
-        return (np.asarray(self._value) == np.asarray(val)).all()
+        return (np.asarray(self) == np.asarray(val)).all()
 
     def __ne__(self, val):
-        return not (np.asarray(self._value) == np.asarray(val)).all()
+        return not (np.asarray(self) == np.asarray(val)).all()
 
     def __lt__(self, val):
-        return (np.asarray(self._value) < np.asarray(val)).all()
+        return (np.asarray(self) < np.asarray(val)).all()
 
     def __gt__(self, val):
-        return (np.asarray(self._value) > np.asarray(val)).all()
+        return (np.asarray(self) > np.asarray(val)).all()
 
     def __le__(self, val):
-        return (np.asarray(self._value) <= np.asarray(val)).all()
+        return (np.asarray(self) <= np.asarray(val)).all()
 
     def __ge__(self, val):
-        return (np.asarray(self._value) >= np.asarray(val)).all()
+        return (np.asarray(self) >= np.asarray(val)).all()
 
     def __neg__(self):
-        return np.asarray(self._value) * (-1)
+        return np.asarray(self) * (-1)
 
     def __abs__(self):
-        return np.abs(np.asarray(self._value))
+        return np.abs(np.asarray(self))
 
 
-class Parameters(list):
+class Parameters(object):
     """
-    Store model parameters as a flat list of floats.
+    View model parameters as a flat list of floats.
+
+    This is a sequence object which provides a view of model parameters. Only
+    instances of `~astropy.modeling.core.ParametricModel` keep an instance of
+    this class as an attribute. The list of parameters can be modified by the
+    user or by an instance of `~astropy.modeling.fitting.Fitter`.
 
     This is a list-like object which stores model parameters. Only  instances
     of `~astropy.modeling.core.ParametricModel` keep an instance of this class
@@ -313,49 +520,118 @@ class Parameters(list):
 
     Parameters
     ----------
-    mobj : object
+    model : object
         an instance of a subclass of `~astropy.modeling.core.ParametricModel`
-    param_names : list of strings
-        parameter names
-    dim : int
-        Number of parameter sets
     """
 
-    def __init__(self, mobj, param_names, dim=1):
-        self.mobj = mobj
-        self.dim = dim
-        # A flag set to True by a fitter to indicate that the flat
-        # list of parameters has been changed.
-        self._changed = False
-        self.parinfo = {}
-        parlist = [getval(mobj, attr) for attr in param_names]
-        flat = self._flatten(param_names, parlist)
-        super(Parameters, self).__init__(flat)
+    def __init__(self, model):
+        self._model = model
 
-    def __setitem__(self, ind, value):
-        _val = _tofloat(value)[0]
-        super(Parameters, self).__setitem__(ind, _val)
-        self._changed = True
-        self._update_model_params()
+    def __repr__(self):
+        return repr(self._flatten())
 
-    def __setslice__(self, istart, istop, vlist):
-        super(Parameters, self).__setslice__(istart, istop, vlist)
-        self._changed = True
-        self._update_model_params()
+    def __len__(self):
+        return self.size
 
-    def _update_model_params(self):
-        """Update individual parameters"""
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            # TODO: For now slices are handled by generating the full flattened
+            # list and slicing it, but this can be made much more efficient
+            return self._flatten()[key]
+        else:
+            if key >= self.size:
+                raise IndexError
+            starts_idx = bisect.bisect_left(self.starts, (key, ''))
+            if starts_idx == len(self.starts):
+                starts_idx -= 1
+            param_start, param_name = self.starts[starts_idx]
 
-        for key in self.parinfo.keys():
-            sl = self.parinfo[key][0]
-            val = self[sl]
-            if len(val) == 1:
-                val = val[0]
+            if param_start > key:
+                # We want the previous parameter bin
+                param_start, param_name = self.starts[starts_idx - 1]
+
+            param = getattr(self._model, param_name)
+            if param.size == 1:
+                # Quick out for scalar parameter values
+                return param.value
+
+            # key is the index of the virtual flattened array; here we want to
+            # convert it into the correct index for this parameter's array
+            param_idx = key - param_start
+            return getattr(self._model, param_name).value.flat[param_idx]
+
+    def __setitem__(self, key, value):
+        if isinstance(key, slice):
+            for idx, val in zip(range(*key.indices(len(self))), value):
+                self.__setitem__(idx, val)
+        else:
+            if key >= self.size:
+                raise IndexError
+            starts_idx = bisect.bisect_left(self.starts, (key, ''))
+            if starts_idx == len(self.starts):
+                starts_idx -= 1
+            param_start, param_name = self.starts[starts_idx]
+            if param_start > key:
+                # We want the previous parameter bin
+                param_start, param_name = self.starts[starts_idx - 1]
+
+            param = getattr(self._model, param_name)
+
+            if param.size == 1:
+                setattr(self._model, param_name, value)
             else:
-                val = val
-            par = getattr(self.mobj, key)
-            setattr(par, 'value', val)
-        self._changed = False
+                param_idx = key - param_start
+                param.value.flat[param_idx] = value
+
+    def __eq__(self, other):
+        """Implement list equality."""
+
+        return self[:] == other
+
+    def __ne__(self, other):
+        """Implement list inequality."""
+
+        return self[:] != other
+
+    @lazyproperty
+    def size(self):
+        """The number of items in the flattened array."""
+
+        # This is just the end index of the last parameter
+        last = self._model.param_names[-1]
+        return self.slices[last].stop
+
+    @lazyproperty
+    def slices(self):
+        """The start and stop indces in the flattened array for each parameter.
+
+        Each parameter can have multiple items in the flattened array depending
+        on the number of parameter dimensions and the shape of each parameter.
+        This number is already fixed once a model has been created, so this
+        mapping only needs to be generated once.
+        """
+
+        slices = {}
+        index = 0
+
+        for name in self._model.param_names:
+            parameter = getattr(self._model, name)
+            size = parameter.size
+            slices[parameter.name] = slice(index, index + size)
+            index += size
+
+        return slices
+
+    @lazyproperty
+    def starts(self):
+        """A list of tuples pairing the start index of a parameter with
+        the parameter name.
+
+        This is most useful for mapping some index in the "flattened" parameter
+        value list to a specific parameter (see `__getitem__` for example).
+        """
+
+        return sorted((slc.start, name) for name, slc in self.slices.items())
 
     def _is_same_length(self, newparams):
         """
@@ -364,21 +640,21 @@ class Parameters(list):
         as the original parameters list.
         """
 
+        # TODO: Would len(newpars) == len(parsize) really not be sufficient?
         parsize = _tofloat(newparams)[0].size
-        return parsize == self.__len__()
+        return parsize == len(self)
 
-    def _flatten(self, param_names, parlist):
-        """Create a flat list of model parameters"""
+    def _flatten(self):
+        """
+        Create a flat list of model parameters.
+        """
 
-        flatpars = []
-        start = 0
-        for (name, par) in zip(param_names, parlist):
-            pararr = np.array(par)
-            fpararr = pararr.flatten()
+        params = []
+        for name in self._model.param_names:
+            value = getattr(self._model, name).value
+            if isinstance(value, np.ndarray):
+                params.extend(value.flatten())
+            else:
+                params.append(value)
 
-            stop = start + len(fpararr)
-            self.parinfo[name] = slice(start, stop, 1), pararr.shape
-            start = stop
-            flatpars.extend(list(fpararr))
-
-        return flatpars
+        return params

@@ -159,7 +159,7 @@ class Fitter(object):
                     else:
                         mpars.extend(val)
                 else:
-                    sl = self.model._parameters.parinfo[name][0]
+                    sl = self.model._parameters.slices[name]
                     plen = sl.stop - sl.start
                     mpars.extend(fitparams[:plen])
                     del fitparams[:plen]
@@ -181,7 +181,7 @@ class Fitter(object):
             pars = self.model._parameters[:]
             for item in self.model.param_names[::-1]:
                 if self.model.fixed[item] or self.model.tied[item]:
-                    sl = self.model._parameters.parinfo[item][0]
+                    sl = self.model._parameters.slices[item].start
                     del pars[sl]
             return pars
         else:
@@ -397,7 +397,7 @@ class LinearLSQFitter(Fitter):
         if len(farg) == 2:
             x, y = farg
             if y.ndim == 2:
-                assert y.shape[1] == self.model._parameters.dim, (
+                assert y.shape[1] == self.model.param_dim, (
                     "Number of data sets (Y array is expected to equal "
                     "the number of parameter sets")
             # map domain into window
@@ -442,7 +442,7 @@ class LinearLSQFitter(Fitter):
                 lhs *= weights[:, np.newaxis]
                 rhs *= weights
 
-        if not multiple and self.model._parameters.dim > 1:
+        if not multiple and self.model.param_dim > 1:
             raise ValueError("Attempting to fit a 1D data set to a model "
                              "with multiple parameter sets")
         if rcond is None:
@@ -455,12 +455,13 @@ class LinearLSQFitter(Fitter):
         self.fit_info['rank'] = rank
         self.fit_info['singular_values'] = sval
 
-        self.model._parameters._changed = True
         # If y.n_inputs > model.n_inputs we are doing a simultanious 1D fitting
         # of several 1D arrays. Otherwise the model is 2D.
         # if y.n_inputs > self.model.n_inputs:
-        if multiple:
-            self.model._parameters.dim = multiple
+        if multiple and self.model.param_dim != multiple:
+            self.model.param_dim = multiple
+        # TODO: Changing the model's param_dim needs to be handled more
+        # carefully; for now it's not actually allowed
         lacoef = (lacoef.T / scl).T
         self.fit_info['params'] = lacoef
         if rank != self.model._order:
@@ -572,7 +573,7 @@ class NonLinearLSQFitter(Fitter):
         self._update_constraints()
         farg = _convert_input(x, y, z)
         self.weights = weights
-        if self.model._parameters.dim != 1:
+        if self.model.param_dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit one "
                              "data set at a time")
@@ -691,7 +692,7 @@ class SLSQPFitter(Fitter):
         self._update_constraints()
         farg = _convert_input(x, y, z)
         self.weights = weights
-        if self.model._parameters.dim != 1:
+        if self.model.param_dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit "
                              "one data set at a time")
@@ -751,10 +752,10 @@ class JointFitter(object):
         fparams = []
         fparams.extend(self.initvals)
         for model in self.models:
-            params = model._parameters[:]
+            params = model.parameters[:]
             for pname in model.joint:
-                sl = model._parameters.parinfo[pname][0]
-                del params[sl]
+                slc = model.parameters.slices[pname]
+                del params[slc]
             fparams.extend(params)
         return fparams
 
@@ -793,8 +794,8 @@ class JointFitter(object):
                     # parameter is not a number
                     mparams.extend([jointfitparams[index]])
                 else:
-                    sl = model._parameters.parinfo[pname][0]
-                    plen = sl.stop - sl.start
+                    slc = model.parameters.slices[pname]
+                    plen = slc.stop - slc.start
                     mparams.extend(mfparams[:plen])
                     del mfparams[:plen]
             modelfit = model.eval(margs[:-1], *mparams)
@@ -840,8 +841,8 @@ class JointFitter(object):
                     # is not a number
                     mparams.extend([jointfitparams[index]])
                 else:
-                    sl = model._parameters.parinfo[pname][0]
-                    plen = sl.stop - sl.start
+                    slc = model.parameters.slices[pname]
+                    plen = slc.stop - slc.start
                     mparams.extend(mfparams[:plen])
                     del mfparams[:plen]
-            model._parameters[:] = np.array(mparams)
+            model.parameters[:] = np.array(mparams)
