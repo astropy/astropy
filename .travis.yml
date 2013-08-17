@@ -55,6 +55,7 @@ before_install:
     - export PYTHONIOENCODING=UTF8
 
     # install the pip that supports wheel
+    - pip install setuptools --upgrade
     - pip install pip --upgrade
     - pip install wheel
 
