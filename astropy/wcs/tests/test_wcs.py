@@ -22,7 +22,7 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
-rsn = RandomState(1234)
+rsn = RandomState(123456789)
 
 # test_maps() is a generator
 def test_maps():
