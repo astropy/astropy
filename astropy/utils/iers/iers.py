@@ -8,9 +8,10 @@ used, but user-downloaded files can be substituted.
 
 Generally, there is no need to invoke the iers classes oneself.  E.g., the
 default IERS B table is loaded as necessary in `Time`::
+    >>> from astropy.time import Time
     >>> t = Time(['2012-06-30 12:00:00', '2012-06-30 23:59:59',
-                  '2012-06-30 23:59:60', '2012-07-01 00:00:00',
-                  '2012-07-01 12:00:00'], scale='utc')
+    ...           '2012-06-30 23:59:60', '2012-07-01 00:00:00',
+    ...           '2012-07-01 12:00:00'], scale='utc')
     >>> t.ut1
     <Time object: scale='ut1' format='iso' vals=['2012-06-30 11:59:59.413'
      '2012-06-30 23:59:58.413' '2012-06-30 23:59:59.413'
@@ -19,19 +20,20 @@ default IERS B table is loaded as necessary in `Time`::
 But if one is dealing with very recent observations, this does not work::
     >>> t2 = Time.now()
     >>> t2.ut1
-    ERROR: IndexError: (some) times are outside of range covered by IERS table.
-    [astropy.utils.iers.iers]
+    Traceback (most recent call last):
+    ...
+    IndexError: (some) times are outside of range covered by IERS table.
 
 In this case, one needs to update the IERS B table or use IERS A instead
 (which also has predictions).  In future versions, this may become configurable
 or automatic, but currently it requires handiwork.  For `Time`, the easiest
 option is to set the `delta_ut1_utc` property directly::
     >>> from astropy.utils.iers import IERS_A
-    >>> iers_a = IERS_A.open('finals2000A.all')
-    >>> iers_a.ut1_utc(t2)
+    >>> iers_a = IERS_A.open('finals2000A.all')    # doctest: +SKIP
+    >>> iers_a.ut1_utc(t2)                         # doctest: +SKIP
     0.069727551794218745
-    >>> t2.delta_ut1_utc = iers_a.ut1_utc(t2)
-    >>> t2.ut1
+    >>> t2.delta_ut1_utc = iers_a.ut1_utc(t2)      # doctest: +SKIP
+    >>> t2.ut1                                     # doctest: +SKIP
     <Time object: scale='ut1' format='datetime' vals=2013-06-22 17:01:13.446632>
 
 (The IERS-A file `finals2000A.all` can be downloaded from `iers.IERS_A_URL`)
