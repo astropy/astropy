@@ -71,9 +71,9 @@ install:
     # these command run pip first trying a wheel, and then falling back on source build
     # see .travis.pip.wheel for details on how to map from package to wheel URL
     - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND numpy==$NUMPY_VERSION; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND Cython==0.18; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND Cython>=0.18; fi
     - if [[ $SETUP_CMD != egg_info ]]; then pip -q install pytest-xdist --use-mirrors; fi
-    - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND scipy=0.12.0; fi
+    - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND scipy==0.12.0; fi
       # not doing -q in scipy because if we have to fall back on the source build it takes too long and travis times out without continuous output
     - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND h5py==2.1.3; fi
 
