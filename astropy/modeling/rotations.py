@@ -167,26 +167,23 @@ class MatrixRotation2D(Model):
             raise ValueError("Expected rotation matrix to be a 2D array")
         return matrix
 
-    angle = Parameter('angle', getter=np.deg2rad, setter=_validate_angle)
+    angle = Parameter('angle', getter=np.rad2deg, setter=_validate_angle)
     matrix = Parameter('matrix', setter=_validate_matrix)
 
     def __init__(self, matrix=None, angle=None):
         if matrix is None and angle is None:
             raise InputParameterError("Expected at least one argument - "
-                                           "a rotation matrix or an angle")
+                                      "a rotation matrix or an angle")
         if matrix is not None:
             super(MatrixRotation2D, self).__init__(n_inputs=1, n_outputs=1,
                                                    param_dim=1)
             # TODO: Why +0.0?
             self.matrix = np.asarray(matrix) + 0.0
         else:
-            matrix = self._compute_matrix(angle)
-            n_inputs = n_outputs = matrix[0].shape[0]
-            super(MatrixRotation2D, self).__init__(n_inputs=n_inputs,
-                                                   n_outputs=n_outputs,
+            super(MatrixRotation2D, self).__init__(n_inputs=1, n_outputs=1,
                                                    param_dim=1)
             self.angle = angle
-            self.matrix = matrix
+            self.matrix = self._compute_matrix(self._angle)
 
     def _compute_matrix(self, angle):
         return np.array([[math.cos(angle), math.sin(angle)],

@@ -138,7 +138,7 @@ class PolynomialModel(PolynomialBase):
                                               param_dim=param_dim)
 
         for name, value in params.items():
-            setattr(self, '_' + name, value)
+            setattr(self, name, value)
 
     @property
     def degree(self):
@@ -265,7 +265,7 @@ class OrthoPolynomialBase(PolynomialBase):
                                                   param_dim=param_dim)
 
         for name, value in params.items():
-            setattr(self, '_' + name, value)
+            setattr(self, name, value)
 
     def get_num_coeff(self):
         """

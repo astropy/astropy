@@ -664,7 +664,8 @@ class _CompositeModel(Model):
         param_names = []
         for tr in self._transforms:
             param_names.extend(tr.param_names)
-        super(_CompositeModel, self).__init__(param_names, n_inputs, n_outputs)
+        super(_CompositeModel, self).__init__(n_inputs, n_outputs)
+        self.param_names = param_names
         self.fittable = False
 
     def __repr__(self):
