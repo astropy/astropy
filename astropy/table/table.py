@@ -1350,7 +1350,7 @@ class Table(object):
         import webbrowser
         import tempfile
 
-        N = tempfile.NamedTemporaryFile(suffix='.html')
+        tmp = tempfile.NamedTemporaryFile(suffix='.html')
 
         linelist = self.pformat(html=True, max_width=np.inf, max_lines=np.inf,
                                 tableid=id(self))
@@ -1364,12 +1364,12 @@ class Table(object):
         css = ["<style>{0}</style>".format(css)]
         html = "\n".join(['<!DOCTYPE html>','<html>'] + css + js + linelist + ['</html>'])
 
-        N.write(html)
-        N.flush()
+        tmp.write(html)
+        tmp.flush()
 
-        webbrowser.open("file://"+N.name)
+        webbrowser.open("file://"+tmp.name)
 
-        return N
+        return tmp
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_unit=False, html=False, tableid=0):
