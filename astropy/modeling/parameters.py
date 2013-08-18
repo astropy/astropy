@@ -436,7 +436,7 @@ class Parameter(object):
                     # Don't make a partial function unless we're tied to a
                     # specific model instance
                     model_arg = wrapper_args.args[1]
-                    wrapper = functools.partial(wrapper, {model_arg: model})
+                    wrapper = functools.partial(wrapper, **{model_arg: model})
             else:
                 raise TypeError("Parameter getter/setter must be a function "
                                 "of either one or two arguments")

@@ -23,10 +23,10 @@ class TestParModel(ParametricModel):
     e = Parameter('e')
 
     def __init__(self, coeff, e, param_dim=1):
-        self._coeff = coeff
-        self._e = e
         super(TestParModel, self).__init__(n_inputs=1, n_outputs=1,
                                            param_dim=param_dim)
+        self.coeff = coeff
+        self.e = e
 
     def __call__(self):
         pass
