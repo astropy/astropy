@@ -393,7 +393,8 @@ class Quantity(np.ndarray):
             equivalencies = self._equivalencies
         new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
         new_unit = Unit(unit)
-        return self.__quantity_instance__(new_val, new_unit)
+        return self.__quantity_instance__(new_val, new_unit,
+                                          equivalencies=equivalencies)
 
     @property
     def value(self):
