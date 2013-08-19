@@ -438,22 +438,6 @@ class BaseHeader(object):
         """Return the column names of the table"""
         return tuple(col.name for col in self.cols)
 
-    def _get_n_data_cols(self):
-        """Return the number of expected data columns from data splitting.
-        This is either explicitly set (typically for fixedwidth splitters)
-        or set to self.names otherwise.
-        """
-        if not hasattr(self, '_n_data_cols'):
-            self._n_data_cols = len(self.names)
-        return self._n_data_cols
-
-    def _set_n_data_cols(self, val):
-        """Return the number of expected data columns from data splitting.
-        """
-        self._n_data_cols = val
-
-    n_data_cols = property(_get_n_data_cols, _set_n_data_cols)
-
     def get_type_map_key(self, col):
         return col.raw_type
 
