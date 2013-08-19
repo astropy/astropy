@@ -77,16 +77,6 @@ try:
 except NameError:
     unicode = str
 
-# Python 2.4 comptability: any() function is built-in only for 2.5 onward
-try:
-    any = any
-except NameError:
-    def any(vals):
-        for val in vals:
-            if val:
-                return True
-        return False
-
 
 class NoType(object):
     pass
@@ -624,59 +614,6 @@ class BaseData(object):
         for col in self.cols:
             if col.name in self.formats:
                 col.format = self.formats[col.name]
-
-
-class DictLikeNumpy(dict):
-    """Provide minimal compatibility with numpy rec array API for BaseOutputter
-    object::
-
-      table = ascii.read('mytable.dat', numpy=False)
-      table.field('x')    # List of elements in column 'x'
-      table.dtype.names   # get column names in order
-      table[1]            # returns row 1 as a list
-      table[1][2]         # 3nd column in row 1
-      table['col1'][1]    # Row 1 in column col1
-      for row_vals in table:  # iterate over table rows
-          print row_vals  # print list of vals in each row
-
-    """
-    # To do: - add colnames property to set colnames and dtype.names as well.
-    # - ordered dict?
-
-    class Dtype(object):
-        pass
-
-    def __init__(self, *args, **kwargs):
-        self.dtype = DictLikeNumpy.Dtype()
-        dict.__init__(self, *args, **kwargs)
-
-    def __getitem__(self, item):
-        try:
-            return dict.__getitem__(self, item + '')
-        except TypeError:
-            return [dict.__getitem__(self, x)[item] for x in self.dtype.names]
-
-    def field(self, colname):
-        return self[colname]
-
-    def __len__(self):
-        return len(list(self.values())[0])
-
-    def __iter__(self):
-        self.__index = 0
-        return self
-
-    def __next__(self):
-        try:
-            vals = self[self.__index]
-        except IndexError:
-            raise StopIteration
-        else:
-            self.__index += 1
-            return vals
-
-    if sys.version_info[0] < 3:  # pragma: py2
-        next = __next__
 
 
 def convert_numpy(numpy_type):
