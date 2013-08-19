@@ -292,13 +292,15 @@ def mass_energy():
     between mass and energy.
     """
 
-    return [(si.kg, si.J, lambda x: x * _si.c.value**2,
-             lambda x: x / _si.c.value**2),
-            (si.kg / si.m**2, si.J / si.m**2 , lambda x: x * _si.c.value**2,
-             lambda x: x / _si.c.value**2),
-            (si.kg / si.m**3, si.J / si.m**3 , lambda x: x * _si.c.value**2,
-             lambda x: x / _si.c.value**2),
-            (si.kg / si.s, si.J / si.s , lambda x: x * _si.c.value**2,
-             lambda x: x / _si.c.value**2),
+    return [(si.kg, si.J, lambda x: x * _si.c.value ** 2,
+             lambda x: x / _si.c.value ** 2),
+            (si.kg / si.m ** 2, si.J / si.m ** 2 , 
+             lambda x: x * _si.c.value ** 2,
+             lambda x: x / _si.c.value ** 2),
+            (si.kg / si.m ** 3, si.J / si.m ** 3 , 
+             lambda x: x * _si.c.value ** 2,
+             lambda x: x / _si.c.value ** 2),
+            (si.kg / si.s, si.J / si.s , lambda x: x * _si.c.value ** 2,
+             lambda x: x / _si.c.value ** 2),
     ]
 
