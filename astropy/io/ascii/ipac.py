@@ -155,6 +155,9 @@ class Ipac(fixedwidth.FixedWidth):
         :param table: input table data (astropy.table.Table object)
         :returns: list of strings corresponding to ASCII table
         """
+
+        core._apply_include_exclude_names(table, self.include_names, self.exclude_names)
+
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = table.cols
         self.data.cols = table.cols
@@ -321,9 +324,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         """Initialize the header Column objects from the table ``lines``.
 
         Based on the previously set Header attributes find or create the column names.
-        Sets ``self.cols`` with the list of Columns.  This list only includes the actual
-        requested columns after filtering by the include_names and exclude_names
-        attributes.  See ``self.names`` for the full list.
+        Sets ``self.cols`` with the list of Columns.  
 
         :param lines: list of table lines
         :returns: list of table Columns
@@ -368,25 +369,15 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             elif self.ipac_definition == 'left':
                 col.end += 1
 
-        # Standard column name filtering (include or exclude names)
         self.names = [x.name for x in cols]
-        names = set(self.names)
-        if self.include_names is not None:
-            names.intersection_update(self.include_names)
-        if self.exclude_names is not None:
-            names.difference_update(self.exclude_names)
-
+ 
         # Generate final list of cols and re-index the cols because the
         # FixedWidthSplitter does NOT return the ignored cols (as is the
         # case for typical delimiter-based splitters)
-        self.cols = [x for x in cols if x.name in names]
+        self.cols = [x for x in cols]
         for i, col in enumerate(self.cols):
             col.index = i
 
-        # Since the splitter returns only the actual requested columns, at this
-        # point set self.n_data_cols to be the number of requested columns.  This
-        # gets used later to validate the data as it gets read and split.
-        self.n_data_cols = len(self.cols)
 
     def str_vals(self):
 

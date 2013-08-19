@@ -58,7 +58,7 @@ def test_read_normal_names_include():
                                    names=('name1', 'name2', 'name3'),
                                    include_names=('name1', 'name3'))
     dat = reader.read(table)
-    assert_equal(reader.header.colnames, ('name1', 'name3'))
+    assert_equal(dat.colnames, ['name1', 'name3'])
     assert_almost_equal(dat[1][0], 2.4)
     assert_equal(dat[0][1], 3)
 
@@ -74,7 +74,7 @@ def test_read_normal_exclude():
     reader = asciitable.get_reader(Reader=asciitable.FixedWidth,
                                    exclude_names=('Col1',))
     dat = reader.read(table)
-    assert_equal(reader.header.colnames, ('Col2',))
+    assert_equal(dat.colnames, ['Col2'])
     assert_equal(dat[1][0], "'s worlds")
 
 
@@ -87,7 +87,7 @@ def test_read_weird():
 """
     reader = asciitable.get_reader(Reader=asciitable.FixedWidth)
     dat = reader.read(table)
-    assert_equal(reader.header.colnames, ('Col1', 'Col2'))
+    assert_equal(dat.colnames, ['Col1', 'Col2'])
     assert_almost_equal(dat[1][0], 2.4)
     assert_equal(dat[0][1], '"hel')
     assert_equal(dat[1][1], "df's wo")

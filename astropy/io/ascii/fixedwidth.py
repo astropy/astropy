@@ -86,8 +86,6 @@ class FixedWidthHeader(core.BaseHeader):
     :param comment: regular expression for comment lines
     :param splitter_class: Splitter class for splitting data lines into columns
     :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
     :param position_line: row index of line that specifies position (default = 1)
     :param position_char: character used to write the position line (default = "-")
     :param col_starts: list of start positions for each column (0-based counting)
@@ -110,9 +108,7 @@ class FixedWidthHeader(core.BaseHeader):
         """Initialize the header Column objects from the table ``lines``.
 
         Based on the previously set Header attributes find or create the column names.
-        Sets ``self.cols`` with the list of Columns.  This list only includes the actual
-        requested columns after filtering by the include_names and exclude_names
-        attributes.  See ``self.names`` for the full list.
+        Sets ``self.cols`` with the list of Columns. 
 
         :param lines: list of table lines
         :returns: None
@@ -164,10 +160,7 @@ class FixedWidthHeader(core.BaseHeader):
             if self.names is None:
                 self.names = vals
 
-        # Filter self.names using include_names and exclude_names, then create
-        # the actual Column objects.
         self._set_cols_from_names()
-        self.n_data_cols = len(self.cols)
 
         # Set column start and end positions.  Also re-index the cols because
         # the FixedWidthSplitter does NOT return the ignored cols (as is the

@@ -166,14 +166,8 @@ class CdsHeader(core.BaseHeader):
                     raise ValueError('Line "%s" not parsable as CDS header' % line)
 
         self.names = [x.name for x in cols]
-        names = set(self.names)
-        if self.include_names is not None:
-            names.intersection_update(self.include_names)
-        if self.exclude_names is not None:
-            names.difference_update(self.exclude_names)
 
-        self.cols = [x for x in cols if x.name in names]
-        self.n_data_cols = len(self.cols)
+        self.cols = [x for x in cols]
 
         # Re-index the cols because the FixedWidthSplitter does NOT return the ignored
         # cols (as is the case for typical delimiter-based splitters)

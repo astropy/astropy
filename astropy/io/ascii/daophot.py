@@ -221,6 +221,5 @@ class DaophotHeader(core.BaseHeader):
                 elif 's' in col.format:
                     col.type = core.StrType
 
-        self.n_data_cols = len(self.cols)
         # INDEF is the missing value marker
         self.data.fill_values.append(('INDEF', '0'))
