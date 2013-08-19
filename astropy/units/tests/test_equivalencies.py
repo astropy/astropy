@@ -87,3 +87,34 @@ def test_massenergy():
                        mass_g.value, rtol=1e-7)
     assert np.allclose(mass_g.to(u.eV, equivalencies=u.mass_energy()).value,
                        mass_eV.value, rtol=1e-7)
+
+    # Basic tests of 'derived' equivalencies
+    # Surface density
+    sdens_eV = u.Quantity(5.60958884539e32, u.eV / u.m**2)
+    sdens_g = u.Quantity(1e-4, u.g / u.cm**2)
+    assert np.allclose(sdens_eV.to(u.g / u.cm**2, 
+                                   equivalencies=u.mass_energy()).value,
+                       sdens_g.value, rtol=1e-7)
+    assert np.allclose(sdens_g.to(u.eV / u.m**2, 
+                                  equivalencies=u.mass_energy()).value,
+                       sdens_eV.value, rtol=1e-7)
+
+    # Density
+    dens_eV = u.Quantity(5.60958884539e32, u.eV / u.m**3)
+    dens_g = u.Quantity(1e-6, u.g / u.cm**3)
+    assert np.allclose(dens_eV.to(u.g / u.cm**3, 
+                                   equivalencies=u.mass_energy()).value,
+                       dens_g.value, rtol=1e-7)
+    assert np.allclose(dens_g.to(u.eV / u.m**3, 
+                                  equivalencies=u.mass_energy()).value,
+                       dens_eV.value, rtol=1e-7)
+
+    # Power
+    pow_eV = u.Quantity(5.60958884539e32, u.eV / u.s)
+    pow_g = u.Quantity(1, u.g / u.s)
+    assert np.allclose(pow_eV.to(u.g / u.s,
+                                   equivalencies=u.mass_energy()).value,
+                       pow_g.value, rtol=1e-7)
+    assert np.allclose(pow_g.to(u.eV / u.s,
+                                  equivalencies=u.mass_energy()).value,
+                       pow_eV.value, rtol=1e-7)
