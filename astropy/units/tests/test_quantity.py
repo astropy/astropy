@@ -364,6 +364,17 @@ def test_quantity_conversion_with_equiv():
     assert q3.unit == u.arcminute
 
 
+def test_quantity_conversion_equivalency_passed_on():
+    q1 = u.Quantity([1000,2000], unit=u.Hz, equivalencies=u.spectral())
+    q2 = q1.to(u.nm).to(u.Hz)
+    assert q2.unit == u.Hz
+    assert_allclose(q2.value, q1.value)
+    q3 = u.Quantity([1000, 2000], unit=u.nm)
+    q4 = q3.to(u.Hz, equivalencies=u.spectral()).to(u.nm)
+    assert q4.unit == u.nm
+    assert_allclose(q4.value, q3.value)
+
+
 def test_si():
     q1 = 10. * u.m * u.s ** 2 / (200. * u.ms) ** 2  # 250 meters
     assert q1.si.value == 250
