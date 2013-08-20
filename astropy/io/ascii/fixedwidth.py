@@ -34,7 +34,7 @@ fixedwidth.py:
 import re
 import itertools
 from . import core
-from .core import io, next, izip, any, InconsistentTableError
+from .core import io, next, izip, InconsistentTableError
 
 
 class FixedWidthSplitter(core.BaseSplitter):
