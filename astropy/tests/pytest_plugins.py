@@ -165,7 +165,7 @@ def pytest_configure(config):
                 not '__pycache__' in filename and
                 not os.path.basename(filename) == 'junit.xml'):
                 raise IOError(
-                    "Tried to write to a non-temporary directory '%s'" %
+                    "Tried to write to invalid location '%s'" %
                     filename)
         return original_open(filename, mode, *args, **kwargs)
     __builtins__['open'] = restricted_open
