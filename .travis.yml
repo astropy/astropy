@@ -8,7 +8,7 @@ python:
     # This is just for "egg_info".  All other builds are explicitly given in the matrix
 env:
     global:
-        - PIP_WHEEL_COMMAND="pip install --find-links http://wheels.astropy.org/index.html --use-wheel --upgrade"
+        - PIP_WHEEL_COMMAND="pip install --find-links http://wheels.astropy.org/ --use-wheel --upgrade"
     matrix:
         - SETUP_CMD='egg_info' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
 
