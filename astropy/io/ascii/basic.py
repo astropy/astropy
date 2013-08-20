@@ -34,7 +34,7 @@ basic.py:
 
 import re
 from . import core
-from .core import io, next, izip, any
+from .core import io, next, izip
 
 class Basic(core.BaseReader):
     """Read a character-delimited table with a single header line at the top
