@@ -166,13 +166,7 @@ class FLRW(Cosmology):
             self._neff_per_nu = self._Neff / self._nneutrinos
 
             if isinstance(m_nu, u.Quantity):
-                # Convert to eV.  This might be tricky, since
-                # astropy.units doesn't understand mass/energy equivalence
-                # right now.  Modify this if that ever changes
-                if m_nu.unit.physical_type == 'energy':
-                    m_nu = m_nu.to(u.eV)
-                elif m_nu.unit.physical_type == 'mass':
-                    m_nu = (m_nu * const.c.cgs**2).to(u.eV)
+                m_nu = m_nu.to(u.eV, equivalencies=u.mass_energy())
             else:
                 # Just assume they are in eV
                 m_nu = u.Quantity(m_nu, u.eV)
@@ -191,7 +185,8 @@ class FLRW(Cosmology):
                     self._massivenu = True
                     self._nmasslessnu = 0
                     self._nmassivenu = self._nneutrinos
-                    self._massivenu_mass = m_nu * self.ones(self._nneutrinos)
+                    self._massivenu_mass = m_nu.value *\
+                                           np.ones(self._nneutrinos)
             else:
                 # Make sure we have the right number of masses
                 # -unless- they are massless, in which case we cheat a little
@@ -228,13 +223,15 @@ class FLRW(Cosmology):
             # Compute Neutrino Omega and total relativistic component
             # for massive neutrinos
             if self._massivenu:
-                self._nu_y = self._massivenu_mass / (kB_evK * self._Tnu0)
+                nu_y = self._massivenu_mass / (kB_evK * self._Tnu0)
+                self._nu_y = nu_y.value
                 self._Onu0 = self._Ogamma0 * self.nu_relative_density(0)
             else:
-                # The 0.227 is 7/8 (4/11)^(4/3) -- the temperature
+                # This case is particularly simple, so do it directly
+                # The 0.2271... is 7/8 (4/11)^(4/3) -- the temperature
                 # bit ^4 (blackbody energy density) times 7/8 for
                 # FD vs. BE statistics.
-                self._Onu0 = 0.2271073 * self._Neff * self._Ogamma0
+                self._Onu0 = 0.22710731766 * self._Neff * self._Ogamma0
 
         else:
             self._Ogamma0 = 0.0
@@ -304,7 +301,7 @@ class FLRW(Cosmology):
             return u.Quantity(np.zeros(self._nmasslessnu), u.eV)
         if self._nmasslessnu == 0:
             # Only massive
-            return self._massivenu_mass
+            return u.Quantity(self._massivenu_mass, u.eV)
         # A mix -- the most complicated case
         return u.Quantity(np.append(np.zeros(self._nmasslessnu),
                                     self._massivenu_mass.value), u.eV)
@@ -496,47 +493,6 @@ class FLRW(Cosmology):
             z = np.asarray(z)
         return self._Tcmb0 * (1.0 + z)
 
-    def _nu_reldens(self, z):
-        """ Neutrino density function relative to the energy density in
-        photons for massive neutrinos
-
-        Parameters
-        ----------
-        z : array like
-           Redshift
-
-        Returns
-        -------
-           The neutrino density scaling factor relative to the density
-             in photons at each redshift for each species of massive
-             neutrino.
-
-        Notes
-        -----
-        The density in for the given neutrino species is given by
-
-        .. math::
-
-          \\rho_{\\nu} \\left(a\\right) = 0.2271 \\, N_{eff} \\,
-          f\\left(m_{\\nu} a / T_{\\nu 0} \\right) \\,
-          \\rho_{\\gamma} \\left( a \\right)
-
-        where
-
-        .. math::
-
-          f \\left(y\\right) = \\frac{120}{7 \\pi^4}
-          \\int_0^{\\infty} \\, dx \\frac{x^2 \\sqrt{x^2 + y^2}}
-          {e^x + 1}
-
-        Note that f has the asymptotic behavior :math:`f(0) = 1`
-        for massless neutrinos. f is approximated by an analytical 
-        fitting formula given in Komatsu et al. 2011, ApJS 192, 18.
-        """
-
-
-
-
     def nu_relative_density(self, z):
         """ Neutrino density function relative to the energy density in
         photons.
@@ -580,7 +536,7 @@ class FLRW(Cosmology):
         #See Komatsu et al. 2011, eq 26 and the surrounding discussion
         # However, this is modified to handle multiple neutrino masses
         # by computing the above for each mass, then summing
-        prefac = 0.2271073 # this is 7/8 (4/11)^4/3 -- see any cosmo book
+        prefac = 0.22710731766 # 7/8 (4/11)^4/3 -- see any cosmo book
         
         # The massive and massless contribution must be handled seperately
         # But check for common cases first
@@ -588,9 +544,10 @@ class FLRW(Cosmology):
             return prefac * self._Neff * np.ones_like(z)
 
         p = 1.83
+        invp = 1.0 / 1.83
         if np.isscalar(z):
             curr_nu_y = self._nu_y / (1.0 + z) # only includes massive ones
-            rel_mass_per = (1.0 + (0.3173 * curr_nu_y)**p)**(1.0 / p)
+            rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
             rel_mass = rel_mass_per.sum() + self._nmasslessnu
             return prefac * self._neff_per_nu * rel_mass
         else:
@@ -598,7 +555,7 @@ class FLRW(Cosmology):
             retarr = np.empty_like(z)
             for i, redshift in enumerate(z):
                 curr_nu_y = self._nu_y / (1.0 + redshift)
-                rel_mass_per = (1.0 + (0.3173 * curr_nu_y)**p)**(1.0 / p)
+                rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
                 rel_mass = rel_mass_per.sum() + self._nmasslessnu
                 retarr[i] = prefac * self._neff_per_nu * rel_mass
             return retarr
