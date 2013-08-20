@@ -1076,7 +1076,7 @@ class _SIPModel(SCompositeModel):
 
     """
 
-    Base class for the Simple Imaging Polynomial (SIP) model.
+    Simple Imaging Polynomial (SIP) model.
 
     The SIP convention is used to represent distortions in FITS image headers.
     See [1]_ for a description of the SIP convention.
@@ -1142,40 +1142,7 @@ class _SIPModel(SCompositeModel):
 
 class SIPModel(_SIPModel):
 
-    """
-    Simple Imaging Polynomial (SIP) model.
-
-    The SIP convention is used to represent distortions in FITS image headers.
-    See [1]_ for a description of the SIP convention.
-
-    Parameters
-    ----------
-    crpix : list or ndarray of length(2)
-        CRPIX values
-    a_order : int
-        SIP polynomial order for first axis
-    a_coeff : dict
-        SIP coefficients for first axis
-    coeff_prefix : string: 'a', 'b', 'A' or 'B'
-        SIP coefficient preffix
-    b_order : int
-        SIP order for second axis
-    b_coeff : dict
-        SIP coefficients for the second axis
-    a_inv_order : int
-        order for the inverse transformation (AP coefficients)
-    a_inv_coeff : dict
-        coefficients for the inverse transform
-    b_inv_order : int
-        order for the inverse transformation (BP coefficients)
-    b_inv_coeff : dict
-        coefficients for the inverse transform
-    param_dim : int
-        number of parameter sets
-
-    References
-    ----------
-    .. [1] `David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005 <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`_
+    __doc__ = _SIPModel.__doc__
 
     """
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
@@ -1234,41 +1201,7 @@ class SIPModel(_SIPModel):
 
 class InverseSIPModel(_SIPModel):
 
-    """
-
-    Inverse transformation of the Simple Imaging Polynomial (SIP) model.
-
-    The SIP convention is used to represent distortions in FITS image headers.
-    See [1]_ for a description of the SIP convention.
-
-    Parameters
-    ----------
-    crpix : list or ndarray of length(2)
-        CRPIX values
-    a_order : int
-        SIP polynomial order for first axis
-    a_coeff : dict
-        SIP coefficients for first axis
-    coeff_prefix : string: 'a', 'b', 'A' or 'B'
-        SIP coefficient preffix
-    b_order : int
-        SIP order for second axis
-    b_coeff : dict
-        SIP coefficients for the second axis
-    a_inv_order : int
-        order for the inverse transformation (AP coefficients)
-    a_inv_coeff : dict
-        coefficients for the inverse transform
-    b_inv_order : int
-        order for the inverse transformation (BP coefficients)
-    b_inv_coeff : dict
-        coefficients for the inverse transform
-    param_dim : int
-        number of parameter sets
-
-    References
-    ----------
-    .. [1] `David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005 <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`_
+    __doc__ = _SIPModel.__doc__
 
     """
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
