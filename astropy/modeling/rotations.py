@@ -88,7 +88,11 @@ class RotateNative2Celestial(Model):
                                       np.cos(ntheta) * np.cos(self.theta) *
                                       np.cos(nphi - self.psi)))
         ind = calpha < 0
-        calpha[ind] += 360
+        if isinstance(ind, np.ndarray):
+            calpha[ind] += 360
+        else:
+            if ind:
+                calpha += 360
         return calpha, cdelta
 
 
@@ -150,7 +154,11 @@ class RotateCelestial2Native(Model):
                                       np.cos(cdelta) * np.cos(self.theta) *
                                       np.cos(calpha - self.phi)))
         ind = nphi > 180
-        nphi[ind] -= 360
+        if isinstance(ind, np.ndarray):
+            nphi[ind] -= 360
+        else:
+            if ind:
+                nphi -= 360
         return nphi, ntheta
 
 
