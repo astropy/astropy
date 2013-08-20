@@ -80,22 +80,20 @@ install:
     # CORE DEPENDENCIES
     # These command run pip first trying a wheel, and then falling back on
     # source build
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND -q numpy==$NUMPY_VERSION; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND -q Cython>=0.18; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then pip -q install pytest-xdist --use-mirrors; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND numpy==$NUMPY_VERSION; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND Cython>=0.18; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then pip install pytest-xdist --use-mirrors; fi
 
     # OPTIONAL DEPENDENCIES
-    # Not doing -q in scipy because if we have to fall back on the source build
-    # it takes too long and travis times out without continuous output
     - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND scipy==0.12.0; fi
-    - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND -q h5py==2.1.3; fi
+    - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND h5py==2.1.3; fi
 
     # DOCUMENTATION DEPENDENCIES
     # build_sphinx needs sphinx and matplotlib (for plot_directive). Note that
     # this matplotlib will *not* work with py 3.x, but our sphinx build is
     # currently 2.7, so that's fine
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_WHEEL_COMMAND -q Sphinx==1.1.3; fi
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_WHEEL_COMMAND -q matplotlib>=1.3.0; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_WHEEL_COMMAND Sphinx==1.1.3; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_WHEEL_COMMAND matplotlib>=1.3.0; fi
 
 script:
     - python setup.py $SETUP_CMD
