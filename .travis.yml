@@ -82,7 +82,7 @@ install:
     # source build
     - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND numpy==$NUMPY_VERSION; fi
     - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND Cython>=0.18; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then pip install pytest-xdist --use-mirrors; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND pytest-xdist; fi
 
     # OPTIONAL DEPENDENCIES
     - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND scipy==0.12.0; fi
