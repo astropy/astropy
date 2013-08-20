@@ -43,7 +43,7 @@ from . import cds
 from . import daophot
 from . import sextractor
 from . import ipac
-from .core import next, izip, any
+from .core import next, izip
 from . import latex
 
 from ...table import Table
