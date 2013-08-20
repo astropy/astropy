@@ -185,6 +185,15 @@ The 9-year WMAP and Planck 2013 cosmologies are also available
   >>> Planck13.lookback_time(2).value       # lookback time in Gyr at z=2
   10.522149614
 
+You may notice that values derived using the Planck13 cosmology in
+`astropy` are slightly different from those in the Planck
+Collaboration pre-print (http://arxiv.org/abs/1303.5076). For example,
+the age of the universe using a Planck13 in `astropy` is 13.813 Gyr
+compared to 13.797 Gyr in the Planck preprint. This is because
+`astropy` assumes that neutrinos are massless, but the Planck preprint
+uses a single neutrino species with mass 0.06 eV. Future versions of
+`astropy` may include support for massive neutrinos.
+
 .. note::
 
     In general it's better to use an explicit cosmology (for example
