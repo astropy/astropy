@@ -4,6 +4,7 @@ import sys
 import warnings
 
 import numpy as np
+from numpy.random import RandomState
 from numpy.testing import (
     assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp)
 
@@ -20,6 +21,8 @@ except ImportError:
     HAS_SCIPY = False
 else:
     HAS_SCIPY = True
+
+rsn = RandomState(123456789)
 
 # test_maps() is a generator
 def test_maps():
@@ -253,7 +256,7 @@ def test_backward_compatible():
     fits = get_pkg_data_filename('data/sip.fits')
     w = wcs.WCS(fits)
 
-    data = np.random.rand(100, 2)
+    data = rsn.rand(100, 2)
     assert np.all(w.wcs_pix2world(data, 0) == w.wcs_pix2sky(data, 0))
     assert np.all(w.wcs_world2pix(data, 0) == w.wcs_sky2pix(data, 0))
 
@@ -295,7 +298,7 @@ def test_extra_kwarg():
     Issue #444
     """
     w = wcs.WCS()
-    data = np.random.rand(100, 2)
+    data = rsn.rand(100, 2)
     w.wcs_pix2sky(data, origin=1)
 
 
@@ -304,7 +307,7 @@ def test_3d_shapes():
     Issue #444
     """
     w = wcs.WCS(naxis=3)
-    data = np.random.rand(100, 3)
+    data = rsn.rand(100, 3)
     result = w.wcs_pix2sky(data, 1)
     assert result.shape == (100, 3)
     result = w.wcs_pix2sky(
@@ -431,7 +434,7 @@ def test_all_world2pix():
     w = wcs.WCS(fits)
 
     tolerance = 1e-6
-    world = 0.1 * np.random.randn(100, 2)
+    world = 0.1 * rsn.randn(100, 2)
     for i in range(len(w.wcs.crval)):
         world[:, i] += w.wcs.crval[i]
     all_pix = w.all_world2pix(world, 0, tolerance=tolerance)
