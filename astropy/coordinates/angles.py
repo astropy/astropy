@@ -170,14 +170,11 @@ class Angle(u.Quantity):
         return super(Angle, self).__quantity_view__(
             obj, unit)
 
-    def __quantity_instance__(self, val, unit, dtype=None, equivalencies=[],
-                              copy=True):
+    def __quantity_instance__(self, val, unit, **kwargs):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
-            return Angle(val, unit, dtype=dtype,
-                         equivalencies=equivalencies)
-        return super(Angle, self).__quantity_instance__(
-            val, unit, dtype=dtype, equivalencies=equivalencies, copy=copy)
+            return Angle(val, unit, bounds=self.bounds, **kwargs)
+        return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
 
     def __array_wrap__(self, obj, context=None):
         obj = super(Angle, self).__array_wrap__(obj, context=context)

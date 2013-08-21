@@ -356,16 +356,14 @@ class Quantity(np.ndarray):
         """
         return obj.view(Quantity)
 
-    def __quantity_instance__(self, val, unit, dtype=None, equivalencies=[],
-                              copy=True):
+    def __quantity_instance__(self, val, unit, **kwargs):
         """
         Overridden by subclasses to impact what kind of instance is
         created based on the output unit of an operation.
 
         The parameters are the same as those to `Quantity.__new__`.
         """
-        return Quantity(
-            val, unit, dtype=dtype, equivalencies=equivalencies, copy=copy)
+        return Quantity(val, unit, **kwargs)
 
     def __reduce__(self):
         # patch to pickle Quantity objects (ndarray subclasses),
