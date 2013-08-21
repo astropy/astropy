@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Produced with astropy.io.votable version 0.3.dev5048
+     http://www.astropy.org/ -->
+<VOTABLE version="1.2" xmlns="http://www.ivoa.net/xml/VOTable/v1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ivoa.net/xml/VOTable/v1.2">
+ <RESOURCE type="results">
+  <TABLE ID="B_iram_pdbi" name="B/iram/pdbi">
+   <DESCRIPTION>
+    The Plateau de Bure Interferometer Observation Log between
+    1991-12-01 and 2012-03-31
+   </DESCRIPTION>
+   <FIELD ID="Prog" arraysize="4" datatype="char" name="Prog" ucd="meta.code;obs">
+    <DESCRIPTION>
+     Identification code of the program
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Name" arraysize="12" datatype="char" name="Name" ucd="meta.id">
+    <DESCRIPTION>
+     Source name, as mentioned in the observing program
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Obs" arraysize="10" datatype="char" name="Obs" ucd="time.start;obs" unit="&quot;Y:M:D&quot;">
+    <DESCRIPTION>
+     Starting date of the Observation (5)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="tos" datatype="int" name="tos" ucd="time.expo" unit="s" width="6">
+    <DESCRIPTION>
+     Total on-source correlation time
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Type" arraysize="3" datatype="char" name="Type" ucd="instr.setup">
+    <DESCRIPTION>
+     Program type (1)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Vel" datatype="float" name="Vel" precision="1" ucd="spect.dopplerVeloc" unit="km.s-1" width="6">
+    <DESCRIPTION>
+     Velocity of the source (3)
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="n_Vel" arraysize="1" datatype="char" name="n_Vel" ucd="meta.note">
+    <DESCRIPTION>
+     [LH] LSR or Heliocentric velocity
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Flow" datatype="int" name="Flow" ucd="em.freq" unit="MHz" width="6">
+    <DESCRIPTION>
+     ? Sky Frequency of the 3mm receiver (6)
+    </DESCRIPTION>
+    <VALUES null="-2147483648"/>
+   </FIELD>
+   <FIELD ID="n_Flow" arraysize="1" datatype="char" name="n_Flow" ucd="meta.note">
+    <DESCRIPTION>
+     [UL] Signal Upper/Lower band of the 3mm receiver
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Fhigh" datatype="int" name="Fhigh" ucd="em.freq" unit="MHz" width="6">
+    <DESCRIPTION>
+     ? Sky Frequency of the 1mm receiver (6)
+    </DESCRIPTION>
+    <VALUES null="-2147483648"/>
+   </FIELD>
+   <FIELD ID="n_Fhigh" arraysize="1" datatype="char" name="n_Fhigh" ucd="meta.note">
+    <DESCRIPTION>
+     [UL] Signal Upper/Lower band of the 1mm receiver
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="Conf" arraysize="3" datatype="char" name="Conf" ucd="meta.id;instr">
+    <DESCRIPTION>
+     Configuration code of the interferometer
+    </DESCRIPTION>
+   </FIELD>
+   <FIELD ID="RAJ2000" arraysize="11" datatype="char" name="RAJ2000" ucd="pos.eq.ra;meta.main" unit="&quot;h:m:s&quot;">
+    <DESCRIPTION>
+     ? Right Ascension J2000
+    </DESCRIPTION>
+    <VALUES null=" "/>
+   </FIELD>
+   <FIELD ID="DEJ2000" arraysize="11" datatype="char" name="DEJ2000" ucd="pos.eq.dec;meta.main" unit="&quot;d:m:s&quot;">
+    <DESCRIPTION>
+     ? Declination J2000
+    </DESCRIPTION>
+    <VALUES null=" "/>
+   </FIELD>
+   <DATA>
+    <TABLEDATA>
+     <TR>
+      <TD>N032</TD>
+      <TD>AFGL2591</TD>
+      <TD>2003-12-06</TD>
+      <TD>16800</TD>
+      <TD>MAP</TD>
+      <TD>  -5.5</TD>
+      <TD>L</TD>
+      <TD>80578</TD>
+      <TD>L</TD>
+      <TD>203407</TD>
+      <TD>L</TD>
+      <TD>6Cp</TD>
+      <TD>20:29:24.87</TD>
+      <TD>+40:11:19.8</TD>
+     </TR>
+     <TR>
+      <TD>N032</TD>
+      <TD>AFGL2591</TD>
+      <TD>2004-05-15</TD>
+      <TD>1140</TD>
+      <TD>MAP</TD>
+      <TD>  -5.5</TD>
+      <TD>L</TD>
+      <TD>80578</TD>
+      <TD>L</TD>
+      <TD>203407</TD>
+      <TD>L</TD>
+      <TD>6Dp</TD>
+      <TD>20:29:24.87</TD>
+      <TD>+40:11:19.8</TD>
+     </TR>
+     <TR>
+      <TD>N032</TD>
+      <TD>AFGL2591</TD>
+      <TD>2004-05-15</TD>
+      <TD>7740</TD>
+      <TD>MAP</TD>
+      <TD>  -5.5</TD>
+      <TD>L</TD>
+      <TD>80578</TD>
+      <TD>L</TD>
+      <TD>203407</TD>
+      <TD>L</TD>
+      <TD>6Dp</TD>
+      <TD>20:29:24.87</TD>
+      <TD>+40:11:19.8</TD>
+     </TR>
+     <TR>
+      <TD>N032</TD>
+      <TD>AFGL2591</TD>
+      <TD>2004-05-16</TD>
+      <TD>24060</TD>
+      <TD>MAP</TD>
+      <TD>  -5.5</TD>
+      <TD>L</TD>
+      <TD>80578</TD>
+      <TD>L</TD>
+      <TD>203407</TD>
+      <TD>L</TD>
+      <TD>6Dp</TD>
+      <TD>20:29:24.87</TD>
+      <TD>+40:11:19.8</TD>
+     </TR>
+     <TR>
+      <TD>N032</TD>
+      <TD>AFGL2591</TD>
+      <TD>2004-05-17</TD>
+      <TD>3060</TD>
+      <TD>MAP</TD>
+      <TD>  -5.5</TD>
+      <TD>L</TD>
+      <TD>80578</TD>
+      <TD>L</TD>
+      <TD>203407</TD>
+      <TD>L</TD>
+      <TD>6Dp</TD>
+      <TD>20:29:24.87</TD>
+      <TD>+40:11:19.8</TD>
+     </TR>
+     <TR>
+      <TD>PB3F</TD>
+      <TD>AFGL2591</TD>
+      <TD>2005-12-25</TD>
+      <TD>4050</TD>
+      <TD>MAP</TD>
+      <TD>   0.0</TD>
+      <TD>L</TD>
+      <TD>86610</TD>
+      <TD>L</TD>
+      <TD>230538</TD>
+      <TD>L</TD>
+      <TD>6Cq</TD>
+      <TD>20:29:24.80</TD>
+      <TD>+40:11:19.0</TD>
+     </TR>
+     <TR>
+      <TD>PB3F</TD>
+      <TD>AFGL2591</TD>
+      <TD>2005-12-26</TD>
+      <TD>4050</TD>
+      <TD>MAP</TD>
+      <TD>   0.0</TD>
+      <TD>L</TD>
+      <TD>86610</TD>
+      <TD>L</TD>
+      <TD>230538</TD>
+      <TD>L</TD>
+      <TD>6Cq</TD>
+      <TD>20:29:24.80</TD>
+      <TD>+40:11:19.0</TD>
+     </TR>
+     <TR>
+      <TD>P04A</TD>
+      <TD>AFGL2591</TD>
+      <TD>2006-02-03</TD>
+      <TD>9000</TD>
+      <TD>MAP</TD>
+      <TD>  -5.5</TD>
+      <TD>L</TD>
+      <TD>80578</TD>
+      <TD>L</TD>
+      <TD>203407</TD>
+      <TD>L</TD>
+      <TD>6Aq</TD>
+      <TD>20:29:24.87</TD>
+      <TD>+40:11:19.5</TD>
+     </TR>
+     <TR>
+      <TD>PB3F</TD>
+      <TD>AFGL2591</TD>
+      <TD>2006-06-03</TD>
+      <TD>675</TD>
+      <TD>MAP</TD>
+      <TD>   0.0</TD>
+      <TD>L</TD>
+      <TD>86610</TD>
+      <TD>L</TD>
+      <TD>230538</TD>
+      <TD>L</TD>
+      <TD>5Dq</TD>
+      <TD>20:29:24.80</TD>
+      <TD>+40:11:19.0</TD>
+     </TR>
+     <TR>
+      <TD>PB3F</TD>
+      <TD>AFGL2591</TD>
+      <TD>2006-06-04</TD>
+      <TD>7425</TD>
+      <TD>MAP</TD>
+      <TD>   0.0</TD>
+      <TD>L</TD>
+      <TD>86610</TD>
+      <TD>L</TD>
+      <TD>230538</TD>
+      <TD>L</TD>
+      <TD>5Dq</TD>
+      <TD>20:29:24.80</TD>
+      <TD>+40:11:19.0</TD>
+     </TR>
+     <TR>
+      <TD>PB4A</TD>
+      <TD>AFGL2591</TD>
+      <TD>2007-02-19</TD>
+      <TD>9450</TD>
+      <TD>MAP</TD>
+      <TD>  -5.5</TD>
+      <TD>L</TD>
+      <TD>80126</TD>
+      <TD>L</TD>
+      <TD>81030</TD>
+      <TD>L</TD>
+      <TD>6Aq</TD>
+      <TD>20:29:24.87</TD>
+      <TD>+40:11:19.5</TD>
+     </TR>
+     <TR>
+      <TD>PA4A</TD>
+      <TD>AFGL2591</TD>
+      <TD>2007-03-04</TD>
+      <TD>10800</TD>
+      <TD>MAP</TD>
+      <TD>  -5.5</TD>
+      <TD>L</TD>
+      <TD>203055</TD>
+      <TD>L</TD>
+      <TD>203739</TD>
+      <TD>L</TD>
+      <TD>6Aq</TD>
+      <TD>20:29:24.87</TD>
+      <TD>+40:11:19.5</TD>
+     </TR>
+     <TR>
+      <TD>PA4A</TD>
+      <TD>AFGL2591</TD>
+      <TD>2007-03-13</TD>
+      <TD>10935</TD>
+      <TD>MAP</TD>
+      <TD>  -5.5</TD>
+      <TD>L</TD>
+      <TD>203055</TD>
+      <TD>L</TD>
+      <TD>203739</TD>
+      <TD>L</TD>
+      <TD>6Bq</TD>
+      <TD>20:29:24.87</TD>
+      <TD>+40:11:19.5</TD>
+     </TR>
+     <TR>
+      <TD>PA4A</TD>
+      <TD>AFGL2591</TD>
+      <TD>2007-03-15</TD>
+      <TD>9450</TD>
+      <TD>MAP</TD>
+      <TD>  -5.5</TD>
+      <TD>L</TD>
+      <TD>203055</TD>
+      <TD>L</TD>
+      <TD>203739</TD>
+      <TD>L</TD>
+      <TD>6Bq</TD>
+      <TD>20:29:24.87</TD>
+      <TD>+40:11:19.5</TD>
+     </TR>
+    </TABLEDATA>
+   </DATA>
+  </TABLE>
+ </RESOURCE>
+</VOTABLE>

@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import os
+
 from ..ui import read
 from ..ipac import Ipac, IpacFormatError, IpacFormatErrorDBMS
 from ....tests.helper import pytest
@@ -110,4 +112,30 @@ def test_too_long_comment(recwarn):
 |null|
     3 
 """
+    assert out.getvalue().splitlines() == expected_out.splitlines()
+
+def test_out_with_nonstring_null():
+    dirname = os.path.dirname(os.path.abspath(__file__))
+    tab = Table.read(os.path.join(dirname, 't', 'withnullvalues.vot'))
+    out = io.StringIO()
+    ascii.write(tab, out, Writer=Ipac)
+    expected_out = """\
+|Prog|    Name|       Obs|   tos|Type|   Vel|n_Vel|  Flow|n_Flow| Fhigh|n_Fhigh|Conf|    RAJ2000|    DEJ2000|
+|char|    char|      char|  long|char|double| char|  long|  char|  long|   char|char|       char|       char|
+|    |        |   "Y:M:D"|     s|    |km / s|     |   MHz|      |   MHz|       |    |    "h:m:s"|    "d:m:s"|
+| N/A|     N/A|       N/A|999999| N/A| 1e+20|    N|999999|     N|999999|      N| N/A|        N/A|        N/A|
+ N032 AFGL2591 2003-12-06  16800  MAP   -5.5     L  80578      L 203407       L  6Cp 20:29:24.87 +40:11:19.8 
+ N032 AFGL2591 2004-05-15   1140  MAP   -5.5     L  80578      L 203407       L  6Dp 20:29:24.87 +40:11:19.8 
+ N032 AFGL2591 2004-05-15   7740  MAP   -5.5     L  80578      L 203407       L  6Dp 20:29:24.87 +40:11:19.8 
+ N032 AFGL2591 2004-05-16  24060  MAP   -5.5     L  80578      L 203407       L  6Dp 20:29:24.87 +40:11:19.8 
+ N032 AFGL2591 2004-05-17   3060  MAP   -5.5     L  80578      L 203407       L  6Dp 20:29:24.87 +40:11:19.8 
+ PB3F AFGL2591 2005-12-25   4050  MAP    0.0     L  86610      L 230538       L  6Cq 20:29:24.80 +40:11:19.0 
+ PB3F AFGL2591 2005-12-26   4050  MAP    0.0     L  86610      L 230538       L  6Cq 20:29:24.80 +40:11:19.0 
+ P04A AFGL2591 2006-02-03   9000  MAP   -5.5     L  80578      L 203407       L  6Aq 20:29:24.87 +40:11:19.5 
+ PB3F AFGL2591 2006-06-03    675  MAP    0.0     L  86610      L 230538       L  5Dq 20:29:24.80 +40:11:19.0 
+ PB3F AFGL2591 2006-06-04   7425  MAP    0.0     L  86610      L 230538       L  5Dq 20:29:24.80 +40:11:19.0 
+ PB4A AFGL2591 2007-02-19   9450  MAP   -5.5     L  80126      L  81030       L  6Aq 20:29:24.87 +40:11:19.5 
+ PA4A AFGL2591 2007-03-04  10800  MAP   -5.5     L 203055      L 203739       L  6Aq 20:29:24.87 +40:11:19.5 
+ PA4A AFGL2591 2007-03-13  10935  MAP   -5.5     L 203055      L 203739       L  6Bq 20:29:24.87 +40:11:19.5 
+ PA4A AFGL2591 2007-03-15   9450  MAP   -5.5     L 203055      L 203739       L  6Bq 20:29:24.87 +40:11:19.5 """
     assert out.getvalue().splitlines() == expected_out.splitlines()

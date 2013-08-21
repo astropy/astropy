@@ -427,6 +427,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
         dtypelist = []
         unitlist = []
+        nullist = []
         for col in self.cols:
             if col.dtype.kind in ['i', 'u']:
                 dtypelist.append('long')
@@ -438,7 +439,12 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 unitlist.append('')
             else:
                 unitlist.append(str(col.unit))
-        nullist = [getattr(col, 'fill_value', 'null') for col in self.cols]
+            null = getattr(col, 'fill_value', 'null')
+            try:
+                format_func = _format_funcs.get(col.format, _auto_format_func)
+                nulllist.append(format_func(col.format, null))
+            except:
+                nullist.append(str(null))
         return [namelist, dtypelist, unitlist, nullist]
 
     def write(self, lines, widths):
