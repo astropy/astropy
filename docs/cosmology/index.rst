@@ -79,19 +79,29 @@ arguments giving the Hubble parameter and omega matter (both at z=0):
   >>> cosmo
   LambdaCDM(H0=70, Om0=0.3, Ode0=0.7)
 
+This can also be done more explicity using units, which is recommended:
+
+  >>> from astropy.cosmology import FlatLambdaCDM
+  >>> import astropy.units as u
+  >>> cosmo = FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Om0=0.3)
+  LambdaCDM(H0=70, Om0=0.3, Ode0=0.7)
+
+However, all of the parameters that accept units (H0, Tcmb0, m_nu)
+have default units, so unit quantities do not have to be used.
+
 A number of additional dark energy models are provided (described below).
 Note that photons and neutrinos are included in these models, so
 Om0 + Ode0 is not quite one.
 
 The pre-defined cosmologies described in the `Getting Started`_
 section are instances of `~astropy.cosmology.core.FlatLambdaCDM`, and have
-the same methods. So we can find the luminosity distance in Mpc to
+the same methods. So we can find the luminosity distance to
 redshift 4 by:
 
-  >>> cosmo.luminosity_distance(4).value
-  35842.35374316948
+  >>> cosmo.luminosity_distance(4)
+  <Quantity 35842.353618623194 Mpc>
 
-or the age of the universe at z = 0 in Gyr:
+or the age of the universe at z = 0:
 
   >>> cosmo.age(0)
   <Quantity 13.461701807287566 Gyr>
@@ -116,7 +126,7 @@ standard cosmologies with the parameters already defined
 You can see how the density parameters evolve with redshift as well
 
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
-  >>> WMAP7.Om([0,1.0,2.0]), WMAP7.Ode([0.,1.0,2.0])
+  >>> WMAP7.Om([0, 1.0, 2.0]), WMAP7.Ode([0., 1.0, 2.0])
   (array([ 0.272     ,  0.74898525,  0.9090524 ]),
    array([ 0.72791572,  0.25055062,  0.09010261]))
 
@@ -169,7 +179,16 @@ message:
   >>> cosmology.lookback_time(1)  # lookback time in Gyr at z=1
   WARNING: No default cosmology has been specified, using 9-year WMAP.
   [astropy.cosmology.core]
-  <Quantity 7.846670734240066 Gyr>
+  <Quantity 7.787766946948995 Gyr>
+
+The 9-year WMAP and Planck 2013 cosmologies are also available
+
+  >>> from astropy.cosmology import WMAP9   # WMAP 9-year
+  >>> WMAP9.lookback_time(2).value          # lookback time in Gyr at z=2
+  <Quantity 10.442114507072842 Gyr>
+  >>> from astropy.cosmology import Planck13  # Planck 2013
+  >>> Planck13.lookback_time(2).value       # lookback time in Gyr at z=2
+  <Quantity 10.511841788576083 Gyr>
 
 .. note::
 
@@ -269,18 +288,31 @@ Users can specify their own equation of state by sub-classing
 `~astropy.cosmology.core.FLRW`.  See the provided subclasses for
 examples.
 
-Relativistic Species
-====================
+Photons and Neutrinos
+=====================
 The cosmology classes include the contribution to the energy density
-from both photons and massless neutrinos.  The two parameters
-controlling the properties of these species are `Tcmb0` (the temperature
-of the CMB at z=0) and `Neff`, the effective number of neutrino species.
-Both have standard default values (2.725 K and 3.04, respectively; the
-reason that Neff is not 3 primarily has to do with a small bump in the neutrino
-energy spectrum due to electron-positron annihilation).
+from both photons and neutrinos.  By default, the latter are assumed
+massless.  The three parameters controlling the proporties of these
+species, which are arguments to the initializers of all the
+cosmological classes, are Tcmb0 (the temperature of the CMB at z=0),
+Neff, the effective number of neutrino species, and m_nu, the rest
+mass of the neutrino species.  Tcmb0 and m_nu should, in general, be
+expressed as unit Quantities.  All three have standard default values
+(2.725 K, 3.04, and 0 eV respectively; the reason that Neff is not 3
+primarily has to do with a small bump in the neutrino energy spectrum
+due to electron-positron annihilation, but is also affected by weak
+interaction physics).
 
-The energy density in photons and neutrinos can be computed as a function
-of redshift:
+Massive neutrinos are treated using the approach described in the
+WMAP 7-year cosmology paper (Komatsu et al. 2011, ApJS, 192, 18, section 3.3).
+This is not the simple :math:`\Omega_{\nu 0} h^2 = \sum m_{\nu\, i} / 93.04 eV`
+approximation.  Also note that the values of :math:`\Omega_{\nu}(z)`
+include both the kinetic energy and the rest-mass energy components,
+and that the Planck13 cosmology includes a single species of neutrinos
+with non-zero mass (which is not included in :math:`\Omega_{m0}`.
+
+The contribution of photons and neutrinos to the total mass-energy density
+can be found as a function of redshift:
 
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
   >>> WMAP7.Ogamma0, WMAP7.Onu0 # Current epoch values
@@ -294,7 +326,8 @@ If you want to exclude photons and neutrinos from your calculations,
 simply set `Tcmb0` to 0:
 
   >>> from astropy.cosmology import FlatLambdaCDM
-  >>> cos = FlatLambdaCDM(70.4, 0.272, Tcmb0 = 0.0)
+  >>> import astropy.units as u
+  >>> cos = FlatLambdaCDM(70.4 * u.km / u.s / u.Mpc, 0.272, Tcmb0 = 0.0 * u.K)
   >>> cos.Ogamma0, cos.Onu0
   (0.0, 0.0)
 
@@ -306,8 +339,35 @@ Neutrinos can be removed (while leaving photons) by setting `Neff` to 0:
   (array([  4.98569503e-05,   2.74623219e-04,   5.00051845e-04]),
    array([ 0.,  0.,  0.]))
 
+The number of neutrino species is assumed to be the floor of Neff,
+which in most cases means 3.  Therefore, if non-zero neutrino masses
+are desired, then 3 masses should be provided.  However, if only one
+value is provided, all the species are assumed to have the same mass.
+Neff is assumed to be shared equally between each species.
+
+  >>> from astropy.cosmology import FlatLambdaCDM
+  >>> import astropy.units as u
+  >>> H0 = 70.4 * u.km / u.s / u.Mpc
+  >>> m_nu = 0 * u.eV
+  >>> cos = FlatLambdaCDM(H0, 0.272, m_nu=m_nu)
+  >>> cos.has_massive_nu
+  False
+  >>> cos.m_nu
+  <Quantity [ 0.  0.  0.] eV>
+  >>> m_nu = [0.0, 0.05, 0.10] * u.eV
+  >>> cos = FlatLambdaCDM(H0, 0.272, m_nu=m_nu)
+  >>> cos.has_massive_nu
+  True
+  >>> cos.m_nu
+  <Quantity [ 0.    0.05  0.1 ] eV>
+  >>> cos.Onu([0, 1.0, 15.0])
+  array([ 0.00326988,  0.00896783,  0.0125786 ])
+  >>> cos.Onu(1) * cos.critical_density(1)
+  <Quantity 2.444380380370406e-31 g / cm3>
+
 While these examples used `~astropy.cosmology.core.FlatLambdaCDM`,
 the above examples also apply for all of the other cosmology classes.
+
 
 See Also
 ========
@@ -328,6 +388,14 @@ over which the code is regularly tested in the module
 `astropy.cosmology.tests.test_cosmology`. If you find any bugs, please
 let us know by `opening an issue at the github repository
 <https://github.com/astropy/astropy/issues>`_!
+
+The built in cosmologies use the parameters as listed in the
+respective papers.  These provide only a limited range of precision,
+and so you should not expect all derived quantities to match beyond
+that precision.  For example, the Planck 2013 results only provide the
+Hubble constant to 4 digits.  Therefore, the Planck13 built in
+cosmology should only be expected to match the age of the Universe
+quoted by the Planck team to 4 digits, although they provide 5 in the paper.
 
 Reference/API
 =============

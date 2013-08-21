@@ -103,11 +103,13 @@ class FLRW(Cosmology):
 
         m_nu : float or ndarray or astropy.units.Quantity
           Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to be that
-          mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The number of elements must be
-          the floor of Neff -- usually this means you must provide three
-          neutrino masses unless you are exploring non-standard sectors.
+          scalar Quantity, then all neutrino species are assumed to have
+          that mass.  If a ndarray or array Quantity, then these are the values
+          of the mass of each species.  The actual number of neutrino species
+          (and hence the number of elements of m_nu if it is not scalar)
+          must be the floor of Neff.  Usually this means you must provide three
+          neutrino masses unless you are considering something like a 
+          sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -1211,11 +1213,13 @@ class LambdaCDM(FLRW):
 
         m_nu : float or ndarray or astropy.units.Quantity
           Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to be that
-          mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The number of elements must be
-          the floor of Neff -- usually this means you must provide three
-          neutrino masses unless you are exploring non-standard sectors.
+          scalar Quantity, then all neutrino species are assumed to have
+          that mass.  If a ndarray or array Quantity, then these are the values
+          of the mass of each species.  The actual number of neutrino species
+          (and hence the number of elements of m_nu if it is not scalar)
+          must be the floor of Neff.  Usually this means you must provide three
+          neutrino masses unless you are considering something like a 
+          sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -1367,11 +1371,13 @@ class FlatLambdaCDM(LambdaCDM):
 
         m_nu : float or ndarray or astropy.units.Quantity
           Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to be that
-          mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The number of elements must be
-          the floor of Neff -- usually this means you must provide three
-          neutrino masses unless you are exploring non-standard sectors.
+          scalar Quantity, then all neutrino species are assumed to have
+          that mass.  If a ndarray or array Quantity, then these are the values
+          of the mass of each species.  The actual number of neutrino species
+          (and hence the number of elements of m_nu if it is not scalar)
+          must be the floor of Neff.  Usually this means you must provide three
+          neutrino masses unless you are considering something like a 
+          sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -1495,11 +1501,13 @@ class wCDM(FLRW):
 
         m_nu : float or ndarray or astropy.units.Quantity
           Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to be that
-          mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The number of elements must be
-          the floor of Neff -- usually this means you must provide three
-          neutrino masses unless you are exploring non-standard sectors.
+          scalar Quantity, then all neutrino species are assumed to have
+          that mass.  If a ndarray or array Quantity, then these are the values
+          of the mass of each species.  The actual number of neutrino species
+          (and hence the number of elements of m_nu if it is not scalar)
+          must be the floor of Neff.  Usually this means you must provide three
+          neutrino masses unless you are considering something like a 
+          sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -1670,11 +1678,13 @@ class FlatwCDM(wCDM):
 
         m_nu : float or ndarray or astropy.units.Quantity
           Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to be that
-          mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The number of elements must be
-          the floor of Neff -- usually this means you must provide three
-          neutrino masses unless you are exploring non-standard sectors.
+          scalar Quantity, then all neutrino species are assumed to have
+          that mass.  If a ndarray or array Quantity, then these are the values
+          of the mass of each species.  The actual number of neutrino species
+          (and hence the number of elements of m_nu if it is not scalar)
+          must be the floor of Neff.  Usually this means you must provide three
+          neutrino masses unless you are considering something like a 
+          sterile neutrino.
 
         name: string
           Optional name for this cosmological object.
@@ -1805,11 +1815,13 @@ class w0waCDM(FLRW):
 
         m_nu : float or ndarray or astropy.units.Quantity
           Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to be that
-          mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The number of elements must be
-          the floor of Neff -- usually this means you must provide three
-          neutrino masses unless you are exploring non-standard sectors.
+          scalar Quantity, then all neutrino species are assumed to have
+          that mass.  If a ndarray or array Quantity, then these are the values
+          of the mass of each species.  The actual number of neutrino species
+          (and hence the number of elements of m_nu if it is not scalar)
+          must be the floor of Neff.  Usually this means you must provide three
+          neutrino masses unless you are considering something like a 
+          sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -1940,11 +1952,13 @@ class Flatw0waCDM(w0waCDM):
 
         m_nu : float or ndarray or astropy.units.Quantity
           Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to be that
-          mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The number of elements must be
-          the floor of Neff -- usually this means you must provide three
-          neutrino masses unless you are exploring non-standard sectors.
+          scalar Quantity, then all neutrino species are assumed to have
+          that mass.  If a ndarray or array Quantity, then these are the values
+          of the mass of each species.  The actual number of neutrino species
+          (and hence the number of elements of m_nu if it is not scalar)
+          must be the floor of Neff.  Usually this means you must provide three
+          neutrino masses unless you are considering something like a 
+          sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -2022,11 +2036,13 @@ class wpwaCDM(FLRW):
 
         m_nu : float or ndarray or astropy.units.Quantity
           Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to be that
-          mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The number of elements must be
-          the floor of Neff -- usually this means you must provide three
-          neutrino masses unless you are exploring non-standard sectors.
+          scalar Quantity, then all neutrino species are assumed to have
+          that mass.  If a ndarray or array Quantity, then these are the values
+          of the mass of each species.  The actual number of neutrino species
+          (and hence the number of elements of m_nu if it is not scalar)
+          must be the floor of Neff.  Usually this means you must provide three
+          neutrino masses unless you are considering something like a 
+          sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -2178,11 +2194,13 @@ class w0wzCDM(FLRW):
 
         m_nu : float or ndarray or astropy.units.Quantity
           Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to be that
-          mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The number of elements must be
-          the floor of Neff -- usually this means you must provide three
-          neutrino masses unless you are exploring non-standard sectors.
+          scalar Quantity, then all neutrino species are assumed to have
+          that mass.  If a ndarray or array Quantity, then these are the values
+          of the mass of each species.  The actual number of neutrino species
+          (and hence the number of elements of m_nu if it is not scalar)
+          must be the floor of Neff.  Usually this means you must provide three
+          neutrino masses unless you are considering something like a 
+          sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
