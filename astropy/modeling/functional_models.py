@@ -218,7 +218,7 @@ class ShiftModel(Model):
 
     def inverse(self):
         if self.param_dim == 1:
-            return ShiftModel(offsets=(-1) * self.offsets[0])
+            return ShiftModel(offsets=(-1) * self._offsets)
         else:
             return ShiftModel(offsets=[off * (-1) for off in self._offsets])
 
@@ -259,7 +259,7 @@ class ScaleModel(Model):
 
     def inverse(self):
         if self.param_dim == 1:
-            return ScaleModel(factors=1. / self.factors[0])
+            return ScaleModel(factors=1. / self._factors)
         else:
             return ScaleModel(factors=[1 / factor for factor in self._factors])
 
