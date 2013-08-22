@@ -442,9 +442,9 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             null = getattr(col, 'fill_value', 'null')
             try:
                 format_func = _format_funcs.get(col.format, _auto_format_func)
-                nulllist.append(format_func(col.format, null))
+                nulllist.append((format_func(col.format, null)).strip())
             except:
-                nullist.append(str(null))
+                nullist.append((str(null)).strip())
         return [namelist, dtypelist, unitlist, nullist]
 
     def write(self, lines, widths):
