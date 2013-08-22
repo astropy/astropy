@@ -102,4 +102,21 @@ and a 3-d array as a list::
                   [[0, 0, 0], [0, 2, 0], [0, 0, 0]]]
     >>> result = convolve(cube, kernel)
 
-For built-in convolution kernels see :doc:`kernels` documentation.
+Kernels
+-------
+
+You can use `~astropy.nddata.convolution.make_kernel.make_kernel`
+to generate common n-dimensional kernels::
+
+    >>> make_kernel([3,3], 1, 'boxcar')
+    array([[ 0.  0.  0.]
+           [ 0.  1.  0.]
+           [ 0.  0.  0.]])
+
+.. note:: 
+	
+	There is a new convolution kernel class which will replace
+	`~astropy.nddata.convolution.make_kernel.make_kernel` in future. It 
+	is much more powerful and flexible. Please see :doc:`kernels`.
+           
+           

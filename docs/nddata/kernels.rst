@@ -25,7 +25,7 @@ Lorentz curve:
 
 >>> import numpy as np
 >>> from astropy.modeling.models import Lorentz1DModel
->>> from astropy.nddata.convolution import convolve, Gaussian1DKernel, Box1DKernel
+>>> from astropy.nddata import convolve, Gaussian1DKernel, Box1DKernel
 >>> lorentz = Lorentz1DModel(1, 0, 1)
 >>> x = np.linspace(-5, 5, 100)
 >>> data = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
@@ -47,7 +47,7 @@ The following plot illustrates the results:
 	import numpy as np
 	import matplotlib.pyplot as plt
 	from astropy.modeling.models import Lorentz1DModel
-	from astropy.nddata.convolution import convolve, Gaussian1DKernel, Box1DKernel
+	from astropy.nddata import convolve, Gaussian1DKernel, Box1DKernel
 	
 	# Fake Lorentz data including noise
 	lorentz = Lorentz1DModel(1, 0, 1)
@@ -86,7 +86,7 @@ Therefore the use of 2D kernels is basically the same as for 1D kernels. We cons
 small Gaussian shaped source of amplitude one in the middle of the image and add 10% noise: 
 
 >>> import numpy as np
->>> from astropy.nddata.convolution import convolve, Gaussian2DKernel, TopHat2DKernel
+>>> from astropy.nddata import convolve, Gaussian2DKernel, TopHat2DKernel
 >>> from astropy.modeling.models import Gaussian2DModel
 >>> gauss = Gaussian2DModel(1, 0, 0, 3, 3)
 >>> # Fake image data including noise
@@ -132,7 +132,7 @@ Note that it has a slightly different color scale compared to the original image
 	import numpy as np
 	import matplotlib.pyplot as plt
 	
-	from astropy.nddata.convolution import *
+	from astropy.nddata import *
 	from astropy.modeling.models import Gaussian2DModel
 
 	# Small Gaussian source in the middle of the image
@@ -202,6 +202,39 @@ E.g. if the response function can be be described by the weighted sum of two Gau
 Most times it will be necessary to normalize the resulting kernel by calling explicitly:
 
 >>> SoG.normalize()
+
+Discretization
+--------------
+
+To obtain the kernel array for discrete convolution, the kernels response function
+is evaluated on a grid with :func:`~astropy.nddata.convolution.utils.discretize_model`.
+For the discretization step the following modes are available:
+
+Mode ``'center'`` (default) evaluates the response function on the grid by taking the 
+value at the center of the bin.   
+
+>>> gauss_center = Gaussian1DKernel(3, mode='center')
+
+Mode ``'linear_interp'`` takes the values at the corners of the bin and linearly 
+interpolates the value at the center: 
+
+>>> gauss_interp = Gaussian1DKernel(3, mode='linear_interp')
+
+Mode ``'oversample'`` evaluates the response function by taking the mean on an 
+oversampled grid. The oversample factor can be specified with the ``factor`` argument. 
+If the oversample factor is too large, the evaluation becomes slow. 
+
+>>> gauss_oversample = Gaussian1DKernel(3, mode='oversample', factor=10)
+
+Mode ``'integrate'`` integrates the function over the pixel using ``scipy.integrate.quad`` and 
+``scipy.integrate.dblquad``. This mode is very slow and only recommended, when highest 
+accuracy is required.
+
+>>> gauss_integrate = Gaussian1DKernel(3, mode='integrate')
+
+Especially in the range where the kernel width is in order of only a few pixels it can be advantageous
+to use the mode ``oversample`` or ``integrate`` to conserve the integral on a subpixel scale.
+
 
 Normalization
 -------------
