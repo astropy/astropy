@@ -498,7 +498,7 @@ class Lon(Angle):
 
     def __setitem__(self, item, value):
         super(Lon, self).__setitem__(item, value)
-        self.wrap_at(self.wrap_angle)
+        self.wrap_at(self.wrap_angle, in_place=True)
 
     @property
     def wrap_angle(self):
@@ -507,7 +507,7 @@ class Lon(Angle):
     @wrap_angle.setter
     def wrap_angle(self, value):
         self._wrap_angle = value
-        self.wrap_at(value)
+        self.wrap_at(value, in_place=True)
 
 
 class RA(Angle):
