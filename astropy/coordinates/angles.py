@@ -375,12 +375,16 @@ class Angle(u.Quantity):
         format_ufunc = np.vectorize(do_format, otypes=[np.object])
         return format_ufunc(values)
 
-    def wrap_at(self, wrap_angle):
+    def wrap_at(self, wrap_angle, in_place=False):
         """
-        Return a new Angle object with current angle(s) wrapped at the given ``wrap_angle``.
+        Wrap the Angle object at the given ``wrap_angle``.
 
         This method forces all the angle values to be within a contiguous 360 degree
-        range so that ``wrap_angle - 360d <= angle < wrap_angle``.  For instance::
+        range so that ``wrap_angle - 360d <= angle < wrap_angle``.  By default a new
+        Angle object is returned, but if the ``in_place`` argument is ``True`` then
+        the Angle object is wrapped in place and nothing is returned.
+
+        For instance::
 
           >>> from astropy.coordinates import Angle
           >>> import astropy.units as u
@@ -389,7 +393,8 @@ class Angle(u.Quantity):
           >>> a.wrap_at(360 * u.deg)  # Wrap into range 0 to 360 degrees
           <Angle [u'340d00m00.00000s' u'150d00m00.00000s' u'350d00m00.00000s']>
 
-          >>> a.wrap_at('180d')  # Wrap into range -180 to 180 degrees
+          >>> a.wrap_at('180d', in_place=True)  # Wrap into range -180 to 180 degrees
+          >>> a
           <Angle [u'-20d00m00.00000s' u'150d00m00.00000s' u'-10d00m00.00000s']>
 
         Parameters
@@ -399,15 +404,22 @@ class Angle(u.Quantity):
             object that can initialize an Angle object, e.g. '180d', 180 * u.deg,
             or Angle(180, unit=u.deg).
 
+        in_place : boolean
+            If ``True`` then wrap the object in place instead of returning a new Angle
+
         Returns
         -------
-        wrapped : Angle
-            New Angle object with angles wrapped accordingly
+        out : Angle or None
+            If ``in_place is False`` (default), return new Angle object with angles
+            wrapped accordingly.  Otherwise wrap in place and return None.
         """
         wrap_angle = Angle(wrap_angle)  # Convert to an Angle
         wrapped = np.mod(self - wrap_angle, 360.0 * u.deg) - (360.0 * u.deg - wrap_angle)
 
-        return wrapped
+        if in_place:
+            self[:] = wrapped
+        else:
+            return wrapped
 
     def within_bounds(self, lower=None, upper=None):
         """

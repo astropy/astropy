@@ -108,6 +108,13 @@ def test_angle_repr():
     repr(a)
 
 
+def test_wrap_at_in_place():
+    a = Angle([-20, 150, 350, 360] * u.deg)
+    out = a.wrap_at('180d', in_place=True)
+    assert out is None
+    assert np.all(a.degree == np.array([-20., 150., -10., 0.]))
+
+
 def test_wrap_at():
     a = Angle([-20, 150, 350, 360] * u.deg)
     assert np.all(a.wrap_at(360 * u.deg).degree == np.array([340., 150., 350., 0.]))
