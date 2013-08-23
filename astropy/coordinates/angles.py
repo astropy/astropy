@@ -17,7 +17,7 @@ from .. import units as u
 from ..utils import deprecated
 
 
-__all__ = ['Angle', 'RA', 'Dec', 'AngularSeparation']
+__all__ = ['Angle', 'RA', 'Dec', 'AngularSeparation', 'Latitude', 'Longitude']
 
 
 TWOPI = math.pi * 2.0  # no need to calculate this all the time

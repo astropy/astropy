@@ -3,7 +3,7 @@
 # Test initalization of angles not already covered by the API tests
 
 import numpy as np
-from ..angles import Angle, RA, Dec, BoundsError
+from ..angles import Angle, RA, Dec, BoundsError, Latitude, Longitude
 from ...tests.helper import pytest
 from ...tests.compat import assert_allclose
 from ... import units as u
@@ -113,6 +113,39 @@ def test_wrap_at_in_place():
     out = a.wrap_at('180d', in_place=True)
     assert out is None
     assert np.all(a.degree == np.array([-20., 150., -10., 0.]))
+
+
+def test_latitude():
+    with pytest.raises(ValueError):
+        lat = Latitude(['91d', '89d'])
+
+    lat = Latitude(['90d', '89d'])
+    with pytest.raises(ValueError):
+        lat[0] = 90.001 * u.deg
+    with pytest.raises(ValueError):
+        lat[0] = -90.001 * u.deg
+
+    lat = Latitude(['90d', '89d'])
+    assert lat[0] == 90 * u.deg
+    assert lat[1] == 89 * u.deg
+    assert np.all(lat == Angle(['90d', '89d']))
+
+    angle = lat - 190 * u.deg
+    assert type(angle) is Angle
+    assert angle[0] == -100 * u.deg
+
+    lat = Latitude('80d')
+    angle = lat / 2.
+    assert type(angle) is Angle
+    assert angle == 40 * u.deg
+
+    angle = lat * 2.
+    assert type(angle) is Angle
+    assert angle == 160 * u.deg
+
+    angle = -lat
+    assert type(angle) is Angle
+    assert angle == -80 * u.deg
 
 
 def test_wrap_at():
