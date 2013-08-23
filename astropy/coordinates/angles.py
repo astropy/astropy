@@ -417,7 +417,7 @@ class Angle(u.Quantity):
         wrapped = np.mod(self - wrap_angle, 360.0 * u.deg) - (360.0 * u.deg - wrap_angle)
 
         if in_place:
-            self[:] = wrapped
+            self[()] = wrapped
         else:
             return wrapped
 
@@ -498,7 +498,16 @@ class Longitude(Angle):
 
     def __setitem__(self, item, value):
         super(Longitude, self).__setitem__(item, value)
-        self.wrap_at(self.wrap_angle, in_place=True)
+        self._wrap_internal()
+
+    def _wrap_internal(self):
+        """
+        Wrap the internal values in the Longitude object.  Using the `Angle`
+        wrap_at() method causes recursion.
+        """
+        d360 = 360.0 * u.deg
+        wrapped = np.mod(self - self.wrap_angle, d360) - (d360 - self.wrap_angle)
+        super(Longitude, self).__setitem__((), wrapped)
 
     @property
     def wrap_angle(self):
@@ -506,8 +515,8 @@ class Longitude(Angle):
 
     @wrap_angle.setter
     def wrap_angle(self, value):
-        self._wrap_angle = value
-        self.wrap_at(value, in_place=True)
+        self._wrap_angle = Angle(value)
+        self._wrap_internal()
 
 
 class RA(Angle):
