@@ -400,17 +400,6 @@ def test_radec():
         dec = Dec("-41:08:15.162342")
     dec = Dec("-41:08:15.162342", unit=u.degree)  # same as above
 
-    #RA objects can also compute hour angle and local siderial times
-    ra = RA("1:00:00", unit=u.hour)
-    ha1 = ra.hour_angle(Angle(1.5, u.hour))
-    assert isinstance(ha1, Angle)
-    npt.assert_almost_equal(ha1.hour, .5)
-    ha2 = ra.hour_angle(Time('2012-1-1 3:00:00', scale='utc'))
-    npt.assert_almost_equal(ha2.hour, 23.125)
-
-    lst = ra.lst(Angle(1.5, u.hour))
-    assert isinstance(lst, Angle)
-    npt.assert_almost_equal(lst.hour, 2.5)
 
 def test_create_coordinate():
     """
