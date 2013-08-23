@@ -102,8 +102,8 @@ def test_angle_string():
 
 def test_angle_repr():
     assert 'Angle' in repr(Angle(0, u.deg))
-    assert 'RA' in repr(RA(0, u.deg))
-    assert 'Dec' in repr(Dec(0, u.deg))
+    assert 'Longitude' in repr(Longitude(0, u.deg))
+    assert 'Latitude' in repr(Latitude(0, u.deg))
 
     a = Angle(0, u.deg)
     repr(a)

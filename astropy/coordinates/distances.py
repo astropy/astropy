@@ -8,7 +8,7 @@ from abc import ABCMeta, abstractproperty, abstractmethod
 
 import numpy as np
 
-from .angles import RA, Dec, Angle, AngularSeparation
+from .angles import Angle, AngularSeparation
 from .. import units as u
 from .. import cosmology
 

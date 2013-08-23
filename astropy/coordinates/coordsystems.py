@@ -6,7 +6,7 @@ This module contains the base classes and frameworks for coordinate objects.
 from abc import ABCMeta, abstractproperty, abstractmethod
 
 from .. import units as u
-from .angles import RA, Dec, Angle, AngularSeparation
+from .angles import Longitude, Latitude, Angle, AngularSeparation
 from .distances import *
 from ..utils.compat.misc import override__dir__
 
@@ -106,7 +106,7 @@ class SphericalCoordinatesBase(object):
         latname : str
             The name of the latitude-like coordinate attribute
         useradec : bool
-            If True, the `RA` and `Dec` classes will be used for the
+            If True, the `Longitude` and `Latitude` classes will be used for the
             angles.  Otherwise, a basic `Angle` will be used.
         initargs : list
             The ``*args`` from the initializer
@@ -115,7 +115,7 @@ class SphericalCoordinatesBase(object):
         anglebounds : 2-tuple of 2-tuples or None
             The bounds to be used for the `lonname` and `latname` coordinates in
             *degrees*, or None to use the `Angle` defaults. Ignored if
-            `useradec` is True (`RA` and `Dec` have implicit bounds).
+            `useradec` is True (`Longitude` and `Latitude` have implicit bounds).
         """
         initkwargs = dict(initkwargs)  # copy
         nargs = len(initargs)
@@ -214,12 +214,12 @@ class SphericalCoordinatesBase(object):
 
             # now actually create the angle objects
             if useradec:
-                lonang = RA(lonval, unit=units[0])
-                latang = Dec(latval, unit=units[1])
+                lonang = Longitude(lonval, unit=units[0])
+                latang = Latitude(latval, unit=units[1])
             else:
-                if isinstance(lonval, RA):
-                    raise TypeError('Cannot provide an RA object to non-RA/Dec system {0}'.format(sclsnm))
-                if isinstance(latval, Dec):
+                if isinstance(lonval, Longitude):
+                    raise TypeError('Cannot provide a Longitude object to non-RA/Dec system {0}'.format(sclsnm))
+                if isinstance(latval, Latitude):
                     raise TypeError('Cannot provide a Dec object to non-RA/Dec system {0}'.format(sclsnm))
                 lonang = Angle(lonval, unit=units[0])
                 latang = Angle(latval, unit=units[1])
@@ -246,8 +246,8 @@ class SphericalCoordinatesBase(object):
             r, latval, lonval = cartesian_to_spherical(x, y, z)
 
             if useradec:
-                lonang = RA(lonval, unit=u.radian)
-                latang = Dec(latval, unit=u.radian)
+                lonang = Longitude(lonval, unit=u.radian)
+                latang = Latitude(latval, unit=u.radian)
             else:
                 lonang = Angle(lonval, unit=u.radian)
                 latang = Angle(latval, unit=u.radian)
