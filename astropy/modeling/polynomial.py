@@ -13,7 +13,7 @@ from .core import LabeledInput
 from .utils import poly_map_domain, comb
 from .functional_models import ShiftModel
 
-__all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'Legendre2DModel',
+__all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'InverseSIPModel', 'Legendre2DModel',
            'Legendre1DModel', 'Poly1DModel', 'Poly2DModel', 'SIPModel',
            'OrthogPolyBase', 'PolynomialModel']
 
@@ -1144,7 +1144,6 @@ class SIPModel(_SIPModel):
 
     __doc__ = _SIPModel.__doc__
 
-    """
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
                  ap_order=None, ap_coeff=None, bp_order=None, bp_coeff=None,
                  param_dim=1):
@@ -1203,7 +1202,6 @@ class InverseSIPModel(_SIPModel):
 
     __doc__ = _SIPModel.__doc__
 
-    """
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
                  ap_order, ap_coeff, bp_order, bp_coeff,
                  param_dim=1):
