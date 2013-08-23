@@ -118,6 +118,8 @@ def test_wrap_at_in_place():
 def test_latitude():
     with pytest.raises(ValueError):
         lat = Latitude(['91d', '89d'])
+    with pytest.raises(ValueError):
+        lat = Latitude('-91d')
 
     lat = Latitude(['90d', '89d'])
     with pytest.raises(ValueError):
@@ -148,6 +150,42 @@ def test_latitude():
     assert angle == -80 * u.deg
 
 
+def test_longitude():
+    # Default wrapping at 360d with an array input
+    lon = Longitude(['370d', '88d'])
+    assert np.all(lon == Longitude(['10d', '88d']))
+    assert np.all(lon == Angle(['10d', '88d']))
+
+    angle = lon / 2.
+    assert np.all(angle == Angle(['5d', '44d']))
+    assert type(angle) is Angle
+
+    angle = lon * 2. + 400 * u.deg
+    assert np.all(angle == Angle(['420d', '576d']))
+    assert type(angle) is Angle
+
+    # Test setting a mutable value and having it wrap
+    lon[1] = -10 * u.deg
+    assert np.all(lon == Angle(['10d', '350d']))
+
+    # Test wrapping and try hitting some edge cases
+    lon = Longitude(np.array([0, 0.5, 1.0, 1.5, 2.0]) * np.pi, unit=u.radian)
+    assert np.all(lon.degree == np.array([0., 90, 180, 270, 0]))
+
+    lon = Longitude(np.array([0, 0.5, 1.0, 1.5, 2.0]) * np.pi, unit=u.radian, wrap_angle='180d')
+    assert np.all(lon.degree == np.array([0., 90, -180, -90, 0]))
+
+    # Wrap on setting wrap_angle property (also test auto-conversion of wrap_angle to an Angle)
+    lon = Longitude(np.array([0, 0.5, 1.0, 1.5, 2.0]) * np.pi, unit=u.radian)
+    lon.wrap_angle = '180d'
+    assert np.all(lon.degree == np.array([0., 90, -180, -90, 0]))
+
+    lon = Longitude('460d')
+    assert lon == Angle('100d')
+    lon.wrap_angle = '90d'
+    assert lon == Angle('-260d')
+
+
 def test_wrap_at():
     a = Angle([-20, 150, 350, 360] * u.deg)
     assert np.all(a.wrap_at(360 * u.deg).degree == np.array([340., 150., 350., 0.]))
@@ -155,6 +193,10 @@ def test_wrap_at():
     assert np.all(a.wrap_at('360d').degree == np.array([340., 150., 350., 0.]))
     assert np.all(a.wrap_at('180d').degree == np.array([-20., 150., -10., 0.]))
     assert np.all(a.wrap_at(np.pi * u.rad).degree == np.array([-20., 150., -10., 0.]))
+
+    # Test wrapping a scalar Angle
+    a = Angle('190d')
+    assert a.wrap_at('180d') == Angle('-170d')
 
     a = Angle(np.arange(-1000.0, 1000.0, 0.125), unit=u.deg)
     for wrap_angle in (270, 0.2, 0.0, 360.0, 500, -2000.125):
