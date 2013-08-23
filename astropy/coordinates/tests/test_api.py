@@ -467,9 +467,8 @@ def test_create_coordinate():
     # Other types of coordinate systems have their own classes
     l = Angle(123.4, unit=u.degree)
     b = Angle(76.5, unit=u.degree)
-    c = GalacticCoordinates(l, b)  # only accepts Angle objects *not Longitude/Latitude
-    with raises(TypeError):
-        GalacticCoordinates(ra, dec)
+    c = GalacticCoordinates(l, b)  # accepts Angle objects and Longitude/Latitude
+    d = GalacticCoordinates(ra, dec)
 
     assert isinstance(c.l, Angle)  # *not* Longitude or Latitude
     assert isinstance(c.b, Angle)  # *not* Longitude or Latitude
@@ -507,7 +506,7 @@ def test_convert_api():
     dec = Latitude("-41:08:15.162342", unit=u.degree)
     c = ICRSCoordinates(ra=ra, dec=dec)
 
-    npt.assert_almost_equal(c.galactic.l.degree, -114.71902, 5)
+    npt.assert_almost_equal(c.galactic.l.degree, 245.28098, 5)
     assert isinstance(c.galactic.b, Angle)
     npt.assert_almost_equal(c.galactic.b.degree, -47.554501, 5)
 

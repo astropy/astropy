@@ -91,8 +91,7 @@ class SphericalCoordinatesBase(object):
         * If `x`, `y`, and `z` are given:
             `unit` must be a single unit with dimensions of length"""
 
-    def _initialize_latlon(self, lonname, latname, useradec, initargs,
-        initkwargs, anglebounds=None):
+    def _initialize_latlon(self, lonname, latname, initargs, initkwargs):
         """
         Subclasses should use this to initialize standard lat/lon-style
         coordinates.
@@ -105,17 +104,10 @@ class SphericalCoordinatesBase(object):
             The name of the longitude-like coordinate attribute
         latname : str
             The name of the latitude-like coordinate attribute
-        useradec : bool
-            If True, the `Longitude` and `Latitude` classes will be used for the
-            angles.  Otherwise, a basic `Angle` will be used.
         initargs : list
             The ``*args`` from the initializer
         initkwargs : dict
             The ``**kwargs`` from the initializer
-        anglebounds : 2-tuple of 2-tuples or None
-            The bounds to be used for the `lonname` and `latname` coordinates in
-            *degrees*, or None to use the `Angle` defaults. Ignored if
-            `useradec` is True (`Longitude` and `Latitude` have implicit bounds).
         """
         initkwargs = dict(initkwargs)  # copy
         nargs = len(initargs)
@@ -213,16 +205,8 @@ class SphericalCoordinatesBase(object):
                                      "'{1}', must be a string.".format(sclsnm, type(coordstr).__name__))
 
             # now actually create the angle objects
-            if useradec:
-                lonang = Longitude(lonval, unit=units[0])
-                latang = Latitude(latval, unit=units[1])
-            else:
-                if isinstance(lonval, Longitude):
-                    raise TypeError('Cannot provide a Longitude object to non-RA/Dec system {0}'.format(sclsnm))
-                if isinstance(latval, Latitude):
-                    raise TypeError('Cannot provide a Dec object to non-RA/Dec system {0}'.format(sclsnm))
-                lonang = Angle(lonval, unit=units[0])
-                latang = Angle(latval, unit=units[1])
+            lonang = Longitude(lonval, unit=units[0])
+            latang = Latitude(latval, unit=units[1])
 
             dist = None if distval is None else Distance(distval)  # copy
 
@@ -245,12 +229,8 @@ class SphericalCoordinatesBase(object):
                 unit = cartpoint.unit
             r, latval, lonval = cartesian_to_spherical(x, y, z)
 
-            if useradec:
-                lonang = Longitude(lonval, unit=u.radian)
-                latang = Latitude(latval, unit=u.radian)
-            else:
-                lonang = Angle(lonval, unit=u.radian)
-                latang = Angle(latval, unit=u.radian)
+            lonang = Longitude(lonval, unit=u.radian)
+            latang = Latitude(latval, unit=u.radian)
 
             dist = None if unit is None else Distance(r, unit)
 
@@ -259,11 +239,6 @@ class SphericalCoordinatesBase(object):
                             '{latname}/{lonname}/(distance) or x/y/z '
                             ''.format(coordnm=sclsnm, latname=latname,
                                       lonname=lonname))
-
-        #add in the bounds, if relevant
-        if anglebounds is not None and not useradec:
-            lonang = Angle(lonang.degree, u.degree, bounds=anglebounds[0])
-            latang = Angle(latang.degree, u.degree, bounds=anglebounds[1])
 
         # now actually set the values
         setattr(self, lonname, lonang)

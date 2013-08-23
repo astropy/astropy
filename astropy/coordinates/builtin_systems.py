@@ -64,7 +64,7 @@ class ICRSCoordinates(SphericalCoordinatesBase):
             self.dec = newcoord.dec
             self._distance = newcoord._distance
         else:
-            super(ICRSCoordinates, self)._initialize_latlon('ra', 'dec', True, args, kwargs)
+            super(ICRSCoordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
     def __repr__(self):
         if self.distance is not None:
@@ -133,7 +133,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
             self.dec = newcoord.dec
             self._distance = newcoord._distance
         else:
-            super(FK5Coordinates, self)._initialize_latlon('ra', 'dec', True, args, kwargs)
+            super(FK5Coordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
     def __repr__(self):
         if self.distance is not None:
@@ -230,7 +230,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
             self.dec = newcoord.dec
             self._distance = newcoord._distance
         else:
-            super(FK4Coordinates, self)._initialize_latlon('ra', 'dec', True, args, kwargs)
+            super(FK4Coordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
     def __repr__(self):
         if self.distance is not None:
@@ -326,7 +326,7 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
             self.dec = newcoord.dec
             self._distance = newcoord._distance
         else:
-            super(FK4NoETermCoordinates, self)._initialize_latlon('ra', 'dec', True, args, kwargs)
+            super(FK4NoETermCoordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
     def __repr__(self):
         if self.distance is not None:
@@ -437,7 +437,7 @@ class GalacticCoordinates(SphericalCoordinatesBase):
             self.b = newcoord.b
             self._distance = newcoord._distance
         else:
-            super(GalacticCoordinates, self)._initialize_latlon('l', 'b', False, args, kwargs)
+            super(GalacticCoordinates, self)._initialize_latlon('l', 'b', args, kwargs)
 
     def __repr__(self):
         if self.distance is not None:
@@ -495,7 +495,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
             self.el = newcoord.el
             self._distance = newcoord._distance
         else:
-            super(HorizontalCoordinates, self)._initialize_latlon('az', 'el', False, args, kwargs)
+            super(HorizontalCoordinates, self)._initialize_latlon('az', 'el', args, kwargs)
 
     def __repr__(self):
         if self.distance is not None:
