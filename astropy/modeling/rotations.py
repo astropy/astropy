@@ -202,7 +202,6 @@ class MatrixRotation2D(Model):
 
     @property
     def angle(self):
-        #return Parameter('angle', np.rad2deg(self._angle.value), self, param_dim=1)
         return np.rad2deg(self._angle.value)
 
     @angle.setter

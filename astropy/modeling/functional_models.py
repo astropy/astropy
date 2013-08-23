@@ -12,11 +12,11 @@ from .core import (Parametric1DModel, Parametric2DModel, Model,
 from .utils import InputParameterError, ModelDefinitionError
 
 __all__ = sorted(['AiryDisk2DModel', 'Beta1DModel', 'Beta2DModel',
-           'Box1DModel', 'Box2DModel', 'Const1DModel', 'Const2DModel',
-           'Custom1DModel', 'Disk2DModel', 'Gaussian1DModel', 'Gaussian2DModel',
-           'Linear1DModel', 'Lorentz1DModel', 'MexicanHat1DModel',
-           'MexicanHat2DModel', 'PowerLaw1DModel', 'ScaleModel', 'ShiftModel',
-           'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel', 'Ring2DModel'])
+                  'Box1DModel', 'Box2DModel', 'Const1DModel', 'Const2DModel',
+                  'Custom1DModel', 'Disk2DModel', 'Gaussian1DModel', 'Gaussian2DModel',
+                  'Linear1DModel', 'Lorentz1DModel', 'MexicanHat1DModel',
+                  'MexicanHat2DModel', 'PowerLaw1DModel', 'ScaleModel', 'ShiftModel',
+                  'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel'])
 
 
 class Gaussian1DModel(Parametric1DModel):
@@ -234,7 +234,7 @@ class ShiftModel(Model):
             input
         """
         x, fmt = _convert_input(x, self.param_dim)
-        result = self._offsets +x
+        result = self._offsets + x
         return _convert_output(result, fmt)
 
 
