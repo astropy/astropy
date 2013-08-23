@@ -26,19 +26,27 @@ TWOPI = math.pi * 2.0  # no need to calculate this all the time
 
 class Angle(u.Quantity):
     """
-    An angle.
+    One or more angular value(s) with units equivalent to radians or degrees.
 
     An angle can be specified either as an array, scalar, tuple (see
     below), string, `~astropy.units.Quantity` or another
     `~astropy.coordinates.Angle`.
 
-    If a string, it must be in one of the following formats:
+    The input parser is flexible and supports a variety of formats::
 
-        * ``'1:2:30.43 degrees'``
-        * ``'1 2 0 hours'``
-        * ``'1°2′3″'``
-        * ``'1d2m3.4s'``
-        * ``'-1h2m3s'``
+      >>> from astropy.coordinates import Angle
+      >>> import astropy.units as u
+      >>> Angle('10.2345d')
+      >>> Angle(['10.2345d', '-20d'])
+      >>> Angle('1:2:30.43 degrees')
+      >>> Angle('1 2 0 hours')
+      >>> Angle(np.arange(1, 8), unit=u.deg)
+      >>> Angle(u'1°2′3″')
+      >>> Angle('1d2m3.4s')
+      >>> Angle('-1h2m3s')
+      >>> Angle((-1, 2, 3), unit=u.deg)  # (d, m, s)
+      >>> Angle(10.2345 * u.deg)
+      >>> Angle(Angle(10.2345 * u.deg))
 
     Parameters
     ----------
@@ -477,6 +485,58 @@ class Angle(u.Quantity):
 
 
 class Latitude(Angle):
+    """
+    Latitude-like angle(s) which must be in the range -90 to +90 deg.
+
+    A Latitude object is distinguished from a pure `~astropy.coordinates.Angle` by virtue
+    of being constrained so that::
+
+      -90.0 * u.deg <= angle(s) <= +90.0 * u.deg
+
+    Any attempt to set a value outside that range will result in a `ValueError`.
+
+    The input angle(s) can be specified either as an array, list, scalar, tuple (see
+    below), string, `~astropy.units.Quantity` or another
+    `~astropy.coordinates.Angle`.
+
+    The input parser is flexible and supports a variety of formats::
+
+      >>> from astropy.coordinates import Latitude
+      >>> import astropy.units as u
+      >>> Latitude('10.2345d')
+      >>> Latitude(['10.2345d', '-20d'])
+      >>> Latitude('1:2:30.43 degrees')
+      >>> Latitude('1 2 0 hours')
+      >>> Latitude(np.arange(1, 8), unit=u.deg)
+      >>> Latitude(u'1°2′3″')
+      >>> Latitude('1d2m3.4s')
+      >>> Latitude('-1h2m3s')
+      >>> Latitude((-1, 2, 3), unit=u.deg)  # (d, m, s)
+      >>> Latitude(10.2345 * u.deg)
+      >>> Latitude(Angle(10.2345 * u.deg))
+
+    Parameters
+    ----------
+    angle : array, list, scalar, Quantity, Angle
+        The angle value(s). If a tuple, will be interpreted as ``(h, m
+        s)`` or ``(d, m, s)`` depending on `unit`. If a string, it
+        will be interpreted following the rules described above.
+
+        If `angle` is a sequence or array of strings, the resulting
+        values will be in the given `unit`, or if None is provided,
+        the unit will be taken from the first given value.
+
+    unit : `~astropy.units.UnitBase`, str, optional
+        The unit of the value specified for the angle.  This may be
+        any string that `~astropy.units.Unit` understands, but it is
+        better to give an actual unit object.  Must be an angular
+        unit.
+
+    Raises
+    ------
+    `~astropy.units.core.UnitsException`
+        If a unit is not provided or it is not an angular unit.
+    """
     def __new__(cls, angle, unit=None):
         self = super(Latitude, cls).__new__(cls, angle, unit=unit)
         self._validate_angles()
@@ -492,6 +552,65 @@ class Latitude(Angle):
 
 
 class Longitude(Angle):
+    """
+    Longitude-like angle(s) which are wrapped within a contiguous 360 degree range.
+
+    A ``Longitude`` object is distinguished from a pure `~astropy.coordinates.Angle` by virtue
+    of a ``wrap_angle`` property.  The ``wrap_angle`` specifies that all angle values
+    represented by the object will be in the range::
+
+      wrap_angle - 360 * u.deg <= angle(s) < wrap_angle
+
+    The default ``wrap_angle`` is 360 deg.  Setting ``wrap_angle=180 * u.deg`` would
+    instead result in values between -180 and +180 deg.  Setting the ``wrap_angle``
+    attribute of an existing ``Longitude`` object will result in re-wrapping the
+    angle values in-place.
+
+    The input angle(s) can be specified either as an array, list, scalar, tuple (see
+    below), string, `~astropy.units.Quantity` or another
+    `~astropy.coordinates.Angle`.
+
+    The input parser is flexible and supports a variety of formats::
+
+      >>> from astropy.coordinates import Longitude
+      >>> import astropy.units as u
+      >>> Longitude('10.2345d')
+      >>> Longitude(['10.2345d', '-20d'])
+      >>> Longitude('1:2:30.43 degrees')
+      >>> Longitude('1 2 0 hours')
+      >>> Longitude(np.arange(1, 8), unit=u.deg)
+      >>> Longitude(u'1°2′3″')
+      >>> Longitude('1d2m3.4s')
+      >>> Longitude('-1h2m3s')
+      >>> Longitude((-1, 2, 3), unit=u.deg)  # (d, m, s)
+      >>> Longitude(10.2345 * u.deg)
+      >>> Longitude(Angle(10.2345 * u.deg))
+
+    Parameters
+    ----------
+    angle : array, list, scalar, Quantity, Angle
+        The angle value(s). If a tuple, will be interpreted as ``(h, m
+        s)`` or ``(d, m, s)`` depending on `unit`. If a string, it
+        will be interpreted following the rules described above.
+
+        If `angle` is a sequence or array of strings, the resulting
+        values will be in the given `unit`, or if None is provided,
+        the unit will be taken from the first given value.
+
+    unit : `~astropy.units.UnitBase`, str, optional
+        The unit of the value specified for the angle.  This may be
+        any string that `~astropy.units.Unit` understands, but it is
+        better to give an actual unit object.  Must be an angular
+        unit.
+
+    wrap_angle : `~astropy.coordinates.Angle` or equivalent
+        Angle at which to wrap back to ``wrap_angle - 360 deg``.
+
+    Raises
+    ------
+    `~astropy.units.core.UnitsException`
+        If a unit is not provided or it is not an angular unit.
+    """
     def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg):
         self = super(Longitude, cls).__new__(cls, angle, unit=unit)
         self.wrap_angle = wrap_angle
