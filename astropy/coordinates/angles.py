@@ -397,14 +397,14 @@ class Angle(u.Quantity):
 
           >>> from astropy.coordinates import Angle
           >>> import astropy.units as u
-          >>> a = Angle([-20, 150, 350] * u.deg)
+          >>> a = Angle([-20.0, 150.0, 350.0] * u.deg)
 
-          >>> a.wrap_at(360 * u.deg)  # Wrap into range 0 to 360 degrees
-          <Angle [u'340d00m00.00000s' u'150d00m00.00000s' u'350d00m00.00000s']>
+          >>> a.wrap_at(360 * u.deg).degree  # Wrap into range 0 to 360 degrees
+          array([ 340.,  150.,  350.])
 
           >>> a.wrap_at('180d', in_place=True)  # Wrap into range -180 to 180 degrees
-          >>> a
-          <Angle [u'-20d00m00.00000s' u'150d00m00.00000s' u'-10d00m00.00000s']>
+          >>> a.degree
+          array([ -20.,  150.,  -10.])
 
         Parameters
         ----------
