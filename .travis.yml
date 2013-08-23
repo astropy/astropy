@@ -63,16 +63,16 @@ before_install:
     # We do this to make sure we get dependencies so pip works below
     # Note that travis does *not* use python packages installed via apt - it
     # does all the building in an isolated virtualenv
-    - sudo apt-get update -qq
+    - sudo apt-get update
 
     # CORE DEPENDENCIES
-    - if [[ $SETUP_CMD != egg_info ]]; then sudo apt-get install -qq python-numpy cython libatlas-dev liblapack-dev gfortran; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then sudo apt-get install python-numpy cython libatlas-dev liblapack-dev gfortran; fi
 
     # OPTIONAL DEPENDENCIES
-    - if $OPTIONAL_DEPS; then sudo apt-get install -qq python-scipy libhdf5-serial-1.8.4 libhdf5-serial-dev; fi
+    - if $OPTIONAL_DEPS; then sudo apt-get install python-scipy libhdf5-serial-1.8.4 libhdf5-serial-dev; fi
 
     # DOCUMENTATION DEPENDENCIES
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install -qq python-sphinx graphviz texlive-latex-extra dvipng python-matplotlib; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install python-sphinx graphviz texlive-latex-extra dvipng python-matplotlib; fi
 
 
 install:
