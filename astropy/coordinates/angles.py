@@ -475,29 +475,29 @@ class Angle(u.Quantity):
         return str(self.to_string(format='latex'))
 
 
-class Lat(Angle):
+class Latitude(Angle):
     def __new__(cls, angle, unit=None):
-        self = super(Lat, cls).__new__(cls, angle, unit=unit)
+        self = super(Latitude, cls).__new__(cls, angle, unit=unit)
         self._validate_angles()
         return self
 
     def _validate_angles(self):
         if np.any(self < -90.0 * u.deg) or np.any(self > 90.0 * u.deg):
-            raise ValueError('Lat angle(s) must be within -90 deg <= angle <= 90 deg')
+            raise ValueError('Latitude angle(s) must be within -90 deg <= angle <= 90 deg')
 
     def __setitem__(self, item, value):
-        super(Lat, self).__setitem__(item, value)
+        super(Latitude, self).__setitem__(item, value)
         self._validate_angles()
 
 
-class Lon(Angle):
+class Longitude(Angle):
     def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg):
-        self = super(Lon, cls).__new__(cls, angle, unit=unit)
+        self = super(Longitude, cls).__new__(cls, angle, unit=unit)
         self.wrap_angle = wrap_angle
         return self
 
     def __setitem__(self, item, value):
-        super(Lon, self).__setitem__(item, value)
+        super(Longitude, self).__setitem__(item, value)
         self.wrap_at(self.wrap_angle, in_place=True)
 
     @property
