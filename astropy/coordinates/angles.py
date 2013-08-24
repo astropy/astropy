@@ -68,13 +68,16 @@ class Angle(u.Quantity):
     equivalencies : list of equivalence pairs, optional
         See `~astropy.units.Quantity`.
 
+    copy : bool, optional
+        See `~astropy.units.Quantity`.
+
     Raises
     ------
     `~astropy.units.core.UnitsException`
         If a unit is not provided or it is not an angular unit.
     """
     def __new__(cls, angle, unit=None, dtype=None,
-                equivalencies=[]):
+                equivalencies=[], copy=True):
         unit = cls._convert_unit_to_angle_unit(unit)
         if (unit is not None and
             not unit.is_equivalent(u.radian, equivalencies)):
@@ -129,8 +132,13 @@ class Angle(u.Quantity):
             raise u.UnitsException("No unit was specified")
 
         self = super(Angle, cls).__new__(
+<<<<<<< HEAD
             cls, angle, unit, dtype=dtype,
             equivalencies=equivalencies)
+=======
+            cls, bounded_angle, unit, dtype=dtype,
+            equivalencies=equivalencies, copy=copy)
+>>>>>>> Ensure angles can deal with copy option
 
         return self
 
