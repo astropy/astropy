@@ -2035,13 +2035,6 @@ class Table(object):
         if mask is not None and not self.masked:
             self._set_masked(True)
 
-        if self.masked:
-            if newlen == 1:
-                self._data = ma.empty(1, dtype=self._data.dtype)
-            else:
-                self._data = ma.resize(self._data, (newlen,))
-        else:
-            self._data.resize((newlen,), refcheck=False)
         # Create a table with one row to test the operation on
         test_data = (ma.zeros if self.masked else np.zeros)(1, dtype=self._data.dtype)
 
@@ -2076,7 +2069,7 @@ class Table(object):
                 raise TypeError("Mismatch between type of vals and mask")
 
             if len(self.columns) != len(vals):
-                raise ValueError('Mismatch between number of vals and columns')
+                raise ValueError('Mismatch bETWEEN NUMBer of vals and columns')
 
             if not isinstance(vals, tuple):
                 vals = tuple(vals)
@@ -2098,7 +2091,10 @@ class Table(object):
 
         # If no errors have been raised, then the table can be resized
         if self.masked:
-            self._data = ma.resize(self._data, (newlen,))
+            if newlen == 1:
+                self._data = ma.empty(1, dtype=self._data.dtype)
+            else:
+                self._data = ma.resize(self._data, (newlen,))
         else:
             self._data.resize((newlen,), refcheck=False)
 
