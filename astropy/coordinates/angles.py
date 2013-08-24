@@ -34,19 +34,17 @@ class Angle(u.Quantity):
 
     The input parser is flexible and supports a variety of formats::
 
-      >>> from astropy.coordinates import Angle
-      >>> import astropy.units as u
-      >>> Angle('10.2345d')
-      >>> Angle(['10.2345d', '-20d'])
-      >>> Angle('1:2:30.43 degrees')
-      >>> Angle('1 2 0 hours')
-      >>> Angle(np.arange(1, 8), unit=u.deg)
-      >>> Angle(u'1°2′3″')
-      >>> Angle('1d2m3.4s')
-      >>> Angle('-1h2m3s')
-      >>> Angle((-1, 2, 3), unit=u.deg)  # (d, m, s)
-      >>> Angle(10.2345 * u.deg)
-      >>> Angle(Angle(10.2345 * u.deg))
+      Angle('10.2345d')
+      Angle(['10.2345d', '-20d'])
+      Angle('1:2:30.43 degrees')
+      Angle('1 2 0 hours')
+      Angle(np.arange(1, 8), unit=u.deg)
+      Angle(u'1°2′3″')
+      Angle('1d2m3.4s')
+      Angle('-1h2m3s')
+      Angle((-1, 2, 3), unit=u.deg)  # (d, m, s)
+      Angle(10.2345 * u.deg)
+      Angle(Angle(10.2345 * u.deg))
 
     Parameters
     ----------
@@ -501,19 +499,17 @@ class Latitude(Angle):
 
     The input parser is flexible and supports a variety of formats::
 
-      >>> from astropy.coordinates import Latitude
-      >>> import astropy.units as u
-      >>> Latitude('10.2345d')
-      >>> Latitude(['10.2345d', '-20d'])
-      >>> Latitude('1:2:30.43 degrees')
-      >>> Latitude('1 2 0 hours')
-      >>> Latitude(np.arange(1, 8), unit=u.deg)
-      >>> Latitude(u'1°2′3″')
-      >>> Latitude('1d2m3.4s')
-      >>> Latitude('-1h2m3s')
-      >>> Latitude((-1, 2, 3), unit=u.deg)  # (d, m, s)
-      >>> Latitude(10.2345 * u.deg)
-      >>> Latitude(Angle(10.2345 * u.deg))
+      Latitude('10.2345d')
+      Latitude(['10.2345d', '-20d'])
+      Latitude('1:2:30.43 degrees')
+      Latitude('1 2 0 hours')
+      Latitude(np.arange(1, 8), unit=u.deg)
+      Latitude(u'1°2′3″')
+      Latitude('1d2m3.4s')
+      Latitude('-1h2m3s')
+      Latitude((-1, 2, 3), unit=u.deg)  # (d, m, s)
+      Latitude(10.2345 * u.deg)
+      Latitude(Angle(10.2345 * u.deg))
 
     Parameters
     ----------
@@ -572,19 +568,17 @@ class Longitude(Angle):
 
     The input parser is flexible and supports a variety of formats::
 
-      >>> from astropy.coordinates import Longitude
-      >>> import astropy.units as u
-      >>> Longitude('10.2345d')
-      >>> Longitude(['10.2345d', '-20d'])
-      >>> Longitude('1:2:30.43 degrees')
-      >>> Longitude('1 2 0 hours')
-      >>> Longitude(np.arange(1, 8), unit=u.deg)
-      >>> Longitude(u'1°2′3″')
-      >>> Longitude('1d2m3.4s')
-      >>> Longitude('-1h2m3s')
-      >>> Longitude((-1, 2, 3), unit=u.deg)  # (d, m, s)
-      >>> Longitude(10.2345 * u.deg)
-      >>> Longitude(Angle(10.2345 * u.deg))
+      Longitude('10.2345d')
+      Longitude(['10.2345d', '-20d'])
+      Longitude('1:2:30.43 degrees')
+      Longitude('1 2 0 hours')
+      Longitude(np.arange(1, 8), unit=u.deg)
+      Longitude(u'1°2′3″')
+      Longitude('1d2m3.4s')
+      Longitude('-1h2m3s')
+      Longitude((-1, 2, 3), unit=u.deg)  # (d, m, s)
+      Longitude(10.2345 * u.deg)
+      Longitude(Angle(10.2345 * u.deg))
 
     Parameters
     ----------
