@@ -584,6 +584,24 @@ class TestAddRow(SetupData):
             with pytest.raises(ValueError):
                 t.add_row([6, 7, 8])
 
+    def test_add_row_failures(self, table_types):
+        self._setup(table_types)
+        t = self.t
+        t_copy = table_types.Table(t, copy=True)
+        # Wrong number of columns
+        try:
+            t.add_row([1,2,3,4])
+        except ValueError:
+            pass
+        assert len(t) == 3
+        assert np.all(t._data == t_copy._data)
+        # Wrong data type
+        try:
+            t.add_row(['one',2,3])
+        except ValueError:
+            pass
+        assert len(t) == 3
+        assert np.all(t._data == t_copy._data)
 
 @pytest.mark.usefixtures('table_types')
 class TestTableColumn(SetupData):
