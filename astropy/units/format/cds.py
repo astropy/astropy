@@ -61,7 +61,7 @@ class CDS(Base):
 
         names = {}
 
-        names['%'] = u.Unit(0.01)
+        names['%'] = u.Unit('percent')
 
         for base in bases + faux_bases + unprefixed:
             names[base] = getattr(u, base)

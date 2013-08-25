@@ -9,11 +9,19 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from ..constants import si as _si
-from .core import UnitBase, def_unit, _UnitRegistry
+from .core import UnitBase, Unit, def_unit, _UnitRegistry
 
 import numpy as _numpy
 
 _UnitRegistry().namespace = globals()
+
+###########################################################################
+# DIMENSIONLESS
+
+def_unit(['percent', 'pct'], Unit(0.01), register=True, prefixes=False,
+         doc="percent: one hundredth of unity, factor 0.01",
+         format={'generic': '%', 'console': '%',
+                 'latex': r'\%', 'unicode': '%'})
 
 ###########################################################################
 # LENGTH
