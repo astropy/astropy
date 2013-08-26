@@ -99,3 +99,14 @@ def test_precision_neg():
     assert np.round(t1.jd1) == t1.jd1
     t1_tai = t1.tai
     assert np.round(t1_tai.jd1) == t1_tai.jd1
+
+
+def test_precision_epoch():
+    """
+    Check that input via epoch also has full precision, i.e., against
+    regression on https://github.com/astropy/astropy/pull/366
+    """
+    t_utc = Time(range(1980, 2001), format='jyear', scale='utc')
+    t_tai = Time(range(1980, 2001), format='jyear', scale='tai')
+    dt = t_utc - t_tai
+    assert allclose_sec(dt.sec, np.round(dt.sec))
