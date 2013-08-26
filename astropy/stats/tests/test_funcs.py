@@ -218,7 +218,7 @@ def test_bootstrap():
     
     #test with a bootfunction
     with NumpyRNGContext(42):
-        bootresult = np.mean(bootstrap(a,10000,bootfunc=np.mean))
+        bootresult = np.mean(funcs.bootstrap(a,10000,bootfunc=np.mean))
         assert_allclose(np.mean(bootarr),bootresult,atol=0.01)
 
     
