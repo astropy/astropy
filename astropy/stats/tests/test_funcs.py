@@ -212,7 +212,7 @@ def test_signal_to_noise_oir_ccd():
 def test_bootstrap():
     bootarr = np.array([1,2,3,4,5,6,7,8,9,0])
     #test general bootstrapping
-    answer = np.array([[7 4 8 5 7 0 3 7 8 5],[4 8 8 3 6 5 2 8 6 2]])
+    answer = np.array([[7,4,8,5,7,0,3,7,8,5],[4,8,8,3,6,5,2,8,6,2]])
     with NumpyRNGContext(42):
         assert answer = funcs.bootstrap(bootarr,2)
     
