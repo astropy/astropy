@@ -643,11 +643,11 @@ def biweight_location(a, c=6.0, M=None):
 
     #set up the weighting
     u = d / c / median_absolute_deviation(a)
-    u = (1 - u**2)**2
 
     #now remove the outlier points
     mask = np.abs(u) < 1
 
+    u = (1 - u**2)**2
     return M+(d[mask]*u[mask]).sum()/u[mask].sum()
 
 
@@ -709,7 +709,6 @@ def biweight_midvariance(a, c=9.0, M=None):
     """
 
     a = np.array(a, copy=False)
-    n = len(a)
 
     if M is None:
         M = np.median(a)
@@ -719,20 +718,21 @@ def biweight_midvariance(a, c=9.0, M=None):
 
     #set up the weighting
     u = d / c / median_absolute_deviation(a)
-    u = u**2
 
     #now remove the outlier points
     mask = np.abs(u) < 1
 
+    u = u**2
+    n = mask.sum()
     return n**0.5 * (d[mask] * d[mask] * (1 - u[mask])**4).sum()**0.5\
         / np.abs(((1 - u[mask]) * (1 - 5 * u[mask])).sum())
-    
+
 
 def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix, gain=1.0):
     """
     Computes the signal to noise ratio for source being observed in the 
     optical/IR using a CCD.
-    
+
     Parameters
     ----------
     t : float or numpy.ndarray
