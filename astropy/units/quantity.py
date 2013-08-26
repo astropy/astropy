@@ -47,8 +47,8 @@ def _validate_value(value, dtype, copy):
         input value is used or automatically computed.
 
     copy : bool, optional
-        If true (default), then the value is copied.  Otherwise, a copy
-        will only be made if __array__ returns a copy, if obj is a
+        If True (default), then the value is copied.  Otherwise, a copy
+        will only be made if `__array__` returns a copy, if obj is a
         nested sequence, or if a copy is needed to satisfy `dtype`.
 
     Returns
@@ -93,8 +93,8 @@ class Quantity(np.ndarray):
         A list of equivalence pairs. See :ref:`unit_equivalencies`.
 
     copy : bool, optional
-        If true (default), then the value is copied.  Otherwise, a copy
-        will only be made if __array__ returns a copy, if obj is a
+        If True (default), then the value is copied.  Otherwise, a copy
+        will only be made if `__array__` returns a copy, if obj is a
         nested sequence, or if a copy is needed to satisfy `dtype`.
 
     Raises

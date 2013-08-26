@@ -132,13 +132,8 @@ class Angle(u.Quantity):
             raise u.UnitsException("No unit was specified")
 
         self = super(Angle, cls).__new__(
-<<<<<<< HEAD
             cls, angle, unit, dtype=dtype,
-            equivalencies=equivalencies)
-=======
-            cls, bounded_angle, unit, dtype=dtype,
             equivalencies=equivalencies, copy=copy)
->>>>>>> Ensure angles can deal with copy option
 
         return self
 
@@ -181,7 +176,7 @@ class Angle(u.Quantity):
     def __quantity_instance__(self, val, unit, **kwargs):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
-            return Angle(val, unit, bounds=self.bounds, **kwargs)
+            return Angle(val, unit, **kwargs)
         return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
 
     def __array_wrap__(self, obj, context=None):
