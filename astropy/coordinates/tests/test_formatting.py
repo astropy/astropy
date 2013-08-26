@@ -79,3 +79,8 @@ def test_sexagesimal_rounding_up():
     assert a.to_string(fields=2, precision=5) == '4d00m'
     assert a.to_string(fields=1, precision=1) == '4d'
     assert a.to_string(fields=1, precision=5) == '4d'
+
+
+def test_to_string_scalar():
+    a = Angle(1.113355, unit=u.deg)
+    assert isinstance(a.to_string(), unicode)

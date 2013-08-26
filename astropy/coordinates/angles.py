@@ -478,7 +478,10 @@ class Angle(u.Quantity):
             return s
 
         format_ufunc = np.vectorize(do_format, otypes=[np.object])
-        return format_ufunc(values)
+        result = format_ufunc(values)
+        if result.ndim == 0:
+            result = result[()]
+        return result
 
     @deprecated("0.3", name="format", alternative="to_string")
     def format(self, unit=u.degree, decimal=False, sep='fromunit', precision=5,
