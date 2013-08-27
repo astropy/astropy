@@ -556,6 +556,8 @@ class ProgressBar(object):
                     p.imap_unordered(function, items, steps)):
                     bar.update(i)
                     results.append(result)
+                p.close()
+                p.join()
 
         return results
 
