@@ -1347,7 +1347,8 @@ class TimeEpochDate(TimeFormat):
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # validate scale.
         epoch_to_jd = getattr(erfa_time, self.epoch_to_jd)
-        self.jd1, self.jd2 = epoch_to_jd(val1 + val2)
+        jd1, jd2 = epoch_to_jd(val1 + val2)
+        self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     @property
     def vals(self):
