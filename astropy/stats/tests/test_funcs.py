@@ -208,4 +208,17 @@ def test_signal_to_noise_oir_ccd():
     #make sure snr increases with time
     result = funcs.signal_to_noise_oir_ccd(2,25,0,0,0,1)
     assert result > 5.0
+
+def test_bootstrap():
+    bootarr = np.array([1,2,3,4,5,6,7,8,9,0])
+    #test general bootstrapping
+    answer = np.array([[7,4,8,5,7,0,3,7,8,5],[4,8,8,3,6,5,2,8,6,2]])
+    with NumpyRNGContext(42):
+        assert_equal(answer,funcs.bootstrap(bootarr,2))
+    
+    #test with a bootfunction
+    with NumpyRNGContext(42):
+        bootresult = np.mean(funcs.bootstrap(bootarr,10000,bootfunc=np.mean))
+        assert_allclose(np.mean(bootarr),bootresult,atol=0.01)
+
     
