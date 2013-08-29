@@ -55,7 +55,7 @@ def test_sigma_clip():
         assert filtered_data.data[0] == randvar[0]
 
         # test axis
-        data = np.arange(5)+np.random.normal(0.,0.05,(5,5))+np.diag(np.ones(5))
+        data = np.arange(5)+np.random.normal(0., 0.05, (5, 5))+np.diag(np.ones(5))
         filtered_data = funcs.sigma_clip(data, axis=0, sig=2.3)
         assert filtered_data.count() == 20
         filtered_data = funcs.sigma_clip(data, axis=1, sig=2.3)
@@ -96,6 +96,27 @@ def test_biweight_location():
         assert abs(cbl-0) < 1e-2
 
 
+def test_biweight_location():
+    from numpy.random import randn
+
+    #need to seed the numpy RNG to make sure we don't get some amazingly flukey
+    #random number that breaks one of the tests
+
+    with NumpyRNGContext(12345):
+
+        #test that it runs
+        randvar = randn(10000)
+        cbl = funcs.biweight_location(randvar)
+
+        assert abs(cbl-0) < 1e-2
+
+
+def test_biweight_location_small():
+
+    cbl = funcs.biweight_location([1, 3, 5, 500, 2])
+    assert abs(cbl-2.745) < 1e-3
+
+
 def test_biweight_midvariance():
     from numpy.random import randn
 
@@ -109,6 +130,12 @@ def test_biweight_midvariance():
         scl = funcs.biweight_midvariance(randvar)
 
         assert abs(scl-1) < 1e-2
+
+
+def test_biweight_location_small():
+
+    scl = funcs.biweight_midvariance([1, 3, 5, 500, 2])
+    assert abs(scl-1.529) < 1e-3
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -187,27 +214,29 @@ def test_binned_binom_proportion():
     bin_ctr, bin_hw, p, perr = funcs.binned_binom_proportion(x, success,
                                                              bins=nbins)
     assert (p == 0.).all()
-    
+
+
 def test_signal_to_noise_oir_ccd():
-    
-    result = funcs.signal_to_noise_oir_ccd(1,25,0,0,0,1)
+
+    result = funcs.signal_to_noise_oir_ccd(1, 25, 0, 0, 0, 1)
     assert 5.0 == result
     #check to make sure gain works
-    result = funcs.signal_to_noise_oir_ccd(1,5,0,0,0,1,5)
+    result = funcs.signal_to_noise_oir_ccd(1, 5, 0, 0, 0, 1, 5)
     assert 5.0 == result
-    
-    #now add in sky, dark current, and read noise 
+
+    #now add in sky, dark current, and read noise
     #make sure the snr goes down
-    result = funcs.signal_to_noise_oir_ccd(1,25,1,0,0,1)
+    result = funcs.signal_to_noise_oir_ccd(1, 25, 1, 0, 0, 1)
     assert result < 5.0
-    result = funcs.signal_to_noise_oir_ccd(1,25,0,1,0,1)
+    result = funcs.signal_to_noise_oir_ccd(1, 25, 0, 1, 0, 1)
     assert result < 5.0
-    result = funcs.signal_to_noise_oir_ccd(1,25,0,0,1,1)
+    result = funcs.signal_to_noise_oir_ccd(1, 25, 0, 0, 1, 1)
     assert result < 5.0
-    
+
     #make sure snr increases with time
-    result = funcs.signal_to_noise_oir_ccd(2,25,0,0,0,1)
+    result = funcs.signal_to_noise_oir_ccd(2, 25, 0, 0, 0, 1)
     assert result > 5.0
+
 
 def test_bootstrap():
     bootarr = np.array([1,2,3,4,5,6,7,8,9,0])
