@@ -17,8 +17,7 @@ from .. import units as u
 from ..utils import deprecated
 
 
-__all__ = ['Angle', 'AngularSeparation', 'Latitude', 'Longitude',
-           'hour_angle_to_lst', 'lst_to_hour_angle']
+__all__ = ['Angle', 'AngularSeparation', 'Latitude', 'Longitude']
 
 
 TWOPI = math.pi * 2.0  # no need to calculate this all the time
@@ -795,52 +794,3 @@ def angle_axis(matrix, unit=None):
     if unit is None:
         unit = u.degree
     return angle.to(unit), axis
-
-
-def lst_to_hour_angle(ra, lst):
-    """
-    Computes the hour angle for this RA given a local sidereal
-    time (LST).
-
-    Parameters
-    ----------
-    lst : `~astropy.coordinates.angle.Angle` or equivalent, `~astropy.time.Time`
-        A local sidereal time (LST).
-
-    Returns
-    -------
-    hour_angle : `~astropy.coordinates.angle.Angle`
-        The hour angle for this RA at the LST.
-    """
-    if not isinstance(ra, Angle):
-        ra = Angle(ra)
-    if hasattr(lst, 'mjd'):
-        lst = Angle(np.remainder(lst.mjd, 1), unit=u.hour)
-    else:
-        lst = Angle(lst)
-
-    return np.mod(lst - ra, 24. * u.hourangle)
-
-
-def hour_angle_to_lst(ra, hour_angle):
-    """
-    Calculates the local sidereal time (LST) if this RA is at a
-    particular hour angle.
-
-    Parameters
-    ----------
-    ra : `astropy.coordinates.angle.Angle` or equivalent
-    hour_angle :  `~astropy.coordinates.angle.Angle` or equivalent
-        An hour angle.
-
-    Returns
-    -------
-    lst : `~astropy.coordinates.angle.Angle`
-        The local siderial time for this RA and hour_angle as an angle.
-    """
-    if not isinstance(ra, Angle):
-        ra = Angle(ra)
-    if not isinstance(hour_angle, Angle):
-        hour_angle = Angle(hour_angle)
-
-    return np.mod(hour_angle + ra, 24 * u.hourangle)

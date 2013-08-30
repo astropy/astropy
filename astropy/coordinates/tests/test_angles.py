@@ -220,20 +220,3 @@ def test_is_within_bounds():
     assert a.is_within_bounds('0d', '360d') is False
     assert a.is_within_bounds(None, '360d') is True
     assert a.is_within_bounds(-30 * u.deg, None) is True
-
-
-def test_lst_to_hour_angle():
-    from ...time import Time
-    ra = '1:00:00h'
-    ha1 = lst_to_hour_angle(ra, Angle(1.5, u.hour))
-    assert isinstance(ha1, Angle)
-    npt.assert_almost_equal(ha1.hour, 0.5)
-
-    ha2 = lst_to_hour_angle(ra, Time('2012-1-1 3:00:00', scale='utc'))
-    npt.assert_almost_equal(ha2.hour, 23.125)
-
-
-def test_hour_angle_to_lst():
-    lst = hour_angle_to_lst('1:00:00h', Angle(1.5, u.hour))
-    assert isinstance(lst, Angle)
-    npt.assert_almost_equal(lst.hour, 2.5)
