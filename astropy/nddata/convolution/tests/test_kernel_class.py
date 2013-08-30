@@ -136,3 +136,21 @@ class TestKernels(object):
         c1 = convolve_fft(delta_pulse_2D, kernel1, boundary='fill')
 
         assert_almost_equal(c1, c2, decimal=12)
+
+    def test_multiply_kernels(self):
+        """
+        Check if multiplying two kernels with eachother works correctly.
+        """
+        gauss_1 = Gaussian1DKernel(3)
+        gauss_2 = Gaussian1DKernel(4)
+        test_gauss_3 = Gaussian1DKernel(5)
+
+        gauss_3 = gauss_1 * gauss_2
+        assert np.all(np.abs((gauss_3 - test_gauss_3).array) < 0.01)
+
+    def test_multiply_scalar(self):
+        """
+        Check if multiplying two kernels with eachother works correctly.
+        """
+        gauss = Gaussian1DKernel(3)
+        assert np.all(np.abs(3 * gauss.array - 3 * gauss) < 0.000001)

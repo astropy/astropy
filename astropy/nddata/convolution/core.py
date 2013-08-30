@@ -15,18 +15,25 @@ integrates to one per default.
 Currently only symmetric 2D kernels are supported.
 """
 from __future__ import division
-import copy
 import warnings
+import copy
 
 import numpy as np
 
 from .utils import (discretize_model, add_kernel_arrays_1D,
                     add_kernel_arrays_2D)
 
+MAX_NORMALIZATION = 100
+
 
 class Kernel(object):
     """
     Convolution kernel base class.
+
+    Parameters
+    ----------
+    array : ndarray
+        Kernel array.
     """
     _odd = True
     _separable = False
@@ -39,9 +46,9 @@ class Kernel(object):
         # The value of 100 is kind of arbitrary
         # there are kernel that sum to zero and
         # the user should be warned in this case
-        if np.abs(self._normalization) > 100:
-            warnings.warn("Normalization factor of kernel is" +
-                                        "exceptionally large > 100.")
+        if np.abs(self._normalization) > MAX_NORMALIZATION:
+            warnings.warn("Normalization factor of kernel is "
+                          "exceptionally large > {0}.".format(MAX_NORMALIZATION))
 
     @property
     def truncation(self):
@@ -148,69 +155,25 @@ class Kernel(object):
         """
         Add two filter kernels.
         """
-        if isinstance(self, Kernel1D) and isinstance(kernel, Kernel1D):
-            # As convolution is linear we can add two kernels
-            add_array = add_kernel_arrays_1D(self.array, kernel.array)
-            add_kernel = Kernel1D(array=add_array)
-        elif isinstance(self, Kernel2D) and isinstance(kernel, Kernel2D):
-            # As convolution is linear we can add two kernels
-            add_array = add_kernel_arrays_2D(self.array, kernel.array)
-            add_kernel = Kernel2D(array=add_array)
-        else:
-            raise TypeError("Unsupported operand type(s) for *: '{0}' and '{1}'"
-                            .format(self.__class__, type(kernel)))
-        add_kernel._separable = self._separable and kernel._separable
-        add_kernel._weighted = self._weighted or kernel._weighted
-        return add_kernel
+        return kernel_arithmetics(self, kernel, 'add')
 
     def __sub__(self,  kernel):
         """
         Subtract two filter kernels.
         """
-        if isinstance(self, Kernel1D) and isinstance(kernel, Kernel1D):
-            # As convolution is linear we can subtract two kernels
-            sub_array = add_kernel_arrays_1D(self.array, -kernel.array)
-            sub_kernel = Kernel1D(array=sub_array)
-        elif isinstance(self, Kernel2D) and isinstance(kernel, Kernel2D):
-            # As convolution is linear we can subtract two kernels
-            sub_array = add_kernel_arrays_2D(self.array, -kernel.array)
-            sub_kernel = Kernel2D(array=sub_array)
-        else:
-            raise TypeError("Unsupported operand type(s) for *: '{0}' and '{1}'"
-                            .format(self.__class__, type(kernel)))
-
-        # As convolution is linear we can subtract two kernels
-        sub_kernel._separable = self._separable and kernel._separable
-        sub_kernel._weighted = self._weighted or kernel._weighted
-        return sub_kernel
+        return kernel_arithmetics(self, kernel, 'sub')
 
     def __mul__(self, value):
         """
         Multiply kernel with number or convolve two kernels.
         """
-        # As convolution is linear we can multiply with a scalar
-        if isinstance(value, (int, float)):
-            kernel = copy.copy(self)
-            kernel._array *= value
-            kernel._normalization /= value
-            return kernel
-        else:
-            raise TypeError("Unsupported operand type(s) for *: '{0}' and '{1}'"
-                            .format(self.__class__, type(value)))
+        return kernel_arithmetics(self, value, "mul")
 
     def __rmul__(self, value):
         """
         Multiply kernel with number or convolve two kernels.
         """
-        # As convolution is linear we can multiply with a scalar
-        if isinstance(value, (int, float)):
-            kernel = copy.copy(self)
-            kernel._array *= value
-            kernel._normalization /= value
-            return kernel
-        else:
-            raise TypeError("Unsupported operand type(s) for *: '{0}' and '{1}'"
-                            .format(self.__class__, type(value)))
+        return kernel_arithmetics(self, value, "mul")
 
     def __array__(self):
         """
@@ -307,3 +270,67 @@ class Kernel2D(Kernel):
         else:
             raise TypeError("Must specify either array or model.")
         super(Kernel2D, self).__init__(array)
+
+
+def kernel_arithmetics(kernel, value, operation):
+    """
+    Add, subtract or multiply two kernels.
+
+    Parameters
+    ----------
+    kernel : astropy.nddata.convolution.kernel
+        Kernel instance
+    values : kernel, float or int
+        Value to operate with
+    operation : string
+        One of the following operations:
+            * 'add'
+                Add two kernels
+            * 'sub'
+                Subtract two kernels
+            * 'mul'
+                Multiply kernel with number or convolve two kernels.
+    """
+    force_weighted = False
+    # 1D kernels
+    if isinstance(kernel, Kernel1D) and isinstance(value, Kernel1D):
+        if operation == "add":
+            new_array = add_kernel_arrays_1D(kernel.array, value.array)
+        if operation == "sub":
+            new_array = add_kernel_arrays_1D(kernel.array, -value.array)
+        if operation == "mul":
+            from scipy.signal import convolve
+            new_array = convolve(kernel.array, value)
+            force_weighted = True
+        new_kernel = Kernel1D(array=new_array)
+        new_kernel._separable = kernel._separable and value._separable
+        new_kernel._weighted = kernel._weighted or value._weighted
+
+    # 2D kernels
+    elif isinstance(kernel, Kernel2D) and isinstance(value, Kernel2D):
+        if operation == "add":
+            new_array = add_kernel_arrays_2D(kernel.array, value.array)
+        if operation == "sub":
+            new_array = add_kernel_arrays_2D(kernel.array, -value.array)
+        if operation == "mul":
+            from scipy.signal import convolve
+            new_array = convolve(kernel.array, value)
+            force_weighted = True
+        new_kernel = Kernel2D(array=new_array)
+        new_kernel._separable = kernel._separable and value._separable
+        new_kernel._weighted = kernel._weighted or value._weighted
+
+    # kernel and number
+    elif ((isinstance(kernel, Kernel1D) or isinstance(kernel, Kernel2D))
+        and isinstance(value, (int, float))):
+        if operation == "mul":
+            new_kernel = copy.copy(kernel)
+            new_kernel._array *= value
+            new_kernel._normalization /= value
+        else:
+            raise Exception("Kernel operation not supported.")
+    else:
+        raise Exception("Kernel operation not supported.")
+    if force_weighted:
+        new_kernel._weighted = True
+    return new_kernel

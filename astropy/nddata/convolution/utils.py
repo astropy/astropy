@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import division
 import warnings
 
@@ -13,22 +14,12 @@ class DiscretizationError(Exception):
     """
     Called when discretization of models goes wrong.
     """
-    def __init__(self, message):
-        self._message = message
-
-    def __str__(self):
-        return self._message
 
 
 class KernelSizeError(Exception):
     """
-    Called when size of kernels is wrong.
+    Called when size of kernels is even.
     """
-    def __init__(self, message):
-        self._message = message
-
-    def __str__(self):
-        return self._message
 
 
 def add_kernel_arrays_1D(array_1, array_2):
@@ -39,12 +30,14 @@ def add_kernel_arrays_1D(array_1, array_2):
     """
     if array_1.size > array_2.size:
         center = array_1.size // 2
-        slice_ = slice(center - array_2.size // 2, center + array_2.size // 2 + 1)
+        slice_ = slice(center - array_2.size // 2,
+                       center + array_2.size // 2 + 1)
         array_1[slice_] += array_2
         return array_1
     elif array_2.size > array_1.size:
         center = array_2.size // 2
-        slice_ = slice(center - array_1.size // 2, center + array_1.size // 2 + 1)
+        slice_ = slice(center - array_1.size // 2,
+                       center + array_1.size // 2 + 1)
         array_2[slice_] += array_1
         return array_2
     return array_2 + array_1
@@ -58,14 +51,18 @@ def add_kernel_arrays_2D(array_1, array_2):
     """
     if array_1.size > array_2.size:
         center = [axes_size // 2 for axes_size in array_1.shape]
-        slice_x = slice(center[1] - array_2.shape[1] // 2, center[1] + array_2.shape[1] // 2 + 1)
-        slice_y = slice(center[0] - array_2.shape[0] // 2, center[0] + array_2.shape[0] // 2 + 1)
+        slice_x = slice(center[1] - array_2.shape[1] // 2,
+                        center[1] + array_2.shape[1] // 2 + 1)
+        slice_y = slice(center[0] - array_2.shape[0] // 2,
+                        center[0] + array_2.shape[0] // 2 + 1)
         array_1[slice_y, slice_x] += array_2
         return array_1
     elif array_2.size > array_1.size:
         center = [axes_size // 2 for axes_size in array_2.shape]
-        slice_x = slice(center[1] - array_2.shape[1] // 2, center[1] + array_2.shape[1] // 2 + 1)
-        slice_y = slice(center[0] - array_2.shape[0] // 2, center[0] + array_2.shape[0] // 2 + 1)
+        slice_x = slice(center[1] - array_2.shape[1] // 2,
+                        center[1] + array_2.shape[1] // 2 + 1)
+        slice_y = slice(center[0] - array_2.shape[0] // 2,
+                        center[0] + array_2.shape[0] // 2 + 1)
         array_2[slice_y, slice_x] += array_1
         return array_2
     return array_2 + array_1
