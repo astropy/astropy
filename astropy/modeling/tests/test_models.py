@@ -179,7 +179,6 @@ class TestParametricModels(object):
         self.y1 = np.arange(1, 10, .1)
         self.x2, self.y2 = np.mgrid[:10, :8]
 
-
     @pytest.mark.parametrize(('model_class'), models_1D.keys())
     def test_input1D(self, model_class):
         """
@@ -288,19 +287,20 @@ def create_model(model_class, parameters):
     Create instance of model class.
     """
     constraints = {}
-    if model_class.__base__ == Parametric1DModel:
+    if issubclass(model_class, Parametric1DModel):
         if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
             pytest.skip("SciPy not found")
         if 'constraints' in models_1D[model_class]:
             constraints = models_1D[model_class]['constraints']
         return model_class(*parameters, **constraints)
 
-    elif model_class.__base__ == Parametric2DModel:
+    elif issubclass(model_class, Parametric2DModel):
         if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
             pytest.skip("SciPy not found")
         if 'constraints' in models_2D[model_class]:
             constraints = models_2D[model_class]['constraints']
         return model_class(*parameters, **constraints)
 
-    elif model_class.__base__ == PolynomialModel:
+    elif issubclass(model_class, PolynomialModel):
         return model_class(**parameters)
+    
