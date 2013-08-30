@@ -51,14 +51,6 @@ ambiguities in parsing the angle strings::
     >>> ICRSCoordinates('3h4m5s +6d7m8s', unit=(u.hour, u.degree))
     <ICRSCoordinates RA=46.02083 deg, Dec=6.11889 deg>
 
-This will also give you an error if you give a string with units that
-conflict with your desired units::
-
-    #### FIXME ####
-    >>> ICRSCoordinates('3d4m5s +6h7m8s', unit=(u.hour, u.degree))
-    ValueError: parse_hours: Invalid input string, can't parse to HMS. (3d4m5s)
-    #### FIXME ####
-
 One final way to create coordinates is to copy them from an already
 existing coordinate::
 
