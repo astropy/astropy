@@ -3,7 +3,6 @@
 import warnings
 
 import numpy as np
-from ...config import ConfigurationItem
 from .core import Kernel
 
 # Disabling all doctests in this module until a better way of handling warnings
@@ -191,6 +190,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
             return result.astype(array_dtype)
     else:
         return result
+
 
 def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                  return_fft=False, fft_pad=True, psf_pad=False,
