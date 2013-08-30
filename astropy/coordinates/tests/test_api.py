@@ -345,7 +345,7 @@ def test_radec():
     and Latitude can parse any unambiguous format (tuples, formatted strings, etc.).
 
     The intention is not to create an Angle subclass for every possible
-    coordinate object (e.g. galactic l, galactic b). However, equatorial Longitude/dec
+    coordinate object (e.g. galactic l, galactic b). However, equatorial Longitude/Latitude
     are so prevalent in astronomy that it's worth creating ones for these
     units. They will be noted as "special" in the docs and use of the just the
     Angle class is to be used for other coordinate systems.
