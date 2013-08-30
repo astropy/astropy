@@ -9,17 +9,18 @@ system and a number for the two angles.  For example::
 
     >>> from astropy.coordinates import ICRSCoordinates, FK4Coordinates, \
         GalacticCoordinates
+    >>> import astropy.units as u
     >>> ICRSCoordinates(187.70592, 12.39112, unit=(u.degree, u.degree))
     <ICRSCoordinates RA=187.70592 deg, Dec=12.39112 deg>
     >>> FK4Coordinates(187.07317, 12.66715, unit=(u.degree, u.degree))
     <FK4Coordinates RA=187.07317 deg, Dec=12.66715 deg>
-    >>> GalacticCoordinates(-76.22237, 74.49108, unit=(u.degree, u.degree))
-    <GalacticCoordinates l=-76.22237 deg, b=74.49108 deg>
+    >>> GalacticCoordinates(283.77763, 74.49108, unit=(u.degree, u.degree))
+    <GalacticCoordinates l=283.77763 deg, b=74.49108 deg>
 
 Note that if you do not provide units explicitly, this will fail::
 
     >>> ICRSCoordinates(23, 1)
-    astropy.units.core.UnitsException: No unit was specified
+    ERROR: UnitsException: No unit was specified [astropy.coordinates.angles]
 
 While the above example uses python numerical types, you can also
 provide strings to create coordinates.  If the `unit` parameter is
@@ -36,7 +37,7 @@ the exact rules for how each string is parsed, see the
     >>> ICRSCoordinates("14.12412 hours", "-41:08:15.162342 degrees")
     <ICRSCoordinates RA=211.86180 deg, Dec=-41.13755 deg>
     >>> ICRSCoordinates("14.12412 -41:08:15.162342")
-    UnitsException: Could not infer Angle units from provided string 14.12412
+    ERROR: UnitsException: No unit specified [astropy.coordinates.angle_utilities]
 
 You can also directly specify the units for both to resolve
 ambiguities in parsing the angle strings::
@@ -53,8 +54,10 @@ ambiguities in parsing the angle strings::
 This will also give you an error if you give a string with units that
 conflict with your desired units::
 
+    #### FIXME ####
     >>> ICRSCoordinates('3d4m5s +6h7m8s', unit=(u.hour, u.degree))
     ValueError: parse_hours: Invalid input string, can't parse to HMS. (3d4m5s)
+    #### FIXME ####
 
 One final way to create coordinates is to copy them from an already
 existing coordinate::
