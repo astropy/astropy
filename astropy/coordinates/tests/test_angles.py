@@ -210,16 +210,16 @@ def test_wrap_at():
         assert np.all(aw.degree < wrap_angle)
 
 
-def test_within_bounds():
+def test_is_within_bounds():
     a = Angle([-20, 150, 350] * u.deg)
-    assert a.within_bounds('0d', '360d') is False
-    assert a.within_bounds(None, '360d') is True
-    assert a.within_bounds(-30 * u.deg, None) is True
+    assert a.is_within_bounds('0d', '360d') is False
+    assert a.is_within_bounds(None, '360d') is True
+    assert a.is_within_bounds(-30 * u.deg, None) is True
 
     a = Angle('-20d')
-    assert a.within_bounds('0d', '360d') is False
-    assert a.within_bounds(None, '360d') is True
-    assert a.within_bounds(-30 * u.deg, None) is True
+    assert a.is_within_bounds('0d', '360d') is False
+    assert a.is_within_bounds(None, '360d') is True
+    assert a.is_within_bounds(-30 * u.deg, None) is True
 
 
 def test_lst_to_hour_angle():

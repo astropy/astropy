@@ -428,7 +428,7 @@ class Angle(u.Quantity):
         else:
             return wrapped
 
-    def within_bounds(self, lower=None, upper=None):
+    def is_within_bounds(self, lower=None, upper=None):
         """
         Check if all angle(s) satisfy ``lower <= angle < upper``
 
@@ -438,11 +438,11 @@ class Angle(u.Quantity):
           >>> from astropy.coordinates import Angle
           >>> import astropy.units as u
           >>> a = Angle([-20, 150, 350] * u.deg)
-          >>> a.within_bounds('0d', '360d')
+          >>> a.is_within_bounds('0d', '360d')
           False
-          >>> a.within_bounds(None, '360d')
+          >>> a.is_within_bounds(None, '360d')
           True
-          >>> a.within_bounds(-30 * u.deg, None)
+          >>> a.is_within_bounds(-30 * u.deg, None)
           True
 
         Parameters
@@ -458,7 +458,7 @@ class Angle(u.Quantity):
 
         Returns
         -------
-        within_bounds : bool
+        is_within_bounds : bool
             True if all angles satisfy ``lower <= angle < upper``
         """
         ok = True
