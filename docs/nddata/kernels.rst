@@ -189,19 +189,44 @@ As convolution is a linear operation, kernels can be added or subtracted from ea
 number. One basic example would be the definition of a Difference of Gaussian filter:
 
 >>> gauss_1 = Gaussian1DKernel(10)
->>> gauss_2 = Gaussian2Dkernel(16)
+>>> gauss_2 = Gaussian2DKernel(16)
 >>> DoG = gauss_2 - gauss_1
 
 Another application is to convolve faked data with an instrument response function model. 
 E.g. if the response function can be be described by the weighted sum of two Gaussians:
 
 >>> gauss_1 = Gaussian1DKernel(10)
->>> gauss_2 = Gaussian2Dkernel(16)
+>>> gauss_2 = Gaussian2DKernel(16)
 >>> SoG = 4 * gauss_1 + gauss_2
 
 Most times it will be necessary to normalize the resulting kernel by calling explicitly:
 
 >>> SoG.normalize()
+
+Furthermore two kernels can be multiplied with each other. In this case the multiplication
+operation corresponds to a convolution of the two kernels. So it is **not** an element-wise
+multiplication as it is done for arrays. By overloading the multiplication, convolution can
+be written with the star operator:
+
+>>> gauss_1 = Gaussian1DKernel(10)
+>>> gauss_2 = Gaussian1DKernel(16)
+>>> broad_gaussian = gauss_2 * gauss_1 
+
+Or in case of multistage smoothing:
+
+>>> gauss = Gaussian1DKernel(10)
+>>> box = Box1DKernel(16)
+>>> smoothed_gauss = convolve(data, gauss)  
+>>> smoothed_gauss_box = convolve(smoothed_gauss, box)
+
+You would rather do the following:
+
+>>> gauss = Gaussian1DKernel(10)
+>>> box = Box1DKernel(16)
+>>> smoothed_gauss_box = convolve(data, box * gauss)
+
+Which, in most cases, will also be faster than the first method.
+ 
 
 Discretization
 --------------
