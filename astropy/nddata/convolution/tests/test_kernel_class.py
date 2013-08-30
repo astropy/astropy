@@ -137,6 +137,7 @@ class TestKernels(object):
 
         assert_almost_equal(c1, c2, decimal=12)
 
+    @pytest.mark.skipif('not HAS_SCIPY')
     def test_multiply_kernels(self):
         """
         Check if multiplying two kernels with eachother works correctly.

@@ -299,7 +299,10 @@ def kernel_arithmetics(kernel, value, operation):
         if operation == "sub":
             new_array = add_kernel_arrays_1D(kernel.array, -value.array)
         if operation == "mul":
-            from scipy.signal import convolve
+            try:
+                from scipy.signal import convolve
+            except ImportError:
+                raise Exception("Multiplying two kernels requires scipy.")
             new_array = convolve(kernel.array, value)
             force_weighted = True
         new_kernel = Kernel1D(array=new_array)
@@ -313,7 +316,10 @@ def kernel_arithmetics(kernel, value, operation):
         if operation == "sub":
             new_array = add_kernel_arrays_2D(kernel.array, -value.array)
         if operation == "mul":
-            from scipy.signal import convolve
+            try:
+                from scipy.signal import convolve
+            except ImportError:
+                raise Exception("Multiplying two kernels requires scipy.")
             new_array = convolve(kernel.array, value)
             force_weighted = True
         new_kernel = Kernel2D(array=new_array)
