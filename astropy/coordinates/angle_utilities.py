@@ -237,18 +237,10 @@ class _AngleParser(object):
                 raise ValueError(
                     "Syntax error parsing angle {0!r}".format(angle))
 
-        if unit is not None:
-            unit = u.Unit(unit)
-            if (found_unit is not None and
-                found_unit is not unit):
-                found_angle = found_unit.to(unit, found_angle)
-        else:
-            if found_unit is None:
+        if unit is None and found_unit is None:
                 raise u.UnitsException("No unit specified")
-            else:
-                unit = found_unit
 
-        return found_angle, unit
+        return found_angle, found_unit
 
 
 def _check_hour_range(hrs):

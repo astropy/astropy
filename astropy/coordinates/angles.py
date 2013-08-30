@@ -91,8 +91,6 @@ class Angle(u.Quantity):
                 angle = angle.value
 
                 unit = cls._convert_unit_to_angle_unit(unit)
-        elif isinstance(angle, basestring):
-            angle, unit = util.parse_angle(angle, unit)
 
         angle = cls._tuple_to_float(angle, unit)
 
@@ -109,13 +107,14 @@ class Angle(u.Quantity):
             determined_unit = [unit]
 
             def convert_string_to_angle(x):
-                ang, new_unit = util.parse_angle(str(x), unit)
+                ang, new_unit = util.parse_angle(unicode(x), unit)
                 if determined_unit[0] is None:
                     determined_unit[0] = new_unit
-                    return cls._tuple_to_float(ang, unit)
-                else:
+                if new_unit is not None:
                     return new_unit.to(
-                        determined_unit[0], cls._tuple_to_float(ang, unit))
+                        determined_unit[0], cls._tuple_to_float(ang, new_unit))
+                else:
+                    return cls._tuple_to_float(ang, determined_unit[0])
 
             convert_string_to_angle_ufunc = np.vectorize(
                 convert_string_to_angle,
