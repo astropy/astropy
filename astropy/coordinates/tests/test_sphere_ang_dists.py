@@ -90,17 +90,3 @@ def test_fk5_seps():
     a = FK5Coordinates(1., 1., unit=('deg', 'deg'))
     b = FK5Coordinates(2., 2., unit=('deg', 'deg'))
     a.separation(b)
-
-def test_angsep():
-    """
-    Tests that the angular separation object also behaves correctly.
-    """
-    from math import fabs
-
-    from ... import units as u
-    from ..angles import AngularSeparation
-
-    for (lon1, lat1, lon2, lat2), corrsep in zip(coords, correct_seps):
-        angsep = AngularSeparation(lon1=lon1, lat1=lat1, lon2=lon2, lat2=lat2,
-                                   unit=u.deg, _supresslatlonswap_warning=True)
-        assert fabs(angsep.degree - corrsep) < correctness_margin
