@@ -98,7 +98,7 @@ Angles will also behave correctly for appropriate arithmetic operations::
 Wrapping and bounds
 ^^^^^^^^^^^^^^^^^^^^^
 
-There are two utility methods that can come in handy.  The
+There are two utility methods that simplify working with angles that should have bounds.  The
 `~astropy.coordinates.angles.Angle.wrap_at()` method allows taking an angle or angles and
 wrapping to be within a single 360 degree slice.  The
 `~astropy.coordinates.angles.Angle.is_within_bounds()` method returns a boolean indicatng

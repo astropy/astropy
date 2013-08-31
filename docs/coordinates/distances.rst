@@ -20,7 +20,7 @@ valid.::
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
 
 If a distance is available, the coordinate can be converted into cartesian
-coordinates using the ``x``/``y``/``z`` attributes::
+coordinates using the `x`/`y`/`z` attributes::
 
     >>> c.x
     568.7128882165681
