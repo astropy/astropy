@@ -57,7 +57,7 @@ def test_create_angles():
     as much for self-documenting code as anything else.
 
     Angle objects simply represent a single angular coordinate. More specific
-    angular coordinates (e.g. RA, Dec) are subclasses of Angle.'''
+    angular coordinates (e.g. Longitude, Latitude) are subclasses of Angle.'''
 
     a1 = Angle(54.12412, unit=u.degree)
     a2 = Angle("54.12412", unit=u.degree)
@@ -174,76 +174,6 @@ def test_angle_ops():
     assert a1 < a5
     assert a1 <= a5
 
-def test_angle_bounds():
-    """
-    Tests setting and obeying of bounds for Angle objects, as well as
-    how operations interact with bounds
-    """
-    from .. import Angle, RangeError, BoundsError
-    import numpy.testing as npt
-
-    '''
-    By default the Angle object can accept any value, but will return
-    values in [-360,360] (retaining the sign that was specified).
-
-    One can also set artificial bounds for custom applications and range
-    checking. As Angle objects are intended to be immutable (the angle value
-    anyway), this provides a bound check upon creation. The units given in the
-    `bounds` keyword must match the units specified in the scalar.
-    '''
-
-    a1 = Angle(13343, unit=u.degree)
-    npt.assert_almost_equal(a1.degree, 23)
-
-    a2 = Angle(-50, unit=u.degree)
-    assert a2.degree == -50
-
-    a3 = Angle(-361, unit=u.degree)
-    npt.assert_almost_equal(a3.degree, -1)
-
-    # custom bounds
-
-    with raises(BoundsError):
-        Angle(66, unit=u.degree, bounds=(-45, 45))
-
-    a4 = Angle(390, unit=u.degree, bounds=(-75, 75))
-    npt.assert_almost_equal(a4.degree, 30)
-    # no BoundsError because while 390>75, 30 is within the bounds
-
-    a5 = Angle(390, unit=u.degree, bounds=(-720, 720))
-    assert a5.degree == 390
-
-    a6 = Angle(1020, unit=u.degree, bounds=None)
-    assert abs(a6.degree - 1020) < 1e-10
-
-    # bounds and operations
-
-    with raises(ValueError):
-        a4 + a5
-        # ValueError - the bounds don't match
-
-    a7 = a4 + a4
-    assert a7.bounds == (Angle(-75, u.degree), Angle(75, u.degree))
-    # if the bounds match, there is no error and the bound is kept
-    npt.assert_almost_equal(a7.degree, 60)
-
-    a8 = a4 - a4
-    assert a8.bounds == (Angle(-75, u.degree), Angle(75, u.degree))
-    # To get the default bounds back, you need to create a new object with the
-    # equivalent angle
-    Angle(a4.degree + a4.degree, unit=u.degree)
-
-    a9 = Angle(a4.degree + a5.degree, unit=u.degree, bounds=[-180, 180])
-    npt.assert_almost_equal(a9.degree, 60)
-    # if they don't match and you want to combine, just re-assign the bounds
-    # yourself
-
-    # bounds of None can also be operated on without complaint
-    a10 = a6 - a6
-    assert a10.degree == 0
-
-    with raises(AttributeError):
-        a10.bounds = (0, 34)
 
 def test_angle_convert():
     """
@@ -383,7 +313,7 @@ def test_angle_format_roundtripping():
     Ensures that the string represtation of an angle can be used to create a
     new valid Angle.
     """
-    from .. import Angle, RA, Dec
+    from .. import Angle, Longitude, Latitude
 
     a1 = Angle(0, unit=u.radian)
     a2 = Angle(10, unit=u.degree)
@@ -395,9 +325,9 @@ def test_angle_format_roundtripping():
     assert Angle(str(a3)).degree == a3.degree
     assert Angle(str(a4)).degree == a4.degree
 
-    #also check RA/Dec
-    ra = RA('1h2m3.4s')
-    dec = Dec('1d2m3.4s')
+    #also check Longitude/Latitude
+    ra = Longitude('1h2m3.4s')
+    dec = Latitude('1d2m3.4s')
 
     npt.assert_almost_equal(Angle(str(ra)).degree, ra.degree)
     npt.assert_almost_equal(Angle(str(dec)).degree, dec.degree)
@@ -405,91 +335,71 @@ def test_angle_format_roundtripping():
 
 def test_radec():
     """
-    Tests creation/operations of RA and Dec objects
+    Tests creation/operations of Longitude and Latitude objects
     """
-    from .. import RA, Dec, Angle
+    from .. import Longitude, Latitude, Angle
     from ...time import Time
 
     '''
-    RA and Dec are objects that are subclassed from Angle. As with Angle, RA
-    and Dec can parse any unambiguous format (tuples, formatted strings, etc.).
+    Longitude and Latitude are objects that are subclassed from Angle. As with Angle, Longitude
+    and Latitude can parse any unambiguous format (tuples, formatted strings, etc.).
 
     The intention is not to create an Angle subclass for every possible
-    coordinate object (e.g. galactic l, galactic b). However, equatorial RA/dec
+    coordinate object (e.g. galactic l, galactic b). However, equatorial Longitude/Latitude
     are so prevalent in astronomy that it's worth creating ones for these
     units. They will be noted as "special" in the docs and use of the just the
     Angle class is to be used for other coordinate systems.
     '''
 
     with raises(u.UnitsException):
-        ra = RA("4:08:15.162342")  # error - hours or degrees?
+        ra = Longitude("4:08:15.162342")  # error - hours or degrees?
     with raises(u.UnitsException):
-        ra = RA("-4:08:15.162342")
+        ra = Longitude("-4:08:15.162342")
 
     # the "smart" initializer allows >24 to automatically do degrees, but the
     #Angle-based one does not
     #TODO: adjust in 0.3 for whatever behavior is decided on
 
-    #ra = RA("26:34:15.345634")  # unambiguous b/c hours don't go past 24
+    #ra = Longitude("26:34:15.345634")  # unambiguous b/c hours don't go past 24
     #npt.assert_almost_equal(ra.degree, 26.570929342)
     with raises(u.UnitsException):
-        ra = RA("26:34:15.345634")
+        ra = Longitude("26:34:15.345634")
 
-    #ra = RA(68)
+    #ra = Longitude(68)
     with raises(u.UnitsException):
-        ra = RA(68)
+        ra = Longitude(68)
 
     with raises(u.UnitsException):
-        ra = RA(12)
+        ra = Longitude(12)
 
     with raises(ValueError):
-        ra = RA("garbage containing a d and no units")
+        ra = Longitude("garbage containing a d and no units")
 
-    ra = RA("12h43m23s")
+    ra = Longitude("12h43m23s")
     npt.assert_almost_equal(ra.hour, 12.7230555556)
 
-    ra = RA((56, 14, 52.52), unit=u.degree)      # can accept tuples
+    ra = Longitude((56, 14, 52.52), unit=u.degree)      # can accept tuples
     #TODO: again, fix based on >24 behavior
-    #ra = RA((56,14,52.52))
+    #ra = Longitude((56,14,52.52))
     with raises(u.UnitsException):
-        ra = RA((56, 14, 52.52))
+        ra = Longitude((56, 14, 52.52))
     with raises(u.UnitsException):
-        ra = RA((12, 14, 52))  # ambiguous w/o units
-    ra = RA((12, 14, 52), unit=u.hour)
+        ra = Longitude((12, 14, 52))  # ambiguous w/o units
+    ra = Longitude((12, 14, 52), unit=u.hour)
 
-    ra = RA([56, 64, 52.2], unit=u.degree)  # ...but not arrays (yet)
+    ra = Longitude([56, 64, 52.2], unit=u.degree)  # ...but not arrays (yet)
 
     # Units can be specified
-    ra = RA("4:08:15.162342", unit=u.hour)
+    ra = Longitude("4:08:15.162342", unit=u.hour)
 
     #TODO: this was the "smart" initializer behavior - adjust in 0.3 appropriately
-    ## Where RA values are commonly found in hours or degrees, declination is
+    ## Where Longitude values are commonly found in hours or degrees, declination is
     ## nearly always specified in degrees, so this is the default.
-    #dec = Dec("-41:08:15.162342")
+    #dec = Latitude("-41:08:15.162342")
     with raises(u.UnitsException):
-        dec = Dec("-41:08:15.162342")
-    dec = Dec("-41:08:15.162342", unit=u.degree)  # same as above
+        dec = Latitude("-41:08:15.162342")
+    dec = Latitude("-41:08:15.162342", unit=u.degree)  # same as above
 
-    # The RA and Dec objects have bounds hard-coded at (0,360) and (-90,90)
-    # degrees, respectively.
-    assert ra.bounds == (Angle(0, u.degree), Angle(360, u.degree))
-    with raises(AttributeError):
-        ra.bounds = (-45, 45)
-    assert dec.bounds == (Angle(-90, u.degree), Angle(90, u.degree))
-    with raises(AttributeError):
-        dec.bounds = (-45, 45)
-
-    #RA objects can also compute hour angle and local siderial times
-    ra = RA("1:00:00", unit=u.hour)
-    ha1 = ra.hour_angle(Angle(1.5, u.hour))
-    assert isinstance(ha1, Angle)
-    npt.assert_almost_equal(ha1.hour, .5)
-    ha2 = ra.hour_angle(Time('2012-1-1 3:00:00', scale='utc'))
-    npt.assert_almost_equal(ha2.hour, 23.125)
-
-    lst = ra.lst(Angle(1.5, u.hour))
-    assert isinstance(lst, Angle)
-    npt.assert_almost_equal(lst.hour, 2.5)
 
 def test_create_coordinate():
     """
@@ -503,19 +413,19 @@ def test_create_coordinate():
     coordinates with conversions to standard coordinates.
     '''
 
-    from .. import Angle, RA, Dec, ICRSCoordinates, GalacticCoordinates
+    from .. import Angle, Longitude, Latitude, ICRSCoordinates, GalacticCoordinates
     from .. import HorizontalCoordinates
     import numpy.testing as npt
 
-    ra = RA("4:08:15.162342", unit=u.hour)
-    dec = Dec("-41:08:15.162342", unit=u.degree)
+    ra = Longitude("4:08:15.162342", unit=u.hour)
+    dec = Latitude("-41:08:15.162342", unit=u.degree)
 
-    # ra and dec are RA and Dec objects, or Angle objects
+    # ra and dec are Longitude and Latitude objects, or Angle objects
     c = ICRSCoordinates(ra, dec)
     c = ICRSCoordinates(Angle(4.137545095, u.hour), Angle(-41.137545095, u.degree))
 
     c = ICRSCoordinates("54.12412 deg", "-41:08:15.162342 deg")
-    assert isinstance(c.dec, Dec) # dec is a Dec object
+    assert isinstance(c.dec, Latitude) # dec is a Latitude object
 
     npt.assert_almost_equal(dec.degree, -41.137545095)
 
@@ -557,12 +467,11 @@ def test_create_coordinate():
     # Other types of coordinate systems have their own classes
     l = Angle(123.4, unit=u.degree)
     b = Angle(76.5, unit=u.degree)
-    c = GalacticCoordinates(l, b)  # only accepts Angle objects *not RA/Dec
-    with raises(TypeError):
-        GalacticCoordinates(ra, dec)
+    c = GalacticCoordinates(l, b)  # accepts Angle objects and Longitude/Latitude
+    d = GalacticCoordinates(ra, dec)
 
-    assert isinstance(c.l, Angle)  # *not* RA or Dec
-    assert isinstance(c.b, Angle)  # *not* RA or Dec
+    assert isinstance(c.l, Angle)  # *not* Longitude or Latitude
+    assert isinstance(c.b, Angle)  # *not* Longitude or Latitude
 
     #some coordinates require an equinox - this is given as an astropy.time.Time
     from ...time import Time
@@ -586,18 +495,18 @@ def test_convert_api():
     Tests the basic coordinate conversion functionality.
     """
 
-    from .. import Angle, RA, Dec, ICRSCoordinates, GalacticCoordinates, HorizontalCoordinates
+    from .. import Angle, Longitude, Latitude, ICRSCoordinates, GalacticCoordinates, HorizontalCoordinates
     from ..transformations import coordinate_alias, transform_function, master_transform_graph
 
     '''
     Coordinate conversion occurs on-demand internally
     '''
 
-    ra = RA("4:08:15.162342", unit=u.hour)
-    dec = Dec("-41:08:15.162342", unit=u.degree)
+    ra = Longitude("4:08:15.162342", unit=u.hour)
+    dec = Latitude("-41:08:15.162342", unit=u.degree)
     c = ICRSCoordinates(ra=ra, dec=dec)
 
-    npt.assert_almost_equal(c.galactic.l.degree, -114.71902, 5)
+    npt.assert_almost_equal(c.galactic.l.degree, 245.28098, 5)
     assert isinstance(c.galactic.b, Angle)
     npt.assert_almost_equal(c.galactic.b.degree, -47.554501, 5)
 

@@ -30,20 +30,21 @@ supports both numeric angle values and (limited) string parsing::
     >>> coord.ICRSCoordinates('00h42m44.3s +41d16m9s')
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
 
-The individual components of a coordinate are
-`~astropy.coordinates.angles.Angle` objects, and their values are
-accessed using special attributes::
+The individual components of a coordinate are `~astropy.coordinates.angles.Longitude`
+or `~astropy.coordinates.angles.Latitude` objects, which are specialized versions
+of the general `~astropy.coordinates.angles.Angle` class.  The component values are
+accessed using aptly named attributes::
 
     >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917,
                                   unit=(u.degree, u.degree))
     >>> c.ra
-    <RA 10.68458 deg>
+    <Longitude 10d41m04.48800s>
     >>> c.ra.hour
-    0.7123053333333335
+    0.7123053333333323
     >>> c.ra.hms
-    (0.0, 42, 44.299200000000525)
+    (0.0, 42.0, 44.299199999996262)
     >>> c.dec
-    <Dec 41.26917 deg>
+    <Latitude 41d16m09.01200s>
     >>> c.dec.radian
     0.7202828960652683
 
@@ -82,14 +83,14 @@ coordinates for that object::
 
     >>> c = coord.ICRSCoordinates.from_name("M42")
     >>> c.ra, c.dec
-    (<RA 83.82208 deg>, <Dec -5.39111 deg>)
+    (<Longitude 83d49m19.48800s>, <Latitude -5d23m27.99600s>)
 
 This works for any subclass of
 `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`::
 
     >>> c = coord.GalacticCoordinates.from_name("M42")
     >>> c.l, c.b
-    (<Angle -150.98622 deg>, <Angle -19.38162 deg>)
+    (<Longitude 3.64798rad>, <Latitude -0.33827rad>)
 
 .. note::
 

@@ -4,6 +4,14 @@
 New Features
 ^^^^^^^^^^^^
 
+- ``astropy.coordinates``
+
+  - Two classes `astropy.coordinates.Longitude` and `astropy.coordinates.Latitude`
+    have been added.  These are derived from the new `Angle` class and used for
+    all longitude-like (RA, azimuth, galactic L) and latitude-like coordinates
+    (Dec, elevation, galactic B) respectively.  The `Longitude` class provides
+    auto-wrapping capability and `Latitude` performs bounds checking.
+
 - ``astropy.io.votable``
 
   - The format of the units of a VOTable file can be specified using
@@ -100,6 +108,17 @@ API Changes
 
     - Multiplication and division of two `Angle` objects used to raise
       `NotImplementedError`.  Now they raise `TypeError`.
+
+  - The `astropy.coordinates.Angle` class no longer has a ``bounds`` attribute
+    so there is no bounds-checking or auto-wrapping at this level.  This allows
+    ``Angle`` objects to be used in arbitrary arithmetic expressions
+    (e.g. coordinate distance computation).
+
+  - The `astropy.coordinates.RA`and `astropy.coordinates.Dec` classes have
+    been removed and replaced with `astropy.coordinates.Longitude` and
+    `astropy.coordinates.Latitude` respectively.  These are now used for
+    the components of Galactic and Horizontal (Alt-Az) coordinates as well
+    instead of plain `Angle` objects.
 
   - `astropy.coordinates.angles.rotation_matrix` and
     `astropy.coordinates.angles.angle_axis` now take a `unit` kwarg

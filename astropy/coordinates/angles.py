@@ -17,7 +17,7 @@ from .. import units as u
 from ..utils import deprecated
 
 
-__all__ = ['Angle', 'RA', 'Dec', 'AngularSeparation']
+__all__ = ['Angle', 'AngularSeparation', 'Latitude', 'Longitude']
 
 
 TWOPI = math.pi * 2.0  # no need to calculate this all the time
@@ -25,19 +25,25 @@ TWOPI = math.pi * 2.0  # no need to calculate this all the time
 
 class Angle(u.Quantity):
     """
-    An angle.
+    One or more angular value(s) with units equivalent to radians or degrees.
 
     An angle can be specified either as an array, scalar, tuple (see
     below), string, `~astropy.units.Quantity` or another
     `~astropy.coordinates.Angle`.
 
-    If a string, it must be in one of the following formats:
+    The input parser is flexible and supports a variety of formats::
 
-        * ``'1:2:30.43 degrees'``
-        * ``'1 2 0 hours'``
-        * ``'1°2′3″'``
-        * ``'1d2m3.4s'``
-        * ``'-1h2m3s'``
+      Angle('10.2345d')
+      Angle(['10.2345d', '-20d'])
+      Angle('1:2:30.43 degrees')
+      Angle('1 2 0 hours')
+      Angle(np.arange(1, 8), unit=u.deg)
+      Angle(u'1°2′3″')
+      Angle('1d2m3.4s')
+      Angle('-1h2m3s')
+      Angle((-1, 2, 3), unit=u.deg)  # (d, m, s)
+      Angle(10.2345 * u.deg)
+      Angle(Angle(10.2345 * u.deg))
 
     Parameters
     ----------
@@ -56,15 +62,6 @@ class Angle(u.Quantity):
         better to give an actual unit object.  Must be an angular
         unit.
 
-    bounds : 2-sequence, optional
-        A length-2 sequence indicating the upper and lower value that
-        the new angle object may have.  Each value may be in any of
-        the forms accepted by the `angle` argument.  If no units are
-        specified, (that is the value is a float, tuple, or string
-        without an explicit unit), the unit is taken from the `unit`
-        argument.  Pass `None` to perform no bounds checking.  By
-        default the bounds are `(-360, 360)` degrees.
-
     dtype : ~numpy.dtype, optional
         See `~astropy.units.Quantity`.
 
@@ -76,7 +73,7 @@ class Angle(u.Quantity):
     `~astropy.units.core.UnitsException`
         If a unit is not provided or it is not an angular unit.
     """
-    def __new__(cls, angle, unit=None, bounds=(), dtype=None,
+    def __new__(cls, angle, unit=None, dtype=None,
                 equivalencies=[]):
         unit = cls._convert_unit_to_angle_unit(unit)
         if (unit is not None and
@@ -132,13 +129,9 @@ class Angle(u.Quantity):
         if unit is None:
             raise u.UnitsException("No unit was specified")
 
-        bounded_angle, bounds = cls._bounds_check(angle, bounds, unit)
-
         self = super(Angle, cls).__new__(
-            cls, bounded_angle, unit, dtype=dtype,
+            cls, angle, unit, dtype=dtype,
             equivalencies=equivalencies)
-
-        self._bounds = bounds
 
         return self
 
@@ -161,77 +154,6 @@ class Angle(u.Quantity):
                         angle, unit))
         return angle
 
-    @classmethod
-    def _get_default_bounds(cls):
-        if not hasattr(cls, '_default_bounds'):
-            cls._default_bounds = (
-                Angle(-360, u.degree, bounds=None),
-                Angle(360, u.degree, bounds=None))
-        return cls._default_bounds
-
-    @classmethod
-    def _bounds_check(cls, angle, bounds, unit):
-        def raise_error(original_angle, lower_angle, upper_angle, unit):
-            raise BoundsError(
-                "The angle(s) {0} falls outside of the specified "
-                "bounds ({1}, {2}) (in {3})".format(
-                    u.radian.to(unit, original_angle),
-                    u.radian.to(unit, lower_angle),
-                    u.radian.to(unit, upper_angle),
-                    unit))
-
-        if bounds is None:
-            return angle, None
-
-        if bounds == ():
-            bounds = cls._get_default_bounds()
-        else:
-            if len(bounds) != 2:
-                raise ValueError(
-                    "Bounds specified for Angle must be a two-element "
-                    "sequence, e.g. [0, 360] (was given '{0}').".format(bounds))
-
-            new_bounds = []
-            for bound in bounds:
-                if isinstance(bound, u.Quantity):
-                    bound = Angle(bound, bounds=None)
-                else:
-                    bound = Angle(bound, unit, bounds=None)
-                new_bounds.append(bound)
-            bounds = tuple(new_bounds)
-
-        lower_bound, upper_bound = bounds
-        # Convert everything to radians, and keep a copy of the
-        # original (unmoved) values for any resulting error messages.
-        original_angle = np.array(angle)
-        angle = angle.copy()
-        lower_angle = lower_bound.to(unit).value
-        upper_angle = upper_bound.to(unit).value
-
-        # TODO: This is perhaps a candidate for something to do in C.
-        TWOPI = u.radian.to(unit, np.pi * 2.0)
-
-        if np.all((lower_angle < angle) & (angle < upper_angle)):
-            pass
-        else:
-            too_big = angle > upper_angle
-            while np.any(too_big):
-                angle = np.where(too_big, angle - TWOPI, angle)
-                if np.any(angle < lower_angle):
-                    raise_error(original_angle, lower_angle, upper_angle, unit)
-
-                too_big = angle > upper_angle
-
-            too_small = angle < lower_angle
-            while np.any(too_small):
-                angle = np.where(too_small, angle + TWOPI, angle)
-                if np.any(angle > upper_angle):
-                    raise_error(original_angle, lower_angle, upper_angle, unit)
-
-                too_small = angle < lower_angle
-
-        return angle, bounds
-
     @staticmethod
     def _convert_unit_to_angle_unit(unit):
         if unit is not None:
@@ -245,7 +167,6 @@ class Angle(u.Quantity):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
             result = obj.view(Angle)
-            result._bounds = self.bounds
             return result
         return super(Angle, self).__quantity_view__(
             obj, unit)
@@ -253,7 +174,7 @@ class Angle(u.Quantity):
     def __quantity_instance__(self, val, unit, dtype=None, equivalencies=[]):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
-            return Angle(val, unit, bounds=self.bounds, dtype=dtype,
+            return Angle(val, unit, dtype=dtype,
                          equivalencies=equivalencies)
         return super(Angle, self).__quantity_instance__(
             val, unit, dtype=dtype, equivalencies=equivalencies)
@@ -262,26 +183,14 @@ class Angle(u.Quantity):
         obj = super(Angle, self).__array_wrap__(obj, context=context)
 
         if isinstance(obj, Angle):
-            return Angle(obj.value, obj.unit, bounds=obj.bounds)
+            return Angle(obj.value, obj.unit)
 
         return obj
 
-    def _bounds_match_check(self, other, operation):
-        if (isinstance(other, Angle) and
-            self.bounds != other.bounds):
-            default_bounds = self._get_default_bounds()
-            if (self.bounds != default_bounds and
-                other.bounds != default_bounds):
-                msg = "Can't {0} angles because bounds don't match: {1} and {2}"
-                raise BoundsError(msg.format(
-                        operation, self.bounds, other.bounds))
-
     def __add__(self, other):
-        self._bounds_match_check(other, 'add')
         return super(Angle, self).__add__(other)
 
     def __sub__(self, other):
-        self._bounds_match_check(other, 'subtract')
         return super(Angle, self).__sub__(other)
 
     def __mul__(self, other):
@@ -300,14 +209,6 @@ class Angle(u.Quantity):
         return super(Angle, self).__div__(other)
 
     __truediv__ = __div__
-
-    @property
-    def bounds(self):
-        """
-        The angle's bounds, an immutable property.  Returns a 2-tuple
-        of `Angle` objects.
-        """
-        return self._bounds
 
     @property
     def hour(self):
@@ -480,6 +381,92 @@ class Angle(u.Quantity):
         format_ufunc = np.vectorize(do_format, otypes=[np.object])
         return format_ufunc(values)
 
+    def wrap_at(self, wrap_angle, inplace=False):
+        """
+        Wrap the Angle object at the given ``wrap_angle``.
+
+        This method forces all the angle values to be within a contiguous 360 degree
+        range so that ``wrap_angle - 360d <= angle < wrap_angle``.  By default a new
+        Angle object is returned, but if the ``inplace`` argument is ``True`` then
+        the Angle object is wrapped in place and nothing is returned.
+
+        For instance::
+
+          >>> from astropy.coordinates import Angle
+          >>> import astropy.units as u
+          >>> a = Angle([-20.0, 150.0, 350.0] * u.deg)
+
+          >>> a.wrap_at(360 * u.deg).degree  # Wrap into range 0 to 360 degrees
+          array([ 340.,  150.,  350.])
+
+          >>> a.wrap_at('180d', inplace=True)  # Wrap into range -180 to 180 degrees
+          >>> a.degree
+          array([ -20.,  150.,  -10.])
+
+        Parameters
+        ----------
+        wrap_angle : string, Angle, angular Quantity
+            Specifies a single value for the wrap angle.  This can be any
+            object that can initialize an Angle object, e.g. '180d', 180 * u.deg,
+            or Angle(180, unit=u.deg).
+
+        inplace : boolean
+            If ``True`` then wrap the object in place instead of returning a new Angle
+
+        Returns
+        -------
+        out : Angle or None
+            If ``inplace is False`` (default), return new Angle object with angles
+            wrapped accordingly.  Otherwise wrap in place and return None.
+        """
+        wrap_angle = Angle(wrap_angle)  # Convert to an Angle
+        wrapped = np.mod(self - wrap_angle, 360.0 * u.deg) - (360.0 * u.deg - wrap_angle)
+
+        if inplace:
+            self[()] = wrapped
+        else:
+            return wrapped
+
+    def is_within_bounds(self, lower=None, upper=None):
+        """
+        Check if all angle(s) satisfy ``lower <= angle < upper``
+
+        If ``lower`` is not specified (or ``None``) then no lower bounds check is
+        performed.  Likewise ``upper`` can be left unspecified.  For example::
+
+          >>> from astropy.coordinates import Angle
+          >>> import astropy.units as u
+          >>> a = Angle([-20, 150, 350] * u.deg)
+          >>> a.is_within_bounds('0d', '360d')
+          False
+          >>> a.is_within_bounds(None, '360d')
+          True
+          >>> a.is_within_bounds(-30 * u.deg, None)
+          True
+
+        Parameters
+        ----------
+        lower : string, Angle, angular Quantity, None
+            Specifies lower bound for checking.  This can be any object
+            that can initialize an Angle object, e.g. '180d', 180 * u.deg,
+            or Angle(180, unit=u.deg).
+        upper : string, Angle, angular Quantity, None
+            Specifies upper bound for checking.  This can be any object
+            that can initialize an Angle object, e.g. '180d', 180 * u.deg,
+            or Angle(180, unit=u.deg).
+
+        Returns
+        -------
+        is_within_bounds : bool
+            True if all angles satisfy ``lower <= angle < upper``
+        """
+        ok = True
+        if lower is not None:
+            ok &= np.all(Angle(lower) <= self)
+        if ok and upper is not None:
+            ok &= np.all(self < Angle(upper))
+        return bool(ok)
+
     @deprecated("0.3", name="format", alternative="to_string")
     def format(self, unit=u.degree, decimal=False, sep='fromunit', precision=5,
                alwayssign=False, pad=False):
@@ -494,178 +481,37 @@ class Angle(u.Quantity):
         return str(self.to_string(format='latex'))
 
 
-class RA(Angle):
+class Latitude(Angle):
     """
-    An object that represents a right ascension angle.
+    Latitude-like angle(s) which must be in the range -90 to +90 deg.
 
-    This object can be created from a numeric value along with a
-    unit.
+    A Latitude object is distinguished from a pure `Angle` by virtue
+    of being constrained so that::
+
+      -90.0 * u.deg <= angle(s) <= +90.0 * u.deg
+
+    Any attempt to set a value outside that range will result in a `ValueError`.
+
+    The input angle(s) can be specified either as an array, list, scalar, tuple (see
+    below), string, :class:`~astropy.units.quantity.Quantity` or another `Angle`.
+
+    The input parser is flexible and supports all of the input formats supported by `Angle`.
 
     Parameters
     ----------
-    angle : array, scalar, str, tuple, Quantity, Angle
-        The angle value. If a tuple, will be interpreted as `(h, m s)`
-        or `(d, m, s)` depending on `unit`. If a string, it will be
-        interpreted following the rules described in
-        `~astropy.coordinates.Angle`.
+    angle : array, list, scalar, Quantity, Angle
+        The angle value(s). If a tuple, will be interpreted as ``(h, m
+        s)`` or ``(d, m, s)`` depending on `unit`. If a string, it
+        will be interpreted following the rules described for `Angle`.
 
-    unit : `~astropy.units.UnitBase`, str, optional
+        If `angle` is a sequence or array of strings, the resulting
+        values will be in the given `unit`, or if None is provided,
+        the unit will be taken from the first given value.
+
+    unit : :class:`~astropy.units.core.UnitBase`, str, optional
         The unit of the value specified for the angle.  This may be
         any string that `~astropy.units.Unit` understands, but it is
-        better to give an actual unit object.  Must be one an angular
-        unit.
-
-    Raises
-    ------
-    `~astropy.coordinates.errors.UnitsException`
-        If a unit is not provided or it is not an angular unit.
-    """
-
-    def __new__(cls, angle, unit=None):
-        return super(RA, cls).__new__(
-            cls, angle, unit=unit, bounds=(
-                Angle(0, u.degree, bounds=None),
-                Angle(360, u.degree, bounds=None)))
-
-    # The initializer as originally conceived allowed the unit to be unspecified
-    # if it's bigger  than 24, because hours typically aren't past 24.
-    # It is also then implicit that `RA` is usually in hours.
-    # This is commented out for now because in discussion for v0.2 we decided to
-    # keep things simple and just use the same behavior as Angle.
-    # In v0.3 it may be either uncommented,
-    # moved somewhere else, or eliminated completely
-    # TODO: decide if this should stay in or permanently be removed
-    #
-    # def __init__(self, angle, unit=None):
-    #
-    #     # This block attempts to determine the validity of the unit,
-    #     # particularly with regard to the specifics of RA.
-    #     # After this block, the normal Angle initializer handles most of the
-    #     # validation/creation.
-    #
-    #     if isinstance(angle, Angle):
-    #         return super(RA, self).__init__(angle.radians, unit=u.radian, bounds=(0, 360))
-    #
-    #     if unit is u.hour:
-    #         pass  # to Angle initializer
-    #         # self._radians = math.radians(decimal_hours * 15.)
-    #     elif unit is u.degree:
-    #         pass  # to Angle initializer
-    #         # decimal_degrees = util.parse_degrees(angle)
-    #         # self._radians = math.radians(decimal_degrees)
-    #     elif unit is u.radian:
-    #         pass  # to Angle initializer
-    #         # self._radians = util.parse_radians(angle)
-    #
-    #
-    #     elif unit is None:
-    #         # Try to figure out the unit if we can.
-    #         if isinstance(angle, float) or isinstance(angle, int):
-    #             if angle > 24:
-    #                 unit = u.degree
-    #             else:
-    #                 raise u.UnitsException("No units were specified, and the angle value was ambiguous between hours and degrees.")
-    #         elif isinstance(angle, basestring):
-    #             # Try to deduce the units from hints in the string.
-    #             # Further, enforce absolute bounds here, i.e. don't let
-    #             # Angle +-2π to see if the angle falls in the bounds.
-    #             if "d" in angle or "°" in angle:
-    #                 # If in the form "12d32m53s", look for the "d" and assume degrees.
-    #                 angle = math.radians(util.parse_degrees(angle))
-    #                 if 0 < angle < TWOPI:
-    #                     unit = u.radian
-    #                 else:
-    #                     raise RangeError("The provided angle was assumed to be in degrees, but was out of the range (0,360) degrees.")
-    #             elif "h" in angle:
-    #                 # Same for "12h32m53s" for hours.
-    #                 # self._radians = math.radians(util.parse_hours(angle)*15.0)
-    #                 unit = u.hour
-    #             else:
-    #                 # could be in a form: "54:43:26" -
-    #                 # if so AND the resulting decimal value is > 24 or < -24, assume degrees
-    #                 decimal_value = util.parse_degrees(angle)
-    #                 if decimal_value > 24:
-    #                     unit = u.degree
-    #                 elif 0 <= decimal_value <= 24.0:
-    #                     raise u.UnitsException("No units were specified, and the angle value was ambiguous between hours and degrees.")
-    #                 elif decimal_value < 0:
-    #                     raise RangeError("No units were specified; could not assume any since the value was less than zero.")
-    #         elif isinstance(angle, tuple):
-    #             if len(angle) == 3 and 0 <= angle[0] < 24.0:
-    #                 raise u.UnitsException("No units were specified, and the angle value was ambiguous between hours and degrees.")
-    #             else:
-    #                 unit = u.degree
-    #         else:
-    #             raise ValueError("Angle values of type {0} not supported.".format(type(angle).__name__))
-    #
-    #     if unit is None:
-    #         raise u.UnitsException("Units must be specified for RA, one of u.degree, u.hour, or u.radian.")
-    #
-    #     # By here, the unit should be defined.
-    #     super(RA, self).__init__(angle, unit=unit, bounds=(0, 360))
-
-    def hour_angle(self, lst):
-        """
-        Computes the hour angle for this RA given a local sidereal
-        time (LST).
-
-        Parameters
-        ----------
-        lst : `~astropy.coordinates.angle.Angle`, `~astropy.time.Time`
-            A local sidereal time (LST).
-
-        Returns
-        -------
-        hour_angle : `~astropy.coordinates.angle.Angle`
-            The hour angle for this RA at the LST `lst`.
-        """
-        if hasattr(lst, 'mjd'):
-            lst = Angle(np.remainder(lst.mjd, 1), unit=u.hour)
-
-        return Angle(
-            lst.radian - self.radian, unit=u.radian, bounds=(0, TWOPI))
-
-    def lst(self, hour_angle):
-        """
-        Calculates the local sidereal time (LST) if this RA is at a
-        particular hour angle.
-
-        Parameters
-        ----------
-        hour_angle :  `~astropy.coordinates.angle.Angle`
-            An hour angle.
-
-        Returns
-        -------
-        lst : `~astropy.coordinates.angle.Angle`
-            The local siderial time as an angle.
-        """
-        return Angle(
-            hour_angle.radian + self.radian, unit=u.radian, bounds=(0, TWOPI))
-
-
-class Dec(Angle):
-    """
-    Represents a declination value.
-
-    This object can be created from a numeric value along with a unit,
-    or else a string in any commonly represented format, e.g. "12 43
-    23.53", "-32d52m29s".  Unless otherwise specified via the 'unit'
-    parameter, degrees are assumed.  Bounds are fixed to [-90,90]
-    degrees.
-
-    Parameters
-    ----------
-    angle : array, scalar, str, tuple, Quantity, Angle
-        The angle value. If a tuple, will be interpreted as `(h, m s)`
-        or `(d, m, s)` depending on `unit`. If a string, it will be
-        interpreted following the rules described in
-        `~astropy.coordinates.Angle`.
-
-    unit : `~astropy.units.UnitBase`, str, optional
-        The unit of the value specified for the angle.  This may be
-        any string that `~astropy.units.Unit` understands, but it is
-        better to give an actual unit object.  Must be one an angular
+        better to give an actual unit object.  Must be an angular
         unit.
 
     Raises
@@ -674,20 +520,90 @@ class Dec(Angle):
         If a unit is not provided or it is not an angular unit.
     """
     def __new__(cls, angle, unit=None):
-        return super(Dec, cls).__new__(
-            cls, angle, unit=unit,
-            bounds=(Angle(-90, u.degree, bounds=None),
-                    Angle(90, u.degree, bounds=None)))
+        self = super(Latitude, cls).__new__(cls, angle, unit=unit)
+        self._validate_angles()
+        return self
 
-    # TODO: do here whatever is decided for the "smart" RA initializer above
-    #
-    # def __init__(self, angle, unit=u.degree):
-    #     super(RA, self).__init__(angle, unit=unit, bounds=(0, 360))
-    #
-    #     if isinstance(angle, Angle):
-    #         return super(Dec, self).__init__(angle.radians, unit=u.radian, bounds=(-90, 90))
-    #
-    #     super(Dec, self).__init__(angle, unit=unit, bounds=(-90, 90))
+    def _validate_angles(self):
+        if np.any(self < -90.0 * u.deg) or np.any(self > 90.0 * u.deg):
+            raise ValueError('Latitude angle(s) must be within -90 deg <= angle <= 90 deg')
+
+    def __setitem__(self, item, value):
+        super(Latitude, self).__setitem__(item, value)
+        self._validate_angles()
+
+
+class Longitude(Angle):
+    """
+    Longitude-like angle(s) which are wrapped within a contiguous 360 degree range.
+
+    A ``Longitude`` object is distinguished from a pure `~astropy.coordinates.Angle` by virtue
+    of a ``wrap_angle`` property.  The ``wrap_angle`` specifies that all angle values
+    represented by the object will be in the range::
+
+      wrap_angle - 360 * u.deg <= angle(s) < wrap_angle
+
+    The default ``wrap_angle`` is 360 deg.  Setting ``wrap_angle=180 * u.deg`` would
+    instead result in values between -180 and +180 deg.  Setting the ``wrap_angle``
+    attribute of an existing ``Longitude`` object will result in re-wrapping the
+    angle values in-place.
+
+    The input angle(s) can be specified either as an array, list, scalar, tuple,
+    string, :class:`~astropy.units.quantity.Quantity` or another `Angle`.
+
+    The input parser is flexible and supports all of the input formats supported by `Angle`.
+
+    Parameters
+    ----------
+    angle : array, list, scalar, Quantity, `Angle`
+        The angle value(s). If a tuple, will be interpreted as ``(h, m
+        s)`` or ``(d, m, s)`` depending on `unit`. If a string, it
+        will be interpreted following the rules described for `Angle`.
+
+        If `angle` is a sequence or array of strings, the resulting
+        values will be in the given `unit`, or if None is provided,
+        the unit will be taken from the first given value.
+
+    unit : :class:`~astropy.units.core.UnitBase`, str, optional
+        The unit of the value specified for the angle.  This may be
+        any string that `~astropy.units.Unit` understands, but it is
+        better to give an actual unit object.  Must be an angular
+        unit.
+
+    wrap_angle : `Angle` or equivalent
+        Angle at which to wrap back to ``wrap_angle - 360 deg``.
+
+    Raises
+    ------
+    `~astropy.units.core.UnitsException`
+        If a unit is not provided or it is not an angular unit.
+    """
+    def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg):
+        self = super(Longitude, cls).__new__(cls, angle, unit=unit)
+        self.wrap_angle = wrap_angle
+        return self
+
+    def __setitem__(self, item, value):
+        super(Longitude, self).__setitem__(item, value)
+        self._wrap_internal()
+
+    def _wrap_internal(self):
+        """
+        Wrap the internal values in the Longitude object.  Using the `Angle`
+        wrap_at() method causes recursion.
+        """
+        d360 = 360.0 * u.deg
+        wrapped = np.mod(self - self.wrap_angle, d360) - (d360 - self.wrap_angle)
+        super(Longitude, self).__setitem__((), wrapped)
+
+    @property
+    def wrap_angle(self):
+        return self._wrap_angle
+
+    @wrap_angle.setter
+    def wrap_angle(self, value):
+        self._wrap_angle = Angle(value)
+        self._wrap_internal()
 
 
 class AngularSeparation(Angle):
