@@ -49,7 +49,7 @@ Core Package Contributors
 Other Credits
 =============
 
-* Andrew Pontzen and the `pynbody <http://code.google.com/p/pynbody/>`_ team
+* Andrew Pontzen and the `pynbody <https://github.com/pynbody/pynbody>`_ team
   (For code that grew into :mod:`astropy.units`)
 * Everyone on `astropy-dev <http://groups.google.com/group/astropy-dev>`_
   and the `astropy mailing list <http://mail.scipy.org/mailman/listinfo/astropy>`_

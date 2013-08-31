@@ -66,8 +66,8 @@ widely-adopted.
 .. _Erik Bray: mailto:embray@stsci.edu
 .. _Trac site: https://trac.assembla.com/pyfits/
 .. _SVN repository: https://subversion.assembla.com/svn/pyfits/
-.. _Git mirror: git://github.com/iguananaut/PyFITS.git
-.. _GitHub site: https://github.com/iguananaut/PyFITS
+.. _Git mirror: git://github.com/spacetelescope/PyFITS.git
+.. _GitHub site: https://github.com/spacetelescope/PyFITS
 
 
 Build and Installation Questions
