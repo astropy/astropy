@@ -4,7 +4,7 @@ import warnings
 
 from .helper import pytest, catch_warnings
 from .. import log
-from ..logger import LoggingError
+from ..logger import LoggingError, LOG_LEVEL
 
 
 # Save original values of hooks. These are not the system values, but the
@@ -240,10 +240,14 @@ def test_log_to_list(level):
     finally:
         log.setLevel(orig_level)
 
+    if level is None:
+        # The log level *should* be set to whatever it was in the config
+        level = LOG_LEVEL()
+
     # Check list length
     if level == 'DEBUG':
         assert len(log_list) == 4
-    elif level is None or level == 'INFO':
+    elif level == 'INFO':
         assert len(log_list) == 3
     elif level == 'WARN':
         assert len(log_list) == 2
@@ -325,10 +329,14 @@ def test_log_to_file(tmpdir, level):
     log_entries = log_file.readlines()
     log_file.close()
 
+    if level is None:
+        # The log level *should* be set to whatever it was in the config
+        level = LOG_LEVEL()
+
     # Check list length
     if level == 'DEBUG':
         assert len(log_entries) == 4
-    elif level is None or level == 'INFO':
+    elif level == 'INFO':
         assert len(log_entries) == 3
     elif level == 'WARN':
         assert len(log_entries) == 2
