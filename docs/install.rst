@@ -205,6 +205,33 @@ use the system `libexpat`, add the following to the `setup.cfg` file::
     use_system_expat=1
 
 
+The required version of setuptools is not available
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If upon running the ``setup.py`` script you get a message like
+
+    The required version of setuptools (>=0.9.8) is not available,
+    and can't be installed while this script is running. Please
+    install a more recent version first, using
+    'easy_install -U setuptools'.
+
+    (Currently using setuptools 0.6c11 (/path/to/setuptools-0.6c11-py2.7.egg))
+
+this is because you have a very outdated version of the ``setuptools`` package
+which is used to install Python packages.  Normally Astropy will bootstrap a
+newer version of setuptools via the network, but setuptools suggests that you
+first *uninstall* the old version (the ``easy_install -U setuptools`` command).
+However, in the likely case that your version of setuptools was installed by an
+OS system package (on Linux check your package manager like apt or yum for
+a package called ``python-setuptools`` to be user).  In this case trying to
+uninstall with ``easy_install`` and without using ``sudo`` may not work, or may
+leave your system package in an inconsistent state.
+
+As the best course of action at this point depends largely on the individual
+system and how it is configured, if you are not sure yourself what do please
+ask on the Astropy mailing list.
+
+
 The Windows installer can't find Python in the registry
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
