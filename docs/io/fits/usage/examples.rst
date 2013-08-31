@@ -12,21 +12,18 @@ Converting a 3-color image (JPG) to separate FITS images
 .. container:: figures
 
     .. figure:: ../images/Red.jpg
-       :target: ../images/Red.jpg
        :scale: 50
        :alt: Red color information
 
        Red color information
 
     .. figure:: ../images/Green.jpg
-       :target: ../images/Green.jpg
        :scale: 50
        :alt: Green color information
 
        Green color information
 
     .. figure:: ../images/Blue.jpg
-       :target: ../images/Blue.jpg
        :scale: 50
        :alt: Blue color information
 
