@@ -74,12 +74,8 @@ in. If so, we can just transform those coordinates to `SgrCoordinates` and copy
 the attributes directly. Otherwise, we have to tell our subclass how to parse
 the arguments and keyword arguments that the user passed in. We do this with the
 `_initialize_latlon()` classmethod. This convenience function accepts the name
-of the longitude coordinate, the name of the latitude coordinate, a boolean
-parameter to specify whether to use `RA` and `Dec` objects to store the angles
-internally, or to use `~astropy.coordinates.angles.Angle` objects instead (we
-want to use `~astropy.coordinates.angles.Angle` s so we set it to False), the
-arguments and keyword arguments passed to this initializer, and finally an
-optional parameter to specify the bounds of the coordinate system. This function
+of the longitude coordinate, the name of the latitude coordinate, and the
+arguments and keyword arguments passed to this initializer. This function
 will handle parsing the args and kwargs to validate and sanitize the input from
 the user.::
 
@@ -95,8 +91,7 @@ the user.::
             self._distance = newcoord._distance
         else:
             super(SgrCoordinates, self).
-                _initialize_latlon('Lambda', 'Beta', False, args, kwargs,
-                                   anglebounds=((0, 360), (-90,90)))
+                _initialize_latlon('Lambda', 'Beta', args, kwargs)
 
 Next we have to tell the class what to use for the longitude and latitude when
 doing coordinate transformations with other coordinate systems. Calling

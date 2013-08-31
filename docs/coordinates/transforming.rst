@@ -16,10 +16,11 @@ that have an alias (created with
 `~astropy.coordinates.transformations.coordinate_alias`) can be converted by
 simply using attribute style access to any other coordinate system::
 
+    >>> from astropy.coordinates import GalacticCoordinates, ICRSCoordinates
     >>> gc = GalacticCoordinates(l=0, b=45, unit=(u.degree, u.degree))
     >>> gc.fk5
     <FK5Coordinates RA=229.27250 deg, Dec=-1.12842 deg>
-    >>> ic = ICRSCoordinates(ra=0, dec=45, unit=(u.degree, u.degree)))
+    >>> ic = ICRSCoordinates(ra=0, dec=45, unit=(u.degree, u.degree))
     >>> ic.fk5
     <FK5Coordinates RA=0.00001 deg, Dec=45.00000 deg>
 
@@ -40,6 +41,7 @@ coordinate to produce a new coordinate in the same system but at a
 different equinox.  Note that these systems have a default equinox
 they start with if you don't specify one::
 
+    >>> from astropy.time import Time
     >>> fk5c = FK5Coordinates('02h31m49.09s +89d15m50.8s')
     >>> fk5c.equinox
     <Time object: scale='utc' format='jyear_str' vals=J2000.000>
@@ -51,7 +53,6 @@ they start with if you don't specify one::
 You can also specify the equinox when you create a coordinate using an
 `astropy.time.Time` object::
 
-    >>> from astropy.time import Time
     >>> fk5c = FK5Coordinates('02h31m49.09s +89d15m50.8s',
                               equinox=Time('J1970', scale='utc'))
     <FK5Coordinates RA=37.95454 deg, Dec=89.26411 deg>

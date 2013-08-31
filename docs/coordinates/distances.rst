@@ -11,8 +11,9 @@ line-of-sight distance for a coordinate.  It must include a length unit to be
 valid.::
 
     >>> from astropy.coordinates import Distance
+    >>> from astropy import units as u
     >>> d = Distance(770)
-    UnitsException: A unit must be provided for distance.
+    ERROR: UnitsException: A unit must be provided for distance. [astropy.coordinates.distances]
     >>> d = Distance(770, u.kpc)
     >>> c = ICRSCoordinates('00h42m44.3s +41d16m9s', distance=d)
     >>> c
@@ -57,6 +58,7 @@ additional capabilities like arithmetic operations::
 This cartesian representation can also be used to create a new coordinate
 object, either directly or through a `CartesianPoints` object::
 
+    >>> from astropy.coordinates import CartesianPoints
     >>> ICRSCoordinates(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
     >>> cp = CartesianPoints(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)

@@ -44,8 +44,7 @@ class SgrCoordinates(coord.SphericalCoordinatesBase):
             self._distance = newcoord._distance
         else:
             super(SgrCoordinates, self).\
-                _initialize_latlon('Lambda', 'Beta', False, args, kwargs,
-                                   anglebounds=((0, 360), (-90,90)))
+                _initialize_latlon('Lambda', 'Beta', args, kwargs)
 
     def __repr__(self):
         if self.distance is not None:
