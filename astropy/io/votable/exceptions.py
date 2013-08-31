@@ -858,11 +858,11 @@ class W39(VOTableSpecWarning):
 class W40(VOTableSpecWarning):
     """
     This is a terrible hack to support Simple Image Access Protocol
-    results from `<archive.noao.edu>`__.  It creates a field for the
-    coordinate projection type of type "double", which
-    actually contains character data.  We have to hack the field
-    to store character data, or we can't read it in.  A warning
-    will be raised when this happens.
+    results from `archive.noao.edu <http://archive.noao.edu>`__.  It
+    creates a field for the coordinate projection type of type "double",
+    which actually contains character data.  We have to hack the field
+    to store character data, or we can't read it in.  A warning will be
+    raised when this happens.
     """
 
     message = "'cprojection' datatype repaired"

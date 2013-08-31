@@ -225,7 +225,7 @@ into.  For example to add the missing registry entries to your Python 2.7::
 
     C:\>C:\Python27\python.exe C:\Path\To\Downloads\win_register_python.py
 
-__ https://gist.github.com/iguananaut/6042780#file-win_register_python-py
+__ https://gist.github.com/embray/6042780#file-win_register_python-py
 
 
 Compatibility packages

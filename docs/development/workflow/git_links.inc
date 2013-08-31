@@ -15,7 +15,7 @@
 .. _msysgit: http://code.google.com/p/msysgit/downloads/list
 .. _git-osx-installer: http://code.google.com/p/git-osx-installer/downloads/list
 .. _subversion: http://subversion.tigris.org/
-.. _git cheat sheet: http://github.com/guides/git-cheat-sheet
+.. _git cheat sheet: http://cheat.errtheblog.com/s/git
 .. _pro git book: http://progit.org/
 .. _git svn crash course: http://git-scm.com/course/svn.html
 .. _learn.github: http://learn.github.com/

@@ -133,7 +133,7 @@ coordinate systems implemented here include:
     The definitive implementation of IAU-defined algorithms.  The "SOFA Tools
     for Earth Attitude" document is particularly valuable for understanding
     the latest IAU standards in detail.
-* `USNO Circular 179 <http://www.usno.navy.mil/USNO/astronomical-applications/publications/circ-179>`_
+* `USNO Circular 179 <http://aa.usno.navy.mil/publications/docs/Circular_179.php>`_
     A useful guide to the IAU 2000/2003 work surrounding ICRS/IERS/CIRS and
     related problems in precision coordinate system work.
 * Meeus, J. "Astronomical Algorithms"
