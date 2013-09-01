@@ -2035,13 +2035,8 @@ class Table(object):
         if mask is not None and not self.masked:
             self._set_masked(True)
 
-        if self.masked:
-            if newlen == 1:
-                self._data = ma.empty(1, dtype=self._data.dtype)
-            else:
-                self._data = ma.resize(self._data, (newlen,))
-        else:
-            self._data.resize((newlen,), refcheck=False)
+        # Create a table with one row to test the operation on
+        test_data = (ma.zeros if self.masked else np.zeros)(1, dtype=self._data.dtype)
 
         if _is_mapping(vals):
 
@@ -2057,16 +2052,16 @@ class Table(object):
                 # We set the mask to True regardless of whether a mask value
                 # is specified or not - that is, any cell where a new row
                 # value is not specified should be treated as missing.
-                self._data.mask[-1] = (True,) * len(self._data.dtype)
+                test_data.mask[-1] = (True,) * len(test_data.dtype)
 
             # First we copy the values
             for name, val in vals.items():
                 try:
-                    self._data[name][-1] = val
+                    test_data[name][-1] = val
                 except IndexError:
                     raise ValueError("No column {0} in table".format(name))
                 if mask:
-                    self._data[name].mask[-1] = mask[name]
+                    test_data[name].mask[-1] = mask[name]
 
         elif isiterable(vals):
 
@@ -2074,12 +2069,12 @@ class Table(object):
                 raise TypeError("Mismatch between type of vals and mask")
 
             if len(self.columns) != len(vals):
-                raise ValueError('Mismatch between number of vals and columns')
+                raise ValueError('Mismatch bETWEEN NUMBer of vals and columns')
 
             if not isinstance(vals, tuple):
                 vals = tuple(vals)
 
-            self._data[-1] = vals
+            test_data[-1] = vals
 
             if mask is not None:
 
@@ -2089,10 +2084,22 @@ class Table(object):
                 if not isinstance(mask, tuple):
                     mask = tuple(mask)
 
-                self._data.mask[-1] = mask
+                test_data.mask[-1] = mask
 
         else:
             raise TypeError('Vals must be an iterable or mapping or None')
+
+        # If no errors have been raised, then the table can be resized
+        if self.masked:
+            if newlen == 1:
+                self._data = ma.empty(1, dtype=self._data.dtype)
+            else:
+                self._data = ma.resize(self._data, (newlen,))
+        else:
+            self._data.resize((newlen,), refcheck=False)
+
+        # Assign the new row
+        self._data[-1] = test_data[-1]
 
         self._rebuild_table_column_views()
 
@@ -2143,4 +2150,4 @@ class Table(object):
         return self.copy(True)
 
     def __copy__(self):
-        return self.copy(False)
+        return self.copy(False)																																																																																																																																																																																																																																																																																																																																																																								
