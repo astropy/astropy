@@ -454,6 +454,8 @@ class Legendre1DModel(PolynomialModel):
 
     def deriv(self, pars=None, x=None, y=None):
         """
+        Computes the Vandermonde matrix.
+
         Parameters
         ----------
         pars : throw away parameter
