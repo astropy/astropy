@@ -365,12 +365,14 @@ class SphericalCoordinatesBase(object):
         """
         other_in_self_system = other.transform_to(self.__class__)
 
-        lon1 = self.lonangle.radian
-        lat1 = self.latangle.radian
-        lon2 = other_in_self_system.lonangle.radian
-        lat2 = other_in_self_system.latangle.radian
+        lon1 = self.lonangle
+        lat1 = self.latangle
+        lon2 = other_in_self_system.lonangle
+        lat2 = other_in_self_system.latangle
 
-        return angle_utilities.vincenty_sphere_dist(lon1, lat1, lon2, lat2)
+        # Get the angle in radians, convert to degrees and make an Angle
+        sep = angle_utilities.vincenty_sphere_dist(lon1, lat1, lon2, lat2)
+        return Angle(sep).to(u.degree)
 
     def separation_3d(self, other):
         """
