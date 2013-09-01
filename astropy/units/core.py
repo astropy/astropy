@@ -2,7 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Core units classes and functions
+Core units classes and functions.
 """
 
 from __future__ import (absolute_import, division, print_function,
