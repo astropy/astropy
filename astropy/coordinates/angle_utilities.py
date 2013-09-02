@@ -653,10 +653,6 @@ def vincenty_sphere_dist(lon1, lat1, lon2, lat2):
     Vincenty formula for angular distance on a sphere: stable at poles and
     antipodes but more complex/computationally expensive.
 
-    Note that this is the only version actually used in the `AngularSeparation`
-    classes, so the other `*_spher_dist` functions are only for possible
-    future internal use.
-
     Inputs must be in radians.
     """
 

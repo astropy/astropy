@@ -549,7 +549,7 @@ def test_proj_separations():
     Test angular separation functionality
     """
 
-    from .. import ICRSCoordinates, GalacticCoordinates, AngularSeparation, coordinate_alias
+    from .. import ICRSCoordinates, GalacticCoordinates, coordinate_alias, Angle
 
     '''
     Angular separations between two points on a sphere are supported via the
@@ -560,8 +560,8 @@ def test_proj_separations():
     c2 = ICRSCoordinates(ra=0, dec=1, unit=(u.degree, u.degree))
 
     sep = c2.separation(c1)
-    #returns an AngularSeparation object (a subclass of Angle)
-    assert isinstance(sep, AngularSeparation)
+    #returns an Angle object
+    assert isinstance(sep, Angle)
 
     assert sep.degree == 1
     npt.assert_almost_equal(sep.arcminute, 60.)
