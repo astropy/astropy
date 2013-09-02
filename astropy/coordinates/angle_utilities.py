@@ -568,87 +568,18 @@ def degrees_to_string(d, precision=5, pad=False, sep=':', fields=3):
                                  sep=sep, fields=fields)
 
 
-#<----------Spherical angular distances------------->
-def small_angle_sphere_dist(lon1, lat1, lon2, lat2):
-    """
-    Euclidean angular distance "on a sphere" - only valid on sphere in the
-    small-angle approximation.
-
-    .. warning::
-        Do not use this unless you know small-angle is a valid approximation
-        for your problem and performance is a major conern.  In general this
-        is very wrong.
-
-    Inputs must be in radians.
-    """
-
-    from numpy import cos
-
-    dlat = lat2 - lat1
-    dlon = (lon2 - lon1) * cos((lat1 + lat2) * 0.5)
-
-    return (dlat ** 2 + dlon ** 2) ** 0.5
-
-
-def simple_sphere_dist(lon1, lat1, lon2, lat2):
-    """
-    Simple formula for angular distance on a sphere: numerically unstable
-    for small distances.
-
-    Inputs must be in radians.
-    """
-
-    from numpy import sin, cos, arccos
-
-    cdlon = cos(lon2 - lon1)
-    return arccos(sin(lat1) * sin(lat2) + cos(lat1) * cos(-lat2) * cdlon)
-
-
-def haversine_sphere_dist(lon1, lat1, lon2, lat2):
-    """
-    Haversine formula for angular distance on a sphere: more stable at poles
-
-    Inputs must be in radians.
-    """
-
-    from numpy import sin, cos, arcsin
-
-    sdlat = sin((lat2 - lat1) * 0.5)
-    sdlon = sin((lon2 - lon1) * 0.5)
-    coslats = cos(lat1) * cos(lat2)
-
-    return 2 * arcsin((sdlat ** 2 + coslats * sdlon ** 2) ** 0.5)
-
-
-def haversine_atan_sphere_dist(lon1, lat1, lon2, lat2):
-    """
-    Haversine formula for angular distance on a sphere: more stable at poles.
-    This version uses arctan instead of arcsin and thus does better with sign
-    conventions.
-
-    Inputs must be in radians.
-    """
-
-    from numpy import sin, cos, arctan2
-
-    sdlat = sin((lat2 - lat1) * 0.5)
-    sdlon = sin((lon2 - lon1) * 0.5)
-    coslats = cos(lat1) * cos(lat2)
-
-    numerator = sdlat ** 2 + coslats * sdlon ** 2
-
-    return 2 * arctan2(numerator ** 0.5, (1 - numerator) ** 0.5)
-
-
 def vincenty_sphere_dist(lon1, lat1, lon2, lat2):
     """
-    Vincenty formula for angular distance on a sphere: stable at poles and
-    antipodes but more complex/computationally expensive.
+    Angular distance on a sphere, derived using the Vincenty formula.
+    This formula is slighly more complex and computationally expensive than
+    some alternatives, but is stable at at all distances, including the
+    poles and antipodes.
 
-    Inputs must be in radians.
+    Inputs can be Angles, Quantities with Angle units, or
+    float/arrays in radians.
     """
 
-    from numpy import sin, cos, arctan2
+    from numpy import sin, cos, arctan2, sqrt
 
     sdlon = sin(lon2 - lon1)
     cdlon = cos(lon2 - lon1)
@@ -661,5 +592,4 @@ def vincenty_sphere_dist(lon1, lat1, lon2, lat2):
     num2 = clat1 * slat2 - slat1 * clat2 * cdlon
     denominator = slat1 * slat2 + clat1 * clat2 * cdlon
 
-    return arctan2((num1 ** 2 + num2 ** 2) ** 0.5,
-                    denominator)
+    return arctan2(sqrt(num1 ** 2 + num2 ** 2), denominator)
