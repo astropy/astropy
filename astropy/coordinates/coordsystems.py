@@ -370,9 +370,9 @@ class SphericalCoordinatesBase(object):
         lon2 = other_in_self_system.lonangle
         lat2 = other_in_self_system.latangle
 
-        # Get the angle in radians, convert to degrees and make an Angle
+        # Get the separation as a Quantity, convert to Angle in degrees
         sep = angle_utilities.vincenty_sphere_dist(lon1, lat1, lon2, lat2)
-        return Angle(sep).to(u.degree)
+        return Angle(sep, unit=u.degree)
 
     def separation_3d(self, other):
         """
