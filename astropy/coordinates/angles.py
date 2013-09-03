@@ -522,8 +522,8 @@ class Latitude(Angle):
     `~astropy.units.core.UnitsException`
         If a unit is not provided or it is not an angular unit.
     """
-    def __new__(cls, angle, unit=None):
-        self = super(Latitude, cls).__new__(cls, angle, unit=unit)
+    def __new__(cls, angle, unit=None, **kwargs):
+        self = super(Latitude, cls).__new__(cls, angle, unit=unit, **kwargs)
         self._validate_angles()
         return self
 
@@ -582,8 +582,8 @@ class Longitude(Angle):
     `~astropy.units.core.UnitsException`
         If a unit is not provided or it is not an angular unit.
     """
-    def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg):
-        self = super(Longitude, cls).__new__(cls, angle, unit=unit)
+    def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg, **kwargs):
+        self = super(Longitude, cls).__new__(cls, angle, unit=unit, **kwargs)
         self.wrap_angle = wrap_angle
         return self
 
