@@ -220,3 +220,8 @@ def test_is_within_bounds():
     assert a.is_within_bounds('0d', '360d') is False
     assert a.is_within_bounds(None, '360d') is True
     assert a.is_within_bounds(-30 * u.deg, None) is True
+
+
+def test_angle_mismatched_unit():
+    a = Angle('+6h7m8s', unit=u.degree)
+    assert_allclose(a.value, 91.78333333333332)
