@@ -507,11 +507,13 @@ more recent times, one can download an updated version of `IERS B
 <http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now>`_ or `IERS A
 <http://maia.usno.navy.mil/ser7/finals2000A.all>`_ (which also has
 predictions), and set :attr:`~astropy.time.Time.delta_ut1_utc` as described in
-`~astropy.time.Time.get_delta_ut1_utc`. Briefly::
+`~astropy.time.Time.get_delta_ut1_utc`::
 
-  >>> from astropy.utils.iers import IERS_A
-  >>> t.delta_ut1_utc = t.get_delta_ut1_utc(IERS_A.open('finals2000A.all'))  #
-  doctest: +SKIP
+  >>> from astropy.utils.iers import IERS_A, IERS_A_URL
+  >>> from astropy.utils.data import download_file
+  >>> iers_a_file = download_file(IERS_A_URL, cache=True))  # doctest: +SKIP
+  >>> iers_a = IERS_A.open(iers_a_file)                     # doctest: +SKIP
+  >>> t.delta_ut1_utc = t.get_delta_ut1_utc(iers_a)         # doctest: +SKIP
 
 In the case of the TDB to TT offset, most users need only provide the ``lat``
 and ``lon`` values when creating the |Time| object.  If the
