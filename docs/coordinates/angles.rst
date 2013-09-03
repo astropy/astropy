@@ -55,23 +55,18 @@ both as a floating point number as a string::
     >>> a.arcminute
     3437.7467707849396
     >>> a.to_string()
-    array(u'1.00000rad', dtype=object)
+    u'1.00000rad'
     >>> a.to_string(unit=u.degree)
-    array(u'57d17m44.80625s', dtype=object)
+    u'57d17m44.80625s'
     >>> a.to_string(unit=u.degree, sep=':')
-    array(u'57:17:44.80625', dtype=object)
+    u'57:17:44.80625'
     >>> a.to_string(unit=u.degree, sep=('deg', 'm', 's'))
-    array(u'57deg17m44.80625s', dtype=object)
+    u'57deg17m44.80625s'
     >>> a.to_string(unit=u.hour)
-    array(u'3h49m10.98708s', dtype=object)
+    u'3h49m10.98708s'
     >>> a.to_string(unit=u.hour, decimal=True)
-    array(u'3.81972', dtype=object)
+    u'3.81972'
 
-.. Note::
-
-   The above examples include outputs like ``array(u'57:17:44.80625', dtype=object)``.
-   This is a Numpy 0-d array scalar. To convert this to an ordinary Python string use the
-   built-in `str()` function.
 
 Usage
 ^^^^^^^^^^^^^
