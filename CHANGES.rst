@@ -126,6 +126,9 @@ API Changes
     `rotation_matrix` will also take the unit from the given `Angle`
     object if no unit is provided.
 
+  - The `astropy.coordinates.AngularSeparation` class has been removed.  The output
+    of the coordinates `separation()` method is now an `astropy.coordinates.Angle`.
+
 - ``astropy.io.ascii``
 
   - In the ``read`` method of ``astropy.io.ascii``, empty column values in an ASCII table

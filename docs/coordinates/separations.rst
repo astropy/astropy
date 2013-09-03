@@ -9,7 +9,7 @@ computes the great-circle distance (*not* the small-angle approximation)::
     >>> c2 = ICRSCoordinates('0h52m44.8s -72d49m43s')
     >>> sep = c1.separation(c2)
     >>> sep
-    <AngularSeparation 0.36209rad>
+    <Angle 20d44m46.02638s>
 
 
 The `~astropy.coordinates.angles.AngularSeparation` object is a subclass of

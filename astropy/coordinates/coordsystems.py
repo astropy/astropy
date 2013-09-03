@@ -6,9 +6,10 @@ This module contains the base classes and frameworks for coordinate objects.
 from abc import ABCMeta, abstractproperty, abstractmethod
 
 from .. import units as u
-from .angles import Longitude, Latitude, Angle, AngularSeparation
+from .angles import Longitude, Latitude, Angle
 from .distances import *
 from ..utils.compat.misc import override__dir__
+from . import angle_utilities
 
 __all__ = ['SphericalCoordinatesBase']
 
@@ -349,28 +350,29 @@ class SphericalCoordinatesBase(object):
         """
         Computes on-sky separation between this coordinate and another.
 
-        See the `~astropy.coordinates.angles.AngularSeparation` docstring
-        for further details on the actual calculation.
+        This uses the Vincenty formula for angular distance on a sphere, which
+        is stable at poles and antipodes but more complex/computationally expensive.
 
         Parameters
         ----------
         other : `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`
-            The coordinate system to get the separation to.
+            The coordinate to get the separation to.
 
         Returns
         -------
-        sep : `~astropy.coordinates.angles.AngularSeparation`
+        sep : `~astropy.coordinates.angles.Angle`
             The on-sky separation between this and the `other` coordinate.
         """
         other_in_self_system = other.transform_to(self.__class__)
 
-        lon1 = self.lonangle.radian
-        lat1 = self.latangle.radian
-        lon2 = other_in_self_system.lonangle.radian
-        lat2 = other_in_self_system.latangle.radian
+        lon1 = self.lonangle
+        lat1 = self.latangle
+        lon2 = other_in_self_system.lonangle
+        lat2 = other_in_self_system.latangle
 
-        return AngularSeparation(lon1, lat1, lon2, lat2, u.radian,
-            _supresslatlonswap_warning=True)  # TODO: remove _supresslatlonswap_warning in v0.4
+        # Get the separation as a Quantity, convert to Angle in degrees
+        sep = angle_utilities.vincenty_sphere_dist(lon1, lat1, lon2, lat2)
+        return Angle(sep, unit=u.degree)
 
     def separation_3d(self, other):
         """
