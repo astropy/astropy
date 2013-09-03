@@ -379,7 +379,10 @@ class Angle(u.Quantity):
             return s
 
         format_ufunc = np.vectorize(do_format, otypes=[np.object])
-        return format_ufunc(values)
+        result = format_ufunc(values)
+        if result.ndim == 0:
+            result = result[()]
+        return result
 
     def wrap_at(self, wrap_angle, inplace=False):
         """
