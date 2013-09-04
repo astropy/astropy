@@ -12,6 +12,7 @@ import os
 import re
 
 from .base import Base
+from ..utils import is_effectively_unity
 from . import utils
 
 
@@ -318,8 +319,9 @@ class CDS(Base):
         unit = utils.decompose_to_known_units(unit, self._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
-            s = ''
-            if unit.scale != 1:
+            if is_effectively_unity(unit.scale):
+                s = ''
+            else:
                 m, e = utils.split_mantissa_exponent(unit.scale)
                 parts = []
                 if m:
@@ -329,8 +331,6 @@ class CDS(Base):
                         e = "+" + e
                     parts.append('10{0}'.format(e))
                 s = 'x'.join(parts)
-            else:
-                s = ''
 
             pairs = zip(unit.bases, unit.powers)
             pairs.sort(key=lambda x: x[1], reverse=True)

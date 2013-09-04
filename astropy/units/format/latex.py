@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 
 from . import base
 from . import utils
+from ..utils import is_effectively_unity
 
 
 class Latex(base.Base):
@@ -65,10 +66,10 @@ class Latex(base.Base):
         if latex_name is not None:
             s = latex_name
         elif isinstance(unit, core.CompositeUnit):
-            if unit.scale != 1:
-                s = self._format_exponential_notation(unit.scale) + r'\,'
-            else:
+            if is_effectively_unity(unit.scale):
                 s = ''
+            else:
+                s = self._format_exponential_notation(unit.scale) + r'\,'
 
             if len(unit.bases):
                 positives, negatives = utils.get_grouped_by_powers(

@@ -8,6 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 import warnings
 
 from . import generic
+from ..utils import is_effectively_unity
 from . import utils
 
 
@@ -101,7 +102,7 @@ class VOUnit(generic.Generic):
 
         if isinstance(unit, core.CompositeUnit):
             s = ''
-            if unit.scale != 1:
+            if not is_effectively_unity(unit.scale):
                 m, ex = utils.split_mantissa_exponent(unit.scale)
                 if m:
                     s += m + ' '
@@ -110,8 +111,6 @@ class VOUnit(generic.Generic):
                     if not ex.startswith('-'):
                         s += '+'
                     s += ex
-            else:
-                s = ''
 
             pairs = zip(unit.bases, unit.powers)
             pairs.sort(key=lambda x: x[1], reverse=True)

@@ -14,6 +14,7 @@ from ...tests.compat import assert_allclose
 from ... import units as u
 from .. import core
 from .. import format
+from ..utils import is_effectively_unity
 from ... import wcs
 
 
@@ -198,3 +199,12 @@ def test_fraction_repr():
     assert '5/2' in fractional.to_string('latex')
 
     assert fractional.to_string('unicode') == 'cm⁵⸍²'
+
+
+def test_scale_effectively_unity():
+    """Scale just off unity at machine precision level is OK.
+    Ensures #748 does not recur
+    """
+    a = (3. * u.N).cgs
+    assert is_effectively_unity(a.unit.scale)
+    assert len(a.__repr__().split()) == 3

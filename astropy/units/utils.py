@@ -10,7 +10,11 @@ package.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from . import core
+from numpy import finfo
+
+_float_finfo = finfo(float)
+_JUST_BELOW_UNITY = 1.-_float_finfo.epsneg
+_JUST_ABOVE_UNITY = 1.+_float_finfo.eps
 
 
 def _get_first_sentence(s):
@@ -99,3 +103,7 @@ def generate_unit_summary(namespace):
 """.format(unit, doc, represents, aliases, unit_has_prefixes))
 
     return docstring.getvalue()
+
+
+def is_effectively_unity(value):
+    return _JUST_BELOW_UNITY <= value <= _JUST_ABOVE_UNITY

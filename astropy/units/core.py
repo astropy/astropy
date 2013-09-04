@@ -20,6 +20,7 @@ from numpy import ma
 
 from ..utils.compat.fractions import Fraction
 from ..utils.misc import deprecated
+from .utils import is_effectively_unity
 from . import format as unit_format
 
 # TODO: Support functional units, e.g. log(x), ln(x)
@@ -1545,7 +1546,7 @@ class CompositeUnit(UnitBase):
 
     def is_unity(self):
         unit = self.decompose()
-        return len(unit.bases) == 0 and unit.scale == 1.0
+        return len(unit.bases) == 0 and is_effectively_unity(unit.scale)
 
 
 si_prefixes = [
