@@ -87,6 +87,13 @@ or dimensionless quantities::
           be implicitly dropped without a warning. Always check that the
           function you are using treats the units correctly.
 
+Deprecated API
+``````````````
+
+The exception `astropy.units.UnitsException` has been renamed to
+`astropy.units.UnitsError` to be more consistent with the naming of
+Python built-in exceptions.
+
 Coordinates
 -----------
 

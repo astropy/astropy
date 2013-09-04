@@ -15,7 +15,7 @@ import numbers
 import numpy as np
 
 # AstroPy
-from .core import Unit, UnitBase, UnitsException
+from .core import Unit, UnitBase, UnitsError
 from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
 
@@ -508,7 +508,7 @@ class Quantity(np.ndarray):
             try:
                 return self.unit.to(
                     to_unit, self.value, equivalencies=self.equivalencies)
-            except UnitsException:
+            except UnitsError:
                 return None
 
         value = get_virtual_unit_attribute()
@@ -754,7 +754,7 @@ class Quantity(np.ndarray):
             The bases to decompose into.  When not provided,
             decomposes down to any irreducible units.  When provided,
             the decomposed result will only contain the given units.
-            This will raises a `UnitsException` if it's not possible
+            This will raises a `UnitsError` if it's not possible
             to do so.
 
         Returns
@@ -781,7 +781,7 @@ class Quantity(np.ndarray):
             The bases to decompose into.  When not provided,
             decomposes down to any irreducible units.  When provided,
             the decomposed result will only contain the given units.
-            This will raises a `UnitsException` if it's not possible
+            This will raises a `UnitsError` if it's not possible
             to do so.
 
         Returns

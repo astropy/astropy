@@ -238,7 +238,7 @@ class _AngleParser(object):
                     "Syntax error parsing angle {0!r}".format(angle))
 
         if unit is None and found_unit is None:
-                raise u.UnitsException("No unit specified")
+                raise u.UnitsError("No unit specified")
 
         return found_angle, found_unit
 
@@ -661,5 +661,5 @@ def vincenty_sphere_dist(lon1, lat1, lon2, lat2):
     num2 = clat1 * slat2 - slat1 * clat2 * cdlon
     denominator = slat1 * slat2 + clat1 * clat2 * cdlon
 
-    return arctan2((num1 ** 2 + num2 ** 2) ** 0.5, 
+    return arctan2((num1 ** 2 + num2 ** 2) ** 0.5,
                     denominator)

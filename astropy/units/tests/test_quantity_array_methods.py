@@ -296,7 +296,7 @@ class TestArrayConversion(object):
         assert all(q2.flatten()[:3].value == np.array([9, 9, 9]))
         q2[0, :-1] = 8000
         assert all(q2.flatten()[:3].value == np.array([8, 8, 9]))
-        with pytest.raises(u.UnitsException):
+        with pytest.raises(u.UnitsError):
             q2[1, 1] = 10 * u.s
         with pytest.raises(TypeError):
             q2[0, 1] = 1.5 * u.km / u.m

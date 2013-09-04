@@ -50,7 +50,7 @@ and frequency. To use that feature, equivalence objects are passed to the
 conversion from wavelength to frequency doesn't normally work:
 
   >>> u.nm.to(u.Hz, [1000, 2000])
-  UnitsException: 'nm' (length) and 'Hz' (frequency) are not convertible
+  UnitsError: 'nm' (length) and 'Hz' (frequency) are not convertible
 
 but by passing an equivalency list, in this case ``spectral()``, it does:
 

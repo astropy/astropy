@@ -20,7 +20,7 @@ system and a number for the two angles.  For example::
 Note that if you do not provide units explicitly, this will fail::
 
     >>> ICRSCoordinates(23, 1)
-    ERROR: UnitsException: No unit was specified [astropy.coordinates.angles]
+    ERROR: UnitsError: No unit was specified [astropy.coordinates.angles]
 
 While the above example uses python numerical types, you can also
 provide strings to create coordinates.  If the `unit` parameter is
@@ -37,7 +37,7 @@ the exact rules for how each string is parsed, see the
     >>> ICRSCoordinates("14.12412 hours", "-41:08:15.162342 degrees")
     <ICRSCoordinates RA=211.86180 deg, Dec=-41.13755 deg>
     >>> ICRSCoordinates("14.12412 -41:08:15.162342")
-    ERROR: UnitsException: No unit specified [astropy.coordinates.angle_utilities]
+    ERROR: UnitsError: No unit specified [astropy.coordinates.angle_utilities]
 
 You can also directly specify the units for both to resolve
 ambiguities in parsing the angle strings::

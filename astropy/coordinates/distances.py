@@ -47,7 +47,7 @@ class Distance(object):
 
     Raises
     ------
-    astropy.units.core.UnitsException
+    astropy.units.core.UnitsError
         If the `unit` is not a distance.
 
     Examples
@@ -102,10 +102,10 @@ class Distance(object):
             if value is None:
                 raise ValueError('A value for the distance must be provided')
             if unit is None:
-                raise u.UnitsException('A unit must be provided for distance.')
+                raise u.UnitsError('A unit must be provided for distance.')
 
             if not unit.is_equivalent(u.m):
-                raise u.UnitsException('provided unit for Distance is not a length')
+                raise u.UnitsError('provided unit for Distance is not a length')
             self._value = value
             self._unit = unit
 
