@@ -890,8 +890,11 @@ naxis kwarg.
                     for i in range(sky.shape[1])]
 
         raise TypeError(
-            "Expected 2 or {0} arguments, {1} given".format(
-                self.naxis + 1, len(args)))
+            "WCS projection has {0} dimensions, so expected 2 (an Nx{0} array "
+            "and the origin argument) or {1} arguments (the position in each "
+            "dimension, and the origin argument). Instead, {2} arguments were "
+            "given.".format(
+                self.naxis, self.naxis + 1, len(args)))
 
     def all_pix2world(self, *args, **kwargs):
         return self._array_converter(
