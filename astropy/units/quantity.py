@@ -117,7 +117,7 @@ class Quantity(np.ndarray):
         from ..utils.misc import isiterable
 
         if isinstance(value, Quantity):
-            if unit is None:
+            if unit is None or unit is value.unit:
                 _value = _validate_value(value.value, dtype, copy)
             else:
                 _value = _validate_value(value.to(unit).value, dtype, copy)

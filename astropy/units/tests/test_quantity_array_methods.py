@@ -9,6 +9,46 @@ from ...tests.compat import assert_allclose
 
 NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
 
+
+class TestQuantityArrayCopy(object):
+    """
+    Test whether arrays are properly copied/used in place
+    """
+
+    def test_copy_on_creation(self):
+        v = np.arange(1000.)
+        q_nocopy = u.Quantity(v, "km/s", copy=False)
+        q_copy = u.Quantity(v, "km/s", copy=True)
+        assert q_nocopy.base is v
+        assert q_copy.base is not v
+        v[0] = -1.
+        assert q_nocopy[0].value == v[0]
+        assert q_copy[0].value != v[0]
+
+    def test_to_copies(self):
+        q = u.Quantity(np.arange(1.,100.), "km/s")
+        q2 = q.to(u.m/u.s)
+        assert np.all(q.value != q2.value)
+        q3 = q.to(u.km/u.s)
+        assert np.all(q.value == q3.value)
+        q[0] = -1.*u.km/u.s
+        assert q[0].value != q3[0].value
+
+    def test_si_copies(self):
+        q = u.Quantity(np.arange(100.), "m/s")
+        q2 = q.si
+        assert np.all(q.value == q2.value)
+        q[0] = -1.*u.m/u.s
+        assert q[0].value != q2[0].value
+
+    def test_getitem_does_not_copy(self):
+        q = u.Quantity(np.arange(100.), "m/s")
+        q_sel = q[10:20]
+        assert q_sel.base is q
+        q_sel[0] = -1.*u.m/u.s
+        assert q_sel[0] == q[10]
+
+
 class TestQuantityStatsFuncs(object):
     """
     Test statistical functions
@@ -98,6 +138,12 @@ class TestQuantityStatsFuncs(object):
         c1 = q1.clip(1500, 5.5 * u.Mm / u.km)
         assert all(c1 == np.array([1.5, 2., 4., 5., 5.5]) * u.km / u.m)
 
+    def test_clip_inplace(self):
+        q1 = np.array([1., 2., 4., 5., 6.]) * u.km / u.m
+        c1 = q1.clip(1500, 5.5 * u.Mm / u.km, out=q1)
+        assert c1.value.base is q1.value.base
+        assert all(q1 == np.array([1.5, 2., 4., 5., 5.5]) * u.km / u.m)
+
     def test_conj(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.km / u.m
         assert all(q1.conj() == q1)
@@ -148,6 +194,9 @@ class TestQuantityStatsFuncs(object):
         qi = np.ones(3) * u.s
         np.cumsum(q1, out=qi)
         assert np.all(qi == np.array([1, 3, 9]) * u.m)
+        q2 = q1
+        q1.cumsum(out=q1)
+        assert np.all(q2 == qi)
 
     def test_nansum(self):
 
