@@ -235,11 +235,15 @@ def test_spectraldensity3():
 
 
 def test_equivalent_units():
-    units = set(u.g.find_equivalent_units())
+    units = u.g.find_equivalent_units()
+    units_set = set(units)
     match = set(
         [u.M_e, u.M_p, u.g, u.kg, u.lb, u.oz,
          u.solMass, u.t, u.ton, u.u])
-    assert units == match
+    assert units_set == match
+
+    r = repr(units)
+    assert r.count('\n') == len(units) + 2
 
 
 def test_equivalent_units2():
@@ -249,3 +253,20 @@ def test_equivalent_units2():
          u.erg, u.ft, u.inch, u.kcal, u.lyr, u.m, u.mi, u.micron,
          u.pc, u.solRad, u.yd, u.Bq, u.Ci, u.nmi])
     assert units == match
+
+
+def test_trivial_equivalency():
+    assert u.m.to(u.kg, equivalencies=[(u.m, u.kg)]) == 1.0
+
+
+def test_invalid_equivalency():
+    with pytest.raises(ValueError):
+        u.m.to(u.kg, equivalencies=[(u.m,)])
+
+    with pytest.raises(ValueError):
+        u.m.to(u.kg, equivalencies=[(u.m, 5.0)])
+
+
+def test_irrelevant_equivalency():
+    with pytest.raises(u.UnitsException):
+        u.m.to(u.kg, equivalencies=[(u.m, u.l)])

@@ -9,7 +9,9 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 
 from ... import units as u
+from ...units import physical
 from ...constants import hbar
+from ...tests.helper import raises
 
 
 def test_simple():
@@ -39,3 +41,8 @@ def test_angular_momentum():
 def test_flam():
     assert ((u.erg / (u.cm**2 * u.s * u.AA)).physical_type ==
             'spectral flux density wav')
+
+
+@raises(ValueError)
+def test_redundant_physical_type():
+    physical.def_physical_type(u.m, 'utter craziness')

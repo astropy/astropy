@@ -11,7 +11,7 @@ import pytest
 import numpy as np
 
 from ...tests.compat import assert_allclose
-from ...tests.helper import raises
+from ...tests.helper import raises, pytest
 from ...utils import isiterable
 from ... import units as u
 
@@ -631,6 +631,9 @@ def test_implicit_conversion_autocomplete():
     # Something from the base class, object
     assert '__setattr__' in attrs
 
+    with pytest.raises(AttributeError):
+        q.l
+
 
 def test_quantity_iterability():
     """Regressiont est for issue #878.
@@ -710,3 +713,10 @@ def test_quantity_from_string():
 
     with pytest.raises(TypeError):
         q = u.Quantity(np.array(['5']), u.m)
+
+
+def test_unsupported():
+    q1 = np.arange(10) * u.m
+
+    with pytest.raises(TypeError):
+        q2 = np.bitwise_and(q1, q1)
