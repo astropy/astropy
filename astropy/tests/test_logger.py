@@ -4,7 +4,7 @@ import warnings
 
 from .helper import pytest, catch_warnings
 from .. import log
-from ..logger import LoggingError
+from ..logger import LoggingError, LOG_LEVEL
 
 
 # Save original values of hooks. These are not the system values, but the
@@ -226,19 +226,28 @@ def test_exception_logging_origin():
 @pytest.mark.parametrize(('level'), [None, 'DEBUG', 'INFO', 'WARN', 'ERROR'])
 def test_log_to_list(level):
 
-    if level is not None:
-        log.setLevel(level)
+    orig_level = log.level
 
-    with log.log_to_list() as log_list:
-        log.error("Error message")
-        log.warning("Warning message")
-        log.info("Information message")
-        log.debug("Debug message")
+    try:
+        if level is not None:
+            log.setLevel(level)
+
+        with log.log_to_list() as log_list:
+            log.error("Error message")
+            log.warning("Warning message")
+            log.info("Information message")
+            log.debug("Debug message")
+    finally:
+        log.setLevel(orig_level)
+
+    if level is None:
+        # The log level *should* be set to whatever it was in the config
+        level = LOG_LEVEL()
 
     # Check list length
     if level == 'DEBUG':
         assert len(log_list) == 4
-    elif level is None or level == 'INFO':
+    elif level == 'INFO':
         assert len(log_list) == 3
     elif level == 'WARN':
         assert len(log_list) == 2
@@ -300,26 +309,34 @@ def test_log_to_file(tmpdir, level):
     local_path = tmpdir.join('test.log')
     log_file = local_path.open('wb')
     log_path = str(local_path.realpath())
+    orig_level = log.level
 
-    if level is not None:
-        log.setLevel(level)
+    try:
+        if level is not None:
+            log.setLevel(level)
 
-    with log.log_to_file(log_path):
-        log.error("Error message")
-        log.warning("Warning message")
-        log.info("Information message")
-        log.debug("Debug message")
+        with log.log_to_file(log_path):
+            log.error("Error message")
+            log.warning("Warning message")
+            log.info("Information message")
+            log.debug("Debug message")
 
-    log_file.close()
+        log_file.close()
+    finally:
+        log.setLevel(orig_level)
 
     log_file = local_path.open('rb')
     log_entries = log_file.readlines()
     log_file.close()
 
+    if level is None:
+        # The log level *should* be set to whatever it was in the config
+        level = LOG_LEVEL()
+
     # Check list length
     if level == 'DEBUG':
         assert len(log_entries) == 4
-    elif level is None or level == 'INFO':
+    elif level == 'INFO':
         assert len(log_entries) == 3
     elif level == 'WARN':
         assert len(log_entries) == 2
