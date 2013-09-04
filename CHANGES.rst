@@ -24,7 +24,7 @@ New Features
   - Update internal time manipulations so that arithmetic with Time and
     TimeDelta objects maintains sub-nanosecond precision over a time span
     longer than the age of the universe [#1189].
-  
+
   - Add ``datetime`` format which allows converting to and from standard
     library ``datetime.datetime`` objects.
 
@@ -74,9 +74,9 @@ New Features
   - Added new spectroscopic equivalencies for velocity conversions
     (relativistic, optical, and radio conventions are supported)
 
-- Astropy now uses the ERFA library instead of the IAU SOFA library for 
-  fundamental time transformation routines.  
-  The ERFA library is derived, with permission, from the IAU SOFA library but 
+- Astropy now uses the ERFA library instead of the IAU SOFA library for
+  fundamental time transformation routines.
+  The ERFA library is derived, with permission, from the IAU SOFA library but
   is distributed under a BSD license. See ``license/ERFA.rst`` for details.
 
 API Changes
@@ -241,6 +241,12 @@ Bug Fixes
     example). This still causes a Python traceback but better that than a
     segfault. [#1332]
 
+- ``astropy.wcs``
+
+  - When passing a single array to the wcs transformation functions,
+    (`astropy.wcs.Wcs.all_pix2world`, etc.), its second dimension must
+    now exactly match the number of dimensions in the
+    transformation. [#1395]
 
 0.2.4 (2013-07-24)
 ------------------
