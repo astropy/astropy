@@ -123,7 +123,7 @@ log = logging.getLogger()
 # if we are *not* in setup mode, import the logger and possibly populate the
 # configuration file with the defaults
 if not _ASTROPY_SETUP_:
-    from .logger import _init_log
+    from .logger import _init_log, _teardown_log
     from . import config
 
     import os
@@ -140,7 +140,17 @@ if not _ASTROPY_SETUP_:
                       'a source checkout; please run `./setup.py develop` or '
                       '`./setup.py build_ext --inplace` first so that '
                       'extension modules can be compiled and made importable.')
-            sys.exit(1)
+            # Now disable exception logging to avoid an annoying error in the
+            # exception logger before we raise the import error:
+            _teardown_log()
+
+            # Roll back any astropy sub-modules that have been imported thus
+            # far
+
+            for key in sys.modules.keys():
+                if key.startswith('astropy.'):
+                    del sys.modules[key]
+            raise ImportError('astropy')
         else:
             # Outright broken installation; don't be nice.
             raise

@@ -18,6 +18,13 @@ Bug Fixes
     now exactly match the number of dimensions in the
     transformation. [#1395]
 
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- When importing Astropy from a source checkout without having built the
+  extension modules first an ``ImportError`` is raised rather than a
+  ``SystemExit`` exception. [#1269]
+
 
 0.2.4 (2013-07-24)
 ------------------
