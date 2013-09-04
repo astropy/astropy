@@ -1414,7 +1414,7 @@ class CompositeUnit(UnitBase):
         of the base units.
     """
     def __init__(self, scale, bases, powers):
-        if scale == 1.:
+        if scale == 1. or is_effectively_unity(scale):
             scale = 1
         self._scale = scale
         for base in bases:
@@ -1496,6 +1496,10 @@ class CompositeUnit(UnitBase):
 
         self._bases = [x[0] for x in new_parts]
         self._powers = [x[1] for x in new_parts]
+
+        if is_effectively_unity(scale):
+            scale = 1
+
         self._scale = scale
 
     def __copy__(self):
@@ -1546,7 +1550,7 @@ class CompositeUnit(UnitBase):
 
     def is_unity(self):
         unit = self.decompose()
-        return len(unit.bases) == 0 and is_effectively_unity(unit.scale)
+        return len(unit.bases) == 0 and unit.scale == 1
 
 
 si_prefixes = [

@@ -10,7 +10,6 @@ from __future__ import (absolute_import, division, print_function,
 
 from . import base
 from . import utils
-from ..utils import is_effectively_unity
 
 
 class Console(base.Base):
@@ -67,7 +66,7 @@ class Console(base.Base):
         from .. import core
 
         if isinstance(unit, core.CompositeUnit):
-            if is_effectively_unity(unit.scale):
+            if unit.scale == 1:
                 s = ''
             else:
                 s = self._format_exponential_notation(unit.scale)

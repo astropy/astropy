@@ -8,7 +8,6 @@ from __future__ import (absolute_import, division, print_function,
 import warnings
 
 from . import generic
-from ..utils import is_effectively_unity
 from . import utils
 
 
@@ -102,7 +101,7 @@ class VOUnit(generic.Generic):
 
         if isinstance(unit, core.CompositeUnit):
             s = ''
-            if not is_effectively_unity(unit.scale):
+            if unit.scale != 1:
                 m, ex = utils.split_mantissa_exponent(unit.scale)
                 if m:
                     s += m + ' '

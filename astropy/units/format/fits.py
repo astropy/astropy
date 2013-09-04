@@ -10,7 +10,6 @@ from __future__ import (absolute_import, division, print_function,
 import warnings
 
 from . import generic
-from ..utils import is_effectively_unity
 from . import utils
 
 
@@ -108,7 +107,7 @@ class Fits(generic.Generic):
         unit = utils.decompose_to_known_units(unit, self._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
-            if not is_effectively_unity(unit.scale):
+            if unit.scale != 1:
                 raise ValueError(
                     "The FITS unit format is not able to represent scale. "
                     "Multiply your data by {0:e}.".format(unit.scale))

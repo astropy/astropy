@@ -9,7 +9,6 @@ from __future__ import (absolute_import, division, print_function,
 
 from . import base
 from . import utils
-from ..utils import is_effectively_unity
 
 
 class Latex(base.Base):
@@ -66,7 +65,7 @@ class Latex(base.Base):
         if latex_name is not None:
             s = latex_name
         elif isinstance(unit, core.CompositeUnit):
-            if is_effectively_unity(unit.scale):
+            if unit.scale == 1:
                 s = ''
             else:
                 s = self._format_exponential_notation(unit.scale) + r'\,'

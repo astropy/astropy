@@ -12,7 +12,6 @@ import re
 
 from . import utils
 from .base import Base
-from ..utils import is_effectively_unity
 
 
 class Generic(Base):
@@ -383,7 +382,7 @@ class Generic(Base):
         if isinstance(unit, core.CompositeUnit):
             parts = []
 
-            if self._show_scale and not is_effectively_unity(unit.scale):
+            if self._show_scale and unit.scale != 1:
                 parts.append('{0:g}'.format(unit.scale))
 
             if len(unit.bases):

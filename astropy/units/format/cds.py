@@ -12,7 +12,6 @@ import os
 import re
 
 from .base import Base
-from ..utils import is_effectively_unity
 from . import utils
 
 
@@ -319,7 +318,7 @@ class CDS(Base):
         unit = utils.decompose_to_known_units(unit, self._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
-            if is_effectively_unity(unit.scale):
+            if unit.scale == 1:
                 s = ''
             else:
                 m, e = utils.split_mantissa_exponent(unit.scale)
