@@ -11,6 +11,13 @@ Bug Fixes
     example). This still causes a Python traceback but better that than a
     segfault. [#1332]
 
+- ``astropy.wcs``
+
+  - When passing a single array to the wcs transformation functions,
+    (`astropy.wcs.Wcs.all_pix2world`, etc.), its second dimension must
+    now exactly match the number of dimensions in the
+    transformation. [#1395]
+
 
 0.2.4 (2013-07-24)
 ------------------

@@ -349,6 +349,32 @@ def test_shape_mismatch():
         xp, yp = w.wcs_world2pix(x, y, 1)
     assert exc.value.args[0] == "Coordinate arrays are not broadcastable to each other"
 
+    # There are some ambiguities that need to be worked around when
+    # naxis == 1
+    w = wcs.WCS(naxis=1)
+
+    x = np.random.random((42, 1))
+    xw = w.wcs_pix2world(x, 1)
+    assert xw.shape == (42, 1)
+
+    x = np.random.random((42,))
+    xw, = w.wcs_pix2world(x, 1)
+    assert xw.shape == (42,)
+
+
+def test_invalid_shape():
+    # Issue #1395
+    w = wcs.WCS(naxis=2)
+
+    xy = np.random.random((2, 3))
+    with pytest.raises(ValueError) as exc:
+        xy2 = w.wcs_pix2world(xy, 1)
+
+    xy = np.random.random((2, 1))
+    with pytest.raises(ValueError) as exc:
+        xy2 = w.wcs_pix2world(xy, 1)
+
+
 @raises(wcs._wcs.InvalidTransformError)
 def test_find_all_wcs_crash():
     """
