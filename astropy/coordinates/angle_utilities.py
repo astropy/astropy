@@ -568,15 +568,29 @@ def degrees_to_string(d, precision=5, pad=False, sep=':', fields=3):
                                  sep=sep, fields=fields)
 
 
-def vincenty_sphere_dist(lon1, lat1, lon2, lat2):
+def angular_separation(lon1, lat1, lon2, lat2):
     """
-    Angular distance on a sphere, derived using the Vincenty formula.
-    This formula is slighly more complex and computationally expensive than
+    Angular separation between two points on a sphere
+
+    Parameters
+    ----------
+    lon1, lat1, lon2, lat2 : Angle, Quantity or float
+        Longitude and latitude of the two points.  Quantities should be in
+        angular units; floats in radians
+
+    Returns
+    -------
+    angular separation : Quantity or float
+        Type depends on input; Quantity in angular units, or float in radians
+
+    Notes
+    -----
+    The angular separation is calculated using the Vincenty formula [1]_,
+    which is slighly more complex and computationally expensive than
     some alternatives, but is stable at at all distances, including the
     poles and antipodes.
 
-    Inputs can be Angles, Quantities with Angle units, or
-    float/arrays in radians.
+    .. [1] http://en.wikipedia.org/wiki/Great-circle_distance
     """
 
     from numpy import sin, cos, arctan2, sqrt
