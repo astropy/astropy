@@ -2069,7 +2069,7 @@ class Table(object):
                 raise TypeError("Mismatch between type of vals and mask")
 
             if len(self.columns) != len(vals):
-                raise ValueError('Mismatch bETWEEN NUMBer of vals and columns')
+                raise ValueError('Mismatch between number of vals and columns')
 
             if not isinstance(vals, tuple):
                 vals = tuple(vals)
@@ -2099,7 +2099,7 @@ class Table(object):
             self._data.resize((newlen,), refcheck=False)
 
         # Assign the new row
-        self._data[-1] = test_data[-1]
+        self._data[-1:] = test_data
 
         self._rebuild_table_column_views()
 
