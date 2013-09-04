@@ -219,13 +219,13 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
-  - The ``write()`` function was ignoring the ``fill_values`` argument [#910].
+  - The ``write()`` function was ignoring the ``fill_values`` argument. [#910]
 
 - ``astropy.units``
 
   - Fixed a bug that caused the order of multiplication/division of plain
     Numpy arrays with Quantities to matter (i.e. if the plain array comes
-    first the units were not preserved in the output) [#899].
+    first the units were not preserved in the output). [#899]
 
 
 0.2.5 (unreleased)
@@ -247,6 +247,14 @@ Bug Fixes
     (`astropy.wcs.Wcs.all_pix2world`, etc.), its second dimension must
     now exactly match the number of dimensions in the
     transformation. [#1395]
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- When importing Astropy from a source checkout without having built the
+  extension modules first an ``ImportError`` is raised rather than a
+  ``SystemExit`` exception. [#1269]
+
 
 0.2.4 (2013-07-24)
 ------------------
