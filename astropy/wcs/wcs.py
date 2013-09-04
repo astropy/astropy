@@ -303,7 +303,12 @@ class WCS(WCSBase):
             keysel_flags = _parse_keysel(keysel)
 
             if isinstance(header, string_types):
-                if os.path.exists(header):
+                try:
+                    is_path = os.path.exists(header)
+                except (IOError, ValueError):
+                    is_path = False
+
+                if is_path:
                     if fobj is not None:
                         raise ValueError(
                             "Can not provide both a FITS filename to "
