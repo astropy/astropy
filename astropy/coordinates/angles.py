@@ -68,13 +68,16 @@ class Angle(u.Quantity):
     equivalencies : list of equivalence pairs, optional
         See `~astropy.units.Quantity`.
 
+    copy : bool, optional
+        See `~astropy.units.Quantity`.
+
     Raises
     ------
     `~astropy.units.core.UnitsException`
         If a unit is not provided or it is not an angular unit.
     """
     def __new__(cls, angle, unit=None, dtype=None,
-                equivalencies=[]):
+                equivalencies=[], copy=True):
         unit = cls._convert_unit_to_angle_unit(unit)
         if (unit is not None and
             not unit.is_equivalent(u.radian, equivalencies)):
@@ -130,7 +133,7 @@ class Angle(u.Quantity):
 
         self = super(Angle, cls).__new__(
             cls, angle, unit, dtype=dtype,
-            equivalencies=equivalencies)
+            equivalencies=equivalencies, copy=copy)
 
         return self
 
@@ -170,13 +173,11 @@ class Angle(u.Quantity):
         return super(Angle, self).__quantity_view__(
             obj, unit)
 
-    def __quantity_instance__(self, val, unit, dtype=None, equivalencies=[]):
+    def __quantity_instance__(self, val, unit, **kwargs):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
-            return Angle(val, unit, dtype=dtype,
-                         equivalencies=equivalencies)
-        return super(Angle, self).__quantity_instance__(
-            val, unit, dtype=dtype, equivalencies=equivalencies)
+            return Angle(val, unit, **kwargs)
+        return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
 
     def __array_wrap__(self, obj, context=None):
         obj = super(Angle, self).__array_wrap__(obj, context=context)
@@ -521,8 +522,8 @@ class Latitude(Angle):
     `~astropy.units.core.UnitsException`
         If a unit is not provided or it is not an angular unit.
     """
-    def __new__(cls, angle, unit=None):
-        self = super(Latitude, cls).__new__(cls, angle, unit=unit)
+    def __new__(cls, angle, unit=None, **kwargs):
+        self = super(Latitude, cls).__new__(cls, angle, unit=unit, **kwargs)
         self._validate_angles()
         return self
 
@@ -581,8 +582,8 @@ class Longitude(Angle):
     `~astropy.units.core.UnitsException`
         If a unit is not provided or it is not an angular unit.
     """
-    def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg):
-        self = super(Longitude, cls).__new__(cls, angle, unit=unit)
+    def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg, **kwargs):
+        self = super(Longitude, cls).__new__(cls, angle, unit=unit, **kwargs)
         self.wrap_angle = wrap_angle
         return self
 
