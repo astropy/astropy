@@ -38,11 +38,16 @@ def test_angsep():
     """
     Tests that the angular separation object also behaves correctly.
     """
-    from math import fabs
-
-    from ... import units as u
+    from numpy import fabs, deg2rad
+    from ...units import Quantity
+    from ..angles import Angle
     from ..angle_utilities import angular_separation
 
-    for (lon1, lat1, lon2, lat2), corrsep in zip(coords, correct_seps):
-        angsep = angular_separation(lon1, lat1, lon2, lat2)
-        assert fabs(angsep.degree - corrsep) < correctness_margin
+    # check it both works with floats in radians, Quantities, or Angles
+    for conv in (deg2rad,
+                 lambda x: Quantity(x, "deg"),
+                 lambda x: Angle(x, "deg")):
+        for (lon1, lat1, lon2, lat2), corrsep in zip(coords, correct_seps):
+            angsep = angular_separation(conv(lon1), conv(lat1),
+                                        conv(lon2), conv(lat2))
+            assert fabs(angsep - conv(corrsep)) < conv(correctness_margin)
