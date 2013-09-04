@@ -62,6 +62,13 @@ class SetupData(object):
             return self._d
 
     @property
+    def obj(self):
+        if self._column_type is not None:
+            if not hasattr(self, '_obj'):
+                self._obj = self._column_type(name='obj', data=[1, 'string', 3], dtype='O')
+            return self._obj
+
+    @property
     def t(self):
         if self._table_type is not None:
             if not hasattr(self, '_t'):
@@ -486,25 +493,29 @@ class TestAddRow(SetupData):
 
     def test_add_none_to_empty_table(self, table_types):
         self._setup(table_types)
-        t = table_types.Table(names=('a', 'b'), dtype=('i', 'S4'))
+        t = table_types.Table(names=('a', 'b', 'c'), dtype=('i', 'S4', 'O'))
         t.add_row()
         assert t['a'][0] == 0
         assert t['b'][0] == b''
+        assert t['c'][0] == 0
         t.add_row()
         assert t['a'][1] == 0
         assert t['b'][1] == b''
+        assert t['c'][1] == 0
 
     def test_add_stuff_to_empty_table(self, table_types):
         self._setup(table_types)
-        t = table_types.Table(names=('a', 'b'), dtype=('i', 'S8'))
-        t.add_row([1, 'hello'])
+        t = table_types.Table(names=('a', 'b', 'obj'), dtype=('i', 'S8', 'O'))
+        t.add_row([1, 'hello', 'world'])
         assert t['a'][0] == 1
         assert t['b'][0] == b'hello'
+        assert t['obj'][0] == 'world'
         # Make sure it is not repeating last row but instead
         # adding zeros (as documented)
         t.add_row()
         assert t['a'][1] == 0
         assert t['b'][1] == b''
+        assert t['obj'][1] == 0
 
     def test_add_table_row(self, table_types):
         self._setup(table_types)
@@ -515,6 +526,15 @@ class TestAddRow(SetupData):
         assert np.all(t['a'] == np.array([1, 2, 3, 1]))
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 4.0]))
         assert np.all(t['c'] == np.array(['7', '8', '9', '7']))
+
+    def test_add_table_row_obj(self, table_types):
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.b, self.obj])
+        t.add_row([1, 4.0, [10]])
+        assert len(t) == 4
+        assert np.all(t['a'] == np.array([1, 2, 3, 1]))
+        assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 4.0]))
+        assert np.all(t['obj'] == np.array([1, 'string', 3, [10]], dtype='O'))
 
     def test_add_with_tuple(self, table_types):
         self._setup(table_types)
