@@ -234,7 +234,9 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
             votable = parse(content_buffer, pedantic=False, filename=filename)
         except ValueError as e:
             lines.append(str(e))
-    lines = [str(x.message) for x in warning_lines] + lines
+
+    lines = [str(x.message) for x in warning_lines if
+             issubclass(x.category, exceptions.VOWarning)] + lines
 
     content_buffer.seek(0)
     output.write("Validation report for {0}\n\n".format(filename))
