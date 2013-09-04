@@ -247,6 +247,9 @@ latex_preamble = r"""
 \DeclareUnicodeCharacter{2078}{\ensuremath{^8}}
 \DeclareUnicodeCharacter{2079}{\ensuremath{^9}}
 \DeclareUnicodeCharacter{207B}{\ensuremath{^-}}
+\DeclareUnicodeCharacter{00B0}{\ensuremath{^{\circ}}}
+\DeclareUnicodeCharacter{2032}{\ensuremath{^{\prime}}}
+\DeclareUnicodeCharacter{2033}{\ensuremath{^{\prime\prime}}}
 
 % Make the "warning" and "notes" sections use a sans-serif font to
 % make them stand out more.
