@@ -93,9 +93,12 @@ class Quantity(np.ndarray):
         A list of equivalence pairs. See :ref:`unit_equivalencies`.
 
     copy : bool, optional
-        If True (default), then the value is copied.  Otherwise, a copy
+        If `True` (default), then the value is copied.  Otherwise, a copy
         will only be made if `__array__` returns a copy, if obj is a
         nested sequence, or if a copy is needed to satisfy `dtype`.
+        (The `False` option is intended mostly for internal use, to speed
+        up initialization where it is known a copy has been made already.
+        Use with care.)
 
     Raises
     ------
