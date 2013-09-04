@@ -62,11 +62,15 @@ def _validate_value(value, dtype, copy):
     if (isinstance(value, (numbers.Number, np.number, np.ndarray)) or
             isiterable(value)):
         value_obj = np.array(value, dtype=dtype, copy=copy)
-    else:
-        raise TypeError("The value must be a valid Python or Numpy numeric "
-                        "type.")
 
-    return value_obj
+        # It would seem reasonable to exclude object arrays here also,
+        # but then long integers do not work.
+        if value_obj.dtype.kind not in 'SU':
+            return value_obj
+
+    raise TypeError("The value must be a valid Python or Numpy numeric "
+                    "type.")
+
 
 
 class Quantity(np.ndarray):
