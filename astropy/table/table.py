@@ -1755,4 +1755,4 @@ class Table(object):
     @property
     def meta(self):
         return self._meta
-    
+
