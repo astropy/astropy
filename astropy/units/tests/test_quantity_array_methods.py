@@ -19,8 +19,6 @@ class TestQuantityArrayCopy(object):
         v = np.arange(1000.)
         q_nocopy = u.Quantity(v, "km/s", copy=False)
         q_copy = u.Quantity(v, "km/s", copy=True)
-        assert q_nocopy.base is v
-        assert q_copy.base is not v
         v[0] = -1.
         assert q_nocopy[0].value == v[0]
         assert q_copy[0].value != v[0]
@@ -44,7 +42,6 @@ class TestQuantityArrayCopy(object):
     def test_getitem_does_not_copy(self):
         q = u.Quantity(np.arange(100.), "m/s")
         q_sel = q[10:20]
-        assert q_sel.base is q
         q_sel[0] = -1.*u.m/u.s
         assert q_sel[0] == q[10]
 
@@ -136,17 +133,18 @@ class TestQuantityStatsFuncs(object):
     def test_clip(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.km / u.m
         c1 = q1.clip(1500, 5.5 * u.Mm / u.km)
-        assert all(c1 == np.array([1.5, 2., 4., 5., 5.5]) * u.km / u.m)
+        assert np.all(c1 == np.array([1.5, 2., 4., 5., 5.5]) * u.km / u.m)
 
     def test_clip_inplace(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.km / u.m
         c1 = q1.clip(1500, 5.5 * u.Mm / u.km, out=q1)
-        assert c1.value.base is q1.value.base
-        assert all(q1 == np.array([1.5, 2., 4., 5., 5.5]) * u.km / u.m)
+        assert np.all(q1 == np.array([1.5, 2., 4., 5., 5.5]) * u.km / u.m)
+        c1[0] = 10 * u.Mm/u.mm
+        assert np.all(c1.value == q1.value)
 
     def test_conj(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.km / u.m
-        assert all(q1.conj() == q1)
+        assert np.all(q1.conj() == q1)
 
     def test_ptp(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
