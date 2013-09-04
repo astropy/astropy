@@ -131,7 +131,7 @@ def is_in_test_command():
 original_open = None
 oldconfigdir = None
 oldcachedir = None
-def pytest_configure():
+def pytest_configure(config):
     #set up environment variables to fake the config and cache systems,
     #unless this has already been done by the distutils test command
     if not is_in_test_command():
@@ -152,13 +152,21 @@ def pytest_configure():
     tmpdir = tempfile.gettempdir()
 
     def restricted_open(filename, mode='r', *args, **kwargs):
-        if (('w' in mode or 'a' in mode) and
-            not os.path.abspath(filename).startswith(tmpdir)
-            and not '__pycache__' in filename and
-            not os.path.basename(filename) == 'junit.xml'):
-            raise IOError(
-                "Tried to write to a non-temporary directory '%s'" %
-                filename)
+        if ('w' in mode or 'a' in mode):
+            absfn = os.path.abspath(filename)
+            #first see if it's a temporary file
+            istemp = absfn.startswith(tmpdir)
+            #if it's not in the standard tmpdir, check in py.test
+            # py.test's `tmpdir` plugin has its own temporary directory, which
+            # *sometimes* is not the same as the stdlib tempfile.gettempdir()
+            if not istemp and hasattr(config, '_tmpdirhandler'):
+                istemp = absfn.startswith(str(config._tmpdirhandler.getbasetemp()))
+            if (not istemp and
+                not '__pycache__' in filename and
+                not os.path.basename(filename) == 'junit.xml'):
+                raise IOError(
+                    "Tried to write to invalid location '%s'" %
+                    filename)
         return original_open(filename, mode, *args, **kwargs)
     __builtins__['open'] = restricted_open
 
