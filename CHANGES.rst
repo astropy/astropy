@@ -245,6 +245,20 @@ Bug Fixes
     example). This still causes a Python traceback but better that than a
     segfault. [#1332]
 
+  - Newly created ``CompImageHDU`` HDUs use the correct value of the
+    ``DEFAULT_COMPRESSION_TYPE`` module-level constant instead of hard-coding
+    "RICE_1" in the header.
+
+  - Fixed a corner case where when extra memory is allocated to compress an
+    image, it could lead to unnecessary in-memory copying of the compressed
+    image data and a possible memory leak through Numpy.
+
+  - Fixed a bug where assigning from an mmap'd array in one FITS file over
+    the old (also mmap'd) array in another FITS file failed to update the
+    destination file. Corresponds to PyFITS issue 25.
+
+  - Some miscellaneous documentation fixes.
+
 - ``astropy.wcs``
 
   - When passing a single array to the wcs transformation functions,

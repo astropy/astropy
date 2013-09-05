@@ -170,38 +170,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 cards.extend(hcopy.cards)
 
             self._header = Header(cards)
-
-            if isinstance(data, np.ndarray) and data.dtype.fields is not None:
-                if isinstance(data, self._data_type):
-                    self.data = data
-                else:
-                    self.data = data.view(self._data_type)
-
-                self._header['NAXIS1'] = self.data.itemsize
-                self._header['NAXIS2'] = self.data.shape[0]
-                self._header['TFIELDS'] = len(self.data._coldefs)
-
-                self.columns = self.data._coldefs
-                self.update()
-
-                try:
-                    # Make the ndarrays in the Column objects of the ColDefs
-                    # object of the HDU reference the same ndarray as the HDU's
-                    # FITS_rec object.
-                    for idx in range(len(self.columns)):
-                        self.columns[idx].array = self.data.field(idx)
-
-                    # Delete the _arrays attribute so that it is recreated to
-                    # point to the new data placed in the column objects above
-                    del self.columns._arrays
-                except (TypeError, AttributeError) as e:
-                    # This shouldn't happen as long as self.columns._arrays
-                    # is a lazyproperty
-                    pass
-            elif data is None:
-                pass
-            else:
-                raise TypeError('Table data has incorrect type.')
+            self.data = data
 
         if not (isinstance(self._header[0], basestring) and
                 self._header[0].rstrip() == self._extension):
@@ -235,6 +204,57 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         data.formats = self.columns.formats
         # Columns should now just return a reference to the data._coldefs
         del self.columns
+        return data
+
+    @data.setter
+    def data(self, data):
+        if 'data' in self.__dict__:
+            if self.__dict__['data'] is data:
+                return
+            else:
+                self._data_replaced = True
+        else:
+            self._data_replaced = True
+
+        self._modified = True
+
+        if data is None and self.columns:
+            # Create a new table with the same columns, but empty rows
+            formats = ','.join(self.columns._recformats)
+            data = np.rec.array(None, formats=formats,
+                                names=self.columns.names,
+                                shape=0)
+
+        if isinstance(data, np.ndarray) and data.dtype.fields is not None:
+            if not isinstance(data, self._data_type):
+                data = data.view(self._data_type)
+
+            self.__dict__['data'] = data
+
+            self.columns = self.data._coldefs
+            self.update()
+
+            try:
+               # Make the ndarrays in the Column objects of the ColDefs
+               # object of the HDU reference the same ndarray as the HDU's
+               # FITS_rec object.
+                for idx in range(len(self.columns)):
+                    self.columns[idx].array = self.data.field(idx)
+
+                # Delete the _arrays attribute so that it is recreated to
+                # point to the new data placed in the column objects above
+                del self.columns._arrays
+            except (TypeError, AttributeError) as e:
+                # This shouldn't happen as long as self.columns._arrays
+                # is a lazyproperty
+                pass
+        elif data is None:
+            pass
+        else:
+            raise TypeError('Table data has incorrect type.')
+
+        # returning the data signals to lazyproperty that we've already handled
+        # setting self.__dict__['data']
         return data
 
     @lazyproperty
@@ -348,13 +368,13 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """Wipe out any existing table definition keywords from the header."""
 
         # Go in reverse so as to not confusing indexing while deleting.
-        for idx, keyword in enumerate(reversed(self._header.keys())):
+        for idx, keyword in reversed(list(enumerate(self._header.keys()))):
             keyword = TDEF_RE.match(keyword)
             try:
                 keyword = keyword.group('label')
             except:
                 continue                # skip if there is no match
-            if (keyword in KEYWORD_NAMES):
+            if keyword in KEYWORD_NAMES:
                 del self._header[idx]
 
     def _populate_table_keywords(self):
@@ -1140,7 +1160,7 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
     # use the largest column shape as the shape of the record
     if nrows == 0:
         for arr in columns._arrays:
-            if (arr is not None):
+            if arr is not None:
                 dim = arr.shape[0]
             else:
                 dim = 0
@@ -1156,17 +1176,21 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
             data_type = 'S' + str(columns.spans[j])
             dtype[columns.names[j]] = (data_type, columns.starts[j] - 1)
 
-        hdu.data = np.rec.array((' ' * _itemsize * nrows).encode('ascii'),
-                                dtype=dtype, shape=nrows).view(FITS_rec)
-        hdu.data.setflags(write=True)
+        data = np.rec.array((' ' * _itemsize * nrows).encode('ascii'),
+                            dtype=dtype, shape=nrows).view(FITS_rec)
+        data.setflags(write=True)
     else:
         formats = ','.join(columns._recformats)
-        hdu.data = np.rec.array(None, formats=formats,
-                                names=columns.names,
-                                shape=nrows).view(FITS_rec)
+        data = np.rec.array(None, formats=formats,
+                            names=columns.names,
+                            shape=nrows).view(FITS_rec)
 
-    hdu.data._coldefs = hdu.columns
-    hdu.data.formats = hdu.columns.formats
+    # Previously this assignment was made from hdu.columns, but that's a bug
+    # since if a _TableBaseHDU has a FITS_rec in its .data attribute the
+    # _TableBaseHDU.columns property is actually returned from .data._coldefs,
+    # so this assignment was circular!  Don't make that mistake again
+    data._coldefs = columns
+    data.formats = columns.formats
 
     # Populate data to the new table from the ndarrays in the input ColDefs
     # object.
@@ -1191,9 +1215,9 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
             n = 0
 
         # Get any scale factors from the FITS_rec
-        scale, zero, bscale, bzero, dim = hdu.data._get_scale_factors(idx)[3:]
+        scale, zero, bscale, bzero, dim = data._get_scale_factors(idx)[3:]
 
-        field = np.rec.recarray.field(hdu.data, idx)
+        field = np.rec.recarray.field(data, idx)
 
         if n > 0:
             # Only copy data if there is input data to copy
@@ -1207,8 +1231,8 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
                     # from a table parent data, just pass it
                     field[:n] = arr[:n]
             elif isinstance(recformat, _FormatP):
-                hdu.data._convert[idx] = _makep(arr[:n], field, recformat,
-                                                nrows=nrows)
+                data._convert[idx] = _makep(arr[:n], field, recformat,
+                                            nrows=nrows)
             elif recformat[-2:] == FITS2NUMPY['L'] and arr.dtype == bool:
                 # column is boolean
                 field[:n] = np.where(arr == False, ord('F'), ord('T'))
@@ -1218,15 +1242,14 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
                     if isinstance(arr, chararray.chararray):
                         field[:n] = arr[:n]
                     else:
-                        hdu.data._convert[idx] = \
-                            np.zeros(nrows, dtype=arr.dtype)
+                        data._convert[idx] = np.zeros(nrows, dtype=arr.dtype)
                         if scale or zero:
                             arr = arr.copy()
                         if scale:
                             arr *= bscale
                         if zero:
                             arr += bzero
-                        hdu.data._convert[idx][:n] = arr[:n]
+                        data._convert[idx][:n] = arr[:n]
                 else:
                     outarr = field[:n]
                     inarr = arr[:n]
@@ -1261,18 +1284,9 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
                 else:
                     field[n:] = ''
             else:
-                field[n:] = ' ' * hdu.data._coldefs.spans[idx]
+                field[n:] = ' ' * data._coldefs.spans[idx]
 
-    # Update the HDU header to match the data
-    hdu.update()
-
-    # Make the ndarrays in the Column objects of the ColDefs object of the HDU
-    # reference the same ndarray as the HDU's FITS_rec object.
-    for idx in range(len(columns)):
-        hdu.columns[idx].array = hdu.data.field(idx)
-
-    # Delete the _arrays attribute so that it is recreated to point to the
-    # new data placed in the column objects above
-    del hdu.columns._arrays
+    del hdu.columns
+    hdu.data = data
 
     return hdu
