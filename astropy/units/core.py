@@ -359,7 +359,7 @@ class UnitBase(object):
     def __rmul__(self, m):
         from .quantity import Quantity
         if isinstance(m, six.string_types):
-            return Unit(m) * Quantity(1, self)
+            return Unit(m) * self
         else:
             return Quantity(m, self)
 
