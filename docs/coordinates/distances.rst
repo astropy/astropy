@@ -13,7 +13,7 @@ valid.::
     >>> from astropy.coordinates import Distance
     >>> from astropy import units as u
     >>> d = Distance(770)
-    ERROR: UnitsException: A unit must be provided for distance. [astropy.coordinates.distances]
+    ERROR: UnitsError: A unit must be provided for distance. [astropy.coordinates.distances]
     >>> d = Distance(770, u.kpc)
     >>> c = ICRSCoordinates('00h42m44.3s +41d16m9s', distance=d)
     >>> c

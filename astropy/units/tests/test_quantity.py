@@ -60,7 +60,7 @@ class TestQuantityCreation(object):
             q4 = u.Quantity(object(), unit=u.m)
 
     def test_3(self):
-        # with pytest.raises(u.UnitsException):
+        # with pytest.raises(u.UnitsError):
         with pytest.raises(ValueError):  # Until @mdboom fixes the errors in units
             q1 = u.Quantity(11.412, unit="testingggg")
 
@@ -222,7 +222,7 @@ class TestQuantityOperations(object):
         q1 = u.Quantity(11.412, unit=u.meter)
         q2 = u.Quantity(21.52, unit=u.second)
 
-        with pytest.raises(u.UnitsException):
+        with pytest.raises(u.UnitsError):
             new_q = q1 + q2
 
     def test_dimensionless_operations(self):
@@ -238,10 +238,10 @@ class TestQuantityOperations(object):
 
         # this test will check that operations with dimensionless Quantities
         # don't work
-        with pytest.raises(u.UnitsException):
+        with pytest.raises(u.UnitsError):
             self.q1 + u.Quantity(0.1, unit=u.Unit(""))
 
-        with pytest.raises(u.UnitsException):
+        with pytest.raises(u.UnitsError):
             self.q1 - u.Quantity(0.1, unit=u.Unit(""))
 
         # and test that scaling of integers works
@@ -345,7 +345,7 @@ def test_quantity_conversion():
     new_quantity = q1.to(u.kilometer)
     assert new_quantity.value == 0.0001
 
-    with pytest.raises(u.UnitsException):
+    with pytest.raises(u.UnitsError):
         q1.to(u.zettastokes)
 
 
@@ -412,17 +412,17 @@ class TestQuantityComparison(object):
     def test_quantity_equality(self):
         assert u.Quantity(1000, unit='m') == u.Quantity(1, unit='km')
         assert not (u.Quantity(1, unit='m') == u.Quantity(1, unit='km'))
-        with pytest.raises(u.UnitsException):
+        with pytest.raises(u.UnitsError):
             u.Quantity(1, unit='m') == u.Quantity(1, unit='s')
 
     def test_quantity_comparison(self):
         assert u.Quantity(1100, unit=u.meter) > u.Quantity(1, unit=u.kilometer)
         assert u.Quantity(900, unit=u.meter) < u.Quantity(1, unit=u.kilometer)
 
-        with pytest.raises(u.UnitsException):
+        with pytest.raises(u.UnitsError):
             assert u.Quantity(1100, unit=u.meter) > u.Quantity(1, unit=u.second)
 
-        with pytest.raises(u.UnitsException):
+        with pytest.raises(u.UnitsError):
             assert u.Quantity(1100, unit=u.meter) < u.Quantity(1, unit=u.second)
 
         assert u.Quantity(1100, unit=u.meter) >= u.Quantity(1, unit=u.kilometer)
@@ -431,16 +431,16 @@ class TestQuantityComparison(object):
         assert u.Quantity(900, unit=u.meter) <= u.Quantity(1, unit=u.kilometer)
         assert u.Quantity(1000, unit=u.meter) <= u.Quantity(1, unit=u.kilometer)
 
-        with pytest.raises(u.UnitsException):
+        with pytest.raises(u.UnitsError):
             assert u.Quantity(
                 1100, unit=u.meter) >= u.Quantity(1, unit=u.second)
 
-        with pytest.raises(u.UnitsException):
+        with pytest.raises(u.UnitsError):
             assert u.Quantity(1100, unit=u.meter) <= u.Quantity(1, unit=u.second)
 
         assert u.Quantity(1200, unit=u.meter) != u.Quantity(1, unit=u.kilometer)
 
-        with pytest.raises(u.UnitsException):
+        with pytest.raises(u.UnitsError):
             assert u.Quantity(1100, unit=u.meter) != u.Quantity(1, unit=u.second)
 
 
@@ -518,9 +518,9 @@ def test_arrays():
     assert_array_equal((qsec / 2).value, (np.arange(10) / 2))
     # quantity addition/subtraction should *not* work with arrays b/c unit
     # ambiguous
-    with pytest.raises(u.UnitsException):
+    with pytest.raises(u.UnitsError):
         assert_array_equal((qsec + 2).value, (np.arange(10) + 2))
-    with pytest.raises(u.UnitsException):
+    with pytest.raises(u.UnitsError):
         assert_array_equal((qsec - 2).value, (np.arange(10) + 2))
 
     # should create by unit multiplication, too

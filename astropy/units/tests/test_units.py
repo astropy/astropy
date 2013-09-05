@@ -46,9 +46,9 @@ def test_convert():
 
 
 def test_convert_fail():
-    with pytest.raises(u.UnitsException):
+    with pytest.raises(u.UnitsError):
         u.cm.to(u.s, 1)
-    with pytest.raises(u.UnitsException):
+    with pytest.raises(u.UnitsError):
         (u.cm / u.s).to(u.m, 1)
 
 
@@ -167,14 +167,14 @@ def test_unit_noarg():
 def test_convertible_exception():
     try:
         u.AA.to(u.h * u.s ** 2)
-    except u.UnitsException as e:
+    except u.UnitsError as e:
         assert "length" in str(e)
 
 
 def test_convertible_exception2():
     try:
         u.m.to(u.s)
-    except u.UnitsException as e:
+    except u.UnitsError as e:
         assert "length" in str(e)
 
 
@@ -259,7 +259,7 @@ def test_compose_si_to_cgs():
         # Can't convert things with Ampere to CGS without more context
         try:
             unit.to_system(u.cgs)
-        except u.UnitsException:
+        except u.UnitsError:
             if u.A in unit.decompose().bases:
                 pass
             else:
@@ -297,7 +297,7 @@ def test_self_compose():
     assert len(unit.compose(units=[u.g, u.s])) == 1
 
 
-@raises(u.UnitsException)
+@raises(u.UnitsError)
 def test_compose_failed():
     unit = u.kg
 

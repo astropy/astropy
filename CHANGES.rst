@@ -214,6 +214,10 @@ API Changes
       from another Quantity and with no unit specified in the initializer, the
       unit is now taken from the unit of the Quantity being initialized from.
 
+  - The exception ``astropy.units.UnitsException`` has been renamed to
+    ``astropy.units.UnitsError`` to be more consistent with the naming
+    of built-in Python exceptions.
+
 Bug Fixes
 ^^^^^^^^^^
 

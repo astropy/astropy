@@ -465,7 +465,7 @@ class NDData(object):
 
         Raises
         ------
-        UnitsException
+        UnitsError
             If units are inconsistent.
         """
         if self.unit is None:

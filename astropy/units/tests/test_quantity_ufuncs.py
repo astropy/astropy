@@ -143,10 +143,10 @@ class TestQuantityTrigonometricFuncs(object):
         assert_allclose(at2, np.arctan2(q3.to(1).value, q4))
 
     def test_arctan2_invalid(self):
-        with pytest.raises(u.UnitsException) as exc:
+        with pytest.raises(u.UnitsError) as exc:
             np.arctan2(np.array([1, 2, 3]) * u.N, 1. * u.s)
         assert "compatible dimensions" in exc.value.args[0]
-        with pytest.raises(u.UnitsException) as exc:
+        with pytest.raises(u.UnitsError) as exc:
             np.arctan2(np.array([1, 2, 3]) * u.N, 1.)
         assert "dimensionless quantities when other arg" in exc.value.args[0]
 
@@ -459,7 +459,7 @@ class TestInvariantUfuncs(object):
 
         q_i1 = 4.7 * u.m
         q_i2 = 9.4 * u.s
-        with pytest.raises(u.UnitsException) as exc:
+        with pytest.raises(u.UnitsError) as exc:
             ufunc(q_i1, q_i2)
         assert "compatible dimensions" in exc.value.args[0]
 
@@ -487,7 +487,7 @@ class TestComparisonUfuncs(object):
     def test_comparison_invalid_units(self, ufunc):
         q_i1 = 4.7 * u.m
         q_i2 = 9.4 * u.s
-        with pytest.raises(u.UnitsException) as exc:
+        with pytest.raises(u.UnitsError) as exc:
             ufunc(q_i1, q_i2)
         assert "compatible dimensions" in exc.value.args[0]
 
@@ -557,7 +557,7 @@ class TestInplaceUfuncs(object):
         np.arctan2(s, s, out=s)
         assert check is s
         assert check.unit == u.radian
-        with pytest.raises(u.UnitsException):
+        with pytest.raises(u.UnitsError):
             s += 1. * u.m
         assert check is s
         assert check.unit == u.radian

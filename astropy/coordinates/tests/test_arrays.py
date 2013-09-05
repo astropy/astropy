@@ -50,7 +50,7 @@ def test_angle_arrays():
     a9 = Angle(np.array(["04:02:02", "03:02:01", "06:02:01"]), unit=u.degree)
     npt.assert_almost_equal(a9.value, a8.value)
 
-    with pytest.raises(u.UnitsException):
+    with pytest.raises(u.UnitsError):
         a10 = Angle(["04:02:02", "03:02:01", "06:02:01"])
 
 
