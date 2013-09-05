@@ -15,6 +15,7 @@ from __future__ import (absolute_import, division, print_function,
 from . import core
 from . import si
 from . import astrophys
+from . import cgs
 
 
 __all__ = ['def_physical_type', 'get_physical_type']
@@ -115,6 +116,7 @@ for unit, name in [
     (si.W / si.sr, 'radiant intensity'),
     (si.cd / si.m ** 2, 'luminance'),
     (astrophys.Jy, 'spectral flux density'),
+    (cgs.erg / si.angstrom / si.cm ** 2 / si.s, 'spectral flux density wav'),
     (astrophys.R, 'photon flux'),
     (astrophys.bit, 'data quantity'),
     (astrophys.bit / si.s, 'bandwidth')
