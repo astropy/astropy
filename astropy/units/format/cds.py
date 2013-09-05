@@ -336,6 +336,19 @@ class CDS(Base):
         unit = utils.decompose_to_known_units(unit, self._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
+            if unit.physical_type == u'dimensionless':
+                if unit.scale == 1.:
+                    return ''
+                # TODO: replace with is_effectively_unity(unit.scale*100)
+                # and add at top: from ..utils import is_effectively_unity
+                elif unit.scale == 0.01:
+                    return '%'
+
+                raise ValueError("The CDS unit format is not able to "
+                                 "represent scale for dimensionless units. "
+                                 "Multiply your data by {0:e}."
+                                 .format(unit.scale))
+
             if unit.scale == 1:
                 s = ''
             else:
@@ -353,6 +366,7 @@ class CDS(Base):
             pairs.sort(key=lambda x: x[1], reverse=True)
 
             s += self._format_unit_list(pairs)
+
         elif isinstance(unit, core.NamedUnit):
             s = self._get_unit_name(unit)
 

@@ -98,9 +98,7 @@ def test_roundtrip():
         assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
     for key, val in u.__dict__.items():
-        if isinstance(val, core.Unit) and \
-                not isinstance(val, core.PrefixUnit) and \
-                len(val.decompose().bases) > 0:
+        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip, val
 
 
@@ -113,9 +111,7 @@ def test_roundtrip_vo_unit():
 
     x = format.VOUnit()
     for key, val in x._units.items():
-        if(isinstance(val, core.Unit) and
-           not isinstance(val, core.PrefixUnit) and
-           len(val.decompose().bases) > 0):
+        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_vo_unit, val
 
 
@@ -126,9 +122,7 @@ def test_roundtrip_fits():
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
     for key, val in format.Fits()._units.items():
-        if(isinstance(val, core.Unit) and
-           not isinstance(val, core.PrefixUnit) and
-           len(val.decompose().bases) > 0):
+        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_fits, val
 
 
@@ -141,9 +135,7 @@ def test_roundtrip_cds():
 
     x = format.CDS()
     for key, val in x._units.items():
-        if(isinstance(val, core.Unit) and
-           not isinstance(val, core.PrefixUnit) and
-           len(val.decompose().bases) > 0):
+        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_cds, val
 
 

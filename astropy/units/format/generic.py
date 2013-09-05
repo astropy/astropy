@@ -126,11 +126,12 @@ class Generic(Base):
                  | factor division_product_of_units
                  | inverse_unit
                  | factor inverse_unit
+                 | factor
             '''
+            from ..core import Unit
             if len(p) == 2:
-                p[0] = p[1]
+                p[0] = Unit(p[1])
             else:
-                from ..core import Unit
                 p[0] = Unit(p[1] * p[2])
 
         def p_division_product_of_units(p):
