@@ -40,6 +40,7 @@ from . import core
 from . import fixedwidth
 from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
+from ...table.pprint import _format_funcs, _auto_format_func
 
 
 class IpacFormatErrorDBMS(Exception):
@@ -450,9 +451,9 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
     def write(self, lines, widths):
         '''Write header.
 
-        The width of each column is determined in IpacData.write. Writing the header
+        The width of each column is determined in Ipac.write. Writing the header
         must be delayed until that time.
-        This function is called from data, once the width information is
+        This function is called from there, once the width information is
         available.'''
 
         for vals in self.str_vals():
