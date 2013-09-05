@@ -1701,12 +1701,12 @@ def _condition_arg(value):
     ValueError
         If value is not as expected
     """
-    if isinstance(value, (float, int, long)):
+    if isinstance(value, (float, int, long, complex)):
         return value
     else:
         try:
             avalue = np.array(value)
-            if not avalue.dtype.kind in ['i', 'f']:
+            if not avalue.dtype.kind in ['i', 'f', 'c']:
                 raise ValueError("Must be convertable to int or float array")
             if ma.isMaskedArray(value):
                 return value
