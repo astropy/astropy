@@ -19,14 +19,15 @@ import numpy as np
 from numpy import ma
 
 from ..utils.compat.fractions import Fraction
+from ..utils.misc import deprecated
 from . import format as unit_format
 
 # TODO: Support functional units, e.g. log(x), ln(x)
 
 __all__ = [
-    'UnitsException', 'UnitsWarning', 'UnitBase', 'NamedUnit',
-    'IrreducibleUnit', 'Unit', 'def_unit', 'CompositeUnit',
-    'PrefixUnit', 'UnrecognizedUnit']
+    'UnitsError', 'UnitsException', 'UnitsWarning', 'UnitBase',
+    'NamedUnit', 'IrreducibleUnit', 'Unit', 'def_unit',
+    'CompositeUnit', 'PrefixUnit', 'UnrecognizedUnit']
 
 
 class _UnitRegistry(object):
@@ -73,7 +74,7 @@ class _UnitRegistry(object):
             the central registry.  (Default is `False`).
         """
         if not unit._names:
-            raise UnitsException("unit has no string representation")
+            raise UnitsError("unit has no string representation")
 
         # Loop through all of the names first, to ensure all of them
         # are new, then add them all as a single "transaction" below.
@@ -151,11 +152,15 @@ class _UnitRegistry(object):
             set())
 
 
-class UnitsException(Exception):
+class UnitsError(Exception):
     """
     The base class for unit-specific exceptions.
     """
     pass
+
+
+# deprecated alias.  Remove in astropy 0.4
+UnitsException = UnitsError
 
 
 class UnitsWarning(Warning):
@@ -337,11 +342,11 @@ class UnitBase(object):
     def __eq__(self, other):
         try:
             other = Unit(other, parse_strict='silent')
-        except (ValueError, UnitsException):
+        except (ValueError, UnitsError):
             return False
         try:
             return np.allclose(self.to(other, 1), 1.0)
-        except UnitsException:
+        except UnitsError:
             return False
 
     def __ne__(self, other):
@@ -449,7 +454,7 @@ class UnitBase(object):
         unit_str = get_err_str(orig_unit)
         other_str = get_err_str(orig_other)
 
-        raise UnitsException(
+        raise UnitsError(
             "{0} and {1} are not convertible".format(
                 unit_str, other_str))
 
@@ -476,7 +481,7 @@ class UnitBase(object):
 
         Raises
         ------
-        UnitsException
+        UnitsError
             If units are inconsistent
         """
         other = Unit(other)
@@ -485,7 +490,7 @@ class UnitBase(object):
 
         try:
             scale = (self / other)._dimensionless_constant()
-        except UnitsException:
+        except UnitsError:
             return self._apply_equivalences(
                 self, other, equivalencies)
         return lambda val: scale * _condition_arg(val)
@@ -515,7 +520,7 @@ class UnitBase(object):
 
         Raises
         ------
-        UnitException
+        UnitsError
             If units are inconsistent
         """
 
@@ -539,7 +544,7 @@ class UnitBase(object):
             The bases to decompose into.  When not provided,
             decomposes down to any irreducible units.  When provided,
             the decomposed result will only contain the given units.
-            This will raises a `UnitsException` if it's not possible
+            This will raises a `UnitsError` if it's not possible
             to do so.
 
         Returns
@@ -636,7 +641,7 @@ class UnitBase(object):
                     namespace=namespace,
                     max_depth=max_depth, depth=depth + 1,
                     cached_results=cached_results)
-            except UnitsException:
+            except UnitsError:
                 composed_list = []
             for subcomposed in composed_list:
                 results.append(
@@ -661,7 +666,7 @@ class UnitBase(object):
 
         for base in self.bases:
             if base not in namespace:
-                result = UnitsException(
+                result = UnitsError(
                     "Cannot represent unit {0} in terms of the given "
                     "units".format(self))
                 cached_results[key] = result
@@ -729,7 +734,7 @@ class UnitBase(object):
             units = set(units)
 
         if not len(units):
-            raise UnitsException("No units to compose into.")
+            raise UnitsError("No units to compose into.")
 
         def sort_results(results):
             if not len(results):
@@ -1127,7 +1132,7 @@ class IrreducibleUnit(NamedUnit):
                 if self.is_equivalent(base):
                     return CompositeUnit(self.to(base), [base], [1])
 
-            raise UnitsException(
+            raise UnitsError(
                 "Unit {0} can not be decomposed into the requested "
                 "bases".format(self))
 
@@ -1534,7 +1539,7 @@ class CompositeUnit(UnitBase):
         x = self.decompose()
         c = x.scale
         if len(x.bases):
-            raise UnitsException(
+            raise UnitsError(
                 "'{0}' is not dimensionless".format(self.to_string()))
         return c
 

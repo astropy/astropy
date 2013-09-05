@@ -341,22 +341,22 @@ class BaseColumn(object):
     @unit.deleter
     def unit(self):
         self._unit = None
-    
+
     @property
     @deprecated('0.3', alternative=':attr:`Column.unit`')
     def units(self):
         return self.unit
-        
+
     @units.setter
     @deprecated('0.3', alternative=':attr:`Column.unit`')
     def units(self, unit):
         self.unit = unit
-    
+
     @units.deleter
     @deprecated('0.3', alternative=':attr:`Column.unit`')
     def units(self):
         del self.unit
-    
+
     def convert_unit_to(self, new_unit, equivalencies=[]):
         """
         Converts the values of the column in-place from the current
@@ -377,7 +377,7 @@ class BaseColumn(object):
 
         Raises
         ------
-        astropy.units.UnitException
+        astropy.units.UnitsError
             If units are inconsistent
         """
         if self.unit is None:
@@ -475,17 +475,17 @@ class Column(BaseColumn, np.ndarray):
                 dtype=None, shape=(), length=0,
                 description=None, unit=None, format=None, meta=None,
                 dtypes=None, units=None):
-        
+
         if dtypes is not None:
             dtype = dtypes
             warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
                           DeprecationWarning)
-        
+
         if units is not None:
             unit = units
             warnings.warn("'units' has been renamed to the singular 'unit'.",
                           DeprecationWarning)
-            
+
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
             self_data = np.zeros(length, dtype=dtype)
@@ -625,17 +625,17 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
                 dtype=None, shape=(), length=0,
                 description=None, unit=None, format=None, meta=None,
                 units=None, dtypes=None):
-        
+
         if dtypes is not None:
             dtype = dtypes
             warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
                           DeprecationWarning)
-        
+
         if units is not None:
             unit = units
             warnings.warn("'units' has been renamed to the singular 'unit'.",
                           DeprecationWarning)
-        
+
         if NUMPY_LT_1P5:
             raise ValueError('MaskedColumn requires NumPy version 1.5 or later')
 
@@ -900,7 +900,7 @@ class Row(object):
     @property
     def dtype(self):
         return self.data.dtype
-    
+
     @property
     @deprecated('0.3', alternative=':attr:`Row.dtype`', pending=False)
     def dtypes(self):
@@ -947,12 +947,12 @@ class Table(object):
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
                  meta=None, copy=True, dtypes=None):
-        
+
         if dtypes is not None:
             dtype = dtypes
             warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
                           DeprecationWarning)
-        
+
         # Set up a placeholder empty table
         self._data = None
         self._set_masked(masked)
@@ -2150,4 +2150,4 @@ class Table(object):
         return self.copy(True)
 
     def __copy__(self):
-        return self.copy(False)																																																																																																																																																																																																																																																																																																																																																																								
+        return self.copy(False)

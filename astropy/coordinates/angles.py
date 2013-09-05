@@ -73,7 +73,7 @@ class Angle(u.Quantity):
 
     Raises
     ------
-    `~astropy.units.core.UnitsException`
+    `~astropy.units.core.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
     def __new__(cls, angle, unit=None, dtype=None,
@@ -81,7 +81,7 @@ class Angle(u.Quantity):
         unit = cls._convert_unit_to_angle_unit(unit)
         if (unit is not None and
             not unit.is_equivalent(u.radian, equivalencies)):
-            raise u.UnitsException(
+            raise u.UnitsError(
                 "Given unit {0} is not convertible to an angle".format(
                     unit))
 
@@ -129,7 +129,7 @@ class Angle(u.Quantity):
             raise TypeError("Unsupported dtype '{0}'".format(angle.dtype))
 
         if unit is None:
-            raise u.UnitsException("No unit was specified")
+            raise u.UnitsError("No unit was specified")
 
         self = super(Angle, cls).__new__(
             cls, angle, unit, dtype=dtype,
@@ -151,7 +151,7 @@ class Angle(u.Quantity):
             elif unit is u.degree:
                 angle = util.dms_to_degrees(*angle)
             else:
-                raise u.UnitsException(
+                raise u.UnitsError(
                     "Can not parse '{0}' as unit '{1}'".format(
                         angle, unit))
         return angle
@@ -367,7 +367,7 @@ class Angle(u.Quantity):
                         unit.name))
 
         else:
-            raise u.UnitsException(
+            raise u.UnitsError(
                 "The unit value provided is not an angular unit.")
 
         def do_format(val):
@@ -519,7 +519,7 @@ class Latitude(Angle):
 
     Raises
     ------
-    `~astropy.units.core.UnitsException`
+    `~astropy.units.core.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
     def __new__(cls, angle, unit=None, **kwargs):
@@ -579,7 +579,7 @@ class Longitude(Angle):
 
     Raises
     ------
-    `~astropy.units.core.UnitsException`
+    `~astropy.units.core.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
     def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg, **kwargs):

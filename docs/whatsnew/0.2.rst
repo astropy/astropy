@@ -45,7 +45,7 @@ include::
   <GalacticCoordinates l=121.17430 deg, b=-21.57280 deg>
 
 Currently a limited set of standard coordinate systems are included, but more will be
-added in the next release.  There is also an 
+added in the next release.  There is also an
 :ref:`example of creating a custom coordinate system <sgr-example>`  in the documentation.
 
 The package also includes a representation of angles (:class:`~astropy.coordinates.angles.Angle`)
@@ -56,8 +56,8 @@ celestial coordinates, which allows a complete mapping to 3D coordinates::
   >>> c.cartesian
   <CartesianPoints (568.712888217, 107.300935969, 507.889909249) kpc>
 
-The package also supports a simple interface for retrieving coordinates for an object by 
-name using the `Sesame Name Resolver <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ . This works 
+The package also supports a simple interface for retrieving coordinates for an object by
+name using the `Sesame Name Resolver <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ . This works
 on all subclasses of :class:`~astropy.coordinates.coordsystems.SphericalCoordinatesBase`::
 
   >>> c = coord.ICRSCoordinates.from_name("M42")
@@ -67,8 +67,8 @@ on all subclasses of :class:`~astropy.coordinates.coordsystems.SphericalCoordina
   >>> c.l, c.b
   (<Angle -150.98622 deg>, <Angle -19.38162 deg>)
 
-For more details about this feature, see 
-:func:`~astropy.coordinates.name_resolve.get_icrs_coordinates` and 
+For more details about this feature, see
+:func:`~astropy.coordinates.name_resolve.get_icrs_coordinates` and
 :meth:`~astropy.coordinates.coordsystems.SphericalCoordinatesBase.from_name`.
 
 Note that this subpackage is still under heavy development, and likely will
@@ -226,7 +226,7 @@ as that between wavelength and frequency::
 
   # Wavelength to frequency doesn't normally work
   >>> u.nm.to(u.Hz, [1000, 2000])
-  UnitsException: 'nm' (length) and 'Hz' (frequency) are not convertible
+  UnitError: 'nm' (length) and 'Hz' (frequency) are not convertible
   # ...but by passing an equivalency unit (spectral()), it does...
   >>> u.nm.to(u.Hz, [1000, 2000], equivalencies=u.spectral())
   array([  2.99792458e+14,   1.49896229e+14])

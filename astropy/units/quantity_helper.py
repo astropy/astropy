@@ -2,7 +2,7 @@
 # quantities (http://pythonhosted.org/quantities/) package.
 
 import numpy as np
-from .core import UnitsException
+from .core import UnitsError
 
 
 def _d(unit):
@@ -68,7 +68,7 @@ def helper_dimensionless_to_dimensionless(f, unit):
     from . import dimensionless_unscaled
     try:
         scale = unit.to(dimensionless_unscaled)
-    except UnitsException:
+    except UnitsError:
         raise TypeError("Can only apply '{0}' function to "
                         "dimensionless quantities"
                         .format(f.__name__))
@@ -90,7 +90,7 @@ def helper_dimensionless_to_radian(f, unit):
     from . import dimensionless_unscaled
     try:
         scale = unit.to(dimensionless_unscaled)
-    except UnitsException:
+    except UnitsError:
         raise TypeError("Can only apply '{0}' function to "
                         "dimensionless quantities"
                         .format(f.__name__))
@@ -109,7 +109,7 @@ def helper_degree_to_radian(f, unit):
     from .si import degree, radian
     try:
         scale = unit.to(degree)
-    except UnitsException:
+    except UnitsError:
         raise TypeError("Can only apply '{0}' function to "
                         "quantities with angle units"
                         .format(f.__name__))
@@ -124,7 +124,7 @@ def helper_radian_to_degree(f, unit):
     from .si import degree, radian
     try:
         scale = unit.to(radian)
-    except UnitsException:
+    except UnitsError:
         raise TypeError("Can only apply '{0}' function to "
                         "quantities with angle units"
                         .format(f.__name__))
@@ -140,7 +140,7 @@ def helper_radian_to_dimensionless(f, unit):
     from . import dimensionless_unscaled
     try:
         scale = unit.to(radian)
-    except UnitsException:
+    except UnitsError:
         raise TypeError("Can only apply '{0}' function to "
                         "quantities with angle units"
                         .format(f.__name__))
@@ -180,7 +180,7 @@ def helper_power(f, unit1, unit2):
     if unit2 is not None:
         try:
             scale2 = unit2.to(dimensionless_unscaled)
-        except UnitsException:
+        except UnitsError:
             raise TypeError("Can only raise something to a "
                             "dimensionless quantity")
     else:
@@ -215,7 +215,7 @@ def helper_two_arg_dimensionless(f, unit1, unit2):
     try:
         scale1 = unit1.to(dimensionless_unscaled) if unit1 is not None else 1.
         scale2 = unit2.to(dimensionless_unscaled) if unit2 is not None else 1.
-    except UnitsException:
+    except UnitsError:
         raise TypeError("Can only apply '{0}' function to "
                         "dimensionless quantities"
                         .format(f.__name__))
@@ -237,10 +237,10 @@ def find_scales(f, *units):
     if units[fixed] is None:
         try:
             scales[changeable] = units[changeable].to(dimensionless_unscaled)
-        except UnitsException:
+        except UnitsError:
             # could have special case here: OK if unitless number is zero
             # this needs to be signalled up, e.g., with: scales[fixed] = 0.
-            raise UnitsException(
+            raise UnitsError(
                 "Can only apply '{0}' function to "
                 "dimensionless quantities when other "
                 "argument is not a quantity"
@@ -251,8 +251,8 @@ def find_scales(f, *units):
     else:
         try:
             scales[changeable] = units[changeable].to(units[fixed])
-        except UnitsException:
-            raise UnitsException(
+        except UnitsError:
+            raise UnitsError(
                 "Can only apply '{0}' function to quantities "
                 "with compatible dimensions"
                 .format(f.__name__))

@@ -2,11 +2,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 ''' This module defines custom errors and exceptions used in astropy.coordinates.
-
-    Note: Recently switched from a custom defined UnitsError to
-    astropy.units.core.UnitsException. This will be renamed to
-    astropy.units.core.UnitsError, and we'll have to rename
-    everything in astropy.coordinates again...
 '''
 
 __all__ = ['RangeError', 'BoundsError', 'IllegalHourError',

@@ -4,7 +4,7 @@ import functools
 import types
 import warnings
 
-from ..units.core import Unit, UnitsException
+from ..units.core import Unit, UnitsError
 from ..units.quantity import Quantity
 from ..utils import lazyproperty
 
@@ -37,7 +37,7 @@ class ConstantMeta(type):
                     for inst in instances.values():
                         try:
                             self.unit.to(inst.unit)
-                        except UnitsException:
+                        except UnitsError:
                             Constant._has_incompatible_units.add(name_lower)
                     self._checked_units = True
 

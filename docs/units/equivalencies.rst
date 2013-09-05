@@ -30,7 +30,7 @@ Length and angles are not normally convertible, so
 
   >>> from astropy import units as u
   >>> u.arcsec.to(u.parsec, 8)
-  UnitsException: 'arcsec' (angle) and 'pc' (length) are not convertible
+  UnitsError: 'arcsec' (angle) and 'pc' (length) are not convertible
 
 However, when passing the result of `~astropy.units.equivalencies.parallax`
 as the third argument to the `~astropy.units.core.UnitBase.to` method,
@@ -53,7 +53,7 @@ Length and frequency are not normally convertible, so
 
   >>> from astropy import units as u
   >>> u.nm.to(u.Hz, [1000, 2000])
-  UnitsException: 'nm' (length) and 'Hz' (frequency) are not convertible
+  UnitsError: 'nm' (length) and 'Hz' (frequency) are not convertible
 
 As mentioned above with parallax units, we simply pass the proper conversion
 function (in this case `~astropy.units.equivalencies.spectral`) as the third
@@ -77,10 +77,10 @@ Spectral equivalencies allow you to convert between wavelength, frequency, and
 energy, but not to velocity, which is frequently the quantity of interest.
 
 It is fairly straightforward to define the equivalency, but note that there are
-different `conventions <http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`__.  
+different `conventions <http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`__.
 In these conventions :math:`f_0` is the rest frequency, :math:`f` is the observed frequency,
 :math:`V` is the velocity, and :math:`c` is the speed of light:
-        
+
     * Radio         :math:`V = c \frac{f_0 - f}{f_0}  ;  f(V) = f_0 ( 1 - V/c )`
     * Optical       :math:`V = c \frac{f_0 - f}{f  }  ;  f(V) = f_0 ( 1 + V/c )^{-1}`
     * Relativistic  :math:`V = c \frac{f_0^2 - f^2}{f_0^2 + f^2} ;  f(V) = f_0 \frac{\left(1 - (V/c)^2\right)^{1/2}}{(1+V/c)}`
@@ -156,7 +156,7 @@ This function is already defined in `astropy.units.equivalencies.doppler_radio`,
 but this example is illustrative::
 
     >>> restfreq = 115.27120  # rest frequency of 12 CO 1-0 in GHz
-    >>> freq_to_vel = [(u.GHz, u.km/u.s, 
+    >>> freq_to_vel = [(u.GHz, u.km/u.s,
         lambda x: (restfreq-x) / restfreq * c.c.to('km/s').value,
         lambda x: (1-x/c.c.to('km/s').value) * restfreq )]
     >>> u.Hz.to(u.km/u.s,116e9,equivalencies=freq_to_vel)
