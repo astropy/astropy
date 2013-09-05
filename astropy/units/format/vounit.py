@@ -110,8 +110,6 @@ class VOUnit(generic.Generic):
                     if not ex.startswith('-'):
                         s += '+'
                     s += ex
-            else:
-                s = ''
 
             pairs = zip(unit.bases, unit.powers)
             pairs.sort(key=lambda x: x[1], reverse=True)
