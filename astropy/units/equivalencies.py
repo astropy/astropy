@@ -306,9 +306,11 @@ def mass_energy():
 
 def jytok(omega_B, nu):
     """
-    "Antenna Gain" equivalency: Defines the conversion between Jy/beam and
-    "brightness temperature", T_B, in Kelvins.  This is a unit very commonly
-    used in radio astronomy.
+    "Antenna Gain" or "sensitivity" equivalency: Defines the conversion between
+    Jy/beam and "brightness temperature", T_B, in Kelvins.  This is a unit very
+    commonly used in radio astronomy.  Typically, the gain refers to the
+    conversion between corrected antenna temperature T_A^* and flux density.
+    See, e.g., "Tools of Radio Astronomy" (Wilson 2009) eqn 8.16 and eqn 8.19.
 
     :math:`T_B \equiv S_\\nu / \left(2 k \\nu^2 / c^2 \\right)`
 
