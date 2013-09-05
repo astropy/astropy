@@ -91,7 +91,7 @@ Query the selected 2MASS catalog around M31 with a 0.1-degree search radius:
 >>> from astropy import units as u
 >>> c = coord.ICRSCoordinates.from_name('M31')
 >>> c.ra, c.dec
-(<RA 10d41m04.94988s>, <Dec 41d16m07.50000s>)
+(<Longitude 10d41m04.94988s>, <Latitude 41d16m07.50000s>)
 >>> sr = coord.Angle(0.1, unit=u.degree)
 >>> sr
 <Angle 0d06m00.00000s>
