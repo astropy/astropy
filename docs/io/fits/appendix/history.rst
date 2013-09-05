@@ -89,6 +89,9 @@ New Features
   this is undefined, the previous behavior did not make sense and produced
   invalid FITS files. (Backported from 3.1.3)
 
+- Added a workaround for a bug in 64-bit OSX that could cause truncation when
+  writing files greater than 2^32 bytes in size. (Backported from 3.1.3)
+
 
 3.1.2 (2013-04-22)
 ------------------

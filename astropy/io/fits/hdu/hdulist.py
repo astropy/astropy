@@ -711,10 +711,10 @@ class HDUList(list, _Verify):
 
         Parameters
         ----------
-        output : file, optional
-            A file-like object to write the output to.  If False, does not
+        output : file, bool (optional)
+            A file-like object to write the output to.  If ``False``, does not
             output to a file and instead returns a list of tuples representing
-            the HDU info.  Writes to sys.stdout by default.
+            the HDU info.  Writes to ``sys.stdout`` by default.
         """
 
         if output is None:

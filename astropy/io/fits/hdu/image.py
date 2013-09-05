@@ -200,9 +200,15 @@ class _ImageBaseHDU(_ValidHDU):
 
     @data.setter
     def data(self, data):
-        self.__dict__['data'] = data
-        self._modified = True
-        if self.data is not None and not isinstance(data, np.ndarray):
+        if 'data' in self.__dict__:
+            if self.__dict__['data'] is data:
+                return
+            else:
+                self._data_replaced = True
+        else:
+            self._data_replaced = True
+
+        if data is not None and not isinstance(data, np.ndarray):
             # Try to coerce the data into a numpy array--this will work, on
             # some level, for most objects
             try:
@@ -210,6 +216,9 @@ class _ImageBaseHDU(_ValidHDU):
             except:
                 raise TypeError('data object %r could not be coerced into an '
                                 'ndarray' % data)
+
+        self.__dict__['data'] = data
+        self._modified = True
 
         if isinstance(data, np.ndarray):
             self._bitpix = _ImageBaseHDU.ImgCode[data.dtype.name]
@@ -224,6 +233,10 @@ class _ImageBaseHDU(_ValidHDU):
             raise ValueError('not a valid data array')
 
         self.update_header()
+
+        # returning the data signals to lazyproperty that we've already handled
+        # setting self.__dict__['data']
+        return data
 
     def update_header(self):
         """

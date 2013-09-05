@@ -118,8 +118,31 @@ cases where you may need to install from source: For example, it's difficult to
 use the binary installers with virtualenv.  See `How do I install PyFITS from
 source on Windows?`_ for more detailed instructions on building on Windows.
 
-For other installation errors not mentioned by this FAQ, please contact
-help@stsci.edu with a description of the problem.
+See below for a few answers to other specific questions about Windows
+installation. For other installation errors not mentioned by this FAQ, please
+contact help@stsci.edu with a description of the problem.
+
+On Windows Vista or later why can't the installer find Python in the registry?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+This is a common issue with Windows installers for Python packages that do not
+support the new User Access Control (UAC) framework added in Windows Vista and
+later.  In particular, when a Python is installed "for all users" (as opposed
+to for a single user) it adds entries for that Python installation under the
+``HKEY_LOCAL_MACHINE`` (HKLM) hierarchy and *not* under the
+``HKEY_CURRENT_USER`` (HKCU) hierarchy.  However, depending on your UAC
+settings, if the PyFITS installer is not executed with elevated privileges
+it will not be able to check in HKLM for the required information about your
+Python installation.
+
+In short: If you encounter this problem it's because you need the appropriate
+entries in the Windows registry for Python. You can download `this script`__
+and execute it with the same Python as the one you want to install PyFITS
+into.  For example to add the missing registry entries to your Python 2.7::
+
+    C:\>C:\Python27\python.exe C:\Path\To\Downloads\win_register_python.py
+
+__ https://gist.github.com/iguananaut/6042780#file-win_register_python-py
 
 How do I install PyFITS from source on Windows?
 """""""""""""""""""""""""""""""""""""""""""""""
@@ -136,7 +159,7 @@ the `setup.cfg`_ file at the root of the PyFITS source code.  This is the file
 that describes what needs to be installed for PyFITS.  Find the line that reads
 ``[extension=pyfits.compression]``.  This is the section that lists what needs
 to be compiled for the extension module.  Comment out every line in the
-extension section by prepending it with a ``#`` character (stopping at the 
+extension section by prepending it with a ``#`` character (stopping at the
 ``[build_ext]`` line).  It should look like this::
 
     ...

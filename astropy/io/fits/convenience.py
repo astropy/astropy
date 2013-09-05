@@ -544,9 +544,10 @@ def info(filename, output=None, **kwargs):
         FITS file to obtain info from.  If opened, mode must be one of
         the following: rb, rb+, or ab+.
 
-    output : file (optional)
-        File-like object to output the HDU info to.  Outputs to stdout by
-        default.
+    output : file, bool (optional)
+        A file-like object to write the output to.  If ``False``, does not
+        output to a file and instead returns a list of tuples representing the
+        HDU info.  Writes to ``sys.stdout`` by default.
 
     kwargs
         Any additional keyword arguments to be passed to

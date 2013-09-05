@@ -789,7 +789,7 @@ fail:
 
 
 void open_from_hdu(fitsfile** fileptr, void** buf, size_t* bufsize,
-                   PyObject* hdu, tcolumn* columns) {
+                   PyObject* hdu, tcolumn** columns) {
     PyObject* header = NULL;
     FITSfile* Fptr;
 
@@ -843,7 +843,7 @@ void open_from_hdu(fitsfile** fileptr, void** buf, size_t* bufsize,
 
     // Configure the array of table column structs from the Astropy header
     // instead of allowing CFITSIO to try to read from the header
-    tcolumns_from_header(*fileptr, header, &columns);
+    tcolumns_from_header(*fileptr, header, columns);
     if (PyErr_Occurred()) {
         goto fail;
     }
@@ -876,6 +876,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     unsigned long long heapsize;
 
     fitsfile* fileptr;
+    FITSfile* Fptr;
     int status = 0;
 
     if (!PyArg_ParseTuple(args, "O:compression.compress_hdu", &hdu))
@@ -890,12 +891,14 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     // We just need to get the compressed bytes and Astropy will handle the
     // writing of them.
     init_output_buffer(hdu, &outbuf, &outbufsize);
-    open_from_hdu(&fileptr, &outbuf, &outbufsize, hdu, columns);
+    open_from_hdu(&fileptr, &outbuf, &outbufsize, hdu, &columns);
     if (PyErr_Occurred()) {
         return NULL;
     }
 
-    bitpix_to_datatypes(fileptr->Fptr->zbitpix, &datatype, &npdatatype);
+    Fptr = fileptr->Fptr;
+
+    bitpix_to_datatypes(Fptr->zbitpix, &datatype, &npdatatype);
     if (PyErr_Occurred()) {
         return NULL;
     }
@@ -915,16 +918,34 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
         goto fail;
     }
 
-    znaxis = (npy_intp) outbufsize;  // The output array is just one dimension.
+    // Previously this used outbufsize as the size to use for the new Numpy
+    // byte array. However outbufsize is usually larger than necessary to
+    // store all the compressed data exactly; instead use the exact size
+    // of the compressed data from the heapsize plus the size of the table
+    // itself
+    heapsize = (unsigned long long) Fptr->heapsize;
+    znaxis = (npy_intp) (Fptr->heapstart + heapsize);
+
+    if (znaxis < outbufsize) {
+        // Go ahead and truncate to the size in znaxis to free the
+        // redundant allocation
+        // TODO: Add error handling
+        outbuf = realloc(outbuf, (size_t) znaxis);
+    }
+
     tmp = (PyArrayObject*) PyArray_SimpleNewFromData(1, &znaxis, NPY_UBYTE,
                                                      outbuf);
 
-    heapsize = (unsigned long long) fileptr->Fptr->heapsize;
 
     // Leaves refcount of tmp untouched, so its refcount should remain as 1
     retval = Py_BuildValue("KN", heapsize, tmp);
 
 fail:
+    if (columns != NULL) {
+        PyMem_Free(columns);
+        Fptr->tableptr = NULL;
+    }
+
     if (fileptr != NULL) {
         status = 1; // Disable header-related errors
         fits_close_file(fileptr, &status);
@@ -934,9 +955,6 @@ fail:
         }
     }
 
-    if (columns != NULL) {
-        PyMem_Free(columns);
-    }
     Py_XDECREF(indata);
 
     // Clear any messages remaining in CFITSIO's error stack
@@ -978,7 +996,7 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    open_from_hdu(&fileptr, &inbuf, &inbufsize, hdu, columns);
+    open_from_hdu(&fileptr, &inbuf, &inbufsize, hdu, &columns);
     if (PyErr_Occurred()) {
         return NULL;
     }
@@ -1008,6 +1026,11 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
     }
 
 fail:
+    if (columns != NULL) {
+        PyMem_Free(columns);
+        fileptr->Fptr->tableptr = NULL;
+    }
+
     if (fileptr != NULL) {
         status = 1;// Disable header-related errors
         fits_close_file(fileptr, &status);
@@ -1017,9 +1040,6 @@ fail:
         }
     }
 
-    if (columns != NULL) {
-        PyMem_Free(columns);
-    }
     PyMem_Free(znaxis);
 
     // Clear any messages remaining in CFITSIO's error stack

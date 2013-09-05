@@ -2042,3 +2042,22 @@ class TestTableFunctions(FitsTestCase):
         arr = [-99] * 20
         col = fits.Column('mag', format='E', array=arr)
         assert (arr == col.array).all()
+
+    def test_image_none(self):
+        """Regression test
+        for https://github.com/spacetelescope/PyFITS/issues/27
+        """
+
+        with fits.open(self.data('tb.fits')) as h:
+            h[1].data
+            h[1].data = None
+            assert isinstance(h[1].data, fits.FITS_rec)
+            assert len(h[1].data) == 0
+            h[1].writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as h:
+            assert h[1].header['NAXIS'] == 2
+            assert h[1].header['NAXIS1'] == 12
+            assert h[1].header['NAXIS2'] == 0
+            assert isinstance(h[1].data, fits.FITS_rec)
+            assert len(h[1].data) == 0

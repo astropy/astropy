@@ -413,7 +413,8 @@ class CompImageHDU(BinTableHDU):
             self._header.set('ZCMPTYPE', compressionType,
                              'compression algorithm', after='TFIELDS')
         else:
-            compressionType = self._header.get('ZCMPTYPE', 'RICE_1')
+            compressionType = self._header.get('ZCMPTYPE',
+                                                DEFAULT_COMPRESSION_TYPE)
 
         # If the input image header had BSCALE/BZERO cards, then insert
         # them in the table header.
@@ -1253,18 +1254,6 @@ class CompImageHDU(BinTableHDU):
             if should_swap:
                 self.data.byteswap(True)
             self.data = old_data
-
-        # Chances are not all the space allocated for the compressed data was
-        # needed.  If not, go ahead and truncate the array:
-        dataspan = tbsize + heapsize
-        if len(self.compData) > dataspan:
-            if self.compData.flags.owndata:
-                self.compData.resize(dataspan)
-            else:
-                # Need to copy to a new array; this generally shouldn't happen
-                # at all though there are some contrived cases (such as in one
-                # of the regression tests) where it can happen.
-                self.compData = np.resize(self.compData, (dataspan,))
 
         dtype = np.rec.format_parser(','.join(self.columns._recformats),
                                      self.columns.names, None).dtype

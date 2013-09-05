@@ -258,9 +258,16 @@ class lazyproperty(object):
             return obj.__dict__[key]
 
     def __set__(self, obj, val):
+        obj_dict = obj.__dict__
+        func_name = self._fget.func_name
         if self._fset:
-            self._fset(obj, val)
-        obj.__dict__[self._fget.func_name] = val
+            ret = self._fset(obj, val)
+            if ret is not None and obj_dict.get(func_name) is ret:
+                # By returning the value set the setter signals that it took
+                # over setting the value in obj.__dict__; this mechanism allows
+                # it to override the input value
+                return
+        obj_dict[func_name] = val
 
     def __delete__(self, obj):
         if self._fdel:

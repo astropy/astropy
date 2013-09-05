@@ -104,6 +104,12 @@ class _BaseHDU(object):
         self._hdrLoc = None
         self._datLoc = None
         self._datSpan = None
+
+        # This internal variable is used to track whether the data attribute
+        # still points to the same data array as when the HDU was originally
+        # created (this does not track whether the data is actually the same
+        # content-wise)
+        self._data_replaced = False
         self._new = True
         self._output_checksum = False
 
@@ -528,7 +534,7 @@ class _BaseHDU(object):
                 # Seek through the array's bases for an memmap'd array; we
                 # can't rely on the _File object to give us this info since the
                 # user may have replaced the previous mmap'd array
-                if copy:
+                if copy or self._data_replaced:
                     # Of course, if we're copying the data to a new file we
                     # don't care about flushing the original mmap; instead just
                     # read it into the new file
@@ -549,6 +555,7 @@ class _BaseHDU(object):
         self._hdrLoc = hdrloc
         self._datLoc = datloc
         self._datSpan = datsize + _pad_length(datsize)
+        self._data_replaced = False
 
 _AllHDU = _BaseHDU  # For backwards-compatibility, though nobody should have
                     # been using this directly
