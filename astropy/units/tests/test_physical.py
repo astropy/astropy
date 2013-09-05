@@ -34,3 +34,8 @@ def test_dimensionless():
 
 def test_angular_momentum():
     assert hbar.unit.physical_type == 'angular momentum'
+
+
+def test_flam():
+    assert ((u.erg / (u.cm**2 * u.s * u.AA)).physical_type ==
+            'spectral flux density wav')
