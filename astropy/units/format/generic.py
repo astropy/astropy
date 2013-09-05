@@ -382,7 +382,7 @@ class Generic(Base):
         if isinstance(unit, core.CompositeUnit):
             parts = []
 
-            if unit.scale != 1 and self._show_scale:
+            if self._show_scale and unit.scale != 1:
                 parts.append('{0:g}'.format(unit.scale))
 
             if len(unit.bases):

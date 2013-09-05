@@ -65,10 +65,10 @@ class Latex(base.Base):
         if latex_name is not None:
             s = latex_name
         elif isinstance(unit, core.CompositeUnit):
-            if unit.scale != 1:
-                s = self._format_exponential_notation(unit.scale) + r'\,'
-            else:
+            if unit.scale == 1:
                 s = ''
+            else:
+                s = self._format_exponential_notation(unit.scale) + r'\,'
 
             if len(unit.bases):
                 positives, negatives = utils.get_grouped_by_powers(

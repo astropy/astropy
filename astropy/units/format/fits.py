@@ -107,7 +107,7 @@ class Fits(generic.Generic):
         unit = utils.decompose_to_known_units(unit, self._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
-            if unit.scale != 1.0:
+            if unit.scale != 1:
                 raise ValueError(
                     "The FITS unit format is not able to represent scale. "
                     "Multiply your data by {0:e}.".format(unit.scale))
