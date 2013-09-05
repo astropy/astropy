@@ -37,7 +37,14 @@ if PY3:  # pragma: py3
             # array, hence the view() call
             # It also doesn't necessarily preserve widths of the strings,
             # hence the astype()
-            ns = numpy.char.decode(s, 'ascii').view(type(s))
+            if s.size == 0:
+                # Numpy apparently also has a bug that if a string array is
+                # empty calling np.char.decode on it returns an empty float64
+                # array wth
+                dt = s.dtype.str.replace('S', 'U')
+                ns = numpy.array([], dtype=dt).view(type(s))
+            else:
+                ns = numpy.char.decode(s, 'ascii').view(type(s))
             if ns.dtype.itemsize / 4 != s.dtype.itemsize:
                 ns = ns.astype((numpy.str_, s.dtype.itemsize))
             return ns

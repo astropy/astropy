@@ -997,3 +997,19 @@ class TestImageFunctions(FitsTestCase):
                        disable_image_compression=True) as h:
             assert h[1].header['TFORM1'] == '1PB(30)'
             assert h[1].header['TFORM2'] == '1PB(359)'
+
+    def test_image_none(self):
+        """Regression test
+        for https://github.com/spacetelescope/PyFITS/issues/27
+        """
+
+        with fits.open(self.data('test0.fits')) as h:
+            h[1].data
+            h[1].data = None
+            h[1].writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as h:
+            assert h[1].data is None
+            assert h[1].header['NAXIS'] == 0
+            assert 'NAXIS1' not in h[1].header
+            assert 'NAXIS2' not in h[1].header
