@@ -4,6 +4,6 @@ _lextokens    = {u'CARET': 1, u'SOLIDUS': 1, u'STAR': 1, u'DOUBLE_STAR': 1, u'PE
 _lexreflags   = 0
 _lexliterals  = ''
 _lexstateinfo = {'INITIAL': 'inclusive'}
-_lexstatere   = {'INITIAL': [(u'(?P<t_UFLOAT>((\\d+\\.?\\d*)|(\\.\\d+))([eE][+-]?\\d+)?)|(?P<t_UINT>\\d+)|(?P<t_SIGN>[+-](?=\\d))|(?P<t_SQRT>sqrt)|(?P<t_UNIT>[a-zA-Z][a-zA-Z_]*)|(?P<t_DOUBLE_STAR>\\*\\*)|(?P<t_CARET>\\^)|(?P<t_CLOSE_PAREN>\\))|(?P<t_PERIOD>\\.)|(?P<t_OPEN_PAREN>\\()|(?P<t_STAR>\\*)|(?P<t_SOLIDUS>/)', [None, (u't_UFLOAT', 'UFLOAT'), None, None, None, None, (u't_UINT', 'UINT'), (u't_SIGN', 'SIGN'), (u't_SQRT', 'SQRT'), (u't_UNIT', 'UNIT'), (None, 'DOUBLE_STAR'), (None, 'CARET'), (None, 'CLOSE_PAREN'), (None, 'PERIOD'), (None, 'OPEN_PAREN'), (None, 'STAR'), (None, 'SOLIDUS')])]}
+_lexstatere   = {'INITIAL': [(u'(?P<t_UFLOAT>((\\d+\\.?\\d*)|(\\.\\d+))([eE][+-]?\\d+)?)|(?P<t_UINT>\\d+)|(?P<t_SIGN>[+-](?=\\d))|(?P<t_SQRT>sqrt)|(?P<t_UNIT>%|[a-zA-Z][a-zA-Z_]*)|(?P<t_DOUBLE_STAR>\\*\\*)|(?P<t_CLOSE_PAREN>\\))|(?P<t_CARET>\\^)|(?P<t_PERIOD>\\.)|(?P<t_STAR>\\*)|(?P<t_OPEN_PAREN>\\()|(?P<t_SOLIDUS>/)', [None, (u't_UFLOAT', 'UFLOAT'), None, None, None, None, (u't_UINT', 'UINT'), (u't_SIGN', 'SIGN'), (u't_SQRT', 'SQRT'), (u't_UNIT', 'UNIT'), (None, 'DOUBLE_STAR'), (None, 'CLOSE_PAREN'), (None, 'CARET'), (None, 'PERIOD'), (None, 'STAR'), (None, 'OPEN_PAREN'), (None, 'SOLIDUS')])]}
 _lexstateignore = {'INITIAL': u' '}
 _lexstateerrorf = {'INITIAL': 't_error'}

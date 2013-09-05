@@ -100,7 +100,7 @@ class Generic(Base):
             return t
 
         def t_UNIT(t):
-            r'[a-zA-Z][a-zA-Z_]*'
+            r'%|[a-zA-Z][a-zA-Z_]*'
             t.value = cls._get_unit(t)
             return t
 
@@ -335,6 +335,7 @@ class Generic(Base):
     def _parse_unit(cls, s):
         from ..core import _UnitRegistry
         registry = _UnitRegistry().registry
+        registry['%'] = registry[u'percent']
         if s in registry:
             return registry[s]
         raise ValueError(
