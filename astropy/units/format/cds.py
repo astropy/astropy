@@ -13,7 +13,7 @@ import re
 
 from .base import Base
 from . import utils
-
+from ..utils import is_effectively_unity
 
 # TODO: Support logarithmic units using bracketed syntax
 
@@ -339,9 +339,7 @@ class CDS(Base):
             if unit.physical_type == u'dimensionless':
                 if unit.scale == 1.:
                     return ''
-                # TODO: replace with is_effectively_unity(unit.scale*100)
-                # and add at top: from ..utils import is_effectively_unity
-                elif unit.scale == 0.01:
+                elif is_effectively_unity(unit.scale*100.):
                     return '%'
 
                 raise ValueError("The CDS unit format is not able to "
