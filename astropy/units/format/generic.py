@@ -335,8 +335,9 @@ class Generic(Base):
     def _parse_unit(cls, s):
         from ..core import _UnitRegistry
         registry = _UnitRegistry().registry
-        registry['%'] = registry[u'percent']
-        if s in registry:
+        if s == '%':
+            return registry[u'percent']
+        elif s in registry:
             return registry[s]
         raise ValueError(
             '{0} is not a valid unit'.format(s))

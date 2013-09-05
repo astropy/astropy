@@ -20,7 +20,7 @@ _UnitRegistry().namespace = globals()
 
 def_unit(['percent', 'pct'], Unit(0.01), register=True, prefixes=False,
          doc="percent: one hundredth of unity, factor 0.01",
-         format={'generic': '%', 'console': '%',
+         format={'generic': '%', 'console': '%', 'cds': '%',
                  'latex': r'\%', 'unicode': '%'})
 
 ###########################################################################

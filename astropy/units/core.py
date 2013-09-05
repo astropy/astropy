@@ -594,8 +594,6 @@ class UnitBase(object):
             elif self.is_equivalent(tunit):
                 units.append(funit.decompose())
 
-        print(units)
-
         # Store partial results
         partial_results = []
         # Store final results that reduce to a single unit or pair of
