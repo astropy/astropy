@@ -603,7 +603,7 @@ class Quantity(np.ndarray):
             return self.__quantity_instance__(
                 1. / self.value, unit=other / self.unit, copy=False)
         else:
-            return np.divide(other, self)
+            return np.true_divide(other, self)
 
     def __truediv__(self, other):
         """ Division between `Quantity` objects. """
@@ -616,6 +616,50 @@ class Quantity(np.ndarray):
     def __rtruediv__(self, other):
         """ Division between `Quantity` objects. """
         return self.__rdiv__(other)
+
+    def __floordiv__(self, other):
+        """ Division between `Quantity` objects and other objects."""
+
+        if isinstance(other, basestring):
+            other = Unit(other)
+
+        if isinstance(other, UnitBase):
+            unit = (self.unit / other).decompose()
+            return self.__quantity_instance__(self.value * unit.scale,
+                                              unit / unit.scale)
+        else:
+            return np.floor_divide(self, other)
+
+    def __ifloordiv__(self, other):
+        """Inplace division between `Quantity` objects and other objects."""
+
+        if isinstance(other, basestring):
+            other = Unit(other)
+
+        if isinstance(other, UnitBase):
+            unit = (self.unit / other).decompose()
+            if unit.scale == 1.:
+                self._unit = unit
+                return self
+            else:
+                unit_scale = unit.scale
+                unit._scale = 1.
+                return np.multiply(self.value, unit_scale * unit, self)
+
+        return np.floor_divide(self, other, self)
+
+    def __rfloordiv__(self, other):
+        """ Right Division between `Quantity` objects and other objects."""
+
+        if isinstance(other, basestring):
+            other = Unit(other)
+
+        if isinstance(other, UnitBase):
+            unit = (other / self.unit).decompose()
+            return self.__quantity_instance__(unit.scale / self.value,
+                                              unit / unit.scale, copy=False)
+        else:
+            return np.floor_divide(other, self)
 
     def __divmod__(self, other):
         from . import dimensionless_unscaled
