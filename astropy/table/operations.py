@@ -11,6 +11,8 @@ from copy import deepcopy
 import warnings
 import collections
 
+import numpy as np
+
 from ..utils import OrderedDict, metadata
 from . import np_utils
 
@@ -283,5 +285,63 @@ def hstack(tables, join_type='outer',
 
     _merge_col_meta(out, tables, col_name_map, metadata_conflicts=metadata_conflicts)
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
+
+    return out
+
+
+def _group_by(table, keys):
+    """
+    Get groups for numpy structured array on specified keys.
+
+    Parameters
+    ----------
+    table : structured array
+        Table to group
+    keys : str or list of str
+        Name(s) of column(s) used to match rows of table.
+
+    Returns
+    -------
+    idxs, idx_sort : numpy arrays
+    """
+    from .table import GroupedTable
+
+    if isinstance(keys, basestring):
+        keys = (keys,)
+
+    data = table._data
+
+    # Check the key columns
+    for name in keys:
+        if name not in data.dtype.names:
+            raise np_utils.TableMergeError('Table does not have key column {1!r}'
+                                           .format(name))
+        if hasattr(data[name], 'mask') and np.any(data[name].mask):
+            raise np_utils.TableMergeError('{0} key column {1!r} has missing values'
+                                           .format(name))
+
+    # Make sure we work with ravelled arrays
+    data = data.ravel()
+    len_data = len(data)
+
+    # Output array dtype as a list of descr (name, type_str, shape) tuples
+    col_name_map = np_utils.get_col_name_map([data], keys)
+    out_descrs = np_utils.get_descrs([data], col_name_map)
+
+    # Make an array with just the key columns
+    out_keys_dtype = [descr for descr in out_descrs if descr[0] in keys]
+    out_keys = np.empty(len_data, dtype=out_keys_dtype)
+    for key in keys:
+        out_keys[key] = data[key]
+    idx_sort = out_keys.argsort(order=keys)
+    out_keys = out_keys[idx_sort]
+
+    # Get all keys
+    diffs = np.concatenate(([True], out_keys[1:] != out_keys[:-1], [True]))
+    idxs = np.flatnonzero(diffs)
+
+    # Make the output "grouped" table [is this method the fastest?  Does it matter?]
+    # Note the use of copy=False because a copy is already made with table[idx_sort]
+    out = GroupedTable(table[idx_sort], group_indexes=idxs, group_keys=keys, copy=False)
 
     return out

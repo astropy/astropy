@@ -2227,3 +2227,59 @@ class Table(object):
 
     def __ne__(self, other):
         return ~self.__eq__(other)
+
+    def group_by(self, keys):
+        """
+        Group table by the specified ``keys``
+
+        Parameters
+        ----------
+        keys : str or list of str
+            Name(s) of key column(s) used for grouping
+
+        Returns
+        -------
+        out : Table
+            New grouped table
+        """
+        return operations._group_by(self, keys)
+
+
+class GroupedTable(Table):
+    """A class to represent a table of heterogeneous data which is grouped.
+
+    Parameters
+    ----------
+    data : numpy ndarray, dict, list, or Table, optional
+        Data to initialize table.
+    masked : boolean, optional
+        Specify whether the table is masked.
+    names : list, optional
+        Specify column names
+    dtype : list, optional
+        Specify column data types
+    meta : dict, optional
+        Metadata associated with the table.
+    copy : boolean, optional
+        Copy the input data (default=True).
+
+    """
+    def __init__(self, data=None, masked=None, names=None, dtype=None,
+                 meta=None, copy=True, dtypes=None,
+                 group_indexes=None, group_keys=None):
+        if group_indexes is None:
+            raise ValueErorr('group_indexes must be provided for GroupedTable')
+        if group_keys is None:
+            raise ValueErorr('group_keys must be provided for GroupedTable')
+
+        super(GroupedTable, self).__init__(data, masked, names, dtype, meta, copy, dtypes)
+        self._group_indexes = group_indexes
+        self._group_keys = group_keys
+
+    @property
+    def group_indexes(self):
+        return self._group_indexes
+
+    @property
+    def group_keys(self):
+        return self._group_keys

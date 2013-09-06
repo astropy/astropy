@@ -495,3 +495,92 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
         _col_name_map.update(col_name_map)
 
     return out
+
+
+def get_groups(table, keys):
+    """
+    Get groups for numpy structured array on specified keys.
+
+    Parameters
+    ----------
+    table : structured array
+        Table to group
+    keys : str or list of str
+        Name(s) of column(s) used to match rows of table.
+    """
+    if isinstance(keys, basestring):
+        keys = (keys,)
+
+    # Check the key columns
+    for name in keys:
+        if name not in table.dtype.names:
+            raise TableMergeError('Table does not have key column {1!r}'
+                                  .format(name))
+        if hasattr(table[name], 'mask') and np.any(table[name].mask):
+            raise TableMergeError('{0} key column {1!r} has missing values'
+                                  .format(name))
+
+    # Make sure we work with ravelled arrays
+    table = table.ravel()
+    len_table = len(table)
+
+    # oined array dtype as a list of descr (name, type_str, shape) tuples
+    col_name_map = get_col_name_map([table], keys)
+    out_descrs = get_descrs([table], col_name_map)
+
+    # Make an array with just the key columns
+    out_keys_dtype = [descr for descr in out_descrs if descr[0] in keys]
+    out_keys = np.empty(len_table, dtype=out_keys_dtype)
+    for key in keys:
+        out_keys[key] = table[key]
+    idx_sort = out_keys.argsort(order=keys)
+    out_keys = out_keys[idx_sort]
+
+    # Get all keys
+    diffs = np.concatenate(([True], out_keys[1:] != out_keys[:-1], [True]))
+    idxs = np.flatnonzero(diffs)
+
+    return idxs, out_keys
+
+
+def stubbed():
+    masked = isinstance(table, ma.MaskedArray)
+    if masked:
+        out = ma.empty(n_out, dtype=out_descrs)
+    else:
+        out = np.empty(n_out, dtype=out_descrs)
+
+    # If either input array was zero length then stub a new version
+    # with one row.  In this case the corresponding left_out or right_out
+    # will contain all zeros with mask set to true.  This allows the
+    # take(*_out) method calls to work as expected.
+    if len(left) == 0:
+        left = left.__class__(1, dtype=left.dtype)
+    if len(right) == 0:
+        right = right.__class__(1, dtype=right.dtype)
+
+    for out_name, left_right_names in col_name_map.items():
+        left_name, right_name = left_right_names
+
+        if left_name and right_name:  # this is a key which comes from left and right
+            out[out_name] = np.where(right_mask,
+                                     left[left_name].take(left_out),
+                                     right[right_name].take(right_out))
+            continue
+        elif left_name:  # out_name came from the left table
+            name, array, array_out, array_mask = left_name, left, left_out, left_mask
+        elif right_name:
+            name, array, array_out, array_mask = right_name, right, right_out, right_mask
+        else:
+            raise TableMergeError('Unexpected column names (maybe one is ""?)')
+        out[out_name] = array[name].take(array_out)
+        if masked:
+            if isinstance(array, ma.MaskedArray):
+                array_mask = array_mask | array[name].mask.take(array_out)
+            out[out_name].mask = array_mask
+
+    # If col_name_map supplied as a dict input, then update.
+    if isinstance(_col_name_map, collections.Mapping):
+        _col_name_map.update(col_name_map)
+
+    return out
