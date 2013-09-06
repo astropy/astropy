@@ -29,7 +29,7 @@ XCENTER YCENTER
 "       138.5" 256.4
 "        18.1" 280.2
 """
-         ),   
+         ),
     dict(kwargs=dict(Writer=asciitable.Rdb, exclude_names=['CHI']),
          out="""\
 ID	XCENTER	YCENTER	MAG	MERR	MSKY	NITER	SHARPNESS	PIER	PERROR
@@ -37,34 +37,34 @@ N	N	N	N	N	N	N	N	N	S
 14	138.538	256.405	15.461	0.003	34.85955	4	-0.032	0	No_error
 18	18.114	280.170	22.329	0.206	30.12784	4	-2.544	0	No_error
 """
-         ),   
+         ),
     dict(kwargs=dict(Writer=asciitable.Tab),
          out="""\
 ID	XCENTER	YCENTER	MAG	MERR	MSKY	NITER	SHARPNESS	CHI	PIER	PERROR
 14	138.538	256.405	15.461	0.003	34.85955	4	-0.032	0.802	0	No_error
 18	18.114	280.170	22.329	0.206	30.12784	4	-2.544	1.104	0	No_error
 """
-         ),   
+         ),
     dict(kwargs=dict(Writer=asciitable.NoHeader),
          out="""\
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """
-         ),   
+         ),
     dict(kwargs=dict(Writer=asciitable.CommentedHeader),
          out="""\
 # ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """
-         ), 
+         ),
     dict(kwargs=dict(Writer=asciitable.CommentedHeader, comment = '&'),
          out="""\
 &ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
 18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """
-         ),   
+         ),
     dict(kwargs=dict(Writer=asciitable.Latex),
          out="""\
 \\begin{table}
@@ -87,21 +87,28 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 \\end{deluxetable}
 """
          ),
-    dict(kwargs=dict(Writer=asciitable.AASTex, caption = 'Mag values \\label{tab1}', latexdict = {'units':{'MAG': '[mag]', 'XCENTER': '[pixel]'}}),
+    dict(kwargs=dict(Writer=asciitable.AASTex, caption='Mag values \\label{tab1}',
+                     latexdict={'units': {'MAG': '[mag]',
+                                          'XCENTER': '[pixel]'},
+                                'tabletype': 'deluxetable*'}),
          out="""\
-\\begin{deluxetable}{ccccccccccc}
+\\begin{deluxetable*}{ccccccccccc}
 \\tablecaption{Mag values \\label{tab1}}
 \\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}\\\\ \\colhead{ } & \\colhead{[pixel]} & \\colhead{ } & \\colhead{[mag]} & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ }}
 \\startdata
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
 18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
 \\enddata
-\\end{deluxetable}
+\\end{deluxetable*}
 """
          ),
-    dict(kwargs=dict(Writer=asciitable.Latex, caption = 'Mag values \\label{tab1}', latexdict = {'preamble':'\\begin{center}', 'tablefoot':'\\end{center}', 'data_end':['\\hline','\\hline'], 'units':{'MAG': '[mag]', 'XCENTER': '[pixel]'}}, col_align='|lcccccccccc|'),
+    dict(kwargs=dict(Writer=asciitable.Latex, caption='Mag values \\label{tab1}',
+                     latexdict={'preamble': '\\begin{center}', 'tablefoot':'\\end{center}',
+                                'data_end': ['\\hline','\\hline'],
+                                'units': {'MAG': '[mag]', 'XCENTER': '[pixel]'},
+                                'tabletype': 'table*'}, col_align='|lcccccccccc|'),
          out="""\
-\\begin{table}
+\\begin{table*}
 \\begin{center}
 \\caption{Mag values \\label{tab1}}
 \\begin{tabular}{|lcccccccccc|}
@@ -113,7 +120,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 \\hline
 \\end{tabular}
 \\end{center}
-\\end{table}
+\\end{table*}
 """
          ),
     dict(kwargs=dict(Writer=asciitable.Latex, latexdict = asciitable.latexdicts['template']),
