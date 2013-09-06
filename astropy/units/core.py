@@ -166,7 +166,7 @@ class UnitBase(object):
         else:
             return Quantity(m, self)
 
-    if sys.version_info[0] >= 3:
+    if sys.version_info[0] >= 3:  # pragma: no cover
         def __hash__(self):
             # Since this class defines __eq__, it will become unhashable
             # on Python 3.x, so we need to define our own hash.
@@ -568,9 +568,9 @@ class UnitBase(object):
         if units is None:
             units = filter_units(UnitBase._registry.values())
         elif isinstance(units, dict):
-            units = set(units.values())
+            units = set(filter_units(units.itervalues()))
         elif inspect.ismodule(units):
-            units = filter_units(vars(units).values())
+            units = filter_units(vars(units).itervalues())
         else:
             units = set(units)
 
@@ -1016,7 +1016,6 @@ class _UnitMetaClass(type):
             # __init__ on the Unit class.
             return super(_UnitMetaClass, self).__call__(
                 s, represents, format=format, register=register, doc=doc)
-            raise TypeError("Can not convert {0!r} to a unit".format(s))
 
         elif isinstance(s, UnitBase):
             return s

@@ -223,6 +223,26 @@ def test_unknown_unit3():
     assert isinstance(unit, u.UnrecognizedUnit)
     assert unit.name == "FOO"
 
+    unit2 = u.Unit("FOO", parse_strict='silent')
+    assert unit == unit2
+    assert unit.is_equivalent(unit2)
+
+    unit3 = u.Unit("BAR", parse_strict='silent')
+    assert unit != unit3
+    assert not unit.is_equivalent(unit3)
+
+    with pytest.raises(ValueError):
+        unit.get_converter(unit3)
+
+    x = unit.to_string('latex')
+    y = unit2.to_string('cgs')
+
+    with pytest.raises(ValueError):
+        unit4 = u.Unit("BAR", parse_strict='strict')
+
+    with pytest.raises(TypeError):
+        unit5 = u.Unit(None)
+
 
 def test_cds_power():
     unit = u.Unit("10+22/cm2", format="cds", parse_strict='silent')
@@ -289,6 +309,9 @@ def test_steradian():
     results = u.sr.compose(units=u.cgs.bases)
     assert results[0].bases[0] is u.rad
 
+    results = u.sr.compose(units=u.cgs.__dict__)
+    assert results[0].bases[0] is u.sr
+
 
 def test_decompose_bases():
     """
@@ -314,6 +337,11 @@ def test_complex_compose():
 def test_equiv_compose():
     composed = u.m.compose(equivalencies=u.spectral())
     assert u.Hz in composed
+
+
+def test_empty_compose():
+    with pytest.raises(u.UnitsException):
+        composed = u.m.compose(units=[])
 
 
 def test_compose_roundtrip():
@@ -497,3 +525,23 @@ def test_pickling():
 @raises(ValueError)
 def test_duplicate_define():
     u.def_unit('m')
+
+
+def test_repr_latex():
+    assert u.m._repr_latex_() == u.m.to_string('latex')
+
+
+def test_operations_with_strings():
+    assert u.m / '5s' == (u.m / (5.0 * u.s))
+
+    assert u.m * '5s' == (5.0 * u.m * u.s)
+
+
+def test_comparison():
+    assert u.m > u.cm
+    assert u.m >= u.cm
+    assert u.cm < u.m
+    assert u.cm <= u.m
+
+    with pytest.raises(u.UnitsException):
+        u.m > u.kg

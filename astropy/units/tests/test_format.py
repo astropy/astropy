@@ -49,6 +49,7 @@ def test_cds_grammar():
     data = [
         (["0.1nm"], u.AA),
         (["mW/m2"], u.Unit(u.erg / u.cm ** 2 / u.s)),
+        (["mW/(m2)"], u.Unit(u.erg / u.cm ** 2 / u.s)),
         (["km/s", "km.s-1"], u.km / u.s),
         (["10pix/nm"], u.Unit(10 * u.pix / u.nm)),
         (["1.5x10+11m"], u.Unit(1.5e11 * u.m)),
@@ -69,7 +70,8 @@ def test_cds_grammar_fail():
         format.CDS().parse(s)
 
     data = ['0.1 nm', 'solMass(3/2)', 'km / s', 'km s-1',
-            'pix0.1nm', 'pix/(0.1nm)', 'km*s', 'km**2']
+            'pix0.1nm', 'pix/(0.1nm)', 'km*s', 'km**2',
+            '5x8+3m']
 
     for s in data:
         yield _test_cds_grammar_fail, s

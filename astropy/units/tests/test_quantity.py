@@ -11,7 +11,7 @@ import pytest
 import numpy as np
 
 from ...tests.compat import assert_allclose
-from ...tests.helper import raises
+from ...tests.helper import raises, pytest
 from ...utils import isiterable
 from ... import units as u
 
