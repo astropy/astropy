@@ -3,6 +3,7 @@ import abc
 import collections
 import sys
 from copy import deepcopy
+from itertools import izip
 import functools
 import warnings
 
@@ -2283,3 +2284,27 @@ class GroupedTable(Table):
     @property
     def group_keys(self):
         return self._group_keys
+
+    def aggregate(self, func):
+        idxs0, idxs1 = self.group_indexes[:-1], self.group_indexes[1:]
+        out_cols = []
+
+        for col in self.columns.values():
+            # For key columns just pick off first in each group since they are identical
+            if col.name in self.group_keys:
+                vals = col.take(idxs0)
+            else:
+                try:
+                    vals = np.array([func(col[i0: i1]) for i0, i1 in izip(idxs0, idxs1)])
+                except Exception as err:
+                    warnings.warn("Cannot aggregate column '{0}': {1}"
+                                  .format(col.name, err))
+                    continue
+
+            out_cols.append((col, vals))
+
+        out_cols = [Column(data=vals, name=col.name, description=col.description, unit=col.unit,
+                           format=col.format, meta=col.meta) for col, vals in out_cols]
+
+        return Table(out_cols)
+
