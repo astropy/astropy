@@ -16,10 +16,13 @@ import time
 from datetime import datetime
 
 import numpy as np
+import functools
 
 from ..utils import deprecated, deprecated_attribute
+from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
 from ..utils.compat.misc import override__dir__
 from ..extern import six
+
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS', 'TimePlotDate',
@@ -68,6 +71,34 @@ MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tt', 'utc'): ('tai',),
               }
 
+# triple-level dictionary, yay!
+SIDEREAL_TIME_MODELS = {
+    'mean': {
+        'IAU2006': {'function': erfa_time.gmst06, 'scales': ('ut1', 'tt')},
+        'IAU2000': {'function': erfa_time.gmst00, 'scales': ('ut1', 'tt')},
+        'IAU1982': {'function': erfa_time.gmst82, 'scales': ('ut1',)}},
+    'apparent': {
+        'IAU2006A': {'function': erfa_time.gst06a, 'scales': ('ut1', 'tt')},
+        'IAU2000A': {'function': erfa_time.gst00a, 'scales': ('ut1', 'tt')},
+        'IAU2000B': {'function': erfa_time.gst00b, 'scales': ('ut1',)},
+        'IAU1994': {'function': erfa_time.gst94, 'scales': ('ut1',)}}}
+
+
+# TODO: remove in version beyond 0.4
+# with longitude and latitude swapped to get them in the right order,
+# insist that these are given as keyword arguments
+def kwargs_after_scale(func):
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        if len(args) > 5:
+            AstropyBackwardsIncompatibleChangeWarning(
+                'The order of longitude and latitude has been changed in '
+                'version 0.4 to lon, lat.  To avoid mistakes, set these '
+                '(and later arguments) using keyword arguments: '
+                'lon=..., lat=..., etc.')
+        return func(*args, **kwargs)
+    return new_func
+
 
 class Time(object):
     """
@@ -96,10 +127,11 @@ class Time(object):
         Subformat for inputting string times
     out_subfmt : str, optional
         Subformat for outputting string times
-    lat : float, optional
-        Earth latitude of observer (decimal degrees)
-    lon : float, optional
-        Earth longitude of observer (decimal degrees)
+    lon, lat : Angle or float, optional
+        Earth East longitude and latitude of observer.  Can be anything that
+        initialises an `Angle` object (if float, should be decimal degrees).
+        They are required to calculate local sidereal times and give improved
+        precision for conversion from/to TDB and TCB.
     copy : bool, optional
         Make a copy of the input values
     """
@@ -121,9 +153,10 @@ class Time(object):
     # gets called over the __mul__ of Numpy arrays.
     __array_priority__ = 1000
 
+    @kwargs_after_scale
     def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
-                lat=0.0, lon=0.0, copy=False):
+                lon=None, lat=None, copy=False):
 
         if isinstance(val, cls):
             self = val.replicate(format=format, copy=copy)
@@ -131,12 +164,18 @@ class Time(object):
             self = super(Time, cls).__new__(cls)
         return self
 
+    @kwargs_after_scale
     def __init__(self, val, val2=None, format=None, scale=None,
                  precision=None, in_subfmt=None, out_subfmt=None,
-                 lat=0.0, lon=0.0, copy=False):
+                 lon=None, lat=None, copy=False):
 
-        self.lat = lat
-        self.lon = lon
+        if lon is not None or lat is not None:
+            from ..coordinates import Longitude, Latitude
+
+        self.lon = lon if lon is None else Longitude(lon, 'degree',
+                                                     wrap_angle='180d')
+        self.lat = lat if lat is None else Latitude(lat, 'degree')
+
         if precision is not None:
             self.precision = precision
         if in_subfmt is not None:
@@ -408,6 +447,83 @@ class Time(object):
     def vals(self):
         """Time values in current format as a numpy array"""
         return self.value
+
+    def sidereal_time(self, kind, longitude=None, model=None):
+        """Calculate sidereal time
+
+        Parameters
+        ---------------
+        kind : str
+            'mean' or 'apparent', i.e., accounting for precession only, or
+            also for nutation.
+        longitude : `~astropy.units.Quantity`, `str`, or None; optional
+            The longitude on the Earth at which to compute the sidereal time.
+            Can be given as a `~astropy.units.Quantity` with angular units (or
+            an `~astro.coordinates.Angle` or `~astropy.coordinates.Longitude`),
+            or as a name of an observatory (currently, only 'greenwich' is
+            supported, equivalent to 0 deg).
+            If None (default), the `lon` attribute of the Time object is used.
+        model : str or None; optional
+            Precession (and nutation) model to use.  The available ones are:
+               {0}: {1}
+               {2}: {3}
+            If None (default), the last (most recent) one from the appropriate
+            list above is used.
+
+        Returns
+        -------
+        sidereal time : `~astropy.coordinates.Longitude`
+            Sidereal time as a quantity with units of hourangle
+        """  # this is formatted below
+
+        from ..coordinates import Longitude
+
+        if kind.lower() not in SIDEREAL_TIME_MODELS.keys():
+            raise ValueError('The kind of sidereal time has to be {0}'.format(
+                ' or '.join(sorted(SIDEREAL_TIME_MODELS.keys()))))
+
+        available_models = SIDEREAL_TIME_MODELS[kind.lower()]
+
+        if model is None:
+            model = sorted(available_models.keys())[-1]
+        else:
+            if model.upper() not in available_models:
+                raise ValueError(
+                    'Model {0} not implemented for {1} sidereal time; '
+                    'available models are {2}'
+                    .format(model, kind, sorted(available_models.keys())))
+
+        if longitude is None:
+            if self.lon is None:
+                raise ValueError('No longitude is given but the longitude in '
+                                 'the Time object is not set.')
+            longitude = self.lon
+        elif longitude == 'greenwich':
+            longitude = Longitude(0., 'deg', wrap_angle='180d')
+        else:
+            # sanity check on input
+            longitude = Longitude(longitude, 'deg', wrap_angle='180d')
+
+        gst = self._erfa_sidereal_time(available_models[model.upper()])
+        return Longitude(gst + longitude, 'hourangle')
+    sidereal_time.__doc__ = sidereal_time.__doc__.format(
+        'apparent', sorted(SIDEREAL_TIME_MODELS['apparent'].keys()),
+        'mean', sorted(SIDEREAL_TIME_MODELS['mean'].keys()))
+
+    def _erfa_sidereal_time(self, model):
+        """Caculate a sidereal time using a IAU precession/nutation model"""
+
+        from ..coordinates import Longitude
+
+        erfa_function = model['function']
+        erfa_parameters = [getattr(getattr(self, scale)._time, jd_part)
+                           for scale in model['scales']
+                           for jd_part in ('jd1', 'jd2')]
+
+        sidereal_time = erfa_function(*erfa_parameters)
+
+        return Longitude(self._shaped_like_input(sidereal_time),
+                         'radian').to('hourangle')
 
     def copy(self, format=None):
         """
@@ -697,8 +813,8 @@ class Time(object):
             ut = njd1 + njd2
 
             # Compute geodetic params needed for d_tdb_tt()
-            phi = np.radians(self.lat)
-            elon = np.radians(self.lon)
+            elon = 0. if self.lon is None else self.lon.to("radian").value
+            phi = 0. if self.lat is None else self.lat.to("radian").value
             xyz = erfa_time.era_gd2gc(1, elon, phi, 0.0)
             u = np.sqrt(xyz[0] ** 2 + xyz[1] ** 2)
             v = xyz[2]

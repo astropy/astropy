@@ -48,6 +48,15 @@ cdef extern from "erfa.h":
     int eraAf2a(char s, int ideg, int iamin, double asec, double *rad)
     int eraGd2gc(int n, double elong, double phi, double height, double xyz[3])
 
+    # Sidereal time
+    double eraGmst06(double uta, double utb, double tta, double ttb)
+    double eraGmst00(double uta, double utb, double tta, double ttb)
+    double eraGmst82(double dj1, double dj2)
+    double eraGst00a(double uta, double utb, double tta, double ttb)
+    double eraGst00b(double uta, double utb)
+    double eraGst06a(double uta, double utb, double tta, double ttb)
+    double eraGst94(double uta, double utb)
+
 DUBIOUS = 'dubious year for UTC (before 1960.0 or 5 years ' \
           'beyond last known leap second)'
 
@@ -1439,3 +1448,531 @@ def besselian_epoch_jd(np.ndarray[double, ndim=1] epd):
     for i in range(n):
         eraEpb2jd(epd[i], &jd1[i], &jd2[i])
     return jd1, jd2
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def gmst00(np.ndarray[double, ndim=1] ut11,
+           np.ndarray[double, ndim=1] ut12,
+           np.ndarray[double, ndim=1] tt1,
+           np.ndarray[double, ndim=1] tt2):
+    """Wrap double eraGmst00(double uta, double utb, double tta, double ttb)
+    **  Greenwich mean sidereal time (model consistent with IAU 2000
+    **  resolutions).
+    **
+    **  Given:
+    **     uta,utb    double    UT1 as a 2-part Julian Date (Notes 1,2)
+    **     tta,ttb    double    TT as a 2-part Julian Date (Notes 1,2)
+    **
+    **  Returned (function value):
+    **                double    Greenwich mean sidereal time (radians)
+    **
+    **  Notes:
+    **
+    **  1) The UT1 and TT dates uta+utb and tta+ttb respectively, are both
+    **     Julian Dates, apportioned in any convenient way between the
+    **     argument pairs.  For example, JD=2450123.7 could be expressed in
+    **     any of these ways, among others:
+    **
+    **            Part A         Part B
+    **
+    **         2450123.7           0.0       (JD method)
+    **         2451545.0       -1421.3       (J2000 method)
+    **         2400000.5       50123.2       (MJD method)
+    **         2450123.5           0.2       (date & time method)
+    **
+    **     The JD method is the most natural and convenient to use in
+    **     cases where the loss of several decimal digits of resolution
+    **     is acceptable (in the case of UT;  the TT is not at all critical
+    **     in this respect).  The J2000 and MJD methods are good compromises
+    **     between resolution and convenience.  For UT, the date & time
+    **     method is best matched to the algorithm that is used by the Earth
+    **     Rotation Angle function, called internally:  maximum precision is
+    **     delivered when the uta argument is for 0hrs UT1 on the day in
+    **     question and the utb argument lies in the range 0 to 1, or vice
+    **     versa.
+    **
+    **  2) Both UT1 and TT are required, UT1 to predict the Earth rotation
+    **     and TT to predict the effects of precession.  If UT1 is used for
+    **     both purposes, errors of order 100 microarcseconds result.
+    **
+    **  3) This GMST is compatible with the IAU 2000 resolutions and must be
+    **     used only in conjunction with other IAU 2000 compatible
+    **     components such as precession-nutation and equation of the
+    **     equinoxes.
+    **
+    **  4) The result is returned in the range 0 to 2pi.
+    **
+    **  5) The algorithm is from Capitaine et al. (2003) and IERS
+    **     Conventions 2003.
+    **
+    **  Called:
+    **     eraEra00     Earth rotation angle, IAU 2000
+    **     eraAnp       normalize angle into range 0 to 2pi
+    **
+    **  References:
+    **
+    **     Capitaine, N., Wallace, P.T. and McCarthy, D.D., "Expressions to
+    **     implement the IAU 2000 definition of UT1", Astronomy &
+    **     Astrophysics, 406, 1135-1149 (2003)
+    **
+    **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
+    **     IERS Technical Note No. 32, BKG (2004)
+    **
+    **  Copyright (C) 2013, NumFOCUS Foundation.
+    **  Derived, with permission, from the SOFA library.  See notes at end of file.
+    """
+    assert ut11.shape[0] == ut12.shape[0] == tt1.shape[0] == tt2.shape[0]
+    cdef unsigned n = ut11.shape[0]
+    cdef unsigned int i
+    cdef np.ndarray[double, ndim=1] gmst = np.empty(n, dtype=np.double)
+
+    for i in range(n):
+        gmst[i] = eraGmst00(ut11[i], ut12[i], tt1[i], tt2[i])
+
+    return gmst
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def gmst06(np.ndarray[double, ndim=1] ut11,
+           np.ndarray[double, ndim=1] ut12,
+           np.ndarray[double, ndim=1] tt1,
+           np.ndarray[double, ndim=1] tt2):
+    """Wrap double eraGmst06(double uta, double utb, double tta, double ttb)
+    **  Greenwich mean sidereal time (consistent with IAU 2006 precession).
+    **
+    **  Given:
+    **     uta,utb    double    UT1 as a 2-part Julian Date (Notes 1,2)
+    **     tta,ttb    double    TT as a 2-part Julian Date (Notes 1,2)
+    **
+    **  Returned (function value):
+    **                double    Greenwich mean sidereal time (radians)
+    **
+    **  Notes:
+    **
+    **  1) The UT1 and TT dates uta+utb and tta+ttb respectively, are both
+    **     Julian Dates, apportioned in any convenient way between the
+    **     argument pairs.  For example, JD=2450123.7 could be expressed in
+    **     any of these ways, among others:
+    **
+    **            Part A        Part B
+    **
+    **         2450123.7           0.0       (JD method)
+    **         2451545.0       -1421.3       (J2000 method)
+    **         2400000.5       50123.2       (MJD method)
+    **         2450123.5           0.2       (date & time method)
+    **
+    **     The JD method is the most natural and convenient to use in
+    **     cases where the loss of several decimal digits of resolution
+    **     is acceptable (in the case of UT;  the TT is not at all critical
+    **     in this respect).  The J2000 and MJD methods are good compromises
+    **     between resolution and convenience.  For UT, the date & time
+    **     method is best matched to the algorithm that is used by the Earth
+    **     rotation angle function, called internally:  maximum precision is
+    **     delivered when the uta argument is for 0hrs UT1 on the day in
+    **     question and the utb argument lies in the range 0 to 1, or vice
+    **     versa.
+    **
+    **  2) Both UT1 and TT are required, UT1 to predict the Earth rotation
+    **     and TT to predict the effects of precession.  If UT1 is used for
+    **     both purposes, errors of order 100 microarcseconds result.
+    **
+    **  3) This GMST is compatible with the IAU 2006 precession and must not
+    **     be used with other precession models.
+    **
+    **  4) The result is returned in the range 0 to 2pi.
+    **
+    **  Called:
+    **     eraEra00     Earth rotation angle, IAU 2000
+    **     eraAnp       normalize angle into range 0 to 2pi
+    **
+    **  Reference:
+    **
+    **     Capitaine, N., Wallace, P.T. & Chapront, J., 2005,
+    **     Astron.Astrophys. 432, 355
+    """
+    assert ut11.shape[0] == ut12.shape[0] == tt1.shape[0] == tt2.shape[0]
+    cdef unsigned n = ut11.shape[0]
+    cdef unsigned int i
+    cdef np.ndarray[double, ndim=1] gmst = np.empty(n, dtype=np.double)
+
+    for i in range(n):
+        gmst[i] = eraGmst06(ut11[i], ut12[i], tt1[i], tt2[i])
+
+    return gmst
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def gmst82(np.ndarray[double, ndim=1] ut11,
+           np.ndarray[double, ndim=1] ut12):
+    """Wrap double double eraGmst82(double dj1, double dj2)
+    **  Universal Time to Greenwich mean sidereal time (IAU 1982 model).
+    **
+    **  Given:
+    **     dj1,dj2    double    UT1 Julian Date (see note)
+    **
+    **  Returned (function value):
+    **                double    Greenwich mean sidereal time (radians)
+    **
+    **  Notes:
+    **
+    **  1) The UT1 date dj1+dj2 is a Julian Date, apportioned in any
+    **     convenient way between the arguments dj1 and dj2.  For example,
+    **     JD(UT1)=2450123.7 could be expressed in any of these ways,
+    **     among others:
+    **
+    **             dj1            dj2
+    **
+    **         2450123.7D0        0D0        (JD method)
+    **          2451545D0      -1421.3D0     (J2000 method)
+    **         2400000.5D0     50123.2D0     (MJD method)
+    **         2450123.5D0       0.2D0       (date & time method)
+    **
+    **     The JD method is the most natural and convenient to use in
+    **     cases where the loss of several decimal digits of resolution
+    **     is acceptable.  The J2000 and MJD methods are good compromises
+    **     between resolution and convenience.  The date & time method is
+    **     best matched to the algorithm used:  maximum accuracy (or, at
+    **     least, minimum noise) is delivered when the dj1 argument is for
+    **     0hrs UT1 on the day in question and the dj2 argument lies in the
+    **     range 0 to 1, or vice versa.
+    **
+    **  2) The algorithm is based on the IAU 1982 expression.  This is
+    **     always described as giving the GMST at 0 hours UT1.  In fact, it
+    **     gives the difference between the GMST and the UT, the steady
+    **     4-minutes-per-day drawing-ahead of ST with respect to UT.  When
+    **     whole days are ignored, the expression happens to equal the GMST
+    **     at 0 hours UT1 each day.
+    **
+    **  3) In this function, the entire UT1 (the sum of the two arguments
+    **     dj1 and dj2) is used directly as the argument for the standard
+    **     formula, the constant term of which is adjusted by 12 hours to
+    **     take account of the noon phasing of Julian Date.  The UT1 is then
+    **     added, but omitting whole days to conserve accuracy.
+    **
+    **  Called:
+    **     eraAnp       normalize angle into range 0 to 2pi
+    **
+    **  References:
+    **
+    **     Transactions of the International Astronomical Union,
+    **     XVIII B, 67 (1983).
+    **
+    **     Aoki et al., Astron. Astrophys. 105, 359-361 (1982).
+    """
+    assert ut11.shape[0] == ut12.shape[0]
+    cdef unsigned n = ut11.shape[0]
+    cdef unsigned int i
+    cdef np.ndarray[double, ndim=1] gmst = np.empty(n, dtype=np.double)
+
+    for i in range(n):
+        gmst[i] = eraGmst82(ut11[i], ut12[i]
+)
+    return gmst
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def gst00a(np.ndarray[double, ndim=1] ut11,
+           np.ndarray[double, ndim=1] ut12,
+           np.ndarray[double, ndim=1] tt1,
+           np.ndarray[double, ndim=1] tt2):
+    """Wrap double eraGst00a(double uta, double utb, double tta, double ttb)
+    **  Greenwich apparent sidereal time (consistent with IAU 2000
+    **  resolutions).
+    **
+    **  Given:
+    **     uta,utb    double    UT1 as a 2-part Julian Date (Notes 1,2)
+    **     tta,ttb    double    TT as a 2-part Julian Date (Notes 1,2)
+    **
+    **  Returned (function value):
+    **                double    Greenwich apparent sidereal time (radians)
+    **
+    **  Notes:
+    **
+    **  1) The UT1 and TT dates uta+utb and tta+ttb respectively, are both
+    **     Julian Dates, apportioned in any convenient way between the
+    **     argument pairs.  For example, JD=2450123.7 could be expressed in
+    **     any of these ways, among others:
+    **
+    **            Part A        Part B
+    **
+    **         2450123.7           0.0       (JD method)
+    **         2451545.0       -1421.3       (J2000 method)
+    **         2400000.5       50123.2       (MJD method)
+    **         2450123.5           0.2       (date & time method)
+    **
+    **     The JD method is the most natural and convenient to use in
+    **     cases where the loss of several decimal digits of resolution
+    **     is acceptable (in the case of UT;  the TT is not at all critical
+    **     in this respect).  The J2000 and MJD methods are good compromises
+    **     between resolution and convenience.  For UT, the date & time
+    **     method is best matched to the algorithm that is used by the Earth
+    **     Rotation Angle function, called internally:  maximum precision is
+    **     delivered when the uta argument is for 0hrs UT1 on the day in
+    **     question and the utb argument lies in the range 0 to 1, or vice
+    **     versa.
+    **
+    **  2) Both UT1 and TT are required, UT1 to predict the Earth rotation
+    **     and TT to predict the effects of precession-nutation.  If UT1 is
+    **     used for both purposes, errors of order 100 microarcseconds
+    **     result.
+    **
+    **  3) This GAST is compatible with the IAU 2000 resolutions and must be
+    **     used only in conjunction with other IAU 2000 compatible
+    **     components such as precession-nutation.
+    **
+    **  4) The result is returned in the range 0 to 2pi.
+    **
+    **  5) The algorithm is from Capitaine et al. (2003) and IERS
+    **     Conventions 2003.
+    **
+    **  Called:
+    **     eraGmst00    Greenwich mean sidereal time, IAU 2000
+    **     eraEe00a     equation of the equinoxes, IAU 2000A
+    **     eraAnp       normalize angle into range 0 to 2pi
+    **
+    **  References:
+    **
+    **     Capitaine, N., Wallace, P.T. and McCarthy, D.D., "Expressions to
+    **     implement the IAU 2000 definition of UT1", Astronomy &
+    **     Astrophysics, 406, 1135-1149 (2003)
+    **
+    **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
+    **     IERS Technical Note No. 32, BKG (2004)
+    """
+    assert ut11.shape[0] == ut12.shape[0] == tt1.shape[0] == tt2.shape[0]
+    cdef unsigned n = ut11.shape[0]
+    cdef unsigned int i
+    cdef np.ndarray[double, ndim=1] gst = np.empty(n, dtype=np.double)
+
+    for i in range(n):
+        gst[i] = eraGst00a(ut11[i], ut12[i], tt1[i], tt2[i])
+
+    return gst
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def gst00b(np.ndarray[double, ndim=1] ut11,
+            np.ndarray[double, ndim=1] ut12):
+    """Wrap double eraGst00b(double uta, double utb)
+    **  Greenwich apparent sidereal time (consistent with IAU 2000
+    **  resolutions but using the truncated nutation model IAU 2000B).
+    **
+    **  Given:
+    **     uta,utb    double    UT1 as a 2-part Julian Date (Notes 1,2)
+    **
+    **  Returned (function value):
+    **                double    Greenwich apparent sidereal time (radians)
+    **
+    **  Notes:
+    **
+    **  1) The UT1 date uta+utb is a Julian Date, apportioned in any
+    **     convenient way between the argument pair.  For example,
+    **     JD=2450123.7 could be expressed in any of these ways, among
+    **     others:
+    **
+    **             uta            utb
+    **
+    **         2450123.7           0.0       (JD method)
+    **         2451545.0       -1421.3       (J2000 method)
+    **         2400000.5       50123.2       (MJD method)
+    **         2450123.5           0.2       (date & time method)
+    **
+    **     The JD method is the most natural and convenient to use in cases
+    **     where the loss of several decimal digits of resolution is
+    **     acceptable.  The J2000 and MJD methods are good compromises
+    **     between resolution and convenience.  For UT, the date & time
+    **     method is best matched to the algorithm that is used by the Earth
+    **     Rotation Angle function, called internally:  maximum precision is
+    **     delivered when the uta argument is for 0hrs UT1 on the day in
+    **     question and the utb argument lies in the range 0 to 1, or vice
+    **     versa.
+    **
+    **  2) The result is compatible with the IAU 2000 resolutions, except
+    **     that accuracy has been compromised for the sake of speed and
+    **     convenience in two respects:
+    **
+    **     . UT is used instead of TDB (or TT) to compute the precession
+    **       component of GMST and the equation of the equinoxes.  This
+    **       results in errors of order 0.1 mas at present.
+    **
+    **     . The IAU 2000B abridged nutation model (McCarthy & Luzum, 2001)
+    **       is used, introducing errors of up to 1 mas.
+    **
+    **  3) This GAST is compatible with the IAU 2000 resolutions and must be
+    **     used only in conjunction with other IAU 2000 compatible
+    **     components such as precession-nutation.
+    **
+    **  4) The result is returned in the range 0 to 2pi.
+    **
+    **  5) The algorithm is from Capitaine et al. (2003) and IERS
+    **     Conventions 2003.
+    **
+    **  Called:
+    **     eraGmst00    Greenwich mean sidereal time, IAU 2000
+    **     eraEe00b     equation of the equinoxes, IAU 2000B
+    **     eraAnp       normalize angle into range 0 to 2pi
+    **
+    **  References:
+    **
+    **     Capitaine, N., Wallace, P.T. and McCarthy, D.D., "Expressions to
+    **     implement the IAU 2000 definition of UT1", Astronomy &
+    **     Astrophysics, 406, 1135-1149 (2003)
+    **
+    **     McCarthy, D.D. & Luzum, B.J., "An abridged model of the
+    **     precession-nutation of the celestial pole", Celestial Mechanics &
+    **     Dynamical Astronomy, 85, 37-49 (2003)
+    **
+    **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
+    **     IERS Technical Note No. 32, BKG (2004)
+    """
+    assert ut11.shape[0] == ut12.shape[0]
+    cdef unsigned n = ut11.shape[0]
+    cdef unsigned int i
+    cdef np.ndarray[double, ndim=1] gst = np.empty(n, dtype=np.double)
+
+    for i in range(n):
+        gst[i] = eraGst00b(ut11[i], ut12[i]
+)
+    return gst
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def gst06a(np.ndarray[double, ndim=1] ut11,
+           np.ndarray[double, ndim=1] ut12,
+           np.ndarray[double, ndim=1] tt1,
+           np.ndarray[double, ndim=1] tt2):
+    """Wrap double eraGst06a(double uta, double utb, double tta, double ttb)
+    **  Greenwich apparent sidereal time (consistent with IAU 2000 and 2006
+    **  resolutions).
+    **
+    **  Given:
+    **     uta,utb    double    UT1 as a 2-part Julian Date (Notes 1,2)
+    **     tta,ttb    double    TT as a 2-part Julian Date (Notes 1,2)
+    **
+    **  Returned (function value):
+    **                double    Greenwich apparent sidereal time (radians)
+    **
+    **  Notes:
+    **
+    **  1) The UT1 and TT dates uta+utb and tta+ttb respectively, are both
+    **     Julian Dates, apportioned in any convenient way between the
+    **     argument pairs.  For example, JD=2450123.7 could be expressed in
+    **     any of these ways, among others:
+    **
+    **            Part A        Part B
+    **
+    **         2450123.7           0.0       (JD method)
+    **         2451545.0       -1421.3       (J2000 method)
+    **         2400000.5       50123.2       (MJD method)
+    **         2450123.5           0.2       (date & time method)
+    **
+    **     The JD method is the most natural and convenient to use in
+    **     cases where the loss of several decimal digits of resolution
+    **     is acceptable (in the case of UT;  the TT is not at all critical
+    **     in this respect).  The J2000 and MJD methods are good compromises
+    **     between resolution and convenience.  For UT, the date & time
+    **     method is best matched to the algorithm that is used by the Earth
+    **     rotation angle function, called internally:  maximum precision is
+    **     delivered when the uta argument is for 0hrs UT1 on the day in
+    **     question and the utb argument lies in the range 0 to 1, or vice
+    **     versa.
+    **
+    **  2) Both UT1 and TT are required, UT1 to predict the Earth rotation
+    **     and TT to predict the effects of precession-nutation.  If UT1 is
+    **     used for both purposes, errors of order 100 microarcseconds
+    **     result.
+    **
+    **  3) This GAST is compatible with the IAU 2000/2006 resolutions and
+    **     must be used only in conjunction with IAU 2006 precession and
+    **     IAU 2000A nutation.
+    **
+    **  4) The result is returned in the range 0 to 2pi.
+    **
+    **  Called:
+    **     eraPnm06a    classical NPB matrix, IAU 2006/2000A
+    **     eraGst06     Greenwich apparent ST, IAU 2006, given NPB matrix
+    **
+    **  Reference:
+    **
+    **     Wallace, P.T. & Capitaine, N., 2006, Astron.Astrophys. 459, 981
+    """
+    assert ut11.shape[0] == ut12.shape[0] == tt1.shape[0] == tt2.shape[0]
+    cdef unsigned n = ut11.shape[0]
+    cdef unsigned int i
+    cdef np.ndarray[double, ndim=1] gst = np.empty(n, dtype=np.double)
+
+    for i in range(n):
+        gst[i] = eraGst06a(ut11[i], ut12[i], tt1[i], tt2[i])
+
+    return gst
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def gst94(np.ndarray[double, ndim=1] ut11,
+          np.ndarray[double, ndim=1] ut12):
+    """Wrap double eraGst94(double uta, double utb)
+    **  Greenwich apparent sidereal time (consistent with IAU 1982/94
+    **  resolutions).
+    **
+    **  Given:
+    **     uta,utb    double    UT1 as a 2-part Julian Date (Notes 1,2)
+    **
+    **  Returned (function value):
+    **                double    Greenwich apparent sidereal time (radians)
+    **
+    **  Notes:
+    **
+    **  1) The UT1 date uta+utb is a Julian Date, apportioned in any
+    **     convenient way between the argument pair.  For example,
+    **     JD=2450123.7 could be expressed in any of these ways, among
+    **     others:
+    **
+    **             uta            utb
+    **
+    **         2450123.7           0.0       (JD method)
+    **         2451545.0       -1421.3       (J2000 method)
+    **         2400000.5       50123.2       (MJD method)
+    **         2450123.5           0.2       (date & time method)
+    **
+    **     The JD method is the most natural and convenient to use in cases
+    **     where the loss of several decimal digits of resolution is
+    **     acceptable.  The J2000 and MJD methods are good compromises
+    **     between resolution and convenience.  For UT, the date & time
+    **     method is best matched to the algorithm that is used by the Earth
+    **     Rotation Angle function, called internally:  maximum precision is
+    **     delivered when the uta argument is for 0hrs UT1 on the day in
+    **     question and the utb argument lies in the range 0 to 1, or vice
+    **     versa.
+    **
+    **  2) The result is compatible with the IAU 1982 and 1994 resolutions,
+    **     except that accuracy has been compromised for the sake of
+    **     convenience in that UT is used instead of TDB (or TT) to compute
+    **     the equation of the equinoxes.
+    **
+    **  3) This GAST must be used only in conjunction with contemporaneous
+    **     IAU standards such as 1976 precession, 1980 obliquity and 1982
+    **     nutation.  It is not compatible with the IAU 2000 resolutions.
+    **
+    **  4) The result is returned in the range 0 to 2pi.
+    **
+    **  Called:
+    **     eraGmst82    Greenwich mean sidereal time, IAU 1982
+    **     eraEqeq94    equation of the equinoxes, IAU 1994
+    **     eraAnp       normalize angle into range 0 to 2pi
+    **
+    **  References:
+    **
+    **     Explanatory Supplement to the Astronomical Almanac,
+    **     P. Kenneth Seidelmann (ed), University Science Books (1992)
+    **
+    **     IAU Resolution C7, Recommendation 3 (1994)
+    """
+    assert ut11.shape[0] == ut12.shape[0]
+    cdef unsigned n = ut11.shape[0]
+    cdef unsigned int i
+    cdef np.ndarray[double, ndim=1] gst = np.empty(n, dtype=np.double)
+
+    for i in range(n):
+        gst[i] = eraGst94(ut11[i], ut12[i])
+
+    return gst
