@@ -136,7 +136,7 @@ Now we can stack these two tables horizontally::
     3 baz 2.8   --    --
 
 As with `~astropy.table.operations.vstack`, there is an optional ``join_type`` argument
-that can take values `'inner'``, ``'exact'``, and ``'outer'``.  The default is
+that can take values ``'inner'``, ``'exact'``, and ``'outer'``.  The default is
 ``'outer'``, which effectively takes the union of available rows and masks out any missing
 values.  This is illustrated in the example above.  The other options give the
 intersection of rows, where ``'exact'`` requires that all tables have exactly the same
