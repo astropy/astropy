@@ -151,6 +151,7 @@ def test_unknown_unit3():
         unit5 = u.Unit(None)
 
 
+@raises(TypeError)
 def test_invalid_scale():
     x = ['a', 'b', 'c'] * u.m
 
