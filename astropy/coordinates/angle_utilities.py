@@ -333,9 +333,6 @@ def degrees_to_dms(d):
     (mf, m) = np.modf(df * 60.)  # (minute fraction, minute)
     s = mf * 60.
 
-    _check_minute_range(m)
-    _check_second_range(s)
-
     return np.floor(sign * d), np.floor(m), s
 
 
@@ -442,8 +439,6 @@ def hours_to_hms(h):
     (hf, h) = np.modf(np.abs(h))  # (degree fraction, degree)
     (mf, m) = np.modf(hf * 60.0)  # (minute fraction, minute)
     s = mf * 60.0
-
-    check_hms_ranges(h, m, s)  # throws exception if out of range
 
     return (np.floor(sign * h), np.floor(m), s)
 
