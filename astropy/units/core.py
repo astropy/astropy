@@ -249,21 +249,21 @@ class UnitBase(object):
         for i, equiv in enumerate(equivalencies):
             if len(equiv) == 2:
                 funit, tunit = equiv
-                a, b = lambda x: x
-            if len(equiv) == 3:
+                a = b = lambda x: x
+            elif len(equiv) == 3:
                 funit, tunit, a = equiv
                 b = a
             elif len(equiv) == 4:
                 funit, tunit, a, b = equiv
             else:
                 raise ValueError(
-                    "Invalid equivalence entry {0}".format(i))
+                    "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
             if not (isinstance(funit, UnitBase) and
                     isinstance(tunit, UnitBase) and
                     callable(a) and
                     callable(b)):
                 raise ValueError(
-                    "Invalid equivalence entry {0}".format(i))
+                    "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
             normalized.append((funit, tunit, a, b))
         return normalized
 
@@ -334,7 +334,7 @@ class UnitBase(object):
         else:
             return Quantity(m, self)
 
-    if sys.version_info[0] >= 3:
+    if sys.version_info[0] >= 3:  # pragma: no cover
         def __hash__(self):
             # Since this class defines __eq__, it will become unhashable
             # on Python 3.x, so we need to define our own hash.
@@ -728,9 +728,9 @@ class UnitBase(object):
             if len(units) == 0:
                 units = _UnitRegistry().non_prefix_units
         elif isinstance(units, dict):
-            units = set(units.values())
+            units = set(filter_units(units.itervalues()))
         elif inspect.ismodule(units):
-            units = filter_units(vars(units).values())
+            units = filter_units(vars(units).itervalues())
         else:
             units = set(units)
 
@@ -1241,7 +1241,6 @@ class _UnitMetaClass(type):
             # __init__ on the Unit class.
             return super(_UnitMetaClass, self).__call__(
                 s, represents, format=format, register=register, doc=doc)
-            raise TypeError("Can not convert {0!r} to a unit".format(s))
 
         elif isinstance(s, UnitBase):
             return s
