@@ -275,7 +275,6 @@ class Latex(core.BaseReader):
         self.data.header = self.header
         self.header.data = self.data
         self.latex = {}
-        self.latex['tabletype'] = 'table'
         # The latex dict drives the format of the table and needs to be shared
         # with data and header
         self.header.latex = self.latex
@@ -391,8 +390,13 @@ class AASTex(Latex):
         self.data.comment = self.header.comment
         self.data.header = self.header
         self.header.data = self.data
-        self.latex['tabletype'] = 'deluxetable'
         # The latex dict drives the format of the table and needs to be shared
         # with data and header
         self.header.latex = self.latex
         self.data.latex = self.latex
+        # check if tabletype was explicitly set by the user
+        if not (('latexdict' in kwargs) and ('tabletype' in kwargs['latexdict'])):
+            self.latex['tabletype'] = 'deluxetable'
+        self.header.comment = '%|' + '|'.join(
+            [r'\\' + command for command in self.ignore_latex_commands])
+        self.data.comment = self.header.comment
