@@ -1,13 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import os
-import cPickle
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
+from ...extern.six.moves import cPickle
 from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj
 from ...io import fits
-from ...tests.helper import pytest
 from ... import wcs
 
 
