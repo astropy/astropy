@@ -15,34 +15,58 @@ Core Package Contributors
 
 * Tom Aldcroft
 * Kyle Barbary
+* Geert Barentsen
 * Paul Barrett
-* Erik Bray
-* Neil Crighton
+* Chris Beaumont
+* Daniel Bell
+* Gustavo Bragança
+* Erik M. Bray
+* Eli Bressert
 * Alex Conley
+* Jean Connelly
 * Simon Conseil
+* Steven Crawford
+* Neil Crighton
 * Matt Davis
 * Christoph Deil
 * Nadia Dencheva
+* Axel Donath
 * Michael Droettboom
+* Zach Edwards
+* Thomas Erben
 * Henry Ferguson
 * Adam Ginsburg
 * Perry Greenfield
 * Frédéric Grollier
 * Hans Moritz Günther
+* Alex Hagen
+* Emma Hogan
 * Chris Hanley
 * JC Hsu
+* Marten van Kerkwijk
 * Wolfgang Kerzendorf
+* Kacper Kowalik
 * Roban Kramer
 * Pey Lian Lim
 * Demitri Muna
 * Prasanth Nair
+* Miruna Oprescu
+* Madhura Parikh
+* Sergio Pascual
 * Adrian Price-Whelan
 * Thomas Robitaille
+* Alex Rudy
+* Joseph Ryan
 * David Shiga
+* David Shupe
 * Leo Singer
 * James Taylor
+* Jeff Taylor
+* Víctor Terrón
 * Erik Tollerud
 * James Turner
+* Miguel de Val-Borro
+* Benjamin Alan Weaver
 * Julien Woillez
 * Victor Zabalza
 
