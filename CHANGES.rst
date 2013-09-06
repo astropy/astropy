@@ -238,6 +238,20 @@ Bug Fixes
 Bug Fixes
 ^^^^^^^^^
 
+- ``astropy.coordinates``
+
+  - Fixed incorrect string formatting of Angles using ``precision=0``. [#1319]
+
+  - Fixed string formatting of Angles using ``decimal=True`` which ignored the
+    ``precision`` argument. [#1323]
+
+- ``astropy.io.ascii``
+
+  - Fixed a crash in the IPAC table reader when the ``include/exclude_names``
+    option is set. [#1348]
+
+  - Fixed writing AASTex tables to honor the ``tabletype`` option. [#1372]
+
 - ``astropy.io.fits``
 
   - Fixed a bug that could cause a segfault when trying to decompress an
@@ -259,6 +273,41 @@ Bug Fixes
 
   - Some miscellaneous documentation fixes.
 
+- ``astropy.io.votable``
+
+  - Added a warning for when a VOTable 1.2 file contains no ``RESOURCES``
+    elements (at least one should be present). [#1337]
+
+  - Fixed a test failure specific to MIPS architecture caused by an errant
+    floating point warning. [#1179]
+
+- ``astropy.nddata.convolution``
+
+  - Prevented in-place modification of the input arrays to ``convolve()``.
+    [#1153]
+
+- ``astropy.table``
+
+  - Added HTML escaping for string values in tables when outputting the table
+    as HTML. [#1347]
+
+  - Added a workaround in a bug in Numpy that could cause a crash when
+    accessing a table row in a masked table containing ``dtype=object``
+    columns. [#1229]
+
+  - Fixed an issue similar to the one in #1229, but specific to unmasked
+    tables. [#1403]
+
+- ``astropy.units``
+
+  - Improved error handling for unparseable units and fixed parsing CDS units
+    without mantissas in the exponent. [#1288]
+
+  - Added a physical type for spectral flux density. [#1410]
+
+  - Normalized conversions that should result in a scale of exactly 1.0 to
+    round off slight floating point imprecisions. [#1407]
+
 - ``astropy.wcs``
 
   - When passing a single array to the wcs transformation functions,
@@ -266,8 +315,35 @@ Bug Fixes
     now exactly match the number of dimensions in the
     transformation. [#1395]
 
+  - Improved error message when incorrect arguments are passed to
+    ``WCS.wcs_world2pix``. [#1394]
+
+  - Fixed a crash when trying to read WCS from FITS headers on Python 3.3
+    in Windows. [#1363]
+
+- Misc
+
+  - Fixed crash when the ``COLUMNS`` environment variable is set to a
+    non-integer value. [#1291]
+
+  - Fixed a bug in ``ProgressBar.map`` where ``multiprocess=True`` could cause
+    it to hang on waiting for the process pool to be destroyed. [#1381]
+
+  - Importing ``astropy`` from within a source checkout will no longer exit
+    the Python interpreter if the extension modules have not been built
+    in-place. [#1269]
+
+  - Miscellaneous documentation fixes and improvements [#1308, #1317, #1377,
+    #1393, #1362]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Astropy installation now requests setuptools >= 0.7 during build/installation
+  if neither distribute or setuptools >= 0.7 is already installed.  In other
+  words, if ``import setuptools`` fails, ``ez_setup.py`` is used to bootstrap
+  the latest setuptools (rather than using ``distribute_setup.py`` to bootstrap
+  the now obsolete distribute package). [#1197]
 
 - When importing Astropy from a source checkout without having built the
   extension modules first an ``ImportError`` is raised rather than a
