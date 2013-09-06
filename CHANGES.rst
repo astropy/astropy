@@ -25,6 +25,9 @@ New Features
     TimeDelta objects maintains sub-nanosecond precision over a time span
     longer than the age of the universe [#1189].
 
+  - Use ``astropy.utils.iers`` to provide ``delta_ut1_utc``, so that
+    automatic calculation of UT1 becomes possible [#1145].
+  
   - Add ``datetime`` format which allows converting to and from standard
     library ``datetime.datetime`` objects.
 
@@ -74,10 +77,16 @@ New Features
   - Added new spectroscopic equivalencies for velocity conversions
     (relativistic, optical, and radio conventions are supported)
 
+- ``astropy.utils``
+
+  - Added ``astropy.utils.iers`` which allows reading in of IERS A or
+    IERS B bulletins and interpolation in UT1-UTC.
+
 - Astropy now uses the ERFA library instead of the IAU SOFA library for
-  fundamental time transformation routines.
-  The ERFA library is derived, with permission, from the IAU SOFA library but
+  fundamental time transformation routines.  
+  The ERFA library is derived, with permission, from the IAU SOFA library but 
   is distributed under a BSD license. See ``license/ERFA.rst`` for details.
+
 
 API Changes
 ^^^^^^^^^^^

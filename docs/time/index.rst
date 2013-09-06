@@ -497,12 +497,30 @@ UT1 - UTC and TDB - TT, respectively.  As an example::
   >>> t.ut1.iso    # ISO representation of time in UT1 scale
  '2010-01-01 00:00:00.334'
 
+For the UT1 to UTC offset, one has to interpolate in observed values provided
+by the `International Earth Rotation and Reference Systems Service
+<http://www.iers.org>`_.  By default, `astropy` is shipped with the final
+values provided in Bulletin B, which cover the period from 1962 to shortly
+before an astropy release, and these will be used to compute the offset if the
+:attr:`~astropy.time.Time.delta_ut1_utc` attribute is not set explicitly.  For
+more recent times, one can download an updated version of `IERS B
+<http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now>`_ or `IERS A
+<http://maia.usno.navy.mil/ser7/finals2000A.all>`_ (which also has
+predictions), and set :attr:`~astropy.time.Time.delta_ut1_utc` as described in
+`~astropy.time.Time.get_delta_ut1_utc`::
+
+  >>> from astropy.utils.iers import IERS_A, IERS_A_URL
+  >>> from astropy.utils.data import download_file
+  >>> iers_a_file = download_file(IERS_A_URL, cache=True))  # doctest: +SKIP
+  >>> iers_a = IERS_A.open(iers_a_file)                     # doctest: +SKIP
+  >>> t.delta_ut1_utc = t.get_delta_ut1_utc(iers_a)         # doctest: +SKIP
+
 In the case of the TDB to TT offset, most users need only provide the ``lat``
 and ``lon`` values when creating the |Time| object.  If the
-:attr:`~astropy.time.Time.delta_tdb_tt` attribute is not explicitly set
-then the ERFA C-library routine ``eraDtdb`` will be used to compute the
-TDB to TT offset.  Note that ``lat`` and ``lon`` are initialized to 0.0 by
-default, so those defaults will be used if they are not provided.
+:attr:`~astropy.time.Time.delta_tdb_tt` attribute is not explicitly set then
+the ERFA C-library routine ``eraDtdb`` will be used to compute the TDB to TT
+offset.  Note that ``lat`` and ``lon`` are initialized to 0.0 by default, so
+those defaults will be used if they are not provided.
 
 The following code replicates an example in the `SOFA Time Scale and Calendar
 Tools <http://www.iausofa.org/2012_0301_C/sofa/sofa_ts_c.pdf>`_ document.  It
@@ -514,11 +532,10 @@ TT, UT1, UTC).  This requires auxilliary information (latitude and longitude).
   >>> lon = -155.933222
   >>> t = Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
   ...          lat=lat, lon=lon, precision=6)
-  >>> t.delta_ut1_utc = 0.3341  # Explicitly set one part of the transformation
   >>> t.utc.iso
   '2006-01-15 21:24:37.500000'
   >>> t.ut1.iso
-  '2006-01-15 21:24:37.834100'
+  '2006-01-15 21:24:37.834078'
   >>> t.tai.iso
   '2006-01-15 21:25:10.500000'
   >>> t.tt.iso

@@ -546,22 +546,81 @@ class Time(object):
             raise ValueError('Attribute length must match Time object length')
         return val
 
+    def get_delta_ut1_utc(self, iers_table=None, return_status=False):
+        """Find UT1 - UTC differences by interpolating in IERS Table.
+
+        Parameters
+        ----------
+        iers_table: `~astropy.utils.iers.IERS` table, optional
+            Table containing UT1-UTC differences from IERS Bulletins A and/or B
+            If None, use default version (see `~astropy.utils.iers`)
+        return_status : bool
+            Whether to return status values.  If `False` (default),
+            iers raises `IndexError` if any time is out of the range covered
+            by the IERS table.
+
+        Returns
+        -------
+        ut1_utc: float or float array
+            UT1-UTC, interpolated in IERS Table
+        status: int or int array
+            Status values (if `return_status`=`True`)::
+            `~astropy.utils.iers.FROM_IERS_B`
+            `~astropy.utils.iers.FROM_IERS_A`
+            `~astropy.utils.iers.FROM_IERS_A_PREDICTION`
+            `~astropy.utils.iers.TIME_BEFORE_IERS_RANGE`
+            `~astropy.utils.iers.TIME_BEYOND_IERS_RANGE`
+
+        Notes
+        -----
+        In normal usage, UT1-UTC differences are calculated automatically
+        on the first instance ut1 is needed.
+
+        Examples
+        --------
+        To check in code whether any times are before the IERS table range::
+
+            >>> from astropy.utils.iers import TIME_BEFORE_IERS_RANGE
+            >>> t = Time(['1961-01-01', '2000-01-01'], scale='utc')
+            >>> delta, status = t.get_delta_ut1_utc(return_status=True)
+            >>> status == TIME_BEFORE_IERS_RANGE
+            array([ True, False], dtype=bool)
+
+        To use an updated IERS A bulletin to calculate UT1-UTC
+        (see also `~astropy.utils.iers`)::
+
+            >>> from astropy.utils.iers import IERS_A, IERS_A_URL
+            >>> from astropy.utils.data import download_file
+            >>> iers_a_file = download_file(IERS_A_URL,
+            ...                             cache=True)        # doctest: +SKIP
+            >>> iers_a = IERS_A.open(iers_a_file)              # doctest: +SKIP
+            >>> t.delta_ut1_utc = t.get_delta_ut1_utc(iers_a)  # doctest: +SKIP
+
+        The delta_ut1_utc property will be used to calculate t.ut1;
+        raises IndexError if any of the times is out of range.
+
+        """
+        if iers_table is None:
+            from ..utils.iers import IERS
+            iers_table = IERS.open()
+
+        return iers_table.ut1_utc(self.utc, return_status=return_status)
+
     # Property for ERFA DUT arg = UT1 - UTC
     def _get_delta_ut1_utc(self, jd1=None, jd2=None):
         """
         Get ERFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
         jd2 args because it gets called that way when converting time scales.
-        The current code ignores these, but when the IERS table is interpolated
-        by this module they will be used.
+        If delta_ut1_utc is not yet set, this will interpolate them from the
+        the IERS table.
         """
 
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
-        # seconds. It can be obtained from tables published by the IERS.
-        # TODO - get that table when needed and interpolate or whatever.
+        # seconds. It is obtained from tables published by the IERS.
         if not hasattr(self, '_delta_ut1_utc'):
-            # Exception until the IERS table is available to the package
-            raise ValueError('Must set the delta_ut1_utc attribute in '
-                             'order to do the scale transform.')
+            from ..utils.iers import IERS
+            iers_table = IERS.open()
+            self._set_delta_ut1_utc(iers_table.ut1_utc(jd1, jd2))
 
         return self._delta_ut1_utc
 
