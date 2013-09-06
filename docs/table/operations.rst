@@ -83,7 +83,7 @@ table those values are marked as missing.  This is the default behavior and corr
   TableMergeError: Inconsistent columns in input arrays (use 'inner' or
   'outer' join_type to allow non-matching columns)
 
-In the case of ``join_type='inner'`, only the common columns (the intersection) are
+In the case of ``join_type='inner'``, only the common columns (the intersection) are
 present in the output table.  When ``join_type='exact'`` is specified then
 `~astropy.table.operations.vstack` requires that all the input tables
 have exactly the same column names.
