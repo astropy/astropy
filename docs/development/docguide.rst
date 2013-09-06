@@ -1,3 +1,5 @@
+.. _documentation-guidelines:
+
 ========================
 Documentation Guidelines
 ========================
