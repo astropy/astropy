@@ -61,17 +61,20 @@ def _get_list_of_tables(tables):
     Check that tables is a Table or sequence of Tables.  Returns the
     corresponding list of Tables.
     """
-    from .table import Table
-    err = '`tables` arg must be a Table or sequence of Tables'
-    if isinstance(tables, Table):
-        tables = [tables]
-    elif isinstance(tables, collections.Sequence):
-        if any(not isinstance(x, Table) for x in tables):
-            raise TypeError(err)
-    else:
-        raise TypeError(err)
+    from .table import Table, Row
 
-    return list(tables)
+    # Make sure we have a list of things
+    if not isinstance(tables, collections.Sequence):
+        tables = [tables]
+
+    # Make sure each thing is a Table or Row
+    if any(not isinstance(x, (Table, Row)) for x in tables):
+        raise TypeError('`tables` arg must be a Table or sequence of Tables or Rows')
+
+    # Convert any Rows to Tables
+    tables = [(x if isinstance(x, Table) else Table(x)) for x in tables]
+
+    return tables
 
 
 def join(left, right, keys=None, join_type='inner',
