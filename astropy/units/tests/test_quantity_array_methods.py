@@ -39,11 +39,20 @@ class TestQuantityArrayCopy(object):
         q[0] = -1.*u.m/u.s
         assert q[0].value != q2[0].value
 
-    def test_getitem_does_not_copy(self):
+    def test_getitem_is_view(self):
+        """Check that [keys] work, and that, like ndarray, it returns
+        a view, so that changing one changes the other.
+
+        Also test that one can add axes (closes #1422)
+        """
         q = u.Quantity(np.arange(100.), "m/s")
         q_sel = q[10:20]
         q_sel[0] = -1.*u.m/u.s
         assert q_sel[0] == q[10]
+        # also check that getitem can do new axes
+        q2 = q[:, np.newaxis]
+        q2[10,0] = -9*u.m/u.s
+        assert np.all(q2.flatten() == q)
 
 
 class TestQuantityStatsFuncs(object):
