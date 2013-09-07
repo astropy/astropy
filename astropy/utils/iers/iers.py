@@ -15,7 +15,7 @@ the default IERS B table is loaded as necessary in `Time`::
     ...           '2012-06-30 23:59:60', '2012-07-01 00:00:00',
     ...           '2012-07-01 12:00:00'], scale='utc')
     >>> t.ut1
-    <Time object: scale='ut1' format='iso' vals=['2012-06-30 11:59:59.413'
+    <Time object: scale='ut1' format='iso' value=['2012-06-30 11:59:59.413'
      '2012-06-30 23:59:58.413' '2012-06-30 23:59:59.413'
      '2012-07-01 00:00:00.413' '2012-07-01 12:00:00.413']>
 
@@ -39,7 +39,7 @@ configurable or automatic, but currently it requires handiwork.  For
     >>> t2.delta_ut1_utc = iers_a.ut1_utc(t2)      # doctest: +SKIP
     >>> t2.ut1.iso                                 # doctest: +SKIP
     <Time object: scale='ut1' format='datetime'
-     vals=2013-06-22 17:01:13.446632>
+     value=2013-06-22 17:01:13.446632>
 
 Instead of local copies of IERS files, one can also download them, using
 `iers.IERS_A_URL` and `iers.IERS_B_URL`::

@@ -244,7 +244,7 @@ class Time(object):
         return self._format
 
     def __repr__(self):
-        return ("<{0} object: scale='{1}' format='{2}' vals={3}>"
+        return ("<{0} object: scale='{1}' format='{2}' value={3}>"
                 .format(self.__class__.__name__, self.scale, self.format,
                         getattr(self, self.format)))
 
