@@ -26,7 +26,7 @@ class TestTimeDelta():
         # time - time
         dt = self.t2 - self.t
         assert (repr(dt).startswith("<TimeDelta object: scale='tai' "
-                                    "format='jd' vals=1.00001157407"))
+                                    "format='jd' value=1.00001157407"))
         assert allclose_jd(dt.jd, 86401.0 / 86400.0)
         assert allclose_sec(dt.sec, 86401.0)
 

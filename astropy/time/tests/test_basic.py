@@ -23,7 +23,7 @@ class TestBasic():
         times = ['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00']
         t = Time(times, format='iso', scale='utc')
         assert (repr(t) == "<Time object: scale='utc' format='iso' "
-                "vals=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>")
+                "value=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>")
         assert allclose_jd(t.jd1, np.array([2451179.5, 2455197.5]))
         assert allclose_jd2(t.jd2, np.array([1.4288980208333335e-06,
                                              0.00000000e+00]))
@@ -31,7 +31,7 @@ class TestBasic():
         # Set scale to TAI
         t = t.tai
         assert (repr(t) == "<Time object: scale='tai' format='iso' "
-                "vals=['1999-01-01 00:00:32.123' '2010-01-01 00:00:34.000']>")
+                "value=['1999-01-01 00:00:32.123' '2010-01-01 00:00:34.000']>")
         assert allclose_jd(t.jd1, np.array([2451179.5, 2455197.5]))
         assert allclose_jd2(t.jd2, np.array([0.00037179926839122024, 0.00039351851851851852]))
 
@@ -39,7 +39,7 @@ class TestBasic():
         # (internal JD1 and JD1 are now with respect to TT scale)"""
 
         assert (repr(t.tt) == "<Time object: scale='tt' format='iso' "
-                "vals=['1999-01-01 00:01:04.307' '2010-01-01 00:01:06.184']>")
+                "value=['1999-01-01 00:01:04.307' '2010-01-01 00:01:06.184']>")
 
         # Get the representation of the ``Time`` object in a particular format
         # (in this case seconds since 1998.0).  This returns either a scalar or
