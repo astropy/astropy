@@ -10,6 +10,7 @@ import time
 import itertools
 import numpy as np
 
+from ..utils import deprecated, deprecated_attribute
 from ..utils.compat.misc import override__dir__
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
@@ -89,6 +90,9 @@ class Time(object):
         Make a copy of the input values
     """
 
+    is_scalar = deprecated_attribute(name='is_scalar', since='0.3',
+                                     alternative='isscalar')
+
     _precision = 3  # Precision when for seconds as floating point
     _in_subfmt = '*'  # Select subformat for inputting string times
     _out_subfmt = '*'  # Select subformat for outputting string times
@@ -149,7 +153,7 @@ class Time(object):
                 raise ValueError(
                     'non-None second value for list of {0!r} objects'
                     .format(self.__class__.__name__))
-            self.is_scalar = False
+            self.isscalar = False
         else:
             # Coerce val into a 1-d array
             val, val_ndim = _make_1d_array(val, copy)
@@ -165,7 +169,7 @@ class Time(object):
             if len(val) != len(val2):
                 raise ValueError('Input val and val2 must match in length')
 
-            self.is_scalar = (val_ndim == 0)
+            self.isscalar = (val_ndim == 0)
             if val_ndim != val2_ndim:
                 raise ValueError('Input val and val2 must have same dimensions')
 
@@ -343,8 +347,15 @@ class Time(object):
             raise ValueError('out_subfmt attribute must be a string')
         self._out_subfmt = val
 
-    def _shaped_like_input(self, vals):
-        return (vals[0].tolist() if self.is_scalar else vals)
+    def _shaped_like_input(self, values):
+        if self.isscalar:
+            value0 = values[0]
+            try:
+                return value0.tolist()
+            except AttributeError:
+                return value0
+        else:
+            return values
 
     @property
     def jd1(self):
@@ -361,14 +372,20 @@ class Time(object):
         return self._shaped_like_input(self._time.jd2)
 
     @property
+    @deprecated("0.3", name="val", alternative="value")
     def val(self):
-        """Time value(s) in current format"""
-        return self._shaped_like_input(self._time.vals)
+        return self.value
 
     @property
+    def value(self):
+        """Time value(s) in current format"""
+        return self._shaped_like_input(self._time.value)
+
+    @property
+    @deprecated("0.3", name="vals", alternative="value")
     def vals(self):
         """Time values in current format as a numpy array"""
-        return self._time.vals
+        return self._time.value
 
     def copy(self, format=None):
         """
@@ -435,7 +452,7 @@ class Time(object):
                           self.scale, self.precision,
                           self.in_subfmt, self.out_subfmt, from_jd=True)
         # Optional or non-arg attributes
-        attrs = ('is_scalar', '_delta_ut1_utc', '_delta_tdb_tt',
+        attrs = ('isscalar', '_delta_ut1_utc', '_delta_tdb_tt',
                  'lat', 'lon', 'precision', 'in_subfmt', 'out_subfmt')
         for attr in attrs:
             try:
@@ -486,15 +503,15 @@ class Time(object):
         return self.copy()
 
     def __getitem__(self, item):
-        if self.is_scalar:
+        if self.isscalar:
             raise TypeError('scalar {0!r} object is not subscriptable.'.format(
                 self.__class__.__name__))
         tm = self.replicate()
         jd1 = self._time.jd1[item]
-        tm.is_scalar = jd1.ndim == 0
+        tm.isscalar = jd1.ndim == 0
 
-        def keepasarray(x, is_scalar=tm.is_scalar):
-            return np.array([x]) if is_scalar else x
+        def keepasarray(x, isscalar=tm.isscalar):
+            return np.array([x]) if isscalar else x
         tm._time.jd1 = keepasarray(jd1)
         tm._time.jd2 = keepasarray(self._time.jd2[item])
         attrs = ('_delta_ut1_utc', '_delta_tdb_tt')
@@ -515,13 +532,13 @@ class Time(object):
 
         elif attr in self.FORMATS:
             tm = self.replicate(format=attr)
-            if self.is_scalar:
-                out = tm.vals[0]
+            if self.isscalar:
+                out = tm._time.value[0]
                 # convert to native python for non-object dtypes
-                if tm.vals.dtype.kind != 'O':
+                if tm._time.value.dtype.kind != 'O':
                     out = out.tolist()
             else:
-                out = tm.vals
+                out = tm.value
             return out
 
         else:
@@ -937,10 +954,10 @@ class TimeFormat(object):
         raise NotImplementedError
 
     @property
-    def vals(self):
+    def value(self):
         """
         Return time representation from internal jd1 and jd2.  Must be
-        provided by by derived classes.
+        provided by derived classes.
         """
         raise NotImplementedError
 
@@ -954,7 +971,7 @@ class TimeJD(TimeFormat):
         self.jd1, self.jd2 = day_frac(val1, val2)
 
     @property
-    def vals(self):
+    def value(self):
         return self.jd1 + self.jd2
 
 
@@ -972,7 +989,7 @@ class TimeMJD(TimeFormat):
         self.jd1 += MJD_ZERO
 
     @property
-    def vals(self):
+    def value(self):
         return (self.jd1 - MJD_ZERO) + self.jd2
 
 
@@ -1028,7 +1045,7 @@ class TimeFromEpoch(TimeFormat):
         self.jd2 = tm.jd2
 
     @property
-    def vals(self):
+    def value(self):
         # Create a temporary Time object corresponding to the parent Time, then transform
         # that to the epoch scale.  From there do the simple math to compute delta time
         # from the epoch in Julian days, and then in the desired output units
@@ -1192,7 +1209,7 @@ class TimeDatetime(TimeUnique):
                                               iy, im, id, ihr, imin, dsec)
 
     @property
-    def vals(self):
+    def value(self):
         iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
                                                  .encode('utf8'),
                                                  6,  # precision = 6 for microseconds
@@ -1296,7 +1313,7 @@ class TimeString(TimeUnique):
                    'fracsec': int(ifracsec), 'yday': yday}
 
     @property
-    def vals(self):
+    def value(self):
         # Select the first available subformat based on current
         # self.out_subfmt
         subfmts = self._select_subfmts(self.out_subfmt)
@@ -1410,7 +1427,7 @@ class TimeEpochDate(TimeFormat):
         self.jd1, self.jd2 = day_frac(jd1, jd2)
 
     @property
-    def vals(self):
+    def value(self):
         jd_to_epoch = getattr(erfa_time, self.jd_to_epoch)
         return jd_to_epoch(self.jd1, self.jd2)
 
@@ -1455,7 +1472,7 @@ class TimeEpochDateString(TimeString):
         self.jd1, self.jd2 = epoch_to_jd(years)
 
     @property
-    def vals(self):
+    def value(self):
         jd_to_epoch = getattr(erfa_time, self.jd_to_epoch)
         years = jd_to_epoch(self.jd1, self.jd2)
         # Use old-style format since it is a factor of 2 faster
@@ -1494,7 +1511,7 @@ class TimeDeltaSec(TimeDeltaFormat):
         self.jd1, self.jd2 = day_frac(val1, val2, divisor=SECS_PER_DAY)
 
     @property
-    def vals(self):
+    def value(self):
         return (self.jd1 + self.jd2) * SECS_PER_DAY
 
 
@@ -1507,7 +1524,7 @@ class TimeDeltaJD(TimeDeltaFormat):
         self.jd1, self.jd2 = day_frac(val1, val2)
 
     @property
-    def vals(self):
+    def value(self):
         return self.jd1 + self.jd2
 
 

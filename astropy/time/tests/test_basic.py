@@ -68,36 +68,36 @@ class TestBasic():
 
         # Include initializers
         t2 = Time(t, format='iso', scale='tai', precision=1)
-        assert t2.val == '2010-01-01 00:00:34.0'
+        assert t2.value == '2010-01-01 00:00:34.0'
         t2 = Time(t, format='iso', scale='tai', out_subfmt='date')
-        assert t2.val == '2010-01-01'
+        assert t2.value == '2010-01-01'
 
     def test_getitem(self):
         """Test that Time objects holding arrays are properly subscriptable,
-        set is_scalar as appropriate, and also subscript delta_ut1_utc, etc."""
+        set isscalar as appropriate, and also subscript delta_ut1_utc, etc."""
 
         mjd = np.arange(50000, 50010)
         t = Time(mjd, format='mjd', scale='utc')
         t1 = t[3]
-        assert t1.is_scalar is True
+        assert t1.isscalar is True
         assert np.all(t1._time.jd1 == np.array([t._time.jd1[3]]))
         t1a = Time(mjd[3], format='mjd', scale='utc')
-        assert t1a.is_scalar is True
+        assert t1a.isscalar is True
         assert np.all(t1._time.jd1 == t1a._time.jd1)
         t1b = Time(t[3])
-        assert t1b.is_scalar is True
+        assert t1b.isscalar is True
         assert np.all(t1._time.jd1 == t1b._time.jd1)
         t2 = t[4:6]
-        assert t2.is_scalar is False
+        assert t2.isscalar is False
         assert np.all(t2._time.jd1 == t._time.jd1[4:6])
         t2a = Time(t[4:6])
-        assert t2a.is_scalar is False
+        assert t2a.isscalar is False
         assert np.all(t2a._time.jd1 == t._time.jd1[4:6])
         t2b = Time([t[4], t[5]])
-        assert t2b.is_scalar is False
+        assert t2b.isscalar is False
         assert np.all(t2b._time.jd1 == t._time.jd1[4:6])
         t2c = Time((t[4], t[5]))
-        assert t2c.is_scalar is False
+        assert t2c.isscalar is False
         assert np.all(t2c._time.jd1 == t._time.jd1[4:6])
         t.delta_tdb_tt = np.arange(len(t))  # Explicitly set (not testing .tdb)
         t3 = t[4:6]
@@ -195,11 +195,12 @@ class TestBasic():
         t = Time(dt, scale='utc', precision=9)
         assert t.iso == '2000-01-02 03:04:05.123456000'
         assert t.datetime == dt
+        assert t.value == dt
         t2 = Time(t.iso, scale='utc')
         assert t2.datetime == dt
 
         t = Time([dt, dt2], scale='utc')
-        assert np.all(t.vals == [dt, dt2])
+        assert np.all(t.value == [dt, dt2])
 
         t = Time('2000-01-01 01:01:01.123456789', scale='tai')
         assert t.datetime == datetime(2000, 1, 1, 1, 1, 1, 123457)
@@ -270,25 +271,25 @@ class TestBasic():
         assert len(t3) == 3
         assert t3.scale == t1.scale
         assert t3.format == t1.format  # t1 format is yday
-        assert np.all(t3.vals == np.concatenate([[t1.yday], t2.tai.yday]))
+        assert np.all(t3.value == np.concatenate([[t1.yday], t2.tai.yday]))
 
         # Init from a single Time object without a scale
         t3 = Time(t1)
         assert len(t1) == 1
         assert t3.scale == t1.scale
         assert t3.format == t1.format
-        assert np.all(t3.vals == t1.vals)
+        assert np.all(t3.value == t1.value)
 
         # Init from a single Time object with scale specified
         t3 = Time(t1, scale='utc')
         assert t3.scale == 'utc'
-        assert np.all(t3.vals == t1.utc.vals)
+        assert np.all(t3.value == t1.utc.value)
 
         # Init from a list of Time object with scale specified
         t3 = Time([t1, t2], scale='tt')
         assert t3.scale == 'tt'
         assert t3.format == t1.format  # yday
-        assert np.all(t3.vals == np.concatenate([[t1.tt.yday], t2.tt.yday]))
+        assert np.all(t3.value == np.concatenate([[t1.tt.yday], t2.tt.yday]))
 
 
 class TestVal2():
@@ -401,7 +402,7 @@ class TestSubFormat():
 
         # Create new time object from this one and change scale, format
         t2 = Time(t, scale='tt', format='iso')
-        assert t2.val == '1998-01-01 00:00:00.000'
+        assert t2.value == '1998-01-01 00:00:00.000'
 
         # Value take from Chandra.Time.DateTime('2010:001:00:00:00').secs
         t = Time(378691266.184, format='cxcsec', scale='utc')
