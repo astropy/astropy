@@ -176,7 +176,7 @@ class Angle(u.Quantity):
     def __quantity_instance__(self, val, unit, **kwargs):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
-            return Angle(val, unit, **kwargs)
+            return self.__class__(val, unit, **kwargs)
         return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
 
     def __array_wrap__(self, obj, context=None):
