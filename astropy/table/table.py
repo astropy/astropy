@@ -2320,8 +2320,8 @@ class GroupedTable(Table):
 
             out_cols.append((col, vals))
 
-        out_cols = [Column(data=vals, name=col.name, description=col.description, unit=col.unit,
-                           format=col.format, meta=col.meta) for col, vals in out_cols]
+        out_cols = [col.__class__(data=vals, name=col.name, description=col.description,
+                                  unit=col.unit, format=col.format, meta=col.meta)
+                    for col, vals in out_cols]
 
         return Table(out_cols)
-
