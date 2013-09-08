@@ -362,9 +362,9 @@ class SphericalCoordinatesBase(object):
 
         See also
         --------
-        `~astropy.coordinates.angle_utilities.angular_separation` :
-            The routine used internally.  It uses the Vincenty formula,
-            which is stable at all locations, including poles and antipodes.
+        angle_utilities.angular_separation : The routine used internally.
+            It uses the Vincenty formula, which is stable at all locations,
+            including poles and antipodes.
 
         """
         other_in_self_system = other.transform_to(self.__class__)
