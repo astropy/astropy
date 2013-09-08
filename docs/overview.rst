@@ -68,4 +68,7 @@ Community
 Aside from the actual code, Astropy is also a community of
 astronomy-associated users and developers that agree that sharing utilities
 is healthy for the community and the science it produces. This community
-is of course central to accomplishing anything with the code itself.
+is of course central to accomplishing anything with the code itself. 
+We follow the `Python Software Foundation Code of Conduct
+<http://www.python.org/psf/codeofconduct/>`_ and welcome anyone
+who wishes to contribute to the project.
