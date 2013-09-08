@@ -310,39 +310,30 @@ def _group_by(table, keys):
         keys = (keys,)
 
     if isinstance(keys, (list, tuple)):
-        data = table._data
         for name in keys:
-            if name not in data.dtype.names:
-                raise np_utils.TableMergeError('Table does not have key column {1!r}'
-                                               .format(name))
-            if hasattr(data[name], 'mask') and np.any(data[name].mask):
-                raise np_utils.TableMergeError('{0} key column {1!r} has missing values'
-                                               .format(name))
-        # Output array dtype as a list of descr (name, type_str, shape) tuples
-        col_name_map = np_utils.get_col_name_map([data], keys)
-        out_descrs = np_utils.get_descrs([data], col_name_map)
+            if name not in table.colnames:
+                raise ValueError('Table does not have key column {0!r}'.format(name))
+            if table.masked and np.any(table[name].mask):
+                raise ValueError('Missing values in key column {0!r} are not allowed'.format(name))
 
-        # Make an array with just the key columns
-        out_keys_dtype = [descr for descr in out_descrs if descr[0] in keys]
-        out_keys = np.empty(len(data), dtype=out_keys_dtype)
-        for key in keys:
-            out_keys[key] = data[key]
+        keys = tuple(keys)
+        table_keys = table[keys]._data
 
     elif isinstance(keys, np.ndarray):
-        out_keys = keys
-        keys = None
-        if len(out_keys) != len(table):
+        table_keys = keys
+        if len(table_keys) != len(table):
             raise ValueError('Input keys array length {0} does not match table length {1}'
-                             .format(len(out_keys), len(table)))
+                             .format(len(table_keys), len(table)))
+        keys = ()
     else:
-        raise TypeError('Keys input must be string, list, or numpy array, got {0}'
+        raise TypeError('Keys input must be string, list, tuple or numpy array, but got {0}'
                         .format(type(keys)))
 
-    idx_sort = out_keys.argsort(order=keys)
-    out_keys = out_keys[idx_sort]
+    idx_sort = table_keys.argsort()
+    table_keys = table_keys[idx_sort]
 
     # Get all keys
-    diffs = np.concatenate(([True], out_keys[1:] != out_keys[:-1], [True]))
+    diffs = np.concatenate(([True], table_keys[1:] != table_keys[:-1], [True]))
     idxs = np.flatnonzero(diffs)
 
     # Make the output "grouped" table [is this method the fastest?  Does it matter?]
