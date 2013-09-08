@@ -309,30 +309,35 @@ def _group_by(table, keys):
     if isinstance(keys, basestring):
         keys = (keys,)
 
-    data = table._data
+    if isinstance(keys, (list, tuple)):
+        data = table._data
+        for name in keys:
+            if name not in data.dtype.names:
+                raise np_utils.TableMergeError('Table does not have key column {1!r}'
+                                               .format(name))
+            if hasattr(data[name], 'mask') and np.any(data[name].mask):
+                raise np_utils.TableMergeError('{0} key column {1!r} has missing values'
+                                               .format(name))
+        # Output array dtype as a list of descr (name, type_str, shape) tuples
+        col_name_map = np_utils.get_col_name_map([data], keys)
+        out_descrs = np_utils.get_descrs([data], col_name_map)
 
-    # Check the key columns
-    for name in keys:
-        if name not in data.dtype.names:
-            raise np_utils.TableMergeError('Table does not have key column {1!r}'
-                                           .format(name))
-        if hasattr(data[name], 'mask') and np.any(data[name].mask):
-            raise np_utils.TableMergeError('{0} key column {1!r} has missing values'
-                                           .format(name))
+        # Make an array with just the key columns
+        out_keys_dtype = [descr for descr in out_descrs if descr[0] in keys]
+        out_keys = np.empty(len(data), dtype=out_keys_dtype)
+        for key in keys:
+            out_keys[key] = data[key]
 
-    # Make sure we work with ravelled arrays
-    data = data.ravel()
-    len_data = len(data)
+    elif isinstance(keys, np.ndarray):
+        out_keys = keys
+        keys = None
+        if len(out_keys) != len(table):
+            raise ValueError('Input keys array length {0} does not match table length {1}'
+                             .format(len(out_keys), len(table)))
+    else:
+        raise TypeError('Keys input must be string, list, or numpy array, got {0}'
+                        .format(type(keys)))
 
-    # Output array dtype as a list of descr (name, type_str, shape) tuples
-    col_name_map = np_utils.get_col_name_map([data], keys)
-    out_descrs = np_utils.get_descrs([data], col_name_map)
-
-    # Make an array with just the key columns
-    out_keys_dtype = [descr for descr in out_descrs if descr[0] in keys]
-    out_keys = np.empty(len_data, dtype=out_keys_dtype)
-    for key in keys:
-        out_keys[key] = data[key]
     idx_sort = out_keys.argsort(order=keys)
     out_keys = out_keys[idx_sort]
 

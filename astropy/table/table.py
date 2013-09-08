@@ -2271,7 +2271,7 @@ class GroupedTable(Table):
         if group_indexes is None:
             raise ValueErorr('group_indexes must be provided for GroupedTable')
         if group_keys is None:
-            raise ValueErorr('group_keys must be provided for GroupedTable')
+            group_keys = ()
 
         super(GroupedTable, self).__init__(data, masked, names, dtype, meta, copy, dtypes)
         self._group_indexes = group_indexes
