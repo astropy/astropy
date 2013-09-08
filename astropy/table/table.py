@@ -403,6 +403,23 @@ class BaseColumn(object):
         lines, n_header = _pformat_col(self)
         return '\n'.join(lines)
 
+    def aggregate(self, func):
+        if not isinstance(self.parent_table, GroupedTable):
+            raise TypeError('Can only aggregate a column in a grouped table')
+
+        group_indexes = self.parent_table.group_indexes
+        idxs0, idxs1 = group_indexes[:-1], group_indexes[1:]
+
+        try:
+            vals = np.array([func(self[i0: i1]) for i0, i1 in izip(idxs0, idxs1)])
+        except Exception as err:
+            raise ValueError("Cannot aggregate column '{0}': {1}"
+                             .format(self.name, err))
+
+        out = self.__class__(data=vals, name=self.name, description=self.description,
+                             unit=self.unit, format=self.format, meta=self.meta)
+        return out
+
 
 class Column(BaseColumn, np.ndarray):
     """Define a data column for use in a Table object.
