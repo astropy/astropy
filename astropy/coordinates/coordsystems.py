@@ -350,6 +350,9 @@ class SphericalCoordinatesBase(object):
         """
         Computes on-sky separation between this coordinate and another.
 
+        The separation is calculating using the Vincenty formula [1]_, which
+        is stable at all locations, including poles and antipodes.
+
         Parameters
         ----------
         other : `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`
@@ -360,11 +363,7 @@ class SphericalCoordinatesBase(object):
         sep : `~astropy.coordinates.angles.Angle`
             The on-sky separation between this and the `other` coordinate.
 
-        See also
-        --------
-        angle_utilities.angular_separation : The routine used internally.
-            It uses the Vincenty formula, which is stable at all locations,
-            including poles and antipodes.
+        .. [1] http://en.wikipedia.org/wiki/Great-circle_distance
 
         """
         other_in_self_system = other.transform_to(self.__class__)
