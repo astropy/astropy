@@ -34,19 +34,18 @@ def test_pixel_sum_1D(model_class, mode):
     assert (np.abs(values.sum() - models_1D[model_class]['integral']) < 0.0001)
 
 
-@pytest.mark.parametrize(('model_class', 'mode'), list(itertools.product(test_models_1D, modes)))
-def test_eval_1D(model_class, mode):
+@pytest.mark.parametrize('mode', modes)
+def test_gaussian_eval_1D(mode):
     """
-    Test if the sum of all pixels corresponds nearly to the integral.
+    Discretize Gaussian with different modes and check
+    if result is at least similar to Gaussian1DModel.eval().
     """
-    parameters = models_1D[model_class]['parameters']
-    model = create_model(model_class, parameters)
-
-    x = np.arange(*models_1D[model_class]['x_lim'])
+    model = Gaussian1DModel(1, 0, 20)
+    x = np.arange(-100, 101)
     values = model(x)
-    disc_values = discretize_model(model, models_1D[model_class]['x_lim'], mode=mode)
+    disc_values = discretize_model(model, (-100, 101), mode=mode)
 
-    assert np.all(np.abs(values - disc_values) < 1)
+    assert np.all(np.abs(values - disc_values) < 0.001)
 
 
 @pytest.mark.parametrize(('model_class', 'mode'), list(itertools.product(test_models_2D, modes)))
@@ -62,22 +61,19 @@ def test_pixel_sum_2D(model_class, mode):
     assert (np.abs(values.sum() - models_2D[model_class]['integral']) < 0.0001)
 
 
-@pytest.mark.parametrize(('model_class', 'mode'), list(itertools.product(test_models_2D, modes)))
-def test_eval_2D(model_class, mode):
+@pytest.mark.parametrize('mode', modes)
+def test_gaussian_eval_2D(mode):
     """
-    Test if the sum of all pixels corresponds nearly to the integral.
+    Discretize Gaussian with different modes and check
+    if result is at least similar to Gaussian1DModel.eval()
     """
-    parameters = models_2D[model_class]['parameters']
-    model = create_model(model_class, parameters)
-
-    x = np.arange(*models_2D[model_class]['x_lim'])
-    y = np.arange(*models_2D[model_class]['y_lim'])
+    model = Gaussian2DModel(1, 0, 0, 20, 20)
+    x = np.arange(-100, 101)
+    y = np.arange(-100, 101)
     y, x = np.meshgrid(y, x)
     values = model(x, y)
-    disc_values = discretize_model(model, models_2D[model_class]['x_lim'],
-                                   models_2D[model_class]['y_lim'], mode=mode)
-
-    assert np.all(np.abs(values - disc_values) < 1)
+    disc_values = discretize_model(model, (-100, 101), (-100, 101), mode=mode)
+    assert np.all(np.abs(values - disc_values) < 0.001)
 
 
 def test_subpixel_gauss_1D():
