@@ -12,9 +12,9 @@ computes the great-circle distance (*not* the small-angle approximation)::
     <Angle 20d44m46.02638s>
 
 
-The `~astropy.coordinates.angles.AngularSeparation` object is a subclass of
-`~astropy.coordinates.angles.Angle`, so it can be accessed in the same ways,
-along with a few additions::
+The returned object is an `~astropy.coordinates.angles.Angle` instance, so it
+is straightforward to access the angle in any of several equivalent angular
+units::
 
     >>> sep.radian
     0.36208807374669766
