@@ -176,7 +176,10 @@ class Angle(u.Quantity):
     def __quantity_instance__(self, val, unit, **kwargs):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
-            return Angle(val, unit, **kwargs)
+            # by default, any equivalencies remain the same
+            if 'equivalencies' not in kwargs:
+                kwargs['equivalencies'] = self.equivalencies
+            return self.__class__(val, unit, **kwargs)
         return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
 
     def __array_wrap__(self, obj, context=None):
@@ -609,8 +612,27 @@ class Longitude(Angle):
         self._wrap_angle = Angle(value)
         self._wrap_internal()
 
+    def __quantity_instance__(self, val, unit, **kwargs):
+        unit = self._convert_unit_to_angle_unit(unit)
+        if unit is not None and unit.is_equivalent(u.radian):
+            # by default, wrap_angle and equivalencies remain the same
+            # TODO: generalize to some _things_to_copy once #1422, #1373 merged
+            for key in ('equivalencies', 'wrap_angle'):
+                if key not in kwargs:
+                    kwargs[key] = getattr(self, key)
+            return Longitude(val, unit, **kwargs)
+        return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
 
-#<----------------------------------Rotations---------------------------------->
+    def __getitem__(self, key):
+        out = super(Longitude, self).__getitem__(key)
+        out._wrap_angle = self._wrap_angle
+        return out
+
+    # deprecated; TODO: move to quantity later (once #1422, #1373 merged)
+    def __getslice__(self, i, j):
+        return self.__getitem__(slice(i, j))
+
+#<----------------------------------Rotations--------------------------------->
 
 
 def rotation_matrix(angle, axis='z', unit=None):
