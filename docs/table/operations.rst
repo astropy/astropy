@@ -83,7 +83,7 @@ table those values are marked as missing.  This is the default behavior and corr
   TableMergeError: Inconsistent columns in input arrays (use 'inner' or
   'outer' join_type to allow non-matching columns)
 
-In the case of ``join_type='inner'`, only the common columns (the intersection) are
+In the case of ``join_type='inner'``, only the common columns (the intersection) are
 present in the output table.  When ``join_type='exact'`` is specified then
 `~astropy.table.operations.vstack` requires that all the input tables
 have exactly the same column names.
@@ -136,7 +136,7 @@ Now we can stack these two tables horizontally::
     3 baz 2.8   --    --
 
 As with `~astropy.table.operations.vstack`, there is an optional ``join_type`` argument
-that can take values `'inner'``, ``'exact'``, and ``'outer'``.  The default is
+that can take values ``'inner'``, ``'exact'``, and ``'outer'``.  The default is
 ``'outer'``, which effectively takes the union of available rows and masks out any missing
 values.  This is illustrated in the example above.  The other options give the
 intersection of rows, where ``'exact'`` requires that all tables have exactly the same
