@@ -609,7 +609,7 @@ class Longitude(Angle):
 
     @wrap_angle.setter
     def wrap_angle(self, value):
-        self._wrap_angle = Angle(value).to(self.unit)
+        self._wrap_angle = Angle(value)
         self._wrap_internal()
 
     def __quantity_instance__(self, val, unit, **kwargs):
@@ -617,7 +617,7 @@ class Longitude(Angle):
         if unit is not None and unit.is_equivalent(u.radian):
             # by default, wrap_angle and equivalencies remain the same
             # TODO: generalize to some _things_to_copy once #1422, #1373 merged
-            for key in 'equivalencies', 'wrap_angle':
+            for key in ('equivalencies', 'wrap_angle'):
                 if key not in kwargs:
                     kwargs[key] = getattr(self, key)
             return Longitude(val, unit, **kwargs)
