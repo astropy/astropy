@@ -21,31 +21,30 @@ class Gaussian1DKernel(Kernel1D):
     1D Gaussian filter kernel.
 
     The Gaussian filter is a filter with great smoothing properties. It is
-    isotropic and does not produce artifact.
+    isotropic and does not produce artifacts.
 
     Parameters
     ----------
     width : number
         Width of the filter kernel.
-    x_size : odd int
+    x_size : odd int, optional
         Size of the kernel array. Default = 8 * width.
-    mode: string
+    mode: string, optional
         One of the following discretization modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
                 Discretize model by linearly interpolating
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
 
 
     See Also
@@ -83,33 +82,32 @@ class Gaussian2DKernel(Kernel2D):
     2D Gaussian filter kernel.
 
     The Gaussian filter is a filter with great smoothing properties. It is
-    isotropic and does not produce artifact.
+    isotropic and does not produce artifacts.
 
     Parameters
     ----------
     width : number
         Width of the filter kernel.
-    x_size : odd int
+    x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * width.
-    y_size : odd int
+    y_size : odd int, optional
         Size in y direction of the kernel array. Default = 8 * width.
-    mode: string
+    mode: string, optional
         One of the following discretization modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
-                Discretize model by linearly interpolating
+                Discretize model by performing a bilinear interpolation
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
 
 
     See Also
@@ -149,30 +147,28 @@ class Box1DKernel(Kernel1D):
     1D Box filter kernel.
 
     The Box filter or running mean is a smoothing filter. It is not isotropic
-    and can produce artifact, when applied repeatedly to the same data. It is
-    faster than a Gaussian smoothing filter.
+    and can produce artifacts, when applied repeatedly to the same data.
 
     Parameters
     ----------
     width : number
         Width of the filter kernel.
-    mode: string
+    mode: string, optional
         One of the following discretization modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
                 Discretize model by linearly interpolating
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
 
     See Also
     --------
@@ -212,30 +208,28 @@ class Box2DKernel(Kernel2D):
     2D Box filter kernel.
 
     The Box filter or running mean is a smoothing filter. It is not isotropic
-    and can produce artifact, when applied repeatedly to the same data. It is
-    faster than a Gaussian smoothing filter.
+    and can produce artifact, when applied repeatedly to the same data.
 
     Parameters
     ----------
     width : number
         Width of the filter kernel.
-    mode: string
+    mode: string, optional
         One of the following discretization modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
-                Discretize model by linearly interpolating
+                Discretize model by performing a bilinear interpolation
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
 
 
     See Also
@@ -288,23 +282,22 @@ class Tophat2DKernel(Kernel2D):
     ----------
     radius : int
         Radius of the filter kernel.
-    mode: string
+    mode: string, optional
         One of the following discretization modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
-                Discretize model by linearly interpolating
+                Discretize model by performing a bilinear interpolation
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
 
 
     See Also
@@ -342,7 +335,7 @@ class Ring2DKernel(Kernel2D):
     2D Ring filter kernel.
 
     The Ring filter kernel is the difference between two Tophat kernels of
-    different width. This kernel is useful for e.g background estimation.
+    different width. This kernel is useful for, e.g., background estimation.
 
     Parameters
     ----------
@@ -350,23 +343,22 @@ class Ring2DKernel(Kernel2D):
         Inner radius of the ring kernel.
     radius_out : number
         Outer radius of the ring kernel.
-    mode: string
+    mode: string, optional
         One of the following discretization modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
-                Discretize model by linearly interpolating
+                Discretize model by performing a bilinear interpolation
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
 
     See Also
     --------
@@ -405,24 +397,23 @@ class Trapezoid1DKernel(Kernel1D):
     width : number
         Width of the filter kernel.
     slope : number
-        Slope of the filter kernels tails
-    mode: string
+        Slope of the filter kernel's tails
+    mode: string, optional
         One of the following discretization modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
                 Discretize model by linearly interpolating
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
 
     See Also
     --------
@@ -463,24 +454,23 @@ class TrapezoidDisk2DKernel(Kernel2D):
     width : number
         Width of the filter kernel.
     slope : number
-        Slope of the filter kernels tails
-    mode: string
+        Slope of the filter kernel's tails
+    mode: string, optional
         One of the following discretization modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
-                Discretize model by linearly interpolating
+                Discretize model by performing a bilinear interpolation
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
 
     See Also
     --------
@@ -518,33 +508,33 @@ class MexicanHat1DKernel(Kernel1D):
     """
     1D Mexican hat filter kernel.
 
-    The Mexican Hat or Gaussian-Laplace filter is a background free smoothing
-    filter. It does not conserve the mean. It is useful for peak or multi-scale
-    detection. This kernel is normalized to a peak value of 1.
+    The Mexican Hat or Gaussian-Laplace filter is a bandpass filter. It
+    smoothes the data and removes slowly varying or constant structures
+    (e.g. Background). It is useful for peak or multi-scale detection.
+    This kernel is derived from a normalized Gaussian.
 
     Parameters
     ----------
     width : number
         Width of the filter kernel.
-    x_size : odd int
+    x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * width.
-    mode: string
+    mode: string, optional
         One of the following discretization modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
                 Discretize model by linearly interpolating
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
 
 
     See Also
@@ -583,35 +573,35 @@ class MexicanHat2DKernel(Kernel2D):
     """
     2D Mexican hat filter kernel.
 
-    The Mexican Hat or Gaussian-Laplace filter is a background free smoothing
-    filter. It does not conserve the mean. It is useful for peak or multi-scale
-    detection. This kernel is normalized to a peak value of 1.
+    The Mexican Hat or Gaussian-Laplace filter is a bandpass filter. It
+    smoothes the data and removes slowly varying or constant structures
+    (e.g. Background). It is useful for peak or multi-scale detection.
+    This kernel is derived from a normalized Gaussian.
 
     Parameters
     ----------
     width : number
         Width of the filter kernel.
-    x_size : odd int
+    x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * width.
-    y_size : odd int
+    y_size : odd int, optional
         Size in y direction of the kernel array. Default = 8 * width.
-    mode: string
+    mode: string, optional
         One of the following discretization modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
-                Discretize model by linearly interpolating
+                Discretize model by performing a bilinear interpolation
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
 
 
     See Also
@@ -658,27 +648,26 @@ class AiryDisk2DKernel(Kernel2D):
     ----------
     width : number
         Width of the filter kernel.
-    x_size : odd int
+    x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * width.
-    y_size : odd int
+    y_size : odd int, optional
         Size in y direction of the kernel array. Default = 8 * width.
-    mode: string
+    mode: string, optional
         One of the following discretization modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
-                Discretize model by linearly interpolating
+                Discretize model by performing a bilinear interpolation
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
 
     See Also
     --------
@@ -704,7 +693,7 @@ class AiryDisk2DKernel(Kernel2D):
     _weighted = True
 
     def __init__(self, width, **kwargs):
-        self._default_size = 4 * width
+        self._default_size = 8 * width
         self._model = models.AiryDisk2DModel(1, 0, 0, width)
         super(AiryDisk2DKernel, self).__init__(**kwargs)
         self.normalize()
@@ -721,23 +710,24 @@ class Model1DKernel(Kernel1D):
     ----------
     model : Parametric1DModel
         Kernel response function model
-    mode: string
+    x_size : odd int, optional
+        Size in x direction of the kernel array. Default = 8 * width.
+    mode: string, optional
         One of the following discretization modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
                 Discretize model by linearly interpolating
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
 
     Raises
     ------
@@ -784,23 +774,26 @@ class Model2DKernel(Kernel2D):
     ----------
     model : Parametric2DModel
         Kernel response function model
-    mode: string
+    x_size : odd int, optional
+        Size in x direction of the kernel array. Default = 8 * width.
+    y_size : odd int, optional
+        Size in y direction of the kernel array. Default = 8 * width.
+    mode: string, optional
         One of the following discretization modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
-                Discretize model by linearly interpolating
+                Discretize model by performing a bilinear interpolation
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
 
     Raises
     ------
