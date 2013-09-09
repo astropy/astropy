@@ -200,6 +200,12 @@ API Changes
     the first argument is now ``order='C'``.  This is required for compatibility
     with Numpy 1.8 which is currently in development [#1250].
 
+- ``astropy.time``
+
+  - For consistency with ``Quantity``, the attributes ``val`` and
+    ``is_scalar`` have been renamed to ``value`` and ``isscalar``,
+    respectively, and the attribute ``vals`` has been dropped.
+
 - ``astropy.units``
 
   - The ``Quantity`` class now inherits from the Numpy array class, and
