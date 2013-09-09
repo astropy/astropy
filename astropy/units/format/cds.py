@@ -36,34 +36,52 @@ class CDS(Base):
     def _generate_unit_names():
         import keyword
         from ... import units as u
+        from .. import core
+
+        bases = [
+            'A', 'a', 'arcmin', 'arcsec', 'AU', 'barn', 'bit', 'byte',
+            'C', 'cd', 'eV', 'F', 'g', 'H', 'Hz', 'J', 'Jy', 'K',
+            'lm', 'lx', 'm', 'mag', 'mol', 'N', 'Ohm', 'Pa', 'pc',
+            'rad', 's', 'S', 'solLum', 'solMass', 'sr', 'T', 'V', 'W',
+            'Wb', 'yr']
+
+        # These are bases which don't have prefix units in astropy.units
+        # itself, but that we need to fake for the sake of CDS.
+        faux_bases = [
+            'ct', 'D', 'd', 'deg', 'h', 'min', 'pix', 'Ry', 'solRad',
+            'Sun']
+
+        # "mas" doesn't have prefixes, according to the cds standard
+        unprefixed = [
+            'mas']
+
+        # We need to define all of the base units first, and then
+        # only add prefixed units if they don't already exist in names
+        # to prevent ambiguities like cd (candela vs. centi-day)
+
         names = {}
 
         names['%'] = u.Unit(0.01)
 
-        bases = [
-            'A', 'C', 'cd', 'eV', 'F', 'g', 'H', 'Hz', 'J', 'K',
-            'lm', 'lx', 'm', 'mol', 'N', 'Ohm', 'Pa', 'rad', 's', 'S',
-            'sr', 'T', 'V', 'W', 'Wb']
-
-        prefixes = [
-            'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
-            '', 'da', 'h', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+        for base in bases + faux_bases + unprefixed:
+            names[base] = getattr(u, base)
 
         for base in bases:
-            for prefix in prefixes:
-                key = prefix + base
-                if keyword.iskeyword(key):
-                    continue
-                names[key] = getattr(u, key)
+            for p_name, p_long_name, p_value in core.si_prefixes:
+                for name in p_name:
+                    key = name + base
+                    if key not in names:
+                        if keyword.iskeyword(key):
+                            continue
+                        names[key] = getattr(u, key)
 
-        simple_bases = [
-            'a', 'AU', 'arcmin', 'arcsec', 'barn', 'bit',
-            'byte', 'ct', 'D', 'd', 'deg', 'h', 'Jy', 'mag', 'mas',
-            'min', 'pc', 'pix', 'Ry', 'solLum', 'solMass', 'solRad',
-            'Sun', 'yr']
-
-        for base in simple_bases:
+        for base in faux_bases:
             names[base] = getattr(u, base)
+            for p_name, p_long_name, p_value in core.si_prefixes:
+                for name in p_name:
+                    key = name + base
+                    if key not in names:
+                        names[key] = u.Unit(p_value * getattr(u, base))
 
         return names
 
