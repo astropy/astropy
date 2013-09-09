@@ -38,9 +38,9 @@ In general any output values have the same shape (scalar or array) as the input.
   >>> times = ['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00']
   >>> t = Time(times, format='iso', scale='utc')
   >>> t
-  <Time object: scale='utc' format='iso' vals=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>
+  <Time object: scale='utc' format='iso' value=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>
   >>> t[1]
-  <Time object: scale='utc' format='iso' vals=2010-01-01 00:00:00.000>
+  <Time object: scale='utc' format='iso' value=2010-01-01 00:00:00.000>
 
 The ``format`` argument specifies how to interpret the input values, e.g. ISO
 or JD or Unix time.  The ``scale`` argument specifies the `time scale`_ for the
@@ -60,7 +60,7 @@ TT.  This uses the same attribute mechanism as above but now returns a new
 
   >>> t2 = t.tt
   >>> t2
-  <Time object: scale='tt' format='iso' vals=['1999-01-01 00:01:04.307' '2010-01-01 00:01:06.184']>
+  <Time object: scale='tt' format='iso' value=['1999-01-01 00:01:04.307' '2010-01-01 00:01:06.184']>
   >>> t2.jd
   array([ 2451179.5007443 ,  2455197.50076602])
 
@@ -196,9 +196,9 @@ appropriate::
   >>> t.jd
   array([ 2400100.5,  2400200.5,  2400300.5])
   >>> t[:2]
-  <Time object: scale='utc' format='mjd' vals=[ 100.  200.]>
+  <Time object: scale='utc' format='mjd' value=[ 100.  200.]>
   >>> t[2]
-  <Time object: scale='utc' format='mjd' vals=300.0>
+  <Time object: scale='utc' format='mjd' value=300.0>
 
 Inferring input format
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -297,7 +297,7 @@ first object unless explicitly specified.
 ::
 
   >>> Time([t1, t2])
-  <Time object: scale='tt' format='mjd' vals=[ 50100.  55197.00076602]>
+  <Time object: scale='tt' format='mjd' value=[ 50100.  55197.00076602]>
 
 val2
 ^^^^
@@ -361,7 +361,7 @@ heterogeous subformat::
 
   >>> Time(['2000:001', '2000:002:03:04', '2001:003:04:05:06.789'], scale='utc')
   <Time object: scale='utc' format='yday'
-   vals=['2000:001:00:00:00.000' '2000:002:03:04:00.000' '2001:003:04:05:06.789']>
+   value=['2000:001:00:00:00.000' '2000:002:03:04:00.000' '2001:003:04:05:06.789']>
 
 One can explicitly specify `in_subfmt` in order to strictly require a
 certain subformat::
@@ -465,9 +465,9 @@ Examples::
 
   >>> t = Time('2010-01-01 00:00:00', format='iso', scale='utc')
   >>> t.tt        # TT scale
-  <Time object: scale='tt' format='iso' vals=2010-01-01 00:01:06.184>
+  <Time object: scale='tt' format='iso' value=2010-01-01 00:01:06.184>
   >>> t.tai
-  <Time object: scale='tai' format='iso' vals=2010-01-01 00:00:34.000>
+  <Time object: scale='tai' format='iso' value=2010-01-01 00:00:34.000>
 
 In this process the ``format`` and other object attributes like ``lat``,
 ``lon``, and ``precision`` are also propagated to the new object.
@@ -591,7 +591,7 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
   >>> t2 = Time('2010-02-01 00:00:00', scale='utc')
   >>> dt = t2 - t1  # Difference between two Times
   >>> dt
-  <TimeDelta object: scale='tai' format='jd' vals=31.0>
+  <TimeDelta object: scale='tai' format='jd' value=31.0>
   >>> dt.sec
   2678400.0
 
@@ -602,13 +602,13 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
   '2010-02-01 00:00:50.000'
 
   >>> t2 - dt2  # Subtract a TimeDelta from a Time
-  <Time object: scale='utc' format='iso' vals=2010-01-31 23:59:10.000>
+  <Time object: scale='utc' format='iso' value=2010-01-31 23:59:10.000>
 
   >>> dt + dt2
-  <TimeDelta object: scale='tai' format='jd' vals=31.0005787037>
+  <TimeDelta object: scale='tai' format='jd' value=31.0005787037>
 
   >>> t1 + dt * np.linspace(0, 1, 5)
-  <Time object: scale='utc' format='iso' vals=['2010-01-01 00:00:00.000' 
+  <Time object: scale='utc' format='iso' value=['2010-01-01 00:00:00.000' 
   '2010-01-08 18:00:00.000' '2010-01-16 12:00:00.000' '2010-01-24 06:00:00.000'
   '2010-02-01 00:00:00.000']>
 
