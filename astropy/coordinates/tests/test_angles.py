@@ -133,6 +133,10 @@ def test_latitude():
     assert lat[1] == 89 * u.deg
     assert np.all(lat == Angle(['90d', '89d']))
 
+    # conserve type on unit change (closes #1423)
+    angle = lat.to('radian')
+    assert type(angle) is Latitude
+    # but not on calculations
     angle = lat - 190 * u.deg
     assert type(angle) is Angle
     assert angle[0] == -100 * u.deg
@@ -157,9 +161,22 @@ def test_longitude():
     assert np.all(lon == Longitude(['10d', '88d']))
     assert np.all(lon == Angle(['10d', '88d']))
 
+    # conserve type on unit change and keep wrap_angle (closes #1423)
+    angle = lon.to('hourangle')
+    assert type(angle) is Longitude
+    assert angle.wrap_angle == lon.wrap_angle
+    angle = lon[0]
+    assert type(angle) is Longitude
+    assert angle.wrap_angle == lon.wrap_angle
+    angle = lon[1:]
+    assert type(angle) is Longitude
+    assert angle.wrap_angle == lon.wrap_angle
+
+    # but not on calculations
     angle = lon / 2.
     assert np.all(angle == Angle(['5d', '44d']))
     assert type(angle) is Angle
+    assert not hasattr(angle, 'wrap_angle')
 
     angle = lon * 2. + 400 * u.deg
     assert np.all(angle == Angle(['420d', '576d']))
