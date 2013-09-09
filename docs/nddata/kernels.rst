@@ -158,7 +158,7 @@ Note that it has a slightly different color scale compared to the original image
 	# Plot kernels
 	for kernel, ax in zip(kernels, axes.flat):
 		smoothed = convolve(data, kernel)
-		im = ax.imshow(smoothed, vmin=-0.01, vmax=0.15, origin='lower')
+		im = ax.imshow(smoothed, vmin=-0.01, vmax=0.15, origin='lower', interpolation='None')
 		title = kernel.__class__.__name__
 		ax.set_title(title)
 		ax.set_yticklabels([])
