@@ -2324,4 +2324,4 @@ class GroupedTable(Table):
                                   unit=col.unit, format=col.format, meta=col.meta)
                     for col, vals in out_cols]
 
-        return Table(out_cols)
+        return Table(out_cols, meta=self.meta)
