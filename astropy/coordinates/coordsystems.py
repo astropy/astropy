@@ -350,9 +350,6 @@ class SphericalCoordinatesBase(object):
         """
         Computes on-sky separation between this coordinate and another.
 
-        This uses the Vincenty formula for angular distance on a sphere, which
-        is stable at poles and antipodes but more complex/computationally expensive.
-
         Parameters
         ----------
         other : `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`
@@ -362,6 +359,14 @@ class SphericalCoordinatesBase(object):
         -------
         sep : `~astropy.coordinates.angles.Angle`
             The on-sky separation between this and the `other` coordinate.
+
+        Notes
+        -----
+        The separation is calculated using the Vincenty formula, which
+        is stable at all locations, including poles and antipodes [1]_.
+
+        .. [1] http://en.wikipedia.org/wiki/Great-circle_distance
+
         """
         other_in_self_system = other.transform_to(self.__class__)
 
@@ -371,7 +376,7 @@ class SphericalCoordinatesBase(object):
         lat2 = other_in_self_system.latangle
 
         # Get the separation as a Quantity, convert to Angle in degrees
-        sep = angle_utilities.vincenty_sphere_dist(lon1, lat1, lon2, lat2)
+        sep = angle_utilities.angular_separation(lon1, lat1, lon2, lat2)
         return Angle(sep, unit=u.degree)
 
     def separation_3d(self, other):
