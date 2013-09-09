@@ -7,7 +7,7 @@ from .... import units as u
 from ... import FK4NoETermCoordinates, FK5Coordinates
 from ....time import Time
 from ....table import Table
-from ...angle_utilities import vincenty_sphere_dist
+from ...angle_utilities import angular_separation
 
 TOLERANCE = 0.03  # arcseconds
 
@@ -31,7 +31,7 @@ def test_fk4_no_e_fk5():
         c2 = c1.transform_to(FK5Coordinates).precess_to(Time(r['equinox_fk5'], scale='utc'))
 
         # Find difference
-        diff = vincenty_sphere_dist(c2.ra.radian, c2.dec.radian,
+        diff = angular_separation(c2.ra.radian, c2.dec.radian,
                                     np.radians(r['ra_fk5']), np.radians(r['dec_fk5']))
 
         assert np.degrees(diff) * 3600. < TOLERANCE
@@ -44,7 +44,7 @@ def test_fk4_no_e_fk5():
         c2 = c1.transform_to(FK4NoETermCoordinates).precess_to(Time(r['equinox_fk4'], scale='utc'))
 
         # Find difference
-        diff = vincenty_sphere_dist(c2.ra.radian, c2.dec.radian,
+        diff = angular_separation(c2.ra.radian, c2.dec.radian,
                                     np.radians(r['ra_fk4']), np.radians(r['dec_fk4']))
 
         assert np.degrees(diff) * 3600. < TOLERANCE
