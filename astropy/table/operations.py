@@ -297,17 +297,20 @@ def _group_by(table, keys):
     ----------
     table : structured array
         Table to group
-    keys : str or list of str
-        Name(s) of column(s) used to match rows of table.
+    keys : str, list of str, `Table`, or Numpy array
+        Grouping key specifier
 
     Returns
     -------
     idxs, idx_sort : numpy arrays
     """
-    from .table import GroupedTable
+    from .table import GroupedTable, Table
 
+    # Pre-convert string to tuple of strings, or Table to the underlying structured array
     if isinstance(keys, basestring):
         keys = (keys,)
+    elif isinstance(keys, Table):
+        keys = keys._data
 
     if isinstance(keys, (list, tuple)):
         for name in keys:
@@ -325,6 +328,7 @@ def _group_by(table, keys):
             raise ValueError('Input keys array length {0} does not match table length {1}'
                              .format(len(table_keys), len(table)))
         keys = ()
+
     else:
         raise TypeError('Keys input must be string, list, tuple or numpy array, but got {0}'
                         .format(type(keys)))
