@@ -78,23 +78,25 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
         Instance of a astropy.ParametricModel to be evaluated.
     x_range : tuple
         x range in which the model is evaluated.
-    y_range : tuple
+    y_range : tuple optional
         y range in which the model is evaluated.
-    mode: string
+        Necessary only for 2D models.
+    mode: string optional
         One of the following modes:
-            * 'center'
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
             * 'linear_interp'
                 Discretize model by linearly interpolating
                 between the values at the corners of the bin.
-                For 2D models interpolation bilinear.
+                For 2D models interpolation is bilinear.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
-                Discretize model by integrating the
-                model over the bin. Very slow.
+                Discretize model by integrating the model 
+                over the bin using `scipy.integrate.quad`.
+                Very slow.
     factor : number
         Factor of oversampling. Default = 10.
 
@@ -149,7 +151,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
         if isinstance(model, Parametric2DModel):
             return discretize_oversample_2D(model, x_range, y_range, factor)
     elif mode == "integrate":
-        warnings.warn("Mode 'integrate' is very slow. Use only if highest " +
+        warnings.warn("Mode 'integrate' is very slow. Use only if highest "
                         "accuracy is required.")
         if isinstance(model, Parametric1DModel):
             return discretize_integrate_1D(model, x_range)
@@ -184,9 +186,7 @@ def discretize_linear_1D(model, x_range):
     # Evaluate model 0.5 pixel outside the boundaries
     x = np.arange(x_range[0] - 0.5, x_range[1] + 0.5)
     values_intermediate_grid = model(x)
-
-    # Convolve array to calculate the mean
-    return np.convolve(values_intermediate_grid, [0.5, 0.5])[1:-1]
+    return 0.5 * (values_intermediate_grid[1:] + values_intermediate_grid[:-1])
 
 
 def discretize_bilinear_2D(model, x_range, y_range):
@@ -199,21 +199,13 @@ def discretize_bilinear_2D(model, x_range, y_range):
     x, y = np.meshgrid(x, y)
     values_intermediate_grid = model(x, y)
 
-    # Save shape
-    shape = values_intermediate_grid.shape
-
-    # Convolve in x direction to calculate the mean
-    convolved = np.convolve(np.ravel(values_intermediate_grid), [0.5, 0.5])
-
-    # Reshape and transpose
-    convolved = np.reshape(convolved[:-1], shape).T
-
-    # Convolve in y direction to calculate the mean
-    convolved = np.convolve(np.ravel(convolved), [0.5, 0.5])
-    convolved = np.reshape(convolved[:-1], shape)
-
-    # Cut border
-    return convolved[1:, 1:]
+    # Mean in y direction
+    values = 0.5 * (values_intermediate_grid[1:, :]
+                    + values_intermediate_grid[:-1, :])
+    # Mean in x direction
+    values = 0.5 * (values[:, 1:]
+                    + values[:, :-1])
+    return values
 
 
 def discretize_oversample_1D(model, x_range, factor=10):
