@@ -2248,23 +2248,41 @@ class Table(object):
 
     def group_by(self, keys):
         """
-        Group table by the specified ``keys``
+        Group this table by the specified ``keys``
+
+        This effectively splits the table into groups which correspond to unique values of
+        the ``keys`` grouping object.  The output is a new `GroupedTable` which contains a
+        copy of this table but sorted by row according to ``keys``.
+
+        The ``keys`` input to `group_by` can be specified in different ways:
+
+          - String or list of strings corresponding to table column name(s)
+          - Numpy array (homogeneous or structured) with same length as this table
+          - `Table` with same length as this table
 
         Parameters
         ----------
-        keys : str or list of str
-            Name(s) of key column(s) used for grouping
+        keys : str, list of str, numpy array, or Table
+            Key grouping object
 
         Returns
         -------
-        out : Table
+        out : GroupedTable
             New grouped table
         """
         return operations._group_by(self, keys)
 
 
 class GroupedTable(Table):
-    """A class to represent a table of heterogeneous data which is grouped.
+    """
+    A class to represent a table of heterogeneous data which is grouped.
+
+    This is identical to a `Table` except for the addition of new attributes and
+    methods:
+
+      - ``group_keys``: list of key column names
+      - ``group_indexes``: index values corresponding to group boundaries
+      - ``aggregate()``: method to create new table by aggregating within groups
 
     Parameters
     ----------
@@ -2303,6 +2321,20 @@ class GroupedTable(Table):
         return self._group_keys
 
     def aggregate(self, func):
+        """
+        Aggregate each group in the Table into a single row by applying the reduction
+        function ``func`` to group values in each column.
+
+        Parameters
+        ----------
+        func : function
+            Function that reduces an array of values to a single value
+
+        Returns
+        -------
+        out : Table
+            New table with the aggregated rows.
+        """
         idxs0, idxs1 = self.group_indexes[:-1], self.group_indexes[1:]
         out_cols = []
 
