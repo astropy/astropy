@@ -35,7 +35,6 @@ class Kernel(object):
     array : ndarray
         Kernel array.
     """
-    _odd = True
     _separable = False
     _weighted = False
     _model = None
@@ -80,13 +79,6 @@ class Kernel(object):
         Kernel dimension.
         """
         return self.array.ndim
-
-    @property
-    def odd(self):
-        """
-        Indicates if kernel size is odd in all axes.
-        """
-        return self._odd
 
     @property
     def center(self):
@@ -188,28 +180,27 @@ class Kernel1D(Kernel):
 
     Parameters
     ----------
-    model : Instance of ParametricModel
-        Kernel response function model.
-    x_size : number
-        Size of the kernel array. It is rounded to the nearest integer.
-    array: ndarray
-        Kernel array.
-    mode: string
-        One of the following modes:
-            * 'center'
+    width : number
+        Width of the filter kernel.
+    x_size : odd int, optional
+        Size of the kernel array. Default = 8 * width.
+    mode: string, optional
+        One of the following discretization modes:
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by linearly interpolating
+                between the values at the corners of the bin.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
+
     """
     def __init__(self, model=None, x_size=None, array=None, **kwargs):
         if array == None and getattr(self, '_model', False):
@@ -232,28 +223,28 @@ class Kernel2D(Kernel):
 
     Parameters
     ----------
-    model : Instance of ParametricModel
-        Kernel response function model.
-    x_size : number
-        Size of the kernel array. It is rounded to the nearest integer.
-    array: ndarray
-        Kernel array.
-    mode: string
-        One of the following modes:
-            * 'center'
+    width : number
+        Width of the filter kernel.
+    x_size : odd int, optional
+        Size in x direction of the kernel array. Default = 8 * width.
+    y_size : odd int, optional
+        Size in y direction of the kernel array. Default = 8 * width.
+    mode: string, optional
+        One of the following discretization modes:
+            * 'center' (default)
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'corner'
-                Discretize model by taking average of
-                the values at the corners of the bin.
+            * 'linear_interp'
+                Discretize model by performing a bilinear interpolation
+                between the values at the corners of the bin.
             * 'oversample'
                 Discretize model by taking the average
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number
-        Factor of oversampling. Default = 10.
+    factor : number, optional
+        Factor of oversampling. Default factor = 10.
     """
     def __init__(self, model=None, x_size=None, y_size=None, array=None, **kwargs):
         if array == None and getattr(self, '_model', False):

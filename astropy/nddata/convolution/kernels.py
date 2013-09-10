@@ -904,9 +904,9 @@ class CustomKernel(Kernel):
             raise TypeError("Must be list or array.")
 
         #Check if array is odd in all axis
-        self._odd = np.all([axes_size % 2 != 0 for axes_size in self.shape])
+        odd = np.all([axes_size % 2 != 0 for axes_size in self.shape])
 
-        if not self.odd:
+        if not odd:
             raise KernelSizeError("Kernel size must be odd in all axes.")
 
         # Check if array is weighted
