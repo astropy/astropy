@@ -112,7 +112,7 @@ This is what the original image looks like:
 	import numpy as np
 	import matplotlib.pyplot as plt
 	from astropy.modeling.models import Gaussian2DModel
-	gauss = Gaussian2DModel(1, 0, 0, 3, 3)
+	gauss = Gaussian2DModel(1, 0, 0, 2, 2)
 	# Fake image data including noise
 	x = np.arange(-100, 101)
 	y = np.arange(-100, 101)
@@ -136,7 +136,7 @@ Note that it has a slightly different color scale compared to the original image
 	from astropy.modeling.models import Gaussian2DModel
 
 	# Small Gaussian source in the middle of the image
-	gauss = Gaussian2DModel(1, 0, 0, 3, 3)
+	gauss = Gaussian2DModel(1, 0, 0, 2, 2)
 	# Fake data including noise
 	x = np.arange(-100, 101)
 	y = np.arange(-100, 101)
@@ -149,16 +149,16 @@ Note that it has a slightly different color scale compared to the original image
 	kernels = [TrapezoidDisk2DKernel(11, slope=0.2),
 			   Tophat2DKernel(11),
 			   Gaussian2DKernel(11),
-			   Box2DKernel(22),
+			   Box2DKernel(11),
 			   - 11 ** 2 * MexicanHat2DKernel(11),
-			   AiryDisk2DKernel(22)]
+			   AiryDisk2DKernel(11)]
 
 	fig, axes = plt.subplots(nrows=2, ncols=3)
 		
 	# Plot kernels
 	for kernel, ax in zip(kernels, axes.flat):
 		smoothed = convolve(data, kernel)
-		im = ax.imshow(smoothed, vmin=-0.01, vmax=0.15, origin='lower', interpolation='None')
+		im = ax.imshow(smoothed, vmin=-0.01, vmax=0.08, origin='lower', interpolation='None')
 		title = kernel.__class__.__name__
 		ax.set_title(title)
 		ax.set_yticklabels([])
@@ -170,9 +170,11 @@ Note that it has a slightly different color scale compared to the original image
 	plt.show()
 	
 
-The Gaussian kernel has better smoothing properties compared to the Box and the Tophat. The Box filter is not isotropic
-and can produce artifact (the source appears rectangular). The Mexican-Hat filter is almost noise free, but produces a negative
-ring around the source. The best choice for the filter strongly depends on the application. 
+The Gaussian kernel has better smoothing properties compared to the Box and the 
+Tophat. The Box filter is not isotropic and can produce artifact (the source 
+appears rectangular). The Mexican-Hat filter removes noise and slowly varying 
+structures (i.e. background) , but produces a negative ring around the source. 
+The best choice for the filter strongly depends on the application. 
 
 
 Available Kernels
@@ -185,8 +187,11 @@ Available Kernels
 Kernel Arithmetics
 ------------------
 
-As convolution is a linear operation, kernels can be added or subtracted from each other. They can also be multiplied with some
-number. One basic example would be the definition of a Difference of Gaussian filter:
+Addition and Subtraction
+^^^^^^^^^^^^^^^^^^^^^^^^
+As convolution is a linear operation, kernels can be added or subtracted from each other. 
+They can also be multiplied with some number. One basic example would be the definition 
+of a Difference of Gaussian filter:
 
 >>> gauss_1 = Gaussian1DKernel(10)
 >>> gauss_2 = Gaussian2DKernel(16)
@@ -203,14 +208,15 @@ Most times it will be necessary to normalize the resulting kernel by calling exp
 
 >>> SoG.normalize()
 
-Furthermore two kernels can be multiplied with each other. In this case the multiplication
-operation corresponds to a convolution of the two kernels. So it is **not** an element-wise
-multiplication as it is done for arrays. By overloading the multiplication, convolution can
-be written with the star operator:
+
+Convolution
+^^^^^^^^^^^
+Furthermore two kernels can be convolved with each other, which is useful when data 
+is filtered with two diffrent kinds of kernels or to create a new, special kernel:
 
 >>> gauss_1 = Gaussian1DKernel(10)
 >>> gauss_2 = Gaussian1DKernel(16)
->>> broad_gaussian = gauss_2 * gauss_1 
+>>> broad_gaussian = convolve(gauss_2,  gauss_1)
 
 Or in case of multistage smoothing:
 
@@ -223,10 +229,10 @@ You would rather do the following:
 
 >>> gauss = Gaussian1DKernel(10)
 >>> box = Box1DKernel(16)
->>> smoothed_gauss_box = convolve(data, box * gauss)
+>>> smoothed_gauss_box = convolve(data, convolve(box, gauss))
 
-Which, in most cases, will also be faster than the first method.
- 
+Which, in most cases, will also be faster than the first method, because only one
+convolution with the, most times, larger data array will be necessary. 
 
 Discretization
 --------------
@@ -252,7 +258,7 @@ If the oversample factor is too large, the evaluation becomes slow.
 >>> gauss_oversample = Gaussian1DKernel(3, mode='oversample', factor=10)
 
 Mode ``'integrate'`` integrates the function over the pixel using ``scipy.integrate.quad`` and 
-``scipy.integrate.dblquad``. This mode is very slow and only recommended, when highest 
+``scipy.integrate.dblquad``. This mode is very slow and only recommended when highest 
 accuracy is required.
 
 >>> gauss_integrate = Gaussian1DKernel(3, mode='integrate')
