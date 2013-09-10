@@ -2,9 +2,11 @@
 """
 Tests models.parameters
 """
+
 from .. import models, fitting
 from . import irafutil
 from ..utils import InputParameterError
+
 import numpy as np
 from numpy.testing import utils
 from ...utils.data import get_pkg_data_filename
@@ -13,15 +15,14 @@ from .. import ParametricModel, Parameter
 
 
 class TestParModel(ParametricModel):
-
     """
     A toy model to test parameters machinery
     """
     param_names = ['coeff', 'e']
 
     def __init__(self, coeff, e, param_dim=1):
-        self._coeff = Parameter(name='coeff', val=coeff, mclass=self, param_dim=param_dim)
-        self._e = Parameter(name='e', val=e, mclass=self, param_dim=param_dim)
+        self._coeff = Parameter(name='coeff', val=coeff, model=self, dim=param_dim)
+        self._e = Parameter(name='e', val=e, model=self, dim=param_dim)
         ParametricModel.__init__(
             self,
             self.param_names,
@@ -248,16 +249,16 @@ class TestMultipleParameterSets(object):
         utils.assert_almost_equal(self.gmodel.amplitude.value, [13., 10.])
         utils.assert_almost_equal(self.gmodel.mean.value, [9., 5.2])
 
-    def test_object_pars(self):
+    def test_object_params(self):
         l2 = TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3), param_dim=2)
         utils.assert_almost_equal(l2.parameters, [1.0, 2.0, 3.0, 4.0, 2.0, 3.0])
         # utils.assert_almost_equal(l2.param_sets, np.array([[[1,2.],[3., 4.]],
          #                                               [2., 3.]], dtype=np.object))
 
-    def test_wrong_number_of_pars(self):
+    def test_wrong_number_of_params(self):
         with pytest.raises(InputParameterError):
             l2 = TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), param_dim=2)
 
-    def test_wrong_number_of_pars2(self):
+    def test_wrong_number_of_params2(self):
         with pytest.raises(InputParameterError):
             l2 = TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)

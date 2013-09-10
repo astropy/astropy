@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 This module provides wrappers, called Fitters, around some Numpy and Scipy
 fitting functions. All Fitters take an instance of `~astropy.modeling.core.ParametricModel`
@@ -8,30 +9,37 @@ users to easily add other fitters.
 
 Linear fitting is done using Numpy's `~numpy.linalg.lstsq` function.
 There are currently two non-linear fitters which use `~scipy.optimize.leastsq` and
-`~scipy.optimize.slsqp` functions in scipy.optimize.
-
+`~scipy.optimize.slsqp` functions in scipy.optimize.\
 """
+
 from __future__ import division
+
 import abc
-from functools import reduce
 import numbers
 import warnings
+
+from functools import reduce
+
 import numpy as np
-from numpy import linalg
+
 from ..logger import log
 from .utils import poly_map_domain
+
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
            'JointFitter', 'Fitter']
 
+
 MAXITER = 100
 EPS = np.sqrt(np.finfo(float).eps)
 
+
 # supported constraints
-constraintsdef = {'NonLinearLSQFitter': ['fixed', 'tied', 'bounds'],
-                  'SLSQPFitter': ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied'],
-                  'LinearLSQFitter': ['fixed'],
-                  }
+# TODO: Register these automatically through a metaclass
+constraintsdef = {
+    'NonLinearLSQFitter': ['fixed', 'tied', 'bounds'],
+    'SLSQPFitter': ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied'],
+    'LinearLSQFitter': ['fixed']}
 
 
 def _convert_input(x, y, z=None):
@@ -50,10 +58,8 @@ def _convert_input(x, y, z=None):
 
 
 class ModelsError(Exception):
+    """Base Error class."""
 
-    """
-    Base Error class.
-    """
     def __init__(self, message):
         self._message = message
 
@@ -62,7 +68,6 @@ class ModelsError(Exception):
 
 
 class ModelLinearityError(ModelsError):
-
     """
     Called when a linear model is passed to a non-linear fitter and vice versa.
     """
@@ -71,32 +76,33 @@ class ModelLinearityError(ModelsError):
 
 
 class UnsupportedConstraintError(ModelsError):
-
     """
     Raised when a fitter does not support a type of constraint.
     """
+
     def __init__(self, message):
         super(UnsupportedConstraintError, self).__init__(message)
 
 
 class Fitter(object):
-
     """
     Base class for all fitters.
 
     The purpose of this class is to manage constraints.
     """
+
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, model):
         if not model.fittable:
             raise ValueError("Model must be a subclass of ParametricModel")
+
         self._model = model
         self.bounds = []
         self.fixed = []
         self.tied = []
         self._set_constraints()
-        self._fitpars = self._model_to_fit_pars()
+        self._fitparams = self._model_to_fit_params()
         self._validate_constraints()
         self._weights = None
 
@@ -117,9 +123,8 @@ class Fitter(object):
 
     @property
     def model(self):
-        """
-        The model to be fit
-        """
+        """The model being fitted."""
+
         return self._model
 
     @model.setter
@@ -127,31 +132,32 @@ class Fitter(object):
         self._model = val
 
     @property
-    def fitpars(self):
-        return self._fitpars
+    def fitparams(self):
+        return self._fitparams
 
-    @fitpars.setter
-    def fitpars(self, fps):
+    @fitparams.setter
+    def fitparams(self, fps):
         """
-        Update model.parameters from fitpars in the presence of constraints.
+        Update ``.model.parameters`` from fitparams in the presence of
+        constraints.
 
-        This is the opposite of ``_model_to_fit_pars``.
+        This is the opposite of ``_model_to_fit_params``.
 
         Parameters
         ----------
         fps : list
             list of parameters, fitted in a succesive iteration of the
             fitting algorithm
-
         """
-        self._fitpars[:] = fps
+
+        self._fitparams[:] = fps
         if any(self.fixed) or any(self.tied):
-            fitpars = list(fps[:])
+            fitparams = list(fps[:])
             mpars = []
             for i, name in enumerate(self.model.param_names):
                 if self.fixed[i] is True:
                     par = getattr(self.model, name)
-                    if len(par.parshape) == 0:
+                    if len(par.shape) == 0:
                         mpars.extend([par.value])
                     else:
                         mpars.extend(par.value)
@@ -164,20 +170,22 @@ class Fitter(object):
                 else:
                     sl = self.model._parameters.parinfo[name][0]
                     plen = sl.stop - sl.start
-                    mpars.extend(fitpars[:plen])
-                    del fitpars[:plen]
+                    mpars.extend(fitparams[:plen])
+                    del fitparams[:plen]
             self.model.parameters = mpars
         elif any([b != (-1E12, 1E12) for b in self.bounds]):
             self._set_bounds(fps)
         else:
             self.model.parameters[:] = fps
 
-    def _model_to_fit_pars(self):
+    def _model_to_fit_params(self):
         """
         Create a set of parameters to be fitted.
-        These may be a subset of the model parameters, if some
-        of them are held constant or tied.
+
+        These may be a subset of the model parameters, if some of them are held
+        constant or tied.
         """
+
         if any(self.model.fixed.values()) or any(self.model.tied.values()):
             pars = self.model._parameters[:]
             for item in self.model.param_names[::-1]:
@@ -190,52 +198,57 @@ class Fitter(object):
 
     def _set_bounds(self, pars):
         """
+        Diferent fitting algorithms deal with bounds in a different way.  For
+        example, the SLSQP algorithm accepts bounds as input while the leastsq
+        algorithm does not handle bounds at all and they are dealt with in a
+        separate method.
+
         This method is to be implemented by subcclasses of Fitter if necessary.
-
-        Diferent fitting algorithms deal with bounds in a different way.
-        For example, the SLSQP algorithm accepts bounds as input while
-        the leastsq algorithm does not handle bounds at all and they are
-        dealt with in a separate method.
-
         """
+
         raise NotImplementedError("Subclasses should implement this")
 
     def _wrap_deriv(self, p, x, y, z=None):
         """
-        Wraps the method calculating the Jacobian of the function to
-        account for model constraints.
+        Wraps the method calculating the Jacobian of the function to account
+        for model constraints.
 
         Currently the only fitter that uses a derivative is the
-        `NonLinearLSQFitter`. This wrapper may neeed to be revised
-        when other fitters using function derivative are added or when
-        the statistic is separated from the fitting routines.
+        `NonLinearLSQFitter`. This wrapper may neeed to be revised when other
+        fitters using function derivative are added or when the statistic is
+        separated from the fitting routines.
 
         `~scipy.optimize.leastsq` expects the function derivative to have the
-        above signature (parlist, (argtuple)). In order to
-        accomodate model constraints, instead of using p directly, we set
-        the parameter list in this function.
-
+        above signature (parlist, (argtuple)). In order to accomodate model
+        constraints, instead of using p directly, we set the parameter list in
+        this function.
         """
+
         if any(self.fixed) or any(self.tied):
-            pars = self.model._parameters
+            params = self.model._parameters
+
             if z is None:
-                fullderiv = np.array(self.model.deriv(x, *pars))
+                full_deriv = np.array(self.model.deriv(x, *params))
             else:
-                fullderiv = np.array(self.model.deriv(x, y, *pars))
+                full_deriv = np.array(self.model.deriv(x, y, *params))
+
             ind = range(len(self.model.param_names))
             fix_tie_ind = list(np.nonzero(self.fixed)[0])
             fix_tie_ind.extend(np.nonzero(self.tied)[0])
+
             for index in fix_tie_ind:
                 ind.remove(index)
-            res = np.empty((fullderiv.shape[0], fullderiv.shape[1] - len(ind)))
-            res = fullderiv[ind, :]
+
+            res = np.empty((full_deriv.shape[0],
+                            full_deriv.shape[1] - len(ind)))
+            res = full_deriv[ind, :]
             return [np.ravel(_) for _ in res]
         else:
-            pars = p[:]
+            params = p[:]
             if z is None:
-                return self.model.deriv(x, *pars)
+                return self.model.deriv(x, *params)
             else:
-                return [np.ravel(_) for _ in self.model.deriv(x, y, *pars)]
+                return [np.ravel(_) for _ in self.model.deriv(x, y, *params)]
 
     def _validate_constraints(self):
         fname = self.__class__.__name__
@@ -266,35 +279,33 @@ class Fitter(object):
 
     @property
     def weights(self):
-        """
-        Fitting weights.
-        """
+        """Fitting weights."""
+
         return self._weights
 
     @weights.setter
     def weights(self, val):
-        """
-        Set fitting weights.
-        """
+        """Set fitting weights."""
+
         self._weights = val
 
     def _update_constraints(self):
         self._set_constraints()
-        self._fitpars = self._model_to_fit_pars()
+        self._fitparams = self._model_to_fit_params()
 
     @abc.abstractmethod
     def __call__(self):
         """
-        Fitters implement this method.
-        It performs the actual fitting and modifies the
-        parameter list of a model.
+        This method performs the actual fitting and modifies the parameter list
+        of a model.
 
+        Fitter subclasses should implement this method.
         """
+
         raise NotImplementedError("Subclasses should implement this")
 
 
 class LinearLSQFitter(Fitter):
-
     """
     A class performing a linear least square fitting.
 
@@ -310,8 +321,8 @@ class LinearLSQFitter(Fitter):
     ------
     ModelLinearityError
         A nonlinear model is passed to a linear fitter
-
     """
+
     def __init__(self, model):
         super(LinearLSQFitter, self).__init__(model)
         if not self.model.linear:
@@ -320,10 +331,10 @@ class LinearLSQFitter(Fitter):
         self.fit_info = {'residuals': None,
                          'rank': None,
                          'singular_values': None,
-                         'pars': None
+                         'params': None
                          }
 
-    def _deriv_with_constraints(self, pars=None, x=None, y=None):
+    def _deriv_with_constraints(self, params=None, x=None, y=None):
         if y is None:
             d = self.model.deriv(x=x)
         else:
@@ -339,9 +350,10 @@ class LinearLSQFitter(Fitter):
 
     def _map_domain_window(self, x, y=None):
         """
-        Maps domain into window for a polynomial model which has
-        these attributes.
+        Maps domain into window for a polynomial model which has these
+        attributes.
         """
+
         if y is None:
             if hasattr(self.model, 'domain') and self.model.domain is None:
                 self.model.domain = [x.min(), x.max()]
@@ -381,17 +393,20 @@ class LinearLSQFitter(Fitter):
             Singular values are set to zero if they are smaller than `rcond`
             times the largest singular value of `a`.
         """
+
         super(LinearLSQFitter, self)._update_constraints()
+
         multiple = False
 
         if self.model.n_inputs == 2 and z is None:
             raise ValueError("Expected x, y and z for a 2 dimensional model.")
+
         farg = _convert_input(x, y, z)
 
         if len(farg) == 2:
             x, y = farg
             if y.ndim == 2:
-                assert y.shape[1] == self.model._parameters.param_dim, (
+                assert y.shape[1] == self.model._parameters.dim, (
                     "Number of data sets (Y array is expected to equal "
                     "the number of parameter sets")
             # map domain into window
@@ -436,14 +451,14 @@ class LinearLSQFitter(Fitter):
                 lhs *= weights[:, np.newaxis]
                 rhs *= weights
 
-        if not multiple and self.model._parameters.param_dim > 1:
+        if not multiple and self.model._parameters.dim > 1:
             raise ValueError("Attempting to fit a 1D data set to a model "
                              "with multiple parameter sets")
         if rcond is None:
             rcond = len(x) * np.finfo(x.dtype).eps
 
         scl = (lhs * lhs).sum(0)
-        lacoef, resids, rank, sval = linalg.lstsq(lhs / scl, rhs, rcond)
+        lacoef, resids, rank, sval = np.linalg.lstsq(lhs / scl, rhs, rcond)
 
         self.fit_info['residuals'] = resids
         self.fit_info['rank'] = rank
@@ -454,16 +469,15 @@ class LinearLSQFitter(Fitter):
         # of several 1D arrays. Otherwise the model is 2D.
         # if y.n_inputs > self.model.n_inputs:
         if multiple:
-            self.model._parameters.param_dim = multiple
+            self.model._parameters.dim = multiple
         lacoef = (lacoef.T / scl).T
-        self.fit_info['pars'] = lacoef
+        self.fit_info['params'] = lacoef
         if rank != self.model._order:
             warnings.warn("The fit may be poorly conditioned\n")
-        self.fitpars = lacoef.flatten()[:]
+        self.fitparams = lacoef.flatten()[:]
 
 
 class NonLinearLSQFitter(Fitter):
-
     """
     A class performing non-linear least squares fitting using the
     Levenberg-Marquardt algorithm implemented in `scipy.optimize.leastsq`.
@@ -477,8 +491,8 @@ class NonLinearLSQFitter(Fitter):
     ------
     ModelLinearityError
         A linear model is passed to a nonlinear fitter
-
     """
+
     def __init__(self, model):
 
         self.fit_info = {'nfev': None,
@@ -496,17 +510,18 @@ class NonLinearLSQFitter(Fitter):
                           'consider using linear fitting methods.')
 
     def errorfunc(self, fps, *args):
-        self.fitpars = fps
+        self.fitparams = fps
         meas = args[-1]
         if self.weights is None:
             return np.ravel(self.model(*args[: -1]) - meas)
         else:
             return np.ravel(self.weights * (self.model(*args[: -1]) - meas))
 
-    def _set_bounds(self, fitpars):
+    def _set_bounds(self, fitparams):
         for c in self.model.bounds.values():
             if c != (-1E12, 1E12):
-                for name, par, b in zip(self.model.param_names, fitpars, self.bounds):
+                for name, par, b in zip(self.model.param_names, fitparams,
+                                        self.bounds):
                     par = max(par, b[0])
                     par = min(par, b[1])
                     setattr(self.model, name, par)
@@ -514,9 +529,10 @@ class NonLinearLSQFitter(Fitter):
     @property
     def covar(self):
         """
-        Calculate the covariance matrix
-        (doesn't take into account constraints)
+        Calculate the covariance matrix (doesn't take into account
+        constraints).
         """
+
         n = len(self.model.parameters)
         # construct the permutation matrix
         P = np.take(np.eye(n), self.fit_info['ipvt'] - 1, 0)
@@ -558,11 +574,13 @@ class NonLinearLSQFitter(Fitter):
             it will be used. Otherwise the Jacobian will be estimated.
             If True, the Jacobian will be estimated in any case.
         """
+
         from scipy import optimize
+
         self._update_constraints()
         farg = _convert_input(x, y, z)
         self.weights = weights
-        if self.model._parameters.param_dim != 1:
+        if self.model._parameters.dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit one "
                              "data set at a time")
@@ -571,20 +589,21 @@ class NonLinearLSQFitter(Fitter):
         else:
             self.dfunc = self._wrap_deriv
 
-        self.fitpars, status, dinfo, mess, ierr = optimize.leastsq(
-            self.errorfunc, self.fitpars, args=farg, Dfun=self.dfunc,
-            col_deriv=self.model.col_deriv, maxfev=maxiter, epsfcn=epsilon, full_output=True)
+        self.fitparams, status, dinfo, mess, ierr = optimize.leastsq(
+            self.errorfunc, self.fitparams, args=farg, Dfun=self.dfunc,
+            col_deriv=self.model.col_deriv, maxfev=maxiter, epsfcn=epsilon,
+            full_output=True)
+
         self.fit_info.update(dinfo)
         self.fit_info['status'] = status
         self.fit_info['message'] = mess
         self.fit_info['ierr'] = ierr
         if ierr not in [1, 2, 3, 4]:
-            warnings.warn("The fit may be unsuccessful; check fit_info['message'] for "
-                          "more information.")
+            warnings.warn("The fit may be unsuccessful; check "
+                          "fit_info['message'] for more information.")
 
 
 class SLSQPFitter(Fitter):
-
     """
     Sequential Least Squares Programming optimization algorithm.
 
@@ -605,8 +624,8 @@ class SLSQPFitter(Fitter):
     References
     ----------
     .. [1] http://www.netlib.org/toms/733
-
     """
+
     def __init__(self, model):
         super(SLSQPFitter, self).__init__(model)
         if self.model.linear:
@@ -630,8 +649,9 @@ class SLSQPFitter(Fitter):
         args : list
             input coordinates
         """
+
         meas = args[-1]
-        self.fitpars = fps
+        self.fitparams = fps
         res = self.model(*args[:-1]) - meas
 
         if self.weights is None:
@@ -639,13 +659,13 @@ class SLSQPFitter(Fitter):
         else:
             return np.sum(self.weights * res ** 2)
 
-    def _set_bounds(self, fitpars):
+    def _set_bounds(self, fitparams):
         """
         Set this as a dummy method because the SLSQP fitter
         handles bounds internally.
         """
-        self._fitpars[:] = fitpars
-        self.model.parameters = fitpars
+        self._fitparams[:] = fitparams
+        self.model.parameters = fitparams
 
     def __call__(self, x, y, z=None, weights=None, verblevel=0,
                  maxiter=MAXITER, epsilon=EPS):
@@ -670,34 +690,39 @@ class SLSQPFitter(Fitter):
             maximum number of iterations
         epsilon : float
             the step size for finite-difference derivative estimates
-
         """
+
         from scipy import optimize
+
         # update constraints to pick up changes to parameters
         self._update_constraints()
         farg = _convert_input(x, y, z)
         self.weights = weights
-        if self.model._parameters.param_dim != 1:
+        if self.model._parameters.dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit "
                              "one data set at a time")
+
         p0 = self.model._parameters[:]
-        self.fitpars, final_func_val, numiter, exit_mode, mess = optimize.fmin_slsqp(
-            self.errorfunc, p0, args=farg, disp=verblevel, full_output=1,
-            bounds=self.bounds, eqcons=self.model.eqcons,
-            ieqcons=self.model.ineqcons, iter=maxiter, acc=1.E-6,
-            epsilon=EPS)
+
+        self.fitparams, final_func_val, numiter, exit_mode, mess = \
+            optimize.fmin_slsqp(
+                self.errorfunc, p0, args=farg, disp=verblevel, full_output=1,
+                bounds=self.bounds, eqcons=self.model.eqcons,
+                ieqcons=self.model.ineqcons, iter=maxiter, acc=1.E-6,
+                epsilon=EPS)
+
         self.fit_info['final_func_val'] = final_func_val
         self.fit_info['numiter'] = numiter
         self.fit_info['exit_mode'] = exit_mode
         self.fit_info['message'] = mess
+
         if exit_mode != 0:
-            warnings.warn("The fit may be unsuccessful; check fit_info['message'] "
-                          " for more information.")
+            warnings.warn("The fit may be unsuccessful; check "
+                          "fit_info['message'] for more information.")
 
 
 class JointFitter(object):
-
     """
     Fit models which share a parameter.
 
@@ -713,30 +738,31 @@ class JointFitter(object):
     initvals : list
         a list of initial values
     """
+
     def __init__(self, models, jointparameters, initvals):
         self.models = list(models)
         self.initvals = list(initvals)
-        self.jointpars = jointparameters
+        self.jointparams = jointparameters
         self._verify_input()
-        for m in self.jointpars.keys():
-            m.set_joint_parameters(self.jointpars[m])
-        self.fitpars = self._model_to_fit_pars()
+        for m in self.jointparams.keys():
+            m.set_joint_parameters(self.jointparams[m])
+        self.fitparams = self._model_to_fit_params()
 
         # a list of model.n_inputs
         self.modeldims = [m.n_inputs for m in self.models]
         # sum all model dimensions
         self.ndim = np.sum(self.modeldims)
 
-    def _model_to_fit_pars(self):
-        fpars = []
-        fpars.extend(self.initvals)
+    def _model_to_fit_params(self):
+        fparams = []
+        fparams.extend(self.initvals)
         for model in self.models:
-            pars = model._parameters[:]
+            params = model._parameters[:]
             for pname in model.joint:
                 sl = model._parameters.parinfo[pname][0]
-                del pars[sl]
-            fpars.extend(pars)
-        return fpars
+                del params[sl]
+            fparams.extend(params)
+        return fparams
 
     def errorfunc(self, fps, *args):
         """
@@ -747,78 +773,81 @@ class JointFitter(object):
             tuple of measured and input coordinates
             args is always passed as a tuple from optimize.leastsq
         """
+
         lstsqargs = list(args[:])
         fitted = []
-        fitpars = list(fps[:])
+        fitparams = list(fps[:])
         numjp = len(self.initvals)
         # make a separate list of the joint fitted parameters
-        jointfitpars = fitpars[:numjp]
-        del fitpars[:numjp]
+        jointfitparams = fitparams[:numjp]
+        del fitparams[:numjp]
 
         for model in self.models:
             margs = lstsqargs[:model.n_inputs + 1]
             del lstsqargs[:model.n_inputs + 1]
             # separate each model separately fitted parameters
             numfp = len(model._parameters) - len(model.joint)
-            mfpars = fitpars[:numfp]
+            mfparams = fitparams[:numfp]
 
-            del fitpars[:numfp]
+            del fitparams[:numfp]
             # recreate the model parameters
-            mpars = []
+            mparams = []
             for pname in model.param_names:
                 if pname in model.joint:
                     index = model.joint.index(pname)
                     # should do this with slices in case the
                     # parameter is not a number
-                    mpars.extend([jointfitpars[index]])
+                    mparams.extend([jointfitparams[index]])
                 else:
                     sl = model._parameters.parinfo[pname][0]
                     plen = sl.stop - sl.start
-                    mpars.extend(mfpars[:plen])
-                    del mfpars[:plen]
-            modelfit = model.eval(margs[:-1], *mpars)
+                    mparams.extend(mfparams[:plen])
+                    del mfparams[:plen]
+            modelfit = model.eval(margs[:-1], *mparams)
             fitted.extend(modelfit - margs[-1])
         return np.ravel(fitted)
 
     def _verify_input(self):
         assert(len(self.models) > 1)
-        assert(len(self.jointpars.keys()) >= 2)
-        for j in self.jointpars.keys():
-            assert(len(self.jointpars[j]) == len(self.initvals))
+        assert(len(self.jointparams.keys()) >= 2)
+        for j in self.jointparams.keys():
+            assert(len(self.jointparams[j]) == len(self.initvals))
 
     def __call__(self, *args):
         """
-        Fit data to these models keeping some of the pramaters common
-        to the two models.
+        Fit data to these models keeping some of the pramaters common to the
+        two models.
         """
+
         from scipy import optimize
+
         assert(len(args) == reduce(lambda x, y: x + 1 + y + 1, self.modeldims))
-        self.fitpars[:], _ = optimize.leastsq(self.errorfunc, self.fitpars,
+        self.fitparams[:], _ = optimize.leastsq(self.errorfunc, self.fitparams,
                                               args=args)
 
-        fpars = self.fitpars[:]
+        fparams = self.fitparams[:]
         numjp = len(self.initvals)
         # make a separate list of the joint fitted parameters
-        jointfitpars = fpars[:numjp]
-        del fpars[:numjp]
+        jointfitparams = fparams[:numjp]
+        del fparams[:numjp]
 
         for model in self.models:
             # extract each model's fitted parameters
             numfp = len(model._parameters) - len(model.joint)
-            mfpars = fpars[:numfp]
+            mfparams = fparams[:numfp]
 
-            del fpars[:numfp]
+            del fparams[:numfp]
             # recreate the model parameters
-            mpars = []
+            mparams = []
             for pname in model.param_names:
                 if pname in model.joint:
                     index = model.joint.index(pname)
                     # should do this with slices in case the parameter
                     # is not a number
-                    mpars.extend([jointfitpars[index]])
+                    mparams.extend([jointfitparams[index]])
                 else:
                     sl = model._parameters.parinfo[pname][0]
                     plen = sl.stop - sl.start
-                    mpars.extend(mfpars[:plen])
-                    del mfpars[:plen]
-            model._parameters[:] = np.array(mpars)
+                    mparams.extend(mfparams[:plen])
+                    del mfparams[:plen]
+            model._parameters[:] = np.array(mparams)

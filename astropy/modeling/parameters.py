@@ -1,24 +1,28 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-This module defines two classes that deal with parameters.
-It is unlikely users will need to work with these classes directly,
-unless they define their own models.
 
 """
+This module defines two classes that deal with parameters.
+
+It is unlikely users will need to work with these classes directly, unless they
+define their own models.
+"""
+
 from __future__ import division
+
 import numbers
+
 import numpy as np
+
 from ..utils import misc
 from .utils import InputParameterError
+
 
 __all__ = ['Parameters', 'Parameter']
 
 
 def _tofloat(value):
-    """
-    Convert a parameter to float or float array
+    """Convert a parameter to float or float array"""
 
-    """
     if misc.isiterable(value):
         try:
             _value = np.array(value, dtype=np.float)
@@ -47,16 +51,14 @@ def getval(self, name):
 
 
 class Parameter(object):
-
     """
     Wraps individual parameters.
 
     This class represents a model's parameter (in a somewhat broad
     sense). To support multiple parameter sets, a parameter has a dimension
-    (param_dim) and is a list-like object. It supports indexing so that individual
+    (dim) and is a list-like object. It supports indexing so that individual
     parameters can be updated.
-    To support some level of validation a parameter has a shape
-    (parshape).
+    To support some level of validation a parameter has a shape attribute.
     Parameter objects behave like numbers.
 
     Parameters
@@ -64,9 +66,9 @@ class Parameter(object):
     name : string
         parameter name
     val :  number or an iterable of numbers
-    mclass : object
+    model : object
         an instance of a Model class
-    param_dim : int
+    dim : int
         parameter dimension
     fixed: boolean
         if True the parameter is not varied during fitting
@@ -77,30 +79,34 @@ class Parameter(object):
     max: float
         the upper bound of a parameter
     """
-    def __init__(self, name, val, mclass, param_dim, fixed=False, tied=False,
+
+    def __init__(self, name, val, model, dim, fixed=False, tied=False,
                  min=None, max=None):
-        self._param_dim = param_dim
+        self._dim = dim
         self._name = name
-        if self._param_dim == 1:
+
+        if self._dim == 1:
             val, parshape = _tofloat(val)
             self._value = val
         else:
             try:
                 val0, parshape = _tofloat(val[0])
                 val = [_tofloat(v)[0] for v in val]
-                if len(val) != self._param_dim:
+                if len(val) != self._dim:
                     raise InputParameterError(
-                        "Expected parameter {0} to be of param_dim {1}".format(
-                            self._name, self._param_dim))
+                        "Expected parameter {0} to be of dim {1}".format(
+                            self._name, self._dim))
             except TypeError:
                 raise InputParameterError("Expected a multivalued"
                                           " parameter {0}".format(self._name))
             for shape in [_tofloat(v)[1] for v in val]:
                 assert shape == parshape, "Multiple values for the same" \
                     " parameters should have the same shape"
+
             self._value = val[:]
-        self._parshape = parshape
-        self._mclass = mclass
+
+        self._shape = parshape
+        self._model = model
         self._fixed = fixed
         self._tied = tied
         self._min = min
@@ -110,63 +116,49 @@ class Parameter(object):
         return repr(self.value)
 
     @property
-    def param_dim(self):
-        """
-        Number of parameter sets
-        """
-        return self._param_dim
+    def dim(self):
+        """Number of parameter sets"""
 
-    @param_dim.setter
-    def param_dim(self, val):
-        """
-        Number of parameter sets
-        """
-        self._param_dim = val
+        return self._dim
+
+    @dim.setter
+    def dim(self, val):
+        self._dim = val
 
     @property
     def value(self):
-        """
-        Parameter value
-        """
+        """Parameter value"""
+
         return self._value
 
     @value.setter
     def value(self, val):
-        """
-        Parameter value
-        """
         self._value = val
 
     @property
-    def parshape(self):
-        """
-        Parameter value
-        """
-        return self._parshape
+    def shape(self):
+        """Parameter shape"""
+
+        return self._shape
 
     @property
-    def mclass(self):
-        """
-        An instance of `~astropy.modeling.core.ParametricModel`
-        """
-        return self._mclass
+    def model(self):
+        """An instance of `~astropy.modeling.core.ParametricModel`"""
 
-    @mclass.setter
-    def mclass(self, val):
-        self._mclass = val
+        return self._model
+
+    @model.setter
+    def model(self, val):
+        self._model = val
 
     @property
     def name(self):
-        """
-        Parameter name
-        """
+        """Parameter name"""
+
         return self._name
 
     @name.setter
     def name(self, val):
-        """
-        Set parameter name
-        """
         self._name = val
 
     @property
@@ -174,13 +166,13 @@ class Parameter(object):
         """
         Boolean indicating if the parameter is kept fixed during fitting.
         """
+
         return self._fixed
 
     @fixed.setter
     def fixed(self, val):
-        """
-        Fix a parameter.
-        """
+        """Fix a parameter."""
+
         assert isinstance(val, bool), "Fixed can be True or False"
         self._fixed = val
 
@@ -188,30 +180,29 @@ class Parameter(object):
     def tied(self):
         """
         Indicates that this parameter is linked to another one.
+
         A callable which provides the relationship of the two parameters.
         """
+
         return self._tied
 
     @tied.setter
     def tied(self, val):
-        """
-        Tie a parameter.
-        """
+        """Tie a parameter."""
+
         assert callable(val) or val is False, "Tied must be a callable"
         self._tied = val
 
     @property
     def min(self):
-        """
-        A value used as a lower bound when fitting a parameter.
-        """
+        """A value used as a lower bound when fitting a parameter"""
+
         return self._min
 
     @min.setter
     def min(self, val):
-        """
-        Set a minimum value of a parameter.
-        """
+        """Set a minimum value of a parameter."""
+
         if val is not None:
             assert isinstance(val, numbers.Number), "Min value must be a number"
             self._min = float(val)
@@ -220,16 +211,14 @@ class Parameter(object):
 
     @property
     def max(self):
-        """
-        A value used as an upper bound when fitting a parameter.
-        """
+        """A value used as an upper bound when fitting a parameter"""
+
         return self._max
 
     @max.setter
     def max(self, val):
-        """
-        Set a maximum value of a parameter.
-        """
+        """Set a maximum value of a parameter."""
+
         if val is not None:
             assert isinstance(val, numbers.Number), "Max value must be a number"
             self._max = float(val)
@@ -241,13 +230,13 @@ class Parameter(object):
 
     def __setslice__(self, i, j, val):
         self._value[i:j] = _tofloat(val)[0]
-        setattr(self.mclass, self.name, self._value)
+        setattr(self.model, self.name, self._value)
 
     def __setitem__(self, i, val):
         val = _tofloat(val)[0]
         self._value[i] = val
 
-        setattr(self.mclass, self.name, self._value)
+        setattr(self.model, self.name, self._value)
 
     def __add__(self, val):
         return np.asarray(self._value) + val
@@ -308,18 +297,16 @@ class Parameter(object):
 
 
 class Parameters(list):
-
     """
     Store model parameters as a flat list of floats.
 
-    This is a list-like object which
-    stores model parameters. Only  instances of
-    `~astropy.modeling.core.ParametricModel`
-    keep an instance of this class as an attribute. The list of parameters
-    can be modified by the user or by an instance of `~astropy.modeling.fitting.Fitter`.
-    This list of parameters is kept in sync with single model parameter attributes.
-    When more than one dimensional, a `~astropy.modeling.fitting.Fitter` treats each
-    set of parameters as belonging to the same model but different set of data.
+    This is a list-like object which stores model parameters. Only  instances
+    of `~astropy.modeling.core.ParametricModel` keep an instance of this class
+    as an attribute. The list of parameters can be modified by the user or by
+    an instance of `~astropy.modeling.fitting.Fitter`.  This list of parameters
+    is kept in sync with single model parameter attributes.  When more than one
+    dimensional, a `~astropy.modeling.fitting.Fitter` treats each set of
+    parameters as belonging to the same model but different set of data.
 
     Parameters
     ----------
@@ -327,12 +314,13 @@ class Parameters(list):
         an instance of a subclass of `~astropy.modeling.core.ParametricModel`
     param_names : list of strings
         parameter names
-    param_dim : int
+    dim : int
         Number of parameter sets
     """
-    def __init__(self, mobj, param_names, param_dim=1):
+
+    def __init__(self, mobj, param_names, dim=1):
         self.mobj = mobj
-        self.param_dim = param_dim
+        self.dim = dim
         # A flag set to True by a fitter to indicate that the flat
         # list of parameters has been changed.
         self._changed = False
@@ -345,18 +333,16 @@ class Parameters(list):
         _val = _tofloat(value)[0]
         super(Parameters, self).__setitem__(ind, _val)
         self._changed = True
-        self._update_model_pars()
+        self._update_model_params()
 
     def __setslice__(self, istart, istop, vlist):
         super(Parameters, self).__setslice__(istart, istop, vlist)
         self._changed = True
-        self._update_model_pars()
+        self._update_model_params()
 
-    def _update_model_pars(self):
-        """
-        Update single parameters
+    def _update_model_params(self):
+        """Update individual parameters"""
 
-        """
         for key in self.parinfo.keys():
             sl = self.parinfo[key][0]
             val = self[sl]
@@ -368,20 +354,19 @@ class Parameters(list):
             setattr(par, 'value', val)
         self._changed = False
 
-    def _is_same_length(self, newpars):
+    def _is_same_length(self, newparams):
         """
         Checks if the user supplied value of
-        `~astropy.modeling.core.ParametricModel.parameters`
-        has the same length as the original parameters list.
-
+        `~astropy.modeling.core.ParametricModel.parameters` has the same length
+        as the original parameters list.
         """
-        parsize = _tofloat(newpars)[0].size
+
+        parsize = _tofloat(newparams)[0].size
         return parsize == self.__len__()
 
     def _flatten(self, param_names, parlist):
-        """
-        Create a list of model parameters
-        """
+        """Create a flat list of model parameters"""
+
         flatpars = []
         start = 0
         for (name, par) in zip(param_names, parlist):
@@ -392,4 +377,5 @@ class Parameters(list):
             self.parinfo[name] = slice(start, stop, 1), pararr.shape
             start = stop
             flatpars.extend(list(fpararr))
+
         return flatpars

@@ -313,15 +313,6 @@ def translate(s, table, deletechars):
         return s.translate(table)
 
 
-def indent(s, shift=1, width=4):
-    indented = '\n'.join(' ' * (width * shift) + l if l else ''
-                         for l in s.splitlines())
-    if s[-1] == '\n':
-        indented += '\n'
-
-    return indented
-
-
 def fill(text, width, *args, **kwargs):
     """
     Like :func:`textwrap.wrap` but preserves existing paragraphs which
