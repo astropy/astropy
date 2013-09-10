@@ -137,16 +137,26 @@ class TestKernels(object):
 
         assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.skipif('not HAS_SCIPY')
-    def test_multiply_kernels(self):
+    def test_convolve_1D_kernels(self):
         """
-        Check if multiplying two kernels with eachother works correctly.
+        Check if convolving two kernels with eachother works correctly.
         """
         gauss_1 = Gaussian1DKernel(3)
         gauss_2 = Gaussian1DKernel(4)
         test_gauss_3 = Gaussian1DKernel(5)
 
-        gauss_3 = gauss_1 * gauss_2
+        gauss_3 = convolve(gauss_1, gauss_2)
+        assert np.all(np.abs((gauss_3 - test_gauss_3).array) < 0.01)
+
+    def test_convolve_2D_kernels(self):
+        """
+        Check if convolving two kernels with eachother works correctly.
+        """
+        gauss_1 = Gaussian2DKernel(3)
+        gauss_2 = Gaussian2DKernel(4)
+        test_gauss_3 = Gaussian2DKernel(5)
+
+        gauss_3 = convolve(gauss_1, gauss_2)
         assert np.all(np.abs((gauss_3 - test_gauss_3).array) < 0.01)
 
     def test_multiply_scalar(self):

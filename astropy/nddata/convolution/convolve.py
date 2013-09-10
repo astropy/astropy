@@ -3,7 +3,7 @@
 import warnings
 
 import numpy as np
-from .core import Kernel
+from .core import Kernel, Kernel1D, Kernel2D
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -91,6 +91,20 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
 
     # Check if kernel is kernel instance
     if isinstance(kernel, Kernel):
+        # Check if array is also kernel instance, if so convolve and
+        # return new kernel instance
+        if isinstance(array, Kernel):
+            if isinstance(array, Kernel1D) and isinstance(kernel, Kernel1D):
+                new_array = convolve1d_boundary_fill(array.array, kernel.array, 0)
+                new_kernel = Kernel1D(array=new_array)
+            elif isinstance(array, Kernel2D) and isinstance(kernel, Kernel2D):
+                new_array = convolve2d_boundary_fill(array.array, kernel.array, 0)
+                new_kernel = Kernel2D(array=new_array)
+            else:
+                raise Exception("Can't convolve 1D and 2D kernel.")
+            new_kernel._separable = kernel._separable and array._separable
+            new_kernel._weighted = False
+            return new_kernel
         kernel = kernel.array
 
     # Check that the arguments are lists or Numpy arrays
@@ -334,6 +348,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     # Check kernel is kernel instance 
     if isinstance(kernel, Kernel):
         kernel = kernel.array
+        if isinstance(array, Kernel):
+            raise Exception("Can't convolve two kernels. Use convolve() instead.")
     array = np.asarray(array, dtype=np.complex)
     kernel = np.asarray(kernel, dtype=np.complex)
 
