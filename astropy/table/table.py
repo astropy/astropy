@@ -2357,3 +2357,10 @@ class GroupedTable(Table):
                     for col, vals in out_cols]
 
         return Table(out_cols, meta=self.meta)
+
+    def __getitem__(self, item):
+        if (isinstance(item, slice) or isinstance(item, np.ndarray)
+                or isinstance(item, list)):
+            return Table(self, copy=False)[item]
+        else:
+            return super(GroupedTable, self).__getitem__(item)
