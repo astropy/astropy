@@ -42,12 +42,6 @@ class Kernel(object):
     def __init__(self, array):
         self._array = array
         self._normalization = 1. / self._array.sum()
-        # The value of 100 is kind of arbitrary
-        # there are kernel that sum to zero and
-        # the user should be warned in this case
-        if np.abs(self._normalization) > MAX_NORMALIZATION:
-            warnings.warn("Normalization factor of kernel is "
-                          "exceptionally large > {0}.".format(MAX_NORMALIZATION))
 
     @property
     def truncation(self):
@@ -107,9 +101,15 @@ class Kernel(object):
                 * 'peak'
                     Kernel normalized such that its peak = 1.
         """
+        # The value of 100 is kind of arbitrary
+        # there are kernel that sum to zero and
+        # the user should be warned in this case
+        if np.abs(self._normalization) > MAX_NORMALIZATION:
+            warnings.warn("Normalization factor of kernel is "
+                          "exceptionally large > {0}.".format(MAX_NORMALIZATION))
+
         if mode == 'integral':
             self._array *= self._normalization
-            self._normalization = 1.
         if mode == 'peak':
             self._array /= self._array.max()
             self._normalization = 1. / self._array.sum()
@@ -203,7 +203,7 @@ class Kernel1D(Kernel):
 
     """
     def __init__(self, model=None, x_size=None, array=None, **kwargs):
-        if array == None and getattr(self, '_model', False):
+        if array == None:
             if model != None:
                 self._model = model
             if x_size == None:
@@ -247,7 +247,7 @@ class Kernel2D(Kernel):
         Factor of oversampling. Default factor = 10.
     """
     def __init__(self, model=None, x_size=None, y_size=None, array=None, **kwargs):
-        if array == None and getattr(self, '_model', False):
+        if array == None:
             if x_size == None:
                 x_size = self._default_size
             if y_size == None:
@@ -282,7 +282,6 @@ def kernel_arithmetics(kernel, value, operation):
             * 'mul'
                 Multiply kernel with number or convolve two kernels.
     """
-    force_weighted = False
     # 1D kernels
     if isinstance(kernel, Kernel1D) and isinstance(value, Kernel1D):
         if operation == "add":
@@ -290,12 +289,8 @@ def kernel_arithmetics(kernel, value, operation):
         if operation == "sub":
             new_array = add_kernel_arrays_1D(kernel.array, -value.array)
         if operation == "mul":
-            try:
-                from scipy.signal import convolve
-            except ImportError:
-                raise Exception("Multiplying two kernels requires scipy.")
-            new_array = convolve(kernel.array, value)
-            force_weighted = True
+            raise Exception("Kernel operation not supported. Maybe you want to"
+                             "use convolve(kernel1, kernel2) instead.")
         new_kernel = Kernel1D(array=new_array)
         new_kernel._separable = kernel._separable and value._separable
         new_kernel._weighted = kernel._weighted or value._weighted
@@ -307,12 +302,8 @@ def kernel_arithmetics(kernel, value, operation):
         if operation == "sub":
             new_array = add_kernel_arrays_2D(kernel.array, -value.array)
         if operation == "mul":
-            try:
-                from scipy.signal import convolve
-            except ImportError:
-                raise Exception("Multiplying two kernels requires scipy.")
-            new_array = convolve(kernel.array, value)
-            force_weighted = True
+            raise Exception("Kernel operation not supported. Maybe you want to"
+                            "use convolve(kernel1, kernel2) instead.")
         new_kernel = Kernel2D(array=new_array)
         new_kernel._separable = kernel._separable and value._separable
         new_kernel._weighted = kernel._weighted or value._weighted
@@ -328,6 +319,4 @@ def kernel_arithmetics(kernel, value, operation):
             raise Exception("Kernel operation not supported.")
     else:
         raise Exception("Kernel operation not supported.")
-    if force_weighted:
-        new_kernel._weighted = True
     return new_kernel
