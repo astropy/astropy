@@ -1,7 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import os
 import io
 import sys
+import shutil
+import tempfile
 
 from ..utils import OrderedDict
 
@@ -223,7 +226,28 @@ def write(data, *args, **kwargs):
             'write', data.__class__, path, fileobj, args, kwargs)
 
     writer = get_writer(format, data.__class__)
-    writer(data, *args, **kwargs)
+
+    if 'overwrite' in kwargs:
+        overwrite = kwargs.pop('overwrite')
+    else:
+        overwrite = False
+
+    if len(args) and isinstance(args[0], basestring) and os.path.exists(args[0]):
+        path = args[0]
+        if overwrite:
+            # Create a temporary empty file to avoid race conditions
+            tmp_file = tempfile.NamedTemporaryFile(delete=False)
+            tmp_file.close()
+            # Save to the temporary file
+            new_args = (tmp_file.name,) + args[1:]
+            writer(data, *new_args, **kwargs)
+            # Overwrite file
+            shutil.move(tmp_file.name, path)
+        else:
+            raise Exception("Filename {0} already exists".format(path))
+    else:
+        writer(data, *args, **kwargs)
+
 
 
 def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
