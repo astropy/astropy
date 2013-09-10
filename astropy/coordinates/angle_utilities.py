@@ -113,6 +113,8 @@ class _AngleParser(object):
             '''
             angle : hms
                   | dms
+                  | arcsecond
+                  | arcminute
                   | simple
             '''
             p[0] = p[1]
@@ -211,6 +213,18 @@ class _AngleParser(object):
                 p[0] = (p[1], None)
             else:
                 p[0] = (p[1], p[2])
+
+        def p_arcsecond(p):
+            '''
+            arcsecond : generic SECOND
+            '''
+            p[0] = (p[1], u.arcsecond)
+
+        def p_arcminute(p):
+            '''
+            arcminute : generic MINUTE
+            '''
+            p[0] = (p[1], u.arcminute)
 
         def p_error(p):
             raise ValueError
