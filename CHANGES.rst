@@ -348,6 +348,9 @@ Bug Fixes
     the Python interpreter if the extension modules have not been built
     in-place. [#1269]
 
+  - Fixed a crash on Python 3.2 when affiliated packages try to use the
+    ``astropy.utils.data.get_pkg_data_*`` functions. [#1256]
+
   - Miscellaneous documentation fixes and improvements [#1308, #1317, #1377,
     #1393, #1362]
 
