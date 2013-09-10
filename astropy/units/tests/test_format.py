@@ -56,7 +56,18 @@ def test_cds_grammar():
         (["m2"], u.m ** 2),
         (["10+21m"], u.Unit(u.m * 1e21)),
         (["2.54cm"], u.Unit(u.cm * 2.54)),
-        (["20%"], 0.20)]
+        (["20%"], 0.20),
+        (["ma"], u.ma),
+        (["mAU"], u.mAU),
+        (["uarcmin"], u.uarcmin),
+        (["uarcsec"], u.uarcsec),
+        (["kbarn"], u.kbarn),
+        (["Gbit"], u.Gbit),
+        (["kbyte"], u.kbyte),
+        (["mRy"], 0.001 * u.Ry),
+        (["mmag"], u.mmag),
+        (["Mpc"], u.Mpc),
+        (["Gyr"], u.Gyr)]
 
     for strings, unit in data:
         for s in strings:
