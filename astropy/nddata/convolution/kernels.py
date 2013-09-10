@@ -1,5 +1,4 @@
 from __future__ import division
-import warnings
 
 import numpy as np
 
@@ -228,18 +227,13 @@ class Box2DKernel(Kernel2D):
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number, optional
+    factor : number, optional 
         Factor of oversampling. Default factor = 10.
 
 
     See Also
     --------
-    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
-    TrapezoidDisk2DKernel, AiryDisk2DKernel
-
-    See Also
-    --------
-    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
+    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
     TrapezoidDisk2DKernel, AiryDisk2DKernel
 
     Examples
@@ -562,9 +556,7 @@ class MexicanHat1DKernel(Kernel1D):
     def __init__(self, width, **kwargs):
         self._default_size = 8 * width
         self._model = models.MexicanHat1DModel(-1. / (np.sqrt(2 * np.pi) * width ** 3), 0, width)
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            super(MexicanHat1DKernel, self).__init__(**kwargs)
+        super(MexicanHat1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
         self._normalization = 0
 
@@ -630,9 +622,7 @@ class MexicanHat2DKernel(Kernel2D):
     def __init__(self, width, **kwargs):
         self._default_size = 8 * width
         self._model = models.MexicanHat2DModel(-1. / (np.pi * width ** 4), 0, 0, width)
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            super(MexicanHat2DKernel, self).__init__(**kwargs)
+        super(MexicanHat2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
         self._normalization = 0
 
