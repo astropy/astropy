@@ -110,7 +110,11 @@ def test_skip_hidden():
     for root, dirs, files in os.walk(path):
         assert '.hidden_file.txt' in files
         assert 'local.dat' in files
+        # break after the first level since the data dir contains some other
+        # subdirectories that don't have these files
+        break
 
     for root, dirs, files in misc.walk_skip_hidden(path):
         assert '.hidden_file.txt' not in files
         assert 'local.dat' in files
+        break

@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from ...tests.helper import remote_data, raises
 
-import os
 import io
+import os
+import sys
 
 from ...tests.helper import pytest
 from ..data import _get_download_cache_locs
@@ -95,6 +96,28 @@ def test_local_data_name():
     #get something in the astropy root
     #fnout2 = get_pkg_data_filename('../../data/README.rst')
     #assert os.path.isfile(fnout2) and fnout2.endswith('README.rst')
+
+
+def test_data_name_third_party_package():
+    """Regression test for issue #1256
+
+    Tests that `get_pkg_data_filename` works in a third-party package that
+    doesn't make any relative imports from the module it's used from.
+
+    Uses a test package under ``data/test_package``.
+    """
+
+    # Get the actual data dir:
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+
+    sys.path.insert(0, data_dir)
+    try:
+        import test_package
+        filename = test_package.get_data_filename()
+        assert filename == os.path.join(data_dir, 'test_package', 'data',
+                                        'foo.txt')
+    finally:
+        sys.path.pop(0)
 
 
 @raises(AssertionError)

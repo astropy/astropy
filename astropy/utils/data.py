@@ -690,7 +690,18 @@ def _find_pkg_data_path(data_name):
     if module is None:
         # not called from inside an astropy package.  So just pass name through
         return data_name
-    rootpkgname = module.__package__.split('.')[0]
+
+    if not hasattr(module, '__package__') or not module.__package__:
+        # The __package__ attribute may be missing or set to None; see PEP-366,
+        # also astropy issue #1256
+        if '.' in module.__name__:
+            pkgname = module.__name__.rpartition('.')[0]
+        else:
+            pkgname = module.__name__
+    else:
+        pkgname = module.__package__
+
+    rootpkgname = pkgname.partition('.')[0]
 
     rootpkg = __import__(rootpkgname)
 

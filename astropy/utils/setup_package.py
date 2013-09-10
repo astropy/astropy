@@ -15,6 +15,8 @@ def get_package_data():
     # Installs the testing data files
     return {
         'astropy.utils.tests': [
+            'data/test_package/*.py',
+            'data/test_package/data/*.txt',
             'data/*.dat',
             'data/*.dat.gz',
             'data/*.dat.bz2',
