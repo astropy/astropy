@@ -36,8 +36,15 @@ options:
 
     * ``:skip: obj1, [obj2, obj3, ...]``
         If present, specifies that the listed objects should be skipped
-        and not have their documentation generated, nor be includded in
-        the summary table.
+        and not have their documentation generated, nor be included in
+        the summary table. Cannot be used if ``:include:`` is used.
+
+    * ``:include: obj1, [obj2, obj3, ...]``
+        If present, specifies that the listed objects should be included and
+        have their documentation generated, and be included in the summary
+        table. Cannot be used if ``:include:`` is used.
+
+
 
 
 ===========================
@@ -68,7 +75,7 @@ from .astropyautosummary import AstropyAutosummary
 def _str_list_converter(argument):
     """
     A directive option conversion function that converts the option into a list
-    of strings. Used for 'skip' option.
+    of strings. Used for 'skip' and 'include' options.
     """
     if argument is None:
         return []
@@ -85,15 +92,21 @@ class Automodsumm(AstropyAutosummary):
     option_spec['functions-only'] = flag
     option_spec['classes-only'] = flag
     option_spec['skip'] = _str_list_converter
+    option_spec['include'] = _str_list_converter
 
     def run(self):
+
         from inspect import isclass, isfunction
 
         self.warnings = []
         nodelist = []
 
+        if 'skip' in self.options and 'include' in self.options:
+            self.warn("Cannot use both :skip: and :include: in an automodsumm directive. Skipping this automodsumm directive.")
+            return self.warnings
+
         try:
-            localnames, fqns, objs = find_mod_objs(self.arguments[0])
+            mod_objs = zip(*find_mod_objs(self.arguments[0]))
         except ImportError:
             self.warnings = []
             self.warn("Couldn't import module " + self.arguments[0])
@@ -105,33 +118,45 @@ class Automodsumm(AstropyAutosummary):
             funconly = 'functions-only' in self.options
             clsonly = 'classes-only' in self.options
 
-            skipmap = {}
             if 'skip' in self.options:
+
+                remove = []
                 skipnames = set(self.options['skip'])
-                for lnm, fqnm in zip(localnames, fqns):
-                    if lnm in skipnames:
-                        skipnames.remove(lnm)
-                        skipmap[fqnm] = lnm
-                if len(skipnames) > 0:
-                    self.warn('Tried to skip objects {objs} in module {mod}, '
-                              'but they were not present.  Ignoring.'.format(
-                              objs=skipnames, mod=self.arguments[0]))
+                for localname, fqname, obj in mod_objs:
+                    if localname in skipnames:
+                        remove.append((localname, fqname, obj))
+
+            elif 'include' in self.options:
+
+                remove = []
+                includenames = set(self.options['include'])
+                for localname, fqname, obj in mod_objs:
+                    if localname not in includenames:
+                        remove.append((localname, fqname, obj))
+
+            else:
+
+                remove = []
+
+            # Remove unneeded objects
+            for r in remove:
+                mod_objs.remove(r)
 
             if funconly and not clsonly:
                 cont = []
-                for nm, obj in zip(fqns, objs):
-                    if nm not in skipmap and isfunction(obj):
+                for ln, nm, obj in mod_objs:
+                    if isfunction(obj):
                         cont.append('~' + nm)
             elif clsonly:
                 cont = []
-                for nm, obj in zip(fqns, objs):
-                    if nm not in skipmap and isclass(obj):
+                for ln, nm, obj in mod_objs:
+                    if isclass(obj):
                         cont.append('~' + nm)
             else:
                 if clsonly and funconly:
                     self.warning('functions-only and classes-only both '
                                  'defined. Skipping.')
-                cont = ['~' + nm for nm in fqns if nm not in skipmap]
+                cont = ['~' + nm for ln, nm, obj in mod_objs]
 
             self.content = cont
 
