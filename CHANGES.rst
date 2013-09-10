@@ -323,6 +323,9 @@ Bug Fixes
   - Normalized conversions that should result in a scale of exactly 1.0 to
     round off slight floating point imprecisions. [#1407]
 
+  - Added support in the CDS unit parser/formatter for unusual unit prefixes
+    that are nonetheless required to be supported by that convention. [#1426]
+
 - ``astropy.wcs``
 
   - When passing a single array to the wcs transformation functions,
