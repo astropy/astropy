@@ -59,10 +59,10 @@ def add_kernel_arrays_2D(array_1, array_2):
         return array_1
     elif array_2.size > array_1.size:
         center = [axes_size // 2 for axes_size in array_2.shape]
-        slice_x = slice(center[1] - array_2.shape[1] // 2,
-                        center[1] + array_2.shape[1] // 2 + 1)
-        slice_y = slice(center[0] - array_2.shape[0] // 2,
-                        center[0] + array_2.shape[0] // 2 + 1)
+        slice_x = slice(center[1] - array_1.shape[1] // 2,
+                        center[1] + array_1.shape[1] // 2 + 1)
+        slice_y = slice(center[0] - array_1.shape[0] // 2,
+                        center[0] + array_1.shape[0] // 2 + 1)
         array_2[slice_y, slice_x] += array_1
         return array_2
     return array_2 + array_1
