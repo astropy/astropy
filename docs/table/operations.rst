@@ -78,7 +78,8 @@ boundaries::
   >>> obs_by_name.group_indexes
   array([ 0,  4,  7, 10])
 
-With the new grouped table we can now use the `aggregate` method to apply a
+With the new grouped table we can now use the `~astropy.table.table.GroupedTable.aggregate`
+method to apply a
 specified reduction function to the values within each group for each
 non-key column.  This function must accept a numpy array as the first
 argument and return a single scalar value.  Common function examples are
@@ -97,7 +98,8 @@ mean::
 It seems the magnitude values were successfully averaged, but what
 about the WARNING?  Since the ``obs_date`` column is a string-type
 array, the `numpy.mean` function failed and raised an exception.
-Any time this happens then `aggregate` will issue a warning and then
+Any time this happens then `~astropy.table.table.GroupedTable.aggregate`
+will issue a warning and then
 drop that column from the output result.  Note that the ``name``
 column is one of the ``keys`` used to determine the grouping so
 it is automatically ignored from aggregation.
