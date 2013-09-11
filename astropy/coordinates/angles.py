@@ -489,7 +489,7 @@ class Angle(u.Quantity):
     def __unicode__(self):
         self_string = self.to_string(format='unicode')
         if isinstance(self_string, np.ndarray):
-            return u"[{}]".format(u" ".join(s for s in self_string))
+            return u"[{0}]".format(u" ".join(s for s in self_string))
         else:
             return self_string
 
