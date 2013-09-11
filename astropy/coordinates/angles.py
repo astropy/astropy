@@ -486,6 +486,13 @@ class Angle(u.Quantity):
     def _repr_latex_(self):
         return str(self.to_string(format='latex'))
 
+    def __unicode__(self):
+        self_string = self.to_string(format='unicode')
+        if isinstance(self_string, np.ndarray):
+            return u"[{}]".format(u" ".join(s for s in self_string))
+        else:
+            return self_string
+
 
 class Latitude(Angle):
     """
