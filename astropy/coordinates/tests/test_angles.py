@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
+# -*- coding: utf-8 -*-
 # Test initalization of angles not already covered by the API tests
 
 import numpy as np
@@ -107,6 +107,16 @@ def test_angle_repr():
 
     a = Angle(0, u.deg)
     repr(a)
+
+
+def test_angle_unicode():
+    # test the built-in function rather than the unicode() command,
+    # since the latter is replaced by str() in python3
+    a = Angle(['120d','121d','122d'])
+    assert(a.__unicode__() ==
+           u'[120°00′00.00000″ 121°00′00.00000″ 122°00′00.00000″]')
+    a = Angle('3h4m5s')
+    assert a.__unicode__() == u'3ʰ04ᵐ05.00000ˢ'
 
 
 def test_wrap_at_inplace():

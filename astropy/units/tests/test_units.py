@@ -69,6 +69,12 @@ def test_repr():
     assert repr(u.cm) == 'Unit("cm")'
 
 
+def test_unicode():
+    # test the built-in function rather than the unicode() command,
+    # since the latter is replaced by str() in python3
+    assert (u.m / u.s).__unicode__() == u' m\n \u2500\n s'
+
+
 def test_units_conversion():
     assert_allclose(u.kpc.to(u.Mpc), 0.001)
     assert_allclose(u.Mpc.to(u.kpc), 1000)
