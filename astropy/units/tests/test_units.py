@@ -70,7 +70,9 @@ def test_repr():
 
 
 def test_unicode():
-    assert unicode(u.m / u.s) == u' m\n \u2500\n s'
+    # test the built-in function rather than the unicode() command,
+    # since the latter is replaced by str() in python3
+    assert (u.m / u.s).__unicode__() == u' m\n \u2500\n s'
 
 
 def test_units_conversion():

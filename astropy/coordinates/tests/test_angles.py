@@ -110,11 +110,13 @@ def test_angle_repr():
 
 
 def test_angle_unicode():
+    # test the built-in function rather than the unicode() command,
+    # since the latter is replaced by str() in python3
     a = Angle(['120d','121d','122d'])
-    assert(unicode(a) ==
+    assert(a.__unicode__() ==
            u'[120°00′00.00000″ 121°00′00.00000″ 122°00′00.00000″]')
     a = Angle('3h4m5s')
-    assert unicode(a) == u'3ʰ04ᵐ05.00000ˢ'
+    assert a.__unicode__() == u'3ʰ04ᵐ05.00000ˢ'
 
 
 def test_wrap_at_inplace():
