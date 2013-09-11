@@ -888,14 +888,10 @@ class TimeDelta(Time):
                 return self.to('day') * other
             except:
                 raise err
-        print(jd1, jd2)
-        # for other=dimensionless quantity, jd1,jd2 will be dimensionless
-        # quantities here too
+
         out = TimeDelta(jd1, jd2, format='jd')
-        print(out.jd1, out.jd2)
         if self.format != 'jd':
             out = out.replicate(format=self.format)
-        print(out.jd1, out.jd2)
         return out
 
     def __rmul__(self, other):
