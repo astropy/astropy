@@ -5,7 +5,7 @@ Regression tests for the units package
 
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
-
+import sys
 import warnings
 
 import numpy as np
@@ -70,9 +70,16 @@ def test_repr():
 
 
 def test_unicode():
-    # test the built-in function rather than the unicode() command,
-    # since the latter is replaced by str() in python3
-    assert (u.m / u.s).__unicode__() == u' m\n \u2500\n s'
+    """Test Unicode build-in function explicitly, as well as that this
+    is the default for str in python3, while for python2 it needs unicode()"""
+    t = (u.m / u.s)
+    t_unicode = t.__unicode__()
+    assert t_unicode == u' m\n \u2500\n s'
+    if sys.version_info[0] < 3:
+        assert unicode(t) == t_unicode
+    else:
+        assert str(t) == t_unicode
+
 
 
 def test_units_conversion():
