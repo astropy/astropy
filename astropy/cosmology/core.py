@@ -248,8 +248,12 @@ class FLRW(Cosmology):
         self._Ok0 = 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g)" % \
-            (self.name, self._H0.value, self._Om0, self._Ode0, self._Ok0)
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, Tcmb0=%r, Neff=%.3g, "\
+                 "m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._Tcmb0, self._Neff, self.m_nu)
+        return retstr
+            
 
     # Set up a set of properties for H0, Om0, Ode0, Ok0, etc. for user access.
     # Note that we don't let these be set (so, obj.Om0 = value fails)
@@ -1387,10 +1391,6 @@ class FlatLambdaCDM(LambdaCDM):
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
 
-    def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g)" % \
-            (self.name, self._H0.value, self._Om0, self._Ode0)
-
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
 
@@ -1516,9 +1516,11 @@ class wCDM(FLRW):
         self._w0 = float(w0)
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g, w0=%.3g)" % \
-            (self.name, self._H0.value, self._Om0,
-             self._Ode0, self._Ok0, self._w0)
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, Tcmb0=%r, "\
+                 "Neff=%.3g, m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._w0, self._Tcmb0, self._Neff, self.m_nu)
+        return retstr
 
     @property
     def w0(self):
@@ -1696,9 +1698,11 @@ class FlatwCDM(wCDM):
         self._Ok0 = 0.0
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, w0=%.3g)" % \
-            (self.name, self._H0.value, self._Om0,
-             self._Ode0, self._w0)
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, Tcmb0=%r, "\
+                 "Neff=%.3g, m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._w0, self._Tcmb0, self._Neff, self.m_nu)
+        return retstr
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -1831,9 +1835,11 @@ class w0waCDM(FLRW):
         self._wa = float(wa)
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g, w0=%.3g, wa=%.3g)" %\
-            (self.name, self._H0.value, self._Om0, self._Ode0, self._Ok0,
-             self._w0, self._wa)
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, wa=%.3g, Tcmb0=%r, "\
+                 "Neff=%.3g, m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._w0, self._wa, self._Tcmb0, self._Neff, self.m_nu)
+        return retstr
 
     @property
     def w0(self):
@@ -1971,10 +1977,11 @@ class Flatw0waCDM(w0waCDM):
         self._wa = float(wa)
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, w0=%.3g, wa=%.3g)" %\
-            (self.name, self._H0.value, self._Om0, self._Ode0, self._w0,
-             self._wa)
-
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, wa=%.3g, Tcmb0=%r, "\
+                 "Neff=%.3g, m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._w0, self._wa, self._Tcmb0, self._Neff, self.m_nu)
+        return retstr
 
 class wpwaCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state, a pivot
@@ -2053,10 +2060,12 @@ class wpwaCDM(FLRW):
         self._zp = float(zp)
 
     def __repr__(self):
-        str = "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g, wp=%.3g, " +\
-            "wa=%.3g, zp=%.3g)"
-        return str % (self.name, self._H0.value, self._Om0, self._Ode0,
-                      self._Ok0, self._wp, self._wa, self._zp)
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, wp=%.3g, wa=%.3g, zp=%.3g, "\
+                 "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._wp, self._wa, self._zp, self._Tcmb0, self._Neff, 
+                   self.m_nu)
+        return retstr
 
     @property
     def wp(self):
@@ -2210,9 +2219,12 @@ class w0wzCDM(FLRW):
         self._wz = float(wz)
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, w0=%.3g, wz=%.3g)" % \
-            (self.name, self._H0.value, self._Om0, self._Ode0, self._w0,
-             self._wz)
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, wz=%.3g, "\
+                 "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._w0, self._wz, self._Tcmb0, self._Neff, 
+                   self.m_nu)
+        return retstr
 
     @property
     def w0(self):
