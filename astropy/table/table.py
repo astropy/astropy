@@ -2304,7 +2304,7 @@ class GroupedTable(Table):
                  meta=None, copy=True, dtypes=None,
                  group_indexes=None, group_keys=None):
         if group_indexes is None:
-            raise ValueErorr('group_indexes must be provided for GroupedTable')
+            raise ValueError('group_indexes must be provided for GroupedTable')
         if group_keys is None:
             group_keys = ()
 
