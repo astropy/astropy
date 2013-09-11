@@ -7,7 +7,6 @@ coordinates in astropy.
 """
 from __future__ import unicode_literals
 
-import sys
 import math
 
 import numpy as np
@@ -482,9 +481,7 @@ class Angle(u.Quantity):
             alwayssign=alwayssign, pad=pad)
 
     def __str__(self):
-        return str(self.to_string(format=None
-                                  if sys.version_info[0] < 3
-                                  else 'unicode'))
+        return str(self.to_string())
 
     def _repr_latex_(self):
         return str(self.to_string(format='latex'))

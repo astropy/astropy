@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # Test initalization of angles not already covered by the API tests
 
-import sys
 import numpy as np
 from numpy import testing as npt
 from ..angles import *
@@ -84,7 +83,15 @@ def test_angle_to_quantity():
     assert q.unit is u.deg
 
 
-def test_angle_string_input():
+def test_angle_string():
+    a = Angle('00:00:60', u.deg)
+    assert str(a) == '0d01m00.00000s'
+    a = Angle('-00:00:10', u.hour)
+    assert str(a) == '-0h00m10.00000s'
+    a = Angle(3.2, u.radian)
+    assert str(a) == '3.20000rad'
+    a = Angle(4.2, u.microarcsecond)
+    assert str(a) == '4.20000uarcsec'
     a = Angle('1.0uarcsec')
     assert a.value == 1.0
     assert a.unit == u.microarcsecond
@@ -102,31 +109,14 @@ def test_angle_repr():
     repr(a)
 
 
-def test_angle_str():
-    """Test str representation.  For python3, this is unicode by default."""
-    a1 = Angle('00:00:60', u.deg)
-    a2 = Angle('-00:00:10', u.hour)
-    a3 = Angle(3.2, u.radian)
-    a4 = Angle(4.2, u.microarcsecond)
-    if sys.version_info[0] < 3:
-        assert str(a1) == '0d01m00.00000s'
-        assert str(a2) == '-0h00m10.00000s'
-        assert str(a3) == '3.20000rad'
-        assert str(a4) == '4.20000uarcsec'
-    else:
-        assert str(a1) == u'0°01′00.00000″'
-        assert str(a2) == u'-0ʰ00ᵐ10.00000ˢ'
-        assert str(a3) == '3.20000rad'
-        assert str(a4) == u'4.20000μarcsec'
-
-
 def test_angle_unicode():
-    """Test Unicode representation.  For python3, this is the default."""
-    a1 = Angle(['120d','121d','122d'])
-    a2 = Angle('3h4m5s')
-    assert(unicode(a1) ==
+    # test the built-in function rather than the unicode() command,
+    # since the latter is replaced by str() in python3
+    a = Angle(['120d','121d','122d'])
+    assert(a.__unicode__() ==
            u'[120°00′00.00000″ 121°00′00.00000″ 122°00′00.00000″]')
-    assert unicode(a2) == u'3ʰ04ᵐ05.00000ˢ'
+    a = Angle('3h4m5s')
+    assert a.__unicode__() == u'3ʰ04ᵐ05.00000ˢ'
 
 
 def test_wrap_at_inplace():

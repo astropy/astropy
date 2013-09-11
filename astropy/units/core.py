@@ -203,10 +203,7 @@ class UnitBase(object):
 
     def __str__(self):
         """Return string representation for unit"""
-        if sys.version_info[0] < 3.:
-            return unit_format.Generic().to_string(self)
-        else:
-            return unit_format.Unicode().to_string(self)
+        return unit_format.Generic().to_string(self)
 
     def __unicode__(self):
         """Return unicode formatted string representation for unit"""
