@@ -413,8 +413,8 @@ class BaseColumn(object):
         try:
             vals = np.array([func(self[i0: i1]) for i0, i1 in izip(idxs0, idxs1)])
         except Exception as err:
-            raise ValueError("Cannot aggregate column '{0}': {1}"
-                             .format(self.name, err))
+            raise ValueError("Cannot aggregate column '{0}'"
+                             .format(self.name))
 
         out = self.__class__(data=vals, name=self.name, description=self.description,
                              unit=self.unit, format=self.format, meta=self.meta)
@@ -2346,8 +2346,8 @@ class GroupedTable(Table):
                 try:
                     vals = np.array([func(col[i0: i1]) for i0, i1 in izip(idxs0, idxs1)])
                 except Exception as err:
-                    warnings.warn("Cannot aggregate column '{0}': {1}"
-                                  .format(col.name, err))
+                    warnings.warn("Cannot aggregate column '{0}'"
+                                  .format(col.name))
                     continue
 
             out_cols.append((col, vals))
