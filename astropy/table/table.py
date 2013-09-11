@@ -1307,8 +1307,8 @@ class Table(object):
 
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.colnames)
-        s = "<Table rows={0} names=({1})>\n{2}".format(
-            self.__len__(), ','.join(names), repr(self._data))
+        s = "<{3} rows={0} names=({1})>\n{2}".format(
+            self.__len__(), ','.join(names), repr(self._data), self.__class__.__name__)
         return s
 
     def __str__(self):
