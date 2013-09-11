@@ -36,7 +36,7 @@ class Kernel(object):
         Kernel array.
     """
     _separable = False
-    _weighted = False
+    _is_bool = True
     _model = None
 
     def __init__(self, array):
@@ -51,14 +51,14 @@ class Kernel(object):
         return self._truncation
 
     @property
-    def weighted(self):
+    def is_bool(self):
         """
-        Indicates if kernel is weighted.
+        Indicates if kernel is bool.
 
-        If the kernel is not weighted the multiplication in the convolution will
+        If the kernel is bool the multiplication in the convolution could
         be omitted, to increase the performance.
         """
-        return self._weighted
+        return self._is_bool
 
     @property
     def model(self):
@@ -101,13 +101,11 @@ class Kernel(object):
                 * 'peak'
                     Kernel normalized such that its peak = 1.
         """
-        # The value of 100 is kind of arbitrary
-        # there are kernel that sum to zero and
+        # There are kernel that sum to zero and
         # the user should be warned in this case
         if np.abs(self._normalization) > MAX_NORMALIZATION:
             warnings.warn("Normalization factor of kernel is "
                           "exceptionally large > {0}.".format(MAX_NORMALIZATION))
-
         if mode == 'integral':
             self._array *= self._normalization
         if mode == 'peak':
@@ -203,6 +201,7 @@ class Kernel1D(Kernel):
 
     """
     def __init__(self, model=None, x_size=None, array=None, **kwargs):
+        # Initialize from model
         if array == None:
             if model != None:
                 self._model = model
@@ -210,6 +209,8 @@ class Kernel1D(Kernel):
                 x_size = self._default_size
             x_range = (-np.rint(x_size / 2), np.rint(x_size / 2) + 1)
             array = discretize_model(self._model, x_range, **kwargs)
+
+        # Initialize from array
         elif array != None:
             self._model = None
         else:
@@ -247,6 +248,7 @@ class Kernel2D(Kernel):
         Factor of oversampling. Default factor = 10.
     """
     def __init__(self, model=None, x_size=None, y_size=None, array=None, **kwargs):
+        # Initialize from model
         if array == None:
             if x_size == None:
                 x_size = self._default_size
@@ -256,6 +258,8 @@ class Kernel2D(Kernel):
             x_range = (-np.rint(x_size / 2), np.rint(x_size / 2) + 1)
             y_range = (-np.rint(y_size / 2), np.rint(y_size / 2) + 1)
             array = discretize_model(self._model, x_range, y_range, **kwargs)
+
+        # Initialize from array
         elif array != None:
             self._model = None
         else:
@@ -293,7 +297,7 @@ def kernel_arithmetics(kernel, value, operation):
                              "use convolve(kernel1, kernel2) instead.")
         new_kernel = Kernel1D(array=new_array)
         new_kernel._separable = kernel._separable and value._separable
-        new_kernel._weighted = kernel._weighted or value._weighted
+        new_kernel._is_bool = kernel._is_bool or value._is_bool
 
     # 2D kernels
     elif isinstance(kernel, Kernel2D) and isinstance(value, Kernel2D):
@@ -306,7 +310,7 @@ def kernel_arithmetics(kernel, value, operation):
                             "use convolve(kernel1, kernel2) instead.")
         new_kernel = Kernel2D(array=new_array)
         new_kernel._separable = kernel._separable and value._separable
-        new_kernel._weighted = kernel._weighted or value._weighted
+        new_kernel._is_bool = kernel._is_bool or value._is_bool
 
     # kernel and number
     elif ((isinstance(kernel, Kernel1D) or isinstance(kernel, Kernel2D))

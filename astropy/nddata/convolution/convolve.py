@@ -103,7 +103,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
             else:
                 raise Exception("Can't convolve 1D and 2D kernel.")
             new_kernel._separable = kernel._separable and array._separable
-            new_kernel._weighted = False
+            new_kernel._is_bool = False
             return new_kernel
         kernel = kernel.array
 

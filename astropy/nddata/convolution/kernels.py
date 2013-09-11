@@ -67,7 +67,7 @@ class Gaussian1DKernel(Kernel1D):
         plt.show()
     """
     _separable = True
-    _weighted = True
+    _is_bool = False
 
     def __init__(self, width, **kwargs):
         self._model = models.Gaussian1DModel(1. / (np.sqrt(2 * np.pi) * width), 0, width)
@@ -132,7 +132,7 @@ class Gaussian2DKernel(Kernel2D):
 
     """
     _separable = True
-    _weighted = True
+    _is_bool = False
 
     def __init__(self, width, **kwargs):
         self._model = models.Gaussian2DModel(1. / (2 * np.pi * width ** 2), 0, 0, width, width)
@@ -192,7 +192,7 @@ class Box1DKernel(Kernel1D):
 
     """
     _separable = True
-    _weighted = False
+    _is_bool = True
 
     def __init__(self, width, **kwargs):
         self._model = models.Box1DModel(1. / width, 0, width)
@@ -255,7 +255,7 @@ class Box2DKernel(Kernel2D):
         plt.show()
     """
     _separable = True
-    _weighted = False
+    _is_bool = True
 
     def __init__(self, width, **kwargs):
         self._model = models.Box2DModel(1. / width ** 2, 0, 0, width, width)
@@ -316,7 +316,6 @@ class Tophat2DKernel(Kernel2D):
         plt.show()
 
     """
-
     def __init__(self, radius, **kwargs):
         self._model = models.Disk2DModel(1. / (np.pi * radius ** 2), 0, 0, radius)
         self._default_size = 2 * radius
@@ -429,7 +428,7 @@ class Trapezoid1DKernel(Kernel1D):
         plt.xlim(-1, 28)
         plt.show()
     """
-    _weighted = True
+    _is_bool = False
 
     def __init__(self, width, slope=1., **kwargs):
         self._model = models.Trapezoid1DModel(1, 0, width, slope)
@@ -488,7 +487,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
         plt.show()
 
     """
-    _weighted = True
+    _is_bool = False
 
     def __init__(self, radius, slope=1., **kwargs):
         self._model = models.TrapezoidDisk2DModel(1, 0, 0, radius, slope)
@@ -551,7 +550,7 @@ class MexicanHat1DKernel(Kernel1D):
         plt.show()
 
     """
-    _weighted = True
+    _is_bool = True
 
     def __init__(self, width, **kwargs):
         self._default_size = 8 * width
@@ -617,7 +616,7 @@ class MexicanHat2DKernel(Kernel2D):
         plt.colorbar()
         plt.show()
     """
-    _weighted = True
+    _is_bool = False
 
     def __init__(self, width, **kwargs):
         self._default_size = 8 * width
@@ -680,7 +679,7 @@ class AiryDisk2DKernel(Kernel2D):
         plt.colorbar()
         plt.show()
     """
-    _weighted = True
+    _is_bool = False
 
     def __init__(self, width, **kwargs):
         self._default_size = 8 * width
@@ -744,7 +743,7 @@ class Model1DKernel(Kernel1D):
     This kernel can now be used like a usual astropy kernel.
     """
     _separable = False
-    _weighted = True
+    _is_bool = False
 
     def __init__(self, model, **kwargs):
         if isinstance(model, Parametric1DModel):
@@ -810,7 +809,7 @@ class Model2DKernel(Kernel2D):
     This kernel can now be used like a usual astropy kernel.
 
     """
-    _weighted = True
+    _is_bool = False
     _separable = False
 
     def __init__(self, model, **kwargs):
@@ -899,10 +898,10 @@ class CustomKernel(Kernel):
         if not odd:
             raise KernelSizeError("Kernel size must be odd in all axes.")
 
-        # Check if array is weighted
+        # Check if array is bool
         ones = self._array == 1.
         zeros = self._array == 0
-        self._weighted = not np.all(np.logical_or(ones, zeros))
+        self._is_bool = np.all(np.logical_or(ones, zeros))
 
         # Set normalization
         self._normalization = 1. / self._array.sum()
