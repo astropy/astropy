@@ -188,7 +188,7 @@ def hstack(tables, join_type='outer',
     Stack tables along columns (horizontally)
 
     A ``join_type`` of 'exact' means that the tables must all
-    have exactly the same number of row.  If ``join_type`` is 'inner' then
+    have exactly the same number of rows.  If ``join_type`` is 'inner' then
     the intersection of rows will be output.  A value of 'outer' (default) means
     the output will have the union of all rows, with table values being
     masked where no common values are available.
