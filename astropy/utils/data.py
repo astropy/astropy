@@ -78,6 +78,7 @@ def _is_inside(path, parent_path):
     return os.path.abspath(path).startswith(os.path.abspath(parent_path)) \
         or os.path.realpath(path).startswith(os.path.realpath(parent_path))
 
+
 @contextlib.contextmanager
 def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                          show_progress=True):
@@ -131,6 +132,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     -------
     file : readable file-like object
     """
+
     import tempfile
 
     # close_fds is a list of file handles created by this function
@@ -455,6 +457,8 @@ def get_pkg_data_filename(data_name, show_progress=True):
     get_pkg_data_contents : returns the contents of a file or url as a bytes object
     get_pkg_data_fileobj : returns a file-like object with the data
     """
+
+    data_name = os.path.normpath(data_name)
 
     if data_name.startswith('hash/'):
         # first try looking for a local version if a hash is specified
