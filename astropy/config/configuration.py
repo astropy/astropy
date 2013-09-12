@@ -23,6 +23,7 @@ from contextlib import contextmanager
 from os import path
 from warnings import warn
 
+from ..extern import six
 from ..extern.configobj import configobj, validate
 from ..utils.exceptions import AstropyWarning
 

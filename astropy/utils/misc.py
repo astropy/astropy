@@ -7,8 +7,6 @@ a clear module/package to live in.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..extern import six
-from ..extern.six.moves import urllib
 
 import contextlib
 import functools
@@ -23,6 +21,8 @@ import warnings
 
 from .exceptions import AstropyDeprecationWarning, AstropyPendingDeprecationWarning
 
+from ..extern import six
+from ..extern.six.moves import urllib
 
 
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',

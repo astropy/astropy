@@ -175,25 +175,36 @@ def _initialize_astropy():
     import sys
     from warnings import warn
 
+    def _rollback_import(message):
+        log.error(message)
+        # Now disable exception logging to avoid an annoying error in the
+        # exception logger before we raise the import error:
+        _teardown_log()
+
+        # Roll back any astropy sub-modules that have been imported thus
+        # far
+
+        for key in list(sys.modules):
+            if key.startswith('astropy.'):
+                del sys.modules[key]
+        raise ImportError('astropy')
+
+    if sys.version_info[0] >= 3 and os.path.exists('setup.py'):
+        _rollback_import(
+            "You appear to be trying to import astropy from within a source "
+            "checkout. This is currently not possible using Python 3 due to "
+            "the reliance of 2to3 to convert some of Astropy's subpackages "
+            "for Python 3 compatibility.")
+
     try:
         from .utils import _compiler
     except ImportError:
         if os.path.exists('setup.py'):
-            log.error('You appear to be trying to import astropy from within '
-                      'a source checkout; please run `./setup.py develop` or '
-                      '`./setup.py build_ext --inplace` first so that '
-                      'extension modules can be compiled and made importable.')
-            # Now disable exception logging to avoid an annoying error in the
-            # exception logger before we raise the import error:
-            _teardown_log()
-
-            # Roll back any astropy sub-modules that have been imported thus
-            # far
-
-            for key in sys.modules.keys():
-                if key.startswith('astropy.'):
-                    del sys.modules[key]
-            raise ImportError('astropy')
+            _rollback_import(
+                'You appear to be trying to import astropy from within a '
+                'source checkout; please run `./setup.py develop` or '
+                '`./setup.py build_ext --inplace` first so that extension '
+                'modules can be compiled and made importable.')
         else:
             # Outright broken installation; don't be nice.
             raise
