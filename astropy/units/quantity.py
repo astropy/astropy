@@ -736,12 +736,15 @@ class Quantity(np.ndarray):
                                   else _UNIT_NOT_INITIALISED)
 
     def __repr__(self):
-        arrrepr = repr(self.view(np.ndarray))
-        return "<{0} {1} {2}>".format(
-            self.__class__.__name__,
-            arrrepr[6:-1],  # [6:-1] strips the "array(" and ")"
-            self.unit.to_string() if self.unit is not None
-                                  else _UNIT_NOT_INITIALISED)
+        prefixstr = '<' + self.__class__.__name__ + ' '
+        arrstr = np.array2string(self.view(np.ndarray), separator=',',
+            prefix=prefixstr)
+        if self.unit is None:
+            unitstr = _UNIT_NOT_INITIALISED
+        else:
+            unitstr = self.unit.to_string()
+
+        return prefixstr + arrstr + ' ' + unitstr + '>'
 
     def _repr_latex_(self):
         """
