@@ -354,6 +354,9 @@ Bug Fixes
   - Fixed a crash on Python 3.2 when affiliated packages try to use the
     ``astropy.utils.data.get_pkg_data_*`` functions. [#1256]
 
+  - Fixed a minor path normalization issue that could occur on Windows in
+    ``astropy.utils.data.get_pkg_data_filename``. [#1444]
+
   - Miscellaneous documentation fixes and improvements [#1308, #1317, #1377,
     #1393, #1362]
 
