@@ -455,7 +455,8 @@ class catch_warnings(warnings.catch_warnings):
         return warning_list
 
 
-def assert_follows_unicode_guidelines(x, roundtrip=False):
+def assert_follows_unicode_guidelines(
+        x, roundtrip=False, roundtrip_repr_namespace=None):
     """
     Test that an object follows our Unicode policy.  See
     "Unicode Policy" in the coding guidelines.
@@ -493,6 +494,9 @@ def assert_follows_unicode_guidelines(x, roundtrip=False):
         assert x.__class__(bytes_x) == x
         assert x.__class__(unicode_x) == x
 
+    if roundtrip_repr_namespace is not None:
+        assert eval(repr_x, roundtrip_repr_namespace) == x
+
     UNICODE_OUTPUT.set(True)
 
     bytes_x = bytes(x)
@@ -511,3 +515,6 @@ def assert_follows_unicode_guidelines(x, roundtrip=False):
     if roundtrip:
         assert x.__class__(bytes_x) == x
         assert x.__class__(unicode_x) == x
+
+    if roundtrip_repr_namespace is not None:
+        assert eval(repr_x, roundtrip_repr_namespace) == x

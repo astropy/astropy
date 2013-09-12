@@ -248,7 +248,8 @@ to refer to `str` on Python 2 and `bytes` on Python 3.
 
 For classes that are expected to roundtrip through strings (unicode or
 bytes), the parser must accept either the output of ``__str__`` or
-``__unicode__`` unambiguously.
+``__unicode__`` unambiguously.  Additionally, ``__repr__`` should
+roundtrip when that makes sense.
 
 This design generally follows Postel's Law: "Be liberal in what you
 accept, and conservative in what you send".
