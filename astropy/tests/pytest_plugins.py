@@ -357,7 +357,6 @@ def modarg(request):
     Does nothing if we are inside the sphinx testing command, as it
     should have already done this for us.
     """
-    import os
     import shutil
     import tempfile
 

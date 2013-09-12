@@ -5,6 +5,10 @@ data/cache files used by Astropy should be placed.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import os
+import sys
+
+
 __all__ = ['get_config_dir', 'get_cache_dir']
 
 
@@ -19,9 +23,7 @@ def _find_home():
         Astropy on some obscure platform that doesn't have standard home
         directories.
     """
-    import os
-    import sys
-    from os import environ as env
+
 
     # this is used below to make fix up encoding issues that sometimes crop up
     # in py2.x but not in py3.x
@@ -34,22 +36,23 @@ def _find_home():
     # uses to identify "home"
     if os.name == 'posix':
         # Linux, Unix, AIX, OS X
-        if 'HOME' in env:
-            homedir = decodepath(env['HOME'])
+        if 'HOME' in os.environ:
+            homedir = decodepath(os.environ['HOME'])
         else:
             raise OSError('Could not find unix home directory to search for '
                           'astropy config dir')
     elif os.name == 'nt':  # This is for all modern Windows (NT or after)
         # Try for a network home first
-        if 'HOMESHARE' in env:
-            homedir = decodepath(env['HOMESHARE'])
+        if 'HOMESHARE' in os.environ:
+            homedir = decodepath(os.environ['HOMESHARE'])
         # See if there's a local home
-        elif 'HOMEDRIVE' in env and 'HOMEPATH' in env:
-            homedir = os.path.join(env['HOMEDRIVE'], env['HOMEPATH'])
+        elif 'HOMEDRIVE' in os.environ and 'HOMEPATH' in os.environ:
+            homedir = os.path.join(os.environ['HOMEDRIVE'],
+                                   os.environ['HOMEPATH'])
             homedir = decodepath(homedir)
         # Maybe a user profile?
-        elif 'USERPROFILE' in env:
-            homedir = decodepath(os.path.join(env['USERPROFILE']))
+        elif 'USERPROFILE' in os.environ:
+            homedir = decodepath(os.path.join(os.environ['USERPROFILE']))
         else:
             try:
                 from ..extern.six.moves import winreg as wreg
@@ -61,15 +64,15 @@ def _find_home():
                 key.Close()
             except:
                 # As a final possible resort, see if HOME is present
-                if 'HOME' in env:
-                    homedir = decodepath(env['HOME'])
+                if 'HOME' in os.environ:
+                    homedir = decodepath(os.environ['HOME'])
                 else:
                     raise OSError('Could not find windows home directory to '
                                   'search for astropy config dir')
     else:
         # for other platforms, try HOME, although it probably isn't there
-        if 'HOME' in env:
-            homedir = decodepath(env['HOME'])
+        if 'HOME' in os.environ:
+            homedir = decodepath(os.environ['HOME'])
         else:
             raise OSError('Could not find a home directory to search for '
                           'astropy config dir - are you on an unspported '
@@ -94,21 +97,19 @@ def get_config_dir(create=True):
 
     """
 
-    from os import path, environ
-
     # symlink will be set to this if the directory is created
     linkto = None
     # first look for XDG_CONFIG_HOME
-    xch = environ.get('XDG_CONFIG_HOME')
+    xch = os.environ.get('XDG_CONFIG_HOME')
 
-    if xch is not None and path.exists(xch):
-        xchpth = path.join(xch, 'astropy')
-        if not path.islink(xchpth):
-            if path.exists(xchpth):
-                return path.abspath(xchpth)
+    if xch is not None and os.path.exists(xch):
+        xchpth = os.path.join(xch, 'astropy')
+        if not os.path.islink(xchpth):
+            if os.path.exists(xchpth):
+                return os.path.abspath(xchpth)
             else:
                 linkto = xchpth
-    return path.abspath(_find_or_create_astropy_dir('config', linkto))
+    return os.path.abspath(_find_or_create_astropy_dir('config', linkto))
 
 
 def get_cache_dir():
@@ -127,57 +128,52 @@ def get_cache_dir():
         The absolute path to the cache directory.
 
     """
-    from os import path, environ
 
     # symlink will be set to this if the directory is created
     linkto = None
     # first look for XDG_CACHE_HOME
-    xch = environ.get('XDG_CACHE_HOME')
+    xch = os.environ.get('XDG_CACHE_HOME')
 
-    if xch is not None and path.exists(xch):
-        xchpth = path.join(xch, 'astropy')
-        if not path.islink(xchpth):
-            if path.exists(xchpth):
-                return path.abspath(xchpth)
+    if xch is not None and os.path.exists(xch):
+        xchpth = os.path.join(xch, 'astropy')
+        if not os.path.islink(xchpth):
+            if os.path.exists(xchpth):
+                return os.path.abspath(xchpth)
             else:
                 linkto = xchpth
 
-    return path.abspath(_find_or_create_astropy_dir('cache', linkto))
+    return os.path.abspath(_find_or_create_astropy_dir('cache', linkto))
 
 
 def _find_or_create_astropy_dir(dirnm, linkto):
-    from os import path, mkdir
-    import sys
+    innerdir = os.path.join(_find_home(), '.astropy')
+    maindir = os.path.join(_find_home(), '.astropy', dirnm)
 
-    innerdir = path.join(_find_home(), '.astropy')
-    maindir = path.join(_find_home(), '.astropy', dirnm)
-
-    if not path.exists(maindir):
+    if not os.path.exists(maindir):
         # first create .astropy dir if needed
-        if not path.exists(innerdir):
+        if not os.path.exists(innerdir):
             try:
-                mkdir(innerdir)
+                os.mkdir(innerdir)
             except OSError:
-                if not path.isdir(innerdir):
+                if not os.path.isdir(innerdir):
                     raise
-        elif not path.isdir(innerdir):
+        elif not os.path.isdir(innerdir):
             msg = 'Intended Astropy directory {0} is actually a file.'
             raise IOError(msg.format(innerdir))
 
         try:
-            mkdir(maindir)
+            os.mkdir(maindir)
         except OSError:
-            if not path.isdir(maindir):
+            if not os.path.isdir(maindir):
                 raise
 
         if (not sys.platform.startswith('win') and
             linkto is not None and
-                not path.exists(linkto)):
-            from os import symlink
-            symlink(maindir, linkto)
+                not os.path.exists(linkto)):
+            os.symlink(maindir, linkto)
 
-    elif not path.isdir(maindir):
+    elif not os.path.isdir(maindir):
         msg = 'Intended Astropy {0} directory {1} is actually a file.'
         raise IOError(msg.format(dirnm, maindir))
 
-    return path.abspath(maindir)
+    return os.path.abspath(maindir)

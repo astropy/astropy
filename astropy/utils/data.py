@@ -15,6 +15,8 @@ import sys
 import atexit
 import contextlib
 
+from warnings import warn
+
 from ..config.configuration import ConfigurationItem
 from ..utils.exceptions import AstropyWarning
 
@@ -616,18 +618,16 @@ def get_pkg_data_filenames(datadir, pattern='*'):
                 fcontents = f.read()
     """
     import fnmatch
-    from os.path import isdir, isfile, join
-    from os import listdir
 
     path = _find_pkg_data_path(datadir)
-    if isfile(path):
+    if os.path.isfile(path):
         raise IOError(
             "Tried to access a data directory that's actually "
             "a package data file")
-    elif isdir(path):
-        for filename in listdir(path):
+    elif os.path.isdir(path):
+        for filename in os.listdir(path):
             if fnmatch.fnmatch(filename, pattern):
-                yield join(path, filename)
+                yield os.path.join(path, filename)
     else:
         raise IOError("Path not found")
 
@@ -731,7 +731,7 @@ def _find_pkg_data_path(data_name):
     Look for data in the source-included data directories and return the
     path.
     """
-    from os.path import dirname, join
+
     from ..utils.misc import find_current_module
 
     module = find_current_module(1, True)
@@ -753,10 +753,10 @@ def _find_pkg_data_path(data_name):
 
     rootpkg = __import__(rootpkgname)
 
-    module_path = dirname(module.__file__)
-    path = join(module_path, data_name)
+    module_path = os.path.dirname(module.__file__)
+    path = os.path.join(module_path, data_name)
 
-    root_dir = dirname(rootpkg.__file__)
+    root_dir = os.path.dirname(rootpkg.__file__)
     assert _is_inside(path, root_dir), \
            ("attempted to get a local data file outside "
             "of the " + rootpkgname + " tree")
@@ -769,8 +769,6 @@ def _find_hash_fn(hash):
     Looks for a local file by hash - returns file name if found and a valid
     file, otherwise returns None.
     """
-    from os.path import isfile, join
-    from warnings import warn
 
     try:
         dldir, urlmapfn = _get_download_cache_locs()
@@ -778,8 +776,8 @@ def _find_hash_fn(hash):
         msg = 'Could not access cache directory to search for data file: '
         warn(CacheMissingWarning(msg + str(e)))
         return None
-    hashfn = join(dldir, hash)
-    if isfile(hashfn):
+    hashfn = os.path.join(dldir, hash)
+    if os.path.isfile(hashfn):
         return hashfn
     else:
         return None
@@ -878,7 +876,6 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=REMOTE_TI
     from contextlib import closing
     from tempfile import NamedTemporaryFile, gettempdir
     from shutil import move
-    from warnings import warn
 
     from ..utils.console import ProgressBarOrSpinner
 
@@ -1063,10 +1060,8 @@ def clear_download_cache(hashorurl=None):
         If the requested filename is not present in the data directory.
 
     """
-    from os import unlink
-    from os.path import join, exists
+
     from shutil import rmtree
-    from warnings import warn
 
     try:
         dldir, urlmapfn = _get_download_cache_locs()
@@ -1079,34 +1074,34 @@ def clear_download_cache(hashorurl=None):
     _acquire_download_cache_lock()
     try:
         if hashorurl is None:
-            if exists(dldir):
+            if os.path.exists(dldir):
                 rmtree(dldir)
-            if exists(urlmapfn):
-                unlink(urlmapfn)
+            if os.path.exists(urlmapfn):
+                os.unlink(urlmapfn)
         else:
             with _open_shelve(urlmapfn, True) as url2hash:
-                filepath = join(dldir, hashorurl)
+                filepath = os.path.join(dldir, hashorurl)
                 assert _is_inside(filepath, dldir), \
                        ("attempted to use clear_download_cache on a location" +
                         " that's not inside the data cache directory")
 
-                if exists(filepath):
+                if os.path.exists(filepath):
                     for k, v in list(six.iteritems(url2hash)):
                         if v == filepath:
                             del url2hash[k]
-                    unlink(filepath)
+                    os.unlink(filepath)
 
                 elif hashorurl in url2hash:
                     filepath = url2hash[hashorurl]
                     del url2hash[hashorurl]
-                    unlink(filepath)
+                    os.unlink(filepath)
 
                 else:
                     msg = 'Could not find file or url {0}'
                     raise OSError(msg.format(hashorurl))
     finally:
         # the lock will be gone if rmtree was used above, but release otherwise
-        if exists(join(_get_download_cache_locs()[0], 'lock')):
+        if os.path.exists(join(_get_download_cache_locs()[0], 'lock')):
             _release_download_cache_lock()
 
 
@@ -1122,23 +1117,21 @@ def _get_download_cache_locs():
         The path to the shelve object that stores the cache info.
     """
     from ..config.paths import get_cache_dir
-    from os.path import exists, isdir, join
-    from os import mkdir
 
-    datadir = join(get_cache_dir(), 'download')
-    shelveloc = join(get_cache_dir(), 'download_urlmap')
+    datadir = os.path.join(get_cache_dir(), 'download')
+    shelveloc = os.path.join(get_cache_dir(), 'download_urlmap')
 
-    if not exists(datadir):
+    if not os.path.exists(datadir):
         try:
-            mkdir(datadir)
+            os.mkdir(datadir)
         except OSError as e:
-            if not exists(datadir):
+            if not os.path.exists(datadir):
                 raise
-    elif not isdir(datadir):
+    elif not os.path.isdir(datadir):
         msg = 'Data cache directory {0} is not a directory'
         raise IOError(msg.format(datadir))
 
-    if isdir(shelveloc):
+    if os.path.isdir(shelveloc):
         msg = 'Data cache shelve object location {0} is a directory'
         raise IOError(msg.format(shelveloc))
 
@@ -1174,16 +1167,14 @@ def _acquire_download_cache_lock():
     Uses the lock directory method.  This is good because `mkdir` is
     atomic at the system call level, so it's thread-safe.
     """
-    from os.path import join
-    from os import mkdir
     from time import sleep
 
     lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
     for i in range(DOWNLOAD_CACHE_LOCK_ATTEMPTS()):
         try:
-            mkdir(lockdir)
+            os.mkdir(lockdir)
             #write the pid of this process for informational purposes
-            with open(join(lockdir, 'pid'), 'w') as f:
+            with open(os.path.join(lockdir, 'pid'), 'w') as f:
                 f.write(str(os.getpid()))
 
         except OSError:
@@ -1195,17 +1186,14 @@ def _acquire_download_cache_lock():
 
 
 def _release_download_cache_lock():
-    from os.path import join, exists, isdir
-    from os import rmdir
+    lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
 
-    lockdir = join(_get_download_cache_locs()[0], 'lock')
-
-    if isdir(lockdir):
+    if os.path.isdir(lockdir):
         #if the pid file is present, be sure to remove it
-        pidfn = join(lockdir, 'pid')
-        if exists(pidfn):
+        pidfn = os.path.join(lockdir, 'pid')
+        if os.path.exists(pidfn):
             os.remove(pidfn)
-        rmdir(lockdir)
+        os.rmdir(lockdir)
     else:
         msg = 'Error releasing lock. "{0}" either does not exist or is not ' +\
               'a directory.'

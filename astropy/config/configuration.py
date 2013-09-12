@@ -13,8 +13,13 @@ from __future__ import (absolute_import, division, print_function,
 from ..extern import six
 
 import re
+import sys
 import textwrap
+import types
+
 from contextlib import contextmanager
+from os import path
+from warnings import warn
 
 from ..extern.configobj import configobj, validate
 from ..utils.exceptions import AstropyWarning
@@ -119,7 +124,6 @@ class ConfigurationItem(object):
 
     def __init__(self, name, defaultvalue='', description=None, cfgtype=None,
                  module=None):
-        from warnings import warn
         from ..utils import find_current_module
         from ..utils import isiterable
 
@@ -397,8 +401,6 @@ def get_config(packageormod=None, reload=False):
         be determined.
 
     """
-    from os.path import join
-    from warnings import warn
 
     from .paths import get_config_dir
     from ..utils import find_current_module
@@ -424,7 +426,7 @@ def get_config(packageormod=None, reload=False):
             cobj = configobj.ConfigObj(interpolation=False)
         else:
             try:
-                cfgfn = join(get_config_dir(), rootname + '.cfg')
+                cfgfn = path.join(get_config_dir(), rootname + '.cfg')
                 cobj = configobj.ConfigObj(cfgfn, interpolation=False)
             except (IOError, OSError) as e:
                 msg = ('Configuration defaults will be used, and '
@@ -520,7 +522,7 @@ def get_config_items(packageormod=None):
         objects.
 
     """
-    import sys
+
     from inspect import ismodule
 
     from ..utils import find_current_module
@@ -616,8 +618,7 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False,
         The filename of the generated configuration item.
 
     """
-    from os.path import split
-    from types import ModuleType
+
     from pkgutil import get_loader, walk_packages
 
     from ..utils import find_current_module
@@ -627,7 +628,8 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False,
 
     if isinstance(pkgornm, six.string_types):
         package = get_loader(pkgornm).load_module(pkgornm)
-    elif isinstance(pkgornm, ModuleType) and '__init__' in pkgornm.__file__:
+    elif (isinstance(pkgornm, types.ModuleType) and
+            '__init__' in pkgornm.__file__):
         package = pkgornm
     else:
         msg = 'generate_all_config_items was not given a package/package name'
@@ -636,7 +638,7 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False,
     if hasattr(package, '__path__'):
         pkgpath = package.__path__
     elif hasattr(package, '__file__'):
-        pkgpath = split(package.__file__)[0]
+        pkgpath = path.split(package.__file__)[0]
     else:
         raise AttributeError('package to generate config items for does not '
                              'have __file__ or __path__')
@@ -685,25 +687,25 @@ def update_default_config(pkg, default_cfg_dir_or_fn):
         If the default configuration could not be found.
 
     """
-    import os
 
     cfgfn = get_config(pkg).filename
 
-    if os.path.exists(cfgfn):
+    if path.exists(cfgfn):
         with open(cfgfn) as f:
             doupdate = f.read() == ''
     else:
         doupdate = True
 
     if doupdate:
-        if os.path.isdir(default_cfg_dir_or_fn):
-            default_cfgfn = os.path.join(default_cfg_dir_or_fn, pkg + '.cfg')
+        if path.isdir(default_cfg_dir_or_fn):
+            default_cfgfn = path.join(default_cfg_dir_or_fn, pkg + '.cfg')
         else:
             default_cfgfn = default_cfg_dir_or_fn
 
-        if not os.path.isfile(default_cfgfn):
-            raise ConfigurationDefaultMissingError('Requested default configuration file {0} is '
-                                                   'not a file.'.format(default_cfgfn))
+        if not path.isfile(default_cfgfn):
+            raise ConfigurationDefaultMissingError(
+                'Requested default configuration file {0} is '
+                'not a file.'.format(default_cfgfn))
 
         with open(cfgfn, 'w') as fw:
             with open(default_cfgfn) as fr:

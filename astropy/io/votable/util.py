@@ -7,10 +7,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ...extern import six
 
 # STDLIB
+import codecs
 import contextlib
-from distutils import version
 import io
 import re
+
+from distutils import version
 
 
 __all__ = [
@@ -75,7 +77,6 @@ def convert_to_writable_filelike(fd, compressed=False):
             needs_wrapper = True
 
         if needs_wrapper:
-            import codecs
             yield codecs.getwriter('utf-8')(fd)
             fd.flush()
         else:

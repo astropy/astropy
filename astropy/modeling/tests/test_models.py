@@ -1,18 +1,25 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Tests for model evaluation.
 Compare the results of some models with other programs.
 """
+
 from __future__ import division
-from .. import models
+
+import types
+
+import numpy as np
+
+from numpy.testing import utils
+
+from .example_models import models_1D, models_2D
+from .. import fitting, models
+from .. import fitting
 from ..core import (LabeledInput, SerialCompositeModel, SummedCompositeModel,
                     Parametric1DModel, Parametric2DModel)
 from ..polynomial import PolynomialModel
-import numpy as np
-from numpy.testing import utils
 from ...tests.helper import pytest
-from .. import fitting
-from .example_models import models_1D, models_2D
 
 try:
     from scipy import optimize
@@ -22,7 +29,6 @@ except ImportError:
 
 
 class TestSerialComposite(object):
-
     """
     Test composite models evaluation in series
     """
@@ -128,7 +134,6 @@ class TestSummedComposite(object):
 
 def test_pickle():
     import copy_reg
-    import types
     import cPickle
 
     def reduce_method(m):

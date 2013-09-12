@@ -6,16 +6,20 @@ generate them all.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import os
+
+import numpy as np
+
+from astropy.table import Table, Column
+
 
 def ref_fk4_no_e_fk4(fnout='fk4_no_e_fk4.csv'):
     """
     Accuracy tests for the FK4 (with no E-terms of aberration) to/from FK4
     conversion, with arbitrary equinoxes and epoch of observation.
     """
-    import os
-    import numpy as np
+
     import starlink.Ast as Ast
-    from astropy.table import Table, Column
 
     np.random.seed(12345)
 
@@ -71,10 +75,8 @@ def ref_fk4_no_e_fk5(fnout='fk4_no_e_fk5.csv'):
     Accuracy tests for the FK4 (with no E-terms of aberration) to/from FK5
     conversion, with arbitrary equinoxes and epoch of observation.
     """
-    import os
-    import numpy as np
+
     import starlink.Ast as Ast
-    from astropy.table import Table, Column
 
     np.random.seed(12345)
 
@@ -134,10 +136,8 @@ def ref_galactic_fk4(fnout='galactic_fk4.csv'):
     Accuracy tests for the ICRS (with no E-terms of aberration) to/from FK5
     conversion, with arbitrary equinoxes and epoch of observation.
     """
-    import os
-    import numpy as np
+
     import starlink.Ast as Ast
-    from astropy.table import Table, Column
 
     np.random.seed(12345)
 
@@ -195,10 +195,8 @@ def ref_icrs_fk5(fnout='icrs_fk5.csv'):
     Accuracy tests for the ICRS (with no E-terms of aberration) to/from FK5
     conversion, with arbitrary equinoxes and epoch of observation.
     """
-    import os
-    import numpy as np
+
     import starlink.Ast as Ast
-    from astropy.table import Table, Column
 
     np.random.seed(12345)
 

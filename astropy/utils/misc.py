@@ -14,6 +14,7 @@ import contextlib
 import functools
 import json
 import os
+import signal
 import sys
 import textwrap
 import traceback
@@ -706,7 +707,6 @@ def signal_number_to_name(signum):
     # Since these numbers and names are platform specific, we use the
     # builtin signal module and build a reverse mapping.
 
-    import signal
     signal_to_name_map = dict(
         (k, v) for v, k in signal.__dict__.iteritems() if v.startswith('SIG'))
 

@@ -82,7 +82,6 @@ def adjust_compiler(package):
     """
 
     from distutils import ccompiler, sysconfig
-    import re
 
     compiler_mapping = [
         (b'i686-apple-darwin[0-9]*-llvm-gcc-4.2', 'clang')
@@ -823,7 +822,6 @@ if HAVE_SPHINX:
         def run(self):
             import webbrowser
 
-            from os.path import split, join, abspath
             from distutils.cmd import DistutilsOptionError
             from subprocess import Popen, PIPE, STDOUT
             from inspect import getsourcelines
@@ -840,10 +838,10 @@ if HAVE_SPHINX:
             if self.build_dir is not None:
                 # the _static dir should be in the same place as the _build dir
                 # for Astropy
-                basedir, subdir = split(self.build_dir)
+                basedir, subdir = os.path.split(self.build_dir)
                 if subdir == '':  # the path has a trailing /...
-                    basedir, subdir = split(basedir)
-                staticdir = join(basedir, '_static')
+                    basedir, subdir = os.path.split(basedir)
+                staticdir = os.path.join(basedir, '_static')
                 if os.path.isfile(staticdir):
                     raise DistutilsOptionError(
                         'Attempted to build_sphinx in a location where' +
@@ -933,8 +931,9 @@ if HAVE_SPHINX:
             if proc.returncode == 0:
                 if self.open_docs_in_browser:
                     if self.builder == 'html':
-                        absdir = abspath(self.builder_target_dir)
-                        fileurl = 'file://' + pathname2url(join(absdir, 'index.html'))
+                        absdir = os.path.abspath(self.builder_target_dir)
+                        index_path = os.path.join(absdir, 'index.html')
+                        fileurl = 'file://' + pathname2url(index_path)
                         webbrowser.open(fileurl)
                     else:
                         log.warn('open-docs-in-browser option was given, but '

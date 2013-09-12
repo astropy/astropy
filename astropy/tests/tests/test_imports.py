@@ -3,6 +3,9 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ...extern import six
 
+import os
+import types
+
 
 def test_imports():
     """
@@ -10,8 +13,6 @@ def test_imports():
     dependencies that sneak through
     """
 
-    from os.path import split
-    from types import ModuleType
     from pkgutil import get_loader, walk_packages
 
     from ...utils import find_current_module
@@ -20,7 +21,8 @@ def test_imports():
 
     if isinstance(pkgornm, six.string_types):
         package = get_loader(pkgornm).load_module(pkgornm)
-    elif isinstance(pkgornm, ModuleType) and '__init__' in pkgornm.__file__:
+    elif (isinstance(pkgornm, types.ModuleType) and
+            '__init__' in pkgornm.__file__):
         package = pkgornm
     else:
         msg = 'test_imports is not determining a valid package/package name'
@@ -29,7 +31,7 @@ def test_imports():
     if hasattr(package, '__path__'):
         pkgpath = package.__path__
     elif hasattr(package, '__file__'):
-        pkgpath = split(package.__file__)[0]
+        pkgpath = os.path.split(package.__file__)[0]
     else:
         raise AttributeError('package to generate config items for does not '
                              'have __file__ or __path__')

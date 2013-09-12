@@ -10,6 +10,8 @@ package.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import re
+
 from numpy import finfo
 
 from ..extern import six
@@ -24,7 +26,7 @@ def _get_first_sentence(s):
     Get the first sentence from a string and remove any carriage
     returns.
     """
-    import re
+
     x = re.match(".*?\S\.\s", s)
     if x is not None:
         s = x.group(0)

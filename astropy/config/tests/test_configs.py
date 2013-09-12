@@ -3,6 +3,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import io
+import os
+import sys
 
 try:
     # used by test_get_config_items
@@ -24,7 +26,6 @@ def test_paths():
 
 def test_config_file():
     from ..configuration import get_config, reload_config, save_config
-    from os.path import exists
 
     apycfg = get_config('astropy')
     assert apycfg.filename.endswith('astropy.cfg')
@@ -38,7 +39,7 @@ def test_config_file():
 
     # saving shouldn't change the file, because reload should have made sure it
     # is based on the current file.  But don't do it if there's no file
-    if exists(apycfg.filename):
+    if os.path.exists(apycfg.filename):
         save_config('astropy')
 
 
@@ -221,7 +222,6 @@ def test_get_config_items():
     """ Checks if the get_config_items function is working correctly, using
     `ConfigurationItem` objects from this module.
     """
-    import sys
 
     from ..configuration import get_config_items
 

@@ -18,8 +18,11 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ...extern import six
 
+import os
+import sys
+
 from functools import wraps
-from sys import version_info
+
 
 __all__ = [
     'inspect_getmodule', 'invalidate_caches', 'override__dir__']
@@ -32,8 +35,6 @@ def _patched_getmodule(object, _filename=None):
     function but includes a fix for a bug present in Python 3.1 and 3.2.
     """
     #these imports mock up what would otherwise have been in inspect
-    import sys
-    import os
     from inspect import modulesbyfile, _filesbymodname, getabsfile, ismodule
 
     if ismodule(object):
@@ -89,7 +90,7 @@ functionality with a bugfix for Python 3.1 and 3.2.
 
 #This assigns the stdlib inspect.getmodule to the variable name
 #`inspect_getmodule` if it's not buggy, and uses the matched version if it is.
-if version_info[0] < 3 or version_info[1] > 2:
+if sys.version_info[0] < 3 or sys.version_info[1] > 2:
     #in 2.x everythig is fine, as well as >=3.3
     from inspect import getmodule as inspect_getmodule
 else:
@@ -100,7 +101,7 @@ else:
 # general case. But sometimes it's necessary to manually invalidate those
 # caches so that the import system can pick up new generated files.  See
 # https://github.com/astropy/astropy/issues/820
-if version_info[:2] >= (3, 3):
+if sys.version_info[:2] >= (3, 3):
     from importlib import invalidate_caches
 else:
     invalidate_caches = lambda: None
@@ -121,7 +122,7 @@ def override__dir__(f):
     def __dir__(self):
         return ['special_method1', 'special_method2']
     """
-    if version_info[:2] < (3, 3):
+    if sys.version_info[:2] < (3, 3):
         # There was no straightforward way to do this until Python 3.3, so
         # we have this complex monstrosity
         @wraps(f)

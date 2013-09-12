@@ -4,7 +4,11 @@ This module contains simple input/output related functionality that is not
 part of a larger framework or standard.
 """
 
+import sys
+
+
 __all__ = ['fnpickle', 'fnunpickle']
+
 
 
 def fnunpickle(fileorname, number=0, usecPickle=True):
@@ -38,7 +42,6 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
         file.
 
     """
-    import sys
 
     if usecPickle and sys.version_info[0] < 3:  # pragma: py2
         import cPickle as pickle
@@ -96,7 +99,6 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
         file name, this has no effect).
 
     """
-    import sys
 
     if usecPickle and sys.version_info[0] < 3:  # pragma: py2
         import cPickle as pickle

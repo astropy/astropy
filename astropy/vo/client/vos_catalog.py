@@ -4,6 +4,7 @@ from __future__ import print_function, division
 
 # STDLIB
 import json
+import re
 import urllib
 
 # LOCAL
@@ -169,7 +170,6 @@ class VOSDatabase(VOSCatalog):
             out_arr = all_catalogs
         else:
             import fnmatch
-            import re
             pattern = re.compile(fnmatch.translate('*' + pattern + '*'),
                                  re.IGNORECASE)
             out_arr = [s for s in all_catalogs if pattern.match(s)]

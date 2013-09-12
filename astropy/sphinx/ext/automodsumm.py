@@ -55,6 +55,8 @@ package. It accepts no options.
     `graphviz <http://www.graphviz.org/>`_ to generate the inheritance diagram.
 
 """
+
+import os
 import re
 
 from sphinx.ext.autosummary import Autosummary
@@ -172,8 +174,6 @@ class Automoddiagram(InheritanceDiagram):
 
 #<---------------------automodsumm generation stuff--------------------------->
 def process_automodsumm_generation(app):
-    import os
-
     env = app.builder.env
     ext = app.config.source_suffix
 
@@ -227,7 +227,6 @@ def automodsumm_to_autosummary_lines(fn, app):
 
 
     """
-    import os
     from inspect import isfunction, isclass
 
     fullfn = os.path.join(app.builder.env.srcdir, fn)
@@ -304,7 +303,6 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
     autosummarized. Unlike generate_autosummary_docs, this function is
     called one file at a time.
     """
-    import os
 
     from sphinx.jinja2glue import BuiltinTemplateLoader
     from sphinx.ext.autosummary import import_by_name, get_documenter

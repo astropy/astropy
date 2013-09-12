@@ -52,7 +52,9 @@ place as ``index.rst``). It defaults to 'api'
 # use the "builder-inited" event, which comes before the directives are
 # actually built.
 
+import os
 import re
+import sys
 
 automod_templ_modheader = """
 {modname} {pkgormod}
@@ -133,7 +135,6 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
         The string with automodapi entries replaced with the correct
         sphinx markup.
     """
-    from os import sep
 
     spl = _automodapirex.split(sourcestr)
     if len(spl) > 1:  # automodsumm is in this document
@@ -141,8 +142,8 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
         if dotoctree:
             toctreestr = ':toctree: '
             dirnm = app.config.automodapi_toctreedirnm
-            if not dirnm.endswith(sep):
-                dirnm += sep
+            if not dirnm.endswith(os.sep):
+                dirnm += os.sep
             if docname is not None:
                 toctreestr += '../' * docname.count('/') + dirnm
             else:
@@ -236,9 +237,7 @@ def _mod_info(modname, toskip=[]):
     Determines if a module is a module or a package and whether or not
     it has classes or functions.
     """
-    import sys
 
-    from os.path import split
     from inspect import isclass, isfunction
     from ...utils.misc import find_mod_objs
 
@@ -253,7 +252,7 @@ def _mod_info(modname, toskip=[]):
 
     #find_mod_objs has already imported modname
     pkg = sys.modules[modname]
-    ispkg = '__init__.' in split(pkg.__name__)[1]
+    ispkg = '__init__.' in os.path.split(pkg.__name__)[1]
 
     return ispkg, hascls, hasfunc
 
