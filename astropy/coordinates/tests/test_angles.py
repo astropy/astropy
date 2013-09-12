@@ -115,6 +115,18 @@ def test_angle_repr():
     repr(a)
 
 
+def test_large_angle_representation():
+    """Test that angles above 360 degrees can be output as strings,
+    in repr, str, and to_string.  (regression test for #1413)"""
+    a = Angle(350, u.deg) + Angle(350, u.deg)
+    a.to_string()
+    a.to_string(u.hourangle)
+    repr(a)
+    repr(a.to(u.hourangle))
+    str(a)
+    str(a.to(u.hourangle))
+
+
 def test_wrap_at_inplace():
     a = Angle([-20, 150, 350, 360] * u.deg)
     out = a.wrap_at('180d', inplace=True)
