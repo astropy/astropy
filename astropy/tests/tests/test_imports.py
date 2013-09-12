@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ...extern import six
 
+import pkgutil
 import os
 import types
 
@@ -13,14 +14,12 @@ def test_imports():
     dependencies that sneak through
     """
 
-    from pkgutil import get_loader, walk_packages
-
     from ...utils import find_current_module
 
     pkgornm = find_current_module(1).__name__.split('.')[0]
 
     if isinstance(pkgornm, six.string_types):
-        package = get_loader(pkgornm).load_module(pkgornm)
+        package = pkgutil.get_loader(pkgornm).load_module(pkgornm)
     elif (isinstance(pkgornm, types.ModuleType) and
             '__init__' in pkgornm.__file__):
         package = pkgornm
@@ -36,7 +35,8 @@ def test_imports():
         raise AttributeError('package to generate config items for does not '
                              'have __file__ or __path__')
 
-    for imper, nm, ispkg in walk_packages(pkgpath, package.__name__ + '.'):
+    prefix = package.__name__ + '.'
+    for imper, nm, ispkg in pkgutil.walk_packages(pkgpath, prefix):
         imper.find_module(nm)
 
 

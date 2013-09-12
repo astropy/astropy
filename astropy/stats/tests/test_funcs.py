@@ -1,10 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
+
+from numpy.random import randn
 from numpy.testing import assert_equal
 from numpy.testing.utils import assert_allclose
+
 from ...tests.helper import pytest
 
 from .. import funcs
@@ -19,8 +23,6 @@ else:
 
 
 def test_sigma_clip():
-    from numpy.random import randn
-
     #need to seed the numpy RNG to make sure we don't get some amazingly flukey
     #random number that breaks one of the tests
 
@@ -64,8 +66,6 @@ def test_sigma_clip():
 
 
 def test_median_absolute_deviation():
-    from numpy.random import randn
-
     #need to seed the numpy RNG to make sure we don't get some amazingly flukey
     #random number that breaks one of the tests
 
@@ -83,8 +83,6 @@ def test_median_absolute_deviation():
 
 
 def test_biweight_location():
-    from numpy.random import randn
-
     #need to seed the numpy RNG to make sure we don't get some amazingly flukey
     #random number that breaks one of the tests
 
@@ -104,8 +102,6 @@ def test_biweight_location_small():
 
 
 def test_biweight_midvariance():
-    from numpy.random import randn
-
     #need to seed the numpy RNG to make sure we don't get some amazingly flukey
     #random number that breaks one of the tests
 
@@ -125,8 +121,6 @@ def test_biweight_midvariance_small():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_compare_to_scipy_sigmaclip():
-    from numpy.random import randn
-
     #need to seed the numpy RNG to make sure we don't get some amazingly flukey
     #random number that breaks one of the tests
 

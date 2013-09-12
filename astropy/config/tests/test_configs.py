@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import io
 import os
+import shutil
 import sys
 
 try:
@@ -72,7 +73,6 @@ def test_configitem():
 
 def test_configitem_save(tmpdir):
     from ..configuration import ConfigurationItem, get_config
-    from shutil import copy
 
     ci = ConfigurationItem('tstnm2', 42, 'this is another Description')
     apycfg = get_config(ci.module)
@@ -95,7 +95,7 @@ def test_configitem_save(tmpdir):
         # We had used LocalPath's `copy` method here, but it copies
         # the file in TEXT mode, destroying newlines on Windows.  We
         # need to do a binary copy.
-        copy(tmpdir.join('astropy.cfg').strpath,
+        shutil.copy(tmpdir.join('astropy.cfg').strpath,
              tmpdir.join('astropy.cfg2').strpath)
         # tmpdir.join('astropy.cfg').copy(tmpdir.join('astropy.cfg2'))
         apycfg.filename = tmpdir.join('astropy.cfg2').realpath().strpath

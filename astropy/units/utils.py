@@ -10,6 +10,7 @@ package.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import io
 import re
 
 from numpy import finfo
@@ -49,8 +50,8 @@ def generate_unit_summary(namespace):
     docstring : str
         A docstring containing a summary table of the units.
     """
+
     from . import core
-    import io
 
     # Get all of the units, and keep track of which ones have SI
     # prefixes

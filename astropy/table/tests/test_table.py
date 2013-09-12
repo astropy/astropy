@@ -1,7 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import sys
+
+import copy
 import platform
+import sys
+
 from distutils import version
+
 import numpy as np
 
 from ...extern import six
@@ -992,12 +996,10 @@ def test_copy_masked():
 
 
 def test_copy_protocol():
-    from copy import copy, deepcopy
-
     t = table.Table([[1, 2, 3], [2, 3, 4]], names=['x', 'y'])
 
-    t2 = copy(t)
-    t3 = deepcopy(t)
+    t2 = copy.copy(t)
+    t3 = copy.deepcopy(t)
 
     _assert_copies(t, t2, deep=False)
     _assert_copies(t, t3)

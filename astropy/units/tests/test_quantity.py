@@ -7,14 +7,17 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import numpy as np
-from numpy.testing.utils import assert_allclose
+import copy
 
-from ...tests.helper import pytest
+import numpy as np
+from numpy.testing import (assert_allclose, assert_array_equal,
+                           assert_array_almost_equal)
+
 from ...tests.helper import raises, pytest
 from ...utils import isiterable
 from ... import units as u
 from ...extern.six.moves import xrange
+from ...extern.six.moves import cPickle as pickle
 from ...extern import six
 
 """ The Quantity class will represent a number + unit + uncertainty """
@@ -140,21 +143,19 @@ class TestQuantityOperations(object):
     def test_division(self):
         # Take units from left object, q1
         new_quantity = self.q1 / self.q2
-        np.testing.assert_array_almost_equal(
-            new_quantity.value, 1.4275, decimal=5)
+        assert_array_almost_equal(new_quantity.value, 1.4275, decimal=5)
         assert new_quantity.unit == (u.meter / u.centimeter)
 
         # Take units from left object, q2
         new_quantity = self.q2 / self.q1
-        np.testing.assert_array_almost_equal(
-            new_quantity.value, 0.70052539404553416, decimal=16)
+        assert_array_almost_equal(new_quantity.value, 0.70052539404553416,
+                                  decimal=16)
         assert new_quantity.unit == (u.centimeter / u.meter)
 
         q1 = u.Quantity(11.4, unit=u.meter)
         q2 = u.Quantity(10.0, unit=u.second)
         new_quantity = q1 / q2
-        np.testing.assert_array_almost_equal(
-            new_quantity.value, 1.14, decimal=10)
+        assert_array_almost_equal(new_quantity.value, 1.14, decimal=10)
         assert new_quantity.unit == (u.meter / u.second)
 
         # divide with a number
@@ -179,13 +180,11 @@ class TestQuantityOperations(object):
     def test_power(self):
         # raise quantity to a power
         new_quantity = self.q1 ** 2
-        np.testing.assert_array_almost_equal(
-            new_quantity.value, 130.4164, decimal=5)
+        assert_array_almost_equal(new_quantity.value, 130.4164, decimal=5)
         assert new_quantity.unit == u.Unit("m^2")
 
         new_quantity = self.q1 ** 3
-        np.testing.assert_array_almost_equal(
-            new_quantity.value, 1489.355288, decimal=7)
+        assert_array_almost_equal(new_quantity.value, 1489.355288, decimal=7)
         assert new_quantity.unit == u.Unit("m^3")
 
     def test_unary(self):
@@ -269,7 +268,7 @@ class TestQuantityOperations(object):
         time = u.Quantity(11., u.second)
 
         velocity = (distance / time).to(imperial.mile / u.hour)
-        np.testing.assert_array_almost_equal(
+        assert_array_almost_equal(
             velocity.value, 3.05037, decimal=5)
 
         G = u.Quantity(6.673E-11, u.m ** 3 / u.kg / u.s ** 2)
@@ -279,7 +278,7 @@ class TestQuantityOperations(object):
         side1 = u.Quantity(11., u.centimeter)
         side2 = u.Quantity(7., u.centimeter)
         area = side1 * side2
-        np.testing.assert_array_almost_equal(area.value, 77., decimal=15)
+        assert_array_almost_equal(area.value, 77., decimal=15)
         assert area.unit == u.cm * u.cm
 
     def test_comparison(self):
@@ -558,7 +557,6 @@ def test_arrays():
     """
     Test using quantites with array values
     """
-    from numpy.testing import assert_array_equal
 
     qsec = u.Quantity(np.arange(10), u.second)
     assert isinstance(qsec.value, np.ndarray)
@@ -748,10 +746,8 @@ def test_copy():
 
 
 def test_deepcopy():
-    from copy import deepcopy
-
     q1 = u.Quantity(np.array([1., 2., 3.]), unit=u.m)
-    q2 = deepcopy(q1)
+    q2 = copy.deepcopy(q1)
 
     assert isinstance(q2, u.Quantity)
     assert np.all(q1.value == q2.value)
@@ -775,7 +771,6 @@ def test_quantity_pickelability():
     """
     Testing pickleability of quantity
     """
-    from ...extern.six.moves import cPickle as pickle
 
     q1 = np.arange(10) * u.m
 

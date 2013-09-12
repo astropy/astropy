@@ -52,6 +52,7 @@ place as ``index.rst``). It defaults to 'api'
 # use the "builder-inited" event, which comes before the directives are
 # actually built.
 
+import inspect
 import os
 import re
 import sys
@@ -238,15 +239,14 @@ def _mod_info(modname, toskip=[]):
     it has classes or functions.
     """
 
-    from inspect import isclass, isfunction
     from ...utils.misc import find_mod_objs
 
     hascls = hasfunc = False
 
     for localnm, fqnm, obj in zip(*find_mod_objs(modname, onlylocals=True)):
         if localnm not in toskip:
-            hascls = hascls or isclass(obj)
-            hasfunc = hasfunc or isfunction(obj)
+            hascls = hascls or inspect.isclass(obj)
+            hasfunc = hasfunc or inspect.isfunction(obj)
             if hascls and hasfunc:
                 break
 

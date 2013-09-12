@@ -12,6 +12,7 @@ from ..extern.six.moves import urllib
 
 import contextlib
 import functools
+import inspect
 import json
 import os
 import signal
@@ -108,13 +109,12 @@ def find_current_module(depth=1, finddiff=False):
         pkg.mod1
 
     """
-    from inspect import currentframe, ismodule
 
     # using a patched version of getmodule because the py 3.1 and 3.2 stdlib
     # is broken if the list of modules changes during import
     from .compat import inspect_getmodule
 
-    frm = currentframe()
+    frm = inspect.currentframe()
     for i in range(depth):
         frm = frm.f_back
         if frm is None:
@@ -127,7 +127,7 @@ def find_current_module(depth=1, finddiff=False):
         else:
             diffmods = []
             for fd in finddiff:
-                if ismodule(fd):
+                if inspect.ismodule(fd):
                     diffmods.append(fd)
                 elif isinstance(fd, six.string_types):
                     diffmods.append(__import__(fd))
@@ -178,7 +178,6 @@ def find_mod_objs(modname, onlylocals=False):
         the other arguments)
 
     """
-    from inspect import ismodule
 
     __import__(modname)
     mod = sys.modules[modname]
@@ -188,11 +187,12 @@ def find_mod_objs(modname, onlylocals=False):
     else:
         pkgitems = [(k, mod.__dict__[k]) for k in dir(mod) if k[0] != '_']
 
-    #filter out modules and pull the names and objs out
+    # filter out modules and pull the names and objs out
+    ismodule = inspect.ismodule
     localnames = [k for k, v in pkgitems if not ismodule(v)]
     objs = [v for k, v in pkgitems if not ismodule(v)]
 
-    #fully qualified names can be determined from the object's module
+    # fully qualified names can be determined from the object's module
     fqnames = []
     for obj, lnm in zip(objs, localnames):
         if hasattr(obj, '__module__') and hasattr(obj, '__name__'):
@@ -645,14 +645,13 @@ def find_api_page(obj, version='dev', openinbrowser=True, timeout=None):
     """
     import webbrowser
 
-    from inspect import ismodule
     from zlib import decompress
 
     if (not isinstance(obj, six.string_types) and
             hasattr(obj, '__module__') and
             hasattr(obj, '__name__')):
         obj = obj.__module__ + '.' + obj.__name__
-    elif ismodule(obj):
+    elif inspect.ismodule(obj):
         obj = obj.__name__
 
     if version == 'dev':

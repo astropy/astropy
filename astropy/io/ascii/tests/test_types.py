@@ -1,15 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import re
-import sys
+
 import glob
 import math
-
-import numpy as np
+import re
+import sys
 
 try:
-    import StringIO as io
+    from cStringIO import StringIO
 except ImportError:
-    import io
+    from io import StringIO
+
+import numpy as np
 
 from ....tests.helper import pytest
 from ... import ascii as asciitable
@@ -36,7 +37,7 @@ def test_types_from_dat():
 def test_rdb_write_types():
     dat = asciitable.read(['a b c d', '1 1.0 cat 2.1'],
                           Reader=asciitable.Basic)
-    out = io.StringIO()
+    out = StringIO()
     asciitable.write(dat, out, Writer=asciitable.Rdb)
     outs = out.getvalue().splitlines()
     assert_equal(outs[1], 'N\tN\tS\tN')

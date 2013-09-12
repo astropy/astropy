@@ -53,9 +53,9 @@ class InconsistentTableError(ValueError):
 
 # Python 3 compatibility tweaks.  Should work back through 2.4.
 try:
-    import cStringIO as io
+    from cStringIO import StringIO
 except ImportError:
-    import io
+    from io import StringIO
 
 try:
     next = next
@@ -251,7 +251,7 @@ class DefaultSplitter(BaseSplitter):
 
     def __init__(self):
         self.csv_writer = None
-        self.csv_writer_out = io.StringIO()
+        self.csv_writer_out = StringIO()
 
     def __call__(self, lines):
         """Return an iterator over the table ``lines``, where each iterator output

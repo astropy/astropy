@@ -15,6 +15,7 @@ import sys
 import base64
 import zlib
 import functools
+import multiprocessing
 import os
 import subprocess
 import shutil
@@ -219,7 +220,6 @@ class TestRunner(object):
                     "parallel must be an int, got {0}".format(parallel))
 
             if parallel < 0:
-                import multiprocessing
                 parallel = multiprocessing.cpu_count()
             all_args += ' -n {0}'.format(parallel)
 

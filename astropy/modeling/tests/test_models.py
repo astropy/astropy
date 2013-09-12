@@ -7,7 +7,13 @@ Compare the results of some models with other programs.
 
 from __future__ import division
 
+import copy_reg
 import types
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 import numpy as np
 
@@ -133,9 +139,6 @@ class TestSummedComposite(object):
 
 
 def test_pickle():
-    import copy_reg
-    import cPickle
-
     def reduce_method(m):
         return (getattr, (m.__self__, m.__func__.__name__))
 
@@ -145,9 +148,10 @@ def test_pickle():
     p11 = models.Polynomial1D(4)
     g1 = models.Gaussian1D(10.3, 5.4, 1.2)
     serial_composite_model = SerialCompositeModel([p1, g1])
-    parallel_composite_model = SummedCompositeModel([serial_composite_model, p11])
-    s = cPickle.dumps(parallel_composite_model)
-    s1 = cPickle.loads(s)
+    parallel_composite_model = SummedCompositeModel([serial_composite_model,
+                                                     p11])
+    s = pickle.dumps(parallel_composite_model)
+    s1 = pickle.loads(s)
     assert s1(3) == parallel_composite_model(3)
 
 

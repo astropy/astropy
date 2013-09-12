@@ -12,6 +12,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 
+import inspect
+import pkgutil
 import re
 import sys
 import textwrap
@@ -523,8 +525,6 @@ def get_config_items(packageormod=None):
 
     """
 
-    from inspect import ismodule
-
     from ..utils import find_current_module
 
     if packageormod is None:
@@ -536,7 +536,7 @@ def get_config_items(packageormod=None):
     elif isinstance(packageormod, six.string_types):
         __import__(packageormod)
         packageormod = sys.modules[packageormod]
-    elif ismodule(packageormod):
+    elif inspect.ismodule(packageormod):
         pass
     else:
         raise TypeError('packageormod in get_config_items is invalid')
@@ -619,15 +619,13 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False,
 
     """
 
-    from pkgutil import get_loader, walk_packages
-
     from ..utils import find_current_module
 
     if pkgornm is None:
         pkgornm = find_current_module(1).__name__.split('.')[0]
 
     if isinstance(pkgornm, six.string_types):
-        package = get_loader(pkgornm).load_module(pkgornm)
+        package = pkgutil.get_loader(pkgornm).load_module(pkgornm)
     elif (isinstance(pkgornm, types.ModuleType) and
             '__init__' in pkgornm.__file__):
         package = pkgornm
@@ -643,7 +641,8 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False,
         raise AttributeError('package to generate config items for does not '
                              'have __file__ or __path__')
 
-    for imper, nm, ispkg in walk_packages(pkgpath, package.__name__ + '.'):
+    prefix = package.__name__ + '.'
+    for imper, nm, ispkg in pkgutil.walk_packages(pkgpath, prefix):
         if nm == 'astropy.config.tests.test_configs':
             continue
         if not _unsafe_import_regex.match(nm):

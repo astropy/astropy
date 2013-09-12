@@ -31,12 +31,16 @@ Exceptions
 {exceptions}
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 from ...extern import six
 
 # STDLIB
 import io
 import re
+
+from textwrap import dedent
 from warnings import warn
 
 from ...utils.exceptions import AstropyWarning
@@ -1396,8 +1400,6 @@ def _get_warning_and_exception_classes(prefix):
 
 
 def _build_doc_string():
-    from textwrap import dedent
-
     def generate_set(prefix):
         classes = _get_warning_and_exception_classes(prefix)
 

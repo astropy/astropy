@@ -1,30 +1,31 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import abc
 import collections
-import sys
-from copy import deepcopy
-from itertools import izip
 import functools
-import warnings
+import sys
 import operator
 import platform
+import warnings
+
+from copy import deepcopy
 from distutils import version
 
 import numpy as np
 from numpy import ma
 
-from ..units import Unit, Quantity
 from .. import log
-from ..utils import OrderedDict, isiterable, deprecated, deprecated_attribute
-from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
-from ..utils.console import color_print
 from ..config import ConfigurationItem
-from ..io import registry as io_registry
-from . import operations
 from ..extern import six
-from ..utils.metadata import MetaData
+from ..io import registry as io_registry
+from ..units import Unit, Quantity
+from ..utils import OrderedDict, isiterable, deprecated, deprecated_attribute
+from ..utils.console import color_print
 from ..utils.exceptions import AstropyDeprecationWarning
-from . import groups
+from ..utils.metadata import MetaData
+from . import operations, groups
+from .pprint import (_pformat_table, _pformat_col, _pformat_col_iter,
+                     _more_tabcol)
 
 # In Python 3, prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
 # sorting of structured arrays to silently fail under certain circumstances (for
@@ -919,7 +920,6 @@ class Row(object):
             # ValueError: Setting void-array with object members using buffer. [numpy.ma.core]
             #
             # All we do here is re-raise with a more informative message
-            from distutils import version
             if (str(err).startswith('Setting void-array with object members')
                     and version.LooseVersion(np.__version__) < version.LooseVersion('1.8')):
                 raise ValueError('Cannot access table row with Object type columns, due to '

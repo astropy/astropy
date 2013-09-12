@@ -4,8 +4,11 @@
 This module contains the classes and utility functions for distance and
 cartesian coordinates.
 """
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+
+import math
 
 import numpy as np
 
@@ -398,7 +401,6 @@ def cartesian_to_spherical(x, y, z):
     lon : float or array
         The longitude in radians
     """
-    import math
 
     xsq = x ** 2
     ysq = y ** 2
@@ -452,7 +454,6 @@ def spherical_to_cartesian(r, lat, lon):
 
 
     """
-    import math
 
     if np.isscalar(r) and np.isscalar(lat) and np.isscalar(lon):
         x = r * math.cos(lat) * math.cos(lon)

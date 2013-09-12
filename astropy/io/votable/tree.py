@@ -6,6 +6,7 @@ from ...extern import six
 from ...extern.six.moves import xrange, urllib
 
 # STDLIB
+import base64
 import codecs
 import io
 import re
@@ -2373,7 +2374,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                             if colnumbers_bits[i]:
                                 try:
                                     if binary:
-                                        import base64
                                         rawdata = base64.b64decode(
                                             data.encode('ascii'))
                                         buf = io.BytesIO(rawdata)
@@ -2472,7 +2472,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     break
 
         if have_local_stream:
-            import base64
             buffer = base64.b64decode(buffer.encode('ascii'))
             string_io = io.BytesIO(buffer)
             string_io.seek(0)
@@ -2693,8 +2692,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     write(tr_end)
 
     def _write_binary(self, mode, w, **kwargs):
-        import base64
-
         fields = self.fields
         array = self.array
         if mode == 1:

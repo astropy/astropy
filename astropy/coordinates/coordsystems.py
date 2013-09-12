@@ -3,6 +3,9 @@
 """
 This module contains the base classes and frameworks for coordinate objects.
 """
+
+import copy
+
 from abc import ABCMeta, abstractproperty, abstractmethod
 
 from ..extern import six
@@ -581,12 +584,12 @@ class SphericalCoordinatesBase(object):
         ValueError
             If there is no possible transformation route.
         """
-        from copy import deepcopy
+
         from .transformations import master_transform_graph
         from .errors import ConvertError
 
         if tosys is self.__class__:
-            return deepcopy(self)
+            return copy.deepcopy(self)
 
         trans = master_transform_graph.get_transform(self.__class__, tosys)
         if trans is None:

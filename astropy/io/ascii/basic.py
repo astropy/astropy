@@ -33,8 +33,8 @@ basic.py:
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
+
 from . import core
-from .core import io, next, izip
 
 
 class Basic(core.BaseReader):

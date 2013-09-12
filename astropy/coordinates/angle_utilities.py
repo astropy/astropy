@@ -631,17 +631,15 @@ def angular_separation(lon1, lat1, lon2, lat2):
     .. [1] http://en.wikipedia.org/wiki/Great-circle_distance
     """
 
-    from numpy import sin, cos, arctan2, sqrt
-
-    sdlon = sin(lon2 - lon1)
-    cdlon = cos(lon2 - lon1)
-    slat1 = sin(lat1)
-    slat2 = sin(lat2)
-    clat1 = cos(lat1)
-    clat2 = cos(lat2)
+    sdlon = np.sin(lon2 - lon1)
+    cdlon = np.cos(lon2 - lon1)
+    slat1 = np.sin(lat1)
+    slat2 = np.sin(lat2)
+    clat1 = np.cos(lat1)
+    clat2 = np.cos(lat2)
 
     num1 = clat2 * sdlon
     num2 = clat1 * slat2 - slat1 * clat2 * cdlon
     denominator = slat1 * slat2 + clat1 * clat2 * cdlon
 
-    return arctan2(sqrt(num1 ** 2 + num2 ** 2), denominator)
+    return np.arctan2(np.sqrt(num1 ** 2 + num2 ** 2), denominator)

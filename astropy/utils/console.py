@@ -27,8 +27,6 @@ try:
 except ImportError:
     _CAN_RESIZE_TERMINAL = False
 
-import numpy as np
-
 try:
     get_ipython()
 except NameError:
@@ -438,6 +436,9 @@ class ProgressBar(six.Iterator):
 
     def _handle_resize(self, signum=None, frame=None):
         if self._should_handle_resize:
+            # Don't import numpy at module level since it may not be
+            # available in all contexts that this module is imported
+            import numpy as np
             data = fcntl.ioctl(self._file, termios.TIOCGWINSZ, '\0' * 8)
             arr = np.fromstring(data, dtype=np.int16)
             terminal_width = arr[1]
@@ -566,7 +567,6 @@ class ProgressBar(six.Iterator):
                     if (i % steps) == 0:
                         bar.update(i)
             else:
-                import multiprocessing
                 p = multiprocessing.Pool()
                 for i, result in enumerate(
                     p.imap_unordered(function, items, steps)):

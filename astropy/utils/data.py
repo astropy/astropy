@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """ This module contains helper functions for accessing, downloading, and
 caching data files.
 """
@@ -9,16 +10,23 @@ from __future__ import (absolute_import, division, print_function,
 from ..extern import six
 from ..extern.six.moves import urllib
 
-import os
-import io
-import sys
 import atexit
 import contextlib
+import fnmatch
+import hashlib
+import os
+import io
+import shutil
+import socket
+import sys
+import time
 
+from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
 
 from ..config.configuration import ConfigurationItem
 from ..utils.exceptions import AstropyWarning
+
 
 __all__ = ['get_readable_fileobj', 'get_file_contents', 'get_pkg_data_fileobj',
            'get_pkg_data_filename', 'get_pkg_data_contents',
@@ -26,6 +34,7 @@ __all__ = ['get_readable_fileobj', 'get_file_contents', 'get_pkg_data_fileobj',
            'clear_download_cache', 'CacheMissingWarning',
            'get_free_space_in_dir', 'check_free_space_in_dir', 'download_file',
            'download_files_in_parallel']
+
 
 DATAURL = ConfigurationItem(
     'dataurl', 'http://data.astropy.org/', 'URL for astropy remote data site.')
@@ -142,8 +151,6 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     file : readable file-like object
     """
 
-    import tempfile
-
     # close_fds is a list of file handles created by this function
     # that need to be closed.  We don't want to always just close the
     # returned file handle, because it may simply be the file handle
@@ -202,7 +209,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         try:
             # bz2.BZ2File does not support file objects, only filenames, so we
             # need to write the data to a temporary file
-            tmp = tempfile.NamedTemporaryFile("wb", delete=False)
+            tmp = NamedTemporaryFile("wb", delete=False)
             tmp.write(fileobj.read())
             tmp.close()
             delete_fds.append(tmp)
@@ -234,7 +241,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         # return a handle to that.
         import bz2
         if isinstance(fileobj, bz2.BZ2File):
-            tmp = tempfile.NamedTemporaryFile("wb", delete=False)
+            tmp = NamedTemporaryFile("wb", delete=False)
             data = fileobj.read()
             tmp.write(data)
             tmp.close()
@@ -617,7 +624,6 @@ def get_pkg_data_filenames(datadir, pattern='*'):
             with open(fn) as f:
                 fcontents = f.read()
     """
-    import fnmatch
 
     path = _find_pkg_data_path(datadir)
     if os.path.isfile(path):
@@ -714,7 +720,6 @@ def compute_hash(localfn):
         The hex digest of the MD5 hash for the contents of the `localfn` file.
 
     """
-    import hashlib
 
     with open(localfn, 'rb') as f:
         h = hashlib.md5()
@@ -871,12 +876,6 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=REMOTE_TI
         Whenever there's a problem getting the remote file.
     """
 
-    import hashlib
-    import socket
-    from contextlib import closing
-    from tempfile import NamedTemporaryFile, gettempdir
-    from shutil import move
-
     from ..utils.console import ProgressBarOrSpinner
 
     missing_cache = False
@@ -897,7 +896,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=REMOTE_TI
                 if str(remote_url) in url2hash:
                     return url2hash[str(remote_url)]
 
-        with closing(urllib.request.urlopen(
+        with contextlib.closing(urllib.request.urlopen(
                 remote_url, timeout=timeout)) as remote:
             #keep a hash to rename the local file to the hashed name
             hash = hashlib.md5()
@@ -948,7 +947,7 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=REMOTE_TI
                     if str(remote_url) in url2hash:
                         return url2hash[str(remote_url)]
                     local_path = os.path.join(dldir, hash.hexdigest())
-                    move(f.name, local_path)
+                    shutil.move(f.name, local_path)
                     url2hash[str(remote_url)] = local_path
             finally:
                 _release_download_cache_lock()
@@ -1061,8 +1060,6 @@ def clear_download_cache(hashorurl=None):
 
     """
 
-    from shutil import rmtree
-
     try:
         dldir, urlmapfn = _get_download_cache_locs()
     except (IOError, OSError) as e:
@@ -1075,7 +1072,7 @@ def clear_download_cache(hashorurl=None):
     try:
         if hashorurl is None:
             if os.path.exists(dldir):
-                rmtree(dldir)
+                shutil.rmtree(dldir)
             if os.path.exists(urlmapfn):
                 os.unlink(urlmapfn)
         else:
@@ -1147,7 +1144,6 @@ def _open_shelve(shelffn, withclosing=False):
             ...
     """
     import shelve
-    from contextlib import closing
 
     if not PY3K:  # pragma: py3
         shelf = shelve.open(shelffn, protocol=2)
@@ -1155,7 +1151,7 @@ def _open_shelve(shelffn, withclosing=False):
         shelf = shelve.open(shelffn + '.db', protocol=2)
 
     if withclosing:
-        return closing(shelf)
+        return contextlib.closing(shelf)
     else:
         return shelf
 
@@ -1167,7 +1163,6 @@ def _acquire_download_cache_lock():
     Uses the lock directory method.  This is good because `mkdir` is
     atomic at the system call level, so it's thread-safe.
     """
-    from time import sleep
 
     lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
     for i in range(DOWNLOAD_CACHE_LOCK_ATTEMPTS()):
@@ -1178,7 +1173,7 @@ def _acquire_download_cache_lock():
                 f.write(str(os.getpid()))
 
         except OSError:
-            sleep(1)
+            time.sleep(1)
         else:
             return
     msg = 'Unable to acquire lock for cache directory ({0} exists)'

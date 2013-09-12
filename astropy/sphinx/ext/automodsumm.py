@@ -56,6 +56,7 @@ package. It accepts no options.
 
 """
 
+import inspect
 import os
 import re
 
@@ -89,8 +90,6 @@ class Automodsumm(AstropyAutosummary):
     option_spec['skip'] = _str_list_converter
 
     def run(self):
-        from inspect import isclass, isfunction
-
         self.warnings = []
         nodelist = []
 
@@ -122,12 +121,12 @@ class Automodsumm(AstropyAutosummary):
             if funconly and not clsonly:
                 cont = []
                 for nm, obj in zip(fqns, objs):
-                    if nm not in skipmap and isfunction(obj):
+                    if nm not in skipmap and inspect.isfunction(obj):
                         cont.append('~' + nm)
             elif clsonly:
                 cont = []
                 for nm, obj in zip(fqns, objs):
-                    if nm not in skipmap and isclass(obj):
+                    if nm not in skipmap and inspect.isclass(obj):
                         cont.append('~' + nm)
             else:
                 if clsonly and funconly:
@@ -148,8 +147,6 @@ class Automodsumm(AstropyAutosummary):
 #<-------------------automod-diagram stuff------------------------------------>
 class Automoddiagram(InheritanceDiagram):
     def run(self):
-        from inspect import isclass
-
         try:
             nms, objs = find_mod_objs(self.arguments[0], onlylocals=True)[1:]
         except ImportError:
@@ -160,7 +157,7 @@ class Automoddiagram(InheritanceDiagram):
         clsnms = []
         for n, o in zip(nms, objs):
 
-            if isclass(o):
+            if inspect.isclass(o):
                 clsnms.append(n)
 
         oldargs = self.arguments
@@ -227,8 +224,6 @@ def automodsumm_to_autosummary_lines(fn, app):
 
 
     """
-    from inspect import isfunction, isclass
-
     fullfn = os.path.join(app.builder.env.srcdir, fn)
 
     with open(fullfn) as fr:
@@ -284,9 +279,9 @@ def automodsumm_to_autosummary_lines(fn, app):
         for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
             if nm in toskip:
                 continue
-            if funcsonly and not isfunction(obj):
+            if funcsonly and not inspect.isfunction(obj):
                 continue
-            if clssonly and not isclass(obj):
+            if clssonly and not inspect.isclass(obj):
                 continue
             newlines.append(allindent + '~' + fqn)
 

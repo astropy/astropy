@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import copy
 import functools
 import sys
 
@@ -503,8 +504,6 @@ class TestCopyReplicate():
 
 
 def test_python_builtin_copy():
-    import copy
-
     t = Time('2000:001', format='yday', scale='tai')
     t2 = copy.copy(t)
     t3 = copy.deepcopy(t)

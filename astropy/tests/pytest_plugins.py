@@ -14,7 +14,10 @@ import imp
 import locale
 import math
 import os
+import shutil
+import subprocess
 import sys
+import tempfile
 
 from .helper import pytest
 
@@ -205,8 +208,6 @@ SUPPORTS_OPEN_FILE_DETECTION = (
 
 
 def _get_open_file_list():
-    import imp
-    import subprocess
     fsencoding = sys.getfilesystemencoding()
 
     sproc = subprocess.Popen(
@@ -357,8 +358,6 @@ def modarg(request):
     Does nothing if we are inside the sphinx testing command, as it
     should have already done this for us.
     """
-    import shutil
-    import tempfile
 
     # check if we're inside the distutils test command, which sets the
     # _ASTROPY_TEST_ builtin

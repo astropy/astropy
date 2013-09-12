@@ -6,6 +6,7 @@ from ...extern import six
 
 from ...tests.helper import remote_data, raises
 
+import hashlib
 import io
 import os
 import sys
@@ -60,8 +61,6 @@ def test_url_nocache():
 def test_find_by_hash():
 
     from ..data import get_readable_fileobj, get_pkg_data_filename, clear_download_cache
-
-    import hashlib
 
     with get_readable_fileobj(TESTURL, encoding="binary", cache=True) as googlepage:
         hash = hashlib.md5(googlepage.read())
@@ -152,7 +151,6 @@ def test_local_data_nonlocalfail():
 
 
 def test_compute_hash(tmpdir):
-    import hashlib
     from ..data import compute_hash
 
     rands = b'1234567890abcdefghijklmnopqrstuvwxyz'

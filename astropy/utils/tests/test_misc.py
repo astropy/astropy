@@ -73,13 +73,11 @@ def test_find_current_mod():
 
 
 def test_isiterable():
-    from numpy import array
-
     assert misc.isiterable(2) is False
     assert misc.isiterable([2]) is True
     assert misc.isiterable([1, 2, 3]) is True
-    assert misc.isiterable(array(2)) is False
-    assert misc.isiterable(array([1, 2, 3])) is True
+    assert misc.isiterable(np.array(2)) is False
+    assert misc.isiterable(np.array([1, 2, 3])) is True
 
 
 def test_deprecated_attribute():

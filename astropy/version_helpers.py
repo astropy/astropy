@@ -20,10 +20,15 @@ or::
 
 from __future__ import division
 
+import datetime
+import imp
 import os
+import subprocess
 import sys
 
+from distutils import log
 from warnings import warn
+
 
 def _version_split(version):
     """
@@ -99,7 +104,6 @@ def get_git_devstr(sha=False, show_warning=True, path=None):
 
     """
 
-    from subprocess import Popen, PIPE
     from .utils import find_current_module
 
     if path is None:
@@ -117,8 +121,9 @@ def get_git_devstr(sha=False, show_warning=True, path=None):
         cmd = 'rev-list'
 
     try:
-        p = Popen(['git', cmd, 'HEAD'], cwd=path,
-                  stdout=PIPE, stderr=PIPE, stdin=PIPE)
+        p = subprocess.Popen(['git', cmd, 'HEAD'], cwd=path,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             stdin=subprocess.PIPE)
         stdout, stderr = p.communicate()
     except OSError as e:
         if show_warning:
@@ -175,9 +180,6 @@ except ImportError:
 
 
 def _get_version_py_str(packagename, version, release, debug):
-
-    import datetime
-
     timestamp = str(datetime.datetime.now())
     major, minor, bugfix = _version_split(version)
     if packagename.lower() == 'astropy':
@@ -198,8 +200,6 @@ def generate_version_py(packagename, version, release=None, debug=None):
 
     from .setup_helpers import is_distutils_display_option
     from .utils.compat.misc import invalidate_caches
-    from distutils import log
-    import imp
 
     try:
         version_module = __import__(packagename + '.version',

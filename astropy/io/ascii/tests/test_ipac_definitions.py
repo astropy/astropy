@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import os
 
 from ..ui import read
@@ -8,9 +9,9 @@ from ... import ascii
 from ....table import Table
 
 try:
-    import StringIO as io
+    from cStringIO import StringIO
 except ImportError:
-    import io
+    from io import StringIO
 
 
 DATA = '''
@@ -47,21 +48,21 @@ def test_ipac_right():
 
 def test_too_long_colname_default():
     table = Table([[3]], names=['a1234567890123456789012345678901234567890'])
-    out = io.StringIO()
+    out = StringIO()
     with pytest.raises(IpacFormatError):
         ascii.write(table, out, Writer=Ipac)
 
 
 def test_too_long_colname_strict():
     table = Table([[3]], names=['a1234567890123456'])
-    out = io.StringIO()
+    out = StringIO()
     with pytest.raises(IpacFormatErrorDBMS):
         ascii.write(table, out, Writer=Ipac, DBMS=True)
 
 
 def test_too_long_colname_notstrict():
     table = Table([[3]], names=['a1234567890123456789012345678901234567890'])
-    out = io.StringIO()
+    out = StringIO()
     with pytest.raises(IpacFormatError):
         ascii.write(table, out, Writer=Ipac, DBMS=False)
 
@@ -69,21 +70,21 @@ def test_too_long_colname_notstrict():
 @pytest.mark.parametrize(("strict_", "Err"), [(True, IpacFormatErrorDBMS), (False, IpacFormatError)])
 def test_non_alfnum_colname(strict_, Err):
     table = Table([[3]], names=['a123456789 01234'])
-    out = io.StringIO()
+    out = StringIO()
     with pytest.raises(Err):
         ascii.write(table, out, Writer=Ipac, DBMS=strict_)
 
 
 def test_colname_starswithnumber_strict():
     table = Table([[3]], names=['a123456789 01234'])
-    out = io.StringIO()
+    out = StringIO()
     with pytest.raises(IpacFormatErrorDBMS):
         ascii.write(table, out, Writer=Ipac, DBMS=True)
 
 
 def test_double_colname_strict():
     table = Table([[3], [1]], names=['DEC', 'dec'])
-    out = io.StringIO()
+    out = StringIO()
     with pytest.raises(IpacFormatErrorDBMS):
         ascii.write(table, out, Writer=Ipac, DBMS=True)
 
@@ -91,7 +92,7 @@ def test_double_colname_strict():
 @pytest.mark.parametrize('colname', ['x', 'y', 'z', 'X', 'Y', 'Z'])
 def test_reserved_colname_strict(colname):
     table = Table([['reg']], names=[colname])
-    out = io.StringIO()
+    out = StringIO()
     with pytest.raises(IpacFormatErrorDBMS):
         ascii.write(table, out, Writer=Ipac, DBMS=True)
 
@@ -99,7 +100,7 @@ def test_reserved_colname_strict(colname):
 def test_too_long_comment(recwarn):
     table = Table([[3]])
     table.meta['comments'] = ['a' * 79]
-    out = io.StringIO()
+    out = StringIO()
     ascii.write(table, out, Writer=Ipac)
     w = recwarn.pop(UserWarning)
     assert 'Comment string > 78 characters was automatically wrapped.' == str(w.message)
@@ -118,7 +119,7 @@ def test_out_with_nonstring_null():
     # unmasked tables don't have fill_values
     table = Table([[3]], masked=True)
     table['col0'].fill_value = -99999
-    out = io.StringIO()
+    out = StringIO()
     ascii.write(table, out, Writer=Ipac)
     expected_out = """\
 |  col0|

@@ -7,14 +7,21 @@ implementation is actually in individual coordinates in the
 `builtin_systems` module, while this module provides the framework and
 related utilities.
 """
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from ..extern import six
 
+import heapq
+import inspect
+import subprocess
+
 from abc import ABCMeta, abstractmethod
+from collections import defaultdict
 
 import numpy as np
+
 
 __all__ = ['StaticMatrixTransform', 'FunctionTransform',
            'DynamicMatrixTransform', 'CompositeStaticMatrixTransform',
@@ -29,8 +36,6 @@ class TransformGraph(object):
     """
 
     def __init__(self):
-        from collections import defaultdict
-
         self._graph = defaultdict(dict)
         self._clsaliases = {}
 
@@ -56,11 +61,10 @@ class TransformGraph(object):
             If `fromsys` or `tosys` are not classes or `transform` is
             not callable.
         """
-        from inspect import isclass
 
-        if not isclass(fromsys):
+        if not inspect.isclass(fromsys):
             raise TypeError('fromsys must be a class')
-        if not isclass(tosys):
+        if not inspect.isclass(tosys):
             raise TypeError('tosys must be a class')
         if not six.callable(transform):
             raise TypeError('transform must be callable')
@@ -139,7 +143,6 @@ class TransformGraph(object):
             priorities are not set this is the number of trasnforms
             needed. Is `inf` if there is no possible path.
         """
-        import heapq
 
         inf = float('inf')
 
@@ -366,7 +369,6 @@ class TransformGraph(object):
 
         .. _graphviz: http://www.graphviz.org/
         """
-        from subprocess import Popen, PIPE
 
         nodes = []
         # find the node names
@@ -414,7 +416,9 @@ class TransformGraph(object):
                 args = [savelayout]
                 if saveformat is not None:
                     args.append('-T' + saveformat)
-                proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                proc = subprocess.Popen(args, stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
                 stdout, stderr = proc.communicate(dotgraph)
                 if proc.returncode != 0:
                     raise IOError('problem running graphviz: \n' + stderr)
@@ -473,8 +477,6 @@ class CoordinateTransform(object):
     """
 
     def __init__(self, fromsys, tosys, register=True):
-        from inspect import isclass
-
         self.fromsys = fromsys
         self.tosys = tosys
 
@@ -482,7 +484,7 @@ class CoordinateTransform(object):
             # this will do the type-checking
             self.register()
         else:
-            if not isclass(fromsys) or not isclass(tosys):
+            if not inspect.isclass(fromsys) or not inspect.isclass(tosys):
                 raise TypeError('fromsys and tosys must be classes')
 
     def register(self):
