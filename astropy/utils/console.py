@@ -63,9 +63,7 @@ __all__ = [
 USE_COLOR = ConfigurationItem(
     'use_color', sys.platform != 'win32' or _HAVE_IPYTHON,
     'When True, use ANSI color escape sequences when writing to the console.')
-USE_UNICODE = ConfigurationItem(
-    'use_unicode', True,
-    'Use Unicode characters when drawing progress bars etc. at the console.')
+from ..import UNICODE_OUTPUT
 
 
 IS_PY3 = sys.version_info[0] == 3
@@ -646,7 +644,7 @@ class Spinner(object):
         self._file = file
         self._step = step
         if chars is None:
-            if USE_UNICODE():
+            if UNICODE_OUTPUT():
                 chars = self._default_unicode_chars
             else:
                 chars = self._default_ascii_chars

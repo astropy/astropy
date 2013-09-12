@@ -211,6 +211,94 @@ Coding Style/Conventions
 * Command-line scripts should follow the form outlined in the :doc:`scripts`
   document.
 
+Unicode guidelines
+------------------
+
+For maximum compatibility, we need to assume that writing non-ascii
+characters to the console or to files will not work.  However, for
+those that have a correctly configured Unicode environment, we should
+allow them to opt-in to take advantage of Unicode output when
+appropriate.  Therefore, there is a global configuration option,
+`astropy.UNICODE_OUTPUT` to enable Unicode output of values, set to
+`False` by default.
+
+The following conventions should be used for classes that define the
+standard string conversion methods (``__str__``, ``__repr__``,
+``__unicode__``, ``__bytes__``, and ``__format__``).  In the bullets
+below, the phrase "unicode instance" is used to refer to `unicode` on
+Python 2 and `str` on Python 3.  The phrase "bytes instance" is used
+to refer to `str` on Python 2 and `bytes` on Python 3.
+
+- ``__repr__``: Return a "unicode instance" (for historical reasons,
+  could also be a "bytes instance" on Python 2, though not preferred)
+  containing only 7-bit characters.
+
+- ``__str__`` on Python 2 / ``__bytes__`` on Python 3: Return a "bytes
+  instance" containing only 7-bit characters.
+
+- ``__unicode__`` on Python 2 / ``__str__`` on Python 3: Return a
+  "unicode instance".  If `astropy.UNICODE_OUTPUT` is `False`, it must
+  contain only 7-bit characters.  If `astropy.UNICODE_OUTPUT` is
+  `True`, it may contain non-ascii characters when applicable.
+
+- ``__format__``: Return a "unicode instance".  If
+  `astropy.UNICODE_OUTPUT` is `False`, it must contain only 7-bit
+  characters.  If `astropy.UNICODE_OUTPUT` is `True`, it may contain
+  non-ascii characters when applicable.
+
+For classes that are expected to roundtrip through strings (unicode or
+bytes), the parser must accept either the output of ``__str__`` or
+``__unicode__`` unambiguously.
+
+This design generally follows Postel's Law: "Be liberal in what you
+accept, and conservative in what you send".
+
+The following example class shows a way to implement this (using `six
+<https://pypi.python.org/pypi/six/>`_ for Python 2 and 3 cross-version
+compatibility::
+
+    # -*- coding: utf-8 -*-
+
+    from __future__ import unicode_literals
+
+    from astropy.extern import six
+    from astropy import UNICODE_OUTPUT
+
+    class FloatList(object):
+        def __init__(self, init):
+            if isinstance(init, six.text_type):
+                init = init.split('‖')
+            elif isinstance(init, bytes):
+                init = init.split(b'|')
+            self.x = [float(x) for x in init]
+
+        def __repr__(self):
+            # Return unicode object containing no non-ascii characters
+            return '<FloatList [{0}]>'.format(', '.join(
+                six.text_type(x) for x in self.x))
+
+        def __bytes__(self):
+            return b'|'.join(bytes(x) for x in self.x)
+        if six.PY2:
+            __str__ = __bytes__
+
+        def __unicode__(self):
+            if astropy.UNICODE_OUTPUT():
+                return '‖'.join(six.text_type(x) for x in self.x)
+            else:
+                return self.__bytes__().decode('ascii')
+        if six.PY3:
+            __str__ = __unicode__
+
+Additionally, there is a test helper,
+`astropy.test.helper.assert_follows_unicode_guidelines` to ensure that a
+class follows the Unicode guidelines outlined above.  The following
+example test will test that our example class above is compliant::
+
+    def test_unicode_guidelines():
+        from astropy.test.helper import assert_follows_unicode_guidelines
+        assert_follows_unicode_guidelines(FloatList(b'5|4|3|2'), roundtrip=True)
+
 Including C Code
 ----------------
 

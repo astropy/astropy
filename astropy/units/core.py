@@ -479,12 +479,20 @@ class UnitBase(object):
         """
         return unit_format.Latex().to_string(self)
 
-    def __str__(self):
+    def __bytes__(self):
+        """Return string representation for unit"""
+        return unit_format.Generic().to_string(self).encode('ascii')
+    if sys.version_info[0] < 3:
+        __str__ = __bytes__
+
+    def __unicode__(self):
         """Return string representation for unit"""
         return unit_format.Generic().to_string(self)
+    if sys.version_info[0] >= 3:
+        __str__ = __unicode__
 
     def __repr__(self):
-        return 'Unit("' + str(self) + '")'
+        return 'Unit("' + unit_format.Generic().to_string(self) + '")'
 
     def _get_physical_type_id(self):
         """
@@ -1570,8 +1578,15 @@ class UnrecognizedUnit(IrreducibleUnit):
     def __repr__(self):
         return "UnrecognizedUnit({0})".format(str(self))
 
-    def __str__(self):
+    def __bytes__(self):
+        return self.name.encode('ascii', 'replace')
+    if sys.version_info[0] < 3:
+        __str__ = __bytes__
+
+    def __unicode__(self):
         return self.name
+    if sys.version_info[0] >= 3:
+        __str__ = __unicode__
 
     def to_string(self, format='generic'):
         return self.name
@@ -1660,6 +1675,9 @@ class _UnitMetaClass(type):
                 format = 'generic'
 
             f = unit_format.get_format(format)
+            if sys.version_info[0] >= 3 and isinstance(s, bytes):
+                s = s.decode('ascii')
+
             try:
                 return f.parse(s)
             except Exception as e:
