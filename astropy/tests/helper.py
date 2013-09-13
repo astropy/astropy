@@ -470,6 +470,11 @@ def assert_follows_unicode_guidelines(
         When `True`, also test that both the bytes and unicode
         conversions of the instance roundtrip through its own
         constructor.
+
+    roundtrip_repr_namespace : module, optional
+        When provided, this namespace will be used to evaluate
+        ``repr(x)`` and ensure that it roundtrips.  If not provided,
+        no roundtrip testing of `repr` will be performed.
     """
     from .. import UNICODE_OUTPUT
     from ..extern import six
