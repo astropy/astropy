@@ -1,7 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import re
-import glob
-import numpy as np
 
 try:
     from cStringIO import StringIO
@@ -9,8 +6,7 @@ except ImportError:
     from io import StringIO
 
 from ... import ascii as asciitable
-from .common import (raises,
-                     assert_equal, assert_almost_equal, assert_true,
+from .common import (assert_equal, assert_almost_equal,
                      setup_function, teardown_function)
 
 

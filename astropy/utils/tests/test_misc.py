@@ -4,7 +4,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import json
 import os
-import warnings
 
 #namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple

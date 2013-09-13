@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import itertools
 
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from ..kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
 from ..convolve import convolve, convolve_fft
+from ..kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
 from ...tests.helper import pytest
 
 
@@ -100,7 +101,7 @@ class Test2DConvolutions(object):
         """
         Test smoothing of an image with a single positive pixel
 
-        Compares a small uniform kernel to the Box2DKernel 
+        Compares a small uniform kernel to the Box2DKernel
         """
 
         kernel1 = np.ones([width, width]) / np.float(width) ** 2

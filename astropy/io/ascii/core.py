@@ -31,13 +31,11 @@ core.py:
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import sys
 import re
 import csv
 import itertools
 import functools
 import numpy
-from contextlib import contextmanager
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj

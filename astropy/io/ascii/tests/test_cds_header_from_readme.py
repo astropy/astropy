@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 from ....tests.helper import pytest
 from ... import ascii as asciitable
-
-from .common import (raises, assert_equal, assert_almost_equal,
-                     assert_true, setup_function, teardown_function,
-                     has_isnan)
+from .common import (assert_equal, assert_almost_equal, has_isnan,
+                     setup_function, teardown_function)
 
 
 def read_table1(readme, data):

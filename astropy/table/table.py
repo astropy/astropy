@@ -19,7 +19,7 @@ from ..config import ConfigurationItem
 from ..extern import six
 from ..io import registry as io_registry
 from ..units import Unit, Quantity
-from ..utils import OrderedDict, isiterable, deprecated, deprecated_attribute
+from ..utils import OrderedDict, isiterable, deprecated
 from ..utils.console import color_print
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.metadata import MetaData

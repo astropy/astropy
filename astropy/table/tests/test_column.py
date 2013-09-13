@@ -1,14 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import operator
+
 from distutils import version
 
 import numpy as np
 
-from ... import units as u
 from ...tests.helper import pytest, catch_warnings
-from ... import table
-
 from ...utils.exceptions import AstropyDeprecationWarning
+from ... import table
+from ... import units as u
 
 @pytest.fixture(params=[table.Column, table.MaskedColumn])
 def Column(request):

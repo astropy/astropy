@@ -5,10 +5,7 @@ import contextlib
 import sys
 import warnings
 import re
-try:
-    import thread
-except ImportError:
-    thread = None
+
 
 __all__ = ["check_py3k_warnings"]
 

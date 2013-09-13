@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Regression tests for the units package
 """
@@ -6,7 +7,6 @@ Regression tests for the units package
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import warnings
 
 import numpy as np
 from numpy.testing.utils import assert_allclose

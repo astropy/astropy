@@ -1,10 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import glob
-import math
-import re
-import sys
-
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -15,8 +10,7 @@ import numpy as np
 from ....tests.helper import pytest
 from ... import ascii as asciitable
 
-from .common import (raises, assert_equal, assert_almost_equal,
-                     assert_true, setup_function, teardown_function)
+from .common import assert_equal, setup_function, teardown_function
 
 
 def test_types_from_dat():

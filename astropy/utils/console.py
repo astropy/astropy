@@ -44,7 +44,7 @@ else:
         stdio = sys
 
 try:
-    import IPython
+    import IPython  # pylint: disable=W0611
     # This is just to set a flag that IPython is installed at all
     _HAVE_IPYTHON = True
 except ImportError:

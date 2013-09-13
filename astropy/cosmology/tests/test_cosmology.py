@@ -1,12 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 from StringIO import StringIO
-from .. import core, funcs
+
 import numpy as np
+
+from .. import core, funcs
 from ...tests.helper import pytest
-import astropy.units as u
+from ... import units as u
 
 try:
-    import scipy
+    import scipy  # pylint: disable=W0611
 except ImportError:
     HAS_SCIPY = False
 else:

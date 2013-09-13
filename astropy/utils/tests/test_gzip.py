@@ -3,10 +3,10 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import io
-import os
 
 from ...tests.helper import pytest
 from ..compat import gzip
+
 
 pytestmark = pytest.mark.skipif(str("sys.version_info < (3,0)"))
 

@@ -12,8 +12,8 @@ from numpy import char as chararray
 from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
                      _AsciiColDefs, _FormatX, _FormatP, _VLF, _get_index,
                      _wrapx, _unwrapx, _makep, _convert_ascii_format, Delayed)
-from .util import decode_ascii
 
+from .util import decode_ascii
 from ...utils import lazyproperty
 from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 

@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import sys
 
 try:
     from cStringIO import StringIO
@@ -8,9 +7,7 @@ except ImportError:
 
 from ... import ascii as asciitable
 
-from .common import (raises,
-                     assert_equal, assert_almost_equal, assert_true,
-                     setup_function, teardown_function)
+from .common import setup_function, teardown_function
 
 test_defs = [
     dict(kwargs=dict(),

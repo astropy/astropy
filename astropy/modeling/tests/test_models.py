@@ -28,7 +28,7 @@ from ..polynomial import PolynomialModel
 from ...tests.helper import pytest
 
 try:
-    from scipy import optimize
+    from scipy import optimize  # pylint: disable=W0611
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False

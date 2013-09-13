@@ -4,16 +4,17 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from numpy import testing as npt
-from ...tests.helper import pytest
-
-from ... import units as u
-
-
 """
 This includes tests for distances/cartesian points that are *not* in the API
 tests.  Right now that's just regression tests.
 """
+
+import numpy as np
+from numpy import testing as npt
+
+from ...tests.helper import pytest
+from ... import units as u
+
 
 
 def test_distance_change():
@@ -38,7 +39,7 @@ def test_distance_is_quantity():
     """
     test that distance behaves like a proper quantity
     """
-    from numpy import ndarray
+
     from .. import Distance
 
     Distance(2 * u.kpc)
@@ -47,7 +48,7 @@ def test_distance_is_quantity():
 
     assert d.shape == (2,)
 
-    a = d.view(ndarray)
+    a = d.view(np.ndarray)
     q = d.view(u.Quantity)
     a[0] = 1.2
     q.value[1] = 5.4
@@ -110,26 +111,25 @@ def test_creating_cartesian_single():
     """
     test building cartesian points with the single-argument constructor
     """
-    from numpy import ones
 
     from .. import CartesianPoints
 
-    CartesianPoints(ones((3, 10)), unit=u.kpc)
+    CartesianPoints(np.ones((3, 10)), unit=u.kpc)
 
     #allow dimensionless, too
-    CartesianPoints(ones((3, 10)), unit=u.dimensionless_unscaled)
+    CartesianPoints(np.ones((3, 10)), unit=u.dimensionless_unscaled)
 
     with pytest.raises(u.UnitsError):
-        CartesianPoints(ones((3, 10)))
+        CartesianPoints(np.ones((3, 10)))
 
     with pytest.raises(ValueError):
-        CartesianPoints(ones((2, 10)), unit=u.kpc)
+        CartesianPoints(np.ones((2, 10)), unit=u.kpc)
 
     #quantity version
-    c = CartesianPoints(ones((3, 10)) * u.kpc)
+    c = CartesianPoints(np.ones((3, 10)) * u.kpc)
     assert c.unit == u.kpc
 
-    c = CartesianPoints(ones((3, 10)) * u.kpc, unit=u.Mpc)
+    c = CartesianPoints(np.ones((3, 10)) * u.kpc, unit=u.Mpc)
     assert c.unit == u.Mpc
 
 
@@ -137,37 +137,36 @@ def test_creating_cartesian_triple():
     """
     test building cartesian points with the `x`,`y`,`z` constructor
     """
-    from numpy import ones
 
     from .. import CartesianPoints
 
     #make sure scalars are scalars
     c = CartesianPoints(1, 2, 3, unit=u.kpc)
 
-    CartesianPoints(ones(10), ones(10), ones(10), unit=u.kpc)
+    CartesianPoints(np.ones(10), np.ones(10), np.ones(10), unit=u.kpc)
 
     with pytest.raises(ValueError):
         #shapes must match
-        CartesianPoints(ones(8), ones(12), ones(9), unit=u.kpc)
+        CartesianPoints(np.ones(8), np.ones(12), np.ones(9), unit=u.kpc)
 
     #if one is a quantity, use that unit
-    c = CartesianPoints(ones(10), ones(10), ones(10) * u.kpc)
+    c = CartesianPoints(np.ones(10), np.ones(10), np.ones(10) * u.kpc)
     assert c.unit == u.kpc
 
     #convert when needed
-    c = CartesianPoints(ones(10), ones(10), ones(10) * u.kpc, unit=u.Mpc)
+    c = CartesianPoints(np.ones(10), np.ones(10), np.ones(10) * u.kpc,
+                        unit=u.Mpc)
     assert c.unit == u.Mpc
     assert c[2][0].value < .1  # conversion of kpc to Mpc should give much smaller, but do this for round-off
 
     with pytest.raises(u.UnitsError):
-        CartesianPoints(ones(10) * u.Mpc, ones(10), ones(10) * u.kpc)
+        CartesianPoints(np.ones(10) * u.Mpc, np.ones(10), np.ones(10) * u.kpc)
 
 
 def test_cartesian_operations():
     """
     more tests of CartesianPoints beyond those in test_api
     """
-    import numpy as np
 
     from .. import Longitude, Latitude
     from .. import CartesianPoints
@@ -195,13 +194,10 @@ def test_cartesian_operations():
     assert c5.unit == c.unit
 
 
-
-
 def test_cartesian_view():
     """
     test that the cartesian subclass properly deals with new views
     """
-    import numpy as np
 
     from .. import CartesianPoints
 

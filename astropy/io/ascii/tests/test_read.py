@@ -10,8 +10,7 @@ from ... import ascii
 from ....table import Table
 
 from .common import (raises, assert_equal, assert_almost_equal,
-                     assert_true, setup_function, teardown_function,
-                     has_isnan)
+                     assert_true, setup_function, teardown_function)
 
 
 def test_guess_with_names_arg():
@@ -37,6 +36,7 @@ def test_guess_with_names_arg():
     dat = ascii.read(['c d', 'e f'], names=('a', 'b'))
     assert len(dat) == 1
     assert dat.colnames == ['a', 'b']
+
 
 def test_guess_with_format_arg():
     """

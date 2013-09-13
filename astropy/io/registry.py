@@ -1,18 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import re
-import io
 import sys
 
 import numpy as np
 
 from ..utils import OrderedDict
 
+
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
            'identify_format', 'get_reader', 'get_writer', 'read', 'write',
            'get_formats']
 
+
 __doctest_skip__ = ['register_identifier']
+
 
 _readers = OrderedDict()
 _writers = OrderedDict()
