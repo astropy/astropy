@@ -2273,6 +2273,28 @@ class Table(object):
         return operations._group_by(self, keys)
 
 
+class TableGroups(object):
+    def __init__(self, table):
+        self.table = table  # parent GroupedTable
+        self.group_indexes = self.table.group_indexes
+
+    def __iter__(self):
+        self.index = 0
+        return self
+
+    def next(self):
+        if self.index == len(self.group_indexes) - 1:
+            raise StopIteration
+        i0, i1 = self.group_indexes[self.index:self.index + 2]
+        self.index += 1
+        key_vals = tuple(self.table[key][i0] for key in self.table.group_keys)
+        if len(key_vals) == 0:
+            key_vals = None
+        elif len(key_vals) == 1:
+            key_vals = key_vals[0]
+        return key_vals, self.table[i0:i1]
+
+
 class GroupedTable(Table):
     """
     A class to represent a table of heterogeneous data which is grouped.
@@ -2311,6 +2333,7 @@ class GroupedTable(Table):
         super(GroupedTable, self).__init__(data, masked, names, dtype, meta, copy, dtypes)
         self._group_indexes = group_indexes
         self._group_keys = group_keys
+        self.groups = TableGroups(self)
 
     @property
     def group_indexes(self):
