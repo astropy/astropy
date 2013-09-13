@@ -3,9 +3,7 @@
 import warnings
 
 import numpy as np
-from ...config import ConfigurationItem
-
-
+from .core import Kernel, Kernel1D, Kernel2D
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -29,7 +27,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
         The array to convolve. This should be a 1, 2, or 3-dimensional array
         or a list or a set of nested lists representing a 1, 2, or
         3-dimensional array.
-    kernel : `numpy.ndarray`
+    kernel : `numpy.ndarray` or nddata.convolution.Kernel
         The convolution kernel. The number of dimensions should match those
         for the array, and the dimensions should be odd in all directions.
     boundary : str, optional
@@ -90,6 +88,26 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     # It is always necessary to make a copy of kernel (since it is modified),
     # but, if we just so happen to be lucky enough to have the input array
     # have exactly the desired type, we just alias to array_internal
+
+    # Check if kernel is kernel instance
+    if isinstance(kernel, Kernel):
+        # Check if array is also kernel instance, if so convolve and
+        # return new kernel instance
+        if isinstance(array, Kernel):
+            if isinstance(array, Kernel1D) and isinstance(kernel, Kernel1D):
+                new_array = convolve1d_boundary_fill(array.array, kernel.array, 0)
+                new_kernel = Kernel1D(array=new_array)
+            elif isinstance(array, Kernel2D) and isinstance(kernel, Kernel2D):
+                new_array = convolve2d_boundary_fill(array.array, kernel.array, 0)
+                new_kernel = Kernel2D(array=new_array)
+            else:
+                raise Exception("Can't convolve 1D and 2D kernel.")
+            new_kernel._separable = kernel._separable and array._separable
+            new_kernel._is_bool = False
+            return new_kernel
+        kernel = kernel.array
+
+    # Check that the arguments are lists or Numpy arrays
     if isinstance(array, list):
         array_internal = np.array(array, dtype=np.float)
         array_dtype = array_internal.dtype
@@ -186,6 +204,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
             return result.astype(array_dtype)
     else:
         return result
+
 
 def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                  return_fft=False, fft_pad=True, psf_pad=False,
@@ -326,6 +345,11 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
     # returned! Note that this always makes a copy.
+    # Check kernel is kernel instance 
+    if isinstance(kernel, Kernel):
+        kernel = kernel.array
+        if isinstance(array, Kernel):
+            raise Exception("Can't convolve two kernels. Use convolve() instead.")
     array = np.asarray(array, dtype=np.complex)
     kernel = np.asarray(kernel, dtype=np.complex)
 

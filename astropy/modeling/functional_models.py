@@ -16,7 +16,7 @@ __all__ = sorted(['AiryDisk2DModel', 'Beta1DModel', 'Beta2DModel',
            'Custom1DModel', 'Disk2DModel', 'Gaussian1DModel', 'Gaussian2DModel',
            'Linear1DModel', 'Lorentz1DModel', 'MexicanHat1DModel',
            'MexicanHat2DModel', 'PowerLaw1DModel', 'ScaleModel', 'ShiftModel',
-           'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel'])
+           'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel', 'Ring2DModel'])
 
 
 class Gaussian1DModel(Parametric1DModel):
@@ -562,8 +562,8 @@ class Disk2DModel(Parametric2DModel):
 
             f(r) = \\left \\{
                      \\begin{array}{ll}
-                       A & : r < R_0 \\\\
-                       0 & : r \\geq R_0
+                       A & : r \\leq R_0 \\\\
+                       0 & : r > R_0
                      \\end{array}
                    \\right.
     """
@@ -578,6 +578,61 @@ class Disk2DModel(Parametric2DModel):
         """
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
         return np.select([rr <= R_0 ** 2], [amplitude])
+
+
+class Ring2DModel(Parametric2DModel):
+
+    """
+    Two dimensional radial symmetric Ring model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Value of the disk function
+    x_0 : float
+        x position center of the disk
+    y_0 : float
+        y position center of the disk
+    R_in : float
+        Inner Radius of the ring
+    R_out : float
+        Outer Radius of the ring
+    width : float
+        width of the ring. Can be specified instead of R_out.
+
+    See Also
+    --------
+    Disk2DModel, TrapezoidDisk2DModel
+
+    Notes
+    -----
+    Model formula:
+
+        .. math::
+
+            f(r) = \\left \\{
+                     \\begin{array}{ll}
+                       A & : R_{in} \\leq r \\leq R_{out} \\\\
+                       0 & : \\textnormal{else}
+                     \\end{array}
+                   \\right.
+    """
+    param_names = ['amplitude', 'x_0', 'y_0', 'R_in', 'R_out']
+
+    def __init__(self, amplitude, x_0, y_0, R_in, R_out=None, width=None, **constraints):
+        if width != None:
+            R_out = R_in + width
+        if R_out == None:
+            raise ModelDefinitionError("Either specify R_out or width.")
+        super(Ring2DModel, self).__init__(locals())
+
+    def eval(self, x, y, amplitude, x_0, y_0, R_in, R_out):
+        """
+        Model function Ring2D.
+        """
+        rr = (x - x_0) ** 2 + (y - y_0) ** 2
+        r_range = np.logical_and(rr >= R_in ** 2, rr <= R_out ** 2)
+        return np.select([r_range], [amplitude])
 
 
 class Delta1DModel(Parametric1DModel):
@@ -625,6 +680,8 @@ class Box1DModel(Parametric1DModel):
             f(x) = \\left \\{
                      \\begin{array}{ll}
                        A & : x_0 - w/2 \\geq x \\geq x_0 + w/2 \\\\
+                       A/2 & :  x = x_0 + w/2 \\\\
+                       A/2 & :  x = x_0 - w/2 \\\\
                        0 & : \\textnormal{else}
                      \\end{array}
                    \\right.
@@ -638,8 +695,9 @@ class Box1DModel(Parametric1DModel):
         """
         Model function Box1D
         """
-        return np.select([np.logical_and(x >= x_0 - width / 2., x <= x_0 + width / 2.)],
-                         [amplitude])
+        return np.select([np.logical_and(x > x_0 - width / 2., x < x_0 + width / 2.), 
+                          np.logical_or(x == x_0 - width / 2., x == x_0 + width / 2.)],
+                         [amplitude, amplitude / 2.])
 
     def deriv(self, x, amplitude, x_0, width):
         """
@@ -683,6 +741,10 @@ class Box2DModel(Parametric2DModel):
                      \\begin{array}{ll}
                        A & : x_0 - w_x/2 \\geq x \\geq x_0 + w_x/2 \\\\
                        A & : y_0 - w_y/2 \\geq y \\geq y_0 + w_y/2 \\\\
+                       A/2 & :  x = x_0 + w_x/2 \\\\
+                       A/2 & :  x = x_0 - w_x/2 \\\\
+                       A/2 & :  y = y_0 + w_y/2 \\\\
+                       A/2 & :  y = y_0 - w_y/2 \\\\
                        0 & : \\textnormal{else}
                      \\end{array}
                    \\right.
@@ -698,9 +760,15 @@ class Box2DModel(Parametric2DModel):
         """
         Model function Box2DModel.
         """
-        x_range = np.logical_and(x >= x_0 - x_width / 2., x <= x_0 + x_width / 2.)
-        y_range = np.logical_and(y >= y_0 - y_width / 2., y <= y_0 + y_width / 2.)
-        return np.select([np.logical_and(x_range, y_range)], [amplitude])
+        x_range = np.logical_and(x > x_0 - x_width / 2., x < x_0 + x_width / 2.)
+        y_range = np.logical_and(y > y_0 - y_width / 2., y < y_0 + y_width / 2.)
+        x_boundary = np.logical_or(x == x_0 - x_width / 2., x == x_0 + x_width / 2.)
+        y_boundary = np.logical_or(y == y_0 - y_width / 2., y == y_0 + y_width / 2.)
+        return np.select([np.logical_and(x_range, y_range),
+                          np.logical_and(x_boundary, y_range),
+                          np.logical_and(y_boundary, x_range),
+                          np.logical_and(y_boundary, x_boundary)],
+                         [amplitude, amplitude / 2., amplitude / 2., amplitude / 4.])
 
 
 class Trapezoid1DModel(Parametric1DModel):
@@ -775,7 +843,7 @@ class TrapezoidDisk2DModel(Parametric2DModel):
         """
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
         range_1 = r <= R_0
-        range_2 = np.logical_and(r >= R_0,  r <= R_0 + amplitude / slope)
+        range_2 = np.logical_and(r > R_0,  r <= R_0 + amplitude / slope)
         val_1 = amplitude
         val_2 = amplitude + slope * (R_0 - r)
         return np.select([range_1, range_2], [val_1, val_2])
@@ -805,7 +873,7 @@ class MexicanHat1DModel(Parametric1DModel):
 
     .. math::
 
-        f(x) = {A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}\\right)
+        f(x) = {A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}}{\\sigma^{2}}\\right)
         e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}}
 
     """
@@ -819,7 +887,7 @@ class MexicanHat1DModel(Parametric1DModel):
         Model function MexicanHat1DModel.
         """
         xx_ww = (x - x_0) ** 2 / (2 * sigma ** 2)
-        return amplitude * (1 - xx_ww) * np.exp(-xx_ww)
+        return amplitude * (1 - 2 * xx_ww) * np.exp(-xx_ww)
 
 
 class MexicanHat2DModel(Parametric2DModel):
@@ -849,7 +917,7 @@ class MexicanHat2DModel(Parametric2DModel):
     .. math::
 
         f(x, y) = A \\left(1 - \\frac{\\left(x - x_{0}\\right)^{2}
-        + \\left(y - y_{0}\\right)^{2}}{2 \\sigma^{2}}\\right)
+        + \\left(y - y_{0}\\right)^{2}}{\\sigma^{2}}\\right)
         e^{\\frac{- \\left(x - x_{0}\\right)^{2}
         - \\left(y - y_{0}\\right)^{2}}{2 \\sigma^{2}}}
     """
@@ -901,7 +969,7 @@ class AiryDisk2DModel(Parametric2DModel):
             from scipy.special import j1
             self._j1 = j1
         except ImportError:
-            raise ImportError("Could not import scipy.special.")
+            raise ImportError("AiryDisk2DModel requires scipy.")
         super(AiryDisk2DModel, self).__init__(locals())
 
     def eval(self, x, y, amplitude, x_0, y_0, width):
@@ -909,7 +977,8 @@ class AiryDisk2DModel(Parametric2DModel):
         Model function Airy2D.
         """
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / width
-        return np.select([r == 0], [1], amplitude * self._j1(2 * np.pi * r) / (np.pi * r))
+        return np.select([r == 0], [1], amplitude * (self._j1(2 * np.pi * r)
+                                                     / (np.pi * r)) ** 2)
 
 
 class Beta1DModel(Parametric1DModel):

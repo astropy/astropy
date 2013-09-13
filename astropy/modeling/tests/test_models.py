@@ -179,35 +179,13 @@ class TestParametricModels(object):
         self.y1 = np.arange(1, 10, .1)
         self.x2, self.y2 = np.mgrid[:10, :8]
 
-    def create_model(self, model_class, parameters):
-        """
-        Create instance of model class.
-        """
-        constraints = {}
-        if model_class.__base__ == Parametric1DModel:
-            if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
-                pytest.skip("SciPy not found")
-            if 'constraints' in models_1D[model_class]:
-                constraints = models_1D[model_class]['constraints']
-            return model_class(*parameters, **constraints)
-
-        elif model_class.__base__ == Parametric2DModel:
-            if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
-                pytest.skip("SciPy not found")
-            if 'constraints' in models_2D[model_class]:
-                constraints = models_2D[model_class]['constraints']
-            return model_class(*parameters, **constraints)
-
-        elif model_class.__base__ == PolynomialModel:
-            return model_class(**parameters)
-
     @pytest.mark.parametrize(('model_class'), models_1D.keys())
     def test_input1D(self, model_class):
         """
         Test model with different input types.
         """
         parameters = models_1D[model_class]['parameters']
-        model = self.create_model(model_class, parameters)
+        model = create_model(model_class, parameters)
         model(self.x)
         model(self.x1)
         model(self.x2)
@@ -218,7 +196,7 @@ class TestParametricModels(object):
         Test model values at certain given points
         """
         parameters = models_1D[model_class]['parameters']
-        model = self.create_model(model_class, parameters)
+        model = create_model(model_class, parameters)
         x = models_1D[model_class]['x_values']
         y = models_1D[model_class]['y_values']
         assert np.all((np.abs(model(x) - y) < self.eval_error))
@@ -231,7 +209,7 @@ class TestParametricModels(object):
         """
         x_lim = models_1D[model_class]['x_lim']
         parameters = models_1D[model_class]['parameters']
-        model = self.create_model(model_class, parameters)
+        model = create_model(model_class, parameters)
         if isinstance(parameters, dict):
             parameters.pop('degree')
             parameters = parameters.values()
@@ -254,7 +232,7 @@ class TestParametricModels(object):
         Test model with different input types.
         """
         parameters = models_2D[model_class]['parameters']
-        model = self.create_model(model_class, parameters)
+        model = create_model(model_class, parameters)
         model(self.x, self.y)
         model(self.x1, self.y1)
         model(self.x2, self.y2)
@@ -265,7 +243,7 @@ class TestParametricModels(object):
         Test model values add certain given points
         """
         parameters = models_2D[model_class]['parameters']
-        model = self.create_model(model_class, parameters)
+        model = create_model(model_class, parameters)
         x = models_2D[model_class]['x_values']
         y = models_2D[model_class]['y_values']
         z = models_2D[model_class]['z_values']
@@ -281,7 +259,7 @@ class TestParametricModels(object):
         y_lim = models_2D[model_class]['y_lim']
 
         parameters = models_2D[model_class]['parameters']
-        model = self.create_model(model_class, parameters)
+        model = create_model(model_class, parameters)
         if isinstance(parameters, dict):
             parameters.pop('degree')
             parameters = parameters.values()
@@ -302,3 +280,27 @@ class TestParametricModels(object):
         fitter(xv, yv, data)
         assert np.all((np.abs(fitter.fitpars - np.array(parameters))
                         < self.fit_error))
+
+
+def create_model(model_class, parameters):
+    """
+    Create instance of model class.
+    """
+    constraints = {}
+    if issubclass(model_class, Parametric1DModel):
+        if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
+            pytest.skip("SciPy not found")
+        if 'constraints' in models_1D[model_class]:
+            constraints = models_1D[model_class]['constraints']
+        return model_class(*parameters, **constraints)
+
+    elif issubclass(model_class, Parametric2DModel):
+        if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
+            pytest.skip("SciPy not found")
+        if 'constraints' in models_2D[model_class]:
+            constraints = models_2D[model_class]['constraints']
+        return model_class(*parameters, **constraints)
+
+    elif issubclass(model_class, PolynomialModel):
+        return model_class(**parameters)
+    
