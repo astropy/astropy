@@ -189,8 +189,8 @@ def set_enabled_units_context(units):
     units : list of sequences, dicts, or modules containing units, or units
         See `set_enabled_units`.
 
-    Example
-    -------
+    Examples
+    --------
 
     >>> from astropy import units as u
     >>> with u.set_enabled_units_context([u.pc]):
