@@ -24,7 +24,7 @@ Getting Started
 
   >>> # Enable imperial units...
   >>> from astropy.units import imperial
-  >>> u.add_enabled_units(imperial)
+  >>> imperial.enable()
 
   >>> # ...and then use some imperial units
   >>> mph = imperial.mile / u.hour

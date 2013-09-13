@@ -5,9 +5,8 @@
 This package defines colloquially used Imperial units.  By default, they
 are not enabled.  To enable them, do::
 
-    >>> from astropy import units as u
     >>> from astropy.units import imperial
-    >>> u.add_enabled_units(imperial)  # doctest: +SKIP
+    >>> imperial.enable()  # doctest: +SKIP
 
 """
 
@@ -114,3 +113,15 @@ del def_unit
 # standard units defined here.
 from .utils import generate_unit_summary as _generate_unit_summary
 __doc__ += _generate_unit_summary(globals())
+
+
+def enable():
+    """
+    Enable Imperial units so they appear in results of
+    `Unit.find_equivalent_units` and `Unit.compose`.
+    """
+    # Local import to avoid cyclical import
+    from .core import add_enabled_units
+    # Local import to avoid polluting namespace
+    import inspect
+    add_enabled_units(inspect.getmodule(enable))

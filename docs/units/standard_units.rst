@@ -105,14 +105,10 @@ By default, only the "default" units are searched by
 includes SI, CGS and astrophysical units.  However, one may wish to
 enable the imperial or other user-defined units.
 
-To add to the existing set of units, use
-`~astropy.units.add_enabled_units`.  It takes a list of sequences,
-dictionaries or modules containing units to add to the set of enabled
-units::
+For example, to enable Imperial units, simply do::
 
-    >>> from astropy import units as u
     >>> from astropy.units import imperial
-    >>> u.add_enabled_units([imperial])
+    >>> imperial.enable()
     >>> u.m.find_equivalent_units()
       Primary name | Unit definition | Aliases
     [
@@ -131,11 +127,17 @@ units::
       yd           | 0.9144 m        | yard             ,
     ]
 
-A context manager, `~astropy.units.add_enabled_units_context` is also
-provided, to temporarily enable additional units.
+To enable just specific units, use `~astropy.units.add_enabled_units`::
 
     >>> from astropy import units as u
     >>> from astropy.units import imperial
-    >>> with u.add_enabled_units([imperial]):
+    >>> u.add_enabled_units([imperial.knot])
+
+A context manager, `~astropy.units.add_enabled_units_context` is also
+provided, to temporarily enable additional units::
+
+    >>> from astropy import units as u
+    >>> from astropy.units import imperial
+    >>> with u.add_enabled_units_context([imperial.knot]):
     ...     u.m.find_equivalent_units()
     ...
