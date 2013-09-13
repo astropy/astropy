@@ -456,7 +456,7 @@ class catch_warnings(warnings.catch_warnings):
 
 
 def assert_follows_unicode_guidelines(
-        x, roundtrip=False, roundtrip_repr_namespace=None):
+        x, roundtrip=None):
     """
     Test that an object follows our Unicode policy.  See
     "Unicode Policy" in the coding guidelines.
@@ -466,15 +466,12 @@ def assert_follows_unicode_guidelines(
     x : object
         The instance to test
 
-    roundtrip : bool, optional
-        When `True`, also test that both the bytes and unicode
-        conversions of the instance roundtrip through its own
-        constructor.
-
     roundtrip_repr_namespace : module, optional
         When provided, this namespace will be used to evaluate
-        ``repr(x)`` and ensure that it roundtrips.  If not provided,
-        no roundtrip testing of `repr` will be performed.
+        ``repr(x)`` and ensure that it roundtrips.  It will also
+        ensure that ``__bytes__(x)`` and ``__unicode__(x)`` roundtrip.
+        If not provided, no roundtrip testing will be
+        performed.
     """
     from .. import UNICODE_OUTPUT
     from ..extern import six
@@ -495,12 +492,10 @@ def assert_follows_unicode_guidelines(
     else:
         repr_x.encode('ascii')
 
-    if roundtrip:
+    if roundtrip is not None:
         assert x.__class__(bytes_x) == x
         assert x.__class__(unicode_x) == x
-
-    if roundtrip_repr_namespace is not None:
-        assert eval(repr_x, roundtrip_repr_namespace) == x
+        assert eval(repr_x, roundtrip) == x
 
     UNICODE_OUTPUT.set(True)
 
@@ -517,9 +512,7 @@ def assert_follows_unicode_guidelines(
     else:
         repr_x.encode('ascii')
 
-    if roundtrip:
+    if roundtrip is not None:
         assert x.__class__(bytes_x) == x
         assert x.__class__(unicode_x) == x
-
-    if roundtrip_repr_namespace is not None:
-        assert eval(repr_x, roundtrip_repr_namespace) == x
+        assert eval(repr_x, roundtrip) == x
