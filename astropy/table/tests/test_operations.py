@@ -374,9 +374,6 @@ class TestVStack():
                                  '  2 pez',
                                  '  3 sez']
 
-        # stacking as a list gives same result
-        t12_list = table.vstack([t1, t2], join_type='inner')
-        assert t12.pformat() == t12_list.pformat()
 
         t12 = table.vstack([t1, t2], join_type='outer')
         assert t12.pformat() == [' a   b   c ',
