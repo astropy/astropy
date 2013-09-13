@@ -47,8 +47,7 @@ and are both used as::
 `~astropy.nddata.convolution.convolve.convolve` is implemented as a direct
 convolution algorithm, while `~astropy.nddata.convolution.convolve.convolve_fft`
 uses an FFT.  Thus, the former is better for small kernels, while the latter
-is much more efficient for larger kernels.
-
+is much more efficient for larger kernels. 
 
 The input images and kernels should be lists or Numpy arrays with either both 1, 2, or 3 dimensions (and the number of dimensions should be the same for the image and kernel). The result is a Numpy array with the same dimensions as the input image. The convolution is always done as floating point.
 
@@ -103,10 +102,21 @@ and a 3-d array as a list::
                   [[0, 0, 0], [0, 2, 0], [0, 0, 0]]]
     >>> result = convolve(cube, kernel)
 
-You can also use `~astropy.nddata.convolution.make_kernel.make_kernel`
+Kernels
+-------
+
+You can use `~astropy.nddata.convolution.make_kernel.make_kernel`
 to generate common n-dimensional kernels::
 
     >>> make_kernel([3,3], 1, 'boxcar')
     array([[ 0.  0.  0.]
            [ 0.  1.  0.]
            [ 0.  0.  0.]])
+
+.. note:: 
+	
+	There is a new convolution kernel class which will replace
+	`~astropy.nddata.convolution.make_kernel.make_kernel` in future. It 
+	is much more powerful and flexible. Please see :doc:`kernels`.
+           
+           
