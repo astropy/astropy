@@ -445,14 +445,23 @@ class TestQuantityComparison(object):
 
 
 class TestQuantityDisplay(object):
+    scalarintq = u.Quantity(1, unit='m')
+    scalarfloatq = u.Quantity(1.3, unit='m')
+    arrq = u.Quantity([1, 2.3, 8.9], unit='m')
 
-    def test_quantity_str(self):
-        q1 = u.Quantity(1, unit='m')
-        assert str(q1) == "1 m"
+    def test_scalar_quantity_str(self):
+        assert str(self.scalarintq) == "1 m"
+        assert str(self.scalarfloatq) == "1.3 m"
 
-    def test_quantity_repr(self):
-        q1 = u.Quantity(1, unit='m')
-        assert repr(q1) == "<Quantity 1 m>"
+    def test_scalar_quantity_repr(self):
+        assert repr(self.scalarintq) == "<Quantity 1 m>"
+        assert repr(self.scalarfloatq) == "<Quantity 1.3 m>"
+
+    def test_array_quantity_str(self):
+        assert str(self.arrq) == "[ 1.   2.3  8.9] m"
+
+    def test_array_quantity_repr(self):
+        assert repr(self.arrq) == "<Quantity [ 1. , 2.3, 8.9] m>"
 
 
 def test_decompose():
