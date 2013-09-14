@@ -49,6 +49,8 @@ try:
     HAVE_SPHINX = True
 except ImportError:
     HAVE_SPHINX = False
+except SyntaxError:  # occurs if markupsafe is recent version, which doesn't support Python 3.2
+    HAVE_SPHINX = False
 
 
 PY3 = sys.version_info[0] >= 3
