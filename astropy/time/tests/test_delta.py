@@ -146,5 +146,3 @@ class TestTimeDelta():
             self.dt * self.dt
         with pytest.raises(OperandTypeError):
             self.dt * self.t
-        with pytest.raises(TypeError):
-            2. / self.dt

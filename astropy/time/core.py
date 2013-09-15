@@ -162,20 +162,18 @@ class Time(object):
             # Coerce val into a 1-d array
             val, val_ndim = _make_1d_array(val, copy)
 
-            # If val2 is None then replace with zeros of the same length
-            if val2 is None:
-                val2 = np.zeros(len(val), dtype=np.double)
-                val2_ndim = val_ndim
-            else:
+            self.isscalar = (val_ndim == 0)
+
+            # If val2 is not None, ensure consistency
+            if val2 is not None:
                 val2, val2_ndim = _make_1d_array(val2, copy)
 
-            # Consistency checks
-            if len(val) != len(val2):
-                raise ValueError('Input val and val2 must match in length')
+                if val_ndim != val2_ndim:
+                    raise ValueError('Input val and val2 must have same '
+                                     'dimensions')
 
-            self.isscalar = (val_ndim == 0)
-            if val_ndim != val2_ndim:
-                raise ValueError('Input val and val2 must have same dimensions')
+                if len(val) != len(val2):
+                    raise ValueError('Input val and val2 must match in length')
 
         if scale is not None:
             if not (isinstance(scale, six.string_types) and
@@ -961,8 +959,6 @@ class TimeFormat(object):
         self.precision = precision
         self.in_subfmt = in_subfmt
         self.out_subfmt = out_subfmt
-        if len(val1) != len(val2):
-            raise ValueError('Input val1 and val2 must match in length')
 
         if from_jd:
             self.jd1 = val1
@@ -986,21 +982,23 @@ class TimeFormat(object):
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
-        if val1.dtype.type != np.double or val2.dtype.type != np.double:
+        if(val1.dtype.type != np.double or
+           (val2 is not None and val2.dtype.type != np.double)):
             raise TypeError('Input values for {0} class must be doubles'
                             .format(self.name))
 
-        # set possibly scaled unit any quantities should be converted to
-        _unit = '{0!r}day'.format(getattr(self, 'unit', 1.))
-
-        try:
+        if hasattr(val1, 'to'):
+            # set possibly scaled unit any quantities should be converted to
+            _unit = '{0!r}day'.format(getattr(self, 'unit', 1.))
             val1 = val1.to(_unit).value
-        except:
-            pass
-        try:
-            val2 = val2.to(_unit).value
-        except:
-            pass
+            if val2 is not None:
+                val2 = val2.to(_unit).value
+        else:
+            if hasattr(val2, 'to'):
+                raise TypeError('Cannot mix float and Quantity inputs')
+
+        if val2 is None:
+            val2 = np.zeros_like(val1)
 
         return val1, val2
 
@@ -1528,15 +1526,13 @@ class TimeBesselianEpoch(TimeEpochDate):
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
-        if val1.dtype.type != np.double or val2.dtype.type != np.double:
-            raise TypeError('Input values for {0} class must be doubles'
-                            .format(self.name))
-
         if hasattr(val1, 'to') and hasattr(val1, 'unit'):
             raise ValueError("Cannot use Quantities for 'byear' format, "
                              "as the interpretation would be ambiguous. "
                              "Use float with Besselian year instead. ")
-        return val1, val2
+
+        return super(TimeBesselianEpoch, self)._check_val_type(val1, val2)
+
 
 class TimeJulianEpoch(TimeEpochDate):
     """Julian Epoch year as floating point value(s) like 2000.0"""
