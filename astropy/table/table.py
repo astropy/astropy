@@ -1392,19 +1392,20 @@ class Table(object):
             return self.columns[item]
         elif isinstance(item, int):
             return Row(self, item)
-        elif isinstance(item, tuple):
-            if all(isinstance(x, np.ndarray) for x in item):
-                # Item is a tuple of ndarrays as in the output of np.where, e.g.
-                # t[np.where(t['a'] > 2)]
+        elif isinstance(item, tuple) or isinstance(item, list):
+            if all(isinstance(x, np.ndarray) or isinstance(x, int)
+                   for x in item):
+                # Item is a tuple or list of int or ndarrays; latter, e.g.,
+                # as in the output of np.where, e.g. t[np.where(t['a'] > 2)]
                 return self._new_from_slice(item)
             elif (all(x in self.colnames for x in item)):
-                # Item is a tuple of strings that are valid column names
-                return self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
+                # Item is a tuple or list of valid column names
+                return self.__class__([self[x] for x in item],
+                                      meta=deepcopy(self.meta))
             else:
                 raise ValueError('Illegal item for table item access')
 
-        elif (isinstance(item, slice) or isinstance(item, np.ndarray)
-              or isinstance(item, list)):
+        elif isinstance(item, slice) or isinstance(item, np.ndarray):
             return self._new_from_slice(item)
         else:
             raise ValueError('Illegal type {0} for table item access'
