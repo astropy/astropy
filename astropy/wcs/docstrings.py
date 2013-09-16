@@ -1,14 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import division  # confidence high
-# We don't want the "division" symbol in the namespace, since it
-# should have only docstrings
-try:
-    del division
-except NameError:
-    # When building the configuration defaults in 3.x, the ``del division`` line
-    # throws a NameError because for some reason it seems to think it's already
-    # deleted.  This works around that.
-    pass
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 # It gets to be really tedious to type long docstrings in ANSI C
 # syntax (since multi-line string literals are not valid).

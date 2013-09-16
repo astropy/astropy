@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import glob
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import os
-import sys
 
 import numpy as np
-from numpy.testing import assert_array_almost_equal
 
 from ...utils.data import get_pkg_data_filenames, get_pkg_data_contents
 

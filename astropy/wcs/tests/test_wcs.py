@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import os
 import sys
 import warnings
@@ -12,7 +14,6 @@ from ...tests.helper import raises, catch_warnings, pytest
 from ... import wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
-from ...tests.helper import pytest
 
 
 try:
@@ -452,7 +453,7 @@ def test_validate():
             x.strip() for x in results_txt.splitlines()])
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_all_world2pix():
     """Test all_world2pix, iterative inverse of all_pix2world"""
     fits = get_pkg_data_filename('data/sip.fits')
