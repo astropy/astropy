@@ -7,6 +7,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import functools
 
+from ...extern import six
 from ...utils.compat.fractions import Fraction
 
 
@@ -122,4 +123,4 @@ def format_power(power):
                 power = int(power.numerator)
         else:
             power = int(power)
-    return unicode(power)
+    return six.text_type(power)

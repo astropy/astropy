@@ -4,9 +4,9 @@ Handles the "VOUnit" unit format.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+from ...extern.six.moves import zip
 
 import warnings
-
 from ...utils.custom_warnings import AstropyDeprecationWarning
 
 from . import generic
@@ -119,7 +119,7 @@ class VOUnit(generic.Generic):
                         s += '+'
                     s += ex
 
-            pairs = zip(unit.bases, unit.powers)
+            pairs = list(zip(unit.bases, unit.powers))
             pairs.sort(key=lambda x: x[1], reverse=True)
 
             s += self._format_unit_list(pairs)

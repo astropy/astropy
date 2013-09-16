@@ -412,17 +412,17 @@ def test_no_as():
 
 
 def test_pickling():
-    import cPickle
+    from ...extern.six.moves import cPickle as pickle
 
-    p = cPickle.dumps(u.m)
-    other = cPickle.loads(p)
+    p = pickle.dumps(u.m)
+    other = pickle.loads(p)
 
     assert other is u.m
 
     new_unit = u.IrreducibleUnit(['foo'], register=True, format={'baz': 'bar'})
     new_unit.deregister()
-    p = cPickle.dumps(new_unit)
-    new_unit_copy = cPickle.loads(p)
+    p = pickle.dumps(new_unit)
+    new_unit_copy = pickle.loads(p)
     assert new_unit_copy.names == ['foo']
     assert new_unit_copy.get_format_name('baz') == 'bar'
 

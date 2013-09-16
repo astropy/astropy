@@ -11,9 +11,12 @@ from __future__ import (absolute_import, division, print_function,
 import os
 import re
 
+from ...extern.six.moves import zip
+
 from .base import Base
 from . import utils
 from ..utils import is_effectively_unity
+
 
 # TODO: Support logarithmic units using bracketed syntax
 
@@ -359,7 +362,7 @@ class CDS(Base):
                     parts.append('10{0}'.format(e))
                 s = 'x'.join(parts)
 
-            pairs = zip(unit.bases, unit.powers)
+            pairs = list(zip(unit.bases, unit.powers))
             if len(pairs) > 0:
                 pairs.sort(key=lambda x: x[1], reverse=True)
 
