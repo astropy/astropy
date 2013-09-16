@@ -224,6 +224,13 @@ def test_scale_effectively_unity():
 
 
 def test_percent():
+    """Test that the % unit is properly recognized.  Since % is a special
+    symbol, this goes slightly beyond the roundtripping tested above."""
+    assert u.Unit('%') == u.percent == u.Unit(0.01)
+
+    assert u.Unit('%', format='cds') == u.Unit(0.01)
+    assert u.Unit(0.01).to_string('cds') == u'%'
+
     with pytest.raises(ValueError):
         u.Unit('%', format='fits')
 
