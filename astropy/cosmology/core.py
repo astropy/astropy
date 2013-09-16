@@ -843,10 +843,10 @@ class FLRW(Cosmology):
 
         from scipy.integrate import quad
         if not isiterable(z):
-            return u.Quantity(quad(self._xfunc, 0, z)[0], u.Mpc)
+            return quad(self._xfunc, 0, z)[0]
 
         out = [quad(self._xfunc, 0, redshift)[0] for redshift in z]
-        return u.Quantity(out, u.Mpc)
+        return out
 
     def distmod(self, z):
         """ Distance modulus at redshift `z`.

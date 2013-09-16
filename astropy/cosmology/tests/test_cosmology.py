@@ -22,7 +22,6 @@ def test_units():
     assert cosmo.angular_diameter_distance_z1z2(1.0, 2.0).unit == u.Mpc
     assert cosmo.comoving_distance(1.0).unit == u.Mpc
     assert cosmo.luminosity_distance(1.0).unit == u.Mpc
-    assert cosmo.absorption_distance(1.0).unit == u.Mpc
     assert cosmo.lookback_time(1.0).unit == u.Gyr
     assert cosmo.H0.unit == u.km / u.Mpc / u.s
     assert cosmo.H(1.0).unit == u.km / u.Mpc / u.s
@@ -467,6 +466,6 @@ def test_angular_diameter_distance_z1z2():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_absorption_distance():
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
-    assert np.allclose(tcos.absorption_distance([1, 3]).value,
+    assert np.allclose(tcos.absorption_distance([1, 3]),
                        [1.72576635, 7.98685853])
-    assert np.allclose(tcos.absorption_distance(3).value, 7.98685853)
+    assert np.allclose(tcos.absorption_distance(3), 7.98685853)
