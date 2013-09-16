@@ -780,9 +780,31 @@ class Quantity(np.ndarray):
         latex_unit = (self.unit._repr_latex_()[1:-1]  # note this is unicode
                       if self.unit is not None
                       else _UNIT_NOT_INITIALISED)
-
+        
         return '${0} \; {1}$'.format(latex_value, latex_unit)
-
+        
+    def __format__(self, format_spec):
+        """
+        Format quantities using the new-style python formatting codes
+        as specifiers for the number.
+        
+        If the format specifier correctly applies itself to the value,
+        then it is used to format only the value. If it cannot be
+        applied to the value, then it is applied to the whole string.
+        
+        """
+        try:
+            value = format(self.value, format_spec)
+            full_format_spec = "s"
+        except ValueError:
+            value = self.value
+            full_format_spec = format_spec
+        return format("{0} {1:s}".format(value,
+                                  self.unit.to_string() if
+                                  self.unit is not None
+                                  else _UNIT_NOT_INITIALISED), full_format_spec)
+    
+    
     def decompose(self, bases=[]):
         """
         Generates a new `Quantity` with the units
