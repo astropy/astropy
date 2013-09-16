@@ -1,15 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import division  # confidence high
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 CONTACT = "Michael Droettboom"
 EMAIL = "mdroe@stsci.edu"
 
 from distutils.core import Extension
+import io
 from os.path import join
 import os.path
 import sys
 
 from astropy import setup_helpers
+from astropy.extern import six
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
 WCSVERSION = "4.10"
@@ -18,27 +20,19 @@ WCSVERSION = "4.10"
 def b(s):
     return s.encode('ascii')
 
-if sys.version_info[0] >= 3:
-
+if six.PY3:
     def string_escape(s):
         s = s.decode('ascii').encode('ascii', 'backslashreplace')
-        s = s.replace(b('\n'), b('\\n'))
-        s = s.replace(b('\0'), b('\\0'))
+        s = s.replace(b'\n', b'\\n')
+        s = s.replace(b'\0', b'\\0')
         return s.decode('ascii')
-
-    from io import StringIO
-    string_types = (str, bytes)
 else:
-
     def string_escape(s):
         # string_escape has subtle differences with the escaping done in Python
         # 3 so correct for those too
         s = s.encode('string_escape')
         s = s.replace(r'\x00', r'\0')
         return s.replace(r"\'", "'")
-
-    from cStringIO import StringIO
-    string_types = (str, unicode)
 
 
 def determine_64_bit_int():
@@ -74,7 +68,7 @@ def write_wcsconfig_h():
     """
     Writes out the wcsconfig.h header with local configuration.
     """
-    h_file = StringIO()
+    h_file = io.StringIO()
     h_file.write("""
     /* WCSLIB library version number. */
     #define WCSLIB_VERSION {0}
@@ -122,14 +116,14 @@ def generate_c_docstrings():
     from astropy.wcs import docstrings
     docstrings = docstrings.__dict__
     keys = [
-        key for key in docstrings.keys()
-        if not key.startswith('__') and type(key) in string_types]
+        key for key, val in docstrings.items()
+        if not key.startswith('__') and isinstance(val, six.string_types)]
     keys.sort()
     docs = {}
     for key in keys:
         docs[key] = docstrings[key].encode('utf8').lstrip() + b'\0'
 
-    h_file = StringIO()
+    h_file = io.StringIO()
     h_file.write("""/*
 DO NOT EDIT!
 
@@ -154,7 +148,7 @@ void fill_docstrings(void);
         join(WCSROOT, 'include', 'docstrings.h'),
         h_file.getvalue().encode('utf-8'))
 
-    c_file = StringIO()
+    c_file = io.StringIO()
     c_file.write("""/*
 DO NOT EDIT!
 
@@ -293,16 +287,18 @@ def get_extensions():
     if sys.platform.startswith('linux'):
         cfg['define_macros'].append(('HAVE_SINCOS', None))
 
-    return [Extension('astropy.wcs._wcs', **cfg)]
+    cfg['sources'] = [str(x) for x in cfg['sources']]
+
+    return [Extension(str('astropy.wcs._wcs'), **cfg)]
 
 
 def get_package_data():
     # Installs the testing data files
     return {
-        'astropy.wcs.tests': ['data/*.hdr', 'data/*.fits',
-                              'data/*.txt',
-                              'maps/*.hdr', 'spectra/*.hdr'],
-        'astropy.wcs': ['include/*.h']}
+        str('astropy.wcs.tests'): ['data/*.hdr', 'data/*.fits',
+                                   'data/*.txt',
+                                   'maps/*.hdr', 'spectra/*.hdr'],
+        str('astropy.wcs'): ['include/*.h']}
 
 
 def get_legacy_alias():
@@ -311,3 +307,7 @@ def get_legacy_alias():
 
 def get_external_libraries():
     return ['wcslib']
+
+
+def requires_2to3():
+    return False

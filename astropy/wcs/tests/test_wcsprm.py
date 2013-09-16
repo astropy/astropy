@@ -1,9 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import locale
 import re
-import warnings
 
 from numpy.testing import assert_array_equal
 import numpy as np
@@ -14,9 +13,6 @@ from .. import _wcs
 from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj
 from ... import units as u
 
-
-def b(s):
-    return s.encode('ascii')
 
 ######################################################################
 
@@ -115,7 +111,7 @@ def test_cname():
     for x in w.cname:
         assert x == ''
     assert list(w.cname) == ['', '']
-    w.cname = [b('foo'), 'bar']
+    w.cname = [b'foo', 'bar']
     assert list(w.cname) == ['foo', 'bar']
 
 
@@ -216,7 +212,7 @@ def test_csyer():
 def test_ctype():
     w = _wcs.Wcsprm()
     assert list(w.ctype) == ['', '']
-    w.ctype = [b('RA---TAN'), 'DEC--TAN']
+    w.ctype = [b'RA---TAN', 'DEC--TAN']
     assert_array_equal(w.axis_types, [2200, 2201])
     assert w.lat == 1
     assert w.lng == 0
@@ -722,4 +718,4 @@ def test_locale():
 @raises(UnicodeEncodeError)
 def test_unicode():
     w = _wcs.Wcsprm()
-    w.alt = u"\u2030"
+    w.alt = "\u2030"
