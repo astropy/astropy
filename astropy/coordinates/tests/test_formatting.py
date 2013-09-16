@@ -1,3 +1,8 @@
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ...extern import six
+
 from ..angles import Angle
 from ... import units as u
 
@@ -48,11 +53,11 @@ def test_to_string_decimal():
 def test_to_string_formats():
     a = Angle(1.113355, unit=u.deg)
     assert a.to_string(format='latex') == r'$1^\circ06{}^\prime48.07800{}^{\prime\prime}$'
-    assert a.to_string(format='unicode') == u'1\xb006\u203248.07800\u2033'
+    assert a.to_string(format='unicode') == '1\xb006\u203248.07800\u2033'
 
     a = Angle(1.113355, unit=u.hour)
     assert a.to_string(format='latex') == r'$1^\mathrm{h}06^\mathrm{m}48.07800^\mathrm{s}$'
-    assert a.to_string(format='unicode') == u'1\u02b006\u1d5048.07800\u02e2'
+    assert a.to_string(format='unicode') == '1\u02b006\u1d5048.07800\u02e2'
 
     a = Angle(1.113355, unit=u.radian)
     assert a.to_string(format='latex') == r'$1.11336\mathrm{rad}$'
@@ -83,4 +88,4 @@ def test_sexagesimal_rounding_up():
 
 def test_to_string_scalar():
     a = Angle(1.113355, unit=u.deg)
-    assert isinstance(a.to_string(), unicode)
+    assert isinstance(a.to_string(), six.text_type)
