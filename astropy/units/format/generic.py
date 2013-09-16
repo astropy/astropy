@@ -353,11 +353,11 @@ class Generic(Base):
                 return self._parser.parse(s, lexer=self._lexer, debug=debug)
             except ValueError as e:
                 if str(e):
-                    raise ValueError("{0} in unit {1!r}".format(
+                    raise ValueError("{0} in string {1!r}".format(
                         str(e), s))
                 else:
                     raise ValueError(
-                        "Syntax error parsing unit {0!r}".format(s))
+                        "Syntax error parsing unit string {0!r}".format(s))
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('generic')

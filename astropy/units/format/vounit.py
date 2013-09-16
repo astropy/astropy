@@ -19,7 +19,8 @@ class VOUnit(generic.Generic):
     <http://www.ivoa.net/Documents/VOUnits/>`_.
     """
     def __init__(self):
-        super(VOUnit, self).__init__()
+        if '_parser' not in VOUnit.__dict__:
+            VOUnit._parser, VOUnit._lexer = self._make_parser()
 
         if not '_units' in VOUnit.__dict__:
             unit_names = VOUnit._generate_unit_names()
