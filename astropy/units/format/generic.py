@@ -304,7 +304,7 @@ class Generic(Base):
             function : function_name OPEN_PAREN unit_expression CLOSE_PAREN
             '''
             if p[1] == 'sqrt':
-                p[0] = p[3] ** -2.0
+                p[0] = p[3] ** 0.5
             else:
                raise ValueError(
                    '{0!r} is not a recognized function'.format(p[1]))
