@@ -1333,4 +1333,33 @@ def custom_model_1d(func, func_fit_deriv=None):
         raise ModelDefinitionError(
             "All parameters must be keyword arguments")
 
-    return custom_model(func, fit_deriv=func_fit_deriv)
+
+def planck(w, temp):
+	"""
+	Function to calculate blackbody flux given wavelength or frequency and temperature
+
+	Parameters
+	----------
+	w 	 : 	astropy.units.Quantity
+			single value or list, in frequency or wavelength units
+	temp : 	astropy.units.Quantity
+			temperature quantity
+	Returns
+	-------
+	flux	: blackbody flux, in units W/m2/um
+
+	Note: This function should be turned into a model once model parameters can be quantities
+
+	"""
+	from astropy import units as u
+	from astropy import constants as const
+
+
+	if (w.unit.physical_type == 'frequency'):
+		w = w.to(u.m, equivalencies=u.spectral())
+	elif (w.unit.physical_type == 'length'):
+		w = w.to(u.m)
+
+	flux = 2 * const.h * const.c**2 / w**5 / (np.exp(const.h*const.c/(w * const.k_B * temp)) - 1)
+	flux = flux.to(u.Watt / (u.m * u.m * u.micrometer))
+	return flux
