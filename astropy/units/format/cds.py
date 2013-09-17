@@ -13,7 +13,7 @@ import re
 
 from .base import Base
 from . import utils
-
+from ..utils import is_effectively_unity
 
 # TODO: Support logarithmic units using bracketed syntax
 
@@ -61,7 +61,7 @@ class CDS(Base):
 
         names = {}
 
-        names['%'] = u.Unit(0.01)
+        names['%'] = u.Unit('percent')
 
         for base in bases + faux_bases + unprefixed:
             names[base] = getattr(u, base)
@@ -336,6 +336,17 @@ class CDS(Base):
         unit = utils.decompose_to_known_units(unit, self._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
+            if unit.physical_type == u'dimensionless':
+                if unit.scale == 1.:
+                    return ''
+                elif is_effectively_unity(unit.scale*100.):
+                    return '%'
+
+                raise ValueError("The CDS unit format is not able to "
+                                 "represent scale for dimensionless units. "
+                                 "Multiply your data by {0:e}."
+                                 .format(unit.scale))
+
             if unit.scale == 1:
                 s = ''
             else:
@@ -353,6 +364,7 @@ class CDS(Base):
             pairs.sort(key=lambda x: x[1], reverse=True)
 
             s += self._format_unit_list(pairs)
+
         elif isinstance(unit, core.NamedUnit):
             s = self._get_unit_name(unit)
 

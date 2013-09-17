@@ -100,7 +100,7 @@ class Generic(Base):
             return t
 
         def t_UNIT(t):
-            r'[a-zA-Z][a-zA-Z_]*'
+            r'%|[a-zA-Z][a-zA-Z_]*'
             t.value = cls._get_unit(t)
             return t
 
@@ -126,11 +126,12 @@ class Generic(Base):
                  | factor division_product_of_units
                  | inverse_unit
                  | factor inverse_unit
+                 | factor
             '''
+            from ..core import Unit
             if len(p) == 2:
-                p[0] = p[1]
+                p[0] = Unit(p[1])
             else:
-                from ..core import Unit
                 p[0] = Unit(p[1] * p[2])
 
         def p_division_product_of_units(p):
@@ -335,7 +336,9 @@ class Generic(Base):
     def _parse_unit(cls, s):
         from ..core import _UnitRegistry
         registry = _UnitRegistry().registry
-        if s in registry:
+        if s == '%':
+            return registry[u'percent']
+        elif s in registry:
             return registry[s]
         raise ValueError(
             '{0} is not a valid unit'.format(s))
@@ -350,11 +353,11 @@ class Generic(Base):
                 return self._parser.parse(s, lexer=self._lexer, debug=debug)
             except ValueError as e:
                 if str(e):
-                    raise ValueError("{0} in unit {1!r}".format(
+                    raise ValueError("{0} in string {1!r}".format(
                         str(e), s))
                 else:
                     raise ValueError(
-                        "Syntax error parsing unit {0!r}".format(s))
+                        "Syntax error parsing unit string {0!r}".format(s))
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('generic')

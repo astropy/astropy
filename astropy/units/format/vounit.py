@@ -19,7 +19,8 @@ class VOUnit(generic.Generic):
     <http://www.ivoa.net/Documents/VOUnits/>`_.
     """
     def __init__(self):
-        super(VOUnit, self).__init__()
+        if '_parser' not in VOUnit.__dict__:
+            VOUnit._parser, VOUnit._lexer = self._make_parser()
 
         if not '_units' in VOUnit.__dict__:
             unit_names = VOUnit._generate_unit_names()
@@ -100,6 +101,11 @@ class VOUnit(generic.Generic):
         unit = utils.decompose_to_known_units(unit, self._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
+            if unit.physical_type == u'dimensionless' and unit.scale != 1:
+                raise ValueError("The VOUnit format is not able to "
+                                 "represent scale for dimensionless units. "
+                                 "Multiply your data by {0:e}."
+                                 .format(unit.scale))
             s = ''
             if unit.scale != 1:
                 m, ex = utils.split_mantissa_exponent(unit.scale)
