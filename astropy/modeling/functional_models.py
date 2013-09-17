@@ -1359,7 +1359,13 @@ def planck(w, temp):
 		w = w.to(u.m, equivalencies=u.spectral())
 	elif (w.unit.physical_type == 'length'):
 		w = w.to(u.m)
+	else:
+	    raise InputParameterError("First parameter must be in wavelength or frequency units")
+
+	if (temp.unit.physical_type != 'temperature'):
+	    raise InputParameterError("Input temperature quantity must be in temperature units")
+
 
 	flux = 2 * const.h * const.c**2 / w**5 / (np.exp(const.h*const.c/(w * const.k_B * temp)) - 1)
-	flux = flux.to(u.Watt / (u.m * u.m * u.micrometer))
+	flux = flux.to(u.Watt / (u.m * u.m * u.um))
 	return flux
