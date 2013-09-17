@@ -17,9 +17,9 @@ if __name__ == "__main__":
             # test ODD sizes too
             if ii < max_exponents_fft[ndims]:
                 setup = ("""
-from astropy.nddata.convolution.convolve import convolve;
-from astropy.nddata.convolution.convolve import convolve_fft;
-from astropy.nddata.convolution.make_kernel import make_kernel;
+from astropy.convolution.convolve import convolve;
+from astropy.convolution.convolve import convolve_fft;
+from astropy.convolution.make_kernel import make_kernel;
 import numpy as np;
 array = np.random.random([%i]*%i);
 kernel = make_kernel([%i]*%i, 3, force_odd=True)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims)
@@ -45,9 +45,9 @@ kernel = make_kernel([%i]*%i, 3, force_odd=True)""") % (2 ** ii - 1, ndims, 2 **
                 print
 
             setup = ("""
-from astropy.nddata.convolution.convolve import convolve;
-from astropy.nddata.convolution.convolve import convolve_fft;
-from astropy.nddata.convolution.make_kernel import make_kernel;
+from astropy.convolution.convolve import convolve;
+from astropy.convolution.convolve import convolve_fft;
+from astropy.convolution.make_kernel import make_kernel;
 import numpy as np;
 array = np.random.random([%i]*%i);
 kernel = make_kernel([%i]*%i, 3, force_odd=True)""") % (2 ** ii, ndims, 2 ** ii, ndims)

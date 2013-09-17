@@ -59,7 +59,7 @@ class Gaussian1DKernel(Kernel1D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Gaussian1DKernel
+        from astropy.convolution import Gaussian1DKernel
         gauss_1D_kernel = Gaussian1DKernel(10)
         plt.plot(gauss_1D_kernel, drawstyle='steps')
         plt.xlabel('x [pixels]')
@@ -122,7 +122,7 @@ class Gaussian2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Gaussian2DKernel
+        from astropy.convolution import Gaussian2DKernel
         gaussian_2D_kernel = Gaussian2DKernel(10)
         plt.imshow(gaussian_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
@@ -182,7 +182,7 @@ class Box1DKernel(Kernel1D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Box1DKernel
+        from astropy.convolution import Box1DKernel
         box_1D_kernel = Box1DKernel(9)
         plt.plot(box_1D_kernel, drawstyle='steps')
         plt.xlim(-1, 9)
@@ -244,7 +244,7 @@ class Box2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Box2DKernel
+        from astropy.convolution import Box2DKernel
         box_2D_kernel = Box2DKernel(9)
         plt.imshow(box_2D_kernel, interpolation='none', origin='lower')
         plt.xlim(-1, 9)
@@ -307,7 +307,7 @@ class Tophat2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Tophat2DKernel
+        from astropy.convolution import Tophat2DKernel
         tophat_2D_kernel = Tophat2DKernel(40)
         plt.imshow(tophat_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
@@ -365,7 +365,7 @@ class Ring2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Ring2DKernel
+        from astropy.convolution import Ring2DKernel
         ring_2D_kernel = Ring2DKernel(9, 17)
         plt.imshow(ring_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
@@ -420,7 +420,7 @@ class Trapezoid1DKernel(Kernel1D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Trapezoid1DKernel
+        from astropy.convolution import Trapezoid1DKernel
         trapezoid_1D_kernel = Trapezoid1DKernel(17, slope=0.2)
         plt.plot(trapezoid_1D_kernel, drawstyle='steps')
         plt.xlabel('x [pixels]')
@@ -478,7 +478,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import TrapezoidDisk2DKernel
+        from astropy.convolution import TrapezoidDisk2DKernel
         trapezoid_2D_kernel = TrapezoidDisk2DKernel(20, slope=0.2)
         plt.imshow(trapezoid_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
@@ -542,7 +542,7 @@ class MexicanHat1DKernel(Kernel1D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import MexicanHat1DKernel
+        from astropy.convolution import MexicanHat1DKernel
         mexicanhat_1D_kernel = MexicanHat1DKernel(10)
         plt.plot(mexicanhat_1D_kernel, drawstyle='steps')
         plt.xlabel('x [pixels]')
@@ -608,7 +608,7 @@ class MexicanHat2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import MexicanHat2DKernel
+        from astropy.convolution import MexicanHat2DKernel
         mexicanhat_2D_kernel = MexicanHat2DKernel(10)
         plt.imshow(mexicanhat_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
@@ -671,7 +671,7 @@ class AiryDisk2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import AiryDisk2DKernel
+        from astropy.convolution import AiryDisk2DKernel
         airydisk_2D_kernel = AiryDisk2DKernel(10)
         plt.imshow(airydisk_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
@@ -733,7 +733,7 @@ class Model1DKernel(Kernel1D):
     Define a Gaussian1D model:
 
         >>> from astropy.modeling.models import Gaussian1DModel
-        >>> from astropy.nddata.convolution.kernels import Model1DKernel
+        >>> from astropy.convolution.kernels import Model1DKernel
         >>> gauss = Gaussian1DModel(1, 0, 2)
 
     And create a custom one dimensional kernel from it:
@@ -799,7 +799,7 @@ class Model2DKernel(Kernel2D):
     Define a Gaussian2D model:
 
         >>> from astropy.modeling.models import Gaussian2DModel
-        >>> from astropy.nddata.convolution.kernels import Model2DKernel
+        >>> from astropy.convolution.kernels import Model2DKernel
         >>> gauss = Gaussian2DModel(1, 0, 0, 2, 2)
 
     And create a custom two dimensional kernel from it:
@@ -854,7 +854,7 @@ class CustomKernel(Kernel):
     --------
     Define one dimensional array:
 
-        >>> from astropy.nddata.convolution.kernels import CustomKernel
+        >>> from astropy.convolution.kernels import CustomKernel
         >>> import numpy as np
         >>> array = np.array([1, 2, 3, 2, 1])
         >>> kernel = CustomKernel(array)

@@ -273,7 +273,7 @@ def kernel_arithmetics(kernel, value, operation):
 
     Parameters
     ----------
-    kernel : astropy.nddata.convolution.kernel
+    kernel : astropy.convolution.kernel
         Kernel instance
     values : kernel, float or int
         Value to operate with
