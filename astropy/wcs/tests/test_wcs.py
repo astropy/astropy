@@ -11,6 +11,7 @@ from ...tests.helper import raises
 from ... import wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
+from ...utils.misc import NumpyRNGContext
 from ...tests.helper import pytest
 
 
@@ -247,9 +248,10 @@ def test_backward_compatible():
     fits = get_pkg_data_filename('data/sip.fits')
     w = wcs.WCS(fits)
 
-    data = np.random.rand(100, 2)
-    assert np.all(w.wcs_pix2world(data, 0) == w.wcs_pix2sky(data, 0))
-    assert np.all(w.wcs_world2pix(data, 0) == w.wcs_sky2pix(data, 0))
+    with NumpyRNGContext(123456789):
+        data = np.random.rand(100, 2)
+        assert np.all(w.wcs_pix2world(data, 0) == w.wcs_pix2sky(data, 0))
+        assert np.all(w.wcs_world2pix(data, 0) == w.wcs_sky2pix(data, 0))
 
 
 def test_dict_init():
@@ -289,8 +291,9 @@ def test_extra_kwarg():
     Issue #444
     """
     w = wcs.WCS()
-    data = np.random.rand(100, 2)
-    w.wcs_pix2sky(data, origin=1)
+    with NumpyRNGContext(123456789):
+        data = np.random.rand(100, 2)
+        w.wcs_pix2sky(data, origin=1)
 
 
 def test_3d_shapes():
@@ -298,12 +301,13 @@ def test_3d_shapes():
     Issue #444
     """
     w = wcs.WCS(naxis=3)
-    data = np.random.rand(100, 3)
-    result = w.wcs_pix2sky(data, 1)
-    assert result.shape == (100, 3)
-    result = w.wcs_pix2sky(
-        data[..., 0], data[..., 1], data[..., 2], 1)
-    assert len(result) == 3
+    with NumpyRNGContext(123456789):
+        data = np.random.rand(100, 3)
+        result = w.wcs_pix2sky(data, 1)
+        assert result.shape == (100, 3)
+        result = w.wcs_pix2sky(
+            data[..., 0], data[..., 1], data[..., 2], 1)
+        assert len(result) == 3
 
 
 def test_preserve_shape():
