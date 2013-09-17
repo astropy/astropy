@@ -67,6 +67,14 @@ New Features
     MaskedColumn, Row, and Table are now deprecated in favor of the
     single-tense 'unit' and 'dtype' [#1174].
 
+- ``astropy.nddata``
+
+  - New class-based system for generating kernels, replacing `make_kernel`.
+    [#1255]
+
+  - The `astropy.nddata.convolution` sub-package has now been moved to
+    `astropy.convolution`. [#1451]
+
 - ``astropy.vo``
 
   - New package added to support Virtual Observatory Simple Cone Search query
