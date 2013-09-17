@@ -8,6 +8,7 @@ from numpy.testing import assert_array_almost_equal
 
 from ...extern.six.moves import cPickle
 from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj
+from ...utils.misc import NumpyRNGContext
 from ...io import fits
 from ... import wcs
 
@@ -27,9 +28,10 @@ def test_dist():
         s = cPickle.dumps(wcs1)
         wcs2 = cPickle.loads(s)
 
-        x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
-        world1 = wcs1.all_pix2world(x, 1)
-        world2 = wcs2.all_pix2world(x, 1)
+        with NumpyRNGContext(123456789):
+            x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
+            world1 = wcs1.all_pix2world(x, 1)
+            world2 = wcs2.all_pix2world(x, 1)
 
         assert_array_almost_equal(world1, world2)
 
@@ -43,9 +45,10 @@ def test_sip():
         s = cPickle.dumps(wcs1)
         wcs2 = cPickle.loads(s)
 
-        x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
-        world1 = wcs1.all_pix2world(x, 1)
-        world2 = wcs2.all_pix2world(x, 1)
+        with NumpyRNGContext(123456789):
+            x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
+            world1 = wcs1.all_pix2world(x, 1)
+            world2 = wcs2.all_pix2world(x, 1)
 
         assert_array_almost_equal(world1, world2)
 
@@ -59,9 +62,10 @@ def test_sip2():
         s = cPickle.dumps(wcs1)
         wcs2 = cPickle.loads(s)
 
-        x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
-        world1 = wcs1.all_pix2world(x, 1)
-        world2 = wcs2.all_pix2world(x, 1)
+        with NumpyRNGContext(123456789):
+            x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
+            world1 = wcs1.all_pix2world(x, 1)
+            world2 = wcs2.all_pix2world(x, 1)
 
         assert_array_almost_equal(world1, world2)
 
@@ -74,9 +78,10 @@ def test_wcs():
     s = cPickle.dumps(wcs1)
     wcs2 = cPickle.loads(s)
 
-    x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
-    world1 = wcs1.all_pix2world(x, 1)
-    world2 = wcs2.all_pix2world(x, 1)
+    with NumpyRNGContext(123456789):
+        x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
+        world1 = wcs1.all_pix2world(x, 1)
+        world2 = wcs2.all_pix2world(x, 1)
 
     assert_array_almost_equal(world1, world2)
 

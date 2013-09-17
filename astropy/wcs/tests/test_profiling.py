@@ -6,6 +6,7 @@ import os
 import numpy as np
 
 from ...utils.data import get_pkg_data_filenames, get_pkg_data_contents
+from ...utils.misc import NumpyRNGContext
 
 from ... import wcs
 
@@ -15,9 +16,10 @@ def test_maps():
         header = get_pkg_data_contents(os.path.join("maps", filename))
         wcsobj = wcs.WCS(header)
 
-        x = np.random.rand(2 ** 12, wcsobj.wcs.naxis)
-        world = wcsobj.wcs_pix2world(x, 1)
-        pix = wcsobj.wcs_world2pix(x, 1)
+        with NumpyRNGContext(123456789):
+            x = np.random.rand(2 ** 12, wcsobj.wcs.naxis)
+            world = wcsobj.wcs_pix2world(x, 1)
+            pix = wcsobj.wcs_world2pix(x, 1)
 
     hdr_file_list = list(get_pkg_data_filenames("maps", "*.hdr"))
 
@@ -53,10 +55,10 @@ def test_spectra():
     def test_spectrum(filename):
         header = get_pkg_data_contents(os.path.join("spectra", filename))
         wcsobj = wcs.WCS(header)
-
-        x = np.random.rand(2 ** 16, wcsobj.wcs.naxis)
-        world = wcsobj.wcs_pix2world(x, 1)
-        pix = wcsobj.wcs_world2pix(x, 1)
+        with NumpyRNGContext(123456789):
+            x = np.random.rand(2 ** 16, wcsobj.wcs.naxis)
+            world = wcsobj.wcs_pix2world(x, 1)
+            pix = wcsobj.wcs_world2pix(x, 1)
 
     hdr_file_list = list(get_pkg_data_filenames("spectra", "*.hdr"))
 
