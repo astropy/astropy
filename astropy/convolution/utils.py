@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 
-from ...modeling.core import Parametric1DModel, Parametric2DModel
+from ..modeling.core import Parametric1DModel, Parametric2DModel
 
 
 __all__ = ['discretize_model']

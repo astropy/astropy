@@ -4,8 +4,8 @@ import numpy as np
 
 from .core import Kernel1D, Kernel2D, Kernel
 from .utils import KernelSizeError
-from ...modeling import models
-from ...modeling.core import Parametric1DModel, Parametric2DModel
+from ..modeling import models
+from ..modeling.core import Parametric1DModel, Parametric2DModel
 
 __all__ = sorted(['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
                   'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',

@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 
-from ....tests.compat import assert_allclose
-from ....tests.helper import pytest
+from ...tests.compat import assert_allclose
+from ...tests.helper import pytest
 
 from ..make_kernel import make_kernel
 

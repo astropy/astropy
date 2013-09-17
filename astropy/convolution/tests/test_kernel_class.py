@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 
-from ....tests.helper import pytest
+from ...tests.helper import pytest
 from ..convolve import convolve, convolve_fft
 from ..kernels import *
 

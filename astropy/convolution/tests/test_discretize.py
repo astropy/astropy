@@ -3,12 +3,12 @@ import itertools
 
 import numpy as np
 
-from ....tests.helper import pytest
+from ...tests.helper import pytest
 
 from ..utils import discretize_model
-from ....modeling.functional_models import *
-from ....modeling.tests.model_lists import models_1D, models_2D
-from ....modeling.tests.test_models import create_model
+from ...modeling.functional_models import *
+from ...modeling.tests.model_lists import models_1D, models_2D
+from ...modeling.tests.test_models import create_model
 
 try:
     import scipy
