@@ -1,12 +1,15 @@
-Convolution
-===========
+.. _astropy_convolve:
+
+*************************************************
+Convolution and filtering (`astropy.convolution`)
+*************************************************
 
 Introduction
-------------
+============
 
-``astropy.nddata`` includes a convolution function that offers
-improvements compared to the scipy ``astropy.ndimage`` convolution
-routines, including:
+`astropy.convolution` provides convolution functions and kernels that offers
+improvements compared to the scipy `scipy.ndimage` convolution routines,
+including:
 
 * Proper treatment of NaN values
 
@@ -15,6 +18,8 @@ routines, including:
 * Improved options for the treatment of edges
 
 * Both direct and Fast Fourier Transform (FFT) versions
+
+* Built-in kernels that are commonly used in Astronomy
 
 The following thumbnails show the difference between Scipy's and
 Astropy's convolve functions on an Astronomical image that contains NaN
@@ -31,9 +36,11 @@ within a kernel of any NaN value, which is often not the desired result.
 |       |original|      |       |scipy|      |      |astropy|       |
 +-----------------------+--------------------+----------------------+
 
+The following sections describe how to make use of the convolution functions,
+and how to use built-in convolution kernels:
 
-Usage
------
+Getting started
+===============
 
 Two convolution functions are provided.  They are imported as::
 
@@ -44,79 +51,82 @@ and are both used as::
     result = convolve(image, kernel)
     result = convolve_fft(image, kernel)
 
-`~astropy.nddata.convolution.convolve.convolve` is implemented as a direct
-convolution algorithm, while `~astropy.nddata.convolution.convolve.convolve_fft`
-uses an FFT.  Thus, the former is better for small kernels, while the latter
-is much more efficient for larger kernels. 
+:func:`~astropy.convolution.convolve.convolve` is implemented as a
+direct convolution algorithm, while
+:func:`~astropy.convolution.convolve.convolve_fft` uses a fast fourier
+transform (FFT). Thus, the former is better for small kernels, while the latter
+is much more efficient for larger kernels.
 
-The input images and kernels should be lists or Numpy arrays with either both 1, 2, or 3 dimensions (and the number of dimensions should be the same for the image and kernel). The result is a Numpy array with the same dimensions as the input image. The convolution is always done as floating point.
+For example, to convolve a 1-d dataset with a user-specified kernel, you can do::
 
-The ``convolve`` function takes an optional ``boundary=`` argument describing how to perform the convolution at the edge of the array. The values for ``boundary`` can be:
-
-* ``None``: set the result values to zero where the kernel extends beyond the edge of the array (default)
-
-* ``'fill'``: set values outside the array boundary to a constant. If this option is specified, the constant should be specified using the ``fill_value=`` argument, which defaults to zero.
-
-* ``'wrap'``: assume that the boundaries are periodic
-
-* ``'extend'`` : set values outside the array to the nearest array value
-
-By default, the kernel is not normalized. To normalize it prior to convolution, use::
-
-    result = convolve(image, kernel, normalize_kernel=True)
-
-Examples
---------
-
-Smooth a 1D array with a custom kernel and no boundary treatment::
-
+    >>> from astropy.convolution import convolve
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
     array([ 0. ,  3.4,  5. ,  5.6,  5.6,  5.2,  0. ])
 
-As above, but using the 'extend' algorithm for boundaries::
+Notice that the end points are set to zero - by default, points that are too close to the boundary to have a convolved value calculated are set to zero. However, the :func:`~astropy.convolution.convolve.convolve` function allows for a `boundary` argument that can be used to specify alternate behaviors. For example, setting `boundary='extend'` causes values near the edges to be computed, assuming the original data is simply extended using a constant extrapolation beyond the boundary::
 
+    >>> from astropy.convolution import convolve
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
     array([ 1.6,  3.6,  5. ,  5.6,  5.6,  6.8,  7.8])
 
-If a NaN value is present in the original array, it will be interpolated using the kernel::
+The values at the end are computed assuming that any value below the first point is ``1``, and any value above the last point is ``8``. For a more detailed discussion of boundary treatment, see :doc:`using`.
 
-    >>> convolve([1, 4, 5, 6, np.nan, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
-    array([ 1.6,  3.6,  5. ,  5.9,  6.5,  7.1,  7.8])
+This module also includes built-in kernels that can be imported as e.g.::
 
-Kernels and arrays can be specified either as lists or as Numpy arrays. The following examples show how to construct a 1-d array as a list::
+    >>> from astropy.convolution import Gaussian1DKernel
 
-    >>> kernel = [0, 1, 0]
-    >>> result = convolve(spectrum, kernel)
+To use a kernel, first create a specific instance of the kernel::
 
-a 2-d array as a list::
+    >>> gauss = Gaussian1DKernel(width=2)
 
-    >>> kernel = [[0, 1, 0], \
-                  [1, 2, 1], \
-                  [0, 1, 0]]
-    >>> result = convolve(image, kernel)
+``gauss`` is not an array, but a kernel object. The underlying array can be retrieved with::
 
-and a 3-d array as a list::
+    >>> gauss.array
+    array([  6.69151129e-05,   4.36341348e-04,   2.21592421e-03,
+             8.76415025e-03,   2.69954833e-02,   6.47587978e-02,
+             1.20985362e-01,   1.76032663e-01,   1.99471140e-01,
+             1.76032663e-01,   1.20985362e-01,   6.47587978e-02,
+             2.69954833e-02,   8.76415025e-03,   2.21592421e-03,
+             4.36341348e-04,   6.69151129e-05])
 
-    >>> kernel = [[[0, 0, 0], [0, 2, 0], [0, 0, 0]], \
-                  [[0, 1, 0], [2, 3, 2], [0, 1, 0]], \
-                  [[0, 0, 0], [0, 2, 0], [0, 0, 0]]]
-    >>> result = convolve(cube, kernel)
+The kernel can then be used directly when calling
+:func:`~astropy.convolution.convolve.convolve`:
 
-Kernels
--------
+.. plot::
+   :include-source:
 
-You can use `~astropy.nddata.convolution.make_kernel.make_kernel`
-to generate common n-dimensional kernels::
+    import numpy as np
+    import matplotlib.pyplot as plt
 
-    >>> make_kernel([3,3], 1, 'boxcar')
-    array([[ 0.  0.  0.]
-           [ 0.  1.  0.]
-           [ 0.  0.  0.]])
+    from astropy.convolution import Gaussian1DKernel, convolve
 
-.. note:: 
-	
-	There is a new convolution kernel class which will replace
-	`~astropy.nddata.convolution.make_kernel.make_kernel` in future. It 
-	is much more powerful and flexible. Please see :doc:`kernels`.
-           
-           
+    # Generate fake data
+    x = np.arange(1000).astype(float)
+    y = np.sin(x / 100.) + np.random.normal(0., 1., x.shape)
+
+    # Create kernel
+    g = Gaussian1DKernel(width=50)
+
+    # Convolve data
+    z = convolve(y, g, boundary='extend')
+
+    # Plot data before and after convolution
+    plt.plot(x, y, 'k.')
+    plt.plot(x, z, 'r-', lw=3)
+    plt.show()
+
+
+Using `convolve`
+================
+
+.. toctree::
+   :maxdepth: 2
+
+   using.rst
+   kernels.rst
+
+Reference/API
+=============
+
+.. automodapi:: astropy.convolution
+    :no-inheritance-diagram:
