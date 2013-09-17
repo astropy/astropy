@@ -108,6 +108,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
         kernel = kernel.array
 
     # Check that the arguments are lists or Numpy arrays
+
     if isinstance(array, list):
         array_internal = np.array(array, dtype=np.float)
         array_dtype = array_internal.dtype
@@ -123,6 +124,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
             array_internal = array.astype(float)
     else:
         raise TypeError("array should be a list or a Numpy array")
+
     if isinstance(kernel, list):
         kernel_internal = np.array(kernel, dtype=float)
     elif isinstance(kernel, np.ndarray):
@@ -196,7 +198,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
         result *= kernel_sum
 
     # Try to preserve the input type if it's a floating point type
-    if array.dtype.kind == 'f':
+    if array_dtype.kind == 'f':
         # Avoid making another copy if possible
         try:
             return result.astype(array_dtype, copy=False)
