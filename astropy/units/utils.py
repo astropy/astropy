@@ -62,7 +62,12 @@ def generate_unit_summary(namespace):
             continue
 
         if isinstance(val, core.PrefixUnit):
-            has_prefixes.add(val.decompose().bases[0].name)
+            decomposed = val.decompose()
+            if len(decomposed.bases):
+                has_prefixes.add(val.decompose().bases[0].name)
+            else:
+                has_prefixes.add('dimensionless')
+
         else:
             units.append(val)
 

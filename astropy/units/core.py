@@ -582,8 +582,7 @@ class UnitBase(object):
 
         # Prevent too many levels of recursion
         # And special case for dimensionless unit
-        if (depth >= max_depth or
-            len(unit._bases) == 0):
+        if depth >= max_depth:
             cached_results[key] = [unit]
             return [unit]
 
@@ -599,7 +598,10 @@ class UnitBase(object):
         partial_results = []
         # Store final results that reduce to a single unit or pair of
         # units
-        final_results = [set(), set()]
+        if len(unit._bases) == 0:
+            final_results = [set([unit]), set()]
+        else:
+            final_results = [set(), set()]
 
         for tunit in namespace:
             tunit_decomposed = tunit.decompose()

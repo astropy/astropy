@@ -23,7 +23,9 @@ class Fits(generic.Generic):
     name = 'fits'
 
     def __init__(self):
-        super(Fits, self).__init__()
+        # Build this on the class, so it only gets generated once.
+        if '_parser' not in Fits.__dict__:
+            Fits._parser, Fits._lexer = self._make_parser()
 
         if not '_units' in Fits.__dict__:
             Fits._units, Fits._deprecated_units = self._generate_unit_names()

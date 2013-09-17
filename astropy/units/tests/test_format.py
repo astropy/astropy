@@ -8,7 +8,7 @@ Regression tests for the units.format package
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ...tests.helper import raises
+from ...tests.helper import raises, pytest
 from ...tests.compat import assert_allclose
 
 from ... import units as u
@@ -221,3 +221,18 @@ def test_scale_effectively_unity():
     a = (3. * u.N).cgs
     assert is_effectively_unity(a.unit.scale)
     assert len(a.__repr__().split()) == 3
+
+
+def test_percent():
+    """Test that the % unit is properly recognized.  Since % is a special
+    symbol, this goes slightly beyond the roundtripping tested above."""
+    assert u.Unit('%') == u.percent == u.Unit(0.01)
+
+    assert u.Unit('%', format='cds') == u.Unit(0.01)
+    assert u.Unit(0.01).to_string('cds') == u'%'
+
+    with pytest.raises(ValueError):
+        u.Unit('%', format='fits')
+
+    with pytest.raises(ValueError):
+        u.Unit('%', format='vounit')
