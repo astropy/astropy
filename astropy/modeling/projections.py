@@ -346,13 +346,24 @@ class Pix2Sky_CYP(Cylindrical):
     """
 
     def _validate_mu(mu, model):
-        if mu == -model.lam:
-            raise ValueError("CYP projection is not defined for mu=-lambda")
+        try:
+            if mu == -model.lam:
+                raise ValueError(
+                    "CYP projection is not defined for mu=-lambda")
+        except AttributeError:
+            # An attribute error can occur if model.lam has not been set yet
+            pass
         return mu
 
     def _validate_lam(lam, model):
-        if lam == -model.mu:
-            raise ValueError("CYP projection is not defined for mu=-lambda")
+        try:
+            if lam == -model.mu:
+                raise ValueError(
+                    "CYP projection is not defined for mu=-lambda")
+        except AttributeError:
+            # An attribute error can occur if model.lam has not been set yet
+            pass
+        return lam
 
     mu = Parameter('mu', setter=_validate_mu)
     lam = Parameter('lam', setter=_validate_lam)
@@ -380,14 +391,24 @@ class Sky2Pix_CYP(Cylindrical):
     CYP : Cylindrical Perspective - sky to pixel.
     """
 
+    # TODO: Eliminate duplication on these
     def _validate_mu(mu, model):
-        if mu == -model.lam:
-            raise ValueError("CYP projection is not defined for mu=-lambda")
+        try:
+            if mu == -model.lam:
+                raise ValueError(
+                    "CYP projection is not defined for mu=-lambda")
+        except AttributeError:
+            pass
         return mu
 
     def _validate_lam(lam, model):
-        if lam == -model.mu:
-            raise ValueError("CYP projection is not defined for mu=-lambda")
+        try:
+            if lam == -model.mu:
+                raise ValueError(
+                    "CYP projection is not defined for mu=-lambda")
+        except AttributeError:
+            pass
+        return lam
 
     mu = Parameter('mu', setter=_validate_mu)
     lam = Parameter('lam', setter=_validate_lam)

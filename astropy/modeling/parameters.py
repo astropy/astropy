@@ -218,6 +218,9 @@ class Parameter(object):
     @property
     def value(self):
         if self._model is not None:
+            if not hasattr(self._model, self._attr):
+                raise AttributeError(
+                    'Parameter value for {0!r} not set'.format(self._name))
             value = getattr(self._model, self._attr)
             if self._getter is None:
                 return value
