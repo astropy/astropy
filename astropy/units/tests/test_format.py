@@ -55,10 +55,15 @@ def test_cds_grammar():
         (["km/s", "km.s-1"], u.km / u.s),
         (["10pix/nm"], u.Unit(10 * u.pix / u.nm)),
         (["1.5x10+11m"], u.Unit(1.5e11 * u.m)),
+        (["1.5*10+11m"], u.Unit(1.5e11 * u.m)),
         (["m2"], u.m ** 2),
         (["10+21m"], u.Unit(u.m * 1e21)),
         (["2.54cm"], u.Unit(u.cm * 2.54)),
-        (["20%"], 0.20),
+        (["20%"], 0.20 * u.dimensionless_unscaled),
+        (["10+9"], 1.e9 * u.dimensionless_unscaled),
+        (["2x10-9"], 2.e-9 * u.dimensionless_unscaled),
+        (["-"], u.dimensionless_unscaled),
+        (["10+3-"], 1.e3 * u.dimensionless_unscaled),
         (["ma"], u.ma),
         (["mAU"], u.mAU),
         (["uarcmin"], u.uarcmin),
@@ -84,7 +89,7 @@ def test_cds_grammar_fail():
 
     data = ['0.1 nm', 'solMass(3/2)', 'km / s', 'km s-1',
             'pix0.1nm', 'pix/(0.1nm)', 'km*s', 'km**2',
-            '5x8+3m']
+            '5x8+3m', '-.W', '10^+8W-']
 
     for s in data:
         yield _test_cds_grammar_fail, s
@@ -236,3 +241,20 @@ def test_percent():
 
     with pytest.raises(ValueError):
         u.Unit('%', format='vounit')
+
+
+def test_scaled_dimensionless():
+    """Test that scaled dimensionless units are properly recognized in generic
+    and CDS, but not in fits and vounit."""
+    assert u.Unit('0.1') == u.Unit(0.1) == 0.1 * u.dimensionless_unscaled
+    assert u.Unit('1.e-4') == u.Unit(1.e-4)
+
+    assert u.Unit('10-4', format='cds') == u.Unit(1.e-4)
+    assert u.Unit('10-4-', format='cds') == u.Unit(1.e-4)
+    assert u.Unit('10+8').to_string('cds') == u'10+8'
+
+    with pytest.raises(ValueError):
+        u.Unit(0.1).to_string('fits')
+
+    with pytest.raises(ValueError):
+        u.Unit(0.1).to_string('vounit')
