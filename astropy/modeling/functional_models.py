@@ -628,6 +628,7 @@ class Ring2DModel(Parametric2DModel):
         """
         Model function Ring2D.
         """
+
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
         r_range = np.logical_and(rr >= r_in ** 2, rr <= (r_in + width) ** 2)
         return np.select([r_range], [amplitude])
