@@ -205,7 +205,7 @@ class Fitter(object):
         for model constraints.
 
         Currently the only fitter that uses a derivative is the
-        `NonLinearLSQFitter`. This wrapper may neeed to be revised when other
+        `NonLinearLSQFitter`. This wrapper may need to be revised when other
         fitters using function derivative are added or when the statistic is
         separated from the fitting routines.
 

@@ -175,12 +175,16 @@ class MatrixRotation2D(Model):
             raise InputParameterError("Expected at least one argument - "
                                       "a rotation matrix or an angle")
         if matrix is not None:
-            super(MatrixRotation2D, self).__init__(n_inputs=1, n_outputs=1,
-                                                   param_dim=1)
             # TODO: Why +0.0?
+            matrix = np.asarray(matrix) + 0.0
+            n_inputs = n_outputs = matrix.shape[0]
+            super(MatrixRotation2D, self).__init__(n_inputs=n_inputs,
+                                                   n_outputs=n_outputs,
+                                                   param_dim=1)
             self.matrix = np.asarray(matrix) + 0.0
         else:
-            super(MatrixRotation2D, self).__init__(n_inputs=1, n_outputs=1,
+            # The computed rotation matrix is 2x2, naturally
+            super(MatrixRotation2D, self).__init__(n_inputs=2, n_outputs=2,
                                                    param_dim=1)
             self.angle = angle
             self.matrix = self._compute_matrix(self._angle)
@@ -191,7 +195,7 @@ class MatrixRotation2D(Model):
                         dtype=np.float64)
 
     def inverse(self):
-        nrot = np.linalg.inv(self._matrix[0])
+        nrot = np.linalg.inv(self.matrix.value)
         return MatrixRotation2D(matrix=nrot)
 
     def __call__(self, x, y):
