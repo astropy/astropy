@@ -7,6 +7,9 @@ precession and nutation.
 This module is (currently) not intended to be part of the public API, but
 is instead primarily for internal use in `coordinates`
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 
 from ..time import Time

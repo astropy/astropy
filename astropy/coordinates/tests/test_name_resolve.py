@@ -3,10 +3,13 @@
 """
 This module contains tests for the name resolve convenience module.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ...extern.six.moves import urllib
 
 # Standard library
 import time
-import urllib,urllib2
 
 # Third party
 import numpy as np
@@ -109,7 +112,7 @@ _cached_castor["simbad"] = """# castor	#Q22524495
 def test_names():
 
     # First check that sesame is up
-    if urllib.urlopen("http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame").getcode() != 200:
+    if urllib.request.urlopen("http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame").getcode() != 200:
         pytest.skip("SESAME appears to be down, skipping test_name_resolve.py:test_names()...")
 
     with pytest.raises(NameResolveError):
@@ -139,7 +142,7 @@ def test_names():
 def test_database_specify():
 
     # First check that sesame is up
-    if urllib.urlopen("http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame").getcode() != 200:
+    if urllib.request.urlopen("http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame").getcode() != 200:
         pytest.skip("SESAME appears to be down, skipping test_database_specify.py:test_names()...")
 
     name = "ngc 3642"

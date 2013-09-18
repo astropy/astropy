@@ -4,11 +4,13 @@
 This module contains the classes and utility functions for distance and
 cartesian coordinates.
 """
-from abc import ABCMeta, abstractproperty, abstractmethod
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from abc import ABCMeta, abstractproperty
 
 import numpy as np
 
-from .angles import Angle
 from .. import units as u
 from .. import cosmology
 
@@ -97,7 +99,7 @@ class Distance(object):
 
             if len(kwargs) > 0:
                 raise TypeError('Invalid keywords provided to Distance: ' +
-                                str(kwargs.keys()))
+                                six.text_type(kwargs.keys()))
 
             if value is None:
                 raise ValueError('A value for the distance must be provided')

@@ -7,6 +7,11 @@ implementation is actually in individual coordinates in the
 `builtin_systems` module, while this module provides the framework and
 related utilities.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ..extern import six
+
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
@@ -57,7 +62,7 @@ class TransformGraph(object):
             raise TypeError('fromsys must be a class')
         if not isclass(tosys):
             raise TypeError('tosys must be a class')
-        if not callable(transform):
+        if not six.callable(transform):
             raise TypeError('transform must be callable')
 
         self._graph[fromsys][tosys] = transform
@@ -288,9 +293,9 @@ class TransformGraph(object):
         ValueError
             If `coordcls` already has a name assigned.
         """
-        if coordcls in self._clsaliases.values():
-            idx = self._clsaliases.values().index(coordcls)
-            oldnm = self._clsaliases.keys()[idx]
+        if coordcls in list(six.itervalues(self._clsaliases)):
+            idx = list(six.itervalues(self._clsaliases)).index(coordcls)
+            oldnm = list(six.iterkeys(self._clsaliases))[idx]
             msg = 'Coordinate class {0} already has a name: {1}'
             raise ValueError(msg.format(coordcls, oldnm))
         self._clsaliases[name] = coordcls
@@ -322,7 +327,7 @@ class TransformGraph(object):
         nms : list
             The aliases for coordinate systems.
         """
-        return self._clsaliases.keys()
+        return list(six.iterkeys(self._clsaliases))
 
     def to_dot_graph(self, priorities=True, addnodes=[], savefn=None,
                      savelayout='plain', saveformat=None):
@@ -372,7 +377,7 @@ class TransformGraph(object):
             if node not in nodes:
                 nodes.append(node)
         nodenames = []
-        invclsaliases = dict([(v, k) for k, v in self._clsaliases.iteritems()])
+        invclsaliases = dict([(v, k) for k, v in six.iteritems(self._clsaliases)])
         for n in nodes:
             if n in invclsaliases:
                 nodenames.append('{0} [shape=oval label="{0}\\n`{1}`"]'.format(n.__name__, invclsaliases[n]))
@@ -455,6 +460,7 @@ class TransformGraph(object):
 master_transform_graph = TransformGraph()
 
 
+@six.add_metaclass(ABCMeta)
 class CoordinateTransform(object):
     """
     An object that transforms a coordinate from one system to another.
@@ -462,8 +468,6 @@ class CoordinateTransform(object):
     They should also call this superclass's `__init__` in their
     `__init__`.
     """
-
-    __metaclass__ = ABCMeta
 
     def __init__(self, fromsys, tosys, register=True):
         from inspect import isclass
@@ -543,7 +547,7 @@ class FunctionTransform(CoordinateTransform):
                  register=True):
         from inspect import getargspec
 
-        if not callable(func):
+        if not six.callable(func):
             raise TypeError('func must be callable')
 
         try:
@@ -676,7 +680,7 @@ class DynamicMatrixTransform(CoordinateTransform):
 
     """
     def __init__(self, fromsys, tosys, matrix_func, priority=1, register=True):
-        if not callable(matrix_func):
+        if not six.callable(matrix_func):
             raise TypeError('matrix_func is not callable')
         self.matrix_func = matrix_func
         self.priority = priority

@@ -5,6 +5,7 @@ This module contains the base classes and frameworks for coordinate objects.
 """
 from abc import ABCMeta, abstractproperty, abstractmethod
 
+from ..extern import six
 from .. import units as u
 from .angles import Longitude, Latitude, Angle
 from .distances import *
@@ -14,6 +15,7 @@ from . import angle_utilities
 __all__ = ['SphericalCoordinatesBase']
 
 
+@six.add_metaclass(ABCMeta)
 class SphericalCoordinatesBase(object):
     """
     Abstract superclass for all coordinate classes representing points
@@ -31,8 +33,6 @@ class SphericalCoordinatesBase(object):
     `__init__`.  See the classes in
     `astropy.coordinates.builtin_systems` for examples of this.
     """
-
-    __metaclass__ = ABCMeta
 
     @abstractmethod
     def __init__(self, *args, **kwargs):
@@ -185,7 +185,7 @@ class SphericalCoordinatesBase(object):
                 # need to try to parse the coordinate from a single argument
                 # populates latval and lonval variables, which then get made
                 # into coordinates below
-                if isinstance(coordstr, basestring):
+                if isinstance(coordstr, six.string_types):
                     if "," in coordstr:
                         lonval, latval = coordstr.split(",")
                     else:
