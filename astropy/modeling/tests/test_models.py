@@ -145,13 +145,14 @@ def test_pickle():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_custom_model(amplitude=4, frequency=1):
-    def f(x, amplitude=4, frequency=1):
+    @models.custom_model_1d
+    def SineModel(x, amplitude=4, frequency=1):
         """
         Model function
         """
         return amplitude * np.sin(2 * np.pi * frequency * x)
     x = np.linspace(0, 4, 50)
-    sin_model = models.Custom1DModel(f)
+    sin_model = SineModel()
     np.random.seed(0)
     data = sin_model(x) + np.random.rand(len(x)) - 0.5
     fitter = fitting.NonLinearLSQFitter(sin_model)

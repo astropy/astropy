@@ -6,21 +6,24 @@ from __future__ import division
 
 import collections
 
+from textwrap import dedent
+
 import numpy as np
 
 from .core import (ParametricModel, Parametric1DModel, Parametric2DModel,
                    Model, _convert_input, _convert_output,
                    ModelDefinitionError)
 from .parameters import Parameter, InputParameterError
+from ..utils import find_current_module
 
 
 __all__ = sorted([
     'AiryDisk2DModel', 'Beta1DModel', 'Beta2DModel', 'Box1DModel',
-    'Box2DModel', 'Const1DModel', 'Const2DModel', 'Custom1DModel',
-    'Disk2DModel', 'Gaussian1DModel', 'Gaussian2DModel', 'Linear1DModel',
-    'Lorentz1DModel', 'MexicanHat1DModel', 'MexicanHat2DModel', 'ScaleModel',
-    'ShiftModel', 'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel',
-    'Ring2DModel'
+    'Box2DModel', 'Const1DModel', 'Const2DModel', 'Disk2DModel',
+    'Gaussian1DModel', 'Gaussian2DModel', 'Linear1DModel', 'Lorentz1DModel',
+    'MexicanHat1DModel', 'MexicanHat2DModel', 'ScaleModel', 'ShiftModel',
+    'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel', 'Ring2DModel',
+    'custom_model_1d'
 ])
 
 
@@ -1122,7 +1125,7 @@ class Beta2DModel(Parametric2DModel):
         return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
 
 
-class Custom1DModel(Parametric1DModel):
+def custom_model_1d(func):
     """
     Create one dimensional model from a user defined function.
 
@@ -1141,41 +1144,61 @@ class Custom1DModel(Parametric1DModel):
 
     Examples
     --------
-    Define a sinusoidal model function:
+    Define a sinusoidal model function as a custom 1D model:
 
-        >>> from astropy.modeling.models import Custom1DModel
+        >>> from astropy.modeling.models import custom_model_1d
         >>> import numpy as np
-        >>> def f(x, amplitude=1., frequency=1.):
+        >>> @custom_model_1d
+        ... def SineModel(x, amplitude=1., frequency=1.):
         ...     return amplitude * np.sin(2 * np.pi * frequency * x)
 
-    And create a custom one dimensional model from it:
+    Create an instance of the custom model and evaluate it:
 
-        >>> sin_model = Custom1DModel(f)
-        >>> sin_model(0.25)
+        >>> model = SineModel()
+        >>> model(0.25)
         1.0
 
     This model instance can now be used like a usual astropy model.
     """
 
-    def __init__(self, func, func_deriv=None, **constraints):
-        if callable(func):
-            self._func = func
-        else:
-            raise ModelDefinitionError("Not callable. Must be function")
+    if not callable(func):
+        raise ModelDefinitionError("Not callable. Must be function")
 
-        param_values = func.func_defaults
+    model_name = func.__name__
+    param_values = func.func_defaults
 
-        # Check if all parameters are keyword arguments
-        nparams = len(param_values)
-        if func.func_code.co_argcount == nparams + 1:
-            self.param_names = func.func_code.co_varnames[1:nparams + 1]
-        else:
-            raise ModelDefinitionError(
-                "All parameters must be keyword arguments")
-        param_dict = dict(zip(self.param_names, param_values))
-        super(Custom1DModel, self).__init__(param_dict, **constraints)
+    # Check if all parameters are keyword arguments
+    nparams = len(param_values)
+    if func.func_code.co_argcount == nparams + 1:
+        param_names = func.func_code.co_varnames[1:nparams + 1]
+    else:
+        raise ModelDefinitionError(
+            "All parameters must be keyword arguments")
 
-    def eval(self, x, *params):
-        """One dimensional Custom model function"""
+    params = dict((name, Parameter(name)) for name in param_names)
 
-        return self._func(x, *params)
+    arg_signature = ', '.join('{0}={1!r}'.format(name, value)
+                              for name, value in zip(param_names,
+                                                     param_values))
+
+    mod = find_current_module(2)
+    if mod:
+        filename = mod.__file__
+        modname = mod.__name__
+    else:
+        filename = '<string>'
+        modname = '__main__'
+
+    members = {'eval': staticmethod(func)}
+
+    eval(compile(dedent("""
+        def __init__(self, {0}):
+            super(self.__class__, self).__init__(locals())
+    """).format(arg_signature), filename, 'single'), members)
+
+    members.update(params)
+
+    cls = type(model_name, (Parametric1DModel,), members)
+    cls.__module__ = modname
+
+    return cls
