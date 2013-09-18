@@ -384,6 +384,10 @@ class ParametricModel(Model):
     """
 
     linear = False
+    # Flag that indicates if the model derivatives are given in columns
+    # or rows
+    col_deriv = True
+
 
     def __init__(self, n_inputs, n_outputs, param_dim=1, **constraints):
         bounds = constraints.pop('bounds', None)
@@ -411,10 +415,6 @@ class ParametricModel(Model):
             self._ineqcons = []
         else:
             self._ineqcons = ineqcons
-
-        # Flag that indicates if the model derivatives are given in columns
-        # or rows
-        self.col_deriv = 1
 
         # Set constraints
         self._constraints = {}

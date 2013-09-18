@@ -40,6 +40,7 @@ class PolynomialBase(ParametricModel):
     _param_names = []
 
     linear = True
+    col_deriv = False
 
     @lazyproperty
     def param_names(self):
