@@ -227,7 +227,7 @@ class Box2DKernel(Kernel2D):
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number, optional 
+    factor : number, optional
         Factor of oversampling. Default factor = 10.
 
 
@@ -296,7 +296,7 @@ class Tophat2DKernel(Kernel2D):
 
     See Also
     --------
-    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
+    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
     TrapezoidDisk2DKernel, AiryDisk2DKernel
 
     Examples
@@ -374,7 +374,7 @@ class Ring2DKernel(Kernel2D):
         plt.show()
     """
     def __init__(self, radius_in, radius_out, **kwargs):
-        self._model = models.Ring2DModel(1. / (np.pi * (radius_out ** 2 - radius_in ** 2)), 
+        self._model = models.Ring2DModel(1. / (np.pi * (radius_out ** 2 - radius_in ** 2)),
                                         0, 0, radius_in, radius_out)
         self._default_size = 2 * radius_out + 1
         super(Ring2DKernel, self).__init__(**kwargs)
@@ -432,7 +432,9 @@ class Trapezoid1DKernel(Kernel1D):
 
     def __init__(self, width, slope=1., **kwargs):
         self._model = models.Trapezoid1DModel(1, 0, width, slope)
-        self._default_size = 2 * (width / 2 + 1. / slope) + 1 
+        self._default_size = int(np.ceil(width + 2. / slope))
+        if self._default_size % 2 == 0:
+            self._default_size += 1
         super(Trapezoid1DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()
@@ -491,7 +493,9 @@ class TrapezoidDisk2DKernel(Kernel2D):
 
     def __init__(self, radius, slope=1., **kwargs):
         self._model = models.TrapezoidDisk2DModel(1, 0, 0, radius, slope)
-        self._default_size = 2 * (radius + 1. / slope) - 1
+        self._default_size = int(2 * radius + 2. / slope) - 1
+        if self._default_size % 2 == 0:
+            self._default_size += 1
         super(TrapezoidDisk2DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()
@@ -630,7 +634,7 @@ class AiryDisk2DKernel(Kernel2D):
     """
     2D Airy disk kernel.
 
-    This kernel models the diffraction pattern of a circular aperture. This 
+    This kernel models the diffraction pattern of a circular aperture. This
     kernel is normalized to a peak value of 1.
 
     Parameters

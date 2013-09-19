@@ -10,12 +10,13 @@ from numpy.testing import assert_array_almost_equal_nulp, assert_almost_equal
 
 import itertools
 
-SHAPES = [[7, 7], [15, 15], [31, 31]]
+SHAPES_ODD = [[15, 15], [31, 31], ]
+SHAPES_EVEN = [[8, 8], [16, 16], [32, 32]]
 WIDTHS = [2, 3, 4, 5]
 
 KERNELS = []
 
-for shape in SHAPES:
+for shape in SHAPES_ODD:
     for width in WIDTHS:
 
         KERNELS.append(Gaussian2DKernel(width,
@@ -73,7 +74,7 @@ class Test2DConvolutions(object):
         # not clear why, but these differ by a couple ulps...
         assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('shape', 'width'), list(itertools.product(SHAPES, WIDTHS)))
+    @pytest.mark.parametrize(('shape', 'width'), list(itertools.product(SHAPES_ODD, WIDTHS)))
     def test_uniform_smallkernel(self, shape, width):
         """
         Test smoothing of an image with a single positive pixel
@@ -96,7 +97,7 @@ class Test2DConvolutions(object):
 
         assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('shape', 'width'), list(itertools.product(SHAPES, [1, 3, 5])))
+    @pytest.mark.parametrize(('shape', 'width'), list(itertools.product(SHAPES_ODD, [1, 3, 5])))
     def test_smallkernel_vs_makekernel(self, shape, width):
         """
         Test smoothing of an image with a single positive pixel
@@ -108,9 +109,6 @@ class Test2DConvolutions(object):
         kernel2 = Box2DKernel(width, x_size=shape[0], y_size=shape[1],
                               mode='oversample', factor=10)
 
-        print(kernel1)
-        print(kernel2.array)
-
         x = np.zeros(shape)
         xslice = [slice(sh // 2, sh // 2 + 1) for sh in shape]
         x[xslice] = 1.0
@@ -120,12 +118,7 @@ class Test2DConvolutions(object):
 
         assert_almost_equal(c1, c2, decimal=12)
 
-        if width % 2 == 1:
+        c2 = convolve(x, kernel2, boundary='fill')
+        c1 = convolve(x, kernel1, boundary='fill')
 
-            kernel2 = Box2DKernel(width, x_size=shape[0], y_size=shape[1],
-                                  mode='oversample', factor=10)
-
-            c2 = convolve(x, kernel2, boundary='fill')
-            c1 = convolve(x, kernel1, boundary='fill')
-
-            assert_almost_equal(c1, c2, decimal=12)
+        assert_almost_equal(c1, c2, decimal=12)

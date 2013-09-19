@@ -203,11 +203,19 @@ class Kernel1D(Kernel):
     def __init__(self, model=None, x_size=None, array=None, **kwargs):
         # Initialize from model
         if array is None:
-            if model is not None:
-                self._model = model
+
             if x_size is None:
                 x_size = self._default_size
-            x_range = (-np.rint(x_size / 2), np.rint(x_size / 2) + 1)
+            elif x_size != int(x_size):
+                raise TypeError("x_size should be an integer")
+
+            # Set ranges where to evaluate the model
+
+            if x_size % 2 == 0:  # even kernel
+                x_range = (-(int(x_size)) // 2 + 0.5, (int(x_size)) // 2 + 0.5)
+            else:  # odd kernel
+                x_range = (-(int(x_size) - 1) // 2, (int(x_size) - 1) // 2 + 1)
+
             array = discretize_model(self._model, x_range, **kwargs)
 
         # Initialize from array
@@ -254,21 +262,25 @@ class Kernel2D(Kernel):
 
             if x_size is None:
                 x_size = self._default_size
-            elif x_size % 2 == 0:
-                raise ValueError("x_size should be odd")
-            elif (x_size - 1) % 2 != 0:
+            elif x_size != int(x_size):
                 raise TypeError("x_size should be an integer")
 
             if y_size is None:
                 y_size = x_size
-            elif y_size % 2 == 0:
-                raise ValueError("y_size should be odd")
-            elif (y_size - 1) % 2 != 0:
+            elif x_size != int(x_size):
                 raise TypeError("y_size should be an integer")
 
             # Set ranges where to evaluate the model
-            x_range = (-(int(x_size) - 1) // 2, (int(x_size) - 1) // 2 + 1)
-            y_range = (-(int(y_size) - 1) // 2, (int(y_size) - 1) // 2 + 1)
+
+            if x_size % 2 == 0:  # even kernel
+                x_range = (-(int(x_size)) // 2 + 0.5, (int(x_size)) // 2 + 0.5)
+            else:  # odd kernel
+                x_range = (-(int(x_size) - 1) // 2, (int(x_size) - 1) // 2 + 1)
+
+            if y_size % 2 == 0:  # even kernel
+                y_range = (-(int(y_size)) // 2 + 0.5, (int(y_size)) // 2 + 0.5)
+            else:  # odd kernel
+                y_range = (-(int(y_size) - 1) // 2, (int(y_size) - 1) // 2 + 1)
 
             print(x_size, y_size, x_range, y_range)
 
