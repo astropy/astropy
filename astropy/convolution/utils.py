@@ -127,7 +127,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
 
 
     """
-    if isinstance(model, Parametric2DModel) and y_range == None:
+    if isinstance(model, Parametric2DModel) and y_range is None:
         raise Exception("Please specify y range.")
     if mode == "center":
         if isinstance(model, Parametric1DModel):
@@ -140,7 +140,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
         if isinstance(model, Parametric2DModel):
             return discretize_bilinear_2D(model, x_range, y_range)
     elif mode == "oversample":
-        if y_range != None:
+        if y_range is not None:
             N = factor * (x_range[1] - x_range[0]) * (y_range[1] - y_range[0])
         else:
             N = factor * (x_range[1] - x_range[0])

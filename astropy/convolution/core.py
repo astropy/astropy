@@ -202,16 +202,16 @@ class Kernel1D(Kernel):
     """
     def __init__(self, model=None, x_size=None, array=None, **kwargs):
         # Initialize from model
-        if array == None:
-            if model != None:
+        if array is None:
+            if model is not None:
                 self._model = model
-            if x_size == None:
+            if x_size is None:
                 x_size = self._default_size
             x_range = (-np.rint(x_size / 2), np.rint(x_size / 2) + 1)
             array = discretize_model(self._model, x_range, **kwargs)
 
         # Initialize from array
-        elif array != None:
+        elif array is not None:
             self._model = None
         else:
             raise TypeError("Must specify either array or model.")
@@ -248,22 +248,38 @@ class Kernel2D(Kernel):
         Factor of oversampling. Default factor = 10.
     """
     def __init__(self, model=None, x_size=None, y_size=None, array=None, **kwargs):
+
         # Initialize from model
-        if array == None:
-            if x_size == None:
+        if array is None:
+
+            if x_size is None:
                 x_size = self._default_size
-            if y_size == None:
+            elif x_size % 2 == 0:
+                raise ValueError("x_size should be odd")
+            elif (x_size - 1) % 2 != 0:
+                raise TypeError("x_size should be an integer")
+
+            if y_size is None:
                 y_size = x_size
+            elif y_size % 2 == 0:
+                raise ValueError("y_size should be odd")
+            elif (y_size - 1) % 2 != 0:
+                raise TypeError("y_size should be an integer")
+
             # Set ranges where to evaluate the model
-            x_range = (-np.rint(x_size / 2), np.rint(x_size / 2) + 1)
-            y_range = (-np.rint(y_size / 2), np.rint(y_size / 2) + 1)
+            x_range = (-(int(x_size) - 1) // 2, (int(x_size) - 1) // 2 + 1)
+            y_range = (-(int(y_size) - 1) // 2, (int(y_size) - 1) // 2 + 1)
+
+            print(x_size, y_size, x_range, y_range)
+
             array = discretize_model(self._model, x_range, y_range, **kwargs)
 
         # Initialize from array
-        elif array != None:
+        elif array is not None:
             self._model = None
         else:
             raise TypeError("Must specify either array or model.")
+
         super(Kernel2D, self).__init__(array)
 
 
