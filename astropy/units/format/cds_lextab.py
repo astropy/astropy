@@ -4,6 +4,6 @@ _lextokens    = {u'DIVISION': 1, u'PRODUCT': 1, u'SIGN': 1, u'OPEN_PAREN': 1, u'
 _lexreflags   = 0
 _lexliterals  = ''
 _lexstateinfo = {'INITIAL': 'inclusive'}
-_lexstatere   = {'INITIAL': [(u'(?P<t_UFLOAT>((\\d+\\.?\\d+)|(\\.\\d+))([eE][+-]?\\d+)?)|(?P<t_UINT>\\d+)|(?P<t_SIGN>[+-](?=\\d))|(?P<t_X>x)|(?P<t_UNIT>\\%|([a-zA-Z][a-zA-Z_]*))|(?P<t_CLOSE_PAREN>\\))|(?P<t_OPEN_PAREN>\\()|(?P<t_PRODUCT>\\.)|(?P<t_DIVISION>/)', [None, (u't_UFLOAT', 'UFLOAT'), None, None, None, None, (u't_UINT', 'UINT'), (u't_SIGN', 'SIGN'), (u't_X', 'X'), (u't_UNIT', 'UNIT'), None, (None, 'CLOSE_PAREN'), (None, 'OPEN_PAREN'), (None, 'PRODUCT'), (None, 'DIVISION')])]}
+_lexstatere   = {'INITIAL': [(u'(?P<t_UFLOAT>((\\d+\\.?\\d+)|(\\.\\d+))([eE][+-]?\\d+)?)|(?P<t_UINT>\\d+)|(?P<t_SIGN>[+-](?=\\d))|(?P<t_X>[x\xd7])|(?P<t_UNIT>\\%|[a-zA-Z][a-zA-Z_]*)|(?P<t_CLOSE_PAREN>\\))|(?P<t_OPEN_PAREN>\\()|(?P<t_PRODUCT>\\.)|(?P<t_DIVISION>/)', [None, (u't_UFLOAT', 'UFLOAT'), None, None, None, None, (u't_UINT', 'UINT'), (u't_SIGN', 'SIGN'), (u't_X', 'X'), (u't_UNIT', 'UNIT'), (None, 'CLOSE_PAREN'), (None, 'OPEN_PAREN'), (None, 'PRODUCT'), (None, 'DIVISION')])]}
 _lexstateignore = {'INITIAL': u''}
 _lexstateerrorf = {'INITIAL': 't_error'}
