@@ -7,17 +7,13 @@ Note that this is intended to be a convenience, and is very simple. If you
 need precise coordinates for an object you should find the appropriate
 reference for that measurement and input the coordinates manually.
 """
-
-from __future__ import division, print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 # Standard library
 import os
 import re
-import sys
-import httplib
-import urllib
-import urllib2
-from urlparse import urlparse
+from ..extern.six.moves import urllib
 import socket
 
 # Third party
@@ -30,13 +26,13 @@ from .. import units as u
 
 __all__ = ["get_icrs_coordinates"]
 
-SESAME_URL = ConfigurationItem("sesame_url", 
+SESAME_URL = ConfigurationItem("sesame_url",
                         ["http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/",
                          "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/"],
                         "The URL to Sesame's web-queryable database.",
                         cfgtype='string_list')
 
-SESAME_DATABASE = ConfigurationItem("sesame_database", ['all', 'simbad', 'ned', 
+SESAME_DATABASE = ConfigurationItem("sesame_database", ['all', 'simbad', 'ned',
                                     'vizier'],
                                     "This specifies the default database that "
                                     "SESAME will query when using the name "
@@ -44,7 +40,7 @@ SESAME_DATABASE = ConfigurationItem("sesame_database", ['all', 'simbad', 'ned',
                                     "subpackage. Default is to search all "
                                     "databases, but this can be 'all', "
                                     "'simbad', 'ned', or 'vizier'.")
-                                    
+
 NAME_RESOLVE_TIMEOUT = ConfigurationItem('name_resolve_timeout', 5,
                                          "This is the maximum time to wait "
                                          "for a response from a name resolve "
@@ -57,12 +53,12 @@ def _parse_response(resp_data):
     """
     Given a string response from SESAME, parse out the coordinates by looking
     for a line starting with a J, meaning ICRS J2000 coordinates.
-    
+
     Parameters
     ----------
     resp_data : str
         The string HTTP response from SESAME.
-        
+
     Returns
     -------
     ra : str
@@ -70,10 +66,10 @@ def _parse_response(resp_data):
     dec : str
         The string Declination parsed from the HTTP response.
     """
-    
+
     pattr = re.compile(r"%J\s*([0-9\.]+)\s*([\+\-\.0-9]+)")
     matched = pattr.search(resp_data.decode('utf-8'))
-    
+
     if matched == None:
         return None, None
     else:
@@ -81,18 +77,18 @@ def _parse_response(resp_data):
         return ra,dec
 
 def get_icrs_coordinates(name):
-    """ 
+    """
     Retrieve an ICRSCoordinates object by using an online name resolving
     service to retrieve coordinates for the specified name. By default,
     this will search all available databases until a match is found. If
     you would like to specify the database, use the configuration item
-    `name_resolve.SESAME_DATABASE` . You can also specify a list of servers 
-    to use for querying Sesame using the configuration item 
+    `name_resolve.SESAME_DATABASE` . You can also specify a list of servers
+    to use for querying Sesame using the configuration item
     `name_resolve.SESAME_URL`. This will try each one in order until a valid
-    response is returned. By default, this list includes the main Sesame 
-    host and a mirror at vizier. A final configuration item, 
+    response is returned. By default, this list includes the main Sesame
+    host and a mirror at vizier. A final configuration item,
     `name_resolve.NAME_RESOLVE_TIMEOUT`, is the number of seconds to wait
-    for a response from the server before giving up. By default this is 
+    for a response from the server before giving up. By default this is
     5 seconds.
 
     Parameters
@@ -104,34 +100,34 @@ def get_icrs_coordinates(name):
     -------
     coord : SphericalCoordinatesBase
         An `ICRSCoordinates` instance for the object name specified.
-        
+
     """
-    
+
     database = SESAME_DATABASE()
     # The web API just takes the first letter of the database name
     db = database.upper()[0]
-    
+
     # Make sure we don't have duplicates in the url list
     urls = []
     domains = []
     for url in SESAME_URL():
-        domain = urlparse(url).netloc
-        
+        domain = urllib.parse.urlparse(url).netloc
+
         # Check for duplicates
         if domain not in domains:
             domains.append(domain)
-            
+
             # Add the query to the end of the url, add to url list
             fmt_url = os.path.join(url, "{db}?{name}")
-            fmt_url = fmt_url.format(name=urllib.quote(name), db=db)
+            fmt_url = fmt_url.format(name=urllib.parse.quote(name), db=db)
             urls.append(fmt_url)
-    
+
     for url in urls:
         try:
             # Retrieve ascii name resolve data from CDS
-            resp = urllib2.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT())
+            resp = urllib.request.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT())
             break
-        except urllib2.URLError, e:
+        except urllib.error.URLError as e:
             # This catches a timeout error, see:
             #   http://stackoverflow.com/questions/2712524/handling-urllib2s-timeout-python
             if isinstance(e.reason, socket.timeout):
@@ -140,7 +136,7 @@ def get_icrs_coordinates(name):
             else:
                 raise NameResolveError("Unable to retrieve coordinates for name "
                                        "'{0}'".format(name))
-    
+
     # All Sesame URL's timed out...
     else:
         raise NameResolveError("All Sesame queries timed out. Unable to "
@@ -149,7 +145,7 @@ def get_icrs_coordinates(name):
     resp_data = resp.read()
 
     ra,dec = _parse_response(resp_data)
-    
+
     if ra == None and dec == None:
         if db == "A":
             err = "Unable to find coordinates for name '{0}'".format(name)

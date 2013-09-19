@@ -4,9 +4,12 @@
 This module contains the implementations of specific coordinate systems
 and the conversions between them.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 
+from ..extern import six
 from .angles import Angle
 from .coordsystems import SphericalCoordinatesBase
 from ..time import Time
@@ -750,7 +753,7 @@ def _make_transform_graph_docs():
 
     from .transformations import master_transform_graph
 
-    coosys = [item for item in globals().values()
+    coosys = [item for item in list(six.itervalues(globals()))
               if isclass(item) and issubclass(item, SphericalCoordinatesBase)]
     coosys.remove(SphericalCoordinatesBase)
     graphstr = master_transform_graph.to_dot_graph(addnodes=coosys)

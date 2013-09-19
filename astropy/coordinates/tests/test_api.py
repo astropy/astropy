@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from numpy import testing as npt
 from ...tests.helper import pytest
 raises = pytest.raises
+
+from ...extern import six
 
 from ... import units as u
 from ..errors import *
@@ -64,9 +67,9 @@ def test_create_angles():
     a3 = Angle("54:07:26.832", unit=u.degree)
     a4 = Angle("54.12412 deg")
     a5 = Angle("54.12412 degrees")
-    a6 = Angle(u"54.12412°") # because we like Unicode
+    a6 = Angle("54.12412°") # because we like Unicode
     a7 = Angle((54, 7, 26.832), unit=u.degree)
-    a8 = Angle(u"54°07'26.832\"")
+    a8 = Angle("54°07'26.832\"")
     # (deg,min,sec) *tuples* are acceptable, but lists/arrays are *not*
     # because of the need to eventually support arrays of coordinates
     a9 = Angle([54, 7, 26.832], unit=u.degree)
@@ -688,7 +691,7 @@ def test_distances():
     npt.assert_almost_equal(csum.distance.kpc, 11.9942200501)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_distances_scipy():
     """
     The distance-related tests that require scipy due to the cosmology
@@ -712,5 +715,5 @@ def test_unicode():
     all platforms.
     """
     from .. import ICRSCoordinates
-    u = unicode("12h46m11.086s -00d30m11.99s")
+    u = six.text_type("12h46m11.086s -00d30m11.99s")
     c = ICRSCoordinates(u)
