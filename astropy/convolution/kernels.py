@@ -15,6 +15,13 @@ __all__ = sorted(['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
                   'TrapezoidDisk2DKernel', 'Ring2DKernel'])
 
 
+def _round_up_to_odd_integer(value):
+    i = int(np.ceil(value))
+    if i % 2 == 0:
+        return i + 1
+    else:
+        return i
+
 class Gaussian1DKernel(Kernel1D):
     """
     1D Gaussian filter kernel.
@@ -71,7 +78,7 @@ class Gaussian1DKernel(Kernel1D):
 
     def __init__(self, width, **kwargs):
         self._model = models.Gaussian1DModel(1. / (np.sqrt(2 * np.pi) * width), 0, width)
-        self._default_size = 8 * width + 1
+        self._default_size = _round_up_to_odd_integer(8 * width)
         super(Gaussian1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - 1 / self._normalization)
 
@@ -136,7 +143,7 @@ class Gaussian2DKernel(Kernel2D):
 
     def __init__(self, width, **kwargs):
         self._model = models.Gaussian2DModel(1. / (2 * np.pi * width ** 2), 0, 0, width, width)
-        self._default_size = 8 * width + 1
+        self._default_size = _round_up_to_odd_integer(8 * width)
         super(Gaussian2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - 1 / self._normalization)
 
@@ -196,7 +203,7 @@ class Box1DKernel(Kernel1D):
 
     def __init__(self, width, **kwargs):
         self._model = models.Box1DModel(1. / width, 0, width)
-        self._default_size = width + 1 if width % 2 == 2 else width
+        self._default_size = _round_up_to_odd_integer(width)
         super(Box1DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()
@@ -259,7 +266,7 @@ class Box2DKernel(Kernel2D):
 
     def __init__(self, width, **kwargs):
         self._model = models.Box2DModel(1. / width ** 2, 0, 0, width, width)
-        self._default_size = width + 1 if width % 2 == 2 else width
+        self._default_size = _round_up_to_odd_integer(width)
         super(Box2DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()
@@ -318,7 +325,7 @@ class Tophat2DKernel(Kernel2D):
     """
     def __init__(self, radius, **kwargs):
         self._model = models.Disk2DModel(1. / (np.pi * radius ** 2), 0, 0, radius)
-        self._default_size = 2 * radius + 1
+        self._default_size = _round_up_to_odd_integer(2 * radius)
         super(Tophat2DKernel, self).__init__(**kwargs)
         self._truncation = 0
 
@@ -376,7 +383,7 @@ class Ring2DKernel(Kernel2D):
     def __init__(self, radius_in, radius_out, **kwargs):
         self._model = models.Ring2DModel(1. / (np.pi * (radius_out ** 2 - radius_in ** 2)),
                                         0, 0, radius_in, radius_out)
-        self._default_size = 2 * radius_out + 1
+        self._default_size = _round_up_to_odd_integer(2 * radius_out)
         super(Ring2DKernel, self).__init__(**kwargs)
         self._truncation = 0
 
@@ -432,7 +439,7 @@ class Trapezoid1DKernel(Kernel1D):
 
     def __init__(self, width, slope=1., **kwargs):
         self._model = models.Trapezoid1DModel(1, 0, width, slope)
-        self._default_size = int(np.ceil(width + 2. / slope))
+        self._default_size = _round_up_to_odd_integer(width + 2. / slope)
         if self._default_size % 2 == 0:
             self._default_size += 1
         super(Trapezoid1DKernel, self).__init__(**kwargs)
@@ -493,7 +500,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
 
     def __init__(self, radius, slope=1., **kwargs):
         self._model = models.TrapezoidDisk2DModel(1, 0, 0, radius, slope)
-        self._default_size = int(2 * radius + 2. / slope) - 1
+        self._default_size = _round_up_to_odd_integer(2 * radius + 2. / slope)
         if self._default_size % 2 == 0:
             self._default_size += 1
         super(TrapezoidDisk2DKernel, self).__init__(**kwargs)
@@ -557,8 +564,8 @@ class MexicanHat1DKernel(Kernel1D):
     _is_bool = True
 
     def __init__(self, width, **kwargs):
-        self._default_size = 8 * width + 1
         self._model = models.MexicanHat1DModel(-1. / (np.sqrt(2 * np.pi) * width ** 3), 0, width)
+        self._default_size = _round_up_to_odd_integer(8 * width)
         super(MexicanHat1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
         self._normalization = 0
@@ -623,8 +630,8 @@ class MexicanHat2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, width, **kwargs):
-        self._default_size = 8 * width + 1
         self._model = models.MexicanHat2DModel(-1. / (np.pi * width ** 4), 0, 0, width)
+        self._default_size = _round_up_to_odd_integer(8 * width)
         super(MexicanHat2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
         self._normalization = 0
@@ -686,8 +693,8 @@ class AiryDisk2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, width, **kwargs):
-        self._default_size = 8 * width + 1
         self._model = models.AiryDisk2DModel(1, 0, 0, width)
+        self._default_size = _round_up_to_odd_integer(8 * width)
         super(AiryDisk2DKernel, self).__init__(**kwargs)
         self.normalize()
         self._truncation = None
