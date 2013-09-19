@@ -79,7 +79,7 @@ class Test2DConvolutions(object):
         """
         Test smoothing of an image with a single positive pixel
 
-        Instead of using make_kernel, uses a simple, small kernel
+        Uses a simple, small kernel
         """
 
         if width % 2 == 0:
