@@ -62,7 +62,11 @@ class CDS(Base):
         names = {}
 
         names['%'] = u.Unit('percent')
-        names['-'] = u.dimensionless_unscaled
+        # --- is used for dimensionless if an empty string is unhandy, e.g.,
+        # eg., in Vizier ReadMe's; pers. comm. to MHvK from
+        # François Ochsenbein <Francois.Ochsenbein@astro.unistra.fr>
+        # for an example, http://cdsarc.u-strasbg.fr/viz-bin/Cat?I/100A
+        names['---'] = u.dimensionless_unscaled
 
         for base in bases + faux_bases + unprefixed:
             names[base] = getattr(u, base)
@@ -137,11 +141,11 @@ class CDS(Base):
             return t
 
         def t_X(t):  # multiplication for factor in front of unit
-            r'[x*]'
+            ur'[x×]'
             return t
 
-        def t_UNIT(t):  # unit - is dimensionless (only at end)
-            r'\%|-$|[a-zA-Z][a-zA-Z_]*'
+        def t_UNIT(t):
+            r'\%|[a-zA-Z][a-zA-Z_]*'
             t.value = cls._get_unit(t)
             return t
 
