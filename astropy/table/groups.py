@@ -130,6 +130,9 @@ class ColumnGroups(BaseGroups):
                                 unit=par_col.unit, format=par_col.format, meta=par_col.meta)
         return out
 
+    def __repr__(self):
+        return '<{0} indices={1}>'.format(self.__class__.__name__, self.indices)
+
 
 class TableGroups(BaseGroups):
     def __init__(self, parent_table, indices=None, group_keys=None):
@@ -184,3 +187,7 @@ class TableGroups(BaseGroups):
             out_cols.append(new_col)
 
         return parent_table.__class__(out_cols, meta=parent_table.meta)
+
+    def __repr__(self):
+        return '<{0} group_keys={1} indices={2}>'.format(self.__class__.__name__, self.group_keys,
+                                                         self.indices)

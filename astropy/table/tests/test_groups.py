@@ -38,6 +38,9 @@ class TestAggregate():
             # Group by a single column key specified by name
             tg = t1.group_by('a')
             assert np.all(tg.groups.indices == np.array([0, 1, 4, 8]))
+            assert str(tg.groups) == "<TableGroups group_keys=('a',) indices=[0 1 4 8]>"
+            assert str(tg['a'].groups) == "<ColumnGroups indices=[0 1 4 8]>"
+
             # Sorted by 'a' and in original order for rest
             assert tg.pformat() == [' a   b   c   d ',
                                     '--- --- --- ---',
