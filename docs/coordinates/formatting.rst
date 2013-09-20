@@ -9,9 +9,9 @@ treating the components (e.g., RA and Dec) separately.  For example::
   >>> str(c.ra) + ' ' + str(c.dec)
   '187d42m21.31200s 12d23m28.03200s'
 
-To get better control over the formatting, you can use the angles' 
-`~astropy.coordinates.angle.Angle.format` method (see :doc:`angles` for
-more).  For example::
+To get better control over the formatting, you can use the angles'
+`~astropy.coordinates.angles.Angle.format` method (see :doc:`angles` for more).
+For example::
 
   >>> rahmsstr = c.ra.format(u.hour)
   >>>> rahmsstr
