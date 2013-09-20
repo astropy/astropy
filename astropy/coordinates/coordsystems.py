@@ -340,8 +340,8 @@ class SphericalCoordinatesBase(object):
                 r = 1
                 runit = None
             else:
-                r = self._distance._value
-                runit = self._distance._unit
+                r = self._distance.value
+                runit = self._distance.unit
             x, y, z = spherical_to_cartesian(r, self.latangle.radian,
                                                 self.lonangle.radian)
             self._cartpoint = CartesianPoints(x, y, z, runit)
