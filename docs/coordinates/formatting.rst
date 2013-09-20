@@ -11,8 +11,8 @@ treating the components (e.g., RA and Dec) separately.  For example::
   '187d42m21.31200s 12d23m28.03200s'
 
 To get better control over the formatting, you can use the angles'
-`~astropy.coordinates.angle.Angle.to_string` method (see :doc:`angles`
-for more).  For example::
+`~astropy.coordinates.angles.Angle.to_string` method (see :doc:`angles` for
+more).  For example::
 
   >>> rahmsstr = c.ra.to_string(u.hour)
   >>> str(rahmsstr)
