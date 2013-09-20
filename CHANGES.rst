@@ -85,6 +85,11 @@ New Features
   - Added ``astropy.utils.iers`` which allows reading in of IERS A or
     IERS B bulletins and interpolation in UT1-UTC.
 
+- ``astropy.extern.six`` 
+
+  - Added `six <https://pypi.python.org/pypi/six/>`_ for python2/python3 
+    compatibility
+
 - Astropy now uses the ERFA library instead of the IAU SOFA library for
   fundamental time transformation routines.  
   The ERFA library is derived, with permission, from the IAU SOFA library but 
