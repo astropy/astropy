@@ -458,3 +458,9 @@ def test_comparison():
 
     with pytest.raises(u.UnitsException):
         u.m > u.kg
+
+
+def test_compose_into_arbitrary_units():
+    # Issue #1438
+    from ...constants import G
+    G.decompose([u.kg, u.km, u.Unit("15 s")])
