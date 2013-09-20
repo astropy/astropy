@@ -129,6 +129,8 @@ class Quantity(np.ndarray):
             else:
                 _value = _validate_value(value.to(unit).value, dtype, copy)
         elif isiterable(value) and all(isinstance(v, Quantity) for v in value):
+            if unit is None:
+                unit = value[0].unit
             _value = _validate_value([q.to(unit).value for q in value], dtype,
                                      copy)
         else:

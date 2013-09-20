@@ -599,6 +599,11 @@ def test_quantity_initialized_with_quantity():
     assert q3[0].value == 60
     assert q3[1].value == 60
 
+    q4 = u.Quantity([q2, q1])
+    assert q4.unit == q2.unit
+    assert q4[0].value == 1
+    assert q4[1].value == 1
+
 
 def test_quantity_string_unit():
     q1 = "m" / u.s
