@@ -100,11 +100,13 @@ API Changes
 - ``astropy.coordinates``
 
   - The `astropy.coordinates.Angle` class is now a subclass of
-    `astropy.units.Quantity`.
+    `astropy.units.Quantity`. This means it has all of the methods of a
+    `numpy.ndarray`.
 
 
   - The `astropy.coordinates.Distance` class is now a subclass of
-    `astropy.units.Quantity`.
+    `astropy.units.Quantity`. This means it has all of the methods of a
+    `numpy.ndarray`.
 
     - All angular units are now supported, not just `radian`, `degree`
       and `hour`, but now `arcsecond` and `arcminute` as well.  The
