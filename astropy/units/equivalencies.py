@@ -13,7 +13,7 @@ from . import cgs
 from . import astrophys
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
-           'doppler_optical', 'doppler_relativistic', 'mass_energy', 'jytok']
+           'doppler_optical', 'doppler_relativistic', 'mass_energy', 'brightness_temperature']
 
 
 def parallax():
@@ -304,7 +304,7 @@ def mass_energy():
              lambda x: x / _si.c.value ** 2),
     ]
 
-def jytok(omega_B, nu):
+def brightness_temperature(omega_B, nu):
     """
     "Antenna Gain" or "sensitivity" equivalency: Defines the conversion between
     Jy/beam and "brightness temperature", T_B, in Kelvins.  This is a unit very
@@ -332,14 +332,14 @@ def jytok(omega_B, nu):
     >>> from astropy import units as u
     >>> omega_B = np.pi*(50*u.arcsec)**2
     >>> freq = 5*u.GHz
-    >>> u.Jy.to(u.K, equivalencies=u.jytok(omega_B,freq))
+    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B,freq))
     7.052588858...
-    >>> (1*u.Jy).to(u.K, equivalencies=u.jytok(omega_B,freq))
+    >>> (1*u.Jy).to(u.K, equivalencies=u.brightness_temperature(omega_B,freq))
     <Quantity 7.05258...
     >>> # VLA synthetic beam
     >>> omega_B = np.pi*(15*u.arcsec)**2
     >>> freq = 5*u.GHz
-    >>> u.Jy.to(u.K, equivalencies=u.jytok(omega_B,freq))
+    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B,freq))
     78.36209843...
     """
     beam = omega_B.to(si.sr).value

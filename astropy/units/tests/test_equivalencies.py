@@ -271,13 +271,13 @@ def test_irrelevant_equivalency():
     with pytest.raises(u.UnitsException):
         u.m.to(u.kg, equivalencies=[(u.m, u.l)])
 
-def test_jytok():
+def test_brightness_temperature():
     omega_B = np.pi*(50*u.arcsec)**2
     nu = u.GHz * 5
     tb = 7.05258885885 * u.K
     np.testing.assert_almost_equal(tb.value,
                                    (1*u.Jy).to(u.K,
-                                               equivalencies=u.jytok(omega_B, nu)).value)
+                                               equivalencies=u.brightness_temperature(omega_B, nu)).value)
     np.testing.assert_almost_equal(1.0,
                                    tb.to(u.Jy,
-                                         equivalencies=u.jytok(omega_B, nu)).value)
+                                         equivalencies=u.brightness_temperature(omega_B, nu)).value)
