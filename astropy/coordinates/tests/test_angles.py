@@ -2,6 +2,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from __future__ import unicode_literals
+
 # Test initalization of angles not already covered by the API tests
 
 import numpy as np
@@ -15,6 +17,10 @@ from ... import units as u
 def test_negative_zero_dms():
     # Test for DMS parser
     a = Angle('-00:00:10', u.deg)
+    assert_allclose(a.degree, -10. / 3600.)
+
+    # Unicode minus
+    a = Angle('\u221200:00:10', u.deg)
     assert_allclose(a.degree, -10. / 3600.)
 
 
