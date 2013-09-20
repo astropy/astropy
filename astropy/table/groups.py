@@ -57,7 +57,7 @@ def group_by(table, keys):
 
     # Note the use of copy=False because a copy is already made with table[idx_sort]
     out = table.__class__(table[idx_sort], copy=False)
-    out.groups = TableGroups(out, indices=indices, group_keys=keys)
+    out._groups = TableGroups(out, indices=indices, group_keys=keys)
 
     return out
 
@@ -70,20 +70,13 @@ class BaseGroups(object):
       - ``group_indices``: index values corresponding to group boundaries
       - ``aggregate()``: method to create new table by aggregating within groups
     """
-    def __init__(self, parent, indices=None, group_keys=None):
-        self.parent = parent  # parent Table or Column
-        self._indices = (np.array([0, len(self.parent)]) if indices is None else indices)
-        self._group_keys = group_keys or ()
-
     def values(self):
-        i0s = self.indices[:-1]
-        i1s = self.indices[1:]
+        i0s, i1s = self.indices[:-1], self.indices[1:]
         for i0, i1 in izip(i0s, i1s):
             yield self.parent[i0:i1]
 
     def keys(self):
-        i0s = self.indices[:-1]
-        i1s = self.indices[1:]
+        i0s, i1s = self.indices[:-1], self.indices[1:]
         for i0, i1 in izip(i0s, i1s):
             key_vals = tuple(self.parent[key][i0] for key in self.parent.group_keys)
             if len(key_vals) == 0:
@@ -93,22 +86,64 @@ class BaseGroups(object):
             yield key_vals
 
     @property
-    def indices(self):
-        return self._indices
-
-    @property
     def group_keys(self):
         return self._group_keys
 
     def __getitem__(self, item):
+        parent = self.parent_column if isinstance(self, ColumnGroups) else self.parent_table
+
         if isinstance(item, int):
             i0, i1 = self.indices[item], self.indices[item + 1]
-            return self.parent[i0:i1]
+            return parent[i0:i1]
         elif isinstance(item, slice):
             raise NotImplementedError()
 
 
+class ColumnGroups(BaseGroups):
+    def __init__(self, parent_column, indices=None, group_keys=None):
+        self.parent_column = parent_column  # parent Column
+        self.parent_table = parent_column.parent_table
+        self._indices = indices
+        self._group_keys = group_keys or ()
+
+    @property
+    def indices(self):
+        # If the parent column is in a table then use group indices from table
+        if self.parent_table:
+            return self.parent_table.groups.indices
+        else:
+            if self._indices is None:
+                return np.array([0, len(self.parent_column)])
+            else:
+                return self._indices
+
+    def aggregate(self, func):
+        i0s, i1s = self.indices[:-1], self.indices[1:]
+        par_col = self.parent_column
+        try:
+            vals = np.array([func(par_col[i0: i1]) for i0, i1 in izip(i0s, i1s)])
+        except Exception:
+            raise TypeError("Cannot aggregate column '{0}'"
+                            .format(par_col.name))
+
+        out = par_col.__class__(data=vals, name=par_col.name, description=par_col.description,
+                           unit=par_col.unit, format=par_col.format, meta=par_col.meta)
+        return out
+
+
 class TableGroups(BaseGroups):
+    def __init__(self, parent_table, indices=None, group_keys=None):
+        self.parent_table = parent_table  # parent Table
+        self._indices = indices
+        self._group_keys = group_keys or ()
+
+    @property
+    def indices(self):
+        if self._indices is None:
+            return np.array([0, len(self.parent_table)])
+        else:
+            return self._indices
+
     def aggregate(self, func):
         """
         Aggregate each group in the Table into a single row by applying the reduction
@@ -124,25 +159,21 @@ class TableGroups(BaseGroups):
         out : Table
             New table with the aggregated rows.
         """
-        idxs0, idxs1 = self.indices[:-1], self.indices[1:]
+        i0s, i1s = self.indices[:-1], self.indices[1:]
         out_cols = []
+        parent_table = self.parent_table
 
-        for col in self.parent.columns.values():
+        for col in parent_table.columns.values():
             # For key columns just pick off first in each group since they are identical
             if col.name in self.group_keys:
-                vals = col.take(idxs0)
+                new_col = col.take(i0s)
             else:
                 try:
-                    vals = np.array([func(col[i0: i1]) for i0, i1 in izip(idxs0, idxs1)])
-                except Exception:
-                    warnings.warn("Cannot aggregate column '{0}'"
-                                  .format(col.name))
+                    new_col = col.groups.aggregate(func)
+                except TypeError as err:
+                    warnings.warn(str(err))
                     continue
 
-            out_cols.append((col, vals))
+            out_cols.append(new_col)
 
-        out_cols = [col.__class__(data=vals, name=col.name, description=col.description,
-                                  unit=col.unit, format=col.format, meta=col.meta)
-                    for col, vals in out_cols]
-
-        return self.parent.__class__(out_cols, meta=self.parent.meta)
+        return parent_table.__class__(out_cols, meta=parent_table.meta)

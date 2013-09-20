@@ -404,22 +404,11 @@ class BaseColumn(object):
         lines, n_header = _pformat_col(self)
         return '\n'.join(lines)
 
-    def aggregate(self, func):
-        if not isinstance(self.parent_table, GroupedTable):
-            raise TypeError('Can only aggregate a column in a grouped table')
-
-        group_indexes = self.parent_table.group_indexes
-        idxs0, idxs1 = group_indexes[:-1], group_indexes[1:]
-
-        try:
-            vals = np.array([func(self[i0: i1]) for i0, i1 in izip(idxs0, idxs1)])
-        except Exception as err:
-            raise ValueError("Cannot aggregate column '{0}'"
-                             .format(self.name))
-
-        out = self.__class__(data=vals, name=self.name, description=self.description,
-                             unit=self.unit, format=self.format, meta=self.meta)
-        return out
+    @property
+    def groups(self):
+        if not hasattr(self, '_groups'):
+            self._groups = groups.ColumnGroups(self)
+        return self._groups
 
 
 class Column(BaseColumn, np.ndarray):
@@ -2246,6 +2235,12 @@ class Table(object):
 
     def __ne__(self, other):
         return ~self.__eq__(other)
+
+    @property
+    def groups(self):
+        if not hasattr(self, '_groups'):
+            self._groups = groups.TableGroups(self)
+        return self._groups
 
     def group_by(self, keys):
         """
