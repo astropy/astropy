@@ -172,6 +172,10 @@ class Distance(u.Quantity):
     #the automatic conversion members are implemented, but make sure they're
     #always available
     @property
+    def pc(self):
+        return self.to(u.parsec).value
+
+    @property
     def kpc(self):
         return self.to(u.kiloparsec).value
 
