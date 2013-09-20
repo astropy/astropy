@@ -24,11 +24,12 @@ class Distance(u.Quantity):
     """
     A one-dimensional distance.
 
-    This can be initialized in one of three ways: a distance and a unit,
-    a `~astropy.units.quantity.Quantity` object, or a redshift and
-    (optionally) a cosmology.  `value` and `unit` may be provided as
-    positional arguments, but `z` and `cosmology` are only valid as
-    keyword arguments (see examples).
+    This can be initialized in one of four ways:
+
+    * A distance `value` (array or float) and a `unit`
+    * A `~astropy.units.quantity.Quantity` object
+    * A redshift and (optionally) a cosmology.
+    * Providing a distance modulus
 
     Parameters
     ----------
