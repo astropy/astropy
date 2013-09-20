@@ -930,6 +930,19 @@ class UnitBase(object):
         """
         return False
 
+    @property
+    def unit(self):
+        """
+        This provides a uniform interface with ``Quantity`` and returns the unit itself.
+        """
+        return self
+
+    @property
+    def value(self):
+        """
+        This provides a uniform interface with ``Quantity`` and returns 1.
+        """
+        return 1.
 
 class NamedUnit(UnitBase):
     """
