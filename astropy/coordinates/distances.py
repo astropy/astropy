@@ -166,7 +166,7 @@ class Distance(u.Quantity):
             unit = u.Unit(unit)
 
         if not unit.is_equivalent(u.kpc):
-            raise u.UnitsError(u'Unit "{0}" is not a distance'.format(unit))
+            raise u.UnitsError(six.u('Unit "{0}" is not a distance').format(unit))
         return unit
 
     @property
