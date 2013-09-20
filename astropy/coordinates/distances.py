@@ -21,8 +21,7 @@ __all__ = ['Distance', 'CartesianPoints', 'cartesian_to_spherical',
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
 
-# FIXME: make this subclass Quantity once Quantity is in master
-class Distance(object):
+class Distance(u.Quantity):
     """
     A one-dimensional distance.
 
@@ -110,107 +109,6 @@ class Distance(object):
                 raise u.UnitsError('provided unit for Distance is not a length')
             self._value = value
             self._unit = unit
-
-    def __repr__(self):
-        return "<{0} {1:.5f} {2!s}>".format(type(self).__name__, self._value, self._unit)
-
-    @property
-    def lightyears(self):
-        """
-        The value of this distance in light years
-        """
-        return self._unit.to(u.lyr, self._value)
-
-    @property
-    def lyr(self):
-        """Short for :attr:`.lightyears`"""
-        return self.lightyears
-
-    @property
-    def parsecs(self):
-        """
-        The value of this distance in parsecs
-        """
-        return self._unit.to(u.parsec, self._value)
-
-    @property
-    def pc(self):
-        """Short for :attr:`.parsecs`"""
-        return self.parsecs
-
-    @property
-    def kiloparsecs(self):
-        """
-        The value of this distance in kiloparsecs
-        """
-        return self._unit.to(u.kpc, self._value)
-
-    @property
-    def kpc(self):
-        """Short for :attr:`.kiloparsecs`"""
-        return self.kiloparsecs
-
-    @property
-    def megaparsecs(self):
-        """
-        The value of this distance in megaparsecs
-        """
-        return self._unit.to(u.Mpc, self._value)
-
-    @property
-    def Mpc(self):
-        """Short for :attr:`.megaparsecs`"""
-        return self.megaparsecs
-
-    @property
-    def astronomical_units(self):
-        """
-        The value of this distance in astronomical units
-        """
-        return self._unit.to(u.au, self._value)
-
-    @property
-    def au(self):
-        """Short for :attr:`.astronomical_units`"""
-        return self.astronomical_units
-
-    @property
-    def meters(self):
-        """
-        The value of this distance in meters
-        """
-        return self._unit.to(u.m, self._value)
-
-    @property
-    def m(self):
-        """Short for :attr:`.meters`"""
-        return self.meters
-
-    @property
-    def kilometers(self):
-        """
-        The value of this distance in kilometers
-        """
-        return self._unit.to(u.km, self._value)
-
-    @property
-    def km(self):
-        """Short for :attr:`.kilometers`"""
-        return self.kilometers
-
-    @property
-    def redshift(self):
-        """
-        The redshift for this distance assuming its physical distance is
-        a luminosity distance.
-
-        .. note::
-            This uses the "current" cosmology to determine the appropriate
-            distance to redshift conversions.  See `astropy.cosmology`
-            for details on how to change this.
-
-        """
-        return self.compute_z()
 
     @property
     def z(self):
