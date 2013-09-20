@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from . import console
+from . import utils
 
 
 class Unicode(console.Console):
@@ -33,6 +34,19 @@ class Unicode(console.Console):
     def _get_unit_name(self, unit):
         return unit.get_format_name('unicode')
 
+    def _format_exponential_notation(self, val):
+        m, ex = utils.split_mantissa_exponent(val)
+
+        parts = []
+        if m:
+            parts.append(m.replace('-', '−'))
+
+        if ex:
+            parts.append("10{0}".format(
+                self._format_superscript(ex)))
+
+        return self._times.join(parts)
+
     @staticmethod
     def _format_superscript(number):
         mapping = {
@@ -46,7 +60,8 @@ class Unicode(console.Console):
             '7': '⁷',
             '8': '⁸',
             '9': '⁹',
-            '-': '⁻'}
+            '-': '⁻',
+            '−': '⁻'}
         output = []
         for c in number:
             output.append(mapping[c])

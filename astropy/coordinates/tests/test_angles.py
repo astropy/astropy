@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import unicode_literals
+
 # Test initalization of angles not already covered by the API tests
 
 from ..angles import Angle
@@ -10,6 +12,10 @@ from ... import units as u
 def test_negative_zero_dms():
     # Test for DMS parser
     a = Angle('-00:00:10', u.deg)
+    assert_allclose(a.degrees, -10. / 3600.)
+
+    # Unicode minus
+    a = Angle('\u221200:00:10', u.deg)
     assert_allclose(a.degrees, -10. / 3600.)
 
 

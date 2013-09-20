@@ -65,8 +65,11 @@ class _AngleParser(object):
         # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
         # Regular expression rules for simple tokens
         def t_UFLOAT(t):
-            r'((\d+\.\d*)|(\.\d+))([eE][+-]?\d+)?'
-            t.value = float(t.value)
+            r'((\d+\.\d*)|(\.\d+))([eE][+-−]?\d+)?'
+            # The above includes Unicode "MINUS SIGN" \u2212.  It is
+            # important to include the hyphen last, or the regex will
+            # treat this as a range.
+            t.value = float(t.value.replace('−', '-'))
             return t
 
         def t_UINT(t):
@@ -75,8 +78,14 @@ class _AngleParser(object):
             return t
 
         def t_SIGN(t):
-            r'[+-]'
-            t.value = float(t.value + '1')
+            r'[+−-]'
+            # The above include Unicode "MINUS SIGN" \u2212.  It is
+            # important to include the hyphen last, or the regex will
+            # treat this as a range.
+            if t.value == '+':
+                t.value = 1.0
+            else:
+                t.value = -1.0
             return t
 
         t_COLON = ':'
