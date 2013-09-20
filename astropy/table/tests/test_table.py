@@ -946,3 +946,22 @@ def test_copy_protocol():
 
     _assert_copies(t, t2, deep=False)
     _assert_copies(t, t3)
+
+def test_disallow_comparisons():
+    """
+    Regression test for #828 - disallow comparison operators on whole Table
+    """
+
+    t = table.Table()
+
+    with pytest.raises(TypeError):
+        t > 2
+
+    with pytest.raises(TypeError):
+        t < 1.1
+
+    with pytest.raises(TypeError):
+        t >= 5.5
+
+    with pytest.raises(TypeError):
+        t <= -1.1
