@@ -6,6 +6,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 
+import warnings
+
 from copy import deepcopy
 from ..utils.exceptions import AstropyWarning
 
@@ -52,7 +54,7 @@ def _both_isinstance(left, right, cls):
     return isinstance(left, cls) and isinstance(right, cls)
 
 
-def merge(left, right, merge_func=concat):
+def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
     """
     Merge the ``left`` and ``right`` metadata objects.
 
@@ -77,7 +79,12 @@ def merge(left, right, merge_func=concat):
             try:
                 out[key] = merge_func(left[key], right[key])
             except MergeConflictError:
-                raise MergeConflictError('Cannot merge meta key {0!r} types {1!r} and {2!r}'
-                                         .format(key, type(left[key]), type(right[key])))
+                if metadata_conflicts == 'warn':
+                    warnings.warn('Cannot merge meta key {0!r} types {1!r} and {2!r}, choosing {0}={3!r}'
+                                             .format(key, type(left[key]), type(right[key]), left[key]))
+                elif metadata_conflicts == 'error':
+                    raise MergeConflictError('Cannot merge meta key {0!r} types {1!r} and {2!r}'
+                                             .format(key, type(left[key]), type(right[key])))
+                out[key] = left[key]
 
     return out

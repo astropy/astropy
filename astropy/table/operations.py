@@ -49,10 +49,10 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1):
                                       metadata.MergeConflictWarning)
 
 
-def _merge_table_meta(out, tables):
+def _merge_table_meta(out, tables, metadata_conflicts='warn'):
     out_meta = deepcopy(tables[0].meta)
     for table in tables[1:]:
-        out_meta = metadata.merge(out_meta, table.meta)
+        out_meta = metadata.merge(out_meta, table.meta, metadata_conflicts=metadata_conflicts)
     out.meta.update(out_meta)
 
 
@@ -121,7 +121,7 @@ def join(left, right, keys=None, join_type='inner',
     return out
 
 
-def vstack(tables, join_type='outer'):
+def vstack(tables, join_type='outer', metadata_conflicts='warn'):
     """
     Stack tables vertically (along rows)
 
@@ -139,6 +139,11 @@ def vstack(tables, join_type='outer'):
         Table(s) to stack along rows (vertically) with the current table
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'exact'
+    metadata_conflicts : str
+        How to proceed with metadata conflicts. This can be one of `'silent'`
+        (pick one of the meta-data values sliently), `'warn'` (pick one of the
+        meta-data values, but emit a warning), and `'error'` (raise an
+        exception). The default is `'warn'`.
 
     Examples
     --------
@@ -177,7 +182,7 @@ def vstack(tables, join_type='outer'):
 
     # Merge column and table metadata
     _merge_col_meta(out, tables, col_name_map)
-    _merge_table_meta(out, tables)
+    _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
     return out
 
