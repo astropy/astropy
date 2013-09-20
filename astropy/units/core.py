@@ -1718,11 +1718,12 @@ def _condition_arg(value):
         try:
             avalue = np.array(value)
             if not avalue.dtype.kind in ['i', 'f', 'c']:
-                raise ValueError("Must be convertable to int or float array")
+                raise ValueError(
+                    "Must be convertable to int, float or complex array")
             if ma.isMaskedArray(value):
                 return value
             return avalue
         except ValueError:
             raise ValueError(
-                "Value not scalar compatible or convertable into a float or "
-                "integer array")
+                "Value not scalar compatible or convertable into a int, "
+                "float, or complex array")
