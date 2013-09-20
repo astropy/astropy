@@ -102,7 +102,7 @@ def_unit(['R', 'Rayleigh', 'rayleigh'],
          doc="Rayleigh: photon flux")
 
 def_unit(['mag'], register=True, prefixes=True,
-         doc="Stellar magnitude.")
+         doc="Astronomical magnitude.")
 
 
 ###########################################################################
