@@ -4,20 +4,20 @@ import warnings
 from itertools import izip
 
 
-def group_by(table, keys):
+def table_group_by(table, keys):
     """
-    Get groups for numpy structured array on specified keys.
+    Get groups for ``table`` on specified ``keys``.
 
     Parameters
     ----------
-    table : structured array
+    table : `Table`
         Table to group
     keys : str, list of str, `Table`, or Numpy array
         Grouping key specifier
 
     Returns
     -------
-    idxs, idx_sort : numpy arrays
+    grouped_table : Table object with groups attr set accordingly
     """
     from .table import Table
 
@@ -58,6 +58,48 @@ def group_by(table, keys):
     # Note the use of copy=False because a copy is already made with table[idx_sort]
     out = table.__class__(table[idx_sort], copy=False)
     out._groups = TableGroups(out, indices=indices, group_keys=keys)
+
+    return out
+
+
+def column_group_by(column, keys):
+    """
+    Get groups for ``column`` on specified ``keys``
+
+    Parameters
+    ----------
+    column : Column object
+        Column to group
+    keys : Table or Numpy array of same length as col
+        Grouping key specifier
+
+    Returns
+    -------
+    grouped_column : Column object with groups attr set accordingly
+    """
+    from .table import Table
+
+    if isinstance(keys, Table):
+        keys = keys._data
+
+    if not isinstance(keys, np.ndarray):
+        raise TypeError('Keys input must be numpy array, but got {0}'
+                        .format(type(keys)))
+
+    if len(keys) != len(column):
+        raise ValueError('Input keys array length {0} does not match column length {1}'
+                         .format(len(keys), len(column)))
+
+    idx_sort = keys.argsort()
+    keys = keys[idx_sort]
+
+    # Get all keys
+    diffs = np.concatenate(([True], keys[1:] != keys[:-1], [True]))
+    indices = np.flatnonzero(diffs)
+
+    # Note the use of copy=False because a copy is already made with table[idx_sort]
+    out = column.__class__(column[idx_sort])
+    out._groups = ColumnGroups(out, indices=indices)
 
     return out
 

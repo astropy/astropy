@@ -410,6 +410,29 @@ class BaseColumn(object):
             self._groups = groups.ColumnGroups(self)
         return self._groups
 
+    def group_by(self, keys):
+        """
+        Group this column by the specified ``keys``
+
+        This effectively splits the column into groups which correspond to unique values of
+        the ``keys`` grouping object.  The output is a new `Column` or `MaskedColumn` which
+        contains a copy of this column but sorted by row according to ``keys``.
+
+        The ``keys`` input to `group_by` must be a numpy array with the same length as
+        this column.
+
+        Parameters
+        ----------
+        keys : numpy array
+            Key grouping object
+
+        Returns
+        -------
+        out : Column
+            New column with groups attribute set accordingly
+        """
+        return groups.column_group_by(self, keys)
+
 
 class Column(BaseColumn, np.ndarray):
     """Define a data column for use in a Table object.
@@ -2266,4 +2289,4 @@ class Table(object):
         out : Table
             New table with groups set
         """
-        return groups.group_by(self, keys)
+        return groups.table_group_by(self, keys)
