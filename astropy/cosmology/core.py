@@ -1031,7 +1031,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : astropy.units.Quantity
+        d : float or ndarray
           Absorption distance (dimensionless) at each input redshift.
 
         References
@@ -1044,7 +1044,7 @@ class FLRW(Cosmology):
         if not isiterable(z):
             return quad(self._xfunc, 0, z)[0]
 
-        out = [quad(self._xfunc, 0, redshift)[0] for redshift in z]
+        out = np.array([quad(self._xfunc, 0, redshift)[0] for redshift in z])
         return out
 
     def distmod(self, z):

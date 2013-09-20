@@ -468,7 +468,7 @@ def test_absorption_distance():
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     assert np.allclose(tcos.absorption_distance([1, 3]),
                        [1.72576635, 7.98685853])
-    assert np.allclose(tcos.absorption_distance(3).value, 7.98685853)
+    assert np.allclose(tcos.absorption_distance(3), 7.98685853)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_massivenu_basic():
