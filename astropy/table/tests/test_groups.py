@@ -115,6 +115,43 @@ def test_table_group_by():
                                 '  0   a 0.0   4']
 
 
+@pytest.mark.xfail
+def test_grouped_copy():
+    """
+    Test that copying a table or column copies the groups properly
+    """
+    for masked in (False, True):
+        t1 = Table(T1, masked=masked)
+        tg = t1.group_by('a')
+        tgc = tg.copy()
+        assert np.all(tgc.groups.indices == tg.groups.indices)
+        assert tgc.groups.group_keys == tg.groups.group_keys
+
+        tac = tg['a'].copy()
+        assert np.all(tac.groups.indices == tg['a'].groups.indices)
+
+
+@pytest.mark.xfail
+def test_grouped_slicing():
+    """
+    Test that slicing a table removes previous grouping
+    """
+
+    for masked in (False, True):
+        t1 = Table(T1, masked=masked)
+
+        # Group by a single column key specified by name
+        tg = t1.group_by('a')
+        tg2 = tg[3:5]
+        assert np.all(tg2.groups.indices == np.array([0, len(tg2)]))
+        assert tg2.groups.group_keys == ()
+
+        c1 = t1['a'].copy()
+        gc1 = c1.group_by(t1['a'])
+        gc1c = gc1.copy()
+        assert np.all(gc1c.groups.indices == np.array([0, 1, 4, 8]))
+
+
 def test_group_by_masked():
     t1m = Table(T1, masked=True)
     t1m['c'].mask[4] = True
