@@ -12,7 +12,6 @@ from abc import ABCMeta, abstractproperty
 import numpy as np
 
 from .. import units as u
-from .. import cosmology
 
 __all__ = ['Distance', 'CartesianPoints', 'cartesian_to_spherical',
            'spherical_to_cartesian']
@@ -36,20 +35,28 @@ class Distance(u.Quantity):
     value : scalar or `~astropy.units.quantity.Quantity`
         The value of this distance
     unit : `~astropy.units.core.UnitBase`
-        The units for this distance.  Must have dimensions of distance.
+        The units for this distance, *if* `value` is not a `Quantity`.
+        Must have dimensions of distance.
     z : float
         A redshift for this distance.  It will be converted to a distance
         by computing the luminosity distance for this redshift given the
-        cosmology specified by `cosmology`.
+        cosmology specified by `cosmology`. Must be given as a keyword argument.
     cosmology : `~astropy.cosmology.Cosmology` or None
         A cosmology that will be used to compute the distance from `z`.
         If None, the current cosmology will be used (see
         `astropy.cosmology` for details).
+    dtype : ~numpy.dtype, optional
+        See `~astropy.units.Quantity`. Must be given as a keyword argument.
+    copy : bool, optional
+        See `~astropy.units.Quantity`. Must be given as a keyword argument.
 
     Raises
     ------
     astropy.units.core.UnitsError
         If the `unit` is not a distance.
+    ValueError
+        If `z` is provided with a `unit` or `cosmology` is provided when `z` is
+        *not* given, or `value` is given as well as `z`
 
     Examples
     --------
@@ -64,51 +71,81 @@ class Distance(u.Quantity):
     >>> d5 = Distance(z=0.23, cosmology=WMAP5)
     """
 
-    def __init__(self, *args, **kwargs):
-        if len(args) == 1 and isinstance(args[0], Distance):
-            # just copy
-            self._value = args[0]._value
-            self._unit = args[0]._unit
-        elif len(args) == 1 and isinstance(args[0], u.Quantity):
-            self._value = args[0].value
-            self._unit = args[0].unit
-        elif 'z' in kwargs:
-            z = kwargs.pop('z')
-            cosmo = kwargs.pop('cosmology', None)
-            if cosmo is None:
-                cosmo = cosmology.get_current()
+    def __new__(cls, value=None, unit=None, z=None, cosmology=None, dtype=None,
+                copy=True):
+        from ..cosmology import get_current
 
-            if len(args) > 0 or len(kwargs) > 0:
-                raise TypeError('Cannot give both distance and redshift')
-
-            ld = cosmo.luminosity_distance(z)
-            self._value = ld.value
-            self._unit = ld.unit
-        else:
-            if len(args) == 0:
-                value = kwargs.pop('value', None)
-                unit = kwargs.pop('unit', None)
-            elif len(args) == 1:
-                value = args[0]
-                unit = kwargs.pop('unit', None)
-            elif len(args) == 2:
-                value, unit = args
+        if isinstance(value, u.Quantity):
+            # This includes Distances as well
+            if unit is not None:
+                value = value.to(unit).value
             else:
-                raise TypeError('Distance constructor cannot take more than 2 arguments')
+                unit = value.unit
+                value = value.value
+        elif value is None:
+            if z is None:
+                raise ValueError('neither `value` nor `z` were given to '
+                                 'Distance constructor')
+            else:
+                if cosmology is None:
+                    cosmology = get_current()
 
-            if len(kwargs) > 0:
-                raise TypeError('Invalid keywords provided to Distance: ' +
-                                six.text_type(kwargs.keys()))
+                ld = cosmology.luminosity_distance(z)
+                value = ld.value
+                unit = ld.unit
+        elif z is not None:  # and value is not None based on above
+            raise ValueError('Both `z` and a `value` were provided in Distance '
+                             'constructor')
+        elif cosmology is not None:
+            raise ValueError('A `cosmology` was given but `z` was not provided '
+                             'in Distance constructor')
+        elif unit is None:
+            raise u.UnitsError('No unit was provided to Distance constructor')
+        #"else" the baseline `value` + `unit` case
 
-            if value is None:
-                raise ValueError('A value for the distance must be provided')
-            if unit is None:
-                raise u.UnitsError('A unit must be provided for distance.')
+        unit = cls._convert_to_and_validate_distance_unit(unit)
 
-            if not unit.is_equivalent(u.m):
-                raise u.UnitsError('provided unit for Distance is not a length')
-            self._value = value
-            self._unit = unit
+        try:
+            value = np.asarray(value)
+        except ValueError as e:
+            raise TypeError(str(e))
+
+        if value.dtype.kind not in 'iuf':
+            raise TypeError("Unsupported dtype '{0}'".format(value.dtype))
+
+        return super(Distance, cls).__new__(cls, value, unit, dtype=dtype,
+                                            copy=copy)
+
+    def __quantity_view__(self, obj, unit):
+        unit = self._convert_to_and_validate_distance_unit(unit)
+        return super(Distance, self).__quantity_view__(obj, unit)
+
+    def __quantity_instance__(self, val, unit, **kwargs):
+        unit = self._convert_to_and_validate_distance_unit(unit)
+        return super(Distance, self).__quantity_instance__(val, unit, **kwargs)
+
+    #TODO: is this needed?
+    #def __array_wrap__(self, obj, context=None):
+    #    obj = super(Distance, self).__array_wrap__(obj, context=context)
+    #    if isinstance(obj, Distance):
+    #        return Distance(obj.value, obj.unit)
+    #    return obj
+
+    @staticmethod
+    def _convert_to_and_validate_distance_unit(unit):
+        """
+        raises astropy.units.UnitsError if not a distance unit
+        """
+        if unit is not None:
+            unit = u.Unit(unit)
+
+        if unit.is_equivalent(u.kpc):
+            raise u.UnitsError(u'A unit {0} that is not a distance was given to '
+                'Distance'.format(unit))
+        return unit
+
+
+
 
     @property
     def z(self):

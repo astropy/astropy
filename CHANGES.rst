@@ -99,6 +99,10 @@ API Changes
   - The `astropy.coordinates.Angle` class is now a subclass of
     `astropy.units.Quantity`.
 
+
+  - The `astropy.coordinates.Distance` class is now a subclass of
+    `astropy.units.Quantity`.
+
     - All angular units are now supported, not just `radian`, `degree`
       and `hour`, but now `arcsecond` and `arcminute` as well.  The
       object will retain its native unit, so when printing out a value
