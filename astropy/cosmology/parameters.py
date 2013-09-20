@@ -27,14 +27,15 @@ The list of cosmologies available are given by the tuple
 Planck13 parameters from Planck Collaboration 2013, arXiv:1303.5076
 (Paper XVI), Table 5 (Planck + WP + lensing + highL + BAO)
 
-WMAP 9 year parameters from Hinshaw et al. 2013, ApJS, 208, 19. Table
-4 (WMAP9 + eCMB + BAO + H0)
+WMAP 9 year parameters from Hinshaw et al. 2013, ApJS, 208, 19,
+doi: 10.1088/0067-0049/208/2/19. Table 4 (WMAP9 + eCMB + BAO + H0)
 
-WMAP 7 year parameters from Komatsu et al. 2011, ApJS, 192, 18. Table
-1 (WMAP + BAO + H0 ML).
+WMAP 7 year parameters from Komatsu et al. 2011, ApJS, 192, 18,
+doi: 10.1088/0067-0049/192/2/18. Table 1 (WMAP + BAO + H0 ML).
 
-WMAP 5 year parameters from Komatsu et al. 2009, ApJS, 180, 330. Table
-1 (WMAP + BAO + SN ML).
+WMAP 5 year parameters from Komatsu et al. 2009, ApJS, 180, 330,
+doi: 10.1088/0067-0049/180/2/330. Table 1 (WMAP + BAO + SN ML).
+
 """
 
 # Ade et al. Planck 2013 paper XVI Table 5 penultimate column (best fit)
@@ -56,7 +57,6 @@ Planck13 = dict(
 )
 
 
-# Hinshaw et al. 2012, WMAP9 + eCMB + BAO + H0 (Table 4, last column)
 WMAP9 = dict(
     Oc0=0.2402,
     Ob0=0.04628,
@@ -70,11 +70,10 @@ WMAP9 = dict(
     Tcmb0=2.725,
     Neff=3.04,
     flat=True,
-    reference=("Hinshaw et al. 2012, arXiv 1212.5226."
-               " Table 4 (WMAP + eCMB + BAO + H0)")
+    reference=("Hinshaw et al. 2013, ApJS, 208, 19, "
+               "doi: 10.1088/0067-0049/208/2/19. "
+               "Table 4 (WMAP9 + eCMB + BAO + H0, last column)")
 )
-
-# Komatsu et al. 2011, WMAP + BAO + H0 ML (table 1).
 
 WMAP7 = dict(
     Oc0=0.226,
@@ -89,11 +88,10 @@ WMAP7 = dict(
     Tcmb0=2.725,
     Neff=3.04,
     flat=True,
-    reference=("Komatsu et al. 2011, ApJS, 192, 18. "
-               " Table 1 (WMAP + BAO + H0 ML)")
+    reference=("Komatsu et al. 2011, ApJS, 192, 18, "
+               "doi: 10.1088/0067-0049/192/2/18. "
+               "Table 1 (WMAP + BAO + H0 ML).")
 )
-
-# Komatsu et al. 2009 WMAP + BAO + SN ML (table 1).
 
 WMAP5 = dict(
     Oc0=0.231,
@@ -108,8 +106,9 @@ WMAP5 = dict(
     Tcmb0=2.725,
     Neff=3.04,
     flat=True,
-    reference=("Komatsu et al. 2009, ApJS, 180, 330. "
-               " Table 1 (WMAP + BAO + SN ML)")
+    reference=("Komatsu et al. 2009, ApJS, 180, 330, "
+               "doi: 10.1088/0067-0049/180/2/330. "
+               "Table 1 (WMAP + BAO + SN ML).")
 )
 
 available = tuple(k for k in locals() if not k.startswith('_'))
