@@ -2155,3 +2155,15 @@ class Table(object):
 
     def __copy__(self):
         return self.copy(False)
+
+    def __lt__(self, other):
+        raise TypeError("unorderable types: Table() < {0}".format(str(type(other))))
+
+    def __gt__(self, other):
+        raise TypeError("unorderable types: Table() > {0}".format(str(type(other))))
+
+    def __le__(self, other):
+        raise TypeError("unorderable types: Table() <= {0}".format(str(type(other))))
+
+    def __ge__(self, other):
+        raise TypeError("unorderable types: Table() >= {0}".format(str(type(other))))
