@@ -69,11 +69,13 @@ def test_cds_grammar():
         (["uarcsec"], u.uarcsec),
         (["kbarn"], u.kbarn),
         (["Gbit"], u.Gbit),
+        (["Gibit"], 2 ** 30 * u.bit),
         (["kbyte"], u.kbyte),
         (["mRy"], 0.001 * u.Ry),
         (["mmag"], u.mmag),
         (["Mpc"], u.Mpc),
-        (["Gyr"], u.Gyr)]
+        (["Gyr"], u.Gyr),
+        (["°"], u.degree)]
 
     for strings, unit in data:
         for s in strings:

@@ -1,0 +1,178 @@
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+"""
+This package defines units used in the CDS format.
+
+Contains the units defined in `Centre de Données astronomiques de
+Strasbourg <http://cds.u-strasbg.fr/>`_ `Standards for Astronomical
+Catalogues 2.0 <http://cds.u-strasbg.fr/doc/catstd-3.2.htx>`_ format,
+and the `complete set of supported units
+<http://vizier.u-strasbg.fr/cgi-bin/Unit>`_.  This format is used by
+VOTable up to version 1.2.
+
+To include them in `~astropy.units.UnitBase.compose` and the results
+of `~astropy.units.UnitBase.find_equivalent_units`, do::
+
+    >>> from astropy.units import cds
+    >>> cds.enable()  # doctest: +SKIP
+
+"""
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+_ns = globals()
+
+
+def _initialize_module():
+    # Local imports to avoid polluting top-level namespace
+    import numpy as np
+
+    from . import core
+    from .. import units as u
+    from ..constants import si as _si
+
+    # The CDS format also supports power-of-2 prefixes as defined here:
+    # http://physics.nist.gov/cuu/Units/binary.html
+    prefixes = core.si_prefixes + [
+        (['Ki'], ['kibi'], 2. ** 10),
+        (['Mi'], ['mebi'], 2. ** 20),
+        (['Gi'], ['gibi'], 2. ** 30),
+        (['Ti'], ['tebi'], 2. ** 40),
+        (['Pi'], ['pebi'], 2. ** 50),
+        (['Ei'], ['exbi'], 2. ** 60)
+        ]
+
+    # CDS only uses the short prefixes
+    prefixes = [(short, short, factor) for (short, long, factor) in prefixes]
+
+    # The following units are defined in alphabetical order, directly from
+    # here: http://vizier.u-strasbg.fr/cgi-bin/Unit
+
+    mapping = [
+        (['A'], u.A, "Ampere"),
+        (['a'], u.a, "year", ['P']),
+        (['a0'], _si.a0, "Bohr radius"),
+        (['al'], u.lyr, "Light year", ['c', 'd']),
+        (['lyr'], u.lyr, "Light year"),
+        (['alpha'], _si.alpha, "Fine structure constant"),
+        (['AA', 'Angstrom', 'Angstroem', 'Å'], u.AA, "Angstrom"),
+        (['arcm', 'arcmin'], u.arcminute, "minute of arc"),
+        (['arcs', 'arcsec'], u.arcsecond, "second of arc"),
+        (['atm'], _si.atm, "atmosphere"),
+        (['AU', 'au'], u.au, "astronomical unit"),
+        (['bar'], u.bar, "bar"),
+        (['barn'], u.barn, "barn"),
+        (['bit'], u.bit, "bit"),
+        (['byte'], u.byte, "byte"),
+        (['C'], u.C, "Coulomb"),
+        (['c'], _si.c, "speed of light", ['p']),
+        (['cal'], 4.1854 * u.J, "calorie"),
+        (['cd'], u.cd, "candela"),
+        (['Crab'], _si.Crab, "Crab (X-ray) flux"),
+        (['ct'], u.ct, "count"),
+        (['D'], u.D, "Debye (dipole)"),
+        (['d'], u.d, "Julian day", ['c']),
+        (['deg', 'degree', '°'], u.degree, "degree"),
+        (['dyn'], u.dyn, "dyne"),
+        (['e'], _si.e, "electron charge", ['m']),
+        (['eps0'], _si.eps0, "electric constant"),
+        (['erg'], u.erg, "erg"),
+        (['eV'], u.eV, "electron volt"),
+        (['F'], u.F, "Farad"),
+        (['G'], _si.G, "Gravitation constant"),
+        (['g'], u.g, "gram"),
+        (['gauss'], u.G, "Gauss"),
+        (['geoMass', 'Mgeo'], _si.M_earth, "Earth mass"),
+        (['H'], u.H, "Henry"),
+        (['h'], u.h, "hour", ['p']),
+        (['hr'], u.h, "hour"),
+        (['\\h'], _si.h, "Planck constant"),
+        (['Hz'], u.Hz, "Hertz"),
+        (['inch'], 0.0254 * u.m, "inch"),
+        (['J'], u.J, "Joule"),
+        (['JD'], u.d, "Julian day", ['M']),
+        (['jovMass', 'Mjup'], _si.M_jup, "Jupiter mass"),
+        (['Jy'], u.Jy, "Jansky"),
+        (['K'], u.K, "Kelvin"),
+        (['k'], _si.k_B, "Boltzmann"),
+        (['l'], u.l, "litre", ['a']),
+        (['lm'], u.lm, "lumen"),
+        (['Lsun', 'solLum'], u.solLum, "solar luminosity"),
+        (['lx'], u.lx, "lux"),
+        (['m'], u.m, "meter"),
+        (['mag'], u.mag, "magnitude"),
+        (['me'], _si.m_e, "electron mass"),
+        (['min'], u.minute, "minute"),
+        (['MJD'], u.d, "Julian day"),
+        (['mmHg'], 133.322387415 * u.Pa, "millimeter of mercury"),
+        (['mol'], u.mol, "mole"),
+        (['mp'], _si.m_p, "proton mass"),
+        (['Msun', 'solMass'], u.solMass, "solar mass"),
+        (['mu0', 'µ0'], _si.mu0, "magnetic constant"),
+        (['muB'], _si.muB, "Bohr magneton"),
+        (['N'], u.N, "Newton"),
+        (['Ohm'], u.Ohm, "Ohm"),
+        (['Pa'], u.Pa, "Pascal"),
+        (['pc'], u.pc, "parsec"),
+        (['ph'], u.ph, "photon"),
+        (['pi'], u.Unit(np.pi), "π"),
+        (['pix'], u.pix, "pixel"),
+        (['ppm'], u.Unit(1e-6), "parts per million"),
+        (['R'], _si.R, "gas constant"),
+        (['rad'], u.radian, "radian"),
+        (['Rgeo'], _si.R_earth, "Earth equatorial radius"),
+        (['Rjup'], _si.R_jup, "Jupiter equatorial radius"),
+        (['Rsun', 'solRad'], u.solRad, "solar radius"),
+        (['Ry'], u.Ry, "Rydberg"),
+        (['S'], u.S, "Siemens"),
+        (['s', 'sec'], u.s, "second"),
+        (['sr'], u.sr, "steradian"),
+        (['Sun'], u.Sun, "solar unit"),
+        (['T'], u.T, "Tesla"),
+        (['t'], 1e3 * u.kg, "metric tonne", ['c']),
+        (['u'], _si.u, "atomic mass", ['da', 'a']),
+        (['V'], u.V, "Volt"),
+        (['W'], u.W, "Watt"),
+        (['Wb'], u.Wb, "Weber"),
+        (['yr'], u.a, "year"),
+    ]
+
+    for entry in mapping:
+        if len(entry) == 3:
+            names, unit, doc = entry
+            excludes = []
+        else:
+            names, unit, doc, excludes = entry
+        core.def_unit(names, unit, prefixes=prefixes, namespace=_ns, doc=doc,
+                      exclude_prefixes=excludes)
+
+    core.def_unit(['µas'], u.microarcsecond,
+                  doc="microsecond of arc", namespace=_ns)
+    core.def_unit(['mas'], u.milliarcsecond,
+                  doc="millisecond of arc", namespace=_ns)
+
+
+_initialize_module()
+
+
+###########################################################################
+# DOCSTRING
+
+# This generates a docstring for this module that describes all of the
+# standard units defined here.
+from .utils import generate_unit_summary as _generate_unit_summary
+__doc__ += _generate_unit_summary(globals())
+
+
+def enable():
+    """
+    Enable CDS units so they appear in results of
+    `Unit.find_equivalent_units` and `Unit.compose`.
+    """
+    # Local import to avoid cyclical import
+    from .core import add_enabled_units
+    # Local import to avoid polluting namespace
+    import inspect
+    add_enabled_units(inspect.getmodule(enable))

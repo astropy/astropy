@@ -48,6 +48,10 @@ m_n = Constant('m_n', "Neutron mass", 1.674927351e-27, 'kg', 0.000000074e-27,
 m_e = Constant('m_e', "Electron mass", 9.10938291e-31, 'kg', 0.00000040e-31,
                'CODATA 2010', system='si')
 
+# Atomic mass
+u = Constant('u', "Atomic mass", 1.660538921e-27, 'kg', 0.000000073e-27,
+             'CODATA 2010', system='si')
+
 # Stefan-Boltzmann constant
 sigma_sb = Constant('sigma_sb', "Stefan-Boltzmann constant", 5.670373e-8,
                     'W / (K4 m2)', 0.000021e-8, 'CODATA 2010', system='si')
@@ -55,6 +59,10 @@ sigma_sb = Constant('sigma_sb', "Stefan-Boltzmann constant", 5.670373e-8,
 # Electron charge; EM constants require a system to be specified
 e = EMConstant('e', 'Electron charge', 1.602176565e-19, 'C', 0.000000035e-19,
                'CODATA 2010', system='si')
+
+# Electric constant
+eps0 = EMConstant('eps0', 'Electic constant', 8.854187817e-12, 'F/m', 0.0,
+                  'CODATA 2010', system='si')
 
 # Avogadro's number
 N_A = Constant('N_A', "Avogadro's number", 6.02214129e23, '1 / (mol)',
@@ -66,6 +74,26 @@ R = Constant('R', "Gas constant", 8.3144621, 'J / (K mol)', 0.0000075,
 
 # Rydberg constant
 Ryd = Constant('Ryd', 'Rydberg constant', 10973731.568539, '1 / (m)', 0.000055,
+               'CODATA 2010', system='si')
+
+# Bohr radius
+a0 = Constant('a0', "Bohr radius", 0.52917721092e-10, 'm', 0.00000000017e-10,
+              'CODATA 2010', system='si')
+
+# Bohr magneton
+muB = Constant('muB', "Bohr magneton", 927.400968e-26, 'J/T', 0.00002e-26,
+               'CODATA 2010', system='si')
+
+# Fine structure constant
+alpha = Constant('alpha', "Fine-structure constant", 7.2973525698e-3, '',
+                 0.0000000024e-3, 'CODATA 2010', system='si')
+
+# Atmosphere
+atm = Constant('atmosphere', "Atmosphere", 101325, 'Pa', 0.0,
+               'CODATA 2010', system='si')
+
+# Magnetic constant
+mu0 = Constant('mu0', "Magnetic constant", 4.0e-7 * np.pi, 'N/A2', 0.0,
                'CODATA 2010', system='si')
 
 # DISTANCE
@@ -120,3 +148,10 @@ M_earth = Constant('M_earth', "Earth mass", 5.9742e24, 'kg', 0.00005e24,
 R_earth = Constant('R_earth', "Earth equatorial radius", 6.378136e6, 'm',
                    0.0000005e6, "Allen's Astrophysical Quantities 4th Ed.",
                    system='si')
+
+# OTHER QUANTITIES
+
+# Crab nebula X-ray flux
+Crab = Constant('Crab', "Flux of Crab Nebula at X-ray photon energy",
+                1.43e-11, 'kg s-3', 0.0,
+                "???", system='si')
