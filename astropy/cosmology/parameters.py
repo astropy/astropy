@@ -25,10 +25,10 @@ The list of cosmologies available are given by the tuple
 `available`. Current cosmologies available:
 
 Planck13 parameters from Planck Collaboration 2013, arXiv:1303.5076
- (Paper XVI), Table 5 (Planck + WP + lensing + highL + BAO)
+(Paper XVI), Table 5 (Planck + WP + lensing + highL + BAO)
 
-WMAP 9 year parameters from Hinshaw et al. 2012, arXiv 1212.5226.
- Table 4 (WMAP9 + eCMB + BAO + H0)
+WMAP 9 year parameters from Hinshaw et al. 2013, ApJS, 208, 19. Table
+4 (WMAP9 + eCMB + BAO + H0)
 
 WMAP 7 year parameters from Komatsu et al. 2011, ApJS, 192, 18. Table
 1 (WMAP + BAO + H0 ML).
