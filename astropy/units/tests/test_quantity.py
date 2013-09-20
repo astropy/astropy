@@ -7,9 +7,9 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import pytest
 import numpy as np
 
+from ...tests.helper import pytest
 from ...tests.compat import assert_allclose
 from ...tests.helper import raises, pytest
 from ...utils import isiterable
