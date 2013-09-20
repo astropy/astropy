@@ -91,3 +91,18 @@ def test_hms():
     a2 = Angle(hms, unit=u.hour)
 
     npt.assert_almost_equal(a2.radian, a1.radian)
+
+
+def test_array_coordinates_creation():
+    """
+    Test creating coordinates from arrays.  Focuses on ICRSCoordinates.
+    """
+    from .. import ICRSCoordinates
+
+    c = ICRSCoordinates(np.array([1, 2]), np.array([3, 4]), unit=(u.deg, u.deg))
+    assert not c.isscalar
+
+    with pytest.raises(ValueError):
+        c = ICRSCoordinates(np.array([1, 2]), np.array([3, 4, 5]), unit=(u.deg, u.deg))
+    with pytest.raises(ValueError):
+        c = ICRSCoordinates(np.array([1, 2]), np.array([[3, 4], [5, 6]]), unit=(u.deg, u.deg))
