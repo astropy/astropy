@@ -12,6 +12,9 @@ New Features
     (Dec, elevation, galactic B) respectively.  The `Longitude` class provides
     auto-wrapping capability and `Latitude` performs bounds checking.
 
+  - `astropy.coordinates.Distance` supports conversion to and from distance
+    modulii.
+
 - ``astropy.io.votable``
 
   - The format of the units of a VOTable file can be specified using

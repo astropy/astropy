@@ -3,6 +3,9 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from numpy import testing as npt
+from ...tests.helper import pytest
+
 from ... import units as u
 
 
@@ -75,3 +78,23 @@ def test_distance_is_quantity():
     q.value[1] = 0
     assert q.value[1] == 0
     assert d.value[1] != 0
+
+
+def test_distmod():
+    from .. import Distance
+
+    d = Distance(10, u.pc)
+    assert d.distmod.value == 0
+
+    d = Distance(distmod=20)
+    assert d.distmod.value == 20
+    assert d.kpc == 100
+
+    d = Distance(distmod=-1., unit=u.au)
+    npt.assert_almost_equal(d.value, 1301442.9440836983)
+
+    with pytest.raises(ValueError):
+        d = Distance(value=d, distmod=20)
+
+    with pytest.raises(ValueError):
+        d = Distance(z=.23, distmod=20)

@@ -45,6 +45,8 @@ class Distance(u.Quantity):
         A cosmology that will be used to compute the distance from `z`.
         If None, the current cosmology will be used (see
         `astropy.cosmology` for details).
+    distmod : float or `~astropy.units.Quantity`
+        The distance modulus for this distance.
     dtype : ~numpy.dtype, optional
         See `~astropy.units.Quantity`. Must be given as a keyword argument.
     copy : bool, optional
@@ -69,28 +71,58 @@ class Distance(u.Quantity):
     >>> d3 = Distance(value=5, unit=u.kpc)
     >>> d4 = Distance(z=0.23)
     >>> d5 = Distance(z=0.23, cosmology=WMAP5)
+    >>> d6 = Distance(distmod=24.47)
     """
 
-    def __new__(cls, value=None, unit=None, z=None, cosmology=None, dtype=None,
-                copy=True):
+    def __new__(cls, value=None, unit=None, z=None, cosmology=None,
+                distmod=None, dtype=None, copy=True):
         from ..cosmology import get_current
 
         if isinstance(value, u.Quantity):
             # This includes Distances as well
+            if z is not None or distmod is not None:
+                raise ValueError('`value` was given along with `z` or `distmod`'
+                                 ' in Quantity constructor.')
+
             if unit is not None:
                 value = value.to(unit).value
             else:
                 unit = value.unit
                 value = value.value
         elif value is None:
-            if z is None:
-                raise ValueError('neither `value` nor `z` were given to '
-                                 'Distance constructor')
-            else:
+            if z is not None:
+                if distmod is not None:
+                    raise ValueError('both `z` and `distmod` given in Distance '
+                                     'constructor')
+
                 if cosmology is None:
                     cosmology = get_current()
 
                 ld = cosmology.luminosity_distance(z)
+
+                if unit is not None:
+                    ld = ld.to(unit)
+                value = ld.value
+                unit = ld.unit
+
+            elif distmod is not None:
+                value = cls._distmod_to_pc(distmod)
+                if unit is None:
+                    # choose unit based on most reasonable of Mpc, kpc, or pc
+                    if value > 1e6:
+                        value = value / 1e6
+                        unit = u.megaparsec
+                    elif value > 1e3:
+                        value = value / 1e3
+                        unit = u.kiloparsec
+                    else:
+                        unit = u.parsec
+                else:
+                    value = u.Quantity(value, u.parsec).to(unit).value
+            else:
+                raise ValueError('none of `value`, `z`, or `distmod` were given'
+                                 ' to Distance constructor')
+
                 value = ld.value
                 unit = ld.unit
         elif z is not None:  # and value is not None based on above
@@ -124,13 +156,6 @@ class Distance(u.Quantity):
         unit = self._convert_to_and_validate_distance_unit(unit)
         return super(Distance, self).__quantity_instance__(val, unit, **kwargs)
 
-    #TODO: is this needed?
-    #def __array_wrap__(self, obj, context=None):
-    #    obj = super(Distance, self).__array_wrap__(obj, context=context)
-    #    if isinstance(obj, Distance):
-    #        return Distance(obj.value, obj.unit)
-    #    return obj
-
     @staticmethod
     def _convert_to_and_validate_distance_unit(unit):
         """
@@ -159,6 +184,10 @@ class Distance(u.Quantity):
             The cosmology to assume for this calculation, or None to use the
             current cosmology.
 
+        Returns
+        -------
+        z : float
+            The redshift of this distance given the provided `cosmology`.
         """
         from ..cosmology import luminosity_distance
         from scipy import optimize
@@ -167,6 +196,16 @@ class Distance(u.Quantity):
 
         f = lambda z, d, cos: (luminosity_distance(z, cos).value - d) ** 2
         return optimize.brent(f, (self.Mpc, cosmology))
+
+    @property
+    def distmod(self):
+        """  The distance modulus of this distance as a Quantity """
+        val = 5. * np.log10(self.to(u.pc).value) - 5.
+        return u.Quantity(val, u.mag)
+
+    @staticmethod
+    def _distmod_to_pc(dm):
+        return 10 ** ((dm + 5) / 5.)
 
     #these might be included in future revisions of Quantity depending on how
     #the automatic conversion members are implemented, but make sure they're
