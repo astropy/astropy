@@ -139,18 +139,14 @@ class Distance(u.Quantity):
         if unit is not None:
             unit = u.Unit(unit)
 
-        if unit.is_equivalent(u.kpc):
-            raise u.UnitsError(u'A unit {0} that is not a distance was given to '
-                'Distance'.format(unit))
+        if not unit.is_equivalent(u.kpc):
+            raise u.UnitsError(u'Unit "{0}" is not a distance'.format(unit))
         return unit
-
-
-
 
     @property
     def z(self):
-        """Short for :attr:`.redshift`"""
-        return self.redshift
+        """Short for ``self.compute_z()``"""
+        return self.compute_z()
 
     def compute_z(self, cosmology=None):
         """
@@ -171,6 +167,25 @@ class Distance(u.Quantity):
 
         f = lambda z, d, cos: (luminosity_distance(z, cos).value - d) ** 2
         return optimize.brent(f, (self.Mpc, cosmology))
+
+    #these might be included in future revisions of Quantity depending on how
+    #the automatic conversion members are implemented, but make sure they're
+    #always available
+    @property
+    def kpc(self):
+        return self.to(u.kiloparsec).value
+
+    @property
+    def Mpc(self):
+        return self.to(u.megaparsec).value
+
+    @property
+    def lyr(self):
+        return self.to(u.lightyear).value
+
+    @property
+    def km(self):
+        return self.to(u.kilometer).value
 
 
 class CartesianPoints(object):
