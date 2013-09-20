@@ -169,8 +169,9 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
     Tests to make sure the default behavior when the cache directory can't
     be located is correct
     """
-    from pytest import raises
+
     from .. import data
+    from ...tests.helper.pytest import raises
     from ...config import paths
 
     # needed for testing the *real* lock at the end
