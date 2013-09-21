@@ -17,7 +17,7 @@ from os import path
 
 # If your documentation needs a minimal Sphinx version, state it here.
 # Some of the docs require the autodoc special-members option, in 1.1
-needs_sphinx = '1.2b2'
+needs_sphinx = '1.2'
 
 # Configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
