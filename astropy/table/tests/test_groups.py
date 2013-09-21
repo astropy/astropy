@@ -150,7 +150,6 @@ def test_grouped_slicing():
         assert tg2.groups.group_keys == ()
 
 
-@pytest.mark.xfail
 def test_grouped_item_access():
     """
     Test that column slicing preserves grouping
@@ -163,8 +162,22 @@ def test_grouped_item_access():
         tgs = tg['a', 'c', 'd']
         assert tgs.groups.group_keys == ('a',)
         assert np.all(tgs.groups.indices == np.array([0, 1, 4, 8]))
-        tgsa = tgs.aggregate(np.sum)
-        assert tgsa.pformat() == ""
+        tgsa = tgs.groups.aggregate(np.sum)
+        assert tgsa.pformat() == [' a   c    d ',
+                                  '--- ---- ---',
+                                  '  0  0.0   4',
+                                  '  1  6.0  18',
+                                  '  2 22.0   6']
+
+        tgs = tg['c', 'd']
+        assert tgs.groups.group_keys == ()
+        assert np.all(tgs.groups.indices == np.array([0, 1, 4, 8]))
+        tgsa = tgs.groups.aggregate(np.sum)
+        assert tgsa.pformat() == [' c    d ',
+                                  '---- ---',
+                                  ' 0.0   4',
+                                  ' 6.0  18',
+                                  '22.0   6']
 
 
 def test_mutable_operations():
