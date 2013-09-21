@@ -92,7 +92,7 @@ install:
     # build_sphinx needs sphinx and matplotlib (for plot_directive). Note that
     # this matplotlib will *not* work with py 3.x, but our sphinx build is
     # currently 2.7, so that's fine
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_WHEEL_COMMAND "Sphinx>=1.2b2"; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_WHEEL_COMMAND "Sphinx==dev"; fi
     - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_WHEEL_COMMAND "matplotlib>=1.3.0"; fi
 
 script:
