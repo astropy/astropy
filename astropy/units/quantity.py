@@ -328,7 +328,8 @@ class Quantity(np.ndarray):
 
                 if obj_array is None:
                     if type(out) != np.ndarray:  # array scalar; cannot view
-                        return self.__quantity_instance__(out, result_unit)
+                        return self.__quantity_instance__(out, result_unit,
+                                                          equivalencies=[])
                     else:
                         obj = self.__quantity_view__(out, result_unit)
 
@@ -372,6 +373,10 @@ class Quantity(np.ndarray):
 
         The parameters are the same as those to `Quantity.__new__`.
         """
+        # if unit remains the same, by default equivalencies do too
+        if 'equivalencies' not in kwargs and self.unit is unit:
+            kwargs['equivalencies'] = self.equivalencies
+
         return Quantity(val, unit, **kwargs)
 
     def __reduce__(self):
@@ -410,7 +415,8 @@ class Quantity(np.ndarray):
             constructor will be used.
         """
         if equivalencies is None:
-            equivalencies = self._equivalencies
+            equivalencies = self.equivalencies
+
         new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
         new_unit = Unit(unit)
         return self.__quantity_instance__(new_val, new_unit,
@@ -458,7 +464,7 @@ class Quantity(np.ndarray):
         si_unit = self.unit.to_system(si)[0]
         return self.__quantity_instance__(
             self.value * si_unit.scale, si_unit / si_unit.scale,
-            copy=False)
+            equivalencies=self.equivalencies, copy=False)
 
     @property
     def cgs(self):
@@ -471,7 +477,7 @@ class Quantity(np.ndarray):
         cgs_unit = self.unit.to_system(cgs)[0]
         return self.__quantity_instance__(
             self.value * cgs_unit.scale, cgs_unit / cgs_unit.scale,
-            copy=False)
+            equivalencies=self.equivalencies, copy=False)
 
     @lazyproperty
     def isscalar(self):

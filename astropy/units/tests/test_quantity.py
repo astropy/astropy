@@ -365,14 +365,27 @@ def test_quantity_conversion_with_equiv():
 
 
 def test_quantity_conversion_equivalency_passed_on():
-    q1 = u.Quantity([1000,2000], unit=u.Hz, equivalencies=u.spectral())
+    q1 = u.Quantity([1000, 2000, 3000], unit=u.Hz, equivalencies=u.spectral())
     q2 = q1.to(u.nm).to(u.Hz)
     assert q2.unit == u.Hz
     assert_allclose(q2.value, q1.value)
-    q3 = u.Quantity([1000, 2000], unit=u.nm)
+    q3 = u.Quantity([1000, 2000, 3000], unit=u.nm)
     q4 = q3.to(u.Hz, equivalencies=u.spectral()).to(u.nm)
     assert q4.unit == u.nm
     assert_allclose(q4.value, q3.value)
+    q5 = q4.si
+    assert q5.equivalencies == q4.equivalencies
+    q6 = q4[0]
+    assert q6.equivalencies == q4.equivalencies
+
+
+def test_quantity_conversion_equivalency_not_passed_on():
+    # equivalencies should not be passed on when the unit changes
+    q1 = u.Quantity([1000, 2000, 3000], unit=u.Hz, equivalencies=u.spectral())
+    q2 = q1 / u.s
+    assert q2.equivalencies == []
+    q3 = q1.var()
+    assert q3.equivalencies == []
 
 
 def test_si():
