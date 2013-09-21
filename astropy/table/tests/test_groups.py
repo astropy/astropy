@@ -115,6 +115,41 @@ def test_table_group_by():
                                 '  0   a 0.0   4']
 
 
+def test_groups_keys():
+    tg = T1.group_by('a')
+    keys = list(tg.groups.keys())
+    assert keys == [0, 1, 2]
+
+    tg = T1.group_by(['a', 'b'])
+    keys = list(tg.groups.keys())
+    assert keys == [(0, 'a'), (1, 'a'), (1, 'b'), (2, 'a'), (2, 'b'), (2, 'c')]
+
+    tg = T1.group_by(T1['b'])
+    keys = list(tg.groups.keys())
+    assert keys == [0, 1, 2]
+
+
+def test_groups_values():
+    tg = T1.group_by('a')
+    values = list(tg.groups.values())
+    assert values[0].pformat() == [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  0   a 0.0   4']
+    assert values[1].pformat() == [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  1   b 3.0   5',
+                                   '  1   a 2.0   6',
+                                   '  1   a 1.0   7',
+                                   ]
+    assert values[2].pformat() == [' a   b   c   d ',
+                                   '--- --- --- ---',
+                                   '  2   c 7.0   0',
+                                   '  2   b 5.0   1',
+                                   '  2   b 6.0   2',
+                                   '  2   a 4.0   3',
+                                   ]
+
+
 def test_grouped_copy():
     """
     Test that copying a table or column copies the groups properly
