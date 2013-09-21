@@ -98,3 +98,14 @@ Color printing on Windows
 Colored printing of log messages and other colored text does work in Windows
 but only when running in the IPython console.  Colors are not currently
 supported in the basic Python command-line interpreter on Windows.
+
+Installation fails on Mageia-2 or Mageia-3 distributions
+--------------------------------------------------------
+
+Command line ``python ./setup.py install`` fails with libm linking error  
+``unable to find 'pow' or 'sincos'`` ...
+Next packages for python2 and python 3 next packages should fix the bug.
+See: https://bugs.mageia.org/show_bug.cgi?id=10102
+
+Immediate workaround is to edit the file : ``/usr/lib/python2.7/config/Makefile``
+and remove ``-Wl,--no-undefined`` from the LDFLAGS def.
