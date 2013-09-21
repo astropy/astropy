@@ -433,6 +433,16 @@ class BaseColumn(object):
         """
         return groups.column_group_by(self, keys)
 
+    def _copy_groups(self, out):
+        """
+        Copy current groups into a copy of self ``out``
+        """
+        if self.parent_table:
+            if hasattr(self.parent_table, '_groups'):
+                out._groups = groups.ColumnGroups(out, indices=self.parent_table._groups._indices)
+        elif hasattr(self, '_groups'):
+            out._groups = groups.ColumnGroups(out, indices=self._groups._indices)
+
 
 class Column(BaseColumn, np.ndarray):
     """Define a data column for use in a Table object.
@@ -581,8 +591,7 @@ class Column(BaseColumn, np.ndarray):
 
         out = Column(name=self.name, data=data, unit=self.unit, format=self.format,
                      description=self.description, meta=deepcopy(self.meta))
-        # print 'column copy', self.name, data, self.groups.indices
-        # out._groups = groups.ColumnGroups(out, indices=self.groups.indices)
+        self._copy_groups(out)
 
         return out
 
@@ -833,10 +842,12 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
             if copy_data:
                 data = data.copy(order)
 
-        return MaskedColumn(name=self.name, data=data, unit=self.unit, format=self.format,
-                            # Do not include mask=self.mask since `data` has the mask
-                            fill_value=self.fill_value,
-                            description=self.description, meta=deepcopy(self.meta))
+        out = MaskedColumn(name=self.name, data=data, unit=self.unit, format=self.format,
+                           # Do not include mask=self.mask since `data` has the mask
+                           fill_value=self.fill_value,
+                           description=self.description, meta=deepcopy(self.meta))
+        self._copy_groups(out)
+        return out
 
 
 class Row(object):
