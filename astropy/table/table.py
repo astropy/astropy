@@ -1861,7 +1861,8 @@ class Table(object):
         self._rebuild_table_column_views()
 
         # Revert groups to default (ungrouped) state
-        del self._groups
+        if hasattr(self, '_groups'):
+            del self._groups
 
     def remove_column(self, name):
         """
@@ -2177,8 +2178,8 @@ class Table(object):
         self._rebuild_table_column_views()
 
         # Revert groups to default (ungrouped) state
-        del self._groups
-
+        if hasattr(self, '_groups'):
+            del self._groups
 
     def sort(self, keys):
         '''
