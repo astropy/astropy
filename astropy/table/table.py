@@ -579,8 +579,12 @@ class Column(BaseColumn, np.ndarray):
             if copy_data:
                 data = data.copy(order)
 
-        return Column(name=self.name, data=data, unit=self.unit, format=self.format,
-                      description=self.description, meta=deepcopy(self.meta))
+        out = Column(name=self.name, data=data, unit=self.unit, format=self.format,
+                     description=self.description, meta=deepcopy(self.meta))
+        # print 'column copy', self.name, data, self.groups.indices
+        # out._groups = groups.ColumnGroups(out, indices=self.groups.indices)
+
+        return out
 
 
 class MaskedColumn(BaseColumn, ma.MaskedArray):
@@ -1448,8 +1452,11 @@ class Table(object):
             return Row(self, item)
         elif isinstance(item, (tuple, list)) and all(x in self.colnames
                                                      for x in item):
-            return self.__class__([self[x] for x in item],
-                                  meta=deepcopy(self.meta))
+            out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
+            out_group_keys = tuple(key for key in self.groups._group_keys if key in item)
+            out._groups = groups.TableGroups(out, indices=self.groups._indices,
+                                             group_keys=out_group_keys)
+            return out
         elif (isinstance(item, slice) or
               isinstance(item, np.ndarray) or
               isinstance(item, list) or
@@ -1853,6 +1860,9 @@ class Table(object):
         # and should be updated:
         self._rebuild_table_column_views()
 
+        # Revert groups to default (ungrouped) state
+        del self._groups
+
     def remove_column(self, name):
         """
         Remove a column from the table.
@@ -1949,7 +1959,7 @@ class Table(object):
             self.columns.pop(name)
 
         newdtype = [(name, self._data.dtype[name]) for name in self._data.dtype.names
-                if name not in names]
+                    if name not in names]
         newdtype = np.dtype(newdtype)
 
         if newdtype:
@@ -1967,6 +1977,9 @@ class Table(object):
 
         self._data = table
 
+        # Fix group_keys by removing any keys in names
+        group_keys = tuple(key for key in self.groups.group_keys if key not in names)
+        self.groups._group_keys = group_keys
 
     def keep_columns(self, names):
         '''
@@ -2048,6 +2061,10 @@ class Table(object):
             raise KeyError("Column {0} does not exist".format(name))
 
         self.columns[name].name = new_name
+
+        # Fix group_keys by renaming appropriately
+        group_keys = tuple(new_name if key == name else key for key in self.groups.group_keys)
+        self.groups._group_keys = group_keys
 
     def add_row(self, vals=None, mask=None):
         """Add a new row to the end of the table.
@@ -2158,6 +2175,10 @@ class Table(object):
         self._data[-1:] = test_data
 
         self._rebuild_table_column_views()
+
+        # Revert groups to default (ungrouped) state
+        del self._groups
+
 
     def sort(self, keys):
         '''

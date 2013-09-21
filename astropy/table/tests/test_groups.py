@@ -2,7 +2,7 @@
 import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
-from ...table import Table
+from ...table import Table, Column
 
 
 def sort_eq(list1, list2):
@@ -130,8 +130,12 @@ def test_grouped_copy():
         tac = tg['a'].copy()
         assert np.all(tac.groups.indices == tg['a'].groups.indices)
 
+        c1 = t1['a'].copy()
+        gc1 = c1.group_by(t1['a'])
+        gc1c = gc1.copy()
+        assert np.all(gc1c.groups.indices == np.array([0, 1, 4, 8]))
 
-@pytest.mark.xfail
+
 def test_grouped_slicing():
     """
     Test that slicing a table removes previous grouping
@@ -140,16 +144,75 @@ def test_grouped_slicing():
     for masked in (False, True):
         t1 = Table(T1, masked=masked)
 
-        # Group by a single column key specified by name
+        # Regular slice of a table
         tg = t1.group_by('a')
         tg2 = tg[3:5]
         assert np.all(tg2.groups.indices == np.array([0, len(tg2)]))
         assert tg2.groups.group_keys == ()
 
-        c1 = t1['a'].copy()
-        gc1 = c1.group_by(t1['a'])
-        gc1c = gc1.copy()
-        assert np.all(gc1c.groups.indices == np.array([0, 1, 4, 8]))
+
+@pytest.mark.xfail
+def test_grouped_item_access():
+    """
+    Test that column slicing preserves grouping
+    """
+    for masked in (False, True):
+        t1 = Table(T1, masked=masked)
+
+        # Regular slice of a table
+        tg = t1.group_by('a')
+        tgs = tg['a', 'c', 'd']
+        assert tgs.groups.group_keys == ('a',)
+        assert np.all(tgs.groups.indices == np.array([0, 1, 4, 8]))
+        tgsa = tgs.aggregate(np.sum)
+        assert tgsa.pformat() == ""
+
+
+def test_mutable_operations():
+    """
+    Operations like adding or deleting a row should removing grouping,
+    but adding or removing or renaming a column should retain grouping.
+    """
+    for masked in (False, True):
+        t1 = Table(T1, masked=masked)
+
+        # add row
+        tg = t1.group_by('a')
+        tg.add_row((0, 'a', 3.0, 4))
+        assert np.all(tg.groups.indices == np.array([0, len(tg)]))
+
+        # remove row
+        tg = t1.group_by('a')
+        tg.remove_row(4)
+        assert np.all(tg.groups.indices == np.array([0, len(tg)]))
+
+        # add column
+        tg = t1.group_by('a')
+        indices = tg.groups.indices.copy()
+        tg.add_column(Column(name='e', data=np.arange(len(tg))))
+        assert np.all(tg.groups.indices == indices)
+        assert np.all(tg['e'].groups.indices == indices)
+
+        # remove column (not key column)
+        tg = t1.group_by('a')
+        tg.remove_column('b')
+        assert np.all(tg.groups.indices == indices)
+        assert tg.groups.group_keys == ('a',)
+        assert np.all(tg['a'].groups.indices == indices)
+
+        # remove key column (removes key from group_keys)
+        tg = t1.group_by('a')
+        tg.remove_column('a')
+        assert np.all(tg.groups.indices == indices)
+        assert tg.groups.group_keys == ()
+        assert np.all(tg['b'].groups.indices == indices)
+
+        # remove key column (removes key from group_keys)
+        tg = t1.group_by('a')
+        tg.rename_column('a', 'aa')
+        assert np.all(tg.groups.indices == indices)
+        assert tg.groups.group_keys == ('aa',)
+        assert np.all(tg['aa'].groups.indices == indices)
 
 
 def test_group_by_masked():

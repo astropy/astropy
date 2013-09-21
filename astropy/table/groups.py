@@ -55,8 +55,7 @@ def table_group_by(table, keys):
     diffs = np.concatenate(([True], table_keys[1:] != table_keys[:-1], [True]))
     indices = np.flatnonzero(diffs)
 
-    # Note the use of copy=False because a copy is already made with table[idx_sort]
-    out = table.__class__(table[idx_sort], copy=False)
+    out = table.__class__(table[idx_sort])
     out._groups = TableGroups(out, indices=indices, group_keys=keys)
 
     return out
@@ -136,17 +135,24 @@ class BaseGroups(object):
 
         if isinstance(item, int):
             i0, i1 = self.indices[item], self.indices[item + 1]
-            return parent[i0:i1]
+            out = parent[i0:i1]
         elif isinstance(item, slice):
-            raise NotImplementedError()
+            if item.step is not None:
+                raise ValueError('Cannot supply step for groups slicing')
+            i0, i1 = self.indices[item.start], self.indices[item.stop]
+            out = parent[i0:i1]
+            out.groups._group_keys = parent.groups._group_keys
+            if parent.groups._indices is not None:
+                out.groups._indices = parent.groups._indices[item.start:item.stop + 1]
+
+        return out
 
 
 class ColumnGroups(BaseGroups):
-    def __init__(self, parent_column, indices=None, group_keys=None):
+    def __init__(self, parent_column, indices=None):
         self.parent_column = parent_column  # parent Column
         self.parent_table = parent_column.parent_table
         self._indices = indices
-        self._group_keys = group_keys or ()
 
     @property
     def indices(self):
