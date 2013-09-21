@@ -84,7 +84,7 @@ def _is_inside(path, parent_path):
 
 @contextlib.contextmanager
 def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
-                         show_progress=True, timeout=REMOTE_TIMEOUT()):
+                         show_progress=True, remote_timeout=None):
     """
     Given a filename or a readable file-like object, return a context
     manager that yields a readable file-like object.
@@ -131,8 +131,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         Whether to display a progress bar if the file is downloaded
         from a remote server.  Default is `True`.
 
-    timeout : float
-        Timeout for the requests in seconds (default is the configurable
+    remote_timeout : float
+        Timeout for remote requests in seconds (default is the configurable
         REMOTE_TIMEOUT, which is 3s by default)
 
     Returns
@@ -151,12 +151,16 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     close_fds = []
     delete_fds = []
 
+    if remote_timeout is None:
+        # use configfile default
+        remote_timeout = REMOTE_TIMEOUT()
+
     # Get a file object to the content
     if isinstance(name_or_obj, six.string_types):
         if _is_url(name_or_obj):
             name_or_obj = download_file(
                 name_or_obj, cache=cache, show_progress=show_progress,
-                timeout=timeout)
+                timeout=remote_timeout)
         if PY3K:
             fileobj = io.FileIO(name_or_obj, 'r')
         else:
@@ -393,8 +397,7 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
                                     cache=cache)
 
 
-def get_pkg_data_filename(data_name, show_progress=True,
-                          timeout=REMOTE_TIMEOUT()):
+def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
     """
     Retrieves a data file from the standard locations for the package and
     provides a local filename for the data.
@@ -475,6 +478,10 @@ def get_pkg_data_filename(data_name, show_progress=True,
 
     data_name = os.path.normpath(data_name)
 
+    if remote_timeout is None:
+        # use configfile default
+        remote_timeout = REMOTE_TIMEOUT()
+
     if data_name.startswith('hash/'):
         # first try looking for a local version if a hash is specified
         hashfn = _find_hash_fn(data_name[5:])
@@ -482,7 +489,7 @@ def get_pkg_data_filename(data_name, show_progress=True,
             return download_file(
                 DATAURL() + data_name, cache=True,
                 show_progress=show_progress,
-                timeout=timeout)
+                remote_timeout=remote_timeout)
         else:
             return hashfn
     else:
@@ -496,7 +503,7 @@ def get_pkg_data_filename(data_name, show_progress=True,
             return download_file(
                 DATAURL() + data_name, cache=True,
                 show_progress=show_progress,
-                timeout=timeout)
+                remote_timeout=remote_timeout)
 
 
 def get_pkg_data_contents(data_name, encoding=None, cache=True):
