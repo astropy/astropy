@@ -115,7 +115,6 @@ def test_table_group_by():
                                 '  0   a 0.0   4']
 
 
-@pytest.mark.xfail
 def test_grouped_copy():
     """
     Test that copying a table or column copies the groups properly

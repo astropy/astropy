@@ -2222,7 +2222,13 @@ class Table(object):
             If True (the default), copy the underlying data array.
             Otherwise, use the same data array
         '''
-        return self.__class__(self, copy=copy_data)
+        out = self.__class__(self, copy=copy_data)
+
+        # If the current table is grouped then do the same in the copy
+        if hasattr(self, '_groups'):
+            out._groups = groups.TableGroups(out, indices=self._groups._indices,
+                                             group_keys=self._groups._group_keys)
+        return out
 
     def __deepcopy__(self, memo=None):
         return self.copy(True)
