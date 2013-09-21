@@ -902,7 +902,7 @@ class TimeDelta(Time):
 
     def __rdiv__(self, other):
         """Division by `TimeDelta` objects of numbers/arrays."""
-        return other / self.to('day')
+        return self.__rtruediv__(other)
 
     def __truediv__(self, other):
         """Division of `TimeDelta` objects by numbers/arrays."""
@@ -925,6 +925,10 @@ class TimeDelta(Time):
         if self.format != 'jd':
             out = out.replicate(format=self.format)
         return out
+
+    def __rtruediv__(self, other):
+        """Division by `TimeDelta` objects of numbers/arrays."""
+        return other / self.to('day')
 
     def to(self, *args, **kwargs):
         from astropy.units import day
