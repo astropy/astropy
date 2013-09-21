@@ -1,7 +1,7 @@
 import numpy as np
 import warnings
 
-from itertools import izip
+from itertools import izip, count
 
 
 def table_group_by(table, keys):
@@ -111,27 +111,17 @@ class BaseGroups(object):
       - ``group_indices``: index values corresponding to group boundaries
       - ``aggregate()``: method to create new table by aggregating within groups
     """
+    @property
+    def parent(self):
+        return self.parent_column if isinstance(self, ColumnGroups) else self.parent_table
+
     def values(self):
         i0s, i1s = self.indices[:-1], self.indices[1:]
         for i0, i1 in izip(i0s, i1s):
             yield self.parent[i0:i1]
 
-    def keys(self):
-        i0s, i1s = self.indices[:-1], self.indices[1:]
-        for i0, i1 in izip(i0s, i1s):
-            key_vals = tuple(self.parent[key][i0] for key in self.parent.group_keys)
-            if len(key_vals) == 0:
-                key_vals = None
-            elif len(key_vals) == 1:
-                key_vals = key_vals[0]
-            yield key_vals
-
-    @property
-    def group_keys(self):
-        return self._group_keys
-
     def __getitem__(self, item):
-        parent = self.parent_column if isinstance(self, ColumnGroups) else self.parent_table
+        parent = self.parent
 
         if isinstance(item, int):
             i0, i1 = self.indices[item], self.indices[item + 1]
@@ -187,6 +177,20 @@ class TableGroups(BaseGroups):
         self.parent_table = parent_table  # parent Table
         self._indices = indices
         self._group_keys = group_keys or ()
+
+    def keys(self):
+        i0s, i1s = self.indices[:-1], self.indices[1:]
+        for ii, i0, i1 in izip(count(), i0s, i1s):
+            key_vals = tuple(self.parent[key][i0] for key in self.parent.groups.group_keys)
+            if len(key_vals) == 0:
+                key_vals = ii
+            elif len(key_vals) == 1:
+                key_vals = key_vals[0]
+            yield key_vals
+
+    @property
+    def group_keys(self):
+        return self._group_keys
 
     @property
     def indices(self):
