@@ -9,6 +9,8 @@ from __future__ import (absolute_import, division, print_function,
 
 import warnings
 
+from ...utils.custom_warnings import AstropyDeprecationWarning
+
 from . import generic
 from . import utils
 
@@ -83,7 +85,7 @@ class Fits(generic.Generic):
             warnings.warn(
                 "The unit {0!r} has been deprecated in the FITS "
                 "standard.".format(unit),
-                DeprecationWarning)
+                AstropyDeprecationWarning)
 
         return cls._units[unit]
 
@@ -98,7 +100,7 @@ class Fits(generic.Generic):
             warnings.warn(
                 "The unit {0!r} has been deprecated in the FITS "
                 "standard.".format(name),
-                DeprecationWarning)
+                AstropyDeprecationWarning)
 
         return name
 

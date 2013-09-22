@@ -46,7 +46,9 @@ try:
     from . import _wcs
 except ImportError:
     _wcs = None
+
 from ..utils import deprecated, deprecated_attribute
+from ..utils.custom_warnings import AstropyDeprecationWarning
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -569,7 +571,7 @@ naxis kwarg.
                       ""
                       "PyWCS will read in files with ``AXISCORR`` but to_fits() will write"
                       "out files in the new style",
-                      DeprecationWarning)
+                      AstropyDeprecationWarning)
         cpdis = [None, None]
         crpix = [0., 0.]
         crval = [0., 0.]

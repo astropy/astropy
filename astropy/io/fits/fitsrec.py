@@ -13,6 +13,7 @@ from .column import (ASCIITNULL, FITS2NUMPY, Column, ColDefs,
 from .util import _array_from_file, decode_ascii
 
 from ...utils import lazyproperty
+from ...utils.custom_warnings import AstropyDeprecationWarning
 
 
 class FITS_record(object):
@@ -49,7 +50,7 @@ class FITS_record(object):
         for arg in [('startColumn', 'start'), ('endColumn', 'end')]:
             if arg[0] in kwargs:
                 warnings.warn('The %s argument to FITS_record is deprecated; '
-                              'use %s instead' % arg, DeprecationWarning)
+                              'use %s instead' % arg, AstropyDeprecationWarning)
                 if arg[0] == 'startColumn':
                     start = kwargs[arg[0]]
                 elif arg[0] == 'endColumn':

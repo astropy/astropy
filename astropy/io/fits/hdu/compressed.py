@@ -17,6 +17,7 @@ from ..header import Header, BLOCK_SIZE
 from ..util import _is_pseudo_unsigned, _unsigned_zero
 
 from ....utils import lazyproperty, deprecated
+from ....utils.custom_warnings import AstropyPendingDeprecationWarning
 
 try:
     from .. import compression
@@ -277,7 +278,7 @@ class CompImageHDU(BinTableHDU):
                 warnings.warn('Keyword argument %s to %s is pending '
                               'deprecation; use %s instead' %
                               (oldarg, self.__class__.__name__, newarg),
-                              PendingDeprecationWarning)
+                              AstropyPendingDeprecationWarning)
                 compression_opts[newarg] = kwargs[oldarg]
                 del kwargs[oldarg]
             else:

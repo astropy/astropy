@@ -34,6 +34,7 @@ from .tests.helper import astropy_test
 from .utils import silence
 from .utils.compat.misc import invalidate_caches
 from .utils.misc import walk_skip_hidden
+from .utils.custom_warnings import AstropyDeprecationWarning
 
 
 try:
@@ -991,7 +992,7 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
     warnings.warn(
         "astropy.setup_helpers.update_package_files is deprecated.  Update "
         "your setup.py to use astropy.setup_helpers.get_package_info instead.",
-        DeprecationWarning)
+        AstropyDeprecationWarning)
 
     info = get_package_info(srcdir)
     extensions.extend(info['ext_modules'])
@@ -1357,7 +1358,7 @@ del Finder
 import warnings
 warnings.warn(
     "{old_package} is deprecated.  Use {new_package} instead.",
-    DeprecationWarning)
+    AstropyDeprecationWarning)
 del warnings
 
 from {new_package} import *

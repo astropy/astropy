@@ -7,6 +7,8 @@ from __future__ import (absolute_import, division, print_function,
 
 import warnings
 
+from ...utils.custom_warnings import AstropyDeprecationWarning
+
 from . import generic
 from . import utils
 
@@ -75,7 +77,7 @@ class VOUnit(generic.Generic):
             warnings.warn(
                 "The use of unit {0!r} is discouraged by the "
                 "VOUnit standard.".format(unit),
-                DeprecationWarning)
+                AstropyDeprecationWarning)
 
         return cls._units[unit]
 
@@ -90,7 +92,7 @@ class VOUnit(generic.Generic):
             warnings.warn(
                 "The use of unit {0!r} is discouraged by the "
                 "VOUnit standard.".format(name),
-                DeprecationWarning)
+                AstropyDeprecationWarning)
 
         return name
 

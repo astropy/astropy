@@ -20,6 +20,7 @@ from numpy import ma
 
 from ..utils.compat.fractions import Fraction
 from ..utils.misc import deprecated
+from ..utils.custom_warnings import AstropyWarning
 from .utils import is_effectively_unity
 from . import format as unit_format
 
@@ -164,7 +165,7 @@ class UnitsError(Exception):
 UnitsException = UnitsError
 
 
-class UnitsWarning(Warning):
+class UnitsWarning(AstropyWarning):
     """
     The base class for unit-specific exceptions.
     """
