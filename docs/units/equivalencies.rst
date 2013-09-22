@@ -122,7 +122,9 @@ There is an equivalency for brightness temperature and flux density.  This
 equivalency is often referred to as "Antenna Gain" since, at a given frequency,
 telescope brightness sensitivity is unrelated to aperture size, but flux
 density sensitivity is, so this equivalency is only dependent on the aperture
-size.
+size.  See `Tools of Radio Astronomy
+<http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__
+for details.
 
 The equivalency requires the beam area and frequency as arguments.  Example::
 
