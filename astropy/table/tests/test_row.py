@@ -21,6 +21,7 @@ class MaskedTable(table.Table):
         table.Table.__init__(self, *args, **kwargs)
 
 
+@pytest.mark.skipif("numpy_lt_1p5")
 def test_masked_row_with_object_col():
     """
     Numpy < 1.8 has a bug in masked array that prevents access a row if there is
