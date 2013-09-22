@@ -328,21 +328,23 @@ def brightness_temperature(omega_B, nu):
 
     Examples
     --------
-    Arecibo C-band beam gain ~ 7 K/Jy:
-    >>> import numpy as np
-    >>> from astropy import units as u
-    >>> omega_B = np.pi*(50*u.arcsec)**2
-    >>> freq = 5*u.GHz
-    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B,freq))
-    7.052588858...
-    >>> (1*u.Jy).to(u.K, equivalencies=u.brightness_temperature(omega_B,freq))
-    <Quantity 7.05258...
+    Arecibo C-band beam gain ~ 7 K/Jy::
 
-    VLA synthetic beam:
-    >>> omega_B = np.pi*(15*u.arcsec)**2
-    >>> freq = 5*u.GHz
-    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B,freq))
-    78.36209843...
+        >>> import numpy as np
+        >>> from astropy import units as u
+        >>> omega_B = np.pi*(50*u.arcsec)**2
+        >>> freq = 5*u.GHz
+        >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B,freq))
+        7.052588858...
+        >>> (1*u.Jy).to(u.K, equivalencies=u.brightness_temperature(omega_B,freq))
+        <Quantity 7.05258...
+
+    VLA synthetic beam::
+
+        >>> omega_B = np.pi*(15*u.arcsec)**2
+        >>> freq = 5*u.GHz
+        >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B,freq))
+        78.36209843...
     """
     beam = omega_B.to(si.sr).value
     nu = nu.to(si.GHz, spectral())
