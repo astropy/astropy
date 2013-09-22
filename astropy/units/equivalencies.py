@@ -311,7 +311,8 @@ def brightness_temperature(omega_B, nu):
     unit very commonly used in radio astronomy.  Typically, the gain refers to
     the conversion between corrected antenna temperature :math:`T_A^*` and flux
     density.  See, e.g., "Tools of Radio Astronomy" (Wilson 2009) eqn 8.16 and
-    eqn 8.19.
+    eqn 8.19 (these pages are available on `google books
+    <http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__).
 
     :math:`T_B \equiv S_\\nu / \left(2 k \\nu^2 / c^2 \\right)`
 
@@ -323,8 +324,8 @@ def brightness_temperature(omega_B, nu):
     omega_B : Beam Area equivalent
         Beam area in angular units, i.e. steradian equivalent
     nu : `Quantity` with spectral units
-        The observed frequency / wavelength.  Must be a `spectral` equivalent
-        unit
+        The observed `spectral` equivalent `Unit` (e.g., frequency or
+        wavelength)
 
     Examples
     --------
