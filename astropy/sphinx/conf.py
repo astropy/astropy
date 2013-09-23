@@ -11,13 +11,41 @@
 
 import warnings
 from os import path
+from distutils.version import LooseVersion
+import re
+import subprocess
 
 
 # -- General configuration ----------------------------------------------------
 
-# If your documentation needs a minimal Sphinx version, state it here.
-# Some of the docs require the autodoc special-members option, in 1.1
-needs_sphinx = '1.2'
+# Some of the docs require the autodoc special-members option, in 1.1.
+# If using graphviz 2.30 or later, Sphinx < 1.2b2 will not work with
+# it.  Unfortunately, there are other problems with Sphinx 1.2b2, so
+# we need to use "dev" until a release is made post 1.2b2.  If
+# affiliated packages don't want this automatic determination, they
+# may simply override needs_sphinx in their local conf.py.
+
+def get_graphviz_version():
+    try:
+        output = subprocess.check_output(
+            ['dot', '-V'], stdin=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            shell=True)
+    except subprocess.CalledProcessError:
+        return '0'
+    tokens = output.split()
+    for token in tokens:
+        if re.match(b'[0-9.]*', token):
+            return token.decode('ascii')
+    return '0'
+
+graphviz_found = LooseVersion(get_graphviz_version())
+graphviz_broken = LooseVersion('0.30')
+
+if graphviz_found >= graphviz_broken:
+    needs_sphinx = '1.2b2'
+else:
+    needs_sphinx = '1.1'
 
 # Configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
