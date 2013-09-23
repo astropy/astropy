@@ -493,6 +493,12 @@ class Quantity(np.ndarray):
         """ Return a copy of this `Quantity` instance """
         return self.__class__(self)
 
+    # This flag controls whether convenience conversion members, such
+    # as `q.m` equivalent to `q.to(u.m).value` are available.  This is
+    # not turned on on Quantity itself, but is on some subclasses of
+    # Quantity, such as `astropy.coordinates.Angle`.
+    _include_easy_conversion_members = False
+
     @override__dir__
     def __dir__(self):
         """
@@ -500,14 +506,12 @@ class Quantity(np.ndarray):
         have the same physical type.  This function is implemented in
         order to make autocompletion still work correctly in IPython.
         """
+        if not self._include_easy_conversion_members:
+            return []
         extra_members = set()
         for equivalent in self.unit._get_units_with_same_physical_type(
                 self._equivalencies):
-            if len(equivalent.aliases):
-                name = equivalent.aliases[0]
-            else:
-                name = equivalent.name
-            extra_members.add(name)
+            extra_members.update(equivalent.names)
         return extra_members
 
     def __getattr__(self, attr):
@@ -515,18 +519,17 @@ class Quantity(np.ndarray):
         Quantities are able to directly convert to other units that
         have the same physical type.
         """
+        if not self._include_easy_conversion_members:
+            raise AttributeError(
+                "'{0}' object has no '{1}' member".format(
+                    self.__class__.__name__,
+                    attr))
+
         def get_virtual_unit_attribute():
             try:
                 to_unit = Unit(attr)
             except ValueError:
                 return None
-
-            if len(to_unit.aliases):
-                if to_unit.aliases[0] != attr:
-                    return None
-            else:
-                if to_unit.name != attr:
-                    return None
 
             try:
                 return self.unit.to(
