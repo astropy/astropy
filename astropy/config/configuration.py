@@ -640,6 +640,8 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False,
                              'have __file__ or __path__')
 
     for imper, nm, ispkg in walk_packages(pkgpath, package.__name__ + '.'):
+        if nm == 'astropy.config.tests.test_configs':
+            continue
         if not _unsafe_import_regex.match(nm):
             imper.find_module(nm)
             if reset_to_default:
