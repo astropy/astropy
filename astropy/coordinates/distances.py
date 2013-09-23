@@ -12,7 +12,6 @@ from abc import ABCMeta, abstractproperty
 import numpy as np
 
 from .. import units as u
-from .. import cosmology
 
 __all__ = ['Distance', 'CartesianPoints', 'cartesian_to_spherical',
            'spherical_to_cartesian']
@@ -21,36 +20,46 @@ __all__ = ['Distance', 'CartesianPoints', 'cartesian_to_spherical',
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
 
-# FIXME: make this subclass Quantity once Quantity is in master
-class Distance(object):
+class Distance(u.Quantity):
     """
     A one-dimensional distance.
 
-    This can be initialized in one of three ways: a distance and a unit,
-    a `~astropy.units.quantity.Quantity` object, or a redshift and
-    (optionally) a cosmology.  `value` and `unit` may be provided as
-    positional arguments, but `z` and `cosmology` are only valid as
-    keyword arguments (see examples).
+    This can be initialized in one of four ways:
+
+    * A distance `value` (array or float) and a `unit`
+    * A `~astropy.units.quantity.Quantity` object
+    * A redshift and (optionally) a cosmology.
+    * Providing a distance modulus
 
     Parameters
     ----------
     value : scalar or `~astropy.units.quantity.Quantity`
         The value of this distance
     unit : `~astropy.units.core.UnitBase`
-        The units for this distance.  Must have dimensions of distance.
+        The units for this distance, *if* `value` is not a `Quantity`.
+        Must have dimensions of distance.
     z : float
         A redshift for this distance.  It will be converted to a distance
         by computing the luminosity distance for this redshift given the
-        cosmology specified by `cosmology`.
+        cosmology specified by `cosmology`. Must be given as a keyword argument.
     cosmology : `~astropy.cosmology.Cosmology` or None
         A cosmology that will be used to compute the distance from `z`.
         If None, the current cosmology will be used (see
         `astropy.cosmology` for details).
+    distmod : float or `~astropy.units.Quantity`
+        The distance modulus for this distance.
+    dtype : ~numpy.dtype, optional
+        See `~astropy.units.Quantity`. Must be given as a keyword argument.
+    copy : bool, optional
+        See `~astropy.units.Quantity`. Must be given as a keyword argument.
 
     Raises
     ------
     astropy.units.core.UnitsError
         If the `unit` is not a distance.
+    ValueError
+        If `z` is provided with a `unit` or `cosmology` is provided when `z` is
+        *not* given, or `value` is given as well as `z`
 
     Examples
     --------
@@ -63,159 +72,107 @@ class Distance(object):
     >>> d3 = Distance(value=5, unit=u.kpc)
     >>> d4 = Distance(z=0.23)
     >>> d5 = Distance(z=0.23, cosmology=WMAP5)
+    >>> d6 = Distance(distmod=24.47)
     """
 
-    def __init__(self, *args, **kwargs):
-        if len(args) == 1 and isinstance(args[0], Distance):
-            # just copy
-            self._value = args[0]._value
-            self._unit = args[0]._unit
-        elif len(args) == 1 and isinstance(args[0], u.Quantity):
-            self._value = args[0].value
-            self._unit = args[0].unit
-        elif 'z' in kwargs:
-            z = kwargs.pop('z')
-            cosmo = kwargs.pop('cosmology', None)
-            if cosmo is None:
-                cosmo = cosmology.get_current()
+    def __new__(cls, value=None, unit=None, z=None, cosmology=None,
+                distmod=None, dtype=None, copy=True):
+        from ..cosmology import get_current
 
-            if len(args) > 0 or len(kwargs) > 0:
-                raise TypeError('Cannot give both distance and redshift')
+        if isinstance(value, u.Quantity):
+            # This includes Distances as well
+            if z is not None or distmod is not None:
+                raise ValueError('`value` was given along with `z` or `distmod`'
+                                 ' in Quantity constructor.')
 
-            ld = cosmo.luminosity_distance(z)
-            self._value = ld.value
-            self._unit = ld.unit
-        else:
-            if len(args) == 0:
-                value = kwargs.pop('value', None)
-                unit = kwargs.pop('unit', None)
-            elif len(args) == 1:
-                value = args[0]
-                unit = kwargs.pop('unit', None)
-            elif len(args) == 2:
-                value, unit = args
+            if unit is not None:
+                value = value.to(unit).value
             else:
-                raise TypeError('Distance constructor cannot take more than 2 arguments')
+                unit = value.unit
+                value = value.value
+        elif value is None:
+            if z is not None:
+                if distmod is not None:
+                    raise ValueError('both `z` and `distmod` given in Distance '
+                                     'constructor')
 
-            if len(kwargs) > 0:
-                raise TypeError('Invalid keywords provided to Distance: ' +
-                                six.text_type(kwargs.keys()))
+                if cosmology is None:
+                    cosmology = get_current()
 
-            if value is None:
-                raise ValueError('A value for the distance must be provided')
-            if unit is None:
-                raise u.UnitsError('A unit must be provided for distance.')
+                ld = cosmology.luminosity_distance(z)
 
-            if not unit.is_equivalent(u.m):
-                raise u.UnitsError('provided unit for Distance is not a length')
-            self._value = value
-            self._unit = unit
+                if unit is not None:
+                    ld = ld.to(unit)
+                value = ld.value
+                unit = ld.unit
 
-    def __repr__(self):
-        return "<{0} {1:.5f} {2!s}>".format(type(self).__name__, self._value, self._unit)
+            elif distmod is not None:
+                value = cls._distmod_to_pc(distmod)
+                if unit is None:
+                    # choose unit based on most reasonable of Mpc, kpc, or pc
+                    if value > 1e6:
+                        value = value / 1e6
+                        unit = u.megaparsec
+                    elif value > 1e3:
+                        value = value / 1e3
+                        unit = u.kiloparsec
+                    else:
+                        unit = u.parsec
+                else:
+                    value = u.Quantity(value, u.parsec).to(unit).value
+            else:
+                raise ValueError('none of `value`, `z`, or `distmod` were given'
+                                 ' to Distance constructor')
 
-    @property
-    def lightyears(self):
+                value = ld.value
+                unit = ld.unit
+        elif z is not None:  # and value is not None based on above
+            raise ValueError('Both `z` and a `value` were provided in Distance '
+                             'constructor')
+        elif cosmology is not None:
+            raise ValueError('A `cosmology` was given but `z` was not provided '
+                             'in Distance constructor')
+        elif unit is None:
+            raise u.UnitsError('No unit was provided to Distance constructor')
+        #"else" the baseline `value` + `unit` case
+
+        unit = cls._convert_to_and_validate_distance_unit(unit)
+
+        try:
+            value = np.asarray(value)
+        except ValueError as e:
+            raise TypeError(str(e))
+
+        if value.dtype.kind not in 'iuf':
+            raise TypeError("Unsupported dtype '{0}'".format(value.dtype))
+
+        return super(Distance, cls).__new__(cls, value, unit, dtype=dtype,
+                                            copy=copy)
+
+    def __quantity_view__(self, obj, unit):
+        unit = self._convert_to_and_validate_distance_unit(unit)
+        return super(Distance, self).__quantity_view__(obj, unit)
+
+    def __quantity_instance__(self, val, unit, **kwargs):
+        unit = self._convert_to_and_validate_distance_unit(unit)
+        return super(Distance, self).__quantity_instance__(val, unit, **kwargs)
+
+    @staticmethod
+    def _convert_to_and_validate_distance_unit(unit):
         """
-        The value of this distance in light years
+        raises astropy.units.UnitsError if not a distance unit
         """
-        return self._unit.to(u.lyr, self._value)
+        if unit is not None:
+            unit = u.Unit(unit)
 
-    @property
-    def lyr(self):
-        """Short for :attr:`.lightyears`"""
-        return self.lightyears
-
-    @property
-    def parsecs(self):
-        """
-        The value of this distance in parsecs
-        """
-        return self._unit.to(u.parsec, self._value)
-
-    @property
-    def pc(self):
-        """Short for :attr:`.parsecs`"""
-        return self.parsecs
-
-    @property
-    def kiloparsecs(self):
-        """
-        The value of this distance in kiloparsecs
-        """
-        return self._unit.to(u.kpc, self._value)
-
-    @property
-    def kpc(self):
-        """Short for :attr:`.kiloparsecs`"""
-        return self.kiloparsecs
-
-    @property
-    def megaparsecs(self):
-        """
-        The value of this distance in megaparsecs
-        """
-        return self._unit.to(u.Mpc, self._value)
-
-    @property
-    def Mpc(self):
-        """Short for :attr:`.megaparsecs`"""
-        return self.megaparsecs
-
-    @property
-    def astronomical_units(self):
-        """
-        The value of this distance in astronomical units
-        """
-        return self._unit.to(u.au, self._value)
-
-    @property
-    def au(self):
-        """Short for :attr:`.astronomical_units`"""
-        return self.astronomical_units
-
-    @property
-    def meters(self):
-        """
-        The value of this distance in meters
-        """
-        return self._unit.to(u.m, self._value)
-
-    @property
-    def m(self):
-        """Short for :attr:`.meters`"""
-        return self.meters
-
-    @property
-    def kilometers(self):
-        """
-        The value of this distance in kilometers
-        """
-        return self._unit.to(u.km, self._value)
-
-    @property
-    def km(self):
-        """Short for :attr:`.kilometers`"""
-        return self.kilometers
-
-    @property
-    def redshift(self):
-        """
-        The redshift for this distance assuming its physical distance is
-        a luminosity distance.
-
-        .. note::
-            This uses the "current" cosmology to determine the appropriate
-            distance to redshift conversions.  See `astropy.cosmology`
-            for details on how to change this.
-
-        """
-        return self.compute_z()
+        if not unit.is_equivalent(u.kpc):
+            raise u.UnitsError(six.u('Unit "{0}" is not a distance').format(unit))
+        return unit
 
     @property
     def z(self):
-        """Short for :attr:`.redshift`"""
-        return self.redshift
+        """Short for ``self.compute_z()``"""
+        return self.compute_z()
 
     def compute_z(self, cosmology=None):
         """
@@ -228,6 +185,10 @@ class Distance(object):
             The cosmology to assume for this calculation, or None to use the
             current cosmology.
 
+        Returns
+        -------
+        z : float
+            The redshift of this distance given the provided `cosmology`.
         """
         from ..cosmology import luminosity_distance
         from scipy import optimize
@@ -236,6 +197,39 @@ class Distance(object):
 
         f = lambda z, d, cos: (luminosity_distance(z, cos).value - d) ** 2
         return optimize.brent(f, (self.Mpc, cosmology))
+
+    @property
+    def distmod(self):
+        """  The distance modulus of this distance as a Quantity """
+        val = 5. * np.log10(self.to(u.pc).value) - 5.
+        return u.Quantity(val, u.mag)
+
+    @staticmethod
+    def _distmod_to_pc(dm):
+        return 10 ** ((dm + 5) / 5.)
+
+    #these might be included in future revisions of Quantity depending on how
+    #the automatic conversion members are implemented, but make sure they're
+    #always available
+    @property
+    def pc(self):
+        return self.to(u.parsec).value
+
+    @property
+    def kpc(self):
+        return self.to(u.kiloparsec).value
+
+    @property
+    def Mpc(self):
+        return self.to(u.megaparsec).value
+
+    @property
+    def lyr(self):
+        return self.to(u.lightyear).value
+
+    @property
+    def km(self):
+        return self.to(u.kilometer).value
 
 
 class CartesianPoints(object):
