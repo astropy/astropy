@@ -13,18 +13,37 @@ Interface and Dependencies
 --------------------------
 
 * All code must be compatible with Python 2.6, 2.7, as well as 3.1 and
-  later. All files should include the preamble::
+  later.  The use of `six <http://pythonhosted.org/six/>`_ for writing
+  code that is portable between Python 2.x and 3.x is encouraged going
+  forward.  However, much of our legacy code still uses `2to3` to
+  process Python 2.x files to be compatible with Python 3.x.
+
+  Packages that use ``six`` must include the following in their
+  `setup_package.py` file::
+
+      def requires_2to3():
+          return False
+
+  Code that uses ``six`` should use the following preamble::
+
+        from __future__ import (absolute_import, division, print_function,
+                                unicode_literals)
+
+  Code that uses ``2to3`` may limit the ``__future__`` statement to
+  only the following, if necessary (though using all 4 is still
+  preferred)::
 
         from __future__ import print_function, division
 
-  and therefore use the ``print()`` function from Python 3. In addition, the
-  new Python 3 formatting style should be used (i.e.
-  ``"{0:s}".format("spam")`` instead of ``"%s" % "spam"``), although when
-  using positional arguments, the position should always be specified (i.e.
-  ``"{:s}"`` is not compatible with Python 2.6). Astropy automatically runs
-  the `2to3 tool <http://docs.python.org/library/2to3.html>`_ on the source
-  code, so in cases where syntax is different between Python 2 and 3, the
-  Python 2 syntax should be used.
+  Additional information on writing code using ``six`` that is
+  compatible with both Python 2.x and 3.x is in the section
+  `portable`_.
+
+* The new Python 3 formatting style should be used (i.e.
+  ``"{0:s}".format("spam")`` instead of ``"%s" % "spam"``), although
+  when using positional arguments, the position should always be
+  specified (i.e.  ``"{:s}"`` is not compatible with Python
+  2.6).
 
 * The core package and affiliated packages should be importable with no
   dependencies other than components already in the Astropy core, the
@@ -165,7 +184,7 @@ Coding Style/Conventions
   important.
 
 * Multiple inheritance should be avoided in general without good reason.
-  Mulitple inheritance is complicated to implement well, which is why many
+  Multiple inheritance is complicated to implement well, which is why many
   object-oriented languages, like Java, do not allow it at all.  Python does
   enable multiple inheritance through use of the
   `C3 Linearization <http://www.python.org/download/releases/2.3/mro/>`_
@@ -218,6 +237,170 @@ Including C Code
   for building the extension via the mechanisms described in
   :ref:`building-c-or-cython-extensions`.
 
+.. _portable:
+
+Writing portable code for Python 2 and 3
+----------------------------------------
+
+As of astropy 0.3, the `six <http://pythonhosted.org/six/>`_ library
+is included to allow supporting Python 2 and 3 from a single code
+base.  The use of the ``2to3`` tool is being phased out in favor of
+using ``six``.
+
+To start using ``six`` instead of ``2to3`` in a package, you first
+need to put the following in the packages ``setup_package.py`` file::
+
+    def requires_2to3():
+        return False
+
+This section is mainly about moving existing code that works with
+``2to3`` to using ``six``.  It is not a complete guide to Python 2 and
+3 compatibility.
+
+Welcome to the ``__future__``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The top of every `.py` file should include the following::
+
+    from __future__ import (absolute_import, division, print_function,
+                            unicode_literals)
+
+This will make the Python 2 interpreter behave as close to Python 3 as
+possible.
+
+All files should also import `six`, whether they are using it or not,
+just to make moving code between modules easier, as `six` gets used *a
+lot*::
+
+    from ..extern import six
+
+(where ``extern`` refers to `astropy.extern`).  Do not import `six`
+from the top-level: we should use the copy of `six` that we include
+with astropy.
+
+Finding places to use six
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Unfortunately, the only way to be certain that code works on both
+Python 2 and 3 is to make sure it is covered by unit tests.
+
+However, the `2to3` commandline tool can also be used to locate places
+that require special handling with `six`.  Starting from Python 2
+code, or code that is known to work on both Python 2 and 3 by
+processing it with the `2to3` tool (which is most of the existing code
+in astropy), simply run `2to3` on the file to display the changes it
+would make in diff format.  This diff can be used to highlight places
+that need to be updated to use `six`.
+
+For example, most things that have been renamed between Python 2 and 3
+are in the `six.moves` namespace, so given this Python 2 code::
+
+    import cPickle
+
+it can be replaced with::
+
+    from ..extern.six.moves import cPickle
+
+.. note::
+
+    The `modernize <https://pypi.python.org/pypi/modernize>`_ tool
+    aims to convert Python 2 code to portable code that uses `six`,
+    but at the time of this writing, it is not feature complete and
+    misses many important transformations.
+
+The `six <http://pythonhosted.org/six/>`_ documentation serves as a
+good reference for the sorts of things that need to be updated.
+
+Not so fast on that Unicode thing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By importing ``unicode_literals`` from ``__future__``, many things
+that were once byte strings on Python 2 will now by unicode strings.
+This is mostly a good thing, as the behavior of the code will be more
+consistent between Python 2 and 3.  However, certain third-party
+libraries still assume certain values will be byte strings on
+Python 2.
+
+For example, when specifying Numpy dtypes, all strings must be byte
+strings on Python 2 and unicode strings on Python 3.  The easiest way to
+handle this is to force cast them using `str()`, for example::
+
+   x = np.array([1.0, 2.0, 3.0], dtype=str('>f8'))
+
+The same is true of structure specifiers in the built-in `struct`
+module.
+
+Iteration
+^^^^^^^^^
+
+The behavior of the methods for iterating over the items, values and
+keys of a dictionary has changed in Python 3.  Additionally, other
+built-in functions such as `zip`, `range` and `map` have changed to
+return iterators rather than temporary lists.
+
+In many cases, the performance implications of iterating vs. creating
+a temporary list won't matter, so it's tempting to use the form that
+is simplest to read.  However, that results in code that behaves
+differently on Python 2 and 3, leading to subtle bugs that may not be
+detected by the regression tests.  Therefore, unless the loop in
+question is provably simple and doesn't call into other code, the
+`six` versions that ensure the same behavior on both Python 2 and 3
+should be used.  The following table shows the mapping of equivalent
+semantics between Python 2, 3 and six for `dict.items()`:
+
+============================== ============================== ==============================
+Python 2                       Python 3                       six
+============================== ============================== ==============================
+``d.items()``                  ``list(d.items())``            ``list(six.iteritems(d))``
+``d.iteritems()``              ``d.items()``                  ``six.iteritems(d)``
+============================== ============================== ==============================
+
+The above table holds true, analogously, for ``values``, ``keys``,
+``zip``, ``range`` and ``map``.
+
+Issues with ``\u`` escapes
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When `from __future__ import unicode_literals` is used, all string
+literals (not preceded with a `b`) will become unicode literals.
+
+Normally, one would use "raw" string literals to encode strings that
+contain a lot of slashes that we don't want Python to interpret as
+special characters.  Unfortunately, on Python 2, there is no way to
+represent `\u` in a raw unicode string literal, since it will always
+be interpreted as the start of a unicode character escape, such as
+`\u20af`.  The only solution is to use a regular (non-raw) string
+literal and repeat all slashes, e.g. ``"\\usepackage{foo}"``.
+
+The following shows the problem on Python 2::
+
+    >>> ur'\u'
+      File "<stdin>", line 1
+    SyntaxError: (unicode error) 'rawunicodeescape' codec can't decode bytes in
+    position 0-1: truncated \uXXXX
+    >>> ur'\\u'
+    u'\\\\u'
+    >>> u'\u'
+      File "<stdin>", line 1
+    SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in
+    position 0-1: truncated \uXXXX escape
+    >>> u'\\u'
+    u'\\u'
+
+This bug has been fixed in Python 3, however, we can't take advantage
+of that and still support Python 2::
+
+    >>> r'\u'
+    '\\u'
+    >>> r'\\u'
+    '\\\\u'
+    >>> '\u'
+      File "<stdin>", line 1
+    SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in
+    position 0-1: truncated \uXXXX escape
+    >>> '\\u'
+    '\\u'
+
 Requirements Specific to Affiliated Packages
 --------------------------------------------
 
@@ -261,19 +444,19 @@ like this::
 You should always use attribute syntax like this::
 
     >>> s.color = 0.4
-    >>> print s.color
+    >>> print(s.color)
     0.4
 
 Rather than like this::
 
     >>> s.set_color(0.4)  #Bad form!
-    >>> print s.get_color()  #Bad form!
+    >>> print(s.get_color())  #Bad form!
     0.4
 
 Using python properties, attribute syntax can still do anything possible with
 a get/set method. For lengthy or complex calculations, however, use a method::
 
-    >>> print s.compute_color(5800, age=5e9)
+    >>> print(s.compute_color(5800, age=5e9))
     0.4
 
 .. _super-vs-direct-example:
@@ -289,23 +472,23 @@ multiple inheritance case::
 
     class A(object):
         def method(self):
-            print 'Doing A'
+            print('Doing A')
 
 
     class B(A):
         def method(self):
-            print 'Doing B'
+            print('Doing B')
             A.method(self)
 
 
     class C(A):
         def method(self):
-            print 'Doing C'
+            print('Doing C')
             A.method(self)
 
     class D(C, B):
         def method(self):
-            print 'Doing D'
+            print('Doing D')
             C.method(self)
             B.method(self)
 
@@ -346,22 +529,22 @@ class should be handed control in the next :func:`super` call::
 
     class A(object):
         def method(self):
-            print 'Doing A'
+            print('Doing A')
 
     class B(A):
         def method(self):
-            print 'Doing B'
+            print('Doing B')
             super(B, self).method()
 
 
     class C(A):
         def method(self):
-            print 'Doing C'
+            print('Doing C')
             super(C, self).method()
 
     class D(C, B):
         def method(self):
-            print 'Doing D'
+            print('Doing D')
             super(D, self).method()
 
 ::
@@ -417,7 +600,7 @@ might read::
 
     from numpy import array,linspace
 
-    __all__ = ('foo','AClass')
+    __all__ = ('foo', 'AClass')
 
     def foo(bar):
         #the function would be defined here
