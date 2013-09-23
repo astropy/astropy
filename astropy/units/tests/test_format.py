@@ -233,7 +233,7 @@ def test_percent():
     assert u.Unit('%') == u.percent == u.Unit(0.01)
 
     assert u.Unit('%', format='cds') == u.Unit(0.01)
-    assert u.Unit(0.01).to_string('cds') == u'%'
+    assert u.Unit(0.01).to_string('cds') == '%'
 
     with pytest.raises(ValueError):
         u.Unit('%', format='fits')
@@ -249,7 +249,7 @@ def test_scaled_dimensionless():
     assert u.Unit('1.e-4') == u.Unit(1.e-4)
 
     assert u.Unit('10-4', format='cds') == u.Unit(1.e-4)
-    assert u.Unit('10+8').to_string('cds') == u'10+8'
+    assert u.Unit('10+8').to_string('cds') == '10+8'
 
     with pytest.raises(ValueError):
         u.Unit(0.1).to_string('fits')

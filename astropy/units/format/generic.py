@@ -337,7 +337,7 @@ class Generic(Base):
         from ..core import _UnitRegistry
         registry = _UnitRegistry().registry
         if s == '%':
-            return registry[u'percent']
+            return registry['percent']
         elif s in registry:
             return registry[s]
         raise ValueError(
