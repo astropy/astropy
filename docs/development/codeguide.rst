@@ -321,14 +321,15 @@ consistent between Python 2 and 3.  However, certain third-party
 libraries still assume certain values will be byte strings on
 Python 2.
 
-For example, when specifying Numpy dtypes, all strings must be byte
-strings on Python 2 and unicode strings on Python 3.  The easiest way to
-handle this is to force cast them using `str()`, for example::
+For example, when specifying Numpy structured dtypes, all strings must
+be byte strings on Python 2 and unicode strings on Python 3.  The
+easiest way to handle this is to force cast them using `str()`, for
+example::
 
-   x = np.array([1.0, 2.0, 3.0], dtype=str('>f8'))
+   x = np.array([1.0, 2.0, 3.0], dtype=[(str('name'), '>f8')])
 
 The same is true of structure specifiers in the built-in `struct`
-module.
+module on Python 2.6.
 
 Iteration
 ^^^^^^^^^
