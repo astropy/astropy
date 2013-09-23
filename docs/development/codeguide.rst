@@ -248,7 +248,7 @@ base.  The use of the ``2to3`` tool is being phased out in favor of
 using ``six``.
 
 To start using ``six`` instead of ``2to3`` in a package, you first
-need to put the following in the packages ``setup_package.py`` file::
+need to put the following in the package's ``setup_package.py`` file::
 
     def requires_2to3():
         return False
@@ -275,8 +275,8 @@ lot*::
     from ..extern import six
 
 (where ``extern`` refers to `astropy.extern`).  Do not import `six`
-from the top-level: we should use the copy of `six` that we include
-with astropy.
+from the top-level: only import the copy of `six` included with
+astropy.
 
 Finding places to use six
 ^^^^^^^^^^^^^^^^^^^^^^^^^
