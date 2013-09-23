@@ -303,4 +303,20 @@ def create_model(model_class, parameters):
 
     elif issubclass(model_class, PolynomialModel):
         return model_class(**parameters)
-    
+
+def test_planck():
+    from astropy import units as u
+    from astropy import constants as const
+    import matplotlib.pyplot as plt
+    import math
+    from scipy import integrate
+    #generate some input wavelengths tha should work
+    t = 100.*u.K
+    l = np.logspace(0, 8, 1e6)
+    l = l*u.AA
+    full = planck(l, t)
+    lum = l.to(u.um)
+    intflux = integrate.trapz(full.value, x=lum.value)
+    check = const.sigma_sb * t**4 / math.pi
+    assert ((intflux/check).value >= 0.99)
+    return (intflux/check).value
