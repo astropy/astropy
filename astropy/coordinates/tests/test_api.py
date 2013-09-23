@@ -700,12 +700,14 @@ def test_distances_scipy():
     from .. import Distance
     from ...cosmology import WMAP5
 
-    #try all the different ways to initialize a Distance
+    #try different ways to initialize a Distance
     d4 = Distance(z=0.23)  # uses default cosmology - as of writing, WMAP7
     d5 = Distance(z=0.23, cosmology=WMAP5)
+    d6 = Distance(z=0.23, cosmology=WMAP5, unit=u.km)
 
     assert abs(d4.z - 0.23) < 1e-8  # redshift, assuming "current" cosmology
-    assert abs(d5.compute_z(WMAP5) - 0.23) < 1e-8 # specifying a cosmology possible
+    assert abs(d5.compute_z(WMAP5) - 0.23) < 1e-8  # specifying a cosmology possible
+    npt.assert_almost_equal(d6.value, 3.5417046898762366e+22)
 
 
 def test_unicode():
