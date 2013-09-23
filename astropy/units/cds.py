@@ -70,7 +70,6 @@ def _initialize_module():
         (['c'], _si.c, "speed of light", ['p']),
         (['cal'], 4.1854 * u.J, "calorie"),
         (['cd'], u.cd, "candela"),
-        (['Crab'], _si.Crab, "Crab (X-ray) flux"),
         (['ct'], u.ct, "count"),
         (['D'], u.D, "Debye (dipole)"),
         (['d'], u.d, "Julian day", ['c']),
@@ -156,6 +155,12 @@ def _initialize_module():
                   doc="dimensionless and unscaled", namespace=_ns)
     core.def_unit(['%'], u.percent,
                   doc="percent", namespace=_ns)
+    # The Vizier "standard" defines this in units of "kg s-3", but
+    # that may not make a whole lot of sense, so here we just define
+    # it as its own new disconnected unit.
+    core.def_unit(['Crab'], prefixes=prefixes, namespace=_ns,
+                  doc="Crab (X-ray) flux")
+
 
 
 _initialize_module()
