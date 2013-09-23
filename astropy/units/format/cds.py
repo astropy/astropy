@@ -44,13 +44,6 @@ class CDS(Base):
 
         names = {}
 
-        names['%'] = u.Unit('percent')
-        # --- is used for dimensionless if an empty string is unhandy, e.g.,
-        # eg., in Vizier ReadMe's; pers. comm. to MHvK from
-        # François Ochsenbein <Francois.Ochsenbein@astro.unistra.fr>
-        # for an example, http://cdsarc.u-strasbg.fr/viz-bin/Cat?I/100A
-        names['---'] = u.dimensionless_unscaled
-
         for key, val in cds.__dict__.items():
             if isinstance(val, u.UnitBase):
                 names[key] = val
