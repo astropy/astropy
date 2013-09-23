@@ -157,6 +157,10 @@ installing and requires the
 automatically downloaded when running ``python setup.py`` if it is not already
 provided by your system.
 
+If Numpy is not already installed in your Python environment, the
+astropy setup process will try to download and install it before
+continuing to install astropy.
+
 To build Astropy (from the root of the source tree)::
 
     python setup.py build
