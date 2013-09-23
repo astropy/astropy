@@ -37,7 +37,7 @@ Interface and Dependencies
 
   Additional information on writing code using ``six`` that is
   compatible with both Python 2.x and 3.x is in the section
-  `portable`_.
+  :ref:`dev-portable`.
 
 * The new Python 3 formatting style should be used (i.e.
   ``"{0:s}".format("spam")`` instead of ``"%s" % "spam"``), although
@@ -237,7 +237,7 @@ Including C Code
   for building the extension via the mechanisms described in
   :ref:`building-c-or-cython-extensions`.
 
-.. _portable:
+.. _dev-portable:
 
 Writing portable code for Python 2 and 3
 ----------------------------------------
