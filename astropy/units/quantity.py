@@ -682,8 +682,13 @@ class Quantity(np.ndarray):
                 "'{cls}' object with a scalar value does not support "
                 "indexing".format(cls=self.__class__.__name__))
         else:
-            return self.__quantity_instance__(self.value[key], unit=self.unit,
-                                              copy=False)
+            out = self.value[key]
+            if type(out) != np.ndarray:  # array scalar; cannot view
+                return self.__quantity_instance__(out, self.unit)
+
+            out = self.__quantity_view__(out, self.unit)
+            out._unit = self.unit
+            return out
 
     def __setitem__(self, i, value):
         self.view(np.ndarray).__setitem__(i, self._to_own_unit(value))
