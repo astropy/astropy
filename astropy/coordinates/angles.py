@@ -614,6 +614,14 @@ class Longitude(Angle):
         self._wrap_angle = Angle(value)
         self._wrap_internal()
 
+    def __quantity_view__(self, obj, unit):
+        unit = self._convert_unit_to_angle_unit(unit)
+        if unit is not None and unit.is_equivalent(u.radian):
+            # by default, wrap_angle and equivalencies remain the same
+            # TODO: generalize to some _things_to_copy once #1422, #1373 merged
+            return obj.view(Longitude)
+        return super(Angle, self).__quantity_view__(obj, unit)
+
     def __quantity_instance__(self, val, unit, **kwargs):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
