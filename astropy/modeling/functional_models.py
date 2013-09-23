@@ -1346,7 +1346,7 @@ def planck(w, temp):
 			temperature quantity
 	Returns
 	-------
-	flux	: blackbody flux, in units W/m2/um
+	flux	: blackbody flux, in units W/m2/um/sr
 
 	Note: This function should be turned into a model once model parameters can be quantities
 
@@ -1365,7 +1365,6 @@ def planck(w, temp):
 	if (temp.unit.physical_type != 'temperature'):
 	    raise InputParameterError("Input temperature quantity must be in temperature units")
 
-
-	flux = 2 * const.h * const.c**2 / w**5 / (np.exp(const.h*const.c/(w * const.k_B * temp)) - 1)
-	flux = flux.to(u.Watt / (u.m * u.m * u.um))
+	flux = 2 * const.h * const.c**2 / w**5 / (np.exp(const.h*const.c/(w * const.k_B * temp)) - 1) / u.sr
+	flux = flux.to(u.Watt / (u.m * u.m * u.um * u.sr))
 	return flux
