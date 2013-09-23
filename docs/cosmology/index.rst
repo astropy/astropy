@@ -86,7 +86,7 @@ This can also be done more explicity using units, which is recommended:
   >>> cosmo = FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Om0=0.3)
   LambdaCDM(H0=70, Om0=0.3, Ode0=0.7)
 
-However, all of the parameters that accept units (H0, Tcmb0, m_nu)
+However, all of the parameters that accept units (`H0`, `Tcmb0`, `m_nu`)
 have default units, so unit quantities do not have to be used.
 
 A number of additional dark energy models are provided (described below).
@@ -233,17 +233,6 @@ are available in the document tag for each object:
   >>> print(WMAP7.__doc__)
   (from Komatsu et al. 2011, ApJS, 192, 18.  Table 1 (WMAP + BAO + H0 ML))
 
-.. note::
-
-  You may notice that values derived using the Planck13 cosmology in
-  `astropy` are slightly different from those in the Planck
-  Collaboration pre-print (http://arxiv.org/abs/1303.5076). For example,
-  the age of the universe using a Planck13 in `astropy` is 13.813 Gyr
-  compared to 13.797 Gyr in the Planck preprint. This is because
-  `astropy` assumes that neutrinos are massless, but the Planck preprint
-  uses a single neutrino species with mass 0.06 eV. Future versions of
-  `astropy` may include support for massive neutrinos.
-
 Using `cosmology` inside Astropy
 --------------------------------
 
@@ -294,11 +283,11 @@ The cosmology classes include the contribution to the energy density
 from both photons and neutrinos.  By default, the latter are assumed
 massless.  The three parameters controlling the proporties of these
 species, which are arguments to the initializers of all the
-cosmological classes, are Tcmb0 (the temperature of the CMB at z=0),
-Neff, the effective number of neutrino species, and m_nu, the rest
-mass of the neutrino species.  Tcmb0 and m_nu should, in general, be
+cosmological classes, are `Tcmb0` (the temperature of the CMB at z=0),
+`Neff`, the effective number of neutrino species, and `m_nu`, the rest
+mass of the neutrino species.  `Tcmb0` and `m_nu` should, in general, be
 expressed as unit Quantities.  All three have standard default values
-(2.725 K, 3.04, and 0 eV respectively; the reason that Neff is not 3
+(2.725 K, 3.04, and 0 eV respectively; the reason that `Neff` is not 3
 primarily has to do with a small bump in the neutrino energy spectrum
 due to electron-positron annihilation, but is also affected by weak
 interaction physics).
@@ -339,11 +328,11 @@ Neutrinos can be removed (while leaving photons) by setting `Neff` to 0:
   (array([  4.98569503e-05,   2.74623219e-04,   5.00051845e-04]),
    array([ 0.,  0.,  0.]))
 
-The number of neutrino species is assumed to be the floor of Neff,
-which in most cases means 3.  Therefore, if non-zero neutrino masses
+The number of neutrino species is assumed to be the floor of `Neff`,
+which in the default case is 3.  Therefore, if non-zero neutrino masses
 are desired, then 3 masses should be provided.  However, if only one
 value is provided, all the species are assumed to have the same mass.
-Neff is assumed to be shared equally between each species.
+`Neff` is assumed to be shared equally between each species.
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> import astropy.units as u
@@ -391,9 +380,9 @@ let us know by `opening an issue at the github repository
 
 The built in cosmologies use the parameters as listed in the
 respective papers.  These provide only a limited range of precision,
-and so you should not expect all derived quantities to match beyond
+and so you should not expect derived quantities to match beyond
 that precision.  For example, the Planck 2013 results only provide the
-Hubble constant to 4 digits.  Therefore, the Planck13 built in
+Hubble constant to 4 digits.  Therefore, the Planck13 built-in
 cosmology should only be expected to match the age of the Universe
 quoted by the Planck team to 4 digits, although they provide 5 in the paper.
 
