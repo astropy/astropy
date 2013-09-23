@@ -73,6 +73,13 @@ process:
     `get_extensions` function to determine if the package should use
     the system library or the included one.
 
+* :func:`requires_2to3`
+    This function declares whether the package requires processing
+    through the `2to3` tool to run on Python 3.  If not included, it
+    defaults to `True`.  The use of `2to3` is being phased out in
+    astropy, in favor of using `six` instead.  See :ref:`dev-portable`
+    for more information.
+
 The `astropy.setup_helpers` modules includes a :func:`update_package_files`
 function which automatically searches the given source path for
 ``setup_package.py`` modules and calls each of the above functions, if they
