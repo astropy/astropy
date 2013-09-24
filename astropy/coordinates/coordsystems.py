@@ -338,7 +338,7 @@ class SphericalCoordinatesBase(object):
         if override or self._cartpoint is None:
             if self._distance is None:
                 r = 1
-                runit = None
+                runit = u.dimensionless_unscaled
             else:
                 r = self._distance.value
                 runit = self._distance.unit

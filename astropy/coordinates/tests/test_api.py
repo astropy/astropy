@@ -428,7 +428,10 @@ def test_create_coordinate():
     c = ICRSCoordinates(Angle(4.137545095, u.hour), Angle(-41.137545095, u.degree))
 
     c = ICRSCoordinates("54.12412 deg", "-41:08:15.162342 deg")
-    assert isinstance(c.dec, Latitude) # dec is a Latitude object
+    assert isinstance(c.dec, Latitude)  # dec is a Latitude object
+
+    #make sure ICRSCoordinates has a working repr
+    repr(c)
 
     npt.assert_almost_equal(dec.degree, -41.137545095)
 
@@ -472,6 +475,9 @@ def test_create_coordinate():
     b = Angle(76.5, unit=u.degree)
     c = GalacticCoordinates(l, b)  # accepts Angle objects and Longitude/Latitude
     d = GalacticCoordinates(ra, dec)
+
+    #make sure GalacticCoordinates has a working repr
+    repr(c)
 
     assert isinstance(c.l, Angle)  # *not* Longitude or Latitude
     assert isinstance(c.b, Angle)  # *not* Longitude or Latitude

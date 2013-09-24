@@ -98,6 +98,9 @@ def test_distance_in_coordinates():
     c._make_cart()
 
     # c.x, c.y, c.z and such are in test_api
+    #make sure repr still works
+
+    repr(c)
 
     assert isinstance(c.cartesian, CartesianPoints)
 

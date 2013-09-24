@@ -243,7 +243,7 @@ class CartesianPoints(u.Quantity):
     Raises
     ------
     astropy.units.UnitsError
-        If the units on `x`, `y`, and `z` do not match
+        If the units on `x`, `y`, and `z` do not match or an invalid unit is given
     ValueError
         If `y` and `z` don't match `xorarr`'s shape or `xorarr` is not length-3
     TypeError
@@ -261,6 +261,8 @@ class CartesianPoints(u.Quantity):
                 raise ValueError('input to CartesianPoints is not length 3')
 
             qarr = xorarr
+            if unit is None and hasattr(qarr, 'unit'):
+                unit = qarr.unit  # for when a Quantity is given
         elif y is not None and z is not None:
             x = xorarr
 
@@ -292,9 +294,10 @@ class CartesianPoints(u.Quantity):
         else:
             raise TypeError('Must give all of x,y, and z or just array in '
                             'CartesianPoints')
-
-        if unit is not None:
+        try:
             unit = _convert_to_and_validate_length_unit(unit, True)
+        except TypeError as e:
+            raise u.UnitsError(str(e))
 
         try:
             qarr = np.asarray(qarr)
@@ -308,13 +311,11 @@ class CartesianPoints(u.Quantity):
                                             copy=copy)
 
     def __quantity_view__(self, obj, unit):
-        if unit is not None:
-            unit = _convert_to_and_validate_length_unit(unit, True)
+        unit = _convert_to_and_validate_length_unit(unit, True)
         return super(CartesianPoints, self).__quantity_view__(obj, unit)
 
     def __quantity_instance__(self, val, unit, **kwargs):
-        if unit is not None:
-            unit = _convert_to_and_validate_length_unit(unit, True)
+        unit = _convert_to_and_validate_length_unit(unit, True)
         return super(CartesianPoints, self).__quantity_instance__(val, unit, **kwargs)
 
     def __array_wrap__(self, obj, context=None):
@@ -367,8 +368,8 @@ class CartesianPoints(u.Quantity):
         rarr, latarr, lonarr = cartesian_to_spherical(self.x, self.y, self.z)
 
         r = Distance(rarr, unit=self.unit)
-        lat = Latitude(latarr, unit=u.radians)
-        lon = Longitude(lonarr, unit=u.radians)
+        lat = Latitude(latarr, unit=u.radian)
+        lon = Longitude(lonarr, unit=u.radian)
 
         return r, lat, lon
 
@@ -377,8 +378,7 @@ def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
     """
     raises `astropy.units.UnitsError` if not a length unit
     """
-    if unit is not None:
-        unit = u.Unit(unit)
+    unit = u.Unit(unit)
 
     if not unit.is_equivalent(u.kpc):
         if not (allow_dimensionless and unit == u.dimensionless_unscaled):

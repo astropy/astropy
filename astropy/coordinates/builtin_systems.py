@@ -71,7 +71,7 @@ class ICRSCoordinates(SphericalCoordinatesBase):
 
     def __repr__(self):
         if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance._value, self.distance._unit)
+            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
         else:
             diststr = ''
 
@@ -140,7 +140,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
 
     def __repr__(self):
         if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance._value, self.distance._unit)
+            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
         else:
             diststr = ''
 
@@ -186,11 +186,11 @@ class FK5Coordinates(SphericalCoordinatesBase):
 
         pmat = precession_matrix_Capitaine(self._equinox, newequinox)
 
-        v = [self.x, self.y, self.z]
+        v = [self.x.value, self.y.value, self.z.value]
         x, y, z = np.dot(pmat.A, v)
 
         if self.distance is not None:
-            return self.__class__(x=x, y=y, z=z, unit=self.distance._unit, equinox=newequinox)
+            return self.__class__(x=x, y=y, z=z, unit=self.distance.unit, equinox=newequinox)
         else:
             return self.__class__(x=x, y=y, z=z, equinox=newequinox)
 
@@ -237,7 +237,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
 
     def __repr__(self):
         if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance._value, self.distance._unit)
+            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
         else:
             diststr = ''
 
@@ -282,11 +282,11 @@ class FK4Coordinates(SphericalCoordinatesBase):
 
         pmat = _precession_matrix_besselian(self._equinox.byear, newequinox.byear)
 
-        v = [self.x, self.y, self.z]
+        v = [self.x.value, self.y.value, self.z.value]
         x, y, z = np.dot(pmat.A, v)
 
         if self.distance is not None:
-            return self.__class__(x=x, y=y, z=z, unit=self.distance._unit, equinox=newequinox)
+            return self.__class__(x=x, y=y, z=z, unit=self.distance.unit, equinox=newequinox)
         else:
             return self.__class__(x=x, y=y, z=z, equinox=newequinox)
 
@@ -333,7 +333,7 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
 
     def __repr__(self):
         if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance._value, self.distance._unit)
+            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
         else:
             diststr = ''
 
@@ -378,11 +378,11 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
 
         pmat = _precession_matrix_besselian(self._equinox.byear, newequinox.byear)
 
-        v = [self.x, self.y, self.z]
+        v = [self.x.value, self.y.value, self.z.value]
         x, y, z = np.dot(pmat.A, v)
 
         if self.distance is not None:
-            return self.__class__(x=x, y=y, z=z, unit=self.distance._unit, equinox=newequinox)
+            return self.__class__(x=x, y=y, z=z, unit=self.distance.unit, equinox=newequinox)
         else:
             return self.__class__(x=x, y=y, z=z, equinox=newequinox)
 
@@ -444,7 +444,7 @@ class GalacticCoordinates(SphericalCoordinatesBase):
 
     def __repr__(self):
         if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance._value, self.distance._unit)
+            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
         else:
             diststr = ''
 
@@ -502,7 +502,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
 
     def __repr__(self):
         if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance._value, self.distance._unit)
+            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
         else:
             diststr = ''
 
@@ -605,7 +605,7 @@ def fk4_e_terms(equinox):
 def fk4_to_fk4_no_e(fk4c):
 
     # Extract cartesian vector
-    r = np.array([fk4c.x, fk4c.y, fk4c.z])
+    r = np.array([fk4c.x.value, fk4c.y.value, fk4c.z.value])
 
     # Find distance (for re-normalization)
     d_orig = np.sqrt(np.sum(r ** 2))
@@ -620,7 +620,7 @@ def fk4_to_fk4_no_e(fk4c):
     # Renormalize
     r = r * d_orig / d_new
 
-    unit = None if fk4c.distance is None else fk4c.distance._unit
+    unit = None if fk4c.distance is None else fk4c.distance.unit
     result = FK4NoETermCoordinates(x=r[0], y=r[1], z=r[2], unit=unit, equinox=fk4c.equinox)
 
     return result
@@ -630,7 +630,7 @@ def fk4_to_fk4_no_e(fk4c):
 def fk4_no_e_to_fk4(fk4c):
 
     # Extract cartesian vector
-    r = np.array([fk4c.x, fk4c.y, fk4c.z])
+    r = np.array([fk4c.x.value, fk4c.y.value, fk4c.z.value])
 
     # Find distance (for re-normalization)
     d_orig = np.sqrt(np.sum(r ** 2))
@@ -647,7 +647,7 @@ def fk4_no_e_to_fk4(fk4c):
     # Renormalize
     r = r * d_orig / d_new
 
-    unit = None if fk4c.distance is None else fk4c.distance._unit
+    unit = None if fk4c.distance is None else fk4c.distance.unit
     result = FK4Coordinates(x=r[0], y=r[1], z=r[2], unit=unit, equinox=fk4c.equinox)
 
     return result
