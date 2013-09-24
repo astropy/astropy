@@ -39,6 +39,8 @@ import io
 import re
 from warnings import warn
 
+from ...utils.custom_warnings import AstropyWarning
+
 
 __all__ = [
     'warn_or_raise', 'vo_raise', 'vo_reraise', 'vo_warn',
@@ -167,7 +169,7 @@ def parse_vowarning(line):
     return result
 
 
-class VOWarning(Warning):
+class VOWarning(AstropyWarning):
     """
     The base class of all VO warnings and exceptions.
 

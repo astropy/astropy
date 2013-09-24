@@ -5,8 +5,10 @@ astropy. Exceptions that are specific to a given subpackage should *not*
 be here, but rather in the particular subpackage.
 """
 
+from ..utils.custom_warnings import AstropyWarning
 
-class AstropyBackwardsIncompatibleChangeWarning(Warning):
+
+class AstropyBackwardsIncompatibleChangeWarning(AstropyWarning):
     """
     A warning class indicating a change in astropy that is incompatible
     with previous versions.

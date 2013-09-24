@@ -138,7 +138,7 @@ def _parse_keysel(keysel):
     return keysel_flags
 
 
-class FITSFixedWarning(Warning):
+class FITSFixedWarning(AstropyWarning):
     """
     The warning raised when the contents of the FITS header have been
     modified to be standards compliant.

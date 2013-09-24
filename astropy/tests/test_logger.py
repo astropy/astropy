@@ -5,6 +5,7 @@ import warnings
 from .helper import pytest, catch_warnings
 from .. import log
 from ..logger import LoggingError, LOG_LEVEL
+from ..utils.custom_warnings import AstropyWarning
 
 
 # Save original values of hooks. These are not the system values, but the
@@ -73,7 +74,7 @@ def test_warnings_logging():
     # Without warnings logging
     with catch_warnings() as warn_list:
         with log.log_to_list() as log_list:
-            warnings.warn("This is a warning")
+            warnings.warn("This is a warning", AstropyWarning)
     assert len(log_list) == 0
     assert len(warn_list) == 1
     assert warn_list[0].message.args[0] == "This is a warning"
@@ -82,7 +83,7 @@ def test_warnings_logging():
     with catch_warnings() as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
-            warnings.warn("This is a warning")
+            warnings.warn("This is a warning", AstropyWarning)
         log.disable_warnings_logging()
     assert len(log_list) == 1
     assert len(warn_list) == 0
@@ -93,21 +94,21 @@ def test_warnings_logging():
     # Without warnings logging
     with catch_warnings() as warn_list:
         with log.log_to_list() as log_list:
-            warnings.warn("This is a warning")
+            warnings.warn("This is a warning", AstropyWarning)
     assert len(log_list) == 0
     assert len(warn_list) == 1
     assert warn_list[0].message.args[0] == "This is a warning"
 
 
 def test_warnings_logging_with_custom_class():
-    class CustomWarningClass(Warning):
+    class CustomWarningClass(AstropyWarning):
         pass
 
     # With warnings logging
     with catch_warnings() as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
-            warnings.warn("This is a warning", CustomWarningClass)
+            warnings.warn("This is a warning", CustomWarningClass, AstropyWarning)
         log.disable_warnings_logging()
     assert len(log_list) == 1
     assert len(warn_list) == 0
