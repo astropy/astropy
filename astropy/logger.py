@@ -52,11 +52,11 @@ USE_COLOR = ConfigurationItem('use_color', True,
 LOG_WARNINGS = ConfigurationItem('log_warnings', True,
                                  "Whether to log warnings.warn calls")
 
-LOG_EXCEPTIONS = ConfigurationItem('log_exceptions', True,
+LOG_EXCEPTIONS = ConfigurationItem('log_exceptions', False,
                                    "Whether to log exceptions before raising "
                                    "them")
 
-LOG_TO_FILE = ConfigurationItem('log_to_file', True,
+LOG_TO_FILE = ConfigurationItem('log_to_file', False,
                                 "Whether to always log messages to a log "
                                 "file")
 
