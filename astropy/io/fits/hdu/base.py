@@ -60,7 +60,7 @@ def _hdu_class_from_header(cls, header):
             except Exception as e:
                 warnings.warn(
                     'An exception occurred matching an HDU header to the '
-                    'appropriate HDU type: %s' % unicode(e))
+                    'appropriate HDU type: %s' % unicode(e), AstropyWarning)
                 warnings.warn('The HDU will be treated as corrupted.', AstropyWarning)
                 klass = _CorruptedHDU
                 break
@@ -1279,7 +1279,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             self._checksum_comment = self._header.comments['CHECKSUM']
             if not self.verify_checksum(blocking):
                 warnings.warn('Checksum verification failed for HDU %s.\n' %
-                              ((self.name, self._extver),))
+                              ((self.name, self._extver),), AstropyWarning)
             del self._header['CHECKSUM']
         else:
             self._checksum = None
@@ -1291,7 +1291,7 @@ class _ValidHDU(_BaseHDU, _Verify):
 
             if not self.verify_datasum(blocking):
                 warnings.warn('Datasum verification failed for HDU %s.\n' %
-                              ((self.name, self._extver),))
+                              ((self.name, self._extver),), AstropyWarning)
             del self._header['DATASUM']
         else:
             self._checksum = None

@@ -479,7 +479,7 @@ class Header(object):
                 if is_eof and blocks.strip('\0') == '':
                     warnings.warn('Unexpected extra padding at the end of the '
                                   'file.  This padding may not be preserved '
-                                  'when saving changes.')
+                                  'when saving changes.', AstropyWarning)
                     raise EOFError()
                 else:
                     # Replace the illegal null bytes with spaces as required by
@@ -487,7 +487,7 @@ class Header(object):
                     warnings.warn('Header block contains null bytes instead '
                                   'of spaces for padding, and is not FITS-'
                                   'compliant. Nulls may be replaced with '
-                                  'spaces upon writing.')
+                                  'spaces upon writing.', AstropyWarning)
                     blocks.replace('\0', ' ')
 
             if not HEADER_END_RE.search(last_block) and endcard:
@@ -1396,7 +1396,7 @@ class Header(object):
             if keyword not in Card._commentary_keywords:
                 warnings.warn(
                     'A %r keyword already exists in this header.  Inserting '
-                    'duplicate keyword.' % keyword)
+                    'duplicate keyword.' % keyword, AstropyWarning)
             self._keyword_indices[keyword].sort()
 
         if useblanks:

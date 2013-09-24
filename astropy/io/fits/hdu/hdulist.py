@@ -537,7 +537,7 @@ class HDUList(list, _Verify):
 
         if self.__file.mode not in ('append', 'update', 'ostream'):
             warnings.warn("Flush for '%s' mode is not supported."
-                          % self.__file.mode)
+                          % self.__file.mode, AstropyWarning)
             return
 
         if self._save_backup and self.__file.mode in ('append', 'update'):
@@ -551,7 +551,7 @@ class HDUList(list, _Verify):
                     backup = filename + '.bak.' + str(idx)
                     idx += 1
                 warnings.warn('Saving a backup of %s to %s.' %
-                              (filename, backup))
+                              (filename, backup), AstropyWarning)
                 try:
                     shutil.copy(filename, backup)
                 except IOError as e:

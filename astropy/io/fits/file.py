@@ -19,7 +19,7 @@ from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
                    _array_to_file, _write_string, b)
 from ...utils import deprecated
-
+from ...utils.custom_warnings import AstropyWarning
 
 # File object open modes
 PYTHON_MODES = {'readonly': 'rb', 'copyonwrite': 'rb', 'update': 'rb+',
@@ -197,7 +197,7 @@ class _File(object):
 
         if not (size or shape):
             warnings.warn('No size or shape given to readarray(); assuming a '
-                          'shape of (1,)')
+                          'shape of (1,)', AstropyWarning)
             shape = (1,)
 
         if self.memmap:
@@ -257,7 +257,7 @@ class _File(object):
         if self.size and pos > self.size:
             warnings.warn('File may have been truncated: actual file length '
                           '(%i) is smaller than the expected size (%i)' %
-                          (self.size, pos))
+                          (self.size, pos), AstropyWarning)
 
     def tell(self):
         if not hasattr(self.__file, 'tell'):
@@ -382,14 +382,14 @@ class _File(object):
                 mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
             except mmap.error as e:
                 warnings.warn('Failed to create mmap: %s; mmap use will be '
-                              'disabled' % str(e))
+                              'disabled' % str(e), AstropyWarning)
                 _File._mmap_available = False
                 return False
             try:
                 mm.flush()
             except mmap.error:
                 warnings.warn('mmap.flush is unavailable on this platform; '
-                              'using mmap in writeable mode will be disabled')
+                              'using mmap in writeable mode will be disabled', AstropyWarning)
                 _File._mmap_available = False
                 return False
             finally:

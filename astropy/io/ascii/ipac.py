@@ -39,6 +39,7 @@ from warnings import warn
 from . import core
 from . import fixedwidth
 from ...utils import OrderedDict
+from ...utils.custom_warnings import AstropyUserWarning
 
 
 class IpacFormatErrorDBMS(Exception):
@@ -166,7 +167,7 @@ class Ipac(fixedwidth.FixedWidth):
             for comment in table.meta['comments']:
                 if len(str(comment)) > 78:
                     warn('Comment string > 78 characters was automatically wrapped.',
-                         UserWarning)
+                         AstropyUserWarning)
                 for line in wrap(str(comment), 80, initial_indent='\\ ', subsequent_indent='\\ '):
                     lines.append(line)
         if 'keywords' in table.meta:

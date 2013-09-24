@@ -1358,7 +1358,7 @@ del Finder
 import warnings
 warnings.warn(
     "{old_package} is deprecated.  Use {new_package} instead.",
-    AstropyDeprecationWarning)
+    DeprecationWarning)
 del warnings
 
 from {new_package} import *

@@ -9,6 +9,7 @@ import warnings
 import numpy as np
 
 from ...utils import OrderedDict
+from ...utils.custom_warnings import AstropyWarning
 from .. import registry as io_registry
 from ...table import Table
 from ... import log
@@ -106,7 +107,8 @@ def read_table_fits(input, hdu=None):
             if hdu is None:
                 warnings.warn("hdu= was not specified but multiple tables"
                               " are present, reading in first available"
-                              " table (hdu={0})".format(tables.keys()[0]))
+                              " table (hdu={0})".format(tables.keys()[0]),
+                              AstropyWarning)
                 hdu = tables.keys()[0]
 
             # hdu might not be an integer, so we first need to convert it

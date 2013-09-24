@@ -14,7 +14,7 @@ from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from . import ENABLE_RECORD_VALUED_KEYWORD_CARDS, STRIP_HEADER_WHITESPACE
 
 from ...utils import deprecated
-from ...utils.custom_warnings import AstropyDeprecationWarning
+from ...utils.custom_warnings import AstropyWarning, AstropyDeprecationWarning
 
 
 __all__ = ['Card', 'CardList', 'create_card', 'create_card_from_string',
@@ -864,7 +864,7 @@ class Card(_Verify):
         else:
             warnings.warn('The following header keyword is invalid or follows '
                           'an unrecognized non-standard convention:\n%s' %
-                          self._image)
+                          self._image, AstropyWarning)
             self._invalid = True
             return keyword
 

@@ -105,7 +105,8 @@ class Kernel(object):
         # the user should be warned in this case
         if np.abs(self._normalization) > MAX_NORMALIZATION:
             warnings.warn("Normalization factor of kernel is "
-                          "exceptionally large > {0}.".format(MAX_NORMALIZATION))
+                          "exceptionally large > {0}.".format(MAX_NORMALIZATION),
+                          AstropyWarning)
         if mode == 'integral':
             self._array *= self._normalization
         if mode == 'peak':

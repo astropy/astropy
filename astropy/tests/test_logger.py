@@ -108,7 +108,7 @@ def test_warnings_logging_with_custom_class():
     with catch_warnings() as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
-            warnings.warn("This is a warning", CustomWarningClass, AstropyWarning)
+            warnings.warn("This is a warning", CustomWarningClass)
         log.disable_warnings_logging()
     assert len(log_list) == 1
     assert len(warn_list) == 0

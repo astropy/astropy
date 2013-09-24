@@ -453,7 +453,7 @@ class FITS_rec(np.recarray):
                             'TDIM%d value %s does not fit with the size of '
                             'the array items (%d).  TDIM%d will be ignored.'
                             % (indx + 1, self._coldefs.dims[indx],
-                               actual_nitems, indx + 1))
+                               actual_nitems, indx + 1), AstropyWarning)
                         dim = None
 
             # further conversion for both ASCII and binary tables
