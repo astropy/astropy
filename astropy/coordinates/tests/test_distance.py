@@ -24,13 +24,13 @@ def test_distance_change():
 
     c.distance = Distance(1, unit=u.kpc)
 
-    oldx = c.x
+    oldx = c.x.value
     assert (oldx - 0.35284083171901953) < 1e-10
 
     #now x should increase when the distance increases
     c.distance = Distance(2, unit=u.kpc)
 
-    assert c.x == oldx * 2
+    assert c.x.value == oldx * 2
 
 
 def test_distance_is_quantity():
@@ -110,19 +110,22 @@ def test_creating_cartesian_single():
 
     from .. import CartesianPoints
 
-    CartesianPoints(ones(3, 10), unit=u.kpc)
+    CartesianPoints(ones((3, 10)), unit=u.kpc)
+
+    #allow dimensionless, too
+    CartesianPoints(ones((3, 10)), unit=u.dimensionless_unscaled)
 
     with pytest.raises(u.UnitsError):
-        CartesianPoints(ones(3, 10))
+        CartesianPoints(ones((3, 10)))
 
     with pytest.raises(ValueError):
-        CartesianPoints(ones(2, 10), unit=u.kpc)
+        CartesianPoints(ones((2, 10)), unit=u.kpc)
 
     #quantity version
-    c = CartesianPoints(ones(3, 10) * u.kpc)
+    c = CartesianPoints(ones((3, 10)) * u.kpc)
     assert c.unit == u.kpc
 
-    c = CartesianPoints(ones(3, 10) * u.kpc, unit=u.Mpc)
+    c = CartesianPoints(ones((3, 10)) * u.kpc, unit=u.Mpc)
     assert c.unit == u.Mpc
 
 
@@ -137,7 +140,6 @@ def test_creating_cartesian_triple():
     #make sure scalars are scalars
     c = CartesianPoints(1, 2, 3, unit=u.kpc)
 
-
     CartesianPoints(ones(10), ones(10), ones(10), unit=u.kpc)
 
     with pytest.raises(ValueError):
@@ -151,7 +153,7 @@ def test_creating_cartesian_triple():
     #convert when needed
     c = CartesianPoints(ones(10), ones(10), ones(10) * u.kpc, unit=u.Mpc)
     assert c.unit == u.Mpc
-    assert c[2][0] < .1  # conversion of kpc to Mpc should give much smaller, but do this for round-off
+    assert c[2][0].value < .1  # conversion of kpc to Mpc should give much smaller, but do this for round-off
 
     with pytest.raises(u.UnitsError):
         CartesianPoints(ones(10) * u.Mpc, ones(10), ones(10) * u.kpc)
@@ -169,16 +171,26 @@ def test_cartesian_operations():
     c = CartesianPoints(np.ones(10), np.ones(10), np.ones(10), unit=u.kpc)
 
     c2 = c + c
-    assert c2.y[2] == 2
+    assert c2.y[2].value == 2
+    assert c2.unit == c.unit
 
     c3 = c - c
-    assert c3[1, 2] == 0
+    assert c3[1, 2].value == 0
 
     r, lat, lon = c.to_spherical()
 
     assert r.unit == c.unit
     assert isinstance(lat, Latitude)
     assert isinstance(lon, Longitude)
+
+    c4 = c * 3
+    assert c4.unit == c.unit
+
+    #always preserve the CartesianPoint's units
+    c5 = 3 * u.pc + c
+    assert c5.unit == c.unit
+
+
 
 
 def test_cartesian_view():

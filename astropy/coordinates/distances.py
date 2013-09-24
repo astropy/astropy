@@ -9,7 +9,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from ..extern import six
 from .. import units as u
 
 __all__ = ['Distance', 'CartesianPoints', 'cartesian_to_spherical',
@@ -252,6 +251,10 @@ class CartesianPoints(u.Quantity):
 
     """
 
+    #this ensures that __array_wrap__ gets called for ufuncs even when
+    #where a quantity is first, like ``3*u.m + c``
+    __array_priority__ = 10001
+
     def __new__(cls, xorarr, y=None, z=None, unit=None, dtype=None, copy=True):
         if y is None and z is None:
             if len(xorarr) != 3:
@@ -282,17 +285,16 @@ class CartesianPoints(u.Quantity):
                     z = z.to(unit)
 
             qarr = [np.asarray(coo) for coo in (x, y, z)]
-            if not (x.shape == y.shape == z.shape):
+            if not (qarr[0].shape == qarr[1].shape == qarr[2].shape):
                 raise ValueError("shapes for x,y, and z don't match in "
                                  "CartesianPoints")
                 #let the unit be whatever it is
-
         else:
             raise TypeError('Must give all of x,y, and z or just array in '
                             'CartesianPoints')
 
         if unit is not None:
-            unit = _convert_to_and_validate_length_unit(unit)
+            unit = _convert_to_and_validate_length_unit(unit, True)
 
         try:
             qarr = np.asarray(qarr)
@@ -307,13 +309,23 @@ class CartesianPoints(u.Quantity):
 
     def __quantity_view__(self, obj, unit):
         if unit is not None:
-            unit = _convert_to_and_validate_length_unit(unit)
+            unit = _convert_to_and_validate_length_unit(unit, True)
         return super(CartesianPoints, self).__quantity_view__(obj, unit)
 
     def __quantity_instance__(self, val, unit, **kwargs):
         if unit is not None:
-            unit = _convert_to_and_validate_length_unit(unit)
+            unit = _convert_to_and_validate_length_unit(unit, True)
         return super(CartesianPoints, self).__quantity_instance__(val, unit, **kwargs)
+
+    def __array_wrap__(self, obj, context=None):
+        #always convert to CartesianPoints because all operations that would
+        #screw up the units are killed by _convert_to_and_validate_length_unit
+        obj = super(CartesianPoints, self).__array_wrap__(obj, context=context)
+
+        #always prefer self's unit
+        obj = obj.to(self.unit)
+
+        return CartesianPoints(obj.value, unit=obj.unit, copy=False)
 
     @property
     def x(self):
@@ -360,12 +372,8 @@ class CartesianPoints(u.Quantity):
 
         return r, lat, lon
 
-    def __repr__(self):
-        return '<CartesianPoints ({x}, {y}, {z}) {unit}>'.format(x=self.x,
-                y=self.y, z=self.z, unit=self.unit)
 
-
-def _convert_to_and_validate_length_unit(unit):
+def _convert_to_and_validate_length_unit(unit, allow_dimensionless=False):
     """
     raises `astropy.units.UnitsError` if not a length unit
     """
@@ -373,7 +381,8 @@ def _convert_to_and_validate_length_unit(unit):
         unit = u.Unit(unit)
 
     if not unit.is_equivalent(u.kpc):
-        raise u.UnitsError(six.u('Unit "{0}" is not a length type').format(unit))
+        if not (allow_dimensionless and unit == u.dimensionless_unscaled):
+            raise u.UnitsError('Unit "{0}" is not a length type'.format(unit))
     return unit
 
 #<------------transformation-related utility functions----------------->
