@@ -131,7 +131,7 @@ class Distance(u.Quantity):
             raise ValueError('A `cosmology` was given but `z` was not provided '
                              'in Distance constructor')
         elif unit is None:
-            raise u.UnitsError('No unit was provided to Distance constructor')
+            raise u.UnitsError('No unit was provided for Distance')
         #"else" the baseline `value` + `unit` case
 
         unit = _convert_to_and_validate_length_unit(unit)
