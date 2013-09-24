@@ -368,4 +368,4 @@ def test_skip_meta(tmpdir):
 
     with log.log_to_list() as warning_list:
         t1.write(test_file, path='the_table')
-    assert warning_list[0].msg == "Attribute `f` of type {0} cannot be written to HDF5 files - skipping".format(type(t1.meta['f']))
+    assert warning_list[0].message.startswith("Attribute `f` of type {0} cannot be written to HDF5 files - skipping".format(type(t1.meta['f'])))
