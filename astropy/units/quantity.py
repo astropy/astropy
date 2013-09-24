@@ -327,7 +327,7 @@ class Quantity(np.ndarray):
                     out = function(inputs[0], inputs[1], obj_array)
 
                 if obj_array is None:
-                    if type(out) != np.ndarray:  # array scalar; cannot view
+                    if not isinstance(out, np.ndarray):  # array scalar; cannot view
                         return self.__quantity_instance__(out, result_unit)
                     else:
                         obj = self.__quantity_view__(out, result_unit)
@@ -683,7 +683,7 @@ class Quantity(np.ndarray):
                 "indexing".format(cls=self.__class__.__name__))
         else:
             out = self.value[key]
-            if type(out) != np.ndarray:  # array scalar; cannot view
+            if not isinstance(out, np.ndarray):  # array scalar; cannot view
                 return self.__quantity_instance__(out, self.unit)
 
             out = self.__quantity_view__(out, self.unit)
