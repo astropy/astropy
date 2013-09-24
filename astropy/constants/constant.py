@@ -88,7 +88,7 @@ class Constant(Quantity):
         instances = Constant._registry.setdefault(name_lower, {})
         if system in instances:
             warnings.warn('Constant {0!r} is already has a definition in the '
-                          '{1!r} system'.format(name, system), AstropyWarning)
+                          '{1!r} system'.format(name, system), AstropyUserWarning)
 
         inst = super(Constant, cls).__new__(cls, value)
 

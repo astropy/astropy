@@ -9,7 +9,7 @@ import warnings
 import numpy as np
 
 from ...utils import OrderedDict
-from ...utils.custom_warnings import AstropyWarning
+from ...utils.custom_warnings import AstropyUserWarning
 from .. import registry as io_registry
 from ...table import Table
 from ... import log

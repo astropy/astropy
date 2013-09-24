@@ -21,7 +21,7 @@ from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
 from ..verify import _Verify, _ErrList
 
 from ....utils import lazyproperty, deprecated
-from ....utils.custom_warnings import AstropyWarning
+from ....utils.custom_warnings import AstropyUserWarning
 
 
 class _Delayed(object):
@@ -60,8 +60,8 @@ def _hdu_class_from_header(cls, header):
             except Exception as e:
                 warnings.warn(
                     'An exception occurred matching an HDU header to the '
-                    'appropriate HDU type: %s' % unicode(e), AstropyWarning)
-                warnings.warn('The HDU will be treated as corrupted.', AstropyWarning)
+                    'appropriate HDU type: %s' % unicode(e), AstropyUserWarning)
+                warnings.warn('The HDU will be treated as corrupted.', AstropyUserWarning)
                 klass = _CorruptedHDU
                 break
 
@@ -1279,7 +1279,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             self._checksum_comment = self._header.comments['CHECKSUM']
             if not self.verify_checksum(blocking):
                 warnings.warn('Checksum verification failed for HDU %s.\n' %
-                              ((self.name, self._extver),), AstropyWarning)
+                              ((self.name, self._extver),), AstropyUserWarning)
             del self._header['CHECKSUM']
         else:
             self._checksum = None
@@ -1291,7 +1291,7 @@ class _ValidHDU(_BaseHDU, _Verify):
 
             if not self.verify_datasum(blocking):
                 warnings.warn('Datasum verification failed for HDU %s.\n' %
-                              ((self.name, self._extver),), AstropyWarning)
+                              ((self.name, self._extver),), AstropyUserWarning)
             del self._header['DATASUM']
         else:
             self._checksum = None

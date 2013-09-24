@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 
 from ..modeling.core import Parametric1DModel, Parametric2DModel
-from ..utils.custom_warnings import AstropyWarning
+from ..utils.custom_warnings import AstropyUserWarning
 
 
 __all__ = ['discretize_model']
@@ -154,7 +154,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
             return discretize_oversample_2D(model, x_range, y_range, factor)
     elif mode == "integrate":
         warnings.warn("Mode 'integrate' is very slow. Use only if highest "
-                        "accuracy is required.", AstropyWarning)
+                        "accuracy is required.", AstropyUserWarning)
         if isinstance(model, Parametric1DModel):
             return discretize_integrate_1D(model, x_range)
         if isinstance(model, Parametric2DModel):

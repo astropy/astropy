@@ -17,7 +17,7 @@ from .util import (encode_ascii, decode_ascii, fileobj_mode,
                    fileobj_is_binary)
 
 from ...utils import deprecated, isiterable
-from ...utils.custom_warnings import AstropyWarning, AstropyDeprecationWarning
+from ...utils.custom_warnings import AstropyUserWarning, AstropyDeprecationWarning
 
 
 PY3K = sys.version_info[:2] >= (3, 0)
@@ -479,7 +479,7 @@ class Header(object):
                 if is_eof and blocks.strip('\0') == '':
                     warnings.warn('Unexpected extra padding at the end of the '
                                   'file.  This padding may not be preserved '
-                                  'when saving changes.', AstropyWarning)
+                                  'when saving changes.', AstropyUserWarning)
                     raise EOFError()
                 else:
                     # Replace the illegal null bytes with spaces as required by
@@ -487,7 +487,7 @@ class Header(object):
                     warnings.warn('Header block contains null bytes instead '
                                   'of spaces for padding, and is not FITS-'
                                   'compliant. Nulls may be replaced with '
-                                  'spaces upon writing.', AstropyWarning)
+                                  'spaces upon writing.', AstropyUserWarning)
                     blocks.replace('\0', ' ')
 
             if not HEADER_END_RE.search(last_block) and endcard:
@@ -590,7 +590,7 @@ class Header(object):
         if isinstance(fileobj, basestring):
             if os.path.exists(fileobj) and os.path.getsize(fileobj) != 0:
                 if clobber:
-                    warnings.warn("Overwriting existing file '%s'." % fileobj, AstropyWarning)
+                    warnings.warn("Overwriting existing file '%s'." % fileobj, AstropyUserWarning)
                     os.remove(fileobj)
                 else:
                     raise IOError("File '%s' already exists." % fileobj)
@@ -1396,7 +1396,7 @@ class Header(object):
             if keyword not in Card._commentary_keywords:
                 warnings.warn(
                     'A %r keyword already exists in this header.  Inserting '
-                    'duplicate keyword.' % keyword, AstropyWarning)
+                    'duplicate keyword.' % keyword, AstropyUserWarning)
             self._keyword_indices[keyword].sort()
 
         if useblanks:

@@ -14,7 +14,7 @@ import threading
 import warnings
 
 import numpy as np
-from ...utils.custom_warnings import AstropyWarning
+from ...utils.custom_warnings import AstropyUserWarning
 
 def itersubclasses(cls, _seen=None):
     """
@@ -78,7 +78,7 @@ def ignore_sigint(func):
 
             def __call__(self, signum, frame):
                 warnings.warn('KeyboardInterrupt ignored until %s is '
-                              'complete!' % func.__name__, AstropyWarning)
+                              'complete!' % func.__name__, AstropyUserWarning)
                 self.sigint_received = True
 
         sigint_handler = SigintHandler()

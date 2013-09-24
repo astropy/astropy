@@ -19,7 +19,7 @@ from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
                    _array_to_file, _write_string, b)
 from ...utils import deprecated
-from ...utils.custom_warnings import AstropyWarning
+from ...utils.custom_warnings import AstropyUserWarning
 
 # File object open modes
 PYTHON_MODES = {'readonly': 'rb', 'copyonwrite': 'rb', 'update': 'rb+',
@@ -197,7 +197,7 @@ class _File(object):
 
         if not (size or shape):
             warnings.warn('No size or shape given to readarray(); assuming a '
-                          'shape of (1,)', AstropyWarning)
+                          'shape of (1,)', AstropyUserWarning)
             shape = (1,)
 
         if self.memmap:
@@ -257,7 +257,7 @@ class _File(object):
         if self.size and pos > self.size:
             warnings.warn('File may have been truncated: actual file length '
                           '(%i) is smaller than the expected size (%i)' %
-                          (self.size, pos), AstropyWarning)
+                          (self.size, pos), AstropyUserWarning)
 
     def tell(self):
         if not hasattr(self.__file, 'tell'):
@@ -382,14 +382,14 @@ class _File(object):
                 mm = mmap.mmap(tmpfd, 1, access=mmap.ACCESS_WRITE)
             except mmap.error as e:
                 warnings.warn('Failed to create mmap: %s; mmap use will be '
-                              'disabled' % str(e), AstropyWarning)
+                              'disabled' % str(e), AstropyUserWarning)
                 _File._mmap_available = False
                 return False
             try:
                 mm.flush()
             except mmap.error:
                 warnings.warn('mmap.flush is unavailable on this platform; '
-                              'using mmap in writeable mode will be disabled', AstropyWarning)
+                              'using mmap in writeable mode will be disabled', AstropyUserWarning)
                 _File._mmap_available = False
                 return False
             finally:

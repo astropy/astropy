@@ -6,9 +6,9 @@ class AstropyUserWarning(UserWarning):
     pass
 
 
-class AstropyDeprecationWarning(DeprecationWarning, AstropyWarning):
+class AstropyDeprecationWarning(DeprecationWarning, AstropyUserWarning):
     pass
 
 
-class AstropyPendingDeprecationWarning(PendingDeprecationWarning, AstropyWarning):
+class AstropyPendingDeprecationWarning(PendingDeprecationWarning, AstropyUserWarning):
     pass

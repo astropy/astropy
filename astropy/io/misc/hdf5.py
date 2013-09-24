@@ -11,7 +11,7 @@ import os
 import warnings
 
 import numpy as np
-from ...utils.custom_warnings import AstropyWarning
+from ...utils.custom_warnings import AstropyUserWarning
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 
@@ -101,7 +101,7 @@ def read_table_hdf5(input, path=None):
                 path = arrays[0] if path is None else path + '/' + arrays[0]
                 warnings.warn("path= was not specified but multiple tables"
                               " are present, reading in first available"
-                              " table (path={0})".format(path), AstropyWarning)
+                              " table (path={0})".format(path), AstropyUserWarning)
                 return read_table_hdf5(input, path=path)
 
     elif not isinstance(input, h5py.highlevel.Dataset):
@@ -224,4 +224,4 @@ def write_table_hdf5(table, output, path=None, compression=False,
             dset.attrs[key] = val
         except TypeError:
             warnings.warn("Attribute `{0}` of type {1} cannot be written to "
-                          "HDF5 files - skipping".format(key, type(val)), AstropyWarning)
+                          "HDF5 files - skipping".format(key, type(val)), AstropyUserWarning)
