@@ -24,6 +24,7 @@ from ...utils.data import get_readable_fileobj, get_pkg_data_contents
 from ...utils.data import REMOTE_TIMEOUT
 from ...utils.misc import JsonCustomEncoder
 from ...utils.xml.unescaper import unescape_all
+from ...utils.custom_warnings import AstropyUserWarning
 
 # Temporary solution until STScI VAO registry formally provides
 # <testQuery> tags
@@ -179,8 +180,8 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         num_match = fixed_urls.count(cur_url)
 
         if num_match == 0:
-            log.warn(
-                '{0} not found in cs_mstr_list! Skipping...'.format(cur_url))
+            warnings.warn('{0} not found in cs_mstr_list! Skipping...'.format(cur_url),
+                          AstropyUserWarning)
             continue
 
         i = fixed_urls.index(cur_url)
@@ -276,7 +277,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
             uniq_rows, t_end - t_beg))
 
     if n['good'] == 0:  # pragma: no cover
-        log.warn('No good sites available for Cone Search.')
+        warnings.warn('No good sites available for Cone Search.', AstropyUserWarning)
 
 
 def _do_validation(url):
