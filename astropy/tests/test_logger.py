@@ -91,6 +91,19 @@ def test_warnings_logging():
     assert log_list[0].message.startswith('This is a warning')
     assert log_list[0].origin == 'astropy.tests.test_logger'
 
+    # With warnings logging (differentiate between Astropy and non-Astropy)
+    with catch_warnings() as warn_list:
+        log.enable_warnings_logging()
+        with log.log_to_list() as log_list:
+            warnings.warn("This is a warning", AstropyUserWarning)
+            warnings.warn("This is another warning, not from Astropy")
+        log.disable_warnings_logging()
+    assert len(log_list) == 1
+    assert len(warn_list) == 1
+    assert log_list[0].levelname == 'WARNING'
+    assert log_list[0].message.startswith('This is a warning')
+    assert log_list[0].origin == 'astropy.tests.test_logger'
+    assert warn_list[0].message.args[0] == "This is another warning, not from Astropy"
 
     # Without warnings logging
     with catch_warnings() as warn_list:
