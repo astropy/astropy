@@ -5,6 +5,7 @@ from __future__ import absolute_import, print_function, division
 
 # STDLIB
 import time
+import warnings
 from collections import Iterable
 from functools import partial, wraps
 
@@ -15,6 +16,7 @@ import numpy as np
 from . import OrderedDict
 from .. import units as u
 from .. import log
+from .custom_warnings import AstropyUserWarning
 
 
 __all__ = ['timefunc', 'RunTimePredictor']
@@ -187,7 +189,7 @@ class RunTimePredictor(object):
             try:
                 result = self._timed_pfunc(arg)
             except Exception as e:
-                log.warn(str(e))
+                warnings.warn(str(e), AstropyUserWarning)
                 self._cache_bad.append(arg)
             else:
                 self._cache_good[arg] = result[0]  # Run time

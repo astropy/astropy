@@ -108,7 +108,7 @@ def read_table_fits(input, hdu=None):
                 warnings.warn("hdu= was not specified but multiple tables"
                               " are present, reading in first available"
                               " table (hdu={0})".format(tables.keys()[0]),
-                              AstropyWarning)
+                              AstropyUserWarning)
                 hdu = tables.keys()[0]
 
             # hdu might not be an integer, so we first need to convert it
@@ -233,23 +233,23 @@ def write_table_fits(input, output, overwrite=False):
 
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
 
-            log.warn("Meta-data keyword {0} will be ignored since it "
-                     "conflicts with a FITS reserved keyword".format(key))
+            warnings.warn("Meta-data keyword {0} will be ignored since it "
+                          "conflicts with a FITS reserved keyword".format(key))
 
         if isinstance(value, list):
             for item in value:
                 try:
                     table_hdu.header.append((key, item))
                 except ValueError:
-                    log.warn("Attribute `{0}` of type {1} cannot be written "
-                             "to FITS files - skipping".format(key,
+                    warnings.warn("Attribute `{0}` of type {1} cannot be written "
+                                  "to FITS files - skipping".format(key,
                                                                type(value)))
         else:
             try:
                 table_hdu.header[key] = value
             except ValueError:
-                log.warn("Attribute `{0}` of type {1} cannot be written to "
-                         "FITS files - skipping".format(key, type(value)))
+                warnings.warn("Attribute `{0}` of type {1} cannot be written to "
+                              "FITS files - skipping".format(key, type(value)))
 
     # Write out file
     table_hdu.writeto(output)
