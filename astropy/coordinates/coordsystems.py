@@ -410,14 +410,12 @@ class SphericalCoordinatesBase(object):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 
-        dscale = other_in_self_system._distance._unit.to(self._distance._unit, 1)
+        dx = self.x - other_in_self_system.x
+        dy = self.y - other_in_self_system.y
+        dz = self.z - other_in_self_system.z
 
-        dx = self.x - other_in_self_system.x * dscale
-        dy = self.y - other_in_self_system.y * dscale
-        dz = self.z - other_in_self_system.z * dscale
-
-        distval = (dx ** 2 + dy ** 2 + dz ** 2) ** 0.5
-        return Distance(distval, self._distance._unit)
+        distval = (dx.value ** 2 + dy.value ** 2 + dz.value ** 2) ** 0.5
+        return Distance(distval, dx.unit)
 
     #<------------transformation-related stuff here-------------------->
     def transform_to(self, tosys):

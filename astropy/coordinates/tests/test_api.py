@@ -669,29 +669,31 @@ def test_distances():
 
     (x, y, z) = (c2.x, c2.y, c2.z)
     #this only computes the CartesianPoints *once*, and then caches it
-    npt.assert_almost_equal(x, 2)
-    npt.assert_almost_equal(y, 4)
-    npt.assert_almost_equal(z, 8)
+    #note that the x/y/z are Quantity objects
+    assert isinstance(x, u.Quantity)
+    npt.assert_almost_equal(x.value, 2)
+    npt.assert_almost_equal(y.value, 4)
+    npt.assert_almost_equal(z.value, 8)
 
     cpt = c2.cartesian
     assert isinstance(cpt, CartesianPoints)
-    npt.assert_almost_equal(cpt.x, 2)
-    npt.assert_almost_equal(cpt.y, 4)
-    npt.assert_almost_equal(cpt.z, 8)
+    npt.assert_almost_equal(cpt.x.value, 2)
+    npt.assert_almost_equal(cpt.y.value, 4)
+    npt.assert_almost_equal(cpt.z.value, 8)
 
     # with no distance, the unit sphere is assumed when converting to cartesian
     c3 = GalacticCoordinates(l=158.558650, b=-43.350066, unit=(u.degree, u.degree), distance=None)
     unitcart = c3.cartesian
-    npt.assert_almost_equal((unitcart.x**2 + unitcart.y**2 + unitcart.z**2)**0.5, 1.0)
+    npt.assert_almost_equal(((unitcart.x**2 + unitcart.y**2 + unitcart.z**2)**0.5).value, 1.0)
 
     # CartesianPoints objects can be added and subtracted, which are
     # vector/elementwise they can also be given as arguments to a coordinate
     # system
     csum = ICRSCoordinates(c1.cartesian + c2.cartesian)
 
-    npt.assert_almost_equal(csum.x, -8.12016610185)
-    npt.assert_almost_equal(csum.y, 3.19380597435)
-    npt.assert_almost_equal(csum.z, -8.2294483707)
+    npt.assert_almost_equal(csum.x.value, -8.12016610185)
+    npt.assert_almost_equal(csum.y.value, 3.19380597435)
+    npt.assert_almost_equal(csum.z.value, -8.2294483707)
     npt.assert_almost_equal(csum.ra.degree, 158.529401774)
     npt.assert_almost_equal(csum.dec.degree, -43.3235825777)
     npt.assert_almost_equal(csum.distance.kpc, 11.9942200501)
