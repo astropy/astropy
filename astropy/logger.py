@@ -160,6 +160,11 @@ class AstropyLogger(Logger):
     _showwarning_orig = None
 
     def _showwarning(self, *args, **kwargs):
+
+        # Bail out if we are not catching a warning from Astropy
+        if not isinstance(args[0], AstropyWarning):
+            return self._showwarning_orig(*args, **kwargs)
+
         warning = args[0]
         # Deliberately not using isinstance here: We want to display
         # the class name only when it's not the default class,
