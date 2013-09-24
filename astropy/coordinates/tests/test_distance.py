@@ -33,26 +33,6 @@ def test_distance_change():
     assert c.x == oldx * 2
 
 
-def test_distance_in_coordinates():
-    """
-    test that distances can be created from quantities
-    """
-    from .. import Longitude, Latitude, ICRSCoordinates, CartesianPoints
-
-    ra = Longitude("4:08:15.162342", unit=u.hour)
-    dec = Latitude("-41:08:15.162342", unit=u.degree)
-    c = ICRSCoordinates(ra, dec)
-
-    c.distance = 2 * u.kpc  # auto-converts
-
-    #make sure cartesian stuff now works
-    # do the internal method first, because the properties will fail with
-    # unhelpful errors because __getattr_ is overridden by coordinates
-    c._make_cart()
-
-    assert isinstance(c.cartesian, CartesianPoints)
-
-
 def test_distance_is_quantity():
     """
     test that distance behaves like a proper quantity
@@ -98,3 +78,123 @@ def test_distmod():
 
     with pytest.raises(ValueError):
         d = Distance(z=.23, distmod=20)
+
+def test_distance_in_coordinates():
+    """
+    test that distances can be created from quantities and that CartesianPoints
+    can be built from them sucessfully
+    """
+    from .. import Longitude, Latitude, ICRSCoordinates, CartesianPoints
+
+    ra = Longitude("4:08:15.162342", unit=u.hour)
+    dec = Latitude("-41:08:15.162342", unit=u.degree)
+    c = ICRSCoordinates(ra, dec)
+
+    c.distance = 2 * u.kpc  # auto-converts
+
+    #make sure cartesian stuff now works
+    # do the internal method first, because the properties will fail with
+    # unhelpful errors because __getattr_ is overridden by coordinates
+    c._make_cart()
+
+    # c.x, c.y, c.z and such are in test_api
+
+    assert isinstance(c.cartesian, CartesianPoints)
+
+
+def test_creating_cartesian_single():
+    """
+    test building cartesian points with the single-argument constructor
+    """
+    from numpy import ones
+
+    from .. import CartesianPoints
+
+    CartesianPoints(ones(3, 10), unit=u.kpc)
+
+    with pytest.raises(u.UnitsError):
+        CartesianPoints(ones(3, 10))
+
+    with pytest.raises(ValueError):
+        CartesianPoints(ones(2, 10), unit=u.kpc)
+
+    #quantity version
+    c = CartesianPoints(ones(3, 10) * u.kpc)
+    assert c.unit == u.kpc
+
+    c = CartesianPoints(ones(3, 10) * u.kpc, unit=u.Mpc)
+    assert c.unit == u.Mpc
+
+
+def test_creating_cartesian_triple():
+    """
+    test building cartesian points with the `x`,`y`,`z` constructor
+    """
+    from numpy import ones
+
+    from .. import CartesianPoints
+
+    #make sure scalars are scalars
+    c = CartesianPoints(1, 2, 3, unit=u.kpc)
+
+
+    CartesianPoints(ones(10), ones(10), ones(10), unit=u.kpc)
+
+    with pytest.raises(ValueError):
+        #shapes must match
+        CartesianPoints(ones(8), ones(12), ones(9), unit=u.kpc)
+
+    #if one is a quantity, use that unit
+    c = CartesianPoints(ones(10), ones(10), ones(10) * u.kpc)
+    assert c.unit == u.kpc
+
+    #convert when needed
+    c = CartesianPoints(ones(10), ones(10), ones(10) * u.kpc, unit=u.Mpc)
+    assert c.unit == u.Mpc
+    assert c[2][0] < .1  # conversion of kpc to Mpc should give much smaller, but do this for round-off
+
+    with pytest.raises(u.UnitsError):
+        CartesianPoints(ones(10) * u.Mpc, ones(10), ones(10) * u.kpc)
+
+
+def test_cartesian_operations():
+    """
+    more tests of CartesianPoints beyond those in test_api
+    """
+    import numpy as np
+
+    from .. import Longitude, Latitude
+    from .. import CartesianPoints
+
+    c = CartesianPoints(np.ones(10), np.ones(10), np.ones(10), unit=u.kpc)
+
+    c2 = c + c
+    assert c2.y[2] == 2
+
+    c3 = c - c
+    assert c3[1, 2] == 0
+
+    r, lat, lon = c.to_spherical()
+
+    assert r.unit == c.unit
+    assert isinstance(lat, Latitude)
+    assert isinstance(lon, Longitude)
+
+
+def test_cartesian_view():
+    """
+    test that the cartesian subclass properly deals with new views
+    """
+    import numpy as np
+
+    from .. import CartesianPoints
+
+    c = CartesianPoints(np.ones(10), np.ones(10), np.ones(10), unit=u.kpc)
+
+    c2 = CartesianPoints(c, copy=False)
+    asarr = c.view(np.ndarray)
+    assert np.all(asarr == 1)
+
+    asarr.ravel()[0] = 0
+    assert not np.all(asarr == 1)
+    assert not c.x[0] == 0
