@@ -7,10 +7,9 @@ cartesian coordinates.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from abc import ABCMeta, abstractproperty
-
 import numpy as np
 
+from ..extern import six
 from .. import units as u
 
 __all__ = ['Distance', 'CartesianPoints', 'cartesian_to_spherical',
@@ -136,7 +135,7 @@ class Distance(u.Quantity):
             raise u.UnitsError('No unit was provided to Distance constructor')
         #"else" the baseline `value` + `unit` case
 
-        unit = cls._convert_to_and_validate_distance_unit(unit)
+        unit = _convert_to_and_validate_length_unit(unit)
 
         try:
             value = np.asarray(value)
@@ -150,24 +149,13 @@ class Distance(u.Quantity):
                                             copy=copy)
 
     def __quantity_view__(self, obj, unit):
-        unit = self._convert_to_and_validate_distance_unit(unit)
+        unit = _convert_to_and_validate_length_unit(unit)
         return super(Distance, self).__quantity_view__(obj, unit)
 
     def __quantity_instance__(self, val, unit, **kwargs):
-        unit = self._convert_to_and_validate_distance_unit(unit)
+        unit = _convert_to_and_validate_length_unit(unit)
         return super(Distance, self).__quantity_instance__(val, unit, **kwargs)
 
-    @staticmethod
-    def _convert_to_and_validate_distance_unit(unit):
-        """
-        raises astropy.units.UnitsError if not a distance unit
-        """
-        if unit is not None:
-            unit = u.Unit(unit)
-
-        if not unit.is_equivalent(u.kpc):
-            raise u.UnitsError(six.u('Unit "{0}" is not a distance').format(unit))
-        return unit
 
     @property
     def z(self):
@@ -232,27 +220,121 @@ class Distance(u.Quantity):
         return self.to(u.kilometer).value
 
 
-class CartesianPoints(object):
+class CartesianPoints(u.Quantity):
     """
     A cartesian representation of a point in three-dimensional space.
 
-    Attributes
+    Parameters
     ----------
-    x : number or array
-        The first cartesian coordinate.
-    y : number or array
+    xorarr : `~astropy.units.Quantity` or array-like
+        The first cartesian coordinate or a single array or
+        `~astropy.units.Quantity` where the first dimension is length-3.
+    y : `~astropy.units.Quantity` or array-like, optional
         The second cartesian coordinate.
-    z : number or array
+    z : `~astropy.units.Quantity` or array-like, optional
         The third cartesian coordinate.
     unit : `~astropy.units.UnitBase` object or None
-        The physical unit of the coordinate values.
+        The physical unit of the coordinate values. If `x`, `y`, or `z`
+        are quantities, they will be converted to this unit.
+    dtype : ~numpy.dtype, optional
+        See `~astropy.units.Quantity`. Must be given as a keyword argument.
+    copy : bool, optional
+        See `~astropy.units.Quantity`. Must be given as a keyword argument.
+
+    Raises
+    ------
+    astropy.units.UnitsError
+        If the units on `x`, `y`, and `z` do not match
+    ValueError
+        If `y` and `z` don't match `xorarr`'s shape or `xorarr` is not length-3
+    TypeError
+        If incompatible array types are passed into `xorarr`, `y`, or `z`
+
     """
 
-    def __init__(self, x, y, z, unit=None):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.unit = unit
+    def __new__(cls, xorarr, y=None, z=None, unit=None, dtype=None, copy=True):
+        if y is None and z is None:
+            if len(xorarr) != 3:
+                raise ValueError('input to CartesianPoints is not length 3')
+
+            qarr = xorarr
+        elif y is not None and z is not None:
+            x = xorarr
+
+            if unit is None:
+                #they must all much units or this fails
+                for coo in (x, y, z):
+                    if isinstance(coo, u.Quantity):
+                        if unit is not None and coo.unit != unit:
+                            raise u.UnitsError('Units for `x`, `y`, and `z` do '
+                                               'not match in CartesianPoints')
+                        unit = coo.unit
+                #if `unit`  is still None at this point, it means none were
+                #Quantties, which is fine, because it means the user wanted
+                #the unit to be None
+            else:
+                #convert them all to the given coordinate
+                if isinstance(x, u.Quantity):
+                    x = x.to(unit)
+                if isinstance(y, u.Quantity):
+                    y = y.to(unit)
+                if isinstance(z, u.Quantity):
+                    z = z.to(unit)
+
+            qarr = [np.asarray(coo) for coo in (x, y, z)]
+            if not (x.shape == y.shape == z.shape):
+                raise ValueError("shapes for x,y, and z don't match in "
+                                 "CartesianPoints")
+                #let the unit be whatever it is
+
+        else:
+            raise TypeError('Must give all of x,y, and z or just array in '
+                            'CartesianPoints')
+
+        if unit is not None:
+            unit = _convert_to_and_validate_length_unit(unit)
+
+        try:
+            qarr = np.asarray(qarr)
+        except ValueError as e:
+            raise TypeError(str(e))
+
+        if qarr.dtype.kind not in 'iuf':
+            raise TypeError("Unsupported dtype '{0}'".format(qarr.dtype))
+
+        return super(CartesianPoints, cls).__new__(cls, qarr, unit, dtype=dtype,
+                                            copy=copy)
+
+    def __quantity_view__(self, obj, unit):
+        if unit is not None:
+            unit = _convert_to_and_validate_length_unit(unit)
+        return super(CartesianPoints, self).__quantity_view__(obj, unit)
+
+    def __quantity_instance__(self, val, unit, **kwargs):
+        if unit is not None:
+            unit = _convert_to_and_validate_length_unit(unit)
+        return super(CartesianPoints, self).__quantity_instance__(val, unit, **kwargs)
+
+    @property
+    def x(self):
+        """
+        The second cartesian coordinate as a `~astropy.units.Quantity`.
+        """
+        return self[0]
+
+    @property
+    def y(self):
+        """
+        The second cartesian coordinate as a `~astropy.units.Quantity`.
+        """
+        return self[1]
+
+    @property
+    def z(self):
+        """
+        The third cartesian coordinate as a `~astropy.units.Quantity`.
+        """
+        return self[2]
 
     def to_spherical(self):
         """
@@ -260,50 +342,39 @@ class CartesianPoints(object):
 
         Returns
         -------
-        r : float or array
-            The radial coordinate (in the same units as the inputs).
-        lat : float or array
-            The latitude in radians
-        lon : float or array
-            The longitude in radians
+        r : astropy.units.Quantity
+            The radial coordinate (in the same units as this `CartesianPoint`).
+        lat : astropy.units.Quantity
+            The spherical coordinates latitude.
+        lon : astropy.units.Quantity
+            The spherical coordinates longitude.
 
         """
-        return cartesian_to_spherical(self.x, self.y, self.z)
+        from .angles import Latitude, Longitude
+
+        rarr, latarr, lonarr = cartesian_to_spherical(self.x, self.y, self.z)
+
+        r = Distance(rarr, unit=self.unit)
+        lat = Latitude(latarr, unit=u.radians)
+        lon = Longitude(lonarr, unit=u.radians)
+
+        return r, lat, lon
 
     def __repr__(self):
         return '<CartesianPoints ({x}, {y}, {z}) {unit}>'.format(x=self.x,
                 y=self.y, z=self.z, unit=self.unit)
 
-    def __eq__(self, other):
-        return (isinstance(other, CartesianPoints) and self.x == other.x and
-                self.y == other.y and self.z == other.z and
-                self.unit == other.unit)
 
-    def __add__(self, other):
-        if isinstance(other, CartesianPoints) or (hasattr(other, 'x') and
-            hasattr(other, 'y') and hasattr(other, 'z') and
-            hasattr(other, 'unit')):
-            newx = self.x + other.unit.to(self.unit, other.x)
-            newy = self.y + other.unit.to(self.unit, other.y)
-            newz = self.z + other.unit.to(self.unit, other.z)
-        else:
-            msg = "unsupported operand type(s) for +: '{sel}' and '{other}'"
-            raise TypeError(msg.format(type(self).__name__,
-                                        type(other).__name__))
-        return CartesianPoints(newx, newy, newz, self.unit)
+def _convert_to_and_validate_length_unit(unit):
+    """
+    raises `astropy.units.UnitsError` if not a length unit
+    """
+    if unit is not None:
+        unit = u.Unit(unit)
 
-    def __sub__(self, other):
-        if isinstance(other, CartesianPoints) or (hasattr(other, 'x') and
-            hasattr(other, 'y') and hasattr(other, 'z') and
-            hasattr(other, 'unit')):
-            newx = self.x - other.unit.to(self.unit, other.x)
-            newy = self.y - other.unit.to(self.unit, other.y)
-            newz = self.z - other.unit.to(self.unit, other.z)
-        else:
-            msg = "unsupported operand type(s) for -: '{sel}' and '{other}'"
-            raise TypeError(msg.format(type(self).__name__,
-                                        type(other).__name__))
-        return CartesianPoints(newx, newy, newz, self.unit)
+    if not unit.is_equivalent(u.kpc):
+        raise u.UnitsError(six.u('Unit "{0}" is not a length type').format(unit))
+    return unit
 
 #<------------transformation-related utility functions----------------->
 
