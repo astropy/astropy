@@ -497,7 +497,7 @@ class TestHDUListFunctions(FitsTestCase):
             f.seek(padding_start)
             f.write('\0'.encode('ascii') * padding_len)
 
-        with catch_warnings(AstropyWarning) as w:
+        with catch_warnings(AstropyUserWarning) as w:
             with fits.open(self.temp('temp.fits')) as hdul:
                 assert (hdul[0].data == a).all()
         assert ('contains null bytes instead of spaces' in
