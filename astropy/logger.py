@@ -14,7 +14,7 @@ from . import config
 from .utils.compat import inspect_getmodule
 from .utils.console import color_print
 from .utils.misc import find_current_module
-
+from .utils.custom_warnings import AstropyWarning
 
 __all__ = ['log', 'AstropyLogger', 'LoggingError']
 
@@ -163,9 +163,9 @@ class AstropyLogger(Logger):
         warning = args[0]
         # Deliberately not using isinstance here: We want to display
         # the class name only when it's not the default class,
-        # UserWarning.  The name of subclasses of UserWarning should
+        # AstropyWarning.  The name of subclasses of AstropyWarning should
         # be displayed.
-        if type(warning) != UserWarning:
+        if type(warning) != AstropyWarning:
             message = '{0}: {1}'.format(warning.__class__.__name__, args[0])
         else:
             message = unicode(args[0])
