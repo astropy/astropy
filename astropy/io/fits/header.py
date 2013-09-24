@@ -17,7 +17,7 @@ from .util import (encode_ascii, decode_ascii, fileobj_mode,
                    fileobj_is_binary)
 
 from ...utils import deprecated, isiterable
-from ...utils.custom_warnings import AstropyDeprecationWarning
+from ...utils.custom_warnings import AstropyWarning, AstropyDeprecationWarning
 
 
 PY3K = sys.version_info[:2] >= (3, 0)
@@ -590,7 +590,7 @@ class Header(object):
         if isinstance(fileobj, basestring):
             if os.path.exists(fileobj) and os.path.getsize(fileobj) != 0:
                 if clobber:
-                    warnings.warn("Overwriting existing file '%s'." % fileobj)
+                    warnings.warn("Overwriting existing file '%s'." % fileobj, AstropyWarning)
                     os.remove(fileobj)
                 else:
                     raise IOError("File '%s' already exists." % fileobj)

@@ -20,6 +20,8 @@ import numpy as np
 from numpy import linalg
 from ..logger import log
 from .utils import poly_map_domain
+from ...utils.custom_warnings import AstropyWarning
+
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
            'JointFitter', 'Fitter']
@@ -458,7 +460,7 @@ class LinearLSQFitter(Fitter):
         lacoef = (lacoef.T / scl).T
         self.fit_info['pars'] = lacoef
         if rank != self.model._order:
-            warnings.warn("The fit may be poorly conditioned\n")
+            warnings.warn("The fit may be poorly conditioned\n", AstropyWarning)
         self.fitpars = lacoef.flatten()[:]
 
 

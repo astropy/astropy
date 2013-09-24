@@ -13,7 +13,7 @@ from .column import (ASCIITNULL, FITS2NUMPY, Column, ColDefs,
 from .util import _array_from_file, decode_ascii
 
 from ...utils import lazyproperty
-from ...utils.custom_warnings import AstropyDeprecationWarning
+from ...utils.custom_warnings import AstropyDeprecationWarning, AstropyWarning
 
 
 class FITS_record(object):
@@ -226,7 +226,7 @@ class FITS_rec(np.recarray):
                 if hasattr(obj, attr):
                     value = getattr(obj, attr, None)
                     if value is None:
-                        warnings.warn('Setting attribute %s as None' % attr)
+                        warnings.warn('Setting attribute %s as None' % attr, AstropyWarning)
                     setattr(self, attr, value)
 
             if self._coldefs is None:

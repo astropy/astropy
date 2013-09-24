@@ -48,7 +48,7 @@ except ImportError:
     _wcs = None
 
 from ..utils import deprecated, deprecated_attribute
-from ..utils.custom_warnings import AstropyDeprecationWarning
+from ..utils.custom_warnings import AstropyWarning, AstropyDeprecationWarning
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -487,7 +487,7 @@ naxis kwarg.
                     naxis1 = self._naxis1
                     naxis2 = self._naxis2
                 except AttributeError:
-                    warnings.warn("Need a valid header in order to calculate footprint\n")
+                    warnings.warn("Need a valid header in order to calculate footprint\n", AstropyWarning)
                     return None
             else:
                 naxis1 = header.get('NAXIS1', None)
@@ -557,7 +557,7 @@ naxis kwarg.
                                                      d_crval, d_cdelt)
                     tables[i] = d_lookup
                 else:
-                    warnings.warn('Polynomial distortion is not implemented.\n')
+                    warnings.warn('Polynomial distortion is not implemented.\n', AstropyWarning)
             else:
                 tables[i] = None
         if not tables:
@@ -599,7 +599,7 @@ naxis kwarg.
         elif axiscorr == 2:
             return (None, cpdis)
         else:
-            warnings.warn("Expected AXISCORR to be 1 or 2")
+            warnings.warn("Expected AXISCORR to be 1 or 2", AstropyWarning)
             return (None, None)
 
     def _write_det2im(self, hdulist):
@@ -698,7 +698,7 @@ naxis kwarg.
                     d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
                     tables[i] = d_lookup
                 else:
-                    warnings.warn('Polynomial distortion is not implemented.\n')
+                    warnings.warn('Polynomial distortion is not implemented.\n', AstropyWarning)
             else:
                 tables[i] = None
 

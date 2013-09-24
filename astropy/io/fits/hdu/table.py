@@ -22,6 +22,7 @@ from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
 
 from ....utils import deprecated, lazyproperty
+from ....utils.custom_warnings import AstropyWarning
 
 
 class FITSTableDumpDialect(csv.excel):
@@ -738,7 +739,7 @@ class BinTableHDU(_TableBaseHDU):
             if isinstance(f, basestring):
                 if os.path.exists(f) and os.path.getsize(f) != 0:
                     if clobber:
-                        warnings.warn("Overwriting existing file '%s'." % f)
+                        warnings.warn("Overwriting existing file '%s'." % f, AstropyWarning)
                     else:
                         exist.append(f)
 

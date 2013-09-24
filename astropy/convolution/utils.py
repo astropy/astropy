@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 
 from ..modeling.core import Parametric1DModel, Parametric2DModel
+from ..utils.custom_warnings import AstropyWarning
 
 
 __all__ = ['discretize_model']
@@ -145,7 +146,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
         else:
             N = factor * (x_range[1] - x_range[0])
         if N >= 10000000:
-            warnings.warn("Large oversample factor or data, computing can be very slow.")
+            warnings.warn("Large oversample factor or data, computing can be very slow.", AstropyWarning)
         if isinstance(model, Parametric1DModel):
             return discretize_oversample_1D(model, x_range, factor)
         if isinstance(model, Parametric2DModel):
