@@ -234,7 +234,7 @@ def write_table_fits(input, output, overwrite=False):
         if is_column_keyword(key.upper()) or key.upper() in REMOVE_KEYWORDS:
 
             warnings.warn("Meta-data keyword {0} will be ignored since it "
-                          "conflicts with a FITS reserved keyword".format(key))
+                          "conflicts with a FITS reserved keyword".format(key), AstropyUserWarning)
 
         if isinstance(value, list):
             for item in value:
@@ -243,13 +243,13 @@ def write_table_fits(input, output, overwrite=False):
                 except ValueError:
                     warnings.warn("Attribute `{0}` of type {1} cannot be written "
                                   "to FITS files - skipping".format(key,
-                                                               type(value)))
+                                                               type(value)), AstropyUserWarning)
         else:
             try:
                 table_hdu.header[key] = value
             except ValueError:
                 warnings.warn("Attribute `{0}` of type {1} cannot be written to "
-                              "FITS files - skipping".format(key, type(value)))
+                              "FITS files - skipping".format(key, type(value)), AstropyUserWarning)
 
     # Write out file
     table_hdu.writeto(output)

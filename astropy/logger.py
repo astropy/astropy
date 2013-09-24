@@ -14,7 +14,7 @@ from . import config
 from .utils.compat import inspect_getmodule
 from .utils.console import color_print
 from .utils.misc import find_current_module
-from .utils.custom_warnings import AstropyWarning
+from .utils.custom_warnings import AstropyWarning, AstropyUserWarning
 
 __all__ = ['log', 'AstropyLogger', 'LoggingError']
 
@@ -170,7 +170,7 @@ class AstropyLogger(Logger):
         # the class name only when it's not the default class,
         # AstropyWarning.  The name of subclasses of AstropyWarning should
         # be displayed.
-        if type(warning) != AstropyWarning:
+        if type(warning) != AstropyWarning and type(warning) != AstropyUserWarning:
             message = '{0}: {1}'.format(warning.__class__.__name__, args[0])
         else:
             message = unicode(args[0])
