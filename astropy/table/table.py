@@ -1457,13 +1457,10 @@ class Table(object):
                      show_unit)
 
     def _repr_html_(self):
-        #jsv = JSViewer()
-        #js = jsv.ipynb(tableid=id(self))
-        js = []
         # Since the user cannot provide input, need a sensible default
         tableid = 'table{id}'.format(id=id(self))
         lines = self.pformat(html=True, tableid=tableid)
-        return ''.join(js+lines)
+        return ''.join(lines)
 
     def __getitem__(self, item):
         if isinstance(item, basestring):
