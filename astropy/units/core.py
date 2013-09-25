@@ -222,6 +222,34 @@ class UnitBase(object):
         r = tuple(r)
         return r
 
+    @property
+    def names(self):
+        """
+        Returns all of the names associated with this unit.
+        """
+        raise AttributeError(
+            "Can not get names from unnamed units. "
+            "Perhaps you meant to_string()?")
+        return self._names
+
+    @property
+    def name(self):
+        """
+        Returns the canonical (short) name associated with this unit.
+        """
+        raise AttributeError(
+            "Can not get names from unnamed units. "
+            "Perhaps you meant to_string()?")
+
+    @property
+    def aliases(self):
+        """
+        Returns the alias (long) names for this unit.
+        """
+        raise AttributeError(
+            "Can not get aliases from unnamed units. "
+            "Perhaps you meant to_string()?")
+
     def to_string(self, format='generic'):
         """
         Output the unit in the given format as a string.
