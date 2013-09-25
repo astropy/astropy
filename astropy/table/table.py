@@ -1325,7 +1325,8 @@ class Table(object):
                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
                         jsviewer=False,
                         jskwargs={},
-                        tableid=None):
+                        tableid=None,
+                        browser='default'):
         """
         Render the table in HTML and show it in a web browser.  In order to
         make a persistent html file, i.e. one that survives refresh, the
@@ -1344,6 +1345,12 @@ class Table(object):
         tableid : str or None
             An html ID tag for the table.  Default is "table{id}", where id is
             the unique integer id of the table object, id(self)
+        browser : str
+            Any legal browser name, e.g. 'firefox','chrome','safari'
+            (for mac, you may need to use 
+            'open -a "/Applications/Google Chrome.app" %s'
+            for Chrome).
+            If 'default', will use the system default browser.
 
         Returns
         -------
@@ -1373,7 +1380,10 @@ class Table(object):
         tmp.write(html)
         tmp.flush()
 
-        webbrowser.open("file://"+tmp.name)
+        if browser == 'default':
+            webbrowser.open("file://"+tmp.name)
+        else:
+            webbrowser.get(browser).open("file://"+tmp.name)
 
         return tmp
 
