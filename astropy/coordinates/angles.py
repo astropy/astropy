@@ -78,6 +78,8 @@ class Angle(u.Quantity):
     `~astropy.units.core.UnitsError`
         If a unit is not provided or it is not an angular unit.
     """
+    _include_easy_conversion_members = True
+
     def __new__(cls, angle, unit=None, dtype=None,
                 equivalencies=[], copy=True):
         unit = cls._convert_unit_to_angle_unit(unit)
