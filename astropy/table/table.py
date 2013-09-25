@@ -1377,7 +1377,10 @@ class Table(object):
         css = ["<style>{0}</style>".format(css)]
         html = "\n".join(['<!DOCTYPE html>','<html>'] + css + js + linelist + ['</html>'])
 
-        tmp.write(html)
+        try:
+            tmp.write(html)
+        except TypeError:
+            tmp.write(html.encode('utf8'))
         tmp.flush()
 
         if browser == 'default':
