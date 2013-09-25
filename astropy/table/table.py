@@ -13,7 +13,6 @@ from ..units import Unit
 from .. import log
 from ..utils import OrderedDict, isiterable, deprecated, deprecated_attribute
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
-from .jsviewer import JSViewer
 from ..utils.console import color_print
 from ..config import ConfigurationItem
 from ..io import registry as io_registry
@@ -1349,6 +1348,7 @@ class Table(object):
         """
         import webbrowser
         import tempfile
+        from .jsviewer import JSViewer
 
         tmp = tempfile.NamedTemporaryFile(suffix='.html')
 
