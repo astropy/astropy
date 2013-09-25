@@ -31,5 +31,5 @@ class SAMPClientError(Exception):
     def __str__(self):
         return repr(self.value)
 
-#: SAMP Proxy Hub exceptions (overwites xmlrpc.Fault).
-SAMPProxyError = xmlrpc.Fault
+class SAMPProxyError(xmlrpc.Fault):
+    """SAMP Proxy Hub exception"""
