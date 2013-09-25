@@ -260,7 +260,7 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     tableid : str or None
         An ID tag for the table; only used if html is set.  Default is
         "table{id}", where id is the unique integer id of the table object,
-        id(self)
+        id(table)
 
     Returns
     -------
@@ -304,7 +304,7 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
         from ..utils.xml.writer import xml_escape
 
         if tableid is None:
-            tableid = 'table{id}'.format(id=id(self))
+            tableid = 'table{id}'.format(id=id(table))
         rows.append('<table id="{tid}">'.format(tid=tableid))
         for i in range(n_rows):
             # _pformat_col output has a header line '----' which is not needed here
