@@ -304,7 +304,7 @@ def mass_energy():
              lambda x: x / _si.c.value ** 2),
     ]
 
-def brightness_temperature(omega_B, nu):
+def brightness_temperature(beam_area, nu):
     """
     "Antenna Gain" or "sensitivity" equivalency: Defines the conversion between
     Jy/beam and "brightness temperature", :math:`T_B`, in Kelvins.  This is a
@@ -321,7 +321,7 @@ def brightness_temperature(omega_B, nu):
 
     Parameters
     ----------
-    omega_B : Beam Area equivalent
+    beam_area : Beam Area equivalent
         Beam area in angular units, i.e. steradian equivalent
     nu : `Quantity` with spectral units
         The observed `spectral` equivalent `Unit` (e.g., frequency or
@@ -333,21 +333,21 @@ def brightness_temperature(omega_B, nu):
 
         >>> import numpy as np
         >>> from astropy import units as u
-        >>> omega_B = np.pi*(50*u.arcsec)**2
+        >>> beam_area = np.pi*(50*u.arcsec)**2
         >>> freq = 5*u.GHz
-        >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B,freq))
+        >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(beam_area,freq))
         7.052588858...
-        >>> (1*u.Jy).to(u.K, equivalencies=u.brightness_temperature(omega_B,freq))
+        >>> (1*u.Jy).to(u.K, equivalencies=u.brightness_temperature(beam_area,freq))
         <Quantity 7.05258...
 
     VLA synthetic beam::
 
-        >>> omega_B = np.pi*(15*u.arcsec)**2
+        >>> beam_area = np.pi*(15*u.arcsec)**2
         >>> freq = 5*u.GHz
-        >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B,freq))
+        >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(beam_area,freq))
         78.36209843...
     """
-    beam = omega_B.to(si.sr).value
+    beam = beam_area.to(si.sr).value
     nu = nu.to(si.GHz, spectral())
 
     def convert_Jy_to_K(x_jybm):
