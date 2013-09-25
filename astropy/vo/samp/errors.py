@@ -13,10 +13,7 @@ __all__ = ['SAMPHubError', 'SAMPClientError', 'SAMPProxyError']
 
 
 class SAMPHubError(Exception):
-
-    """
-      SAMP Hub exception.
-      """
+    """SAMP Hub exception."""
 
     def __init__(self, value):
         self.value = value
@@ -26,10 +23,7 @@ class SAMPHubError(Exception):
 
 
 class SAMPClientError(Exception):
-
-    """
-      SAMP Client exceptions.
-      """
+    """SAMP Client exceptions."""
 
     def __init__(self, value):
         self.value = value
