@@ -213,8 +213,8 @@ input.ui-button {
 	margin-right: 7px;
 }
 .ui-buttonset .ui-button {
-	margin-left: 0;
-	margin-right: -.3em;
+	margin-left: 1px;
+	margin-right: 1px;
 }
 
 /* workarounds */
