@@ -236,7 +236,7 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
 
 
 def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
-                   show_unit=False, html=False, tableid=0):
+                   show_unit=False, html=False, tableid=None):
     """Return a list of lines for the formatted string representation of
     the table.
 
@@ -257,9 +257,10 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     html : bool
         Format the output as an HTML table (default=False)
 
-    tableid : int or None
-        An ID number for the table, such that the html tag will be
-        id="table{id}" (optional)
+    tableid : str or None
+        An ID tag for the table; only used if html is set.  Default is
+        "table{id}", where id is the unique integer id of the table object,
+        id(self)
 
     Returns
     -------
@@ -302,7 +303,9 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     if html:
         from ..utils.xml.writer import xml_escape
 
-        rows.append('<table id="table{tid}">'.format(tid=tableid))
+        if tableid is None:
+            tableid = 'table{id}'.format(id=id(self))
+        rows.append('<table id="{tid}">'.format(tid=tableid))
         for i in range(n_rows):
             # _pformat_col output has a header line '----' which is not needed here
             if i == n_header - 1:

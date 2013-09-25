@@ -26,8 +26,8 @@ ipynb_js_script = """
         return out.data;
     }}
     function make_table_browseable() {{
-        console.log("$('#table{tid}').dataTable()");
-        $('#table{tid}').dataTable({{
+        console.log("$('#{tid}').dataTable()");
+        $('#{tid}').dataTable({{
              "iDisplayLength": {display_length},
              "aLengthMenu": {display_length_menu},
              "bJQueryUI": true,
@@ -45,7 +45,7 @@ ipynb_js_script = """
 commandline_js_script = """
 <script>
     $(document).ready(function() {{
-        $('#table{tid}').dataTable({{
+        $('#{tid}').dataTable({{
          "iDisplayLength": {display_length},
          "aLengthMenu": {display_length_menu},
          "bJQueryUI": true,
@@ -88,7 +88,7 @@ class JSViewer(object):
                                       data_path="file://"+data_path))
         return js
 
-    def command_line(self, tableid=0):
+    def command_line(self, tableid='table0'):
         js = self._css_files()
         js.append(self._jquery_file())
         js.append(self._jstable_file())

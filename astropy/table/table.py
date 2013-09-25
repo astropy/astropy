@@ -1324,7 +1324,8 @@ class Table(object):
     def show_in_browser(self,
                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
                         jsviewer=False,
-                        jskwargs={}):
+                        jskwargs={},
+                        tableid=None):
         """
         Render the table in HTML and show it in a web browser.  In order to
         make a persistent html file, i.e. one that survives refresh, the
@@ -1340,6 +1341,9 @@ class Table(object):
             in-browser searching & sorting.  See `JSViewer`
         jskwargs : dict
             Passed to the `JSViewer` init
+        tableid : str or None
+            An html ID tag for the table.  Default is "table{id}", where id is
+            the unique integer id of the table object, id(self)
 
         Returns
         -------
@@ -1352,12 +1356,14 @@ class Table(object):
 
         tmp = tempfile.NamedTemporaryFile(suffix='.html')
 
+        if tableid is None:
+            tableid = 'table{id}'.format(id=id(self))
         linelist = self.pformat(html=True, max_width=np.inf, max_lines=np.inf,
-                                tableid=id(self))
+                                tableid=tableid)
 
         if jsviewer:
             jsv = JSViewer(**jskwargs)
-            js = jsv.command_line(tableid=id(self))
+            js = jsv.command_line(tableid=tableid)
         else:
             js = []
 
@@ -1372,7 +1378,7 @@ class Table(object):
         return tmp
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-                show_unit=False, html=False, tableid=0):
+                show_unit=False, html=False, tableid=None):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -1402,9 +1408,10 @@ class Table(object):
         html : bool
             Format the output as an HTML table (default=False)
 
-        tableid : int or None
-            An ID number for the table, such that the html tag will be
-            id="table{id}" (optional)
+        tableid : str or None
+            An ID tag for the table; only used if html is set.  Default is
+            "table{id}", where id is the unique integer id of the table object,
+            id(self)
 
         Returns
         -------
@@ -1453,7 +1460,9 @@ class Table(object):
         #jsv = JSViewer()
         #js = jsv.ipynb(tableid=id(self))
         js = []
-        lines = self.pformat(html=True, tableid=id(self))
+        # Since the user cannot provide input, need a sensible default
+        tableid = 'table{id}'.format(id=id(self))
+        lines = self.pformat(html=True, tableid=tableid)
         return ''.join(js+lines)
 
     def __getitem__(self, item):
