@@ -95,7 +95,7 @@ def test_hms():
 
 def test_array_coordinates_creation():
     """
-    Test creating coordinates from arrays.  Focuses on ICRSCoordinates.
+    Test creating coordinates from arrays.
     """
     from .. import ICRSCoordinates
 
@@ -106,3 +106,45 @@ def test_array_coordinates_creation():
         c = ICRSCoordinates(np.array([1, 2]), np.array([3, 4, 5]), unit=(u.deg, u.deg))
     with pytest.raises(ValueError):
         c = ICRSCoordinates(np.array([1, 2]), np.array([[3, 4], [5, 6]]), unit=(u.deg, u.deg))
+
+    #make sure cartesian initialization also works
+    c = ICRSCoordinates(x=np.array([1, 2]), y=np.array([3, 4]), z=np.array([5, 6]), unit=u.kpc)
+
+def test_array_coordinates_distances():
+    from .. import ICRSCoordinates
+
+    """
+    Test creating coordinates from arrays and distances.
+    """
+    from .. import ICRSCoordinates
+
+    #correct way
+    c = ICRSCoordinates(np.array([1, 2]), np.array([3, 4]), unit=(u.deg, u.deg), distance= [.1,.2] * u.kpc)
+
+    with pytest.raises(ValueError):
+        #scalar distance and array coordinates
+        c = ICRSCoordinates(np.array([1, 2]), np.array([[3, 4], [5, 6]]), unit=(u.deg, u.deg), distance= 2. * u.kpc)
+    with pytest.raises(ValueError):
+        #scalar coordinates and array distance
+        c = ICRSCoordinates(1., 2., unit=(u.deg, u.deg), distance= [.1,.2, 3.] * u.kpc)
+    with pytest.raises(ValueError):
+        #more distance values than coordinates
+        c = ICRSCoordinates(np.array([1, 2]), np.array([[3, 4], [5, 6]]), unit=(u.deg, u.deg), distance= [.1,.2, 3.] * u.kpc)
+
+def test_array_coordinates_transformations():
+    """
+    Test transformation on coordinates with array content
+    """
+    from .. import ICRSCoordinates, GalacticCoordinates
+    c = ICRSCoordinates(np.array([1, 2]), np.array([3, 4]), unit=(u.deg, u.deg))
+    g = c.transform_to(GalacticCoordinates)
+
+    assert someval
+
+def test_array_coordinates_string():
+    c = ICRSCoordinates(np.array([1, 2]), np.array([3, 4]), unit=(u.deg, u.deg))
+    str(c)
+    unicode(c)
+    repr(c)
+
+
