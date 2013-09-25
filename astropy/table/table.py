@@ -1347,7 +1347,7 @@ class Table(object):
             the unique integer id of the table object, id(self)
         browser : str
             Any legal browser name, e.g. 'firefox','chrome','safari'
-            (for mac, you may need to use 
+            (for mac, you may need to use
             'open -a "/Applications/Google Chrome.app" %s'
             for Chrome).
             If 'default', will use the system default browser.
@@ -1979,7 +1979,7 @@ class Table(object):
             self.columns.pop(name)
 
         newdtype = [(name, self._data.dtype[name]) for name in self._data.dtype.names
-                if name not in names]
+                    if name not in names]
         newdtype = np.dtype(newdtype)
 
         if newdtype:
