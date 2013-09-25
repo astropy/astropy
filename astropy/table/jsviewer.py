@@ -6,7 +6,7 @@ import os
 data_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),'data')
 
 ipynb_js_script = """
-<script class="jsbin" src="{data_path}/jquery.dataTables.nightly.js"></script>
+<script class="jsbin" src="{data_path}/jquery.dataTables.min.js"></script>
 <script>
     function html_repr_full() {{
         var kernel = IPython.notebook.kernel;
@@ -70,11 +70,11 @@ class JSViewer(object):
 
     def _jquery_file(self):
         # downloaded from http://ajax.googleapis.com/ajax/libs/jquery/1/
-        return '<script src="file://{data_path}/jquery.js"></script>'.format(data_path=data_path)
+        return '<script src="file://{data_path}/jquery-1.10.2.min.js"></script>'.format(data_path=data_path)
 
     def _jstable_file(self):
         # downloaded from http://datatables.net/download/build/
-        return '<script class="jsbin" src="file://{data_path}/jquery.dataTables.nightly.js"></script>'.format(data_path=data_path)
+        return '<script class="jsbin" src="file://{data_path}/jquery.dataTables.min.js"></script>'.format(data_path=data_path)
 
     def _css_files(self):
         return ['<link rel="stylesheet" href="{css}" type="text/css">'.format(css=css) for css in self.css_urls]

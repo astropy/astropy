@@ -1340,7 +1340,8 @@ class Table(object):
         max_lines : int
             Maximum number of rows to export to the table (set low by default
             to avoid memory issues, since the browser view requires duplicating
-            the table in memory)
+            the table in memory).  A negative value of `max_lines` indicates
+            no row limit
         jsviewer : bool
             If True, prepends some javascript headers so that the table is
             rendered as a https://datatables.net data table.  This allows
