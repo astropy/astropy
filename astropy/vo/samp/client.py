@@ -34,8 +34,7 @@ __doctest_skip__ = ['SAMPIntegratedClient.*']
 
 
 class SAMPHubProxy(object):
-
-    """Proxy class useful to simplify the client interaction with a SAMP Hub.
+    """Proxy class to simplify the client interaction with a SAMP hub.
     """
 
     def __init__(self):
@@ -44,7 +43,7 @@ class SAMPHubProxy(object):
         self.lockfile = {}
 
     def isConnected(self):
-        """Testing method to verify the proxy connection with a running Hub.
+        """Testing method to verify the proxy connection with a running hub.
 
         Returns
         -------
@@ -124,7 +123,7 @@ class SAMPHubProxy(object):
         Parameters
         ----------
         hub_params : dict
-            Optional dictionary containig the lock-file content of the Hub with which to connect.
+            Optional dictionary containing the lock-file content of the Hub with which to connect.
             This dictionary has the form `{<token-name>: <token-string>, ...}`.
 
         user : str
@@ -267,7 +266,7 @@ class SAMPHubProxy(object):
         return self.proxy.samp.hub.declareSubscriptions(private_key, subscriptions)
 
     def getSubscriptions(self, private_key, client_id):
-        """Proxy to `getSubscriptions SAMP Hub method."""
+        """Proxy to `getSubscriptions` SAMP Hub method."""
         return self.proxy.samp.hub.getSubscriptions(private_key, client_id)
 
     def getRegisteredClients(self, private_key):
@@ -308,67 +307,66 @@ class SAMPHubProxy(object):
 
 
 class SAMPIntegratedClient(object):
-
     """A Simple SAMP client.
 
     This class is meant to simplify the client usage providing
     a proxy class that merges the `SAMPClient` and `SAMPHubProxy`
     functionalities in a simplified API.
 
-      Parameters
-      ----------
-      name: str (optional)
-          Client name (corresponding to `samp.name` metadata keyword).
-
-      description : str (optional)
-          Client description (corresponding to `samp.description.text` metadata keyword).
-
-      metadata : dict (optional)
-          Client application metadata in the standard SAMP format. If present, `samp.name`
-          keyword and `samp.description.text` keyword are overwritten by the parameters
-          `name` and `description`.
-
-      addr : string (optional)
-          Listening address (or IP).
-
-      port : int (optional)
-          Listening XML-RPC server socket port.
-
-      https : bool
-          Set the callable client running on a Secure Sockets Layer connection (HTTPS).
-          By default SSL is desabled.
-
-      key_file : str
-          Set the file containing the private key for SSL connections. If the
-          certificate file (`cert_file`) contains the private key, then `key_file` can be omitted.
-
-      cert_file : str
-          Specify the file which contains a certificate to be used to identify the
-          local side of the secure connection.
-
-      cert_reqs : int
-          The parameter `cert_reqs` specifies whether a certificate is required
-          from the Hub side of the connection, and whether it will be validated if provided. It
-          must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
-          (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
-          If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
-          point to a file of CA certificates.
-
-      ca_certs : str
-          The `ca_certs` file contains a set of concatenated "Certification Authority"
-          certificates, which are used to validate the certificate passed from the Hub end of the
-          connection.
-
-      ssl_version : int
-          The `ssl_version` option specifies which version of the SSL protocol to use.
-          Typically, the server chooses a particular protocol version, and the client must adapt to the
-          server's choice. Most of the versions are not interoperable with the other versions. If not
-          specified the default SSL version is `ssl.PROTOCOL_SSLv23`. This version provides the most
-          compatibility with other versions Hub side. Other SSL protocol versions are:
-          `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
-
-      callable : bool
-          Is the client callable?
+    Parameters
+    ----------
+    name: str (optional)
+        Client name (corresponding to `samp.name` metadata keyword).
+    
+    description : str (optional)
+        Client description (corresponding to `samp.description.text` metadata keyword).
+    
+    metadata : dict (optional)
+        Client application metadata in the standard SAMP format. If present, `samp.name`
+        keyword and `samp.description.text` keyword are overwritten by the parameters
+        `name` and `description`.
+    
+    addr : string (optional)
+        Listening address (or IP).
+    
+    port : int (optional)
+        Listening XML-RPC server socket port.
+    
+    https : bool
+        Set the callable client running on a Secure Sockets Layer connection (HTTPS).
+        By default SSL is desabled.
+    
+    key_file : str
+        Set the file containing the private key for SSL connections. If the
+        certificate file (`cert_file`) contains the private key, then `key_file` can be omitted.
+    
+    cert_file : str
+        Specify the file which contains a certificate to be used to identify the
+        local side of the secure connection.
+    
+    cert_reqs : int
+        The parameter `cert_reqs` specifies whether a certificate is required
+        from the Hub side of the connection, and whether it will be validated if provided. It
+        must be one of the three values `ssl.CERT_NONE` (certificates ignored), `ssl.CERT_OPTIONAL`
+        (not required, but validated if provided), or `ssl.CERT_REQUIRED` (required and validated).
+        If the value of this parameter is not `ssl.CERT_NONE`, then the `ca_certs` parameter must
+        point to a file of CA certificates.
+    
+    ca_certs : str
+        The `ca_certs` file contains a set of concatenated "Certification Authority"
+        certificates, which are used to validate the certificate passed from the Hub end of the
+        connection.
+    
+    ssl_version : int
+        The `ssl_version` option specifies which version of the SSL protocol to use.
+        Typically, the server chooses a particular protocol version, and the client must adapt to the
+        server's choice. Most of the versions are not interoperable with the other versions. If not
+        specified the default SSL version is `ssl.PROTOCOL_SSLv23`. This version provides the most
+        compatibility with other versions Hub side. Other SSL protocol versions are:
+        `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and `ssl.PROTOCOL_TLSv1`.
+    
+    callable : bool
+        Is the client callable?
     """
 
     def __init__(self, name=None, description=None, metadata=None,
@@ -493,7 +491,7 @@ class SAMPIntegratedClient(object):
         return self.hub.getRegisteredClients(self.client.getPrivateKey())
 
     def getSubscribedClients(self, mtype):
-        """Proxy to `getSubscribedClients} SAMP Hub method."""
+        """Proxy to `getSubscribedClients` SAMP Hub method."""
         return self.hub.getSubscribedClients(self.client.getPrivateKey(), mtype)
 
     def _format_easy_msg(self, mtype, params):
@@ -536,8 +534,8 @@ class SAMPIntegratedClient(object):
             Variable keyword set which contains the list of parameters for
             the specified MType.
 
-        Example
-        -------
+        Examples
+        --------
         >>> import astropy.vo.samp as sampy
         >>> cli = sampy.SAMPIntegratedClient()
         >>> ...
@@ -570,8 +568,8 @@ class SAMPIntegratedClient(object):
             Variable keyword set which contains the list of parameters for
             the specified MType.
 
-        Example
-        -------
+        Examples
+        --------
         >>> import astropy.vo.samp as sampy
         >>> cli = sampy.SAMPIntegratedClient()
         >>> ...
@@ -609,8 +607,8 @@ class SAMPIntegratedClient(object):
             Variable keyword set which contains the list of parameters for
             the specified MType.
 
-        Example
-        -------
+        Examples
+        --------
         >>> import astropy.vo.samp as sampy
         >>> cli = sampy.SAMPIntegratedClient()
         >>> ...
@@ -646,8 +644,8 @@ class SAMPIntegratedClient(object):
             Variable keyword set which contains the list of parameters for
             the specified MType.
 
-        Example
-        -------
+        Examples
+        --------
         >>> import astropy.vo.samp as sampy
         >>> cli = sampy.SAMPIntegratedClient()
         >>> ...
@@ -686,8 +684,8 @@ class SAMPIntegratedClient(object):
             Variable keyword set which contains the list of parameters for
             the specified MType.
 
-        Example
-        -------
+        Examples
+        --------
         >>> import astropy.vo.samp as sampy
         >>> cli = sampy.SAMPIntegratedClient()
         >>> ...
@@ -730,8 +728,8 @@ class SAMPIntegratedClient(object):
         error : dict
             Content of the `samp.error` response keyword.
 
-        Example
-        -------
+        Examples
+        --------
         >>> import astropy.vo.samp as sampy
         >>> cli = sampy.SAMPIntegratedClient()
         >>> ...

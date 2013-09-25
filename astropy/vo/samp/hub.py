@@ -1470,6 +1470,7 @@ class SAMPHubServer(object):
 
 
 def main(timeout=0):
+    """This main function is executed by the `sampy` command line tool."""
 
     from optparse import OptionParser, OptionGroup
     parser = OptionParser(version="%prog " + __release__)
