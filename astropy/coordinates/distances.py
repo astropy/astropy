@@ -75,6 +75,8 @@ class Distance(u.Quantity):
     >>> d6 = Distance(distmod=24.47)
     """
 
+    _include_easy_conversion_members = True
+
     def __new__(cls, value=None, unit=None, z=None, cosmology=None,
                 distmod=None, dtype=None, copy=True):
         from ..cosmology import get_current
@@ -207,29 +209,6 @@ class Distance(u.Quantity):
     @staticmethod
     def _distmod_to_pc(dm):
         return 10 ** ((dm + 5) / 5.)
-
-    #these might be included in future revisions of Quantity depending on how
-    #the automatic conversion members are implemented, but make sure they're
-    #always available
-    @property
-    def pc(self):
-        return self.to(u.parsec).value
-
-    @property
-    def kpc(self):
-        return self.to(u.kiloparsec).value
-
-    @property
-    def Mpc(self):
-        return self.to(u.megaparsec).value
-
-    @property
-    def lyr(self):
-        return self.to(u.lightyear).value
-
-    @property
-    def km(self):
-        return self.to(u.kilometer).value
 
 
 class CartesianPoints(object):
