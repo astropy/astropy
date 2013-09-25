@@ -1493,7 +1493,7 @@ class CompositeUnit(UnitBase):
                 scale = add_unit(b, p, scale)
 
         new_parts = [x for x in new_parts.items() if x[1] != 0]
-        new_parts.sort(key=lambda x: (x[1], x[0].name), reverse=True)
+        new_parts.sort(key=lambda x: x[1], reverse=True)
 
         self._bases = [x[0] for x in new_parts]
         self._powers = [x[1] for x in new_parts]
