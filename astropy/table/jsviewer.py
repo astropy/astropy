@@ -5,7 +5,7 @@ import os
 
 data_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),'data')
 
-ipynb_js_script = """ 
+ipynb_js_script = """
 <script class="jsbin" src="{data_path}/jquery.dataTables.nightly.js"></script>
 <script>
     function html_repr_full() {{
@@ -83,9 +83,9 @@ class JSViewer(object):
         js = self._css_files()
         js.append(self._jstable_file())
         js.append(ipynb_js_script.format(display_length=self.display_length,
-                                      display_length_menu=self.display_length_menu,
-                                      tid=tableid,
-                                      data_path="file://"+data_path))
+                                         display_length_menu=self.display_length_menu,
+                                         tid=tableid,
+                                         data_path="file://"+data_path))
         return js
 
     def command_line(self, tableid='table0'):
