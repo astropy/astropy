@@ -474,9 +474,7 @@ Other Changes and Additions
 
 - ``astropy.cosmology``
 
-  - Added a new ``Plank13`` object representing the Plank 2013 results. WMAP7
-    remains the default cosmology so this should not affect any existing
-    computations using the defaults. [#895]
+  - Added a new ``Plank13`` object representing the Plank 2013 results. [#895]
 
 - ``astropy.units``
 
@@ -857,9 +855,9 @@ see the "What's New" section of the documentation for more details.
     astropy.cosmology classes. The current treatment assumes that neutrinos are
     massless. [#365]
 
-  - Add a WMAP9 object using the 9-year WMAP parameters from Hinshaw et al.
-    Once this paper is accepted, this should be made the default, but for
-    now WMAP7 remains the default. [#629]
+  - Add a WMAP9 object using the final (9-year) WMAP parameters from 
+    Hinshaw et al. 2013. It has also been made the default cosmology
+    [#629, #724].
 
 - ``astropy.table`` I/O infrastructure for custom readers/writers
   implemented. [#305]
