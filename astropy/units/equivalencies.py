@@ -304,7 +304,7 @@ def mass_energy():
              lambda x: x / _si.c.value ** 2),
     ]
 
-def brightness_temperature(beam_area, nu):
+def brightness_temperature(beam_area, disp):
     """
     "Antenna Gain" or "sensitivity" equivalency: Defines the conversion between
     Jy/beam and "brightness temperature", :math:`T_B`, in Kelvins.  This is a
@@ -323,7 +323,7 @@ def brightness_temperature(beam_area, nu):
     ----------
     beam_area : Beam Area equivalent
         Beam area in angular units, i.e. steradian equivalent
-    nu : `Quantity` with spectral units
+    disp : `Quantity` with spectral units
         The observed `spectral` equivalent `Unit` (e.g., frequency or
         wavelength)
 
@@ -348,7 +348,7 @@ def brightness_temperature(beam_area, nu):
         78.36209843...
     """
     beam = beam_area.to(si.sr).value
-    nu = nu.to(si.GHz, spectral())
+    nu = disp.to(si.GHz, spectral())
 
     def convert_Jy_to_K(x_jybm):
         factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
