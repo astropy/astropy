@@ -18,7 +18,7 @@ Current services include:
    :maxdepth: 1
 
    conesearch
-   samp
+   samp/index
 
 There are two third-party Python packages related to ``astropy.vo``:
 
