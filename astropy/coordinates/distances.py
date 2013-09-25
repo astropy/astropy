@@ -267,9 +267,9 @@ class CartesianPoints(u.Quantity):
             x = xorarr
 
             if unit is None:
-                #they must all much units or this fails
+                #they must all match units or this fails
                 for coo in (x, y, z):
-                    if isinstance(coo, u.Quantity):
+                    if hasattr(coo, 'unit'):
                         if unit is not None and coo.unit != unit:
                             raise u.UnitsError('Units for `x`, `y`, and `z` do '
                                                'not match in CartesianPoints')
@@ -278,12 +278,12 @@ class CartesianPoints(u.Quantity):
                 #Quantties, which is fine, because it means the user wanted
                 #the unit to be None
             else:
-                #convert them all to the given coordinate
-                if isinstance(x, u.Quantity):
+                #convert any that are like a Quantity to the given unit
+                if hasattr(x, 'to'):
                     x = x.to(unit)
-                if isinstance(y, u.Quantity):
+                if hasattr(y, 'to'):
                     y = y.to(unit)
-                if isinstance(z, u.Quantity):
+                if hasattr(z, 'to'):
                     z = z.to(unit)
 
             qarr = [np.asarray(coo) for coo in (x, y, z)]
