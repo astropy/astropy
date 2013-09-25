@@ -1323,6 +1323,7 @@ class Table(object):
 
     def show_in_browser(self,
                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
+                        max_lines=5000,
                         jsviewer=False,
                         jskwargs={},
                         tableid=None,
@@ -1336,6 +1337,10 @@ class Table(object):
         ----------
         css : string
             A valid CSS string declaring the formatting for the table
+        max_lines : int
+            Maximum number of rows to export to the table (set low by default
+            to avoid memory issues, since the browser view requires duplicating
+            the table in memory)
         jsviewer : bool
             If True, prepends some javascript headers so that the table is
             rendered as a https://datatables.net data table.  This allows
@@ -1365,7 +1370,7 @@ class Table(object):
 
         if tableid is None:
             tableid = 'table{id}'.format(id=id(self))
-        linelist = self.pformat(html=True, max_width=np.inf, max_lines=np.inf,
+        linelist = self.pformat(html=True, max_width=np.inf, max_lines=max_lines,
                                 tableid=tableid)
 
         if jsviewer:
