@@ -250,9 +250,10 @@ class SphericalCoordinatesBase(object):
         #sanity-check that they are all consistent shapes
         if self.lonangle.shape != self.latangle.shape:
             raise ValueError('lonangle and latangle do not have matching shapes')
-        #TODO: reinstate when distance is a quantity
-        #if self._distance is not None and self._distance.shape != self.lonangle.shape:
-            #raise ValueError('distance and angles do not have matching shapes')
+        
+        if self._distance is not None and self._distance.shape != self.lonangle.shape:
+            raise ValueError('distance and angles do not have matching shapes')
+
 
     @abstractproperty
     def latangle(self):
