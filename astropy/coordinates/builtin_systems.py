@@ -69,15 +69,9 @@ class ICRSCoordinates(SphericalCoordinatesBase):
         else:
             super(ICRSCoordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
-    def __repr__(self):
-        if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
-        else:
-            diststr = ''
-
-        msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.ra.degree,
-                          self.dec.degree, diststr)
+    #strings used for making __repr__ work
+    _repr_lon_name = 'RA'
+    _repr_lat_name = 'Dec'
 
     @property
     def lonangle(self):
@@ -138,15 +132,9 @@ class FK5Coordinates(SphericalCoordinatesBase):
         else:
             super(FK5Coordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
-    def __repr__(self):
-        if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
-        else:
-            diststr = ''
-
-        msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.ra.degree,
-                          self.dec.degree, diststr)
+    #strings used for making __repr__ work
+    _repr_lon_name = 'RA'
+    _repr_lat_name = 'Dec'
 
     @property
     def lonangle(self):
@@ -235,15 +223,9 @@ class FK4Coordinates(SphericalCoordinatesBase):
         else:
             super(FK4Coordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
-    def __repr__(self):
-        if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
-        else:
-            diststr = ''
-
-        msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.ra.degree,
-                          self.dec.degree, diststr)
+    #strings used for making __repr__ work
+    _repr_lon_name = 'RA'
+    _repr_lat_name = 'Dec'
 
     @property
     def lonangle(self):
@@ -331,15 +313,9 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
         else:
             super(FK4NoETermCoordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
-    def __repr__(self):
-        if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
-        else:
-            diststr = ''
-
-        msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.ra.degree,
-                          self.dec.degree, diststr)
+    #strings used for making __repr__ work
+    _repr_lon_name = 'RA'
+    _repr_lat_name = 'Dec'
 
     @property
     def lonangle(self):
@@ -442,15 +418,9 @@ class GalacticCoordinates(SphericalCoordinatesBase):
         else:
             super(GalacticCoordinates, self)._initialize_latlon('l', 'b', args, kwargs)
 
-    def __repr__(self):
-        if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
-        else:
-            diststr = ''
-
-        msg = "<{0} l={1:.5f} deg, b={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.l.degree,
-                          self.b.degree, diststr)
+    #strings used for making __repr__ work
+    _repr_lon_name = 'l'
+    _repr_lat_name = 'b'
 
     @property
     def lonangle(self):
@@ -500,15 +470,9 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
         else:
             super(HorizontalCoordinates, self)._initialize_latlon('az', 'el', args, kwargs)
 
-    def __repr__(self):
-        if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
-        else:
-            diststr = ''
-
-        msg = "<{0} az={1:.5f} deg, el={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.az.degree,
-                          self.el.degree, diststr)
+    #strings used for making __repr__ work
+    _repr_lon_name = 'az'
+    _repr_lat_name = 'el'
 
     @property
     def lonangle(self):

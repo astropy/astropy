@@ -167,4 +167,6 @@ def test_array_coordinates_string():
     unicode(c)
     repr(c)
 
+    assert repr(c) == '<ICRSCoordinates RA=[1 2] deg, Dec=[3 4] deg>'
+
 

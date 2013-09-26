@@ -254,6 +254,19 @@ class SphericalCoordinatesBase(object):
         if self._distance is not None and self._distance.shape != self.lonangle.shape:
             raise ValueError('distance and angles do not have matching shapes')
 
+    def __repr__(self):
+        if self.distance is not None:
+            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
+        else:
+            diststr = ''
+
+        if self.isscalar:
+            msg = "<{clsnm} {lonnm}={lonval:.5f} deg, {latnm}={latval:.5f} deg{diststr}>"
+        else:
+            msg = "<{clsnm} {lonnm}={lonval} deg, {latnm}={latval} deg{diststr}>"
+        return msg.format(clsnm=self.__class__.__name__, lonval=self.ra.degree,
+                          latval=self.dec.degree, lonnm=self._repr_lon_name, 
+                          latnm=self._repr_lat_name, diststr=diststr)
 
     @abstractproperty
     def latangle(self):
