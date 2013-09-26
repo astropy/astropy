@@ -74,30 +74,30 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
 
     Parameters
     ----------
-    model : Instance of ParametricModel
-        Instance of a astropy.ParametricModel to be evaluated.
+    model : :class:`~astropy.modeling.core.ParametricModel` instance
+        Instance of a :class:`~astropy.modeling.core.ParametricModel` to be evaluated.
     x_range : tuple
         x range in which the model is evaluated.
-    y_range : tuple optional
+    y_range : tuple, optional
         y range in which the model is evaluated.
         Necessary only for 2D models.
-    mode: string optional
+    mode : str, optional
         One of the following modes:
-            * 'center' (default)
+            * ``'center'`` (default)
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'linear_interp'
+            * ``'linear_interp'``
                 Discretize model by linearly interpolating
                 between the values at the corners of the bin.
                 For 2D models interpolation is bilinear.
-            * 'oversample'
+            * ``'oversample'``
                 Discretize model by taking the average
                 on an oversampled grid.
-            * 'integrate'
+            * ``'integrate'``
                 Discretize model by integrating the model 
                 over the bin using `scipy.integrate.quad`.
                 Very slow.
-    factor : number
+    factor : float or int
         Factor of oversampling. Default = 10.
 
     Notes
