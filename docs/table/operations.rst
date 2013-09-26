@@ -32,12 +32,12 @@ table from one or more input tables.  This includes:
      - `~astropy.table.operations.join`
 
 
-Group and aggregate
+Grouped operations
 ^^^^^^^^^^^^^^^^^^^^^
 
-Sometimes in a table there are natural groups within the dataset for
-which it makes sense to compute some derived values.  A simple example
-is a list of objects with photometry from various observing runs::
+Sometimes in a table or table column there are natural groups within the dataset for which
+it makes sense to compute some derived values.  A simple example is a list of objects with
+photometry from various observing runs::
 
   >>> from astropy.table import Table
   >>> obs = Table.read("""name    obs_date    mag_b  mag_v
@@ -45,20 +45,20 @@ is a list of objects with photometry from various observing runs::
                           M31     2012-01-02  17.1   17.4
                           M101    2012-01-02  15.1   13.5
                           M82     2012-01-02  16.2   14.5
-
                           M31     2012-02-14  16.9   17.3
                           M82     2012-02-14  15.2   15.5
                           M101    2012-02-14  15.0   13.6
-
                           M82     2012-03-26  15.7   16.5
                           M101    2012-03-26  15.1   13.5
                           M101    2012-03-26  14.8   14.3
                           """, format='ascii')
 
+Table groups
+""""""""""""""
+
 Now suppose we want the mean magnitudes for each object.  We first group
 the data by the ``name`` column, which has the effect of sorting by ``name``
-and creating a new attribute ``group_indexes`` which indicates the group
-boundaries::
+and setting the ``groups`` property according to the unique values of ``name``::
 
   >>> obs_by_name = obs.group_by('name')
   >>> print obs_by_name
@@ -75,19 +75,67 @@ boundaries::
    M82 2012-02-14  15.2  15.5
    M82 2012-03-26  15.7  16.5
                                << End of groups (index=10)
-  >>> obs_by_name.group_indexes
-  array([ 0,  4,  7, 10])
+  >>> obs_by_name.groups
+  <TableGroups group_keys=('name',) indices=[ 0  4  7 10]>
 
-With the new grouped table we can now use the `~astropy.table.table.GroupedTable.aggregate`
-method to apply a
+The ``groups`` property is an object which includes the column names
+used to generate the unique row key values and the indices which
+correspond to the group boundaries.  The groups here correspond to the
+row slices ``0:4``, ``4:7``, and ``7:10`` in the ``obs_by_name`` table.
+
+The ``keys`` argument to the `~astropy.table.table.Table.group_by` function
+can take a number of input data types:
+
+- Single string value with a table column name (as shown above)
+- List of string values with table column names
+- Numpy homogenous array with same length as table
+- Numpy structured array with same length as table
+- Another `Table` or `Table` column with same length as table
+
+In all cases the corresponding row elements are considered as a tuple of values which
+form a key value that is used to sort the original table and generate
+the required groups.
+
+As an example, to get the average magnitudes for each object on each observing
+night, we would first group the table on both ``name`` and ``obs_date`` as follows::
+
+  >>> print obs.group_by(['name', 'obs_date']).groups
+  <TableGroups group_keys=('name', 'obs_date') indices=[ 0  1  2  4  6  7  8  9 10]>
+
+Column Groups
+""""""""""""""
+
+Like `Table` objects, `Column` objects can also be grouped for subsequent
+manipulation with grouped operations.  This can apply both to columns within a
+`Table` or bare `Column` objects.
+
+As for `Table`, the grouping is generated with the `group_by()` method.  The
+difference here is that there is no option of providing one or more column
+names since that doesn't make sense for a `Column`.
+
+Examples::
+
+  >>> Examples here!
+
+Manipulating groups
+""""""""""""""""""""
+
+TODO: Group item access and slicing.
+
+Aggregation
+""""""""""""""
+
+Aggregation is the process of applying a
 specified reduction function to the values within each group for each
 non-key column.  This function must accept a numpy array as the first
 argument and return a single scalar value.  Common function examples are
-`numpy.sum`, `numpy.mean`, and `numpy.std`.  In this case we want the
-mean::
+`numpy.sum`, `numpy.mean`, and `numpy.std`.
 
-  >>> obs_mean = obs_by_name.aggregate(np.mean)
-  WARNING: Cannot aggregate column 'obs_date' [astropy.table.table]
+For the example grouped table ``obs_by_name`` from above we compute the group means with
+the `~astropy.table.groups.TableGroups.aggregate` method::
+
+  >>> obs_mean = obs_by_name.groups.aggregate(np.mean)
+  WARNING: Cannot aggregate column 'obs_date' [astropy.table.groups]
   >>> print obs_mean
   name mag_b mag_v 
   ---- ----- ------
@@ -98,7 +146,7 @@ mean::
 It seems the magnitude values were successfully averaged, but what
 about the WARNING?  Since the ``obs_date`` column is a string-type
 array, the `numpy.mean` function failed and raised an exception.
-Any time this happens then `~astropy.table.table.GroupedTable.aggregate`
+Any time this happens then ``~astropy.table.groups.TableGroups.aggregate`
 will issue a warning and then
 drop that column from the output result.  Note that the ``name``
 column is one of the ``keys`` used to determine the grouping so
@@ -107,35 +155,19 @@ it is automatically ignored from aggregation.
 From a grouped table it is possible to select one or more columns on which
 to perform the aggregation::
 
-  >>> print obs_by_name['mag_b'].aggregate(np.mean)
+  >>> print obs_by_name['mag_b'].groups.aggregate(np.mean)
   mag_b
   -----
    15.0
    17.0
    15.7
 
-  >>> print obs_by_name['name', 'mag_b', 'mag_v'].aggregate(np.mean)
-  name mag_b mag_v 
-  ---- ----- ------
-  M101  15.0 13.725
-   M31  17.0   17.4
-   M82  15.7   15.5
-
-To get the average magnitudes for each object on each observing
-night, just supply both ``name`` and ``obs_date`` as the grouping
-``keys``::
-
-  >>> print obs.group_by(['name', 'obs_date']).aggregate(np.mean)
-  name  obs_date  mag_b mag_v
-  ---- ---------- ----- -----
-  M101 2012-01-02  15.1  13.5
-  M101 2012-02-14  15.0  13.6
-  M101 2012-03-26 14.95  13.9
-   M31 2012-01-02 17.05 17.45
-   M31 2012-02-14  16.9  17.3
-   M82 2012-01-02  16.2  14.5
-   M82 2012-02-14  15.2  15.5
-   M82 2012-03-26  15.7  16.5
+  >>> print obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean)
+  name mag_v  mag_b
+  ---- ------ -----
+  M101 13.725  15.0
+   M31   17.4  17.0
+   M82   15.5  15.7
 
 
 Stack vertically

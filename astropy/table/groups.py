@@ -3,6 +3,8 @@ import warnings
 
 from itertools import izip, count
 
+__all__ = ['TableGroups', 'ColumnGroups']
+
 
 def table_group_by(table, keys):
     """
