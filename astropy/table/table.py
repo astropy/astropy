@@ -1030,6 +1030,10 @@ class Table(object):
     def mask(self):
         return self._data.mask if self.masked else None
 
+    @mask.setter
+    def mask(self, val):
+        self._data.mask = val
+
     @property
     def _mask(self):
         """This is needed due to intricacies in numpy.ma, don't remove it."""

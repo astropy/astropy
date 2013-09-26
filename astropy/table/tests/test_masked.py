@@ -202,6 +202,11 @@ class TestTableInit(SetupData):
         # Non-masked table returns None for mask attribute
         t2 = Table([self.ca], masked=False)
         assert t2.mask is None
+        # Set mask property globally and verify local correctness
+        for mask in (True, False):
+            t.mask = mask
+            for name in ('a', 'b'):
+                assert np.all(t[name].mask == mask)
 
 
 @pytest.mark.xfail('numpy_lt_1p5')
