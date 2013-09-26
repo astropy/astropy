@@ -11,13 +11,3 @@ be easily provided by a single array.
 from .nddata import *
 from .nduncertainty import *
 from .flag_collection import *
-
-try:
-    # Not guaranteed available at setup time
-    from .convolution.convolve import convolve, convolve_fft
-    from .convolution.make_kernel import make_kernel
-    from .convolution.kernels import *
-    from .convolution.utils import discretize_model
-except ImportError:
-    if not _ASTROPY_SETUP_:
-        raise

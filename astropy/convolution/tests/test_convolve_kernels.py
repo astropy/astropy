@@ -1,33 +1,53 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 
-from ....tests.helper import pytest
+from ...tests.helper import pytest
 
-from ..make_kernel import make_kernel
+from ..kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
 from ..convolve import convolve, convolve_fft
 
 from numpy.testing import assert_array_almost_equal_nulp, assert_almost_equal
 
 import itertools
 
-shapes = [[8, 8], [15, 15], [16, 16], [31, 31], [32, 32]]
-widths = [2, 3, 4, 5]
-kerneltype = ['gaussian', 'tophat', 'boxcar']
+SHAPES_ODD = [[15, 15], [31, 31], ]
+SHAPES_EVEN = [[8, 8], [16, 16], [32, 32]]
+WIDTHS = [2, 3, 4, 5]
+
+KERNELS = []
+
+for shape in SHAPES_ODD:
+    for width in WIDTHS:
+
+        KERNELS.append(Gaussian2DKernel(width,
+                                        x_size=shape[0],
+                                        y_size=shape[1],
+                                        mode='oversample',
+                                        factor=10))
+
+        KERNELS.append(Box2DKernel(width,
+                                   x_size=shape[0],
+                                   y_size=shape[1],
+                                   mode='oversample',
+                                   factor=10))
+
+        KERNELS.append(Tophat2DKernel(width,
+                                      x_size=shape[0],
+                                      y_size=shape[1],
+                                      mode='oversample',
+                                      factor=10))
+
 
 
 class Test2DConvolutions(object):
 
-    @pytest.mark.parametrize(('shape', 'width', 'kerneltype'), list(itertools.product(shapes, widths, kerneltype)))
-    def test_centered_makekernel(self, shape, width, kerneltype):
+    @pytest.mark.parametrize('kernel', KERNELS)
+    def test_centered_makekernel(self, kernel):
         """
         Test smoothing of an image with a single positive pixel
         """
 
-        if width % 2 == 0 and kerneltype == 'boxcar':
-            # this is a shifting kernel.  I don't understand how these are treated.
-            return
-
-        kernel = make_kernel(shape, width, force_odd=True, kerneltype=kerneltype)
+        shape = kernel.array.shape
 
         x = np.zeros(shape)
         xslice = [slice(sh // 2, sh // 2 + 1) for sh in shape]
@@ -36,36 +56,30 @@ class Test2DConvolutions(object):
         c2 = convolve_fft(x, kernel, boundary='fill')
         c1 = convolve(x, kernel, boundary='fill')
 
-        print shape, width, kerneltype
         assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('shape', 'width', 'kerneltype'), list(itertools.product(shapes, widths, kerneltype)))
-    def test_random_makekernel(self, shape, width, kerneltype):
+    @pytest.mark.parametrize('kernel', KERNELS)
+    def test_random_makekernel(self, kernel):
         """
         Test smoothing of an image made of random noise
         """
 
-        if width % 2 == 0 and kerneltype == 'boxcar':
-            # this is a shifting kernel.  I don't understand how these are treated.
-            return
-
-        kernel = make_kernel(shape, width, force_odd=True, kerneltype=kerneltype)
+        shape = kernel.array.shape
 
         x = np.random.randn(*shape)
 
         c2 = convolve_fft(x, kernel, boundary='fill')
         c1 = convolve(x, kernel, boundary='fill')
 
-        print shape, width, kerneltype
         # not clear why, but these differ by a couple ulps...
         assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('shape', 'width'), list(itertools.product(shapes, widths)))
+    @pytest.mark.parametrize(('shape', 'width'), list(itertools.product(SHAPES_ODD, WIDTHS)))
     def test_uniform_smallkernel(self, shape, width):
         """
         Test smoothing of an image with a single positive pixel
 
-        Instead of using make_kernel, uses a simple, small kernel
+        Uses a simple, small kernel
         """
 
         if width % 2 == 0:
@@ -81,10 +95,9 @@ class Test2DConvolutions(object):
         c2 = convolve_fft(x, kernel, boundary='fill')
         c1 = convolve(x, kernel, boundary='fill')
 
-        print shape, width
         assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('shape', 'width'), list(itertools.product(shapes, widths)))
+    @pytest.mark.parametrize(('shape', 'width'), list(itertools.product(SHAPES_ODD, [1, 3, 5])))
     def test_smallkernel_vs_makekernel(self, shape, width):
         """
         Test smoothing of an image with a single positive pixel
@@ -93,7 +106,8 @@ class Test2DConvolutions(object):
         """
 
         kernel1 = np.ones([width, width]) / np.float(width) ** 2
-        kernel2 = make_kernel(shape, width, kerneltype='boxcar')
+        kernel2 = Box2DKernel(width, x_size=shape[0], y_size=shape[1],
+                              mode='oversample', factor=10)
 
         x = np.zeros(shape)
         xslice = [slice(sh // 2, sh // 2 + 1) for sh in shape]
@@ -102,15 +116,9 @@ class Test2DConvolutions(object):
         c2 = convolve_fft(x, kernel2, boundary='fill')
         c1 = convolve_fft(x, kernel1, boundary='fill')
 
-        print shape, width
         assert_almost_equal(c1, c2, decimal=12)
 
-        if width % 2 == 1:
-            kernel2 = make_kernel(shape, width, kerneltype='boxcar', force_odd=True)
+        c2 = convolve(x, kernel2, boundary='fill')
+        c1 = convolve(x, kernel1, boundary='fill')
 
-            c2 = convolve(x, kernel2, boundary='fill')
-            c1 = convolve(x, kernel1, boundary='fill')
-
-            print shape, width
-
-            assert_almost_equal(c1, c2, decimal=12)
+        assert_almost_equal(c1, c2, decimal=12)

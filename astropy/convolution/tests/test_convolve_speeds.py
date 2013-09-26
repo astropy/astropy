@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import numpy as np
+
+from __future__ import print_function
 
 import timeit
 
@@ -9,66 +10,59 @@ max_exponents_fft = {1: 15, 2: 10, 3: 7}
 
 if __name__ == "__main__":
     for ndims in [1, 2, 3]:
-        print "\n%i-dimensional arrays ('n' is the size of the image AND the kernel)" % ndims
-        print " ".join(["%17s" % n for n in ("n", "convolve", "convolve_fftnp", "convolve_fftw", "convolve_fftsp")])
+        print("\n%i-dimensional arrays ('n' is the size of the image AND the kernel)" % ndims)
+        print(" ".join(["%17s" % n for n in ("n", "convolve", "convolve_fft")]))
 
-        for ii in xrange(3, max_exponents_fft[ndims]):
+        for ii in range(3, max_exponents_fft[ndims]):
             # array = np.random.random([2**ii]*ndims)
             # test ODD sizes too
             if ii < max_exponents_fft[ndims]:
                 setup = ("""
-from astropy.nddata.convolution.convolve import convolve;
-from astropy.nddata.convolution.convolve import convolve_fft;
-from astropy.nddata.convolution.make_kernel import make_kernel;
-import numpy as np;
-array = np.random.random([%i]*%i);
-kernel = make_kernel([%i]*%i, 3, force_odd=True)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims)
+import numpy as np
+from astropy.convolution.convolve import convolve
+from astropy.convolution.convolve import convolve_fft
+from astropy.convolution.make_kernel import make_kernel
+array = np.random.random([%i]*%i)
+kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims)
 
-                print "%16i:" % (int(2 ** ii - 1)),
+                print("%16i:" % (int(2 ** ii - 1)), end=' ')
 
                 if ii <= max_exponents_linear[ndims]:
-                    for ffttype, extra in zip(("", "_fft", "_fft", "_fft"),
-                                             ("", "fft_pad=False, fft_type='numpy'",
-                                              "fft_pad=False,fft_type='fftw'",
-                                              "fft_pad=False,fft_type='scipy'")):
+                    for ffttype, extra in zip(("", "_fft"),
+                                              ("", "fft_pad=False")):
                         statement = "convolve%s(array, kernel, boundary='fill', %s)" % (ffttype, extra)
                         besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
-                        print "%17f" % (besttime),
+                        print("%17f" % (besttime), end=' ')
                 else:
-                    print "%17s" % "skipped",
-                    for ffttype, extra in zip(("_fft", "_fft", "_fft"),
-                                             ("fft_type='numpy'", "fft_type='fftw'", "fft_type='scipy'")):
-                        statement = "convolve%s(array, kernel, boundary='fill', %s)" % (ffttype, extra)
-                        besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
-                        print "%17f" % (besttime),
+                    print("%17s" % "skipped", end=' ')
+                    statement = "convolve_fft(array, kernel, boundary='fill')"
+                    besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
+                    print("%17f" % (besttime), end=' ')
 
-                print
+                print()
 
             setup = ("""
-from astropy.nddata.convolution.convolve import convolve;
-from astropy.nddata.convolution.convolve import convolve_fft;
-from astropy.nddata.convolution.make_kernel import make_kernel;
-import numpy as np;
-array = np.random.random([%i]*%i);
-kernel = make_kernel([%i]*%i, 3, force_odd=True)""") % (2 ** ii, ndims, 2 ** ii, ndims)
+import numpy as np
+from astropy.convolution.convolve import convolve
+from astropy.convolution.convolve import convolve_fft
+from astropy.convolution.make_kernel import make_kernel
+array = np.random.random([%i]*%i)
+kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims)
 
-            print "%16i:" % (int(2 ** ii)),
+            print("%16i:" % (int(2 ** ii)), end=' ')
 
             if ii <= max_exponents_linear[ndims]:
-                for ffttype, extra in zip(("", "_fft", "_fft", "_fft"),
-                                         ("", "fft_type='numpy'", "fft_type='fftw'", "fft_type='scipy'")):
-                    statement = "convolve%s(array, kernel, boundary='fill', %s)" % (ffttype, extra)
+                for ffttype in ("", "_fft"):
+                    statement = "convolve%s(array, kernel, boundary='fill')" % ffttype
                     besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
-                    print "%17f" % (besttime),
+                    print("%17f" % (besttime), end=' ')
             else:
-                print "%17s" % "skipped",
-                for ffttype, extra in zip(("_fft", "_fft", "_fft"),
-                                         ("fft_type='numpy'", "fft_type='fftw'", "fft_type='scipy'")):
-                    statement = "convolve%s(array, kernel, boundary='fill', %s)" % (ffttype, extra)
-                    besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
-                    print "%17f" % (besttime),
+                print("%17s" % "skipped", end=' ')
+                statement = "convolve_fft(array, kernel, boundary='fill')"
+                besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
+                print("%17f" % (besttime), end=' ')
 
-            print
+            print()
 
 """
 Unfortunately, these tests are pretty strongly inconclusive

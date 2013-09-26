@@ -4,8 +4,8 @@ import numpy as np
 
 from .core import Kernel1D, Kernel2D, Kernel
 from .utils import KernelSizeError
-from ...modeling import models
-from ...modeling.core import Parametric1DModel, Parametric2DModel
+from ..modeling import models
+from ..modeling.core import Parametric1DModel, Parametric2DModel
 
 __all__ = sorted(['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
                   'Box1DKernel', 'Box2DKernel', 'Tophat2DKernel',
@@ -14,6 +14,13 @@ __all__ = sorted(['Gaussian1DKernel', 'Gaussian2DKernel', 'CustomKernel',
                   'Model1DKernel', 'Model2DKernel',
                   'TrapezoidDisk2DKernel', 'Ring2DKernel'])
 
+
+def _round_up_to_odd_integer(value):
+    i = int(np.ceil(value))
+    if i % 2 == 0:
+        return i + 1
+    else:
+        return i
 
 class Gaussian1DKernel(Kernel1D):
     """
@@ -59,7 +66,7 @@ class Gaussian1DKernel(Kernel1D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Gaussian1DKernel
+        from astropy.convolution import Gaussian1DKernel
         gauss_1D_kernel = Gaussian1DKernel(10)
         plt.plot(gauss_1D_kernel, drawstyle='steps')
         plt.xlabel('x [pixels]')
@@ -71,7 +78,7 @@ class Gaussian1DKernel(Kernel1D):
 
     def __init__(self, width, **kwargs):
         self._model = models.Gaussian1DModel(1. / (np.sqrt(2 * np.pi) * width), 0, width)
-        self._default_size = 8 * width
+        self._default_size = _round_up_to_odd_integer(8 * width)
         super(Gaussian1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - 1 / self._normalization)
 
@@ -122,7 +129,7 @@ class Gaussian2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Gaussian2DKernel
+        from astropy.convolution import Gaussian2DKernel
         gaussian_2D_kernel = Gaussian2DKernel(10)
         plt.imshow(gaussian_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
@@ -136,7 +143,7 @@ class Gaussian2DKernel(Kernel2D):
 
     def __init__(self, width, **kwargs):
         self._model = models.Gaussian2DModel(1. / (2 * np.pi * width ** 2), 0, 0, width, width)
-        self._default_size = 8 * width
+        self._default_size = _round_up_to_odd_integer(8 * width)
         super(Gaussian2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - 1 / self._normalization)
 
@@ -182,7 +189,7 @@ class Box1DKernel(Kernel1D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Box1DKernel
+        from astropy.convolution import Box1DKernel
         box_1D_kernel = Box1DKernel(9)
         plt.plot(box_1D_kernel, drawstyle='steps')
         plt.xlim(-1, 9)
@@ -196,7 +203,7 @@ class Box1DKernel(Kernel1D):
 
     def __init__(self, width, **kwargs):
         self._model = models.Box1DModel(1. / width, 0, width)
-        self._default_size = width
+        self._default_size = _round_up_to_odd_integer(width)
         super(Box1DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()
@@ -227,7 +234,7 @@ class Box2DKernel(Kernel2D):
             * 'integrate'
                 Discretize model by integrating the
                 model over the bin.
-    factor : number, optional 
+    factor : number, optional
         Factor of oversampling. Default factor = 10.
 
 
@@ -244,7 +251,7 @@ class Box2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Box2DKernel
+        from astropy.convolution import Box2DKernel
         box_2D_kernel = Box2DKernel(9)
         plt.imshow(box_2D_kernel, interpolation='none', origin='lower')
         plt.xlim(-1, 9)
@@ -259,7 +266,7 @@ class Box2DKernel(Kernel2D):
 
     def __init__(self, width, **kwargs):
         self._model = models.Box2DModel(1. / width ** 2, 0, 0, width, width)
-        self._default_size = width
+        self._default_size = _round_up_to_odd_integer(width)
         super(Box2DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()
@@ -296,7 +303,7 @@ class Tophat2DKernel(Kernel2D):
 
     See Also
     --------
-    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel, 
+    Box2DKernel, Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel,
     TrapezoidDisk2DKernel, AiryDisk2DKernel
 
     Examples
@@ -307,7 +314,7 @@ class Tophat2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Tophat2DKernel
+        from astropy.convolution import Tophat2DKernel
         tophat_2D_kernel = Tophat2DKernel(40)
         plt.imshow(tophat_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
@@ -318,7 +325,7 @@ class Tophat2DKernel(Kernel2D):
     """
     def __init__(self, radius, **kwargs):
         self._model = models.Disk2DModel(1. / (np.pi * radius ** 2), 0, 0, radius)
-        self._default_size = 2 * radius
+        self._default_size = _round_up_to_odd_integer(2 * radius)
         super(Tophat2DKernel, self).__init__(**kwargs)
         self._truncation = 0
 
@@ -365,7 +372,7 @@ class Ring2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Ring2DKernel
+        from astropy.convolution import Ring2DKernel
         ring_2D_kernel = Ring2DKernel(9, 17)
         plt.imshow(ring_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
@@ -374,9 +381,9 @@ class Ring2DKernel(Kernel2D):
         plt.show()
     """
     def __init__(self, radius_in, radius_out, **kwargs):
-        self._model = models.Ring2DModel(1. / (np.pi * (radius_out ** 2 - radius_in ** 2)), 
+        self._model = models.Ring2DModel(1. / (np.pi * (radius_out ** 2 - radius_in ** 2)),
                                         0, 0, radius_in, radius_out)
-        self._default_size = 2 * radius_out
+        self._default_size = _round_up_to_odd_integer(2 * radius_out)
         super(Ring2DKernel, self).__init__(**kwargs)
         self._truncation = 0
 
@@ -420,7 +427,7 @@ class Trapezoid1DKernel(Kernel1D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import Trapezoid1DKernel
+        from astropy.convolution import Trapezoid1DKernel
         trapezoid_1D_kernel = Trapezoid1DKernel(17, slope=0.2)
         plt.plot(trapezoid_1D_kernel, drawstyle='steps')
         plt.xlabel('x [pixels]')
@@ -432,7 +439,9 @@ class Trapezoid1DKernel(Kernel1D):
 
     def __init__(self, width, slope=1., **kwargs):
         self._model = models.Trapezoid1DModel(1, 0, width, slope)
-        self._default_size = 2 * (width / 2 + 1. / slope) + 1 
+        self._default_size = _round_up_to_odd_integer(width + 2. / slope)
+        if self._default_size % 2 == 0:
+            self._default_size += 1
         super(Trapezoid1DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()
@@ -478,7 +487,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import TrapezoidDisk2DKernel
+        from astropy.convolution import TrapezoidDisk2DKernel
         trapezoid_2D_kernel = TrapezoidDisk2DKernel(20, slope=0.2)
         plt.imshow(trapezoid_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
@@ -491,7 +500,9 @@ class TrapezoidDisk2DKernel(Kernel2D):
 
     def __init__(self, radius, slope=1., **kwargs):
         self._model = models.TrapezoidDisk2DModel(1, 0, 0, radius, slope)
-        self._default_size = 2 * (radius + 1. / slope) - 1
+        self._default_size = _round_up_to_odd_integer(2 * radius + 2. / slope)
+        if self._default_size % 2 == 0:
+            self._default_size += 1
         super(TrapezoidDisk2DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()
@@ -542,7 +553,7 @@ class MexicanHat1DKernel(Kernel1D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import MexicanHat1DKernel
+        from astropy.convolution import MexicanHat1DKernel
         mexicanhat_1D_kernel = MexicanHat1DKernel(10)
         plt.plot(mexicanhat_1D_kernel, drawstyle='steps')
         plt.xlabel('x [pixels]')
@@ -553,8 +564,8 @@ class MexicanHat1DKernel(Kernel1D):
     _is_bool = True
 
     def __init__(self, width, **kwargs):
-        self._default_size = 8 * width
         self._model = models.MexicanHat1DModel(-1. / (np.sqrt(2 * np.pi) * width ** 3), 0, width)
+        self._default_size = _round_up_to_odd_integer(8 * width)
         super(MexicanHat1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
         self._normalization = 0
@@ -608,7 +619,7 @@ class MexicanHat2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import MexicanHat2DKernel
+        from astropy.convolution import MexicanHat2DKernel
         mexicanhat_2D_kernel = MexicanHat2DKernel(10)
         plt.imshow(mexicanhat_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
@@ -619,8 +630,8 @@ class MexicanHat2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, width, **kwargs):
-        self._default_size = 8 * width
         self._model = models.MexicanHat2DModel(-1. / (np.pi * width ** 4), 0, 0, width)
+        self._default_size = _round_up_to_odd_integer(8 * width)
         super(MexicanHat2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
         self._normalization = 0
@@ -630,7 +641,7 @@ class AiryDisk2DKernel(Kernel2D):
     """
     2D Airy disk kernel.
 
-    This kernel models the diffraction pattern of a circular aperture. This 
+    This kernel models the diffraction pattern of a circular aperture. This
     kernel is normalized to a peak value of 1.
 
     Parameters
@@ -671,7 +682,7 @@ class AiryDisk2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.nddata.convolution import AiryDisk2DKernel
+        from astropy.convolution import AiryDisk2DKernel
         airydisk_2D_kernel = AiryDisk2DKernel(10)
         plt.imshow(airydisk_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
@@ -682,8 +693,8 @@ class AiryDisk2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, width, **kwargs):
-        self._default_size = 8 * width
         self._model = models.AiryDisk2DModel(1, 0, 0, width)
+        self._default_size = _round_up_to_odd_integer(8 * width)
         super(AiryDisk2DKernel, self).__init__(**kwargs)
         self.normalize()
         self._truncation = None
@@ -733,7 +744,7 @@ class Model1DKernel(Kernel1D):
     Define a Gaussian1D model:
 
         >>> from astropy.modeling.models import Gaussian1DModel
-        >>> from astropy.nddata.convolution.kernels import Model1DKernel
+        >>> from astropy.convolution.kernels import Model1DKernel
         >>> gauss = Gaussian1DModel(1, 0, 2)
 
     And create a custom one dimensional kernel from it:
@@ -799,7 +810,7 @@ class Model2DKernel(Kernel2D):
     Define a Gaussian2D model:
 
         >>> from astropy.modeling.models import Gaussian2DModel
-        >>> from astropy.nddata.convolution.kernels import Model2DKernel
+        >>> from astropy.convolution.kernels import Model2DKernel
         >>> gauss = Gaussian2DModel(1, 0, 0, 2, 2)
 
     And create a custom two dimensional kernel from it:
@@ -854,7 +865,7 @@ class CustomKernel(Kernel):
     --------
     Define one dimensional array:
 
-        >>> from astropy.nddata.convolution.kernels import CustomKernel
+        >>> from astropy.convolution.kernels import CustomKernel
         >>> import numpy as np
         >>> array = np.array([1, 2, 3, 2, 1])
         >>> kernel = CustomKernel(array)

@@ -13,9 +13,6 @@ CCD images, IFU data, grid-based simulation data, ...). This is more than
 just `numpy.ndarray` objects, because it provides metadata that cannot
 be easily provided by a single array.
 
-This subpackage also provides new convolution routines that differ from
-Scipy in that they offer a proper treatment of NaN values.
-
 .. note:: The `~astropy.nddata.nddata.NDData` class is still under
           development, and support for WCS and units is not yet implemented.
 
@@ -64,8 +61,6 @@ Using `nddata`
    :maxdepth: 2
 
    nddata.rst
-   convolution.rst
-   kernels.rst
    subclassing.rst
 
 Reference/API
