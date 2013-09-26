@@ -52,9 +52,9 @@ class AsyncConeSearch(AsyncBase):
     >>> from astropy import coordinates as coord
     >>> from astropy import units as u
     >>> c = coord.ICRSCoordinates(6.0223, -72.0814, unit=(u.degree, u.degree))
-    >>> sr = coord.Angle(0.5, unit=u.degree)
     >>> async_search = conesearch.AsyncConeSearch(
-    ...     c, sr, catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1')
+    ...     c, radius=0.5*u.degree,
+    ...     catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1')
 
     Check search status:
 
@@ -81,13 +81,13 @@ class AsyncConeSearch(AsyncBase):
         AsyncBase.__init__(self, conesearch, *args, **kwargs)
 
 
-def conesearch(centercoord, searchradius, verb=1, **kwargs):
+def conesearch(center, radius, verb=1, **kwargs):
     """Perform Cone Search and returns the result of the
     first successful query.
 
     Parameters
     ----------
-    centercoord : tuple of float or :ref:`astropy-coordinates`
+    center : tuple of float or :ref:`astropy-coordinates`
         Right-ascension and declination for the position of
         the center of the cone to search:
 
@@ -98,12 +98,12 @@ def conesearch(centercoord, searchradius, verb=1, **kwargs):
               be converted internally to
               `~astropy.coordinates.builtin_systems.ICRSCoordinates`.
 
-    searchradius : float or `~astropy.coordinates.angles.Angle` object
+    radius : float or `~astropy.coordinates.angles.Angle` object
         Radius of the cone to search:
 
             - If float is given, it is assumed to be in decimal degrees.
-            - If astropy angle object is given, it is internally converted
-              to degrees.
+            - If astropy angle object or angular quantity is given,
+              it is internally converted to degrees.
 
     verb : {1, 2, 3}
         Verbosity indicating how many columns are to be returned
@@ -179,10 +179,10 @@ def conesearch(centercoord, searchradius, verb=1, **kwargs):
 
     """
     # Validate RA and DEC
-    ra, dec = _validate_coord(centercoord)
+    ra, dec = _validate_coord(center)
 
     # Validate search radius
-    sr = _validate_sr(searchradius)
+    sr = _validate_sr(radius)
 
     # Validate verbosity
     verb = _local_conversion(int, verb)
@@ -212,8 +212,7 @@ class AsyncSearchAll(AsyncBase):
     >>> from astropy import coordinates as coord
     >>> from astropy import units as u
     >>> c = coord.ICRSCoordinates(6.0223, -72.0814, unit=(u.degree, u.degree))
-    >>> sr = coord.Angle(0.5, unit=u.degree)
-    >>> async_searchall = conesearch.AsyncSearchAll(c, sr)
+    >>> async_searchall = conesearch.AsyncSearchAll(c,  radius=0.5*u.degree)
 
     Check search status:
 
@@ -394,13 +393,13 @@ def predict_search(url, *args, **kwargs):
     if 'plot' in kwargs:  # pragma: no cover
         del kwargs['plot']
 
-    centercoord, searchradius = args
-    sr = _validate_sr(searchradius)
+    center, radius = args
+    sr = _validate_sr(radius)
     if sr <= 0:
         raise ConeSearchError('Search radius must be > 0 degrees')
 
     kwargs['catalog_db'] = url
-    cs_pred = RunTimePredictor(conesearch, centercoord, **kwargs)
+    cs_pred = RunTimePredictor(conesearch, center, **kwargs)
 
     # Search properties for timer extrapolation
     num_datapoints = 10  # Number of desired data points for extrapolation
@@ -486,21 +485,21 @@ def _local_conversion(func, x):
         return y
 
 
-def _validate_coord(centercoord):
-    if isinstance(centercoord, SphericalCoordinatesBase):
-        icrscoord = centercoord.transform_to(ICRSCoordinates)
+def _validate_coord(center):
+    if isinstance(center, SphericalCoordinatesBase):
+        icrscoord = center.transform_to(ICRSCoordinates)
     else:
-        icrscoord = ICRSCoordinates(*centercoord, unit=(u.degree, u.degree))
+        icrscoord = ICRSCoordinates(*center, unit=(u.degree, u.degree))
 
     return icrscoord.ra.degree, icrscoord.dec.degree
 
 
-def _validate_sr(searchradius):
+def _validate_sr(radius):
     """Validate search radius."""
         # Validate search radius
-    if isinstance(searchradius, Angle):
-        sr_angle = searchradius
+    if isinstance(radius, Angle):
+        sr_angle = radius
     else:
-        sr_angle = Angle(searchradius, unit=u.degree)
+        sr_angle = Angle(radius, unit=u.degree)
 
     return sr_angle.degree

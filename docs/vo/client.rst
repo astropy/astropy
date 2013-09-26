@@ -137,9 +137,9 @@ To call a given VO service; In this case, a Cone Search
 >>> c = coord.ICRSCoordinates.from_name('47 Tuc')
 >>> c
 <ICRSCoordinates RA=6.02233 deg, Dec=-72.08144 deg>
->>> sr = coord.Angle(0.5, unit=u.degree)
+>>> sr = 0.5 * u.degree
 >>> sr
-<Angle 0d30m00.00000s>
+<Quantity 0.5 deg>
 >>> result = vos_catalog.call_vo_service(
 ...     'conesearch_good',
 ...     kwargs={'RA': c.ra.degree, 'DEC': c.dec.degree, 'SR': sr.degree},
@@ -270,9 +270,9 @@ using cached data, set ``cache=False``:
 >>> c = coord.ICRSCoordinates.from_name('47 Tuc')
 >>> c
 <ICRSCoordinates RA=6.02233 deg, Dec=-72.08144 deg>
->>> sr = coord.Angle(0.5, unit=u.degree)
+>>> sr = 0.5 * u.degree
 >>> sr
-<Angle 0d30m00.00000s>
+<Quantity 0.5 deg>
 >>> result = conesearch.conesearch(c, sr, catalog_db=my_catname)
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/243/out&
 Downloading ...

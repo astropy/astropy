@@ -92,10 +92,7 @@ Query the selected 2MASS catalog around M31 with a 0.1-degree search radius:
 >>> c = coord.ICRSCoordinates.from_name('M31')
 >>> c.ra, c.dec
 (<Longitude 10d41m04.94988s>, <Latitude 41d16m07.50000s>)
->>> sr = coord.Angle(0.1, unit=u.degree)
->>> sr
-<Angle 0d06m00.00000s>
->>> result = conesearch.conesearch(c, sr, catalog_db=my_catname)
+>>> result = conesearch.conesearch(c, 0.1 * u.degree, catalog_db=my_catname)
 Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
 Downloading ...
 WARNING: W06: ... UCD has invalid character '?' in '??' [...]

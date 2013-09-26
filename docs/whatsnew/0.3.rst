@@ -135,8 +135,7 @@ Virtual Observatory Simple Cone Search
     >>> from astropy import coordinates as coord
     >>> from astropy import units as u
     >>> c = coord.ICRSCoordinates.from_name('M31')
-    >>> sr = coord.Angle(0.1, unit=u.degree)
-    >>> result = conesearch.conesearch(c, sr, catalog_db=my_catname)
+    >>> result = conesearch.conesearch(c, 0.1 * u.degree, catalog_db=my_catname)
     Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
     Downloading ...
     WARNING: W06: ... UCD has invalid character '?' in '??' [...]
