@@ -586,7 +586,7 @@ class Time(object):
 
         Parameters
         ----------
-        iers_table: `~astropy.utils.iers.IERS` table, optional
+        iers_table : `~astropy.utils.iers.IERS` table, optional
             Table containing UT1-UTC differences from IERS Bulletins A and/or B
             If None, use default version (see `~astropy.utils.iers`)
         return_status : bool

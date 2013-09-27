@@ -258,7 +258,7 @@ class BaseColumn(object):
 
         Parameters
         ----------
-        col: Column
+        col : Column
             Comparison column
 
         Returns
@@ -1894,7 +1894,7 @@ class Table(object):
 
         Parameters
         ----------
-        index: int
+        index : int
             Index of row to remove
 
         Examples
@@ -1932,7 +1932,7 @@ class Table(object):
 
         Parameters
         ----------
-        row_specifier: slice, int, or array of ints
+        row_specifier : slice, int, or array of ints
             Specification for rows to remove
 
         Examples

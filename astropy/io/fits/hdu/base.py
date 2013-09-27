@@ -1127,7 +1127,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             Comment string for the card that by default represents the
             time when the checksum was calculated
 
-        blocking: str, optional
+        blocking : str, optional
             "standard" or "nonstandard", compute sum 2880 bytes at a time, or
             not
 
@@ -1169,7 +1169,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         override_datasum : bool, optional
            add the ``CHECKSUM`` card only
 
-        blocking: str, optional
+        blocking : str, optional
             "standard" or "nonstandard", compute sum 2880 bytes at a time, or
             not
 

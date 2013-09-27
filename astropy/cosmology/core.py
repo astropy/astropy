@@ -1699,7 +1699,7 @@ class FlatwCDM(wCDM):
           you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
-        name: string
+        name : string
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
