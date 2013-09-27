@@ -1468,9 +1468,8 @@ class Table(object):
         elif isinstance(item, (tuple, list)) and all(x in self.colnames
                                                      for x in item):
             out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
-            out_group_keys = tuple(key for key in self.groups._group_keys if key in item)
             out._groups = groups.TableGroups(out, indices=self.groups._indices,
-                                             group_keys=out_group_keys)
+                                             keys=self.groups._keys)
             return out
         elif (isinstance(item, slice) or
               isinstance(item, np.ndarray) or
@@ -1993,10 +1992,6 @@ class Table(object):
 
         self._data = table
 
-        # Fix group_keys by removing any keys in names
-        group_keys = tuple(key for key in self.groups.group_keys if key not in names)
-        self.groups._group_keys = group_keys
-
     def keep_columns(self, names):
         '''
         Keep only the columns specified (remove the others).
@@ -2077,10 +2072,6 @@ class Table(object):
             raise KeyError("Column {0} does not exist".format(name))
 
         self.columns[name].name = new_name
-
-        # Fix group_keys by renaming appropriately
-        group_keys = tuple(new_name if key == name else key for key in self.groups.group_keys)
-        self.groups._group_keys = group_keys
 
     def add_row(self, vals=None, mask=None):
         """Add a new row to the end of the table.
@@ -2242,7 +2233,7 @@ class Table(object):
         # If the current table is grouped then do the same in the copy
         if hasattr(self, '_groups'):
             out._groups = groups.TableGroups(out, indices=self._groups._indices,
-                                             group_keys=self._groups._group_keys)
+                                             keys=self._groups._keys)
         return out
 
     def __deepcopy__(self, memo=None):

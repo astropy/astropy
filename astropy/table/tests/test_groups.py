@@ -54,7 +54,7 @@ def test_table_group_by():
         # Group by a single column key specified by name
         tg = t1.group_by('a')
         assert np.all(tg.groups.indices == np.array([0, 1, 4, 8]))
-        assert str(tg.groups) == "<TableGroups group_keys=('a',) indices=[0 1 4 8]>"
+        assert str(tg.groups) == "<TableGroups indices=[0 1 4 8]>"
         assert str(tg['a'].groups) == "<ColumnGroups indices=[0 1 4 8]>"
 
         # Sorted by 'a' and in original order for rest
@@ -117,16 +117,20 @@ def test_table_group_by():
 
 def test_groups_keys():
     tg = T1.group_by('a')
-    keys = list(tg.groups.keys())
-    assert keys == [0, 1, 2]
+    keys = tg.groups.keys
+    assert keys.dtype.names == ('a',)
+    assert np.all(keys['a'] == np.array([0, 1, 2]))
 
     tg = T1.group_by(['a', 'b'])
-    keys = list(tg.groups.keys())
-    assert keys == [(0, 'a'), (1, 'a'), (1, 'b'), (2, 'a'), (2, 'b'), (2, 'c')]
+    keys = tg.groups.keys
+    assert keys.dtype.names == ('a', 'b')
+    assert np.all(keys['a'] == np.array([0, 1, 1, 2, 2, 2]))
+    assert np.all(keys['b'] == np.array(['a', 'a', 'b', 'a', 'b', 'c']))
 
+    # Grouping by Column ignores column name
     tg = T1.group_by(T1['b'])
-    keys = list(tg.groups.keys())
-    assert keys == [0, 1, 2]
+    keys = tg.groups.keys
+    assert keys.dtype.names is None
 
 
 def test_groups_values():
@@ -159,7 +163,7 @@ def test_grouped_copy():
         tg = t1.group_by('a')
         tgc = tg.copy()
         assert np.all(tgc.groups.indices == tg.groups.indices)
-        assert tgc.groups.group_keys == tg.groups.group_keys
+        assert np.all(tgc.groups.keys == tg.groups.keys)
 
         tac = tg['a'].copy()
         assert np.all(tac.groups.indices == tg['a'].groups.indices)
@@ -182,7 +186,7 @@ def test_grouped_slicing():
         tg = t1.group_by('a')
         tg2 = tg[3:5]
         assert np.all(tg2.groups.indices == np.array([0, len(tg2)]))
-        assert tg2.groups.group_keys == ()
+        assert tg2.groups.keys is None
 
 
 def test_grouped_item_access():
@@ -195,8 +199,8 @@ def test_grouped_item_access():
         # Regular slice of a table
         tg = t1.group_by('a')
         tgs = tg['a', 'c', 'd']
-        assert tgs.groups.group_keys == ('a',)
-        assert np.all(tgs.groups.indices == np.array([0, 1, 4, 8]))
+        assert np.all(tgs.groups.keys == tg.groups.keys)
+        assert np.all(tgs.groups.indices == tg.groups.indices)
         tgsa = tgs.groups.aggregate(np.sum)
         assert tgsa.pformat() == [' a   c    d ',
                                   '--- ---- ---',
@@ -205,8 +209,8 @@ def test_grouped_item_access():
                                   '  2 22.0   6']
 
         tgs = tg['c', 'd']
-        assert tgs.groups.group_keys == ()
-        assert np.all(tgs.groups.indices == np.array([0, 1, 4, 8]))
+        assert np.all(tgs.groups.keys == tg.groups.keys)
+        assert np.all(tgs.groups.indices == tg.groups.indices)
         tgsa = tgs.groups.aggregate(np.sum)
         assert tgsa.pformat() == [' c    d ',
                                   '---- ---',
@@ -227,11 +231,13 @@ def test_mutable_operations():
         tg = t1.group_by('a')
         tg.add_row((0, 'a', 3.0, 4))
         assert np.all(tg.groups.indices == np.array([0, len(tg)]))
+        assert tg.groups.keys is None
 
         # remove row
         tg = t1.group_by('a')
         tg.remove_row(4)
         assert np.all(tg.groups.indices == np.array([0, len(tg)]))
+        assert tg.groups.keys is None
 
         # add column
         tg = t1.group_by('a')
@@ -239,26 +245,28 @@ def test_mutable_operations():
         tg.add_column(Column(name='e', data=np.arange(len(tg))))
         assert np.all(tg.groups.indices == indices)
         assert np.all(tg['e'].groups.indices == indices)
+        assert np.all(tg['e'].groups.keys == tg.groups.keys)
 
         # remove column (not key column)
         tg = t1.group_by('a')
         tg.remove_column('b')
         assert np.all(tg.groups.indices == indices)
-        assert tg.groups.group_keys == ('a',)
+        # Still has original key col names
+        assert tg.groups.keys.dtype.names == ('a',)
         assert np.all(tg['a'].groups.indices == indices)
 
-        # remove key column (removes key from group_keys)
+        # remove key column
         tg = t1.group_by('a')
         tg.remove_column('a')
         assert np.all(tg.groups.indices == indices)
-        assert tg.groups.group_keys == ()
+        assert tg.groups.keys.dtype.names == ('a',)
         assert np.all(tg['b'].groups.indices == indices)
 
-        # remove key column (removes key from group_keys)
+        # rename key column
         tg = t1.group_by('a')
         tg.rename_column('a', 'aa')
         assert np.all(tg.groups.indices == indices)
-        assert tg.groups.group_keys == ('aa',)
+        assert tg.groups.keys.dtype.names == ('a',)
         assert np.all(tg['aa'].groups.indices == indices)
 
 
@@ -320,7 +328,7 @@ def test_table_aggregate():
                              '  2 22.0   6']
     # Reverts to default groups
     assert np.all(tga.groups.indices == np.array([0, 3]))
-    assert tga.groups.group_keys == ()
+    assert tga.groups.keys is None
 
     # metadata survives
     assert tga.meta['ta'] == 1

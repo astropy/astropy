@@ -44,7 +44,6 @@ def table_group_by(table, keys):
         if len(table_keys) != len(table):
             raise ValueError('Input keys array length {0} does not match table length {1}'
                              .format(len(table_keys), len(table)))
-        keys = ()
 
     else:
         raise TypeError('Keys input must be string, list, tuple or numpy array, but got {0}'
@@ -57,8 +56,10 @@ def table_group_by(table, keys):
     diffs = np.concatenate(([True], table_keys[1:] != table_keys[:-1], [True]))
     indices = np.flatnonzero(diffs)
 
+    # Make a new table and set the _groups to the appropriate TableGroups object.
+    # Take the subset of the original keys at the indices values (group boundaries).
     out = table.__class__(table[idx_sort])
-    out._groups = TableGroups(out, indices=indices, group_keys=keys)
+    out._groups = TableGroups(out, indices=indices, keys=table_keys[indices[:-1]])
 
     return out
 
@@ -98,9 +99,10 @@ def column_group_by(column, keys):
     diffs = np.concatenate(([True], keys[1:] != keys[:-1], [True]))
     indices = np.flatnonzero(diffs)
 
-    # Note the use of copy=False because a copy is already made with table[idx_sort]
+    # Make a new column and set the _groups to the appropriate ColumnGroups object.
+    # Take the subset of the original keys at the indices values (group boundaries).
     out = column.__class__(column[idx_sort])
-    out._groups = ColumnGroups(out, indices=indices)
+    out._groups = ColumnGroups(out, indices=indices, keys=keys[indices[:-1]])
 
     return out
 
@@ -109,8 +111,8 @@ class BaseGroups(object):
     """
     A class to represent groups within a table of heterogeneous data.
 
-      - ``group_keys``: list of key column names
-      - ``group_indices``: index values corresponding to group boundaries
+      - ``keys``: key values corresponding to each group
+      - ``indices``: index values in parent table or column corresponding to group boundaries
       - ``aggregate()``: method to create new table by aggregating within groups
     """
     @property
@@ -133,18 +135,22 @@ class BaseGroups(object):
                 raise ValueError('Cannot supply step for groups slicing')
             i0, i1 = self.indices[item.start], self.indices[item.stop]
             out = parent[i0:i1]
-            out.groups._group_keys = parent.groups._group_keys
+            out.groups._keys = parent.groups._keys[i0:i1]
             if parent.groups._indices is not None:
                 out.groups._indices = parent.groups._indices[item.start:item.stop + 1]
 
         return out
 
+    def __repr__(self):
+        return '<{0} indices={1}>'.format(self.__class__.__name__, self.indices)
+
 
 class ColumnGroups(BaseGroups):
-    def __init__(self, parent_column, indices=None):
+    def __init__(self, parent_column, indices=None, keys=None):
         self.parent_column = parent_column  # parent Column
         self.parent_table = parent_column.parent_table
         self._indices = indices
+        self._keys = keys
 
     @property
     def indices(self):
@@ -156,6 +162,14 @@ class ColumnGroups(BaseGroups):
                 return np.array([0, len(self.parent_column)])
             else:
                 return self._indices
+
+    @property
+    def keys(self):
+        # If the parent column is in a table then use group indices from table
+        if self.parent_table:
+            return self.parent_table.groups.keys
+        else:
+            return self._keys
 
     def aggregate(self, func):
         i0s, i1s = self.indices[:-1], self.indices[1:]
@@ -170,29 +184,12 @@ class ColumnGroups(BaseGroups):
                                 unit=par_col.unit, format=par_col.format, meta=par_col.meta)
         return out
 
-    def __repr__(self):
-        return '<{0} indices={1}>'.format(self.__class__.__name__, self.indices)
-
 
 class TableGroups(BaseGroups):
-    def __init__(self, parent_table, indices=None, group_keys=None):
+    def __init__(self, parent_table, indices=None, keys=None):
         self.parent_table = parent_table  # parent Table
         self._indices = indices
-        self._group_keys = group_keys or ()
-
-    def keys(self):
-        i0s, i1s = self.indices[:-1], self.indices[1:]
-        for ii, i0, i1 in izip(count(), i0s, i1s):
-            key_vals = tuple(self.parent[key][i0] for key in self.parent.groups.group_keys)
-            if len(key_vals) == 0:
-                key_vals = ii
-            elif len(key_vals) == 1:
-                key_vals = key_vals[0]
-            yield key_vals
-
-    @property
-    def group_keys(self):
-        return self._group_keys
+        self._keys = keys
 
     @property
     def indices(self):
@@ -220,9 +217,11 @@ class TableGroups(BaseGroups):
         out_cols = []
         parent_table = self.parent_table
 
+        group_keys_col_names = self.keys.dtype.names or ()
+
         for col in parent_table.columns.values():
             # For key columns just pick off first in each group since they are identical
-            if col.name in self.group_keys:
+            if col.name in group_keys_col_names:
                 # Should just be new_col = col.take(i0s), but there is a bug in
                 # MaskedColumn finalize:
                 # >>> c = MaskedColumn(data=[1,2], name='a', description='a')
@@ -242,6 +241,7 @@ class TableGroups(BaseGroups):
 
         return parent_table.__class__(out_cols, meta=parent_table.meta)
 
-    def __repr__(self):
-        return '<{0} group_keys={1} indices={2}>'.format(self.__class__.__name__, self.group_keys,
-                                                         self.indices)
+    @property
+    def keys(self):
+        return self._keys
+
