@@ -552,6 +552,8 @@ class Column(BaseColumn, np.ndarray):
                 format = data.format
             if meta is None:
                 meta = deepcopy(data.meta)
+            if name is None:
+                name = data.name
         elif isinstance(data, MaskedColumn):
             raise TypeError("Cannot convert a MaskedColumn to a Column")
         elif isinstance(data, Quantity):
@@ -711,6 +713,8 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
                 format = data.format
             if meta is None:
                 meta = deepcopy(data.meta)
+            if name is None:
+                name = data.name
         elif isinstance(data, Quantity):
             if unit is None:
                 self_data = ma.asarray(data, dtype=dtype)
