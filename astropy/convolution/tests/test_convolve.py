@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 
-from ....tests.helper import pytest
+from ...tests.helper import pytest
 
 from ..convolve import convolve
 
@@ -16,6 +16,19 @@ BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
 
 class TestConvolve1D(object):
+
+    def test_list(self):
+        """
+        Test that convolve works correctly when inputs are lists
+        """
+
+        x = [1, 4, 5, 6, 5, 7, 8]
+
+        y = [0.2, 0.6, 0.2]
+
+        z = convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
+
+        assert_array_almost_equal_nulp(z, np.array([ 0. ,  3.4,  5. ,  5.6,  5.6,  5.2,  0. ]), 10)
 
     @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
     def test_dtype(self, dtype_array, dtype_kernel):

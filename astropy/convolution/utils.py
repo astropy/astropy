@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 
-from ...modeling.core import Parametric1DModel, Parametric2DModel
+from ..modeling.core import Parametric1DModel, Parametric2DModel
 
 
 __all__ = ['discretize_model']
@@ -74,30 +74,30 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
 
     Parameters
     ----------
-    model : Instance of ParametricModel
-        Instance of a astropy.ParametricModel to be evaluated.
+    model : :class:`~astropy.modeling.core.ParametricModel` instance
+        Instance of a :class:`~astropy.modeling.core.ParametricModel` to be evaluated.
     x_range : tuple
         x range in which the model is evaluated.
-    y_range : tuple optional
+    y_range : tuple, optional
         y range in which the model is evaluated.
         Necessary only for 2D models.
-    mode: string optional
+    mode : str, optional
         One of the following modes:
-            * 'center' (default)
+            * ``'center'`` (default)
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'linear_interp'
+            * ``'linear_interp'``
                 Discretize model by linearly interpolating
                 between the values at the corners of the bin.
                 For 2D models interpolation is bilinear.
-            * 'oversample'
+            * ``'oversample'``
                 Discretize model by taking the average
                 on an oversampled grid.
-            * 'integrate'
+            * ``'integrate'``
                 Discretize model by integrating the model 
                 over the bin using `scipy.integrate.quad`.
                 Very slow.
-    factor : number
+    factor : float or int
         Factor of oversampling. Default = 10.
 
     Notes
@@ -112,7 +112,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
         import matplotlib.pyplot as plt
         import numpy as np
         from astropy.modeling.models import Gaussian1DModel
-        from astropy.nddata.convolution.utils import discretize_model
+        from astropy.convolution.utils import discretize_model
         gauss_1D = Gaussian1DModel(1 / (0.5 * np.sqrt(2 * np.pi)), 0, 0.5)
         y_center = discretize_model(gauss_1D, (-2, 3), mode='center')
         y_corner = discretize_model(gauss_1D, (-2, 3), mode='linear_interp')
@@ -127,7 +127,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
 
 
     """
-    if isinstance(model, Parametric2DModel) and y_range == None:
+    if isinstance(model, Parametric2DModel) and y_range is None:
         raise Exception("Please specify y range.")
     if mode == "center":
         if isinstance(model, Parametric1DModel):
@@ -140,7 +140,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
         if isinstance(model, Parametric2DModel):
             return discretize_bilinear_2D(model, x_range, y_range)
     elif mode == "oversample":
-        if y_range != None:
+        if y_range is not None:
             N = factor * (x_range[1] - x_range[0]) * (y_range[1] - y_range[0])
         else:
             N = factor * (x_range[1] - x_range[0])

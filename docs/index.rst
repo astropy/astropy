@@ -71,6 +71,7 @@ User Documentation
 .. toctree::
    :maxdepth: 1
 
+   convolution/index
    cosmology/index
    stats/index
    vo/index

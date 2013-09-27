@@ -70,6 +70,12 @@ New Features
     MaskedColumn, Row, and Table are now deprecated in favor of the
     single-tense 'unit' and 'dtype' [#1174].
 
+- ``astropy.convolution``
+
+  - New class-based system for generating kernels, replacing `make_kernel`.
+    [#1255]. The `astropy.nddata.convolution` sub-package has now been moved to
+    `astropy.convolution`. [#1451]
+
 - ``astropy.vo``
 
   - New package added to support Virtual Observatory Simple Cone Search query
@@ -198,6 +204,11 @@ API Changes
   - Interfaces that were pending deprecation are now fully deprecated.  These
     include: ``create_card``, ``create_card_from_string``, ``upper_key``,
     ``Header.get_history``, and ``Header.get_comment``.
+
+- ``astropy.nddata``
+
+  - The `astropy.nddata.convolution` sub-package has now been moved to
+    `astropy.convolution`. [#1451]
 
 - ``astropy.stats.funcs``
 
