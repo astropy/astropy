@@ -19,7 +19,7 @@ table from one or more input tables.  This includes:
      - Description
      - Function
    * - `Group and aggregate`_
-     - Group table by keys and aggregate
+     - Group tables and columns by keys and aggregate
      - `~astropy.table.table.Table.group_by`
    * - `Stack vertically`_
      - Concatenate input tables along rows
@@ -54,7 +54,7 @@ photometry from various observing runs::
                           """, format='ascii')
 
 Table groups
-""""""""""""""
+~~~~~~~~~~~~~~
 
 Now suppose we want the mean magnitudes for each object.  We first group
 the data by the ``name`` column, which has the effect of sorting by ``name``
@@ -102,8 +102,76 @@ night, we would first group the table on both ``name`` and ``obs_date`` as follo
   >>> print obs.group_by(['name', 'obs_date']).groups
   <TableGroups group_keys=('name', 'obs_date') indices=[ 0  1  2  4  6  7  8  9 10]>
 
+Manipulating groups
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once you have applied grouping to a table then you can easily access the individual
+groups.  For instance to get the sub-table which corresponds to the second group (index=1)
+do::
+
+  >>> print obs_by_name.groups[1]
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+   M31 2012-01-02  17.0  17.5
+   M31 2012-01-02  17.1  17.4
+   M31 2012-02-14  16.9  17.3
+
+To get the first and second groups together use a slice::
+
+  >>> print obs_by_name.groups[0:2]
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+  M101 2012-01-02  15.1  13.5
+  M101 2012-02-14  15.0  13.6
+  M101 2012-03-26  15.1  13.5
+  M101 2012-03-26  14.8  14.3
+   M31 2012-01-02  17.0  17.5
+   M31 2012-01-02  17.1  17.4
+   M31 2012-02-14  16.9  17.3
+
+The key values and corresponding table groups can be obtained with the
+`keys()` and `values()` methods.  Note that these behave like the Python 3
+version of these methods in the `dict` object, meaning that they return
+an iterator over the values instead of a list.  If this doesn't ring a bell
+don't worry, just look at example below::
+
+  >>> from itertools import izip
+  >>> for key, group in izip(obs_by_name.groups.keys(), obs_by_name.groups.values()):
+  ...     print('****** {0} *******'.format(key))
+  ...     print group
+  ...     print
+
+  ****** M101 *******
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+  M101 2012-01-02  15.1  13.5
+  M101 2012-02-14  15.0  13.6
+  M101 2012-03-26  15.1  13.5
+  M101 2012-03-26  14.8  14.3
+
+  ****** M31 *******
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+   M31 2012-01-02  17.0  17.5
+   M31 2012-01-02  17.1  17.4
+   M31 2012-02-14  16.9  17.3
+
+  ****** M82 *******
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+   M82 2012-01-02  16.2  14.5
+   M82 2012-02-14  15.2  15.5
+   M82 2012-03-26  15.7  16.5
+
+To get the keys or values as a plain Python `list` just call the `list()` constructor::
+
+  >>> keys = list(obs_by_name.groups.keys())
+  >>> keys
+  ['M101', 'M31', 'M82']
+
+
 Column Groups
-""""""""""""""
+~~~~~~~~~~~~~~
 
 Like `Table` objects, `Column` objects can also be grouped for subsequent
 manipulation with grouped operations.  This can apply both to columns within a
@@ -115,15 +183,14 @@ names since that doesn't make sense for a `Column`.
 
 Examples::
 
-  >>> Examples here!
+>>> c = Column([1, 2, 3, 4, 5, 6], name='a')
+>>> key_vals = np.array(['foo', 'bar', 'foo', 'foo', 'qux', 'qux'])
+>>> cg = c.group_by(key_vals)
 
-Manipulating groups
-""""""""""""""""""""
 
-TODO: Group item access and slicing.
 
 Aggregation
-""""""""""""""
+~~~~~~~~~~~~~~
 
 Aggregation is the process of applying a
 specified reduction function to the values within each group for each
