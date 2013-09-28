@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 from .core import Kernel, Kernel1D, Kernel2D
-from ...utils.custom_warnings import AstropyUserWarning
+from ..utils.custom_warnings import AstropyUserWarning
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
