@@ -266,9 +266,9 @@ class UnitBase(object):
         
     def __format__(self, format_spec):
         """Try to format units using a formatter."""
-        if unit_format.has_format(format_spec):
+        try:
             return self.to_string(format=format_spec)
-        else:
+        except ValueError:
             return format(str(self), format_spec)
 
     @staticmethod
