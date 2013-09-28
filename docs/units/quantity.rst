@@ -277,3 +277,39 @@ that only dimensionless quantities are converted to Numpy arrays::
     >>> np.array([1, 2, 3] * u.m)
     array([1, 2, 3])
 
+Formatting quantities as strings
+--------------------------------
+
+You can control the way that |quantity| objects print using the new
+:ref:`python:formatstrings`. New-style format strings use the
+``"{}".format()`` syntax. Most of the format speficiers are simliar
+to the old ``%``-style formatting, so things like ``0.003f`` still
+work, just in the form ``"{:0.003f}".format()``.
+
+Format specifiers, like ``0.003f`` will be applied to the |quantity| value,
+without affecting the unit. Specifiers like ``20s``, which would only apply
+to a string, will be applied to the whole string representation of the
+|quantity|. This means you can do::
+
+    >>> q = 10 * u.km
+    >>> q
+    <Quantity 10 km>
+    >>> "{0}".format(q)
+    10 km
+    >>> "{0:+0.03f}".format(q)
+    '+10.000 km'
+    >>> "{0:20s}".format(q)
+    '10 km               '
+
+To format both the value and the unit separately, you can access the |quantity|
+class attributes within new-style format strings::
+
+    >>> q = 10 * u.km
+    >>> q
+    <Quantity 10 km>
+    >>> "{0.value:0.003f} in {0.unit:3s}".format(q)
+    '10.000 in km'
+
+Because Numpy arrays don't accept most format specifiers, using specifiers like
+``0.003f`` will not work when applied to a Numpy array or non-scalar |quantity|.
+Use :func:`~numpy.array_str` instead.
