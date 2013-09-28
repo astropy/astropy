@@ -21,7 +21,24 @@ class::
    unit definitions are coming from a file format such as FITS or
    VOTable.
 
-Units can be converted to strings using the
+Units can be formatted as strings using the new-style
+:ref:`python:formatstrings`. Format strings can either applied to the
+string as usual, or the format string can the name of a built-in
+formatter. You can do::
+
+  >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
+  >>> "{0}".format(fluxunit)
+  u'erg / (cm2 s)'
+  >>> "{0:console}".format(fluxunit)
+  u' erg
+  ------
+  s cm^2'
+  >>> "{0:latex}".format(fluxunit)
+  u'$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
+  >>> "{0:>20s}".format(fluxunit)
+  u'       erg / (cm2 s)'
+
+Units can also be converted to strings using the
 `~astropy.units.core.UnitBase.to_string` method::
 
   >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
