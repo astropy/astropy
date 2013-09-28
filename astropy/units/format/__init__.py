@@ -7,6 +7,8 @@ A collection of different unit formats.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from inspect import isclass
+
 from .base import Base
 from .generic import Generic, Unscaled
 from .cds import CDS
@@ -18,7 +20,7 @@ from .vounit import VOUnit
 
 __all__ = [
     'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'Unicode', 'Unscaled',
-    'VOUnit', 'get_format', 'has_format']
+    'VOUnit', 'get_format']
 
 
 def get_format(format=None):
@@ -44,27 +46,9 @@ def get_format(format=None):
     if format is None:
         format = 'generic'
     format = format.lower()
-    for key in __all__[:-2]:
+    for key in __all__:
         val = globals()[key]
-        if (issubclass(val, Base) and key.lower() == format.lower()):
+        if isclass(val) and (issubclass(val, Base) and key.lower() == format.lower()):
             return val()
     raise ValueError("Unknown format {0!r}".format(format))
-    
-def has_format(format=None):
-    """
-    Test whether this module could get the formatter by string name.
-    """
-    if isinstance(format, type) and issubclass(format, Base):
-        return True
-    elif isinstance(format, Base):
-        return True
-    if format is None:
-        format = 'generic'
-    format = format.lower()
-    for key in __all__[:-2]:
-        val = globals()[key]
-        if (issubclass(val, Base) and key.lower() == format.lower()):
-            return True
-    return False
-    
 
