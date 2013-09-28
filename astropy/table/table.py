@@ -17,6 +17,7 @@ from ..utils.console import color_print
 from ..config import ConfigurationItem
 from ..io import registry as io_registry
 from . import operations
+from ..extern import six
 
 # Python 2 and 3 source compatibility
 try:
@@ -2157,13 +2158,28 @@ class Table(object):
         return self.copy(False)
 
     def __lt__(self, other):
-        raise TypeError("unorderable types: Table() < {0}".format(str(type(other))))
+        if six.PY3:
+            return super(Table, self).__lt__(other)
+        else:
+            raise TypeError("unorderable types: Table() < {0}".format(str(type(other))))
 
     def __gt__(self, other):
-        raise TypeError("unorderable types: Table() > {0}".format(str(type(other))))
+        if six.PY3:
+            return super(Table, self).__gt__(other)
+        else:
+            raise TypeError("unorderable types: Table() > {0}".format(str(type(other))))
 
     def __le__(self, other):
-        raise TypeError("unorderable types: Table() <= {0}".format(str(type(other))))
+        if six.PY3:
+            return super(Table, self).__le__(other)
+        else:
+            raise TypeError("unorderable types: Table() <= {0}".format(str(type(other))))
 
     def __ge__(self, other):
-        raise TypeError("unorderable types: Table() >= {0}".format(str(type(other))))
+        if six.PY3:
+            return super(Table, self).__ge__(other)
+        else:
+            raise TypeError("unorderable types: Table() >= {0}".format(str(type(other))))
+
+    def __eq__(self, other):
+        raise TypeError("cannot use == operator with Table() objects")

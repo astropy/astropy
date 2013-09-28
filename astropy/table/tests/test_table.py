@@ -965,3 +965,6 @@ def test_disallow_comparisons():
 
     with pytest.raises(TypeError):
         t <= -1.1
+
+    with pytest.raises(TypeError):
+        t == 2
