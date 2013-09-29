@@ -18,8 +18,8 @@ table from one or more input tables.  This includes:
    * - Documentation
      - Description
      - Function
-   * - `Group and aggregate`_
-     - Group tables and columns by keys and aggregate
+   * - `Grouped operations`_
+     - Group tables and columns by keys
      - `~astropy.table.table.Table.group_by`
    * - `Stack vertically`_
      - Concatenate input tables along rows
@@ -75,15 +75,18 @@ and setting the ``groups`` property according to the unique values of ``name``::
    M82 2012-02-14  15.2  15.5
    M82 2012-03-26  15.7  16.5
                                << End of groups (index=10)
-  >>> obs_by_name.groups
-  <TableGroups group_keys=('name',) indices=[ 0  4  7 10]>
+  >>> obs_by_name.groups.keys
+  array([('M101',), ('M31',), ('M82',)],
+        dtype=[('name', 'S4')])
+  >>> obs_by_name.groups.indices
+  array([ 0,  4,  7, 10])
 
-The ``groups`` property is an object which includes the column names
-used to generate the unique row key values and the indices which
-correspond to the group boundaries.  The groups here correspond to the
+The ``groups`` property is the portal to all grouped operations with tables and columns.
+It defines how the table is grouped via an array of the unique row key values and the
+indices of the group boundaries for those key values.  The groups here correspond to the
 row slices ``0:4``, ``4:7``, and ``7:10`` in the ``obs_by_name`` table.
 
-The ``keys`` argument to the `~astropy.table.table.Table.group_by` function
+The initial argument (``keys``) for the `~astropy.table.table.Table.group_by` function
 can take a number of input data types:
 
 - Single string value with a table column name (as shown above)
@@ -99,8 +102,11 @@ the required groups.
 As an example, to get the average magnitudes for each object on each observing
 night, we would first group the table on both ``name`` and ``obs_date`` as follows::
 
-  >>> print obs.group_by(['name', 'obs_date']).groups
-  <TableGroups group_keys=('name', 'obs_date') indices=[ 0  1  2  4  6  7  8  9 10]>
+  >>> print obs.group_by(['name', 'obs_date']).groups.keys
+  [('M101', '2012-01-02') ('M101', '2012-02-14') ('M101', '2012-03-26')
+   ('M31', '2012-01-02') ('M31', '2012-02-14') ('M82', '2012-01-02')
+   ('M82', '2012-02-14') ('M82', '2012-03-26')]
+
 
 Manipulating groups
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

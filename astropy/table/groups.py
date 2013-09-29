@@ -119,10 +119,18 @@ class BaseGroups(object):
     def parent(self):
         return self.parent_column if isinstance(self, ColumnGroups) else self.parent_table
 
-    def values(self):
-        i0s, i1s = self.indices[:-1], self.indices[1:]
-        for i0, i1 in izip(i0s, i1s):
-            yield self.parent[i0:i1]
+    def __iter__(self):
+        self._iter_index = 0
+        return self
+
+    def next(self):
+        ii = self._iter_index
+        if ii < len(self.indices) - 1:
+            i0, i1 = self.indices[ii], self.indices[ii + 1]
+            self._iter_index += 1
+            return self.parent[i0:i1]
+        else:
+            raise StopIteration
 
     def __getitem__(self, item):
         parent = self.parent
@@ -130,19 +138,29 @@ class BaseGroups(object):
         if isinstance(item, int):
             i0, i1 = self.indices[item], self.indices[item + 1]
             out = parent[i0:i1]
-        elif isinstance(item, slice):
-            if item.step is not None:
-                raise ValueError('Cannot supply step for groups slicing')
-            i0, i1 = self.indices[item.start], self.indices[item.stop]
-            out = parent[i0:i1]
-            out.groups._keys = parent.groups._keys[i0:i1]
-            if parent.groups._indices is not None:
-                out.groups._indices = parent.groups._indices[item.start:item.stop + 1]
+            out.groups._keys = parent.groups.keys[item]
+        else:
+            indices0, indices1 = self.indices[:-1], self.indices[1:]
+            try:
+                i0s, i1s = indices0[item], indices1[item]
+            except:
+                raise TypeError('Index item for groups attribute must be a slice, '
+                                'numpy mask or int array')
+            mask = np.zeros(len(parent), dtype=np.bool)
+            # Is there a way to vectorize this in numpy?
+            for i0, i1 in izip(i0s, i1s):
+                mask[i0:i1] = True
+            out = parent[mask]
+            out.groups._keys = parent.groups.keys[item]
+            out.groups._indices = np.concatenate([[0], np.cumsum(i1s - i0s)])
 
         return out
 
     def __repr__(self):
         return '<{0} indices={1}>'.format(self.__class__.__name__, self.indices)
+
+    def __len__(self):
+        return len(self.indices) - 1
 
 
 class ColumnGroups(BaseGroups):
@@ -244,4 +262,3 @@ class TableGroups(BaseGroups):
     @property
     def keys(self):
         return self._keys
-

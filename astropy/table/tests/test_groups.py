@@ -133,25 +133,11 @@ def test_groups_keys():
     assert keys.dtype.names is None
 
 
-def test_groups_values():
+def test_groups_iterator():
     tg = T1.group_by('a')
-    values = list(tg.groups.values())
-    assert values[0].pformat() == [' a   b   c   d ',
-                                   '--- --- --- ---',
-                                   '  0   a 0.0   4']
-    assert values[1].pformat() == [' a   b   c   d ',
-                                   '--- --- --- ---',
-                                   '  1   b 3.0   5',
-                                   '  1   a 2.0   6',
-                                   '  1   a 1.0   7',
-                                   ]
-    assert values[2].pformat() == [' a   b   c   d ',
-                                   '--- --- --- ---',
-                                   '  2   c 7.0   0',
-                                   '  2   b 5.0   1',
-                                   '  2   b 6.0   2',
-                                   '  2   a 4.0   3',
-                                   ]
+    for ii, group in enumerate(tg.groups):
+        assert group.pformat() == tg.groups[ii].pformat()
+        assert group['a'][0] == tg['a'][tg.groups.indices[ii]]
 
 
 def test_grouped_copy():
@@ -187,6 +173,72 @@ def test_grouped_slicing():
         tg2 = tg[3:5]
         assert np.all(tg2.groups.indices == np.array([0, len(tg2)]))
         assert tg2.groups.keys is None
+
+
+def test_group_column_from_table():
+    """
+    Group a column that is part of a table
+    """
+    cg = T1['c'].group_by(np.array(T1['a']))
+    assert np.all(cg.groups.keys == np.array([0, 1, 2]))
+    assert np.all(cg.groups.indices == np.array([0, 1, 4, 8]))
+
+
+def test_table_groups_mask_index():
+    """
+    Use boolean mask as item in __getitem__ for groups
+    """
+    for masked in (False, True):
+        t1 = Table(T1, masked=masked).group_by('a')
+
+        t2 = t1.groups[np.array([True, False, True])]
+        assert len(t2.groups) == 2
+        assert t2.groups[0].pformat() == t1.groups[0].pformat()
+        assert t2.groups[1].pformat() == t1.groups[2].pformat()
+        assert np.all(t2.groups.keys['a'] == np.array([0, 2]))
+
+
+def test_table_groups_array_index():
+    """
+    Use numpy array as item in __getitem__ for groups
+    """
+    for masked in (False, True):
+        t1 = Table(T1, masked=masked).group_by('a')
+
+        t2 = t1.groups[np.array([0, 2])]
+        assert len(t2.groups) == 2
+        assert t2.groups[0].pformat() == t1.groups[0].pformat()
+        assert t2.groups[1].pformat() == t1.groups[2].pformat()
+        assert np.all(t2.groups.keys['a'] == np.array([0, 2]))
+
+
+def test_table_groups_slicing():
+    """
+    Test that slicing table groups works
+    """
+
+    for masked in (False, True):
+        t1 = Table(T1, masked=masked).group_by('a')
+
+        # slice(0, 2)
+        t2 = t1.groups[0:2]
+        assert len(t2.groups) == 2
+        assert t2.groups[0].pformat() == t1.groups[0].pformat()
+        assert t2.groups[1].pformat() == t1.groups[1].pformat()
+        assert np.all(t2.groups.keys['a'] == np.array([0, 1]))
+
+        # slice(1, 2)
+        t2 = t1.groups[1:2]
+        assert len(t2.groups) == 1
+        assert t2.groups[0].pformat() == t1.groups[1].pformat()
+        assert np.all(t2.groups.keys['a'] == np.array([1]))
+
+        # slice(0, 3, 2)
+        t2 = t1.groups[0:3:2]
+        assert len(t2.groups) == 2
+        assert t2.groups[0].pformat() == t1.groups[0].pformat()
+        assert t2.groups[1].pformat() == t1.groups[2].pformat()
+        assert np.all(t2.groups.keys['a'] == np.array([0, 2]))
 
 
 def test_grouped_item_access():
