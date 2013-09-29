@@ -2187,6 +2187,27 @@ class Table(object):
         if hasattr(self, '_groups'):
             del self._groups
 
+    def argsort(self, keys=None):
+        """
+        Return the indices which would sort the table according to one or more key columns.
+        This simply calls the `numpy.argsort` function on the table with the ``order``
+        parameter set to `keys`.
+
+        Parameters
+        ----------
+        keys : str or list of str
+            The column name(s) to order the table by
+
+        Returns
+        -------
+        index_array : ndarray, int
+            Array of indices that sorts the table by the specified key column(s).
+        """
+        if isinstance(keys, basestring):
+            keys = [keys]
+        kwargs = {'order': keys} if keys else {}
+        return self._data.argsort(**kwargs)
+
     def sort(self, keys):
         '''
         Sort the table according to one or more keys. This operates
