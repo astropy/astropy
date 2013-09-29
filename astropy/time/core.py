@@ -378,20 +378,20 @@ class Time(object):
         return self._shaped_like_input(self._time.jd2)
 
     @property
-    @deprecated("0.3", name="val", alternative="value")
-    def val(self):
-        return self.value
-
-    @property
     def value(self):
         """Time value(s) in current format"""
         return self._shaped_like_input(self._time.value)
 
     @property
+    @deprecated("0.3", name="val", alternative="value")
+    def val(self):
+        return self.value
+
+    @property
     @deprecated("0.3", name="vals", alternative="value")
     def vals(self):
         """Time values in current format as a numpy array"""
-        return self._time.value
+        return self.value
 
     def copy(self, format=None):
         """
