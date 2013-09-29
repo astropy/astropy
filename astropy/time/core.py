@@ -1114,6 +1114,7 @@ class TimePlotDate(TimeFromEpoch):
 
     This can be used directly in the matplotlib `~matplotlib.pyplot.plot_date` function::
 
+      >>> import matplotlib.pyplot as plt
       >>> jyear = np.linspace(2000, 2001, 20)
       >>> t = Time(jyear, format='jyear', scale='utc')
       >>> plt.plot_date(t.plot_date, jyear)
