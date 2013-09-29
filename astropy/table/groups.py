@@ -37,7 +37,7 @@ def table_group_by(table, keys):
                 raise ValueError('Missing values in key column {0!r} are not allowed'.format(name))
 
         keys = tuple(keys)
-        table_keys = table[keys]._data
+        table_keys = table[keys]
 
     elif isinstance(keys, np.ndarray):
         table_keys = keys
@@ -235,7 +235,11 @@ class TableGroups(BaseGroups):
         out_cols = []
         parent_table = self.parent_table
 
-        group_keys_col_names = self.keys.dtype.names or ()
+        # If keys is a Table then that means group_by() used a table column name(s) to
+        # define grouping.  Those columns in the parent table should be ignored for
+        # aggregation.
+        group_keys_col_names = (self.keys.colnames if isinstance(self.keys, parent_table.__class__)
+                                else ())
 
         for col in parent_table.columns.values():
             # For key columns just pick off first in each group since they are identical
