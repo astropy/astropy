@@ -145,9 +145,10 @@ can define different defaults, so the descriptions below sometimes mention "typi
 default values.  This refers to the :class:`~astropy.io.ascii.Basic` writer and other
 similar Writer classes.
 
-Some output format Writer classes, e.g. :class:`~astropy.io.ascii.Latex` or :class:`~astropy.io.ascii.AASTex`
-accept aditional keywords, that can customize the output further. See the documentation
-of these classes for details.
+Some output format Writer classes, e.g. :class:`~astropy.io.ascii.Latex` or
+:class:`~astropy.io.ascii.AASTex` accept additional keywords, that can
+customize the output further. See the documentation of these classes for
+details.
 
 **output** : output specifier
   There are two ways to specify the output for the write operation:

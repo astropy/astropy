@@ -7,7 +7,7 @@ Astrostatistics Tools (`astropy.stats`)
 Introduction
 ============
 
-The `astropy.stats` package holds statsitical functions or algorithms used
+The `astropy.stats` package holds statistical functions or algorithms used
 in astronomy and astropy.
 
 

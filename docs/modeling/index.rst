@@ -11,7 +11,7 @@ performing model evaluation and fitting. It supports 1D and 2D models
 and fitting with parameter constraints.
 
 It is :ref:`designed <modeling-design>` to be easily extensible and flexible.
-Models do not reference fitting algorithms explicitely
+Models do not reference fitting algorithms explicitly
 (though exceptions are sometimes necessary) and new fitting
 algorithms may be added without changing the existing models.
 In addition models can be combined in different ways using a machinery

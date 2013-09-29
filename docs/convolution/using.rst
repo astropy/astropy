@@ -15,7 +15,7 @@ and are both used as::
 
 :func:`~astropy.convolution.convolve.convolve` is implemented as a
 direct convolution algorithm, while
-:func:`~astropy.convolution.convolve.convolve_fft` uses a fast fourier
+:func:`~astropy.convolution.convolve.convolve_fft` uses a fast Fourier
 transform (FFT). Thus, the former is better for small kernels, while the latter
 is much more efficient for larger kernels.
 

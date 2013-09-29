@@ -182,7 +182,7 @@ Fixable Cards:
 
 5. space between numbers and E or D in floating point values
 
-6. unparseable values will be "fixed" as a string
+6. unparsable values will be "fixed" as a string
 
 Here are some examples of fixable cards:
 

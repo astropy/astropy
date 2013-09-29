@@ -13,7 +13,7 @@ from URLs, and version intercompatibility functions.
 
 This functionality is not astronomy-specific, but is intended primarily for
 use by Astropy developers. It is all safe for users to use, but the functions
-and classes are typically more complicated or specific to a particuly need of
+and classes are typically more complicated or specific to a particular need of
 Astropy.
 
 Because of the mostly standalone and grab-bag nature of these utilities, they

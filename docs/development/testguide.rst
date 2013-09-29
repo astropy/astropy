@@ -58,7 +58,7 @@ code directory of astropy and simply type::
 
 ``py.test`` will look for files that `look like tests
 <http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
-in the currect directory and all recursive directories then run all the code that
+in the current directory and all recursive directories then run all the code that
 `looks like tests
 <http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
 within those files.
@@ -151,10 +151,10 @@ It installs a project into one or more virtualenvs (usually one for each Python
 version supported), build and installs the project into each virtualenv, and
 runs the projects tests (or any other build processes one might want to test).
 This is a good way to run the tests against multiple installed Python versions
-locally without pushing to a continous integration system.
+locally without pushing to a continuous integration system.
 
 Tox works by detecting the presence of a file called ``tox.ini`` in the root of
-a Python project and using that to configuire the desired virtualenvs and start
+a Python project and using that to configure the desired virtualenvs and start
 the tests.  So to run the Astropy tests on multiple Python versions using tox,
 simply install Tox::
 

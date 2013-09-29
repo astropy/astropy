@@ -9,7 +9,7 @@ associated with the number.
 Creating Quantity instances
 ---------------------------
 
-|quantity| objects are created through multiplication or divison with
+|quantity| objects are created through multiplication or division with
 :class:`~astropy.units.core.Unit` objects. For example, to create a |quantity|
 to represent 15 m/s:
 

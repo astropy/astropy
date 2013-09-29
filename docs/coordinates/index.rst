@@ -60,7 +60,7 @@ available::
 
 Distances from the origin (which is system-dependent, but often the
 Earth center) can also be assigned to a coordinate. This specifies a
-unique point in 3D space, which also allows conversion to cartesian
+unique point in 3D space, which also allows conversion to Cartesian
 coordinates::
 
     >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917,
