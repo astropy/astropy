@@ -79,9 +79,9 @@ and format in TFORM1.
 **Warning:** The FITS format allows table columns with a zero-width data
 format, such as '0D'.  This is probably intended as a space-saving measure on
 files in which that column contains no data.  In such files, the zero-width
-columns are ommitted when accessing the table data, so the indexes of fields
+columns are omitted when accessing the table data, so the indexes of fields
 might change when using the ``field()`` method.  For this reason, if you expect
-to encounter files containg zero-width columns it is recommended to access
+to encounter files containing zero-width columns it is recommended to access
 fields by name rather than by index.
 
 

@@ -7,8 +7,8 @@ This document describes in detail how to subclass and define a custom spherical
 coordinate system, as mentioned in :doc:`designing` and the docstring for
 `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`. In this example,
 we will define a coordinate system defined by the plane of orbit of the
-Sagitarrius Dwarf Galaxy (hereafter Sgr; as defined in Majewski et al. 2003). 
-The Sgr coordinate system is often referred to in terms of two angular 
+Sagittarius Dwarf Galaxy (hereafter Sgr; as defined in Majewski et al. 2003).
+The Sgr coordinate system is often referred to in terms of two angular
 coordinates, :math:`\Lambda,B`.
 
 We'll start by using a template to generate a descriptive docstring for our 

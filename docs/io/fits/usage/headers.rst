@@ -55,7 +55,7 @@ or index of an HDU's header attribute. Here is a quick summary:
     'OMIT'
     >>> prihdr['darkcorr'] = 'PERFORM'  # change darkcorr's value
 
-Keyword names are case-insenstive except in a few special cases (see the
+Keyword names are case-insensitive except in a few special cases (see the
 sections on HIERARCH card and record-valued cards). Thus, ``prihdr['abc']``,
 ``prihdr['ABC']``, or ``prihdr['aBc']`` are all equivalent.
 
@@ -158,7 +158,7 @@ keywords, when accessing these keywords they are returned as a list:
     I updated this file on 02/04/2011
     ....
 
-These lists can be sliced like any other list.  For example, to diplay just the
+These lists can be sliced like any other list.  For example, to display just the
 last HISTORY entry, use ``prihdr['history'][-1]``.  Existing commentary cards
 can also be updated by using the appropriate index number for that card.
 
@@ -360,13 +360,13 @@ Examples follow:
     A final point to keep in mind about the :class:`Header` class is that much
     of its design is intended to abstract away quirks about the FITS format.
     This is why, for example, it will automatically created CONTINUE and
-    HIEARARCH cards.  The Header is just a data structure, and as user you
+    HIERARCH cards.  The Header is just a data structure, and as user you
     shouldn't have to worry about how it ultimately gets serialized to a header
     in a FITS file.
 
     Though there are some areas where it's almost impossible to hide away the
     quirks of the FITS format, Astropy tries to make it so that you have to
     think about it as little as possible.  If there are any areas where you
-    have concern yourself unncessarily about how the header is constructed,
+    have concern yourself unnecessarily about how the header is constructed,
     then let help@stsci.edu know, as there are probably areas where this can be
     improved on even more.

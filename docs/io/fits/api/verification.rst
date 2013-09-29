@@ -41,7 +41,7 @@ option.
 fix
 ^^^
 
-This option wil try to fix any FITS standard violations. It is not always
+This option will try to fix any FITS standard violations. It is not always
 possible to fix such violations. In general, there are two kinds of FITS
 standard violation: fixable and not fixable. For example, if a keyword has a
 floating number with an exponential notation in lower case 'e' (e.g. 1.23e11)

@@ -10,7 +10,7 @@ Introduction
 ============
 
 `astropy.table` provides functionality for storing and manipulating
-heterogenous tables of data in a way that is familiar to `numpy` users.  A few
+heterogeneous tables of data in a way that is familiar to `numpy` users.  A few
 notable features of this package are:
 
 * Initialize a table from a wide variety of input data structures and types.
@@ -58,8 +58,8 @@ From within the IPython notebook, the table is displayed as a formatted HTML tab
 
 .. image:: table_repr_html.png
 
-If you print the table (either from the noteboook or in a text console session) then a
-formatted version appears::
+If you print the table (either from the notebook or in a text console session)
+then a formatted version appears::
 
   >>> print(t)
     a   b   c
@@ -100,7 +100,7 @@ Access the data by column or row using familiar `numpy` structured array syntax:
   >>> t[1]['a']    # Column 'a' of row 1
   4
 
-One can retreive a subset of a table by rows (using a slice) or
+One can retrieve a subset of a table by rows (using a slice) or
 columns (using column names), where the subset is returned as a new table::
 
   >>> print(t[0:2])      # Table object with rows 0 and 1
