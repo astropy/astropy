@@ -1409,6 +1409,11 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
     """
     import imp
 
+    # distutils doesn't handle unicode package names on Python 2.x
+    if not PY3:
+        old_package = old_package.encode('ascii')
+        new_package = new_package.encode('ascii')
+
     # If legacy shims have not been enabled at the commandline, simply do
     # nothing.
     if not get_distutils_build_or_install_option('enable_legacy'):
