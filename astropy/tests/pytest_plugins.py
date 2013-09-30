@@ -11,7 +11,9 @@ import io
 import locale
 import math
 import os
+import shutil
 import sys
+import tempfile
 
 from .helper import pytest
 
@@ -274,6 +276,76 @@ if SUPPORTS_OPEN_FILE_DETECTION:
                 msg.append(u'  {0}'.format(
                     name.decode(sys.getfilesystemencoding())))
             raise AssertionError(u'\n'.join(msg))
+
+
+def is_in_test_command():
+    # check if we're inside the distutils test command, which sets the
+    # _ASTROPY_TEST_ builtin
+    try:
+        _ASTROPY_TEST_
+        return True
+    except NameError:
+        return False
+
+
+original_open = None
+oldconfigdir = None
+oldcachedir = None
+def pytest_configure(config):
+    #set up environment variables to fake the config and cache systems,
+    #unless this has already been done by the distutils test command
+    if not is_in_test_command():
+        global oldconfigdir, oldcachedir
+        oldconfigdir = os.environ.get('XDG_CONFIG_HOME')
+        oldcachedir = os.environ.get('XDG_CACHE_HOME')
+        os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
+        os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
+        os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
+        os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
+
+    # Replace the builtin open command with one that will raise an
+    # exception if trying to write to a file outside of the /tmp
+    # heirarchy.  This helps to ensure that running the tests has no
+    # unexpected side effects on the filesystem.
+    global original_open
+    original_open = open
+    tmpdir = tempfile.gettempdir()
+
+    def restricted_open(filename, mode='r', *args, **kwargs):
+        if ('w' in mode or 'a' in mode):
+            absfn = os.path.abspath(filename)
+            #first see if it's a temporary file
+            istemp = absfn.startswith(tmpdir)
+            #if it's not in the standard tmpdir, check in py.test
+            # py.test's `tmpdir` plugin has its own temporary directory, which
+            # *sometimes* is not the same as the stdlib tempfile.gettempdir()
+            if not istemp and hasattr(config, '_tmpdirhandler'):
+                istemp = absfn.startswith(str(config._tmpdirhandler.getbasetemp()))
+            if (not istemp and
+                not '__pycache__' in filename and
+                not os.path.basename(filename) == 'junit.xml'):
+                raise IOError(
+                    "Tried to write to invalid location '%s'" %
+                    filename)
+        return original_open(filename, mode, *args, **kwargs)
+    __builtins__['open'] = restricted_open
+
+
+def pytest_unconfigure():
+    __builtins__['open'] = original_open
+
+    if not is_in_test_command():
+        #wipe the config/cache tmpdirs and restore the envars
+        shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
+        shutil.rmtree(os.environ['XDG_CACHE_HOME'])
+        if oldconfigdir is None:
+            del os.environ['XDG_CONFIG_HOME']
+        else:
+            os.environ['XDG_CONFIG_HOME'] = oldconfigdir
+        if oldcachedir is None:
+            del os.environ['XDG_CACHE_HOME']
+        else:
+            os.environ['XDG_CACHE_HOME'] = oldcachedir
 
 
 def pytest_report_header(config):
