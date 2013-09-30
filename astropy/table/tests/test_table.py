@@ -989,4 +989,20 @@ def test_equality():
     assert np.all((t == t[3]) == np.array([0,0,0,1,0,0,0,0], dtype=bool))
 
     # Check inequality result for a given row
-    assert np.all((t == t[3]) != np.array([1,1,1,0,1,1,1,1], dtype=bool))
+    assert np.all((t != t[3]) == np.array([1,1,1,0,1,1,1,1], dtype=bool))
+
+    t2 = table.Table.read([' a b  c  d',
+                           ' 2 c 7.0 0',
+                           ' 2 b 5.0 1',
+                           ' 3 b 6.0 2',
+                           ' 2 a 4.0 3',
+                           ' 0 a 1.0 4',
+                           ' 1 b 3.0 5',
+                           ' 1 c 2.0 6',
+                           ' 1 a 1.0 7',
+                          ], format='ascii')
+
+    # In the above cases, Row.__eq__ gets called, but now need to make sure
+    # Table.__eq__ also gets called.
+    assert np.all((t == t2) == np.array([1,1,0,1,0,1,0,1], dtype=bool))
+    assert np.all((t != t2) == np.array([0,0,1,0,1,0,1,0], dtype=bool))

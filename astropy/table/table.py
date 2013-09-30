@@ -2180,3 +2180,13 @@ class Table(object):
             return super(Table, self).__ge__(other)
         else:
             raise TypeError("unorderable types: Table() >= {0}".format(str(type(other))))
+
+    def __eq__(self, other):
+        if isinstance(other, Table):
+            other = other._data
+        return self._data == other
+
+    def __ne__(self, other):
+        if isinstance(other, Table):
+            other = other._data
+        return self._data != other
