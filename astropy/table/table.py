@@ -2186,8 +2186,6 @@ class Table(object):
         if isinstance(other, Table):
             other = other._data
 
-        result = self._data == other
-
         if self.masked:
             if isinstance(other, np.ma.MaskedArray):
                 result = self._data == other
