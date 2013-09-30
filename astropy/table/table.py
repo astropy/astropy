@@ -17,6 +17,8 @@ from ..utils.console import color_print
 from ..config import ConfigurationItem
 from  ..io import registry as io_registry
 
+PY3 = sys.version_info[0] >= 3
+
 # Python 2 and 3 source compatibility
 try:
     unicode
@@ -1378,7 +1380,7 @@ class Table(object):
         else:
             raise StopIteration
 
-    if sys.version_info[0] < 3:  # pragma: py2
+    if not PY3:  # pragma: py2
         next = __next__
 
     def field(self, item):
@@ -1756,3 +1758,60 @@ class Table(object):
     def meta(self):
         return self._meta
 
+    def __lt__(self, other):
+        if PY3:
+            return super(Table, self).__lt__(other)
+        else:
+            raise TypeError(
+                "unorderable types: Table() < {0}".format(str(type(other))))
+
+    def __gt__(self, other):
+        if PY3:
+            return super(Table, self).__gt__(other)
+        else:
+            raise TypeError(
+                "unorderable types: Table() > {0}".format(str(type(other))))
+
+    def __le__(self, other):
+        if PY3:
+            return super(Table, self).__le__(other)
+        else:
+            raise TypeError(
+                "unorderable types: Table() <= {0}".format(str(type(other))))
+
+    def __ge__(self, other):
+        if PY3:
+            return super(Table, self).__ge__(other)
+        else:
+            raise TypeError(
+                "unorderable types: Table() >= {0}".format(str(type(other))))
+
+    def __eq__(self, other):
+
+        if isinstance(other, Table):
+            other = other._data
+
+        if self.masked:
+            if isinstance(other, np.ma.MaskedArray):
+                result = self._data == other
+            else:
+                # If mask is True, then by definition the row doesn't match
+                # because the other array is not masked.
+                false_mask = np.zeros(1, dtype=[(n, bool)
+                                                for n in self.dtype.names])
+                result = (self._data.data == other) & (self.mask == false_mask)
+        else:
+            if isinstance(other, np.ma.MaskedArray):
+                # If mask is True, then by definition the row doesn't match
+                # because the other array is not masked.
+                false_mask = np.zeros(1, dtype=[(n, bool)
+                                                for n in other.dtype.names])
+                result = ((self._data == other.data) &
+                          (other.mask == false_mask))
+            else:
+                result = self._data == other
+
+        return result
+
+    def __ne__(self, other):
+        return ~self.__eq__(other)
