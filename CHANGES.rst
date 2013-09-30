@@ -313,6 +313,8 @@ API Changes
 
        #include "astropy_wcs_api.h"
 
+- The ``--enable-legacy`` option for ``setup.py`` has been removed.
+
 Bug Fixes
 ^^^^^^^^^^
 

@@ -404,8 +404,6 @@ def register_commands(package, version, release):
     # Add a few custom options; more of these can be added by specific packages
     # later
     for option in [
-            ('enable-legacy',
-             "Install legacy shims", True),
             ('use-system-libraries',
              "Use system libraries whenever possible", True)]:
         add_command_option('build', *option)
@@ -1021,8 +1019,8 @@ def get_package_info(srcdir):
     packages in ``srcdir`` and locating a ``setup_package.py`` module.
     This module can contain the following functions:
     ``get_extensions()``, ``get_package_data()``,
-    ``get_legacy_alias()``, ``get_build_options()``,
-    ``get_external_libraries()`` and ``requires_2to3()``.
+    ``get_build_options()``, ``get_external_libraries()``,
+    and ``requires_2to3()``.
 
     Each of those functions take no arguments.
 
@@ -1031,9 +1029,6 @@ def get_package_info(srcdir):
 
     - ``get_package_data()`` returns a dict formatted as required by
       the ``package_data`` argument to ``setup()``.
-
-    - ``get_legacy_alias()`` should call `add_legacy_alias` and return
-      its result.
 
     - ``get_build_options()`` returns a list of tuples describing the
       extra build options to add.
@@ -1076,33 +1071,6 @@ def get_package_info(srcdir):
         if not requires_2to3:
             skip_2to3.append(
                 os.path.dirname(setuppkg.__file__))
-
-    # Check if all the legacy packages are needed
-    if get_distutils_build_or_install_option('enable_legacy'):
-        installed = []
-        for setuppkg in iter_setup_packages(srcdir):
-            if hasattr(setuppkg, 'get_legacy_alias'):
-                pkg, dir = setuppkg.get_legacy_alias()
-                if dir is None:
-                    installed.append(pkg)
-                else:
-                    packages.append(pkg)
-                    package_dir[pkg] = dir
-        if len(installed) > 0:
-            lines = [
-                '-' * 60,
-                'The compatibility packages cannot be installed because the',
-                'following legacy packages are already installed:']
-            for pkg in installed:
-                lines.append("    * {0:s}".format(pkg))
-            lines.extend([
-                '',
-                'The compatibility packages can only be installed if none of',
-                'the corresponding legacy packages are present.',
-                '-' * 60
-                ])
-            log.warn('\n'.join(lines))
-            sys.exit(1)
 
     for setuppkg in iter_setup_packages(srcdir):
         # get_extensions must include any Cython extensions by their .pyx
@@ -1326,143 +1294,6 @@ def import_file(filename):
         name = '_'.join(
             os.path.relpath(os.path.splitext(filename)[0]).split(os.sep)[1:])
         return imp.load_module(name, fd, filename, ('.py', 'U', 1))
-
-
-def get_legacy_alias_dir():
-    return os.path.join('build', 'legacy-aliases')
-
-
-legacy_shim_template = """
-# This is generated code.  DO NOT EDIT!
-
-from __future__ import absolute_import
-
-# This implements a PEP 302 finder/loader pair that translates
-# {old_package}.foo import {new_package}.foo.  This approach allows
-# relative imports in astropy that go above the level of the
-# {new_package} subpackage to work.
-class Finder(object):
-    def find_module(self, fullname, path=None):
-        if fullname.startswith("{old_package}."):
-            return self.Loader()
-
-    class Loader(object):
-        def load_module(self, fullname):
-            import importlib
-            fullname = fullname[len("{old_package}"):]
-            return importlib.import_module(fullname, package="{new_package}")
-
-import sys
-sys.meta_path.append(Finder())
-# Carefully clean up the namespace, since we can't use __all__ here
-del sys
-del Finder
-
-import warnings
-warnings.warn(
-    "{old_package} is deprecated.  Use {new_package} instead.",
-    DeprecationWarning)
-del warnings
-
-from {new_package} import *
-from astropy import __version__
-__version__ = {equiv_version!r} + '-' + __version__
-{extras}
-
-_is_astropy_legacy_alias = True
-"""
-
-
-def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
-    """
-    Adds a legacy alias that makes *pkgfrom* also importable as
-    *pkgto*.
-
-    For example::
-
-       add_legacy_alias('astropy.io.votable', 'vo')
-
-    If the legacy package is importable and it is not merely the
-    compatibility shim, a warning is printed to the user, and the
-    shim is not installed.
-
-    Parameters
-    ----------
-    old_package : str
-        The old namespace.  Must be a single name (i.e. not have `.`).
-
-    new_package : str
-        The new namespace, specified using `.` as a delimiter
-
-    equiv_version : str
-        The equivalent version of the old package.  Code using the
-        legacy shim may do a version check, and this version should be
-        based on the version of the legacy package, not the version of
-        astropy.
-
-    extras : dict
-        A dictionary of extra values to include in the legacy shim template;
-        the keys should be the variable names, while the values will be written
-        to the template in their repr() form, so they should generally be
-        simple objects such as strings.
-
-    Returns
-    -------
-    old_package, shim_dir : (str, str)
-        The name of the alias package and its source directory in the
-        file system (useful for adding to distutils' `package_dir` kwarg.
-    """
-    import imp
-
-    # distutils doesn't handle unicode package names on Python 2.x
-    if not PY3:
-        old_package = old_package.encode('ascii')
-        new_package = new_package.encode('ascii')
-
-    # If legacy shims have not been enabled at the commandline, simply do
-    # nothing.
-    if not get_distutils_build_or_install_option('enable_legacy'):
-        return (old_package, None)
-
-    found_legacy_module = True
-    try:
-        location = imp.find_module(old_package)
-    except ImportError:
-        found_legacy_module = False
-    else:
-        # We want ImportError to raise here, because that means it was
-        # found, but something else went wrong.
-
-        # We could import the module here to determine if its "real"
-        # or just a legacy alias.  However, importing the legacy alias
-        # may cause importing of code within the astropy source tree,
-        # which may require 2to3 to have been run.  It's safer to just
-        # open the file and search for a string.
-        filename = os.path.join(location[1], '__init__.py')
-        if os.path.exists(filename):
-            with open(filename, 'U') as fd:
-                if '_is_astropy_legacy_alias' in fd.read():
-                    found_legacy_module = False
-
-    shim_dir = os.path.join(get_legacy_alias_dir(), old_package)
-
-    if found_legacy_module and not is_distutils_display_option():
-        if os.path.isdir(shim_dir):
-            shutil.rmtree(shim_dir)
-        return (old_package, None)
-
-    if extras:
-        extras = '\n'.join('{0} = {1!r}'.format(*v) for v in extras.items())
-    else:
-        extras = ''
-
-    if not os.path.isdir(shim_dir):
-        os.makedirs(shim_dir)
-    content = legacy_shim_template.format(**locals()).encode('utf-8')
-    write_if_different(
-        os.path.join(shim_dir, '__init__.py'), content)
-
-    return (old_package, shim_dir)
 
 
 class DistutilsExtensionArgs(collections.defaultdict):

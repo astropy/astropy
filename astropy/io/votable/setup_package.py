@@ -25,10 +25,5 @@ def get_package_data():
             'urls/*.dat.gz']}
 
 
-def get_legacy_alias():
-    return setup_helpers.add_legacy_alias(
-        'vo', 'astropy.io.votable', '0.8')
-
-
 def requires_2to3():
     return False

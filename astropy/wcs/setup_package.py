@@ -305,10 +305,6 @@ def get_package_data():
     }
 
 
-def get_legacy_alias():
-    return setup_helpers.add_legacy_alias('pywcs', 'astropy.wcs', '1.11')
-
-
 def get_external_libraries():
     return ['wcslib']
 

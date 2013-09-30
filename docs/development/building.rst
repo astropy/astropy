@@ -37,15 +37,6 @@ process:
     it should return a list of `distutils.core.Extension` objects controlling
     the Cython/C build process (see below for more detail).
 
-* :func:`get_legacy_alias`
-    This function allows for the creation of `shims` that allow a
-    subpackage to be imported under another name.  For example,
-    `astropy.io.fits` used to be available under the namespace
-    `pyfits`.  For backward compatibility, it is helpful to have it
-    still importable under the old name.  Under most circumstances,
-    this function should call `astropy.setup_helpers.add_legacy_alias`
-    to generate a legacy module and then return what it returns.
-
 * :func:`get_build_options`
     This function allows a package to add extra build options.  It
     should return a list of tuples, where each element has:

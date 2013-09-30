@@ -50,8 +50,3 @@ def get_package_data():
 
 def get_external_libraries():
     return ['cfitsio']
-
-
-def get_legacy_alias():
-    return setup_helpers.add_legacy_alias(
-        'pyfits', 'astropy.io.fits', '3.2.dev', {'__svn_revision__': '1927'})
