@@ -19,7 +19,8 @@ from distutils.dist import Distribution
 
 import astropy
 from astropy.setup_helpers import (register_commands, adjust_compiler,
-                                   get_package_info, get_debug_option)
+                                   get_package_info, get_debug_option,
+                                   is_distutils_display_option)
 from astropy.version_helpers import get_git_devstr, generate_version_py
 
 NAME = 'astropy'
@@ -74,9 +75,7 @@ setup_requires = ['numpy>=1.4']
 
 # Avoid installing setup_requires dependencies if the user just
 # queries for information
-if (any('--' + opt in sys.argv for opt in
-        Distribution.display_option_names + ['help']) or
-    'clean' in sys.argv):
+if is_distutils_display_option():
     setup_requires = []
 
 
