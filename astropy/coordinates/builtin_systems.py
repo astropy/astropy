@@ -594,16 +594,17 @@ def fk4_to_fk4_no_e(fk4c):
 def fk4_no_e_to_fk4(fk4c):
 
     # Extract cartesian vector
-    r = np.array([fk4c.x.value, fk4c.y.value, fk4c.z.value])
+    c = fk4c.cartesian
+    r = np.asarray(c.reshape((3, c.size // 3)))
 
     # Find distance (for re-normalization)
     d_orig = np.sqrt(np.sum(r ** 2))
 
     # Apply E-terms of aberration
-    eterms_a = fk4_e_terms(fk4c.equinox)
+    eterms_a = np.array(fk4_e_terms(fk4c.equinox))
     r0 = r.copy()
     for j in range(10):
-        r = (r0 + eterms_a) / (1. + np.dot(r, eterms_a))
+        r = (eterms_a.reshape(3, 1) + r0) / (1. + np.dot(eterms_a, r))
 
     # Find new distance (for re-normalization)
     d_new = np.sqrt(np.sum(r ** 2))
@@ -611,8 +612,13 @@ def fk4_no_e_to_fk4(fk4c):
     # Renormalize
     r = r * d_orig / d_new
 
-    unit = None if fk4c.distance is None else fk4c.distance.unit
-    result = FK4Coordinates(x=r[0], y=r[1], z=r[2], unit=unit, equinox=fk4c.equinox)
+    subshape = c.shape[1:]
+    x = r[0].reshape(subshape)
+    y = r[1].reshape(subshape)
+    z = r[2].reshape(subshape)
+
+    newunit = None if fk4c.distance is None else fk4c.distance.unit
+    result = FK4Coordinates(x=x, y=y, z=z, unit=newunit, equinox=fk4c.equinox)
 
     return result
 

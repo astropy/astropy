@@ -617,8 +617,8 @@ class StaticMatrixTransform(CoordinateTransform):
         y = v2[1].reshape(subshape)
         z = v2[2].reshape(subshape)
 
-        #units should get inferred from `x` `y`, and `z`
-        result = self.tosys(x=x, y=y, z=z)
+        newunit = None if fromcoord.distance is None else fromcoord.distance.unit
+        result = self.tosys(x=x, y=y, z=z, unit=newunit)
 
         # copy over the observation time
         if hasattr(fromcoord, '_obstime') and hasattr(result, '_obstime'):
@@ -700,8 +700,8 @@ class DynamicMatrixTransform(CoordinateTransform):
         y = v2[1].reshape(subshape)
         z = v2[2].reshape(subshape)
 
-        #units should get inferred from `x` `y`, and `z`
-        result = self.tosys(x=x, y=y, z=z)
+        newunit = None if fromcoord.distance is None else fromcoord.distance.unit
+        result = self.tosys(x=x, y=y, z=z, unit=newunit)
 
         # copy over the observation time
         if hasattr(fromcoord, '_obstime') and hasattr(result, '_obstime'):
