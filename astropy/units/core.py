@@ -231,6 +231,31 @@ def add_enabled_units_context(units):
     ----------
     units : list of sequences, dicts, or modules containing units, or units
         See `add_enabled_units`.
+
+    Examples
+    --------
+
+    >>> from astropy import units as u
+    >>> from astropy.units import imperial
+    >>> with u.add_enabled_units_context(imperial):
+    ...     u.m.find_equivalent_units()
+    ...
+      Primary name | Unit definition | Aliases
+    [
+      AU           | 1.49598e+11 m   | au               ,
+      Angstrom     | 1e-10 m         | AA, angstrom     ,
+      cm           | 0.01 m          | centimeter       ,
+      ft           | 0.3048 m        | foot             ,
+      inch         | 0.0254 m        |                  ,
+      lyr          | 9.46073e+15 m   | lightyear        ,
+      m            | irreducible     | meter            ,
+      mi           | 1609.34 m       | mile             ,
+      micron       | 1e-06 m         |                  ,
+      nmi          | 1852 m          | nauticalmile, NM ,
+      pc           | 3.08568e+16 m   | parsec           ,
+      solRad       | 6.95508e+08 m   | R_sun, Rsun      ,
+      yd           | 0.9144 m        | yard             ,
+    ]
     """
     global _current_unit_registry
     old_registry = get_current_unit_registry()
