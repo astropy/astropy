@@ -947,7 +947,7 @@ def test_copy_protocol():
     _assert_copies(t, t2, deep=False)
     _assert_copies(t, t3)
 
-def test_disallow_comparisons():
+def test_disallow_inequality_comparisons():
     """
     Regression test for #828 - disallow comparison operators on whole Table
     """
@@ -966,5 +966,27 @@ def test_disallow_comparisons():
     with pytest.raises(TypeError):
         t <= -1.1
 
-    with pytest.raises(TypeError):
-        t == 2
+def test_equality():
+
+    t = table.Table.read([' a b  c  d',
+                          ' 2 c 7.0 0',
+                          ' 2 b 5.0 1',
+                          ' 2 b 6.0 2',
+                          ' 2 a 4.0 3',
+                          ' 0 a 0.0 4',
+                          ' 1 b 3.0 5',
+                          ' 1 a 2.0 6',
+                          ' 1 a 1.0 7',
+                         ], format='ascii')
+
+    # All rows are equal
+    assert np.all(t==t)
+
+    # Assert no rows are different
+    assert not np.any(t!=t)
+
+    # Check equality result for a given row
+    assert np.all((t == t[3]) == np.array([0,0,0,1,0,0,0,0], dtype=bool))
+
+    # Check inequality result for a given row
+    assert np.all((t == t[3]) != np.array([1,1,1,0,1,1,1,1], dtype=bool))

@@ -2180,6 +2180,3 @@ class Table(object):
             return super(Table, self).__ge__(other)
         else:
             raise TypeError("unorderable types: Table() >= {0}".format(str(type(other))))
-
-    def __eq__(self, other):
-        raise TypeError("cannot use == operator with Table() objects")
