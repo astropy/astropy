@@ -186,4 +186,15 @@ def test_array_coordinates_string():
 
     assert repr(c) == '<ICRSCoordinates RA=[1 2] deg, Dec=[3 4] deg>'
 
+    #also check with distance
+
+    c = ICRSCoordinates(np.array([1, 2]), np.array([3, 4]), unit=(u.deg, u.deg), distance= u.kpc * [0.5, 1.5])
+    str(c)
+    unicode(c)
+    repr(c)
+
+    print(repr(c))
+
+    assert repr(c) == '<ICRSCoordinates RA=[1 2] deg, Dec=[3 4] deg, Distance=[ 0.5  1.5] kpc>'
+
 
