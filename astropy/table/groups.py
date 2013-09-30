@@ -205,6 +205,39 @@ class ColumnGroups(BaseGroups):
                                 unit=par_col.unit, format=par_col.format, meta=par_col.meta)
         return out
 
+    def filter(self, func):
+        """
+        Filter groups in the Column based on evaluating function ``func`` on each
+        group sub-table.
+
+        The function which is passed to this method must accept one argument:
+
+        - ``column`` : `Column` object
+
+        It must then return either `True` or `False`.  As an example, the following
+        will select all column groups with only positive values::
+
+          def all_positive(column):
+              if np.any(column < 0):
+                  return False
+              return True
+
+        Parameters
+        ----------
+        func : function
+            Filter function
+
+        Returns
+        -------
+        out : Column
+            New column with the aggregated rows.
+        """
+        mask = np.empty(len(self), dtype=np.bool)
+        for i, group_column in enumerate(self):
+            mask[i] = func(group_column)
+
+        return self[mask]
+
 
 class TableGroups(BaseGroups):
     def __init__(self, parent_table, indices=None, keys=None):

@@ -298,7 +298,7 @@ A single column of data can be aggregated as well::
 
 
 Filtering
-~~~~~~~~~~~
+~~~~~~~~~~
 
 Table groups can be filtered by means of the `~astropy.table.groups.TableGroups.filter`
 method.  This is done by supplying a function which is called for each
@@ -346,6 +346,16 @@ An example of using this function is::
 
 As can be seen only the groups with ``a == -2`` and ``a == 0`` have all positive values
 in the non-key columns, so those are the ones that are selected.
+
+Likewise a grouped column can be filtered with the
+`~astropy.table.groups.ColumnGroups.filter`, method but in this case the filtering
+function takes only a single argument which is the column group.  It still must return
+either `True` or `False`.  For example::
+
+  def all_positive(column):
+      if np.any(column < 0):
+          return False
+      return True
 
 Stack vertically
 ^^^^^^^^^^^^^^^^^^^^

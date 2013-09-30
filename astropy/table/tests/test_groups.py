@@ -474,6 +474,7 @@ def test_column_aggregate():
                                  ' 6.0',
                                  '22.0']
 
+
 def test_table_filter():
     """
     Table groups filtering
@@ -506,3 +507,32 @@ def test_table_filter():
     assert t2.groups[1].pformat() == [' a   c   d ',
                                       '--- --- ---',
                                       '  0 0.0   4']
+
+
+def test_column_filter():
+    """
+    Table groups filtering
+    """
+    def all_positive(column):
+        if np.any(column < 0):
+            return False
+        return True
+
+    # Negative value in 'a' column should not filter because it is a key col
+    t = Table.read([' a c d',
+                    ' -2 7.0 0',
+                    ' -2 5.0 1',
+                    ' 0 0.0 4',
+                    ' 1 3.0 5',
+                    ' 1 2.0 -6',
+                    ' 1 1.0 7',
+                    ' 3 3.0 5',
+                    ' 3 -2.0 6',
+                    ' 3 1.0 7',
+                    ], format='ascii')
+    tg = t.group_by('a')
+    c2 = tg['c'].groups.filter(all_positive)
+    assert len(c2.groups) == 3
+    assert c2.groups[0].pformat() == [' c ', '---', '7.0', '5.0']
+    assert c2.groups[1].pformat() == [' c ', '---', '0.0']
+    assert c2.groups[2].pformat() == [' c ', '---', '3.0', '2.0', '1.0']
