@@ -44,7 +44,7 @@ photometry from various observing runs::
                           M31     2012-01-02  17.0   17.5
                           M31     2012-01-02  17.1   17.4
                           M101    2012-01-02  15.1   13.5
-                          M82     2012-01-02  16.2   14.5
+                          M82     2012-02-14  16.2   14.5
                           M31     2012-02-14  16.9   17.3
                           M82     2012-02-14  15.2   15.5
                           M101    2012-02-14  15.0   13.6
@@ -71,15 +71,18 @@ and setting the ``groups`` property according to the unique values of ``name``::
    M31 2012-01-02  17.0  17.5  << Second group (index=4)
    M31 2012-01-02  17.1  17.4
    M31 2012-02-14  16.9  17.3
-   M82 2012-01-02  16.2  14.5  << Third group (index=7)
+   M82 2012-02-14  16.2  14.5  << Third group (index=7)
    M82 2012-02-14  15.2  15.5
    M82 2012-03-26  15.7  16.5
                                << End of groups (index=10)
-  >>> obs_by_name.groups.keys
-  array([('M101',), ('M31',), ('M82',)],
-        dtype=[('name', 'S4')])
-  >>> obs_by_name.groups.indices
-  array([ 0,  4,  7, 10])
+  >>> print obs_by_name.groups.keys
+  name
+  ----
+  M101
+   M31
+   M82
+  >>> print obs_by_name.groups.indices
+  [ 0  4  7 10]
 
 The ``groups`` property is the portal to all grouped operations with tables and columns.
 It defines how the table is grouped via an array of the unique row key values and the
@@ -91,9 +94,9 @@ can take a number of input data types:
 
 - Single string value with a table column name (as shown above)
 - List of string values with table column names
-- Numpy homogenous array with same length as table
-- Numpy structured array with same length as table
 - Another `Table` or `Table` column with same length as table
+- Numpy structured array with same length as table
+- Numpy homogeneous array with same length as table
 
 In all cases the corresponding row elements are considered as a tuple of values which
 form a key value that is used to sort the original table and generate
@@ -103,16 +106,23 @@ As an example, to get the average magnitudes for each object on each observing
 night, we would first group the table on both ``name`` and ``obs_date`` as follows::
 
   >>> print obs.group_by(['name', 'obs_date']).groups.keys
-  [('M101', '2012-01-02') ('M101', '2012-02-14') ('M101', '2012-03-26')
-   ('M31', '2012-01-02') ('M31', '2012-02-14') ('M82', '2012-01-02')
-   ('M82', '2012-02-14') ('M82', '2012-03-26')]
+  name  obs_date
+  ---- ----------
+  M101 2012-01-02
+  M101 2012-02-14
+  M101 2012-03-26
+   M31 2012-01-02
+   M31 2012-02-14
+   M82 2012-02-14
+   M82 2012-03-26
 
 
 Manipulating groups
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once you have applied grouping to a table then you can easily access the individual
-groups.  For instance to get the sub-table which corresponds to the second group (index=1)
+groups or subsets of groups.  In all cases this returns a new grouped table.
+For instance to get the sub-table which corresponds to the second group (index=1)
 do::
 
   >>> print obs_by_name.groups[1]
@@ -124,7 +134,8 @@ do::
 
 To get the first and second groups together use a slice::
 
-  >>> print obs_by_name.groups[0:2]
+  >>> groups01 = obs_by_name.groups[0:2]
+  >>> print groups01
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
   M101 2012-01-02  15.1  13.5
@@ -134,16 +145,29 @@ To get the first and second groups together use a slice::
    M31 2012-01-02  17.0  17.5
    M31 2012-01-02  17.1  17.4
    M31 2012-02-14  16.9  17.3
+  >>> print groups01.groups.keys
+  name
+  ----
+  M101
+   M31
 
-The key values and corresponding table groups can be obtained with the
-`keys()` and `values()` methods.  Note that these behave like the Python 3
-version of these methods in the `dict` object, meaning that they return
-an iterator over the values instead of a list.  If this doesn't ring a bell
-don't worry, just look at example below::
+You can also supply a numpy array of indices or a boolean mask to select particular
+groups, e.g.::
+
+  >>> mask = obs_by_name.groups.keys == 'M101'
+  >>> print obs_by_name.groups[mask]
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+  M101 2012-01-02  15.1  13.5
+  M101 2012-02-14  15.0  13.6
+  M101 2012-03-26  15.1  13.5
+  M101 2012-03-26  14.8  14.3
+
+One can iterate over the group sub-tables and corresponding keys with::
 
   >>> from itertools import izip
-  >>> for key, group in izip(obs_by_name.groups.keys(), obs_by_name.groups.values()):
-  ...     print('****** {0} *******'.format(key))
+  >>> for key, group in izip(obs_by_name.groups.keys, obs_by_name.groups):
+  ...     print('****** {0} *******'.format(key['name']))
   ...     print group
   ...     print
 
@@ -169,12 +193,6 @@ don't worry, just look at example below::
    M82 2012-02-14  15.2  15.5
    M82 2012-03-26  15.7  16.5
 
-To get the keys or values as a plain Python `list` just call the `list()` constructor::
-
-  >>> keys = list(obs_by_name.groups.keys())
-  >>> keys
-  ['M101', 'M31', 'M82']
-
 
 Column Groups
 ~~~~~~~~~~~~~~
@@ -189,10 +207,31 @@ names since that doesn't make sense for a `Column`.
 
 Examples::
 
->>> c = Column([1, 2, 3, 4, 5, 6], name='a')
->>> key_vals = np.array(['foo', 'bar', 'foo', 'foo', 'qux', 'qux'])
->>> cg = c.group_by(key_vals)
+  >>> c = Column([1, 2, 3, 4, 5, 6], name='a')
+  >>> key_vals = np.array(['foo', 'bar', 'foo', 'foo', 'qux', 'qux'])
+  >>> cg = c.group_by(key_vals)
 
+  >>> for key, group in izip(cg.groups.keys, cg.groups):
+  ...     print('****** {0} *******'.format(key))
+  ...     print group
+  ...     print
+  ****** bar *******
+   a
+  ---
+    2
+
+  ****** foo *******
+   a
+  ---
+    1
+    3
+    4
+
+  ****** qux *******
+   a
+  ---
+    5
+    6
 
 
 Aggregation
@@ -241,6 +280,18 @@ to perform the aggregation::
   M101 13.725  15.0
    M31   17.4  17.0
    M82   15.5  15.7
+
+A single column of data can be aggregated as well::
+
+  >>> c = Column([1, 2, 3, 4, 5, 6], name='a')
+  >>> key_vals = np.array(['foo', 'bar', 'foo', 'foo', 'qux', 'qux'])
+  >>> cg = c.group_by(key_vals)
+  >>> cg_sums = cg.groups.aggregate(np.sum)
+  >>> for key, cg_sum in izip(cg.groups.keys, cg_sums):
+  ...     print 'Sum for {0} = {1}'.format(key, cg_sum)
+  Sum for bar = 2
+  Sum for foo = 8
+  Sum for qux = 11
 
 
 Stack vertically
