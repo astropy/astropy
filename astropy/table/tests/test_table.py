@@ -1063,4 +1063,39 @@ def test_equality_masked():
 
     # Check that comparing to a structured array works
     assert np.all((t == t2._data) == np.array([0,1,0,1,0,1,0,1], dtype=bool))
-    # assert np.all((t._data == t2) == np.array([0,1,0,1,0,1,0,1], dtype=bool))
+
+
+@pytest.mark.xfail
+def test_equality_masked_bug():
+    """
+    This highlights a Numpy bug. Once it works, it can be moved into the
+    test_equality_masked test. Related Numpy bug report:
+
+      https://github.com/numpy/numpy/issues/3840
+    """
+
+    t = table.Table.read([' a b  c  d',
+                          ' 2 c 7.0 0',
+                          ' 2 b 5.0 1',
+                          ' 2 b 6.0 2',
+                          ' 2 a 4.0 3',
+                          ' 0 a 0.0 4',
+                          ' 1 b 3.0 5',
+                          ' 1 a 2.0 6',
+                          ' 1 a 1.0 7',
+                         ], format='ascii')
+
+    t = table.Table(t, masked=True)
+
+    t2 = table.Table.read([' a b  c  d',
+                           ' 2 c 7.0 0',
+                           ' 2 b 5.0 1',
+                           ' 3 b 6.0 2',
+                           ' 2 a 4.0 3',
+                           ' 0 a 1.0 4',
+                           ' 1 b 3.0 5',
+                           ' 1 c 2.0 6',
+                           ' 1 a 1.0 7',
+                          ], format='ascii')
+
+    assert np.all((t._data == t2) == np.array([0,1,0,1,0,1,0,1], dtype=bool))
