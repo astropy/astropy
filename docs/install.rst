@@ -9,7 +9,7 @@ Astropy has the following strict requirements:
 
 - `Python <http://www.python.org/>`_ 2.6, 2.7, 3.1 or 3.2
 
-- `Numpy <http://www.numpy.org/>`_ 1.4 or later
+- `Numpy <http://www.numpy.org/>`_ 1.5 or later
 
 Astropy also depends on other packages for optional features:
 

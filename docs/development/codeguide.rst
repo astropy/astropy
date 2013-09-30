@@ -48,7 +48,7 @@ Interface and Dependencies
 * The core package and affiliated packages should be importable with no
   dependencies other than components already in the Astropy core, the
   `Python Standard Library
-  <http://docs.python.org/release/2.6/library/index.html>`_, and NumPy_ 1.4
+  <http://docs.python.org/release/2.6/library/index.html>`_, and NumPy_ 1.5
   or later.
 
 * The package should be importable from the source tree at build time. This

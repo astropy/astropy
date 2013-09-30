@@ -8,7 +8,7 @@ from ...tests.helper import pytest, catch_warnings
 from ... import table
 from ...table import Row
 
-numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
+numpy_lt_1p8 = version.LooseVersion(np.__version__) < version.LooseVersion('1.8')
 
 
 class MaskedTable(table.Table):
@@ -17,13 +17,11 @@ class MaskedTable(table.Table):
         table.Table.__init__(self, *args, **kwargs)
 
 
-@pytest.mark.skipif("numpy_lt_1p5")
 def test_masked_row_with_object_col():
     """
     Numpy < 1.8 has a bug in masked array that prevents access a row if there is
     a column with object type.
     """
-    numpy_lt_1p8 = version.LooseVersion(np.__version__) < version.LooseVersion('1.8')
     t = table.Table([[1]], dtypes=['O'], masked=True)
     if numpy_lt_1p8:
         with pytest.raises(ValueError):
@@ -40,7 +38,7 @@ def test_masked_row_with_object_col():
 
 
 # Fixture to run all tests for both an unmasked (ndarray) and masked (MaskedArray) column.
-@pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
+@pytest.fixture(params=[False, True])
 def table_types(request):
     class TableTypes:
         def __init__(self, request):

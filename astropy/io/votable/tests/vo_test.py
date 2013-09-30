@@ -29,10 +29,6 @@ from ....utils.data import get_pkg_data_filename, get_pkg_data_filenames
 from ....tests.helper import pytest, raises, catch_warnings
 from ....utils.compat import gzip
 
-numpy_has_complex_bug = (
-    version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
-    )
-
 # Determine the kind of float formatting in this build of Python
 if hasattr(sys, 'float_repr_style'):
     legacy_float_repr = (sys.float_repr_style == 'legacy')
@@ -503,7 +499,6 @@ class TestParse:
                 assert issubclass(a0.dtype.type, np.bool_)
                 assert_array_equal(a0, b0)
 
-    @pytest.mark.xfail(str('numpy_has_complex_bug'))
     def test_floatComplex(self):
         assert issubclass(self.array['floatComplex'].dtype.type,
                           np.complex64)
@@ -512,7 +507,6 @@ class TestParse:
         assert_array_equal(self.mask['floatComplex'],
                            [True, False, False, True, True])
 
-    @pytest.mark.xfail(str('numpy_has_complex_bug'))
     def test_doubleComplex(self):
         assert issubclass(self.array['doubleComplex'].dtype.type,
                           np.complex128)
@@ -522,7 +516,6 @@ class TestParse:
         assert_array_equal(self.mask['doubleComplex'],
                            [True, False, False, True, True])
 
-    @pytest.mark.xfail(str('numpy_has_complex_bug'))
     def test_doubleComplexArray(self):
         assert issubclass(self.array['doubleComplexArray'].dtype.type,
                           np.object_)

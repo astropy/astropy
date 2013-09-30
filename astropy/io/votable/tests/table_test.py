@@ -16,8 +16,6 @@ from ....utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 from ..table import parse, writeto
 from .. import tree
 
-numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
-
 TMP_DIR = None
 def setup_module():
     global TMP_DIR
@@ -28,7 +26,6 @@ def teardown_module():
     shutil.rmtree(TMP_DIR)
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_table():
     # Read the VOTABLE
     votable = parse(
@@ -83,7 +80,6 @@ def test_table():
     writeto(votable2, os.path.join(TMP_DIR, "through_table.xml"))
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_read_through_table_interface():
     from ....table import Table
 
@@ -101,7 +97,6 @@ def test_read_through_table_interface():
     assert len(t2) == 5
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_read_through_table_interface2():
     from ....table import Table
 
@@ -111,7 +106,6 @@ def test_read_through_table_interface2():
     assert len(t) == 0
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_names_over_ids():
     with get_pkg_data_fileobj('data/names.xml', encoding='binary') as fd:
         votable = parse(fd)

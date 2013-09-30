@@ -24,8 +24,6 @@ try:
 except NameError:
     unicode = basestring = str
 
-NUMPY_LT_1P5 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 5]
-
 AUTO_COLNAME = ConfigurationItem(
     'auto_colname', 'col{0}',
     'The template that determines the name of a column if it cannot be '
@@ -636,9 +634,6 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
             warnings.warn("'units' has been renamed to the singular 'unit'.",
                           DeprecationWarning)
 
-        if NUMPY_LT_1P5:
-            raise ValueError('MaskedColumn requires NumPy version 1.5 or later')
-
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
             self_data = ma.zeros(length, dtype=dtype)
@@ -1022,9 +1017,6 @@ class Table(object):
         # Whatever happens above, the masked property should be set to a boolean
         if type(self.masked) != bool:
             raise TypeError("masked property has not been set to True or False")
-
-        if NUMPY_LT_1P5 and self.masked:
-            raise ValueError('Masked table requires NumPy version 1.5 or later')
 
     @property
     def mask(self):

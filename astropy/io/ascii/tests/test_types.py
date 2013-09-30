@@ -14,9 +14,8 @@ except ImportError:
 from ....tests.helper import pytest
 from ... import ascii as asciitable
 
-from .common import (raises, numpy_lt_1p5,
-                     assert_equal, assert_almost_equal, assert_true,
-                     setup_function, teardown_function)
+from .common import (raises, assert_equal, assert_almost_equal,
+                     assert_true, setup_function, teardown_function)
 
 
 def test_types_from_dat():
@@ -43,7 +42,6 @@ def test_rdb_write_types():
     assert_equal(outs[1], 'N\tN\tS\tN')
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_ipac_read_types():
     table = r"""\
 |     ra   |    dec   |   sai   |-----v2---|    sptype        |

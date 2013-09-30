@@ -1291,11 +1291,7 @@ numpy_dtype_to_field_mapping = {
 }
 
 
-# numpy 1.4.1 doesn't have a "bytes_" type
-if hasattr(np, 'bytes_'):
-    numpy_dtype_to_field_mapping[np.bytes_().dtype.num] = 'char'
-else:
-    numpy_dtype_to_field_mapping[np.str_().dtype.num] = 'char'
+numpy_dtype_to_field_mapping[np.bytes_().dtype.num] = 'char'
 
 
 def _all_bytes(column):

@@ -8,8 +8,6 @@ import numpy as np
 from ...tests.helper import pytest
 from ... import table
 
-numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
-
 
 class MaskedTable(table.Table):
     def __init__(self, *args, **kwargs):
@@ -19,7 +17,7 @@ class MaskedTable(table.Table):
 
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
-@pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
+@pytest.fixture(params=[False, True])
 def table_data(request):
     class TableData:
         def __init__(self, request):

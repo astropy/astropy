@@ -162,7 +162,8 @@ class TestConvolve1D(object):
 
         # for whatever reason, numpy's fft has very limited precision, and
         # the comparison fails unless you cast the float64 to a float16
-        # np1.4 incompatible assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16), np.array([1.,0.,3.], dtype=np.float16), 10)
+        assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16),
+                                       np.array([1.,0.,3.], dtype=np.float16), 10)
         assert np.all(np.abs(z - outval) < 1e-14)
 
     @pytest.mark.parametrize(option_names, options)
@@ -347,7 +348,8 @@ class TestConvolve2D(object):
 
         # for whatever reason, numpy's fft has very limited precision, and
         # the comparison fails unless you cast the float64 to a float16
-        # np1.4 incompatible assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16), np.asarray(a, dtype=np.float16), 10)
+        assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16),
+                                       np.asarray(a, dtype=np.float16), 10)
         assert np.all(np.abs(z - a) < 1e-14)
 
     @pytest.mark.parametrize(option_names, options)

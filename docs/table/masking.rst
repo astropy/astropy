@@ -30,12 +30,6 @@ on masked arrays
    interesting discussion of different strategies for handling
    missing data in the context of `numpy`.
 
-.. Note::
-
-   Masked tables are only available for `numpy` version 1.5 and later
-   because of issues in the masked array implementation for
-   prior `numpy` versions.
-
 Table creation
 ^^^^^^^^^^^^^^^
 
@@ -119,7 +113,7 @@ Both of these differences are due to issues in the underlying
 Masking and filling
 ^^^^^^^^^^^^^^^^^^^^
 
-Both the |Table| and |MaskedColumn| classes provide 
+Both the |Table| and |MaskedColumn| classes provide
 attributes and methods to support manipulating tables with missing or
 invalid data.
 
@@ -132,7 +126,7 @@ viewed and modified via the ``mask`` attribute::
   >>> t = Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True)
   >>> t['b'].mask = [True, False]  # Modify column mask (boolean array)
   >>> print(t)
-   a   b 
+   a   b
   --- ---
     1  --
     2   4
@@ -156,25 +150,25 @@ attribute.
   >>> t['b'].fill_value = 33
 
   >>> print t.filled()
-   a   b 
+   a   b
   --- ---
     1  33
   -99   4
 
   >>> print t['a'].filled()
-   a 
+   a
   ---
     1
   -99
 
   >>> print t['a'].filled(999)
-   a 
+   a
   ---
     1
   999
 
   >>> print t.filled(1000)
-   a    b  
+   a    b
   ---- ----
      1 1000
   1000    4

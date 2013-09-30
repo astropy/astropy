@@ -31,12 +31,47 @@ except ImportError:
     __githash__ = ''
 
 
+__minimum_numpy_version__ = '1.5.0'
+
+
 # The location of the online documentation for astropy
 # This location will normally point to the current released version of astropy
 if 'dev' in __version__:
     online_docs_root = 'http://docs.astropy.org/en/latest/'
 else:
     online_docs_root = 'http://docs.astropy.org/en/{0}/'.format(__version__)
+
+
+def _check_numpy():
+    """
+    Check that Numpy is installed and it is of the minimum version we
+    require.
+    """
+    # Note: We could have used distutils.version for this comparison,
+    # but it seems like overkill to import distutils at runtime.
+    requirement_met = False
+
+    try:
+        import numpy
+    except ImportError:
+        pass
+    else:
+        major, minor, rest = numpy.__version__.split(".", 2)
+        rmajor, rminor, rest = __minimum_numpy_version__.split(".", 2)
+        requirement_met = ((int(major), int(minor)) >=
+                           (int(rmajor), int(rminor)))
+
+    if not requirement_met:
+        msg = ("numpy version {0} or later must be installed to use "
+               "astropy".format(
+                   __minimum_numpy_version__))
+        raise ImportError(msg)
+
+    return numpy
+
+
+if not _ASTROPY_SETUP_:
+    _check_numpy()
 
 
 # set up the test command
