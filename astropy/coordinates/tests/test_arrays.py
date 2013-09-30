@@ -110,6 +110,7 @@ def test_array_coordinates_creation():
     #make sure cartesian initialization also works
     c = ICRSCoordinates(x=np.array([1, 2]), y=np.array([3, 4]), z=np.array([5, 6]), unit=u.kpc)
 
+
 def test_array_coordinates_distances():
     """
     Test creating coordinates from arrays and distances.
@@ -117,20 +118,21 @@ def test_array_coordinates_distances():
     from .. import ICRSCoordinates
 
     #correct way
-    ICRSCoordinates(np.array([1, 2]), np.array([3, 4]), unit=(u.deg, u.deg), distance= [.1,.2] * u.kpc)
+    ICRSCoordinates(np.array([1, 2]), np.array([3, 4]), unit=(u.deg, u.deg), distance= [.1, .2] * u.kpc)
 
     with pytest.raises(ValueError):
         #scalar distance and array coordinates
         ICRSCoordinates(np.array([1, 2]), np.array([[3, 4], [5, 6]]), unit=(u.deg, u.deg), distance= 2. * u.kpc)
     with pytest.raises(ValueError):
         #scalar coordinates and array distance
-        ICRSCoordinates(1., 2., unit=(u.deg, u.deg), distance= [.1,.2, 3.] * u.kpc)
+        ICRSCoordinates(1., 2., unit=(u.deg, u.deg), distance= [.1, .2, 3.] * u.kpc)
     with pytest.raises(ValueError):
         #more distance values than coordinates
-        ICRSCoordinates(np.array([1, 2]), np.array([[3, 4], [5, 6]]), unit=(u.deg, u.deg), distance= [.1,.2, 3.] * u.kpc)
+        ICRSCoordinates(np.array([1, 2]), np.array([[3, 4], [5, 6]]), unit=(u.deg, u.deg), distance= [.1, .2, 3.] * u.kpc)
 
-@pytest.mark.parametrize(('arrshape'), [(2, ), (4, 2, 5)])
-def test_array_coordinates_transformations(arrshape):
+
+@pytest.mark.parametrize(('arrshape', 'distance'), [((2, ), None), ((4, 2, 5), None), ((4, 2, 5), 2 * u.kpc)])
+def test_array_coordinates_transformations(arrshape, distance):
     """
     Test transformation on coordinates with array content (first length-2 1D, then a 3D array)
     """
@@ -139,22 +141,37 @@ def test_array_coordinates_transformations(arrshape):
     #M31 coordinates from test_transformations
     raarr = np.ones(arrshape) * 10.6847929
     decarr = np.ones(arrshape) * 41.2690650
-    c = ICRSCoordinates(raarr, decarr, unit=(u.deg, u.deg))
+    if distance is not None:
+        distance = np.ones(arrshape) * distance
+
+    c = ICRSCoordinates(raarr, decarr, unit=(u.deg, u.deg), distance=distance)
     g = c.transform_to(GalacticCoordinates)
 
     assert g.l.shape == arrshape
-    assert g.b.shape == arrshape
 
     npt.assert_array_almost_equal(g.l.degree, 121.17447049007306)
     npt.assert_array_almost_equal(g.b.degree, -21.57291080408368)
+
+    if distance is not None:
+        assert g.distance.unit == c.distance.unit
 
     #now make sure round-tripping works through FK5 - this exercises both static and dynamic transform matricies
     c2 = c.fk5.icrs
     npt.assert_array_almost_equal(c.ra, c2.ra)
     npt.assert_array_almost_equal(c.dec, c2.dec)
 
-    #also just make sure it's possible to get to FK4, which uses a direct trasnform function.
-    #c.fk4
+    assert c2.ra.shape == arrshape
+
+    if distance is not None:
+        assert c2.distance.unit == c.distance.unit
+
+    #also just make sure it's possible to get to FK4, which uses a direct transform function.
+    fk4 = c.fk4
+
+    assert fk4.ra.shape == arrshape
+    if distance is not None:
+        assert fk4.distance.unit == c.distance.unit
+
 
 def test_array_coordinates_string():
     """
