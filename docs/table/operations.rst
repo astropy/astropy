@@ -170,6 +170,7 @@ One can iterate over the group sub-tables and corresponding keys with::
   ...     print('****** {0} *******'.format(key['name']))
   ...     print group
   ...     print
+  ...
 
   ****** M101 *******
   name  obs_date  mag_b mag_v
@@ -215,6 +216,7 @@ Examples::
   ...     print('****** {0} *******'.format(key))
   ...     print group
   ...     print
+  ...
   ****** bar *******
    a
   ---
@@ -289,10 +291,61 @@ A single column of data can be aggregated as well::
   >>> cg_sums = cg.groups.aggregate(np.sum)
   >>> for key, cg_sum in izip(cg.groups.keys, cg_sums):
   ...     print 'Sum for {0} = {1}'.format(key, cg_sum)
+  ...
   Sum for bar = 2
   Sum for foo = 8
   Sum for qux = 11
 
+
+Filtering
+~~~~~~~~~~~
+
+Table groups can be filtered by means of the `~astropy.table.groups.TableGroups.filter`
+method.  This is done by supplying a function which is called for each
+group.   The function which is passed to this method must accept two arguments:
+
+- ``table`` : `Table` object
+- ``key_colnames`` : list of columns in ``table`` used as keys for grouping
+
+It must then return either `True` or `False`.  As an example, the following
+will select all table groups with only positive values in the non-key columns::
+
+  def all_positive(table, key_colnames):
+      colnames = [name for name in table.colnames if name not in key_colnames]
+      for colname in colnames:
+          if np.any(table[colname] < 0):
+              return False
+      return True
+
+An example of using this function is::
+
+  >>> t = Table.read(""" a   b    c
+                        -2  7.0   0
+                        -2  5.0   1
+                         1  3.0  -5
+                         1 -2.0  -6
+                         1  1.0   7
+                         0  0.0   4
+                         3  3.0   5
+                         3 -2.0   6
+                         3  1.0   7""", format='ascii')
+  >>> tg = t.group_by('a')
+  >>> t_positive = tg.groups.filter(all_positive)
+  >>> for group in t_positive.groups:
+  ...     print group
+  ...     print
+  ...
+   a   c   d
+  --- --- ---
+   -2 7.0   0
+   -2 5.0   1
+
+   a   c   d
+  --- --- ---
+    0 0.0   4
+
+As can be seen only the groups with ``a == -2`` and ``a == 0`` have all positive values
+in the non-key columns, so those are the ones that are selected.
 
 Stack vertically
 ^^^^^^^^^^^^^^^^^^^^

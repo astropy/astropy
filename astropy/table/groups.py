@@ -213,6 +213,18 @@ class TableGroups(BaseGroups):
         self._keys = keys
 
     @property
+    def key_colnames(self):
+        """
+        Return the names of columns in the parent table that were used for grouping.
+        """
+        # If the table was grouped by key columns *in* the table then treat those columns
+        # differently in aggregation.  In this case keys will be a Table with
+        # keys.meta['grouped_by_table_cols'] == True.  Keys might not be a Table so we
+        # need to handle this.
+        grouped_by_table_cols = getattr(self.keys, 'meta', {}).get('grouped_by_table_cols', False)
+        return self.keys.colnames if grouped_by_table_cols else ()
+
+    @property
     def indices(self):
         if self._indices is None:
             return np.array([0, len(self.parent_table)])
@@ -238,15 +250,11 @@ class TableGroups(BaseGroups):
         out_cols = []
         parent_table = self.parent_table
 
-        # If the table was grouped by key columns *in* the table then treat those columns
-        # differently in aggregation.  In this case keys will be a Table with
-        # keys.meta['grouped_by_table_cols'] == True.  Keys might not be a Table so we
-        # need to handle this.
         grouped_by_table_cols = getattr(self.keys, 'meta', {}).get('grouped_by_table_cols', False)
 
         for col in parent_table.columns.values():
             # For key columns just pick off first in each group since they are identical
-            if col.name in (self.keys.colnames if grouped_by_table_cols else ()):
+            if col.name in self.key_colnames:
                 # Should just be new_col = col.take(i0s), but there is a bug in
                 # MaskedColumn finalize:
                 # >>> c = MaskedColumn(data=[1,2], name='a', description='a')
@@ -265,6 +273,43 @@ class TableGroups(BaseGroups):
             out_cols.append(new_col)
 
         return parent_table.__class__(out_cols, meta=parent_table.meta)
+
+    def filter(self, func):
+        """
+        Filter groups in the Table based on evaluating function ``func`` on each
+        group sub-table.
+
+        The function which is passed to this method must accept two arguments:
+
+        - ``table`` : `Table` object
+        - ``key_colnames`` : tuple of column names in ``table`` used as keys for grouping
+
+        It must then return either `True` or `False`.  As an example, the following
+        will select all table groups with only positive values in the non-key columns::
+
+          def all_positive(table, key_colnames):
+              colnames = [name for name in table.colnames if name not in key_colnames]
+              for colname in colnames:
+                  if np.any(table[colname] < 0):
+                      return False
+              return True
+
+        Parameters
+        ----------
+        func : function
+            Filter function
+
+        Returns
+        -------
+        out : Table
+            New table with the aggregated rows.
+        """
+        mask = np.empty(len(self), dtype=np.bool)
+        key_colnames = self.key_colnames
+        for i, group_table in enumerate(self):
+            mask[i] = func(group_table, key_colnames)
+
+        return self[mask]
 
     @property
     def keys(self):
