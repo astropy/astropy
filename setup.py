@@ -15,9 +15,12 @@ else:
     import __builtin__ as builtins
 builtins._ASTROPY_SETUP_ = True
 
+from distutils.dist import Distribution
+
 import astropy
 from astropy.setup_helpers import (register_commands, adjust_compiler,
-                                   get_package_info, get_debug_option)
+                                   get_package_info, get_debug_option,
+                                   is_distutils_display_option)
 from astropy.version_helpers import get_git_devstr, generate_version_py
 
 NAME = 'astropy'
@@ -68,12 +71,21 @@ for hook in [('prereleaser', 'middle'), ('releaser', 'middle'),
     entry_points[hook_ep] = ['%s = %s' % (hook_name, hook_func)]
 
 
+setup_requires = ['numpy>=1.4']
+
+# Avoid installing setup_requires dependencies if the user just
+# queries for information
+if is_distutils_display_option():
+    setup_requires = []
+
+
 setup(name=NAME,
       version=VERSION,
       description='Community-developed python astronomy tools',
       scripts=scripts,
       requires=['numpy'],  # scipy not required, but strongly recommended
-      install_requires=['numpy'],
+      install_requires=setup_requires,
+      setup_requires=setup_requires,
       provides=[NAME],
       author='The Astropy Developers',
       author_email='astropy.team@gmail.com',

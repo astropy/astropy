@@ -612,13 +612,21 @@ def generate_default_config(build_lib, package):
     else:
         builtins = '__builtin__'
 
+    # astropy may have been built with a numpy that setuptools
+    # downloaded and installed into the current directory for us.
+    # Therefore, we need to extend the sys.path of the subprocess
+    # that's generating the config file, with the sys.path of this
+    # process.
+
     subproccode = (
+        'import sys; sys.path.extend({paths!r});'
         'import {builtins};{builtins}._ASTROPY_SETUP_ = True;'
         'from astropy.config.configuration import generate_all_config_items;'
         'generate_all_config_items({pkgnm!r}, True, filename={filenm!r})')
     subproccode = subproccode.format(builtins=builtins,
                                      pkgnm=package,
-                                     filenm=os.path.abspath(filename))
+                                     filenm=os.path.abspath(filename),
+                                     paths=sys.path)
 
     # Note that cwd=build_lib--we're importing astropy from the build/ dir
     # but using the astropy/ source dir as the config directory
@@ -1268,35 +1276,28 @@ def write_if_different(filename, data):
             fd.write(data)
 
 
-def check_numpy():
-    """
-    Check that Numpy is installed and it is of the minimum version we
-    require.
-    """
-
-    requirement_met = False
-
-    try:
-        import numpy
-    except ImportError:
-        pass
-    else:
-        major, minor, rest = numpy.__version__.split(".", 2)
-        requirement_met = (int(major), int(minor)) >= (1, 4)
-
-    if not requirement_met:
-        msg = "numpy version 1.4 or later must be installed to build astropy"
-        raise ImportError(msg)
-
-    return numpy
-
-
 def get_numpy_include_path():
     """
     Gets the path to the numpy headers.
     """
+    # We need to go through this nonsense in case setuptools
+    # downloaded and installed Numpy for us as part of the build or
+    # install, since Numpy may still think it's in "setup mode", when
+    # in fact we're ready to use it to build astropy now.
 
-    numpy = check_numpy()
+    if sys.version_info[0] >= 3:
+        import builtins
+        if hasattr(builtins, '__NUMPY_SETUP__'):
+            del builtins.__NUMPY_SETUP__
+        import imp
+        import numpy
+        imp.reload(numpy)
+    else:
+        import __builtin__
+        if hasattr(__builtin__, '__NUMPY_SETUP__'):
+            del __builtin__.__NUMPY_SETUP__
+        import numpy
+        reload(numpy)
 
     try:
         numpy_include = numpy.get_include()
