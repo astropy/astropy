@@ -135,15 +135,15 @@ def test_array_coordinates_transformations(arrshape):
     Test transformation on coordinates with array content (first length-2 1D, then a 3D array)
     """
     from .. import ICRSCoordinates, GalacticCoordinates
-    
+
     #M31 coordinates from test_transformations
     raarr = np.ones(arrshape) * 10.6847929
     decarr = np.ones(arrshape) * 41.2690650
     c = ICRSCoordinates(raarr, decarr, unit=(u.deg, u.deg))
     g = c.transform_to(GalacticCoordinates)
 
-    assert len(g.l) == 2
-    assert len(g.b) == 2
+    assert g.l.shape == arrshape
+    assert g.b.shape == arrshape
 
     npt.assert_array_almost_equal(g.l.degree, 121.17447049007306)
     npt.assert_array_almost_equal(g.b.degree, -21.57291080408368)

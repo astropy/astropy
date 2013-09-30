@@ -608,12 +608,17 @@ class StaticMatrixTransform(CoordinateTransform):
         self.priority = priority
         super(StaticMatrixTransform, self).__init__(fromsys, tosys)
 
-    # TODO: array: this needs some extra bits to do the broadcasting right
     def __call__(self, fromcoord):
-        v = [fromcoord.x.value, fromcoord.y.value, fromcoord.z.value]
-        x, y, z = np.dot(np.asarray(self.matrix), v)
-        unit = None if fromcoord.distance is None else fromcoord.distance._unit
-        result = self.tosys(x=x, y=y, z=z, unit=unit)
+        c = fromcoord.cartesian
+        v = c.reshape((3, c.size // 3))
+        v2 = np.dot(np.asarray(self.matrix), v)
+        subshape = c.shape[1:]
+        x = v2[0].reshape(subshape)
+        y = v2[1].reshape(subshape)
+        z = v2[2].reshape(subshape)
+
+        #units should get inferred from `x` `y`, and `z`
+        result = self.tosys(x=x, y=y, z=z)
 
         # copy over the observation time
         if hasattr(fromcoord, '_obstime') and hasattr(result, '_obstime'):
@@ -686,12 +691,17 @@ class DynamicMatrixTransform(CoordinateTransform):
         self.priority = priority
         super(DynamicMatrixTransform, self).__init__(fromsys, tosys, register)
 
-    # TODO: array: this needs some extra bits to do the broadcasting right
     def __call__(self, fromcoord):
-        v = [fromcoord.x.value, fromcoord.y.value, fromcoord.z.value]
-        x, y, z = np.dot(np.asarray(self.matrix_func(fromcoord)), v)
-        unit = None if fromcoord.distance is None else fromcoord.distance._unit
-        result = self.tosys(x=x, y=y, z=z, unit=unit)
+        c = fromcoord.cartesian
+        v = c.reshape((3, c.size // 3))
+        v2 = np.dot(np.asarray(self.matrix_func(fromcoord)), v)
+        subshape = c.shape[1:]
+        x = v2[0].reshape(subshape)
+        y = v2[1].reshape(subshape)
+        z = v2[2].reshape(subshape)
+
+        #units should get inferred from `x` `y`, and `z`
+        result = self.tosys(x=x, y=y, z=z)
 
         # copy over the observation time
         if hasattr(fromcoord, '_obstime') and hasattr(result, '_obstime'):
