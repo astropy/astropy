@@ -198,3 +198,20 @@ def test_array_coordinates_string():
     assert repr(c) == '<ICRSCoordinates RA=[1 2] deg, Dec=[3 4] deg, Distance=[ 0.5  1.5] kpc>'
 
 
+def test_array_precession():
+    """
+    Ensures that FK5 coordinates as arrays precess their equinoxes
+    """
+    from ...time import Time
+    from .. import FK5Coordinates
+
+    j2000 = Time('J2000', scale='utc')
+    j1975 = Time('J1975', scale='utc')
+
+    fk5 = FK5Coordinates([1, 1.1], [0.5, 0.6], unit=(u.radian, u.radian))
+    assert fk5.equinox.jyear == j2000.jyear
+    fk5_2 = fk5.precess_to(j1975)
+    assert fk5_2.equinox.jyear == j1975.jyear
+
+    npt.assert_array_less(0.05, np.abs(fk5.ra.degree - fk5_2.ra.degree))
+    npt.assert_array_less(0.05, np.abs(fk5.dec.degree - fk5_2.dec.degree))
