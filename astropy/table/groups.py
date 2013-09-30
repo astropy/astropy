@@ -26,8 +26,6 @@ def table_group_by(table, keys):
     # Pre-convert string to tuple of strings, or Table to the underlying structured array
     if isinstance(keys, basestring):
         keys = (keys,)
-    elif isinstance(keys, Table):
-        keys = keys._data
 
     if isinstance(keys, (list, tuple)):
         for name in keys:
@@ -38,12 +36,14 @@ def table_group_by(table, keys):
 
         keys = tuple(keys)
         table_keys = table[keys]
+        grouped_by_table_cols = True  # Grouping keys are columns from the table being grouped
 
-    elif isinstance(keys, np.ndarray):
+    elif isinstance(keys, (np.ndarray, Table)):
         table_keys = keys
         if len(table_keys) != len(table):
             raise ValueError('Input keys array length {0} does not match table length {1}'
                              .format(len(table_keys), len(table)))
+        grouped_by_table_cols = False  # Grouping key(s) are external
 
     else:
         raise TypeError('Keys input must be string, list, tuple or numpy array, but got {0}'
@@ -59,7 +59,10 @@ def table_group_by(table, keys):
     # Make a new table and set the _groups to the appropriate TableGroups object.
     # Take the subset of the original keys at the indices values (group boundaries).
     out = table.__class__(table[idx_sort])
-    out._groups = TableGroups(out, indices=indices, keys=table_keys[indices[:-1]])
+    out_keys = table_keys[indices[:-1]]
+    if isinstance(out_keys, Table):
+        out_keys.meta['grouped_by_table_cols'] = grouped_by_table_cols
+    out._groups = TableGroups(out, indices=indices, keys=out_keys)
 
     return out
 
@@ -235,15 +238,15 @@ class TableGroups(BaseGroups):
         out_cols = []
         parent_table = self.parent_table
 
-        # If keys is a Table then that means group_by() used a table column name(s) to
-        # define grouping.  Those columns in the parent table should be ignored for
-        # aggregation.
-        group_keys_col_names = (self.keys.colnames if isinstance(self.keys, parent_table.__class__)
-                                else ())
+        # If the table was grouped by key columns *in* the table then treat those columns
+        # differently in aggregation.  In this case keys will be a Table with
+        # keys.meta['grouped_by_table_cols'] == True.  Keys might not be a Table so we
+        # need to handle this.
+        grouped_by_table_cols = getattr(self.keys, 'meta', {}).get('grouped_by_table_cols', False)
 
         for col in parent_table.columns.values():
             # For key columns just pick off first in each group since they are identical
-            if col.name in group_keys_col_names:
+            if col.name in (self.keys.colnames if grouped_by_table_cols else ()):
                 # Should just be new_col = col.take(i0s), but there is a bug in
                 # MaskedColumn finalize:
                 # >>> c = MaskedColumn(data=[1,2], name='a', description='a')

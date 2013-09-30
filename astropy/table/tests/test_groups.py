@@ -365,6 +365,35 @@ def test_group_by_errors():
         t1.group_by('a')
 
 
+def test_groups_keys_meta():
+    """
+    Make sure the keys meta['grouped_by_table_cols'] is working.
+    """
+    # Group by column in this table
+    tg = T1.group_by('a')
+    assert tg.groups.keys.meta['grouped_by_table_cols'] is True
+    assert tg['c'].groups.keys.meta['grouped_by_table_cols'] is True
+    assert tg.groups[1].groups.keys.meta['grouped_by_table_cols'] is True
+    assert (tg['d'].groups[np.array([False, True, True])]
+            .groups.keys.meta['grouped_by_table_cols'] is True)
+
+    # Group by external Table
+    tg = T1.group_by(T1['a', 'b'])
+    assert tg.groups.keys.meta['grouped_by_table_cols'] is False
+    assert tg['c'].groups.keys.meta['grouped_by_table_cols'] is False
+    assert tg.groups[1].groups.keys.meta['grouped_by_table_cols'] is False
+
+    # Group by external numpy array
+    tg = T1.group_by(T1['a', 'b']._data)
+    assert not hasattr(tg.groups.keys, 'meta')
+    assert not hasattr(tg['c'].groups.keys, 'meta')
+
+    # Group by Column
+    tg = T1.group_by(T1['a'])
+    assert 'grouped_by_table_cols' not in tg.groups.keys.meta
+    assert 'grouped_by_table_cols' not in tg['c'].groups.keys.meta
+
+
 def test_table_aggregate():
     """
     Aggregate a table
