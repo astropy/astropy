@@ -1053,13 +1053,13 @@ def test_equality_masked():
 
     # In the above cases, Row.__eq__ gets called, but now need to make sure
     # Table.__eq__ also gets called.
-    assert np.all((t == t2).data == np.array([1,1,0,1,0,1,0,1], dtype=bool))
-    assert np.all((t != t2).data == np.array([0,0,1,0,1,0,1,0], dtype=bool))
+    assert np.all((t == t2) == np.array([1,1,0,1,0,1,0,1], dtype=bool))
+    assert np.all((t != t2) == np.array([0,0,1,0,1,0,1,0], dtype=bool))
 
     # Check that masking a value causes the row to differ
     t.mask['a'][0] = True
-    assert np.all((t == t2).data == np.array([0,1,0,1,0,1,0,1], dtype=bool))
-    assert np.all((t != t2).data == np.array([1,0,1,0,1,0,1,0], dtype=bool))
+    assert np.all((t == t2) == np.array([0,1,0,1,0,1,0,1], dtype=bool))
+    assert np.all((t != t2) == np.array([1,0,1,0,1,0,1,0], dtype=bool))
 
     # Check that comparing to a structured array works
     assert np.all((t == t2._data) == np.array([0,1,0,1,0,1,0,1], dtype=bool))
