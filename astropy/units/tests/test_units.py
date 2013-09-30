@@ -393,10 +393,7 @@ def test_endian_independence():
     for endian in ['<', '>']:
         for ntype in ['i', 'f']:
             for byte in ['4', '8']:
-                # Note, we have to use encode() because we've imported
-                # unicode_literals from __future__, and Numpy 1.4.1 crashes if
-                # a unicode dtype is passed.
-                x = np.array([1,2,3], dtype=(endian + ntype + byte).encode('ascii'))
+                x = np.array([1,2,3], dtype=(endian + ntype + byte))
                 u.m.to(u.cm, x)
 
 
