@@ -946,3 +946,156 @@ def test_copy_protocol():
 
     _assert_copies(t, t2, deep=False)
     _assert_copies(t, t3)
+
+def test_disallow_inequality_comparisons():
+    """
+    Regression test for #828 - disallow comparison operators on whole Table
+    """
+
+    t = table.Table()
+
+    with pytest.raises(TypeError):
+        t > 2
+
+    with pytest.raises(TypeError):
+        t < 1.1
+
+    with pytest.raises(TypeError):
+        t >= 5.5
+
+    with pytest.raises(TypeError):
+        t <= -1.1
+
+def test_equality():
+
+    t = table.Table.read([' a b  c  d',
+                          ' 2 c 7.0 0',
+                          ' 2 b 5.0 1',
+                          ' 2 b 6.0 2',
+                          ' 2 a 4.0 3',
+                          ' 0 a 0.0 4',
+                          ' 1 b 3.0 5',
+                          ' 1 a 2.0 6',
+                          ' 1 a 1.0 7',
+                         ], format='ascii')
+
+    # All rows are equal
+    assert np.all(t==t)
+
+    # Assert no rows are different
+    assert not np.any(t!=t)
+
+    # Check equality result for a given row
+    assert np.all((t == t[3]) == np.array([0,0,0,1,0,0,0,0], dtype=bool))
+
+    # Check inequality result for a given row
+    assert np.all((t != t[3]) == np.array([1,1,1,0,1,1,1,1], dtype=bool))
+
+    t2 = table.Table.read([' a b  c  d',
+                           ' 2 c 7.0 0',
+                           ' 2 b 5.0 1',
+                           ' 3 b 6.0 2',
+                           ' 2 a 4.0 3',
+                           ' 0 a 1.0 4',
+                           ' 1 b 3.0 5',
+                           ' 1 c 2.0 6',
+                           ' 1 a 1.0 7',
+                          ], format='ascii')
+
+    # In the above cases, Row.__eq__ gets called, but now need to make sure
+    # Table.__eq__ also gets called.
+    assert np.all((t == t2) == np.array([1,1,0,1,0,1,0,1], dtype=bool))
+    assert np.all((t != t2) == np.array([0,0,1,0,1,0,1,0], dtype=bool))
+
+    # Check that comparing to a structured array works
+    assert np.all((t == t2._data) == np.array([1,1,0,1,0,1,0,1], dtype=bool))
+    assert np.all((t._data == t2) == np.array([1,1,0,1,0,1,0,1], dtype=bool))
+
+
+def test_equality_masked():
+
+    t = table.Table.read([' a b  c  d',
+                          ' 2 c 7.0 0',
+                          ' 2 b 5.0 1',
+                          ' 2 b 6.0 2',
+                          ' 2 a 4.0 3',
+                          ' 0 a 0.0 4',
+                          ' 1 b 3.0 5',
+                          ' 1 a 2.0 6',
+                          ' 1 a 1.0 7',
+                         ], format='ascii')
+
+    # Make into masked table
+    t = table.Table(t, masked=True)
+
+    # All rows are equal
+    assert np.all(t==t)
+
+    # Assert no rows are different
+    assert not np.any(t!=t)
+
+    # Check equality result for a given row
+    assert np.all((t == t[3]) == np.array([0,0,0,1,0,0,0,0], dtype=bool))
+
+    # Check inequality result for a given row
+    assert np.all((t != t[3]) == np.array([1,1,1,0,1,1,1,1], dtype=bool))
+
+    t2 = table.Table.read([' a b  c  d',
+                           ' 2 c 7.0 0',
+                           ' 2 b 5.0 1',
+                           ' 3 b 6.0 2',
+                           ' 2 a 4.0 3',
+                           ' 0 a 1.0 4',
+                           ' 1 b 3.0 5',
+                           ' 1 c 2.0 6',
+                           ' 1 a 1.0 7',
+                          ], format='ascii')
+
+    # In the above cases, Row.__eq__ gets called, but now need to make sure
+    # Table.__eq__ also gets called.
+    assert np.all((t == t2) == np.array([1,1,0,1,0,1,0,1], dtype=bool))
+    assert np.all((t != t2) == np.array([0,0,1,0,1,0,1,0], dtype=bool))
+
+    # Check that masking a value causes the row to differ
+    t.mask['a'][0] = True
+    assert np.all((t == t2) == np.array([0,1,0,1,0,1,0,1], dtype=bool))
+    assert np.all((t != t2) == np.array([1,0,1,0,1,0,1,0], dtype=bool))
+
+    # Check that comparing to a structured array works
+    assert np.all((t == t2._data) == np.array([0,1,0,1,0,1,0,1], dtype=bool))
+
+
+@pytest.mark.xfail
+def test_equality_masked_bug():
+    """
+    This highlights a Numpy bug. Once it works, it can be moved into the
+    test_equality_masked test. Related Numpy bug report:
+
+      https://github.com/numpy/numpy/issues/3840
+    """
+
+    t = table.Table.read([' a b  c  d',
+                          ' 2 c 7.0 0',
+                          ' 2 b 5.0 1',
+                          ' 2 b 6.0 2',
+                          ' 2 a 4.0 3',
+                          ' 0 a 0.0 4',
+                          ' 1 b 3.0 5',
+                          ' 1 a 2.0 6',
+                          ' 1 a 1.0 7',
+                         ], format='ascii')
+
+    t = table.Table(t, masked=True)
+
+    t2 = table.Table.read([' a b  c  d',
+                           ' 2 c 7.0 0',
+                           ' 2 b 5.0 1',
+                           ' 3 b 6.0 2',
+                           ' 2 a 4.0 3',
+                           ' 0 a 1.0 4',
+                           ' 1 b 3.0 5',
+                           ' 1 c 2.0 6',
+                           ' 1 a 1.0 7',
+                          ], format='ascii')
+
+    assert np.all((t._data == t2) == np.array([0,1,0,1,0,1,0,1], dtype=bool))
