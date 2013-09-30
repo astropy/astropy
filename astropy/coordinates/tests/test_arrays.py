@@ -165,8 +165,11 @@ def test_array_coordinates_transformations(arrshape, distance):
     if distance is not None:
         assert c2.distance.unit == c.distance.unit
 
-    #also just make sure it's possible to get to FK4, which uses a direct transform function.
+    #also make sure it's possible to get to FK4, which uses a direct transform function.
     fk4 = c.fk4
+
+    npt.assert_array_almost_equal(fk4.ra.degree, 10.0004, decimal=4)
+    npt.assert_array_almost_equal(fk4.dec.degree, 40.9953, decimal=4)
 
     assert fk4.ra.shape == arrshape
     if distance is not None:
