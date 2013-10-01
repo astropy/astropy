@@ -267,8 +267,8 @@ class SphericalCoordinatesBase(object):
             msg = "<{clsnm} {lonnm}={lonval:.5f} deg, {latnm}={latval:.5f} deg{diststr}>"
         else:
             msg = "<{clsnm} {lonnm}={lonval} deg, {latnm}={latval} deg{diststr}>"
-        return msg.format(clsnm=self.__class__.__name__, lonval=self.ra.degree,
-                          latval=self.dec.degree, lonnm=self._repr_lon_name,
+        return msg.format(clsnm=self.__class__.__name__, lonval=self.lonangle.degree,
+                          latval=self.latangle.degree, lonnm=self._repr_lon_name,
                           latnm=self._repr_lat_name, diststr=diststr)
 
     @abstractproperty
