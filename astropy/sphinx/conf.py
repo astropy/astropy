@@ -13,7 +13,8 @@ import warnings
 from os import path
 from distutils.version import LooseVersion
 import re
-import subprocess
+
+from ..utils.compat import subprocess
 
 
 # -- General configuration ----------------------------------------------------
