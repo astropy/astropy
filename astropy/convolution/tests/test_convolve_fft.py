@@ -132,7 +132,10 @@ class TestConvolve1D(object):
 
         # for whatever reason, numpy's fft has very limited precision, and
         # the comparison fails unless you cast the float64 to a float16
-        # REMOVED because of numpy 1.4 incompatibility assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16), np.array([1.,0.,3.], dtype=np.float16), 10)
+        if hasattr(np, 'float16'):
+            assert_array_almost_equal_nulp(
+                np.asarray(z, dtype=np.float16),
+                np.array([1.,0.,3.], dtype=np.float16), 10)
         # ASSERT equality to better than 16 bit but worse than 32 bit precision
         assert np.all(np.abs(z - np.array([1., 0., 3.])) < 1e-14)
 
@@ -162,8 +165,9 @@ class TestConvolve1D(object):
 
         # for whatever reason, numpy's fft has very limited precision, and
         # the comparison fails unless you cast the float64 to a float16
-        assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16),
-                                       np.array([1.,0.,3.], dtype=np.float16), 10)
+        if hasattr(np, 'float16'):
+            assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16),
+                                           np.array([1.,0.,3.], dtype=np.float16), 10)
         assert np.all(np.abs(z - outval) < 1e-14)
 
     @pytest.mark.parametrize(option_names, options)
@@ -348,8 +352,9 @@ class TestConvolve2D(object):
 
         # for whatever reason, numpy's fft has very limited precision, and
         # the comparison fails unless you cast the float64 to a float16
-        assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16),
-                                       np.asarray(a, dtype=np.float16), 10)
+        if hasattr(np, 'float16'):
+            assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16),
+                                           np.asarray(a, dtype=np.float16), 10)
         assert np.all(np.abs(z - a) < 1e-14)
 
     @pytest.mark.parametrize(option_names, options)
