@@ -209,10 +209,8 @@ class ShiftModel(Model):
     """
     param_names = ['offsets']
 
-    def __init__(self, offsets):
-        if not isinstance(offsets, collections.Sequence):
-            param_dim = 1
-        else:
+    def __init__(self, offsets, param_dim=1):
+        if isinstance(offsets, collections.Sequence):
             param_dim = len(offsets)
         self._offsets = parameters.Parameter('offsets', offsets, self, param_dim)
         super(ShiftModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
@@ -220,7 +218,7 @@ class ShiftModel(Model):
 
     def inverse(self):
         if self.param_dim == 1:
-            return ShiftModel(offsets=(-1) * self.offsets[0])
+            return ShiftModel(offsets=(-1) * self._offsets)
         else:
             return ShiftModel(offsets=[off * (-1) for off in self._offsets])
 
@@ -234,7 +232,7 @@ class ShiftModel(Model):
             input
         """
         x, fmt = _convert_input(x, self.param_dim)
-        result = x + self.offsets
+        result = self._offsets +x
         return _convert_output(result, fmt)
 
 
@@ -252,10 +250,8 @@ class ScaleModel(Model):
     """
     param_names = ['factors']
 
-    def __init__(self, factors):
-        if not isinstance(factors, collections.Sequence):
-            param_dim = 1
-        else:
+    def __init__(self, factors, param_dim=1):
+        if isinstance(factors, collections.Sequence):
             param_dim = len(factors)
         self._factors = parameters.Parameter('factors', factors, self, param_dim)
         super(ScaleModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
@@ -263,7 +259,7 @@ class ScaleModel(Model):
 
     def inverse(self):
         if self.param_dim == 1:
-            return ScaleModel(factors=1. / self.factors[0])
+            return ScaleModel(factors=1. / self._factors)
         else:
             return ScaleModel(factors=[1 / factor for factor in self._factors])
 
@@ -277,7 +273,7 @@ class ScaleModel(Model):
             input
         """
         x, fmt = _convert_input(x, self.param_dim)
-        result = x * self.factors
+        result = self._factors * x
         return _convert_output(result, fmt)
 
 
