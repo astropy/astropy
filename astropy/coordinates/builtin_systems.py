@@ -569,14 +569,15 @@ def fk4_e_terms(equinox):
 def fk4_to_fk4_no_e(fk4c):
 
     # Extract cartesian vector
-    r = np.array([fk4c.x.value, fk4c.y.value, fk4c.z.value])
+    c = fk4c.cartesian
+    r = np.asarray(c.reshape((3, c.size // 3)))
 
     # Find distance (for re-normalization)
     d_orig = np.sqrt(np.sum(r ** 2))
 
     # Apply E-terms of aberration
-    eterms_a = fk4_e_terms(fk4c.equinox)
-    r = r - eterms_a + np.dot(r, eterms_a) * r
+    eterms_a = np.array(fk4_e_terms(fk4c.equinox))
+    r = r - eterms_a.reshape(3, 1) + np.dot(eterms_a, r) * r
 
     # Find new distance (for re-normalization)
     d_new = np.sqrt(np.sum(r ** 2))
@@ -584,10 +585,13 @@ def fk4_to_fk4_no_e(fk4c):
     # Renormalize
     r = r * d_orig / d_new
 
-    unit = None if fk4c.distance is None else fk4c.distance.unit
-    result = FK4NoETermCoordinates(x=r[0], y=r[1], z=r[2], unit=unit, equinox=fk4c.equinox)
+    subshape = c.shape[1:]
+    x = r[0].reshape(subshape)
+    y = r[1].reshape(subshape)
+    z = r[2].reshape(subshape)
 
-    return result
+    newunit = None if fk4c.distance is None else fk4c.distance.unit
+    return FK4NoETermCoordinates(x=x, y=y, z=z, unit=newunit, equinox=fk4c.equinox)
 
 
 @transformations.transform_function(FK4NoETermCoordinates, FK4Coordinates, priority=1)
@@ -618,9 +622,7 @@ def fk4_no_e_to_fk4(fk4c):
     z = r[2].reshape(subshape)
 
     newunit = None if fk4c.distance is None else fk4c.distance.unit
-    result = FK4Coordinates(x=x, y=y, z=z, unit=newunit, equinox=fk4c.equinox)
-
-    return result
+    return FK4Coordinates(x=x, y=y, z=z, unit=newunit, equinox=fk4c.equinox)
 
 # FK5 to/from FK4
 

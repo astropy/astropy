@@ -184,6 +184,10 @@ def test_array_coordinates_transformations(arrshape, distance):
     if distance is not None:
         assert fk4.distance.unit == c.distance.unit
 
+    #now check the reverse transforms run
+    cfk4 = fk4.icrs
+    assert cfk4.ra.shape == arrshape
+
 
 def test_array_coordinates_string():
     """
