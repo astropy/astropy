@@ -41,12 +41,28 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     doctest_plugin = config.pluginmanager.getplugin('doctest')
-
     if (doctest_plugin is None or config.option.doctestmodules or not
             (config.getini('doctest_plus') or config.option.doctest_plus)):
         return
 
     class DocTestModulePlus(doctest_plugin.DoctestModule):
+        # This is for py.test 2.4.0 or later
+        def collect(self):
+            if self.fspath.basename == "conftest.py":
+                module = self.config._conftest.importconftest(self.fspath)
+            else:
+                module = self.fspath.pyimport()
+
+            # uses internal doctest module parsing mechanism
+            finder = DocTestFinderPlus()
+            opts = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
+            runner = doctest.DebugRunner(verbose=False, optionflags=opts)
+            for test in finder.find(module):
+                if test.examples:  # skip empty doctests
+                    yield doctest_plugin.DoctestItem(
+                        test.name, self, runner, test)
+
+        # This is for py.test prior to 2.4.0
         def runtest(self):
             if self.fspath.basename == 'conftest.py':
                 module = self.config._conftest.importconftest(self.fspath)

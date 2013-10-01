@@ -51,7 +51,7 @@ else:
             zlib.decompress(base64.decodestring(extern_pytest.sources)))
 
     importer = extern_pytest.DictImporter(unpacked_sources)
-    sys.meta_path.append(importer)
+    sys.meta_path.insert(0, importer)
 
     pytest = importer.load_module('pytest')
 
@@ -62,7 +62,7 @@ from _pytest.assertion import rewrite as _rewrite
 _orig_write_pyc = _rewrite._write_pyc
 
 
-def _write_pyc_wrapper(co, source_path, pyc):
+def _write_pyc_wrapper(*args):
     """Wraps the internal _write_pyc method in py.test to recognize
     PermissionErrors and just stop trying to cache its generated pyc files if
     it can't write them to the __pycache__ directory.
@@ -79,7 +79,7 @@ def _write_pyc_wrapper(co, source_path, pyc):
     """
 
     try:
-        return _orig_write_pyc(co, source_path, pyc)
+        return _orig_write_pyc(*args)
     except IOError as e:
         if e.errno == errno.EACCES:
             return False
