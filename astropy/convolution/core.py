@@ -282,8 +282,6 @@ class Kernel2D(Kernel):
             else:  # odd kernel
                 y_range = (-(int(y_size) - 1) // 2, (int(y_size) - 1) // 2 + 1)
 
-            print(x_size, y_size, x_range, y_range)
-
             array = discretize_model(self._model, x_range, y_range, **kwargs)
 
         # Initialize from array
