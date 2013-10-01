@@ -16,7 +16,7 @@ __all__ = sorted(['AiryDisk2DModel', 'Beta1DModel', 'Beta2DModel',
                   'Custom1DModel', 'Disk2DModel', 'Gaussian1DModel', 'Gaussian2DModel',
                   'Linear1DModel', 'Lorentz1DModel', 'MexicanHat1DModel',
                   'MexicanHat2DModel', 'PowerLaw1DModel', 'ScaleModel', 'ShiftModel',
-                  'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel'])
+                  'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel', 'Ring2DModel'])
 
 
 class Gaussian1DModel(Parametric1DModel):
