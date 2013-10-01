@@ -8,7 +8,7 @@ python:
     # This is just for "egg_info".  All other builds are explicitly given in the matrix
 env:
     global:
-        - PIP_WHEEL_COMMAND="pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel --upgrade --use-mirrors"
+        - PIP_WHEEL_COMMAND="pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel --use-mirrors"
     matrix:
         - SETUP_CMD='egg_info' NUMPY_VERSION=1.7.1 OPTIONAL_DEPS=false
 
@@ -80,10 +80,10 @@ install:
     # CORE DEPENDENCIES
     # These command run pip first trying a wheel, and then falling back on
     # source build
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "numpy==$NUMPY_VERSION"; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND --upgrade "numpy==$NUMPY_VERSION"; fi
     - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "Cython>=0.18"; fi
     - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "pytest==2.3.5"; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "pytest-xdist"; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "pytest-xdist==1.8"; fi
 
     # OPTIONAL DEPENDENCIES
     - if $OPTIONAL_DEPS; then $PIP_WHEEL_COMMAND "scipy==0.12.0"; fi
