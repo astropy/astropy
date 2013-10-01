@@ -110,6 +110,15 @@ def test_array_coordinates_creation():
     #make sure cartesian initialization also works
     c = ICRSCoordinates(x=np.array([1, 2]), y=np.array([3, 4]), z=np.array([5, 6]), unit=u.kpc)
 
+    #also ensure strings can be arrays
+    c = ICRSCoordinates(np.array(['1d0m0s', '2h02m00.3s']), np.array(['3d', '4d']), unit=(u.deg, u.deg))
+
+    #but invalid strings cannot
+    with pytest.raises(ValueError):
+        c = ICRSCoordinates(np.array(['10m0s', '2h02m00.3s']), np.array(['3d', '4d']), unit=(u.deg, u.deg))
+    with pytest.raises(ValueError):
+        c = ICRSCoordinates(np.array(['1d0m0s', '2h02m00.3s']), np.array(['3x', '4d']), unit=(u.deg, u.deg))
+
 
 def test_array_coordinates_distances():
     """
