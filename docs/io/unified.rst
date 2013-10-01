@@ -152,7 +152,7 @@ To write to a new file::
 
 At this time, the ``meta`` attribute of the
 :class:`~astropy.table.table.Table` class is simply an ordered
-dictionary and does not fully reprepsent the structure of a FITS
+dictionary and does not fully represent the structure of a FITS
 header (for example, keyword comments are dropped). This is likely
 to change in a future release.
 

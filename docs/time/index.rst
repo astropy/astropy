@@ -357,7 +357,7 @@ particular ``*`` and ``?``, as documented in the Python `fnmatch
 
 The default value for `in_subfmt` is ``*`` which matches any available
 subformat.  This allows for convenient input of values with unknown or
-heterogeous subformat::
+heterogeneous subformat::
 
   >>> Time(['2000:001', '2000:002:03:04', '2001:003:04:05:06.789'], scale='utc')
   <Time object: scale='utc' format='yday'

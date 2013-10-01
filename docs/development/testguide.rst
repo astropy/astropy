@@ -600,7 +600,7 @@ by default, but this not always feasible.  For example the example output may
 contain the ``__repr__`` of an object which displays its id (which will change
 on each run), or a test that expects an exception may output a traceback.
 
-The simplest way to generalize the example output is to use the elipses
+The simplest way to generalize the example output is to use the ellipses
 ``...``.  For example::
 
     >>> 1 / 0

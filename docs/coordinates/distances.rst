@@ -37,7 +37,7 @@ coordinates using the `x`/`y`/`z` attributes (which are
     >>> c.z
     <Quantity 507.8899092486349 kpc>
 
-If a `distance` is not present, the cartesian coordinates are still
+If a `distance` is not present, the Cartesian coordinates are still
 available, but the point is interpreted as lying on the (dimensionless)
 unit sphere::
 
@@ -76,7 +76,7 @@ additional capabilities like arithmetic operations::
     >>> cp - cp
     <CartesianPoints [ 0., 0., 0.] kpc>
 
-This cartesian representation can also be used to create a new coordinate
+This Cartesian representation can also be used to create a new coordinate
 object, either directly or through a `CartesianPoints` object::
 
     >>> from astropy.coordinates import CartesianPoints

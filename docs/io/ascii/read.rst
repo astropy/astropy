@@ -97,7 +97,7 @@ Parameters for ``read()``
   parameter, select for output only columns within this list.  If not supplied
   then include all names.
   
-**exclude_names**: list of names to exlude from output
+**exclude_names**: list of names to exclude from output
   Exclude these names from the list of output columns.  This is applied *after*
   the ``include_names`` filtering.  If not specified then no columns are excluded.
 
