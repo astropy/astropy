@@ -82,6 +82,7 @@ install:
     # source build
     - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "numpy==$NUMPY_VERSION"; fi
     - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "Cython>=0.18"; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "pytest==2.3.5"; fi
     - if [[ $SETUP_CMD != egg_info ]]; then $PIP_WHEEL_COMMAND "pytest-xdist"; fi
 
     # OPTIONAL DEPENDENCIES
