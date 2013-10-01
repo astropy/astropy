@@ -345,7 +345,7 @@ install Sphinx.  Using pip or easy_install will install the correct versions
 of Sphinx's basic dependencies, which include docutils, Jinja2, and Pygments.
 
 Next, the docs require STScI's custom Sphinx theme, `stsci.sphinxext`_.  It's
-a simple pure-Python pacakge and can be installed with pip or easy_install.
+a simple pure-Python package and can be installed with pip or easy_install.
 
 The next requirement is `numpydoc`_, which is not normally installed with
 Numpy itself.  Install it with pip or easy_install.  Numpy is also required,

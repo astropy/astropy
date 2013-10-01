@@ -140,7 +140,7 @@ Outputting a VOTable file
 
 To save a VOTable file, simply call the
 `~astropy.io.votable.tree.VOTableFile.to_xml` method.  It accepts
-either a string or unicode path, or a Python file-like object::
+either a string or Unicode path, or a Python file-like object::
 
   votable.to_xml('output.xml')
 
