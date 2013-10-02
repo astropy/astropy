@@ -123,6 +123,8 @@ class FK5Coordinates(SphericalCoordinatesBase):
             raise TypeError('specified equinox is not a Time object')
         if self._obstime is not None and not isinstance(self._obstime, Time):
             raise TypeError('specified obstime is not None or a Time object')
+        if not self._equinox.isscalar:
+            raise ValueError('specified equinox is not a scalar')
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -214,6 +216,8 @@ class FK4Coordinates(SphericalCoordinatesBase):
             raise TypeError('specified equinox is not a Time object')
         if self._obstime is not None and not isinstance(self._obstime, Time):
             raise TypeError('specified obstime is not None or a Time object')
+        if not self._equinox.isscalar:
+            raise ValueError('specified equinox is not a scalar')
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -304,6 +308,8 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
             raise TypeError('specified equinox is not a Time object')
         if self._obstime is not None and not isinstance(self._obstime, Time):
             raise TypeError('specified obstime is not None or a Time object')
+        if not self._equinox.isscalar:
+            raise ValueError('specified equinox is not a scalar')
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -461,6 +467,8 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
             raise TypeError('specified equinox is not a Time object')
         if self._obstime is not None and not isinstance(self._obstime, Time):
             raise TypeError('specified obstime is not None or a Time object')
+        if not self._equinox.isscalar:
+            raise ValueError('specified equinox is not a scalar')
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
