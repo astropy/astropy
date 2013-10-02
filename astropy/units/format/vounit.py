@@ -7,7 +7,7 @@ from __future__ import (absolute_import, division, print_function,
 from ...extern.six.moves import zip
 
 import warnings
-from ...utils.custom_warnings import AstropyDeprecationWarning
+from ...utils.exceptions import AstropyDeprecationWarning
 
 from . import generic
 from . import utils

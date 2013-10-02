@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 from .. import misc
 from ...tests.helper import remote_data, catch_warnings
 from .. import data
-from ..custom_warnings import AstropyDeprecationWarning
+from ..exceptions import AstropyDeprecationWarning
 
 
 #namedtuple is needed for find_mod_objs so it can have a non-local module

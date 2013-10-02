@@ -14,7 +14,7 @@ from . import config
 from .utils.compat import inspect_getmodule
 from .utils.console import color_print
 from .utils.misc import find_current_module
-from .utils.custom_warnings import AstropyWarning, AstropyUserWarning
+from .utils.exceptions import AstropyWarning, AstropyUserWarning
 
 __all__ = ['log', 'AstropyLogger', 'LoggingError']
 

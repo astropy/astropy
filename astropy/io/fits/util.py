@@ -14,7 +14,7 @@ import threading
 import warnings
 
 import numpy as np
-from ...utils.custom_warnings import AstropyUserWarning
+from ...utils.exceptions import AstropyUserWarning
 
 def itersubclasses(cls, _seen=None):
     """

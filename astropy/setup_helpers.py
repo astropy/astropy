@@ -34,7 +34,7 @@ from .tests.helper import astropy_test
 from .utils import silence
 from .utils.compat.misc import invalidate_caches
 from .utils.misc import walk_skip_hidden
-from .utils.custom_warnings import AstropyDeprecationWarning
+from .utils.exceptions import AstropyDeprecationWarning
 
 
 try:

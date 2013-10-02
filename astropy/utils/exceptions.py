@@ -7,7 +7,33 @@ be here, but rather in the particular subpackage.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..utils.custom_warnings import AstropyWarning
+
+class AstropyWarning(Warning):
+    """
+    The base warning class from which all Astropy warnings should inherit.
+
+    Any warning inheriting from this class is handled by the Astropy logger.
+    """
+
+
+class AstropyUserWarning(UserWarning, AstropyWarning):
+    """
+    The primary warning class for Astropy.
+
+    Use this if you do not need a specific sub-class.
+    """
+
+
+class AstropyDeprecationWarning(DeprecationWarning, AstropyWarning):
+    """
+    A warning class to indicate a deprecated feature.
+    """
+
+
+class AstropyPendingDeprecationWarning(PendingDeprecationWarning, AstropyWarning):
+    """
+    A warning class to indicate a soon-to-be deprecated feature.
+    """
 
 
 class AstropyBackwardsIncompatibleChangeWarning(AstropyWarning):

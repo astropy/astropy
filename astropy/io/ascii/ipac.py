@@ -39,7 +39,7 @@ from warnings import warn
 from . import core
 from . import fixedwidth
 from ...utils import OrderedDict
-from ...utils.custom_warnings import AstropyUserWarning
+from ...utils.exceptions import AstropyUserWarning
 
 
 class IpacFormatErrorDBMS(Exception):

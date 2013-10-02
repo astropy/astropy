@@ -17,7 +17,7 @@ from .util import (encode_ascii, decode_ascii, fileobj_mode,
                    fileobj_is_binary)
 
 from ...utils import deprecated, isiterable
-from ...utils.custom_warnings import AstropyUserWarning, AstropyDeprecationWarning
+from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
 PY3K = sys.version_info[:2] >= (3, 0)

@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 
 from ..modeling.core import Parametric1DModel, Parametric2DModel
-from ..utils.custom_warnings import AstropyUserWarning
+from ..utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['discretize_model']

@@ -7,7 +7,7 @@ import numpy as np
 from ...tests.helper import pytest, catch_warnings
 from ... import table
 from ...table import Row
-from ...utils.custom_warnings import AstropyDeprecationWarning
+from ...utils.exceptions import AstropyDeprecationWarning
 
 numpy_lt_1p8 = version.LooseVersion(np.__version__) < version.LooseVersion('1.8')
 

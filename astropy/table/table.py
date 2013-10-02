@@ -19,7 +19,7 @@ from ..io import registry as io_registry
 from . import operations
 from ..extern import six
 
-from ..utils.custom_warnings import AstropyDeprecationWarning
+from ..utils.exceptions import AstropyDeprecationWarning
 
 # Python 2 and 3 source compatibility
 try:

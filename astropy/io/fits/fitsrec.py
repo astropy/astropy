@@ -13,7 +13,7 @@ from .column import (ASCIITNULL, FITS2NUMPY, Column, ColDefs,
 from .util import _array_from_file, decode_ascii
 
 from ...utils import lazyproperty
-from ...utils.custom_warnings import AstropyDeprecationWarning, AstropyUserWarning
+from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 
 class FITS_record(object):
