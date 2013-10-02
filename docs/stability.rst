@@ -73,6 +73,17 @@ The current planned and existing sub-packages are:
         </tr>
         <tr>
             <td>
+                astropy.convolution
+            </td>
+            <td align='center'>
+                <img alt="dev" src="_images/dev.png">
+            </td>
+            <td>
+                New top-level package in v0.3 (was previously part of <tt class="docutils literal"><span class="pre">astropy.nddata</span></tt>). Includes a new framework for kernels in v0.3.
+            </td>
+        </tr>
+        <tr>
+            <td>
                 astropy.coordinates
             </td>
             <td align='center'>
@@ -117,6 +128,17 @@ The current planned and existing sub-packages are:
         </tr>
         <tr>
             <td>
+                astropy.io.misc
+            </td>
+            <td align='center'>
+                <img alt="mature" src="_images/dev.png">
+            </td>
+            <td>
+                 The functionality that is currently present is stable, but this sub-package will likely see major additions in future.
+            </td>
+        </tr>
+        <tr>
+            <td>
                 astropy.io.votable
             </td>
             <td align='center'>
@@ -135,6 +157,17 @@ The current planned and existing sub-packages are:
             </td>
             <td>
                 New in v0.3
+            </td>
+        </tr>
+        <tr>
+            <td>
+                astropy.nddata
+            </td>
+            <td align='center'>
+                <img alt="dev" src="_images/dev.png">
+            </td>
+            <td>
+                In development, and does not yet contain much functionality apart from a base class for N-dimensional datasets.
             </td>
         </tr>
         <tr>
