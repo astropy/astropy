@@ -3,6 +3,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from ..extern import six
 from ...tests.helper import pytest
 
 import numpy as np
@@ -197,7 +198,7 @@ def test_array_coordinates_string():
 
     c = ICRSCoordinates(np.array([1, 2]), np.array([3, 4]), unit=(u.deg, u.deg))
     str(c)
-    unicode(c)
+    six.text_type(c)
     repr(c)
 
     assert repr(c) == '<ICRSCoordinates RA=[1 2] deg, Dec=[3 4] deg>'
@@ -206,7 +207,7 @@ def test_array_coordinates_string():
 
     c = ICRSCoordinates(np.array([1, 2]), np.array([3, 4]), unit=(u.deg, u.deg), distance= u.kpc * [0.5, 1.5])
     str(c)
-    unicode(c)
+    six.text_type(c)
     repr(c)
 
     print(repr(c))
