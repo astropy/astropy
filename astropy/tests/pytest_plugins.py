@@ -46,7 +46,12 @@ def pytest_configure(config):
         return
 
     class DocTestModulePlus(doctest_plugin.DoctestModule):
-        # This is for py.test 2.4.0 or later
+        # pytest 2.4.0 defines "collect".  Prior to that, it defined
+        # "runtest".  The "collect" approach is better, because we can
+        # skip modules altogether that have no doctests.  However, we
+        # need to continue to override "runtest" so that the built-in
+        # behavior (which doesn't do whitespace normalization or
+        # handling __doctest_skip__) doesn't happen.
         def collect(self):
             if self.fspath.basename == "conftest.py":
                 module = self.config._conftest.importconftest(self.fspath)
@@ -64,19 +69,7 @@ def pytest_configure(config):
 
         # This is for py.test prior to 2.4.0
         def runtest(self):
-            if self.fspath.basename == 'conftest.py':
-                module = self.config._conftest.importconftest(self.fspath)
-            else:
-                module = self.fspath.pyimport()
-
-            finder = DocTestFinderPlus(exclude_empty=False)
-            opts = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
-            runner = doctest.DebugRunner(verbose=False, optionflags=opts)
-
-            for test in finder.find(module):
-                runner.run(test)
-
-            failed, tot = doctest.TestResults(runner.failures, runner.tries)
+            return
 
     config.pluginmanager.register(DoctestPlus(DocTestModulePlus),
                                   'doctestplus')
