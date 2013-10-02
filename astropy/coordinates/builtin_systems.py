@@ -576,7 +576,7 @@ def fk4_to_fk4_no_e(fk4c):
     d_orig = np.sqrt(np.sum(r ** 2))
 
     # Apply E-terms of aberration
-    eterms_a = np.array(fk4_e_terms(fk4c.equinox))
+    eterms_a = np.asarray(fk4_e_terms(fk4c.equinox))
     r = r - eterms_a.reshape(3, 1) + np.dot(eterms_a, r) * r
 
     # Find new distance (for re-normalization)
@@ -605,7 +605,7 @@ def fk4_no_e_to_fk4(fk4c):
     d_orig = np.sqrt(np.sum(r ** 2))
 
     # Apply E-terms of aberration
-    eterms_a = np.array(fk4_e_terms(fk4c.equinox))
+    eterms_a = np.asarray(fk4_e_terms(fk4c.equinox))
     r0 = r.copy()
     for j in range(10):
         r = (eterms_a.reshape(3, 1) + r0) / (1. + np.dot(eterms_a, r))
