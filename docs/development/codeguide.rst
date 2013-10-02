@@ -126,7 +126,7 @@ errors should follow these rules:
 * For warnings, one should always use ``warnings.warn(message, warning_class)``. These get redirected to ``log.warn`` by default, but one
   can still use the standard warning-catching mechanism and custom warning
   classes. The warning class should be either
-  :class:`~astropy.utils.custom_warnings.AstropyUserWarning` or inherit from it.
+  :class:`~astropy.utils.exceptions.AstropyUserWarning` or inherit from it.
 
 * For informational and debugging messages, one should always use
   ``log.info(message)`` and ``log.debug(message)``.
