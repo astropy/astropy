@@ -268,7 +268,7 @@ class Model(object):
         Return parameters as a pset.
         This is an array where each column represents one parameter set.
         """
-        parameters = [getattr(self, attr) for attr in self.param_names]
+        parameters = [getattr(self, '_'+attr) for attr in self.param_names]
         values = [par.value for par in parameters]
         shapes = [par.parshape for par in parameters]
         lenshapes = np.asarray([len(p.parshape) for p in parameters])
