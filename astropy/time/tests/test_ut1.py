@@ -5,7 +5,7 @@ import numpy as np
 
 from ...tests.helper import pytest
 from .. import Time
-from ...utils.iers import iers  # used in testing
+from ..iers import iers  # used in testing
 
 allclose_jd = functools.partial(np.allclose, rtol=1e-15, atol=0)
 allclose_sec = functools.partial(np.allclose, rtol=1e-15, atol=1e-9)

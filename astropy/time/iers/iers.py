@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-The astropy.utils.iers package provides access to the tables provided by
+The astropy.time.iers package provides access to the tables provided by
 the International Earth Rotation and Reference Systems Service, in
 particular allowing interpolation of published UT1-UTC values for given
 times.  These are used in astropy.time to provide UT1 values.  By
@@ -32,7 +32,7 @@ In this case, one needs to update the IERS B table or use IERS A instead
 configurable or automatic, but currently it requires handiwork.  For
 `Time`, easiest is to set the `delta_ut1_utc` property directly::
 
-    >>> from astropy.utils.iers import IERS_A
+    >>> from astropy.time.iers import IERS_A
     >>> iers_a = IERS_A.open('finals2000A.all')    # doctest: +SKIP
     >>> iers_a.ut1_utc(t2)                         # doctest: +SKIP
     0.069727551794218745
@@ -44,7 +44,7 @@ configurable or automatic, but currently it requires handiwork.  For
 Instead of local copies of IERS files, one can also download them, using
 `iers.IERS_A_URL` and `iers.IERS_B_URL`::
 
-    >>> from astropy.utils.iers import IERS_A, IERS_A_URL
+    >>> from astropy.time.iers import IERS_A, IERS_A_URL
     >>> from astropy.utils.data import download_file
     >>> iers_a_file = download_file(IERS_A_URL, cache=True)  # doctest: +SKIP
     >>> iers_a = IERS_A.open(iers_a_file)                    # doctest: +SKIP

@@ -574,9 +574,9 @@ class Time(object):
 
         Parameters
         ----------
-        iers_table: `~astropy.utils.iers.IERS` table, optional
+        iers_table: `~astropy.time.iers.IERS` table, optional
             Table containing UT1-UTC differences from IERS Bulletins A and/or B
-            If None, use default version (see `~astropy.utils.iers`)
+            If None, use default version (see `~astropy.time.iers`)
         return_status : bool
             Whether to return status values.  If `False` (default),
             iers raises `IndexError` if any time is out of the range covered
@@ -588,11 +588,11 @@ class Time(object):
             UT1-UTC, interpolated in IERS Table
         status: int or int array
             Status values (if `return_status`=`True`)::
-            `~astropy.utils.iers.FROM_IERS_B`
-            `~astropy.utils.iers.FROM_IERS_A`
-            `~astropy.utils.iers.FROM_IERS_A_PREDICTION`
-            `~astropy.utils.iers.TIME_BEFORE_IERS_RANGE`
-            `~astropy.utils.iers.TIME_BEYOND_IERS_RANGE`
+            `~astropy.time.iers.FROM_IERS_B`
+            `~astropy.time.iers.FROM_IERS_A`
+            `~astropy.time.iers.FROM_IERS_A_PREDICTION`
+            `~astropy.time.iers.TIME_BEFORE_IERS_RANGE`
+            `~astropy.time.iers.TIME_BEYOND_IERS_RANGE`
 
         Notes
         -----
@@ -603,16 +603,16 @@ class Time(object):
         --------
         To check in code whether any times are before the IERS table range::
 
-            >>> from astropy.utils.iers import TIME_BEFORE_IERS_RANGE
+            >>> from astropy.time.iers import TIME_BEFORE_IERS_RANGE
             >>> t = Time(['1961-01-01', '2000-01-01'], scale='utc')
             >>> delta, status = t.get_delta_ut1_utc(return_status=True)
             >>> status == TIME_BEFORE_IERS_RANGE
             array([ True, False], dtype=bool)
 
         To use an updated IERS A bulletin to calculate UT1-UTC
-        (see also `~astropy.utils.iers`)::
+        (see also `~astropy.time.iers`)::
 
-            >>> from astropy.utils.iers import IERS_A, IERS_A_URL
+            >>> from astropy.time.iers import IERS_A, IERS_A_URL
             >>> from astropy.utils.data import download_file
             >>> iers_a_file = download_file(IERS_A_URL,
             ...                             cache=True)        # doctest: +SKIP
@@ -624,7 +624,7 @@ class Time(object):
 
         """
         if iers_table is None:
-            from ..utils.iers import IERS
+            from .iers import IERS
             iers_table = IERS.open()
 
         return iers_table.ut1_utc(self.utc, return_status=return_status)
@@ -641,7 +641,7 @@ class Time(object):
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
         # seconds. It is obtained from tables published by the IERS.
         if not hasattr(self, '_delta_ut1_utc'):
-            from ..utils.iers import IERS
+            from .iers import IERS
             iers_table = IERS.open()
             self._set_delta_ut1_utc(iers_table.ut1_utc(jd1, jd2))
 
