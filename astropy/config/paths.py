@@ -2,8 +2,8 @@
 """ This module contains functions to determine where configuration and
 data/cache files used by Astropy should be placed.
 """
-
-from __future__ import division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 __all__ = ['get_config_dir', 'get_cache_dir']
 
@@ -52,7 +52,7 @@ def _find_home():
             homedir = decodepath(os.path.join(env['USERPROFILE']))
         else:
             try:
-                import _winreg as wreg
+                from ..extern.six.moves import winreg as wreg
                 shell_folders = r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
                 key = wreg.OpenKey(wreg.HKEY_CURRENT_USER, shell_folders)
 
