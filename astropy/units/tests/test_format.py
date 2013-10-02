@@ -8,8 +8,8 @@ Regression tests for the units.format package
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+from numpy.testing.utils import assert_allclose
 from ...tests.helper import raises, pytest
-from ...tests.compat import assert_allclose
 
 from ... import units as u
 from .. import core

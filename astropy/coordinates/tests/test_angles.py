@@ -7,10 +7,9 @@ from __future__ import unicode_literals
 # Test initalization of angles not already covered by the API tests
 
 import numpy as np
-from numpy import testing as npt
+from numpy.testing.utils import assert_allclose
 from ..angles import *
 from ...tests.helper import pytest
-from ...tests.compat import assert_allclose
 from ... import units as u
 
 

@@ -8,8 +8,6 @@ from ...utils import OrderedDict, metadata
 from .. import np_utils
 from ... import table
 
-NUMPY_LT_1P5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
-
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
@@ -53,7 +51,6 @@ class TestJoin():
         # Table meta merged properly
         assert t12.meta == self.meta_merge
 
-    @pytest.mark.xfail('NUMPY_LT_1P5')
     def test_both_unmasked_left_right_outer(self):
         t1 = self.t1
         t2 = self.t2
@@ -111,7 +108,6 @@ class TestJoin():
                                        '  1 bar  L3 foo  R2',
                                        '  2 bar  L4 bar  R3'])
 
-    @pytest.mark.xfail('NUMPY_LT_1P5')
     def test_both_unmasked_single_key_left_right_outer(self):
         t1 = self.t1
         t2 = self.t2
@@ -153,7 +149,6 @@ class TestJoin():
                                        '  2 bar  L4 bar  R3',
                                        '  4  --  -- bar  R4'])
 
-    @pytest.mark.xfail('NUMPY_LT_1P5')
     def test_masked_unmasked(self):
         t1 = self.t1
         t1m = Table(self.t1, masked=True)
@@ -188,7 +183,6 @@ class TestJoin():
                                         '  1 foo  R1 bar  --',
                                         '  2 bar  R3 bar  L4'])
 
-    @pytest.mark.xfail('NUMPY_LT_1P5')
     def test_masked_masked(self):
         """Two masked tables"""
         t1 = self.t1

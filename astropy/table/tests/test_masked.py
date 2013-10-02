@@ -8,8 +8,6 @@ import numpy.ma as ma
 from ...tests.helper import pytest
 from ...table import Column, MaskedColumn, Table
 
-numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
-
 class SubclassTable(Table):
     pass
 
@@ -28,13 +26,11 @@ class SetupData(object):
         self.ca = Column(name='ca', data=[1, 2, 3])
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 class TestPprint(SetupData):
     def test_pformat(self):
         assert self.t.pformat() == [' a   b ', '--- ---', '  1  --', '  2  --', '  3  --']
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 class TestFilled(object):
     """Test the filled method in MaskedColumn and Table"""
     def setup_method(self, method):
@@ -102,7 +98,6 @@ class TestFilled(object):
         assert t['a'][1] == 2
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 class TestFillValue(SetupData):
     """Test setting and getting fill value in MaskedColumn and Table"""
 
@@ -146,7 +141,6 @@ class TestFillValue(SetupData):
         assert np.all(self.t['b'].data.mask == [True, False, True])
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 class TestMaskedColumnInit(SetupData):
     """Initialization of a masked column"""
 
@@ -178,7 +172,6 @@ class TestMaskedColumnInit(SetupData):
         assert np.all(b.mask == mask_list + mask_list)
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 class TestTableInit(SetupData):
     """Initializing a table"""
 
@@ -209,7 +202,6 @@ class TestTableInit(SetupData):
                 assert np.all(t[name].mask == mask)
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 class TestAddColumn(object):
 
     def test_add_masked_column_to_masked_table(self):
@@ -249,7 +241,6 @@ class TestAddColumn(object):
         assert np.all(t['b'].mask == np.array([1, 0, 1], bool))
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 class TestRenameColumn(object):
 
     def test_rename_masked_column(self):
@@ -263,7 +254,6 @@ class TestRenameColumn(object):
         assert t['b'].fill_value == 42
         assert t.colnames == ['b']
 
-@pytest.mark.xfail('numpy_lt_1p5')
 class TestRemoveColumn(object):
 
     def test_remove_masked_column(self):
@@ -279,7 +269,6 @@ class TestRemoveColumn(object):
         assert t.colnames == ['a']
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 class TestAddRow(object):
 
     def test_add_masked_row_to_masked_table_iterable(self):

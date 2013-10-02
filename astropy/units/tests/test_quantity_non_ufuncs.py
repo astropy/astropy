@@ -1,8 +1,8 @@
 import numpy as np
+from numpy.testing.utils import assert_allclose
 
 from ... import units as u
 from ...tests.helper import pytest
-from ...tests.compat import assert_allclose
 
 
 class TestQuantityLinAlgFuncs(object):

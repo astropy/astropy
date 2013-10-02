@@ -142,7 +142,7 @@ def test_sphere_cart():
     """
     Tests the spherical <-> cartesian transform functions
     """
-    from ...tests.compat import assert_allclose
+    from numpy.testing.utils import assert_allclose
     from ...utils import NumpyRNGContext
     from ..distances import spherical_to_cartesian, cartesian_to_spherical
 

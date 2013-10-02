@@ -2,10 +2,10 @@
 # returns quantities with the right units, or raises exceptions.
 
 import numpy as np
+from numpy.testing.utils import assert_allclose
 
 from ... import units as u
 from ...tests.helper import pytest, raises
-from ...tests.compat import assert_allclose
 
 NUMPY_LT_1P6 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 6]
 

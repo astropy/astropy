@@ -2,9 +2,9 @@
 from ....tests.helper import pytest
 from ... import ascii as asciitable
 
-from .common import (raises, numpy_lt_1p5,
-                     assert_equal, assert_almost_equal, assert_true,
-                     setup_function, teardown_function, has_isnan)
+from .common import (raises, assert_equal, assert_almost_equal,
+                     assert_true, setup_function, teardown_function,
+                     has_isnan)
 
 
 def read_table1(readme, data):
@@ -42,7 +42,6 @@ def test_glob_header():
         assert_equal(table['BibCode'][-2], '2005A&A...432..235R')
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_header_from_readme():
     r = asciitable.Cds("t/vizier/ReadMe")
     table = r.read("t/vizier/table1.dat")
