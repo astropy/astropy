@@ -13,7 +13,7 @@ from . import cgs
 from . import astrophys
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
-           'doppler_optical', 'doppler_relativistic', 'mass_energy']
+           'doppler_optical', 'doppler_relativistic', 'mass_energy', 'brightness_temperature']
 
 
 def parallax():
@@ -304,3 +304,58 @@ def mass_energy():
              lambda x: x / _si.c.value ** 2),
     ]
 
+def brightness_temperature(beam_area, disp):
+    """
+    "Antenna Gain" or "sensitivity" equivalency: Defines the conversion between
+    Jy/beam and "brightness temperature", :math:`T_B`, in Kelvins.  This is a
+    unit very commonly used in radio astronomy.  Typically, the gain refers to
+    the conversion between corrected antenna temperature :math:`T_A^*` and flux
+    density.  See, e.g., "Tools of Radio Astronomy" (Wilson 2009) eqn 8.16 and
+    eqn 8.19 (these pages are available on `google books
+    <http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__).
+
+    :math:`T_B \equiv S_\\nu / \left(2 k \\nu^2 / c^2 \\right)`
+
+    However, the beam area is essential for this computation: the brighntess
+    temperature is inversely proportional to the beam area
+
+    Parameters
+    ----------
+    beam_area : Beam Area equivalent
+        Beam area in angular units, i.e. steradian equivalent
+    disp : `Quantity` with spectral units
+        The observed `spectral` equivalent `Unit` (e.g., frequency or
+        wavelength)
+
+    Examples
+    --------
+    Arecibo C-band beam gain ~ 7 K/Jy::
+
+        >>> import numpy as np
+        >>> from astropy import units as u
+        >>> beam_area = np.pi*(50*u.arcsec)**2
+        >>> freq = 5*u.GHz
+        >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(beam_area,freq))
+        7.052588858...
+        >>> (1*u.Jy).to(u.K, equivalencies=u.brightness_temperature(beam_area,freq))
+        <Quantity 7.05258...
+
+    VLA synthetic beam::
+
+        >>> beam_area = np.pi*(15*u.arcsec)**2
+        >>> freq = 5*u.GHz
+        >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(beam_area,freq))
+        78.36209843...
+    """
+    beam = beam_area.to(si.sr).value
+    nu = disp.to(si.GHz, spectral())
+
+    def convert_Jy_to_K(x_jybm):
+        factor = (2 * _si.k_B * si.K * nu**2 / _si.c**2).to(astrophys.Jy).value
+        return (x_jybm / beam / factor)
+
+    def convert_K_to_Jy(x_K):
+        factor = (astrophys.Jy / (2 * _si.k_B * nu**2 / _si.c**2)).to(si.K).value
+        return (x_K * beam / factor)
+
+    return [(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy)]

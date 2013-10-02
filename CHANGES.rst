@@ -86,6 +86,9 @@ New Features
   - Added new spectroscopic equivalencies for velocity conversions
     (relativistic, optical, and radio conventions are supported)
 
+  - Added Brightness Temperature (antenna gain) equivalency for conversion
+    between :math:`T_B` and flux density.
+
   - Added percent unit, and allowed any string containing just a number 
     to be interpreted as a scaled dimensionless unit.
 

@@ -115,6 +115,24 @@ arguments the unit and value for the spectral location. For example::
               equivalencies=u.spectral_density(u.AA, 3500))
   2.4472853714285712e-08
 
+Brightness Temperature / Flux Density Equivalency
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There is an equivalency for brightness temperature and flux density.  This
+equivalency is often referred to as "Antenna Gain" since, at a given frequency,
+telescope brightness sensitivity is unrelated to aperture size, but flux
+density sensitivity is, so this equivalency is only dependent on the aperture
+size.  See `Tools of Radio Astronomy
+<http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__
+for details.
+
+The equivalency requires the beam area and frequency as arguments.  Example::
+
+    >>> omega_B = np.pi*(50*u.arcsec)**2
+    >>> freq = 5*u.GHz
+    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B,freq))
+    7.052588858...
+
 Writing new equivalencies
 -------------------------
 
