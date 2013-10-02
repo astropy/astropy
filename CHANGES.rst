@@ -28,9 +28,9 @@ New Features
     TimeDelta objects maintains sub-nanosecond precision over a time span
     longer than the age of the universe [#1189].
 
-  - Use ``astropy.utils.iers`` to provide ``delta_ut1_utc``, so that
+  - Use ``astropy.time.iers`` to provide ``delta_ut1_utc``, so that
     automatic calculation of UT1 becomes possible [#1145].
-  
+
   - Add ``datetime`` format which allows converting to and from standard
     library ``datetime.datetime`` objects.
 
@@ -86,22 +86,22 @@ New Features
   - Added new spectroscopic equivalencies for velocity conversions
     (relativistic, optical, and radio conventions are supported)
 
-  - Added percent unit, and allowed any string containing just a number 
+  - Added percent unit, and allowed any string containing just a number
     to be interpreted as a scaled dimensionless unit.
 
 - ``astropy.utils``
 
-  - Added ``astropy.utils.iers`` which allows reading in of IERS A or
+  - Added ``astropy.time.iers`` which allows reading in of IERS A or
     IERS B bulletins and interpolation in UT1-UTC.
 
-- ``astropy.extern.six`` 
+- ``astropy.extern.six``
 
-  - Added `six <https://pypi.python.org/pypi/six/>`_ for python2/python3 
+  - Added `six <https://pypi.python.org/pypi/six/>`_ for python2/python3
     compatibility
 
 - Astropy now uses the ERFA library instead of the IAU SOFA library for
-  fundamental time transformation routines.  
-  The ERFA library is derived, with permission, from the IAU SOFA library but 
+  fundamental time transformation routines.
+  The ERFA library is derived, with permission, from the IAU SOFA library but
   is distributed under a BSD license. See ``license/ERFA.rst`` for details.
 
 
@@ -866,7 +866,7 @@ see the "What's New" section of the documentation for more details.
     astropy.cosmology classes. The current treatment assumes that neutrinos are
     massless. [#365]
 
-  - Add a WMAP9 object using the final (9-year) WMAP parameters from 
+  - Add a WMAP9 object using the final (9-year) WMAP parameters from
     Hinshaw et al. 2013. It has also been made the default cosmology
     [#629, #724].
 

@@ -509,7 +509,7 @@ more recent times, one can download an updated version of `IERS B
 predictions), and set :attr:`~astropy.time.Time.delta_ut1_utc` as described in
 `~astropy.time.Time.get_delta_ut1_utc`::
 
-  >>> from astropy.utils.iers import IERS_A, IERS_A_URL
+  >>> from astropy.time.iers import IERS_A, IERS_A_URL
   >>> from astropy.utils.data import download_file
   >>> iers_a_file = download_file(IERS_A_URL, cache=True))  # doctest: +SKIP
   >>> iers_a = IERS_A.open(iers_a_file)                     # doctest: +SKIP
@@ -563,7 +563,7 @@ following operations are available:
 
 .. note::
     As implemented, the arithmetic is not guaranteed to be good beyond
-    float64, as round-off errors are not yet properly carried between the 
+    float64, as round-off errors are not yet properly carried between the
     two values representing the date.  Like for ERFA, taking the first
     value as (half-)integer helps, as this can be represented exactly
     by a float64 (at least for all but multiply and divide).
@@ -608,7 +608,7 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
   <TimeDelta object: scale='tai' format='jd' value=31.0005787037>
 
   >>> t1 + dt * np.linspace(0, 1, 5)
-  <Time object: scale='utc' format='iso' value=['2010-01-01 00:00:00.000' 
+  <Time object: scale='utc' format='iso' value=['2010-01-01 00:00:00.000'
   '2010-01-08 18:00:00.000' '2010-01-16 12:00:00.000' '2010-01-24 06:00:00.000'
   '2010-02-01 00:00:00.000']>
 
@@ -617,13 +617,14 @@ Reference/API
 
 .. automodapi:: astropy.time
 
+.. automodapi:: astropy.time.iers
 
 Acknowledgments and Licenses
 ============================
 
 This package makes use of the `ERFA Software
 <https://github.com/liberfa/erfa>`_ ANSI C library. The copyright of the ERFA
-software belongs to the NumFOCUS Foundation. The library is made available 
+software belongs to the NumFOCUS Foundation. The library is made available
 under the terms of the "BSD-three clauses" license.
 
 The ERFA library is derived, with permission, from the International
