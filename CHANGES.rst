@@ -109,11 +109,13 @@ New Features
   - The Astropy logger now no longer catches exceptions by default, and also
     only captures warnings emitted by Astropy itself (prior to this change,
     following an import of Astropy, any warning got re-directed through the
-    Astropy logger). However, users of Astropy 0.2 will likely still see the
-    previous behavior with Astropy 0.3 for exceptions since the default
-    configuration file installed by 0.2 set the exception logging to be on by
-    default. Logging to the Astropy log file has also been disabled by default.
-
+    Astropy logger). Logging to the Astropy log file has also been disabled by
+    default. However, users of Astropy 0.2 will likely still see the previous
+    behavior with Astropy 0.3 for exceptions and logging to file since the
+    default configuration file installed by 0.2 set the exception logging to be
+    on by default. To get the new behavior, set the ``log_exceptions`` and
+    ``log_to_file`` configuration items to ``False`` in the ``astropy.cfg``
+    file.
 
 API Changes
 ^^^^^^^^^^^
