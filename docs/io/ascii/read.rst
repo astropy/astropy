@@ -50,7 +50,7 @@ Parameters for ``read()``
 
 **guess**: try to guess table format (default=True)
   If set to True then |read| will try to guess the table format by cycling
-  through a number of possible table format permuations and attemping to read
+  through a number of possible table format permutations and attempting to read
   the table in each case.  See the `Guess table format`_ section for further details.
   
 **delimiter** : column delimiter string
@@ -97,7 +97,7 @@ Parameters for ``read()``
   parameter, select for output only columns within this list.  If not supplied
   then include all names.
   
-**exclude_names**: list of names to exlude from output
+**exclude_names**: list of names to exclude from output
   Exclude these names from the list of output columns.  This is applied *after*
   the ``include_names`` filtering.  If not specified then no columns are excluded.
 
@@ -170,13 +170,13 @@ looks like the following::
   Tues  -99.9     
    Wed    1.1 snow
 
-ASCII tables may also have other indicators of bad or missing data.  For example a table
-may contain string values that are not a valid representation of a number, e.g. ``"..."``,
-or a table may have special values like ``-999`` that are chosen to indicate missing data.
-The |read| function has a flexible system to accomodate these cases by replacing string
-values in the input data before they are converted.  This is done with the ``fill_values``
-argument which replaces ``<old>`` with ``<new>`` before the type conversion is
-done::
+ASCII tables may also have other indicators of bad or missing data.  For
+example a table may contain string values that are not a valid representation
+of a number, e.g. ``"..."``, or a table may have special values like ``-999``
+that are chosen to indicate missing data.  The |read| function has a flexible
+system to accommodate these cases by replacing string values in the input data
+before they are converted.  This is done with the ``fill_values`` argument
+which replaces ``<old>`` with ``<new>`` before the type conversion is done::
 
   fill_values = <fill_spec> | [<fill_spec1>, <fill_spec2>, ...]
   <fill_spec> = (<old>, <new>, <optional col name 1>, <optional col name 2>, ...)
@@ -190,7 +190,7 @@ below).
 
 The ``fill_values`` parameter in |read| takes a single ``<fill_spec>`` or a
 list of ``<fill_spec>`` tuples.  If several ``<fill_spec>`` apply to a single
-occurence of ``<old>`` then the first one determines the ``<new>`` value.  For
+occurrence of ``<old>`` then the first one determines the ``<new>`` value.  For
 instance the following will replace an empty data value in the ``x`` or ``y``
 columns with "1e38" while empty values in any other column will get "-999"::
 
@@ -235,7 +235,7 @@ Guess table format
 ^^^^^^^^^^^^^^^^^^^^^^
 If the ``guess`` parameter in |read| is set to True (which is the default) then
 |read| will try to guess the table format by cycling through a number of
-possible table format permutations and attemping to read the table in each case.
+possible table format permutations and attempting to read the table in each case.
 The first format which succeeds and will be used to read the table. To succeed
 the table must be successfully parsed by the Reader and satisfy the following
 column requirements:

@@ -71,7 +71,7 @@ These equivalencies even work with non-base units::
   >>> u.inch.to(u.Cal, 1, equivalencies=u.spectral())
   1.869180759162485e-27
 
-Spectral (doppler) equivalencies
+Spectral (Doppler) equivalencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Spectral equivalencies allow you to convert between wavelength, frequency, and
 energy, but not to velocity, which is frequently the quantity of interest.

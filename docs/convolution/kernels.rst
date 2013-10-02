@@ -219,8 +219,9 @@ Most times it will be necessary to normalize the resulting kernel by calling exp
 
 Convolution
 ^^^^^^^^^^^
-Furthermore two kernels can be convolved with each other, which is useful when data
-is filtered with two diffrent kinds of kernels or to create a new, special kernel:
+Furthermore two kernels can be convolved with each other, which is useful when
+data is filtered with two different kinds of kernels or to create a new,
+special kernel:
 
 >>> gauss_1 = Gaussian1DKernel(10)
 >>> gauss_2 = Gaussian1DKernel(16)
@@ -305,5 +306,3 @@ and :class:`~astropy.convolution.kernels.MexicanHat2DKernel` there is
 :math:`\int_{-\infty}^{\infty} f(x) dx = 0`. To define a proper normalization
 both filters are derived from a normalized Gaussian function.
 
-
-     

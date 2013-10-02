@@ -22,8 +22,8 @@ examples of valid ways to create an |Angle|::
 
     >>> Angle('10.2345d')              # String with 'd' abbreviation for degrees
     >>> Angle(['10.2345d', '-20d'])    # Array of strings
-    >>> Angle('1:2:30.43 degrees')     # Sexigesimal degrees
-    >>> Angle('1 2 0 hours')           # Sexigesimal hours
+    >>> Angle('1:2:30.43 degrees')     # Sexagesimal degrees
+    >>> Angle('1 2 0 hours')           # Sexagesimal hours
     >>> Angle(np.arange(1, 8), unit=u.deg)  # Numpy array from 0..7 in degrees
     >>> Angle(u'1°2′3″')               # Unicode degree, arcmin and arcsec symbols
     >>> Angle('1d2m3.4s')              # Degree, arcmin, arcsec.
@@ -93,11 +93,11 @@ Angles will also behave correctly for appropriate arithmetic operations::
 Wrapping and bounds
 ^^^^^^^^^^^^^^^^^^^^^
 
-There are two utility methods that simplify working with angles that should have bounds.  The
-`~astropy.coordinates.angles.Angle.wrap_at()` method allows taking an angle or angles and
-wrapping to be within a single 360 degree slice.  The
-`~astropy.coordinates.angles.Angle.is_within_bounds()` method returns a boolean indicatng
-whether an angle or angles is within the specified bounds.
+There are two utility methods that simplify working with angles that should
+have bounds.  The `~astropy.coordinates.angles.Angle.wrap_at()` method allows
+taking an angle or angles and wrapping to be within a single 360 degree slice.
+The `~astropy.coordinates.angles.Angle.is_within_bounds()` method returns a
+boolean indicating whether an angle or angles is within the specified bounds.
 
 
 Longitude and Latitude objects

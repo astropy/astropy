@@ -11,7 +11,7 @@ algorithm is to be used and optional if a non-liner fitter is to be used.
 A Step by Step Definition of a 1D Gaussian Model
 ------------------------------------------------
 
-The details are explained below with a 1D gaussian model as an example.
+The details are explained below with a 1D Gaussian model as an example.
 There are two base classes for models. If the model is fittable, it
 should inherit from `~astropy.modeling.core.ParametricModel`,
 if not it should subclass `~astropy.modeling.core.Model`. If the model

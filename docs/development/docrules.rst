@@ -6,7 +6,7 @@ The original source for these docstring standards is the NumPy_ project, and
 the associated numpydoc_ tools. The most up-to-date version of these standards
 can be found at `numpy's github site
 <http://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_. The
-guidelines below have been adapted to the Astropy pacakge.
+guidelines below have been adapted to the Astropy package.
 
 
 Overview

@@ -24,7 +24,7 @@ need, you can simply do:
 
     >>> from astropy import constants as const
 
-and then subsequently use for example ``const.G``. Constants are fully-fleged
+and then subsequently use for example ``const.G``. Constants are fully-fledged
 `~astropy.units.quantity.Quantity` objects, so you can easily convert them to
 different units for example::
 

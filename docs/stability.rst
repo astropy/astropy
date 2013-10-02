@@ -3,8 +3,8 @@ Current status of sub-packages
 ******************************
 
 Astropy has benefited from the addition of widely tested legacy code, as well
-as new development, resulting in variations in stability accross
-sub-packages. This document summarises the current status of the Astropy
+as new development, resulting in variations in stability across
+sub-packages. This document summarizes the current status of the Astropy
 sub-packages, so that users understand where they might expect changes in
 future, and which sub-packages they can safely use for production code.
 
