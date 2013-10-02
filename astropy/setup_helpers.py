@@ -158,7 +158,7 @@ def adjust_compiler(package):
                     """
                     The C compiler used to compile Python {compiler:s}, and
                     which is normally used to compile C extensions, is not
-                    available. You can explicitly specifiy which compiler to
+                    available. You can explicitly specify which compiler to
                     use by setting the CC environment variable, for example:
 
                         CC=gcc python setup.py <command>
@@ -180,10 +180,13 @@ def adjust_compiler(package):
 def get_compiler_version(compiler):
 
     process = subprocess.Popen(
-    shlex.split(compiler) + ['--version'], stdout=subprocess.PIPE)
+        shlex.split(compiler) + ['--version'], stdout=subprocess.PIPE)
 
     output = process.communicate()[0].strip()
-    version = output.split()[0]
+    try:
+        version = output.split()[0]
+    except IndexError:
+        return 'unknown'
 
     return version
 
