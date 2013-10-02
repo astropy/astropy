@@ -170,7 +170,7 @@ class AstropyLogger(Logger):
         # the class name only when it's not the default class,
         # AstropyWarning.  The name of subclasses of AstropyWarning should
         # be displayed.
-        if type(warning) != AstropyWarning and type(warning) != AstropyUserWarning:
+        if type(warning) not in (AstropyWarning, AstropyUserWarning):
             message = '{0}: {1}'.format(warning.__class__.__name__, args[0])
         else:
             message = unicode(args[0])
