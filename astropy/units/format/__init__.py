@@ -21,6 +21,9 @@ from .vounit import VOUnit
 __all__ = [
     'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'Unicode', 'Unscaled',
     'VOUnit', 'get_format']
+    
+FORMATS = ['Generic', 'CDS', 'Console', 'Fits', 'Latex', 'Unicode', 'Unscaled',
+    'VOUnit']
 
 
 def get_format(format=None):
@@ -46,7 +49,7 @@ def get_format(format=None):
     if format is None:
         format = 'generic'
     format = format.lower()
-    for key in __all__:
+    for key in FORMATS:
         val = globals()[key]
         if isclass(val) and (issubclass(val, Base) and key.lower() == format.lower()):
             return val()
