@@ -1,7 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """General purpose timer related functions."""
 
-from __future__ import absolute_import, print_function, division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ..extern import six
+from ..extern.six.moves import xrange, map
 
 # STDLIB
 import time
@@ -208,7 +212,7 @@ class RunTimePredictor(object):
         """
         if not isinstance(arglist, Iterable):
             arglist = [arglist]
-        dummy = map(self._cache_time, arglist)
+        dummy = list(map(self._cache_time, arglist))
 
     # FUTURE: Implement N^x * O(log(N)) fancy fitting.
     def do_fit(self, power=1, deg=1, min_datapoints=3):
@@ -241,12 +245,12 @@ class RunTimePredictor(object):
         self._power = power
         self._cache_est = OrderedDict()
 
-        x_arr = np.array(self._cache_good.keys())
+        x_arr = np.array(list(six.iterkeys(self._cache_good)))
         assert x_arr.size >= min_datapoints, \
             'Requires {0} points but has {1}'.format(min_datapoints,
                                                      x_arr.size)
 
-        a = np.polyfit(x_arr**power, self._cache_good.values(), deg)
+        a = np.polyfit(x_arr**power, list(six.iterkeys(self._cache_good)), deg)
         self._fit_func = np.poly1d(a)
 
         return a
@@ -314,8 +318,8 @@ class RunTimePredictor(object):
 
         # Fitted data
         if self._fit_func is not None:
-            x_est = self._cache_est.keys()
-            y_est = (np.array(self._cache_est.values()) *
+            x_est = list(six.iterkeys(self._cache_est))
+            y_est = (np.array(list(six.itervalues(self._cache_est))) *
                      u.second).to(cur_u).value
             ax.scatter(x_est, y_est, marker='o', c='r', label='Predicted')
 

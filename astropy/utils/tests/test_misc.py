@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 from .. import misc
 from ...tests.helper import remote_data, catch_warnings
 from .. import data
@@ -7,7 +10,6 @@ from .. import data
 #namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple
 import json
-import warnings
 
 # THIRD-PARTY
 import numpy as np

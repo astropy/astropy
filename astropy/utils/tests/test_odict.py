@@ -7,6 +7,10 @@ OrderedDict and slightly customized (and renamed) the modules
 test_support.py and mapping_tests.py that provide support for those
 tests.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ...extern import six
 
 import unittest
 import inspect
@@ -19,7 +23,7 @@ from ..compat.odict import OrderedDict
 from ...tests.helper import pytest
 
 #Skips all of these tests if the builtin ordered dict is available
-pytestmark = pytest.mark.skipif("sys.version_info >= (2,7)")
+pytestmark = pytest.mark.skipif(str("sys.version_info >= (2,7)"))
 
 
 class TestOrderedDict(unittest.TestCase):
@@ -121,9 +125,9 @@ class TestOrderedDict(unittest.TestCase):
         self.assertEqual(od.keys()[:], [t[0] for t in pairs])
         self.assertEqual(od.values()[:], [t[1] for t in pairs])
         self.assertEqual(od.items()[:], pairs)
-        self.assertEqual(list(od.iterkeys()), [t[0] for t in pairs])
-        self.assertEqual(list(od.itervalues()), [t[1] for t in pairs])
-        self.assertEqual(list(od.iteritems()), pairs)
+        self.assertEqual(list(six.iterkeys(od)), [t[0] for t in pairs])
+        self.assertEqual(list(six.itervalues(od)), [t[1] for t in pairs])
+        self.assertEqual(list(six.iteritems(od)), pairs)
         self.assertEqual(list(reversed(od)),
                          [t[0] for t in reversed(pairs)])
 

@@ -3,8 +3,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ...extern import six
-from ...extern.six.moves import xrange
-from ...utils.compat import urlopen
+from ...extern.six.moves import xrange, urllib
 
 # STDLIB
 import codecs
@@ -2486,7 +2485,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     "The vo package only supports remote data through http, " +
                     "ftp or file",
                     self._config, self._pos, NotImplementedError)
-            fd = urlopen(href)
+            fd = urllib.request.urlopen(href)
             if encoding is not None:
                 if encoding == 'gzip':
                     from ...utils.compat import gzip
@@ -2587,7 +2586,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 "ftp or file",
                 self._config, self._pos, NotImplementedError)
 
-        fd = urlopen(href)
+        fd = urllib.request.urlopen(href)
         if encoding is not None:
             if encoding == 'gzip':
                 from ...utils.compat import gzip

@@ -1,4 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ...extern import six
+
 from ...tests.helper import remote_data, raises
 
 import io
@@ -242,9 +247,9 @@ def test_read_unicode():
     from ..data import get_pkg_data_contents
 
     contents = get_pkg_data_contents('data/unicode.txt', encoding='utf-8')
-    assert isinstance(contents, unicode)
+    assert isinstance(contents, six.text_type)
     contents = contents.splitlines()[1]
-    assert contents == u"\u05d4\u05d0\u05e1\u05d8\u05e8\u05d5\u05e0\u05d5\u05de\u05d9 \u05e4\u05d9\u05d9\u05ea\u05d5\u05df"
+    assert contents == "\u05d4\u05d0\u05e1\u05d8\u05e8\u05d5\u05e0\u05d5\u05de\u05d9 \u05e4\u05d9\u05d9\u05ea\u05d5\u05df"
 
     contents = get_pkg_data_contents('data/unicode.txt', encoding='binary')
     assert isinstance(contents, bytes)
@@ -287,7 +292,7 @@ def test_invalid_location_download():
     checks that download_file gives a URLError and not an AttributeError,
     as its code pathway involves some fiddling with the exception.
     """
-    from urllib2 import URLError
+    from ...extern.six.moves.urllib_error import URLError
     from ..data import download_file
 
     with pytest.raises(URLError):

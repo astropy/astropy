@@ -14,14 +14,15 @@ Includes the following fixes:
 
 """
 
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ...extern import six
 
 from functools import wraps
 from sys import version_info
 
 __all__ = [
-    'inspect_getmodule', 'invalidate_caches', 'override__dir__',
-    'urlopen', 'urlerror']
+    'inspect_getmodule', 'invalidate_caches', 'override__dir__']
 
 
 def _patched_getmodule(object, _filename=None):
@@ -128,7 +129,7 @@ def override__dir__(f):
             members = set()
             for cls in self.__class__.mro():
                 members.update(dir(cls))
-            members.update(self.__dict__.iterkeys())
+            members.update(six.iterkeys(self.__dict__))
             members.update(f(self))
             return sorted(members)
     else:
@@ -141,16 +142,3 @@ def override__dir__(f):
             return sorted(members)
 
     return override__dir__wrapper
-
-
-# Handle the different placement of urlopen on Python 2 vs. 3.  It is
-# imported from within a function to prevent importing urllib unless
-# we need it.  It looks useless, but 2to3 (which is currently still running
-# on this file) will convert it on Python 3.
-def urlopen(*args, **kwargs):
-    import urllib2
-    return urllib2.urlopen(*args, **kwargs)
-
-def urlerror():
-    import urllib2
-    return urllib2.URLError

@@ -1,4 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ...extern import six
+
 import io
 
 from ..xml import check, unescaper, writer
@@ -59,13 +64,13 @@ def test_unescape_all():
 
 def test_escape_xml():
     s = writer.xml_escape('This & That')
-    assert type(s) == unicode
+    assert type(s) == six.text_type
     assert s == u'This &amp; That'
 
-    s = writer.xml_escape(u'This & That')
-    assert type(s) == unicode
-    assert s == u'This &amp; That'
+    s = writer.xml_escape('This & That')
+    assert type(s) == six.text_type
+    assert s == 'This &amp; That'
 
     s = writer.xml_escape(1)
-    assert type(s) == unicode
-    assert s == u'1'
+    assert type(s) == six.text_type
+    assert s == '1'

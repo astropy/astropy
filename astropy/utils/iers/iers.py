@@ -49,8 +49,9 @@ Instead of local copies of IERS files, one can also download them, using
     >>> iers_a_file = download_file(IERS_A_URL, cache=True)  # doctest: +SKIP
     >>> iers_a = IERS_A.open(iers_a_file)                    # doctest: +SKIP
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from __future__ import division
 import numpy as np
 
 from ...table import Table

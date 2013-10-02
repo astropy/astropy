@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import functools
 import numpy as np
 
@@ -51,7 +54,7 @@ class TestBasic():
                                                 0.41328895]))
 
 
-@pytest.mark.skipif('not HAS_IERS_A')
+@pytest.mark.skipif(str('not HAS_IERS_A'))
 class TestIERS_A():
     def test_simple(self):
         iers_tab = iers.IERS_A.open()

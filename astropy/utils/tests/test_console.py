@@ -1,5 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ...extern.six.moves import xrange
 
 import io
 import locale
@@ -10,9 +14,9 @@ from ...tests.helper import pytest, raises
 from .. import console
 
 
-@pytest.mark.skipif("sys.platform.startswith('win')")
+@pytest.mark.skipif(str("sys.platform.startswith('win')"))
 def test_color_text():
-    assert console._color_text("foo", "green") == u'\033[0;32mfoo\033[0m'
+    assert console._color_text("foo", "green") == '\033[0;32mfoo\033[0m'
 
 
 def test_color_print():
@@ -27,14 +31,14 @@ def test_color_print2():
     # not a tty
     stream = io.StringIO()
     console.color_print("foo", "green", file=stream)
-    assert stream.getvalue() == u'foo\n'
+    assert stream.getvalue() == 'foo\n'
 
     stream = io.StringIO()
     console.color_print("foo", "green", "bar", "red", "baz", file=stream)
-    assert stream.getvalue() == u'foobarbaz\n'
+    assert stream.getvalue() == 'foobarbaz\n'
 
 
-@pytest.mark.skipif("sys.platform.startswith('win')")
+@pytest.mark.skipif(str("sys.platform.startswith('win')"))
 def test_color_print3():
     # Test that this things the FakeTTY is a tty and applies colors.
     class FakeTTY(io.StringIO):
@@ -43,22 +47,22 @@ def test_color_print3():
 
     stream = FakeTTY()
     console.color_print("foo", "green", file=stream)
-    assert stream.getvalue() == u'\x1b[0;32mfoo\x1b[0m\n'
+    assert stream.getvalue() == '\x1b[0;32mfoo\x1b[0m\n'
 
     stream = FakeTTY()
     console.color_print("foo", "green", "bar", "red", "baz", file=stream)
-    assert stream.getvalue() == u'\x1b[0;32mfoo\x1b[0m\x1b[0;31mbar\x1b[0mbaz\n'
+    assert stream.getvalue() == '\x1b[0;32mfoo\x1b[0m\x1b[0;31mbar\x1b[0mbaz\n'
 
 
 def test_color_print_unicode():
-    console.color_print(u"überbær", "red")
+    console.color_print("überbær", "red")
 
 
 def test_color_print_invalid_color():
     console.color_print("foo", "unknown")
 
 
-@pytest.mark.skipif('sys.version_info[0] > 2')
+@pytest.mark.skipif(str('sys.version_info[0] > 2'))
 def test_color_print_no_default_encoding():
     """Regression test for #1244
 
@@ -74,12 +78,12 @@ def test_color_print_no_default_encoding():
         # Try printing a string that can be utf-8 decoded (the default)
         stream = io.StringIO()
         console.color_print(b'\xe2\x98\x83', 'white', file=stream)
-        assert stream.getvalue() == u'☃\n'
+        assert stream.getvalue() == '☃\n'
 
         # Test the latin-1 fallback
         stream = io.StringIO()
         console.color_print(b'\xcd\xef', 'red', file=stream)
-        assert stream.getvalue() == u'Íï\n'
+        assert stream.getvalue() == 'Íï\n'
     finally:
         locale.getpreferredencoding = orig_func
 
@@ -92,7 +96,7 @@ def test_progress_bar():
 
 
 def test_progress_bar2():
-    for x in console.ProgressBar.iterate(range(50)):
+    for x in console.ProgressBar.iterate(xrange(50)):
         pass
 
 
@@ -100,7 +104,7 @@ def test_progress_bar3():
     def do_nothing(*args, **kwargs):
         pass
 
-    console.ProgressBar.map(do_nothing, range(50))
+    console.ProgressBar.map(do_nothing, xrange(50))
 
 
 def test_zero_progress_bar():
@@ -110,7 +114,7 @@ def test_zero_progress_bar():
 
 def test_progress_bar_as_generator():
     sum = 0
-    for x in console.ProgressBar(range(50)):
+    for x in console.ProgressBar(xrange(50)):
         sum += x
     assert sum == 1225
 

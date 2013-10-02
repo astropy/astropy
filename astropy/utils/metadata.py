@@ -2,6 +2,9 @@
 """
 This module contains helper functions for handling metadata.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ..extern import six
 
 from copy import deepcopy
 
@@ -59,7 +62,7 @@ def merge(left, right, merge_func=concat):
 
     out = deepcopy(left)
 
-    for key, val in right.items():
+    for key, val in list(six.iteritems(right)):
         # If no conflict then insert val into out dict and continue
         if key not in out:
             out[key] = deepcopy(val)

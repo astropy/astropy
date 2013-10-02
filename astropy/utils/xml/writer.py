@@ -3,6 +3,9 @@
 Contains a class that makes it simple to stream out well-formed and
 nicely-indented XML.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ...extern import six
 
 # STDLIB
 import contextlib
@@ -16,9 +19,9 @@ except ImportError:
         """
         Escapes &, < and > in an XML CDATA string.
         """
-        s = s.replace(u"&", u"&amp;")
-        s = s.replace(u"<", u"&lt;")
-        s = s.replace(u">", u"&gt;")
+        s = s.replace("&", "&amp;")
+        s = s.replace("<", "&lt;")
+        s = s.replace(">", "&gt;")
         return s
 
 
@@ -26,11 +29,11 @@ except ImportError:
         """
         Escapes &, ', ", < and > in an XML attribute value.
         """
-        s = s.replace(u"&", u"&amp;")
-        s = s.replace(u"'", u"&apos;")
-        s = s.replace(u"\"", u"&quot;")
-        s = s.replace(u"<", u"&lt;")
-        s = s.replace(u">", u"&gt;")
+        s = s.replace("&", "&amp;")
+        s = s.replace("'", "&apos;")
+        s = s.replace("\"", "&quot;")
+        s = s.replace("<", "&lt;")
+        s = s.replace(">", "&gt;")
         return s
 else:
     xml_escape_cdata = _iterparser.escape_xml_cdata
@@ -69,7 +72,7 @@ class XMLWriter:
         self._open = 0  # true if start tag is open
         self._tags = []
         self._data = []
-        self._indentation = u" " * 64
+        self._indentation = " " * 64
 
         self.xml_escape_cdata = xml_escape_cdata
         self.xml_escape = xml_escape
@@ -80,21 +83,21 @@ class XMLWriter:
         """
         if self._open:
             if indent:
-                self.write(u">\n")
+                self.write(">\n")
             else:
-                self.write(u">")
+                self.write(">")
             self._open = 0
         if self._data:
-            data = u''.join(self._data)
+            data = ''.join(self._data)
             if wrap:
                 indent = self.get_indentation_spaces(1)
                 data = textwrap.fill(
                     data,
                     initial_indent=indent,
                     subsequent_indent=indent)
-                self.write(u'\n')
+                self.write('\n')
                 self.write(self.xml_escape_cdata(data))
-                self.write(u'\n')
+                self.write('\n')
                 self.write(self.get_indentation_spaces())
             else:
                 self.write(self.xml_escape_cdata(data))
@@ -128,18 +131,18 @@ class XMLWriter:
         self._data = []
         self._tags.append(tag)
         self.write(self.get_indentation_spaces(-1))
-        self.write(u"<%s" % tag)
+        self.write("<%s" % tag)
         if attrib or extra:
             attrib = attrib.copy()
             attrib.update(extra)
-            attrib = attrib.items()
+            attrib = list(six.iteritems(attrib))
             attrib.sort()
             for k, v in attrib:
                 if v is not None:
                     # This is just busy work -- we know our keys are clean
                     # k = xml_escape_cdata(k)
                     v = self.xml_escape(v)
-                    self.write(u" %s=\"%s\"" % (k, v))
+                    self.write(" %s=\"%s\"" % (k, v))
         self._open = 1
 
         return len(self._tags)
@@ -170,7 +173,7 @@ class XMLWriter:
         """
         self._flush()
         self.write(self.get_indentation_spaces())
-        self.write(u"<!-- %s -->\n" % self.xml_escape_cdata(comment))
+        self.write("<!-- %s -->\n" % self.xml_escape_cdata(comment))
 
     def data(self, text):
         """
@@ -205,11 +208,11 @@ class XMLWriter:
             self._flush(indent, wrap)
         elif self._open:
             self._open = 0
-            self.write(u"/>\n")
+            self.write("/>\n")
             return
         if indent:
             self.write(self.get_indentation_spaces())
-        self.write(u"</%s>\n" % tag)
+        self.write("</%s>\n" % tag)
 
     def close(self, id):
         """
@@ -276,5 +279,5 @@ class XMLWriter:
         d = {}
         for attr in attrs:
             if getattr(obj, attr) is not None:
-                d[attr.replace(u'_', u'-')] = unicode(getattr(obj, attr))
+                d[attr.replace('_', '-')] = six.text_type(getattr(obj, attr))
         return d
