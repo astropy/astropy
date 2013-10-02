@@ -13,7 +13,7 @@ from .core import LabeledInput
 from .utils import poly_map_domain, comb
 from .functional_models import ShiftModel
 
-__all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'Legendre2DModel',
+__all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'InverseSIPModel', 'Legendre2DModel',
            'Legendre1DModel', 'Poly1DModel', 'Poly2DModel', 'SIPModel',
            'OrthogPolyBase', 'PolynomialModel']
 
@@ -942,7 +942,7 @@ class _SIP1D(Model):
         if not pars:
             self.set_coeff(pardim=param_dim)
         else:
-            p = pars.get('{0}0_2'.format(coeff_prefix, None))
+            p = pars.get('{0}_0_2'.format(coeff_prefix, None))
             if isinstance(p, collections.Sequence):
                 lenpars = len(p)
             else:
@@ -975,7 +975,7 @@ class _SIP1D(Model):
               self.order,
               self.coeff_prefix,
               self._param_dim,
-              "\n                   ".join(i + ':  ' + str(getattr(self, i)) for
+              "\n                   ".join(i + ':  ' + str(getattr(self, '_'+i)) for
                                            i in self.param_names)
         )
         return fmt
@@ -993,7 +993,7 @@ class _SIP1D(Model):
               self.order,
               self.coeff_prefix,
               self.param_dim,
-              "\n                   ".join(i + ':  ' + str(getattr(self, i)) for
+              "\n                   ".join(i + ':  ' + str(getattr(self, '_'+i)) for
                                            i in self.param_names)
         )
         return fmt
@@ -1011,13 +1011,13 @@ class _SIP1D(Model):
     def _generate_coeff_names(self, coeff_prefix):
         names = []
         for i in range(2, self.order + 1):
-            names.append('{0}{1}_{2}'.format(coeff_prefix, i, 0))
+            names.append('{0}_{1}_{2}'.format(coeff_prefix, i, 0))
         for i in range(2, self.order + 1):
-            names.append('{0}{1}_{2}'.format(coeff_prefix, 0, i))
+            names.append('{0}_{1}_{2}'.format(coeff_prefix, 0, i))
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i + j < self.order + 1:
-                    names.append('{0}{1}_{2}'.format(coeff_prefix, i, j))
+                    names.append('{0}_{1}_{2}'.format(coeff_prefix, i, j))
         return names
 
     def set_coeff(self, pardim=1, **pars):
@@ -1044,13 +1044,13 @@ class _SIP1D(Model):
     def _coef_matrix(self, coeff_prefix):
         mat = np.zeros((self.order + 1, self.order + 1))
         for i in range(2, self.order + 1):
-            mat[i, 0] = getattr(self, '{0}{1}_{2}'.format(coeff_prefix, i, 0))[0]
+            mat[i, 0] = getattr(self, '{0}_{1}_{2}'.format('_'+coeff_prefix, i, 0)).value
         for i in range(2, self.order + 1):
-            mat[0, i] = getattr(self, '{0}{1}_{2}'.format(coeff_prefix, 0, i))[0]
+            mat[0, i] = getattr(self, '{0}_{1}_{2}'.format('_'+coeff_prefix, 0, i)).value
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i + j < self.order + 1:
-                    mat[i, j] = getattr(self, '{0}{1}_{2}'.format(coeff_prefix, i, j))[0]
+                    mat[i, j] = getattr(self, '{0}_{1}_{2}'.format('_'+coeff_prefix, i, j)).value
         return mat
 
     def _eval_sip(self, x, y, coef):
@@ -1072,7 +1072,7 @@ class _SIP1D(Model):
         return self._eval_sip(x, y, mcoef)
 
 
-class SIPModel(SCompositeModel):
+class _SIPModel(SCompositeModel):
 
     """
 
@@ -1112,40 +1112,70 @@ class SIPModel(SCompositeModel):
 
     """
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
-                 a_inv_order=None, a_inv_coeff=None, b_inv_order=None, b_inv_coeff=None,
+                 ap_order=None, ap_coeff=None, bp_order=None, bp_coeff=None,
                  param_dim=1):
-        self.shifta = ShiftModel(-crpix[0])
-        self.shiftb = ShiftModel(-crpix[1])
-        self.sip1da = _SIP1D(a_order, coeff_prefix='A',
-                             param_dim=param_dim, **a_coeff)
-        self.sip1db = _SIP1D(b_order, coeff_prefix='B',
-                             param_dim=param_dim, **b_coeff)
-        if a_inv_order is not None and a_inv_coeff is not None and \
-                b_inv_order is not None and b_inv_coeff is not None:
-            self.inversea = _SIP1D(a_inv_order, coeff_prefix='A', **a_inv_coeff)
-            self.inverseb = _SIP1D(b_inv_order, coeff_prefix='BP', **b_inv_coeff)
-            self.inverse = True
+        self.crpix = crpix
+        self.a_order = a_order
+        self.b_order = b_order
+        self.a_coeff = a_coeff
+        self.b_coeff = b_coeff
+        self.ap_order = ap_order
+        self.bp_order = bp_order
+        self.ap_coeff = ap_coeff
+        self.bp_coeff = bp_coeff
+        self.shift_a = ShiftModel(-crpix[0])
+        self.shift_b = ShiftModel(-crpix[1])
+        self.sip1d_a = _SIP1D(a_order, coeff_prefix='A',
+                              param_dim=param_dim, **a_coeff)
+        self.sip1d_b = _SIP1D(b_order, coeff_prefix='B',
+                              param_dim=param_dim, **b_coeff)
+        if ap_order is not None and ap_coeff is not None and \
+                bp_order is not None and bp_coeff is not None:
+            self.sip1d_ap = _SIP1D(ap_order, coeff_prefix='AP', **ap_coeff)
+            self.sip1d_bp = _SIP1D(bp_order, coeff_prefix='BP', **bp_coeff)
         else:
-            self.inverse = None
-        super(SIPModel, self).__init__([self.shifta, self.shiftb, self.sip1da, self.sip1db],
-                                       inmap=[['x'], ['y'], ['x', 'y'], ['x', 'y']],
-                                       outmap=[['x'], ['y'], ['x1'], ['y1']], n_inputs=2,
-                                       n_outputs=2)
+            self.sip1d_ap = None
+            self.sip1d_bp = None
+        super(_SIPModel, self).__init__([self.shift_a, self.shift_b, self.sip1d_a,
+                                        self.sip1d_b], n_inputs=2, n_outputs=2)
+
+
+class SIPModel(_SIPModel):
+
+    __doc__ = _SIPModel.__doc__
+
+    def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
+                 ap_order=None, ap_coeff=None, bp_order=None, bp_coeff=None,
+                 param_dim=1):
+
+        super(SIPModel, self).__init__(crpix, a_order, a_coeff, b_order, b_coeff,
+                                       ap_order, ap_coeff, bp_order, bp_coeff, param_dim=1)
+
+    def inverse(self):
+        if self.ap_order is not None and self.ap_coeff is not None and self.bp_order \
+           is not None and self.bp_coeff is not None:
+            return InverseSIPModel(self.crpix, self.a_order, self.a_coeff,
+                                   self.b_order, self.b_coeff,
+                                   self.ap_order, self.ap_coeff,
+                                   self.bp_order, self.bp_coeff)
+        else:
+            raise NotImplementedError("An analytical inverse transform has not been"
+                                      " implemented for this model.")
 
     def __repr__(self):
-        models = [self.shifta, self.shiftb, self.sip1da, self.sip1db]
+        models = [self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b]
         fmt = """
             Model:  {0}
-            """.format(self.__class__.__name__, self.sip1d.coeff_prefix)
+            """.format(self.__class__.__name__)
         fmt1 = " %s  " * len(models) % tuple([repr(model) for model in models])
         fmt = fmt + fmt1
         return fmt
 
     def __str__(self):
-        models = [self.shifta, self.shiftb, self.sip1da, self.sip1db]
+        models = [self.shift_a, self.shift_b, self.sip1d_a, self.sip1d_b]
         fmt = """
             Model:  {0}
-            """.format(self.__class__.__name__, self.sip1d.coeff_prefix)
+            """.format(self.__class__.__name__)
         fmt1 = " %s  " * len(models) % tuple([str(model) for model in models])
         fmt = fmt + fmt1
         return fmt
@@ -1156,12 +1186,64 @@ class SIPModel(SCompositeModel):
 
         Parameters
         ----------
-        x : scalar, list ot array
+        x : scalar, list, array
             input
         y : scalar, list or array
             input
-
         """
-        labeled_input = LabeledInput([x, y], ['x', 'y'])
-        result = SCompositeModel.__call__(self, labeled_input)
-        return result.x1, result.y1
+        x = self.shift_a(x)
+        y = self.shift_b(y)
+        x1 = self.sip1d_a(x, y)
+        y1 = self.sip1d_b(x, y)
+        return x1, y1
+
+
+class InverseSIPModel(_SIPModel):
+
+    __doc__ = _SIPModel.__doc__
+
+    def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
+                 ap_order, ap_coeff, bp_order, bp_coeff,
+                 param_dim=1):
+
+        super(InverseSIPModel, self).__init__(crpix, a_order, a_coeff, b_order, b_coeff,
+                                              ap_order, ap_coeff, bp_order, bp_coeff,
+                                              param_dim=1)
+
+    def inverse(self):
+        if self.a_order is not None and self.a_coeff is not None and self.b_order \
+           is not None and self.bp_coeff is not None:
+            return SIPModel(self.crpix, self.a_order, self.a_coeff, self.b_order, self.b_coeff,
+                            self.ap_order, self.ap_coeff, self.bp_order, self.bp_coeff)
+        else:
+            raise NotImplementedError("An analytical inverse transform has not been"
+                                      " implemented for this model.")
+
+    def __call__(self, x, y):
+        if self.sip1d_ap is not None and self.sip1d_bp is not None:
+            x1 = self.sip1d_ap(x, y)
+            y1 = self.sip1d_bp(x, y)
+            x = self.shift_a.inverse()(x1)
+            y = self.shift_b.inverse()(y1)
+            return x, y
+        else:
+            raise NotImplementedError("An analytical inverse transform has not been"
+                                      " implemented for this model.")
+
+    def __repr__(self):
+        models = [self.sip1d_ap, self.sip1d_bp, self.shift_a.inverse(), self.shift_b.inverse()]
+        fmt = """
+            Model:  {0}
+            """.format(self.__class__.__name__)
+        fmt1 = " %s  " * len(models) % tuple([repr(model) for model in models])
+        fmt = fmt + fmt1
+        return fmt
+
+    def __str__(self):
+        models = [self.sip1d_ap, self.sip1d_bp, self.shift_a.inverse(), self.shift_b.inverse()]
+        fmt = """
+            Model:  {0}
+            """.format(self.__class__.__name__)
+        fmt1 = " %s  " * len(models) % tuple([str(model) for model in models])
+        fmt = fmt + fmt1
+        return fmt

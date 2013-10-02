@@ -12,11 +12,11 @@ from .core import (Parametric1DModel, Parametric2DModel, Model,
 from .utils import InputParameterError, ModelDefinitionError
 
 __all__ = sorted(['AiryDisk2DModel', 'Beta1DModel', 'Beta2DModel',
-           'Box1DModel', 'Box2DModel', 'Const1DModel', 'Const2DModel',
-           'Custom1DModel', 'Disk2DModel', 'Gaussian1DModel', 'Gaussian2DModel',
-           'Linear1DModel', 'Lorentz1DModel', 'MexicanHat1DModel',
-           'MexicanHat2DModel', 'PowerLaw1DModel', 'ScaleModel', 'ShiftModel',
-           'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel', 'Ring2DModel'])
+                  'Box1DModel', 'Box2DModel', 'Const1DModel', 'Const2DModel',
+                  'Custom1DModel', 'Disk2DModel', 'Gaussian1DModel', 'Gaussian2DModel',
+                  'Linear1DModel', 'Lorentz1DModel', 'MexicanHat1DModel',
+                  'MexicanHat2DModel', 'PowerLaw1DModel', 'ScaleModel', 'ShiftModel',
+                  'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel', 'Ring2DModel'])
 
 
 class Gaussian1DModel(Parametric1DModel):
@@ -210,7 +210,9 @@ class ShiftModel(Model):
     param_names = ['offsets']
 
     def __init__(self, offsets, param_dim=1):
-        if isinstance(offsets, collections.Sequence):
+        if not isinstance(offsets, collections.Sequence):
+            param_dim = 1
+        else:
             param_dim = len(offsets)
         self._offsets = parameters.Parameter('offsets', offsets, self, param_dim)
         super(ShiftModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
@@ -232,7 +234,7 @@ class ShiftModel(Model):
             input
         """
         x, fmt = _convert_input(x, self.param_dim)
-        result = self._offsets +x
+        result = self._offsets + x
         return _convert_output(result, fmt)
 
 
@@ -251,7 +253,9 @@ class ScaleModel(Model):
     param_names = ['factors']
 
     def __init__(self, factors, param_dim=1):
-        if isinstance(factors, collections.Sequence):
+        if not isinstance(factors, collections.Sequence):
+            param_dim = 1
+        else:
             param_dim = len(factors)
         self._factors = parameters.Parameter('factors', factors, self, param_dim)
         super(ScaleModel, self).__init__(self.param_names, n_inputs=1, n_outputs=1,
@@ -691,7 +695,7 @@ class Box1DModel(Parametric1DModel):
         """
         Model function Box1D
         """
-        return np.select([np.logical_and(x > x_0 - width / 2., x < x_0 + width / 2.), 
+        return np.select([np.logical_and(x > x_0 - width / 2., x < x_0 + width / 2.),
                           np.logical_or(x == x_0 - width / 2., x == x_0 + width / 2.)],
                          [amplitude, amplitude / 2.])
 
