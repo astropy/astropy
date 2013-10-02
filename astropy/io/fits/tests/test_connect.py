@@ -59,7 +59,7 @@ class TestSingleTable(object):
         with log.log_to_list() as l:
             t1.write(filename, overwrite=True)
         assert len(l) == 1
-        assert l[0].message == 'Meta-data keyword ttype1 will be ignored since it conflicts with a FITS reserved keyword'
+        assert l[0].message.startswith('Meta-data keyword ttype1 will be ignored since it conflicts with a FITS reserved keyword')
 
     def test_simple_noextension(self, tmpdir):
         """
@@ -138,7 +138,7 @@ class TestMultipleHDU(object):
         with log.log_to_list() as l:
             t = Table.read(filename)
         assert len(l) == 1
-        assert l[0].message == 'hdu= was not specified but multiple tables are present, reading in first available table (hdu=1)'
+        assert l[0].message.startswith('hdu= was not specified but multiple tables are present, reading in first available table (hdu=1)')
         assert equal_data(t, self.data1)
 
     def test_read_with_hdu_0(self, tmpdir):
@@ -170,7 +170,7 @@ class TestMultipleHDU(object):
         with log.log_to_list() as l:
             t = Table.read(self.hdus)
         assert len(l) == 1
-        assert l[0].message == 'hdu= was not specified but multiple tables are present, reading in first available table (hdu=1)'
+        assert l[0].message.startswith('hdu= was not specified but multiple tables are present, reading in first available table (hdu=1)')
         assert equal_data(t, self.data1)
 
     def test_read_from_hdulist_with_hdu_0(self, tmpdir):

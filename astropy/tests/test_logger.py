@@ -5,6 +5,7 @@ import warnings
 from .helper import pytest, catch_warnings
 from .. import log
 from ..logger import LoggingError, LOG_LEVEL
+from ..utils.custom_warnings import AstropyWarning, AstropyUserWarning
 
 
 # Save original values of hooks. These are not the system values, but the
@@ -73,7 +74,7 @@ def test_warnings_logging():
     # Without warnings logging
     with catch_warnings() as warn_list:
         with log.log_to_list() as log_list:
-            warnings.warn("This is a warning")
+            warnings.warn("This is a warning", AstropyUserWarning)
     assert len(log_list) == 0
     assert len(warn_list) == 1
     assert warn_list[0].message.args[0] == "This is a warning"
@@ -82,37 +83,51 @@ def test_warnings_logging():
     with catch_warnings() as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
-            warnings.warn("This is a warning")
+            warnings.warn("This is a warning", AstropyUserWarning)
         log.disable_warnings_logging()
     assert len(log_list) == 1
     assert len(warn_list) == 0
     assert log_list[0].levelname == 'WARNING'
-    assert log_list[0].message == 'This is a warning'
+    assert log_list[0].message.startswith('This is a warning')
     assert log_list[0].origin == 'astropy.tests.test_logger'
+
+    # With warnings logging (differentiate between Astropy and non-Astropy)
+    with catch_warnings() as warn_list:
+        log.enable_warnings_logging()
+        with log.log_to_list() as log_list:
+            warnings.warn("This is a warning", AstropyUserWarning)
+            warnings.warn("This is another warning, not from Astropy")
+        log.disable_warnings_logging()
+    assert len(log_list) == 1
+    assert len(warn_list) == 1
+    assert log_list[0].levelname == 'WARNING'
+    assert log_list[0].message.startswith('This is a warning')
+    assert log_list[0].origin == 'astropy.tests.test_logger'
+    assert warn_list[0].message.args[0] == "This is another warning, not from Astropy"
 
     # Without warnings logging
     with catch_warnings() as warn_list:
         with log.log_to_list() as log_list:
-            warnings.warn("This is a warning")
+            warnings.warn("This is a warning", AstropyUserWarning)
     assert len(log_list) == 0
     assert len(warn_list) == 1
     assert warn_list[0].message.args[0] == "This is a warning"
 
 
 def test_warnings_logging_with_custom_class():
-    class CustomWarningClass(Warning):
+    class CustomAstropyWarningClass(AstropyWarning):
         pass
 
     # With warnings logging
     with catch_warnings() as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
-            warnings.warn("This is a warning", CustomWarningClass)
+            warnings.warn("This is a warning", CustomAstropyWarningClass)
         log.disable_warnings_logging()
     assert len(log_list) == 1
     assert len(warn_list) == 0
     assert log_list[0].levelname == 'WARNING'
-    assert log_list[0].message == 'CustomWarningClass: This is a warning'
+    assert log_list[0].message.startswith('CustomAstropyWarningClass: This is a warning')
     assert log_list[0].origin == 'astropy.tests.test_logger'
 
 
@@ -127,8 +142,8 @@ def test_warning_logging_with_io_votable_warning():
     assert len(log_list) == 1
     assert len(warn_list) == 0
     assert log_list[0].levelname == 'WARNING'
-    assert log_list[0].message == ("W02: ?:?:?: W02: a attribute 'b' is "
-                                   "invalid.  Must be a standard XML id")
+    assert log_list[0].message.startswith(("W02: ?:?:?: W02: a attribute 'b' is "
+                                           "invalid.  Must be a standard XML id"))
     assert log_list[0].origin == 'astropy.tests.test_logger'
 
 
@@ -182,7 +197,7 @@ def test_exception_logging():
         assert False  # exception should have been raised
     assert len(log_list) == 1
     assert log_list[0].levelname == 'ERROR'
-    assert log_list[0].message == 'Exception: This is an Exception'
+    assert log_list[0].message.startswith('Exception: This is an Exception')
     assert log_list[0].origin == 'astropy.tests.test_logger'
 
     # Without exception logging
@@ -257,22 +272,22 @@ def test_log_to_list(level):
     # Check list content
 
     assert log_list[0].levelname == 'ERROR'
-    assert log_list[0].message == 'Error message'
+    assert log_list[0].message.startswith('Error message')
     assert log_list[0].origin == 'astropy.tests.test_logger'
 
     if len(log_list) >= 2:
         assert log_list[1].levelname == 'WARNING'
-        assert log_list[1].message == 'Warning message'
+        assert log_list[1].message.startswith('Warning message')
         assert log_list[1].origin == 'astropy.tests.test_logger'
 
     if len(log_list) >= 3:
         assert log_list[2].levelname == 'INFO'
-        assert log_list[2].msg == 'Information message'
+        assert log_list[2].message.startswith('Information message')
         assert log_list[2].origin == 'astropy.tests.test_logger'
 
     if len(log_list) >= 4:
         assert log_list[3].levelname == 'DEBUG'
-        assert log_list[3].msg == 'Debug message'
+        assert log_list[3].message.startswith('Debug message')
         assert log_list[3].origin == 'astropy.tests.test_logger'
 
 

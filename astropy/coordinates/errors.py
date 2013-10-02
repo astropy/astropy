@@ -6,6 +6,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from ..utils.custom_warnings import AstropyWarning
+
 __all__ = ['RangeError', 'BoundsError', 'IllegalHourError',
            'IllegalMinuteError', 'IllegalSecondError', 'ConvertError',
            'IllegalHourWarning', 'IllegalMinuteWarning', 'IllegalSecondWarning']
@@ -43,7 +45,7 @@ class IllegalHourError(RangeError):
         return "An invalid value for 'hours' was found ('{0}'); must be in the range [0,24).".format(self.hour)
 
 
-class IllegalHourWarning(Warning):
+class IllegalHourWarning(AstropyWarning):
     """
     Raised when an hour value is 24.
 
@@ -81,7 +83,7 @@ class IllegalMinuteError(RangeError):
         return "An invalid value for 'minute' was found ('{0}'); should be in the range [0,60).".format(self.minute)
 
 
-class IllegalMinuteWarning(Warning):
+class IllegalMinuteWarning(AstropyWarning):
     """
     Raised when a minute value is 60.
 
@@ -119,7 +121,7 @@ class IllegalSecondError(RangeError):
         return "An invalid value for 'second' was found ('{0}'); should be in the range [0,60).".format(self.second)
 
 
-class IllegalSecondWarning(Warning):
+class IllegalSecondWarning(AstropyWarning):
     """
     Raised when a second value is 60.
 

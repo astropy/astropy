@@ -7,6 +7,7 @@ import numpy as np
 from ...tests.helper import pytest, catch_warnings
 from ... import table
 from ...table import Row
+from ...utils.custom_warnings import AstropyDeprecationWarning
 
 numpy_lt_1p8 = version.LooseVersion(np.__version__) < version.LooseVersion('1.8')
 
@@ -164,6 +165,6 @@ class TestRow():
         self._setup(table_types)
         r = Row(self.t, 2)
 
-        with catch_warnings(DeprecationWarning) as warning_lines:
+        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
             r.dtypes
-            assert warning_lines[0].category == DeprecationWarning
+            assert warning_lines[0].category == AstropyDeprecationWarning

@@ -13,6 +13,7 @@ import contextlib
 import urllib2
 
 from ..config.configuration import ConfigurationItem
+from ..utils.custom_warnings import AstropyWarning
 
 __all__ = ['get_readable_fileobj', 'get_file_contents', 'get_pkg_data_fileobj',
            'get_pkg_data_filename', 'get_pkg_data_contents',
@@ -43,7 +44,7 @@ DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = ConfigurationItem(
 PY3K = sys.version_info[0] >= 3
 
 
-class CacheMissingWarning(Warning):
+class CacheMissingWarning(AstropyWarning):
     """
     This warning indicates the standard cache directory is not accessible, with
     the first argument providing the warning message. If args[1] is present, it

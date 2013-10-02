@@ -4,13 +4,14 @@ This module contains helper functions for handling metadata.
 """
 
 from copy import deepcopy
+from ..utils.custom_warnings import AstropyWarning
 
 
 class MergeConflictError(TypeError):
     pass
 
 
-class MergeConflictWarning(Warning):
+class MergeConflictWarning(AstropyWarning):
     pass
 
 

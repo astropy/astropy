@@ -14,7 +14,7 @@ from . import config
 from .utils.compat import inspect_getmodule
 from .utils.console import color_print
 from .utils.misc import find_current_module
-
+from .utils.custom_warnings import AstropyWarning, AstropyUserWarning
 
 __all__ = ['log', 'AstropyLogger', 'LoggingError']
 
@@ -52,11 +52,11 @@ USE_COLOR = ConfigurationItem('use_color', True,
 LOG_WARNINGS = ConfigurationItem('log_warnings', True,
                                  "Whether to log warnings.warn calls")
 
-LOG_EXCEPTIONS = ConfigurationItem('log_exceptions', True,
+LOG_EXCEPTIONS = ConfigurationItem('log_exceptions', False,
                                    "Whether to log exceptions before raising "
                                    "them")
 
-LOG_TO_FILE = ConfigurationItem('log_to_file', True,
+LOG_TO_FILE = ConfigurationItem('log_to_file', False,
                                 "Whether to always log messages to a log "
                                 "file")
 
@@ -160,12 +160,17 @@ class AstropyLogger(Logger):
     _showwarning_orig = None
 
     def _showwarning(self, *args, **kwargs):
+
+        # Bail out if we are not catching a warning from Astropy
+        if not isinstance(args[0], AstropyWarning):
+            return self._showwarning_orig(*args, **kwargs)
+
         warning = args[0]
         # Deliberately not using isinstance here: We want to display
         # the class name only when it's not the default class,
-        # UserWarning.  The name of subclasses of UserWarning should
+        # AstropyWarning.  The name of subclasses of AstropyWarning should
         # be displayed.
-        if type(warning) != UserWarning:
+        if type(warning) not in (AstropyWarning, AstropyUserWarning):
             message = '{0}: {1}'.format(warning.__class__.__name__, args[0])
         else:
             message = unicode(args[0])
@@ -368,7 +373,8 @@ class AstropyLogger(Logger):
             color_print(record.levelname, 'brown', end='')
         else:
             color_print(record.levelname, 'red', end='')
-        print(": {0} [{1:s}]".format(record.msg, record.origin))
+        record.message = "{0} [{1:s}]".format(record.msg, record.origin)
+        print(": " + record.message)
 
     @contextmanager
     def log_to_file(self, filename, filter_level=None, filter_origin=None):

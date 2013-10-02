@@ -19,6 +19,8 @@ from ..io import registry as io_registry
 from . import operations
 from ..extern import six
 
+from ..utils.custom_warnings import AstropyDeprecationWarning
+
 # Python 2 and 3 source compatibility
 try:
     unicode
@@ -478,12 +480,12 @@ class Column(BaseColumn, np.ndarray):
         if dtypes is not None:
             dtype = dtypes
             warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
-                          DeprecationWarning)
+                          AstropyDeprecationWarning)
 
         if units is not None:
             unit = units
             warnings.warn("'units' has been renamed to the singular 'unit'.",
-                          DeprecationWarning)
+                          AstropyDeprecationWarning)
 
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
@@ -628,12 +630,12 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         if dtypes is not None:
             dtype = dtypes
             warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
-                          DeprecationWarning)
+                          AstropyDeprecationWarning)
 
         if units is not None:
             unit = units
             warnings.warn("'units' has been renamed to the singular 'unit'.",
-                          DeprecationWarning)
+                          AstropyDeprecationWarning)
 
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
@@ -947,7 +949,7 @@ class Table(object):
         if dtypes is not None:
             dtype = dtypes
             warnings.warn("'dtypes' has been renamed to the singular 'dtype'.",
-                          DeprecationWarning)
+                          AstropyDeprecationWarning)
 
         # Set up a placeholder empty table
         self._data = None

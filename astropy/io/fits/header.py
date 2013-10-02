@@ -17,6 +17,7 @@ from .util import (encode_ascii, decode_ascii, fileobj_mode,
                    fileobj_is_binary)
 
 from ...utils import deprecated, isiterable
+from ...utils.custom_warnings import AstropyUserWarning, AstropyDeprecationWarning
 
 
 PY3K = sys.version_info[:2] >= (3, 0)
@@ -91,7 +92,7 @@ class Header(object):
             warnings.warn(
                 'The txtfile argument is deprecated.  Use Header.fromfile to '
                 'create a new Header object from a text file.',
-                DeprecationWarning)
+                AstropyDeprecationWarning)
             # get the cards from the input ASCII file
             self.update(self.fromfile(txtfile))
             self._modified = False
@@ -225,7 +226,7 @@ class Header(object):
                     'changed so that this raises a KeyError just like a dict '
                     'would. Please update your code so that KeyErrors are '
                     'caught and handled when deleting non-existent keywords.' %
-                    key, DeprecationWarning)
+                    key, AstropyDeprecationWarning)
                 return
             for idx in reversed(self._keyword_indices[key]):
                 # Have to copy the indices list since it will be modified below
@@ -478,7 +479,7 @@ class Header(object):
                 if is_eof and blocks.strip('\0') == '':
                     warnings.warn('Unexpected extra padding at the end of the '
                                   'file.  This padding may not be preserved '
-                                  'when saving changes.')
+                                  'when saving changes.', AstropyUserWarning)
                     raise EOFError()
                 else:
                     # Replace the illegal null bytes with spaces as required by
@@ -486,7 +487,7 @@ class Header(object):
                     warnings.warn('Header block contains null bytes instead '
                                   'of spaces for padding, and is not FITS-'
                                   'compliant. Nulls may be replaced with '
-                                  'spaces upon writing.')
+                                  'spaces upon writing.', AstropyUserWarning)
                     blocks.replace('\0', ' ')
 
             if not HEADER_END_RE.search(last_block) and endcard:
@@ -589,7 +590,7 @@ class Header(object):
         if isinstance(fileobj, basestring):
             if os.path.exists(fileobj) and os.path.getsize(fileobj) != 0:
                 if clobber:
-                    warnings.warn("Overwriting existing file '%s'." % fileobj)
+                    warnings.warn("Overwriting existing file '%s'." % fileobj, AstropyUserWarning)
                     os.remove(fileobj)
                 else:
                     raise IOError("File '%s' already exists." % fileobj)
@@ -1023,7 +1024,7 @@ class Header(object):
                 "`header[keyword] = value` or "
                 "`header[keyword] = (value, comment)`.  header.set() is only "
                 "necessary to use if you also want to use the before/after "
-                "keyword arguments.", DeprecationWarning)
+                "keyword arguments.", AstropyDeprecationWarning)
 
             for k, v in zip(legacy_args, args):
                 if k in kwargs:
@@ -1395,7 +1396,7 @@ class Header(object):
             if keyword not in Card._commentary_keywords:
                 warnings.warn(
                     'A %r keyword already exists in this header.  Inserting '
-                    'duplicate keyword.' % keyword)
+                    'duplicate keyword.' % keyword, AstropyUserWarning)
             self._keyword_indices[keyword].sort()
 
         if useblanks:

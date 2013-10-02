@@ -17,6 +17,7 @@ from ..header import Header, BLOCK_SIZE
 from ..util import _is_pseudo_unsigned, _unsigned_zero
 
 from ....utils import lazyproperty, deprecated
+from ....utils.custom_warnings import AstropyPendingDeprecationWarning
 
 try:
     from .. import compression
@@ -277,7 +278,7 @@ class CompImageHDU(BinTableHDU):
                 warnings.warn('Keyword argument %s to %s is pending '
                               'deprecation; use %s instead' %
                               (oldarg, self.__class__.__name__, newarg),
-                              PendingDeprecationWarning)
+                              AstropyPendingDeprecationWarning)
                 compression_opts[newarg] = kwargs[oldarg]
                 del kwargs[oldarg]
             else:
@@ -345,7 +346,8 @@ class CompImageHDU(BinTableHDU):
         elif not COMPRESSION_SUPPORTED:
             warnings.warn('Failure matching header to a compressed image '
                           'HDU: The compression module is not available.\n'
-                          'The HDU will be treated as a Binary Table HDU.')
+                          'The HDU will be treated as a Binary Table HDU.',
+                          AstropyWarning)
             return False
         else:
             # Compression is supported but disabled; just pass silently (#92)
@@ -427,7 +429,7 @@ class CompImageHDU(BinTableHDU):
                                         'HCOMPRESS_1']:
                 warnings.warn('Unknown compression type provided.  Default '
                               '(%s) compression used.' %
-                              DEFAULT_COMPRESSION_TYPE)
+                              DEFAULT_COMPRESSION_TYPE, AstropyUserWarning)
                 compression_type = DEFAULT_COMPRESSION_TYPE
 
             self._header.set('ZCMPTYPE', compression_type,
@@ -593,7 +595,7 @@ class CompImageHDU(BinTableHDU):
             tile_size = []
         elif len(tile_size) != naxis:
             warnings.warn('Provided tile size not appropriate for the data.  '
-                          'Default tile size will be used.')
+                          'Default tile size will be used.', AstropyUserWarning)
             tile_size = []
 
         # Set default tile dimensions for HCOMPRESS_1
@@ -1185,7 +1187,7 @@ class CompImageHDU(BinTableHDU):
             del self._image_header['ZTENSION']
             if self._header['ZTENSION'] != 'IMAGE':
                 warnings.warn("ZTENSION keyword in compressed "
-                              "extension != 'IMAGE'")
+                              "extension != 'IMAGE'", AstropyUserWarning)
             self._image_header.set('XTENSION', 'IMAGE',
                                    self._header.comments['ZTENSION'])
         except KeyError:

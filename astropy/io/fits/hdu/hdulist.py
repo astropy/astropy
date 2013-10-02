@@ -21,6 +21,8 @@ from ..util import (_is_int, _tmp_name, isfile, fileobj_name, fileobj_closed,
                     fileobj_mode, ignore_sigint, _get_array_mmap, indent)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
+from ....utils.custom_warnings import AstropyUserWarning
+
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
     """Factory function to open a FITS file and return an `HDUList` object.
@@ -535,7 +537,7 @@ class HDUList(list, _Verify):
 
         if self.__file.mode not in ('append', 'update', 'ostream'):
             warnings.warn("Flush for '%s' mode is not supported."
-                          % self.__file.mode)
+                          % self.__file.mode, AstropyUserWarning)
             return
 
         if self._save_backup and self.__file.mode in ('append', 'update'):
@@ -549,7 +551,7 @@ class HDUList(list, _Verify):
                     backup = filename + '.bak.' + str(idx)
                     idx += 1
                 warnings.warn('Saving a backup of %s to %s.' %
-                              (filename, backup))
+                              (filename, backup), AstropyUserWarning)
                 try:
                     shutil.copy(filename, backup)
                 except IOError as e:
@@ -630,7 +632,7 @@ class HDUList(list, _Verify):
         """
 
         if (len(self) == 0):
-            warnings.warn("There is nothing to write.")
+            warnings.warn("There is nothing to write.", AstropyUserWarning)
             return
 
         self.verify(option=output_verify)
@@ -645,7 +647,7 @@ class HDUList(list, _Verify):
             isinstance(fileobj, (basestring, gzip.GzipFile))):
             if (os.path.exists(filename) and os.path.getsize(filename) != 0):
                 if clobber:
-                    warnings.warn("Overwriting existing file '%s'." % filename)
+                    warnings.warn("Overwriting existing file '%s'." % filename, AstropyUserWarning)
                     if not closed:
                         fileobj.close()
                     os.remove(filename)
@@ -653,7 +655,7 @@ class HDUList(list, _Verify):
                     raise IOError("File '%s' already exists." % filename)
         elif (hasattr(fileobj, 'len') and fileobj.len > 0):
             if clobber:
-                warnings.warn("Overwriting existing file '%s'." % filename)
+                warnings.warn("Overwriting existing file '%s'." % filename, AstropyUserWarning)
                 name.truncate(0)
             else:
                 raise IOError("File '%s' already exists." % filename)

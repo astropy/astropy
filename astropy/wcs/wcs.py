@@ -46,7 +46,9 @@ try:
     from . import _wcs
 except ImportError:
     _wcs = None
+
 from ..utils import deprecated, deprecated_attribute
+from ..utils.custom_warnings import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -136,7 +138,7 @@ def _parse_keysel(keysel):
     return keysel_flags
 
 
-class FITSFixedWarning(Warning):
+class FITSFixedWarning(AstropyWarning):
     """
     The warning raised when the contents of the FITS header have been
     modified to be standards compliant.
@@ -485,7 +487,7 @@ naxis kwarg.
                     naxis1 = self._naxis1
                     naxis2 = self._naxis2
                 except AttributeError:
-                    warnings.warn("Need a valid header in order to calculate footprint\n")
+                    warnings.warn("Need a valid header in order to calculate footprint\n", AstropyUserWarning)
                     return None
             else:
                 naxis1 = header.get('NAXIS1', None)
@@ -555,7 +557,7 @@ naxis kwarg.
                                                      d_crval, d_cdelt)
                     tables[i] = d_lookup
                 else:
-                    warnings.warn('Polynomial distortion is not implemented.\n')
+                    warnings.warn('Polynomial distortion is not implemented.\n', AstropyUserWarning)
             else:
                 tables[i] = None
         if not tables:
@@ -569,7 +571,7 @@ naxis kwarg.
                       ""
                       "PyWCS will read in files with ``AXISCORR`` but to_fits() will write"
                       "out files in the new style",
-                      DeprecationWarning)
+                      AstropyDeprecationWarning)
         cpdis = [None, None]
         crpix = [0., 0.]
         crval = [0., 0.]
@@ -597,7 +599,7 @@ naxis kwarg.
         elif axiscorr == 2:
             return (None, cpdis)
         else:
-            warnings.warn("Expected AXISCORR to be 1 or 2")
+            warnings.warn("Expected AXISCORR to be 1 or 2", AstropyUserWarning)
             return (None, None)
 
     def _write_det2im(self, hdulist):
@@ -696,7 +698,7 @@ naxis kwarg.
                     d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
                     tables[i] = d_lookup
                 else:
-                    warnings.warn('Polynomial distortion is not implemented.\n')
+                    warnings.warn('Polynomial distortion is not implemented.\n', AstropyUserWarning)
             else:
                 tables[i] = None
 

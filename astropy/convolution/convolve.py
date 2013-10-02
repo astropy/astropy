@@ -4,6 +4,7 @@ import warnings
 
 import numpy as np
 from .core import Kernel, Kernel1D, Kernel2D
+from ..utils.custom_warnings import AstropyUserWarning
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -383,7 +384,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     if ((nanmaskarray.sum() > 0 or nanmaskkernel.sum() > 0) and
             not interpolate_nan and not quiet):
         warnings.warn("NOT ignoring nan values even though they are present "
-                      " (they are treated as 0)")
+                      " (they are treated as 0)", AstropyUserWarning)
 
     if normalize_kernel is True:
         kernel = kernel / kernel.sum()
@@ -401,13 +402,13 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
             if (interpolate_nan or ignore_edge_zeros):
                 warnings.warn("Kernel is not normalized, therefore "
                               "ignore_edge_zeros and interpolate_nan will be "
-                              "ignored.")
+                              "ignored.", AstropyUserWarning)
 
     if boundary is None:
         warnings.warn("The convolve_fft version of boundary=None is "
                       "equivalent to the convolve boundary='fill'.  There is "
                       "no FFT equivalent to convolve's "
-                      "zero-if-kernel-leaves-boundary")
+                      "zero-if-kernel-leaves-boundary", AstropyUserWarning)
         psf_pad = True
     elif boundary == 'fill':
         # create a boundary region at least as large as the kernel

@@ -16,6 +16,7 @@ import textwrap
 from contextlib import contextmanager
 
 from ..extern.configobj import configobj, validate
+from ..utils.custom_warnings import AstropyWarning
 
 
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
@@ -23,14 +24,14 @@ __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
            'reload_config']
 
 
-class InvalidConfigurationItemWarning(Warning):
+class InvalidConfigurationItemWarning(AstropyWarning):
     """ A Warning that is issued when the configuration value specified in the
     astropy configuration file does not match the type expected for that
     configuration value.
     """
 
 
-class ConfigurationMissingWarning(Warning):
+class ConfigurationMissingWarning(AstropyWarning):
     """ A Warning that is issued when the configuration directory cannot be
     accessed (usually due to a permissions problem). If this warning appears,
     configuration items will be set to their defaults rather than read from the
@@ -46,7 +47,7 @@ class ConfigurationDefaultMissingError(ValueError):
 
 
 # this is used in astropy/__init__.py
-class ConfigurationDefaultMissingWarning(Warning):
+class ConfigurationDefaultMissingWarning(AstropyWarning):
     """ A warning that is issued when the configuration defaults (which
     should be generated at build-time) are missing.
     """
