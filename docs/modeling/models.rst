@@ -34,7 +34,7 @@ the number of output coordinates. The `~astropy.modeling.core.Model.n_inputs` an
 adding models in series, `~astropy.modeling.core.SCompositeModel`, or in parallel,
 `~astropy.modeling.core.PCompositeModel`. Because composite models can
 be nested within other composite models, creating
-theoretically infinetely complex models, a mechanism to map input data to models
+theoretically infinitely complex models, a mechanism to map input data to models
 is needed. In this case the input may be wrapped in a
 `~astropy.modeling.core.LabeledInput` object - a dict like object whose items are {label: data} pairs.
 

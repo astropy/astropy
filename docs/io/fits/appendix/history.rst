@@ -110,7 +110,7 @@ New Features
 
 - Fixed an (apparently long-standing) issue where writing compressed images
   did not correctly write the TFORMn keywords for variable-length array
-  columns (they ommitted the max array length parameter of the format). (#199)
+  columns (they omitted the max array length parameter of the format). (#199)
 
 - Slightly refactored how tables containing variable-length array columns are
   handled to add two improvements: Fixes an issue where accessing the data
@@ -144,8 +144,8 @@ New Features
   column array to become garbled. (#218)
 
 - Fixed inconsistent behavior in creating CONTINUE cards from byte strings
-  versus unicode strings in Python 2--CONTINUE cards can now be created
-  properly from unicode strings (so long as they are convertable to ASCII).
+  versus Unicode strings in Python 2--CONTINUE cards can now be created
+  properly from Unicode strings (so long as they are convertible to ASCII).
   (spacetelescope/PyFITS#1)
 
 - Fixed a couple cases where creating a new table using TDIMn in some of the
@@ -361,11 +361,11 @@ API Changes
   in some areas that will be of interest to advanced users, and to application
   developers.  For full details of the changes, see the "Header Interface
   Transition Guide" section in the PyFITS documentation.  See ticket #64 on
-  the PyFITS Trac for futher details and background. Some highlights are
+  the PyFITS Trac for further details and background. Some highlights are
   listed below:
 
   * The Header class now fully implements the Python dict interface, and can
-    be used interchangably with a dict, where the keys are header keywords.
+    be used interchangeably with a dict, where the keys are header keywords.
 
   * New keywords can be added to the header using normal keyword assignment
     (previously it was necessary to use ``Header.update`` to add new
@@ -692,7 +692,7 @@ Bug Fixes
 
 - Removed an unnecessary inline import in `ExtensionHDU.__setattr__` that was
   causing some slowdown when opening files containing a large number of
-  extensions, plus a few other small (but not insignficant) performance
+  extensions, plus a few other small (but not insignificant) performance
   improvements thanks to Julian Taylor. (#133)
 
 - Fixed a regression where header blocks containing invalid end-of-header
@@ -794,7 +794,7 @@ Bug Fixes
   array of big-endian data. (#104)
 
 - Fixed a crash when opening a file with extra zero padding at the end.
-  Though FITS files should not have such padding, it's not explictly forbidden
+  Though FITS files should not have such padding, it's not explicitly forbidden
   by the format either, and PyFITS shouldn't stumble over it. (#106)
 
 - Fixed a major slowdown in opening tables containing large columns of string
@@ -1130,7 +1130,7 @@ The following enhancements were made:
 
 - Completely eliminate support for numarray.
 
-- Rework pyfits documention to use Sphinx.
+- Rework pyfits documentation to use Sphinx.
 
 - Support python 2.6 and future division.
 
@@ -1163,7 +1163,7 @@ The following enhancements were made:
   64 data is written to a file, the data will be reverse scaled into a signed
   integer 16, 32, or 64 array and written out to the file along with the
   appropriate BSCALE/BZERO header cards.  Note that for backward
-  compatability, the 'uint16' keyword argument will still be accepted in the
+  compatibility, the 'uint16' keyword argument will still be accepted in the
   open function when handling unsigned integer 16 conversion.
 
 - Provided the capability to access the data for a column of a fits table by
@@ -1527,7 +1527,7 @@ The following enhancements were made:
 
     >>> hdul.insert(2,hdu)
 
-- Provided the capability to handle unicode input for file names.
+- Provided the capability to handle Unicode input for file names.
 
 - Provided support for integer division required by Python 3.0.
 
@@ -1912,7 +1912,7 @@ The following enhancements were made:
     the standard FITS ASCII representation of a floating point number, and
     these are separated by a colon followed by a single blank.
 
-    The grammer for field-specifier is::
+    The grammar for field-specifier is::
 
       field-specifier:
           field
@@ -2065,7 +2065,7 @@ The following enhancements were made:
       DP1     = 'AUX.1.COEFF.1: 0.000488'
       DP1     = 'AUX.2.COEFF.2: 0.00097656'
 
-  - The CardList keys() method will allow the retrivial of all of the key
+  - The CardList keys() method will allow the retrieval of all of the key
     values in the CardList.  For example:
 
       >>> cl=hdr['DP1.AXIS.*']
@@ -2075,7 +2075,7 @@ The following enhancements were made:
       >>> cl.keys()
       ['DP1.AXIS.1', 'DP1.AXIS.2']
 
-  - The CardList values() method will allow the retrivial of all of the values
+  - The CardList values() method will allow the retrieval of all of the values
     in the CardList.  For example:
 
       >>> cl=hdr['DP1.AXIS.*']
@@ -2390,7 +2390,7 @@ stsci_python release.
 
 Major Changes since v0.9.6:
 
-- Added support for the HEIRARCH convention
+- Added support for the HIERARCH convention
 
 - Added support for iteration and slicing for HDU lists
 
@@ -2524,7 +2524,7 @@ Changes since 0.7.6:
 - Support of complex columns
 
 - Modify the __getitem__ method in FITS_rec.  In order to make sure the scaled
-  quantities are also viewing ths same data as the original FITS_rec, all
+  quantities are also viewing the same data as the original FITS_rec, all
   fields need to be "touched" when __getitem__ is called.
 
 - Add a new attribute mmobject for HDUList, and close the memmap object when
@@ -2581,7 +2581,7 @@ Changes since 0.7.5:
     dimShape                _dimShape
     ErrList                 _ErrList
    
-- Move up the module description.  Move the copywright statement to the bottom
+- Move up the module description.  Move the copyright statement to the bottom
   and assign to the variable __credits__.
 
 - change the following line:

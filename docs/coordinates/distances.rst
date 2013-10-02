@@ -26,7 +26,7 @@ automatically convert to a `Distance`::
     >>> ICRSCoordinates('00h42m44.3s +41d16m9s', distance=770 *  u.kpc)
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
 
-If a `distance` is present, the coordinate can be converted into cartesian
+If a `distance` is present, the coordinate can be converted into Cartesian
 coordinates using the `x`/`y`/`z` attributes (which are 
 `~astropy.units.Quantity` objects)::
 
@@ -37,7 +37,7 @@ coordinates using the `x`/`y`/`z` attributes (which are
     >>> c.z
     <Quantity 507.8899092486349 kpc>
 
-If a `distance` is not present, the cartesian coordinates are still
+If a `distance` is not present, the Cartesian coordinates are still
 available, but the point is interpreted as lying on the (dimensionless)
 unit sphere::
 
@@ -56,7 +56,7 @@ unit sphere::
     systems, but for common celestial coordinate systems it is often
     the Earth center (or for precision work, the Earth/Moon barycenter).
 
-The cartesian coordinates can also be accessed via the
+The Cartesian coordinates can also be accessed via the
 `~astropy.coordinates.distances.CartesianPoints` object, which has
 additional capabilities like arithmetic operations::
 
@@ -76,7 +76,7 @@ additional capabilities like arithmetic operations::
     >>> cp - cp
     <CartesianPoints [ 0., 0., 0.] kpc>
 
-This cartesian representation can also be used to create a new coordinate
+This Cartesian representation can also be used to create a new coordinate
 object, either directly or through a `CartesianPoints` object::
 
     >>> from astropy.coordinates import CartesianPoints

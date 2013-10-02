@@ -338,14 +338,14 @@ to make the docs for older versions of PyFITS, as well as up-to-date
 development docs available online.
 
 Otherwise, to build your own version of the docs either for offline use, or to
-build the development version of the docs there are a few reqirements.  The
+build the development version of the docs there are a few requirements.  The
 most import requirement is `Sphinx`_, which is the toolkit used to generate
 the documentation.  Use ``pip install sphinx`` or ``easy_install sphinx`` to
 install Sphinx.  Using pip or easy_install will install the correct versions
 of Sphinx's basic dependencies, which include docutils, Jinja2, and Pygments.
 
 Next, the docs require STScI's custom Sphinx theme, `stsci.sphinxext`_.  It's
-a simple pure-Python pacakge and can be installed with pip or easy_install.
+a simple pure-Python package and can be installed with pip or easy_install.
 
 The next requirement is `numpydoc`_, which is not normally installed with
 Numpy itself.  Install it with pip or easy_install.  Numpy is also required,
@@ -353,7 +353,7 @@ though it is of course a requirement of PyFITS itself.
 
 Finally, it is necessary to have `matplotlib`_, specifically for
 matplotlib.sphinxext.  This is perhaps the most onerous requirement if you do
-not already have it instaled. Please refer to the matplotlib documentation for
+not already have it installed. Please refer to the matplotlib documentation for
 details on downloading and installing matplotlib.
 
 It is also necessary to install PyFITS itself in order to generate the API
@@ -482,9 +482,9 @@ there is a bug in PyFITS.
 How do I turn off the warning messages PyFITS keeps outputting to my console?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-PyFITS uses Python's built-in `warnings`_ subsystem for informating about
+PyFITS uses Python's built-in `warnings`_ subsystem for informing about
 exceptional conditions in the code that are recoverable, but that the user may
-way to be informed of.  One of the most common warnings in PyFITS occurs when
+want to be informed of.  One of the most common warnings in PyFITS occurs when
 updating a header value in such a way that the comment must be truncated to
 preserve space::
 
@@ -534,10 +534,10 @@ because they were renamed to something simpler or more consistent, or because
 they were redundant or replaced.
 
 Eventually all deprecated features will be removed in future PyFITS versions
-(though there will be significant warningsin advance).  It is best to check
-whether your code is using deprecatd features sooner rather than later.
+(though there will be significant warnings in advance).  It is best to check
+whether your code is using deprecated features sooner rather than later.
 
-On Python 2.5, all deprecation warnigns are displayed by default, so you may
+On Python 2.5, all deprecation warnings are displayed by default, so you may
 have already discovered them.  However, on Python 2.6 and up, deprecation
 warnings are *not* displayed by default.  To show all deprecation warnings,
 start Python like::
@@ -656,7 +656,7 @@ systems won't be able to create that in memory just to write out to disk.  In
 order to create such a large file efficiently requires a little extra work,
 and a few assumptions.
 
-First, it is helpful to anticpate about how large (as in, how many keywords)
+First, it is helpful to anticipate about how large (as in, how many keywords)
 the header will have in it.  FITS headers must be written in 2880 byte
 blocks--large enough for 36 keywords per block (including the END keyword in
 the final block).  Typical headers have somewhere between 1 and 4 blocks,

@@ -521,7 +521,7 @@ you see::
 because both ``B.method()`` and ``C.method()`` call ``A.method()`` unaware of
 the fact that they're being called as part of a chain in a hierarchy.  When
 ``C.method()`` is called it is unaware that it's being called from a subclass
-that inherts from both ``B`` and ``C``, and that ``B.method()`` should be
+that inherits from both ``B`` and ``C``, and that ``B.method()`` should be
 called next.  By calling :func:`super` the entire method resolution order for
 ``D`` is precomputed, enabling each superclass to cooperatively determine which
 class should be handed control in the next :func:`super` call::

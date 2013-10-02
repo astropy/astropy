@@ -17,5 +17,5 @@ to or from.  This will register the transformation, allowing any other
 coordinate object to use this converter.  You can also use the
 `~astropy.coordinates.transformations.static_transform_matrix` and
 `~astropy.coordinates.transformations.dynamic_transform_matrix` decorators to
-specify the transformation in terms of 3 x 3 cartesian coordinate transformation
+specify the transformation in terms of 3 x 3 Cartesian coordinate transformation
 matrices (typically rotations).

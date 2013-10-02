@@ -9,7 +9,7 @@ the major goals of the Astropy project.  Hence, we describe our
 documentation procedures and rules here.  For the astropy core
 project we try to keep to these as closely as possible, while the
 standards for affiliated packages are somewhat looser.
-(These procedures and guidelines are still recommended for affilated
+(These procedures and guidelines are still recommended for affiliated
 packages, as they encourage useful documentation, a characteristic
 often lacking in professional astronomy software.)
 
@@ -96,7 +96,7 @@ Sphinx extensions
 
 Astropy includes a number of sphinx extensions that are used in astropy
 and its affiliated packages to facilitate easily documenting code in
-a homogenous and readable way.
+a homogeneous and readable way.
 
 automodapi Extension
 ^^^^^^^^^^^^^^^^^^^^
