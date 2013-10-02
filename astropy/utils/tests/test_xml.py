@@ -65,7 +65,7 @@ def test_unescape_all():
 def test_escape_xml():
     s = writer.xml_escape('This & That')
     assert type(s) == six.text_type
-    assert s == u'This &amp; That'
+    assert s == 'This &amp; That'
 
     s = writer.xml_escape('This & That')
     assert type(s) == six.text_type
