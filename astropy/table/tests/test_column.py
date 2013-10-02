@@ -6,10 +6,8 @@ from ... import units as u
 from ...tests.helper import pytest, catch_warnings
 from ... import table
 
-numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
-
-@pytest.fixture(params=[table.Column] if numpy_lt_1p5 else [table.Column, table.MaskedColumn])
+@pytest.fixture(params=[table.Column, table.MaskedColumn])
 def Column(request):
     # Fixture to run all the Column tests for both an unmasked (ndarray)
     # and masked (MaskedArray) column.
@@ -123,13 +121,12 @@ class TestColumn():
         assert c.sum(axis=0).shape == (3,)
         assert isinstance(c.sum(axis=0), np.ndarray)
 
-        if not numpy_lt_1p5:
-            # Sum and mean for a 1-d masked column
-            c = table.MaskedColumn(name='a', data=[1., 2., 3.], mask=[0, 0, 1])
-            assert np.allclose(c.mean(), 1.5)
-            assert isinstance(c.mean(), (np.floating, float))
-            assert np.allclose(c.sum(), 3.)
-            assert isinstance(c.sum(), (np.floating, float))
+        # Sum and mean for a 1-d masked column
+        c = table.MaskedColumn(name='a', data=[1., 2., 3.], mask=[0, 0, 1])
+        assert np.allclose(c.mean(), 1.5)
+        assert isinstance(c.mean(), (np.floating, float))
+        assert np.allclose(c.sum(), 3.)
+        assert isinstance(c.sum(), (np.floating, float))
 
     def test_name_none(self, Column):
         """Can create a column without supplying name, which defaults to None"""
@@ -202,7 +199,6 @@ class TestAttrEqual():
                     description='test column', meta={'c': 9, 'd': 12})
         assert not c1.attrs_equal(c2)
 
-    @pytest.mark.xfail('numpy_lt_1p5')
     def test_col_and_masked_col(self):
         c1 = table.Column(name='a', dtype=int, unit='mJy', format='%i',
                           description='test column', meta={'c': 8, 'd': 12})

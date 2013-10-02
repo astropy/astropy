@@ -7,9 +7,10 @@ Separate tests specifically for equivalencies
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ...tests.helper import pytest
-from ...tests.compat import assert_allclose
 import numpy as np
+from numpy.testing.utils import assert_allclose
+
+from ...tests.helper import pytest
 
 from ... import units as u
 

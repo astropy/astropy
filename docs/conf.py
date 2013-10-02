@@ -28,6 +28,8 @@
 # Load all of the global Astropy configuration
 from astropy.sphinx.conf import *
 
+import astropy
+
 
 # -- General configuration ----------------------------------------------------
 
@@ -50,10 +52,12 @@ if 'templates_path' not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append('_templates')
 
+
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
 rst_epilog += """
-"""
+.. |minimum_numpy_version| replace:: {0.__minimum_numpy_version__}
+""".format(astropy)
 
 # -- Project information ------------------------------------------------------
 
@@ -64,8 +68,6 @@ copyright = u'2011-2013, ' + author
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-
-import astropy
 
 # The short X.Y version.
 version = astropy.__version__.split('-', 1)[0]

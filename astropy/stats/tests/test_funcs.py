@@ -3,8 +3,8 @@ from __future__ import division
 
 import numpy as np
 from numpy.testing import assert_equal
+from numpy.testing.utils import assert_allclose
 from ...tests.helper import pytest
-from ...tests.compat import assert_allclose
 
 from .. import funcs
 from ...utils.misc import NumpyRNGContext
@@ -244,10 +244,8 @@ def test_bootstrap():
     answer = np.array([[7,4,8,5,7,0,3,7,8,5],[4,8,8,3,6,5,2,8,6,2]])
     with NumpyRNGContext(42):
         assert_equal(answer,funcs.bootstrap(bootarr,2))
-    
+
     #test with a bootfunction
     with NumpyRNGContext(42):
         bootresult = np.mean(funcs.bootstrap(bootarr,10000,bootfunc=np.mean))
         assert_allclose(np.mean(bootarr),bootresult,atol=0.01)
-
-    

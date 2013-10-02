@@ -71,7 +71,7 @@ for hook in [('prereleaser', 'middle'), ('releaser', 'middle'),
     entry_points[hook_ep] = ['%s = %s' % (hook_name, hook_func)]
 
 
-setup_requires = ['numpy>=1.4']
+setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
 
 # Avoid installing setup_requires dependencies if the user just
 # queries for information

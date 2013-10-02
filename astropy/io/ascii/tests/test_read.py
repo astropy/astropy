@@ -8,9 +8,9 @@ from ....tests.helper import pytest
 from ... import ascii as asciitable
 from ....table import Table
 
-from .common import (raises, numpy_lt_1p5,
-                     assert_equal, assert_almost_equal, assert_true,
-                     setup_function, teardown_function, has_isnan)
+from .common import (raises, assert_equal, assert_almost_equal,
+                     assert_true, setup_function, teardown_function,
+                     has_isnan)
 
 
 def test_read_all_files():
@@ -68,7 +68,6 @@ def test_guess_all_files():
                 assert_equal(len(table[colname]), testfile['nrows'])
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_daophot_indef():
     """Test that INDEF is correctly interpreted as a missing value"""
     table = asciitable.read('t/daophot2.dat', Reader=asciitable.Daophot)
@@ -78,7 +77,6 @@ def test_daophot_indef():
         assert np.all(table[colname].mask == mask_value)
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_daophot_types():
     """
     Test specific data types which are different from what would be
@@ -176,7 +174,6 @@ def test_custom_process_lines():
     assert_equal(len(data), 3)
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_custom_process_line():
     def process_line(line):
         line_out = re.sub(r'^\|\s*', '', line.strip())
@@ -257,7 +254,6 @@ def test_comment_lines():
     assert_equal(table.comment_lines, ['# first comment', '  # second comment'])
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_fill_values():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
@@ -268,7 +264,6 @@ def test_fill_values():
     assert_true((data['b'] == [2, 1]).all())
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_fill_values_col():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
@@ -276,7 +271,6 @@ def test_fill_values_col():
     check_fill_values(data)
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_fill_values_include_names():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
@@ -285,7 +279,6 @@ def test_fill_values_include_names():
     check_fill_values(data)
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_fill_values_exclude_names():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
@@ -294,7 +287,6 @@ def test_fill_values_exclude_names():
     check_fill_values(data)
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def check_fill_values(data):
     """compare array column by column with expectation """
     assert_true((data['a'].mask == [False, False]).all())
@@ -306,7 +298,6 @@ def check_fill_values(data):
     assert_true((data['b'] == [2, 1]).all())
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_fill_values_list():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
@@ -316,7 +307,6 @@ def test_fill_values_list():
     assert_true((data['a'] == [42, 42]).all())
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_masking_Cds():
     f = 't/cds.dat'
     testfile = get_testfiles(f)
@@ -326,7 +316,6 @@ def test_masking_Cds():
     assert_true(not data['Fit'].mask[0])
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_null_Ipac():
     f = 't/ipac.dat'
     testfile = get_testfiles(f)
@@ -338,7 +327,6 @@ def test_null_Ipac():
     assert np.all(data.mask == mask)
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_Ipac_meta():
     keywords = OrderedDict((('intval', 1),
                             ('floatval', 2.3e3),
@@ -371,7 +359,6 @@ N\tN
     asciitable.read(table, Reader=asciitable.Rdb)
 
 
-@pytest.mark.xfail('numpy_lt_1p5')
 def test_default_missing():
     """Read a table with empty values and ensure that corresponding entries are masked"""
     table = '\n'.join(['a,b,c,d',
@@ -439,7 +426,6 @@ def get_testfiles(name=None):
                   'Fit'),
          'name': 't/cds.dat',
          'nrows': 1,
-         'skip': numpy_lt_1p5,
          'opts': {'Reader': asciitable.Cds}},
         {'cols': ('a', 'b', 'c'),
          'name': 't/commented_header.dat',
@@ -482,7 +468,6 @@ def get_testfiles(name=None):
         {'cols': ('ra', 'dec', 'sai', 'v2', 'sptype'),
          'name': 't/ipac.dat',
          'nrows': 2,
-         'skip': numpy_lt_1p5,
          'opts': {'Reader': asciitable.Ipac}},
         {'cols': ('col0',
                   'objID',
@@ -504,7 +489,6 @@ def get_testfiles(name=None):
                   'detlim90',
                   'fBlim90'),
          'name': 't/nls1_stackinfo.dbout',
-         'skip': numpy_lt_1p5,
          'nrows': 58,
          'opts': {'data_start': 2, 'delimiter': '|', 'guess': False}},
         {'cols': ('Index',
@@ -520,7 +504,6 @@ def get_testfiles(name=None):
                   'AK',
                   'Fit'),
          'name': 't/no_data_cds.dat',
-         'skip': numpy_lt_1p5,
          'nrows': 0,
          'opts': {'Reader': asciitable.Cds}},
         {'cols': ('ID',
@@ -551,12 +534,10 @@ def get_testfiles(name=None):
         {'cols': ('ra', 'dec', 'sai', 'v2', 'sptype'),
          'name': 't/no_data_ipac.dat',
          'nrows': 0,
-         'skip': numpy_lt_1p5,
          'opts': {'Reader': asciitable.Ipac}},
         {'cols': ('ra', 'v2'),
          'name': 't/ipac.dat',
          'nrows': 2,
-         'skip': numpy_lt_1p5,
          'opts': {'Reader': asciitable.Ipac, 'include_names': ['ra', 'v2']}},
         {'cols': ('a', 'b', 'c'),
          'name': 't/no_data_with_header.dat',
