@@ -12,7 +12,9 @@ from .util import _str_to_num, _is_int, maketrans, translate, _words_group
 from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 from . import ENABLE_RECORD_VALUED_KEYWORD_CARDS, STRIP_HEADER_WHITESPACE
+
 from ...utils import deprecated
+from ...utils.custom_warnings import AstropyUserWarning, AstropyDeprecationWarning
 
 
 __all__ = ['Card', 'CardList', 'create_card', 'create_card_from_string',
@@ -68,7 +70,7 @@ class CardList(list):
                 'functionality has been subsumed by the Header class, so '
                 'CardList objects should not be directly created.  See the '
                 'PyFITS 3.1.0 CHANGELOG for more details.',
-                DeprecationWarning)
+                AstropyDeprecationWarning)
 
         # This is necessary for now to prevent a circular import
         from .header import Header
@@ -862,7 +864,7 @@ class Card(_Verify):
         else:
             warnings.warn('The following header keyword is invalid or follows '
                           'an unrecognized non-standard convention:\n%s' %
-                          self._image)
+                          self._image, AstropyUserWarning)
             self._invalid = True
             return keyword
 

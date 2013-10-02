@@ -16,6 +16,9 @@ import textwrap
 import traceback
 import warnings
 
+from .custom_warnings import AstropyDeprecationWarning, AstropyPendingDeprecationWarning
+
+
 
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'deprecated_attribute', 'silence', 'format_exception',
@@ -342,8 +345,8 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         this alternative if provided.
 
     pending : bool, optional
-        If True, uses a PendingDeprecationWarning instead of a
-        DeprecationWarning.
+        If True, uses a AstropyPendingDeprecationWarning instead of a
+        AstropyDeprecationWarning.
     """
 
     def deprecate(func, message=message, name=name, alternative=alternative,
@@ -391,9 +394,9 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         @functools.wraps(func)
         def deprecated_func(*args, **kwargs):
             if pending:
-                category = PendingDeprecationWarning
+                category = AstropyPendingDeprecationWarning
             else:
-                category = DeprecationWarning
+                category = AstropyDeprecationWarning
 
             warnings.warn(message, category, stacklevel=2)
 
@@ -457,8 +460,8 @@ def deprecated_attribute(name, since, message=None, alternative=None,
         user about this alternative if provided.
 
     pending : bool, optional
-        If True, uses a PendingDeprecationWarning instead of a
-        DeprecationWarning.
+        If True, uses a AstropyPendingDeprecationWarning instead of a
+        AstropyDeprecationWarning.
 
     Examples
     --------

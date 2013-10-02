@@ -3,6 +3,7 @@
 import warnings
 
 from .util import indent, u
+from ...utils.custom_warnings import AstropyUserWarning
 
 
 class VerifyError(Exception):
@@ -12,7 +13,7 @@ class VerifyError(Exception):
     pass
 
 
-class VerifyWarning(UserWarning):
+class VerifyWarning(AstropyUserWarning):
     """
     Verify warning class.
     """
@@ -68,12 +69,12 @@ class _Verify(object):
         if opt in ['fix', 'silentfix'] and 'Unfixable' in x:
             raise VerifyError('\n' + x)
         if opt not in ['silentfix', 'exception'] and x:
-            warnings.warn(u('Output verification result:'))
+            warnings.warn(u('Output verification result:'), VerifyWarning)
             for line in x.splitlines():
                 # Each line contains a single issue that was fixed--issue a
                 # separate warning for each of those issues
                 warnings.warn(line, VerifyWarning)
-            warnings.warn(u('Note: Astropy uses zero-based indexing.\n'))
+            warnings.warn(u('Note: Astropy uses zero-based indexing.\n'), VerifyWarning)
         if opt == 'exception' and x:
             raise VerifyError('\n' + x)
 

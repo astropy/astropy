@@ -153,3 +153,21 @@ Virtual Observatory Simple Cone Search
     masked_array(data = [41.192303 41.19426 41.19445 ..., 41.262123],
                  mask = [False False False ..., False],
            fill_value = 1e+20)
+
+Logger
+------
+
+The Astropy logger will now no longer log exceptions by default, and will also
+no longer log any warning emitted outside of Astropy. In addition, logging to
+the Astropy log file (located at ``~/.astropy/config/astropy.log`` by default
+on MacOS X and Linux) has also been disabled by default. This functionality is
+automatically disabled for new users, but in order to see the new default
+behavior, previous users of Astropy will need to edit the Astropy configuration
+file (located at ``~/.astropy/config/astropy.cfg`` by default on MaxOS X and
+Linux) and change the following two lines as follows::
+
+    # Whether to log exceptions before raising them
+    log_exceptions = False
+
+    # Whether to always log messages to a log file
+    log_to_file = False

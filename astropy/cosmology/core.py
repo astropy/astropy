@@ -9,6 +9,7 @@ import numpy as np
 from .. import constants as const
 from ..config import ConfigurationItem
 from ..utils.misc import isiterable
+from ..utils.custom_warnings import AstropyUserWarning
 from .. import units as u
 
 from . import parameters
@@ -2042,7 +2043,7 @@ def get_current():
     """
     if _current is None:
         warnings.warn('No default cosmology has been specified, '
-                      'using 9-year WMAP.')
+                      'using 9-year WMAP.', AstropyUserWarning)
         return WMAP9
 
     return _current

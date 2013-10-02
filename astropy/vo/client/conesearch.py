@@ -2,6 +2,8 @@
 """Support VO Simple Cone Search capabilities."""
 from __future__ import print_function, division
 
+import warnings
+
 # THIRD-PARTY
 import numpy as np
 
@@ -12,6 +14,7 @@ from ...logger import log
 from ...utils.data import REMOTE_TIMEOUT
 from ...utils.compat.futures import ThreadPoolExecutor
 from ...utils.timer import timefunc, RunTimePredictor
+from ...utils.custom_warnings import AstropyUserWarning
 
 
 __all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs', 'predict_search',
@@ -350,11 +353,11 @@ def predict_search(url, *args, **kwargs):
     t_est = cs_pred.predict_time(sr)
 
     if t_est < 0 or t_coeffs[0] < 0:  # pragma: no cover
-        log.warn('Estimated runtime ({0} s) is non-physical with slope of '
-                 '{1}'.format(t_est, t_coeffs[0]))
+        warnings.warn('Estimated runtime ({0} s) is non-physical with slope of '
+                      '{1}'.format(t_est, t_coeffs[0]), AstropyUserWarning)
     elif t_est > REMOTE_TIMEOUT():  # pragma: no cover
-        log.warn('Estimated runtime is longer than timeout of '
-                 '{0} s'.format(REMOTE_TIMEOUT()))
+        warnings.warn('Estimated runtime is longer than timeout of '
+                      '{0} s'.format(REMOTE_TIMEOUT()), AstropyUserWarning)
 
     # Predict number of objects
     sr_arr = sorted(cs_pred.results)  # Orig with floating point error
@@ -364,8 +367,8 @@ def predict_search(url, *args, **kwargs):
     n_est = int(round(n_fitfunc(sr)))
 
     if n_est < 0 or n_coeffs[0] < 0:  # pragma: no cover
-        log.warn('Estimated #objects ({0}) is non-physical with slope of '
-                 '{1}'.format(n_est, n_coeffs[0]))
+        warnings.warn('Estimated #objects ({0}) is non-physical with slope of '
+                      '{1}'.format(n_est, n_coeffs[0]), AstropyUserWarning)
 
     if plot:  # pragma: no cover
         import matplotlib.pyplot as plt

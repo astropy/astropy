@@ -20,6 +20,8 @@ import numpy as np
 from numpy import linalg
 from ..logger import log
 from .utils import poly_map_domain
+from ..utils.custom_warnings import AstropyUserWarning
+
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
            'JointFitter', 'Fitter']
@@ -458,7 +460,7 @@ class LinearLSQFitter(Fitter):
         lacoef = (lacoef.T / scl).T
         self.fit_info['pars'] = lacoef
         if rank != self.model._order:
-            warnings.warn("The fit may be poorly conditioned\n")
+            warnings.warn("The fit may be poorly conditioned\n", AstropyUserWarning)
         self.fitpars = lacoef.flatten()[:]
 
 
@@ -493,7 +495,7 @@ class NonLinearLSQFitter(Fitter):
         super(NonLinearLSQFitter, self).__init__(model)
         if self.model.linear:
             warnings.warn('Model is linear in parameters, '
-                          'consider using linear fitting methods.')
+                          'consider using linear fitting methods.', AstropyUserWarning)
 
     def errorfunc(self, fps, *args):
         self.fitpars = fps
@@ -580,7 +582,7 @@ class NonLinearLSQFitter(Fitter):
         self.fit_info['ierr'] = ierr
         if ierr not in [1, 2, 3, 4]:
             warnings.warn("The fit may be unsuccessful; check fit_info['message'] for "
-                          "more information.")
+                          "more information.", AstropyUserWarning)
 
 
 class SLSQPFitter(Fitter):
@@ -611,7 +613,7 @@ class SLSQPFitter(Fitter):
         super(SLSQPFitter, self).__init__(model)
         if self.model.linear:
             warnings.warn('Model is linear in parameters, '
-                          'consider using linear fitting methods.')
+                          'consider using linear fitting methods.', AstropyUserWarning)
 
         self.fit_info = {'final_func_val': None,
                          'numiter': None,
@@ -693,7 +695,7 @@ class SLSQPFitter(Fitter):
         self.fit_info['message'] = mess
         if exit_mode != 0:
             warnings.warn("The fit may be unsuccessful; check fit_info['message'] "
-                          " for more information.")
+                          " for more information.", AstropyUserWarning)
 
 
 class JointFitter(object):

@@ -1,5 +1,7 @@
 import warnings
 
+from ..utils.custom_warnings import AstropyUserWarning
+
 import numpy as np
 cimport numpy as np
 import cython
@@ -52,7 +54,7 @@ DUBIOUS = 'dubious year for UTC (before 1960.0 or 5 years ' \
 def check_return(ret, func_name, warns={}, errors={}):
     """Check the return value from an era routine"""
     if ret in warns:
-        warnings.warn('{0}: {1}'.format(func_name, warns[ret]))
+        warnings.warn('{0}: {1}'.format(func_name, warns[ret]), AstropyUserWarning)
     elif ret in errors:
         raise ValueError('{0}: {1}'.format(func_name, errors[ret]))
     elif ret != 0:
