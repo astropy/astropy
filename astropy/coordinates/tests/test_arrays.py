@@ -3,7 +3,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..extern import six
+from ...extern import six
 from ...tests.helper import pytest
 
 import numpy as np
