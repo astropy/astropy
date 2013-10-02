@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ..extern import six
 
 import functools
 import types
@@ -34,7 +37,7 @@ class ConstantMeta(type):
                 name_lower = self.name.lower()
                 instances = Constant._registry[name_lower]
                 if not self._checked_units:
-                    for inst in instances.values():
+                    for inst in six.itervalues(instances):
                         try:
                             self.unit.to(inst.unit)
                         except UnitsError:
@@ -43,7 +46,7 @@ class ConstantMeta(type):
 
                 if (not self.system and
                         name_lower in Constant._has_incompatible_units):
-                    systems = sorted(filter(None, instances))
+                    systems = sorted([x for x in instances if x])
                     raise TypeError(
                         'Constant {0!r} does not have physically compatible '
                         'units across all systems of units and cannot be '
@@ -61,7 +64,7 @@ class ConstantMeta(type):
                        '__dir__', '__getattr__', '__init__', '__str__',
                        '__repr__', '__hash__', '__iter__', '__getitem__',
                        '__len__', '__nonzero__'])
-        for attr, value in vars(Quantity).items():
+        for attr, value in list(six.iteritems(vars(Quantity))):
             if (isinstance(value, types.FunctionType) and
                     attr.startswith('__') and attr.endswith('__') and
                     attr not in exclude):
@@ -70,15 +73,13 @@ class ConstantMeta(type):
         return super(ConstantMeta, mcls).__new__(mcls, name, bases, d)
 
 
+@six.add_metaclass(ConstantMeta)
 class Constant(Quantity):
     """A physical or astronomical constant.
 
     These objects are quantities that are meant to represent physical
     constants.
     """
-
-    __metaclass__ = ConstantMeta
-
     _registry = {}
     _has_incompatible_units = set()
 
@@ -92,7 +93,7 @@ class Constant(Quantity):
 
         inst = super(Constant, cls).__new__(cls, value)
 
-        for c in instances.values():
+        for c in six.itervalues(instances):
             if system is not None and not hasattr(c.__class__, system):
                 setattr(c, system, inst)
             if c.system is not None and not hasattr(inst.__class__, c.system):
