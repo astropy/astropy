@@ -76,7 +76,7 @@ def _get_list_of_tables(tables):
 
 def join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
-         table_names=['1', '2']):
+         table_names=['1', '2'], metadata_conflicts='warn'):
     """
     Perform a join of the left table with the right table on specified keys.
 
@@ -97,7 +97,11 @@ def join(left, right, keys=None, join_type='inner',
     table_names : list of str or None
         Two-element list of table names used when generating unique output
         column names.  The default is ['1', '2'].
-
+    metadata_conflicts : str
+        How to proceed with metadata conflicts. This should be one of:
+            * ``'silent'``: silently pick the last conflicting meta-data value
+            * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
+            * ``'error'``: raise an exception.
     """
     from .table import Table
 
@@ -116,7 +120,7 @@ def join(left, right, keys=None, join_type='inner',
     # Merge the column and table meta data. Table subclasses might override
     # these methods for custom merge behavior.
     _merge_col_meta(out, [left, right], col_name_map)
-    _merge_table_meta(out, [left, right])
+    _merge_table_meta(out, [left, right], metadata_conflicts=metadta_conflicts)
 
     return out
 
@@ -140,10 +144,10 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'exact'
     metadata_conflicts : str
-        How to proceed with metadata conflicts. This can be one of `'silent'`
-        (pick one of the meta-data values sliently), `'warn'` (pick one of the
-        meta-data values, but emit a warning), and `'error'` (raise an
-        exception). The default is `'warn'`.
+        How to proceed with metadata conflicts. This should be one of:
+            * ``'silent'``: silently pick the last conflicting meta-data value
+            * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
+            * ``'error'``: raise an exception.
 
     Examples
     --------
@@ -188,7 +192,8 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
 
 
 def hstack(tables, join_type='outer',
-           uniq_col_name='{col_name}_{table_name}', table_names=None):
+           uniq_col_name='{col_name}_{table_name}', table_names=None,
+           metadata_conflicts='warn'):
     """
     Stack tables along columns (horizontally)
 
@@ -214,6 +219,11 @@ def hstack(tables, join_type='outer',
     col_name_map : empty dict or None
         If passed as a dict then it will be updated in-place with the
         mapping of output to input column names.
+    metadata_conflicts : str
+        How to proceed with metadata conflicts. This should be one of:
+            * ``'silent'``: silently pick the last conflicting meta-data value
+            * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
+            * ``'error'``: raise an exception.
 
     Examples
     --------
@@ -250,6 +260,6 @@ def hstack(tables, join_type='outer',
     out = Table(out_data)
 
     _merge_col_meta(out, tables, col_name_map)
-    _merge_table_meta(out, tables)
+    _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
     return out
