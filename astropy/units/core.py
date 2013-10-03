@@ -606,7 +606,7 @@ class UnitBase(object):
         return CompositeUnit(1, [self], [p])
 
     def __div__(self, m):
-        if isinstance(m, six.string_types):
+        if isinstance(m, (bytes, six.text_type)):
             m = Unit(m)
 
         if isinstance(m, UnitBase):
@@ -617,7 +617,7 @@ class UnitBase(object):
         return Quantity(1, self) / m
 
     def __rdiv__(self, m):
-        if isinstance(m, six.string_types):
+        if isinstance(m, (bytes, six.text_type)):
             return Unit(m) / self
 
         # Cannot handle this as Unit, re-try as Quantity
@@ -631,7 +631,7 @@ class UnitBase(object):
         return self.__rdiv__(m)
 
     def __mul__(self, m):
-        if isinstance(m, six.string_types):
+        if isinstance(m, (bytes, six.text_type)):
             m = Unit(m)
 
         if isinstance(m, UnitBase):
@@ -642,7 +642,7 @@ class UnitBase(object):
         return Quantity(1, self) * m
 
     def __rmul__(self, m):
-        if isinstance(m, six.string_types):
+        if isinstance(m, (bytes, six.text_type)):
             return Unit(m) * self
 
         # Cannot handle this as Unit, re-try as Quantity
@@ -1356,7 +1356,7 @@ class NamedUnit(UnitBase):
 
         UnitBase.__init__(self)
 
-        if isinstance(st, six.string_types):
+        if isinstance(st, (bytes, six.text_type)):
             self._names = [st]
             self._short_names = [st]
             self._long_names = []
@@ -1666,7 +1666,7 @@ class _UnitMetaClass(type):
         elif isinstance(s, UnitBase):
             return s
 
-        elif isinstance(s, six.string_types):
+        elif isinstance(s, (bytes, six.text_type)):
             if len(s.strip()) == 0:
                 # Return the NULL unit
                 return CompositeUnit(1.0, [], [])
