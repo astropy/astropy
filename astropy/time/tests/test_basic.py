@@ -45,7 +45,6 @@ class TestBasic():
         # (in this case seconds since 1998.0).  This returns either a scalar or
         # array, depending on whether the input was a scalar or array"""
 
-        print(t.cxcsec)
         assert allclose_sec(t.cxcsec, np.array([31536064.307456788, 378691266.18400002]))
 
     def test_copy_time(self):
