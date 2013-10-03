@@ -178,7 +178,6 @@ def test_nddata_add_uncertainties():
 def test_nddata_add_uncertainties_mismatch():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     u2 = FakeUncertainty()
-    print(u2.__class__)
     d1 = NDData(np.ones((5, 5)), uncertainty=u1)
     d2 = NDData(np.ones((5, 5)), uncertainty=u2)
     with pytest.raises(IncompatibleUncertaintiesException) as exc:
@@ -230,7 +229,6 @@ def test_nddata_subtract_uncertainties():
 def test_nddata_subtract_uncertainties_mismatch():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     u2 = FakeUncertainty()
-    print(u2.__class__)
     d1 = NDData(np.ones((5, 5)), uncertainty=u1)
     d2 = NDData(np.ones((5, 5)) * 2., uncertainty=u2)
     with pytest.raises(IncompatibleUncertaintiesException) as exc:
