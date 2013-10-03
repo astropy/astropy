@@ -236,10 +236,14 @@ class AstropyLogger(Logger):
     _excepthook_orig = None
 
     def _excepthook(self, etype, value, traceback):
-        tb = traceback
-        while tb.tb_next is not None:
-            tb = tb.tb_next
-        mod = inspect_getmodule(tb)
+
+        if traceback is None:
+            mod = None
+        else:
+            tb = traceback
+            while tb.tb_next is not None:
+                tb = tb.tb_next
+            mod = inspect_getmodule(tb)
 
         # include the the error type in the message.
         if len(value.args) > 0:
