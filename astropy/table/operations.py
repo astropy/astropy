@@ -120,7 +120,7 @@ def join(left, right, keys=None, join_type='inner',
     # Merge the column and table meta data. Table subclasses might override
     # these methods for custom merge behavior.
     _merge_col_meta(out, [left, right], col_name_map)
-    _merge_table_meta(out, [left, right], metadata_conflicts=metadta_conflicts)
+    _merge_table_meta(out, [left, right], metadata_conflicts=metadata_conflicts)
 
     return out
 
