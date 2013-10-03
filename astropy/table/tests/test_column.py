@@ -6,7 +6,7 @@ from ... import units as u
 from ...tests.helper import pytest, catch_warnings
 from ... import table
 
-from ...utils.custom_warnings import AstropyDeprecationWarning
+from ...utils.exceptions import AstropyDeprecationWarning
 
 @pytest.fixture(params=[table.Column, table.MaskedColumn])
 def Column(request):
