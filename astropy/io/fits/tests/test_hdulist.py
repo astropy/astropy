@@ -12,7 +12,7 @@ from .util import ignore_warnings
 from ..verify import VerifyError
 from ....io import fits
 from ....tests.helper import pytest, raises, catch_warnings
-from ....utils.custom_warnings import AstropyUserWarning
+from ....utils.exceptions import AstropyUserWarning
 
 from . import FitsTestCase
 

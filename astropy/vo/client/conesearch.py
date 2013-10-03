@@ -14,7 +14,7 @@ from ...logger import log
 from ...utils.data import REMOTE_TIMEOUT
 from ...utils.compat.futures import ThreadPoolExecutor
 from ...utils.timer import timefunc, RunTimePredictor
-from ...utils.custom_warnings import AstropyUserWarning
+from ...utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs', 'predict_search',

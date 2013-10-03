@@ -20,7 +20,7 @@ import numpy as np
 from . import OrderedDict
 from .. import units as u
 from .. import log
-from .custom_warnings import AstropyUserWarning
+from .exceptions import AstropyUserWarning
 
 
 __all__ = ['timefunc', 'RunTimePredictor']

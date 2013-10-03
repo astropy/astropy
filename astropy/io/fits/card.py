@@ -14,7 +14,7 @@ from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from . import ENABLE_RECORD_VALUED_KEYWORD_CARDS, STRIP_HEADER_WHITESPACE
 
 from ...utils import deprecated
-from ...utils.custom_warnings import AstropyUserWarning, AstropyDeprecationWarning
+from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
 __all__ = ['Card', 'CardList', 'create_card', 'create_card_from_string',

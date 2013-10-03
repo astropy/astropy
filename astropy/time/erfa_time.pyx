@@ -1,6 +1,6 @@
 import warnings
 
-from ..utils.custom_warnings import AstropyUserWarning
+from ..utils.exceptions import AstropyUserWarning
 
 import numpy as np
 cimport numpy as np
