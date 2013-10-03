@@ -29,8 +29,8 @@ def pytest_addoption(parser):
                      help="fail if any test leaves files open")
 
     parser.addoption("--doctest-plus", action="store_true",
-            help="enable running doctests with additional features not "
-                 "found in the normal doctest plugin")
+                     help="enable running doctests with additional features not "
+                     "found in the normal doctest plugin")
 
     parser.addini("doctest_plus", "enable running doctests with additional "
                   "features not found in the normal doctest plugin")
@@ -343,7 +343,8 @@ def pytest_report_header(config):
     if opts:
         s += "Using Astropy options: {0}.\n".format(" ".join(opts))
 
-    s = s.encode(sys.stdout.encoding)
+    if not six.PY3:
+        s = s.encode(sys.stdout.encoding)
 
     return s
 
