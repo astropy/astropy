@@ -4,9 +4,9 @@ Handles the "VOUnit" unit format.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+from ...extern.six.moves import zip
 
 import warnings
-
 from ...utils.custom_warnings import AstropyDeprecationWarning
 
 from . import generic
@@ -103,7 +103,7 @@ class VOUnit(generic.Generic):
         unit = utils.decompose_to_known_units(unit, self._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
-            if unit.physical_type == u'dimensionless' and unit.scale != 1:
+            if unit.physical_type == 'dimensionless' and unit.scale != 1:
                 raise ValueError("The VOUnit format is not able to "
                                  "represent scale for dimensionless units. "
                                  "Multiply your data by {0:e}."
@@ -119,7 +119,7 @@ class VOUnit(generic.Generic):
                         s += '+'
                     s += ex
 
-            pairs = zip(unit.bases, unit.powers)
+            pairs = list(zip(unit.bases, unit.powers))
             pairs.sort(key=lambda x: x[1], reverse=True)
 
             s += self._format_unit_list(pairs)

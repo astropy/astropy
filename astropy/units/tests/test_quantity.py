@@ -14,6 +14,8 @@ from ...tests.helper import pytest
 from ...tests.helper import raises, pytest
 from ...utils import isiterable
 from ... import units as u
+from ...extern.six.moves import xrange
+from ...extern import six
 
 """ The Quantity class will represent a number + unit + uncertainty """
 
@@ -304,9 +306,10 @@ class TestQuantityOperations(object):
             assert int(q1) == 1
         assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
 
-        with pytest.raises(TypeError) as exc:
-            assert long(q1) == 1L
-        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+        if six.PY2:
+            with pytest.raises(TypeError) as exc:
+                assert long(q1) == 1
+            assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
 
         q2 = u.Quantity(1.23, u.m / u.km)
 
@@ -318,15 +321,17 @@ class TestQuantityOperations(object):
             assert int(q2) == 1
         assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
 
-        with pytest.raises(TypeError) as exc:
-            assert long(q2) == 1L
-        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+        if six.PY2:
+            with pytest.raises(TypeError) as exc:
+                assert long(q2) == 1
+            assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
 
         q3 = u.Quantity(1.23, u.dimensionless_unscaled)
 
         assert float(q3) == 1.23
         assert int(q3) == 1
-        assert long(q3) == 1L
+        if six.PY2:
+            assert long(q3) == 1
 
     def test_array_converters(self):
 
@@ -519,7 +524,7 @@ def test_arrays():
     assert isinstance(qseclen0array.value, int)
 
     # can also create from lists, will auto-convert to arrays
-    qsec = u.Quantity(range(10), u.second)
+    qsec = u.Quantity(list(xrange(10)), u.second)
     assert isinstance(qsec.value, np.ndarray)
 
     # quantity math should work with arrays
@@ -544,8 +549,9 @@ def test_arrays():
         float(qsec)
     with pytest.raises(TypeError):
         int(qsec)
-    with pytest.raises(TypeError):
-        long(qsec)
+    if six.PY2:
+        with pytest.raises(TypeError):
+            long(qsec)
 
 
 def test_array_indexing_slicing():
@@ -660,7 +666,7 @@ def test_quantity_iterability():
     q1 = [15.0, 17.0] * u.m
     assert isiterable(q1)
 
-    q2 = iter(q1).next()
+    q2 = six.next(iter(q1))
     assert q2 == 15.0 * u.m
     assert not isiterable(q2)
     pytest.raises(TypeError, iter, q2)
@@ -706,7 +712,7 @@ def test_quantity_pickelability():
     """
     Testing pickleability of quantity
     """
-    import cPickle as pickle
+    from ...extern.six.moves import cPickle as pickle
 
     q1 = np.arange(10) * u.m
 

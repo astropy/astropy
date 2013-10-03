@@ -9,6 +9,7 @@ This code is adapted from the `pynbody
 Pontzen, who has granted the Astropy project permission to use the
 code under a BSD license.
 """
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from .core import *
 from .quantity import *
@@ -28,7 +29,7 @@ dimensionless_unscaled = Unit(1)
 
 # After importing the unit definitions above, set the unit namespace
 # to this top-level module so that new units are added here.
-from core import _UnitRegistry
+from .core import _UnitRegistry
 _UnitRegistry().namespace = locals()
 
 del bases

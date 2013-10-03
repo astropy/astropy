@@ -12,6 +12,8 @@ from __future__ import (absolute_import, division, print_function,
 
 from numpy import finfo
 
+from ..extern import six
+
 _float_finfo = finfo(float)
 _JUST_BELOW_UNITY = 1.-_float_finfo.epsneg
 _JUST_ABOVE_UNITY = 1.+_float_finfo.eps
@@ -52,7 +54,7 @@ def generate_unit_summary(namespace):
     # prefixes
     units = []
     has_prefixes = set()
-    for key, val in namespace.items():
+    for key, val in list(six.iteritems(namespace)):
         # Skip non-unit items
         if not isinstance(val, core.UnitBase):
             continue
