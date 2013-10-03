@@ -557,7 +557,7 @@ class Time(object):
 
     @override__dir__
     def __dir__(self):
-        return set(list(self.SCALES) + list(self.FORMATS.keys()))
+        return set(list(self.SCALES) + list(six.iterkeys(self.FORMATS)))
 
     def _match_len(self, val):
         """
@@ -1544,7 +1544,7 @@ class ScaleValueError(Exception):
 
 
 # Set module constant with names of all available time formats
-for name, val in list(locals().items()):
+for name, val in list(six.iteritems(locals())):
     try:
         is_timeformat = issubclass(val, TimeFormat)
         is_timedeltaformat = issubclass(val, TimeDeltaFormat)
