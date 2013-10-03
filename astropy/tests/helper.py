@@ -466,12 +466,11 @@ def assert_follows_unicode_guidelines(
     x : object
         The instance to test
 
-    roundtrip_repr_namespace : module, optional
+    roundtrip : module, optional
         When provided, this namespace will be used to evaluate
         ``repr(x)`` and ensure that it roundtrips.  It will also
         ensure that ``__bytes__(x)`` and ``__unicode__(x)`` roundtrip.
-        If not provided, no roundtrip testing will be
-        performed.
+        If not provided, no roundtrip testing will be performed.
     """
     from .. import UNICODE_OUTPUT
     from ..extern import six

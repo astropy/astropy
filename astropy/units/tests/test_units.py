@@ -511,4 +511,4 @@ def test_unicode_policy():
     from ...tests.helper import assert_follows_unicode_guidelines
 
     assert_follows_unicode_guidelines(
-        u.degree, roundtrip=True, roundtrip_repr_namespace=u.__dict__)
+        u.degree, roundtrip=u.__dict__)
