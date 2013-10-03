@@ -238,39 +238,39 @@ class TestRunner(object):
 class astropy_test(Command, object):
     user_options = [
         (str('package='), str('P'),
-         "The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
-         "If nothing is specified all default Astropy tests are run."),
+         str("The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
+             "If nothing is specified all default Astropy tests are run.")),
         (str('test-path='), str('t'),
-         'Specify a test location by path. Must be '
-         'specified absolutely or relative to the current directory. '
-         'May be a single file or directory.'),
+         str('Specify a test location by path. Must be '
+             'specified absolutely or relative to the current directory. '
+             'May be a single file or directory.')),
         (str('verbose-results'), str('V'),
-         'Turn on verbose output from pytest. Same as specifying `-v` in '
-         '`args`.'),
+         str('Turn on verbose output from pytest. Same as specifying `-v` in '
+             '`args`.')),
         (str('plugins='), str('p'),
-         'Plugins to enable when running pytest.  Same as specifying `-p` in '
-         '`args`.'),
+         str('Plugins to enable when running pytest.  Same as specifying `-p` in '
+             '`args`.')),
         (str('pastebin='), str('b'),
-         "Enable pytest pastebin output. Either 'all' or 'failed'."),
+         str("Enable pytest pastebin output. Either 'all' or 'failed'.")),
         (str('args='), str('a'),
-         'Additional arguments to be passed to pytest'),
+         str('Additional arguments to be passed to pytest')),
         (str('remote-data'), str('R'), 'Run tests that download remote data'),
         (str('pep8'), str('8'),
-         'Enable PEP8 checking and disable regular tests. '
-         'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
-         'pytest-pep8 plugin.'),
+         str('Enable PEP8 checking and disable regular tests. '
+             'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
+             'pytest-pep8 plugin.')),
         (str('pdb'), str('d'),
-         'Turn on PDB post-mortem analysis for failing tests. '
-         'Same as specifying `--pdb` in `args`.'),
+         str('Turn on PDB post-mortem analysis for failing tests. '
+             'Same as specifying `--pdb` in `args`.')),
         (str('coverage'), str('c'),
-         'Create a coverage report. Requires the pytest-cov '
-         'plugin is installed'),
+         str('Create a coverage report. Requires the pytest-cov '
+             'plugin is installed')),
         (str('open-files'), str('o'), 'Fail if any tests leave files open'),
         (str('parallel='), str('n'),
-         'Run the tests in parallel on the specified '
-         'number of CPUs.  If parallel is negative, it will use the all '
-         'the cores on the machine.  Requires the `pytest-xdist` plugin '
-         'is installed.')
+         str('Run the tests in parallel on the specified '
+             'number of CPUs.  If parallel is negative, it will use the all '
+             'the cores on the machine.  Requires the `pytest-xdist` plugin '
+             'is installed.'))
 
     ]
 
