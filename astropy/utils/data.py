@@ -16,7 +16,7 @@ import atexit
 import contextlib
 
 from ..config.configuration import ConfigurationItem
-from ..utils.custom_warnings import AstropyWarning
+from ..utils.exceptions import AstropyWarning
 
 __all__ = ['get_readable_fileobj', 'get_file_contents', 'get_pkg_data_fileobj',
            'get_pkg_data_filename', 'get_pkg_data_contents',

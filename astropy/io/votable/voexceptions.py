@@ -1,4 +1,4 @@
-from ...utils.custom_warnings import AstropyDeprecationWarning
+from ...utils.exceptions import AstropyDeprecationWarning
 
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 if not _ASTROPY_SETUP_:

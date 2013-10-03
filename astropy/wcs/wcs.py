@@ -48,7 +48,7 @@ except ImportError:
     _wcs = None
 
 from ..utils import deprecated, deprecated_attribute
-from ..utils.custom_warnings import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
+from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \

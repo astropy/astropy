@@ -39,7 +39,7 @@ import io
 import re
 from warnings import warn
 
-from ...utils.custom_warnings import AstropyWarning
+from ...utils.exceptions import AstropyWarning
 
 
 __all__ = [

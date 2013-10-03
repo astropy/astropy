@@ -21,7 +21,7 @@ from ..util import (_is_int, _tmp_name, isfile, fileobj_name, fileobj_closed,
                     fileobj_mode, ignore_sigint, _get_array_mmap, indent)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
-from ....utils.custom_warnings import AstropyUserWarning
+from ....utils.exceptions import AstropyUserWarning
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):

@@ -20,7 +20,7 @@ import numpy as np
 from numpy import linalg
 from ..logger import log
 from .utils import poly_map_domain
-from ..utils.custom_warnings import AstropyUserWarning
+from ..utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',

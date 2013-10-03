@@ -3,7 +3,7 @@
 import warnings
 
 from .util import indent, u
-from ...utils.custom_warnings import AstropyUserWarning
+from ...utils.exceptions import AstropyUserWarning
 
 
 class VerifyError(Exception):

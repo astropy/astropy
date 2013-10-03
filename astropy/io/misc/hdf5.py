@@ -11,7 +11,7 @@ import os
 import warnings
 
 import numpy as np
-from ...utils.custom_warnings import AstropyUserWarning
+from ...utils.exceptions import AstropyUserWarning
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 

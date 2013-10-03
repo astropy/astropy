@@ -20,7 +20,7 @@ import numpy as np
 from numpy import ma
 
 from ..utils.compat.fractions import Fraction
-from ..utils.custom_warnings import AstropyWarning
+from ..utils.exceptions import AstropyWarning
 from .utils import is_effectively_unity
 from . import format as unit_format
 

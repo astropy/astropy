@@ -7,7 +7,7 @@ from __future__ import (absolute_import, division, print_function,
 from ..extern import six
 
 from copy import deepcopy
-from ..utils.custom_warnings import AstropyWarning
+from ..utils.exceptions import AstropyWarning
 
 
 class MergeConflictError(TypeError):

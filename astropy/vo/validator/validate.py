@@ -24,7 +24,7 @@ from ...utils.data import get_readable_fileobj, get_pkg_data_contents
 from ...utils.data import REMOTE_TIMEOUT
 from ...utils.misc import JsonCustomEncoder
 from ...utils.xml.unescaper import unescape_all
-from ...utils.custom_warnings import AstropyUserWarning
+from ...utils.exceptions import AstropyUserWarning
 
 # Temporary solution until STScI VAO registry formally provides
 # <testQuery> tags

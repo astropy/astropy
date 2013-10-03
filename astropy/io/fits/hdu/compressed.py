@@ -17,7 +17,7 @@ from ..header import Header, BLOCK_SIZE
 from ..util import _is_pseudo_unsigned, _unsigned_zero
 
 from ....utils import lazyproperty, deprecated
-from ....utils.custom_warnings import AstropyPendingDeprecationWarning
+from ....utils.exceptions import AstropyPendingDeprecationWarning
 
 try:
     from .. import compression

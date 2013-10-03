@@ -9,7 +9,7 @@ import numpy as np
 from .. import constants as const
 from ..config import ConfigurationItem
 from ..utils.misc import isiterable
-from ..utils.custom_warnings import AstropyUserWarning
+from ..utils.exceptions import AstropyUserWarning
 from .. import units as u
 
 from . import parameters

@@ -19,7 +19,7 @@ import textwrap
 import traceback
 import warnings
 
-from .custom_warnings import AstropyDeprecationWarning, AstropyPendingDeprecationWarning
+from .exceptions import AstropyDeprecationWarning, AstropyPendingDeprecationWarning
 
 
 

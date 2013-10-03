@@ -16,7 +16,7 @@ import textwrap
 from contextlib import contextmanager
 
 from ..extern.configobj import configobj, validate
-from ..utils.custom_warnings import AstropyWarning
+from ..utils.exceptions import AstropyWarning
 
 
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',

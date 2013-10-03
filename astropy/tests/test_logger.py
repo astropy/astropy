@@ -5,7 +5,7 @@ import warnings
 from .helper import pytest, catch_warnings
 from .. import log
 from ..logger import LoggingError, LOG_LEVEL
-from ..utils.custom_warnings import AstropyWarning, AstropyUserWarning
+from ..utils.exceptions import AstropyWarning, AstropyUserWarning
 
 
 # Save original values of hooks. These are not the system values, but the

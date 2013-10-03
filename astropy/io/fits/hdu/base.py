@@ -21,7 +21,7 @@ from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
 from ..verify import _Verify, _ErrList
 
 from ....utils import lazyproperty, deprecated
-from ....utils.custom_warnings import AstropyUserWarning
+from ....utils.exceptions import AstropyUserWarning
 
 
 class _Delayed(object):

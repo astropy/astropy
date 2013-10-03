@@ -22,7 +22,7 @@ from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
 
 from ....utils import deprecated, lazyproperty
-from ....utils.custom_warnings import AstropyUserWarning
+from ....utils.exceptions import AstropyUserWarning
 
 
 class FITSTableDumpDialect(csv.excel):
