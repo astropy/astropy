@@ -6,6 +6,7 @@ Handles the "FITS" unit format.
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+from ...extern.six.moves import zip
 
 import warnings
 
@@ -116,7 +117,7 @@ class Fits(generic.Generic):
                     "The FITS unit format is not able to represent scale. "
                     "Multiply your data by {0:e}.".format(unit.scale))
 
-            pairs = zip(unit.bases, unit.powers)
+            pairs = list(zip(unit.bases, unit.powers))
             pairs.sort(key=lambda x: x[1], reverse=True)
 
             s = self._format_unit_list(pairs)

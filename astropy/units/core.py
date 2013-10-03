@@ -7,6 +7,7 @@ Core units classes and functions
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+from ..extern import six
 
 import inspect
 import numbers
@@ -19,7 +20,6 @@ import numpy as np
 from numpy import ma
 
 from ..utils.compat.fractions import Fraction
-from ..utils.misc import deprecated
 from ..utils.custom_warnings import AstropyWarning
 from .utils import is_effectively_unity
 from . import format as unit_format
@@ -289,8 +289,8 @@ class UnitBase(object):
                     "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
             if not (isinstance(funit, UnitBase) and
                     isinstance(tunit, UnitBase) and
-                    callable(a) and
-                    callable(b)):
+                    six.callable(a) and
+                    six.callable(b)):
                 raise ValueError(
                     "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
             normalized.append((funit, tunit, a, b))
@@ -327,14 +327,14 @@ class UnitBase(object):
             return CompositeUnit(1, [self, m], [1, -1])._simplify()
         elif isinstance(m, Quantity):
             return Quantity(1, self) / m
-        elif isinstance(m, basestring):
+        elif isinstance(m, six.string_types):
             return self / Unit(m)
         else:
             return Quantity(1. / m, self)
 
     def __rdiv__(self, m):
         from .quantity import Quantity
-        if isinstance(m, basestring):
+        if isinstance(m, six.string_types):
             return Unit(m) / Quantity(1, self)
         else:
             return Quantity(m, CompositeUnit(1.0, [self], [-1])._simplify())
@@ -351,14 +351,14 @@ class UnitBase(object):
             return CompositeUnit(1, [self, m], [1, 1])._simplify()
         elif isinstance(m, Quantity):
             return Quantity(1, self) * m
-        elif isinstance(m, basestring):
+        elif isinstance(m, six.string_types):
             return self * Unit(m)
         else:
             return Quantity(m, self)
 
     def __rmul__(self, m):
         from .quantity import Quantity
-        if isinstance(m, basestring):
+        if isinstance(m, six.string_types):
             return Unit(m) * Quantity(1, self)
         else:
             return Quantity(m, self)
@@ -759,9 +759,9 @@ class UnitBase(object):
             if len(units) == 0:
                 units = _UnitRegistry().non_prefix_units
         elif isinstance(units, dict):
-            units = set(filter_units(units.itervalues()))
+            units = set(filter_units(six.itervalues(units)))
         elif inspect.ismodule(units):
-            units = filter_units(vars(units).itervalues())
+            units = filter_units(six.itervalues(vars(units)))
         else:
             units = set(units)
 
@@ -997,7 +997,7 @@ class NamedUnit(UnitBase):
     def __init__(self, st, register=False, doc=None, format=None):
         UnitBase.__init__(self)
 
-        if isinstance(st, (bytes, unicode)):
+        if isinstance(st, six.string_types):
             self._names = [st]
         else:
             if len(st) == 0:
@@ -1276,7 +1276,7 @@ class _UnitMetaClass(type):
         elif isinstance(s, UnitBase):
             return s
 
-        elif isinstance(s, (bytes, unicode)):
+        elif isinstance(s, six.string_types):
             if len(s.strip()) == 0:
                 # Return the NULL unit
                 return CompositeUnit(1.0, [], [])
@@ -1312,6 +1312,7 @@ class _UnitMetaClass(type):
             raise TypeError("{0} can not be converted to a Unit".format(s))
 
 
+@six.add_metaclass(_UnitMetaClass)
 class Unit(NamedUnit):
     """
     The main unit class.
@@ -1395,7 +1396,6 @@ class Unit(NamedUnit):
     ValueError
         If any of the given unit names are not valid Python tokens.
     """
-    __metaclass__ = _UnitMetaClass
 
     def __init__(self, st, represents=None, register=False, doc=None,
                  format=None):
@@ -1521,7 +1521,7 @@ class CompositeUnit(UnitBase):
             else:
                 scale = add_unit(b, p, scale)
 
-        new_parts = [x for x in new_parts.items() if x[1] != 0]
+        new_parts = [x for x in six.iteritems(new_parts) if x[1] != 0]
         new_parts.sort(key=lambda x: x[1], reverse=True)
 
         self._bases = [x[0] for x in new_parts]
@@ -1623,7 +1623,7 @@ def _add_prefixes(u, excludes=[], register=False):
         When `True`, also register the unit in the standard unit
         namespace.  Default is `False`.
     """
-    for short, long, factor in si_prefixes:
+    for short, full, factor in si_prefixes:
         names = []
         format = {}
         for prefix in short:
@@ -1639,10 +1639,10 @@ def _add_prefixes(u, excludes=[], register=False):
                     format['latex'] = r'\mu ' + u.get_format_name('latex')
                     format['unicode'] = 'μ' + u.get_format_name('unicode')
 
-                for key, val in u._format.items():
+                for key, val in six.iteritems(u._format):
                     format.setdefault(key, prefix + val)
 
-        for prefix in long:
+        for prefix in full:
             if prefix in excludes:
                 continue
 
@@ -1741,7 +1741,7 @@ def _condition_arg(value):
     ValueError
         If value is not as expected
     """
-    if isinstance(value, (float, int, long, complex)):
+    if isinstance(value, (float, six.integer_types, complex)):
         return value
     else:
         try:

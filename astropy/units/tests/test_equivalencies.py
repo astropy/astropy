@@ -12,6 +12,7 @@ from numpy.testing.utils import assert_allclose
 
 from ...tests.helper import pytest
 
+from ...extern.six.moves import zip
 from ... import units as u
 
 functions = [u.doppler_optical, u.doppler_radio, u.doppler_relativistic]
@@ -69,7 +70,7 @@ def test_doppler_energy_circle(function):
 
 values_ghz = (999.899940784289,999.8999307714406,999.8999357778647)
 @pytest.mark.parametrize(('function', 'value'),
-                         zip(functions, values_ghz))
+                         list(zip(functions, values_ghz)))
 def test_30kms(function, value):
     rest = 1000 * u.GHz
     velo = 30 * u.km/u.s

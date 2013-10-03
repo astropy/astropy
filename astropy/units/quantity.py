@@ -15,6 +15,7 @@ import numbers
 import numpy as np
 
 # AstroPy
+from ..extern import six
 from .core import Unit, UnitBase, UnitsError
 from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
@@ -550,7 +551,7 @@ class Quantity(np.ndarray):
     def __mul__(self, other):
         """ Multiplication between `Quantity` objects and other objects."""
 
-        if isinstance(other, basestring):
+        if isinstance(other, six.string_types):
             return self.__quantity_instance__(self.value, Unit(other) * self.unit)
         elif isinstance(other, UnitBase):
             return self.__quantity_instance__(self.value, other * self.unit)
@@ -559,7 +560,7 @@ class Quantity(np.ndarray):
 
     def __imul__(self, other):
         """In-place multiplication between `Quantity` objects and others."""
-        if isinstance(other, basestring):
+        if isinstance(other, six.string_types):
             self._unit = Unit(other) * self.unit
         elif isinstance(other, UnitBase):
             self._unit = other * self.unit
@@ -578,7 +579,7 @@ class Quantity(np.ndarray):
     def __div__(self, other):
         """ Division between `Quantity` objects and other objects."""
 
-        if isinstance(other, basestring):
+        if isinstance(other, six.string_types):
             return self.__quantity_instance__(
                 self.value, unit=self.unit / Unit(other))
         elif isinstance(other, UnitBase):
@@ -589,7 +590,7 @@ class Quantity(np.ndarray):
     def __idiv__(self, other):
         """Inplace division between `Quantity` objects and other objects."""
 
-        if isinstance(other, basestring):
+        if isinstance(other, six.string_types):
             self._unit = self.unit / Unit(other)
         elif isinstance(other, UnitBase):
             self._unit = self.unit / other
@@ -601,7 +602,7 @@ class Quantity(np.ndarray):
     def __rdiv__(self, other):
         """ Right Division between `Quantity` objects and other objects."""
 
-        if isinstance(other, basestring):
+        if isinstance(other, six.string_types):
             return self.__quantity_instance__(
                 self.value, unit=Unit(other) / self.unit)
         elif isinstance(other, UnitBase):
@@ -624,7 +625,7 @@ class Quantity(np.ndarray):
 
     def __divmod__(self, other):
         from . import dimensionless_unscaled
-        if isinstance(other, (basestring, UnitBase)):
+        if isinstance(other, (six.string_types, UnitBase)):
             return (self / other, self.__quantity_instance__(
                     0, dimensionless_unscaled))
 
@@ -705,8 +706,9 @@ class Quantity(np.ndarray):
         """Quantities should always be treated as non-False; there is too much
         potential for ambiguity otherwise.
         """
-
         return True
+    if six.PY3:
+        __bool__ = __nonzero__
 
     def __len__(self):
         if self.isscalar:
@@ -730,12 +732,13 @@ class Quantity(np.ndarray):
         else:
             return int(self.value)
 
-    def __long__(self):
-        if not self.isscalar or not self.unit.is_unity():
-            raise TypeError('Only dimensionless scalar quantities can be '
-                            'converted to Python scalars')
-        else:
-            return long(self.value)
+    if six.PY2:
+        def __long__(self):
+            if not self.isscalar or not self.unit.is_unity():
+                raise TypeError('Only dimensionless scalar quantities can be '
+                                'converted to Python scalars')
+            else:
+                return long(self.value)
 
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
@@ -778,7 +781,7 @@ class Quantity(np.ndarray):
                       if self.unit is not None
                       else _UNIT_NOT_INITIALISED)
 
-        return u'${0} \; {1}$'.format(latex_value, latex_unit)
+        return '${0} \; {1}$'.format(latex_value, latex_unit)
 
     def decompose(self, bases=[]):
         """

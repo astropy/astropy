@@ -11,9 +11,12 @@ from __future__ import (absolute_import, division, print_function,
 import os
 import re
 
+from ...extern.six.moves import zip
+
 from .base import Base
 from . import utils
 from ..utils import is_effectively_unity
+
 
 # TODO: Support logarithmic units using bracketed syntax
 
@@ -141,7 +144,7 @@ class CDS(Base):
             return t
 
         def t_X(t):  # multiplication for factor in front of unit
-            ur'[x×]'
+            r'[x×]'
             return t
 
         def t_UNIT(t):
@@ -342,7 +345,7 @@ class CDS(Base):
         unit = utils.decompose_to_known_units(unit, self._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
-            if(unit.physical_type == u'dimensionless' and
+            if(unit.physical_type == 'dimensionless' and
                is_effectively_unity(unit.scale*100.)):
                 return '%'
 
@@ -359,7 +362,7 @@ class CDS(Base):
                     parts.append('10{0}'.format(e))
                 s = 'x'.join(parts)
 
-            pairs = zip(unit.bases, unit.powers)
+            pairs = list(zip(unit.bases, unit.powers))
             if len(pairs) > 0:
                 pairs.sort(key=lambda x: x[1], reverse=True)
 
