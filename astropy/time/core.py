@@ -5,6 +5,9 @@ dates. Specific emphasis is placed on supporting time scales (e.g. UTC, TAI,
 UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from datetime import datetime
 import time
 import itertools
@@ -12,6 +15,7 @@ import numpy as np
 
 from ..utils import deprecated, deprecated_attribute
 from ..utils.compat.misc import override__dir__
+from ..extern import six
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS', 'TimePlotDate',
@@ -174,7 +178,7 @@ class Time(object):
                 raise ValueError('Input val and val2 must have same dimensions')
 
         if scale is not None:
-            if not (isinstance(scale, basestring) and
+            if not (isinstance(scale, six.string_types) and
                     scale.lower() in self.SCALES):
                 raise ScaleValueError("Scale {0} is not in the allowed scales "
                                       "{1}".format(repr(scale),
@@ -200,7 +204,7 @@ class Time(object):
                        if issubclass(cls, TimeUnique)]
             err_msg = 'any of the formats where the format keyword is optional {0}'.format(
                 [name for name, cls in formats])
-        elif not (isinstance(format, basestring) and
+        elif not (isinstance(format, six.string_types) and
                   format.lower() in self.FORMATS):
             if format is None:
                 raise ValueError("No time format was given, and the input is "
@@ -288,7 +292,7 @@ class Time(object):
 
         # Transform the jd1,2 pairs through the chain of scale xforms.
         jd1, jd2 = self._time.jd1, self._time.jd2
-        for sys1, sys2 in itertools.izip(xforms[:-1], xforms[1:]):
+        for sys1, sys2 in six.moves.zip(xforms[:-1], xforms[1:]):
             # Some xforms require an additional delta_ argument that is
             # provided through Time methods.  These values may be supplied by
             # the user or computed based on available approximations.  The
@@ -336,7 +340,7 @@ class Time(object):
 
     @in_subfmt.setter
     def in_subfmt(self, val):
-        if not isinstance(val, basestring):
+        if not isinstance(val, six.string_types):
             raise ValueError('in_subfmt attribute must be a string')
         self._in_subfmt = val
 
@@ -349,7 +353,7 @@ class Time(object):
 
     @out_subfmt.setter
     def out_subfmt(self, val):
-        if not isinstance(val, basestring):
+        if not isinstance(val, six.string_types):
             raise ValueError('out_subfmt attribute must be a string')
         self._out_subfmt = val
 
@@ -553,7 +557,7 @@ class Time(object):
 
     @override__dir__
     def __dir__(self):
-        return set(list(self.SCALES) + self.FORMATS.keys())
+        return set(list(self.SCALES) + list(self.FORMATS.keys()))
 
     def _match_len(self, val):
         """
@@ -1224,7 +1228,7 @@ class TimeDatetime(TimeUnique):
 
         out = np.empty(len(self), dtype=np.object)
         idxs = itertools.count()
-        for idx, iy, im, id, ihmsf in itertools.izip(idxs, iys, ims, ids, ihmsfs):
+        for idx, iy, im, id, ihmsf in six.moves.zip(idxs, iys, ims, ids, ihmsfs):
             ihr, imin, isec, ifracsec = ihmsf
             out[idx] = datetime(int(iy), int(im), int(id),
                                 int(ihr), int(imin), int(isec), int(ifracsec))
@@ -1310,7 +1314,7 @@ class TimeString(TimeUnique):
             has_yday = False
             yday = None
 
-        for iy, im, id, ihmsf in itertools.izip(iys, ims, ids, ihmsfs):
+        for iy, im, id, ihmsf in six.moves.zip(iys, ims, ids, ihmsfs):
             ihr, imin, isec, ifracsec = ihmsf
             if has_yday:
                 yday = datetime(iy, im, id).timetuple().tm_yday
@@ -1334,7 +1338,7 @@ class TimeString(TimeUnique):
         # output could change, e.g. year rolls from 999 to 1000.
         outs = []
         for kwargs in self.str_kwargs():
-            outs.append(str_fmt.format(**kwargs))
+            outs.append(str(str_fmt.format(**kwargs)))
 
         return np.array(outs)
 
@@ -1540,7 +1544,7 @@ class ScaleValueError(Exception):
 
 
 # Set module constant with names of all available time formats
-for name, val in locals().items():
+for name, val in list(locals().items()):
     try:
         is_timeformat = issubclass(val, TimeFormat)
         is_timedeltaformat = issubclass(val, TimeDeltaFormat)
