@@ -85,6 +85,9 @@ def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
                 elif metadata_conflicts == 'error':
                     raise MergeConflictError('Cannot merge meta key {0!r} types {1!r} and {2!r}'
                                              .format(key, type(left[key]), type(right[key])))
-                out[key] = left[key]
+                elif metadata_conflicts == 'silent':
+                    out[key] = left[key]
+                else:
+                    raise ValueError('metadata_conflict argument must be one of "silent", "warn", or "error"')
 
     return out
