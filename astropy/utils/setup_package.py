@@ -28,3 +28,7 @@ def get_package_data():
             'data/ReadMe.finals2000A',
             'data/eopc04_IAU2000.62-now.gz']
     }
+
+
+def requires_2to3():
+    return False

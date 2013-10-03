@@ -3,9 +3,12 @@
 A collection of functions for checking various XML-related strings for
 standards compliance.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ...extern.six.moves import xrange, urllib
 
 import re
-import urlparse
 
 
 def check_id(ID):
@@ -68,7 +71,7 @@ def check_anyuri(uri):
         uri) is None):
         return False
     try:
-        urlparse.urlparse(uri)
+        urllib.parse.urlparse(uri)
     except:
         return False
     return True

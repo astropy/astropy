@@ -331,6 +331,10 @@ example::
 The same is true of structure specifiers in the built-in `struct`
 module on Python 2.6.
 
+`pytest.mark.skipif` also requires a "native" string, i.e.::
+
+    @pytest.mark.skipif(str('CONDITIONAL'))
+
 Iteration
 ^^^^^^^^^
 

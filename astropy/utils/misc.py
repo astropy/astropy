@@ -4,9 +4,12 @@ A "grab bag" of relatively small general-purpose utilities that don't have
 a clear module/package to live in.
 """
 
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-import collections
+from ..extern import six
+from ..extern.six.moves import urllib
+
 import contextlib
 import functools
 import json
@@ -125,7 +128,7 @@ def find_current_module(depth=1, finddiff=False):
             for fd in finddiff:
                 if ismodule(fd):
                     diffmods.append(fd)
-                elif isinstance(fd, basestring):
+                elif isinstance(fd, six.string_types):
                     diffmods.append(__import__(fd))
                 elif fd is True:
                     diffmods.append(currmod)
@@ -227,7 +230,7 @@ class lazyproperty(object):
         >>> class LazyTest(object):
         ...     @lazyproperty
         ...     def complicated_property(self):
-        ...         print 'Computing the value for complicated_property...'
+        ...         print('Computing the value for complicated_property...')
         ...         return 42
         ...
         >>> lt = LazyTest()
@@ -256,7 +259,7 @@ class lazyproperty(object):
     def __get__(self, obj, owner=None):
         if obj is None:
             return self
-        key = self._fget.func_name
+        key = self._fget.__name__
         if key not in obj.__dict__:
             val = self._fget(obj)
             obj.__dict__[key] = val
@@ -266,7 +269,7 @@ class lazyproperty(object):
 
     def __set__(self, obj, val):
         obj_dict = obj.__dict__
-        func_name = self._fget.func_name
+        func_name = self._fget.__name__
         if self._fset:
             ret = self._fset(obj, val)
             if ret is not None and obj_dict.get(func_name) is ret:
@@ -279,7 +282,7 @@ class lazyproperty(object):
     def __delete__(self, obj):
         if self._fdel:
             self._fdel(obj)
-        key = self._fget.func_name
+        key = self._fget.__name__
         if key in obj.__dict__:
             del obj.__dict__[key]
 
@@ -296,7 +299,7 @@ class lazyproperty(object):
         args = [self._fget, self._fset, self._fdel, self.__doc__]
         args[arg] = f
         cls_ns = sys._getframe(1).f_locals
-        for k, v in cls_ns.items():
+        for k, v in six.iteritems(cls_ns):
             if v is self:
                 property_name = k
                 break
@@ -632,9 +635,8 @@ def find_api_page(obj, version='dev', openinbrowser=True, timeout=None):
 
     from inspect import ismodule
     from zlib import decompress
-    from urllib2 import urlopen
 
-    if (not isinstance(obj, basestring) and
+    if (not isinstance(obj, string_types) and
             hasattr(obj, '__module__') and
             hasattr(obj, '__name__')):
         obj = obj.__module__ + '.' + obj.__name__
@@ -647,9 +649,9 @@ def find_api_page(obj, version='dev', openinbrowser=True, timeout=None):
         baseurl = 'http://docs.astropy.org/en/{vers}/'.format(vers=version)
 
     if timeout is None:
-        uf = urlopen(baseurl + 'objects.inv')
+        uf = urllib.request.urlopen(baseurl + 'objects.inv')
     else:
-        uf = urlopen(baseurl + 'objects.inv', timeout=timeout)
+        uf = urllib.request.urlopen(baseurl + 'objects.inv', timeout=timeout)
 
     try:
         # we read these lines so that `oistr` only gets the compressed
