@@ -264,7 +264,7 @@ class IERS_A(IERS):
         super(IERS_A, self).__init__(table.filled())
 
     @classmethod
-    def read(cls, file=IERS_A_FILE, readme=IERS_A_README):
+    def read(cls, file=IERS_A_FILE, readme=None):
         """Read IERS-A table from a finals2000a.* file provided by USNO.
 
         Parameters
@@ -280,6 +280,8 @@ class IERS_A(IERS):
         -------
         `IERS_A` class instance
         """
+        if readme is None:
+            readme = IERS_A_README
         iers_a = Table.read(file, format='cds', readme=readme)
         # IERS A has some rows at the end that hold nothing but dates & MJD
         # presumably to be filled later.  Exclude those a priori -- there
@@ -310,7 +312,7 @@ class IERS_B(IERS):
     iers_table = None
 
     @classmethod
-    def read(cls, file=IERS_B_FILE, readme=IERS_B_README, data_start=14):
+    def read(cls, file=None, readme=None, data_start=14):
         """Read IERS-B table from a eopc04_iau2000.* file provided by IERS.
 
         Parameters
@@ -328,6 +330,11 @@ class IERS_B(IERS):
         -------
         `IERS_B` class instance
         """
+        if file is None:
+            file = IERS_B_FILE
+        if readme is None:
+            readme = IERS_B_README
+
         # can this be done more elegantly, initialising directly, without
         # passing a Table to the Table initialiser?
         iers_b = Table.read(file, format='cds', readme=readme,
