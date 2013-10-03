@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import os
 from distutils.extension import Extension
 
@@ -30,3 +31,6 @@ def get_extensions():
 
 def get_external_libraries():
     return ['erfa']
+
+def requires_2to3():
+    return False

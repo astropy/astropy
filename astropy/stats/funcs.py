@@ -7,9 +7,12 @@ This module should generally not be used directly.  Everything in `__all__` is
 imported into `astropy.stats`, and hence that package should be used for
 access.
 """
-from __future__ import division
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
+
+from ..extern.six.moves import xrange
 
 __all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion',
            'median_absolute_deviation', 'biweight_location',
