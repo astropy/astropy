@@ -144,7 +144,7 @@ class CDS(Base):
             return t
 
         def t_X(t):  # multiplication for factor in front of unit
-            ur'[x×]'
+            r'[x×]'
             return t
 
         def t_UNIT(t):
