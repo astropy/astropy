@@ -13,6 +13,6 @@ from __future__ import absolute_import
 
 import sys
 if sys.version_info[:2] == (2, 6):
-    from ._fractions_27 import *
+    from ._fractions_py2 import *
 else:
     from fractions import *

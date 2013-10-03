@@ -6,9 +6,8 @@ file.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ....extern import six
-from ....extern.six.moves import http_client
+from ....extern.six.moves import http_client, urllib
 from ....extern.six.moves import cPickle as pickle
-from ....utils.compat import urlopen, urlerror
 
 # STDLIB
 from xml.parsers.expat import ExpatError
@@ -106,10 +105,11 @@ class Result:
         r = None
         try:
             if six.PY3:
-                r = urlopen(self.url.decode('ascii'), timeout=self.timeout)
+                r = urllib.request.urlopen(
+                    self.url.decode('ascii'), timeout=self.timeout)
             else:
-                r = urlopen(self.url, timeout=self.timeout)
-        except urlerror() as e:
+                r = urllib.request.urlopen(self.url, timeout=self.timeout)
+        except urllib.error.URLError as e:
             if hasattr(e, 'reason'):
                 reason = e.reason
             else:

@@ -3,7 +3,11 @@
 """
 Utilities for console input and output.
 """
-from __future__ import division, print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ..extern import six
+from ..extern.six.moves import xrange
 
 import codecs
 import locale
@@ -135,7 +139,7 @@ def _color_text(text, color):
         return text
 
     color_code = color_mapping.get(color, '0;39')
-    return u'\033[{0}m{1}\033[0m'.format(color_code, text)
+    return '\033[{0}m{1}\033[0m'.format(color_code, text)
 
 
 def _decode_preferred_encoding(s):
@@ -225,7 +229,7 @@ def color_print(*args, **kwargs):
 
     file = kwargs.get('file', stdio.stdout)
 
-    end = kwargs.get('end', u'\n')
+    end = kwargs.get('end', '\n')
 
     write = file.write
     if isatty(file) and USE_COLOR():
@@ -294,26 +298,26 @@ def human_time(seconds):
         that is always exactly 6 characters.
     """
     units = [
-        (u'y', 60 * 60 * 24 * 7 * 52),
-        (u'w', 60 * 60 * 24 * 7),
-        (u'd', 60 * 60 * 24),
-        (u'h', 60 * 60),
-        (u'm', 60),
-        (u's', 1),
+        ('y', 60 * 60 * 24 * 7 * 52),
+        ('w', 60 * 60 * 24 * 7),
+        ('d', 60 * 60 * 24),
+        ('h', 60 * 60),
+        ('m', 60),
+        ('s', 1),
     ]
 
     seconds = int(seconds)
 
     if seconds < 60:
-        return u'   {0:02d}s'.format(seconds)
+        return '   {0:02d}s'.format(seconds)
     for i in xrange(len(units) - 1):
         unit1, limit1 = units[i]
         unit2, limit2 = units[i + 1]
         if seconds >= limit1:
-            return u'{0:02d}{1}{2:02d}{3}'.format(
+            return '{0:02d}{1}{2:02d}{3}'.format(
                 seconds // limit1, unit1,
                 (seconds % limit1) // limit2, unit2)
-    return u'  ~inf'
+    return '  ~inf'
 
 
 def human_file_size(size):
@@ -338,7 +342,7 @@ def human_file_size(size):
     size : str
         A human-friendly representation of the size of the file
     """
-    suffixes = u' kMGTPEH'
+    suffixes = ' kMGTPEH'
     if size == 0:
         num_scale = 0
     else:
@@ -357,7 +361,7 @@ def human_file_size(size):
     return "{0:>3s}{1}".format(str_value, suffix)
 
 
-class ProgressBar(object):
+class ProgressBar(six.Iterator):
     """
     A class to display a progress bar in the terminal.
 
@@ -448,7 +452,7 @@ class ProgressBar(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         try:
             rv = next(self._items)
         except StopIteration:
@@ -457,6 +461,7 @@ class ProgressBar(object):
         else:
             self.update()
             return rv
+
 
     def update(self, value=None):
         """
@@ -476,26 +481,26 @@ class ProgressBar(object):
         write = file.write
 
         bar_fill = int(float(self._bar_length) * frac)
-        write(u'\r|')
-        color_print(u'=' * bar_fill, 'blue', file=file, end=u'')
+        write('\r|')
+        color_print('=' * bar_fill, 'blue', file=file, end='')
         if bar_fill < self._bar_length:
-            color_print(u'>', 'green', file=file, end=u'')
-            write(u'-' * (self._bar_length - bar_fill - 1))
-        write(u'|')
+            color_print('>', 'green', file=file, end='')
+            write('-' * (self._bar_length - bar_fill - 1))
+        write('|')
 
         if value >= self._total:
             t = time.time() - self._start_time
-            prefix = u'     '
+            prefix = '     '
         elif value <= 0:
             t = None
-            prefix = u''
+            prefix = ''
         else:
             t = ((time.time() - self._start_time) * (1.0 - frac)) / frac
-            prefix = u' ETA '
-        write(u' {0:>4s}/{1:>4s}'.format(
+            prefix = ' ETA '
+        write(' {0:>4s}/{1:>4s}'.format(
             human_file_size(value),
             self._human_total))
-        write(u' ({0:>6s}%)'.format(u'{0:.2f}'.format(frac * 100.0)))
+        write(' ({0:>6s}%)'.format('{0:.2f}'.format(frac * 100.0)))
         write(prefix)
         if t is not None:
             write(human_time(t))
@@ -604,8 +609,8 @@ class Spinner(object):
             for item in enumerate(items):
                 s.next()
     """
-    _default_unicode_chars = u"◓◑◒◐"
-    _default_ascii_chars = u"-/|\\"
+    _default_unicode_chars = "◓◑◒◐"
+    _default_ascii_chars = "-/|\\"
 
     def __init__(self, msg, color='default', file=None, step=1,
                  chars=None):
@@ -657,9 +662,9 @@ class Spinner(object):
         flush = file.flush
 
         while True:
-            write(u'\r')
-            color_print(self._msg, self._color, file=file, end=u'')
-            write(u' ')
+            write('\r')
+            color_print(self._msg, self._color, file=file, end='')
+            write(' ')
             write(chars[index])
             flush()
             yield
@@ -683,16 +688,16 @@ class Spinner(object):
         flush = file.flush
 
         if not self._silent:
-            write(u'\r')
-            color_print(self._msg, self._color, file=file, end=u'')
+            write('\r')
+            color_print(self._msg, self._color, file=file, end='')
         if exc_type is None:
-            color_print(u' [Done]', 'green', file=file)
+            color_print(' [Done]', 'green', file=file)
         else:
-            color_print(u' [Failed]', 'red', file=file)
+            color_print(' [Failed]', 'red', file=file)
         flush()
 
     def _silent_iterator(self):
-        color_print(self._msg, self._color, file=self._file, end=u'')
+        color_print(self._msg, self._color, file=self._file, end='')
         self._file.flush()
 
         while True:
@@ -775,7 +780,7 @@ class ProgressBarOrSpinner(object):
 
 
 def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
-    u"""
+    """
     Prints a line of source code, highlighting a particular character
     position in the line.  Useful for displaying the context of error
     messages.
@@ -819,11 +824,11 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
 
     if col is not None:
         assert col < len(line)
-        ntabs = line[:col].count(u'\t')
+        ntabs = line[:col].count('\t')
         col += ntabs * (tabwidth - 1)
 
-    line = line.rstrip(u'\n')
-    line = line.replace(u'\t', u' ' * tabwidth)
+    line = line.rstrip('\n')
+    line = line.replace('\t', ' ' * tabwidth)
 
     if col is not None and col > width:
         new_col = min(width // 2, len(line) - col)
@@ -832,18 +837,18 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
         new_col = col
         col -= offset
         width = width - 3
-        color_print(u'…', 'darkgrey', file=file, end=u'')
+        color_print('…', 'darkgrey', file=file, end='')
 
     if len(line) > width:
         write(line[:width - 1])
-        color_print(u'…', 'darkgrey', file=file)
+        color_print('…', 'darkgrey', file=file)
     else:
         write(line)
-        write(u'\n')
+        write('\n')
 
     if col is not None:
-        write(u' ' * col)
-        color_print(u'^', 'red', file=file)
+        write(' ' * col)
+        color_print('^', 'red', file=file)
 
 
 # The following four Getch* classes implement unbuffered character reading from

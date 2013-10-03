@@ -2,6 +2,9 @@
 """
 This module includes a fast iterator-based XML parser.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ...extern import six
 
 # STDLIB
 import collections
@@ -33,7 +36,7 @@ else:
         Abstracts away the different ways to test for a callable object in
         Python 2.x and 3.x.
         """
-        return callable(o)
+        return six.callable(o)
 ############################################################
 
 
@@ -118,11 +121,11 @@ def _fast_iterparse(fd, buffersize=2 ** 10):
         # Due to Python issue #4978, convert all keys to byte strings
         _start = start
         def start(name, attr):
-            attr = dict((k.encode('utf-8'), v) for (k, v) in attr.iteritems())
+            attr = dict((k.encode('utf-8'), v) for (k, v) in six.iteritems(attr))
             return _start(name, attr)
 
     def end(name):
-        queue.append((False, name, u''.join(text).strip(),
+        queue.append((False, name, ''.join(text).strip(),
                       (parser.CurrentLineNumber, parser.CurrentColumnNumber)))
 
     parser = expat.ParserCreate()
@@ -212,8 +215,8 @@ def get_xml_encoding(source):
     encoding : str
     """
     with get_xml_iterator(source) as iterator:
-        start, tag, data, pos = iterator.next()
-        if not start or tag != u'xml':
+        start, tag, data, pos = six.next(iterator)
+        if not start or tag != 'xml':
             raise IOError('Invalid XML file')
 
     # The XML spec says that no encoding === utf-8

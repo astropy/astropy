@@ -3,14 +3,17 @@
 caching data files.
 """
 
-from __future__ import division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ..extern import six
+from ..extern.six.moves import urllib
 
 import os
 import io
 import sys
 import atexit
 import contextlib
-import urllib2
 
 from ..config.configuration import ConfigurationItem
 from ..utils.custom_warnings import AstropyWarning
@@ -62,8 +65,7 @@ def _is_url(string):
     string : str
         The string to test
     """
-    from urlparse import urlparse
-    url = urlparse(string)
+    url = urllib.parse.urlparse(string)
     # url[0]==url.scheme, but url[0] is py 2.6-compat
     # we can't just check that url[0] is not an empty string, because
     # file paths in windows would return a non-empty scheme (e.g. e:\\
@@ -146,7 +148,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     delete_fds = []
 
     # Get a file object to the content
-    if isinstance(name_or_obj, basestring):
+    if isinstance(name_or_obj, six.string_types):
         if _is_url(name_or_obj):
             name_or_obj = download_file(
                 name_or_obj, cache=cache, show_progress=show_progress)
@@ -324,9 +326,11 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
 
     cache : bool
         If True, the file will be downloaded and saved locally or the
-        already-cached local copy will be accessed. If False, the file-like
-        object will directly access the resource (e.g. if a remote URL is
-        accessed, an object like that from `urllib2.urlopen` is returned).
+        already-cached local copy will be accessed. If False, the
+        file-like object will directly access the resource (e.g. if a
+        remote URL is accessed, an object like that from
+        `urllib2.urlopen` on Python 2 or `urllib.request.urlopen` on
+        Python 3 is returned).
 
     Returns
     -------
@@ -337,7 +341,7 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
 
     Raises
     ------
-    urllib2.URLError
+    urllib2.URLError, urllib.error.URLError
         If a remote file cannot be found.
     IOError
         If problems occur writing or reading a local file.
@@ -420,7 +424,7 @@ def get_pkg_data_filename(data_name, show_progress=True):
 
     Raises
     ------
-    urllib2.URLError
+    urllib2.URLError, urllib.error.URLError
         If a remote file cannot be found.
     IOError
         If problems occur writing or reading a local file.
@@ -526,9 +530,11 @@ def get_pkg_data_contents(data_name, encoding=None, cache=True):
 
     cache : bool
         If True, the file will be downloaded and saved locally or the
-        already-cached local copy will be accessed. If False, the file-like
-        object will directly access the resource (e.g. if a remote URL is
-        accessed, an object like that from `urllib2.urlopen` is returned).
+        already-cached local copy will be accessed. If False, the
+        file-like object will directly access the resource (e.g. if a
+        remote URL is accessed, an object like that from
+        `urllib2.urlopen` on Python 2 or `urllib.request.urlopen` on
+        Python 3 is returned).
 
     Returns
     -------
@@ -537,7 +543,7 @@ def get_pkg_data_contents(data_name, encoding=None, cache=True):
 
     Raises
     ------
-    urllib2.URLError
+    urllib2.URLError, urllib.error.URLError
         If a remote file cannot be found.
     IOError
         If problems occur writing or reading a local file.
@@ -844,7 +850,7 @@ def download_file(remote_url, cache=False, show_progress=True):
 
     Raises
     ------
-    `urllib2.URLError`
+    urllib2.URLError, urllib.error.URLError
         Whenever there's a problem getting the remote file.
     """
 
@@ -875,7 +881,8 @@ def download_file(remote_url, cache=False, show_progress=True):
                 if str(remote_url) in url2hash:
                     return url2hash[str(remote_url)]
 
-        with closing(urllib2.urlopen(remote_url, timeout=REMOTE_TIMEOUT())) as remote:
+        with closing(urllib.request.urlopen(
+                remote_url, timeout=REMOTE_TIMEOUT())) as remote:
             #keep a hash to rename the local file to the hashed name
             hash = hashlib.md5()
 
@@ -938,7 +945,7 @@ def download_file(remote_url, cache=False, show_progress=True):
             if DELETE_TEMPORARY_DOWNLOADS_AT_EXIT():
                 global _tempfilestodel
                 _tempfilestodel.append(local_path)
-    except urllib2.URLError as e:
+    except urllib.error.URLError as e:
         if hasattr(e, 'reason') and hasattr(e.reason, 'errno') and e.reason.errno == 8:
             e.reason.strerror = e.reason.strerror + '. requested URL: ' + remote_url
             e.reason.args = (e.reason.errno, e.reason.strerror)
@@ -948,7 +955,7 @@ def download_file(remote_url, cache=False, show_progress=True):
         # through.  It's supposed to be caught in `urrlib2` and raised in this
         # way, but for some reason in mysterious circumstances it doesn't. So
         # we'll just re-raise it here instead
-        raise urllib2.URLError(e)
+        raise urllib.error.URLError(e)
 
     return local_path
 
@@ -1060,7 +1067,7 @@ def clear_download_cache(hashorurl=None):
                         " that's not inside the data cache directory")
 
                 if exists(filepath):
-                    for k, v in url2hash.items():
+                    for k, v in list(six.iteritems(url2hash)):
                         if v == filepath:
                             del url2hash[k]
                     unlink(filepath)
