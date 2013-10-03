@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ...extern import six
 
 from .. import Constant
 from ...units import Quantity as Q
@@ -91,7 +93,7 @@ def test_unit():
 
     from ... import constants as const
 
-    for key, val in vars(const).iteritems():
+    for key, val in six.iteritems(vars(const)):
         if isinstance(val, Constant):
             # Getting the unit forces the unit parser to run.  Confirm
             # that none of the constants defined in astropy have
