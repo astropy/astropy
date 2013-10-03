@@ -221,6 +221,8 @@ class TestRunner(object):
             all_args = shlex.split(
                 all_args, posix=not sys.platform.startswith('win'))
 
+            print(repr(all_args))
+            print(repr(plugins))
             result = pytest.main(args=all_args, plugins=plugins)
         finally:
             if coverage:
