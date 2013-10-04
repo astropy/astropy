@@ -13,10 +13,11 @@ Interface and Dependencies
 --------------------------
 
 * All code must be compatible with Python 2.6, 2.7, as well as 3.1 and
-  later.  The use of `six <http://pythonhosted.org/six/>`_ for writing
-  code that is portable between Python 2.x and 3.x is encouraged going
-  forward.  However, much of our legacy code still uses `2to3` to
-  process Python 2.x files to be compatible with Python 3.x.
+  later.  The use of `six <http://pythonhosted.org/six/>`__ for
+  writing code that is portable between Python 2.x and 3.x is
+  encouraged going forward.  However, much of our legacy code still
+  uses `2to3` to process Python 2.x files to be compatible with Python
+  3.x.
 
   Packages that use ``six`` must include the following in their
   `setup_package.py` file::
@@ -243,7 +244,7 @@ Including C Code
 Writing portable code for Python 2 and 3
 ----------------------------------------
 
-As of astropy 0.3, the `six <http://pythonhosted.org/six/>`_ library
+As of astropy 0.3, the `six <http://pythonhosted.org/six/>`__ library
 is included to allow supporting Python 2 and 3 from a single code
 base.  The use of the ``2to3`` tool is being phased out in favor of
 using ``six``.
@@ -309,7 +310,7 @@ it can be replaced with::
     but at the time of this writing, it is not feature complete and
     misses many important transformations.
 
-The `six <http://pythonhosted.org/six/>`_ documentation serves as a
+The `six <http://pythonhosted.org/six/>`__ documentation serves as a
 good reference for the sorts of things that need to be updated.
 
 Not so fast on that Unicode thing
