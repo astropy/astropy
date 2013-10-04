@@ -3,19 +3,20 @@
 These plugins modify the behavior of py.test and are meant to be imported
 into conftest.py in the root directory.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ..extern import six
+from ..extern.six.moves import filter
 
 import doctest
 import fnmatch
 import imp
-import io
 import locale
 import math
 import os
 import sys
 
 from .helper import pytest
-
-PY3K = sys.version_info[0] >= 3
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
@@ -28,8 +29,8 @@ def pytest_addoption(parser):
                      help="fail if any test leaves files open")
 
     parser.addoption("--doctest-plus", action="store_true",
-            help="enable running doctests with additional features not "
-                 "found in the normal doctest plugin")
+                     help="enable running doctests with additional features not "
+                     "found in the normal doctest plugin")
 
     parser.addini("doctest_plus", "enable running doctests with additional "
                   "features not found in the normal doctest plugin")
@@ -166,7 +167,7 @@ class DocTestFinderPlus(doctest.DocTestFinder):
                         return False
 
                 reqs = getattr(obj, '__doctest_requires__', {})
-                for pats, mods in reqs.items():
+                for pats, mods in list(six.iteritems(reqs)):
                     if not isinstance(pats, tuple):
                         pats = (pats,)
                     for pat in pats:
@@ -185,7 +186,7 @@ class DocTestFinderPlus(doctest.DocTestFinder):
                                 self._import_cache[mod] = True
                 return True
 
-            tests = filter(test_filter, tests)
+            tests = list(filter(test_filter, tests))
 
         return tests
 
@@ -278,11 +279,11 @@ if SUPPORTS_OPEN_FILE_DETECTION:
                 not_closed.add(filename)
 
         if len(not_closed):
-            msg = [u'File(s) not closed:']
+            msg = ['File(s) not closed:']
             for name in not_closed:
-                msg.append(u'  {0}'.format(
+                msg.append('  {0}'.format(
                     name.decode(sys.getfilesystemencoding())))
-            raise AssertionError(u'\n'.join(msg))
+            raise AssertionError('\n'.join(msg))
 
 
 def pytest_report_header(config):
@@ -293,7 +294,10 @@ def pytest_report_header(config):
     s += "Running tests in {0}.\n\n".format(" ".join(config.args))
 
     from platform import platform
-    s += "Platform: {0}\n\n".format(platform())
+    plat = platform()
+    if isinstance(plat, bytes):
+        plat = plat.decode(sys.stdout.encoding)
+    s += "Platform: {0}\n\n".format(plat)
     s += "Executable: {0}\n\n".format(sys.executable)
     s += "Full Python Version: \n{0}\n\n".format(sys.version)
 
@@ -338,6 +342,9 @@ def pytest_report_header(config):
             opts.append(op)
     if opts:
         s += "Using Astropy options: {0}.\n".format(" ".join(opts))
+
+    if not six.PY3:
+        s = s.encode(sys.stdout.encoding)
 
     return s
 

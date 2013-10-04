@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ...extern import six
 
 
 def test_imports():
@@ -15,7 +18,7 @@ def test_imports():
 
     pkgornm = find_current_module(1).__name__.split('.')[0]
 
-    if isinstance(pkgornm, basestring):
+    if isinstance(pkgornm, six.string_types):
         package = get_loader(pkgornm).load_module(pkgornm)
     elif isinstance(pkgornm, ModuleType) and '__init__' in pkgornm.__file__:
         package = pkgornm
