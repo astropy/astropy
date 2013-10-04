@@ -217,8 +217,6 @@ class TestRunner(object):
                 parallel = multiprocessing.cpu_count()
             all_args += ' -n {0}'.format(parallel)
 
-        print(repr(all_args))
-
         if sys.version_info[:2] == (2, 6):
             all_args = all_args.encode('utf-8')
 
@@ -226,8 +224,6 @@ class TestRunner(object):
             all_args = shlex.split(
                 all_args, posix=not sys.platform.startswith('win'))
 
-            print(repr(all_args))
-            print(repr(plugins))
             result = pytest.main(args=all_args, plugins=plugins)
         finally:
             if coverage:
