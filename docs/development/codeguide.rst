@@ -211,6 +211,8 @@ Coding Style/Conventions
 * Command-line scripts should follow the form outlined in the :doc:`scripts`
   document.
 
+.. _handling-unicode:
+
 Unicode guidelines
 ------------------
 
