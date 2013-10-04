@@ -21,7 +21,7 @@ New Features
         >>> print(unicode(u.degree))
         °
 
-    See `handling-unicode`_ for more information.
+    See :ref:`handling-unicode` for more information.
 
 - ``astropy.coordinates``
 
