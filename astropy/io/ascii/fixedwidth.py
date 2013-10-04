@@ -162,9 +162,7 @@ class FixedWidthHeader(core.BaseHeader):
 
         self._set_cols_from_names()
 
-        # Set column start and end positions.  Also re-index the cols because
-        # the FixedWidthSplitter does NOT return the ignored cols (as is the
-        # case for typical delimiter-based splitters)
+        # Set column start and end positions. 
         for i, col in enumerate(self.cols):
             col.start = starts[col.index]
             col.end = ends[col.index]

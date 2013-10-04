@@ -159,8 +159,8 @@ class Ipac(fixedwidth.FixedWidth):
         core._apply_include_exclude_names(table, self.include_names, self.exclude_names)
 
         # link information about the columns to the writer object (i.e. self)
-        self.header.cols = table.cols
-        self.data.cols = table.cols
+        self.header.cols = table.columns.values()
+        self.data.cols = table.columns.values()
 
         # Write header and data to lines list
         lines = []
@@ -183,14 +183,14 @@ class Ipac(fixedwidth.FixedWidth):
                     pass
 
         # get header and data as strings to find width of each column
-        for i, col in enumerate(table.cols):
+        for i, col in enumerate(table.columns.values()):
             col.headwidth = max([len(vals[i]) for vals in self.header.str_vals()])
         # keep data_str_vals because they take some time to make
         data_str_vals = self.data.str_vals()
-        for i, col in enumerate(table.cols):
+        for i, col in enumerate(table.columns.values()):
             col.width = max([len(vals[i]) for vals in data_str_vals])
 
-        widths = [max(col.width, col.headwidth) for col in table.cols]
+        widths = [max(col.width, col.headwidth) for col in table.columns.values()]
         # then write table
         self.header.write(lines, widths)
         self.data.write(lines, widths, data_str_vals)
@@ -371,10 +371,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
         self.names = [x.name for x in cols]
  
-        # Generate final list of cols and re-index the cols because the
-        # FixedWidthSplitter does NOT return the ignored cols (as is the
-        # case for typical delimiter-based splitters)
-        self.cols = [x for x in cols]
+        self.cols = cols
         for i, col in enumerate(self.cols):
             col.index = i
 

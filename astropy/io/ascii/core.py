@@ -384,9 +384,7 @@ class BaseHeader(object):
         """Initialize the header Column objects from the table ``lines``.
 
         Based on the previously set Header attributes find or create the column names.
-        Sets ``self.cols`` with the list of Columns.  This list only includes the actual
-        requested columns after filtering by the include_names and exclude_names
-        attributes.  See ``self.names`` for the full list.
+        Sets ``self.cols`` with the list of Columns.
 
         :param lines: list of table lines
         :returns: None
@@ -599,59 +597,6 @@ class BaseData(object):
                 col.format = self.formats[col.name]
 
 
-class DictLikeNumpy(dict):
-    """Provide minimal compatibility with numpy rec array API for BaseOutputter
-    object::
-
-      table = ascii.read('mytable.dat', numpy=False)
-      table.field('x')    # List of elements in column 'x'
-      table.dtype.names   # get column names in order
-      table[1]            # returns row 1 as a list
-      table[1][2]         # 3nd column in row 1
-      table['col1'][1]    # Row 1 in column col1
-      for row_vals in table:  # iterate over table rows
-          print row_vals  # print list of vals in each row
-
-    """
-    # To do: - add colnames property to set colnames and dtype.names as well.
-    # - ordered dict?
-
-    class Dtype(object):
-        pass
-
-    def __init__(self, *args, **kwargs):
-        self.dtype = DictLikeNumpy.Dtype()
-        dict.__init__(self, *args, **kwargs)
-
-    def __getitem__(self, item):
-        try:
-            return dict.__getitem__(self, item + '')
-        except TypeError:
-            return [dict.__getitem__(self, x)[item] for x in self.dtype.names]
-
-    def field(self, colname):
-        return self[colname]
-
-    def __len__(self):
-        return len(list(self.values())[0])
-
-    def __iter__(self):
-        self.__index = 0
-        return self
-
-    def __next__(self):
-        try:
-            vals = self[self.__index]
-        except IndexError:
-            raise StopIteration
-        else:
-            self.__index += 1
-            return vals
-
-    if sys.version_info[0] < 3:  # pragma: py2
-        next = __next__
-
-
 def convert_numpy(numpy_type):
     """Return a tuple ``(converter_func, converter_type)``.  The converter
     function converts a list into a numpy array of the given ``numpy_type``.
@@ -790,7 +735,6 @@ def _apply_include_exclude_names(table, include_names, exclude_names):
     if names != set(table.colnames):
         remove_names = set(table.colnames) - set(names)
         table.remove_columns(remove_names)
-    table.cols = table.columns.values()
 
 
 class BaseReader(object):
@@ -869,7 +813,7 @@ class BaseReader(object):
         # Get the table column definitions
         self.header.get_cols(self.lines)
 
-        cols = self.header.cols  # header.cols corresponds to *output* columns requested
+        cols = self.header.cols
         self.data.splitter.cols = cols
 
         for i, str_vals in enumerate(self.data.get_str_vals()):
@@ -942,8 +886,8 @@ class BaseReader(object):
         _apply_include_exclude_names(table, self.include_names, self.exclude_names)
 
         # link information about the columns to the writer object (i.e. self)
-        self.header.cols = table.cols
-        self.data.cols = table.cols
+        self.header.cols = table.columns.values()
+        self.data.cols = table.columns.values()
 
         # Write header and data to lines list
         lines = []
