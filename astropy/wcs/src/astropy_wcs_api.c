@@ -1,6 +1,6 @@
 #define NO_IMPORT_ARRAY
 
-#include "astropy_wcs_api.h"
+#include "astropy_wcs/astropy_wcs_api.h"
 
 int
 AstropyWcs_GetCVersion(void) {
