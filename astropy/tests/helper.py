@@ -3,6 +3,11 @@
 This module prvoides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest` testing framework.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ..extern import six
+from ..extern.six.moves import cPickle as pickle
 
 import errno
 import shlex
@@ -38,7 +43,6 @@ else:
         exec("def do_exec_def(co, loc): exec(co, loc)\n")
         extern_pytest.do_exec = do_exec_def
 
-        import pickle
         unpacked_sources = extern_pytest.sources.encode("ascii")
         unpacked_sources = pickle.loads(
             zlib.decompress(base64.decodebytes(unpacked_sources)))
@@ -46,14 +50,13 @@ else:
         exec("def do_exec_def(co, loc): exec co in loc\n")
         extern_pytest.do_exec = do_exec_def
 
-        import cPickle as pickle
         unpacked_sources = pickle.loads(
             zlib.decompress(base64.decodestring(extern_pytest.sources)))
 
     importer = extern_pytest.DictImporter(unpacked_sources)
     sys.meta_path.insert(0, importer)
 
-    pytest = importer.load_module('pytest')
+    pytest = importer.load_module(str('pytest'))
 
 
 # Monkey-patch py.test to work around issue #811
@@ -214,6 +217,9 @@ class TestRunner(object):
                 parallel = multiprocessing.cpu_count()
             all_args += ' -n {0}'.format(parallel)
 
+        if sys.version_info[:2] == (2, 6):
+            all_args = all_args.encode('utf-8')
+
         try:
             all_args = shlex.split(
                 all_args, posix=not sys.platform.startswith('win'))
@@ -232,34 +238,40 @@ class TestRunner(object):
 
 class astropy_test(Command, object):
     user_options = [
-        ('package=', 'P',
-         "The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
-         "If nothing is specified all default Astropy tests are run."),
-        ('test-path=', 't', 'Specify a test location by path. Must be '
-         'specified absolutely or relative to the current directory. '
-         'May be a single file or directory.'),
-        ('verbose-results', 'V',
-         'Turn on verbose output from pytest. Same as specifying `-v` in '
-         '`args`.'),
-        ('plugins=', 'p',
-         'Plugins to enable when running pytest.  Same as specifying `-p` in '
-         '`args`.'),
-        ('pastebin=', 'b',
-         "Enable pytest pastebin output. Either 'all' or 'failed'."),
-        ('args=', 'a', 'Additional arguments to be passed to pytest'),
-        ('remote-data', 'R', 'Run tests that download remote data'),
-        ('pep8', '8', 'Enable PEP8 checking and disable regular tests. '
-         'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
-         'pytest-pep8 plugin.'),
-        ('pdb', 'd', 'Turn on PDB post-mortem analysis for failing tests. '
-         'Same as specifying `--pdb` in `args`.'),
-        ('coverage', 'c', 'Create a coverage report. Requires the pytest-cov '
-         'plugin is installed'),
-        ('open-files', 'o', 'Fail if any tests leave files open'),
-        ('parallel=', 'n',  'Run the tests in parallel on the specified '
-         'number of CPUs.  If parallel is negative, it will use the all '
-         'the cores on the machine.  Requires the `pytest-xdist` plugin '
-         'is installed.')
+        (str('package='), str('P'),
+         str("The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
+             "If nothing is specified all default Astropy tests are run.")),
+        (str('test-path='), str('t'),
+         str('Specify a test location by path. Must be '
+             'specified absolutely or relative to the current directory. '
+             'May be a single file or directory.')),
+        (str('verbose-results'), str('V'),
+         str('Turn on verbose output from pytest. Same as specifying `-v` in '
+             '`args`.')),
+        (str('plugins='), str('p'),
+         str('Plugins to enable when running pytest.  Same as specifying `-p` in '
+             '`args`.')),
+        (str('pastebin='), str('b'),
+         str("Enable pytest pastebin output. Either 'all' or 'failed'.")),
+        (str('args='), str('a'),
+         str('Additional arguments to be passed to pytest')),
+        (str('remote-data'), str('R'), 'Run tests that download remote data'),
+        (str('pep8'), str('8'),
+         str('Enable PEP8 checking and disable regular tests. '
+             'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
+             'pytest-pep8 plugin.')),
+        (str('pdb'), str('d'),
+         str('Turn on PDB post-mortem analysis for failing tests. '
+             'Same as specifying `--pdb` in `args`.')),
+        (str('coverage'), str('c'),
+         str('Create a coverage report. Requires the pytest-cov '
+             'plugin is installed')),
+        (str('open-files'), str('o'), 'Fail if any tests leave files open'),
+        (str('parallel='), str('n'),
+         str('Run the tests in parallel on the specified '
+             'number of CPUs.  If parallel is negative, it will use the all '
+             'the cores on the machine.  Requires the `pytest-xdist` plugin '
+             'is installed.'))
 
     ]
 
@@ -397,7 +409,7 @@ class catch_warnings(warnings.catch_warnings):
         assert len(w) > 0
     """
     def __init__(self, *classes):
-        for module in sys.modules.values():
+        for module in six.itervalues(sys.modules):
             if hasattr(module, '__warningregistry__'):
                 del module.__warningregistry__
         super(catch_warnings, self).__init__(record=True)

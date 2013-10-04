@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import sys
 import warnings
 
@@ -162,7 +165,7 @@ def test_exception_logging_enable_twice():
 
 # You can't really override the exception handler in IPython this way, so
 # this test doesn't really make sense in the IPython context.
-@pytest.mark.skipif("ip is not None")
+@pytest.mark.skipif(str("ip is not None"))
 def test_exception_logging_overridden():
     log.enable_exception_logging()
     sys.excepthook = lambda: None
@@ -171,7 +174,7 @@ def test_exception_logging_overridden():
     assert e.value.args[0] == 'Cannot disable exception logging: sys.excepthook was not set by this logger, or has been overridden'
 
 
-@pytest.mark.xfail("ip is not None")
+@pytest.mark.xfail(str("ip is not None"))
 def test_exception_logging():
 
     # Without exception logging
@@ -213,7 +216,7 @@ def test_exception_logging():
     assert len(log_list) == 0
 
 
-@pytest.mark.xfail("ip is not None")
+@pytest.mark.xfail(str("ip is not None"))
 def test_exception_logging_origin():
     # The point here is to get an exception raised from another location
     # and make sure the error's origin is reported correctly
@@ -360,16 +363,20 @@ def test_log_to_file(tmpdir, level):
 
     # Check list content
 
-    assert log_entries[0].strip().endswith(b"'astropy.tests.test_logger', 'ERROR', 'Error message'")
+    assert eval(log_entries[0].strip())[-3:] == (
+        'astropy.tests.test_logger', 'ERROR', 'Error message')
 
     if len(log_entries) >= 2:
-        assert log_entries[1].strip().endswith(b"'astropy.tests.test_logger', 'WARNING', 'Warning message'")
+        assert eval(log_entries[1].strip())[-3:] == (
+            'astropy.tests.test_logger', 'WARNING', 'Warning message')
 
     if len(log_entries) >= 3:
-        assert log_entries[2].strip().endswith(b"'astropy.tests.test_logger', 'INFO', 'Information message'")
+        assert eval(log_entries[2].strip())[-3:] == (
+            'astropy.tests.test_logger', 'INFO', 'Information message')
 
     if len(log_entries) >= 4:
-        assert log_entries[3].strip().endswith(b"'astropy.tests.test_logger', 'DEBUG', 'Debug message'")
+        assert eval(log_entries[3].strip())[-3:] == (
+            'astropy.tests.test_logger', 'DEBUG', 'Debug message')
 
 
 def test_log_to_file_level(tmpdir):
@@ -388,7 +395,9 @@ def test_log_to_file_level(tmpdir):
     log_entries = log_file.readlines()
     log_file.close()
 
-    assert len(log_entries) == 1 and log_entries[0].strip().endswith(b"'ERROR', 'Error message'")
+    assert len(log_entries) == 1
+    assert eval(log_entries[0].strip())[-2:] == (
+        'ERROR', 'Error message')
 
 
 def test_log_to_file_origin1(tmpdir):
