@@ -5,7 +5,7 @@
 
 #define NO_IMPORT_ARRAY
 
-#include "pyutil.h"
+#include "astropy_wcs/pyutil.h"
 
 /***************************************************************************
  * List-of-strings proxy object

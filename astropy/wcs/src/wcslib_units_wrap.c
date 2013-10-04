@@ -5,7 +5,7 @@
 
 #define NO_IMPORT_ARRAY
 
-#include "wcslib_units_wrap.h"
+#include "astropy_wcs/wcslib_units_wrap.h"
 
 #include <wcsunits.h>
 
@@ -15,7 +15,7 @@
  docstrings are written in doc/docstrings.py, which are then converted
  by setup.py into docstrings.h, which we include here.
 */
-#include "docstrings.h"
+#include "astropy_wcs/docstrings.h"
 
 /***************************************************************************
  * PyTabprm methods

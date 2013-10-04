@@ -3,7 +3,7 @@
          mdroe@stsci.edu
 */
 
-#include "sip.h"
+#include "astropy_wcs/sip.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -328,4 +328,3 @@ sip_foc2pix(
 
   return sip_foc2deltas(sip, naxes, nelem, foc, pix);
 }
-

@@ -3,8 +3,8 @@
          mdroe@stsci.edu
 */
 
-#include "pipeline.h"
-#include "util.h"
+#include "astropy_wcs/pipeline.h"
+#include "astropy_wcs/util.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -248,4 +248,3 @@ int pipeline_pix2foc(
 
   return status;
 }
-

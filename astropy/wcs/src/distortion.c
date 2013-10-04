@@ -3,7 +3,7 @@
          mdroe@stsci.edu
 */
 
-#include "distortion.h"
+#include "astropy_wcs/distortion.h"
 
 #include <assert.h>
 #include <math.h>
@@ -220,4 +220,3 @@ p4_pix2foc(
 
   return p4_pix2deltas(naxes, lookup, nelem, pix, foc);
 }
-
