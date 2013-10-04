@@ -442,6 +442,38 @@ class SphericalCoordinatesBase(object):
         distval = (dx.value ** 2 + dy.value ** 2 + dz.value ** 2) ** 0.5
         return Distance(distval, dx.unit)
 
+    def match_to_catalog(catalogcoord, nthneighbor=1):
+        """
+        Matches this coordinate to a set of catalog coordinates.
+        
+        Parameters
+        ----------
+        catalogcoord : `~astropy.coordinates.SphericalCoordinatesBase`
+            The base catalog in which to search for matches.
+        nthneighbor : int, optional
+            Which closest neighbor to search for.  Typically ``1`` is desired here,
+            as that is correct for matching one set of coordinates to another.
+            The next likely use case is ``2``, for matching a coordinate catalog
+            against *itself* (``1`` is inappropriate because each point will find 
+            itself as the closest match).
+
+        Returns
+        -------
+        idx : integer array
+            Indecies into `catalogcoord` to get the matched points for each 
+            `matchcoord`. Shape matches this coordinate.
+        dist3d : `~astropy.units.quantity.Quantity` 
+            The 3D distance between the closest match for each `matchcoord` and 
+            the `matchcoord`. Shape matches this coordinate.
+
+        Notes
+        -----
+        This method requires `scipy` to be installed or it will fail.
+        """
+        from .matching import match_coordinates
+
+        return match_coordinates(self, catalogcoord, nthneighbor=nthneighbor, storekdtree=True)
+
     #<------------transformation-related stuff here-------------------->
     def transform_to(self, tosys):
         """
