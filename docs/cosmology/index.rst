@@ -209,6 +209,7 @@ Planck13  Planck Collab 2013, Paper XVI 67.8  0.307 Yes
 Currently, all are instances of `~astropy.cosmology.core.FlatLambdaCDM`.
 More details about exactly where each set of parameters come from
 are available in the document tag for each object:
+
   >>> from astropy.cosmology import WMAP7
   >>> print(WMAP7.__doc__)
   (from Komatsu et al. 2011, ApJS, 192, 18.  Table 1 (WMAP + BAO + H0 ML))
