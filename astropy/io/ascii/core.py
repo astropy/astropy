@@ -118,7 +118,6 @@ class Column(object):
     The key attributes of a Column object are:
 
     * **name** : column name
-    * **index** : column index (first column has index=0, second has index=1, etc)
     * **type** : column type (NoType, StrType, NumType, FloatType, IntType)
     * **str_vals** : list of column values as strings
     * **data** : list of converted column values
