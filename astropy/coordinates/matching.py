@@ -38,6 +38,9 @@ def match_coordinates(matchcoord, catalogcoord, nthneighbor=1, storekdtree=None)
     idx : integer array
         Indecies into `catalogcoord` to get the matched points for each 
         `matchcoord`. Shape matches `matchcoord`.
+    sep2d : `~astropy.units.quantity.Angle` 
+        The on-sky separation between the closest match for each `matchcoord` and 
+        the `matchcoord`. Shape matches `matchcoord`.
     dist3d : `~astropy.units.quantity.Quantity` 
         The 3D distance between the closest match for each `matchcoord` and 
         the `matchcoord`. Shape matches `matchcoord`.
@@ -98,8 +101,15 @@ def match_coordinates(matchcoord, catalogcoord, nthneighbor=1, storekdtree=None)
         #cache the kdtree
         setattr(catalogcoord, storekdtree, kdt)
 
-    #TODO: compute 2D separation, too?
-    return idx.reshape(cart.shape[1:]), dist.reshape(cart.shape[1:]) * catunit
+    #TODO: switch to this once __getitem__ on coordinates is working
+    #sep2d = catalogcoord[idx].separation(matchcoord)
+    from angle_utilities import angular_separation
+    sep2d = angular_separation(catalogcoord.lonangle[idx], 
+                               catalogcoord.latangle[idx], 
+                               matchcoord.lonangle, 
+                               matchcoord.latangle)
+
+    return idx.reshape(cart.shape[1:]), sep2d, dist.reshape(cart.shape[1:]) * catunit
 
 
 
