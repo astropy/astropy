@@ -5,8 +5,8 @@
 
 #define NO_IMPORT_ARRAY
 
-#include "sip_wrap.h"
-#include "docstrings.h"
+#include "astropy_wcs/sip_wrap.h"
+#include "astropy_wcs/docstrings.h"
 #include "wcs.h"
 
 static void

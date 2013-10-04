@@ -6,9 +6,9 @@
 #define NO_IMPORT_ARRAY
 
 /* util.h must be imported first */
-#include "pyutil.h"
+#include "astropy_wcs/pyutil.h"
 
-#include "docstrings.h"
+#include "astropy_wcs/docstrings.h"
 
 #include "wcsfix.h"
 #include "wcsprintf.h"

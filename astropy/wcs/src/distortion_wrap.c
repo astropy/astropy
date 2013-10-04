@@ -5,8 +5,8 @@
 
 #define NO_IMPORT_ARRAY
 
-#include "distortion_wrap.h"
-#include "docstrings.h"
+#include "astropy_wcs/distortion_wrap.h"
+#include "astropy_wcs/docstrings.h"
 
 #include <structmember.h> /* From Python */
 

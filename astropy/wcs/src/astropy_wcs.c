@@ -3,16 +3,16 @@
          mdroe@stsci.edu
 */
 
-#include "astropy_wcs.h"
-#include "wcslib_wrap.h"
-#include "wcslib_tabprm_wrap.h"
-#include "wcslib_units_wrap.h"
-#include "wcslib_wtbarr_wrap.h"
-#include "distortion_wrap.h"
-#include "sip_wrap.h"
-#include "docstrings.h"
-#include "astropy_wcs_api.h"
-#include "unit_list_proxy.h"
+#include "astropy_wcs/astropy_wcs.h"
+#include "astropy_wcs/wcslib_wrap.h"
+#include "astropy_wcs/wcslib_tabprm_wrap.h"
+#include "astropy_wcs/wcslib_units_wrap.h"
+#include "astropy_wcs/wcslib_wtbarr_wrap.h"
+#include "astropy_wcs/distortion_wrap.h"
+#include "astropy_wcs/sip_wrap.h"
+#include "astropy_wcs/docstrings.h"
+#include "astropy_wcs/astropy_wcs_api.h"
+#include "astropy_wcs/unit_list_proxy.h"
 
 #include <structmember.h> /* from Python */
 

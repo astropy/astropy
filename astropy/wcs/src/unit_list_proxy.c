@@ -5,8 +5,8 @@
 
 #define NO_IMPORT_ARRAY
 
-#include "pyutil.h"
-#include "str_list_proxy.h"
+#include "astropy_wcs/pyutil.h"
+#include "astropy_wcs/str_list_proxy.h"
 
 /***************************************************************************
  * List-of-units proxy object

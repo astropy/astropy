@@ -5,11 +5,11 @@
 
 #define NO_IMPORT_ARRAY
 
-#include "wcslib_wrap.h"
-#include "wcslib_tabprm_wrap.h"
-#include "wcslib_wtbarr_wrap.h"
-#include "wcslib_units_wrap.h"
-#include "unit_list_proxy.h"
+#include "astropy_wcs/wcslib_wrap.h"
+#include "astropy_wcs/wcslib_tabprm_wrap.h"
+#include "astropy_wcs/wcslib_wtbarr_wrap.h"
+#include "astropy_wcs/wcslib_units_wrap.h"
+#include "astropy_wcs/unit_list_proxy.h"
 #include <structmember.h> /* from Python */
 
 #include <wcs.h>
@@ -19,8 +19,8 @@
 #include <wcsprintf.h>
 #include <wcsunits.h>
 
-#include "isnan.h"
-#include "distortion.h"
+#include "astropy_wcs/isnan.h"
+#include "astropy_wcs/distortion.h"
 
 /*
  It gets to be really tedious to type long docstrings in ANSI C syntax
@@ -28,7 +28,7 @@
  docstrings are written in doc/docstrings.py, which are then converted
  by setup.py into docstrings.h, which we include here.
 */
-#include "docstrings.h"
+#include "astropy_wcs/docstrings.h"
 
 /***************************************************************************
  * Helper functions                                                        *

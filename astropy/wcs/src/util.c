@@ -5,7 +5,7 @@
 
 #define NO_IMPORT_ARRAY
 
-#include "util.h"
+#include "astropy_wcs/util.h"
 #include <math.h>
 #include <float.h>
 

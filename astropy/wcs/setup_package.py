@@ -145,7 +145,7 @@ void fill_docstrings(void);
     h_file.write("\n#endif\n\n")
 
     setup_helpers.write_if_different(
-        join(WCSROOT, 'include', 'docstrings.h'),
+        join(WCSROOT, 'include', 'astropy_wcs', 'docstrings.h'),
         h_file.getvalue().encode('utf-8'))
 
     c_file = io.StringIO()
@@ -160,7 +160,7 @@ MSVC, do not support string literals greater than 256 characters.
 */
 
 #include <string.h>
-#include "docstrings.h"
+#include "astropy_wcs/docstrings.h"
 
 #if defined(_MSC_VER)
 """)
@@ -298,7 +298,9 @@ def get_package_data():
         str('astropy.wcs.tests'): ['data/*.hdr', 'data/*.fits',
                                    'data/*.txt',
                                    'maps/*.hdr', 'spectra/*.hdr'],
-        str('astropy.wcs'): ['include/*.h']}
+        str('astropy.wcs'): ['include/astropy_wcs/*.h',
+                             'include/*.h']
+    }
 
 
 def get_legacy_alias():
