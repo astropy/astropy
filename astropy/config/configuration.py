@@ -8,8 +8,9 @@ configuration files for Astropy and affiliated packages.
     `ConfigParser`. More information and documentation for configobj can be
     found at http://www.voidspace.org.uk/python/configobj.html.
 """
-
-from __future__ import division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from ..extern import six
 
 import re
 import textwrap
@@ -138,7 +139,7 @@ class ConfigurationItem(object):
         # now determine cfgtype if it is not given
         if cfgtype is None:
             if (isiterable(defaultvalue) and not
-                    isinstance(defaultvalue, basestring)):
+                    isinstance(defaultvalue, six.string_types)):
                 # it is an options list
                 dvstr = [str(v) for v in defaultvalue]
                 cfgtype = 'option(' + ', '.join(dvstr) + ')'
@@ -530,7 +531,7 @@ def get_config_items(packageormod=None):
             msg1 = 'Cannot automatically determine get_config module, '
             msg2 = 'because it is not called from inside a valid module'
             raise RuntimeError(msg1 + msg2)
-    elif isinstance(packageormod, basestring):
+    elif isinstance(packageormod, six.string_types):
         __import__(packageormod)
         packageormod = sys.modules[packageormod]
     elif ismodule(packageormod):
@@ -539,7 +540,7 @@ def get_config_items(packageormod=None):
         raise TypeError('packageormod in get_config_items is invalid')
 
     configitems = {}
-    for n, obj in packageormod.__dict__.iteritems():
+    for n, obj in six.iteritems(packageormod.__dict__):
         # if it's not a new-style object, it's certainly not a ConfigurationItem
         if hasattr(obj, '__class__'):
             fqn = obj.__class__.__module__ + '.' + obj.__class__.__name__
@@ -624,7 +625,7 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False,
     if pkgornm is None:
         pkgornm = find_current_module(1).__name__.split('.')[0]
 
-    if isinstance(pkgornm, basestring):
+    if isinstance(pkgornm, six.string_types):
         package = get_loader(pkgornm).load_module(pkgornm)
     elif isinstance(pkgornm, ModuleType) and '__init__' in pkgornm.__file__:
         package = pkgornm
@@ -646,7 +647,7 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False,
         if not _unsafe_import_regex.match(nm):
             imper.find_module(nm)
             if reset_to_default:
-                for cfgitem in get_config_items(nm).itervalues():
+                for cfgitem in six.itervalues(get_config_items(nm)):
                     cfgitem.set(cfgitem.defaultvalue)
 
     _fix_section_blank_lines(package.__name__, True, True)
