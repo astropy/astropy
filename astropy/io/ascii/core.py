@@ -123,9 +123,8 @@ class Column(object):
     * **str_vals** : list of column values as strings
     * **data** : list of converted column values
     """
-    def __init__(self, name, index):
+    def __init__(self, name):
         self.name = name
-        self.index = index
         self.type = NoType
         self.str_vals = []
         self.fill_values = {}
@@ -370,7 +369,7 @@ class BaseHeader(object):
         self.splitter = self.__class__.splitter_class()
 
     def _set_cols_from_names(self):
-        self.cols = [Column(name=x, index=i) for i, x in enumerate(self.names)]
+        self.cols = [Column(name=x) for x in self.names]
 
     def update_meta(self, lines, meta):
         """
@@ -833,8 +832,8 @@ class BaseReader(object):
                                                    [x.name for x in cols], str_vals))
                     raise InconsistentTableError(errmsg)
 
-            for col in cols:
-                col.str_vals.append(str_vals[col.index])
+            for j, col in enumerate(cols):
+                col.str_vals.append(str_vals[j])
 
         self.data.masks(cols)
         table = self.outputter(cols, self.meta)

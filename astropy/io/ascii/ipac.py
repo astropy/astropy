@@ -341,7 +341,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         cols = []
         start = 1
         for i, name in enumerate(header_vals[0]):
-            col = core.Column(name=name.strip(' -'), index=i)
+            col = core.Column(name=name.strip(' -'))
             col.start = start
             col.end = start + len(name)
             if len(header_vals) > 1:
@@ -370,10 +370,8 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 col.end += 1
 
         self.names = [x.name for x in cols]
- 
         self.cols = cols
-        for i, col in enumerate(self.cols):
-            col.index = i
+
 
 
     def str_vals(self):

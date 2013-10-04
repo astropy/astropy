@@ -127,12 +127,12 @@ class CdsHeader(core.BaseHeader):
                                 re.VERBOSE)
 
         cols = []
-        for i, line in enumerate(itertools.islice(lines, i_col_def+4, None)):
+        for line in itertools.islice(lines, i_col_def+4, None):
             if line.startswith('------') or line.startswith('======='):
                 break
             match = re_col_def.match(line)
             if match:
-                col = core.Column(name=match.group('name'), index=i)
+                col = core.Column(name=match.group('name'))
                 col.start = int(re.sub(r'[-\s]', '',
                                        match.group('start') or match.group('end'))) - 1
                 col.end = int(match.group('end'))
@@ -167,12 +167,7 @@ class CdsHeader(core.BaseHeader):
 
         self.names = [x.name for x in cols]
 
-        self.cols = [x for x in cols]
-
-        # Re-index the cols because the FixedWidthSplitter does NOT return the ignored
-        # cols (as is the case for typical delimiter-based splitters)
-        for i, col in enumerate(self.cols):
-            col.index = i
+        self.cols = cols
 
 
 class CdsData(core.BaseData):

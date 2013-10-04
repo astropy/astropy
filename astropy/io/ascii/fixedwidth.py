@@ -164,9 +164,8 @@ class FixedWidthHeader(core.BaseHeader):
 
         # Set column start and end positions. 
         for i, col in enumerate(self.cols):
-            col.start = starts[col.index]
-            col.end = ends[col.index]
-            col.index = i
+            col.start = starts[i]
+            col.end = ends[i]
 
     def get_fixedwidth_params(self, line):
         """Split ``line`` on the delimiter and determine column values and

@@ -206,13 +206,10 @@ class DaophotHeader(core.BaseHeader):
             if coldefs[col.name][1] != '##':
                 col.format = coldefs[col.name][1]
 
-        # Set column start and end positions.  Also re-index the cols because
-        # the FixedWidthSplitter does NOT return the ignored cols (as is the
-        # case for typical delimiter-based splitters).
+        # Set column start and end positions.
         for i, col in enumerate(self.cols):
-            col.start = starts[col.index]
-            col.end = ends[col.index]
-            col.index = i
+            col.start = starts[i]
+            col.end = ends[i]
             if hasattr(col, 'format'):
                 if any(x in col.format for x in 'fg'):
                     col.type = core.FloatType
