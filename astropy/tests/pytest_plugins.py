@@ -124,7 +124,13 @@ def pytest_report_header(config):
     s += "Running tests in {0}.\n\n".format(" ".join(config.args))
 
     from platform import platform
-    s += "Platform: {0}\n\n".format(platform())
+    plat = platform()
+    if isinstance(plat, bytes):
+        if sys.stdout.encoding:
+            plat = plat.decode(sys.stdout.encoding)
+        else:
+            plat = plat.decode('ascii', 'replace')
+    s += "Platform: {0}\n\n".format(plat)
     s += "Executable: {0}\n\n".format(sys.executable)
     s += "Full Python Version: \n{0}\n\n".format(sys.version)
 
