@@ -45,7 +45,8 @@ point (or array) values:
   >>> H0.value, H0.unit
   (70.4, Unit("km / (Mpc s)"))
 
-There are also several standard cosmologies already defined. These are
+There are also several standard cosmologies already defined, as
+described in `Built-in Cosmologies`_ below. These are
 objects with methods and attributes that calculate cosmological
 values. For example, the comoving distance in Mpc to redshift 4 using
 the 5-year WMAP parameters:
@@ -53,9 +54,6 @@ the 5-year WMAP parameters:
   >>> from astropy.cosmology import WMAP5
   >>> WMAP5.comoving_distance(4)
   <Quantity 7329.328120760829 Mpc>
-
-A full list of the pre-defined cosmologies is given by
-`cosmology.parameters.available`.
 
 An important point is that the cosmological parameters of each
 instance are immutable -- that is, if you want to change, say,
@@ -108,15 +106,12 @@ See the `~astropy.cosmology.core.FLRW` and
 methods and attributes available. In addition to flat Universes,
 non-flat varieties are supported such as
 `~astropy.cosmology.core.LambdaCDM`.  There are also a variety of
-standard cosmologies with the parameters already defined:
+standard cosmologies with the parameters already defined
+(see `Built-in Cosmologies`_):
 
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
   >>> WMAP7.critical_density(0)       # critical density at z = 0
   <Quantity 9.31000313202047e-30 g / cm3>
-
-  >>> from astropy.cosmology import WMAP5   # WMAP 5-year
-  >>> WMAP5.H(3).value                 # Hubble parameter at z = 3 in km/s/Mpc
-  301.71804314602889
 
 You can see how the density parameters evolve with redshift as well
 
@@ -174,22 +169,7 @@ message:
   >>> cosmology.lookback_time(1)  # lookback time in Gyr at z=1
   WARNING: No default cosmology has been specified, using 9-year WMAP.
   [astropy.cosmology.core]
-  7.846670734240066
-
-The Planck 2013 cosmology is also available
-
-  >>> from astropy.cosmology import Planck13  # Planck 2013
-  >>> Planck13.lookback_time(2).value       # lookback time in Gyr at z=2
-  10.522149614
-
-You may notice that values derived using the Planck13 cosmology in
-`astropy` are slightly different from those in the Planck
-Collaboration pre-print (http://arxiv.org/abs/1303.5076). For example,
-the age of the universe using a Planck13 in `astropy` is 13.813 Gyr
-compared to 13.797 Gyr in the Planck preprint. This is because
-`astropy` assumes that neutrinos are massless, but the Planck preprint
-uses a single neutrino species with mass 0.06 eV. Future versions of
-`astropy` may include support for massive neutrinos.
+  <Quantity 7.846670734240066 Gyr>
 
 .. note::
 
@@ -203,6 +183,47 @@ uses a single neutrino species with mass 0.06 eV. Future versions of
     useful. Alternatively, putting (for example)
     ``cosmology.set_current(WMAP9)`` at the top of your code will
     ensure that the right cosmology is always used.
+
+Built-in Cosmologies
+--------------------
+
+A number of pre-loaded cosmologies are available from the
+WMAP and Planck satellites.  For example,
+
+  >>> from astropy.cosmology import Planck13  # Planck 2013
+  >>> Planck13.lookback_time(2)               # lookback time at z=2
+  <Quantity 10.522149614 Gyr>
+
+A full list of the pre-defined cosmologies is given by
+`cosmology.parameters.available`, and summarized below:
+
+========  ============================= ====  ===== ======= 
+Name      Source                        H0    Om    Flat    
+========  ============================= ====  ===== ======= 
+WMAP5     Komatsu et al. 2009           70.2  0.277 Yes     
+WMAP7     Komatsu et al. 2011           70.4  0.272 Yes     
+WMAP9     Hinshaw et al. 2013           69.3  0.287 Yes     
+Planck13  Planck Collab 2013, Paper XVI 67.8  0.307 Yes     
+========  ============================= ====  ===== ======= 
+
+Currently, all are instances of `~astropy.cosmology.core.FlatLambdaCDM`.
+More details about exactly where each set of parameters come from
+are available in the document tag for each object:
+
+  >>> from astropy.cosmology import WMAP7
+  >>> print(WMAP7.__doc__)
+  (from Komatsu et al. 2011, ApJS, 192, 18.  Table 1 (WMAP + BAO + H0 ML))
+
+.. note::
+
+  You may notice that values derived using the Planck13 cosmology in
+  `astropy` are slightly different from those in the Planck
+  Collaboration pre-print (http://arxiv.org/abs/1303.5076). For example,
+  the age of the universe using a Planck13 in `astropy` is 13.813 Gyr
+  compared to 13.797 Gyr in the Planck preprint. This is because
+  `astropy` assumes that neutrinos are massless, but the Planck preprint
+  uses a single neutrino species with mass 0.06 eV. Future versions of
+  `astropy` may include support for massive neutrinos.
 
 Using `cosmology` inside Astropy
 --------------------------------
@@ -230,9 +251,11 @@ Specifying a dark energy model
 In addition to the standard `~astropy.cosmology.core.FlatLambdaCDM` model
 described above, a number of additional dark energy models are
 provided.  `~astropy.cosmology.core.FlatLambdaCDM` 
-and `~astropy.cosmology.core.FlatLambdaCDM` assume that dark
+and `~astropy.cosmology.core.LambdaCDM` assume that dark
 energy is a cosmological constant, and should be the most commonly
-used case.  `~astropy.cosmology.core.wCDM` assumes a constant dark
+used cases; the former assumes a flat Universe, the latter allows
+for spatial curvature.  `~astropy.cosmology.core.FlatwCDM` and
+`~astropy.cosmology.core.wCDM` assum a constant dark
 energy equation of state parameterized by :math:`w_0`. Two forms of a
 variable dark energy equation of state are provided: the simple first
 order linear expansion :math:`w(z) = w_0 + w_z z` by
@@ -250,28 +273,32 @@ Relativistic Species
 ====================
 The cosmology classes include the contribution to the energy density
 from both photons and massless neutrinos.  The two parameters
-controlling the properties of these species are Tcmb0 (the temperature
-of the CMB at z=0) and Neff, the effective number of neutrino species.
-Both have standard default values (2.725 and 3.04, respectively; the
-reason that Neff is not 3 has to do with a small bump in the neutrino
+controlling the properties of these species are `Tcmb0` (the temperature
+of the CMB at z=0) and `Neff`, the effective number of neutrino species.
+Both have standard default values (2.725 K and 3.04, respectively; the
+reason that Neff is not 3 primarily has to do with a small bump in the neutrino
 energy spectrum due to electron-positron annihilation).
 
+The energy density in photons and neutrinos can be computed as a function
+of redshift:
+
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
-  >>> z = [0,1.0,2.0]
+  >>> WMAP7.Ogamma0, WMAP7.Onu0 # Current epoch values
+  (4.985694972799397e-05, 3.4421549483079895e-05)
+  >>> z = [0, 1.0, 2.0]
   >>> WMAP7.Ogamma(z), WMAP7.Onu(z)
-  (array([  4.98569503e-05,   2.74574414e-04]),
-   array([  3.44204408e-05,   1.89561782e-04]),
-   array([  8.42773911e-05,   4.64136197e-04]))
+  (array([  4.98569497e-05,   2.74574409e-04,   4.99881391e-04]),
+   array([  3.44215495e-05,   1.89567887e-04,   3.45121234e-04]))
 
 If you want to exclude photons and neutrinos from your calculations,
-simply set the CMB Temperature to 0:
+simply set `Tcmb0` to 0:
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cos = FlatLambdaCDM(70.4, 0.272, Tcmb0 = 0.0)
   >>> cos.Ogamma0, cos.Onu0
   (0.0, 0.0)
 
-Neutrinos can be removed (while leaving photons) by setting Neff=0:
+Neutrinos can be removed (while leaving photons) by setting `Neff` to 0:
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cos = FlatLambdaCDM(70.4, 0.272, Neff=0)
