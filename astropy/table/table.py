@@ -128,6 +128,8 @@ class BaseColumn(object):
 
     __metaclass__ = abc.ABCMeta
 
+    __array_priority__ = 10000
+
     def __array_finalize__(self, obj):
         # Obj will be none for direct call to Column() creator
         if obj is None:
@@ -160,6 +162,17 @@ class BaseColumn(object):
             return np.ndarray.__array_wrap__(self, out_arr, context)
         else:
             return out_arr.view(np.ndarray)[()]
+
+    def __eq__(self, other):
+        # We have to define this to ensure that we always return boolean arrays
+        # (otherwise in some cases, Column objects are returned).
+        if isinstance(other, BaseColumn):
+            return np.array(self.data == other.data)
+        else:
+            return np.array(self.data == other)
+
+    def __ne__(self, other):
+        return nnp.array(self.data == other)
 
     @property
     def name(self):
