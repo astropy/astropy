@@ -21,7 +21,6 @@ if __name__ == "__main__":
 import numpy as np
 from astropy.convolution.convolve import convolve
 from astropy.convolution.convolve import convolve_fft
-from astropy.convolution.make_kernel import make_kernel
 array = np.random.random([%i]*%i)
 kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims)
 
@@ -45,7 +44,6 @@ kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims
 import numpy as np
 from astropy.convolution.convolve import convolve
 from astropy.convolution.convolve import convolve_fft
-from astropy.convolution.make_kernel import make_kernel
 array = np.random.random([%i]*%i)
 kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims)
 
