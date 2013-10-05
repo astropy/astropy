@@ -142,6 +142,8 @@ def test_is_equivalent():
     assert u.cm.is_equivalent((u.m, u.s, u.kg))
     assert u.ms.is_equivalent((u.m, u.s, u.kg))
     assert u.g.is_equivalent((u.m, u.s, u.kg))
+    assert not u.L.is_equivalent((u.m, u.s, u.kg))
+    assert not (u.km / u.s).is_equivalent((u.m, u.s, u.kg))
 
 def test_parallax():
     a = u.arcsecond.to(u.pc, 10, u.parallax())
