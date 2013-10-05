@@ -38,6 +38,10 @@ doi: 10.1088/0067-0049/180/2/330. Table 1 (WMAP + BAO + SN ML).
 
 """
 
+# Note: if you add a new cosmology, please also update the table
+# in the 'Built-in Cosmologies' section of astropy/docs/cosmology/index.rst
+# in addition to the list above.
+
 # Ade et al. Planck 2013 paper XVI Table 5 penultimate column (best fit)
 Planck13 = dict(
     Oc0=0.25886,
