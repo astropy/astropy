@@ -414,8 +414,9 @@ class UnitBase(object):
 
         Parameters
         ----------
-        other : unit object or string
-           The unit to convert to.
+        other : unit object or string or tuple
+           The unit to convert to. If a tuple of units is specified, this
+           method returns true if the unit matches any of the ones in the tuple.
 
         equivalencies : list of equivalence pairs, optional
            A list of equivalence pairs to try if the units are not
@@ -425,7 +426,12 @@ class UnitBase(object):
         -------
         bool
         """
-        other = Unit(other, parse_strict='silent')
+
+        if isinstance(other, tuple):
+            return any(self.is_equivalent(u) for u in other)
+        else:
+            other = Unit(other, parse_strict='silent')
+
         equivalencies = self._normalize_equivalencies(equivalencies)
 
         if isinstance(other, UnrecognizedUnit):
