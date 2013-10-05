@@ -223,7 +223,8 @@ API Changes
 - ``astropy.nddata``
 
   - The `astropy.nddata.convolution` sub-package has now been moved to
-    `astropy.convolution`. [#1451]
+    `astropy.convolution`, and the `make_kernel` function has been removed.
+    (the kernel classes should be used instead) [#1451]
 
 - ``astropy.stats.funcs``
 
