@@ -123,14 +123,14 @@ class TestPComposite(object):
 
 
 def test_pickle():
-    import copy_reg
+    from ...extern import six
     import types
     import cPickle
 
     def reduce_method(m):
         return (getattr, (m.__self__, m.__func__.__name__))
 
-    copy_reg.pickle(types.MethodType, reduce_method)
+    six.moves.copyreg.pickle(types.MethodType, reduce_method)
 
     p1 = models.Poly1DModel(3)
     p11 = models.Poly1DModel(4)
