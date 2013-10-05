@@ -1,13 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 from distutils import version
+import warnings
+
 import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
 from ...table import Table
 from ...utils import OrderedDict, metadata
+from ...utils.metadata import MergeConflictError
 from .. import np_utils
 from ... import table
-
+from ... import log
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
@@ -28,12 +32,49 @@ class TestJoin():
                   '  4 bar  R4']
         self.t1 = Table.read(lines1, format='ascii')
         self.t2 = Table.read(lines2, format='ascii')
+        self.t3 = Table(self.t2, copy=True)
+
         self.t1.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
         self.t2.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
+        self.t3.meta.update(OrderedDict([('b', 3), ('c', [1, 2]), ('d', 2), ('a', 1)]))
+
         self.meta_merge = OrderedDict([('b', [1, 2, 3, 4]),
                                        ('c', {'a': 1, 'b': 1}),
                                        ('d', 1),
                                        ('a', 1)])
+
+    def test_table_meta_merge(self):
+        out = table.join(self.t1, self.t2, join_type='inner')
+        assert out.meta == self.meta_merge
+
+    def test_table_meta_merge_conflict(self):
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            out = table.join(self.t1, self.t3, join_type='inner')
+        assert len(w) == 3
+
+        assert out.meta == self.t3.meta
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            out = table.join(self.t1, self.t3, join_type='inner', metadata_conflicts='warn')
+        assert len(w) == 3
+
+        assert out.meta == self.t3.meta
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            out = table.join(self.t1, self.t3, join_type='inner', metadata_conflicts='silent')
+        assert len(w) == 0
+
+        assert out.meta == self.t3.meta
+
+        with pytest.raises(MergeConflictError):
+            out = table.join(self.t1, self.t3, join_type='inner', metadata_conflicts='error')
+
+        with pytest.raises(ValueError):
+            out = table.join(self.t1, self.t3, join_type='inner', metadata_conflicts='nonsense')
 
     def test_both_unmasked_inner(self):
         t1 = self.t1
@@ -319,6 +360,7 @@ class TestJoin():
 class TestVStack():
 
     def setup_method(self, method):
+
         self.t1 = Table.read([' a   b',
                               ' 0 foo',
                               ' 1 bar'], format='ascii')
@@ -333,9 +375,13 @@ class TestVStack():
                               ' 6   9'], format='ascii')
         self.t4 = Table(self.t1, copy=True, masked=True)
 
+        # The following table has meta-data that conflicts with t1
+        self.t5 = Table(self.t1, copy=True)
+
         self.t1.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
         self.t2.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
         self.t4.meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
+        self.t5.meta.update(OrderedDict([('b', 3), ('c', 'k'), ('d', 1)]))
         self.meta_merge = OrderedDict([('b', [1, 2, 3, 4, 5, 6]),
                                        ('c', {'a': 1, 'b': 1, 'c': 1}),
                                        ('d', 1),
@@ -345,6 +391,36 @@ class TestVStack():
     def test_table_meta_merge(self):
         out = table.vstack([self.t1, self.t2, self.t4], join_type='inner')
         assert out.meta == self.meta_merge
+
+    def test_table_meta_merge_conflict(self):
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            out = table.vstack([self.t1, self.t5], join_type='inner')
+        assert len(w) == 3
+
+        assert out.meta == self.t5.meta
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            out = table.vstack([self.t1, self.t5], join_type='inner', metadata_conflicts='warn')
+        assert len(w) == 3
+
+        assert out.meta == self.t5.meta
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            out = table.vstack([self.t1, self.t5], join_type='inner', metadata_conflicts='silent')
+        assert len(w) == 0
+
+        assert out.meta == self.t5.meta
+
+        with pytest.raises(MergeConflictError):
+            out = table.vstack([self.t1, self.t5], join_type='inner', metadata_conflicts='error')
+
+        with pytest.raises(ValueError):
+            out = table.vstack([self.t1, self.t5], join_type='inner', metadata_conflicts='nonsense')
+
 
     def test_bad_input_type(self):
         with pytest.raises(TypeError):
@@ -479,9 +555,13 @@ class TestHStack():
         self.t4['a'].name = 'f'
         self.t4['b'].name = 'g'
 
+        # The following table has meta-data that conflicts with t1
+        self.t5 = Table(self.t1, copy=True)
+
         self.t1.meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
         self.t2.meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
         self.t4.meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
+        self.t5.meta.update(OrderedDict([('b', 3), ('c', 'k'), ('d', 1)]))
         self.meta_merge = OrderedDict([('b', [1, 2, 3, 4, 5, 6]),
                                        ('c', {'a': 1, 'b': 1, 'c': 1}),
                                        ('d', 1),
@@ -491,6 +571,35 @@ class TestHStack():
     def test_table_meta_merge(self):
         out = table.hstack([self.t1, self.t2, self.t4], join_type='inner')
         assert out.meta == self.meta_merge
+
+    def test_table_meta_merge_conflict(self):
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            out = table.hstack([self.t1, self.t5], join_type='inner')
+        assert len(w) == 3
+
+        assert out.meta == self.t5.meta
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='warn')
+        assert len(w) == 3
+
+        assert out.meta == self.t5.meta
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='silent')
+        assert len(w) == 0
+
+        assert out.meta == self.t5.meta
+
+        with pytest.raises(MergeConflictError):
+            out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='error')
+
+        with pytest.raises(ValueError):
+            out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='nonsense')
 
     def test_bad_input_type(self):
         with pytest.raises(TypeError):
