@@ -138,6 +138,16 @@ class TestColumn():
         assert c.name is None
         assert np.all(c == np.array([1, 2]))
 
+    def test_quantity_init(self, Column):
+
+        c = Column(data=np.array([1,2,3]) * u.m)
+        assert np.all(c.data == np.array([1,2,3]))
+        assert np.all(c.unit == u.m)
+
+        c = Column(data=np.array([1,2,3]) * u.m, unit=u.cm)
+        assert np.all(c.data == np.array([100,200,300]))
+        assert np.all(c.unit == u.cm)
+
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""
