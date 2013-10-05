@@ -1392,24 +1392,15 @@ class Table(object):
             return self.columns[item]
         elif isinstance(item, int):
             return Row(self, item)
-        elif isinstance(item, tuple) or isinstance(item, list):
-            if all(isinstance(x, np.ndarray) or isinstance(x, int)
-                   for x in item):
-                # Item is a tuple or list of int or ndarrays; latter, e.g.,
-                # as in the output of np.where, e.g. t[np.where(t['a'] > 2)]
-                return self._new_from_slice(item)
-            elif (all(x in self.colnames for x in item)):
-                # Item is a tuple or list of valid column names
-                return self.__class__([self[x] for x in item],
-                                      meta=deepcopy(self.meta))
-            else:
-                raise ValueError('Illegal item for table item access')
+        elif isinstance(item, (tuple, list)) and all(x in self.colnames
+                                                     for x in item):
+            return self.__class__([self[x] for x in item],
+                                  meta=deepcopy(self.meta))
 
-        elif isinstance(item, slice) or isinstance(item, np.ndarray):
-            return self._new_from_slice(item)
-        else:
-            raise ValueError('Illegal type {0} for table item access'
-                             .format(type(item)))
+        # here, item can still be one of the many ways to give a slice,
+        # e.g., slice, list, np.ndarray, a tuple with ndarrays.  Those
+        # are dealt with by contructing a new table with slice of all columns
+        return self._new_from_slice(item)
 
     def __setitem__(self, item, value):
         # If the item is a string then it must be the name of a column.
@@ -2202,5 +2193,3 @@ class Table(object):
 
     def __ne__(self, other):
         return ~self.__eq__(other)
-
-
