@@ -461,3 +461,19 @@ def test_compose_into_arbitrary_units():
     # Issue #1438
     from ...constants import G
     G.decompose([u.kg, u.km, u.Unit("15 s")])
+
+
+def test_unit_multiplication_with_string():
+    """Check that multiplication with strings produces the correct unit."""
+    u1 = u.cm
+    us = 'kg'
+    assert us * u1 == u.Unit(us) * u1
+    assert u1 * us == u1 * u.Unit(us)
+
+
+def test_unit_division_by_string():
+    """Check that multiplication with strings produces the correct unit."""
+    u1 = u.cm
+    us = 'kg'
+    assert us / u1 == u.Unit(us) / u1
+    assert u1 / us == u1 / u.Unit(us)
