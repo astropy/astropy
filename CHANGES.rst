@@ -92,6 +92,10 @@ New Features
   - Added percent unit, and allowed any string containing just a number
     to be interpreted as a scaled dimensionless unit.
 
+  - The ``Unit.is_equivalent`` method can now take a tuple. In this case, the
+    method returns ``True`` if the unit is equivalent to any of the units
+    listed in the tuple.
+
 - ``astropy.utils``
 
   - Added ``astropy.utils.iers`` which allows reading in of IERS A or
