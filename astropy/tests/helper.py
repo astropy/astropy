@@ -409,7 +409,7 @@ class catch_warnings(warnings.catch_warnings):
         assert len(w) > 0
     """
     def __init__(self, *classes):
-        for module in six.itervalues(sys.modules):
+        for module in list(six.itervalues(sys.modules)):
             if hasattr(module, '__warningregistry__'):
                 del module.__warningregistry__
         super(catch_warnings, self).__init__(record=True)
