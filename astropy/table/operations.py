@@ -17,7 +17,8 @@ from . import np_utils
 __all__ = ['join', 'hstack', 'vstack']
 
 
-def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1):
+def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
+                    metadata_conflicts='warn'):
     """
     Merge column meta data for the ``out`` table.
 
@@ -36,7 +37,7 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1):
 
             if right_name:
                 right_col = table[right_name]
-                out_col.meta = metadata.merge(left_col.meta, right_col.meta)
+                out_col.meta = metadata.merge(left_col.meta, right_col.meta, metadata_conflicts=metadata_conflicts)
                 for attr in attrs:
                     left_attr = getattr(left_col, attr)
                     right_attr = getattr(right_col, attr)
@@ -119,7 +120,7 @@ def join(left, right, keys=None, join_type='inner',
 
     # Merge the column and table meta data. Table subclasses might override
     # these methods for custom merge behavior.
-    _merge_col_meta(out, [left, right], col_name_map)
+    _merge_col_meta(out, [left, right], col_name_map, metadata_conflicts=metadata_conflicts)
     _merge_table_meta(out, [left, right], metadata_conflicts=metadata_conflicts)
 
     return out
@@ -185,7 +186,7 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
     out = Table(out_data)
 
     # Merge column and table metadata
-    _merge_col_meta(out, tables, col_name_map)
+    _merge_col_meta(out, tables, col_name_map, metadata_conflicts=metadata_conflicts)
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
     return out
@@ -259,7 +260,7 @@ def hstack(tables, join_type='outer',
                                col_name_map)
     out = Table(out_data)
 
-    _merge_col_meta(out, tables, col_name_map)
+    _merge_col_meta(out, tables, col_name_map, metadata_conflicts=metadata_conflicts)
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
     return out
