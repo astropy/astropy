@@ -296,7 +296,10 @@ def pytest_report_header(config):
     from platform import platform
     plat = platform()
     if isinstance(plat, bytes):
-        plat = plat.decode(sys.stdout.encoding)
+        if sys.stdout.encoding:
+            plat = plat.decode(sys.stdout.encoding)
+        else:
+            plat = plat.decode('ascii', 'replace')
     s += "Platform: {0}\n\n".format(plat)
     s += "Executable: {0}\n\n".format(sys.executable)
     s += "Full Python Version: \n{0}\n\n".format(sys.version)
