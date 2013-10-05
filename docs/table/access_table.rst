@@ -159,9 +159,9 @@ meta-data and column definitions are copied.
   array([(6, 7, 8), (9, 10, 11), (12, 13, 14)],
         dtype=[('a', '<i8'), ('b', '<i8'), ('c', '<i8')])
 
-It is possible to select table rows with an array of indexes or by providing
-specifying multiple column names.  This returns a copy of the original table
-for the selected rows.  ::
+It is possible to select table rows with an array of indexes or by specifying
+multiple column names.  This returns a copy of the original table for the
+selected rows or columns.  ::
 
   >>> print t[[1, 3, 4]]  # Table object with rows 1, 3, 4 (copy)
     a     b   c
@@ -177,7 +177,8 @@ for the selected rows.  ::
    9.000  10  11
   12.000  13  14
 
-  >>> print t['a', 'c']  # Table with cols 'a', 'c' (copy)
+  >>> print t['a', 'c']  # or t[['a', 'c']] or t[('a', 'c')]
+                         # Table with cols 'a', 'c' (copy)
     a     c
   ------ ---
    0.000   2
