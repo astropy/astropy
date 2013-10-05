@@ -428,7 +428,7 @@ class UnitBase(object):
         """
 
         if isinstance(other, tuple):
-            return any([self.is_equivalent(u) for u in other])
+            return any(self.is_equivalent(u) for u in other)
         else:
             other = Unit(other, parse_strict='silent')
 
