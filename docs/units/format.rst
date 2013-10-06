@@ -38,13 +38,6 @@ formatter. You can do::
   >>> "{0:>20s}".format(fluxunit)
   u'       erg / (cm2 s)'
 
-Units can also be converted to strings using the
-`~astropy.units.core.UnitBase.to_string` method::
-
-  >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
-  >>> fluxunit.to_string()
-  u'erg / (cm2 s)'
-
 By default, the string format used is referred to as the "generic"
 format, which is based on syntax of the FITS standard's format for
 representing units, but supports all of the units defined within the
