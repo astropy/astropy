@@ -12,7 +12,7 @@ from .. import units as u
 
 __all__ = ['match_coordinates']
 
-def match_coordinates(matchcoord, catalogcoord, nthneighbor=1, storekdtree=None):
+def match_coordinates(matchcoord, catalogcoord, nthneighbor=1, storekdtree=True):
     """
     Matches a coordinate or coordinates to a set of catalog coordinates 
     
