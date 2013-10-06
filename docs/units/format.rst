@@ -24,7 +24,7 @@ class::
 Units can be formatted as strings using the new-style
 `Format String Syntax <http://docs.python.org/library/string.html#format-string-syntax>`_. Format strings can either applied to the
 string as usual, or the format string can the name of a built-in
-formatter. You can do::
+formatter, such as ``FITS`` or ``unicode``. For example::
 
   >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
   >>> "{0}".format(fluxunit)

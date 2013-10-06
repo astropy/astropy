@@ -78,8 +78,9 @@ Quantities can also easily provide their values in another unit::
    >>> q.inch
    39.370078740157474
 
-Quantities and units can be printed nicely using the new-style python
-format strings. Format specifiers (like ``0.03f``) in new-style format
+Quantities and units can be printed nicely using the new-style 
+`Format String Syntax <http://docs.python.org/library/string.html#format-string-syntax>`_.
+Format specifiers (like ``0.03f``) in new-style format
 strings will used to format the quantity value::
 
     >>> q = 15.1 * u.meter / (32.0 * u.second)
