@@ -35,7 +35,10 @@ class TestColumn():
         eq = c == arr
         assert np.all(eq)
         assert len(eq) == 3
-        assert type(eq) == Column
+        if Column is table.Column:
+            assert type(eq) == np.ndarray
+        else:
+            assert type(eq) == np.ma.core.MaskedArray
         assert eq.dtype.str == '|b1'
         eq = arr == c
         assert np.all(eq)

@@ -167,9 +167,9 @@ class BaseColumn(object):
         # We have to define this to ensure that we always return boolean arrays
         # (otherwise in some cases, Column objects are returned).
         if isinstance(other, BaseColumn):
-            return np.array(self.data == other.data)
+            return self.data == other.data
         else:
-            return np.array(self.data == other)
+            return self.data == other
 
     def __ne__(self, other):
         return ~self.__eq__(other)
