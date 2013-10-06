@@ -159,6 +159,25 @@ def test_latex():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
     assert fluxunit.to_string('latex') == r'$\mathrm{\frac{erg}{s\,cm^{2}}}$'
 
+def test_new_style_latex():
+    fluxunit = u.erg / (u.cm ** 2 * u.s)
+    assert "{0:latex}".format(fluxunit) == r'$\mathrm{\frac{erg}{s\,cm^{2}}}$'
+    
+def test_format_styles():
+    fluxunit = u.erg / (u.cm ** 2 * u.s)
+    def _test_format_styles(format_, s):
+        assert "{{0:{}}}".format(format_).format(fluxunit) == s
+        
+    format_s_pairs = [
+        ('generic','erg / (cm2 s)'),
+        ('s', 'erg / (cm2 s)'),
+        ('console', '  erg  \n ------\n s cm^2'),
+        ('latex', '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'),
+        ('>20s','       erg / (cm2 s)'),
+    ]
+    
+    for format_, s in format_s_pairs:
+        yield _test_format_styles, format_, s
 
 def test_wcs_parse():
     """
