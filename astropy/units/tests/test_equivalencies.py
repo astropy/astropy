@@ -130,6 +130,7 @@ def test_massenergy():
                        pow_eV.value, rtol=1e-7)
 
 def test_is_equivalent():
+
     assert u.m.is_equivalent(u.inch)
     assert not (u.Hz.is_equivalent(u.J))
     assert u.Hz.is_equivalent(u.J, u.spectral())
@@ -137,6 +138,12 @@ def test_is_equivalent():
     assert u.pc.is_equivalent(u.arcsecond, u.parallax())
     assert u.arcminute.is_equivalent(u.au, u.parallax())
 
+    # Pass a tuple for multiple possibilities
+    assert u.cm.is_equivalent((u.m, u.s, u.kg))
+    assert u.ms.is_equivalent((u.m, u.s, u.kg))
+    assert u.g.is_equivalent((u.m, u.s, u.kg))
+    assert not u.L.is_equivalent((u.m, u.s, u.kg))
+    assert not (u.km / u.s).is_equivalent((u.m, u.s, u.kg))
 
 def test_parallax():
     a = u.arcsecond.to(u.pc, 10, u.parallax())
