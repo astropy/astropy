@@ -172,7 +172,7 @@ class BaseColumn(object):
             return np.array(self.data == other)
 
     def __ne__(self, other):
-        return nnp.array(self.data == other)
+        return ~self.__eq__(other)
 
     @property
     def name(self):
