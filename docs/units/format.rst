@@ -1,5 +1,5 @@
-Unit formats
-============
+Displaying units as strings
+===========================
 
 Units can be created from strings using the `~astropy.units.core.Unit`
 class::
