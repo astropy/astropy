@@ -22,7 +22,7 @@ class::
    VOTable.
 
 Units can be formatted as strings using the new-style
-:ref:`python:formatstrings`. Format strings can either applied to the
+`Format String Syntax <http://docs.python.org/library/string.html#format-string-syntax>`_. Format strings can either applied to the
 string as usual, or the format string can the name of a built-in
 formatter. You can do::
 
