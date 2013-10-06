@@ -612,6 +612,47 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
   '2010-01-08 18:00:00.000' '2010-01-16 12:00:00.000' '2010-01-24 06:00:00.000'
   '2010-02-01 00:00:00.000']>
 
+Interaction with Time-like Quantities
+-------------------------------------
+
+Where possible, |Quantity| objects with units of time are treated as TimeDelta
+(though necessarily with lower precision). They can also be used as input in
+constructing |Time| and |TimeDelta| objects, and |TimeDelta| objects
+can be converted to |Quantity| objects of arbitrary units of time.
+Usage is most easily illustrated by examples::
+
+  >>> import astropy.units as u
+  >>> Time(10.*u.yr, format='gps')   # time-valued quantities can be used for
+                                     # for formats requiring a time offset
+  <Time object: scale='tai' format='gps' value=315576000.0> 
+  >>> Time(10.*u.yr, 1.*u.s, format='gps')
+  <Time object: scale='tai' format='gps' value=315576001.0>
+  >>> Time(2000.*u.yr, scale='utc', format='jyear')
+  <Time object: scale='utc' format='jyear' value=2000.0>
+  >>> Time(2000.*u.yr, scale='utc', format='byear')
+                                     # but not for Besselian year, which implies
+                                     # a different time scale
+  ...
+  ValueError: Input values did not match the format class byear
+
+  >>> TimeDelta(10.*u.yr)            # With a quantity, no format is required
+  <TimeDelta object: scale='tai' format='jd' value=3652.5>
+
+  >>> dt = TimeDelta([10., 20., 30.], format='jd')
+  >>> dt.to(u.hr)                    # can convert TimeDelta to a quantity
+  <Quantity [ 240., 480., 720.] h>
+  >>> dt > 400. * u.hr               # and compare to quantities with units of time
+  array([False,  True,  True], dtype=bool)
+  >>> dt + 1.*u.hr                   # can also add/subtract such quantities
+  <TimeDelta object: scale='tai' format='jd' value=[ 10.04166667  20.04166667  30.04166667]>
+  >>> Time(50000., format='mjd', scale='utc') + 1.*u.hr
+  <Time object: scale='utc' format='mjd' value=50000.0416667>
+  >>> dt * 10.*u.km/u.s              # for multiplication and division with a
+                                     # Quantity, TimeDelta is converted
+  <Quantity [ 100., 200., 300.] d km / s>
+  >>> dt * 10.*u.Unit(1)             # unless the Quantity is dimensionless
+  <TimeDelta object: scale='tai' format='jd' value=[ 100.  200.  300.]>
+
 Reference/API
 =============
 
