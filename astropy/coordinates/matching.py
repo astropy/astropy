@@ -31,7 +31,8 @@ def match_coordinates(matchcoord, catalogcoord, nthneighbor=1, storekdtree=None)
     storekdtree : bool or str, optional
         If True or a string, will store the KD-Tree used for the computation
         in the `catalogcoord`.  This dramatically speeds up subsequent calls
-        with the same catalog.
+        with the same catalog. If a str, it specifies the attribute name for
+        `catalogcoord` that should store the KD-tree.
 
     Returns
     -------
@@ -91,7 +92,7 @@ def match_coordinates(matchcoord, catalogcoord, nthneighbor=1, storekdtree=None)
     cart = matchcoord.cartesian.to(catunit) 
 
     flatxyz = cart.reshape((3, np.prod(cart.shape) // 3))
-    dist, idx = kdt.query(flatxyz, nthneighbor)
+    dist, idx = kdt.query(flatxyz.T, nthneighbor)
 
     if nthneighbor > 1:  # query gives 1D arrays if k=1, 2D arrays otherwise
         dist = dist[-1]
@@ -103,7 +104,7 @@ def match_coordinates(matchcoord, catalogcoord, nthneighbor=1, storekdtree=None)
 
     #TODO: switch to this once __getitem__ on coordinates is working
     #sep2d = catalogcoord[idx].separation(matchcoord)
-    from angle_utilities import angular_separation
+    from .angle_utilities import angular_separation
     sep2d = angular_separation(catalogcoord.lonangle[idx], 
                                catalogcoord.latangle[idx], 
                                matchcoord.lonangle, 
