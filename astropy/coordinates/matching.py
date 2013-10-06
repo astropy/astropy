@@ -95,8 +95,8 @@ def match_coordinates(matchcoord, catalogcoord, nthneighbor=1, storekdtree=True)
     dist, idx = kdt.query(flatxyz.T, nthneighbor)
 
     if nthneighbor > 1:  # query gives 1D arrays if k=1, 2D arrays otherwise
-        dist = dist[-1]
-        idx = idx[-1]
+        dist = dist[:, -1]
+        idx = idx[:, -1]
 
     if storekdtree:
         #cache the kdtree

@@ -442,7 +442,7 @@ class SphericalCoordinatesBase(object):
         distval = (dx.value ** 2 + dy.value ** 2 + dz.value ** 2) ** 0.5
         return Distance(distval, dx.unit)
 
-    def match_to_catalog(catalogcoord, nthneighbor=1):
+    def match_to_catalog(self, catalogcoord, nthneighbor=1):
         """
         Matches this coordinate to a set of catalog coordinates.
         
