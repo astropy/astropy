@@ -86,7 +86,7 @@ New Features
   - Added a new-style format method which will use format specifiers
     (like ``0.03f``) in new-style format strings for the Quantity's value.
     Specifiers which can't be applied to the value will fall back to the
-    entire string representaiton of the quantity. [#1383]
+    entire string representation of the quantity. [#1383]
 
   - Added new spectroscopic equivalencies for velocity conversions
     (relativistic, optical, and radio conventions are supported)
