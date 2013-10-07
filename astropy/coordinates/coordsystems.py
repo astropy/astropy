@@ -449,7 +449,9 @@ class SphericalCoordinatesBase(object):
         Parameters
         ----------
         catalogcoord : `~astropy.coordinates.SphericalCoordinatesBase`
-            The base catalog in which to search for matches.
+            The base catalog in which to search for matches. Typically this 
+            will be a coordinate object that is an array (i.e., 
+            ``catalogcoord.isscalar == False``)
         nthneighbor : int, optional
             Which closest neighbor to search for.  Typically ``1`` is desired here,
             as that is correct for matching one set of coordinates to another.

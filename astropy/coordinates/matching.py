@@ -14,14 +14,16 @@ __all__ = ['match_coordinates']
 
 def match_coordinates(matchcoord, catalogcoord, nthneighbor=1, storekdtree=True):
     """
-    Matches a coordinate or coordinates to a set of catalog coordinates 
+    Matches a coordinate or coordinates to a set of catalog coordinates.
     
     Parameters
     ----------
     matchcoord : `~astropy.coordinates.SphericalCoordinatesBase`
-        The coordinates to match to the catalog.
+        The coordinate(s) to match to the catalog.
     catalogcoord : `~astropy.coordinates.SphericalCoordinatesBase`
-        The base catalog in which to search for matches.
+        The base catalog in which to search for matches. Typically this will
+        be a coordinate object that is an array (i.e., 
+        ``catalogcoord.isscalar == False``)
     nthneighbor : int, optional
         Which closest neighbor to search for.  Typically ``1`` is desired here,
         as that is correct for matching one set of coordinates to another.
