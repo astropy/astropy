@@ -1,3 +1,5 @@
+.. _astropy-units-format:
+
 Unit formats
 ============
 
