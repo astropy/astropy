@@ -38,6 +38,13 @@ Explanation of keywords of the dictionaries:
 
 "integral" : float
     Approximate value of the integral in the range x_lim (and y_lim).
+
+"deriv_parameters" : list
+    If given the test of the derivative will use these parameters
+    to create a model (optional)
+"deriv_initial" : list
+    If given the test of the derivative will use these parameters
+    as initial values for the fit (optional)
 """
 
 from ..functional_models import *
