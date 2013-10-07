@@ -165,8 +165,8 @@ def test_new_style_latex():
     
 def test_format_styles():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
-    def _test_format_styles(format_, s):
-        assert "{{0:{}}}".format(format_).format(fluxunit) == s
+    def _test_format_styles(format_spec, s):
+        assert format(fluxunit, format_spec) == s
         
     format_s_pairs = [
         ('generic','erg / (cm2 s)'),
