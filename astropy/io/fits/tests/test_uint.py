@@ -46,12 +46,12 @@ class TestUintFunctions(FitsTestCase):
                         assert hdul[hdu_number].section[:1].dtype.name == 'uint{0:d}'.format(bits)
                         assert (hdul[hdu_number].section[:1] == hdul[hdu_number].data[:1]).all()
 
-    @pytest.mark.parametrize(('utype',),[('u2',),('u4',),('u8',)])
+    @pytest.mark.parametrize('utype',('u2','u4','u8'))
     def test_uint_columns(self,utype):
         #
         # Construct array
         #
-        bits = 8*int(utype[0][1])
+        bits = 8*int(utype[1])
         if platform.architecture()[0] == '64bit' or bits != 64:
             bzero = self.utype_map[utype](2**(bits-1))
             one = self.utype_map[utype](1)
