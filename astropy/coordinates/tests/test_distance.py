@@ -210,6 +210,6 @@ def test_cartesian_view():
     asarr = c.view(np.ndarray)
     assert np.all(asarr == 1)
 
-    asarr.ravel()[0] = 0
+    asarr.ravel()[0] = 2
     assert not np.all(asarr == 1)
-    assert not c.x[0] == 0
+    assert not c.x[0] == 2
