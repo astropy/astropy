@@ -16,7 +16,8 @@ from .base import DELAYED, _ValidHDU, ExtensionHDU
 from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_ATTRIBUTES, TDEF_RE,
                       Delayed, Column, ColDefs, _ASCIIColDefs, _FormatX,
                       _FormatP, _wrapx, _makep, _VLF, _parse_tformat,
-                      _scalar_to_format, _convert_format, _cmp_recformats)
+                      _scalar_to_format, _convert_format, _cmp_recformats,
+                      _get_index)
 from ..fitsrec import FITS_rec
 from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
@@ -184,6 +185,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                     # columns, so treat those more carefully.
                     update_coldefs = dict()
                     if 'u' in [data.dtype[k].kind for k in data.dtype.names]:
+                        self._uint = True
                         bzeros = { 2:np.uint16(2**15), 4:np.uint32(2**31), 8:np.uint64(2**63)}
                         new_dtype = [(k, data.dtype[k].kind.replace('u','i') +
                             str(data.dtype[k].itemsize))
@@ -193,11 +195,16 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                             if data.dtype[k].kind == 'u':
                                 new_data[k] = data[k] - bzeros[data.dtype[k].itemsize]
                                 update_coldefs[k] = bzeros[data.dtype[k].itemsize]
+                            else:
+                                new_data[k] = data[k]
                         self.data = new_data.view(self._data_type)
                     else:
                         self.data = data.view(self._data_type)
                     for k in update_coldefs:
-                        self.data._coldefs.change_attrib(k,'bzero',update_coldefs[k])
+                        indx = _get_index(self.data.names,k)
+                        # For some reason change_attrib no longer works
+                        #self.data._coldefs.change_attrib(k,'bzero',update_coldefs[k])
+                        self.data._coldefs[indx].bzero = update_coldefs[k]
 
                 self._header['NAXIS1'] = self.data.itemsize
                 self._header['NAXIS2'] = self.data.shape[0]
