@@ -13,7 +13,7 @@ from ...tests.helper import raises, pytest
 
 from ... import units as u
 from .. import core
-from .. import format
+from .. import format as u_format
 from ..utils import is_effectively_unity
 from ... import wcs
 
@@ -21,7 +21,7 @@ from ... import wcs
 def test_unit_grammar():
     def _test_unit_grammar(s, unit):
         print(s)
-        unit2 = format.Generic().parse(s)
+        unit2 = u_format.Generic().parse(s)
         assert unit2 == unit
 
     data = [
@@ -45,7 +45,7 @@ def test_unit_grammar():
 def test_cds_grammar():
     def _test_cds_grammar(s, unit):
         print(s)
-        unit2 = format.CDS().parse(s)
+        unit2 = u_format.CDS().parse(s)
         assert unit2 == unit
 
     data = [
@@ -84,7 +84,7 @@ def test_cds_grammar_fail():
     @raises(ValueError)
     def _test_cds_grammar_fail(s):
         print(s)
-        format.CDS().parse(s)
+        u_format.CDS().parse(s)
 
     data = ['0.1 nm', 'solMass(3/2)', 'km / s', 'km s-1',
             'pix0.1nm', 'pix/(0.1nm)', 'km*s', 'km**2',
@@ -113,7 +113,7 @@ def test_roundtrip_vo_unit():
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
         assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
-    x = format.VOUnit()
+    x = u_format.VOUnit()
     for key, val in x._units.items():
         if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_vo_unit, val
@@ -125,7 +125,7 @@ def test_roundtrip_fits():
         a = core.Unit(s, format='fits')
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
-    for key, val in format.Fits()._units.items():
+    for key, val in u_format.Fits()._units.items():
         if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_fits, val
 
@@ -137,22 +137,22 @@ def test_roundtrip_cds():
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
         assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
-    x = format.CDS()
+    x = u_format.CDS()
     for key, val in x._units.items():
         if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_cds, val
 
 
 def test_fits_units_available():
-    format.Fits()
+    u_format.Fits()
 
 
 def test_vo_units_available():
-    format.VOUnit()
+    u_format.VOUnit()
 
 
 def test_cds_units_available():
-    format.CDS()
+    u_format.CDS()
 
 
 def test_latex():
