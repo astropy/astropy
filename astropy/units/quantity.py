@@ -73,6 +73,11 @@ def _validate_value(value, dtype, copy):
                     "type.")
 
 
+def _can_have_arbitrary_unit(value):
+    return np.logical_or(value == 0.,
+                         np.logical_or(np.isinf(value), np.isnan(value)))
+
+
 class Quantity(np.ndarray):
     """ A `Quantity` represents a number with some associated unit.
 
@@ -189,17 +194,21 @@ class Quantity(np.ndarray):
                             .format(function.__name__))
 
         if any(scale == 0. for scale in scales):
-            # if we could not convert a unit to a non-quantity array/number
-            # it is OK if the latter is (all) zero(s)
+            # for two-argument ufuncs with a quantity and a non-quantity,
+            # the quantity normally needs to be dimensionless, *except*
+            # if the non-quantity can have arbitrary unit, i.e., when it
+            # is all zero, infinity or NaN.  In that case, the non-quantity
+            # can just have the unit of the quantity
             # (this allows, e.g., `q > 0.` independent of unit)
-            maybe_zero_arg = args[scales.index(0.)]
-            if np.any(maybe_zero_arg):
+            maybe_arbitrary_arg = args[scales.index(0.)]
+            if np.all(_can_have_arbitrary_unit(maybe_arbitrary_arg)):
+                scales = [1., 1.]
+            else:
                 raise UnitsError("Can only apply '{0}' function to "
                                  "dimensionless quantities when other "
-                                 "argument is not a quantity and not zero"
+                                 "argument is not a quantity (unless the "
+                                 "latter is all zero/infinity/nan)"
                                  .format(function.__name__))
-            else:
-                scales = [1., 1.]
 
         # In the case of np.power, the unit itself needs to be modified by an
         # amount that depends on one of the input values, so we need to treat
@@ -880,7 +889,11 @@ class Quantity(np.ndarray):
         try:
             value = value.to(self.unit).value
         except AttributeError:
-            value = dimensionless_unscaled.to(self.unit, value)
+            try:
+                value = dimensionless_unscaled.to(self.unit, value)
+            except UnitsError as exc:
+                if not np.all(_can_have_arbitrary_unit(value)):
+                    raise exc
 
         if(check_precision and
            np.any(np.array(value, self.dtype) != np.array(value))):

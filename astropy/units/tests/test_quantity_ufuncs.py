@@ -482,9 +482,10 @@ class TestComparisonUfuncs(object):
         assert not isinstance(q_o2, u.Quantity)
         assert q_o2.dtype == np.bool
         assert np.all(q_o2 == ufunc((q_i1 / q_i2).to(1).value, 2.))
-        # should allow comparison with 0. even for dimensional quantities
-        ufunc(q_i1, 0.)
-        ufunc(q_i1, np.zeros(len(q_i1)))
+        # comparison with 0., inf, nan is OK even for dimensional quantities
+        for arbitrary_unit_value in (0., np.inf, np.nan):
+            ufunc(q_i1, arbitrary_unit_value)
+            ufunc(q_i1, arbitrary_unit_value*np.ones(len(q_i1)))
 
     @pytest.mark.parametrize(('ufunc'), [np.greater, np.greater_equal,
                                          np.less, np.less_equal,
