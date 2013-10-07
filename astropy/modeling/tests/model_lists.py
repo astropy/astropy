@@ -98,7 +98,9 @@ models_1D[Beta1DModel] = {'parameters': [1, 0, 1, 2],
                            'x_values': [0, 1, -1, 3, -3],
                            'y_values': [1.0, 0.25, 0.25, 0.01, 0.01],
                            'x_lim': [-10, 10],
-                           'integral': 1}
+                           'integral': 1,
+                           'deriv_parameters': [23.4, 1.2, 2.1, 2.3],
+                           'deriv_initial': [10, 1, 1, 1]}
 
 models_1D[PowerLaw1DModel] = {'parameters': [1, 2],
                               'x_values': [1, 10, 100],
@@ -121,7 +123,9 @@ models_2D[Gaussian2DModel] = {'parameters': [1, 0, 0, 1, 1],
                               'z_values': [1, 1. / np.exp(1) ** 2, 1. / np.exp(1) ** 2],
                               'x_lim': [-10, 10],
                               'y_lim': [-10, 10],
-                              'integral': 2 * np.pi}
+                              'integral': 2 * np.pi,
+                              'deriv_parameters': [137., 5.1, 5.4, 1.5, 2., np.pi/4],
+                              'deriv_initial': [10, 5, 5, 4, 4, .5]}
 
 models_2D[Const2DModel] = {'parameters': [1],
                            'x_values': [-1, 1, np.pi, -42., 0],

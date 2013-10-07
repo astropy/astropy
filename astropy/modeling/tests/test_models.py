@@ -171,6 +171,7 @@ class TestParametricModels(object):
 
     def setup_class(self):
         self.N = 100
+        self.M = 100
         self.eval_error = 0.0001
         self.fit_error = 0.1
         self.x = 5.3
@@ -281,8 +282,86 @@ class TestParametricModels(object):
         assert np.all((np.abs(fitter.fitpars - np.array(parameters))
                         < self.fit_error))
 
+    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.parametrize(('model_class'), list(models_2D.keys()))
+    def test_deriv_2D(self, model_class):
+        """
+        Test the derivative of a model by fitting with an estimated and
+        analytical derivative
+        """
+        x_lim = models_2D[model_class]['x_lim']
+        y_lim = models_2D[model_class]['y_lim']
 
-def create_model(model_class, parameters):
+        if model_class.deriv is None:
+            pytest.skip("Derivative function is not defined for model.")
+        if issubclass(model_class, (models.PolynomialModel, models.OrthogPolyBase)):
+            pytest.skip("Skip testing derivative of polynomials.")
+
+        if "log_fit" in models_2D[model_class]:
+            if models_2D[model_class]['log_fit']:
+                x = np.logspace(x_lim[0], x_lim[1], self.N)
+                y = np.logspace(y_lim[0], y_lim[1], self.M)
+        else:
+            x = np.linspace(x_lim[0], x_lim[1], self.N)
+            y = np.linspace(y_lim[0], y_lim[1], self.M)
+        xv, yv = np.meshgrid(x, y)
+
+        try:
+            parameters = models_2D[model_class]['deriv_parameters']
+            init_vals = models_2D[model_class]['deriv_initial']
+        except KeyError:
+            parameters = models_2D[model_class]['parameters']
+            init_vals = parameters[:]
+        model_with_deriv = create_model(model_class, init_vals, use_constraints=False)
+        model_no_deriv = create_model(model_class, init_vals, use_constraints=False)
+
+        # add 10% noise to the amplitude
+        rsn = np.random.RandomState(1234567890)
+        n = 0.1 * parameters[0] * (rsn.rand(self.M, self.N)-0.5)
+
+        model = create_model(model_class, parameters, use_constraints=False)
+        data = model(xv, yv) + n
+        fitter_with_deriv = fitting.NonLinearLSQFitter(model_with_deriv)
+        fitter_with_deriv(xv, yv, data)
+        fitter_no_deriv = fitting.NonLinearLSQFitter(model_no_deriv)
+        fitter_no_deriv(xv, yv, data, estimate_jacobian=True)
+        utils.assert_allclose(model_with_deriv.parameters, model_no_deriv.parameters, rtol=0.1)
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.parametrize(('model_class'), list(models_1D.keys()))
+    def test_deriv_1D(self, model_class):
+        """
+        Test the derivative of a model by comparing results iwth an estimated derivative
+        """
+        x_lim = models_1D[model_class]['x_lim']
+
+        if model_class.deriv is None:
+            pytest.skip("Derivative function is not defined for model.")
+        if issubclass(model_class, (models.PolynomialModel, models.OrthogPolyBase)):
+            pytest.skip("Skip testing derivative of polynomials.")
+
+        if "log_fit" in models_1D[model_class]:
+            if models_1D[model_class]['log_fit']:
+                x = np.logspace(x_lim[0], x_lim[1], self.N)
+        else:
+            x = np.linspace(x_lim[0], x_lim[1], self.N)
+
+        parameters = models_1D[model_class]['parameters']
+        model_with_deriv = create_model(model_class, parameters, use_constraints=False)
+        model_no_deriv = create_model(model_class, parameters, use_constraints=False)
+
+        # add 10% noise to the amplitude
+        rsn = np.random.RandomState(1234567890)
+        n = 0.1 * parameters[0] * (rsn.rand(self.N) - 0.5)
+
+        data = model_with_deriv(x) + n
+        fitter_with_deriv = fitting.NonLinearLSQFitter(model_with_deriv)
+        fitter_with_deriv(x, data)
+        fitter_no_deriv = fitting.NonLinearLSQFitter(model_no_deriv)
+        fitter_no_deriv(x, data, estimate_jacobian=True)
+        utils.assert_allclose(model_with_deriv.parameters, model_no_deriv.parameters, atol=0.1)
+
+def create_model(model_class, parameters, use_constraints=True):
     """
     Create instance of model class.
     """
@@ -290,15 +369,17 @@ def create_model(model_class, parameters):
     if issubclass(model_class, Parametric1DModel):
         if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
             pytest.skip("SciPy not found")
-        if 'constraints' in models_1D[model_class]:
-            constraints = models_1D[model_class]['constraints']
+        if use_constraints:   
+            if 'constraints' in models_1D[model_class]:
+                constraints = models_1D[model_class]['constraints']
         return model_class(*parameters, **constraints)
 
     elif issubclass(model_class, Parametric2DModel):
         if "requires_scipy" in models_2D[model_class] and not HAS_SCIPY:
             pytest.skip("SciPy not found")
-        if 'constraints' in models_2D[model_class]:
-            constraints = models_2D[model_class]['constraints']
+        if use_constraints:
+            if 'constraints' in models_2D[model_class]:
+                constraints = models_2D[model_class]['constraints']
         return model_class(*parameters, **constraints)
 
     elif issubclass(model_class, PolynomialModel):
