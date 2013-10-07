@@ -441,8 +441,15 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             else:
                 unitlist.append(str(col.unit))
             null = getattr(col, 'fill_value', 'null')
-            format_func = _format_funcs.get(col.format, _auto_format_func)
-            nulllist.append((format_func(col.format, null)).strip())
+            try:
+                format_func = _format_funcs.get(col.format, _auto_format_func)
+                nullist.append((format_func(col.format, null)).strip())
+            except:
+                # It is pssible that null and the column values have different
+                # data types (e.g. number und null = 'null' (i.e. a string).
+                # This could cause all kinds of exceptions, so a catch all
+                # block is needed here
+                nullist.append(str(null).strip())
 
         return [namelist, dtypelist, unitlist, nullist]
 
