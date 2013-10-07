@@ -203,16 +203,18 @@ class TestTableItems(BaseTestItems):
         self.t = table_data.Table(table_data.COLS)
         self.tc = self.t.columns
 
-        t2 = self.t['a', 'c']
-        assert np.all(t2['a'] == table_data.DATA['a'])
-        assert np.all(t2['c'] == table_data.DATA['c'])
-        assert t2['a'].attrs_equal(table_data.COLS[0])
-        assert t2['c'].attrs_equal(table_data.COLS[2])
-        t2['a'][0] = 0
-        assert np.all(self.t._data == table_data.DATA)
-        assert np.any(t2['a'] != table_data.DATA['a'])
-        assert t2.masked == self.t.masked
-        assert t2._column_class == self.t._column_class
+        # try both lists and tuples
+        for columns in (('a', 'c'), ['a', 'c']):
+            t2 = self.t[columns]
+            assert np.all(t2['a'] == table_data.DATA['a'])
+            assert np.all(t2['c'] == table_data.DATA['c'])
+            assert t2['a'].attrs_equal(table_data.COLS[0])
+            assert t2['c'].attrs_equal(table_data.COLS[2])
+            t2['a'][0] = 0
+            assert np.all(self.t._data == table_data.DATA)
+            assert np.any(t2['a'] != table_data.DATA['a'])
+            assert t2.masked == self.t.masked
+            assert t2._column_class == self.t._column_class
 
     def test_np_where(self, table_data):
         """Select rows using output of np.where"""
