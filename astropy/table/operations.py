@@ -41,7 +41,7 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
                 for attr in attrs:
                     left_attr = getattr(left_col, attr)
                     right_attr = getattr(right_col, attr)
-                    merge_attr = left_attr or right_attr
+                    merge_attr = right_attr or left_attr
                     setattr(out_col, attr, merge_attr)
                     if left_attr and right_attr and left_attr != right_attr:
                         warnings.warn('In merged column {0!r} the {1!r} attribute does not match '

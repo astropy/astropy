@@ -340,7 +340,7 @@ class TestJoin():
         with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
             t12 = table.join(t1, t2, keys=['a', 'b'])
 
-            assert t12['a'].unit == 'cm'
+            assert t12['a'].unit == 'm'
             assert t12['b'].description == 't1_b'
             assert t12['b'].format == '%6s'
             assert t12['a'].meta == self.meta_merge
@@ -519,7 +519,7 @@ class TestVStack():
         with catch_warnings(metadata.MergeConflictWarning) as warning_lines:
             out = table.vstack([t1, t2, t4], join_type='outer')
 
-            assert out['a'].unit == 'cm'
+            assert out['a'].unit == 'km'
             assert out['b'].description == 't1_b'
             assert out['b'].format == '%6s'
             assert out['a'].meta == self.meta_merge
@@ -532,7 +532,7 @@ class TestVStack():
             assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
                     in str(warning_lines[0].message))
             assert warning_lines[1].category == metadata.MergeConflictWarning
-            assert ("In merged column 'a' the 'unit' attribute does not match (cm != km)"
+            assert ("In merged column 'a' the 'unit' attribute does not match (m != km)"
                     in str(warning_lines[1].message))
 
 
