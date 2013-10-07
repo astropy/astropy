@@ -51,7 +51,7 @@ class TestUintFunctions(FitsTestCase):
         #
         # Construct array
         #
-        bits = 8*int(utype[1])
+        bits = 8*int(utype[0][1])
         if platform.architecture()[0] == '64bit' or bits != 64:
             bzero = self.utype_map[utype](2**(bits-1))
             one = self.utype_map[utype](1)
