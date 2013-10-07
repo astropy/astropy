@@ -289,6 +289,8 @@ def get_extensions():
 
     cfg['sources'] = [str(x) for x in cfg['sources']]
 
+    cfg = dict((str(key), val) for key, val in six.iteritems(cfg))
+
     return [Extension(str('astropy.wcs._wcs'), **cfg)]
 
 
