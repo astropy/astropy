@@ -1396,11 +1396,18 @@ class Table(object):
                                                      for x in item):
             return self.__class__([self[x] for x in item],
                                   meta=deepcopy(self.meta))
-
-        # here, item can still be one of the many ways to give a slice,
-        # e.g., slice, list, np.ndarray, a tuple with ndarrays.  Those
-        # are dealt with by contructing a new table with slice of all columns
-        return self._new_from_slice(item)
+        elif (isinstance(item, slice) or
+              isinstance(item, np.ndarray) or
+              isinstance(item, list) or
+              isinstance(item, tuple) and all(isinstance(x, np.ndarray)
+                                              for x in item)):
+            # here for the many ways to give a slice; a tuple of ndarray
+            # is produced by np.where, as in t[np.where(t['a'] > 2)]
+            # For all, a new table is constructed with slice of all columns
+            return self._new_from_slice(item)
+        else:
+            raise ValueError('Illegal type {0} for table item access'
+                             .format(type(item)))
 
     def __setitem__(self, item, value):
         # If the item is a string then it must be the name of a column.
