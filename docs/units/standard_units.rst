@@ -39,11 +39,8 @@ given type::
     M_p          | 1.67262e-27 kg  |            ,
     g            | 0.001 kg        | gram       ,
     kg           | irreducible     | kilogram   ,
-    lb           | 0.453592 kg     | pound      ,
-    oz           | 0.0283495 kg    | ounce      ,
     solMass      | 1.9891e+30 kg   | M_sun      ,
     t            | 1000 kg         | tonne      ,
-    ton          | 907.185 kg      |            ,
     u            | 1.66054e-27 kg  | Da, Dalton ,
   ]
 
@@ -99,3 +96,48 @@ use the `physical_type` property::
    # However, (u.m / u.m) has a scale of 1.0, so it is the same
    >>> (u.m / u.m) == u.dimensionless_unscaled
    True
+
+Enabling other units
+--------------------
+
+By default, only the "default" units are searched by
+`find_equivalent_units` and similar methods that do searching.  This
+includes SI, CGS and astrophysical units.  However, one may wish to
+enable the imperial or other user-defined units.
+
+For example, to enable Imperial units, simply do::
+
+    >>> from astropy.units import imperial
+    >>> imperial.enable()
+    >>> u.m.find_equivalent_units()
+      Primary name | Unit definition | Aliases
+    [
+      AU           | 1.49598e+11 m   | au               ,
+      Angstrom     | 1e-10 m         | AA, angstrom     ,
+      cm           | 0.01 m          | centimeter       ,
+      ft           | 0.3048 m        | foot             ,
+      inch         | 0.0254 m        |                  ,
+      lyr          | 9.46073e+15 m   | lightyear        ,
+      m            | irreducible     | meter            ,
+      mi           | 1609.34 m       | mile             ,
+      micron       | 1e-06 m         |                  ,
+      nmi          | 1852 m          | nauticalmile, NM ,
+      pc           | 3.08568e+16 m   | parsec           ,
+      solRad       | 6.95508e+08 m   | R_sun            ,
+      yd           | 0.9144 m        | yard             ,
+    ]
+
+To enable just specific units, use `~astropy.units.add_enabled_units`::
+
+    >>> from astropy import units as u
+    >>> from astropy.units import imperial
+    >>> u.add_enabled_units([imperial.knot])
+
+A context manager, `~astropy.units.add_enabled_units_context` is also
+provided, to temporarily enable additional units::
+
+    >>> from astropy import units as u
+    >>> from astropy.units import imperial
+    >>> with u.add_enabled_units_context([imperial.knot]):
+    ...     u.m.find_equivalent_units()
+    ...

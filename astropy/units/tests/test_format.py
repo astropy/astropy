@@ -180,21 +180,16 @@ def test_wcs_parse():
 
 def test_flatten_to_known():
     myunit = u.def_unit("FOOBAR_One", u.erg / u.Hz)
-    try:
-        assert myunit.to_string('fits') == 'erg Hz-1'
-        myunit2 = myunit * u.bit ** 3
-        assert myunit2.to_string('fits') == 'bit3 erg Hz-1'
-    finally:
-        myunit.deregister()
+    assert myunit.to_string('fits') == 'erg Hz-1'
+    myunit2 = myunit * u.bit ** 3
+    assert myunit2.to_string('fits') == 'bit3 erg Hz-1'
 
 
 @raises(ValueError)
 def test_flatten_impossible():
     myunit = u.def_unit("FOOBAR_Two")
-    try:
+    with u.add_enabled_units_context(myunit):
         myunit.to_string('fits')
-    finally:
-        myunit.deregister()
 
 
 def test_console_out():

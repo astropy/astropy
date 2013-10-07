@@ -158,6 +158,8 @@ for them::
 
 Note that the equivalency can be used with any other compatible units::
 
+  >>> from astropy.units import imperial
+  >>> u.add_enabled_units(imperial)
   >>> u.gallon.to(u.pound, 1, equivalencies=liters_water)
   8.345404463333525
 
@@ -209,24 +211,18 @@ all kinds of things that `Hz` can be converted to::
   [
     AU           | 1.49598e+11 m          | au                                 ,
     Angstrom     | 1e-10 m                | AA, angstrom                       ,
-    BTU          | 1055.06 kg m2 / s2     | btu                                ,
     Hz           | 1 / s                  | Hertz, hertz                       ,
     J            | kg m2 / s2             | Joule, joule                       ,
     Ry           | 2.17987e-18 kg m2 / s2 | rydberg                            ,
     a            | 3.15576e+07 s          | annum                              ,
-    cal          | 4.184 kg m2 / s2       | calorie                            ,
     cm           | 0.01 m                 | centimeter                         ,
     d            | 86400 s                | day                                ,
     eV           | 1.60218e-19 kg m2 / s2 | electronvolt                       ,
     erg          | 1e-07 kg m2 / s2       |                                    ,
     fortnight    | 1.2096e+06 s           |                                    ,
-    ft           | 0.3048 m               | foot                               ,
     h            | 3600 s                 | hour, hr                           ,
-    inch         | 0.0254 m               |                                    ,
-    kcal         | 4184 kg m2 / s2        | Cal, Calorie, kilocal, kilocalorie ,
     lyr          | 9.46073e+15 m          | lightyear                          ,
     m            | irreducible            | meter                              ,
-    mi           | 1609.34 m              | mile                               ,
     micron       | 1e-06 m                |                                    ,
     min          | 60 s                   | minute                             ,
     pc           | 3.08568e+16 m          | parsec                             ,
@@ -234,6 +230,5 @@ all kinds of things that `Hz` can be converted to::
     sday         | 86164.1 s              |                                    ,
     solRad       | 6.95508e+08 m          | R_sun                              ,
     wk           | 604800 s               | week                               ,
-    yd           | 0.9144 m               | yard                               ,
     yr           | 3.15576e+07 s          | year                               ,
   ]

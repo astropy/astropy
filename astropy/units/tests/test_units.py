@@ -21,12 +21,14 @@ def test_getting_started():
     """
     Corresponds to "Getting Started" section in the docs.
     """
-    speed_unit = u.cm / u.s
-    x = speed_unit.to(u.mile / u.hour, 1)
-    assert_allclose(x, 0.02236936292054402)
-    speed_converter = speed_unit.get_converter("mile hour^-1")
-    x = speed_converter([1., 1000., 5000.])
-    assert_allclose(x, [2.23693629e-02, 2.23693629e+01, 1.11846815e+02])
+    from .. import imperial
+    with u.add_enabled_units_context(imperial):
+        speed_unit = u.cm / u.s
+        x = speed_unit.to(imperial.mile / u.hour, 1)
+        assert_allclose(x, 0.02236936292054402)
+        speed_converter = speed_unit.get_converter("mile hour^-1")
+        x = speed_converter([1., 1000., 5000.])
+        assert_allclose(x, [2.23693629e-02, 2.23693629e+01, 1.11846815e+02])
 
 
 def test_invalid_power():
@@ -162,17 +164,16 @@ def test_cds_power():
 
 
 def test_register():
-    from .. import core
-    try:
-        u.def_unit("foo", u.m ** 3, register=True)
-        assert hasattr(u, 'foo')
-    finally:
-        u.foo.deregister(remove_from_namespace=True)
+    foo = u.def_unit("foo", u.m ** 3, namespace=locals())
+    assert 'foo' in locals()
+    with u.add_enabled_units_context(foo):
+        assert 'foo' in u.get_current_unit_registry().registry
+    assert 'foo' not in u.get_current_unit_registry().registry
 
 
 def test_in_units():
     speed_unit = u.cm / u.s
-    x = speed_unit.in_units(u.mile / u.hour, 1)
+    x = speed_unit.in_units(u.pc / u.hour, 1)
 
 
 def test_null_unit():
@@ -181,7 +182,7 @@ def test_null_unit():
 
 def test_unrecognized_equivalency():
     assert u.m.is_equivalent('foo') is False
-    assert u.m.is_equivalent('foot') is True
+    assert u.m.is_equivalent('pc') is True
 
 
 @raises(TypeError)
@@ -419,8 +420,8 @@ def test_pickling():
 
     assert other is u.m
 
-    new_unit = u.IrreducibleUnit(['foo'], register=True, format={'baz': 'bar'})
-    new_unit.deregister()
+    new_unit = u.IrreducibleUnit(['foo'], format={'baz': 'bar'})
+    u.add_enabled_units([new_unit])
     p = pickle.dumps(new_unit)
     new_unit_copy = pickle.loads(p)
     assert new_unit_copy.names == ['foo']
@@ -429,12 +430,13 @@ def test_pickling():
 
 @raises(ValueError)
 def test_duplicate_define():
-    u.def_unit('m')
+    u.def_unit('m', namespace=u.__dict__)
 
 
 def test_all_units():
-    from ...units.core import _UnitRegistry
-    assert len(_UnitRegistry().all_units) > len(_UnitRegistry().non_prefix_units)
+    from ...units.core import get_current_unit_registry
+    registry = get_current_unit_registry()
+    assert len(registry.all_units) > len(registry.non_prefix_units)
 
 
 def test_repr_latex():

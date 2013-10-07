@@ -262,12 +262,13 @@ class TestQuantityOperations(object):
 
     def test_complicated_operation(self):
         """ Perform a more complicated test """
+        from .. import imperial
 
         # Multiple units
         distance = u.Quantity(15., u.meter)
         time = u.Quantity(11., u.second)
 
-        velocity = (distance / time).to(u.mile / u.hour)
+        velocity = (distance / time).to(imperial.mile / u.hour)
         np.testing.assert_array_almost_equal(
             velocity.value, 3.05037, decimal=5)
 
@@ -629,7 +630,6 @@ def test_implicit_conversion():
     q = u.Quantity(1.0, u.meter)
     # Manually turn this on to simulate what might happen in a subclass
     q._include_easy_conversion_members = True
-    assert_allclose(q.inch, 39.370078740157474)
     assert_allclose(q.centimeter, 100)
     assert_allclose(q.cm, 100)
     assert_allclose(q.parsec, 3.240779289469756e-17)
@@ -642,7 +642,6 @@ def test_implicit_conversion_autocomplete():
     q.foo = 42
 
     attrs = dir(q)
-    assert 'inch' in attrs
     assert 'centimeter' in attrs
     assert 'cm' in attrs
     assert 'parsec' in attrs
