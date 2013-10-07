@@ -130,8 +130,7 @@ def test_massenergy():
                        pow_eV.value, rtol=1e-7)
 
 def test_is_equivalent():
-
-    assert u.m.is_equivalent(u.inch)
+    assert u.m.is_equivalent(u.pc)
     assert not (u.Hz.is_equivalent(u.J))
     assert u.Hz.is_equivalent(u.J, u.spectral())
     assert u.J.is_equivalent(u.Hz, u.spectral())
@@ -247,8 +246,7 @@ def test_equivalent_units():
     units = u.g.find_equivalent_units()
     units_set = set(units)
     match = set(
-        [u.M_e, u.M_p, u.g, u.kg, u.lb, u.oz,
-         u.solMass, u.t, u.ton, u.u])
+        [u.M_e, u.M_p, u.g, u.kg, u.solMass, u.t, u.u])
     assert units_set == match
 
     r = repr(units)
@@ -258,9 +256,25 @@ def test_equivalent_units():
 def test_equivalent_units2():
     units = set(u.Hz.find_equivalent_units(u.spectral()))
     match = set(
-        [u.AU, u.Angstrom, u.BTU, u.Hz, u.J, u.Ry, u.cal, u.cm, u.eV,
-         u.erg, u.ft, u.inch, u.kcal, u.lyr, u.m, u.mi, u.micron,
-         u.pc, u.solRad, u.yd, u.Bq, u.Ci, u.nmi])
+        [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr,
+         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci])
+    assert units == match
+
+    from .. import imperial
+    with u.add_enabled_units_context(imperial):
+        units = set(u.Hz.find_equivalent_units(u.spectral()))
+        match = set(
+            [u.AU, u.Angstrom, imperial.BTU, u.Hz, u.J, u.Ry,
+             imperial.cal, u.cm, u.eV, u.erg, imperial.ft,
+             imperial.inch, imperial.kcal, u.lyr, u.m, imperial.mi,
+             u.micron, u.pc, u.solRad, imperial.yd, u.Bq, u.Ci,
+             imperial.nmi])
+        assert units == match
+
+    units = set(u.Hz.find_equivalent_units(u.spectral()))
+    match = set(
+        [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr,
+         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci])
     assert units == match
 
 

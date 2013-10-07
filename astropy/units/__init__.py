@@ -16,10 +16,11 @@ from .quantity import *
 
 from . import si
 from . import cgs
+from . import astrophys
+
 from .si import *
 from .astrophys import *
 from .cgs import *
-from .imperial import *
 from .physical import *
 
 from .equivalencies import *
@@ -27,9 +28,9 @@ from .equivalencies import *
 # Create a special singleton for the dimensionless unit
 dimensionless_unscaled = Unit(1)
 
-# After importing the unit definitions above, set the unit namespace
-# to this top-level module so that new units are added here.
-from .core import _UnitRegistry
-_UnitRegistry().namespace = locals()
-
 del bases
+
+# Enable the set of default units.  This notably does *not* include
+# Imperial units.
+
+set_enabled_units([si, cgs, astrophys])

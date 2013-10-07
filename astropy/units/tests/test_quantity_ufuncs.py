@@ -231,9 +231,10 @@ class TestQuantityMathFuncs(object):
                       function(np.arange(3.), 2.) * u.m / u.s)
 
     def test_divmod(self):
+        inch = u.Unit(0.0254 * u.m)
         quotient, remainder = divmod(
             np.array([1., 2., 3.]) * u.m,
-            np.array([3., 4., 5.]) * u.inch)
+            np.array([3., 4., 5.]) * inch)
         assert_allclose(quotient.value, [13., 19., 23.])
         assert quotient.unit == u.dimensionless_unscaled
         assert_allclose(remainder.value, [0.0094, 0.0696, 0.079])
