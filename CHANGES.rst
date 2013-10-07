@@ -15,6 +15,14 @@ New Features
   - `astropy.coordinates.Distance` supports conversion to and from distance
     modulii.
 
+  - `astropy.coordinates.SphericalCoordinateBase` and derived classes now
+    support arrays of coordinates, enabling > 500x speed-ups for operations
+    on multiple coordinates at the same time.
+
+  - Array coordinates can be matched to other array coordinates, finding the
+    closest matches between the two sets of coordiantes (see the 
+    `~astropy.coordinates.matching.match_coordinates` function).
+
 - ``astropy.io.votable``
 
   - The format of the units of a VOTable file can be specified using
