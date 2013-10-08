@@ -161,6 +161,17 @@ class BaseColumn(object):
         else:
             return out_arr.view(np.ndarray)[()]
 
+    def __eq__(self, other):
+        # We have to define this to ensure that we always return boolean arrays
+        # (otherwise in some cases, Column objects are returned).
+        if isinstance(other, BaseColumn):
+            return self.data == other.data
+        else:
+            return self.data == other
+
+    def __ne__(self, other):
+        return ~self.__eq__(other)
+
     @property
     def name(self):
         return self._name

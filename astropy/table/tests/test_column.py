@@ -32,13 +32,16 @@ class TestColumn():
 
         arr = np.array([1, 2, 3])
         c = Column(arr, name='a')
-        eq = c == arr
-        assert np.all(eq)
-        assert len(eq) == 3
-        assert type(eq) == Column
-        assert eq.dtype.str == '|b1'
-        eq = arr == c
-        assert np.all(eq)
+
+        for eq in (c == arr, arr == c):
+
+            assert np.all(eq)
+            assert len(eq) == 3
+            if Column is table.Column:
+                assert type(eq) == np.ndarray
+            else:
+                assert type(eq) == np.ma.core.MaskedArray
+            assert eq.dtype.str == '|b1'
 
         lt = c - 1 < arr
         assert np.all(lt)
