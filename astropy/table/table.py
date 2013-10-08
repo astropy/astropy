@@ -522,6 +522,8 @@ class Column(BaseColumn, np.ndarray):
     def data(self):
         return self.view(np.ndarray)
 
+    value = data
+
     def copy(self, order='C', data=None, copy_data=True):
         """Return a copy of the current Column instance.  If ``data`` is supplied
         then a view (reference) of ``data`` is used, and ``copy_data`` is ignored.
