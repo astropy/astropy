@@ -695,10 +695,10 @@ class SphericalCoordinatesBase(object):
         else:
             return icrs.transform_to(cls)
 
-    def format(self,**kwargs):
+    def to_string(self,**kwargs):
         """
         Return the format string in sexagesimal form.  See
-        `astropy.coordinates.Angle.format` for details and keyword arguments
+        `astropy.coordinates.Angle.to_string` for details and keyword arguments
         (lonangle and latangle are both `Angle` instances)
         """
 
@@ -707,6 +707,7 @@ class SphericalCoordinatesBase(object):
         if isinstance(self.lonangle, RA):
             lonunit = u.hour
 
-        coord_string = (self.lonangle.format(unit=lonunit, **kwargs) + " " +
-                        self.latangle.format(unit=latunit, **kwargs))
+        coord_string = (self.lonangle.to_string(unit=lonunit, **kwargs)
+                        + " " +
+                        self.latangle.to_string(unit=latunit, **kwargs))
         return coord_string
