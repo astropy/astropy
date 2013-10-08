@@ -156,9 +156,12 @@ class Ipac(fixedwidth.FixedWidth):
         :param table: input table data (astropy.table.Table object)
         :returns: list of strings corresponding to ASCII table
         """
+
+        core._apply_include_exclude_names(table, self.include_names, self.exclude_names)
+
         # link information about the columns to the writer object (i.e. self)
-        self.header.cols = table.cols
-        self.data.cols = table.cols
+        self.header.cols = table.columns.values()
+        self.data.cols = table.columns.values()
 
         # Write header and data to lines list
         lines = []
@@ -181,14 +184,14 @@ class Ipac(fixedwidth.FixedWidth):
                     pass
 
         # get header and data as strings to find width of each column
-        for i, col in enumerate(table.cols):
+        for i, col in enumerate(table.columns.values()):
             col.headwidth = max([len(vals[i]) for vals in self.header.str_vals()])
         # keep data_str_vals because they take some time to make
         data_str_vals = self.data.str_vals()
-        for i, col in enumerate(table.cols):
+        for i, col in enumerate(table.columns.values()):
             col.width = max([len(vals[i]) for vals in data_str_vals])
 
-        widths = [max(col.width, col.headwidth) for col in table.cols]
+        widths = [max(col.width, col.headwidth) for col in table.columns.values()]
         # then write table
         self.header.write(lines, widths)
         self.data.write(lines, widths, data_str_vals)
@@ -322,9 +325,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         """Initialize the header Column objects from the table ``lines``.
 
         Based on the previously set Header attributes find or create the column names.
-        Sets ``self.cols`` with the list of Columns.  This list only includes the actual
-        requested columns after filtering by the include_names and exclude_names
-        attributes.  See ``self.names`` for the full list.
+        Sets ``self.cols`` with the list of Columns.  
 
         :param lines: list of table lines
         :returns: list of table Columns
@@ -341,7 +342,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         cols = []
         start = 1
         for i, name in enumerate(header_vals[0]):
-            col = core.Column(name=name.strip(' -'), index=i)
+            col = core.Column(name=name.strip(' -'))
             col.start = start
             col.end = start + len(name)
             if len(header_vals) > 1:
@@ -369,25 +370,10 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             elif self.ipac_definition == 'left':
                 col.end += 1
 
-        # Standard column name filtering (include or exclude names)
         self.names = [x.name for x in cols]
-        names = set(self.names)
-        if self.include_names is not None:
-            names.intersection_update(self.include_names)
-        if self.exclude_names is not None:
-            names.difference_update(self.exclude_names)
+        self.cols = cols
 
-        # Generate final list of cols and re-index the cols because the
-        # FixedWidthSplitter does NOT return the ignored cols (as is the
-        # case for typical delimiter-based splitters)
-        self.cols = [x for x in cols if x.name in names]
-        for i, col in enumerate(self.cols):
-            col.index = i
 
-        # Since the splitter returns only the actual requested columns, at this
-        # point set self.n_data_cols to be the number of requested columns.  This
-        # gets used later to validate the data as it gets read and split.
-        self.n_data_cols = len(self.cols)
 
     def str_vals(self):
 

@@ -110,7 +110,7 @@ class CommentedHeaderHeader(core.BaseHeader):
                 yield line[match.end():]
 
     def write(self, lines):
-        lines.append(self.write_comment + self.splitter.join([x.name for x in self.cols]))
+        lines.append(self.write_comment + self.splitter.join(self.colnames))
 
 
 class CommentedHeader(core.BaseReader):
@@ -233,7 +233,7 @@ class RdbHeader(core.BaseHeader):
             col.type = self.get_col_type(col)
 
     def write(self, lines):
-        lines.append(self.splitter.join([x.name for x in self.cols]))
+        lines.append(self.splitter.join(self.colnames))
         rdb_types = []
         for col in self.cols:
             # Check if dtype.kind is string or unicode.  See help(np.core.numerictypes)
