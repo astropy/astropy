@@ -244,6 +244,12 @@ API Changes
     the first argument is now ``order='C'``.  This is required for compatibility
     with Numpy 1.8 which is currently in development [#1250].
 
+  - Comparing a column (with == or !=) to a scalar, an array, or another column
+    now always returns a boolean Numpy array (which is a masked array if either
+    of the arguments in the comparison was masked). This is in contrast to the
+    previous behavior, which in some cases returned a boolean Numpy array, and
+    in some cases returned a boolean Column object [#1446].
+
 - ``astropy.time``
 
   - For consistency with ``Quantity``, the attributes ``val`` and
