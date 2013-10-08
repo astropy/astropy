@@ -613,7 +613,7 @@ def test_quantity_initialized_with_quantity():
 
 
 def test_quantity_string_unit():
-    q1 = "m" / u.s
+    q1 = 1. * u.m / 's'
     assert q1.value == 1
     assert q1.unit == (u.m / u.s)
 

@@ -287,6 +287,9 @@ API Changes
     ``astropy.units.UnitsError`` to be more consistent with the naming
     of built-in Python exceptions.
 
+  - Multiplication with and division by a string now always returns a Unit
+    (rather than a Quantity when the string was first)
+
 - ``astropy.wcs``
 
   - For those including the ``astropy.wcs`` C headers in their project, they

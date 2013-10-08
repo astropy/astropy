@@ -447,7 +447,7 @@ class UnitBase(object):
     def __rdiv__(self, m):
         from .quantity import Quantity
         if isinstance(m, six.string_types):
-            return Unit(m) / Quantity(1, self)
+            return Unit(m) / self
         else:
             return Quantity(m, CompositeUnit(1.0, [self], [-1])._simplify())
 
@@ -471,7 +471,7 @@ class UnitBase(object):
     def __rmul__(self, m):
         from .quantity import Quantity
         if isinstance(m, six.string_types):
-            return Unit(m) * Quantity(1, self)
+            return Unit(m) * self
         else:
             return Quantity(m, self)
 
