@@ -108,14 +108,12 @@ class Column(object):
     The key attributes of a Column object are:
 
     * **name** : column name
-    * **index** : column index (first column has index=0, second has index=1, etc)
     * **type** : column type (NoType, StrType, NumType, FloatType, IntType)
     * **str_vals** : list of column values as strings
     * **data** : list of converted column values
     """
-    def __init__(self, name, index):
+    def __init__(self, name):
         self.name = name
-        self.index = index
         self.type = NoType
         self.str_vals = []
         self.fill_values = {}
@@ -348,30 +346,19 @@ class BaseHeader(object):
     :param comment: regular expression for comment lines
     :param splitter_class: Splitter class for splitting data lines into columns
     :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
     """
     auto_format = 'col%d'
     start_line = None
     comment = None
     splitter_class = DefaultSplitter
     names = None
-    include_names = None
-    exclude_names = None
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
 
     def __init__(self):
         self.splitter = self.__class__.splitter_class()
 
     def _set_cols_from_names(self):
-        # Filter full list of non-null column names with the include/exclude lists
-        names = set(self.names)
-        if self.include_names is not None:
-            names.intersection_update(self.include_names)
-        if self.exclude_names is not None:
-            names.difference_update(self.exclude_names)
-
-        self.cols = [Column(name=x, index=i) for i, x in enumerate(self.names) if x in names]
+        self.cols = [Column(name=x) for x in self.names]
 
     def update_meta(self, lines, meta):
         """
@@ -385,9 +372,7 @@ class BaseHeader(object):
         """Initialize the header Column objects from the table ``lines``.
 
         Based on the previously set Header attributes find or create the column names.
-        Sets ``self.cols`` with the list of Columns.  This list only includes the actual
-        requested columns after filtering by the include_names and exclude_names
-        attributes.  See ``self.names`` for the full list.
+        Sets ``self.cols`` with the list of Columns.
 
         :param lines: list of table lines
         :returns: None
@@ -438,22 +423,6 @@ class BaseHeader(object):
     def colnames(self):
         """Return the column names of the table"""
         return tuple(col.name for col in self.cols)
-
-    def _get_n_data_cols(self):
-        """Return the number of expected data columns from data splitting.
-        This is either explicitly set (typically for fixedwidth splitters)
-        or set to self.names otherwise.
-        """
-        if not hasattr(self, '_n_data_cols'):
-            self._n_data_cols = len(self.names)
-        return self._n_data_cols
-
-    def _set_n_data_cols(self, val):
-        """Return the number of expected data columns from data splitting.
-        """
-        self._n_data_cols = val
-
-    n_data_cols = property(_get_n_data_cols, _set_n_data_cols)
 
     def get_type_map_key(self, col):
         return col.raw_type
@@ -739,6 +708,22 @@ class MetaBaseReader(type):
                 func = functools.partial(connect.io_write, io_format)
                 connect.io_registry.register_writer(io_format, Table, func)
 
+def _apply_include_exclude_names(table, include_names, exclude_names):
+    """apply include_names and exclude_names to a table.
+
+    :param table: input table (Reader object, NumPy struct array, list of lists, etc)
+    :param include_names: list of names to include in output (default=None selects all names)
+    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
+    """
+    names = set(table.colnames)
+    if include_names is not None:
+        names.intersection_update(include_names)
+    if exclude_names is not None:
+        names.difference_update(exclude_names)
+    if names != set(table.colnames):
+        remove_names = set(table.colnames) - set(names)
+        table.remove_columns(remove_names)
+
 
 class BaseReader(object):
     """Class providing methods to read and write an ASCII table using the specified
@@ -754,6 +739,9 @@ class BaseReader(object):
 
     """
     __metaclass__ = MetaBaseReader
+
+    include_names = None
+    exclude_names = None
 
     def __init__(self):
         self.header = BaseHeader()
@@ -813,20 +801,19 @@ class BaseReader(object):
         # Get the table column definitions
         self.header.get_cols(self.lines)
 
-        cols = self.header.cols  # header.cols corresponds to *output* columns requested
-        n_data_cols = self.header.n_data_cols  # number of data cols expected from splitter
+        cols = self.header.cols
         self.data.splitter.cols = cols
 
         for i, str_vals in enumerate(self.data.get_str_vals()):
-            if len(str_vals) != n_data_cols:
-                str_vals = self.inconsistent_handler(str_vals, n_data_cols)
+            if len(str_vals) != len(cols):
+                str_vals = self.inconsistent_handler(str_vals, len(cols))
 
                 # if str_vals is None, we skip this row
                 if str_vals is None:
                     continue
 
                 # otherwise, we raise an error only if it is still inconsistent
-                if len(str_vals) != n_data_cols:
+                if len(str_vals) != len(cols):
                     errmsg = ('Number of header columns (%d) inconsistent with '
                               'data columns (%d) at data line %d\n'
                               'Header values: %s\n'
@@ -834,12 +821,14 @@ class BaseReader(object):
                                                    [x.name for x in cols], str_vals))
                     raise InconsistentTableError(errmsg)
 
-            for col in cols:
-                col.str_vals.append(str_vals[col.index])
+            for j, col in enumerate(cols):
+                col.str_vals.append(str_vals[j])
 
         self.data.masks(cols)
         table = self.outputter(cols, self.meta)
         self.cols = self.header.cols
+
+        _apply_include_exclude_names(table, self.include_names, self.exclude_names)
 
         return table
 
@@ -881,9 +870,12 @@ class BaseReader(object):
         :param table: input table data (astropy.table.Table object)
         :returns: list of strings corresponding to ASCII table
         """
+
+        _apply_include_exclude_names(table, self.include_names, self.exclude_names)
+
         # link information about the columns to the writer object (i.e. self)
-        self.header.cols = table.cols
-        self.data.cols = table.cols
+        self.header.cols = table.columns.values()
+        self.data.cols = table.columns.values()
 
         # Write header and data to lines list
         lines = []
@@ -994,9 +986,9 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     if 'names' in kwargs:
         reader.header.names = kwargs['names']
     if 'include_names' in kwargs:
-        reader.header.include_names = kwargs['include_names']
+        reader.include_names = kwargs['include_names']
     if 'exclude_names' in kwargs:
-        reader.header.exclude_names = kwargs['exclude_names']
+        reader.exclude_names = kwargs['exclude_names']
     if 'fill_values' in kwargs:
         reader.data.fill_values = kwargs['fill_values']
     if 'fill_include_names' in kwargs:
@@ -1045,9 +1037,9 @@ def _get_writer(Writer, **kwargs):
     if 'names' in kwargs:
         writer.header.names = kwargs['names']
     if 'include_names' in kwargs:
-        writer.header.include_names = kwargs['include_names']
+        writer.include_names = kwargs['include_names']
     if 'exclude_names' in kwargs:
-        writer.header.exclude_names = kwargs['exclude_names']
+        writer.exclude_names = kwargs['exclude_names']
     if 'fill_values' in kwargs:
         writer.data.fill_values = kwargs['fill_values']
     if 'fill_include_names' in kwargs:

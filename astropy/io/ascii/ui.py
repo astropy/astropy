@@ -156,6 +156,7 @@ def read(table, guess=None, **kwargs):
     else:
         reader = get_reader(**new_kwargs)
         dat = reader.read(table)
+
     return dat
 
 
@@ -297,18 +298,6 @@ def write(table, output=sys.stdout,  format=None, Writer=None, **kwargs):
     table = Table(table, names=kwargs.get('names'))
 
     Writer = _get_format_class(format, Writer, 'Writer')
-
-    names = set(table.colnames)
-    if 'include_names' in kwargs:
-        names.intersection_update(kwargs['include_names'])
-    if 'exclude_names' in kwargs:
-        names.difference_update(kwargs['exclude_names'])
-    if names != set(table.colnames):
-        remove_names = set(table.colnames) - set(names)
-        table.remove_columns(remove_names)
-
-    table.cols = table.columns.values()
-
     writer = get_writer(Writer=Writer, **kwargs)
     lines = writer.write(table)
 
