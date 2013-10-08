@@ -695,19 +695,52 @@ class SphericalCoordinatesBase(object):
         else:
             return icrs.transform_to(cls)
 
-    def to_string(self,**kwargs):
+    def to_string(self, style='hmsdms', **kwargs):
         """
-        Return the format string in sexagesimal form.  See
+        Return the format string in sexagesimal or decimal form.  See
         `astropy.coordinates.Angle.to_string` for details and keyword arguments
         (lonangle and latangle are both `Angle` instances)
+
+        Parameters
+        ----------
+        style : 'hmsdms' or 'dms' or 'decimal'
+            The allowed formatting specifications.  These encode the three most
+            common ways to represent coordinates.
+
+        Examples
+        --------
+        >>> import astropy.coordinates as coords
+        >>> C = coords.ICRSCoordinates.from_name('M 31')
+        >>> C.to_string()
+        u'0h42m44.32999s 41d16m07.50000s'
+        >>> C.to_string(sep=':')
+        u'0:42:44.32999 41:16:07.50000'
+        >>> C.to_string(style='dms')
+        u'10d41m04.94988s 41d16m07.50000s'
+        >>> C.to_string('decimal')
+        u'10.68471 41.26875'
+        >>> C.galactic.to_string('decimal')
+        u'121.17439 -21.57322'
         """
 
-        lonunit, latunit = u.deg, u.deg
+        styles = {'hmsdms': {'lonargs': {'unit':u.hour},
+                             'latargs': {'unit':u.degree}},
+                  'dms':    {'lonargs': {'unit':u.degree},
+                             'latargs': {'unit':u.degree}},
+                  'decimal':{'lonargs': {'unit':u.degree,'decimal':True},
+                             'latargs': {'unit':u.degree,'decimal':True}}}
 
-        if isinstance(self.lonangle, RA):
-            lonunit = u.hour
+        lonargs = kwargs.copy()
+        latargs = kwargs.copy()
 
-        coord_string = (self.lonangle.to_string(unit=lonunit, **kwargs)
+        if style in styles:
+            lonargs.update(styles[style]['lonargs'])
+            latargs.update(styles[style]['latargs'])
+        else:
+            raise ValueError('Invalid style.  Valid options are: '+",".join(styles))
+
+        coord_string = (self.lonangle.to_string(**lonargs)
                         + " " +
-                        self.latangle.to_string(unit=latunit, **kwargs))
+                        self.latangle.to_string(**latargs))
+
         return coord_string
