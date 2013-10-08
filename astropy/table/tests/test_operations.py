@@ -397,14 +397,14 @@ class TestVStack():
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             out = table.vstack([self.t1, self.t5], join_type='inner')
-        assert len(w) == 3
+        assert len(w) == 2
 
         assert out.meta == self.t5.meta
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             out = table.vstack([self.t1, self.t5], join_type='inner', metadata_conflicts='warn')
-        assert len(w) == 3
+        assert len(w) == 2
 
         assert out.meta == self.t5.meta
 
@@ -577,14 +577,14 @@ class TestHStack():
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             out = table.hstack([self.t1, self.t5], join_type='inner')
-        assert len(w) == 3
+        assert len(w) == 2
 
         assert out.meta == self.t5.meta
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='warn')
-        assert len(w) == 3
+        assert len(w) == 2
 
         assert out.meta == self.t5.meta
 

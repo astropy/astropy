@@ -39,15 +39,43 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
                 right_col = table[right_name]
                 out_col.meta = metadata.merge(left_col.meta, right_col.meta, metadata_conflicts=metadata_conflicts)
                 for attr in attrs:
+
+                    # Pick the metadata item that is not None, or they are both
+                    # not None, then if they are equal, there is no conflict,
+                    # and if they are different, there is a conflict and we
+                    # pick the one on the right (or raise an error).
+
                     left_attr = getattr(left_col, attr)
                     right_attr = getattr(right_col, attr)
-                    merge_attr = right_attr or left_attr
+
+                    if left_attr is None:
+
+                        # This may not seem necessary since merge_attr gets set
+                        # to right_attr, but not all objects support != which is
+                        # needed for one of the if clauses.
+
+                        merge_attr = right_attr
+
+                    elif right_attr is None:
+
+                        merge_attr = left_attr
+
+                    elif left_attr != right_attr:
+
+                        if metadata_conflicts == 'warn':
+                            warnings.warn('In merged column {0!r} the {1!r} attribute does not match '
+                                          '({2} != {3}).  Using {2} for merged output'
+                                          .format(out_col.name, attr, left_attr, right_attr),
+                                          metadata.MergeConflictWarning)
+                        elif metadata_conflicts == 'error':
+                            raise MergeConflictError('In merged column {0!r} the {1!r} attribute does not match '
+                                          '({2} != {3})'.format(out_col.name, attr, left_attr, right_attr))
+                        elif metadata_conflicts != 'silent':
+                            raise ValueError('metadata_conflict argument must be one of "silent", "warn", or "error"')
+
+                        merge_attr = right_attr
+
                     setattr(out_col, attr, merge_attr)
-                    if left_attr and right_attr and left_attr != right_attr:
-                        warnings.warn('In merged column {0!r} the {1!r} attribute does not match '
-                                      '({2} != {3}).  Using {2} for merged output'
-                                      .format(out_col.name, attr, left_attr, right_attr),
-                                      metadata.MergeConflictWarning)
 
 
 def _merge_table_meta(out, tables, metadata_conflicts='warn'):

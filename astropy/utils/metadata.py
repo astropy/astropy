@@ -79,14 +79,34 @@ def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
             try:
                 out[key] = merge_func(left[key], right[key])
             except MergeConflictError:
-                if metadata_conflicts == 'warn':
-                    warnings.warn('Cannot merge meta key {0!r} types {1!r} and {2!r}, choosing {0}={3!r}'
-                                             .format(key, type(left[key]), type(right[key]), right[key]), MergeConflictWarning)
-                elif metadata_conflicts == 'error':
-                    raise MergeConflictError('Cannot merge meta key {0!r} types {1!r} and {2!r}'
-                                             .format(key, type(left[key]), type(right[key])))
-                elif metadata_conflicts != 'silent':
-                    raise ValueError('metadata_conflict argument must be one of "silent", "warn", or "error"')
+
+                # Pick the metadata item that is not None, or they are both not
+                # None, then if they are equal, there is no conflict, and if
+                # they are different, there is a conflict and we pick the one
+                # on the right (or raise an error).
+
+                if left[key] is None:
+
+                    # This may not seem necessary since out[key] gets set to
+                    # right[key], but not all objects support != which is
+                    # needed for one of the if clauses.
+
+                    out[key] = right[key]
+
+                if right[key] is None:
+
+                    out[key] = left[key]
+
+                if left[key] != right[key]:
+
+                    if metadata_conflicts == 'warn':
+                        warnings.warn('Cannot merge meta key {0!r} types {1!r} and {2!r}, choosing {0}={3!r}'
+                                                 .format(key, type(left[key]), type(right[key]), right[key]), MergeConflictWarning)
+                    elif metadata_conflicts == 'error':
+                        raise MergeConflictError('Cannot merge meta key {0!r} types {1!r} and {2!r}'
+                                                 .format(key, type(left[key]), type(right[key])))
+                    elif metadata_conflicts != 'silent':
+                        raise ValueError('metadata_conflict argument must be one of "silent", "warn", or "error"')
 
                 out[key] = right[key]
 
