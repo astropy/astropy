@@ -128,8 +128,6 @@ class BaseColumn(object):
 
     __metaclass__ = abc.ABCMeta
 
-    __array_priority__ = 10000
-
     def __array_finalize__(self, obj):
         # Obj will be none for direct call to Column() creator
         if obj is None:
