@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import os
+
 from ..ui import read
 from ..ipac import Ipac, IpacFormatError, IpacFormatErrorDBMS
 from ....tests.helper import pytest
@@ -109,5 +111,20 @@ def test_too_long_comment(recwarn):
 |    |
 |null|
     3 
+"""
+    assert out.getvalue().splitlines() == expected_out.splitlines()
+
+def test_out_with_nonstring_null():
+    # unmasked tables don't have fill_values
+    table = Table([[3]], masked=True)
+    table['col0'].fill_value = -99999
+    out = io.StringIO()
+    ascii.write(table, out, Writer=Ipac)
+    expected_out = """\
+|  col0|
+|  long|
+|      |
+|-99999|
+      3 
 """
     assert out.getvalue().splitlines() == expected_out.splitlines()
