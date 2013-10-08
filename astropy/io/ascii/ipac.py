@@ -40,6 +40,7 @@ from . import core
 from . import fixedwidth
 from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
+from ...table.pprint import _format_funcs, _auto_format_func
 
 
 class IpacFormatErrorDBMS(Exception):
@@ -413,6 +414,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
         dtypelist = []
         unitlist = []
+        nullist = []
         for col in self.cols:
             if col.dtype.kind in ['i', 'u']:
                 dtypelist.append('long')
@@ -424,15 +426,25 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 unitlist.append('')
             else:
                 unitlist.append(str(col.unit))
-        nullist = [getattr(col, 'fill_value', 'null') for col in self.cols]
+            null = getattr(col, 'fill_value', 'null')
+            try:
+                format_func = _format_funcs.get(col.format, _auto_format_func)
+                nullist.append((format_func(col.format, null)).strip())
+            except:
+                # It is pssible that null and the column values have different
+                # data types (e.g. number und null = 'null' (i.e. a string).
+                # This could cause all kinds of exceptions, so a catch all
+                # block is needed here
+                nullist.append(str(null).strip())
+
         return [namelist, dtypelist, unitlist, nullist]
 
     def write(self, lines, widths):
         '''Write header.
 
-        The width of each column is determined in IpacData.write. Writing the header
+        The width of each column is determined in Ipac.write. Writing the header
         must be delayed until that time.
-        This function is called from data, once the width information is
+        This function is called from there, once the width information is
         available.'''
 
         for vals in self.str_vals():
