@@ -699,13 +699,15 @@ class SphericalCoordinatesBase(object):
         """
         Return the format string in sexagesimal or decimal form.  See
         `astropy.coordinates.Angle.to_string` for details and keyword arguments
-        (lonangle and latangle are both `Angle` instances)
+        (lonangle and latangle are both `Angle` instances).  kwargs are passed
+        to `Angle.to_string`
 
         Parameters
         ----------
-        style : 'hmsdms' or 'dms' or 'decimal'
+        style : 'hmsdms' or 'dms' or 'decimal' or None
             The allowed formatting specifications.  These encode the three most
-            common ways to represent coordinates.
+            common ways to represent coordinates.  If None is passed, no
+            defaults are changed from `Angle.to_string`.
 
         Examples
         --------
@@ -721,6 +723,10 @@ class SphericalCoordinatesBase(object):
         u'10.68471 41.26875'
         >>> C.galactic.to_string('decimal')
         u'121.17439 -21.57322'
+        >>> C.to_string(style=None)
+        u'10d41m04.94988s 41d16m07.50000s'
+        >>> C.to_string(style=None,sep=':')
+        u'10:41:04.94988 41:16:07.50000'
         """
 
         styles = {'hmsdms': {'lonargs': {'unit':u.hour},
@@ -728,7 +734,9 @@ class SphericalCoordinatesBase(object):
                   'dms':    {'lonargs': {'unit':u.degree},
                              'latargs': {'unit':u.degree}},
                   'decimal':{'lonargs': {'unit':u.degree,'decimal':True},
-                             'latargs': {'unit':u.degree,'decimal':True}}}
+                             'latargs': {'unit':u.degree,'decimal':True}},
+                  None:     {'lonargs':{},
+                             'latargs':{}}}
 
         lonargs = kwargs.copy()
         latargs = kwargs.copy()
