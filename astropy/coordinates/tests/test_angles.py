@@ -92,13 +92,13 @@ def test_angle_to_quantity():
 
 def test_angle_string():
     a = Angle('00:00:60', u.deg)
-    assert str(a) == '0d01m00.00000s'
+    assert str(a) == '0d01m00s'
     a = Angle('-00:00:10', u.hour)
-    assert str(a) == '-0h00m10.00000s'
+    assert str(a) == '-0h00m10s'
     a = Angle(3.2, u.radian)
-    assert str(a) == '3.20000rad'
+    assert str(a) == '3.2rad'
     a = Angle(4.2, u.microarcsecond)
-    assert str(a) == '4.20000uarcsec'
+    assert str(a) == '4.2uarcsec'
     a = Angle('1.0uarcsec')
     assert a.value == 1.0
     assert a.unit == u.microarcsecond
