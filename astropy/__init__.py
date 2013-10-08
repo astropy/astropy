@@ -213,3 +213,26 @@ if not _ASTROPY_SETUP_:
     log = _init_log()
 
     _initialize_astropy()
+
+
+__require_stable_api__ = False
+
+def _declare_unstable_api():
+    """
+    Astropy subpackages with an unstable API should call this function
+    from their __init__.py.
+
+    If `from astropy import stability`, and the import happens not from
+    within astropy itself, a `RuntimeError` is raised.
+    """
+    if __require_stable_api__:
+        from astropy.utils.misc import find_current_module
+
+        module_name = find_current_module().__name__
+        parent_module_name = find_current_module(2).__name__
+
+        if not parent_module_name.startswith('astropy.'):
+            raise RuntimeError(
+                "{0} is an unstable API and is likely to "
+                "change in significant ways in the future.".format(
+                    module_name))
