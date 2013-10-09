@@ -304,3 +304,24 @@ def create_model(model_class, parameters):
     elif issubclass(model_class, PolynomialModel):
         return model_class(**parameters)
     
+def test_ShiftModel():
+    # Shift by a scalar
+    m = models.ShiftModel(42)
+    assert m(0) == 42
+    utils.assert_equal(m([1, 2]), [43, 44])
+
+    # Shift by a list
+    m = models.ShiftModel([42, 43])
+    utils.assert_equal(m(0), [42, 43])
+    utils.assert_equal(m([1, 2]), [[ 43,  44], [ 44,  45]])
+
+def test_ScaleModel():
+    # Scale by a scalar
+    m = models.ScaleModel(42)
+    assert m(0) == 0
+    utils.assert_equal(m([1, 2]), [42, 84])
+
+    # Scale by a list
+    m = models.ScaleModel([42, 43])
+    utils.assert_equal(m(0), [0, 0])
+    utils.assert_equal(m([1, 2]), [[ 42,  43], [ 84,  86]])
