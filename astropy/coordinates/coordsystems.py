@@ -315,21 +315,6 @@ class SphericalCoordinatesBase(object):
         self._cartpoint = None
 
     @property
-    def x(self):
-        self._make_cart()
-        return self._cartpoint.x
-
-    @property
-    def y(self):
-        self._make_cart()
-        return self._cartpoint.y
-
-    @property
-    def z(self):
-        self._make_cart()
-        return self._cartpoint.z
-
-    @property
     def cartesian(self):
         self._make_cart()
         return self._cartpoint
