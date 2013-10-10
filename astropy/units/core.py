@@ -34,7 +34,7 @@ __all__ = [
     'CompositeUnit', 'PrefixUnit', 'UnrecognizedUnit',
     'get_current_unit_registry', 'set_enabled_units',
     'add_enabled_units', 'set_enabled_units_context',
-    'add_enabled_units_context']
+    'add_enabled_units_context', 'dimensionless_unscaled']
 
 
 def _flatten_units_collection(items):
@@ -1902,3 +1902,6 @@ def _condition_arg(value):
             raise ValueError(
                 "Value not scalar compatible or convertable into a int, "
                 "float, or complex array")
+
+
+dimensionless_unscaled = CompositeUnit(1, [], [])

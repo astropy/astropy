@@ -2,11 +2,10 @@
 # quantities (http://pythonhosted.org/quantities/) package.
 
 import numpy as np
-from .core import UnitsError
+from .core import UnitsError, dimensionless_unscaled
 
 
 def _d(unit):
-    from . import dimensionless_unscaled
     if unit is None:
         return dimensionless_unscaled
     else:
@@ -62,10 +61,9 @@ UFUNC_HELPERS[np.sqrt] = lambda f, unit: ([1.], unit ** 0.5)
 UFUNC_HELPERS[np.square] = lambda f, unit: ([1.], unit ** 2)
 UFUNC_HELPERS[np.reciprocal] = lambda f, unit: ([1.], unit ** -1)
 
-# ufuncs that require dimensionless input and and give dimensionless output
 
+# ufuncs that require dimensionless input and and give dimensionless output
 def helper_dimensionless_to_dimensionless(f, unit):
-    from . import dimensionless_unscaled
     try:
         scale = unit.to(dimensionless_unscaled)
     except UnitsError:
@@ -83,11 +81,10 @@ UFUNC_HELPERS[np.log2] = helper_dimensionless_to_dimensionless
 UFUNC_HELPERS[np.log1p] = helper_dimensionless_to_dimensionless
 UFUNC_HELPERS[np.modf] = helper_dimensionless_to_dimensionless
 
-# ufuncs that require dimensionless input and give output in radians
 
+# ufuncs that require dimensionless input and give output in radians
 def helper_dimensionless_to_radian(f, unit):
     from .si import radian
-    from . import dimensionless_unscaled
     try:
         scale = unit.to(dimensionless_unscaled)
     except UnitsError:
@@ -103,8 +100,8 @@ UFUNC_HELPERS[np.arccosh] = helper_dimensionless_to_radian
 UFUNC_HELPERS[np.arcsinh] = helper_dimensionless_to_radian
 UFUNC_HELPERS[np.arctanh] = helper_dimensionless_to_radian
 
-# ufuncs that require input in degrees and give output in radians
 
+# ufuncs that require input in degrees and give output in radians
 def helper_degree_to_radian(f, unit):
     from .si import degree, radian
     try:
@@ -118,8 +115,8 @@ def helper_degree_to_radian(f, unit):
 UFUNC_HELPERS[np.radians] = helper_degree_to_radian
 UFUNC_HELPERS[np.deg2rad] = helper_degree_to_radian
 
-# ufuncs that require input in radians and give output in degrees
 
+# ufuncs that require input in radians and give output in degrees
 def helper_radian_to_degree(f, unit):
     from .si import degree, radian
     try:
@@ -133,11 +130,10 @@ def helper_radian_to_degree(f, unit):
 UFUNC_HELPERS[np.degrees] = helper_radian_to_degree
 UFUNC_HELPERS[np.rad2deg] = helper_radian_to_degree
 
-# ufuncs that require input in radians and give dimensionless output
 
+# ufuncs that require input in radians and give dimensionless output
 def helper_radian_to_dimensionless(f, unit):
     from .si import radian
-    from . import dimensionless_unscaled
     try:
         scale = unit.to(radian)
     except UnitsError:
@@ -153,8 +149,8 @@ UFUNC_HELPERS[np.cosh] = helper_radian_to_dimensionless
 UFUNC_HELPERS[np.sinh] = helper_radian_to_dimensionless
 UFUNC_HELPERS[np.tanh] = helper_radian_to_dimensionless
 
-# ufuncs that require dimensionless_unscaled input and return non-quantities
 
+# ufuncs that require dimensionless_unscaled input and return non-quantities
 def helper_dimensionless_to_none(f, unit):
     if not unit.is_unity():
         raise TypeError("Can only apply '{0}' function to "
@@ -175,8 +171,8 @@ UFUNC_HELPERS[np.divide] = helper_division
 UFUNC_HELPERS[np.true_divide] = helper_division
 UFUNC_HELPERS[np.floor_divide] = helper_division
 
+
 def helper_power(f, unit1, unit2):
-    from . import dimensionless_unscaled
     if unit2 is not None:
         try:
             scale2 = unit2.to(dimensionless_unscaled)
@@ -192,6 +188,7 @@ def helper_power(f, unit1, unit2):
 
 UFUNC_HELPERS[np.power] = helper_power
 
+
 def helper_ldexp(f, unit1, unit2):
     if unit2 is not None:
         raise TypeError("Cannot use ldexp with a quantity "
@@ -200,6 +197,7 @@ def helper_ldexp(f, unit1, unit2):
         return [1., 1.], unit1
 
 UFUNC_HELPERS[np.ldexp] = helper_ldexp
+
 
 def helper_copysign(f, unit1, unit2):
     # if first arg is not a quantity, just return plain array
@@ -210,8 +208,8 @@ def helper_copysign(f, unit1, unit2):
 
 UFUNC_HELPERS[np.copysign] = helper_copysign
 
+
 def helper_two_arg_dimensionless(f, unit1, unit2):
-    from . import dimensionless_unscaled
     try:
         scale1 = unit1.to(dimensionless_unscaled) if unit1 is not None else 1.
         scale2 = unit2.to(dimensionless_unscaled) if unit2 is not None else 1.
@@ -224,9 +222,8 @@ def helper_two_arg_dimensionless(f, unit1, unit2):
 UFUNC_HELPERS[np.logaddexp] = helper_two_arg_dimensionless
 UFUNC_HELPERS[np.logaddexp2] = helper_two_arg_dimensionless
 
-def find_scales(f, *units):
 
-    from . import dimensionless_unscaled
+def find_scales(f, *units):
 
     scales = [1., 1.]
     # no units for any input -- e.g., np.arctan2(a1, a2, out=q)
@@ -259,8 +256,8 @@ def find_scales(f, *units):
 
         return scales, units[fixed]
 
+
 def helper_twoarg_invariant(f, unit1, unit2):
-    from . import dimensionless_unscaled
     return find_scales(f, unit1, unit2)
 
 UFUNC_HELPERS[np.add] = helper_twoarg_invariant
@@ -275,6 +272,7 @@ UFUNC_HELPERS[np.remainder] = helper_twoarg_invariant
 UFUNC_HELPERS[np.mod] = helper_twoarg_invariant
 UFUNC_HELPERS[np.fmod] = helper_twoarg_invariant
 
+
 def helper_twoarg_comparison(f, unit1, unit2):
     scales, _ = find_scales(f, unit1, unit2)
     return scales, None
@@ -285,6 +283,7 @@ UFUNC_HELPERS[np.less] = helper_twoarg_comparison
 UFUNC_HELPERS[np.less_equal] = helper_twoarg_comparison
 UFUNC_HELPERS[np.not_equal] = helper_twoarg_comparison
 UFUNC_HELPERS[np.equal] = helper_twoarg_comparison
+
 
 def helper_twoarg_invtrig(f, unit1, unit2):
     from .si import radian

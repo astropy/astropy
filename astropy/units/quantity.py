@@ -16,7 +16,7 @@ import numpy as np
 
 # AstroPy
 from ..extern import six
-from .core import Unit, UnitBase, UnitsError
+from .core import Unit, dimensionless_unscaled, UnitBase, UnitsError
 from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
 
@@ -206,7 +206,6 @@ class Quantity(np.ndarray):
             if units[1] is None:
                 result_unit = result_unit ** args[1]
             else:
-                from . import dimensionless_unscaled
                 result_unit = result_unit ** args[1].to(dimensionless_unscaled)
 
         # We now prepare the output object
@@ -624,7 +623,6 @@ class Quantity(np.ndarray):
         return self.__rdiv__(other)
 
     def __divmod__(self, other):
-        from . import dimensionless_unscaled
         if isinstance(other, (six.string_types, UnitBase)):
             return (self / other, self.__quantity_instance__(
                     0, dimensionless_unscaled))
@@ -857,7 +855,6 @@ class Quantity(np.ndarray):
                                   "list of values with q.value.list()")
 
     def _to_own_unit(self, value, check_precision=True):
-        from . import dimensionless_unscaled
         try:
             value = value.to(self.unit).value
         except AttributeError:
