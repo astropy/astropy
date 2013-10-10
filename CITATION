@@ -1,0 +1,42 @@
+If you use Astropy for work/research presented in a publication (whether
+directly, or as a dependency to another package), please include the following
+acknowledgment:
+
+  This research made use of Astropy, a community-developed core Python package
+  for Astronomy (Astropy Collaboration, 2013).
+
+where (Astropy Collaboration, 2013) is a citation to this paper:
+
+  http://adsabs.harvard.edu/abs/2013A%26A...558A..33A
+
+We encourage you to also include citations to this paper in the main text
+wherever appropriate.
+
+A BibTeX entry for LaTeX users is
+
+@ARTICLE{2013A&A...558A..33A,
+   author = {{Astropy Collaboration} and {Robitaille}, T.~P. and {Tollerud}, E.~J. and 
+    {Greenfield}, P. and {Droettboom}, M. and {Bray}, E. and {Aldcroft}, T. and 
+    {Davis}, M. and {Ginsburg}, A. and {Price-Whelan}, A.~M. and 
+    {Kerzendorf}, W.~E. and {Conley}, A. and {Crighton}, N. and 
+    {Barbary}, K. and {Muna}, D. and {Ferguson}, H. and {Grollier}, F. and 
+    {Parikh}, M.~M. and {Nair}, P.~H. and {Unther}, H.~M. and {Deil}, C. and 
+    {Woillez}, J. and {Conseil}, S. and {Kramer}, R. and {Turner}, J.~E.~H. and 
+    {Singer}, L. and {Fox}, R. and {Weaver}, B.~A. and {Zabalza}, V. and 
+    {Edwards}, Z.~I. and {Azalee Bostroem}, K. and {Burke}, D.~J. and 
+    {Casey}, A.~R. and {Crawford}, S.~M. and {Dencheva}, N. and 
+    {Ely}, J. and {Jenness}, T. and {Labrie}, K. and {Lian Lim}, P. and 
+    {Pierfederici}, F. and {Pontzen}, A. and {Ptak}, A. and {Refsdal}, B. and 
+    {Servillat}, M. and {Streicher}, O.},
+    title = "{Astropy: A community Python package for astronomy}",
+  journal = {\aap},
+ keywords = {methods: data analysis, methods: miscellaneous, virtual observatory tools},
+     year = 2013,
+    month = oct,
+   volume = 558,
+      eid = {A33},
+    pages = {A33},
+      doi = {10.1051/0004-6361/201322068},
+   adsurl = {http://adsabs.harvard.edu/abs/2013A%26A...558A..33A},
+  adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
