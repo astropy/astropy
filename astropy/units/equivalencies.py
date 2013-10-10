@@ -47,35 +47,74 @@ def spectral():
     ]
 
 
-def spectral_density(sunit, sfactor):
+def spectral_density(wav):
     """
     Returns a list of equivalence pairs that handle spectral density
     with regard to wavelength and frequency.
+
+    Parameters
+    ----------
+    wav : Quantity
+        Quantity associated with values being converted
+        (e.g., wavelength or frequency).
+
     """
-    c_Aps = _si.c.value * 10 ** 10
+    c_Aps = _si.c.to(si.AA / si.s).value  # Angstrom/s
+    h_cgs = _si.h.cgs.value  # erg * s
+    hc = c_Aps * h_cgs
 
     fla = cgs.erg / si.angstrom / si.cm ** 2 / si.s
     fnu = cgs.erg / si.Hz / si.cm ** 2 / si.s
     nufnu = cgs.erg / si.cm ** 2 / si.s
     lafla = nufnu
+    photlam = astrophys.photon / (si.cm ** 2 * si.s * si.AA)
+    photnu = astrophys.photon / (si.cm ** 2 * si.s * si.Hz)
 
     def converter(x):
-        return x * (sunit.to(si.AA, sfactor, spectral()) ** 2 / c_Aps)
+        return x * (wav.to(si.AA, spectral()).value ** 2 / c_Aps)
 
     def iconverter(x):
-        return x / (sunit.to(si.AA, sfactor, spectral()) ** 2 / c_Aps)
+        return x / (wav.to(si.AA, spectral()).value ** 2 / c_Aps)
 
     def converter_fnu_nufnu(x):
-        return x * sunit.to(si.Hz, sfactor, spectral())
+        return x * wav.to(si.Hz, spectral()).value
 
     def iconverter_fnu_nufnu(x):
-        return x / sunit.to(si.Hz, sfactor, spectral())
+        return x / wav.to(si.Hz, spectral()).value
 
     def converter_fla_lafla(x):
-        return x * sunit.to(si.AA, sfactor, spectral())
+        return x * wav.to(si.AA, spectral()).value
 
     def iconverter_fla_lafla(x):
-        return x / sunit.to(si.AA, sfactor, spectral())
+        return x / wav.to(si.AA, spectral()).value
+
+    def converter_photlam_fla(x):
+        return hc * x / wav.to(si.AA, spectral()).value
+
+    def iconverter_photlam_fla(x):
+        return x * wav.to(si.AA, spectral()).value / hc
+
+    def converter_photlam_fnu(x):
+        return h_cgs * x * wav.to(si.AA, spectral()).value
+
+    def iconverter_photlam_fnu(x):
+        return x / (wav.to(si.AA, spectral()).value * h_cgs)
+
+    def converter_photlam_photnu(x):
+        return x * wav.to(si.AA, spectral()).value ** 2 / c_Aps
+
+    def iconverter_photlam_photnu(x):
+        return c_Aps * x / wav.to(si.AA, spectral()).value ** 2
+
+    converter_photnu_fnu = converter_photlam_fla
+
+    iconverter_photnu_fnu = iconverter_photlam_fla
+
+    def converter_photnu_fla(x):
+        return x * hc * c_Aps / wav.to(si.AA, spectral()).value ** 3
+
+    def iconverter_photnu_fla(x):
+        return x * wav.to(si.AA, spectral()).value ** 3 / (hc * c_Aps)
 
     return [
         (si.AA, fnu, converter, iconverter),
@@ -84,6 +123,11 @@ def spectral_density(sunit, sfactor):
         (fla, si.Hz, converter, iconverter),
         (fnu, nufnu, converter_fnu_nufnu, iconverter_fnu_nufnu),
         (fla, lafla, converter_fla_lafla, iconverter_fla_lafla),
+        (photlam, fla, converter_photlam_fla, iconverter_photlam_fla),
+        (photlam, fnu, converter_photlam_fnu, iconverter_photlam_fnu),
+        (photlam, photnu, converter_photlam_photnu, iconverter_photlam_photnu),
+        (photnu, fnu, converter_photnu_fnu, iconverter_photnu_fnu),
+        (photnu, fla, converter_photnu_fla, iconverter_photnu_fla)
     ]
 
 
@@ -99,7 +143,7 @@ def doppler_radio(rest):
     ----------
     rest : Quantity
         Any quantity supported by the standard spectral equivalencies
-        (wavelength, energy, frequency)
+        (wavelength, energy, frequency, wave number).
 
     References
     ----------
@@ -164,7 +208,7 @@ def doppler_optical(rest):
     ----------
     rest : Quantity
         Any quantity supported by the standard spectral equivalencies
-        (wavelength, energy, frequency)
+        (wavelength, energy, frequency, wave number).
 
     References
     ----------
@@ -230,7 +274,7 @@ def doppler_relativistic(rest):
     ----------
     rest : Quantity
         Any quantity supported by the standard spectral equivalencies
-        (wavelength, energy, frequency)
+        (wavelength, energy, frequency, wave number).
 
     References
     ----------

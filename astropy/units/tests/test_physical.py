@@ -36,3 +36,23 @@ def test_dimensionless():
 
 def test_angular_momentum():
     assert hbar.unit.physical_type == 'angular momentum'
+
+
+def test_flam():
+    flam = u.erg / (u.cm**2 * u.s * u.AA)
+    assert flam.physical_type == 'spectral flux density wav'
+
+
+def test_photlam():
+    photlam = u.photon / (u.cm ** 2 * u.s * u.AA)
+    assert photlam.physical_type == 'photon flux density wav'
+
+
+def test_photnu():
+    photnu = u.photon / (u.cm ** 2 * u.s * u.Hz)
+    assert photnu.physical_type == 'photon flux density'
+
+
+@raises(ValueError)
+def test_redundant_physical_type():
+    physical.def_physical_type(u.m, 'utter craziness')
