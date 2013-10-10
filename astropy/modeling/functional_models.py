@@ -174,23 +174,30 @@ class Gaussian2DModel(Parametric2DModel):
         c = 0.5 * ((np.sin(theta) / x_stddev) ** 2 +
                          (np.cos(theta) / y_stddev) ** 2)
 
-        d_a = np.sin(theta) * np.cos(theta) * (1 / x_stddev ** 2 - 1 / y_stddev ** 2)
-        d_b = np.cos(2 * theta) * (1 / y_stddev ** 2 - 1 / x_stddev ** 2)
-        d_c = -d_a
+        da_dtheta = np.sin(theta) * np.cos(theta) * (1/y_stddev**2 - 1/x_stddev**2)
+        da_dx_stddev = -np.cos(theta)**2/x_stddev**3
+        da_dy_stddev = -np.sin(theta)**2/y_stddev**3
+        db_dtheta = 0.5*np.cos(2*theta) * (1/x_stddev**2 - 1/y_stddev**2)
+        db_dx_stddev = -np.cos(theta)*np.sin(theta)/x_stddev**3
+        db_dy_stddev = np.cos(theta)*np.sin(theta)/y_stddev**3
+        dc_dtheta = np.cos(theta)*np.sin(theta)*(1/x_stddev**2 - 1/y_stddev**2)
+        dc_dx_stddev = -np.sin(theta)**2/x_stddev**3
+        dc_dy_stddev = -np.cos(theta)**2/y_stddev**3
 
         d_A = np.exp(- a * (x - x_mean) ** 2
                      - b * (x - x_mean) * (y - y_mean)
-                     - c * (y - y_mean) ** 2)
-        d_theta = amplitude * ((x - x_mean) ** 2 * d_a - (x - x_mean) *
-                               (y - y_mean) * d_b + (y - y_mean) ** 2 * d_c) * d_A
-        d_y_stddev = amplitude * ((x - x_mean) ** 2 * np.sin(theta) ** 2
-                    + (x - x_mean) * (y - y_mean) * np.sin(2 * theta)
-                    + (y - y_mean) ** 2 * np.cos(theta) ** 2) * d_A / y_stddev**3
-        d_x_stddev = amplitude * ((x - x_mean) ** 2 * np.cos(theta) ** 2
-                    - (x - x_mean) * (y - y_mean) * np.sin(2 * theta)
-                    + (y - y_mean) ** 2 * np.sin(theta) ** 2) * d_A / x_stddev**3
-        d_y_mean = amplitude * ((x - x_mean) * b - 2 * (y - y_mean) * c) * d_A
-        d_x_mean = amplitude * ((y - y_mean) * b - 2 * (x - x_mean) * a) * d_A
+                     - c * (y - y_mean) ** 2) 
+        d_theta = amplitude * (-(x - x_mean) ** 2 * da_dtheta - (x - x_mean) *
+                               (y - y_mean) * db_dtheta - (y - y_mean) ** 2 * dc_dtheta) * d_A
+        
+        d_x_stddev = amplitude * (-(x - x_mean) ** 2 *da_dx_stddev -
+                                  (x - x_mean) * (y - y_mean) * db_dx_stddev
+                                  - (y - y_mean) ** 2 * dc_dx_stddev) * d_A
+        d_y_stddev = amplitude * (-(x - x_mean) ** 2 *da_dy_stddev -
+                                  (x - x_mean) * (y - y_mean) * db_dy_stddev
+                                  - (y - y_mean) ** 2 * dc_dy_stddev) * d_A
+        d_y_mean = amplitude * (+(x - x_mean) * b + 2 * (y - y_mean) * c) * d_A
+        d_x_mean = amplitude * ((y - y_mean) * b + 2 * (x - x_mean) * a) * d_A
         return [d_A, d_x_mean, d_y_mean, d_x_stddev, d_y_stddev, d_theta]
 
 
@@ -324,7 +331,7 @@ class PowerLaw1DModel(Parametric1DModel):
         Model derivative PowerLaw1D.
         """
         d_scale = x ** (-alpha)
-        d_alpha = scale * d_scale * np.log(x)
+        d_alpha = -scale * d_scale * np.log(x)
         return [d_scale, d_alpha]
 
 
