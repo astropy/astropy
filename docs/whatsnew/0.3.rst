@@ -89,10 +89,12 @@ or dimensionless quantities::
 
 Deprecated API
 ``````````````
-
 The exception `astropy.units.UnitsException` has been renamed to
 `astropy.units.UnitsError` to be more consistent with the naming of
 Python built-in exceptions.
+
+The :func:`~astropy.units.equivalencies.spectral_density` equivalencies now
+take only `~astropy.units.quantity.Quantity` instead of ``(sunit, sfactor)``.
 
 Coordinates
 -----------
