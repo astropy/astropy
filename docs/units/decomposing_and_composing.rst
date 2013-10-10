@@ -34,8 +34,7 @@ may be multiple equally good results, a list is always returned::
 
   >>> x = u.Ry.decompose()
   >>> x.compose()
-  [Unit("1 Ry"),
-   Unit("5.21002e-22 kcal"),
+  [Unit("Ry"),
    Unit("2.17987e-18 J"),
    Unit("2.17987e-11 erg"),
    Unit("13.6057 eV")]
@@ -43,16 +42,7 @@ may be multiple equally good results, a list is always returned::
 Some other interesting examples::
 
    >>> (u.s ** -1).compose()
-   [Unit("Hz"),
-    Unit("1 / s"),
-    Unit("60 / min"),
-    Unit("3600 / h"),
-    Unit("86164.1 / sday"),
-    Unit("86400 / d"),
-    Unit("604800 / wk"),
-    Unit("1.2096e+06 / fortnight"),
-    Unit("3.15576e+07 / yr"),
-    Unit("3.15576e+07 / a")]
+   [Unit("Bq"), Unit("Hz"), Unit("3.7e+10 Ci")]
 
 Composition can be combined with :ref:`unit_equivalencies`::
 
@@ -60,26 +50,19 @@ Composition can be combined with :ref:`unit_equivalencies`::
    [Unit("m"),
     Unit("Hz"),
     Unit("J"),
-    Unit("1 / s"),
+    Unit("Bq"),
     Unit("3.24078e-17 pc"),
     Unit("1.057e-16 lyr"),
     Unit("6.68459e-12 AU"),
     Unit("1.4378e-09 solRad"),
-    Unit("0.000621371 mi"),
+    Unit("0.01 k"),
     Unit("100 cm"),
     Unit("1e+06 micron"),
     Unit("1e+07 erg"),
     Unit("1e+10 Angstrom"),
+    Unit("3.7e+10 Ci"),
     Unit("4.58743e+17 Ry"),
-    Unit("6.24151e+18 eV"),
-    Unit("60 / min"),
-    Unit("3600 / h"),
-    Unit("86164.1 / sday"),
-    Unit("86400 / d"),
-    Unit("604800 / wk"),
-    Unit("1.2096e+06 / fortnight"),
-    Unit("3.15576e+07 / a"),
-    Unit("3.15576e+07 / yr")]
+    Unit("6.24151e+18 eV")]
 
 Obviously a name doesn't exist for every arbitrary derived unit
 imaginable.  In that case, the system will do its best to reduce the
