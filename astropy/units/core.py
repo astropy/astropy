@@ -434,13 +434,14 @@ class UnitBase(object):
         # Strictly speaking, we should be using old-style division here.
         # However, I think it's less surprising for this to behave the
         # same way whether __future__ division is being used or not
+        if isinstance(m, six.string_types):
+            m = Unit(m)
+
         from .quantity import Quantity
         if isinstance(m, UnitBase):
             return CompositeUnit(1, [self, m], [1, -1])._simplify()
         elif isinstance(m, Quantity):
             return Quantity(1, self) / m
-        elif isinstance(m, six.string_types):
-            return self / Unit(m)
         else:
             return Quantity(1. / m, self)
 
@@ -459,12 +460,13 @@ class UnitBase(object):
 
     def __mul__(self, m):
         from .quantity import Quantity
+        if isinstance(m, six.string_types):
+            m = Unit(m)
+
         if isinstance(m, UnitBase):
             return CompositeUnit(1, [self, m], [1, 1])._simplify()
         elif isinstance(m, Quantity):
             return Quantity(1, self) * m
-        elif isinstance(m, six.string_types):
-            return self * Unit(m)
         else:
             return Quantity(m, self)
 
