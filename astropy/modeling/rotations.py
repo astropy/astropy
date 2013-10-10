@@ -69,7 +69,7 @@ class RotateNative2Celestial(Model):
 
     @psi.setter
     def psi(self, val):
-        self._psi.value = np.deg2rad(va)
+        self._psi.value = np.deg2rad(val)
 
     def inverse(self):
         return RotateCelestial2Native(self.phi, self.theta, self.psi)
@@ -77,16 +77,15 @@ class RotateNative2Celestial(Model):
     def __call__(self, nphi, ntheta):
         nphi = np.deg2rad(nphi)
         ntheta = np.deg2rad(ntheta)
-        calpha = np.rad2deg(self._phi + np.arctan2(-np.cos(ntheta) *
-                                                   np.sin(nphi - self.psi),
-                                                   np.sin(
-                                                   ntheta) * np.cos(
-                                                   self.theta) - np.cos(
-                                                   ntheta)
-                                                   * np.sin(self.theta) * np.cos(nphi - self.psi)))
-        cdelta = np.rad2deg(np.arcsin(np.sin(ntheta) * np.sin(self.theta) +
-                                      np.cos(ntheta) * np.cos(self.theta) *
-                                      np.cos(nphi - self.psi)))
+        calpha = np.rad2deg(self._phi.value + np.arctan2(-np.cos(ntheta) *
+                                                   np.sin(nphi - self._psi.value),
+                                                   np.sin(ntheta) * np.cos(self._theta.value) -
+                                                   np.cos( ntheta) * 
+                                                   np.sin(self._theta.value) *
+                                                   np.cos(nphi - self._psi.value)))
+        cdelta = np.rad2deg(np.arcsin(np.sin(ntheta) * np.sin(self._theta.value) +
+                                      np.cos(ntheta) * np.cos(self._theta.value) *
+                                      np.cos(nphi - self._psi.value)))
         ind = calpha < 0
         if isinstance(ind, np.ndarray):
             calpha[ind] += 360
@@ -146,13 +145,14 @@ class RotateCelestial2Native(Model):
     def __call__(self, calpha, cdelta):
         calpha = np.deg2rad(calpha)
         cdelta = np.deg2rad(cdelta)
-        nphi = np.rad2deg(self.psi + np.arctan2(-np.cos(cdelta) *
-                                                 np.sin(calpha - self.phi),
-                                                 np.sin(cdelta) * np.cos(self.theta) - np.cos(cdelta) *
-                                                 np.sin(self.theta) * np.cos(calpha - self.phi)))
-        ntheta = np.rad2deg(np.arcsin(np.sin(cdelta) * np.sin(self.theta) +
-                                      np.cos(cdelta) * np.cos(self.theta) *
-                                      np.cos(calpha - self.phi)))
+        nphi = np.rad2deg(self._psi.value + np.arctan2(-np.cos(cdelta) *
+                                                       np.sin(calpha - self._phi.value),
+                                                       np.sin(cdelta) * np.cos(self._theta.value) -
+                                                       np.cos(cdelta) * np.sin(self._theta.value) *
+                                                       np.cos(calpha - self._phi.value)))
+        ntheta = np.rad2deg(np.arcsin(np.sin(cdelta) * np.sin(self._theta.value) +
+                                      np.cos(cdelta) * np.cos(self._theta.value) *
+                                      np.cos(calpha - self._phi.value)))
         ind = nphi > 180
         if isinstance(ind, np.ndarray):
             nphi[ind] -= 360
@@ -193,7 +193,7 @@ class MatrixRotation2D(Model):
             super(MatrixRotation2D, self).__init__(param_names=[], n_inputs=1,
                                                    n_outputs=1, param_dim=1)
             self.param_names = ['angle']
-            self._rotmat = Parameter('rotmat', self._compute_matrix(angle),
+            self._rotmat = Parameter('rotmat', self._compute_matrix(self._angle.value),
                                      self, 1)
         self._n_inputs = self._rotmat[0].shape[0]
         self._n_outputs = self.n_inputs
