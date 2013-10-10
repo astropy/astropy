@@ -321,6 +321,14 @@ class Model(object):
         else:
             raise InputParameterError("Unrecognized mode {0}".format(mode))
 
+    def __deepcopy__(self):
+        parameters = self.parameters[:]
+
+        self.__class__(*parameters, param_dim=self.param_dim)
+
+    def copy(self):
+        return self.__deepcopy__()
+
     @abc.abstractmethod
     def __call__(self):
         raise NotImplementedError("Subclasses should implement this")
