@@ -29,16 +29,21 @@ def parallax():
 def spectral():
     """
     Returns a list of equivalence pairs that handle spectral
-    wavelength, frequency, and energy equivalences.
+    wavelength, wave number, frequency, and energy equivalences.
 
-    Allows conversions between wavelength units, frequency units and
-    energy units as they relate to light.
+    Allows conversions between wavelength units, wave number units,
+    frequency units, and energy units as they relate to light.
+
     """
-
+    hc = _si.h.value * _si.c.value
+    inv_m = si.m ** -1
     return [
         (si.m, si.Hz, lambda x: _si.c.value / x),
-        (si.m, si.J, lambda x: (_si.c.value * _si.h.value) / x),
-        (si.Hz, si.J, lambda x: _si.h.value * x)
+        (si.m, si.J, lambda x: hc / x),
+        (si.m, inv_m, lambda x: 1.0 / x),
+        (si.Hz, si.J, lambda x: _si.h.value * x, lambda x: x / _si.h.value),
+        (si.Hz, inv_m, lambda x: x / _si.c.value, lambda x: _si.c.value * x),
+        (si.J, inv_m, lambda x: x / hc, lambda x: hc * x)
     ]
 
 
@@ -87,7 +92,7 @@ def doppler_radio(rest):
     Return the equivalency pairs for the radio convention for velocity.
 
     The radio convention for the relation between velocity and frequency is:
-    
+
     :math:`V = c \frac{f_0 - f}{f_0}  ;  f(V) = f_0 ( 1 - V/c )`
 
     Parameters
@@ -294,10 +299,10 @@ def mass_energy():
 
     return [(si.kg, si.J, lambda x: x * _si.c.value ** 2,
              lambda x: x / _si.c.value ** 2),
-            (si.kg / si.m ** 2, si.J / si.m ** 2 , 
+            (si.kg / si.m ** 2, si.J / si.m ** 2 ,
              lambda x: x * _si.c.value ** 2,
              lambda x: x / _si.c.value ** 2),
-            (si.kg / si.m ** 3, si.J / si.m ** 3 , 
+            (si.kg / si.m ** 3, si.J / si.m ** 3 ,
              lambda x: x * _si.c.value ** 2,
              lambda x: x / _si.c.value ** 2),
             (si.kg / si.s, si.J / si.s , lambda x: x * _si.c.value ** 2,

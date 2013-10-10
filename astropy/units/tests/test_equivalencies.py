@@ -189,10 +189,29 @@ def test_spectral2():
     c = u.AA.to(u.J, 1, u.spectral())
     assert_allclose(b, c)
 
+    c = u.J.to(u.Hz, b, u.spectral())
+    assert_allclose(a, c)
+
 
 def test_spectral3():
     a = u.nm.to(u.Hz, [1000, 2000], u.spectral())
     assert_allclose(a, [2.99792458e+14, 1.49896229e+14])
+
+
+@pytest.mark.parametrize(
+    ('in_val', 'in_unit'),
+    [([0.1, 5000.0, 10000.0], u.AA),
+     ([2.99792458e+19, 5.99584916e+14, 2.99792458e+14], u.Hz),
+     ([1.98644568e-14, 3.97289137e-19, 1.98644568e-19], u.J)])
+def test_spectral4(in_val, in_unit):
+    """Wave number conversion w.r.t. wavelength, freq, and energy."""
+    # Forward
+    a = in_unit.to(u.micron ** -1, in_val, u.spectral())
+    assert_allclose(a, [1e+5, 2.0, 1.0])
+
+    # Backward
+    b = (u.micron ** -1).to(in_unit, [1e+5, 2.0, 1.0], u.spectral())
+    assert_allclose(b, in_val)
 
 
 def test_spectraldensity():
@@ -257,7 +276,7 @@ def test_equivalent_units2():
     units = set(u.Hz.find_equivalent_units(u.spectral()))
     match = set(
         [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr,
-         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci])
+         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k])
     assert units == match
 
     from .. import imperial
@@ -268,13 +287,13 @@ def test_equivalent_units2():
              imperial.cal, u.cm, u.eV, u.erg, imperial.ft,
              imperial.inch, imperial.kcal, u.lyr, u.m, imperial.mi,
              u.micron, u.pc, u.solRad, imperial.yd, u.Bq, u.Ci,
-             imperial.nmi])
+             imperial.nmi, u.k])
         assert units == match
 
     units = set(u.Hz.find_equivalent_units(u.spectral()))
     match = set(
         [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr,
-         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci])
+         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k])
     assert units == match
 
 
