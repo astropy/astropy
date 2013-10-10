@@ -769,7 +769,7 @@ def test_quantity_pickelability():
     q2 = pickle.loads(pickle.dumps(q1))
 
     assert np.all(q1.value == q2.value)
-    assert q1.unit is q2.unit
+    assert q1.unit == q2.unit
 
 
 def test_quantity_from_string():

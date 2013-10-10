@@ -153,6 +153,7 @@ def test_unknown_unit3():
         unit5 = u.Unit(None)
 
 
+@pytest.mark.xfail  # see https://github.com/astropy/astropy/issues/1557
 @raises(TypeError)
 def test_invalid_scale():
     x = ['a', 'b', 'c'] * u.m
