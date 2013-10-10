@@ -29,7 +29,8 @@ from ..utils.data_info import ParentDtypeInfo
 from .. import config as _config
 
 
-__all__ = ["Quantity", "SpecificTypeQuantity", "QuantityInfo"]
+__all__ = ["Quantity", "SpecificTypeQuantity", "QuantityInfo",
+           "MaskedQuantity"]
 
 
 # We don't want to run doctests in the docstrings we inherit from Numpy
@@ -626,7 +627,7 @@ class Quantity(np.ndarray):
 
                 # take array view to which output can be written without
                 # getting back here
-                obj_array = obj.view(np.ndarray)
+                obj_array = obj._array_base
 
                 # Find out which ufunc was called and with which inputs
                 function = context[0]
@@ -670,7 +671,7 @@ class Quantity(np.ndarray):
                     obj = self._new_view(out, result_unit)
 
             if result_unit is None:  # return a plain array
-                return obj.view(np.ndarray)
+                return obj._array_base
             elif obj is self:  # all OK now, so set unit.
                 obj._set_unit(result_unit)
                 return obj
@@ -778,6 +779,10 @@ class Quantity(np.ndarray):
 
         self._unit = unit
 
+    @property
+    def _array_base(self):
+        return self.view(np.ndarray)
+
     def __reduce__(self):
         # patch to pickle Quantity objects (ndarray subclasses), see
         # http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
@@ -826,7 +831,7 @@ class Quantity(np.ndarray):
     @property
     def value(self):
         """ The numerical value of this quantity. """
-        value = self.view(np.ndarray)
+        value = self._array_base
         if self.shape:
             return value
         else:
@@ -1037,8 +1042,7 @@ class Quantity(np.ndarray):
         # In numpy 1.13, divmod goes via a ufunc and thus works without change.
         def __divmod__(self, other):
             other_value = self._to_own_unit(other)
-            result_tuple = divmod(self.value, other_value)
-
+            result_tuple = divmod(self._array_base, other_value)
             return (self._new_view(result_tuple[0], dimensionless_unscaled),
                     self._new_view(result_tuple[1]))
 
@@ -1098,7 +1102,7 @@ class Quantity(np.ndarray):
         # to be the case if we're part of a table).
         if not self.isscalar and 'info' in self.__dict__:
             self.info.adjust_indices(i, value, len(self))
-        self.view(np.ndarray).__setitem__(i, self._to_own_unit(value))
+        self._array_base.__setitem__(i, self._to_own_unit(value))
 
     if six.PY2:  # don't fall through to ndarray.__setslice__
         def __setslice__(self, i, j, value):
@@ -1173,7 +1177,7 @@ class Quantity(np.ndarray):
 
     def __repr__(self):
         prefixstr = '<' + self.__class__.__name__ + ' '
-        arrstr = np.array2string(self.view(np.ndarray), separator=',',
+        arrstr = np.array2string(self._array_base, separator=',',
                                  prefix=prefixstr)
         return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)
 
@@ -1341,8 +1345,8 @@ class Quantity(np.ndarray):
         if len(args) == 0:
             raise ValueError("itemset must have at least one argument")
 
-        self.view(np.ndarray).itemset(*(args[:-1] +
-                                        (self._to_own_unit(args[-1]),)))
+        self._array_base.itemset(*(args[:-1] +
+                                   (self._to_own_unit(args[-1]),)))
 
     def tostring(self, order='C'):
         raise NotImplementedError("cannot write Quantities to string.  Write "
@@ -1363,7 +1367,7 @@ class Quantity(np.ndarray):
     # astype, byteswap, copy, view, getfield, setflags OK as is
 
     def fill(self, value):
-        self.view(np.ndarray).fill(self._to_own_unit(value))
+        self._array_base.fill(self._to_own_unit(value))
 
     # Shape manipulation: resize cannot be done (does not own data), but
     # shape, transpose, swapaxes, flatten, ravel, squeeze all OK.  Only
@@ -1388,7 +1392,7 @@ class Quantity(np.ndarray):
     # Item selection and manipulation
     # take, repeat, sort, compress, diagonal OK
     def put(self, indices, values, mode='raise'):
-        self.view(np.ndarray).put(indices, self._to_own_unit(values), mode)
+        self._array_base.put(indices, self._to_own_unit(values), mode)
 
     def choose(self, choices, out=None, mode='raise'):
         raise NotImplementedError("cannot choose based on quantity.  Choose "
@@ -1396,7 +1400,7 @@ class Quantity(np.ndarray):
 
     # ensure we do not return indices as quantities
     def argsort(self, axis=-1, kind='quicksort', order=None):
-        return self.view(np.ndarray).argsort(axis=axis, kind=kind, order=order)
+        return self._array_base.argsort(axis=axis, kind=kind, order=order)
 
     def searchsorted(self, v, *args, **kwargs):
         return np.searchsorted(np.array(self),
@@ -1404,10 +1408,10 @@ class Quantity(np.ndarray):
                                *args, **kwargs)  # avoid numpy 1.6 problem
 
     def argmax(self, axis=None, out=None):
-        return self.view(np.ndarray).argmax(axis, out=out)
+        return self._array_base.argmax(axis, out=out)
 
     def argmin(self, axis=None, out=None):
-        return self.view(np.ndarray).argmin(axis, out=out)
+        return self._array_base.argmin(axis, out=out)
 
     # Calculation -- override ndarray methods to take into account units.
     # We use the corresponding numpy functions to evaluate the results, since
@@ -1635,3 +1639,109 @@ class SpecificTypeQuantity(Quantity):
                  ", so cannot set it to '{0}'.".format(unit)))
 
         super(SpecificTypeQuantity, self)._set_unit(unit)
+
+
+class QuantityData(Quantity):
+    # on purpose, break ndarray view -> always stay a Quantity
+    def view(self, cls):
+        return super(QuantityData,
+                     self).view(self, Quantity if cls is np.ndarray else cls)
+
+    @property
+    def _array_base(self):
+        return super(QuantityData, self).view(self, np.ndarray)
+
+    def __repr__(self):
+        return 'Quantity('+str(self)+')'
+
+
+class MaskedQuantity(Quantity, np.ma.MaskedArray):
+
+    _array_class = np.ma.MaskedArray
+
+    _mask = np.ma.nomask
+
+    _hardmask = False
+
+    def __new__(cls, value, unit=None, mask=None, fill_value=None,
+                dtype=None, equivalencies=[],
+                copy=True):
+
+        self = super(MaskedQuantity, cls).__new__(
+            cls, value, unit, dtype=dtype, equivalencies=equivalencies,
+            copy=copy)
+
+        if mask is None:
+            self.mask = getattr(value, 'mask', np.ma.nomask)
+        else:
+            self.mask = mask
+
+        if fill_value is None:
+            self._fill_value = getattr(value, 'fill_value', None)
+        else:
+            self._fill_value = fill_value
+
+        self._baseclass = Quantity
+
+        return self
+
+    # def __repr__(self):
+    #     prefixstr = '<' + self.__class__.__name__ + ' '
+    #     arrstr = self.value.__str__()
+    #     if self.unit is None:
+    #         unitstr = _UNIT_NOT_INITIALISED
+    #     else:
+    #         unitstr = self.unit.to_string()
+
+    #     return prefixstr + arrstr + ' ' + unitstr + '>'
+
+    def __repr__(self):
+        return np.ma.MaskedArray.__repr__(self)
+
+    def __quantity_instance__(self, val, unit, **kwargs):
+        return MaskedQuantity(val, unit, **kwargs)
+
+    def __quantity_view__(self, obj, unit):
+        return obj.view(MaskedQuantity)
+
+    @property
+    def _array_base(self):
+        output = self.view(np.ma.MaskedArray)
+        output._baseclass = np.ndarray
+        return output
+
+    @property
+    def value(self):
+        """ The numerical value of this quantity. """
+        value = self._array_base
+        value._baseclass = np.ndarray
+        if self.shape:
+            return value
+        else:
+            return value.item()
+
+    def __array_prepare__(self, obj, context=None):
+        # print("array prepare", obj, context)
+        return super(MaskedQuantity, self).__array_prepare__(obj, context)
+
+    def __array_wrap__(self, obj, context=None):
+        # print("array wrap", obj, context)
+        if context is not None:
+            obj = Quantity.__array_wrap__(self, obj, context)
+            obj = np.ma.MaskedArray.__array_wrap__(self, obj, context)
+            if obj._unit is None:
+                return obj._array_base
+
+        return obj
+
+    def __array_finalize__(self, obj):
+        # print("array finalize", obj.__repr__())
+        np.ma.MaskedArray.__array_finalize__(self, obj)
+        if isinstance(obj, Quantity):
+            self._unit = obj._unit
+            self._baseclass = Quantity
+
+    @property
+    def _data(self):
+        # help break getdata(subok=False)
+        return self.view(QuantityData)
