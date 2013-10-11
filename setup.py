@@ -72,7 +72,7 @@ for hook in [('prereleaser', 'middle'), ('releaser', 'middle'),
 
 
 setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
-
+install_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
 # Avoid installing setup_requires dependencies if the user just
 # queries for information
 if is_distutils_display_option():
@@ -85,7 +85,7 @@ setup(name=NAME,
       scripts=scripts,
       requires=['numpy'],  # scipy not required, but strongly recommended
       install_requires=setup_requires,
-      setup_requires=setup_requires,
+      setup_requires=install_requires,
       provides=[NAME],
       author='The Astropy Developers',
       author_email='astropy.team@gmail.com',
