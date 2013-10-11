@@ -20,7 +20,7 @@ The code below shows the basics of modifying a table and its data.
 **Make a table**
 ::
 
-  >>> from astropy.table import Table, Column
+  >>> from astropy.table import Table
   >>> import numpy as np
   >>> arr = np.arange(15).reshape(5, 3)
   >>> t = Table(arr, names=('a', 'b', 'c'), meta={'keywords': {'key1': 'val1'}})
@@ -49,12 +49,23 @@ For more explicit control the :func:`~astropy.table.table.add_column` and
 columns to a table.  In both cases the new columns must be specified as |Column| or
 |MaskedColumn| objects with the ``name`` defined::
 
+  >>> from astropy.table import Column
   >>> aa = Column(np.arange(5), name='aa')
   >>> t.add_column(aa, index=0)  # Insert before the first table column
 
   # Make a new table with the same number of rows and add columns to original table
   >>> t2 = Table(np.arange(25).reshape(5, 5), names=('e', 'f', 'g', 'h', 'i'))
   >>> t.add_columns(t2.columns.values())
+
+Finally, columns can also be added from
+:class:`~astropy.unit.quantity.Quantity` objects, which automatically sets the
+``.unit`` attribute on the column:
+
+  >>> from astropy import units as u
+  >>> t['d'] = [1, 2, 3] * u.m
+  >>> t['d']
+  <Column name='d' unit='m' format=None description=None>
+  array([1, 2, 3])
 
 **Remove columns**
 ::
