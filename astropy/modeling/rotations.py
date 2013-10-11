@@ -86,9 +86,9 @@ class RotateNative2Celestial(EulerAngleRotation):
         ind = calpha < 0
         if isinstance(ind, np.ndarray):
             calpha[ind] += 360
-        else:
-            if ind:
-                calpha += 360
+        elif ind:
+            calpha += 360
+
         return calpha, cdelta
 
 
@@ -127,9 +127,8 @@ class RotateCelestial2Native(EulerAngleRotation):
         ind = nphi > 180
         if isinstance(ind, np.ndarray):
             nphi[ind] -= 360
-        else:
-            if ind:
-                nphi -= 360
+        elif ind:
+            nphi -= 360
 
         return nphi, ntheta
 
