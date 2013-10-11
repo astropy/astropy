@@ -77,9 +77,9 @@ def test_transform_decos():
     c3._make_cart()
     c4 = c3.transform_to(TestCoo2)
 
-    npt.assert_almost_equal(c4.x.value, 2)
-    npt.assert_almost_equal(c4.y.value, 1)
-    npt.assert_almost_equal(c4.z.value, 2)
+    npt.assert_almost_equal(c4.cartesian.x.value, 2)
+    npt.assert_almost_equal(c4.cartesian.y.value, 1)
+    npt.assert_almost_equal(c4.cartesian.z.value, 2)
 
 
 def test_coo_alias():

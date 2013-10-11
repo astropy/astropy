@@ -66,11 +66,11 @@ coordinates::
     >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917,
                                   unit=(u.degree, u.degree),
                                   distance=coord.Distance(770, u.kpc))
-    >>> c.x
+    >>> c.cartesian.x
     568.7128654235232
-    >>> c.y
+    >>> c.cartesian.y
     107.3008974042025
-    >>> c.z
+    >>> c.cartesian.z
     507.88994291875713
 
 The `Coordinates` subpackage also provides a quick way to get

@@ -667,7 +667,7 @@ def test_distances():
     cartesian coordinates.
     '''
 
-    (x, y, z) = (c2.x, c2.y, c2.z)
+    (x, y, z) = (c2.cartesian.x, c2.cartesian.y, c2.cartesian.z)
     #this only computes the CartesianPoints *once*, and then caches it
     #note that the x/y/z are Quantity objects
     assert isinstance(x, u.Quantity)
@@ -691,9 +691,9 @@ def test_distances():
     # system
     csum = ICRSCoordinates(c1.cartesian + c2.cartesian)
 
-    npt.assert_almost_equal(csum.x.value, -8.12016610185)
-    npt.assert_almost_equal(csum.y.value, 3.19380597435)
-    npt.assert_almost_equal(csum.z.value, -8.2294483707)
+    npt.assert_almost_equal(csum.cartesian.x.value, -8.12016610185)
+    npt.assert_almost_equal(csum.cartesian.y.value, 3.19380597435)
+    npt.assert_almost_equal(csum.cartesian.z.value, -8.2294483707)
     npt.assert_almost_equal(csum.ra.degree, 158.529401774)
     npt.assert_almost_equal(csum.dec.degree, -43.3235825777)
     npt.assert_almost_equal(csum.distance.kpc, 11.9942200501)

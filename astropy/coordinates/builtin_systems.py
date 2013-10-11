@@ -186,7 +186,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
 
         pmat = precession_matrix_Capitaine(self._equinox, newequinox)
 
-        v = [self.x.value, self.y.value, self.z.value]
+        v = [self.cartesian.x.value, self.cartesian.y.value, self.cartesian.z.value]
         x, y, z = np.dot(pmat.A, v)
 
         if self.distance is not None:
@@ -282,7 +282,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
 
         pmat = _precession_matrix_besselian(self._equinox.byear, newequinox.byear)
 
-        v = [self.x.value, self.y.value, self.z.value]
+        v = [self.cartesian.x.value, self.cartesian.y.value, self.cartesian.z.value]
         x, y, z = np.dot(pmat.A, v)
 
         if self.distance is not None:
@@ -378,7 +378,7 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
 
         pmat = _precession_matrix_besselian(self._equinox.byear, newequinox.byear)
 
-        v = [self.x.value, self.y.value, self.z.value]
+        v = [self.cartesian.x.value, self.cartesian.y.value, self.cartesian.z.value]
         x, y, z = np.dot(pmat.A, v)
 
         if self.distance is not None:
@@ -605,7 +605,7 @@ def fk4_e_terms(equinox):
 def fk4_to_fk4_no_e(fk4c):
 
     # Extract cartesian vector
-    r = np.array([fk4c.x.value, fk4c.y.value, fk4c.z.value])
+    r = np.array([fk4c.cartesian.x.value, fk4c.cartesian.y.value, fk4c.cartesian.z.value])
 
     # Find distance (for re-normalization)
     d_orig = np.sqrt(np.sum(r ** 2))
@@ -630,7 +630,7 @@ def fk4_to_fk4_no_e(fk4c):
 def fk4_no_e_to_fk4(fk4c):
 
     # Extract cartesian vector
-    r = np.array([fk4c.x.value, fk4c.y.value, fk4c.z.value])
+    r = np.array([fk4c.cartesian.x.value, fk4c.cartesian.y.value, fk4c.cartesian.z.value])
 
     # Find distance (for re-normalization)
     d_orig = np.sqrt(np.sum(r ** 2))

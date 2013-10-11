@@ -30,11 +30,11 @@ If a `distance` is present, the coordinate can be converted into Cartesian
 coordinates using the `x`/`y`/`z` attributes (which are 
 `~astropy.units.Quantity` objects)::
 
-    >>> c.x
+    >>> c.cartesian.x
     <Quantity 568.712888216568 kpc>
-    >>> c.y
+    >>> c.cartesian.y
     <Quantity 107.30093596881035 kpc>
-    >>> c.z
+    >>> c.cartesian.z
     <Quantity 507.8899092486349 kpc>
 
 If a `distance` is not present, the Cartesian coordinates are still
@@ -42,11 +42,11 @@ available, but the point is interpreted as lying on the (dimensionless)
 unit sphere::
 
     >>> c2 = ICRSCoordinates('00h42m44.3s +41d16m9s')
-    >>> c2.x
+    >>> c2.cartesian.x
     <Quantity 0.7385881665150235 >
-    >>> c2.y
+    >>> c2.cartesian.y
     <Quantity 0.13935186489455892 >
-    >>> c2.z
+    >>> c2.cartesian.z
     <Quantity 0.6595972847384869 >
 
 
@@ -63,11 +63,11 @@ additional capabilities like arithmetic operations::
     >>> cp = c.cartesian
     >>> cp
     <CartesianPoints [ 568.71288822, 107.30093597, 507.88990925] kpc>
-    >>> cp.x
+    >>> cp.cartesian.x
     <Quantity 568.712888216568 kpc>
-    >>> cp.y
+    >>> cp.cartesian.y
     <Quantity 107.30093596881035 kpc>
-    >>> cp.z
+    >>> cp.cartesian.z
     <Quantity 507.8899092486349 kpc>
     >>> cp.unit
     Unit("kpc")

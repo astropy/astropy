@@ -24,13 +24,13 @@ def test_distance_change():
 
     c.distance = Distance(1, unit=u.kpc)
 
-    oldx = c.x.value
+    oldx = c.cartesian.x.value
     assert (oldx - 0.35284083171901953) < 1e-10
 
     #now x should increase when the distance increases
     c.distance = Distance(2, unit=u.kpc)
 
-    assert c.x.value == oldx * 2
+    assert c.cartesian.x.value == oldx * 2
 
 
 def test_distance_is_quantity():
