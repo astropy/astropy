@@ -1708,15 +1708,15 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
     return actual.value, desired.value, rtol.value, atol.value
 
 
-class QuantityData(Quantity):
+class _QuantityData(Quantity):
     # on purpose, break ndarray view -> always stay a Quantity
     def view(self, cls):
-        return super(QuantityData,
+        return super(_QuantityData,
                      self).view(self, Quantity if cls is np.ndarray else cls)
 
     @property
     def _array_base(self):
-        return super(QuantityData, self).view(self, np.ndarray)
+        return super(_QuantityData, self).view(self, np.ndarray)
 
     def __repr__(self):
         return 'Quantity('+str(self)+')'
@@ -1768,8 +1768,11 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
     def __quantity_instance__(self, val, unit, **kwargs):
         return MaskedQuantity(val, unit, **kwargs)
 
-    def __quantity_view__(self, obj, unit):
-        return obj.view(MaskedQuantity)
+    def __quantity_view__(self, obj, unit, mask=np.ma.nomask):
+        obj = obj.view(MaskedQuantity)
+        if mask is not np.ma.nomask:
+            obj.mask = mask
+        return obj
 
     @property
     def _array_base(self):
@@ -1782,6 +1785,9 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
         """ The numerical value of this quantity. """
         value = self._array_base
         value._baseclass = np.ndarray
+        # The following is necessary because of a bug in Numpy, which was
+        # fixed in numpy/numpy#2703. The fix should be included in Numpy 1.8.0.
+        value.fill_value = self.fill_value
         if self.shape:
             return value
         else:
@@ -1792,7 +1798,7 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
         return super(MaskedQuantity, self).__array_prepare__(obj, context)
 
     def __array_wrap__(self, obj, context=None):
-        # print("array wrap", obj, context)
+        # print("MQ array wrap", obj, context)
         if context is not None:
             obj = Quantity.__array_wrap__(self, obj, context)
             obj = np.ma.MaskedArray.__array_wrap__(self, obj, context)
@@ -1803,12 +1809,41 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
 
     def __array_finalize__(self, obj):
         # print("array finalize", obj.__repr__())
-        np.ma.MaskedArray.__array_finalize__(self, obj)
+        super(MaskedQuantity, self).__array_finalize__(obj)
+        #np.ma.MaskedArray.__array_finalize__(self, obj)
         if isinstance(obj, Quantity):
-            self._unit = obj._unit
             self._baseclass = Quantity
 
     @property
     def _data(self):
         # help break getdata(subok=False)
-        return self.view(QuantityData)
+        return self.view(_QuantityData)
+
+    def __pow__(self, other):
+        result = self.view(Quantity) ** other
+        return self.__quantity_view__(result, result.unit, self.mask)
+    # may need some
+
+    # TODO improve hack -> needs to rewrite DomainSafeDivide
+    def __div__(self, other):
+        if isinstance(other, six.string_types):
+            other = Unit(other)
+
+        return self * (1./other)
+
+    # TODO improve hack -> needs to rewrite DomainSafeDivide
+    def __rdiv__(self, other):
+        return other * (1./self.value) / self.unit
+
+    # Need to add these to override MaskedArray versions, which call
+    # ufunc's using self._data (which destroys unit); mul/div done in Quantity
+    def __iadd__(self, other):
+        return np.add(self, other, self)
+
+    def __isub__(self, other):
+        return np.sub(self, other, self)
+
+    def __ipow__(self, other):
+        return np.power(self, other, self)
+
+    # known: MaskedArray * unit fails

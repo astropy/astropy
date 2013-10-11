@@ -62,24 +62,28 @@ class TestQuantityCreation:
         with pytest.raises(TypeError):
             quantity = 182.234 % u.meter
 
-    def test_2(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_2(self, QuantityClass):
 
         # create objects using the Quantity constructor:
-        q1 = u.Quantity(11.412, unit=u.meter)
-        q2 = u.Quantity(21.52, "cm")
-        q3 = u.Quantity(11.412)
+        q1 = QuantityClass(11.412, unit=u.meter)
+        q2 = QuantityClass(21.52, "cm")
+        q3 = QuantityClass(11.412)
 
+        assert q1.unit == u.meter
+        assert q2.unit == u.cm
         # By default quantities that don't specify a unit are unscaled
         # dimensionless
         assert q3.unit == u.Unit(1)
 
         with pytest.raises(TypeError):
-            q4 = u.Quantity(object(), unit=u.m)
+            QuantityClass(object(), unit=u.m)
 
-    def test_3(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_3(self, QuantityClass):
         # with pytest.raises(u.UnitsError):
         with pytest.raises(ValueError):  # Until @mdboom fixes the errors in units
-            q1 = u.Quantity(11.412, unit="testingggg")
+            QuantityClass(11.412, unit="testingggg")
 
     def test_nan_inf(self):
         # Not-a-number
@@ -117,23 +121,23 @@ class TestQuantityCreation:
         with pytest.raises(TypeError):
             q = u.Quantity('spam', unit='cm')
 
-    def test_unit_property(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_unit_property(self, QuantityClass):
         # test getting and setting 'unit' attribute
-        q1 = u.Quantity(11.4, unit=u.meter)
+        q1 = QuantityClass(11.4, unit=u.meter)
 
         with pytest.raises(AttributeError):
             q1.unit = u.cm
 
-    def test_preserve_dtype(self):
-        """Test that if an explicit dtype is given, it is used, while if not,
-        numbers are converted to float (including decimal.Decimal, which
-        numpy converts to an object; closes #1419)
-        """
-        # If dtype is specified, use it, but if not, convert int, bool to float
-        q1 = u.Quantity(12, unit=u.m / u.s, dtype=int)
-        assert q1.dtype == int
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_preserve_dtype(self, QuantityClass):
 
-        q2 = u.Quantity(q1)
+        # If unit is not sepcified, preserve dtype (at least to the extent
+        # that Numpy does when copying, i.e. int32 -> int64, not float64)
+
+        q1 = QuantityClass(12, unit=u.m / u.s, dtype=int)
+        assert q1.dtype == int
+        q2 = QuantityClass(q1)
         assert q2.dtype == float
         assert q2.value == float(q1.value)
         assert q2.unit == q1.unit
@@ -336,106 +340,113 @@ class TestQuantityCreation:
 
 
 class TestQuantityOperations:
-    q1 = u.Quantity(11.42, u.meter)
-    q2 = u.Quantity(8.0, u.centimeter)
 
-    def test_addition(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_addition_and_subtraction(self, QuantityClass):
+        q1 = QuantityClass(11.42, u.meter)
+        q2 = QuantityClass(8.0, u.centimeter)
         # Take units from left object, q1
-        new_quantity = self.q1 + self.q2
+        new_quantity = q1 + q2
         assert new_quantity.value == 11.5
         assert new_quantity.unit == u.meter
 
         # Take units from left object, q2
-        new_quantity = self.q2 + self.q1
+        new_quantity = q2 + q1
         assert new_quantity.value == 1150.0
         assert new_quantity.unit == u.centimeter
 
-        new_q = u.Quantity(1500.1, u.m) + u.Quantity(13.5, u.km)
+        new_q = QuantityClass(1500.1, u.m) + QuantityClass(13.5, u.km)
         assert new_q.unit == u.m
         assert new_q.value == 15000.1
 
-    def test_subtraction(self):
         # Take units from left object, q1
-        new_quantity = self.q1 - self.q2
+        new_quantity = q1 - q2
         assert new_quantity.value == 11.34
         assert new_quantity.unit == u.meter
 
         # Take units from left object, q2
-        new_quantity = self.q2 - self.q1
+        new_quantity = q2 - q1
         assert new_quantity.value == -1134.0
         assert new_quantity.unit == u.centimeter
 
-    def test_multiplication(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_multiplication_and_division(self, QuantityClass):
+        q1 = QuantityClass(11.42, u.meter)
+        q2 = QuantityClass(8.0, u.centimeter)
         # Take units from left object, q1
-        new_quantity = self.q1 * self.q2
+        new_quantity = q1 * q2
         assert new_quantity.value == 91.36
         assert new_quantity.unit == (u.meter * u.centimeter)
 
         # Take units from left object, q2
-        new_quantity = self.q2 * self.q1
+        new_quantity = q2 * q1
         assert new_quantity.value == 91.36
         assert new_quantity.unit == (u.centimeter * u.meter)
 
         # Multiply with a number
-        new_quantity = 15. * self.q1
+        new_quantity = 15. * q1
         assert new_quantity.value == 171.3
         assert new_quantity.unit == u.meter
 
         # Multiply with a number
-        new_quantity = self.q1 * 15.
+        new_quantity = q1 * 15.
         assert new_quantity.value == 171.3
         assert new_quantity.unit == u.meter
 
-    def test_division(self):
         # Take units from left object, q1
-        new_quantity = self.q1 / self.q2
+        new_quantity = q1 / q2
         assert_array_almost_equal(new_quantity.value, 1.4275, decimal=5)
         assert new_quantity.unit == (u.meter / u.centimeter)
 
         # Take units from left object, q2
-        new_quantity = self.q2 / self.q1
+        new_quantity = q2 / q1
         assert_array_almost_equal(new_quantity.value, 0.70052539404553416,
                                   decimal=16)
         assert new_quantity.unit == (u.centimeter / u.meter)
 
-        q1 = u.Quantity(11.4, unit=u.meter)
-        q2 = u.Quantity(10.0, unit=u.second)
-        new_quantity = q1 / q2
+        q3 = QuantityClass(11.4, unit=u.meter)
+        q4 = QuantityClass(10.0, unit=u.second)
+        new_quantity = q3 / q4
         assert_array_almost_equal(new_quantity.value, 1.14, decimal=10)
         assert new_quantity.unit == (u.meter / u.second)
 
         # divide with a number
-        new_quantity = self.q1 / 10.
-        assert new_quantity.value == 1.142
+        new_quantity = q1 / 10.
+        assert_array_almost_equal(new_quantity.value, 1.142, decimal=10)
         assert new_quantity.unit == u.meter
 
         # divide with a number
-        new_quantity = 11.42 / self.q1
+        new_quantity = 11.42 / q1
         assert new_quantity.value == 1.
         assert new_quantity.unit == u.Unit("1/m")
 
-    def test_commutativity(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_commutativity(self, QuantityClass):
         """Regression test for issue #587."""
 
-        new_q = u.Quantity(11.42, 'm*s')
+        q1 = QuantityClass(11.42, u.meter)
+        new_q = QuantityClass(11.42, 'm*s')
 
-        assert self.q1 * u.s == u.s * self.q1 == new_q
-        assert self.q1 / u.s == u.Quantity(11.42, 'm/s')
-        assert u.s / self.q1 == u.Quantity(1 / 11.42, 's/m')
+        assert q1 * u.s == u.s * q1 == new_q
+        assert q1 / u.s == QuantityClass(11.42, 'm/s')
+        assert u.s / q1 == QuantityClass(1 / 11.42, 's/m')
 
-    def test_power(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_power(self, QuantityClass):
+        q1 = QuantityClass(11.42, u.meter)
         # raise quantity to a power
-        new_quantity = self.q1 ** 2
+        new_quantity = q1 ** 2
         assert_array_almost_equal(new_quantity.value, 130.4164, decimal=5)
         assert new_quantity.unit == u.Unit("m^2")
 
-        new_quantity = self.q1 ** 3
+        new_quantity = q1 ** 3
         assert_array_almost_equal(new_quantity.value, 1489.355288, decimal=7)
         assert new_quantity.unit == u.Unit("m^3")
 
-    def test_matrix_multiplication(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_matrix_multiplication(self, QuantityClass):
         a = np.eye(3)
-        q = a * u.m
+        q = QuantityClass(a, u.m)
         result1 = q @ a
         assert np.all(result1 == q)
         result2 = a @ q
@@ -455,47 +466,48 @@ class TestQuantityOperations:
         result4 = q @ q2
         assert np.all(result4 == np.matmul(a, q2.value) * q.unit * q2.unit)
 
-    def test_unary(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_unary_and_abs(self, QuantityClass):
+        q1 = QuantityClass(11.42, u.meter)
 
         # Test the minus unary operator
 
-        new_quantity = -self.q1
-        assert new_quantity.value == -self.q1.value
-        assert new_quantity.unit == self.q1.unit
+        new_quantity = -q1
+        assert new_quantity.value == -q1.value
+        assert new_quantity.unit == q1.unit
 
-        new_quantity = -(-self.q1)
-        assert new_quantity.value == self.q1.value
-        assert new_quantity.unit == self.q1.unit
+        new_quantity = -(-q1)
+        assert new_quantity.value == q1.value
+        assert new_quantity.unit == q1.unit
 
         # Test the plus unary operator
 
-        new_quantity = +self.q1
-        assert new_quantity.value == self.q1.value
-        assert new_quantity.unit == self.q1.unit
+        new_quantity = +q1
+        assert new_quantity.value == q1.value
+        assert new_quantity.unit == q1.unit
 
-    def test_abs(self):
+        new_quantity = abs(q1)
+        assert new_quantity.value == q1.value
+        assert new_quantity.unit == q1.unit
 
-        q = 1. * u.m / u.s
-        new_quantity = abs(q)
-        assert new_quantity.value == q.value
-        assert new_quantity.unit == q.unit
+        new_quantity = abs(-q1)
+        assert new_quantity.value == q1.value
+        assert new_quantity.unit == q1.unit
 
-        q = -1. * u.m / u.s
-        new_quantity = abs(q)
-        assert new_quantity.value == -q.value
-        assert new_quantity.unit == q.unit
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_incompatible_units(self, QuantityClass):
+        """ When trying to add or subtract units that aren't compatible,
+        throw an error """
 
-    def test_incompatible_units(self):
-        """ When trying to add or subtract units that aren't compatible, throw an error """
-
-        q1 = u.Quantity(11.412, unit=u.meter)
-        q2 = u.Quantity(21.52, unit=u.second)
+        q1 = QuantityClass(11.412, unit=u.meter)
+        q2 = QuantityClass(21.52, unit=u.second)
 
         with pytest.raises(u.UnitsError):
-            new_q = q1 + q2
+            q1 + q2
 
-    def test_non_number_type(self):
-        q1 = u.Quantity(11.412, unit=u.meter)
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_non_number_type(self, QuantityClass):
+        q1 = QuantityClass(11.412, unit=u.meter)
         with pytest.raises(TypeError) as exc:
             q1 + {'a': 1}
         assert exc.value.args[0].startswith(
@@ -504,10 +516,11 @@ class TestQuantityOperations:
         with pytest.raises(TypeError):
             q1 + u.meter
 
-    def test_dimensionless_operations(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_dimensionless_operations(self, QuantityClass):
         # test conversion to dimensionless
-        dq = 3. * u.m / u.km
-        dq1 = dq + 1. * u.mm / u.km
+        dq = QuantityClass(3., u.m / u.km)
+        dq1 = dq + QuantityClass(1., u.mm / u.km)
         assert dq1.value == 3.001
         assert dq1.unit == dq.unit
 
@@ -518,13 +531,13 @@ class TestQuantityOperations:
         # this test will check that operations with dimensionless Quantities
         # don't work
         with pytest.raises(u.UnitsError):
-            self.q1 + u.Quantity(0.1, unit=u.Unit(""))
+            QuantityClass(1., "m") + QuantityClass(0.1, "")
 
         with pytest.raises(u.UnitsError):
-            self.q1 - u.Quantity(0.1, unit=u.Unit(""))
+            QuantityClass(1., "m") - QuantityClass(0.1, "")
 
         # and test that scaling of integers works
-        q = u.Quantity(np.array([1, 2, 3]), u.m / u.km, dtype=int)
+        q = QuantityClass(np.array([1, 2, 3]), u.m / u.km)
         q2 = q + np.array([4, 5, 6])
         assert q2.unit == u.dimensionless_unscaled
         assert_allclose(q2.value, np.array([4.001, 5.002, 6.003]))
@@ -532,29 +545,32 @@ class TestQuantityOperations:
         with pytest.raises(TypeError):
             q += np.array([1, 2, 3])
         # except if it is actually possible
-        q = np.array([1, 2, 3]) * u.km / u.m
+        q = QuantityClass(np.array([1, 2, 3]), u.km / u.m)
         q += np.array([4, 5, 6])
         assert q.unit == u.dimensionless_unscaled
         assert np.all(q.value == np.array([1004, 2005, 3006]))
 
-    def test_complicated_operation(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_complicated_operation(self, QuantityClass):
         """ Perform a more complicated test """
         from astropy.units import imperial
 
         # Multiple units
-        distance = u.Quantity(15., u.meter)
-        time = u.Quantity(11., u.second)
+        distance = QuantityClass(15., u.meter)
+        time = QuantityClass(11., u.second)
 
         velocity = (distance / time).to(imperial.mile / u.hour)
         assert_array_almost_equal(
             velocity.value, 3.05037, decimal=5)
 
-        G = u.Quantity(6.673E-11, u.m ** 3 / u.kg / u.s ** 2)
+        G = QuantityClass(6.673E-11, u.m ** 3 / u.kg / u.s ** 2)
         new_q = ((1. / (4. * np.pi * G)).to(u.pc ** -3 / u.s ** -2 * u.kg))
+        assert_array_almost_equal((1./(4.*np.pi*new_q)).to(G.unit).value,
+                                  G.value, decimal=9)
 
         # Area
-        side1 = u.Quantity(11., u.centimeter)
-        side2 = u.Quantity(7., u.centimeter)
+        side1 = QuantityClass(11., u.centimeter)
+        side2 = QuantityClass(7., u.centimeter)
         area = side1 * side2
         assert_array_almost_equal(area.value, 77., decimal=15)
         assert area.unit == u.cm * u.cm
@@ -588,14 +604,14 @@ class TestQuantityOperations:
                         'a Quantity is ambiguous. In the future this will '
                         'raise a ValueError.')
 
-    def test_numeric_converters(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_numeric_converters(self, QuantityClass):
         # float, int, long, and __index__ should only work for single
         # quantities, of appropriate type, and only if they are dimensionless.
         # for index, this should be unscaled as well
         # (Check on __index__ is also a regression test for #1557)
 
-        # quantities with units should never convert, or be usable as an index
-        q1 = u.Quantity(1, u.m)
+        q1 = QuantityClass(1, u.m)
 
         converter_err_msg = ("only dimensionless scalar quantities "
                              "can be converted to Python scalars")
@@ -618,7 +634,7 @@ class TestQuantityOperations:
         assert exc.value.args[0] == index_err_msg
 
         # dimensionless but scaled is OK, however
-        q2 = u.Quantity(1.23, u.m / u.km)
+        q2 = QuantityClass(1.23, u.m / u.km)
 
         assert float(q2) == float(q2.to_value(u.dimensionless_unscaled))
         assert int(q2) == int(q2.to_value(u.dimensionless_unscaled))
@@ -628,7 +644,7 @@ class TestQuantityOperations:
         assert exc.value.args[0] == index_err_msg
 
         # dimensionless unscaled is OK, though for index needs to be int
-        q3 = u.Quantity(1.23, u.dimensionless_unscaled)
+        q3 = QuantityClass(1.23, u.dimensionless_unscaled)
 
         assert float(q3) == 1.23
         assert int(q3) == 1
@@ -638,7 +654,7 @@ class TestQuantityOperations:
         assert exc.value.args[0] == index_err_msg
 
         # integer dimensionless unscaled is good for all
-        q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
+        q4 = QuantityClass(2, u.dimensionless_unscaled)
 
         assert float(q4) == 2.
         assert int(q4) == 2
@@ -646,7 +662,7 @@ class TestQuantityOperations:
         assert q4.__index__() == 2
 
         # but arrays are not OK
-        q5 = u.Quantity([1, 2], u.m)
+        q5 = u.QuantityClass([1, 2], u.m)
         with pytest.raises(TypeError) as exc:
             float(q5)
         assert exc.value.args[0] == converter_err_msg
@@ -667,23 +683,23 @@ class TestQuantityOperations:
         q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
         assert q4 * ['a', 'b', 'c'] == ['a', 'b', 'c', 'a', 'b', 'c']
 
-    def test_array_converters(self):
-
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_array_converters(self, QuantityClass):
         # Scalar quantity
-        q = u.Quantity(1.23, u.m)
+        q = QuantityClass(1.23, u.m)
         assert np.all(np.array(q) == np.array([1.23]))
 
         # Array quantity
-        q = u.Quantity([1., 2., 3.], u.m)
+        q = QuantityClass([1., 2., 3.], u.m)
         assert np.all(np.array(q) == np.array([1., 2., 3.]))
 
 
-def test_quantity_conversion():
-    q1 = u.Quantity(0.1, unit=u.meter)
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_quantity_conversion(QuantityClass):
+    q1 = QuantityClass(0.1, unit=u.meter)
     value = q1.value
     assert value == 0.1
-    value_in_km = q1.to_value(u.kilometer)
-    assert value_in_km == 0.0001
+
     new_quantity = q1.to(u.kilometer)
     assert new_quantity.value == 0.0001
 
@@ -711,14 +727,15 @@ def test_quantity_value_views():
     assert np.all(q1 == [1., 3.] * u.meter)
 
 
-def test_quantity_conversion_with_equiv():
-    q1 = u.Quantity(0.1, unit=u.meter)
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_quantity_conversion_with_equiv(QuantityClass):
+    q1 = QuantityClass(0.1, unit=u.meter)
     v2 = q1.to_value(u.Hz, equivalencies=u.spectral())
     assert_allclose(v2, 2997924580.0)
     q2 = q1.to(u.Hz, equivalencies=u.spectral())
     assert_allclose(q2.value, v2)
 
-    q1 = u.Quantity(0.4, unit=u.arcsecond)
+    q1 = QuantityClass(0.4, unit=u.arcsecond)
     v2 = q1.to_value(u.au, equivalencies=u.parallax())
     q2 = q1.to(u.au, equivalencies=u.parallax())
     v3 = q2.to_value(u.arcminute, equivalencies=u.parallax())
@@ -731,9 +748,7 @@ def test_quantity_conversion_with_equiv():
     assert_allclose(q3.value, v3)
     assert q3.unit == u.arcminute
 
-
-def test_quantity_conversion_equivalency_passed_on():
-    class MySpectral(u.Quantity):
+    class MySpectral(QuantityClass):
         _equivalencies = u.spectral()
 
         def __quantity_view__(self, obj, unit):
@@ -795,31 +810,37 @@ def test_cgs():
 
 class TestQuantityComparison:
 
-    def test_quantity_equality(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_quantity_equality(self, QuantityClass):
         with catch_warnings(DeprecationWarning) as w:
-            assert u.Quantity(1000, unit='m') == u.Quantity(1, unit='km')
-            assert not (u.Quantity(1, unit='m') == u.Quantity(1, unit='km'))
+            assert QuantityClass(1000, unit='m') == QuantityClass(1, unit='km')
+            assert not (QuantityClass(1, unit='m') ==
+                        QuantityClass(1, unit='km'))
             # for ==, !=, return False, True if units do not match
-            assert (u.Quantity(1100, unit=u.m) != u.Quantity(1, unit=u.s)) is True
-            assert (u.Quantity(1100, unit=u.m) == u.Quantity(1, unit=u.s)) is False
-            assert (u.Quantity(0, unit=u.m) == u.Quantity(0, unit=u.s)) is False
+            assert (QuantityClass(1100, unit=u.m) !=
+                    QuantityClass(1, unit=u.s)) is True
+            assert (QuantityClass(1100, unit=u.m) ==
+                    QuantityClass(1, unit=u.s)) is False
+            assert (QuantityClass(0, unit=u.m) ==
+                    QuantityClass(0, unit=u.s)) is False
             # But allow comparison with 0, +/-inf if latter unitless
-            assert u.Quantity(0, u.m) == 0.
-            assert u.Quantity(1, u.m) != 0.
-            assert u.Quantity(1, u.m) != np.inf
-            assert u.Quantity(np.inf, u.m) == np.inf
+            assert QuantityClass(0, u.m) == 0.
+            assert QuantityClass(1, u.m) != 0.
+            assert QuantityClass(1, u.m) != np.inf
+            assert QuantityClass(np.inf, u.m) == np.inf
         assert len(w) == 0
 
-    def test_quantity_equality_array(self):
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_quantity_equality_array(self, QuantityClass):
         with catch_warnings(DeprecationWarning) as w:
-            a = u.Quantity([0., 1., 1000.], u.m)
-            b = u.Quantity(1., u.km)
+            a = QuantityClass([0., 1., 1000.], u.m)
+            b = QuantityClass(1., u.km)
             eq = a == b
             ne = a != b
             assert np.all(eq == [False, False, True])
             assert np.all(eq != ne)
             # For mismatched units, we should just get True, False
-            c = u.Quantity(1., u.s)
+            c = QuantityClass(1., u.s)
             eq = a == c
             ne = a != c
             assert eq is False
@@ -842,30 +863,30 @@ class TestQuantityComparison:
             assert ne is True
         assert len(w) == 0
 
-    def test_quantity_comparison(self):
-        assert u.Quantity(1100, unit=u.meter) > u.Quantity(1, unit=u.kilometer)
-        assert u.Quantity(900, unit=u.meter) < u.Quantity(1, unit=u.kilometer)
+    @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+    def test_quantity_comparison(self, QuantityClass):
+        assert QuantityClass(1100, unit=u.meter) > QuantityClass(1, unit=u.kilometer)
+        assert QuantityClass(900, unit=u.meter) < QuantityClass(1, unit=u.kilometer)
 
         with pytest.raises(u.UnitsError):
-            assert u.Quantity(1100, unit=u.meter) > u.Quantity(1, unit=u.second)
+            assert QuantityClass(1100, unit=u.meter) > QuantityClass(1, unit=u.second)
 
         with pytest.raises(u.UnitsError):
-            assert u.Quantity(1100, unit=u.meter) < u.Quantity(1, unit=u.second)
+            assert QuantityClass(1100, unit=u.meter) < QuantityClass(1, unit=u.second)
 
-        assert u.Quantity(1100, unit=u.meter) >= u.Quantity(1, unit=u.kilometer)
-        assert u.Quantity(1000, unit=u.meter) >= u.Quantity(1, unit=u.kilometer)
+        assert QuantityClass(1100, unit=u.meter) >= QuantityClass(1, unit=u.kilometer)
+        assert QuantityClass(1000, unit=u.meter) >= QuantityClass(1, unit=u.kilometer)
 
-        assert u.Quantity(900, unit=u.meter) <= u.Quantity(1, unit=u.kilometer)
-        assert u.Quantity(1000, unit=u.meter) <= u.Quantity(1, unit=u.kilometer)
-
-        with pytest.raises(u.UnitsError):
-            assert u.Quantity(
-                1100, unit=u.meter) >= u.Quantity(1, unit=u.second)
+        assert QuantityClass(900, unit=u.meter) <= QuantityClass(1, unit=u.kilometer)
+        assert QuantityClass(1000, unit=u.meter) <= QuantityClass(1, unit=u.kilometer)
 
         with pytest.raises(u.UnitsError):
-            assert u.Quantity(1100, unit=u.meter) <= u.Quantity(1, unit=u.second)
+            assert QuantityClass(1100, unit=u.meter) >= QuantityClass(1, unit=u.second)
 
-        assert u.Quantity(1200, unit=u.meter) != u.Quantity(1, unit=u.kilometer)
+        with pytest.raises(u.UnitsError):
+            assert QuantityClass(1100, unit=u.meter) <= QuantityClass(1, unit=u.second)
+
+        assert QuantityClass(1200, unit=u.meter) != QuantityClass(1, unit=u.kilometer)
 
 
 class TestQuantityDisplay:
@@ -1024,6 +1045,35 @@ class TestQuantityDisplay:
         assert qinfnan._repr_latex_() == r'$[\infty,~-\infty,~{\rm NaN}] \; \mathrm{m}$'
 
 
+class TestMaskedQuantityDisplay(object):
+    scalarintq = u.MaskedQuantity(1, unit='m')
+    scalarfloatq = u.MaskedQuantity(1.3, unit='m')
+    arrq = u.MaskedQuantity([1, 2.3, 8.9], unit='m', mask=[0, 1, 0])
+
+    def test_scalar_quantity_str(self):
+        assert str(self.scalarintq) == "1 m"
+        assert str(self.scalarfloatq) == "1.3 m"
+
+    def test_scalar_quantity_repr(self):
+        assert (repr(self.scalarintq) ==
+                "masked_Quantity(data = 1 m,\n"
+                "                mask = False,\n"
+                "          fill_value = 999999)\n")
+        assert (repr(self.scalarfloatq) ==
+                "masked_Quantity(data = 1.3 m,\n"
+                "                mask = False,\n"
+                "          fill_value = 1e+20)\n")
+
+    def test_array_quantity_str(self):
+        assert str(self.arrq) == "[1.0 -- 8.9] m"
+
+    def test_array_quantity_repr(self):
+        assert (repr(self.arrq) ==
+                "masked_Quantity(data = [1.0 -- 8.9] m,\n"
+                "                mask = [False  True False],\n"
+                "          fill_value = 1e+20)\n")
+
+
 def test_decompose():
     q1 = 5 * u.N
     assert q1.decompose() == (5 * u.kg * u.m * u.s ** -2)
@@ -1044,12 +1094,13 @@ def test_decompose_regression():
     assert np.all(q.decompose().value == np.array([0.0005, 0.001, 0.0015]))
 
 
-def test_arrays():
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_arrays(QuantityClass):
     """
     Test using quantites with array values
     """
 
-    qsec = u.Quantity(np.arange(10), u.second)
+    qsec = QuantityClass(np.arange(10), u.second)
     assert isinstance(qsec.value, np.ndarray)
     assert not qsec.isscalar
 
@@ -1057,18 +1108,18 @@ def test_arrays():
     assert len(qsec) == len(qsec.value)
     qsecsub25 = qsec[2:5]
     assert qsecsub25.unit == qsec.unit
-    assert isinstance(qsecsub25, u.Quantity)
+    assert isinstance(qsecsub25, QuantityClass)
     assert len(qsecsub25) == 3
 
     # make sure isscalar, len, and indexing behave correcly for non-arrays.
-    qsecnotarray = u.Quantity(10., u.second)
+    qsecnotarray = QuantityClass(10., u.second)
     assert qsecnotarray.isscalar
     with pytest.raises(TypeError):
         len(qsecnotarray)
     with pytest.raises(TypeError):
         qsecnotarray[0]
 
-    qseclen0array = u.Quantity(np.array(10), u.second, dtype=int)
+    qseclen0array = QuantityClass(np.array(10), u.second, dtype=int)
     # 0d numpy array should act basically like a scalar
     assert qseclen0array.isscalar
     with pytest.raises(TypeError):
@@ -1102,7 +1153,7 @@ def test_arrays():
     assert qkpc1x == qkpcx1
 
     # can also create from lists, will auto-convert to arrays
-    qsec = u.Quantity(list(range(10)), u.second)
+    qsec = QuantityClass(list(range(10)), u.second)
     assert isinstance(qsec.value, np.ndarray)
 
     # quantity math should work with arrays
@@ -1115,12 +1166,16 @@ def test_arrays():
     with pytest.raises(u.UnitsError):
         assert_array_equal((qsec - 2).value, (np.arange(10) + 2))
 
+    value = qsec.value
+    assert not isinstance(value, QuantityClass)
     # should create by unit multiplication, too
-    qsec2 = np.arange(10) * u.second
-    qsec3 = u.second * np.arange(10)
-
+    if QuantityClass is u.MaskedQuantity:
+        pytest.xfail()
+    qsec2 = value * u.second
     assert np.all(qsec == qsec2)
-    assert np.all(qsec2 == qsec3)
+
+    qsec3 = u.second * value
+    assert np.all(qsec == qsec3)
 
     # make sure numerical-converters fail when arrays are present
     with pytest.raises(TypeError):
@@ -1129,23 +1184,26 @@ def test_arrays():
         int(qsec)
 
 
-def test_array_indexing_slicing():
-    q = np.array([1., 2., 3.]) * u.m
-    assert q[0] == 1. * u.m
-    assert np.all(q[0:2] == u.Quantity([1., 2.], u.m))
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_array_indexing_slicing(QuantityClass):
+    q = QuantityClass(np.array([1., 2., 3.]), u.m)
+    assert q[0] == QuantityClass(1., u.m)
+    assert np.all(q[0:2] == QuantityClass([1., 2.], u.m))
 
 
-def test_array_setslice():
-    q = np.array([1., 2., 3.]) * u.m
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_array_setslice(QuantityClass):
+    q = QuantityClass(np.array([1., 2., 3.]), u.m)
     q[1:2] = np.array([400.]) * u.cm
-    assert np.all(q == np.array([1., 4., 3.]) * u.m)
+    assert np.all(q == QuantityClass(np.array([1., 4., 3.]), u.m))
 
 
-def test_inverse_quantity():
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_inverse_quantity(QuantityClass):
     """
     Regression test from issue #679
     """
-    q = u.Quantity(4., u.meter / u.second)
+    q = QuantityClass(4., u.meter / u.second)
     qot = q / 2
     toq = 2 / q
     npqot = q / np.array(2)
@@ -1160,8 +1218,9 @@ def test_inverse_quantity():
     assert toq.unit == (u.second / u.meter)
 
 
-def test_quantity_mutability():
-    q = u.Quantity(9.8, u.meter / u.second / u.second)
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_quantity_mutability(QuantityClass):
+    q = QuantityClass(9.8, u.meter / u.second / u.second)
 
     with pytest.raises(AttributeError):
         q.value = 3
@@ -1170,24 +1229,26 @@ def test_quantity_mutability():
         q.unit = u.kg
 
 
-def test_quantity_initialized_with_quantity():
-    q1 = u.Quantity(60, u.second)
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_quantity_initialized_with_quantity(QuantityClass):
+    q1 = QuantityClass(60, u.second)
 
-    q2 = u.Quantity(q1, u.minute)
+    q2 = QuantityClass(q1, u.minute)
     assert q2.value == 1
 
-    q3 = u.Quantity([q1, q2], u.second)
+    q3 = QuantityClass([q1, q2], u.second)
     assert q3[0].value == 60
     assert q3[1].value == 60
 
-    q4 = u.Quantity([q2, q1])
+    q4 = QuantityClass([q2, q1])
     assert q4.unit == q2.unit
     assert q4[0].value == 1
     assert q4[1].value == 1
 
 
-def test_quantity_string_unit():
-    q1 = 1. * u.m / 's'
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_quantity_string_unit(QuantityClass):
+    q1 = QuantityClass(1., u.m) / 's'
     assert q1.value == 1
     assert q1.unit == (u.m / u.s)
 
@@ -1195,13 +1256,9 @@ def test_quantity_string_unit():
     assert q2.unit == ((u.m * u.m) / u.s)
 
 
-@raises(ValueError)
-def test_quantity_invalid_unit_string():
-    "foo" * u.m
-
-
-def test_implicit_conversion():
-    q = u.Quantity(1.0, u.meter)
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_implicit_conversion(QuantityClass):
+    q = QuantityClass(1.0, u.meter)
     # Manually turn this on to simulate what might happen in a subclass
     q._include_easy_conversion_members = True
     assert_allclose(q.centimeter, 100)
@@ -1209,8 +1266,9 @@ def test_implicit_conversion():
     assert_allclose(q.parsec, 3.240779289469756e-17)
 
 
-def test_implicit_conversion_autocomplete():
-    q = u.Quantity(1.0, u.meter)
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_implicit_conversion_autocomplete(QuantityClass):
+    q = QuantityClass(1.0, u.meter)
     # Manually turn this on to simulate what might happen in a subclass
     q._include_easy_conversion_members = True
     q.foo = 42
@@ -1229,14 +1287,15 @@ def test_implicit_conversion_autocomplete():
         q.l
 
 
-def test_quantity_iterability():
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_quantity_iterability(QuantityClass):
     """Regressiont est for issue #878.
 
     Scalar quantities should not be iterable and should raise a type error on
     iteration.
     """
 
-    q1 = [15.0, 17.0] * u.m
+    q1 = QuantityClass([15.0, 17.0], u.m)
     assert isiterable(q1)
 
     q2 = next(iter(q1))
@@ -1245,11 +1304,12 @@ def test_quantity_iterability():
     pytest.raises(TypeError, iter, q2)
 
 
-def test_copy():
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_copy(QuantityClass):
 
-    q1 = u.Quantity(np.array([[1., 2., 3.], [4., 5., 6.]]), unit=u.m)
+    q1 = QuantityClass(np.array([[1., 2., 3.], [4., 5., 6.]]), unit=u.m)
     q2 = q1.copy()
-
+    assert q2.__class__ is QuantityClass
     assert np.all(q1.value == q2.value)
     assert q1.unit == q2.unit
     assert q1.dtype == q2.dtype
@@ -1270,11 +1330,12 @@ def test_copy():
     assert q1.value is not q4.value
 
 
-def test_deepcopy():
-    q1 = u.Quantity(np.array([1., 2., 3.]), unit=u.m)
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_deepcopy(QuantityClass):
+    q1 = QuantityClass(np.array([1., 2., 3.]), unit=u.m)
     q2 = copy.deepcopy(q1)
 
-    assert isinstance(q2, u.Quantity)
+    assert q2.__class__ is QuantityClass
     assert np.all(q1.value == q2.value)
     assert q1.unit == q2.unit
     assert q1.dtype == q2.dtype
@@ -1292,12 +1353,13 @@ def test_equality_numpy_scalar():
     assert 10 * u.m != np.int64(10)
 
 
-def test_quantity_pickelability():
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_quantity_pickelability(QuantityClass):
     """
     Testing pickleability of quantity
     """
 
-    q1 = np.arange(10) * u.m
+    q1 = QuantityClass(np.arange(10), u.m)
 
     q2 = pickle.loads(pickle.dumps(q1))
 
@@ -1306,59 +1368,61 @@ def test_quantity_pickelability():
     assert q1.unit == q2.unit
 
 
-def test_quantity_initialisation_from_string():
-    q = u.Quantity('1')
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_quantity_initialisation_from_string(QuantityClass):
+    q = QuantityClass('1')
     assert q.unit == u.dimensionless_unscaled
     assert q.value == 1.
-    q = u.Quantity('1.5 m/s')
+    q = QuantityClass('1.5 m/s')
     assert q.unit == u.m/u.s
     assert q.value == 1.5
     assert u.Unit(q) == u.Unit('1.5 m/s')
-    q = u.Quantity('.5 m')
+    q = QuantityClass('.5 m')
     assert q == u.Quantity(0.5, u.m)
-    q = u.Quantity('-1e1km')
-    assert q == u.Quantity(-10, u.km)
-    q = u.Quantity('-1e+1km')
-    assert q == u.Quantity(-10, u.km)
-    q = u.Quantity('+.5km')
-    assert q == u.Quantity(.5, u.km)
-    q = u.Quantity('+5e-1km')
-    assert q == u.Quantity(.5, u.km)
-    q = u.Quantity('5', u.m)
-    assert q == u.Quantity(5., u.m)
-    q = u.Quantity('5 km', u.m)
+    q = QuantityClass('-1e1km')
+    assert q == QuantityClass(-10, u.km)
+    q = QuantityClass('-1e+1km')
+    assert q == QuantityClass(-10, u.km)
+    q = QuantityClass('+.5km')
+    assert q == QuantityClass(.5, u.km)
+    q = QuantityClass('+5e-1km')
+    assert q == QuantityClass(.5, u.km)
+    q = QuantityClass('5', u.m)
+    assert q == QuantityClass(5., u.m)
+    q = QuantityClass('5 km', u.m)
     assert q.value == 5000.
     assert q.unit == u.m
-    q = u.Quantity('5Em')
-    assert q == u.Quantity(5., u.Em)
+    q = QuantityClass('5Em')
+    assert q == QuantityClass(5., u.Em)
 
     with pytest.raises(TypeError):
-        u.Quantity('')
+        QuantityClass('')
     with pytest.raises(TypeError):
-        u.Quantity('m')
+        QuantityClass('m')
     with pytest.raises(TypeError):
-        u.Quantity('1.2.3 deg')
+        QuantityClass('1.2.3 deg')
     with pytest.raises(TypeError):
-        u.Quantity('1+deg')
+        QuantityClass('1+deg')
     with pytest.raises(TypeError):
-        u.Quantity('1-2deg')
+        QuantityClass('1-2deg')
     with pytest.raises(TypeError):
-        u.Quantity('1.2e-13.3m')
+        QuantityClass('1.2e-13.3m')
     with pytest.raises(TypeError):
-        u.Quantity(['5'])
+        QuantityClass(['5'])
     with pytest.raises(TypeError):
-        u.Quantity(np.array(['5']))
+        QuantityClass(np.array(['5']))
     with pytest.raises(ValueError):
-        u.Quantity('5E')
+        QuantityClass('5E')
     with pytest.raises(ValueError):
-        u.Quantity('5 foo')
+        QuantityClass('5 foo')
 
 
-def test_unsupported():
-    q1 = np.arange(10) * u.m
+@pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
+def test_unsupported(QuantityClass):
+    q1 = QuantityClass(np.arange(10), u.m)
 
     with pytest.raises(TypeError):
-        q2 = np.bitwise_and(q1, q1)
+        np.bitwise_and(q1, q1)
 
 
 def test_unit_identity():
