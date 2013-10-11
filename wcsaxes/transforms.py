@@ -1,11 +1,14 @@
 # Note: This file incldues code dervived from pywcsgrid2
+#
+# This file contains Matplotlib transformation objects (e.g. from pixel to world
+# coordinates, but also world-to-world).
 
 import abc
 
 import numpy as np
 from matplotlib.path import Path
 from matplotlib.transforms import Transform
-
+from astropy import units as u
 
 class CurvedTransform(Transform):
     """
@@ -107,3 +110,32 @@ class WCSPixel2WorldTransform(CurvedTransform):
         Return the inverse of the transform
         """
         return WCSWorld2PixelTransform(self.wcs)
+
+
+class CoordinateTransform(CurvedTransform):
+
+    def __init__(self, input_system, output_system):
+
+        self.input_system = input_system
+        self.output_system = output_system
+
+    def transform(self, input_coords):
+        """
+        Transform one set of coordinates to another
+        """
+
+        x_in, y_in = input_coords[:, 0], input_coords[:, 1]
+
+        c_in = self.input_system(x_in, y_in, unit=(u.deg, u.deg))
+
+        c_out = c_in.transform_to(self.output_system)
+
+        return np.concatenate((c_out.lonangle.deg[:, np.newaxis], c_out.latangle.deg[:, np.newaxis]), 1)
+
+    transform_non_affine = transform
+
+    def inverted(self):
+        """
+        Return the inverse of the transform
+        """
+        return CoordinateTransform(self.output_system, self.input_system)
