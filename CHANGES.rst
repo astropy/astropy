@@ -70,6 +70,9 @@ New Features
     MaskedColumn, Row, and Table are now deprecated in favor of the
     single-tense 'unit' and 'dtype' [#1174].
 
+  - Setting a column from a Quantity now correctly sets the unit on the Column
+    object [#732].
+
 - ``astropy.convolution``
 
   - New class-based system for generating kernels, replacing `make_kernel`.
