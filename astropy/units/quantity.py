@@ -145,7 +145,7 @@ class Quantity(np.ndarray):
             if isinstance(value, Quantity):
                 self._unit = value.unit
             else:
-                self._unit = Unit(1)
+                self._unit = dimensionless_unscaled
         else:
             self._unit = Unit(unit)
         self._equivalencies = Unit._normalize_equivalencies(equivalencies)
@@ -412,8 +412,7 @@ class Quantity(np.ndarray):
         if equivalencies is None:
             equivalencies = self._equivalencies
         new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
-        new_unit = Unit(unit)
-        return self.__quantity_instance__(new_val, new_unit,
+        return self.__quantity_instance__(new_val, unit,
                                           equivalencies=equivalencies,
                                           copy=False)
 
@@ -550,23 +549,19 @@ class Quantity(np.ndarray):
     def __mul__(self, other):
         """ Multiplication between `Quantity` objects and other objects."""
 
-        if isinstance(other, six.string_types):
-            return self.__quantity_instance__(self.value, Unit(other) * self.unit)
-        elif isinstance(other, UnitBase):
+        if isinstance(other, (UnitBase, six.string_types)):
             return self.__quantity_instance__(self.value, other * self.unit)
-        else:
-            return np.multiply(self, other)
+
+        return np.multiply(self, other)
 
     def __imul__(self, other):
         """In-place multiplication between `Quantity` objects and others."""
-        if isinstance(other, six.string_types):
-            self._unit = Unit(other) * self.unit
-        elif isinstance(other, UnitBase):
-            self._unit = other * self.unit
-        else:
-            return np.multiply(self, other, self)
 
-        return self
+        if isinstance(other, (UnitBase, six.string_types)):
+            self._unit = other * self.unit
+            return self
+
+        return np.multiply(self, other, self)
 
     def __rmul__(self, other):
         """ Right Multiplication between `Quantity` objects and other
@@ -578,37 +573,28 @@ class Quantity(np.ndarray):
     def __div__(self, other):
         """ Division between `Quantity` objects and other objects."""
 
-        if isinstance(other, six.string_types):
-            return self.__quantity_instance__(
-                self.value, unit=self.unit / Unit(other))
-        elif isinstance(other, UnitBase):
-            return self.__quantity_instance__(self.value, unit=self.unit / other)
-        else:
-            return np.true_divide(self, other)
+        if isinstance(other, (UnitBase, six.string_types)):
+            return self.__quantity_instance__(self.value, self.unit / other)
+
+        return np.true_divide(self, other)
 
     def __idiv__(self, other):
         """Inplace division between `Quantity` objects and other objects."""
 
-        if isinstance(other, six.string_types):
-            self._unit = self.unit / Unit(other)
-        elif isinstance(other, UnitBase):
+        if isinstance(other, (UnitBase, six.string_types)):
             self._unit = self.unit / other
-        else:
-            return np.true_divide(self, other, self)
+            return self
 
-        return self
+        return np.true_divide(self, other, self)
 
     def __rdiv__(self, other):
         """ Right Division between `Quantity` objects and other objects."""
 
-        if isinstance(other, six.string_types):
-            return self.__quantity_instance__(
-                self.value, unit=Unit(other) / self.unit)
-        elif isinstance(other, UnitBase):
-            return self.__quantity_instance__(
-                1. / self.value, unit=other / self.unit, copy=False)
-        else:
-            return np.divide(other, self)
+        if isinstance(other, (UnitBase, six.string_types)):
+            return self.__quantity_instance__(1. / self.value,
+                                              other / self.unit, copy=False)
+
+        return np.divide(other, self)
 
     def __truediv__(self, other):
         """ Division between `Quantity` objects. """
