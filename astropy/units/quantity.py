@@ -150,6 +150,9 @@ class Quantity(np.ndarray):
         return self
 
     def __array_finalize__(self, obj):
+        if callable(getattr(super(Quantity, self),
+                            '__array_finalize__', None)):
+            super(Quantity, self).__array_finalize__(obj)
         if isinstance(obj, Quantity):
             self._unit = obj._unit
 
@@ -163,6 +166,8 @@ class Quantity(np.ndarray):
         # If no context is set, just return the input
         if context is None:
             return obj
+
+        # print("prepare: obj={0!r}\ncontext={1!r}".format(obj, context))
 
         # Find out which ufunc is being used
         function = context[0]
@@ -196,9 +201,9 @@ class Quantity(np.ndarray):
         # this as a special case.
         # TODO: find a better way to deal with this case
         if function is np.power and result_unit is not None:
-            if not np.isscalar(args[1]):
-                raise ValueError(
-                    "Quantities may only be raised to a scalar power")
+            # if not np.isscalar(args[1]):
+            #     raise ValueError(
+            #         "Quantities may only be raised to a scalar power")
 
             if units[1] is None:
                 result_unit = result_unit ** args[1]
@@ -227,6 +232,7 @@ class Quantity(np.ndarray):
                 raise TypeError("Arguments cannot be cast safely to inplace "
                                 "output with dtype={0}".format(self.dtype))
 
+            scales = np.array(scales, dtype=obj.dtype)
             result = self  # no need for a view since we are returning the object itself
 
             # in principle, if self is also an argument, it could be rescaled
@@ -266,7 +272,6 @@ class Quantity(np.ndarray):
 
     def __array_wrap__(self, obj, context=None):
         if context is not None:
-
             if hasattr(obj, '_result_unit'):
                 result_unit = obj._result_unit
                 del obj._result_unit
@@ -288,7 +293,7 @@ class Quantity(np.ndarray):
 
                 # take array view to which output can be written without
                 # getting back here
-                obj_array = obj._array_base
+                obj_array = np.ndarray.view(obj, np.ndarray)
 
                 # Find out which ufunc was called and with which inputs
                 function = context[0]
@@ -297,7 +302,7 @@ class Quantity(np.ndarray):
                 # Set the inputs, rescaling as necessary
                 inputs = []
                 for arg, scale in zip(args, scales):
-                    if scale != 1.:
+                    if scale != 1:
                         inputs.append(arg.value * scale)
                     else:  # for scale==1, input is not necessarily a Quantity
                         inputs.append(getattr(arg, 'value', arg))
@@ -1073,8 +1078,13 @@ class Quantity(np.ndarray):
         raise NotImplementedError("cannot evaluate truth value of quantities. "
                                   "Evaluate array with q.value.any(...)")
 
+    @property
+    def _data(self):
+        # help break getdata(subok=False)
+        return self.view(_QuantityData)
 
-class QuantityData(Quantity):
+
+class _QuantityData(Quantity):
     # on purpose, break ndarray view -> always stay a Quantity
     def view(self, cls):
         if cls is np.ndarray:
@@ -1136,8 +1146,11 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
     def __quantity_instance__(self, val, unit, **kwargs):
         return MaskedQuantity(val, unit, **kwargs)
 
-    def __quantity_view__(self, obj, unit):
-        return obj.view(MaskedQuantity)
+    def __quantity_view__(self, obj, unit, mask=np.ma.nomask):
+        obj = obj.view(MaskedQuantity)
+        if mask is not np.ma.nomask:
+            obj.mask = mask
+        return obj
 
     @property
     def _array_base(self):
@@ -1150,6 +1163,9 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
         """ The numerical value of this quantity. """
         value = self._array_base
         value._baseclass = np.ndarray
+        # The following is necessary because of a bug in Numpy, which was
+        # fixed in numpy/numpy#2703. The fix should be included in Numpy 1.8.0.
+        value.fill_value = self.fill_value
         if self.shape:
             return value
         else:
@@ -1160,7 +1176,7 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
         return super(MaskedQuantity, self).__array_prepare__(obj, context)
 
     def __array_wrap__(self, obj, context=None):
-        # print("array wrap", obj, context)
+        # print("MQ array wrap", obj, context)
         if context is not None:
             obj = Quantity.__array_wrap__(self, obj, context)
             obj = np.ma.MaskedArray.__array_wrap__(self, obj, context)
@@ -1171,12 +1187,41 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
 
     def __array_finalize__(self, obj):
         # print("array finalize", obj.__repr__())
-        np.ma.MaskedArray.__array_finalize__(self, obj)
+        super(MaskedQuantity, self).__array_finalize__(obj)
+        #np.ma.MaskedArray.__array_finalize__(self, obj)
         if isinstance(obj, Quantity):
-            self._unit = obj._unit
             self._baseclass = Quantity
 
     @property
     def _data(self):
         # help break getdata(subok=False)
-        return self.view(QuantityData)
+        return self.view(_QuantityData)
+
+    def __pow__(self, other):
+        result = self.view(Quantity) ** other
+        return self.__quantity_view__(result, result.unit, self.mask)
+    # may need some
+
+    # TODO improve hack -> needs to rewrite DomainSafeDivide
+    def __div__(self, other):
+        if isinstance(other, six.string_types):
+            other = Unit(other)
+
+        return self * (1./other)
+
+    # TODO improve hack -> needs to rewrite DomainSafeDivide
+    def __rdiv__(self, other):
+        return other * (1./self.value) / self.unit
+
+    # Need to add these to override MaskedArray versions, which call
+    # ufunc's using self._data (which destroys unit); mul/div done in Quantity
+    def __iadd__(self, other):
+        return np.add(self, other, self)
+
+    def __isub__(self, other):
+        return np.sub(self, other, self)
+
+    def __ipow__(self, other):
+        return np.power(self, other, self)
+
+    # known: MaskedArray * unit fails
