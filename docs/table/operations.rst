@@ -370,10 +370,23 @@ tables into a single output structure.  Because the metadata can be arbitrarily 
 there is no unique way to do the merge.  The current implementation uses a simple
 recursive algorithm with four rules:
 
-- Dict elements are merged by keys
-- Conflicting list or tuple elements are concatenated
-- Conflicting dict elements are merged by recursively calling the merge function
-- Conflicting elements that are not both list, tuple, or dict results in an exception
+- `dict` elements are merged by keys
+- Conflicting `list` or `tuple` elements are concatenated
+- Conflicting `dict` elements are merged by recursively calling the merge function
+- Conflicting elements that are not both `list`, `tuple`, or `dict` will follow the following rules:
+    - If both metadata values are identical, the output is set to this value
+    - If at one of the conflicting metadata values is `None`, the other value is picked
+    - If both metadata values are different and neither is `None`, the one for the last table in the list is picked
+
+By default, a warning is emitted in the last case (both metadata values are not
+`None`). The warning can be silenced or made into an exception using the
+``metadata_conflicts`` argument to :func:`~astropy.table.operations.hstack`,
+:func:`~astropy.table.operations.vstack`, or
+:func:`~astropy.table.operations.join`. The ``metadata_conflicts`` option can be set to:
+
+- ``'silent'`` - no warning is emitted, the value for the last table is silently picked
+- ``'warn'`` - a warning is emitted, the value for the last table is picked
+- ``'error'`` - an exception is raised
 
 Merging column attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -395,4 +408,5 @@ order and taking the first value which is defined (i.e. is not None).  For examp
   >>> out['a'].unit
   Unit("cm")
 
-In this case there was a conflict so a warning is shown.
+The rules for merging are as for `Merging metadata`_, and the
+``metadata_conflicts`` option also controls the merging of column attributes.
