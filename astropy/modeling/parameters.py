@@ -447,37 +447,37 @@ class Parameter(object):
         return wrapper
 
     def __add__(self, val):
-        return np.asarray(self) + val
+        return self.value + val
 
     def __radd__(self, val):
-        return np.asarray(self) + val
+        return self.value + val
 
     def __sub__(self, val):
-        return np.asarray(self) - val
+        return self.value - val
 
     def __rsub__(self, val):
-        return val - np.asarray(self)
+        return val - self.value
 
     def __mul__(self, val):
-        return np.asarray(self) * val
+        return self.value * val
 
     def __rmul__(self, val):
-        return np.asarray(self) * val
+        return self.value * val
 
     def __pow__(self, val):
-        return np.asarray(self) ** val
+        return self.value ** val
 
     def __div__(self, val):
-        return np.asarray(self) / val
+        return self.value / val
 
     def __rdiv__(self, val):
-        return val / np.asarray(self)
+        return val / self.value
 
     def __truediv__(self, val):
-        return np.asarray(self) / val
+        return self.value / val
 
     def __rtruediv__(self, val):
-        return val / np.asarray(self)
+        return val / self.value
 
     def __eq__(self, val):
         return (np.asarray(self) == np.asarray(val)).all()
@@ -498,10 +498,10 @@ class Parameter(object):
         return (np.asarray(self) >= np.asarray(val)).all()
 
     def __neg__(self):
-        return np.asarray(self) * (-1)
+        return -self.value * (-1)
 
     def __abs__(self):
-        return np.abs(np.asarray(self))
+        return np.abs(self.value)
 
 
 class Parameters(object):
