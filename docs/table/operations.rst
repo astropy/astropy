@@ -375,7 +375,7 @@ recursive algorithm with four rules:
 - Conflicting `dict` elements are merged by recursively calling the merge function
 - Conflicting elements that are not both `list`, `tuple`, or `dict` will follow the following rules:
     - If both metadata values are identical, the output is set to this value
-    - If at one of the conflicting metadata values is `None`, the other value is picked
+    - If one of the conflicting metadata values is `None`, the other value is picked
     - If both metadata values are different and neither is `None`, the one for the last table in the list is picked
 
 By default, a warning is emitted in the last case (both metadata values are not
