@@ -44,8 +44,8 @@ of the correct size, or a scalar value that will be broadcast::
   >>> t['d2'] = [1, 2, 3, 4, 5]
   >>> t['d3'] = 6  # all 5 rows set to 6
 
-For more explicit control the :func:`~astropy.table.table.add_column` and
-:func:`~astropy.table.table.add_columns` functions can be used to add one or multiple
+For more explicit control the :meth:`~astropy.table.table.Table.add_column` and
+:meth:`~astropy.table.table.Table.add_columns` methods can be used to add one or multiple
 columns to a table.  In both cases the new columns must be specified as |Column| or
 |MaskedColumn| objects with the ``name`` defined::
 
@@ -58,7 +58,7 @@ columns to a table.  In both cases the new columns must be specified as |Column|
   >>> t.add_columns(t2.columns.values())
 
 Finally, columns can also be added from
-:class:`~astropy.unit.quantity.Quantity` objects, which automatically sets the
+:class:`~astropy.units.quantity.Quantity` objects, which automatically sets the
 ``.unit`` attribute on the column:
 
   >>> from astropy import units as u
