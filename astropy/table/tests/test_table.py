@@ -127,11 +127,14 @@ class TestSetTableColumn(SetupData):
         """Create a new column (from a quantity) in empty table using the item access syntax"""
         self._setup(table_types)
         t = table_types.Table()
+
         t['aa'] = np.array([1,2,3]) * u.m
-        # Test that the new column name is 'aa' and that the values match
         assert np.all(t['aa'] == np.array([1,2,3]))
-        assert t.colnames == ['aa']
         assert t['aa'].unit == u.m
+
+        t['bb'] = 3 * u.m
+        assert np.all(t['bb'] == 3)
+        assert t['bb'].unit == u.m
 
     def test_set_new_col_existing_table(self, table_types):
         """Create a new column in an existing table using the item access syntax"""
@@ -172,6 +175,11 @@ class TestSetTableColumn(SetupData):
         # Add a column from a Quantity
         t['g'] = np.array([1,2,3]) * u.m
         assert np.all(t['g'].data == np.array([1,2,3]))
+        assert t['g'].unit == u.m
+
+        # Add a column from a (scalar) Quantity
+        t['g'] = 3 * u.m
+        assert np.all(t['g'].data == 3)
         assert t['g'].unit == u.m
 
     def test_set_new_unmasked_col_existing_table(self, table_types):
