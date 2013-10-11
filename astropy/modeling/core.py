@@ -41,6 +41,7 @@ In all these cases the output has the same shape as the input.
 """
 from __future__ import division
 import abc
+import copy
 from itertools import izip
 import numpy as np
 from . import parameters
@@ -321,13 +322,8 @@ class Model(object):
         else:
             raise InputParameterError("Unrecognized mode {0}".format(mode))
 
-    def __deepcopy__(self):
-        parameters = self.parameters[:]
-
-        self.__class__(*parameters, param_dim=self.param_dim)
-
     def copy(self):
-        return self.__deepcopy__()
+        return copy.deepcopy(self)
 
     @abc.abstractmethod
     def __call__(self):

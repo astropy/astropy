@@ -155,7 +155,7 @@ def test_custom_model(amplitude=4, frequency=1):
     np.random.seed(0)
     data = sin_model(x) + np.random.rand(50) - 0.5
     fitter = fitting.NonLinearLSQFitter(sin_model)
-    fitter(x, data)
+    model = fitter(x, data)
     assert np.all((fitter.fitpars - np.array([amplitude, frequency])) < 0.001)
 
 
@@ -222,7 +222,7 @@ class TestParametricModels(object):
         # add 10% noise to the amplitude
         data = model(x) + 0.1 * parameters[0] * (np.random.rand(self.N) - 0.5)
         fitter = fitting.NonLinearLSQFitter(model)
-        fitter(x, data)
+        model = fitter(x, data)
         assert np.all(np.abs((fitter.fitpars - np.array(parameters))
                               < self.fit_error))
 
@@ -277,7 +277,7 @@ class TestParametricModels(object):
         # add 10% noise to the amplitude
         data = model(xv, yv) + 0.1 * parameters[0] * (np.random.rand(self.N, self.N) - 0.5)
         fitter = fitting.NonLinearLSQFitter(model)
-        fitter(xv, yv, data)
+        model = fitter(xv, yv, data)
         assert np.all((np.abs(fitter.fitpars - np.array(parameters))
                         < self.fit_error))
 

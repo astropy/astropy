@@ -32,8 +32,8 @@ class TestNonLinearConstraints(object):
     def testFixedPar(self):
         g1 = models.Gaussian1DModel(10, mean=14.9, stddev=.3, fixed={'amplitude': True})
         fitter = fitting.NonLinearLSQFitter(g1)
-        fitter(self.x, self.ny1)
-        assert g1.amplitude.value == 10
+        model = fitter(self.x, self.ny1)
+        assert model.amplitude.value == 10
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def testTiedPar(self):
@@ -43,8 +43,8 @@ class TestNonLinearConstraints(object):
             return mean
         g1 = models.Gaussian1DModel(10, mean=14.9, stddev=.3, tied={'mean': tied})
         fitter = fitting.NonLinearLSQFitter(g1)
-        fitter(self.x, self.ny1)
-        utils.assert_allclose(g1.mean.value, 50 * g1.stddev, rtol=10 ** (-5))
+        model = fitter(self.x, self.ny1)
+        utils.assert_allclose(model.mean.value, 50 * g1.stddev, rtol=10 ** (-5))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def testJointFitter(self):
@@ -82,8 +82,8 @@ class TestNonLinearConstraints(object):
         ny = y + n
         fitpar, s = optimize.leastsq(errf, p0, args=(self.x, n + y))
         fitter = fitting.NonLinearLSQFitter(g1)
-        fitter(self.x, n + y)
-        utils.assert_allclose(g1.parameters, fitpar, rtol=5 * 10 ** (-3))
+        model = fitter(self.x, n + y)
+        utils.assert_allclose(model..parameters, fitpar, rtol=5 * 10 ** (-3))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -114,7 +114,7 @@ class TestBounds(object):
         bounds = {'slope': (-1.5, 5.0), 'intercept': (-1.0, 1.0)}
         line_model = models.Linear1DModel(guess_slope, guess_intercept, bounds=bounds)
         fitter = fitting.NonLinearLSQFitter(line_model)
-        fitter(self.x, self.y)
+        model = fitter(self.x, self.y)
         slope = line_model.slope.value
         intercept = line_model.intercept.value
         assert slope + 10 ** -5 >= bounds['slope'][0]
@@ -128,7 +128,7 @@ class TestBounds(object):
         bounds = {'slope': (-1.5, 5.0), 'intercept': (-1.0, 1.0)}
         line_model = models.Linear1DModel(guess_slope, guess_intercept, bounds=bounds)
         fitter = fitting.SLSQPFitter(line_model)
-        fitter(self.x, self.y)
+        model = fitter(self.x, self.y)
         slope = line_model.slope.value
         intercept = line_model.intercept.value
         assert slope + 10 ** -5 >= bounds['slope'][0]
@@ -146,11 +146,11 @@ class TestBounds(object):
                                        x_stddev=4., y_stddev=4., theta=0.5,
                                        bounds=bounds)
         gauss_fit = fitting.NonLinearLSQFitter(gauss)
-        gauss_fit(X, Y, self.data)
-        x_mean = gauss.x_mean.value
-        y_mean = gauss.y_mean.value
-        x_stddev = gauss.x_stddev.value
-        y_stddev = gauss.y_stddev.value
+        new_gauss = gauss_fit(X, Y, self.data)
+        x_mean = new_gauss.x_mean.value
+        y_mean = new_gauss.y_mean.value
+        x_stddev = new_gauss.x_stddev.value
+        y_stddev = new_gauss.y_stddev.value
         assert x_mean + 10 ** -5 >= bounds['x_mean'][0]
         assert x_mean - 10 ** -5 <= bounds['x_mean'][1]
         assert y_mean + 10 ** -5 >= bounds['y_mean'][0]
@@ -170,11 +170,11 @@ class TestBounds(object):
                                        x_stddev=4., y_stddev=4., theta=0.5,
                                        bounds=bounds)
         gauss_fit = fitting.SLSQPFitter(gauss)
-        gauss_fit(X, Y, self.data)
-        x_mean = gauss.x_mean.value
-        y_mean = gauss.y_mean.value
-        x_stddev = gauss.x_stddev.value
-        y_stddev = gauss.y_stddev.value
+        new_gauss = gauss_fit(X, Y, self.data)
+        x_mean = new_gauss.x_mean.value
+        y_mean = new_gauss.y_mean.value
+        x_stddev = new_gauss.x_stddev.value
+        y_stddev = new_gauss.y_stddev.value
         assert x_mean + 10 ** -5 >= bounds['x_mean'][0]
         assert x_mean - 10 ** -5 <= bounds['x_mean'][1]
         assert y_mean + 10 ** -5 >= bounds['y_mean'][0]
@@ -202,8 +202,8 @@ class TestLinearConstraints(object):
         self.p1.c0.fixed = True
         self.p1.c1.fixed = True
         pfit = fitting.LinearLSQFitter(self.p1)
-        pfit(self.x, self.y)
-        utils.assert_allclose(self.y, self.p1(self.x))
+        model = pfit(self.x, self.y)
+        utils.assert_allclose(self.y, model(self.x))
 
 # Test constraints as parameter properties
 

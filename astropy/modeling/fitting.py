@@ -93,7 +93,7 @@ class Fitter(object):
     def __init__(self, model):
         if not model.fittable:
             raise ValueError("Model must be a subclass of ParametricModel")
-        self._model = model
+        self._model = model.copy()
         self.bounds = []
         self.fixed = []
         self.tied = []
@@ -462,7 +462,7 @@ class LinearLSQFitter(Fitter):
         if rank != self.model._order:
             warnings.warn("The fit may be poorly conditioned\n", AstropyUserWarning)
         self.fitpars = lacoef.flatten()[:]
-
+        return self.model
 
 class NonLinearLSQFitter(Fitter):
 
@@ -583,6 +583,7 @@ class NonLinearLSQFitter(Fitter):
         if ierr not in [1, 2, 3, 4]:
             warnings.warn("The fit may be unsuccessful; check fit_info['message'] for "
                           "more information.", AstropyUserWarning)
+        return self.model
 
 
 class SLSQPFitter(Fitter):
@@ -696,6 +697,7 @@ class SLSQPFitter(Fitter):
         if exit_mode != 0:
             warnings.warn("The fit may be unsuccessful; check fit_info['message'] "
                           " for more information.", AstropyUserWarning)
+        return self.model
 
 
 class JointFitter(object):
@@ -824,3 +826,4 @@ class JointFitter(object):
                     mpars.extend(mfpars[:plen])
                     del mfpars[:plen]
             model._parameters[:] = np.array(mpars)
+        return self.model

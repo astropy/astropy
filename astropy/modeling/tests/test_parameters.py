@@ -143,8 +143,8 @@ class TestParameters(object):
 
         Uses an iraf example.
         """
-        self.linear_fitter(self.x, self.y)
-        utils.assert_allclose(self.model.parameters,
+        model = self.linear_fitter(self.x, self.y)
+        utils.assert_allclose(model.parameters,
                               np.array(
                                   [4826.1066602783685, 952.8943813407858,
                                    12.641236013982386,
