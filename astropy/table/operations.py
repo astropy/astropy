@@ -49,19 +49,13 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
                     right_attr = getattr(right_col, attr)
 
                     if left_attr is None:
-
                         # This may not seem necessary since merge_attr gets set
                         # to right_attr, but not all objects support != which is
                         # needed for one of the if clauses.
-
                         merge_attr = right_attr
-
                     elif right_attr is None:
-
                         merge_attr = left_attr
-
                     elif left_attr != right_attr:
-
                         if metadata_conflicts == 'warn':
                             warnings.warn('In merged column {0!r} the {1!r} attribute does not match '
                                           '({2} != {3}).  Using {2} for merged output'
@@ -72,7 +66,6 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
                                           '({2} != {3})'.format(out_col.name, attr, left_attr, right_attr))
                         elif metadata_conflicts != 'silent':
                             raise ValueError('metadata_conflict argument must be one of "silent", "warn", or "error"')
-
                         merge_attr = right_attr
 
                     setattr(out_col, attr, merge_attr)

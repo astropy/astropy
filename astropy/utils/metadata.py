@@ -86,19 +86,13 @@ def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
                 # on the right (or raise an error).
 
                 if left[key] is None:
-
                     # This may not seem necessary since out[key] gets set to
                     # right[key], but not all objects support != which is
                     # needed for one of the if clauses.
-
                     out[key] = right[key]
-
                 if right[key] is None:
-
                     out[key] = left[key]
-
                 if left[key] != right[key]:
-
                     if metadata_conflicts == 'warn':
                         warnings.warn('Cannot merge meta key {0!r} types {1!r} and {2!r}, choosing {0}={3!r}'
                                                  .format(key, type(left[key]), type(right[key]), right[key]), MergeConflictWarning)
@@ -107,8 +101,6 @@ def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
                                                  .format(key, type(left[key]), type(right[key])))
                     elif metadata_conflicts != 'silent':
                         raise ValueError('metadata_conflict argument must be one of "silent", "warn", or "error"')
-
-                out[key] = right[key]
-
+                    out[key] = right[key]
 
     return out
