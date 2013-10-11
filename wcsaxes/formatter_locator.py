@@ -1,3 +1,10 @@
+# This file defines the AngleFormatterLocator class which is a class that
+# provides both a method for a formatter and one for a locator, for a given
+# label spacing. The advantage of keeping the two connected is that we need to
+# make sure that the formatter can correctly represent the spacing requested and
+# vice versa. For example, a format of dd:mm cannot work with a tick spacing
+# that is not a multiple of one arcminute.
+
 import re
 import warnings
 
