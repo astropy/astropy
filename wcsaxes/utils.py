@@ -62,3 +62,20 @@ def select_step_hour(dv):
     unit = hour_units[n]
 
     return step * unit
+
+
+def get_coordinate_system(wcs):
+
+    xcoord = wcs.wcs.ctype[0][0:4]
+    ycoord = wcs.wcs.ctype[1][0:4]
+
+    from astropy.coordinates import FK5Coordinates, GalacticCoordinates
+
+    if xcoord == 'RA--' and ycoord == 'DEC-':
+        coordinate_class = FK5Coordinates
+    elif xcoord == 'GLON' and ycoord == 'GLAT':
+        coordinate_class = GalacticCoordinates
+    else:
+        raise ValueError("System not supported (yet): {0}/{1}".format(xcoord, ycoord))
+
+    return coordinate_class

@@ -115,7 +115,7 @@ class WCSPixel2WorldTransform(CurvedTransform):
 class CoordinateTransform(CurvedTransform):
 
     def __init__(self, input_system, output_system):
-
+        super(CoordinateTransform, self).__init__()
         self.input_system = input_system
         self.output_system = output_system
 
