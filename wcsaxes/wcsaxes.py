@@ -1,8 +1,9 @@
 from matplotlib.transforms import Affine2D
 from mpl_toolkits.axisartist import Axes
 
-from .transforms import WCSWorld2PixelTransform
+from .transforms import WCSWorld2PixelTransform, CoordinateTransform
 from .grid_helpers import SkyGridHelper
+from .utils import get_coordinate_system
 
 
 class WCSAxes(Axes):
@@ -25,10 +26,32 @@ class WCSAxes(Axes):
 
             return Affine2D() + self.transData
 
-        elif frame == 'world':
-
-            return WCSWorld2PixelTransform(self.wcs) + self.transData
-
         else:
 
-            raise NotImplemented("frame {0} not implemented".format(frame))
+            from astropy.coordinates import FK5Coordinates, GalacticCoordinates
+
+            world2pixel = WCSWorld2PixelTransform(self.wcs) + self.transData
+
+            coord_class = get_coordinate_system(self.wcs)
+
+            if frame == 'world':
+
+                return world2pixel
+
+            elif frame == 'fk5':
+
+                if coord_class is FK5Coordinates:
+                    return world2pixel
+                else:
+                    return CoordinateTransform(FK5Coordinates, coord_class) + world2pixel
+
+            elif frame == 'galactic':
+
+                if coord_class is GalacticCoordinates:
+                    return world2pixel
+                else:
+                    return CoordinateTransform(GalacticCoordinates, coord_class) + world2pixel
+
+            else:
+
+                raise NotImplemented("frame {0} not implemented".format(frame))
