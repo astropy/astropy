@@ -9,7 +9,7 @@ import warnings
 import numpy as np
 from numpy import ma
 
-from ..units import Unit
+from ..units import Unit, Quantity
 from .. import log
 from ..utils import OrderedDict, isiterable, deprecated, deprecated_attribute
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
@@ -513,6 +513,12 @@ class Column(BaseColumn, np.ndarray):
                 meta = deepcopy(data.meta)
         elif isinstance(data, MaskedColumn):
             raise TypeError("Cannot convert a MaskedColumn to a Column")
+        elif isinstance(data, Quantity):
+            if unit is None:
+                self_data = np.asarray(data, dtype=dtype)
+                unit = data.unit
+            else:
+                self_data = np.asarray(data.to(unit), dtype=dtype)
         else:
             self_data = np.asarray(data, dtype=dtype)
 
@@ -661,6 +667,12 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
                 format = data.format
             if meta is None:
                 meta = deepcopy(data.meta)
+        elif isinstance(data, Quantity):
+            if unit is None:
+                self_data = ma.asarray(data, dtype=dtype)
+                unit = data.unit
+            else:
+                self_data = ma.asarray(data.to(unit), dtype=dtype)
         else:
             self_data = ma.asarray(data, dtype=dtype)
 
@@ -1445,8 +1457,12 @@ class Table(object):
                                        shape=value.shape[1:])
                 new_column[:] = value
 
+                if isinstance(value, Quantity):
+                    new_column.unit = value.unit
+
             # Now add new column to the table
             self.add_column(new_column)
+
         elif isinstance(value, Row):
             # Value is another row
             self._data[item] = value.data
