@@ -25,9 +25,6 @@ from .physical import *
 
 from .equivalencies import *
 
-# Create a special singleton for the dimensionless unit
-dimensionless_unscaled = Unit(1)
-
 del bases
 
 # Enable the set of default units.  This notably does *not* include
