@@ -201,9 +201,9 @@ class Quantity(np.ndarray):
         # this as a special case.
         # TODO: find a better way to deal with this case
         if function is np.power and result_unit is not None:
-            # if not np.isscalar(args[1]):
-            #     raise ValueError(
-            #         "Quantities may only be raised to a scalar power")
+            if not np.isscalar(args[1]):
+                raise ValueError(
+                    "Quantities may only be raised to a scalar power")
 
             if units[1] is None:
                 result_unit = result_unit ** args[1]
@@ -1081,7 +1081,7 @@ class Quantity(np.ndarray):
     @property
     def _data(self):
         # help break getdata(subok=False)
-        return self.view(_QuantityData)
+        return self.view(MaskedQuantity)._data
 
 
 class _QuantityData(Quantity):
@@ -1101,6 +1101,8 @@ class _QuantityData(Quantity):
 
 
 class MaskedQuantity(Quantity, np.ma.MaskedArray):
+
+    __array_priority__ = 10010
 
     _array_class = np.ma.MaskedArray
 
@@ -1225,3 +1227,5 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
         return np.power(self, other, self)
 
     # known: MaskedArray * unit fails
+    # this happens because MaskedArray does not return NotImplemented
+    # (and ignores the NotImplemented returned by the basic function)
