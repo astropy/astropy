@@ -1,7 +1,9 @@
 from matplotlib.transforms import Affine2D
 from mpl_toolkits.axisartist import Axes
 
-from .transforms import WCSWorld2PixelTransform, CoordinateTransform
+from astropy.wcs import WCS
+
+from .transforms import WCSPixel2WorldTransform, WCSWorld2PixelTransform, CoordinateTransform
 from .grid_helpers import SkyGridHelper
 from .utils import get_coordinate_system
 
@@ -12,17 +14,41 @@ class WCSAxes(Axes):
 
         self.wcs = wcs
 
-        # For now, assume WCS is Sky WCS
-        self.coords = SkyGridHelper(self, self.wcs)
+        if self.wcs is None:
 
-        Axes.__init__(self, fig, rect, adjustable=adjustable, grid_helper=self.coords.grid_helper)
+            Axes.__init__(self, fig, rect, adjustable=adjustable)
+
+        else:
+
+            # For now, assume WCS is Sky WCS
+            self.coords = SkyGridHelper(self, self.wcs)
+
+            Axes.__init__(self, fig, rect, adjustable=adjustable, grid_helper=self.coords.grid_helper)
 
     def get_transform(self, frame, equinox=None, obstime=None):
 
         if self.wcs is None and frame != 'pixel':
             raise ValueError('No WCS specified, so only pixel coordinates are available')
 
-        if frame == 'pixel':
+        if isinstance(frame, WCS):
+
+            coord_in = get_coordinate_system(frame)
+            coord_out = get_coordinate_system(self.wcs)
+
+            if coord_in == coord_out:
+
+                return (WCSPixel2WorldTransform(frame)
+                        + WCSWorld2PixelTransform(self.wcs)
+                        + self.transData)
+
+            else:
+
+                return (WCSPixel2WorldTransform(frame)
+                        + CoordinateTransform(coord_in, coord_out)
+                        + WCSWorld2PixelTransform(self.wcs)
+                        + self.transData)
+
+        elif frame == 'pixel':
 
             return Affine2D() + self.transData
 
