@@ -718,12 +718,15 @@ class JointFitter(object):
         a list of initial values
     """
     def __init__(self, models, jointparameters, initvals):
-        self.models = list(models)
+        self.models = []
+        for m in models:
+            model_copy = m.copy()
+            if m in jointparameters.keys():
+                model_copy.set_joint_parameters(jointparameters[m])
+            self.models.append(model_copy)
         self.initvals = list(initvals)
         self.jointpars = jointparameters
         self._verify_input()
-        for m in self.jointpars.keys():
-            m.set_joint_parameters(self.jointpars[m])
         self.fitpars = self._model_to_fit_pars()
 
         # a list of model.n_inputs
@@ -826,4 +829,4 @@ class JointFitter(object):
                     mpars.extend(mfpars[:plen])
                     del mfpars[:plen]
             model._parameters[:] = np.array(mpars)
-        return self.model
+        return self.models

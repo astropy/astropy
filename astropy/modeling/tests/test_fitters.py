@@ -98,14 +98,14 @@ class TestJointFitter(object):
         n = np.random.randn(100)
         self.ny1 = y1 + 2 * n
         self.ny2 = y2 + 2 * n
-        self.jf(self.x, self.ny1, self.x, self.ny2)
+        self.out_models = self.jf(self.x, self.ny1, self.x, self.ny2)
 
     def test_joint_parameter(self):
         """
         Tests that the amplitude of the two models is the same
         """
-        utils.assert_allclose(self.jf.fitpars[0], self.g1.parameters[0])
-        utils.assert_allclose(self.jf.fitpars[0], self.g2.parameters[0])
+        utils.assert_allclose(self.jf.fitpars[0], self.out_models[0].parameters[0])
+        utils.assert_allclose(self.jf.fitpars[0], self.out_models[1].parameters[0])
 
     def test_joint_fitter(self):
         """
