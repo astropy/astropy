@@ -1724,6 +1724,8 @@ class _QuantityData(Quantity):
 
 class MaskedQuantity(Quantity, np.ma.MaskedArray):
 
+    __array_priority__ = 10010
+
     _array_class = np.ma.MaskedArray
 
     _mask = np.ma.nomask
@@ -1847,3 +1849,5 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
         return np.power(self, other, self)
 
     # known: MaskedArray * unit fails
+    # this happens because MaskedArray does not return NotImplemented
+    # (and ignores the NotImplemented returned by the basic function)
