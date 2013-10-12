@@ -148,7 +148,7 @@ class AngleFormatterLocator(object):
             if self.spacing is not None:
 
                 # spacing was manually specified
-                spacing_deg = self.spacing.degree
+                spacing_deg = self.spacing.to(u.degree).value
 
             elif self.number is not None:
 
@@ -160,7 +160,7 @@ class AngleFormatterLocator(object):
                 if dv < self.base_spacing:
                     # if the spacing is less than the minimum spacing allowed by the format, simply
                     # use the format precision instead.
-                    spacing_deg = self.base_spacing.degree
+                    spacing_deg = self.base_spacing.to(u.degree).value
                 else:
                     # otherwise we clip to the nearest 'sensible' spacing
                     if self._unit is u.degree:
