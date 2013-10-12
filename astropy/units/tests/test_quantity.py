@@ -358,6 +358,8 @@ class TestQuantityOperations(object):
 
         assert q1 * u.s == u.s * q1 == new_q
         assert q1 / u.s == QuantityClass(11.42, 'm/s')
+        if QuantityClass is u.MaskedQuantity:
+            pytest.xfail()
         assert u.s / q1 == QuantityClass(1 / 11.42, 's/m')
 
     @pytest.mark.parametrize('QuantityClass', (u.Quantity, u.MaskedQuantity))
@@ -572,7 +574,7 @@ class TestQuantityOperations(object):
         assert q4.__index__() == 2
 
         # but arrays are not OK
-        q5 = u.QuantityClass([1, 2], u.m)
+        q5 = QuantityClass([1, 2], u.m)
         with pytest.raises(TypeError) as exc:
             float(q5)
         assert exc.value.args[0] == converter_err_msg
