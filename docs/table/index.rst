@@ -41,7 +41,7 @@ case, while the full `astropy.table` documentation is available from the
 First create a simple table with three columns of data named ``a``, ``b``,
 and ``c``.  These columns have integer, float, and string values respectively::
 
-  >>> from astropy.table import Table, Column
+  >>> from astropy.table import Table
   >>> a = [1, 4, 5]
   >>> b = [2.0, 5.0, 8.2]
   >>> c = ['x', 'y', 'z']
