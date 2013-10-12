@@ -73,6 +73,10 @@ New Features
   - Setting a column from a Quantity now correctly sets the unit on the Column
     object [#732].
 
+  - The ``vstack``, ``hstack``, and ``join`` functions now support a
+    ``metadata_conflicts`` option that allows users to specify whether to
+    silently resolve conflicts, emit warnings, or raise exceptions [#1343].
+
 - ``astropy.convolution``
 
   - New class-based system for generating kernels, replacing `make_kernel`.
@@ -256,6 +260,11 @@ API Changes
     of the arguments in the comparison was masked). This is in contrast to the
     previous behavior, which in some cases returned a boolean Numpy array, and
     in some cases returned a boolean Column object [#1446].
+
+  - When using ``vstack``, ``hstack``, or ``join``, conflicting metadata now
+    only emit a warning by default rather than raising an exception. The
+    behavior can be changed to silently resolve conflicts or raise exceptions,
+    using the ``metadata_conflicts`` option [#1343].
 
 - ``astropy.time``
 

@@ -17,7 +17,8 @@ from . import np_utils
 __all__ = ['join', 'hstack', 'vstack']
 
 
-def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1):
+def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
+                    metadata_conflicts='warn'):
     """
     Merge column meta data for the ``out`` table.
 
@@ -36,23 +37,44 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1):
 
             if right_name:
                 right_col = table[right_name]
-                out_col.meta = metadata.merge(left_col.meta, right_col.meta)
+                out_col.meta = metadata.merge(left_col.meta, right_col.meta, metadata_conflicts=metadata_conflicts)
                 for attr in attrs:
+
+                    # Pick the metadata item that is not None, or they are both
+                    # not None, then if they are equal, there is no conflict,
+                    # and if they are different, there is a conflict and we
+                    # pick the one on the right (or raise an error).
+
                     left_attr = getattr(left_col, attr)
                     right_attr = getattr(right_col, attr)
-                    merge_attr = left_attr or right_attr
+
+                    if left_attr is None:
+                        # This may not seem necessary since merge_attr gets set
+                        # to right_attr, but not all objects support != which is
+                        # needed for one of the if clauses.
+                        merge_attr = right_attr
+                    elif right_attr is None:
+                        merge_attr = left_attr
+                    elif left_attr != right_attr:
+                        if metadata_conflicts == 'warn':
+                            warnings.warn('In merged column {0!r} the {1!r} attribute does not match '
+                                          '({2} != {3}).  Using {2} for merged output'
+                                          .format(out_col.name, attr, left_attr, right_attr),
+                                          metadata.MergeConflictWarning)
+                        elif metadata_conflicts == 'error':
+                            raise MergeConflictError('In merged column {0!r} the {1!r} attribute does not match '
+                                          '({2} != {3})'.format(out_col.name, attr, left_attr, right_attr))
+                        elif metadata_conflicts != 'silent':
+                            raise ValueError('metadata_conflict argument must be one of "silent", "warn", or "error"')
+                        merge_attr = right_attr
+
                     setattr(out_col, attr, merge_attr)
-                    if left_attr and right_attr and left_attr != right_attr:
-                        warnings.warn('In merged column {0!r} the {1!r} attribute does not match '
-                                      '({2} != {3}).  Using {2} for merged output'
-                                      .format(out_col.name, attr, left_attr, right_attr),
-                                      metadata.MergeConflictWarning)
 
 
-def _merge_table_meta(out, tables):
+def _merge_table_meta(out, tables, metadata_conflicts='warn'):
     out_meta = deepcopy(tables[0].meta)
     for table in tables[1:]:
-        out_meta = metadata.merge(out_meta, table.meta)
+        out_meta = metadata.merge(out_meta, table.meta, metadata_conflicts=metadata_conflicts)
     out.meta.update(out_meta)
 
 
@@ -76,7 +98,7 @@ def _get_list_of_tables(tables):
 
 def join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
-         table_names=['1', '2']):
+         table_names=['1', '2'], metadata_conflicts='warn'):
     """
     Perform a join of the left table with the right table on specified keys.
 
@@ -97,7 +119,11 @@ def join(left, right, keys=None, join_type='inner',
     table_names : list of str or None
         Two-element list of table names used when generating unique output
         column names.  The default is ['1', '2'].
-
+    metadata_conflicts : str
+        How to proceed with metadata conflicts. This should be one of:
+            * ``'silent'``: silently pick the last conflicting meta-data value
+            * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
+            * ``'error'``: raise an exception.
     """
     from .table import Table
 
@@ -115,13 +141,13 @@ def join(left, right, keys=None, join_type='inner',
 
     # Merge the column and table meta data. Table subclasses might override
     # these methods for custom merge behavior.
-    _merge_col_meta(out, [left, right], col_name_map)
-    _merge_table_meta(out, [left, right])
+    _merge_col_meta(out, [left, right], col_name_map, metadata_conflicts=metadata_conflicts)
+    _merge_table_meta(out, [left, right], metadata_conflicts=metadata_conflicts)
 
     return out
 
 
-def vstack(tables, join_type='outer'):
+def vstack(tables, join_type='outer', metadata_conflicts='warn'):
     """
     Stack tables vertically (along rows)
 
@@ -139,6 +165,11 @@ def vstack(tables, join_type='outer'):
         Table(s) to stack along rows (vertically) with the current table
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'exact'
+    metadata_conflicts : str
+        How to proceed with metadata conflicts. This should be one of:
+            * ``'silent'``: silently pick the last conflicting meta-data value
+            * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
+            * ``'error'``: raise an exception.
 
     Examples
     --------
@@ -176,14 +207,15 @@ def vstack(tables, join_type='outer'):
     out = Table(out_data)
 
     # Merge column and table metadata
-    _merge_col_meta(out, tables, col_name_map)
-    _merge_table_meta(out, tables)
+    _merge_col_meta(out, tables, col_name_map, metadata_conflicts=metadata_conflicts)
+    _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
     return out
 
 
 def hstack(tables, join_type='outer',
-           uniq_col_name='{col_name}_{table_name}', table_names=None):
+           uniq_col_name='{col_name}_{table_name}', table_names=None,
+           metadata_conflicts='warn'):
     """
     Stack tables along columns (horizontally)
 
@@ -209,6 +241,11 @@ def hstack(tables, join_type='outer',
     col_name_map : empty dict or None
         If passed as a dict then it will be updated in-place with the
         mapping of output to input column names.
+    metadata_conflicts : str
+        How to proceed with metadata conflicts. This should be one of:
+            * ``'silent'``: silently pick the last conflicting meta-data value
+            * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
+            * ``'error'``: raise an exception.
 
     Examples
     --------
@@ -244,7 +281,7 @@ def hstack(tables, join_type='outer',
                                col_name_map)
     out = Table(out_data)
 
-    _merge_col_meta(out, tables, col_name_map)
-    _merge_table_meta(out, tables)
+    _merge_col_meta(out, tables, col_name_map, metadata_conflicts=metadata_conflicts)
+    _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
     return out
