@@ -46,6 +46,15 @@ representing units, but supports all of the units defined within the
 `~astropy.units.core.UnitBase.to_string` functions also take an
 optional `format` parameter to select a different format.
 
+The `~astropy.units.core.UnitBase.to_string` method can be used to format
+units as strings, and is the underlying implementation of the new-style
+formatting::
+    
+    >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
+    >>> fluxunit.to_string('latex')
+    u'$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
+    
+
 Built-in formats
 ----------------
 
