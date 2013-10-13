@@ -241,8 +241,11 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
 
     if len(valid_formats) == 0:
         raise Exception(
-            "Format could not be identified. ",
-            "Valid formats are {0}".format(
+            "No 'format' argument was specified, but the filename extension "
+            "was not a known unique extension that could be used to "
+            "automatically identify the format.\n"
+            "Please include a 'format=<format_name>' argument with one of the "
+            "following values:\n{0}".format(
                 ', '.join(sorted(x[0] for x in funcs))))
     elif len(valid_formats) > 1:
         raise Exception(
