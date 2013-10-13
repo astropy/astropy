@@ -84,7 +84,7 @@ def _is_inside(path, parent_path):
 
 @contextlib.contextmanager
 def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
-                         show_progress=True):
+                         show_progress=True, remote_timeout=None):
     """
     Given a filename or a readable file-like object, return a context
     manager that yields a readable file-like object.
@@ -131,6 +131,10 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         Whether to display a progress bar if the file is downloaded
         from a remote server.  Default is `True`.
 
+    remote_timeout : float
+        Timeout for remote requests in seconds (default is the configurable
+        REMOTE_TIMEOUT, which is 3s by default)
+
     Returns
     -------
     file : readable file-like object
@@ -147,11 +151,16 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     close_fds = []
     delete_fds = []
 
+    if remote_timeout is None:
+        # use configfile default
+        remote_timeout = REMOTE_TIMEOUT()
+
     # Get a file object to the content
     if isinstance(name_or_obj, six.string_types):
         if _is_url(name_or_obj):
             name_or_obj = download_file(
-                name_or_obj, cache=cache, show_progress=show_progress)
+                name_or_obj, cache=cache, show_progress=show_progress,
+                timeout=remote_timeout)
         if PY3K:
             fileobj = io.FileIO(name_or_obj, 'r')
         else:
@@ -388,7 +397,7 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
                                     cache=cache)
 
 
-def get_pkg_data_filename(data_name, show_progress=True):
+def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
     """
     Retrieves a data file from the standard locations for the package and
     provides a local filename for the data.
@@ -421,6 +430,10 @@ def get_pkg_data_filename(data_name, show_progress=True):
     show_progress : bool, optional
         Whether to display a progress bar if the file is downloaded
         from a remote server.  Default is `True`.
+
+    timeout : float
+        Timeout for the requests in seconds (default is the configurable
+        REMOTE_TIMEOUT, which is 3s by default)
 
     Raises
     ------
@@ -465,13 +478,18 @@ def get_pkg_data_filename(data_name, show_progress=True):
 
     data_name = os.path.normpath(data_name)
 
+    if remote_timeout is None:
+        # use configfile default
+        remote_timeout = REMOTE_TIMEOUT()
+
     if data_name.startswith('hash/'):
         # first try looking for a local version if a hash is specified
         hashfn = _find_hash_fn(data_name[5:])
         if hashfn is None:
             return download_file(
                 DATAURL() + data_name, cache=True,
-                show_progress=show_progress)
+                show_progress=show_progress,
+                remote_timeout=remote_timeout)
         else:
             return hashfn
     else:
@@ -484,7 +502,8 @@ def get_pkg_data_filename(data_name, show_progress=True):
         else:  # remote file
             return download_file(
                 DATAURL() + data_name, cache=True,
-                show_progress=show_progress)
+                show_progress=show_progress,
+                remote_timeout=remote_timeout)
 
 
 def get_pkg_data_contents(data_name, encoding=None, cache=True):
@@ -824,7 +843,7 @@ def check_free_space_in_dir(path, size):
                 path, human_file_size(size)))
 
 
-def download_file(remote_url, cache=False, show_progress=True):
+def download_file(remote_url, cache=False, show_progress=True, timeout=REMOTE_TIMEOUT()):
     """
     Accepts a URL, downloads and optionally caches the result
     returning the filename, with a name determined by the file's MD5
@@ -882,7 +901,7 @@ def download_file(remote_url, cache=False, show_progress=True):
                     return url2hash[str(remote_url)]
 
         with closing(urllib.request.urlopen(
-                remote_url, timeout=REMOTE_TIMEOUT())) as remote:
+                remote_url, timeout=timeout)) as remote:
             #keep a hash to rename the local file to the hashed name
             hash = hashlib.md5()
 
@@ -964,7 +983,8 @@ def _do_download_files_in_parallel(args):
     return download_file(*args, show_progress=False)
 
 
-def download_files_in_parallel(urls, cache=False, show_progress=True):
+def download_files_in_parallel(urls, cache=False, show_progress=True,
+                               timeout=REMOTE_TIMEOUT()):
     """
     Downloads multiple files in parallel from the given URLs.  Blocks until
     all files have downloaded.  The result is a list of local file paths
@@ -981,6 +1001,10 @@ def download_files_in_parallel(urls, cache=False, show_progress=True):
     show_progress : bool, optional
         Whether to display a progress bar during the download (default
         is `True`)
+
+    timeout : float
+        Timeout for the requests in seconds (default is the configurable
+        REMOTE_TIMEOUT, which is 3s by default)
 
     Returns
     -------
