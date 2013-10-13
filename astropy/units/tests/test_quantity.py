@@ -312,6 +312,10 @@ class TestQuantityOperations(object):
                 assert long(q1) == 1
             assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
 
+        with pytest.raises(TypeError) as exc:
+            assert q1.__index__() == 1
+        assert exc.value.args[0] == "Only integer dimensionless scalar quantities can be converted to a Python index"
+
         q2 = u.Quantity(1.23, u.m / u.km)
 
         with pytest.raises(TypeError) as exc:
@@ -327,12 +331,29 @@ class TestQuantityOperations(object):
                 assert long(q2) == 1
             assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
 
+        with pytest.raises(TypeError) as exc:
+            assert q2.__index__() == 1
+        assert exc.value.args[0] == "Only integer dimensionless scalar quantities can be converted to a Python index"
+
         q3 = u.Quantity(1.23, u.dimensionless_unscaled)
 
         assert float(q3) == 1.23
         assert int(q3) == 1
         if six.PY2:
             assert long(q3) == 1
+
+        with pytest.raises(TypeError) as exc:
+            assert q1.__index__() == 1
+        assert exc.value.args[0] == "Only integer dimensionless scalar quantities can be converted to a Python index"
+
+        q4 = u.Quantity(1, u.dimensionless_unscaled)
+
+        assert float(q4) == 1.
+        assert int(q4) == 1
+        if six.PY2:
+            assert long(q4) == 1
+
+        assert q4.__index__() == 1
 
     def test_array_converters(self):
 
