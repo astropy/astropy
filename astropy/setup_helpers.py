@@ -973,7 +973,15 @@ def get_distutils_display_options():
     short_display_opts.add('-h')
     long_display_opts.add('--help')
 
-    return short_display_opts.union(long_display_opts)
+    # This isn't the greatest approach to hardcode these commands.
+    # However, there doesn't seem to be a good way to determine
+    # whether build *will be* run as part of the command at this
+    # phase.
+    display_commands = set([
+        'clean', 'register', 'setopt', 'saveopts', 'egg_info',
+        'alias'])
+
+    return short_display_opts.union(long_display_opts.union(display_commands))
 
 
 def is_distutils_display_option():
