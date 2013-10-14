@@ -87,7 +87,7 @@ of coordinates::
     >>> #assume ra1/dec1 and ra2/dec2 are arrays loaded from some file
     >>> c = coord.ICRSCoordinates(ra1, dec1, unit=(u.degree, u.degree))
     >>> catalog = coord.ICRSCoordinates(ra2, dec2, unit=(u.degree, u.degree))
-    >>> idx, d2d, d3d = c1.match_to_catalog(catalog)
+    >>> idx, d2d, d3d = c1.match_to_catalog_sky(catalog)
 
 
 The `coordinates` subpackage also provides a quick way to get

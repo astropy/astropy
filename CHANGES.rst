@@ -21,7 +21,8 @@ New Features
 
   - Array coordinates can be matched to other array coordinates, finding the
     closest matches between the two sets of coordiantes (see the 
-    `~astropy.coordinates.matching.match_coordinates` function).
+    `~astropy.coordinates.matching.match_coordinates_3d` and 
+    `~astropy.coordinates.matching.match_coordinates_sky` functions).
 
 - ``astropy.io.votable``
 
