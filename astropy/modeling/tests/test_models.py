@@ -12,7 +12,7 @@ import numpy as np
 from numpy.testing import utils
 from ...tests.helper import pytest
 from .. import fitting
-from .model_lists import models_1D, models_2D
+from .example_models import models_1D, models_2D
 
 try:
     from scipy import optimize
@@ -164,7 +164,7 @@ class TestParametricModels(object):
     """
     Test class for all parametric models.
 
-    Test values have to be defined in model_lists.py. It currently test the model
+    Test values have to be defined in example_models.py. It currently test the model
     with different input types, evaluates the model at different positions and
     assures that it gives the correct values. And tests if the  model works with
     the NonLinearFitter.
