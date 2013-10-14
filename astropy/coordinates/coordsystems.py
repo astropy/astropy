@@ -246,6 +246,31 @@ class SphericalCoordinatesBase(object):
         setattr(self, latname, latang)
         self._distance = dist
 
+
+        #sanity-check that they are all consistent shapes
+        if self.lonangle.shape != self.latangle.shape:
+            raise ValueError('lonangle and latangle do not have matching shapes')
+
+        if self._distance is not None and self._distance.shape != self.lonangle.shape:
+            raise ValueError('distance and angles do not have matching shapes')
+
+    def __repr__(self):
+        if self.distance is not None:
+            if self.isscalar:
+                diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
+            else:
+                diststr = ', Distance={0} {1!s}'.format(self.distance.value, self.distance.unit)
+        else:
+            diststr = ''
+
+        if self.isscalar:
+            msg = "<{clsnm} {lonnm}={lonval:.5f} deg, {latnm}={latval:.5f} deg{diststr}>"
+        else:
+            msg = "<{clsnm} {lonnm}={lonval} deg, {latnm}={latval} deg{diststr}>"
+        return msg.format(clsnm=self.__class__.__name__, lonval=self.lonangle.degree,
+                          latval=self.latangle.degree, lonnm=self._repr_lon_name,
+                          latnm=self._repr_lat_name, diststr=diststr)
+
     @abstractproperty
     def latangle(self):
         """
@@ -508,6 +533,16 @@ class SphericalCoordinatesBase(object):
                 dir_items.add(alias)
 
         return dir_items
+
+    @property
+    def isscalar(self):
+        """
+        True if this coordinate contains scalar angles/distances, or False if
+        they are array-like
+        """
+        #assumes input-validation occurs and thus lat/lon/dist consistent
+        return self.lonangle.isscalar
+
 
     # Name resolve
     @classmethod

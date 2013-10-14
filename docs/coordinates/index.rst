@@ -21,7 +21,8 @@ Getting Started
 ===============
 
 Coordinate objects are instantiated with a flexible and natural approach that
-supports both numeric angle values and (limited) string parsing::
+supports both numeric angle values, (limited) string parsing, and can optionally 
+include lists of multiple coordinates in one object::
 
     >>> from astropy import coordinates as coord
     >>> from astropy import units as u
@@ -29,6 +30,10 @@ supports both numeric angle values and (limited) string parsing::
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
     >>> coord.ICRSCoordinates('00h42m44.3s +41d16m9s')
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
+    >>> coord.ICRSCoordinates('00h42m44.3s +41d16m9s')
+    <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
+    >>> coord.ICRSCoordinates(ra=[10.68458, 83.82208], dec=[41.26917, -5.39111], unit=(u.degree, u.degree))
+    <ICRSCoordinates RA=[ 10.68458  83.82208] deg, Dec=[ 41.26917  -5.39111] deg>
 
 The individual components of a coordinate are `~astropy.coordinates.angles.Longitude`
 or `~astropy.coordinates.angles.Latitude` objects, which are specialized versions
@@ -58,7 +63,7 @@ available::
     >>> c.transform_to(coord.GalacticCoordinates)
     <GalacticCoordinates l=121.17430 deg, b=-21.57280 deg>
 
-Distances from the origin (which is system-dependent, but often the
+Distance from the origin (which is system-dependent, but often the
 Earth center) can also be assigned to a coordinate. This specifies a
 unique point in 3D space, which also allows conversion to Cartesian
 coordinates::
