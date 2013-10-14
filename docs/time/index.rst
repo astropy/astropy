@@ -615,10 +615,10 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
 Interaction with Time-like Quantities
 -------------------------------------
 
-Where possible, |Quantity| objects with units of time are treated as TimeDelta
+Where possible, `Quantity` objects with units of time are treated as TimeDelta
 (though necessarily with lower precision). They can also be used as input in
 constructing |Time| and |TimeDelta| objects, and |TimeDelta| objects
-can be converted to |Quantity| objects of arbitrary units of time.
+can be converted to `Quantity` objects of arbitrary units of time.
 Usage is most easily illustrated by examples::
 
   >>> import astropy.units as u
