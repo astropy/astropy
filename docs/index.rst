@@ -21,8 +21,8 @@ Astropy Core Package Documentation
     :height: 96px
     :target: http://www.astropy.org/
 
-Welcome to the `astropy` documentation! `astropy` is a community-driven 
-package intended to contain much of the core functionality and some common 
+Welcome to the `astropy` documentation! `astropy` is a community-driven
+package intended to contain much of the core functionality and some common
 tools needed for performing astronomy and astrophysics with Python.
 
 .. _user-docs:
@@ -52,6 +52,7 @@ User Documentation
    table/index
    time/index
    coordinates/index
+   magnitudes/index
    wcs/index
    modeling/index
 
