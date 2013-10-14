@@ -6,7 +6,7 @@ Overview
 
 Two convolution functions are provided.  They are imported as::
 
-    from astropy.nddata import convolve, convolve_fft
+    from astropy.convolution import convolve, convolve_fft
 
 and are both used as::
 
@@ -59,6 +59,7 @@ As above, but using the 'extend' algorithm for boundaries::
 
 If a NaN value is present in the original array, it will be interpolated using the kernel::
 
+    >>> import numpy as np
     >>> convolve([1, 4, 5, 6, np.nan, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
     array([ 1.6,  3.6,  5. ,  5.9,  6.5,  7.1,  7.8])
 
@@ -84,5 +85,5 @@ and a 3-d array as a list::
 Kernels
 -------
 
-The above examples uses custom kernels, but `astropy.nddata` also includes a
+The above examples uses custom kernels, but `astropy.convolution` also includes a
 number of built-in kernels, which are described in :doc:`kernels`.

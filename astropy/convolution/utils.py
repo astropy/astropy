@@ -147,7 +147,7 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
             N = factor * (x_range[1] - x_range[0])
         if N >= 10000000:
             warnings.warn("Large oversample factor or data, computing can be very slow.",
-                          AstropyWarning)
+                          AstropyUserWarning)
         if isinstance(model, Parametric1DModel):
             return discretize_oversample_1D(model, x_range, factor)
         if isinstance(model, Parametric2DModel):

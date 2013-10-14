@@ -6,7 +6,9 @@ import numpy as np
 from ...tests.helper import pytest
 
 from ..utils import discretize_model
-from ...modeling.functional_models import *
+from ...modeling.functional_models import (
+    Gaussian1DModel, Box1DModel, MexicanHat1DModel, Trapezoid1DModel,
+    Gaussian2DModel, Box2DModel, MexicanHat2DModel)
 from ...modeling.tests.model_lists import models_1D, models_2D
 from ...modeling.tests.test_models import create_model
 

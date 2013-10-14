@@ -19,7 +19,7 @@ import warnings
 import copy
 
 import numpy as np
-
+from ..utils.exceptions import AstropyUserWarning
 from .utils import (discretize_model, add_kernel_arrays_1D,
                     add_kernel_arrays_2D)
 
@@ -106,7 +106,7 @@ class Kernel(object):
         if np.abs(self._normalization) > MAX_NORMALIZATION:
             warnings.warn("Normalization factor of kernel is "
                           "exceptionally large > {0}.".format(MAX_NORMALIZATION),
-                          AstropyWarning)
+                          AstropyUserWarning)
         if mode == 'integral':
             self._array *= self._normalization
         if mode == 'peak':

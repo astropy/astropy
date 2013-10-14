@@ -30,11 +30,11 @@ within a kernel of any NaN value, which is often not the desired result.
 .. |scipy| image:: images/scipy.png
 .. |astropy| image:: images/astropy.png
 
-+-----------------------+--------------------+----------------------+
-|        Original       | Scipy ``convolve`` | Astropy ``convolve`` |
-+-----------------------+--------------------+----------------------+
-|       |original|      |       |scipy|      |      |astropy|       |
-+-----------------------+--------------------+----------------------+
++------------+--------------------+----------------------+
+| Original   | Scipy ``convolve`` | Astropy ``convolve`` |
++------------+--------------------+----------------------+
+| |original| | |scipy|            | |astropy|            |
++------------+--------------------+----------------------+
 
 The following sections describe how to make use of the convolution functions,
 and how to use built-in convolution kernels:
@@ -44,7 +44,7 @@ Getting started
 
 Two convolution functions are provided.  They are imported as::
 
-    from astropy.nddata import convolve, convolve_fft
+    from astropy.convolution import convolve, convolve_fft
 
 and are both used as::
 
