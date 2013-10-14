@@ -117,6 +117,13 @@ models_1D[PowerLaw1DModel] = {'parameters': [1, 1, 2],
                               'log_fit': True,
                               'integral': 0.99}
 
+models_1D[BrokenPowerLaw1DModel] = {'parameters': [1, 1, 2, 3],
+                                    'x_values': [0.1, 1, 10, 100],
+                                    'y_values': [1e2, 1.0, 1e-3, 1e-6],
+                                    'x_lim': [0.1, 100],
+                                    'log_fit': True,
+                                    'integral': 0.99}
+
 models_1D[Poly1DModel] = {'parameters': {'degree': 2, 'c0': 1., 'c1': 1., 'c2': 1.},
                             'x_values': [1, 10, 100],
                             'y_values': [3, 111, 10101],

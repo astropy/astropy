@@ -6,7 +6,7 @@ from __future__ import division
 import numpy as np
 from .core import Parametric1DModel
 
-__all__ = sorted(['PowerLaw1DModel'])
+__all__ = sorted(['PowerLaw1DModel', 'BrokenPowerLaw1DModel'])
 
 
 class PowerLaw1DModel(Parametric1DModel):
@@ -25,7 +25,7 @@ class PowerLaw1DModel(Parametric1DModel):
 
     See Also
     --------
-    ExponentialCutoffPowerLaw1DModel
+    BrokenPowerLaw1DModel, ExponentialCutoffPowerLaw1DModel
 
     Notes
     -----
@@ -55,3 +55,63 @@ class PowerLaw1DModel(Parametric1DModel):
         d_x_0 = amplitude * alpha * d_amplitude / x_0
         d_alpha = -amplitude * d_amplitude * np.log(xx)
         return [d_amplitude, d_x_0, d_alpha]
+
+
+class BrokenPowerLaw1DModel(Parametric1DModel):
+
+    """
+    One dimensional broken power law model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Model amplitude at the break point
+    x_break : float
+        Break point
+    alpha_1 : float
+        Power law index for x < x_break
+    alpha_2 : float
+        Power law index for x > x_break
+
+    See Also
+    --------
+    PowerLaw1DModel, ExponentialCutoffPowerLaw1DModel
+
+    Notes
+    -----
+    Model formula (with :math:`A` for ``amplitude`` and :math:`\\alpha_1` for ``alpha_1`` and :math:`\\alpha_2` for ``alpha_2``):
+
+        .. math::
+
+            f(x) = \\left \\{
+                     \\begin{array}{ll}
+                       A (x / x_{break}) ^ {-\\alpha_1} & : x < x_{break} \\\\
+                       A (x / x_{break}) ^ {-\\alpha_2} & :  x > x_{break} \\\\
+                     \\end{array}
+                   \\right.
+    """
+    param_names = ['amplitude', 'x_break', 'alpha_1', 'alpha_2']
+
+    def __init__(self, amplitude, x_break, alpha_1, alpha_2, **constraints):
+        super(BrokenPowerLaw1DModel, self).__init__(locals())
+
+    def eval(self, x, amplitude, x_break, alpha_1, alpha_2):
+        """
+        Model function BrokenPowerLaw1D.
+        """
+        alpha = np.where(x < x_break, alpha_1, alpha_2)
+        xx = x / x_break
+        return amplitude * xx ** (-alpha)
+
+    def deriv(self, x, amplitude, x_break, alpha_1, alpha_2):
+        """
+        Model derivative BrokenPowerLaw1D.
+        """
+        alpha = np.where(x < x_break, alpha_1, alpha_2)
+        xx = x / x_break
+        d_amplitude = xx ** (-alpha)
+        d_x_break = amplitude * alpha * d_amplitude / x_break
+        d_alpha = -amplitude * d_amplitude * np.log(xx)
+        d_alpha_1 = np.where(x < x_break, d_alpha, 0)
+        d_alpha_2 = np.where(x >= x_break, d_alpha, 0)
+        return [d_amplitude, d_x_break, d_alpha_1, d_alpha_2]
