@@ -44,7 +44,7 @@ class TestNonLinearConstraints(object):
         g1 = models.Gaussian1DModel(10, mean=14.9, stddev=.3, tied={'mean': tied})
         fitter = fitting.NonLinearLSQFitter(g1)
         model = fitter(self.x, self.ny1)
-        utils.assert_allclose(model.mean.value, 50 * g1.stddev, rtol=10 ** (-5))
+        utils.assert_allclose(model.mean.value, 50 * fitter.model.stddev, rtol=10 ** (-5))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def testJointFitter(self):
@@ -244,8 +244,8 @@ def test_set_tied_2():
 def test_unset_fixed():
     gauss = models.Gaussian1DModel(amplitude=20, mean=2, stddev=1, fixed={'mean': True})
     gfit = fitting.NonLinearLSQFitter(gauss)
-    gauss.mean.fixed = False
-    assert gauss.fixed == {'amplitude': False, 'mean': False, 'stddev': False}
+    gfit.model.mean.fixed = False
+    assert gfit.model.fixed == {'amplitude': False, 'mean': False, 'stddev': False}
     gfit._update_constraints()
     assert gfit.fixed == [False, False, False]
 
@@ -276,8 +276,10 @@ def test_set_bounds_1():
 def test_set_bounds_2():
     gauss = models.Gaussian1DModel(amplitude=20, mean=2, stddev=1)
     gfit = fitting.NonLinearLSQFitter(gauss)
-    gauss.stddev.min = 0.
-    assert gauss.bounds == {'amplitude': (None, None),
+    #gauss.stddev.min = 0.
+    gfit.model.stddev.min = 0
+    #assert gauss.bounds == {'amplitude': (None, None),
+    assert gfit.model.bounds == {'amplitude': (None, None),
                             'mean': (None, None),
                             'stddev': (0.0, None)}
     gfit._update_constraints()
