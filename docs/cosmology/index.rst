@@ -154,7 +154,7 @@ the `Reference/API`_ section.
 
 
 The Current Cosmology
-=======================
+---------------------
 
 Sometimes it's useful for Astropy functions to assume a default
 cosmology so that the desired cosmology doesn't have to be specified
@@ -187,7 +187,7 @@ The 9-year WMAP and Planck 2013 cosmologies are also available
   >>> WMAP9.lookback_time(2).value          # lookback time in Gyr at z=2
   <Quantity 10.442114507072842 Gyr>
   >>> from astropy.cosmology import Planck13  # Planck 2013
-  >>> Planck13.lookback_time(2).value       # lookback time in Gyr at z=2
+  >>> Planck13.lookback_time(2)             # lookback time in Gyr at z=2
   <Quantity 10.511841788576083 Gyr>
 
 .. note::
@@ -210,8 +210,8 @@ A number of pre-loaded cosmologies are available from the
 WMAP and Planck satellites.  For example,
 
   >>> from astropy.cosmology import Planck13  # Planck 2013
-  >>> Planck13.lookback_time(2)               # lookback time at z=2
-  <Quantity 10.522149614 Gyr>
+  >>> Planck13.luminosity_distance(2)         # luminosity distance to z=2
+  <Quantity 15932.668054249001 Mpc>
 
 A full list of the pre-defined cosmologies is given by
 `cosmology.parameters.available`, and summarized below:
@@ -285,20 +285,21 @@ massless.  The three parameters controlling the proporties of these
 species, which are arguments to the initializers of all the
 cosmological classes, are `Tcmb0` (the temperature of the CMB at z=0),
 `Neff`, the effective number of neutrino species, and `m_nu`, the rest
-mass of the neutrino species.  `Tcmb0` and `m_nu` should, in general, be
-expressed as unit Quantities.  All three have standard default values
-(2.725 K, 3.04, and 0 eV respectively; the reason that `Neff` is not 3
-primarily has to do with a small bump in the neutrino energy spectrum
-due to electron-positron annihilation, but is also affected by weak
+mass of the neutrino species.  `Tcmb0` and `m_nu` should be expressed
+as unit Quantities.  All three have standard default values (2.725 K,
+3.04, and 0 eV respectively; the reason that `Neff` is not 3 primarily
+has to do with a small bump in the neutrino energy spectrum due to
+electron-positron annihilation, but is also affected by weak
 interaction physics).
 
 Massive neutrinos are treated using the approach described in the
 WMAP 7-year cosmology paper (Komatsu et al. 2011, ApJS, 192, 18, section 3.3).
-This is not the simple :math:`\Omega_{\nu 0} h^2 = \sum m_{\nu\, i} / 93.04 eV`
+This is not the simple 
+:math:`\Omega_{\nu 0} h^2 = \sum_i m_{\nu\, i} / 93.04\,\mathrm{eV}`
 approximation.  Also note that the values of :math:`\Omega_{\nu}(z)`
 include both the kinetic energy and the rest-mass energy components,
 and that the Planck13 cosmology includes a single species of neutrinos
-with non-zero mass (which is not included in :math:`\Omega_{m0}`.
+with non-zero mass (which is not included in :math:`\Omega_{m0}`).
 
 The contribution of photons and neutrinos to the total mass-energy density
 can be found as a function of redshift:
