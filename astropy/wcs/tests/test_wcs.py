@@ -387,17 +387,6 @@ def test_invalid_shape():
         xy2 = w.wcs_pix2world(xy, 1)
 
 
-@raises(wcs._wcs.InvalidTransformError)
-def test_find_all_wcs_crash():
-    """
-    Causes a double free without a recent fix in wcslib_wrap.C
-    """
-    from ...io import fits
-
-    with fits.open(get_pkg_data_filename("data/too_many_pv.hdr")) as hdulist:
-        wcses = wcs.find_all_wcs(hdulist[0].header)
-
-
 def test_warning_about_defunct_keywords():
     def run():
         header = get_pkg_data_contents(
