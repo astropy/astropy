@@ -56,22 +56,23 @@ photometry from various observing runs::
 Table groups
 ~~~~~~~~~~~~~~
 
-Now suppose we want the mean magnitudes for each object.  We first group
-the data by the ``name`` column, which has the effect of sorting by ``name``
-and setting the ``groups`` property according to the unique values of ``name``::
+Now suppose we want the mean magnitudes for each object.  We first group the data by the
+``name`` column with the :func:`~astropy.table.table.Table.group_by` method.  This returns
+a new table sorted by ``name`` which has a ``groups`` property specifying the unique
+values of ``name`` and the corresponding table rows::
 
   >>> obs_by_name = obs.group_by('name')
   >>> print obs_by_name
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
-  M101 2012-01-02  15.1  13.5  << First group (index=0)
+  M101 2012-01-02  15.1  13.5  << First group (index=0, key='M101')
   M101 2012-02-14  15.0  13.6
   M101 2012-03-26  15.1  13.5
   M101 2012-03-26  14.8  14.3
-   M31 2012-01-02  17.0  17.5  << Second group (index=4)
+   M31 2012-01-02  17.0  17.5  << Second group (index=4, key='M31')
    M31 2012-01-02  17.1  17.4
    M31 2012-02-14  16.9  17.3
-   M82 2012-02-14  16.2  14.5  << Third group (index=7)
+   M82 2012-02-14  16.2  14.5  << Third group (index=7, key='M83')
    M82 2012-02-14  15.2  15.5
    M82 2012-03-26  15.7  16.5
                                << End of groups (index=10)
@@ -208,6 +209,7 @@ names since that doesn't make sense for a `Column`.
 
 Examples::
 
+  >>> from astropy.table import Column
   >>> c = Column([1, 2, 3, 4, 5, 6], name='a')
   >>> key_vals = np.array(['foo', 'bar', 'foo', 'foo', 'qux', 'qux'])
   >>> cg = c.group_by(key_vals)
