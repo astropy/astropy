@@ -41,6 +41,8 @@ def test_matching_function():
     npt.assert_array_almost_equal(d2d.degree, [1, 0.9])
     npt.assert_array_less(d3d.value, 0.02)
 
+
+@pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_function_3d():
     from .. import ICRSCoordinates
     from ..matching import match_coordinates
@@ -54,7 +56,6 @@ def test_matching_function_3d():
     npt.assert_array_almost_equal(d2d.degree, [1, 1.9])
     npt.assert_array_less(d3d.value, [0.02, .2])
     assert d3d.value[1] > 0.02
-
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
