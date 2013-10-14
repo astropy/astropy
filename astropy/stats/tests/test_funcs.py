@@ -118,6 +118,11 @@ def test_biweight_midvariance():
         assert abs(scl-1) < 1e-2
 
 
+def test_biweight_midvariance_small():
+    scl = funcs.biweight_midvariance([1, 3, 5, 500, 2])
+    assert abs(scl-1.529) < 1e-3
+
+
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_compare_to_scipy_sigmaclip():
     from numpy.random import randn
