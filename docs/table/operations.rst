@@ -435,7 +435,8 @@ More than two tables can be stacked by supplying a list of table objects::
 
 See also the sections on `Merging metadata`_ and `Merging column
 attributes`_ for details on how these characteristics of the input tables are merged in
-the single output table.
+the single output table.  Note also that you can use a single table row instead of a
+full table as one of the inputs.
 
 Stack horizontally
 ^^^^^^^^^^^^^^^^^^^^^
@@ -498,7 +499,8 @@ below also illustrates the behavior when there is a conflict in the input column
 
 
 The metadata from the input tables is merged by the process described in the `Merging
-metadata`_ section.
+metadata`_ section.  Note also that you can use a single table row instead of a
+full table as one of the inputs.
 
 Join
 ^^^^^^^^^^^^^^
