@@ -1,7 +1,10 @@
-import numpy as np
 import warnings
-
 from itertools import izip, count
+
+import numpy as np
+
+from ..utils.exceptions import AstropyUserWarning
+
 
 __all__ = ['TableGroups', 'ColumnGroups']
 
@@ -300,7 +303,7 @@ class TableGroups(BaseGroups):
                 try:
                     new_col = col.groups.aggregate(func)
                 except TypeError as err:
-                    warnings.warn(str(err))
+                    warnings.warn(str(err), AstropyUserWarning)
                     continue
 
             out_cols.append(new_col)

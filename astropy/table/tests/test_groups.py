@@ -3,6 +3,7 @@ import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
 from ...table import Table, Column
+from ...utils.exceptions import AstropyUserWarning
 
 
 def sort_eq(list1, list2):
@@ -427,6 +428,7 @@ def test_table_aggregate():
         tga = tg.groups.aggregate(np.sum)
         assert warning_lines[0].category == UserWarning
         assert "converting a masked element to nan" in str(warning_lines[0].message)
+
     assert tga.pformat() == [' a   c    d  ',
                              '--- ---- ----',
                              '  0  nan  nan',
@@ -452,7 +454,7 @@ def test_table_aggregate():
     tg = T1.group_by('a')
     with catch_warnings(Warning) as warning_lines:
         tga = tg.groups.aggregate(np.sum)
-        assert warning_lines[0].category == UserWarning
+        assert warning_lines[0].category == AstropyUserWarning
         assert "Cannot aggregate column" in str(warning_lines[0].message)
     assert tga.pformat() == [' a   c    d ',
                              '--- ---- ---',
