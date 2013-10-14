@@ -479,6 +479,10 @@ class SphericalCoordinatesBase(object):
         Notes
         -----
         This method requires `scipy` to be installed or it will fail.
+
+        See Also
+        --------
+        astropy.coordinates.matching.match_coordinates_3d
         """
         from .matching import match_coordinates_3d
 
@@ -517,6 +521,10 @@ class SphericalCoordinatesBase(object):
         Notes
         -----
         This method requires `scipy` to be installed or it will fail.
+        
+        See Also
+        --------
+        astropy.coordinates.matching.match_coordinates_sky
         """
         from .matching import match_coordinates_sky
 
