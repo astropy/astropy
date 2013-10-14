@@ -296,43 +296,94 @@ class TestQuantityOperations(object):
         assert 1. * u.cm != 1.
 
     def test_numeric_converters(self):
+        # float, int, long, and __index__ should only work for single
+        # quantities, of appropriate type, and only if they are dimensionless.
+        # (Check on __index__ is also a regression test for #1557)
 
-        q1 = u.Quantity(1.23, u.m)
+        # quantities with units should never convert, or be usable as an index
+        q1 = u.Quantity(1, u.m)
+
+        converter_err_msg = ("Only dimensionless scalar quantities "
+                             "can be converted to Python scalars")
+        index_err_msg = ("Only integer dimensionless scalar quantities "
+                         "can be converted to a Python index")
+        with pytest.raises(TypeError) as exc:
+            float(q1)
+        assert exc.value.args[0] == converter_err_msg
 
         with pytest.raises(TypeError) as exc:
-            assert float(q1) == 1.23
-        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
-
-        with pytest.raises(TypeError) as exc:
-            assert int(q1) == 1
-        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+            int(q1)
+        assert exc.value.args[0] == converter_err_msg
 
         if six.PY2:
             with pytest.raises(TypeError) as exc:
-                assert long(q1) == 1
-            assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+                long(q1)
+            assert exc.value.args[0] == converter_err_msg
 
+        with pytest.raises(TypeError) as exc:
+            q1 * ['a', 'b', 'c']
+        assert exc.value.args[0] == index_err_msg
+
+        # dimensionless but scaled is also not OK
         q2 = u.Quantity(1.23, u.m / u.km)
 
         with pytest.raises(TypeError) as exc:
-            assert float(q2) == 1.23
-        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+            float(q2)
+        assert exc.value.args[0] == converter_err_msg
 
         with pytest.raises(TypeError) as exc:
-            assert int(q2) == 1
-        assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+            int(q2)
+        assert exc.value.args[0] == converter_err_msg
 
         if six.PY2:
             with pytest.raises(TypeError) as exc:
-                assert long(q2) == 1
-            assert exc.value.args[0] == "Only dimensionless scalar quantities can be converted to Python scalars"
+                long(q2)
+            assert exc.value.args[0] == converter_err_msg
 
+        with pytest.raises(TypeError) as exc:
+            q2 * ['a', 'b', 'c']
+        assert exc.value.args[0] == index_err_msg
+
+        # dimensionless unscaled is OK, though for index needs to be int
         q3 = u.Quantity(1.23, u.dimensionless_unscaled)
 
         assert float(q3) == 1.23
         assert int(q3) == 1
         if six.PY2:
             assert long(q3) == 1
+
+        with pytest.raises(TypeError) as exc:
+            q1 * ['a', 'b', 'c']
+        assert exc.value.args[0] == index_err_msg
+
+        # integer dimensionless unscaled is good for all
+        q4 = u.Quantity(2, u.dimensionless_unscaled)
+
+        assert float(q4) == 2.
+        assert int(q4) == 2
+        if six.PY2:
+            assert long(q4) == 2
+
+        assert q4 * ['a', 'b', 'c'] == ['a', 'b', 'c', 'a', 'b', 'c']
+
+        # but arrays are not OK
+        q5 = u.Quantity([1, 2], u.m)
+        with pytest.raises(TypeError) as exc:
+            float(q5)
+        assert exc.value.args[0] == converter_err_msg
+
+        with pytest.raises(TypeError) as exc:
+            int(q5)
+        assert exc.value.args[0] == converter_err_msg
+
+        if six.PY2:
+            with pytest.raises(TypeError) as exc:
+                long(q5)
+            assert exc.value.args[0] == converter_err_msg
+
+        with pytest.raises(TypeError) as exc:
+            q5 * ['a', 'b', 'c']
+        assert exc.value.args[0] == index_err_msg
 
     def test_array_converters(self):
 
