@@ -136,8 +136,8 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
 
     # Check that the number of dimensions is compatible
     if array_internal.ndim != kernel_internal.ndim:
-        raise Exception('array and kernel have differing number of'
-                        'dimensions')
+        raise Exception('array and kernel have differing number of '
+                        'dimensions.')
 
     # Because the Cython routines have to normalize the kernel on the fly, we
     # explicitly normalize the kernel here, and then scale the image at the
