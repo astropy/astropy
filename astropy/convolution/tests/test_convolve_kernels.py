@@ -6,7 +6,7 @@ from ...tests.helper import pytest
 from ..kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
 from ..convolve import convolve, convolve_fft
 
-from numpy.testing import assert_array_almost_equal_nulp, assert_almost_equal
+from numpy.testing import assert_almost_equal
 
 import itertools
 

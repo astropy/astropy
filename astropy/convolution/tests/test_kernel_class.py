@@ -3,7 +3,10 @@ import numpy as np
 
 from ...tests.helper import pytest
 from ..convolve import convolve, convolve_fft
-from ..kernels import *
+from ..kernels import (
+    Gaussian1DKernel, Gaussian2DKernel, Box1DKernel, Box2DKernel,
+    Trapezoid1DKernel, TrapezoidDisk2DKernel, MexicanHat1DKernel,
+    Tophat2DKernel, MexicanHat2DKernel)
 
 from numpy.testing import assert_almost_equal
 

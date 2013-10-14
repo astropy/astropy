@@ -92,7 +92,7 @@ kernels. We consider a small Gaussian shaped source of amplitude one in the
 middle of the image and add 10% noise:
 
 >>> import numpy as np
->>> from astropy.convolution import convolve, Gaussian2DKernel, TopHat2DKernel
+>>> from astropy.convolution import convolve, Gaussian2DKernel, Tophat2DKernel
 >>> from astropy.modeling.models import Gaussian2DModel
 >>> gauss = Gaussian2DModel(1, 0, 0, 3, 3)
 >>> # Fake image data including noise
@@ -110,7 +110,7 @@ Smoothing the noisy data with a
 Smoothing the noisy data with a 
 :class:`~astropy.convolution.kernels.Tophat2DKernel` of width 5 pixels:
 
->>> tophat_kernel = TopHat2DKernel(5)
+>>> tophat_kernel = Tophat2DKernel(5)
 >>> smoothed_data_tophat = convolve(data, tophat_kernel)
 
 This is what the original image looks like:
