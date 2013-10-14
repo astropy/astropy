@@ -10,7 +10,7 @@ raises = pytest.raises
 from ...extern import six
 
 from ... import units as u
-from ..errors import *
+from ..errors import ConvertError, IllegalSecondError, IllegalMinuteError, IllegalHourError
 
 
 try:
