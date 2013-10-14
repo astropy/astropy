@@ -52,12 +52,12 @@ def test_to_string_decimal():
 
 def test_to_string_formats():
     a = Angle(1.113355, unit=u.deg)
-    assert a.to_string(format='latex') == r'$1^\circ06{}^\prime48.07800{}^{\prime\prime}$'
-    assert a.to_string(format='unicode') == '1\xb006\u203248.07800\u2033'
+    assert a.to_string(format='latex') == r'$1^\circ06{}^\prime48.078{}^{\prime\prime}$'
+    assert a.to_string(format='unicode') == '1\xb006\u203248.078\u2033'
 
     a = Angle(1.113355, unit=u.hour)
-    assert a.to_string(format='latex') == r'$1^\mathrm{h}06^\mathrm{m}48.07800^\mathrm{s}$'
-    assert a.to_string(format='unicode') == '1\u02b006\u1d5048.07800\u02e2'
+    assert a.to_string(format='latex') == r'$1^\mathrm{h}06^\mathrm{m}48.078^\mathrm{s}$'
+    assert a.to_string(format='unicode') == '1\u02b006\u1d5048.078\u02e2'
 
     a = Angle(1.113355, unit=u.radian)
     assert a.to_string(format='latex') == r'$1.11336\mathrm{rad}$'
@@ -68,18 +68,20 @@ def test_to_string_fields():
     a = Angle(1.113355, unit=u.deg)
     assert a.to_string(fields=1) == r'1d'
     assert a.to_string(fields=2) == r'1d07m'
-    assert a.to_string(fields=3) == r'1d06m48.07800s'
+    assert a.to_string(fields=3) == r'1d06m48.078s'
 
 
 def test_sexagesimal_rounding_up():
     a = Angle(359.9999999999, unit=u.deg)
 
+    assert a.to_string(precision=None) == '360d00m00s'
     assert a.to_string(precision=4) == '360d00m00.0000s'
     assert a.to_string(precision=5) == '360d00m00.00000s'
     assert a.to_string(precision=6) == '360d00m00.000000s'
     assert a.to_string(precision=7) == '359d59m59.9999996s'
 
     a = Angle(3.999999, unit=u.deg)
+    assert a.to_string(fields=2, precision=None) == '4d00m'
     assert a.to_string(fields=2, precision=1) == '4d00m'
     assert a.to_string(fields=2, precision=5) == '4d00m'
     assert a.to_string(fields=1, precision=1) == '4d'

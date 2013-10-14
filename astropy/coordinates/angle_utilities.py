@@ -499,7 +499,7 @@ def radians_to_dms(r):
     return degrees_to_dms(degrees)
 
 
-def sexagesimal_to_string(values, precision=5, pad=False, sep=(':',),
+def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
                           fields=3):
     """
     Given an already separated tuple of sexagesimal values, returns
@@ -535,8 +535,13 @@ def sexagesimal_to_string(values, precision=5, pad=False, sep=(':',),
     # example, if the seconds will round up to 60, we should convert
     # it to 0 and carry upwards.  If the field is hidden (by the
     # fields kwarg) we round up around the middle, 30.0.
+    if precision is None:
+        rounding_thresh = 60.0 - (10.0 ** -5)
+    else:
+        rounding_thresh = 60.0 - (10.0 ** -precision)
+
     values = list(values)
-    if fields == 3 and values[2] >= 60.0 - (10.0 ** -precision):
+    if fields == 3 and values[2] >= rounding_thresh:
         values[2] = 0.0
         values[1] += 1.0
     elif fields < 3 and values[2] >= 30.0:
@@ -549,16 +554,23 @@ def sexagesimal_to_string(values, precision=5, pad=False, sep=(':',),
         values[0] += 1.0
 
     literal = []
+    last_value = ''
     literal.append('{0:0{pad}.0f}{sep[0]}')
     if fields >= 2:
         literal.append('{1:02d}{sep[1]}')
     if fields == 3:
-        literal.append('{2:0{width}.{precision}f}{sep[2]}')
+        if precision is None:
+            last_value = '{0:g}'.format(abs(values[2]))
+        else:
+            last_value = '{0:.{precision}f}'.format(
+                abs(values[2]), precision=precision)
+        if len(last_value) == 1 or last_value[1] == '.':
+            last_value = '0' + last_value
+        literal.append('{last_value}{sep[2]}')
     literal = ''.join(literal)
     return literal.format(values[0], int(abs(values[1])), abs(values[2]),
                           sep=sep, pad=pad,
-                          width=(precision + 3 if precision > 0 else 2),
-                          precision=precision)
+                          last_value=last_value)
 
 
 def hours_to_string(h, precision=5, pad=False, sep=('h', 'm', 's'),
