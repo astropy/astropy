@@ -124,11 +124,14 @@ class Quantity(np.ndarray):
 
         from ..utils.misc import isiterable
 
-        if isinstance(value, Quantity):
-            if unit is None or unit is value.unit:
-                _value = _validate_value(value.value, dtype, copy)
-            else:
-                _value = _validate_value(value.to(unit).value, dtype, copy)
+        value_unit = getattr(value, 'unit', None)
+        if value_unit is not None:
+            _value = _validate_value(value.value, dtype, copy)
+            if unit is None:
+                unit = value_unit
+            elif unit is not value_unit:
+                _value = value_unit.to(unit, _value)
+
         elif isiterable(value) and all(isinstance(v, Quantity) for v in value):
             if unit is None:
                 unit = value[0].unit
@@ -141,11 +144,9 @@ class Quantity(np.ndarray):
 
         self = super(Quantity, cls).__new__(cls, _value.shape, dtype=dtype,
                                             buffer=_value.data)
+
         if unit is None:
-            if isinstance(value, Quantity):
-                self._unit = value.unit
-            else:
-                self._unit = Unit(1)
+            self._unit = Unit(1)
         else:
             self._unit = Unit(unit)
         self._equivalencies = Unit._normalize_equivalencies(equivalencies)
