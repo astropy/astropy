@@ -59,13 +59,13 @@ array([[ 10.      ,   9.      ],
 Evaluate the model on one data set
 
 >>> y = g1(x)
->>> print y.shape
+>>> print(y.shape)
 (90, 2)
 
 or two data sets (any other number would be an error)
 
 >>> y = g1(np.array([x, x]).T)
->>> print y.shape
+>>> print(y.shape)
 (90, 2)
 
 .. plot::
@@ -122,7 +122,7 @@ array([[ 0.,  0.,  0.,  0.,  0.],
 
 >>> x = np.ones((10,5))
 >>> y = p1(x)
->>> print y
+>>> print(y)
 array([[ 0.,  1.,  2.,  3.,  4.],
        [ 0.,  1.,  2.,  3.,  4.],
        [ 0.,  1.,  2.,  3.,  4.],
@@ -133,7 +133,7 @@ array([[ 0.,  1.,  2.,  3.,  4.],
        [ 0.,  1.,  2.,  3.,  4.],
        [ 0.,  1.,  2.,  3.,  4.],
        [ 0.,  1.,  2.,  3.,  4.]])
->>> print y.shape
+>>> print(y.shape)
 (10,5)
 
 - Create and evaluate a parallel composite model
@@ -164,7 +164,7 @@ To evaluate this model use a LabeledInput object
 
 The output is also a LabeledInput object and the result is stored in label 'z'.
 
->>> print result
+>>> print(result)
 {'x': array([[-3.2, -3.2, -3.2, -3.2, -3.2],
        [-2.2, -2.2, -2.2, -2.2, -2.2],
        [-1.2, -1.2, -1.2, -1.2, -1.2],

@@ -45,7 +45,7 @@ Fit a data set with a gaussian model.
 >>> ny = y + n
 >>> gfit = fitting.NonLinearLSQFitter(g1)
 >>> gfit(x, ny)
->>> print g1
+>>> print(g1)
 Model: Gaussian1DModel
 Dim:   1
 Degree: N/A
@@ -63,7 +63,7 @@ Create data using 1D Chebyshev model
 >>> ch1.parameters = [1, 2, 3, 4]
 >>> ch1.parameters
 [1.0, 2.0, 3.0, 4.0]
->>> print ch1
+>>> print(ch1)
 Model: Chebyshev1DModel
 Dim:   1
 Degree: 3
@@ -121,7 +121,7 @@ First create some data to be fitted with a 2D polynomial
 Fit a 2D polynomial to the data
 
 >>> p2 = models.Poly2DModel(2)
->>> print p2
+>>> print(p2)
 Model: Poly2DModel
 Dim:   2
 Degree: 2

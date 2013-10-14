@@ -9,7 +9,6 @@ from ..logger import log
 from . import parameters
 from .core import ParametricModel, Model, SCompositeModel
 from .core import _convert_input, _convert_output
-from .core import LabeledInput
 from .utils import poly_map_domain, comb
 from .functional_models import ShiftModel
 

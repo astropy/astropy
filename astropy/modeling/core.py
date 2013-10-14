@@ -272,7 +272,6 @@ class Model(object):
         values = [par.value for par in parameters]
         shapes = [par.parshape for par in parameters]
         lenshapes = np.asarray([len(p.parshape) for p in parameters])
-        shapes = [p.parshape for p in parameters]
         if (lenshapes > 1).any():
             if () in shapes:
                 psets = np.asarray(values, dtype=np.object)

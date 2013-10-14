@@ -5,7 +5,8 @@ Compare the results of some models with other programs.
 """
 from __future__ import division
 from .. import models
-from ..core import *
+from ..core import (LabeledInput, SCompositeModel, PCompositeModel,
+                    Parametric1DModel, Parametric2DModel)
 from ..polynomial import PolynomialModel
 import numpy as np
 from numpy.testing import utils
@@ -119,7 +120,7 @@ class TestPComposite(object):
         p2 = models.Poly2DModel(1)
         ch2 = models.Chebyshev2DModel(1, 1)
         with pytest.raises(AssertionError):
-            pcomp = PCompositeModel([p2, ch2])
+            PCompositeModel([p2, ch2])
 
 
 def test_pickle():
