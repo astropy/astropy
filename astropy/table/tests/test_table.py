@@ -882,6 +882,14 @@ class TestSort():
         assert np.all(t['a'] == np.array([2, 1, 3, 1, 3, 2]))
         assert np.all(t['b'] == np.array([3, 4, 4, 5, 5, 6]))
 
+    def test_argsort(self, table_types):
+        t = table_types.Table()
+        t.add_column(table_types.Column(name='a', data=[2, 1, 3, 2, 3, 1]))
+        t.add_column(table_types.Column(name='b', data=[6, 5, 4, 3, 5, 4]))
+        assert np.all(t.argsort() == t._data.argsort())
+        assert np.all(t.argsort('a') == t._data.argsort(order=['a']))
+        assert np.all(t.argsort(['a', 'b']) == t._data.argsort(order=['a', 'b']))
+
 
 @pytest.mark.usefixtures('table_types')
 class TestIterator():
