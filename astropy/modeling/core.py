@@ -173,24 +173,12 @@ class Model(object):
     __metaclass__ = _ModelMeta
 
     param_names = []
+    n_inputs = 1
+    n_outputs = 1
 
-    def __init__(self, n_inputs, n_outputs, param_dim=1):
+    def __init__(self, param_dim=1):
         self.fittable = False
-        self._n_inputs = n_inputs
-        self._n_outputs = n_outputs
         self._param_dim = param_dim
-
-    @property
-    def n_inputs(self):
-        """Number of input variables in model evaluation."""
-
-        return self._n_inputs
-
-    @property
-    def n_outputs(self):
-        """Number of output variables returned when a model is evaluated."""
-
-        return self._n_outputs
 
     @property
     def param_dim(self):
@@ -300,10 +288,6 @@ class ParametricModel(Model):
 
     Parameters
     ----------
-    n_inputs: int
-        number of inputs
-    n_outputs: int
-        number of output quantities
     param_dim: int
         number of parameter sets
     fittable: boolean
@@ -380,20 +364,28 @@ class ParametricModel(Model):
     col_deriv = True
 
 
-    def __init__(self, n_inputs, n_outputs, param_dim=1, **constraints):
-        bounds = constraints.pop('bounds', None)
-        fixed = constraints.pop('fixed', None)
-        tied = constraints.pop('tied', None)
-        eqcons = constraints.pop('eqcons', None)
-        ineqcons = constraints.pop('ineqcons', None)
+    def __init__(self, param_dim=1, **params):
+        bounds = params.pop('bounds', None)
+        fixed = params.pop('fixed', None)
+        tied = params.pop('tied', None)
+        eqcons = params.pop('eqcons', None)
+        ineqcons = params.pop('ineqcons', None)
 
-        if constraints:
-            raise TypeError(
-                "Unrecognized constraints type: {0}".format(
-                    repr(constraints.keys())))
+        # Determine the number of parameter sets: This will be based
+        # on the size of any parameters whose values have been specified
+        # or the default of 1 is used
+        # This loop also checks that all the supplied parameter names are
+        # valid
+        param_names = set(self.param_names)
 
-        super(ParametricModel, self).__init__(n_inputs, n_outputs,
-                                              param_dim=param_dim)
+        for name, value in params.items():
+            if name not in param_names:
+                raise ValueError(
+                    "Unrecognized parameter: {0}".format(name))
+            param_dim = max(param_dim, np.size(value))
+
+        super(ParametricModel, self).__init__(param_dim=param_dim)
+
         self.fittable = True
         self._parameters = Parameters(self)
 
@@ -416,6 +408,9 @@ class ParametricModel(Model):
             self._constraints['tied'] = tied
         if bounds:
             self._constraints['bounds'] = bounds
+
+        for name, value in params.items():
+            setattr(self, name, value)
 
     @property
     def fixed(self):
@@ -447,6 +442,42 @@ class ParametricModel(Model):
     @property
     def ineqcons(self):
         return self._ineqcons
+
+    @property
+    def parameters(self):
+        """
+        An instance of `~astropy.modeling.parameters.Parameters`.
+
+        Fittable parameters maintain this list and fitters modify it.
+        """
+
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, value):
+        """
+        Resets the parameters attribute using an instance of
+        `~astropy.modeling.parameters.Parameters`
+        """
+
+        if isinstance(value, Parameters):
+            if self._parameters._is_same_length(value):
+                self._parameters = value
+            else:
+                raise InputParameterError(
+                    "Expected the list of parameters to be the same "
+                    "length as the existing parameters list.")
+        elif isiterable(value):
+            _val = _tofloat(value)[0]
+            if self._parameters._is_same_length(_val):
+                self._parameters[:] = _val
+            else:
+                raise InputParameterError(
+                    "Expected the list of parameters to be the same "
+                    "length as the existing parameters list.")
+        else:
+            raise TypeError("Parameters must be an iterable or a Parameters "
+                            "object")
 
     def __repr__(self):
         try:
@@ -495,42 +526,6 @@ class ParametricModel(Model):
                      width=19))
 
         return dedent(fmt[1:])
-
-    @property
-    def parameters(self):
-        """
-        An instance of `~astropy.modeling.parameters.Parameters`.
-
-        Fittable parameters maintain this list and fitters modify it.
-        """
-
-        return self._parameters
-
-    @parameters.setter
-    def parameters(self, value):
-        """
-        Resets the parameters attribute using an instance of
-        `~astropy.modeling.parameters.Parameters`
-        """
-
-        if isinstance(value, Parameters):
-            if self._parameters._is_same_length(value):
-                self._parameters = value
-            else:
-                raise InputParameterError(
-                    "Expected the list of parameters to be the same "
-                    "length as the existing parameters list.")
-        elif isiterable(value):
-            _val = _tofloat(value)[0]
-            if self._parameters._is_same_length(_val):
-                self._parameters[:] = _val
-            else:
-                raise InputParameterError(
-                    "Expected the list of parameters to be the same "
-                    "length as the existing parameters list.")
-        else:
-            raise TypeError("Parameters must be an iterable or a Parameters "
-                            "object")
 
     def set_joint_parameters(self, jparams):
         """
@@ -655,8 +650,10 @@ class _CompositeModel(Model):
         param_names = []
         for tr in self._transforms:
             param_names.extend(tr.param_names)
-        super(_CompositeModel, self).__init__(n_inputs, n_outputs)
+        super(_CompositeModel, self).__init__()
         self.param_names = param_names
+        self.n_inputs = n_inputs
+        self.n_outputs = n_outputs
         self.fittable = False
 
     def __repr__(self):
@@ -731,7 +728,8 @@ class SerialCompositeModel(_CompositeModel):
                  n_outputs=None):
         if n_inputs is None:
             n_inputs = max([tr.n_inputs for tr in transforms])
-            # the output dimension is equal to the output dim of the last transform
+            # the output dimension is equal to the output dim of the last
+            # transform
             n_outputs = transforms[-1].n_outputs
         else:
             assert n_outputs is not None, "Expected n_inputs and n_outputs"
@@ -895,26 +893,12 @@ class Parametric1DModel(ParametricModel):
 
     Parameters
     ----------
-    parameter_dict : dictionary
+    parameters : dictionary
         Dictionary of model parameters with initialisation values
         {'parameter_name': 'parameter_value'}
     """
 
     deriv = None
-
-    def __init__(self, param_dict):
-        # Get parameter dimension
-        param_dim = np.size(param_dict[self.param_names[0]])
-        cons = param_dict.pop('constraints', {})
-
-        super(Parametric1DModel, self).__init__(n_inputs=1, n_outputs=1,
-                                                param_dim=param_dim, **cons)
-
-        # Initialize model parameters. This is preliminary as long there is
-        # no new parameter class. It may be more reasonable and clear to init
-        # the parameters in the model constructor itself, with constraints etc.
-        for param_name in self.param_names:
-            setattr(self, param_name, param_dict[param_name])
 
     @format_input
     def __call__(self, x):
@@ -945,20 +929,8 @@ class Parametric2DModel(ParametricModel):
     """
 
     deriv = None
-
-    def __init__(self, param_dict):
-        # Get parameter dimension
-        param_dim = np.size(param_dict[self.param_names[0]])
-        cons = param_dict.pop('constraints', {})
-
-        super(Parametric2DModel, self).__init__(n_inputs=2, n_outputs=1,
-                                                param_dim=param_dim, **cons)
-
-        # Initialize model parameters. This is preliminary as long there is
-        # no new parameter class. It may be more reasonable and clear to init
-        # the parameters in the model constructor itself, with constraints etc.
-        for param_name in self.param_names:
-            setattr(self, param_name, param_dict[param_name])
+    n_inputs = 2
+    n_outputs = 1
 
     @format_input
     def __call__(self, x, y):

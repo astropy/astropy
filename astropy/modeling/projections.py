@@ -44,21 +44,16 @@ class Projection(Model):
         parameter names
     """
 
+    n_inputs = 2
+    n_outputs = 2
+
     def __init__(self):
-        super(Projection, self).__init__(n_inputs=2, n_outputs=2)
+        super(Projection, self).__init__()
 
         self._pdim = 1
         # the radius of the projection sphere, by which x,y are scaled
         # not sure if it's necessary to make this a user parameter
         self.r0 = 180 / np.pi
-
-    @property
-    def n_inputs(self):
-        return self._n_inputs
-
-    @property
-    def n_outputs(self):
-        return self._n_outputs
 
     @property
     def pdim(self):

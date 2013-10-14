@@ -41,12 +41,14 @@ class EulerAngleRotation(Model):
         Euler angles in deg
     """
 
+    n_inputs = 2
+    n_outputs = 2
     phi = Parameter('phi', getter=np.rad2deg, setter=np.deg2rad)
     theta = Parameter('theta', getter=np.rad2deg, setter=np.deg2rad)
     psi = Parameter('psi', getter=np.rad2deg, setter=np.deg2rad)
 
     def __init__(self, phi, theta, psi):
-        super(EulerAngleRotation, self).__init__(n_inputs=2, n_outputs=2)
+        super(EulerAngleRotation, self).__init__()
         self.phi = phi
         self.theta = theta
         self.psi = psi
@@ -166,6 +168,11 @@ class MatrixRotation2D(Model):
             raise ValueError("Expected rotation matrix to be a 2D array")
         return matrix
 
+    # By default n_inputs = n_outputs = 2 but this may differ depending
+    # on the size of any supplied rotation matrix
+    n_inputs = 2
+    n_outputs = 2
+
     angle = Parameter('angle', getter=np.rad2deg, setter=_validate_angle)
     matrix = Parameter('matrix', setter=_validate_matrix)
 
@@ -176,15 +183,12 @@ class MatrixRotation2D(Model):
         if matrix is not None:
             # TODO: Why +0.0?
             matrix = np.asarray(matrix) + 0.0
-            n_inputs = n_outputs = matrix.shape[0]
-            super(MatrixRotation2D, self).__init__(n_inputs=n_inputs,
-                                                   n_outputs=n_outputs,
-                                                   param_dim=1)
+            self.n_inputs = self.n_outputs = matrix.shape[0]
+            super(MatrixRotation2D, self).__init__(param_dim=1)
             self.matrix = np.asarray(matrix) + 0.0
         else:
             # The computed rotation matrix is 2x2, naturally
-            super(MatrixRotation2D, self).__init__(n_inputs=2, n_outputs=2,
-                                                   param_dim=1)
+            super(MatrixRotation2D, self).__init__(param_dim=1)
             self.angle = angle
             self.matrix = self._compute_matrix(self._angle)
 

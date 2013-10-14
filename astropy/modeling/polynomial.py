@@ -114,6 +114,8 @@ class PolynomialModel(PolynomialBase):
         self._degree = degree
         self._order = self.get_num_coeff(n_inputs)
         self._param_names = self._generate_coeff_names(n_inputs)
+        self._n_inputs = n_inputs
+        self._n_outputs = n_outputs
 
         if params:
             p = params.get('c0', params.get('c0_0'))
@@ -136,9 +138,7 @@ class PolynomialModel(PolynomialBase):
 
         self._set_default_coeffs(param_dim)
 
-        super(PolynomialModel, self).__init__(n_inputs=n_inputs,
-                                              n_outputs=n_outputs,
-                                              param_dim=param_dim)
+        super(PolynomialModel, self).__init__(param_dim=param_dim)
 
         for name, value in params.items():
             setattr(self, name, value)
@@ -148,6 +148,18 @@ class PolynomialModel(PolynomialBase):
         """TODO: Docstring for me"""
 
         return self._degree
+
+    @property
+    def n_inputs(self):
+        """The number of input variables to model evaluation."""
+
+        return self._n_inputs
+
+    @property
+    def n_outputs(self):
+        """The number of outputs returned when model is evaluated."""
+
+        return self._n_outputs
 
     def get_num_coeff(self, ndim):
         """
@@ -227,6 +239,9 @@ class OrthoPolynomialBase(PolynomialBase):
         {keyword: value} pairs, representing {parameter_name: value}
     """
 
+    n_inputs = 2
+    n_outputs = 1
+
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=None,
                  y_domain=None, y_window=None, param_dim=1, **params):
         # TODO: Perhaps some of these other parameters should be properties?
@@ -263,9 +278,7 @@ class OrthoPolynomialBase(PolynomialBase):
 
         self._set_default_coeffs(param_dim)
 
-        super(OrthoPolynomialBase, self).__init__(n_inputs=2,
-                                                  n_outputs=1,
-                                                  param_dim=param_dim)
+        super(OrthoPolynomialBase, self).__init__(param_dim=param_dim)
 
         for name, value in params.items():
             setattr(self, name, value)
@@ -1008,6 +1021,8 @@ class _SIP1D(Model):
     and SIPModel should be used instead.
     """
 
+    n_inputs = 2
+
     def __init__(self, order, coeff_prefix, param_dim=1, **params):
         self.order = order
         self.coeff_prefix = coeff_prefix
@@ -1039,8 +1054,7 @@ class _SIP1D(Model):
 
         self._set_default_coeffs(param_dim)
 
-        super(_SIP1D, self).__init__(n_inputs=2, n_outputs=1,
-                                     param_dim=param_dim, **params)
+        super(_SIP1D, self).__init__(param_dim=param_dim, **params)
 
     def __repr__(self):
         fmt = """
@@ -1176,6 +1190,9 @@ class _SIPModel(SerialCompositeModel):
     .. [1] `David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005 <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`_
     """
 
+    n_inputs = 2
+    n_outputs = 2
+
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
                  ap_order=None, ap_coeff=None, bp_order=None, bp_coeff=None,
                  param_dim=1):
@@ -1203,8 +1220,7 @@ class _SIPModel(SerialCompositeModel):
             self.sip1d_bp = None
 
         super(_SIPModel, self).__init__([self.shift_a, self.shift_b,
-                                         self.sip1d_a, self.sip1d_b],
-                                         n_inputs=2, n_outputs=2)
+                                         self.sip1d_a, self.sip1d_b])
 
 
 class SIPModel(_SIPModel):
