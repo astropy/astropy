@@ -11,8 +11,7 @@ from textwrap import dedent
 import numpy as np
 
 from .core import (ParametricModel, Parametric1DModel, Parametric2DModel,
-                   Model, _convert_input, _convert_output,
-                   ModelDefinitionError)
+                   Model, format_input, ModelDefinitionError)
 from .parameters import Parameter, InputParameterError
 from ..utils import find_current_module
 
@@ -248,6 +247,7 @@ class ShiftModel(Model):
         else:
             return ShiftModel(offsets=[off * (-1) for off in self._offsets])
 
+    @format_input
     def __call__(self, x):
         """
         Transforms data using this model.
@@ -258,9 +258,7 @@ class ShiftModel(Model):
             input
         """
 
-        x, fmt = _convert_input(x, self.param_dim)
-        result = self._offsets + x
-        return _convert_output(result, fmt)
+        return self._offsets + x
 
 
 class ScaleModel(Model):
@@ -292,6 +290,7 @@ class ScaleModel(Model):
         else:
             return ScaleModel(factors=[1 / factor for factor in self._factors])
 
+    @format_input
     def __call__(self, x):
         """
         Transforms data using this model.
@@ -302,9 +301,7 @@ class ScaleModel(Model):
             input
         """
 
-        x, fmt = _convert_input(x, self.param_dim)
-        result = self._factors * x
-        return _convert_output(result, fmt)
+        return self._factors * x
 
 
 class Sine1DModel(Parametric1DModel):

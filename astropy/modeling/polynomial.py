@@ -12,8 +12,7 @@ from textwrap import dedent
 
 import numpy as np
 
-from .core import (ParametricModel, Model, SerialCompositeModel,
-                   _convert_input, _convert_output)
+from .core import ParametricModel, Model, SerialCompositeModel, format_input
 from .functional_models import ShiftModel
 from .parameters import Parameter, Parameters
 from .utils import poly_map_domain, comb
@@ -363,6 +362,7 @@ class OrthoPolynomialBase(PolynomialBase):
 
         raise NotImplementedError("Subclasses should implement this")
 
+    @format_input
     def __call__(self, x, y):
         """
         Transforms data using this model.
@@ -373,8 +373,6 @@ class OrthoPolynomialBase(PolynomialBase):
         y : scalar, lis or array
         """
 
-        x, _ = _convert_input(x, self.param_dim)
-        y, fmt = _convert_input(y, self.param_dim)
         assert x.shape == y.shape, \
             "Expected input arrays to have the same shape"
         if self.x_domain is not None:
@@ -383,8 +381,7 @@ class OrthoPolynomialBase(PolynomialBase):
             y = poly_map_domain(y, self.y_domain, self.y_window)
         invcoeff = self.invlex_coeff()
 
-        result = self.imhorner(x, y, invcoeff)
-        return _convert_output(result, fmt)
+        return self.imhorner(x, y, invcoeff)
 
 
 class Chebyshev1DModel(PolynomialModel):
@@ -464,6 +461,7 @@ class Chebyshev1DModel(PolynomialModel):
             v[i] = v[i - 1] * x2 - v[i - 2]
         return np.rollaxis(v, 0, v.ndim)
 
+    @format_input
     def __call__(self, x):
         """
         Transforms data using this model.
@@ -476,9 +474,7 @@ class Chebyshev1DModel(PolynomialModel):
 
         if self.domain is not None:
             x = poly_map_domain(x, self.domain, self.window)
-        x, fmt = _convert_input(x, self.param_dim)
-        result = self.clenshaw(x, self.param_sets)
-        return _convert_output(result, fmt)
+        return self.clenshaw(x, self.param_sets)
 
 
 class Legendre1DModel(PolynomialModel):
@@ -554,6 +550,7 @@ class Legendre1DModel(PolynomialModel):
             v[i] = (v[i - 1] * x * (2 * i - 1) - v[i - 2] * (i - 1)) / i
         return np.rollaxis(v, 0, v.ndim)
 
+    @format_input
     def __call__(self, x):
         """
         Transforms data using this model.
@@ -566,9 +563,7 @@ class Legendre1DModel(PolynomialModel):
 
         if self.domain is not None:
             x = poly_map_domain(x, self.domain, self.window)
-        x, fmt = _convert_input(x, self.param_dim)
-        result = self.clenshaw(x, self.param_sets)
-        return _convert_output(result, fmt)
+        return self.clenshaw(x, self.param_sets)
 
 
 class Polynomial1DModel(PolynomialModel):
@@ -629,6 +624,7 @@ class Polynomial1DModel(PolynomialModel):
             c0 = coef[-i] + c0 * x
         return c0
 
+    @format_input
     def __call__(self, x):
         """
         Transforms data using this model.
@@ -639,9 +635,7 @@ class Polynomial1DModel(PolynomialModel):
             input
         """
 
-        x, fmt = _convert_input(x, self.param_dim)
-        result = self.horner(x, self.param_sets)
-        return _convert_output(result, fmt)
+        return self.horner(x, self.param_sets)
 
 
 class Polynomial2DModel(PolynomialModel):
@@ -760,6 +754,7 @@ class Polynomial2DModel(PolynomialModel):
                     coeff.append(getattr(self, name))
         return np.array(coeff[::-1])
 
+    @format_input
     def __call__(self, x, y):
         """
         Transforms data using this model.
@@ -773,13 +768,10 @@ class Polynomial2DModel(PolynomialModel):
         """
 
         invcoeff = self.invlex_coeff()
-        x, _ = _convert_input(x, self.param_dim)
-        y, fmt = _convert_input(y, self.param_dim)
         assert x.shape == y.shape, \
             "Expected input arrays to have the same shape"
 
-        result = self.mhorner(x, y, invcoeff)
-        return _convert_output(result, fmt)
+        return self.mhorner(x, y, invcoeff)
 
 
 class Chebyshev2DModel(OrthoPolynomialBase):

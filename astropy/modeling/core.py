@@ -43,6 +43,7 @@ In all these cases the output has the same shape as the input.
 from __future__ import division
 
 import abc
+import functools
 
 from itertools import izip
 from textwrap import dedent
@@ -62,70 +63,60 @@ class ModelDefinitionError(Exception):
     """Used for incorrect models definitions."""
 
 
-def _convert_input(x, pdim):
+def format_input(func):
     """
-    Format the input into appropriate shape
+    Wrap a model's ``__call__`` method so that the input arrays are
+    converted into the appropriate shape given the model's parameter
+    dimensions.
 
-    Parameters
-    ----------
-    x : scalar, array or a sequence of numbers
-        input data
-    pdim : int
-        number of parameter sets
-
-    The meaning of the internally used format is:
-
-    'N' - the format of the input was not changed
-    'T' - input was transposed
-    'S' - input is a scalar
+    Wraps the result to match the shape of the last input array.
     """
 
-    x = np.asarray(x) + 0.
-    fmt = 'N'
-    if pdim == 1:
-        if x.ndim == 0:
-            fmt = 'S'
-            return x, fmt
-        else:
-            return x, fmt
-    else:
-        if x.ndim < 2:
-            fmt = 'N'
-            return np.array([x]).T, fmt
-        elif x.ndim == 2:
-            assert x.shape[-1] == pdim, "Cannot broadcast with shape"\
-                "({0}, {1})".format(x.shape[0], x.shape[1])
-            return x, fmt
-        elif x.ndim > 2:
-            assert x.shape[0] == pdim, "Cannot broadcast with shape " \
-                "({0}, {1}, {2})".format(x.shape[0], x.shape[1], x.shape[2])
-            fmt = 'T'
-            return x.T, fmt
+    @functools.wraps(func)
+    def wrapped_call(self, *args):
+        converted = []
 
+        for arg in args:
+            # Reset these flags; their value only matters for the last
+            # argument
+            transposed = False
+            scalar = False
 
-def _convert_output(x, fmt):
-    """
-    Put the output in the shpae/type of the original input
+            arg = np.asarray(arg) + 0.
+            if self.param_dim == 1:
+                if arg.ndim == 0:
+                    scalar = True
+                converted.append(arg)
+                continue
 
-    Parameters
-    ----------
-    x : scalar, array or a sequence of numbers
-        output data
-    fmt : string
-        original format
-    """
+            if arg.ndim < 2:
+                converted.append(np.array([arg]).T)
+            elif arg.ndim == 2:
+                assert arg.shape[-1] == self.param_dim, \
+                    ("Cannot broadcast with shape "
+                     "({0}, {1})".format(arg.shape[0], arg.shape[1]))
+                converted.append(arg)
+            elif arg.ndim > 2:
+                assert arg.shape[0] == self.param_dim, \
+                    ("Cannot broadcast with shape "
+                     "({0}, {1}, {2})".format(arg.shape[0], arg.shape[1],
+                                              arg.shape[2]))
+                transposed = True
+                converted.append(arg.T)
 
-    if fmt == 'N':
-        return x
-    elif fmt == 'T':
-        return x.T
-    elif fmt == 'S':
-        try:
-            return x[0]
-        except IndexError:
-            return x
-    else:
-        raise ValueError("Unrecognized output conversion format")
+        result = func(self, *converted)
+
+        if transposed:
+            return result.T
+        elif scalar:
+            try:
+                return result[0]
+            except IndexError:
+                return result
+
+        return result
+
+    return wrapped_call
 
 
 class _ModelMeta(abc.ABCMeta):
@@ -925,6 +916,7 @@ class Parametric1DModel(ParametricModel):
         for param_name in self.param_names:
             setattr(self, param_name, param_dict[param_name])
 
+    @format_input
     def __call__(self, x):
         """
         Transforms data using this model.
@@ -935,9 +927,7 @@ class Parametric1DModel(ParametricModel):
             input
         """
 
-        x, fmt = _convert_input(x, self.param_dim)
-        result = self.eval(x, *self.param_sets)
-        return _convert_output(result, fmt)
+        return self.eval(x, *self.param_sets)
 
 
 class Parametric2DModel(ParametricModel):
@@ -970,6 +960,7 @@ class Parametric2DModel(ParametricModel):
         for param_name in self.param_names:
             setattr(self, param_name, param_dict[param_name])
 
+    @format_input
     def __call__(self, x, y):
         """
         Transforms data using this model.
@@ -980,7 +971,4 @@ class Parametric2DModel(ParametricModel):
             input
         """
 
-        x, _ = _convert_input(x, self.param_dim)
-        y, fmt = _convert_input(y, self.param_dim)
-        result = self.eval(x, y, *self.param_sets)
-        return _convert_output(result, fmt)
+        return self.eval(x, y, *self.param_sets)
