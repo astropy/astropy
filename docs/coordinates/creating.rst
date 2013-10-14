@@ -51,8 +51,22 @@ ambiguities in parsing the angle strings::
     >>> ICRSCoordinates('3h4m5s +6d7m8s', unit=(u.hour, u.degree))
     <ICRSCoordinates RA=46.02083 deg, Dec=6.11889 deg>
 
+It's also possible to create coordinates using lists or `numpy` arrays.  The same
+unit rules apply as for scalar angles.::
+
+    >>> ICRSCoordinates([187.70592, 123.45678], [12.39112, 9.87654], unit=(u.degree, u.degree))  
+    <ICRSCoordinates RA=[ 187.70592  123.45678] deg, Dec=[ 12.39112   9.87654] deg>
+    >>> ICRSCoordinates([187.70592, 123.45678], [12.39112, 9.87654])
+    ERROR: astropy:UnitsError: No unit specified [astropy.coordinates.angle_utilities]
+
+.. warning::
+    If you try to create an angle using a tuple for each angle instead of a list or 
+    `numpy` array, it will be interpreted aa ``(hours, minutes, seconds)`` or 
+    ``(degrees, arcmin, arcsec)``.  So if you actually want multiple coordinates from
+    a tuple, convert it to a list or array.
+
 One final way to create coordinates is to copy them from an already
-existing coordinate::
+existing coordinate object::
 
     >>> i1 = ICRSCoordinates(187.70592, 12.39112, unit=(u.degree, u.degree))
     >>> i2 = ICRSCoordinates(i1)

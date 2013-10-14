@@ -69,15 +69,9 @@ class ICRSCoordinates(SphericalCoordinatesBase):
         else:
             super(ICRSCoordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
-    def __repr__(self):
-        if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
-        else:
-            diststr = ''
-
-        msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.ra.degree,
-                          self.dec.degree, diststr)
+    #strings used for making __repr__ work
+    _repr_lon_name = 'RA'
+    _repr_lat_name = 'Dec'
 
     @property
     def lonangle(self):
@@ -129,6 +123,8 @@ class FK5Coordinates(SphericalCoordinatesBase):
             raise TypeError('specified equinox is not a Time object')
         if self._obstime is not None and not isinstance(self._obstime, Time):
             raise TypeError('specified obstime is not None or a Time object')
+        if not self._equinox.isscalar:
+            raise ValueError('specified equinox is not a scalar')
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -138,15 +134,9 @@ class FK5Coordinates(SphericalCoordinatesBase):
         else:
             super(FK5Coordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
-    def __repr__(self):
-        if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
-        else:
-            diststr = ''
-
-        msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.ra.degree,
-                          self.dec.degree, diststr)
+    #strings used for making __repr__ work
+    _repr_lon_name = 'RA'
+    _repr_lat_name = 'Dec'
 
     @property
     def lonangle(self):
@@ -226,6 +216,8 @@ class FK4Coordinates(SphericalCoordinatesBase):
             raise TypeError('specified equinox is not a Time object')
         if self._obstime is not None and not isinstance(self._obstime, Time):
             raise TypeError('specified obstime is not None or a Time object')
+        if not self._equinox.isscalar:
+            raise ValueError('specified equinox is not a scalar')
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -235,15 +227,9 @@ class FK4Coordinates(SphericalCoordinatesBase):
         else:
             super(FK4Coordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
-    def __repr__(self):
-        if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
-        else:
-            diststr = ''
-
-        msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.ra.degree,
-                          self.dec.degree, diststr)
+    #strings used for making __repr__ work
+    _repr_lon_name = 'RA'
+    _repr_lat_name = 'Dec'
 
     @property
     def lonangle(self):
@@ -322,6 +308,8 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
             raise TypeError('specified equinox is not a Time object')
         if self._obstime is not None and not isinstance(self._obstime, Time):
             raise TypeError('specified obstime is not None or a Time object')
+        if not self._equinox.isscalar:
+            raise ValueError('specified equinox is not a scalar')
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -331,15 +319,9 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
         else:
             super(FK4NoETermCoordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
-    def __repr__(self):
-        if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
-        else:
-            diststr = ''
-
-        msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.ra.degree,
-                          self.dec.degree, diststr)
+    #strings used for making __repr__ work
+    _repr_lon_name = 'RA'
+    _repr_lat_name = 'Dec'
 
     @property
     def lonangle(self):
@@ -442,15 +424,9 @@ class GalacticCoordinates(SphericalCoordinatesBase):
         else:
             super(GalacticCoordinates, self)._initialize_latlon('l', 'b', args, kwargs)
 
-    def __repr__(self):
-        if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
-        else:
-            diststr = ''
-
-        msg = "<{0} l={1:.5f} deg, b={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.l.degree,
-                          self.b.degree, diststr)
+    #strings used for making __repr__ work
+    _repr_lon_name = 'l'
+    _repr_lat_name = 'b'
 
     @property
     def lonangle(self):
@@ -491,6 +467,8 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
             raise TypeError('specified equinox is not a Time object')
         if self._obstime is not None and not isinstance(self._obstime, Time):
             raise TypeError('specified obstime is not None or a Time object')
+        if not self._equinox.isscalar:
+            raise ValueError('specified equinox is not a scalar')
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -500,15 +478,9 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
         else:
             super(HorizontalCoordinates, self)._initialize_latlon('az', 'el', args, kwargs)
 
-    def __repr__(self):
-        if self.distance is not None:
-            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance.value, self.distance.unit)
-        else:
-            diststr = ''
-
-        msg = "<{0} az={1:.5f} deg, el={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.az.degree,
-                          self.el.degree, diststr)
+    #strings used for making __repr__ work
+    _repr_lon_name = 'az'
+    _repr_lat_name = 'el'
 
     @property
     def lonangle(self):
@@ -605,14 +577,15 @@ def fk4_e_terms(equinox):
 def fk4_to_fk4_no_e(fk4c):
 
     # Extract cartesian vector
-    r = np.array([fk4c.x.value, fk4c.y.value, fk4c.z.value])
+    c = fk4c.cartesian
+    r = np.asarray(c.reshape((3, c.size // 3)))
 
     # Find distance (for re-normalization)
     d_orig = np.sqrt(np.sum(r ** 2))
 
     # Apply E-terms of aberration
-    eterms_a = fk4_e_terms(fk4c.equinox)
-    r = r - eterms_a + np.dot(r, eterms_a) * r
+    eterms_a = np.asarray(fk4_e_terms(fk4c.equinox))
+    r = r - eterms_a.reshape(3, 1) + np.dot(eterms_a, r) * r
 
     # Find new distance (for re-normalization)
     d_new = np.sqrt(np.sum(r ** 2))
@@ -620,26 +593,30 @@ def fk4_to_fk4_no_e(fk4c):
     # Renormalize
     r = r * d_orig / d_new
 
-    unit = None if fk4c.distance is None else fk4c.distance.unit
-    result = FK4NoETermCoordinates(x=r[0], y=r[1], z=r[2], unit=unit, equinox=fk4c.equinox)
+    subshape = c.shape[1:]
+    x = r[0].reshape(subshape)
+    y = r[1].reshape(subshape)
+    z = r[2].reshape(subshape)
 
-    return result
+    newunit = None if fk4c.distance is None else fk4c.distance.unit
+    return FK4NoETermCoordinates(x=x, y=y, z=z, unit=newunit, equinox=fk4c.equinox)
 
 
 @transformations.transform_function(FK4NoETermCoordinates, FK4Coordinates, priority=1)
 def fk4_no_e_to_fk4(fk4c):
 
     # Extract cartesian vector
-    r = np.array([fk4c.x.value, fk4c.y.value, fk4c.z.value])
+    c = fk4c.cartesian
+    r = np.asarray(c.reshape((3, c.size // 3)))
 
     # Find distance (for re-normalization)
     d_orig = np.sqrt(np.sum(r ** 2))
 
     # Apply E-terms of aberration
-    eterms_a = fk4_e_terms(fk4c.equinox)
+    eterms_a = np.asarray(fk4_e_terms(fk4c.equinox))
     r0 = r.copy()
     for j in range(10):
-        r = (r0 + eterms_a) / (1. + np.dot(r, eterms_a))
+        r = (eterms_a.reshape(3, 1) + r0) / (1. + np.dot(eterms_a, r))
 
     # Find new distance (for re-normalization)
     d_new = np.sqrt(np.sum(r ** 2))
@@ -647,10 +624,13 @@ def fk4_no_e_to_fk4(fk4c):
     # Renormalize
     r = r * d_orig / d_new
 
-    unit = None if fk4c.distance is None else fk4c.distance.unit
-    result = FK4Coordinates(x=r[0], y=r[1], z=r[2], unit=unit, equinox=fk4c.equinox)
+    subshape = c.shape[1:]
+    x = r[0].reshape(subshape)
+    y = r[1].reshape(subshape)
+    z = r[2].reshape(subshape)
 
-    return result
+    newunit = None if fk4c.distance is None else fk4c.distance.unit
+    return FK4Coordinates(x=x, y=y, z=z, unit=newunit, equinox=fk4c.equinox)
 
 # FK5 to/from FK4
 
