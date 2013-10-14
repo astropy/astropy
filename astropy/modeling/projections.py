@@ -47,17 +47,8 @@ class Projection(Model):
     n_inputs = 2
     n_outputs = 2
 
-    def __init__(self):
-        super(Projection, self).__init__()
-
-        self._pdim = 1
-        # the radius of the projection sphere, by which x,y are scaled
-        # not sure if it's necessary to make this a user parameter
-        self.r0 = 180 / np.pi
-
-    @property
-    def pdim(self):
-        return self._pdim
+    # the radius of the projection sphere, by which x,y are scaled
+    r0 = 180 / np.pi
 
 
 class Zenithal(Projection):
