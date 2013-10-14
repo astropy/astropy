@@ -61,11 +61,6 @@ class Zenithal(Projection):
         parameter names
     """
 
-    def __init__(self):
-        self.phi0 = 0.
-        self.theta0 = 90.
-        super(Zenithal, self).__init__()
-
     def _compute_rtheta(self):
         # Subclasses must implement this method
         raise NotImplementedError("Subclasses should implement this")
@@ -313,12 +308,6 @@ class Cylindrical(Projection):
     """
     Base class for Cylindrical projections.
     """
-
-    # TODO: define param_names
-    def __init__(self):
-        self.phi0 = 0.0
-        self.theta0 = 0.0
-        super(Cylindrical, self).__init__()
 
     def inverse(self):
         raise NotImplementedError()
