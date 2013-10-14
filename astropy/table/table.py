@@ -3,6 +3,7 @@ import abc
 import collections
 import sys
 from copy import deepcopy
+from itertools import izip
 import functools
 import warnings
 
@@ -20,6 +21,7 @@ from . import operations
 from ..extern import six
 
 from ..utils.exceptions import AstropyDeprecationWarning
+from . import groups
 
 # Python 2 and 3 source compatibility
 try:
@@ -402,6 +404,45 @@ class BaseColumn(object):
         lines, n_header = _pformat_col(self)
         return '\n'.join(lines)
 
+    @property
+    def groups(self):
+        if not hasattr(self, '_groups'):
+            self._groups = groups.ColumnGroups(self)
+        return self._groups
+
+    def group_by(self, keys):
+        """
+        Group this column by the specified ``keys``
+
+        This effectively splits the column into groups which correspond to unique values of
+        the ``keys`` grouping object.  The output is a new `Column` or `MaskedColumn` which
+        contains a copy of this column but sorted by row according to ``keys``.
+
+        The ``keys`` input to `group_by` must be a numpy array with the same length as
+        this column.
+
+        Parameters
+        ----------
+        keys : numpy array
+            Key grouping object
+
+        Returns
+        -------
+        out : Column
+            New column with groups attribute set accordingly
+        """
+        return groups.column_group_by(self, keys)
+
+    def _copy_groups(self, out):
+        """
+        Copy current groups into a copy of self ``out``
+        """
+        if self.parent_table:
+            if hasattr(self.parent_table, '_groups'):
+                out._groups = groups.ColumnGroups(out, indices=self.parent_table._groups._indices)
+        elif hasattr(self, '_groups'):
+            out._groups = groups.ColumnGroups(out, indices=self._groups._indices)
+
 
 class Column(BaseColumn, np.ndarray):
     """Define a data column for use in a Table object.
@@ -511,6 +552,8 @@ class Column(BaseColumn, np.ndarray):
                 format = data.format
             if meta is None:
                 meta = deepcopy(data.meta)
+            if name is None:
+                name = data.name
         elif isinstance(data, MaskedColumn):
             raise TypeError("Cannot convert a MaskedColumn to a Column")
         elif isinstance(data, Quantity):
@@ -548,8 +591,11 @@ class Column(BaseColumn, np.ndarray):
             if copy_data:
                 data = data.copy(order)
 
-        return Column(name=self.name, data=data, unit=self.unit, format=self.format,
-                      description=self.description, meta=deepcopy(self.meta))
+        out = Column(name=self.name, data=data, unit=self.unit, format=self.format,
+                     description=self.description, meta=deepcopy(self.meta))
+        self._copy_groups(out)
+
+        return out
 
 
 class MaskedColumn(BaseColumn, ma.MaskedArray):
@@ -667,6 +713,8 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
                 format = data.format
             if meta is None:
                 meta = deepcopy(data.meta)
+            if name is None:
+                name = data.name
         elif isinstance(data, Quantity):
             if unit is None:
                 self_data = ma.asarray(data, dtype=dtype)
@@ -798,10 +846,12 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
             if copy_data:
                 data = data.copy(order)
 
-        return MaskedColumn(name=self.name, data=data, unit=self.unit, format=self.format,
-                            # Do not include mask=self.mask since `data` has the mask
-                            fill_value=self.fill_value,
-                            description=self.description, meta=deepcopy(self.meta))
+        out = MaskedColumn(name=self.name, data=data, unit=self.unit, format=self.format,
+                           # Do not include mask=self.mask since `data` has the mask
+                           fill_value=self.fill_value,
+                           description=self.description, meta=deepcopy(self.meta))
+        self._copy_groups(out)
+        return out
 
 
 class Row(object):
@@ -1289,8 +1339,8 @@ class Table(object):
 
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.colnames)
-        s = "<Table rows={0} names=({1})>\n{2}".format(
-            self.__len__(), ','.join(names), repr(self._data))
+        s = "<{3} rows={0} names=({1})>\n{2}".format(
+            self.__len__(), ','.join(names), repr(self._data), self.__class__.__name__)
         return s
 
     def __str__(self):
@@ -1417,8 +1467,10 @@ class Table(object):
             return Row(self, item)
         elif isinstance(item, (tuple, list)) and all(x in self.colnames
                                                      for x in item):
-            return self.__class__([self[x] for x in item],
-                                  meta=deepcopy(self.meta))
+            out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
+            out._groups = groups.TableGroups(out, indices=self.groups._indices,
+                                             keys=self.groups._keys)
+            return out
         elif (isinstance(item, slice) or
               isinstance(item, np.ndarray) or
               isinstance(item, list) or
@@ -1822,6 +1874,10 @@ class Table(object):
         # and should be updated:
         self._rebuild_table_column_views()
 
+        # Revert groups to default (ungrouped) state
+        if hasattr(self, '_groups'):
+            del self._groups
+
     def remove_column(self, name):
         """
         Remove a column from the table.
@@ -1918,7 +1974,7 @@ class Table(object):
             self.columns.pop(name)
 
         newdtype = [(name, self._data.dtype[name]) for name in self._data.dtype.names
-                if name not in names]
+                    if name not in names]
         newdtype = np.dtype(newdtype)
 
         if newdtype:
@@ -1935,7 +1991,6 @@ class Table(object):
             table = None
 
         self._data = table
-
 
     def keep_columns(self, names):
         '''
@@ -2128,6 +2183,31 @@ class Table(object):
 
         self._rebuild_table_column_views()
 
+        # Revert groups to default (ungrouped) state
+        if hasattr(self, '_groups'):
+            del self._groups
+
+    def argsort(self, keys=None):
+        """
+        Return the indices which would sort the table according to one or more key columns.
+        This simply calls the `numpy.argsort` function on the table with the ``order``
+        parameter set to `keys`.
+
+        Parameters
+        ----------
+        keys : str or list of str
+            The column name(s) to order the table by
+
+        Returns
+        -------
+        index_array : ndarray, int
+            Array of indices that sorts the table by the specified key column(s).
+        """
+        if isinstance(keys, basestring):
+            keys = [keys]
+        kwargs = {'order': keys} if keys else {}
+        return self._data.argsort(**kwargs)
+
     def sort(self, keys):
         '''
         Sort the table according to one or more keys. This operates
@@ -2169,7 +2249,13 @@ class Table(object):
             If True (the default), copy the underlying data array.
             Otherwise, use the same data array
         '''
-        return self.__class__(self, copy=copy_data)
+        out = self.__class__(self, copy=copy_data)
+
+        # If the current table is grouped then do the same in the copy
+        if hasattr(self, '_groups'):
+            out._groups = groups.TableGroups(out, indices=self._groups._indices,
+                                             keys=self._groups._keys)
+        return out
 
     def __deepcopy__(self, memo=None):
         return self.copy(True)
@@ -2227,3 +2313,35 @@ class Table(object):
 
     def __ne__(self, other):
         return ~self.__eq__(other)
+
+    @property
+    def groups(self):
+        if not hasattr(self, '_groups'):
+            self._groups = groups.TableGroups(self)
+        return self._groups
+
+    def group_by(self, keys):
+        """
+        Group this table by the specified ``keys``
+
+        This effectively splits the table into groups which correspond to unique values of
+        the ``keys`` grouping object.  The output is a new `GroupedTable` which contains a
+        copy of this table but sorted by row according to ``keys``.
+
+        The ``keys`` input to `group_by` can be specified in different ways:
+
+          - String or list of strings corresponding to table column name(s)
+          - Numpy array (homogeneous or structured) with same length as this table
+          - `Table` with same length as this table
+
+        Parameters
+        ----------
+        keys : str, list of str, numpy array, or Table
+            Key grouping object
+
+        Returns
+        -------
+        out : Table
+            New table with groups set
+        """
+        return groups.table_group_by(self, keys)

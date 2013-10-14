@@ -699,3 +699,5 @@ class TestHStack():
             # Make sure we got a copy of meta, not ref
             t1['b'].meta['b'] = None
             assert out['b'].meta['b'] == [1, 2]
+
+

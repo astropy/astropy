@@ -7,7 +7,7 @@ Table operations
 -----------------
 
 In this section we describe higher-level operations that can be used to generate a new
-table from two or more input tables.  This includes:
+table from one or more input tables.  This includes:
 
 =======================
 
@@ -18,6 +18,9 @@ table from two or more input tables.  This includes:
    * - Documentation
      - Description
      - Function
+   * - `Grouped operations`_
+     - Group tables and columns by keys
+     - `~astropy.table.table.Table.group_by`
    * - `Stack vertically`_
      - Concatenate input tables along rows
      - `~astropy.table.operations.vstack`
@@ -28,6 +31,333 @@ table from two or more input tables.  This includes:
      - Database-style join of two tables
      - `~astropy.table.operations.join`
 
+
+Grouped operations
+^^^^^^^^^^^^^^^^^^^^^
+
+Sometimes in a table or table column there are natural groups within the dataset for which
+it makes sense to compute some derived values.  A simple example is a list of objects with
+photometry from various observing runs::
+
+  >>> from astropy.table import Table
+  >>> obs = Table.read("""name    obs_date    mag_b  mag_v
+                          M31     2012-01-02  17.0   17.5
+                          M31     2012-01-02  17.1   17.4
+                          M101    2012-01-02  15.1   13.5
+                          M82     2012-02-14  16.2   14.5
+                          M31     2012-02-14  16.9   17.3
+                          M82     2012-02-14  15.2   15.5
+                          M101    2012-02-14  15.0   13.6
+                          M82     2012-03-26  15.7   16.5
+                          M101    2012-03-26  15.1   13.5
+                          M101    2012-03-26  14.8   14.3
+                          """, format='ascii')
+
+Table groups
+~~~~~~~~~~~~~~
+
+Now suppose we want the mean magnitudes for each object.  We first group the data by the
+``name`` column with the :func:`~astropy.table.table.Table.group_by` method.  This returns
+a new table sorted by ``name`` which has a ``groups`` property specifying the unique
+values of ``name`` and the corresponding table rows::
+
+  >>> obs_by_name = obs.group_by('name')
+  >>> print obs_by_name
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+  M101 2012-01-02  15.1  13.5  << First group (index=0, key='M101')
+  M101 2012-02-14  15.0  13.6
+  M101 2012-03-26  15.1  13.5
+  M101 2012-03-26  14.8  14.3
+   M31 2012-01-02  17.0  17.5  << Second group (index=4, key='M31')
+   M31 2012-01-02  17.1  17.4
+   M31 2012-02-14  16.9  17.3
+   M82 2012-02-14  16.2  14.5  << Third group (index=7, key='M83')
+   M82 2012-02-14  15.2  15.5
+   M82 2012-03-26  15.7  16.5
+                               << End of groups (index=10)
+  >>> print obs_by_name.groups.keys
+  name
+  ----
+  M101
+   M31
+   M82
+  >>> print obs_by_name.groups.indices
+  [ 0  4  7 10]
+
+The ``groups`` property is the portal to all grouped operations with tables and columns.
+It defines how the table is grouped via an array of the unique row key values and the
+indices of the group boundaries for those key values.  The groups here correspond to the
+row slices ``0:4``, ``4:7``, and ``7:10`` in the ``obs_by_name`` table.
+
+The initial argument (``keys``) for the `~astropy.table.table.Table.group_by` function
+can take a number of input data types:
+
+- Single string value with a table column name (as shown above)
+- List of string values with table column names
+- Another `Table` or `Table` column with same length as table
+- Numpy structured array with same length as table
+- Numpy homogeneous array with same length as table
+
+In all cases the corresponding row elements are considered as a tuple of values which
+form a key value that is used to sort the original table and generate
+the required groups.
+
+As an example, to get the average magnitudes for each object on each observing
+night, we would first group the table on both ``name`` and ``obs_date`` as follows::
+
+  >>> print obs.group_by(['name', 'obs_date']).groups.keys
+  name  obs_date
+  ---- ----------
+  M101 2012-01-02
+  M101 2012-02-14
+  M101 2012-03-26
+   M31 2012-01-02
+   M31 2012-02-14
+   M82 2012-02-14
+   M82 2012-03-26
+
+
+Manipulating groups
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once you have applied grouping to a table then you can easily access the individual
+groups or subsets of groups.  In all cases this returns a new grouped table.
+For instance to get the sub-table which corresponds to the second group (index=1)
+do::
+
+  >>> print obs_by_name.groups[1]
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+   M31 2012-01-02  17.0  17.5
+   M31 2012-01-02  17.1  17.4
+   M31 2012-02-14  16.9  17.3
+
+To get the first and second groups together use a slice::
+
+  >>> groups01 = obs_by_name.groups[0:2]
+  >>> print groups01
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+  M101 2012-01-02  15.1  13.5
+  M101 2012-02-14  15.0  13.6
+  M101 2012-03-26  15.1  13.5
+  M101 2012-03-26  14.8  14.3
+   M31 2012-01-02  17.0  17.5
+   M31 2012-01-02  17.1  17.4
+   M31 2012-02-14  16.9  17.3
+  >>> print groups01.groups.keys
+  name
+  ----
+  M101
+   M31
+
+You can also supply a numpy array of indices or a boolean mask to select particular
+groups, e.g.::
+
+  >>> mask = obs_by_name.groups.keys == 'M101'
+  >>> print obs_by_name.groups[mask]
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+  M101 2012-01-02  15.1  13.5
+  M101 2012-02-14  15.0  13.6
+  M101 2012-03-26  15.1  13.5
+  M101 2012-03-26  14.8  14.3
+
+One can iterate over the group sub-tables and corresponding keys with::
+
+  >>> from itertools import izip
+  >>> for key, group in izip(obs_by_name.groups.keys, obs_by_name.groups):
+  ...     print('****** {0} *******'.format(key['name']))
+  ...     print group
+  ...     print
+  ...
+
+  ****** M101 *******
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+  M101 2012-01-02  15.1  13.5
+  M101 2012-02-14  15.0  13.6
+  M101 2012-03-26  15.1  13.5
+  M101 2012-03-26  14.8  14.3
+
+  ****** M31 *******
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+   M31 2012-01-02  17.0  17.5
+   M31 2012-01-02  17.1  17.4
+   M31 2012-02-14  16.9  17.3
+
+  ****** M82 *******
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+   M82 2012-01-02  16.2  14.5
+   M82 2012-02-14  15.2  15.5
+   M82 2012-03-26  15.7  16.5
+
+
+Column Groups
+~~~~~~~~~~~~~~
+
+Like `Table` objects, `Column` objects can also be grouped for subsequent
+manipulation with grouped operations.  This can apply both to columns within a
+`Table` or bare `Column` objects.
+
+As for `Table`, the grouping is generated with the `group_by()` method.  The
+difference here is that there is no option of providing one or more column
+names since that doesn't make sense for a `Column`.
+
+Examples::
+
+  >>> from astropy.table import Column
+  >>> c = Column([1, 2, 3, 4, 5, 6], name='a')
+  >>> key_vals = np.array(['foo', 'bar', 'foo', 'foo', 'qux', 'qux'])
+  >>> cg = c.group_by(key_vals)
+
+  >>> for key, group in izip(cg.groups.keys, cg.groups):
+  ...     print('****** {0} *******'.format(key))
+  ...     print group
+  ...     print
+  ...
+  ****** bar *******
+   a
+  ---
+    2
+
+  ****** foo *******
+   a
+  ---
+    1
+    3
+    4
+
+  ****** qux *******
+   a
+  ---
+    5
+    6
+
+
+Aggregation
+~~~~~~~~~~~~~~
+
+Aggregation is the process of applying a
+specified reduction function to the values within each group for each
+non-key column.  This function must accept a numpy array as the first
+argument and return a single scalar value.  Common function examples are
+`numpy.sum`, `numpy.mean`, and `numpy.std`.
+
+For the example grouped table ``obs_by_name`` from above we compute the group means with
+the `~astropy.table.groups.TableGroups.aggregate` method::
+
+  >>> obs_mean = obs_by_name.groups.aggregate(np.mean)
+  WARNING: Cannot aggregate column 'obs_date' [astropy.table.groups]
+  >>> print obs_mean
+  name mag_b mag_v 
+  ---- ----- ------
+  M101  15.0 13.725
+   M31  17.0   17.4
+   M82  15.7   15.5
+
+It seems the magnitude values were successfully averaged, but what
+about the WARNING?  Since the ``obs_date`` column is a string-type
+array, the `numpy.mean` function failed and raised an exception.
+Any time this happens then ``~astropy.table.groups.TableGroups.aggregate`
+will issue a warning and then
+drop that column from the output result.  Note that the ``name``
+column is one of the ``keys`` used to determine the grouping so
+it is automatically ignored from aggregation.
+
+From a grouped table it is possible to select one or more columns on which
+to perform the aggregation::
+
+  >>> print obs_by_name['mag_b'].groups.aggregate(np.mean)
+  mag_b
+  -----
+   15.0
+   17.0
+   15.7
+
+  >>> print obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean)
+  name mag_v  mag_b
+  ---- ------ -----
+  M101 13.725  15.0
+   M31   17.4  17.0
+   M82   15.5  15.7
+
+A single column of data can be aggregated as well::
+
+  >>> c = Column([1, 2, 3, 4, 5, 6], name='a')
+  >>> key_vals = np.array(['foo', 'bar', 'foo', 'foo', 'qux', 'qux'])
+  >>> cg = c.group_by(key_vals)
+  >>> cg_sums = cg.groups.aggregate(np.sum)
+  >>> for key, cg_sum in izip(cg.groups.keys, cg_sums):
+  ...     print 'Sum for {0} = {1}'.format(key, cg_sum)
+  ...
+  Sum for bar = 2
+  Sum for foo = 8
+  Sum for qux = 11
+
+
+Filtering
+~~~~~~~~~~
+
+Table groups can be filtered by means of the `~astropy.table.groups.TableGroups.filter`
+method.  This is done by supplying a function which is called for each
+group.   The function which is passed to this method must accept two arguments:
+
+- ``table`` : `Table` object
+- ``key_colnames`` : list of columns in ``table`` used as keys for grouping
+
+It must then return either `True` or `False`.  As an example, the following
+will select all table groups with only positive values in the non-key columns::
+
+  def all_positive(table, key_colnames):
+      colnames = [name for name in table.colnames if name not in key_colnames]
+      for colname in colnames:
+          if np.any(table[colname] < 0):
+              return False
+      return True
+
+An example of using this function is::
+
+  >>> t = Table.read(""" a   b    c
+                        -2  7.0   0
+                        -2  5.0   1
+                         1  3.0  -5
+                         1 -2.0  -6
+                         1  1.0   7
+                         0  0.0   4
+                         3  3.0   5
+                         3 -2.0   6
+                         3  1.0   7""", format='ascii')
+  >>> tg = t.group_by('a')
+  >>> t_positive = tg.groups.filter(all_positive)
+  >>> for group in t_positive.groups:
+  ...     print group
+  ...     print
+  ...
+   a   c   d
+  --- --- ---
+   -2 7.0   0
+   -2 5.0   1
+
+   a   c   d
+  --- --- ---
+    0 0.0   4
+
+As can be seen only the groups with ``a == -2`` and ``a == 0`` have all positive values
+in the non-key columns, so those are the ones that are selected.
+
+Likewise a grouped column can be filtered with the
+`~astropy.table.groups.ColumnGroups.filter`, method but in this case the filtering
+function takes only a single argument which is the column group.  It still must return
+either `True` or `False`.  For example::
+
+  def all_positive(column):
+      if np.any(column < 0):
+          return False
+      return True
 
 Stack vertically
 ^^^^^^^^^^^^^^^^^^^^

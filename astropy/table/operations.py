@@ -11,6 +11,8 @@ from copy import deepcopy
 import warnings
 import collections
 
+import numpy as np
+
 from ..utils import OrderedDict, metadata
 from . import np_utils
 
