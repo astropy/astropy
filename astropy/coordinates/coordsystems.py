@@ -8,7 +8,7 @@ from abc import ABCMeta, abstractproperty, abstractmethod
 from ..extern import six
 from .. import units as u
 from .angles import Longitude, Latitude, Angle
-from .distances import *
+from .distances import Distance, CartesianPoints, cartesian_to_spherical, spherical_to_cartesian
 from ..utils.compat.misc import override__dir__
 from . import angle_utilities
 

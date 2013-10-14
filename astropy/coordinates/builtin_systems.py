@@ -638,7 +638,7 @@ def fk4_no_e_to_fk4(fk4c):
     # Apply E-terms of aberration
     eterms_a = fk4_e_terms(fk4c.equinox)
     r0 = r.copy()
-    for j in range(10):
+    for _ in range(10):
         r = (r0 + eterms_a) / (1. + np.dot(r, eterms_a))
 
     # Find new distance (for re-normalization)
