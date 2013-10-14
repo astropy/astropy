@@ -97,21 +97,6 @@ def test_biweight_location():
         assert abs(cbl-0) < 1e-2
 
 
-def test_biweight_location():
-    from numpy.random import randn
-
-    #need to seed the numpy RNG to make sure we don't get some amazingly flukey
-    #random number that breaks one of the tests
-
-    with NumpyRNGContext(12345):
-
-        #test that it runs
-        randvar = randn(10000)
-        cbl = funcs.biweight_location(randvar)
-
-        assert abs(cbl-0) < 1e-2
-
-
 def test_biweight_location_small():
 
     cbl = funcs.biweight_location([1, 3, 5, 500, 2])
@@ -133,8 +118,7 @@ def test_biweight_midvariance():
         assert abs(scl-1) < 1e-2
 
 
-def test_biweight_location_small():
-
+def test_biweight_midvariance_small():
     scl = funcs.biweight_midvariance([1, 3, 5, 500, 2])
     assert abs(scl-1.529) < 1e-3
 
