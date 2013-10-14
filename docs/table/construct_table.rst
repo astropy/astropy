@@ -131,6 +131,21 @@ Every row must have the same set of keys or a ValueError will be thrown::
       raise ValueError('Row {0} has no value for column {1!r}'.format(i, name))
   ValueError: Row 0 is has no value for column 'c'
 
+Row input
+"""""""""
+
+You can make a new table from a single row of an existing table::
+
+  >>> a = [1, 4]
+  >>> b = [2.0, 5.0]
+  >>> t = Table([a, b], names=('a', 'b'))
+  >>> t2 = Table(t[1])
+
+Remember that a |Row| has effectively a zero length compared to the
+newly created |Table| which has a length of one.  This is similar to
+the difference between a scalar ``1`` (length 0) and an array like
+``np.array([1])`` with length 1.
+
 Dictionary input
 """"""""""""""""
 A dictionary of column data can be used to initialize a |Table|.

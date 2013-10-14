@@ -271,6 +271,32 @@ class TestInitFromOrderedDict(BaseInitFromDictLike):
 
 
 @pytest.mark.usefixtures('table_type')
+class TestInitFromRow(BaseInitFromDictLike):
+
+    def _setup(self, table_type):
+        arr = np.array([(1, 2, 3),
+                        (3, 4, 5)],
+                       dtype=[('x', 'i8'), ('y', 'i8'), ('z', 'f8')])
+        self.data = table_type(arr, meta={'comments': ['comment1', 'comment2']})
+
+    def test_init_from_row(self, table_type):
+        self._setup(table_type)
+        t = table_type(self.data[0])
+
+        # Values and meta match original
+        assert t.meta['comments'][0] == 'comment1'
+        for name in t.colnames:
+            assert np.all(t[name] == self.data[name][0:1])
+        assert all(t[name].name == name for name in t.colnames)
+
+        # Change value in new instance and check that original is the same
+        t['x'][0] = 8
+        t.meta['comments'][1] = 'new comment2'
+        assert np.all(t['x'] == np.array([8]))
+        assert np.all(self.data['x'] == np.array([1, 3]))
+        assert self.data.meta['comments'][1] == 'comment2'
+
+@pytest.mark.usefixtures('table_type')
 class TestInitFromTable(BaseInitFromDictLike):
 
     def _setup(self, table_type):

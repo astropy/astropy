@@ -1039,6 +1039,9 @@ class Table(object):
 
         default_names = None
 
+        if isinstance(data, Row):
+            data = data._table[data._index:data._index + 1]
+
         if isinstance(data, (list, tuple)):
             init_func = self._init_from_list
             if data and all(isinstance(row, dict) for row in data):
