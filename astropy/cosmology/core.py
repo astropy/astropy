@@ -101,15 +101,14 @@ class FLRW(Cosmology):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
-        m_nu : float or ndarray or astropy.units.Quantity
-          Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to have
-          that mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The actual number of neutrino species
-          (and hence the number of elements of m_nu if it is not scalar)
-          must be the floor of Neff.  Usually this means you must provide three
-          neutrino masses unless you are considering something like a 
-          sterile neutrino.
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -167,11 +166,10 @@ class FLRW(Cosmology):
         if self._nneutrinos > 0 and self._Tcmb0.value > 0:
             self._neff_per_nu = self._Neff / self._nneutrinos
 
-            if isinstance(m_nu, u.Quantity):
-                m_nu = m_nu.to(u.eV, equivalencies=u.mass_energy())
-            else:
-                # Just assume they are in eV
-                m_nu = u.Quantity(m_nu, u.eV)
+            if not isinstance(m_nu, u.Quantity):
+                raise ValueError("m_nu must be a Quantity")
+            
+            m_nu = m_nu.to(u.eV, equivalencies=u.mass_energy())
 
             # Now, figure out if we have massive neutrinos to deal with,
             # and, if so, get the right number of masses
@@ -1215,15 +1213,14 @@ class LambdaCDM(FLRW):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
-        m_nu : float or ndarray or astropy.units.Quantity
-          Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to have
-          that mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The actual number of neutrino species
-          (and hence the number of elements of m_nu if it is not scalar)
-          must be the floor of Neff.  Usually this means you must provide three
-          neutrino masses unless you are considering something like a 
-          sterile neutrino.
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -1373,15 +1370,14 @@ class FlatLambdaCDM(LambdaCDM):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
-        m_nu : float or ndarray or astropy.units.Quantity
-          Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to have
-          that mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The actual number of neutrino species
-          (and hence the number of elements of m_nu if it is not scalar)
-          must be the floor of Neff.  Usually this means you must provide three
-          neutrino masses unless you are considering something like a 
-          sterile neutrino.
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -1499,15 +1495,14 @@ class wCDM(FLRW):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
-        m_nu : float or ndarray or astropy.units.Quantity
-          Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to have
-          that mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The actual number of neutrino species
-          (and hence the number of elements of m_nu if it is not scalar)
-          must be the floor of Neff.  Usually this means you must provide three
-          neutrino masses unless you are considering something like a 
-          sterile neutrino.
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -1678,15 +1673,14 @@ class FlatwCDM(wCDM):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
-        m_nu : float or ndarray or astropy.units.Quantity
-          Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to have
-          that mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The actual number of neutrino species
-          (and hence the number of elements of m_nu if it is not scalar)
-          must be the floor of Neff.  Usually this means you must provide three
-          neutrino masses unless you are considering something like a 
-          sterile neutrino.
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
 
         name: string
           Optional name for this cosmological object.
@@ -1817,15 +1811,14 @@ class w0waCDM(FLRW):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
-        m_nu : float or ndarray or astropy.units.Quantity
-          Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to have
-          that mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The actual number of neutrino species
-          (and hence the number of elements of m_nu if it is not scalar)
-          must be the floor of Neff.  Usually this means you must provide three
-          neutrino masses unless you are considering something like a 
-          sterile neutrino.
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -1956,15 +1949,14 @@ class Flatw0waCDM(w0waCDM):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
-        m_nu : float or ndarray or astropy.units.Quantity
-          Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to have
-          that mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The actual number of neutrino species
-          (and hence the number of elements of m_nu if it is not scalar)
-          must be the floor of Neff.  Usually this means you must provide three
-          neutrino masses unless you are considering something like a 
-          sterile neutrino.
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -2041,15 +2033,14 @@ class wpwaCDM(FLRW):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
-        m_nu : float or ndarray or astropy.units.Quantity
-          Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to have
-          that mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The actual number of neutrino species
-          (and hence the number of elements of m_nu if it is not scalar)
-          must be the floor of Neff.  Usually this means you must provide three
-          neutrino masses unless you are considering something like a 
-          sterile neutrino.
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
