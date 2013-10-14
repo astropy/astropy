@@ -241,7 +241,7 @@ class Angle(u.Quantity):
         return util.degrees_to_dms(self.degree)
 
     def to_string(self, unit=None, decimal=False, sep='fromunit',
-                  precision=5, alwayssign=False, pad=False,
+                  precision=None, alwayssign=False, pad=False,
                   fields=3, format=None):
         """ A string representation of the angle.
 
@@ -269,7 +269,9 @@ class Angle(u.Quantity):
             The level of decimal precision.  If `decimal` is True,
             this is the raw precision, otherwise it gives the
             precision of the last place of the sexagesimal
-            representation (seconds).
+            representation (seconds).  If `None`, or not provided, the
+            number of decimal places is determined by the value, and
+            will be between 0-8 decimal places as required.
 
         alwayssign : bool, optional
             If `True`, include the sign no matter what.  If `False`,
@@ -332,7 +334,10 @@ class Angle(u.Quantity):
         if unit is u.degree:
             if decimal:
                 values = self.degree
-                func = ("{0:0." + str(precision) + "f}").format
+                if precision is not None:
+                    func = ("{0:0." + str(precision) + "f}").format
+                else:
+                    func = '{0:g}'.format
             else:
                 if sep == 'fromunit':
                     sep = 'dms'
@@ -344,7 +349,10 @@ class Angle(u.Quantity):
         elif unit is u.hourangle:
             if decimal:
                 values = self.hour
-                func = ("{0:0." + str(precision) + "f}").format
+                if precision is not None:
+                    func = ("{0:0." + str(precision) + "f}").format
+                else:
+                    func = '{0:g}'.format
             else:
                 if sep == 'fromunit':
                     sep = 'hms'
@@ -356,17 +364,25 @@ class Angle(u.Quantity):
         elif unit.is_equivalent(u.radian):
             if decimal:
                 values = self.to(unit).value
-                func = ("{0:0." + str(precision) + "f}").format
+                if precision is not None:
+                    func = ("{0:1." + str(precision) + "f}").format
+                else:
+                    func = "{0:g}".format
             elif sep == 'fromunit':
                 values = self.to(unit).value
                 unit_string = unit.to_string(format=format)
                 if format == 'latex':
                     unit_string = unit_string[1:-1]
 
-                def plain_unit_format(val):
-                    return ("{0:0." + str(precision) + "f}{1}").format(
-                        val, unit_string)
-                func = plain_unit_format
+                if precision is not None:
+                    def plain_unit_format(val):
+                        return ("{0:0." + str_precision) + "f}{1}".format(
+                            val, unit_string)
+                    func = plain_unit_format
+                else:
+                    def plain_unit_format(val):
+                        return "{0:g}{1}".format(val, unit_string)
+                    func = plain_unit_format
             else:
                 raise ValueError(
                     "'{0}' can not be represented in sexagesimal "
