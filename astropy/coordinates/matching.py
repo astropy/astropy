@@ -166,11 +166,15 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree=T
     This function requires `scipy` to be installed or it will fail.
     """
     dcoo = matchcoord._distance
+    cpcoo = matchcoord._cartpoint
     dcat = catalogcoord._distance
+    cpcat = catalogcoord._cartpoint
     try:
-        matchcoord._distance = None
-        catalogcoord._distance = None
+        matchcoord._distance = matchcoord._cartpoint = None
+        catalogcoord._distance = catalogcoord._cartpoint = None
         return match_coordinates_3d(matchcoord, catalogcoord, nthneighbor, storekdtree)
     finally:
         matchcoord._distance = dcoo
+        matchcoord._cartpoint = cpcoo
         catalogcoord._distance = dcat
+        catalogcoord._cartpoint = cpcat
