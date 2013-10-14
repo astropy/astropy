@@ -152,13 +152,13 @@ class TestParameters(object):
                                    0.90252884366711317]),
                               rtol=10 ** (-2))
 
-    def testPoly1D(self):
+    def testPolynomial1D(self):
         d = {'c0': 11, 'c1': 12, 'c2': 13, 'c3': 14}
-        p1 = models.Poly1DModel(3, **d)
+        p1 = models.Polynomial1DModel(3, **d)
         utils.assert_equal(p1.parameters, [11, 12, 13, 14])
 
     def test_poly1d_multiple_sets(self):
-        p1 = models.Poly1DModel(3, param_dim=3)
+        p1 = models.Polynomial1DModel(3, param_dim=3)
         utils.assert_equal(p1.parameters, [0.0, 0.0, 0.0, 0, 0, 0,
                                            0, 0, 0, 0, 0, 0])
         utils.assert_equal(p1.c0, [0., 0, 0])
@@ -170,20 +170,20 @@ class TestParameters(object):
         """
         Test assigning to a parameter slice
         """
-        p1 = models.Poly1DModel(3, param_dim=3)
+        p1 = models.Polynomial1DModel(3, param_dim=3)
         p1.c0[:2] = [10, 10]
         utils.assert_equal(p1.parameters, [10.0, 10.0, 0.0, 0, 0,
                                            0, 0, 0, 0, 0, 0, 0])
 
     def test_poly2d(self):
-        p2 = models.Poly2DModel(degree=3)
+        p2 = models.Polynomial2DModel(degree=3)
         p2.c0_0 = 5
         utils.assert_equal(p2.parameters, [5, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     def test_poly2d_multiple_sets(self):
         kw = {'c0_0': [2, 3], 'c1_0': [1, 2], 'c2_0': [4, 5],
               'c0_1': [1, 1], 'c0_2': [2, 2], 'c1_1': [5, 5]}
-        p2 = models.Poly2DModel(2, **kw)
+        p2 = models.Polynomial2DModel(2, **kw)
         utils.assert_equal(p2.parameters, [2, 3, 1, 2, 4, 5,
                                            1, 1, 2, 2, 5, 5])
 

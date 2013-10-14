@@ -21,9 +21,12 @@ from ..logger import log
 from ..utils import lazyproperty, indent
 
 
-__all__ = ['Chebyshev1DModel', 'Chebyshev2DModel', 'InverseSIPModel',
-           'Legendre1DModel', 'Legendre2DModel', 'Poly1DModel', 'Poly2DModel',
-           'SIPModel', 'OrthoPolynomialBase', 'PolynomialModel']
+__all__ = [
+    'Chebyshev1DModel', 'Chebyshev2DModel', 'InverseSIPModel',
+    'Legendre1DModel', 'Legendre2DModel', 'Polynomial1DModel',
+    'Polynomial2DModel', 'SIPModel', 'OrthoPolynomialBase',
+    'PolynomialModel'
+]
 
 
 class PolynomialBase(ParametricModel):
@@ -568,7 +571,7 @@ class Legendre1DModel(PolynomialModel):
         return _convert_output(result, fmt)
 
 
-class Poly1DModel(PolynomialModel):
+class Polynomial1DModel(PolynomialModel):
     """
     1D Polynomial model.
 
@@ -590,8 +593,9 @@ class Poly1DModel(PolynomialModel):
                  **params):
         self.domain = domain
         self.window = window
-        super(Poly1DModel, self).__init__(degree, n_inputs=1, n_outputs=1,
-                                          param_dim=param_dim, **params)
+        super(Polynomial1DModel, self).__init__(degree, n_inputs=1,
+                                                n_outputs=1,
+                                                param_dim=param_dim, **params)
 
     def deriv(self, x, *params):
         """
@@ -640,7 +644,7 @@ class Poly1DModel(PolynomialModel):
         return _convert_output(result, fmt)
 
 
-class Poly2DModel(PolynomialModel):
+class Polynomial2DModel(PolynomialModel):
     """
     2D Polynomial  model.
 
@@ -672,8 +676,9 @@ class Poly2DModel(PolynomialModel):
     def __init__(self, degree, x_domain=[-1, 1], y_domain=[-1, 1],
                  x_window=[-1, 1], y_window=[-1, 1],
                  param_dim=1, **params):
-        super(Poly2DModel, self).__init__(degree, n_inputs=2, n_outputs=1,
-                                          param_dim=param_dim, **params)
+        super(Polynomial2DModel, self).__init__(degree, n_inputs=2,
+                                                n_outputs=1,
+                                                param_dim=param_dim, **params)
         self.x_domain = x_domain
         self.y_domain = y_domain
         self.x_window = x_window

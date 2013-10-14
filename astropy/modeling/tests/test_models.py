@@ -28,9 +28,9 @@ class TestSerialComposite(object):
     """
     def setup_class(self):
         self.x, self.y = np.mgrid[:5, :5]
-        self.p1 = models.Poly1DModel(3)
-        self.p11 = models.Poly1DModel(3)
-        self.p2 = models.Poly2DModel(3)
+        self.p1 = models.Polynomial1DModel(3)
+        self.p11 = models.Polynomial1DModel(3)
+        self.p2 = models.Polynomial2DModel(3)
 
     def test_single_array_input(self):
         model = SerialCompositeModel([self.p1, self.p11])
@@ -95,9 +95,9 @@ class TestParallelComposite(object):
     """
     def setup_class(self):
         self.x, self.y = np.mgrid[:5, :5]
-        self.p1 = models.Poly1DModel(3)
-        self.p11 = models.Poly1DModel(3)
-        self.p2 = models.Poly2DModel(3)
+        self.p1 = models.Polynomial1DModel(3)
+        self.p11 = models.Polynomial1DModel(3)
+        self.p2 = models.Polynomial2DModel(3)
 
     def test_single_array_input(self):
         model = ParallelCompositeModel([self.p1, self.p11])
@@ -117,7 +117,7 @@ class TestParallelComposite(object):
         utils.assert_almost_equal(xx, result.x)
 
     def test_inputs_outputs_mismatch(self):
-        p2 = models.Poly2DModel(1)
+        p2 = models.Polynomial2DModel(1)
         ch2 = models.Chebyshev2DModel(1, 1)
         with pytest.raises(AssertionError):
             ParallelCompositeModel([p2, ch2])
@@ -133,8 +133,8 @@ def test_pickle():
 
     copy_reg.pickle(types.MethodType, reduce_method)
 
-    p1 = models.Poly1DModel(3)
-    p11 = models.Poly1DModel(4)
+    p1 = models.Polynomial1DModel(3)
+    p11 = models.Polynomial1DModel(4)
     g1 = models.Gaussian1DModel(10.3, 5.4, 1.2)
     serial_composite_model = SerialCompositeModel([p1, g1])
     parallel_composite_model = ParallelCompositeModel([serial_composite_model, p11])

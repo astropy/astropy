@@ -51,9 +51,10 @@ import numpy as np
 from ..functional_models import (
     Gaussian1DModel, Sine1DModel, Box1DModel, Linear1DModel, Lorentz1DModel,
     MexicanHat1DModel, Trapezoid1DModel, Const1DModel, Beta1DModel,
-    Gaussian2DModel, Const2DModel, Box2DModel, MexicanHat2DModel, TrapezoidDisk2DModel,
-    AiryDisk2DModel, Beta2DModel, Disk2DModel, Ring2DModel)
-from ..polynomial import Poly1DModel, Poly2DModel
+    Gaussian2DModel, Const2DModel, Box2DModel, MexicanHat2DModel,
+    TrapezoidDisk2DModel, AiryDisk2DModel, Beta2DModel, Disk2DModel,
+    Ring2DModel)
+from ..polynomial import Polynomial1DModel, Polynomial2DModel
 from ..powerlaws import (
     PowerLaw1DModel, BrokenPowerLaw1DModel, ExponentialCutoffPowerLaw1DModel,
     LogParabola1DModel)
@@ -145,7 +146,7 @@ models_1D[LogParabola1DModel] = {'parameters': [1, 2, 3, 0.1],
                                  'x_lim': [0.1, 100],
                                  'log_fit': True}
 
-models_1D[Poly1DModel] = {'parameters': {'degree': 2, 'c0': 1., 'c1': 1., 'c2': 1.},
+models_1D[Polynomial1DModel] = {'parameters': {'degree': 2, 'c0': 1., 'c1': 1., 'c2': 1.},
                             'x_values': [1, 10, 100],
                             'y_values': [3, 111, 10101],
                             'x_lim': [-3, 3]}
@@ -210,12 +211,12 @@ models_2D[Beta2DModel] = {'parameters': [1, 0, 0, 1, 2],
                           'x_lim': [-3, 3],
                           'y_lim': [-3, 3]}
 
-models_2D[Poly2DModel] = {'parameters': {'degree': 1, 'c0_0': 1., 'c1_0': 1., 'c0_1': 1.},
-                            'x_values': [1, 2, 3],
-                            'y_values': [1, 3, 2],
-                            'z_values': [3, 6, 6],
-                            'x_lim': [1, 100],
-                            'y_lim': [1, 100]}
+models_2D[Polynomial2DModel] = {'parameters': {'degree': 1, 'c0_0': 1., 'c1_0': 1., 'c0_1': 1.},
+                                'x_values': [1, 2, 3],
+                                'y_values': [1, 3, 2],
+                                'z_values': [3, 6, 6],
+                                'x_lim': [1, 100],
+                                'y_lim': [1, 100]}
 
 models_2D[Disk2DModel] = {'parameters': [1, 0, 0, 5],
                          'x_values': [-5, 5, -5, 5, 0, -10, 10],

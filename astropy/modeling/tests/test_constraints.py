@@ -188,7 +188,7 @@ class TestBounds(object):
 class TestLinearConstraints(object):
 
     def setup_class(self):
-        self.p1 = models.Poly1DModel(4)
+        self.p1 = models.Polynomial1DModel(4)
         self.p1.c0 = 0
         self.p1.c1 = 0
         self.p1.window = [0., 9.]

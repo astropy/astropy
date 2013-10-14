@@ -21,13 +21,13 @@ except ImportError:
     HAS_SCIPY = False
 
 
-class TestPoly2D(object):
+class TestPolynomial2D(object):
 
     """
     Tests for 2D polynomail fitting
     """
     def setup_class(self):
-        self.model = models.Poly2DModel(2)
+        self.model = models.Polynomial2DModel(2)
         self.x, self.y = np.mgrid[:5, :5]
 
         def poly2(x, y):
@@ -51,12 +51,12 @@ class TestICheb2D(object):
     """
     Tests 2D Chebyshev polynomial fitting
 
-    Create a 2D polynomial (z) using Poly2DModel and default coefficients
+    Create a 2D polynomial (z) using Polynomial2DModel and default coefficients
     Fit z using a ICheb2D model
     Evaluate the ICheb2D polynomial and compare with the initial z
     """
     def setup_class(self):
-        self.pmodel = models.Poly2DModel(2)
+        self.pmodel = models.Polynomial2DModel(2)
         self.x, self.y = np.mgrid[:5, :5]
         self.z = self.pmodel(self.x, self.y)
         self.cheb2 = models.Chebyshev2DModel(2, 2)

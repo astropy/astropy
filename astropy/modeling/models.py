@@ -90,7 +90,7 @@ MODELS_WITH_CONSTRAINTS = [
     Linear1DModel, Lorentz1DModel, MexicanHat1DModel, MexicanHat2DModel,
     PowerLaw1DModel, Sine1DModel, Trapezoid1DModel, TrapezoidDisk2DModel,
     Chebyshev1DModel, Chebyshev2DModel, Legendre2DModel, Legendre1DModel,
-    Poly1DModel, Poly2DModel
+    Polynomial1DModel, Polynomial2DModel
 ]
 
 
