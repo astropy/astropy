@@ -15,7 +15,7 @@ __all__ = sorted(['AiryDisk2DModel', 'Beta1DModel', 'Beta2DModel',
                   'Box1DModel', 'Box2DModel', 'Const1DModel', 'Const2DModel',
                   'Custom1DModel', 'Disk2DModel', 'Gaussian1DModel', 'Gaussian2DModel',
                   'Linear1DModel', 'Lorentz1DModel', 'MexicanHat1DModel',
-                  'MexicanHat2DModel', 'PowerLaw1DModel', 'ScaleModel', 'ShiftModel',
+                  'MexicanHat2DModel', 'ScaleModel', 'ShiftModel',
                   'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel', 'Ring2DModel'])
 
 
@@ -286,53 +286,6 @@ class ScaleModel(Model):
         x, fmt = _convert_input(x, self.param_dim)
         result = self._factors * x
         return _convert_output(result, fmt)
-
-
-class PowerLaw1DModel(Parametric1DModel):
-
-    """
-    One dimensional Power Law model.
-
-    The model is of the form :math:`A x^\\alpha`, where :math:`A` is
-    the `scale` parameter, and :math:`\\alpha` is `alpha`.
-
-    Parameters
-    ----------
-    scale : float
-        Model scale
-    alpha : float
-        power
-
-    See Also
-    --------
-    Const1DModel, Linear1DModel
-
-
-    Notes
-    -----
-    Model formula:
-
-        .. math:: f(x) = A x^{-\\alpha}
-
-    """
-    param_names = ['scale', 'alpha']
-
-    def __init__(self, scale, alpha, **constraints):
-        super(PowerLaw1DModel, self).__init__(locals())
-
-    def eval(self, x, scale, alpha):
-        """
-        Model function PowerLaw1D.
-        """
-        return scale * x ** (-alpha)
-
-    def deriv(self, x, scale, alpha):
-        """
-        Model derivative PowerLaw1D.
-        """
-        d_scale = x ** (-alpha)
-        d_alpha = -scale * d_scale * np.log(x)
-        return [d_scale, d_alpha]
 
 
 class Sine1DModel(Parametric1DModel):

@@ -48,6 +48,7 @@ Explanation of keywords of the dictionaries:
 """
 
 from ..functional_models import *
+from ..powerlaws import *
 from ..models import *
 import numpy as np
 
@@ -109,7 +110,7 @@ models_1D[Beta1DModel] = {'parameters': [1, 0, 1, 2],
                            'deriv_parameters': [23.4, 1.2, 2.1, 2.3],
                            'deriv_initial': [10, 1, 1, 1]}
 
-models_1D[PowerLaw1DModel] = {'parameters': [1, 2],
+models_1D[PowerLaw1DModel] = {'parameters': [1, 1, 2],
                               'x_values': [1, 10, 100],
                               'y_values': [1.0, 0.01, 0.0001],
                               'x_lim': [1, 100],
