@@ -986,8 +986,10 @@ class TimeFormat(object):
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
-        if(val1.dtype.type != np.double or
-           (val2 is not None and val2.dtype.type != np.double)):
+        try:
+            assert (val1.dtype == np.double and
+                    (val2 is None or val2.dtype == np.double))
+        except:
             raise TypeError('Input values for {0} class must be doubles'
                             .format(self.name))
 
@@ -1269,10 +1271,12 @@ class TimeDatetime(TimeUnique):
     name = 'datetime'
 
     def _check_val_type(self, val1, val2):
-        if not all(isinstance(val, datetime) for val in val1):
-            raise TypeError('Input values for {0} class must be datetime objects'
-                            .format(self.name))
-            # Note: don't care about val2 for this classes
+        # Note: don't care about val2 for this class
+        try:
+            assert all(isinstance(val, datetime) for val in val1)
+        except:
+            raise TypeError('Input values for {0} class must be '
+                            'datetime objects'.format(self.name))
         return val1, None
 
     def set_jds(self, val1, val2):
@@ -1324,10 +1328,12 @@ class TimeString(TimeUnique):
     This is a reference implementation can be made much faster with effort.
     """
     def _check_val_type(self, val1, val2):
-        if val1.dtype.kind not in ('S', 'U'):
+        # Note: don't care about val2 for these classes
+        try:
+            assert val1.dtype.kind in ('S', 'U')
+        except:
             raise TypeError('Input values for {0} class must be strings'
                             .format(self.name))
-            # Note: don't care about val2 for these classes
         return val1, None
 
     def set_jds(self, val1, val2):
