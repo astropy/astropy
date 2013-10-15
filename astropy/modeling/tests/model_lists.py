@@ -196,7 +196,7 @@ models_2D[Disk2DModel] = {'parameters': [1, 0, 0, 5],
                          'y_lim': [-10, 10],
                          'integral': np.pi * 5 ** 2}
 
-models_2D[Ring2DModel] = {'parameters': [1, 0, 0, 5, 10],
+models_2D[Ring2DModel] = {'parameters': [1, 0, 0, 5, 5],
                          'x_values': [-5, 5, -5, 5, 0, -10, 10],
                          'y_values': [-5, 5, 0, 0, 0, -10, 10],
                          'z_values': [1, 1, 1, 1, 0, 0, 0],

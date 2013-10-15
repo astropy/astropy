@@ -6,7 +6,7 @@ from ..convolve import convolve, convolve_fft
 from ..kernels import (
     Gaussian1DKernel, Gaussian2DKernel, Box1DKernel, Box2DKernel,
     Trapezoid1DKernel, TrapezoidDisk2DKernel, MexicanHat1DKernel,
-    Tophat2DKernel, MexicanHat2DKernel)
+    Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel)
 
 from numpy.testing import assert_almost_equal
 
@@ -22,7 +22,7 @@ widths = [3, 5, 7, 9]
 kernel_types = [Gaussian1DKernel, Gaussian2DKernel,
                 Box1DKernel, Box2DKernel,
                 Trapezoid1DKernel, TrapezoidDisk2DKernel,
-                MexicanHat1DKernel, Tophat2DKernel]
+                MexicanHat1DKernel, Tophat2DKernel, Ring2DKernel]
 
 # Test data
 delta_pulse_1D = np.zeros(81)
@@ -85,7 +85,10 @@ class TestKernels(object):
         """
         Test smoothing of an image with a single positive pixel
         """
-        kernel = kernel_type(width)
+        if not kernel_type == Ring2DKernel:
+            kernel = kernel_type(width)
+        else:
+            kernel = kernel_type(width, width * 0.2)
 
         if kernel.dimension == 1:
             c1 = convolve_fft(delta_pulse_1D, kernel, boundary='fill')
@@ -101,7 +104,10 @@ class TestKernels(object):
         """
         Test smoothing of an image made of random noise
         """
-        kernel = kernel_type(width)
+        if not kernel_type == Ring2DKernel:
+            kernel = kernel_type(width)
+        else:
+            kernel = kernel_type(width, width * 0.2)
 
         if kernel.dimension == 1:
             c1 = convolve_fft(random_data_1D, kernel, boundary='fill')
