@@ -158,6 +158,10 @@ def _pformat_col(col, max_lines=None, show_name=True, show_unit=False):
     return col_strs, outs['n_header']
 
 
+def _value(val):
+    return getattr(val, 'value', val)
+
+
 def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
     """Iterator which yields formatted string representation of column values.
 
@@ -221,11 +225,13 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
     for i in xrange(n_rows):
         if i < i0 or i > i1:
             if multidims:
-                col_str = (format_func(col.format, col[(i,) + multidim0]) +
+                col_str = (format_func(col.format,
+                                       _value(col[(i,) + multidim0])) +
                            ' .. ' +
-                           format_func(col.format, col[(i,) + multidim1]))
+                           format_func(col.format,
+                                       _value(col[(i,) + multidim1])))
             else:
-                col_str = format_func(col.format, col[i])
+                col_str = format_func(col.format, _value(col[i]))
             yield col_str
         elif i == i0:
             yield '...'

@@ -10,7 +10,7 @@ import warnings
 import numpy as np
 from numpy import ma
 
-from ..units import Unit, Quantity
+from ..units import Unit, Quantity, MaskedQuantity
 from .. import log
 from ..utils import OrderedDict, isiterable, deprecated, deprecated_attribute
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
@@ -135,6 +135,9 @@ class BaseColumn(object):
         if obj is None:
             return
 
+        if callable(getattr(super(BaseColumn, self),
+                            '__array_finalize__', None)):
+            super(BaseColumn, self).__array_finalize__(obj)
         # Self was created from template (e.g. obj[slice] or (obj * 2))
         # or viewcast e.g. obj.view(Column).  In either case we want to
         # init Column attributes for self from obj if possible.
@@ -159,9 +162,9 @@ class BaseColumn(object):
         for this case.
         """
         if self.shape == out_arr.shape:
-            return np.ndarray.__array_wrap__(self, out_arr, context)
+            return super(BaseColumn, self).__array_wrap__(out_arr, context)
         else:
-            return out_arr.view(np.ndarray)[()]
+            return out_arr.view(super(BaseColumn, self))[()]
 
     def __eq__(self, other):
         # We have to define this to ensure that we always return boolean arrays
@@ -351,10 +354,18 @@ class BaseColumn(object):
             self._unit = None
         else:
             self._unit = Unit(unit, parse_strict='silent')
+        # if we're not already a [Masked]QuantityColumn, become one
+        if not isinstance(self, Quantity):
+            if self.parent_table is not None:
+                self.parent_table._rebuild_table_column_views()
 
     @unit.deleter
     def unit(self):
         self._unit = None
+        # if we're a QuantityColumn, we should drop that
+        if isinstance(self, QuantityColumn):
+            if self.parent_table is not None:
+                self.parent_table._rebuild_table_column_views()
 
     @property
     @deprecated('0.3', alternative=':attr:`Column.unit`')
@@ -565,6 +576,9 @@ class Column(BaseColumn, np.ndarray):
         else:
             self_data = np.asarray(data, dtype=dtype)
 
+        if unit is not None and not isinstance(cls, QuantityColumn):
+            cls = QuantityColumn
+
         self = self_data.view(cls)
         self._name = name
         self.unit = unit
@@ -581,6 +595,10 @@ class Column(BaseColumn, np.ndarray):
     @property
     def data(self):
         return self.view(np.ndarray)
+
+    @property
+    def value(self):
+        return getattr(super(Column, self), 'value', self.data)
 
     def copy(self, order='C', data=None, copy_data=True):
         """Return a copy of the current Column instance.  If ``data`` is supplied
@@ -724,7 +742,10 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         else:
             self_data = ma.asarray(data, dtype=dtype)
 
-        self = self_data.view(MaskedColumn)
+        if unit is not None and not isinstance(cls, MaskedQuantityColumn):
+            cls = MaskedQuantityColumn
+
+        self = self_data.view(cls)
         if mask is None and hasattr(data, 'mask'):
             mask = data.mask
         if fill_value is None and hasattr(data, 'fill_value'):
@@ -744,8 +765,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         return self
 
     def __array_finalize__(self, obj):
-        BaseColumn.__array_finalize__(self, obj)
-        ma.MaskedArray.__array_finalize__(self, obj)
+        super(MaskedColumn, self).__array_finalize__(obj)
 
     def _fix_fill_value(self, val):
         """Fix a fill value (if needed) to work around a bug with setting the fill
@@ -798,6 +818,10 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         # fixed in numpy/numpy#2703. The fix should be included in Numpy 1.8.0.
         out.fill_value = self.fill_value
         return out
+
+    @property
+    def value(self):
+        return getattr(super(MaskedColumn, self), 'value', self.data)
 
     def filled(self, fill_value=None):
         """Return a copy of self, with masked values filled with a given value.
@@ -852,6 +876,14 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
                            description=self.description, meta=deepcopy(self.meta))
         self._copy_groups(out)
         return out
+
+
+class QuantityColumn(Column, Quantity):
+    pass
+
+
+class MaskedQuantityColumn(MaskedColumn, MaskedQuantity):
+    pass
 
 
 class Row(object):
