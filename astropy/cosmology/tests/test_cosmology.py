@@ -473,14 +473,7 @@ def test_absorption_distance():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_massivenu_basic():
     # Test basic setting, retrieval of values
-    tcos = core.FlatLambdaCDM(70.4, 0.272, m_nu=[0.0, 0.01, 0.02])
-    assert tcos.has_massive_nu
-    mnu = tcos.m_nu
-    assert len(mnu) == 3
-    assert mnu.unit == u.eV
-    assert np.allclose(mnu.value, [0.0, 0.01, 0.02])
-    # With units
-    tcos = core.FlatLambdaCDM(70.4, 0.272,
+    tcos = core.FlatLambdaCDM(70.4, 0.272, 
                               m_nu=u.Quantity([0.0, 0.01, 0.02], u.eV))
     assert tcos.has_massive_nu
     mnu = tcos.m_nu
@@ -501,7 +494,8 @@ def test_massivenu_density():
     nuprefac = 7.0 / 8.0 * (4.0 / 11.0) ** (4.0 / 3.0)
     #  First try 3 massive neutrinos, all 100 eV -- note this is a universe
     #  seriously dominated by neutrinos!
-    tcos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0, Neff=3, m_nu=100.0)
+    tcos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0, Neff=3, 
+                              m_nu=u.Quantity(100.0, u.eV))
     assert tcos.has_massive_nu
     assert tcos.Neff == 3
     nurel_exp = nuprefac * tcos.Neff * np.array([171969, 85984.5, 57323,
@@ -509,7 +503,8 @@ def test_massivenu_density():
     assert np.allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=5e-3)
 
     # Next, slightly less massive
-    tcos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0, Neff=3, m_nu=0.25)
+    tcos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0, Neff=3, 
+                              m_nu=u.Quantity(0.25, u.eV))
     nurel_exp = nuprefac * tcos.Neff * np.array([429.924, 214.964, 143.312,
                                                  39.1005, 1.11086])
     assert np.allclose(tcos.nu_relative_density(ztest), nurel_exp,
@@ -521,7 +516,8 @@ def test_massivenu_density():
     assert np.allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
 
     # And fairly light
-    tcos = core.FlatLambdaCDM(80.0, 0.30, Tcmb0=3.0, Neff=3, m_nu=0.01)
+    tcos = core.FlatLambdaCDM(80.0, 0.30, Tcmb0=3.0, Neff=3, 
+                              m_nu=u.Quantity(0.01, u.eV))
 
     nurel_exp = nuprefac * tcos.Neff * np.array([17.2347, 8.67345, 5.84348,
                                                  1.90671, 1.00021])

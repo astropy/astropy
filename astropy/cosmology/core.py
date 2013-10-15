@@ -76,8 +76,8 @@ class FLRW(Cosmology):
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, m_nu=0.0,
-                 name='FLRW'):
+    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, 
+                 m_nu=u.Quantity(0.0, u.eV), name='FLRW'):
         """ Initializer.
 
         Parameters
@@ -1189,8 +1189,8 @@ class LambdaCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, m_nu=0.0,
-                 name='LambdaCDM'):
+    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, 
+                 m_nu=u.Quantity(0.0, u.eV), name='LambdaCDM'):
         """ Initializer.
 
         Parameters
@@ -1350,8 +1350,8 @@ class FlatLambdaCDM(LambdaCDM):
     >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
-    def __init__(self, H0, Om0, Tcmb0=2.725, Neff=3.04, m_nu=0.0,
-                 name='FlatLambdaCDM'):
+    def __init__(self, H0, Om0, Tcmb0=2.725, Neff=3.04, 
+                 m_nu=u.Quantity(0.0, u.eV), name='FlatLambdaCDM'):
         """ Initializer.
 
         Parameters
@@ -1467,7 +1467,7 @@ class wCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., Tcmb0=2.725,
-                 Neff=3.04, m_nu=0.0, name='wCDM'):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='wCDM'):
         """ Initializer.
 
         Parameters
@@ -1649,7 +1649,7 @@ class FlatwCDM(wCDM):
     """
 
     def __init__(self, H0, Om0, w0=-1., Tcmb0=2.725,
-                 Neff=3.04, m_nu=0.0, name='FlatwCDM'):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='FlatwCDM'):
         """ Initializer.
 
         Parameters
@@ -1779,7 +1779,7 @@ class w0waCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=0.0, name='w0waCDM'):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='w0waCDM'):
         """ Initializer.
 
         Parameters
@@ -1921,7 +1921,7 @@ class Flatw0waCDM(w0waCDM):
     >>> dc = cosmo.comoving_distance(z)
     """
     def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=0.0, name='Flatw0waCDM'):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='Flatw0waCDM'):
         """ Initializer.
 
         Parameters
@@ -1998,7 +1998,8 @@ class wpwaCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0,
-                 Tcmb0=2.725, Neff=3.04, m_nu=0.0, name='wpwaCDM'):
+                 Tcmb0=2.725, Neff=3.04, m_nu=u.Quantity(0.0, u.eV),
+                 name='wpwaCDM'):
         """ Initializer.
 
         Parameters
@@ -2157,7 +2158,7 @@ class w0wzCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wz=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=0.0, name='w0wzCDM'):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='w0wzCDM'):
         """ Initializer.
 
         Parameters
