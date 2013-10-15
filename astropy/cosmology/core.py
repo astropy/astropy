@@ -2293,11 +2293,13 @@ for key in parameters.available:
     par = getattr(parameters, key)
     if par['flat']:
         cosmo = FlatLambdaCDM(par['H0'], par['Om0'], Tcmb0=par['Tcmb0'],
-                              Neff=par['Neff'], m_nu=par['m_nu'], name=key)
+                              Neff=par['Neff'], 
+                              m_nu=u.Quantity(par['m_nu'], u.eV),
+                              name=key)
     else:
         cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'],
                           Tcmb0=par['Tcmb0'], Neff=par['Neff'],
-                          m_nu=par['m_nu'], name=key)
+                          m_nu=u.Quantity(par['m_nu'], u.eV), name=key)
     cosmo.__doc__ = "%s cosmology\n\n(from %s)" % (key, par['reference'])
     setattr(sys.modules[__name__], key, cosmo)
 
