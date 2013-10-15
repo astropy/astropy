@@ -86,8 +86,7 @@ modified in an active python session using the
 `ConfigurationItem` object can be used to make these changes. These items
 are found in the same module as the configuration section they are in,
 and usually have the same name as in the configuration files, but in all
-caps. Alternatively, they may be located with the
-:func:`~astropy.config.configuration.get_config_items` function.
+caps. 
 
 For example, if there is a part of your configuration file that looks like::
 
@@ -113,14 +112,6 @@ You should be able to modify the values at run-time this way::
     >>> REMOTE_TIMEOUT.set(4.5)
     >>> REMOTE_TIMEOUT()
     4.5
-
-Or alternatively::
-
-    >>> from astropy.config import get_config
-
-    >>> items = get_config('astropy.utils.data')
-    >>> items['dataurl'].set('http://astropydata.mywebsite.com')
-    >>> items['remote_timeout'].set('4.5')
 
 Note that this will *not* permanently change these values in the configuration
 files - just for the current session.  To change the configuration files,
