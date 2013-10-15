@@ -6,11 +6,11 @@ from __future__ import division
 import numpy as np
 from .core import Parametric1DModel
 
-__all__ = sorted(['PowerLaw1DModel', 'BrokenPowerLaw1DModel'])
+__all__ = sorted(['PowerLaw1DModel', 'BrokenPowerLaw1DModel',
+                  'ExponentialCutoffPowerLaw1DModel'])
 
 
 class PowerLaw1DModel(Parametric1DModel):
-
     """
     One dimensional power law model.
 
@@ -58,9 +58,8 @@ class PowerLaw1DModel(Parametric1DModel):
 
 
 class BrokenPowerLaw1DModel(Parametric1DModel):
-
     """
-    One dimensional broken power law model.
+    One dimensional power law model with a break.
 
     Parameters
     ----------
@@ -79,7 +78,8 @@ class BrokenPowerLaw1DModel(Parametric1DModel):
 
     Notes
     -----
-    Model formula (with :math:`A` for ``amplitude`` and :math:`\\alpha_1` for ``alpha_1`` and :math:`\\alpha_2` for ``alpha_2``):
+    Model formula (with :math:`A` for ``amplitude`` and :math:`\\alpha_1`
+    for ``alpha_1`` and :math:`\\alpha_2` for ``alpha_2``):
 
         .. math::
 
@@ -115,3 +115,54 @@ class BrokenPowerLaw1DModel(Parametric1DModel):
         d_alpha_1 = np.where(x < x_break, d_alpha, 0)
         d_alpha_2 = np.where(x >= x_break, d_alpha, 0)
         return [d_amplitude, d_x_break, d_alpha_1, d_alpha_2]
+
+
+class ExponentialCutoffPowerLaw1DModel(Parametric1DModel):
+    """
+    One dimensional power law model with an exponential cutoff.
+
+    Parameters
+    ----------
+    amplitude : float
+        Model amplitude at the reference point
+    x_0 : float
+        Reference point for model amplitude
+    alpha : float
+        Power law index
+    x_cutoff : float
+        Cutoff point
+
+    See Also
+    --------
+    PowerLaw1DModel, BrokenPowerLaw1DModel
+
+    Notes
+    -----
+    Model formula (with :math:`A` for ``amplitude`` and :math:`\\alpha` for ``alpha``):
+
+        .. math:: f(x) = A (x / x_0) ^ {-\\alpha} \\exp (-x / x_{cutoff})
+
+    """
+    param_names = ['amplitude', 'x_0', 'alpha', 'x_cutoff']
+
+    def __init__(self, amplitude, x_0, alpha, x_cutoff, **constraints):
+        super(ExponentialCutoffPowerLaw1DModel, self).__init__(locals())
+
+    def eval(self, x, amplitude, x_0, alpha, x_cutoff):
+        """
+        Model function ExponentialCutoffPowerLaw1D.
+        """
+        xx = x / x_0
+        return amplitude * xx ** (-alpha) * np.exp(-x / x_cutoff)
+
+    def deriv(self, x, amplitude, x_0, alpha, x_cutoff):
+        """
+        Model derivative ExponentialCutoffPowerLaw1D.
+        """
+        xx = x / x_0
+        xc = x / x_cutoff
+        d_amplitude = xx ** (-alpha) * np.exp(-xc)
+        d_x_0 = alpha * amplitude * d_amplitude / x_0
+        d_alpha = -amplitude * d_amplitude * np.log(xx)
+        d_x_cutoff = amplitude * x * d_amplitude / x_cutoff ** 2
+        return [d_amplitude, d_x_0, d_alpha, d_x_cutoff]

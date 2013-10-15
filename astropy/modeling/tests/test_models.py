@@ -331,7 +331,7 @@ class TestParametricModels(object):
     @pytest.mark.parametrize(('model_class'), list(models_1D.keys()))
     def test_deriv_1D(self, model_class):
         """
-        Test the derivative of a model by comparing results iwth an estimated derivative
+        Test the derivative of a model by comparing results with an estimated derivative
         """
         x_lim = models_1D[model_class]['x_lim']
 

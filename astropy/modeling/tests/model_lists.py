@@ -121,8 +121,13 @@ models_1D[BrokenPowerLaw1DModel] = {'parameters': [1, 1, 2, 3],
                                     'x_values': [0.1, 1, 10, 100],
                                     'y_values': [1e2, 1.0, 1e-3, 1e-6],
                                     'x_lim': [0.1, 100],
-                                    'log_fit': True,
-                                    'integral': 0.99}
+                                    'log_fit': True}
+
+models_1D[ExponentialCutoffPowerLaw1DModel] = {'parameters': [1, 1, 2, 10],
+                                               'x_values': [0.1, 1, 10, 100],
+                                               'y_values': [9.90049834e+01, 9.04837418e-01, 3.67879441e-03, 4.53999298e-09],
+                                               'x_lim': [0.1, 10],
+                                               'log_fit': True}
 
 models_1D[Poly1DModel] = {'parameters': {'degree': 2, 'c0': 1., 'c1': 1., 'c2': 1.},
                             'x_values': [1, 10, 100],
