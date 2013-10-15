@@ -161,7 +161,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
         else:
             result = convolve1d_boundary_none(array_internal,
                                               kernel_internal)
-    elif array.ndim == 2:
+    elif array_internal.ndim == 2:
         if boundary == 'extend':
             result = convolve2d_boundary_extend(array_internal,
                                                 kernel_internal)
@@ -175,7 +175,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
         else:
             result = convolve2d_boundary_none(array_internal,
                                               kernel_internal)
-    elif array.ndim == 3:
+    elif array_internal.ndim == 3:
         if boundary == 'extend':
             result = convolve3d_boundary_extend(array_internal,
                                                 kernel_internal)
