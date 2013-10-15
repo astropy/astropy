@@ -162,20 +162,18 @@ class Time(object):
             # Coerce val into a 1-d array
             val, val_ndim = _make_1d_array(val, copy)
 
-            # If val2 is None then replace with zeros of the same length
-            if val2 is None:
-                val2 = np.zeros(len(val), dtype=np.double)
-                val2_ndim = val_ndim
-            else:
+            self.isscalar = (val_ndim == 0)
+
+            # If val2 is not None, ensure consistency
+            if val2 is not None:
                 val2, val2_ndim = _make_1d_array(val2, copy)
 
-            # Consistency checks
-            if len(val) != len(val2):
-                raise ValueError('Input val and val2 must match in length')
+                if val_ndim != val2_ndim:
+                    raise ValueError('Input val and val2 must have same '
+                                     'dimensions')
 
-            self.isscalar = (val_ndim == 0)
-            if val_ndim != val2_ndim:
-                raise ValueError('Input val and val2 must have same dimensions')
+                if len(val) != len(val2):
+                    raise ValueError('Input val and val2 must match in length')
 
         if scale is not None:
             if not (isinstance(scale, six.string_types) and
@@ -707,7 +705,10 @@ class Time(object):
     def __sub__(self, other):
         self_tai = self.tai
         if not isinstance(other, Time):
-            raise OperandTypeError(self, other)
+            try:
+                other = TimeDelta(other)
+            except:
+                raise OperandTypeError(self, other)
 
         other_tai = other.tai
         # Note: jd1 is exact, and jd2 carry-over is done in
@@ -737,7 +738,10 @@ class Time(object):
     def __add__(self, other):
         self_tai = self.tai
         if not isinstance(other, Time):
-            raise OperandTypeError(self, other)
+            try:
+                other = TimeDelta(other)
+            except:
+                raise OperandTypeError(self, other)
 
         other_tai = other.tai
         # Note: jd1 is exact, and jd2 carry-over is done in
@@ -764,12 +768,22 @@ class Time(object):
         else:
             raise OperandTypeError(self, other)
 
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __rsub__(self, other):
+        out = self.__sub__(other)
+        return -out
+
     def _tai_difference(self, other):
         """If other is of same class as self, return difference in TAI.
         Otherwise, raise OperandTypeError.
         """
         if other.__class__ is not self.__class__:
-            raise OperandTypeError(self, other)
+            try:
+                other = self.__class__(other)
+            except:
+                raise OperandTypeError(self, other)
         self_tai = self.tai
         other_tai = other.tai
         return (self_tai.jd1 - other_tai.jd1) + (self_tai.jd2 - other_tai.jd2)
@@ -824,6 +838,17 @@ class TimeDelta(Time):
         # Note: scale is not used but is needed because of the inheritance
         # from Time.
         if not isinstance(val, self.__class__):
+            if format is None:
+                try:
+                    val = val.to('day')
+                    if val2 is not None:
+                        val2 = val2.to('day')
+                except:
+                    raise ValueError('Only Quantities with Time units can '
+                                     'be used to initiate {0} instances .'
+                                     .format(self.__class__.__name__))
+                format = 'jd'
+
             self._init_from_vals(val, val2, format, 'tai', copy)
 
     def __neg__(self):
@@ -849,7 +874,19 @@ class TimeDelta(Time):
         if isinstance(other, Time):
             raise OperandTypeError(self, other)
 
-        jd1, jd2 = day_frac(self.jd1, self.jd2, factor=other)
+        try:   # convert to straight float if dimensionless quantity
+            other = other.to(1)
+        except:
+            pass
+
+        try:
+            jd1, jd2 = day_frac(self.jd1, self.jd2, factor=other)
+        except Exception as err:  # try downgrading self to a quantity
+            try:
+                return self.to('day') * other
+            except:
+                raise err
+
         out = TimeDelta(jd1, jd2, format='jd')
         if self.format != 'jd':
             out = out.replicate(format=self.format)
@@ -863,14 +900,40 @@ class TimeDelta(Time):
         """Division of `TimeDelta` objects by numbers/arrays."""
         return self.__truediv__(other)
 
+    def __rdiv__(self, other):
+        """Division by `TimeDelta` objects of numbers/arrays."""
+        return self.__rtruediv__(other)
+
     def __truediv__(self, other):
         """Division of `TimeDelta` objects by numbers/arrays."""
         # cannot do __mul__(1./other) as that looses precision
-        jd1, jd2 = day_frac(self.jd1, self.jd2, divisor=other)
+        try:
+            other = other.to(1)
+        except:
+            pass
+
+        try:   # convert to straight float if dimensionless quantity
+            jd1, jd2 = day_frac(self.jd1, self.jd2, divisor=other)
+        except Exception as err:  # try downgrading self to a quantity
+            try:
+                return self.to('day') / other
+            except:
+                raise err
+
         out = TimeDelta(jd1, jd2, format='jd')
+
         if self.format != 'jd':
             out = out.replicate(format=self.format)
         return out
+
+    def __rtruediv__(self, other):
+        """Division by `TimeDelta` objects of numbers/arrays."""
+        return other / self.to('day')
+
+    def to(self, *args, **kwargs):
+        from astropy.units import day
+        return (self._shaped_like_input(self._time.jd1 + self._time.jd2) * day
+                ).to(*args, **kwargs)
 
 
 class TimeFormat(object):
@@ -900,14 +963,12 @@ class TimeFormat(object):
         self.precision = precision
         self.in_subfmt = in_subfmt
         self.out_subfmt = out_subfmt
-        if len(val1) != len(val2):
-            raise ValueError('Input val1 and val2 must match in length')
 
         if from_jd:
             self.jd1 = val1
             self.jd2 = val2
         else:
-            self._check_val_type(val1, val2)
+            val1, val2 = self._check_val_type(val1, val2)
             self.set_jds(val1, val2)
 
     def __len__(self):
@@ -925,9 +986,27 @@ class TimeFormat(object):
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
-        if val1.dtype.type != np.double or val2.dtype.type != np.double:
+        try:
+            assert (val1.dtype == np.double and
+                    (val2 is None or val2.dtype == np.double))
+        except:
             raise TypeError('Input values for {0} class must be doubles'
                             .format(self.name))
+
+        if hasattr(val1, 'to'):
+            # set possibly scaled unit any quantities should be converted to
+            _unit = '{0!r}day'.format(getattr(self, 'unit', 1.))
+            val1 = val1.to(_unit).value
+            if val2 is not None:
+                val2 = val2.to(_unit).value
+        else:
+            if hasattr(val2, 'to'):
+                raise TypeError('Cannot mix float and Quantity inputs')
+
+        if val2 is None:
+            val2 = np.zeros_like(val1)
+
+        return val1, val2
 
     def _check_scale(self, scale):
         """
@@ -1192,10 +1271,13 @@ class TimeDatetime(TimeUnique):
     name = 'datetime'
 
     def _check_val_type(self, val1, val2):
-        if not all(isinstance(val, datetime) for val in val1):
-            raise TypeError('Input values for {0} class must be datetime objects'
-                            .format(self.name))
-            # Note: don't care about val2 for this classes
+        # Note: don't care about val2 for this class
+        try:
+            assert all(isinstance(val, datetime) for val in val1)
+        except:
+            raise TypeError('Input values for {0} class must be '
+                            'datetime objects'.format(self.name))
+        return val1, None
 
     def set_jds(self, val1, val2):
         """Convert datetime object contained in val1 to jd1, jd2"""
@@ -1246,10 +1328,13 @@ class TimeString(TimeUnique):
     This is a reference implementation can be made much faster with effort.
     """
     def _check_val_type(self, val1, val2):
-        if val1.dtype.kind not in ('S', 'U'):
+        # Note: don't care about val2 for these classes
+        try:
+            assert val1.dtype.kind in ('S', 'U')
+        except:
             raise TypeError('Input values for {0} class must be strings'
                             .format(self.name))
-            # Note: don't care about val2 for these classes
+        return val1, None
 
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
@@ -1449,10 +1534,20 @@ class TimeBesselianEpoch(TimeEpochDate):
     epoch_to_jd = 'besselian_epoch_jd'
     jd_to_epoch = 'jd_besselian_epoch'
 
+    def _check_val_type(self, val1, val2):
+        """Input value validation, typically overridden by derived classes"""
+        if hasattr(val1, 'to') and hasattr(val1, 'unit'):
+            raise ValueError("Cannot use Quantities for 'byear' format, "
+                             "as the interpretation would be ambiguous. "
+                             "Use float with Besselian year instead. ")
+
+        return super(TimeBesselianEpoch, self)._check_val_type(val1, val2)
+
 
 class TimeJulianEpoch(TimeEpochDate):
     """Julian Epoch year as floating point value(s) like 2000.0"""
     name = 'jyear'
+    unit = 365.25  # Length of the Julian year, for conversion to quantities
     epoch_to_jd = 'julian_epoch_jd'
     jd_to_epoch = 'jd_julian_epoch'
 
@@ -1510,33 +1605,26 @@ class TimeJulianEpochString(TimeEpochDateString):
 
 class TimeDeltaFormat(TimeFormat):
     """Base class for time delta representations"""
-    pass
+
+    def set_jds(self, val1, val2):
+        self._check_scale(self._scale)  # Validate scale.
+        self.jd1, self.jd2 = day_frac(val1, val2, divisor=1./self.unit)
+
+    @property
+    def value(self):
+        return (self.jd1 + self.jd2) / self.unit
 
 
 class TimeDeltaSec(TimeDeltaFormat):
     """Time delta in SI seconds"""
     name = 'sec'
-
-    def set_jds(self, val1, val2):
-        self._check_scale(self._scale)  # Validate scale.
-        self.jd1, self.jd2 = day_frac(val1, val2, divisor=SECS_PER_DAY)
-
-    @property
-    def value(self):
-        return (self.jd1 + self.jd2) * SECS_PER_DAY
+    unit = 1. / SECS_PER_DAY  # for quantity input
 
 
 class TimeDeltaJD(TimeDeltaFormat):
     """Time delta in Julian days (86400 SI seconds)"""
     name = 'jd'
-
-    def set_jds(self, val1, val2):
-        self._check_scale(self._scale)  # Validate scale.
-        self.jd1, self.jd2 = day_frac(val1, val2)
-
-    @property
-    def value(self):
-        return self.jd1 + self.jd2
+    unit = 1.
 
 
 class ScaleValueError(Exception):
@@ -1568,17 +1656,17 @@ def _make_1d_array(val, copy=False):
     val, val_ndim: ndarray, int
         Array version of ``val`` and the number of dims in original.
     """
-    val = np.array(val, copy=copy)
+    val = np.array(val, copy=copy, subok=True)
     val_ndim = val.ndim  # remember original ndim
     if val.ndim == 0:
-        val = (val.reshape(1) if val.dtype.kind == 'O' else np.array([val]))
+        val = np.atleast_1d(val)
     elif val_ndim > 1:
         # Maybe lift this restriction later to allow multi-dim in/out?
         raise TypeError('Input val must be zero or one dimensional')
 
     # Allow only string or float arrays as input (XXX datetime later...)
     if val.dtype.kind == 'i':
-        val = np.asarray(val, dtype=np.float64)
+        val = np.asanyarray(val, dtype=np.float64)
 
     return val, val_ndim
 
