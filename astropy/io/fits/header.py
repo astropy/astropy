@@ -530,7 +530,7 @@ class Header(object):
 
         Returns
         -------
-        s : string
+        s : str
             A string representing a FITS header.
         """
 

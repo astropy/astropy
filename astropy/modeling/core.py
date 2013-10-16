@@ -766,7 +766,7 @@ class LabeledInput(dict):
 
         Parameters
         --------------
-        label : string
+        label : str
             coordinate label
         value : numerical type
             coordinate value

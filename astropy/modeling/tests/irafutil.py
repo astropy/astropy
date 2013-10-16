@@ -19,7 +19,7 @@ def get_records(fname):
 
     Parameters
     ----------
-    fname : string
+    fname : str
            name of an IRAF database file
 
     Returns
@@ -40,7 +40,7 @@ def get_database_string(fname):
 
     Parameters
     ----------
-    fname : string
+    fname : str
           name of an IRAF database file
 
     Returns

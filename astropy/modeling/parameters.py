@@ -75,7 +75,7 @@ class Parameter(object):
 
     Parameters
     ----------
-    name : string
+    name : str
         parameter name
     default : float or array
         default value to use for this parameter

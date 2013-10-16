@@ -108,7 +108,7 @@ class FLRW(Cosmology):
           you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
-        name : string
+        name : str
           Optional name for this cosmological object.
         """
 
@@ -1237,7 +1237,7 @@ class LambdaCDM(FLRW):
           you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
-        name : string
+        name : str
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
@@ -1395,7 +1395,7 @@ class FlatLambdaCDM(LambdaCDM):
           you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
-        name : string
+        name : str
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
@@ -1520,7 +1520,7 @@ class wCDM(FLRW):
           you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
-        name : string
+        name : str
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
@@ -1699,7 +1699,7 @@ class FlatwCDM(wCDM):
           you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
-        name : string
+        name : str
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
@@ -1837,7 +1837,7 @@ class w0waCDM(FLRW):
           you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
-        name : string
+        name : str
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
@@ -1977,7 +1977,7 @@ class Flatw0waCDM(w0waCDM):
           you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
-        name : string
+        name : str
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
@@ -2064,7 +2064,7 @@ class wpwaCDM(FLRW):
           you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
-        name : string
+        name : str
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
@@ -2224,7 +2224,7 @@ class w0wzCDM(FLRW):
           neutrino masses unless you are considering something like a
           sterile neutrino.
 
-        name : string
+        name : str
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
