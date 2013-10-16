@@ -414,9 +414,6 @@ class UnitBase(object):
                     "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
             normalized.append((funit, tunit, a, b))
 
-        if getattr(_current_unit_registry, 'radian_is_dimensionless', False):
-            normalized += [(Unit('rad'), None, lambda x: x, lambda x: x)]
-
         return normalized
 
     def _validate_power(self, p):
@@ -567,7 +564,9 @@ class UnitBase(object):
             other = other.decompose()
             for a, b, forward, backward in equivalencies:
                 if b is None:
-                    if unit/other == a or other/unit == a:
+                    # after canceling, is what's left convertable
+                    # to dimensionless (according to the equivalency)?
+                    if (unit/other).bases == [a]:
                         return True
                 else:
                     if(unit.is_equivalent(a) and other.is_equivalent(b) or
