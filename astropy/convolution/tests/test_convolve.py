@@ -16,7 +16,6 @@ BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
 
 class TestConvolve1D(object):
-
     def test_list(self):
         """
         Test that convolve works correctly when inputs are lists
@@ -148,6 +147,16 @@ class TestConvolve1D(object):
 
 
 class TestConvolve2D(object):
+    def test_list(self):
+        """
+        Test that convolve works correctly when inputs are lists
+        """
+        x = [[1, 1, 1],
+             [1, 1, 1],
+             [1, 1, 1]]
+
+        z = convolve(x, x, boundary='fill', fill_value=1)
+        assert_array_almost_equal_nulp(z / 9, x, 10)
 
     @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
     def test_dtype(self, dtype_array, dtype_kernel):
@@ -307,6 +316,22 @@ class TestConvolve2D(object):
 
 
 class TestConvolve3D(object):
+    def test_list(self):
+        """
+        Test that convolve works correctly when inputs are lists
+        """
+        x = [[[1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1]],
+             [[1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1]],
+             [[1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1]]]
+
+        z = convolve(x, x, boundary='fill', fill_value=1)
+        assert_array_almost_equal_nulp(z / 27, x, 10)
 
     @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
     def test_dtype(self, dtype_array, dtype_kernel):

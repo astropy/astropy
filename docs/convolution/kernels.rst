@@ -30,17 +30,17 @@ Lorentz curve:
 >>> from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
 >>> lorentz = Lorentz1DModel(1, 0, 1)
 >>> x = np.linspace(-5, 5, 100)
->>> data = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
+>>> data_1D = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
 
 Smoothing the noisy data with a `~astropy.convolution.kernels.Gaussian1DKernel` of width 2 pixels:
 
 >>> gauss_kernel = Gaussian1DKernel(2)
->>> smoothed_data_gauss = convolve(data, gauss_kernel)
+>>> smoothed_data_gauss = convolve(data_1D, gauss_kernel)
 
 Smoothing the same data with a `~astropy.convolution.kernels.Box1DKernel` of width 5 pixels:
 
 >>> box_kernel = Box1DKernel(5)
->>> smoothed_data_box = convolve(data, box_kernel)
+>>> smoothed_data_box = convolve(data_1D, box_kernel)
 
 The following plot illustrates the results:
 
@@ -54,16 +54,16 @@ The following plot illustrates the results:
     # Fake Lorentz data including noise
     lorentz = Lorentz1DModel(1, 0, 1)
     x = np.linspace(-5, 5, 100)
-    data = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
+    data_1D = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
 
     # Smooth data
     gauss_kernel = Gaussian1DKernel(2)
-    smoothed_data_gauss = convolve(data, gauss_kernel)
+    smoothed_data_gauss = convolve(data_1D, gauss_kernel)
     box_kernel = Box1DKernel(5)
-    smoothed_data_box = convolve(data, box_kernel)
+    smoothed_data_box = convolve(data_1D, box_kernel)
 
     # Plot data and smoothed data
-    plt.plot(x, data, label='Original')
+    plt.plot(x, data_1D, label='Original')
     plt.plot(x, smoothed_data_gauss, label='Smoothed with Gaussian1DKernel')
     plt.plot(x, smoothed_data_box, label='Smoothed with Box1DKernel')
     plt.xlabel('x [a.u.]')
@@ -81,7 +81,7 @@ the kernels with Numpy or Scipy convolution by passing the ``array`` attribute.
 This will be faster in most cases than the astropy convolution, but will not
 work properly if ``NaN`` values are present in the data.
 
->>> smoothed = np.convolve(data, box_kernel.array)
+>>> smoothed = np.convolve(data_1D, box_kernel.array)
 
 2D Kernels
 ^^^^^^^^^^
@@ -99,19 +99,19 @@ middle of the image and add 10% noise:
 >>> x = np.arange(-100, 101)
 >>> y = np.arange(-100, 101)
 >>> x, y = np.meshgrid(x, y)
->>> data = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
+>>> data_2D = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
 
 Smoothing the noisy data with a 
 :class:`~astropy.convolution.kernels.Gaussian2DKernel` of width 2 pixels:
 
 >>> gauss_kernel = Gaussian2DKernel(2)
->>> smoothed_data_gauss = convolve(data, gauss_kernel)
+>>> smoothed_data_gauss = convolve(data_2D, gauss_kernel)
 
 Smoothing the noisy data with a 
 :class:`~astropy.convolution.kernels.Tophat2DKernel` of width 5 pixels:
 
 >>> tophat_kernel = Tophat2DKernel(5)
->>> smoothed_data_tophat = convolve(data, tophat_kernel)
+>>> smoothed_data_tophat = convolve(data_2D, tophat_kernel)
 
 This is what the original image looks like:
 
@@ -125,8 +125,8 @@ This is what the original image looks like:
     x = np.arange(-100, 101)
     y = np.arange(-100, 101)
     x, y = np.meshgrid(x, y)
-    data = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
-    plt.imshow(data, origin='lower')
+    data_2D = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
+    plt.imshow(data_2D, origin='lower')
     plt.xlabel('x [pixels]')
     plt.ylabel('y [pixels]')
     plt.colorbar()
@@ -149,7 +149,7 @@ Note that it has a slightly different color scale compared to the original image
     x = np.arange(-100, 101)
     y = np.arange(-100, 101)
     x, y = np.meshgrid(x, y)
-    data = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
+    data_2D = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
 
     # Setup kernels, including unity kernel for original image
     # Choose normalization for linear scale space for MexicanHat
@@ -165,7 +165,7 @@ Note that it has a slightly different color scale compared to the original image
 
     # Plot kernels
     for kernel, ax in zip(kernels, axes.flat):
-        smoothed = convolve(data, kernel)
+        smoothed = convolve(data_2D, kernel)
         im = ax.imshow(smoothed, vmin=-0.01, vmax=0.08, origin='lower', interpolation='None')
         title = kernel.__class__.__name__
         ax.set_title(title)
@@ -202,14 +202,14 @@ They can also be multiplied with some number. One basic example would be the def
 of a Difference of Gaussian filter:
 
 >>> gauss_1 = Gaussian1DKernel(10)
->>> gauss_2 = Gaussian2DKernel(16)
+>>> gauss_2 = Gaussian1DKernel(16)
 >>> DoG = gauss_2 - gauss_1
 
 Another application is to convolve faked data with an instrument response function model.
 E.g. if the response function can be be described by the weighted sum of two Gaussians:
 
 >>> gauss_1 = Gaussian1DKernel(10)
->>> gauss_2 = Gaussian2DKernel(16)
+>>> gauss_2 = Gaussian1DKernel(16)
 >>> SoG = 4 * gauss_1 + gauss_2
 
 Most times it will be necessary to normalize the resulting kernel by calling explicitly:
@@ -231,14 +231,14 @@ Or in case of multistage smoothing:
 
 >>> gauss = Gaussian1DKernel(10)
 >>> box = Box1DKernel(16)
->>> smoothed_gauss = convolve(data, gauss)
+>>> smoothed_gauss = convolve(data_1D, gauss)
 >>> smoothed_gauss_box = convolve(smoothed_gauss, box)
 
 You would rather do the following:
 
 >>> gauss = Gaussian1DKernel(10)
 >>> box = Box1DKernel(16)
->>> smoothed_gauss_box = convolve(data, convolve(box, gauss))
+>>> smoothed_gauss_box = convolve(data_1D, convolve(box, gauss))
 
 Which, in most cases, will also be faster than the first method, because only
 one convolution with the, most times, larger data array will be necessary.
