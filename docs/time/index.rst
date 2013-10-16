@@ -122,7 +122,7 @@ Subformat
 """"""""""
 
 The time format classes :class:`~astropy.time.core.TimeISO`,
-:class:`~astropy.time.core.TimeISO`, and
+:class:`~astropy.time.core.TimeISOT`, and
 :class:`~astropy.time.core.TimeYearDayTime` support the concept of
 subformats.  This allows for variations on the basic theme of a format in both
 the input string parsing and the output.
@@ -232,18 +232,16 @@ years) can safely ignore the internal representation details and skip this secti
 This representation is driven by the underlying ERFA C-library implementation.
 The ERFA routines take care throughout to maintain overall precision of the
 double pair.  The user is free to choose the way in which total JD is
-distributed between the two values.
-
-The internal JD pair is available via the ``jd1`` and ``jd2`` attributes.
-Notice in the example below that when converting from UTC to TAI, the
-small offset is placed in the ``jd2`` value thus maintaining the highest
-numeric precision::
+provided, though internally one part contains integer days and the
+other the fraction of the day, as this ensures optimal accuracy for
+all conversions.  The internal JD pair is available via the ``jd1``
+and ``jd2`` attributes::
 
   >>> t = Time('2010-01-01 00:00:00', scale='utc')
   >>> t.jd1, t.jd2
   (2455197.5, 0.0)
   >>> t2 = t.tai
-  >>> t2.jd1. t2.jd2
+  >>> t2.jd1, t2.jd2
   (2455197.5, 0.0003935185185185185)
 
 Creating a Time object
@@ -272,11 +270,6 @@ The allowed |Time| arguments to create a time object are listed below:
 
 val
 ^^^
-
-The `val` argument is the only argument that is always required when creating a
-|Time| object.  This argument specifies the input time or times and
-can be a single string or number, or it can be a Python list or `numpy` array
-of strings or numbers.
 
 The `val` argument  specifies the input time or times and
 can be a single string or number, or it can be a Python list or `numpy` array
@@ -550,7 +543,7 @@ TT, UT1, UTC).  This requires auxilliary information (latitude and longitude).
 Time Deltas
 -----------
 
-Simple time arithmetic is supported using via the |TimeDelta| class.  The
+Simple time arithmetic is supported using the |TimeDelta| class.  The
 following operations are available:
 
 - Create a TimeDelta explicitly by instantiating a class object
@@ -560,13 +553,6 @@ following operations are available:
 - Add two TimeDelta objects to get a new TimeDelta
 - Negate a TimeDelta or take its absolute value
 - Multiply or divide a TimeDelta by a constant or array
-
-.. note::
-    As implemented, the arithmetic is not guaranteed to be good beyond
-    float64, as round-off errors are not yet properly carried between the 
-    two values representing the date.  Like for ERFA, taking the first
-    value as (half-)integer helps, as this can be represented exactly
-    by a float64 (at least for all but multiply and divide).
 
 The |TimeDelta| class is derived from the |Time| class and shares many of its
 properties.  The key difference is that the time scale is always TAI so that
