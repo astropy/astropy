@@ -60,7 +60,7 @@ class SkyGridHelper(BaseGridHelper):
         self._extreme_finder = angle_helper.ExtremeFinderCycle(20, 20,
                                                                lon_cycle=360,
                                                                lat_cycle=None,
-                                                               lon_minmax=(-180., 180),
+                                                               lon_minmax=(-360., 360.),
                                                                lat_minmax = (-90., 90.)
                                                                )
 
@@ -80,6 +80,11 @@ class SkyGridHelper(BaseGridHelper):
                                                   tick_formatter1=self[0].formatter,
                                                   tick_formatter2=self[1].formatter,
                                                   )
+
+        # Add reference to grid helper to coordinates so that they can
+        # invalidate the tick/label cache.
+        self._coords[0]._grid_helper = self._grid_helper
+        self._coords[1]._grid_helper = self._grid_helper
 
         # Set up aliases for coordinates
         name_1 = self._wcs.wcs.ctype[0][:4]

@@ -66,12 +66,14 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
 
     def __init__(self):
         self._fl_helper = AngleFormatterLocator()
+        self._grid_helper = None
 
     def set_major_formatter(self, formatter):
         if isinstance(formatter, Formatter):
             raise NotImplementedError()  # figure out how to swap out formatter
         elif isinstance(formatter, six.string_types):
             self._fl_helper.format = formatter
+            self._grid_helper.invalidate()
         else:
             raise TypeError("formatter should be a string for Formatter instance")
 
