@@ -12,6 +12,7 @@ from numpy.testing import utils
 from ...tests.helper import pytest
 from .. import fitting
 from .model_lists import models_1D, models_2D
+np.seterr(all='raise')
 
 try:
     from scipy import optimize

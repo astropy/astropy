@@ -2,6 +2,7 @@
 from .. import models
 from numpy.testing import utils
 from ...tests.helper import pytest
+np.seterr(all='raise')
 
 def test_RotateNative2Celestial():
     phi, theta, psi = 42, 43, 44

@@ -13,6 +13,7 @@ from numpy.testing import utils
 from numpy.random import RandomState
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
+np.seterr(all='raise')
 
 try:
     from scipy import optimize
