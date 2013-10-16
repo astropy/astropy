@@ -52,7 +52,7 @@ from ..powerlaws import *
 from ..models import *
 import numpy as np
 
-#1D Models
+# 1D Models
 models_1D = {}
 models_1D[Gaussian1DModel] = {'parameters': [1, 0, 1],
                            'x_values': [0, np.sqrt(2), -np.sqrt(2)],
@@ -129,12 +129,18 @@ models_1D[ExponentialCutoffPowerLaw1DModel] = {'parameters': [1, 1, 2, 10],
                                                'x_lim': [0.1, 10],
                                                'log_fit': True}
 
+models_1D[LogParabola1DModel] = {'parameters': [1, 2, 3, 0.1],
+                                 'x_values': [0.1, 1, 10, 100],
+                                 'y_values': [3.26089063e+03, 7.62472488e+00, 6.17440488e-03, 1.73160572e-06],
+                                 'x_lim': [0.1, 100],
+                                 'log_fit': True}
+
 models_1D[Poly1DModel] = {'parameters': {'degree': 2, 'c0': 1., 'c1': 1., 'c2': 1.},
                             'x_values': [1, 10, 100],
                             'y_values': [3, 111, 10101],
                             'x_lim': [1, 100]}
 
-#2D Models
+# 2D Models
 models_2D = {}
 models_2D[Gaussian2DModel] = {'parameters': [1, 0, 0, 1, 1],
                               'constraints': {'fixed': {'theta': True}},
@@ -144,7 +150,7 @@ models_2D[Gaussian2DModel] = {'parameters': [1, 0, 0, 1, 1],
                               'x_lim': [-10, 10],
                               'y_lim': [-10, 10],
                               'integral': 2 * np.pi,
-                              'deriv_parameters': [137., 5.1, 5.4, 1.5, 2., np.pi/4],
+                              'deriv_parameters': [137., 5.1, 5.4, 1.5, 2., np.pi / 4],
                               'deriv_initial': [10, 5, 5, 4, 4, .5]}
 
 models_2D[Const2DModel] = {'parameters': [1],
