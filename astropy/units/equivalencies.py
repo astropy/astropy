@@ -13,7 +13,19 @@ from . import cgs
 from . import astrophys
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
-           'doppler_optical', 'doppler_relativistic', 'mass_energy', 'brightness_temperature']
+           'doppler_optical', 'doppler_relativistic', 'mass_energy',
+           'brightness_temperature', 'radian_is_dimensionless']
+
+
+def radian_is_dimensionless():
+    """
+    Returns a list with a single equivalency pair that allows radian
+    to be equivalent to dimensionless.  It is special compared to other
+    equivalency pairs in that it allows this independent of the power to
+    which radian is raised, and indepedent of whether it is part of a
+    more complicated unit.
+    """
+    return [(si.radian, None)]
 
 
 def parallax():
