@@ -108,11 +108,11 @@ The function that handles these unit conversions is
 arguments the unit and value for the spectral location. For example::
 
   >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.Hz, 1.,
-              equivalencies=u.spectral_density(u.AA, 3500))
+              equivalencies=u.spectral_density(3500 * u.AA))
   1.0000000000000001e-23
 
   >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.micron, 1.,
-              equivalencies=u.spectral_density(u.AA, 3500))
+              equivalencies=u.spectral_density(3500 * u.AA))
   2.4472853714285712e-08
 
 Brightness Temperature / Flux Density Equivalency
