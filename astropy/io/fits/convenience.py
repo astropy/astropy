@@ -250,7 +250,7 @@ def getval(filename, keyword, *args, **kwargs):
 
     Returns
     -------
-    keyword value : str, integer, or float
+    keyword value : str, int, or float
     """
 
     if 'do_not_scale_image_data' not in kwargs:
