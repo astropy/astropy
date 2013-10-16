@@ -431,7 +431,7 @@ class Angle(u.Quantity):
             object that can initialize an Angle object, e.g. '180d', 180 * u.deg,
             or Angle(180, unit=u.deg).
 
-        inplace : boolean
+        inplace : bool
             If ``True`` then wrap the object in place instead of returning a new Angle
 
         Returns
