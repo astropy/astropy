@@ -48,6 +48,32 @@ units of length (and vice versa).
     >>> u.AU.to(u.arcminute, equivalencies=u.parallax())
     3437.7467707580054
 
+Angles as Dimensionless Units
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Angles are treated as a physically distinct type, which usually helps
+to avoid mistakes.  For units such as rotational energy, however, it
+is not very handy.  The function 
+`~astropy.units.equivalencies.angles_dimensionless` provides the
+required equivalency list that helps convert.  It is somewhat
+different from all others in that it allows an arbitrary change in the
+number of powers to which radian is raised (i.e., including zero and
+thus dimensionless).  For instance, normally the following raise exceptions:: 
+
+  >>> from astropy import units as u
+  >>> u.degree.to('')
+  UnitsError: 'deg' (angle) and '' (dimensionless) are not convertible
+  >>> (u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J)
+  UnitsError: 'cycle2 kg m2 / s2' and 'J' (energy) are not convertible
+
+But when passing we pass the proper conversion function, 
+`~astropy.units.equivalencies.angles_dimensionless`, it works.
+
+  >>> u.deg.to('', equivalencies=u.angles_dimensionless())
+  0.017453292519943295
+  >>> (u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J, 0.5e38,
+                                   equivalencies=u.angles_dimensionless())
+  1.9739208802178715e+39
+
 Spectral Units
 ^^^^^^^^^^^^^^
 
