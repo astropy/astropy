@@ -2054,7 +2054,7 @@ class Table(object):
 
             Adding a new row with entries '3' in 'a', '6' in 'b' and '9' in 'c'
 
-            >>> t.add_row([3,6,7])
+            >>> t.add_row([3,6,9])
             >>> t.pprint()
              a   b   c 
             --- --- ---
@@ -2190,7 +2190,7 @@ class Table(object):
         Examples
         ----------
         >>> t = Table([['Max', 'Jo', 'John'], ['Miller','Miller','Jackson'],
-            ...         [12,15,18]], names=('firstname','name','tel'))
+        ...         [12,15,18]], names=('firstname','name','tel'))
         >>> t.pprint()
         firstname   name  tel
         --------- ------- ---
