@@ -200,7 +200,7 @@ class TestParametricModels(object):
         model = create_model(model_class, parameters)
         x = models_1D[model_class]['x_values']
         y = models_1D[model_class]['y_values']
-        assert np.all((np.abs(model(x) - y) < self.eval_error))
+        utils.assert_allclose(model(x), y, atol=self.eval_error)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     @pytest.mark.parametrize(('model_class'), models_1D.keys())
@@ -221,11 +221,14 @@ class TestParametricModels(object):
             x = np.linspace(x_lim[0], x_lim[1], self.N)
         np.random.seed(0)
         # add 10% noise to the amplitude
-        data = model(x) + 0.1 * parameters[0] * (np.random.rand(self.N) - 0.5)
+        relative_noise_amplitude = 0.01
+        #data = model(x) + relative_noise_amplitude * parameters[0] * (np.random.rand(self.N) - 0.5)
+        data = (1 + relative_noise_amplitude * np.random.randn(len(x))) * model(x)
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(x, data)
-        assert np.all(np.abs((fitter.fitpars - np.array(parameters))
-                              < self.fit_error))
+        # Only check parameters that were free in the fit
+        fitted_parameters = [val for (val, fixed) in zip(parameters, fitter.fixed) if not fixed]
+        utils.assert_allclose(fitter.fitpars, fitted_parameters, atol=self.fit_error)
 
     @pytest.mark.parametrize(('model_class'), models_2D.keys())
     def test_input2D(self, model_class):
