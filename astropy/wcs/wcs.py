@@ -447,11 +447,38 @@ naxis kwarg.
 
         See https://github.com/astropy/astropy/issues/299.
         """
-        if self.wcs is not None and self.wcs.get_pv() and \
-                all(ctype.endswith('-SIP') for ctype in self.wcs.ctype):
-            self.wcs.set_pv([])
-            warnings.warn("Removed redundant SCAMP distortion parameters " +
-                "because SIP parameters are also present", FITSFixedWarning)
+        # Nothing to be done if no WCS attached
+        if self.wcs is None:
+            return
+
+        # Nothing to be done if no PV parameters attached
+        pv = self.wcs.get_pv()
+        if not pv:
+            return
+
+        # Nothing to be done if axes don't use SIP distortion parameters
+        if not all(ctype.endswith('-SIP') for ctype in self.wcs.ctype):
+            return
+
+        # Nothing to be done if any radial terms are present...
+        # Loop over list to find any radial terms.
+        # Certain values of the `j' index are used for storing
+        # radial terms; refer to Equation (1) in
+        # <http://web.ipac.caltech.edu/staff/shupe/reprints/SIP_to_PV_SPIE2012.pdf>.
+        pv = np.asarray(pv)
+        # Loop over distinct values of `i' index
+        for i in set(pv[:, 0]):
+            # Get all values of `j' index for this value of `i' index
+            js = set(pv[:, 1][pv[:, 0] == i])
+            # Find max value of `j' index
+            max_j = max(js)
+            for j in (3, 11, 23, 39):
+                if j < max_j and j in js:
+                    return
+
+        self.wcs.set_pv([])
+        warnings.warn("Removed redundant SCAMP distortion parameters " +
+            "because SIP parameters are also present", FITSFixedWarning)
 
     def fix(self):
         """
