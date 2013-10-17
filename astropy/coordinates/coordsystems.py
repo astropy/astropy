@@ -448,8 +448,8 @@ class SphericalCoordinatesBase(object):
         of catalog coordinates.
 
         This finds the 3-dimensional closest neighbor, which is only different
-        from the on-sky distance if `distance` is set in either `matchcoord`
-        or `catalogcoord`.
+        from the on-sky distance if `distance` is set in this object or the 
+        `catalogcoord` object.
         
         Parameters
         ----------
