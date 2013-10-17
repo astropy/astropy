@@ -1485,6 +1485,7 @@ class IrreducibleUnit(NamedUnit):
     def decompose(self, bases=set()):
         if len(bases) and not self in bases:
             for base in bases:
+                # to avoid roundrip, ensure no default equivalencies get used
                 if self.is_equivalent(base, equivalencies=[]):
                     return CompositeUnit(self.to(base), [base], [1])
 
