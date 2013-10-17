@@ -55,6 +55,11 @@ def convolve1d_boundary_none(np.ndarray[DTYPE_t, ndim=1] f,
         else:
             fixed[i] = f[i]
 
+    # Copy not covered edge values from original array
+    for i in range(wkx):
+        fixed[i] = f[i]
+        fixed[-i - 1] = f[-i - 1]
+
     # Now run the proper convolution
     for i in range(wkx, nx - wkx):
         if not npy_isnan(fixed[i]):
