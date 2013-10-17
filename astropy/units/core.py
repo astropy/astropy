@@ -349,9 +349,9 @@ def set_enabled_equivalencies_context(equivalencies):
 
     >>> from astropy import units as u
     >>> with u.set_enabled_equivalencies_context(u.angles_dimensionless()):
-    ...     np.exp(1j*0.5*u.cycle)
+    ...     np.exp(1j*0.5*u.cycle)    # doctest: +ELLIPSIS
     ...
-        <Quantity (-1+1.2246467991473532e-16j) >
+        <Quantity (-1+...j) >
     """
     global _current_unit_registry
     old_registry = get_current_unit_registry()
@@ -381,10 +381,10 @@ def add_enabled_equivalencies_context(equivalencies):
 
     >>> from astropy import units as u
     >>> with u.add_enabled_equivalencies_context(u.angles_dimensionless()):
-    ...     a = np.exp(1j*0.5*u.cycle)
+    ...     a = np.exp(1j*0.5*u.cycle)  # doctest: +ELLIPSIS
     ...
     >>> a
-        <Quantity (-1+1.2246467991473532e-16j) >
+        <Quantity (-1+...j) >
     """
     global _current_unit_registry
     old_registry = get_current_unit_registry()
