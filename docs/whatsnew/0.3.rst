@@ -94,7 +94,7 @@ The exception `astropy.units.UnitsException` has been renamed to
 Python built-in exceptions.
 
 The :func:`~astropy.units.equivalencies.spectral_density` equivalencies now
-take only `~astropy.units.quantity.Quantity` instead of ``(sunit, sfactor)``.
+take `~astropy.units.quantity.Quantity` instead of ``(sunit, sfactor)``.
 
 Coordinates
 -----------
