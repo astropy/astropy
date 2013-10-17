@@ -32,7 +32,7 @@ def_unit(['m', 'meter'], namespace=_ns, prefixes=True,
 
 def_unit(['micron'], um, namespace=_ns,
          doc="micron: alias for micrometer (um)",
-         format={'latex': r'\mu', 'unicode': 'μ'})
+         format={'latex': r'\mu m', 'unicode': 'μm'})
 
 def_unit(['Angstrom', 'AA', 'angstrom'], 0.1 * nm, namespace=_ns,
          doc="ångström: 10 ** -10 m",
