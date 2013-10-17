@@ -566,9 +566,11 @@ class UnitBase(object):
                 if b is None:
                     # after canceling, is what's left convertable
                     # to dimensionless (according to the equivalency)?
-                    a = a.decompose()
-                    if set(unit.bases) ^ set(other.bases) == set(a.bases):
+                    try:
+                        (unit/other).decompose([a])
                         return True
+                    except:
+                        pass
                 else:
                     if(unit.is_equivalent(a) and other.is_equivalent(b) or
                        unit.is_equivalent(b) and other.is_equivalent(a)):
@@ -594,11 +596,11 @@ class UnitBase(object):
 
         for funit, tunit, a, b in equivalencies:
             if tunit is None:
-                funit = funit.decompose()
-                if set(unit.bases) ^ set(other.bases) == set(funit.bases):
-                    power = (unit / other).powers[0]
-                    scale1 = (unit / other / funit**power)._dimensionless_constant()
-                    return make_converter(scale1, a, 1.)
+                try:
+                    ratio_in_funit = (unit/other).decompose([funit])
+                    return make_converter(ratio_in_funit.scale, a, 1.)
+                except:
+                    pass
             else:
                 if (unit.is_equivalent(funit) and other.is_equivalent(tunit)):
                     scale1 = (unit / funit)._dimensionless_constant()
