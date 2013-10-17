@@ -2045,22 +2045,22 @@ class Table(object):
         ----------
         Create a table with three columns 'a', 'b' and 'c'::
 
-            >>> t = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
-            >>> t.pprint()
-             a   b   c 
-            --- --- ---
-              1   4   7
-              2   5   8
+           >>> t = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
+           >>> t.pprint()
+            a   b   c 
+           --- --- ---
+             1   4   7
+             2   5   8
 
-            Adding a new row with entries '3' in 'a', '6' in 'b' and '9' in 'c'
+           Adding a new row with entries '3' in 'a', '6' in 'b' and '9' in 'c'
 
-            >>> t.add_row([3,6,9])
-            >>> t.pprint()
+           >>> t.add_row([3,6,9])
+           >>> t.pprint()
              a   b   c 
-            --- --- ---
-              1   4   7
-              2   5   8
-              3   6   9
+             --- --- ---
+             1   4   7
+             2   5   8
+             3   6   9
         """
 
         def _is_mapping(obj):
@@ -2189,24 +2189,24 @@ class Table(object):
 
         Examples
         ----------
-        >>> t = Table([['Max', 'Jo', 'John'], ['Miller','Miller','Jackson'],
-        ...         [12,15,18]], names=('firstname','name','tel'))
-        >>> t.pprint()
-        firstname   name  tel
-        --------- ------- ---
-              Max  Miller  12
-               Jo  Miller  15
-             John Jackson  18
+            >>> t = Table([['Max', 'Jo', 'John'], ['Miller','Miller','Jackson'],
+            ...         [12,15,18]], names=('firstname','name','tel'))
+            >>> t.pprint()
+            firstname   name  tel
+            --------- ------- ---
+                  Max  Miller  12
+                   Jo  Miller  15
+                 John Jackson  18
 
-        Reversing order
+            Reversing order
 
-        >>> t.reverse()
-        >>> t.pprint()
-        firstname   name  tel
-        --------- ------- ---
-             John Jackson  18
-               Jo  Miller  15
-              Max  Miller  12
+            >>> t.reverse()
+            >>> t.pprint()
+            firstname   name  tel
+            --------- ------- ---
+                 John Jackson  18
+                   Jo  Miller  15
+                  Max  Miller  12
         '''
         self._data[:] = self._data[::-1].copy()
         self._rebuild_table_column_views()
