@@ -20,7 +20,7 @@ except ImportError:
 
 
 modes = ['center', 'linear_interp', 'oversample']
-test_models_1D = [Gaussian1DModel, Box1DModel, MexicanHat1DModel, Trapezoid1DModel]
+test_models_1D = [Gaussian1DModel, Box1DModel, MexicanHat1DModel]
 test_models_2D = [Gaussian2DModel, Box2DModel, MexicanHat2DModel]
 
 
@@ -78,19 +78,21 @@ def test_gaussian_eval_2D(mode):
     assert np.all(np.abs(values - disc_values) < 0.001)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_subpixel_gauss_1D():
     """
     Test subpixel accuracy of the oversample mode with gaussian 1D model.
     """
     gauss_1D = Gaussian1DModel(1, 0, 0.1)
-    values = discretize_model(gauss_1D, (-1, 2), mode='oversample', factor=100)
+    values = discretize_model(gauss_1D, (-1, 2), mode='integrate', factor=100)
     assert np.abs(values.sum() - np.sqrt(2 * np.pi) * 0.1) < 0.00001
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_subpixel_gauss_2D():
     """
     Test subpixel accuracy of the oversample mode with gaussian 2D model.
     """
     gauss_2D = Gaussian2DModel(1, 0, 0, 0.1, 0.1)
-    values = discretize_model(gauss_2D, (-1, 2), (-1, 2), mode='oversample', factor=100)
+    values = discretize_model(gauss_2D, (-1, 2), (-1, 2), mode='integrate', factor=100)
     assert np.abs(values.sum() - 2 * np.pi * 0.01) < 0.00001
