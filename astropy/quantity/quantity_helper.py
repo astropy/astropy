@@ -2,7 +2,7 @@
 # quantities (http://pythonhosted.org/quantities/) package.
 
 import numpy as np
-from .core import UnitsError, dimensionless_unscaled
+from ..units.core import UnitsError, dimensionless_unscaled
 
 
 def _d(unit):
@@ -84,7 +84,7 @@ UFUNC_HELPERS[np.modf] = helper_dimensionless_to_dimensionless
 
 # ufuncs that require dimensionless input and give output in radians
 def helper_dimensionless_to_radian(f, unit):
-    from .si import radian
+    from ..units.si import radian
     try:
         scale = unit.to(dimensionless_unscaled)
     except UnitsError:
@@ -103,7 +103,7 @@ UFUNC_HELPERS[np.arctanh] = helper_dimensionless_to_radian
 
 # ufuncs that require input in degrees and give output in radians
 def helper_degree_to_radian(f, unit):
-    from .si import degree, radian
+    from ..units.si import degree, radian
     try:
         scale = unit.to(degree)
     except UnitsError:
@@ -118,7 +118,7 @@ UFUNC_HELPERS[np.deg2rad] = helper_degree_to_radian
 
 # ufuncs that require input in radians and give output in degrees
 def helper_radian_to_degree(f, unit):
-    from .si import degree, radian
+    from ..units.si import degree, radian
     try:
         scale = unit.to(radian)
     except UnitsError:
@@ -133,7 +133,7 @@ UFUNC_HELPERS[np.rad2deg] = helper_radian_to_degree
 
 # ufuncs that require input in radians and give dimensionless output
 def helper_radian_to_dimensionless(f, unit):
-    from .si import radian
+    from ..units.si import radian
     try:
         scale = unit.to(radian)
     except UnitsError:
@@ -286,7 +286,7 @@ UFUNC_HELPERS[np.equal] = helper_twoarg_comparison
 
 
 def helper_twoarg_invtrig(f, unit1, unit2):
-    from .si import radian
+    from ..units.si import radian
     scales, _ = find_scales(f, unit1, unit2)
     return scales, radian
 

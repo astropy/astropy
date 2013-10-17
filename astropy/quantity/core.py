@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This module defines the `Quantity` object, which represents a number with some
-associated units. `Quantity` objects support operations like ordinary numbers,
-but will deal with unit conversions internally.
+This module defines the main `Quantity` object as part of the `quantity`
+subpackage.
 """
 
 from __future__ import (absolute_import, unicode_literals, division,
@@ -14,9 +13,9 @@ import numbers
 
 import numpy as np
 
-# AstroPy
+# Astropy
 from ..extern import six
-from .core import Unit, dimensionless_unscaled, UnitBase, UnitsError
+from ..units.core import Unit, dimensionless_unscaled, UnitBase, UnitsError
 from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
 
@@ -454,7 +453,7 @@ class Quantity(np.ndarray):
         value of the resulting object will be scaled.
         """
 
-        from . import si
+        from ..units import si
         si_unit = self.unit.to_system(si)[0]
         return self.__quantity_instance__(
             self.value * si_unit.scale, si_unit / si_unit.scale,
@@ -467,7 +466,7 @@ class Quantity(np.ndarray):
         value of the resulting object will be scaled.
         """
 
-        from . import cgs
+        from ..units import cgs
         cgs_unit = self.unit.to_system(cgs)[0]
         return self.__quantity_instance__(
             self.value * cgs_unit.scale, cgs_unit / cgs_unit.scale,
