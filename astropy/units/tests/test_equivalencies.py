@@ -16,8 +16,8 @@ from ...extern.six.moves import zip
 from ... import units as u
 
 
-def test_dimensionless_angles():
-    rad1 = u.dimensionless_angles()
+def test_angles_dimensionless():
+    rad1 = u.angles_dimensionless()
     assert u.radian.to(1, equivalencies=rad1) == 1.
     assert u.deg.to(1, equivalencies=rad1) == u.deg.to(u.rad)
     assert u.steradian.to(1, equivalencies=rad1) == 1.
@@ -36,11 +36,12 @@ def test_dimensionless_angles():
 
 
 @pytest.mark.xfail
-def test_angles_dimensionless_wishlist():
-    phase = u.Quantity(1., u.cycle, equivalencies=u.angles_dimensionless())
-    assert_allclose(np.exp(1j*phase), 1.)
-    Omega = u.cycle / (1.*u.minute)
-    assert_allclose(np.exp(1j*Omega*60.*u.second), 1.)
+def test_angles_dimensionless_context():
+    with u.set_enabled_equivalencies_context(u.angles_dimensionless()):
+        phase = u.Quantity(1., u.cycle)
+        assert_allclose(np.exp(1j*phase), 1.)
+        Omega = u.cycle / (1.*u.minute)
+        assert_allclose(np.exp(1j*Omega*60.*u.second), 1.)
 
 
 functions = [u.doppler_optical, u.doppler_radio, u.doppler_relativistic]
