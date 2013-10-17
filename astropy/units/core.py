@@ -356,8 +356,8 @@ def set_enabled_equivalencies_context(equivalencies):
     global _current_unit_registry
     old_registry = get_current_unit_registry()
     _current_unit_registry = _UnitRegistry()
-    add_enabled_units(old_registry.all_units)
     set_enabled_equivalencies(equivalencies)
+    add_enabled_units(old_registry.all_units)
     yield
     _current_unit_registry = old_registry
 
@@ -525,7 +525,7 @@ class UnitBase(object):
         """
         normalized = []
 
-        if not equivalencies:
+        if equivalencies is None:
             equivalencies = get_current_unit_registry().equivalencies
 
         for i, equiv in enumerate(equivalencies):
@@ -661,19 +661,22 @@ class UnitBase(object):
         """
         return self
 
-    def is_equivalent(self, other, equivalencies=[]):
+    def is_equivalent(self, other, equivalencies=None):
         """
         Returns `True` if this unit is equivalent to `other`.
 
         Parameters
         ----------
         other : unit object or string or tuple
-           The unit to convert to. If a tuple of units is specified, this
-           method returns true if the unit matches any of the ones in the tuple.
+            The unit to convert to. If a tuple of units is specified, this
+            method returns true if the unit matches any of those in the tuple;
+            for this case, equivalencies are ignored.
 
         equivalencies : list of equivalence pairs, optional
-           A list of equivalence pairs to try if the units are not
-           directly convertible.  See :ref:`unit_equivalencies`.
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`unit_equivalencies`.
+            Any list given, including an empty one, supercedes global defaults
+            that may be in effect (as set by `set_enabled_equivalencies`)
 
         Returns
         -------
@@ -681,12 +684,20 @@ class UnitBase(object):
         """
 
         if isinstance(other, tuple):
-            return any(self.is_equivalent(u) for u in other)
+            return any(self.is_equivalent(u, equivalencies=[]) for u in other)
         else:
             other = Unit(other, parse_strict='silent')
 
         equivalencies = self._normalize_equivalencies(equivalencies)
 
+        return self._is_equivalent(other, equivalencies)
+
+    def _is_equivalent(self, other, equivalencies=[]):
+        """Returns True if this unit is equivalent to `other`.
+        See `is_equivalent`, except that a proper Unit object should be
+        given (i.e., no string) and that the equivalency list should be
+        normalised.
+        """
         if isinstance(other, UnrecognizedUnit):
             return False
 
@@ -706,8 +717,8 @@ class UnitBase(object):
                     except:
                         pass
                 else:
-                    if(unit.is_equivalent(a) and other.is_equivalent(b) or
-                       unit.is_equivalent(b) and other.is_equivalent(a)):
+                    if(unit._is_equivalent(a) and other._is_equivalent(b) or
+                       unit._is_equivalent(b) and other._is_equivalent(a)):
                         return True
 
         return False
@@ -736,11 +747,12 @@ class UnitBase(object):
                 except:
                     pass
             else:
-                if (unit.is_equivalent(funit) and other.is_equivalent(tunit)):
+                if unit._is_equivalent(funit) and other._is_equivalent(tunit):
                     scale1 = (unit / funit)._dimensionless_constant()
                     scale2 = (tunit / other)._dimensionless_constant()
                     return make_converter(scale1, a, scale2)
-                elif (other.is_equivalent(funit) and unit.is_equivalent(tunit)):
+                elif (other._is_equivalent(funit) and
+                      unit._is_equivalent(tunit)):
                     scale1 = (unit / tunit)._dimensionless_constant()
                     scale2 = (funit / other)._dimensionless_constant()
                     return make_converter(scale1, b, scale2)
@@ -762,7 +774,7 @@ class UnitBase(object):
             "{0} and {1} are not convertible".format(
                 unit_str, other_str))
 
-    def get_converter(self, other, equivalencies=[]):
+    def get_converter(self, other, equivalencies=None):
         """
         Return the conversion function to convert values from `self`
         to the specified unit.
@@ -770,11 +782,13 @@ class UnitBase(object):
         Parameters
         ----------
         other : unit object or string
-           The unit to convert to.
+            The unit to convert to.
 
         equivalencies : list of equivalence pairs, optional
-           A list of equivalence pairs to try if the units are not
-           directly convertible.  See :ref:`unit_equivalencies`.
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`unit_equivalencies`.
+            Any list given, including an empty one, supercedes global defaults
+            that may be in effect (as set by `set_enabled_equivalencies`)
 
         Returns
         -------
@@ -799,7 +813,7 @@ class UnitBase(object):
                 self, other, equivalencies)
         return lambda val: scale * _condition_arg(val)
 
-    def to(self, other, value=1.0, equivalencies=[]):
+    def to(self, other, value=1.0, equivalencies=None):
         """
         Return the converted values in the specified unit.
 
@@ -808,13 +822,15 @@ class UnitBase(object):
         other : unit object or string
             The unit to convert to.
 
-        value : scalar int or float, or sequence that can be converted to array, optional
+        value : scalar int or float, or sequence convertable to array, optional
             Value(s) in the current unit to be converted to the
             specified unit.  If not provided, defaults to 1.0
 
         equivalencies : list of equivalence pairs, optional
-           A list of equivalence pairs to try if the units are not
-           directly convertible.  See :ref:`unit_equivalencies`.
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`unit_equivalencies`.
+            Any list given, including an empty one, supercedes global defaults
+            that may be in effect (as set by `set_enabled_equivalencies`)
 
         Returns
         -------
@@ -831,7 +847,7 @@ class UnitBase(object):
         other = Unit(other)
         return self.get_converter(other, equivalencies=equivalencies)(value)
 
-    def in_units(self, other, value=1.0, equivalencies=[]):
+    def in_units(self, other, value=1.0, equivalencies=None):
         """
         Alias for `to` for backward compatibility with pynbody.
         """
@@ -893,9 +909,9 @@ class UnitBase(object):
         units = [unit]
         for funit, tunit, a, b in equivalencies:
             if tunit is not None:
-                if self.is_equivalent(funit):
+                if self._is_equivalent(funit):
                     units.append(tunit.decompose())
-                elif self.is_equivalent(tunit):
+                elif self._is_equivalent(tunit):
                     units.append(funit.decompose())
 
         # Store partial results
@@ -917,7 +933,7 @@ class UnitBase(object):
                 # without needing to do an exhaustive search.
                 if len(tunit_decomposed.bases) == 1:
                     for base, power in zip(u._bases, u._powers):
-                        if tunit_decomposed.is_equivalent(base):
+                        if tunit_decomposed._is_equivalent(base):
                             tunit = tunit ** power
                             tunit_decomposed = tunit_decomposed ** power
                             break
@@ -982,7 +998,7 @@ class UnitBase(object):
         cached_results[key] = [self]
         return [self]
 
-    def compose(self, equivalencies=[], units=None, max_depth=2,
+    def compose(self, equivalencies=None, units=None, max_depth=2,
                 include_prefix_units=False):
         """
         Return the simplest possible composite unit(s) that represent
@@ -994,6 +1010,8 @@ class UnitBase(object):
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to also list.  See
             :ref:`unit_equivalencies`.
+            Any list given, including an empty one, supercedes global defaults
+            that may be in effect (as set by `set_enabled_equivalencies`)
 
         units : set of units to compose to, optional
             If not provided, any known units may be used to compose
@@ -1209,7 +1227,7 @@ class UnitBase(object):
                          [']'])
                 return '\n'.join(lines)
 
-    def find_equivalent_units(self, equivalencies=[], units=None,
+    def find_equivalent_units(self, equivalencies=None, units=None,
                               include_prefix_units=False):
         """
         Return a list of all the units that are the same type as the
@@ -1223,6 +1241,8 @@ class UnitBase(object):
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to also list.  See
             :ref:`unit_equivalencies`.
+            Any list given, including an empty one, supercedes global defaults
+            that may be in effect (as set by `set_enabled_equivalencies`)
 
         units : set of units to search in, optional
             If not provided, all defined units will be searched for
@@ -1465,7 +1485,7 @@ class IrreducibleUnit(NamedUnit):
     def decompose(self, bases=set()):
         if len(bases) and not self in bases:
             for base in bases:
-                if self.is_equivalent(base):
+                if self.is_equivalent(base, equivalencies=[]):
                     return CompositeUnit(self.to(base), [base], [1])
 
             raise UnitsError(
@@ -1508,8 +1528,8 @@ class UnrecognizedUnit(IrreducibleUnit):
             "with it are invalid.".format(self.name))
 
     __pow__ = __div__ = __rdiv__ = __truediv__ = __rtruediv__ = __mul__ = \
-               __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ = \
-               _unrecognized_operator
+        __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ = \
+        _unrecognized_operator
 
     def __eq__(self, other):
         other = Unit(other, parse_strict='silent')
@@ -1518,11 +1538,11 @@ class UnrecognizedUnit(IrreducibleUnit):
     def __ne__(self, other):
         return not (self == other)
 
-    def is_equivalent(self, other, equivalencies=[]):
+    def is_equivalent(self, other, equivalencies=None):
         self._normalize_equivalencies(equivalencies)
         return self == other
 
-    def get_converter(self, other, equivalencies=[]):
+    def get_converter(self, other, equivalencies=None):
         self._normalize_equivalencies(equivalencies)
         raise ValueError(
             "The unit {0!r} is unrecognized.  It can not be converted "
@@ -1592,15 +1612,15 @@ class _UnitMetaClass(type):
                 if parse_strict == 'silent':
                     pass
                 else:
-                    msg = "'{0}' did not parse as unit format '{1}': {2}".format(
-                        s, format, str(e))
+                    msg = ("'{0}' did not parse as unit format '{1}': {2}"
+                           .format(s, format, str(e)))
                     if parse_strict == 'raise':
                         raise ValueError(msg)
                     elif parse_strict == 'warn':
                         warnings.warn(msg, UnitsWarning)
                     else:
-                        raise ValueError(
-                            "'parse_strict' must be 'warn', 'raise' or 'silent'")
+                        raise ValueError("'parse_strict' must be 'warn', "
+                                         "'raise' or 'silent'")
                 return UnrecognizedUnit(s)
 
         elif isinstance(s, (int, float, np.floating, np.integer)):
@@ -1805,7 +1825,7 @@ class CompositeUnit(UnitBase):
         def add_unit(unit, power, scale):
             if unit not in bases:
                 for base in bases:
-                    if unit.is_equivalent(base):
+                    if unit._is_equivalent(base):
                         scale *= unit.to(base) ** power
                         unit = base
                         break

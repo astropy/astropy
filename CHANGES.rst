@@ -344,6 +344,12 @@ API Changes
   - Multiplication with and division by a string now always returns a Unit
     (rather than a Quantity when the string was first)
 
+  - The default for equivalencies in all user-facing methods of Unit
+    and Quantity has become ``None``.  This has the effect that it
+    will default to any global default set of equivalencies, if those
+    have been defined.  The old default, ``[]``, is now used to ensure
+    that no equivalencies will be used whatsoever.
+
 - ``astropy.wcs``
 
   - For those including the ``astropy.wcs`` C headers in their project, they

@@ -111,7 +111,7 @@ class Quantity(np.ndarray):
     """
     # Need to set a class-level default for _equivalencies, or
     # Constants can not initialize properly
-    _equivalencies = []
+    _equivalencies = None
 
     __array_priority__ = 10000
 
@@ -496,8 +496,9 @@ class Quantity(np.ndarray):
         if not self._include_easy_conversion_members:
             return []
         extra_members = set()
+        equivalencies = Unit._normalize_equivalencies(self.equivalencies)
         for equivalent in self.unit._get_units_with_same_physical_type(
-                self._equivalencies):
+                equivalencies):
             extra_members.update(equivalent.names)
         return extra_members
 
