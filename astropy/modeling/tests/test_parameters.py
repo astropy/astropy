@@ -3,6 +3,8 @@
 Tests models.parameters
 """
 
+from __future__ import division
+
 import numpy as np
 from numpy.testing import utils
 
@@ -29,6 +31,68 @@ class TestParModel(ParametricModel):
     def __call__(self):
         pass
 
+
+class MockModel(ParametricModel):
+    def __call__(self):
+        pass
+
+
+def test_parameter_properties():
+    """Test if getting / setting of Parameter properties works."""
+
+    # It is possible to test some Parameter functionality by binding it to a
+    # dummy model and giving it a default value
+    p = Parameter(name='alpha', default=42, model=MockModel())
+
+    assert p.name == 'alpha'
+
+    # Parameter names are immutable
+    with pytest.raises(AttributeError):
+        p.name = 'beta'
+
+    assert p.fixed == False
+    p.fixed = True
+    assert p.fixed == True
+
+    assert p.tied == False
+    p.tied = lambda _: 0
+
+    p.tied = False
+    assert p.tied == False
+
+    assert p.min == None
+    p.min = 42
+    assert p.min == 42
+    p.min = None
+    assert p.min == None
+
+    assert p.max == None
+    # TODO: shouldn't setting a max < min give an error?
+    p.max = 41
+    assert p.max == 41
+
+
+def test_parameter_operators():
+    """Test if the parameter arithmetic operators works,
+    i.e. whether parameters behave like numbers."""
+
+    par = Parameter(name='alpha', default=5., model=MockModel())
+    num = 5.
+    val = 3
+
+    assert par - val == num - val
+    assert val - par == val - num
+    assert par / val == num / val
+    assert val / par == val / num
+    assert par ** val == num ** val
+    assert val ** par == val ** num
+    assert par < 6
+    assert par > 3
+    assert par <= par
+    assert par >= par
+    assert par == par
+    assert -par == -num
+    assert abs(par) == abs(num)
 
 class TestParameters(object):
 
