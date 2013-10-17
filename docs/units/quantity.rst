@@ -277,3 +277,52 @@ that only dimensionless quantities are converted to Numpy arrays::
     >>> np.array([1, 2, 3] * u.m)
     array([1, 2, 3])
 
+Formatting quantities as strings
+--------------------------------
+
+You can control the way that |quantity| objects print using the new
+`Format String Syntax <http://docs.python.org/library/string.html#format-string-syntax>`. 
+New-style format strings use the ``"{}".format()`` syntax. 
+Most of the format speficiers are simliar to the old ``%``-style formatting,
+so things like ``0.003f`` still work, just in the form 
+``"{:0.003f}".format()``.
+
+Format specifiers, like ``0.003f`` will be applied to the |quantity| value,
+without affecting the unit. Specifiers like ``20s``, which would only apply
+to a string, will be applied to the whole string representation of the
+|quantity|. This means you can do::
+
+    >>> q = 10 * u.km
+    >>> q
+    <Quantity 10 km>
+    >>> "{0}".format(q)
+    10 km
+    >>> "{0:+0.03f}".format(q)
+    '+10.000 km'
+    >>> "{0:20s}".format(q)
+    '10 km               '
+
+To format both the value and the unit separately, you can access the |quantity|
+class attributes within new-style format strings::
+
+    >>> q = 10 * u.km
+    >>> q
+    <Quantity 10 km>
+    >>> "{0.value:0.003f} in {0.unit:s}".format(q)
+    '10.000 in km'
+
+Units can also be :ref:`formatted <astropy-units-format>` in a number of different styles, including latex.
+For example::
+
+    >>> "{0.value:0.003f} in {0.unit:latex}".format(q)
+    '10.000 in $\\mathrm{km}$'
+
+Because Numpy arrays don't accept most format specifiers, using specifiers like
+``0.003f`` will not work when applied to a Numpy array or non-scalar |quantity|.
+Use :func:`numpy.array_str` instead. For example::
+    
+    >>> q = np.linspace(0,1,10) * u.m
+    >>> "{0} {1}".format(np.array_str(q.value, precision=1), q.unit)
+    '[ 0.   0.1  0.2  0.3  0.4  0.6  0.7  0.8  0.9  1. ] m'
+    
+Examine the numpy documentation for more examples with :func:`numpy.array_str`.

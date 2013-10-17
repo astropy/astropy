@@ -519,6 +519,11 @@ class TestQuantityDisplay(object):
 
     def test_array_quantity_repr(self):
         assert repr(self.arrq) == "<Quantity [ 1. , 2.3, 8.9] m>"
+        
+    def test_scalar_quantity_format(self):
+        assert format(self.scalarintq, '02d') == "01 m"
+        assert format(self.scalarfloatq, '.1f') == "1.3 m"
+        assert format(self.scalarfloatq, '.0f') == "1 m"
 
 
 def test_decompose():
