@@ -426,13 +426,13 @@ def test_equivalency_context():
         assert_allclose(np.exp(1j*Omega*60.*u.second), 1.)
         # ensure we can turn off equivalencies even within the scope
         with pytest.raises(u.UnitsError):
-            phase.to(1, equivalencies=[])
+            phase.to(1, equivalencies=None)
 
     with u.set_enabled_equivalencies_context(u.spectral()):
         u.GHz.to(u.cm)
         eq_on = u.GHz.find_equivalent_units()
         with pytest.raises(u.UnitsError):
-            u.GHz.to(u.cm, equivalencies=[])
+            u.GHz.to(u.cm, equivalencies=None)
 
     # without equivalencies, we should find a smaller (sub)set
     eq_off = u.GHz.find_equivalent_units()

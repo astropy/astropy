@@ -65,20 +65,65 @@ def _flatten_units_collection(items):
     return result
 
 
+def _normalize_equivalencies(equivalencies):
+    """
+    Normalizes equivalencies, ensuring each is a 4-tuple of the form::
+
+    (from_unit, to_unit, forward_func, backward_func)
+
+    Parameters
+    ----------
+    equivalencies : list of equivalency pairs
+
+    Raises
+    ------
+    ValueError if an equivalency cannot be interpreted
+    """
+    if equivalencies is None:
+        return []
+
+    normalized = []
+
+    for i, equiv in enumerate(equivalencies):
+        if len(equiv) == 2:
+            funit, tunit = equiv
+            a = b = lambda x: x
+        elif len(equiv) == 3:
+            funit, tunit, a = equiv
+            b = a
+        elif len(equiv) == 4:
+            funit, tunit, a, b = equiv
+        else:
+            raise ValueError(
+                "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
+        if not (isinstance(funit, UnitBase) and
+                (isinstance(tunit, UnitBase) or tunit is None) and
+                six.callable(a) and
+                six.callable(b)):
+            raise ValueError(
+                "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
+        normalized.append((funit, tunit, a, b))
+
+    return normalized
+
+
 class _UnitRegistry(object):
     """
     Manages a registry of the enabled units.
     """
     def __init__(self, init=[], equivalencies=[]):
-        self._reset()
+        self._reset_units()
+        self._reset_equivalencies()
         self.add_enabled_units(init)
-        self.add_enabled_equivalencies(set(equivalencies))
+        self.add_enabled_equivalencies(equivalencies)
 
-    def _reset(self):
+    def _reset_units(self):
         self._all_units = set()
         self._non_prefix_units = set()
         self._registry = {}
         self._by_physical_type = {}
+
+    def _reset_equivalencies(self):
         self._equivalencies = set()
 
     @property
@@ -109,7 +154,7 @@ class _UnitRegistry(object):
             methods like `UnitBase.find_equivalent_units` and
             `UnitBase.compose`.
         """
-        self._reset()
+        self._reset_units()
         return self.add_enabled_units(units)
 
     def add_enabled_units(self, units):
@@ -182,7 +227,7 @@ class _UnitRegistry(object):
         equivalencies : list of equivalent pairs
             E.g., as returned by `astropy.units.angles_dimensionless`.
         """
-        self._reset()
+        self._reset_equivalencies()
         return self.add_enabled_equivalencies(equivalencies)
 
     def add_enabled_equivalencies(self, equivalencies):
@@ -200,6 +245,8 @@ class _UnitRegistry(object):
         equivalencies : list of equivalent pairs
             E.g., as returned by `astropy.units.angles_dimensionless`.
         """
+        # pre-normalize list to help catch mistakes
+        equivalencies = _normalize_equivalencies(equivalencies)
         self._equivalencies |= set(equivalencies)
 
 
@@ -355,9 +402,8 @@ def set_enabled_equivalencies_context(equivalencies):
     """
     global _current_unit_registry
     old_registry = get_current_unit_registry()
-    _current_unit_registry = _UnitRegistry()
-    set_enabled_equivalencies(equivalencies)
-    add_enabled_units(old_registry.all_units)
+    _current_unit_registry = _UnitRegistry(old_registry.all_units,
+                                           equivalencies)
     yield
     _current_unit_registry = old_registry
 
@@ -388,9 +434,8 @@ def add_enabled_equivalencies_context(equivalencies):
     """
     global _current_unit_registry
     old_registry = get_current_unit_registry()
-    _current_unit_registry = _UnitRegistry()
-    add_enabled_units(old_registry.all_units)
-    add_enabled_equivalencies(old_registry.equivalencies)
+    _current_unit_registry = _UnitRegistry(old_registry.all_units,
+                                           old_registry.equivalencies)
     add_enabled_equivalencies(equivalencies)
     yield
     _current_unit_registry = old_registry
@@ -516,37 +561,27 @@ class UnitBase(object):
     @staticmethod
     def _normalize_equivalencies(equivalencies):
         """
-        Normalizes a list of equivalencies, by ensuring each element
-        is a 4-tuple of the form::
+        Normalizes equivalencies, ensuring each is a 4-tuple of the form::
 
-            (from_unit, to_unit, forward_func, backward_func)
+        (from_unit, to_unit, forward_func, backward_func)
 
-        Raises a ValueError if the equivalencies list is invalid.
+        Parameters
+        ----------
+        equivalencies : list of equivalency pairs, or `None`
+
+        Returns
+        -------
+        A normalized list, including possible global defaults set by, e.g.,
+        `set_enabled_equivalencies`, except when `equivalencies`=`None`,
+        in which case the returned list is always empty.
+
+        Raises
+        ------
+        ValueError if an equivalency cannot be interpreted
         """
-        normalized = []
-
-        if equivalencies is None:
-            equivalencies = get_current_unit_registry().equivalencies
-
-        for i, equiv in enumerate(equivalencies):
-            if len(equiv) == 2:
-                funit, tunit = equiv
-                a = b = lambda x: x
-            elif len(equiv) == 3:
-                funit, tunit, a = equiv
-                b = a
-            elif len(equiv) == 4:
-                funit, tunit, a, b = equiv
-            else:
-                raise ValueError(
-                    "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
-            if not (isinstance(funit, UnitBase) and
-                    (isinstance(tunit, UnitBase) or tunit is None) and
-                    six.callable(a) and
-                    six.callable(b)):
-                raise ValueError(
-                    "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
-            normalized.append((funit, tunit, a, b))
+        normalized = _normalize_equivalencies(equivalencies)
+        if equivalencies is not None:
+            normalized += get_current_unit_registry().equivalencies
 
         return normalized
 
@@ -661,7 +696,7 @@ class UnitBase(object):
         """
         return self
 
-    def is_equivalent(self, other, equivalencies=None):
+    def is_equivalent(self, other, equivalencies=[]):
         """
         Returns `True` if this unit is equivalent to `other`.
 
@@ -675,8 +710,9 @@ class UnitBase(object):
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
-            Any list given, including an empty one, supercedes global defaults
-            that may be in effect (as set by `set_enabled_equivalencies`)
+            This list is in addition to possible global defaults set by, e.g.,
+            `set_enabled_equivalencies`.
+            Use `None` to turn off all equivalencies.
 
         Returns
         -------
@@ -684,7 +720,8 @@ class UnitBase(object):
         """
 
         if isinstance(other, tuple):
-            return any(self.is_equivalent(u, equivalencies=[]) for u in other)
+            return any(self.is_equivalent(u, equivalencies=None)
+                       for u in other)
         else:
             other = Unit(other, parse_strict='silent')
 
@@ -696,7 +733,7 @@ class UnitBase(object):
         """Returns True if this unit is equivalent to `other`.
         See `is_equivalent`, except that a proper Unit object should be
         given (i.e., no string) and that the equivalency list should be
-        normalised.
+        normalized using `_normalize_equivalencies`.
         """
         if isinstance(other, UnrecognizedUnit):
             return False
@@ -774,7 +811,7 @@ class UnitBase(object):
             "{0} and {1} are not convertible".format(
                 unit_str, other_str))
 
-    def get_converter(self, other, equivalencies=None):
+    def get_converter(self, other, equivalencies=[]):
         """
         Return the conversion function to convert values from `self`
         to the specified unit.
@@ -787,8 +824,9 @@ class UnitBase(object):
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
-            Any list given, including an empty one, supercedes global defaults
-            that may be in effect (as set by `set_enabled_equivalencies`)
+            This list is in addition to possible global defaults set by, e.g.,
+            `set_enabled_equivalencies`.
+            Use `None` to turn off all equivalencies.
 
         Returns
         -------
@@ -813,7 +851,7 @@ class UnitBase(object):
                 self, other, equivalencies)
         return lambda val: scale * _condition_arg(val)
 
-    def to(self, other, value=1.0, equivalencies=None):
+    def to(self, other, value=1.0, equivalencies=[]):
         """
         Return the converted values in the specified unit.
 
@@ -829,8 +867,9 @@ class UnitBase(object):
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
-            Any list given, including an empty one, supercedes global defaults
-            that may be in effect (as set by `set_enabled_equivalencies`)
+            This list is in addition to possible global defaults set by, e.g.,
+            `set_enabled_equivalencies`.
+            Use `None` to turn off all equivalencies.
 
         Returns
         -------
@@ -847,7 +886,7 @@ class UnitBase(object):
         other = Unit(other)
         return self.get_converter(other, equivalencies=equivalencies)(value)
 
-    def in_units(self, other, value=1.0, equivalencies=None):
+    def in_units(self, other, value=1.0, equivalencies=[]):
         """
         Alias for `to` for backward compatibility with pynbody.
         """
@@ -998,7 +1037,7 @@ class UnitBase(object):
         cached_results[key] = [self]
         return [self]
 
-    def compose(self, equivalencies=None, units=None, max_depth=2,
+    def compose(self, equivalencies=[], units=None, max_depth=2,
                 include_prefix_units=False):
         """
         Return the simplest possible composite unit(s) that represent
@@ -1010,8 +1049,9 @@ class UnitBase(object):
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to also list.  See
             :ref:`unit_equivalencies`.
-            Any list given, including an empty one, supercedes global defaults
-            that may be in effect (as set by `set_enabled_equivalencies`)
+            This list is in addition to possible global defaults set by, e.g.,
+            `set_enabled_equivalencies`.
+            Use `None` to turn off all equivalencies.
 
         units : set of units to compose to, optional
             If not provided, any known units may be used to compose
@@ -1227,7 +1267,7 @@ class UnitBase(object):
                          [']'])
                 return '\n'.join(lines)
 
-    def find_equivalent_units(self, equivalencies=None, units=None,
+    def find_equivalent_units(self, equivalencies=[], units=None,
                               include_prefix_units=False):
         """
         Return a list of all the units that are the same type as the
