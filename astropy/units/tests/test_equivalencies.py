@@ -215,13 +215,17 @@ def test_spectral4(in_val, in_unit):
 
 
 def test_spectraldensity():
-    ev = u.Quantity(2.2, u.eV)
-
-    a = u.AA.to(u.Jy, 1, u.spectral_density(ev))
+    a = u.AA.to(u.Jy, 1, u.spectral_density(u.eV, 2.2))
     assert_allclose(a, 1059416252057.8357, rtol=1e-4)
 
-    b = u.Jy.to(u.AA, a, u.spectral_density(ev))
+    b = u.Jy.to(u.AA, a, u.spectral_density(u.eV, 2.2))
     assert_allclose(b, 1)
+
+    c = u.AA.to(u.Jy, 1, u.spectral_density(2.2 * u.eV))
+    assert_allclose(c, 1059416252057.8357, rtol=1e-4)
+
+    d = u.Jy.to(u.AA, c, u.spectral_density(2.2 * u.eV))
+    assert_allclose(d, 1)
 
 
 def test_spectraldensity2():

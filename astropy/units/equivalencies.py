@@ -47,7 +47,7 @@ def spectral():
     ]
 
 
-def spectral_density(wav):
+def spectral_density(wav, factor=None):
     """
     Returns a list of equivalence pairs that handle spectral density
     with regard to wavelength and frequency.
@@ -58,7 +58,21 @@ def spectral_density(wav):
         Quantity associated with values being converted
         (e.g., wavelength or frequency).
 
+    Notes
+    -----
+    The ``factor`` argument is left for backward-compatibility with the syntax
+    ``spectral_density(unit, factor)`` but users are encouraged to use
+    ``spectral_density(factor * unit)`` instead.
+
     """
+    from .core import UnitBase
+
+    if isinstance(wav, UnitBase):
+        if factor is None:
+            raise ValueError(
+                'If ``wav`` is specified as a unit, ``factor`` should be set')
+        wav = factor * wav   # Convert to Quantity
+
     c_Aps = _si.c.to(si.AA / si.s).value  # Angstrom/s
     h_cgs = _si.h.cgs.value  # erg * s
     hc = c_Aps * h_cgs
