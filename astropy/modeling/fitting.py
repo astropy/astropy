@@ -92,15 +92,18 @@ class Fitter(object):
         self.bounds = []
         self.fixed = []
         self.tied = []
+        self.eqcons = []
+        self.ineqcons = []
+
         self._set_constraints()
-        self._fitparams = self._model_to_fit_params()
+        self._fitparams, self._fitparam_indices = self._model_to_fit_params()
         self._validate_constraints()
         self._weights = None
 
     def _set_constraints(self):
         pars = [getattr(self.model, name) for name in self.model.param_names]
-        self.fixed = [par.fixed for par in pars]
-        self.tied = [par.tied for par in pars]
+        self.fixed = np.array([par.fixed for par in pars])
+        self.tied = np.array([par.tied for par in pars])
         min_values = [par.min for par in pars]
         max_values = [par.max for par in pars]
         b = []
@@ -110,7 +113,10 @@ class Fitter(object):
             if j is None:
                 j = 10 ** 12
             b.append((i, j))
-        self.bounds = b[:]
+        self.bounds = np.array(b)
+
+        self.eqcons = np.array(self.model.eqcons)
+        self.ineqcons = np.array(self.model.ineqcons)
 
     @property
     def model(self):
@@ -146,13 +152,13 @@ class Fitter(object):
             fitparams = list(fps[:])
             mpars = []
             for i, name in enumerate(self.model.param_names):
-                if self.fixed[i] is True:
+                if self.fixed[i] == True:
                     par = getattr(self.model, name)
                     if len(par.shape) == 0:
                         mpars.extend([par.value])
                     else:
                         mpars.extend(par.value)
-                elif self.tied[i] is not False:
+                elif self.tied[i] != False:
                     val = self.tied[i](self.model)
                     if isinstance(val, numbers.Number):
                         mpars.append(val)
@@ -164,7 +170,7 @@ class Fitter(object):
                     mpars.extend(fitparams[:plen])
                     del fitparams[:plen]
             self.model.parameters = mpars
-        elif any([b != (-1E12, 1E12) for b in self.bounds]):
+        elif any([tuple(b) != (-1E12, 1E12) for b in self.bounds]):
             self._set_bounds(fps)
         else:
             self.model.parameters[:] = fps
@@ -177,15 +183,19 @@ class Fitter(object):
         constant or tied.
         """
 
+        fitparam_indices = []
         if any(self.model.fixed.values()) or any(self.model.tied.values()):
-            pars = self.model._parameters[:]
-            for item in self.model.param_names[::-1]:
-                if self.model.fixed[item] or self.model.tied[item]:
-                    sl = self.model._parameters.slices[item].start
-                    del pars[sl]
-            return pars
+            params = self.model._parameters[:]
+            for idx, name in enumerate(self.model.param_names[::-1]):
+                if self.model.fixed[name] or self.model.tied[name]:
+                    sl = self.model._parameters.slices[name].start
+                    del params[sl]
+                else:
+                    fitparam_indices.append(idx)
+            return np.array(params), fitparam_indices
         else:
-            return self.model._parameters
+            return (np.array(self.model._parameters),
+                    range(len(self.model.param_names)))
 
     def _set_bounds(self, pars):
         """
@@ -254,7 +264,8 @@ class Fitter(object):
         if any(self.tied) and 'tied' not in c:
             raise ValueError("{0} cannot handle tied parameter",
                              "constraints ".format(fname))
-        if any([b != (-1E12, 1E12) for b in self.bounds]) and 'bounds' not in c:
+        if (any([tuple(b) != (-1E12, 1E12) for b in self.bounds]) and
+                'bounds' not in c):
             raise ValueError("{0} cannot handle bound parameter",
                              "constraints".format(fname))
         if self.model.eqcons and 'eqcons' not in c:
@@ -282,7 +293,7 @@ class Fitter(object):
 
     def _update_constraints(self):
         self._set_constraints()
-        self._fitparams = self._model_to_fit_params()
+        self._fitparams, self._fitparam_indices = self._model_to_fit_params()
 
     @abc.abstractmethod
     def __call__(self):
@@ -697,14 +708,28 @@ class SLSQPFitter(Fitter):
             raise ValueError("NonLinearLSQFitter can only fit "
                              "one data set at a time")
 
-        p0 = self.model._parameters[:]
+        p0 = self.fitparams
 
-        self.fitparams, final_func_val, numiter, exit_mode, mess = \
+        if self.bounds.size:
+            bounds = self.bounds[self._fitparam_indices]
+        else:
+            bounds = []
+
+        if self.eqcons.size:
+            eqcons = self.eqcons[self._fitparam_indices]
+        else:
+            eqcons = []
+
+        if self.ineqcons.size:
+            ineqcons = self.ineqcons[self._fitparam_indices]
+        else:
+            ineqcons = []
+
+        self.fitpars, final_func_val, numiter, exit_mode, mess = \
             optimize.fmin_slsqp(
                 self.errorfunc, p0, args=farg, disp=verblevel, full_output=1,
-                bounds=self.bounds, eqcons=self.model.eqcons,
-                ieqcons=self.model.ineqcons, iter=maxiter, acc=1.E-6,
-                epsilon=EPS)
+                bounds=bounds, eqcons=eqcons, ieqcons=ineqcons, iter=maxiter,
+                acc=1.E-6, epsilon=EPS)
 
         self.fit_info['final_func_val'] = final_func_val
         self.fit_info['numiter'] = numiter
