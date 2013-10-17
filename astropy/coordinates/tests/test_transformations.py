@@ -34,8 +34,8 @@ def test_transform_classes():
     c1 = TestCoo1(1, 0.5, unit=(u.radian, u.radian))
     c1._make_cart()
     c2 = c1.transform_to(TestCoo2)
-    npt.assert_almost_equal(c2.ra.radian, 1)
-    npt.assert_almost_equal(c2.dec.radian, 0.5)
+    npt.assert_allclose(c2.ra.radian, 1)
+    npt.assert_allclose(c2.dec.radian, 0.5)
 
     def matfunc(coo):
         return [[1, 0, 0],
@@ -47,8 +47,8 @@ def test_transform_classes():
     c3._make_cart()
     c4 = c3.transform_to(TestCoo2)
 
-    npt.assert_almost_equal(c4.ra.degree, 1)
-    npt.assert_almost_equal(c4.ra.degree, 1)
+    npt.assert_allclose(c4.ra.degree, 1)
+    npt.assert_allclose(c4.ra.degree, 1)
 
 
 def test_transform_decos():
@@ -63,8 +63,8 @@ def test_transform_decos():
 
     c1._make_cart()
     c2 = c1.transform_to(TestCoo2)
-    npt.assert_almost_equal(c2.ra.degree, 1)
-    npt.assert_almost_equal(c2.dec.degree, 4)
+    npt.assert_allclose(c2.ra.degree, 1)
+    npt.assert_allclose(c2.dec.degree, 4)
 
     c3 = TestCoo1(x=1, y=1, z=2, unit=u.pc)
 
@@ -77,9 +77,9 @@ def test_transform_decos():
     c3._make_cart()
     c4 = c3.transform_to(TestCoo2)
 
-    npt.assert_almost_equal(c4.x.value, 2)
-    npt.assert_almost_equal(c4.y.value, 1)
-    npt.assert_almost_equal(c4.z.value, 2)
+    npt.assert_allclose(c4.x.value, 2)
+    npt.assert_allclose(c4.y.value, 1)
+    npt.assert_allclose(c4.z.value, 2)
 
 
 def test_coo_alias():
@@ -148,24 +148,24 @@ def test_sphere_cart():
 
 
     x, y, z = spherical_to_cartesian(1, 0, 0)
-    npt.assert_almost_equal(x, 1)
-    npt.assert_almost_equal(y, 0)
-    npt.assert_almost_equal(z, 0)
+    npt.assert_allclose(x, 1)
+    npt.assert_allclose(y, 0)
+    npt.assert_allclose(z, 0)
 
     x, y, z = spherical_to_cartesian(0, 1, 1)
-    npt.assert_almost_equal(x, 0)
-    npt.assert_almost_equal(y, 0)
-    npt.assert_almost_equal(z, 0)
+    npt.assert_allclose(x, 0)
+    npt.assert_allclose(y, 0)
+    npt.assert_allclose(z, 0)
 
     x, y, z = spherical_to_cartesian(5, 0, np.arcsin(4. / 5.))
-    npt.assert_almost_equal(x, 3)
-    npt.assert_almost_equal(y, 4)
-    npt.assert_almost_equal(z, 0)
+    npt.assert_allclose(x, 3)
+    npt.assert_allclose(y, 4)
+    npt.assert_allclose(z, 0)
 
     r, lat, lon = cartesian_to_spherical(0, 1, 0)
-    npt.assert_almost_equal(r, 1)
-    npt.assert_almost_equal(lat, 0)
-    npt.assert_almost_equal(lon, np.pi / 2)
+    npt.assert_allclose(r, 1)
+    npt.assert_allclose(lat, 0)
+    npt.assert_allclose(lon, np.pi / 2)
 
     #test round-tripping
     with NumpyRNGContext(13579):
