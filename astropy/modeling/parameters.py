@@ -270,6 +270,9 @@ class Parameter(object):
     def __pow__(self, val):
         return np.asarray(self._value) ** val
 
+    def __rpow__(self, val):
+        return val ** np.asarray(self._value)
+
     def __div__(self, val):
         return np.asarray(self._value) / val
 

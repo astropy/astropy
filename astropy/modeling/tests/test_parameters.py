@@ -2,6 +2,7 @@
 """
 Tests models.parameters
 """
+from __future__ import division
 from .. import models, fitting
 from . import irafutil
 from ..utils import InputParameterError
@@ -32,6 +33,68 @@ class TestParModel(ParametricModel):
     def __call__(self):
         pass
 
+
+def test_parameter_properties():
+    """Test if getting / setting of Parameter properties works.
+    """
+    # Currently it is possible to test Parameter independently of Model,
+    # by setting mclass=object in the Parameter constructor.
+    p = Parameter(name='alpha', val=42, mclass=object, param_dim=1)
+
+    assert p.param_dim == 1
+    p.param_dim = 2
+    assert p.param_dim == 2
+
+    assert p.mclass == object
+    p.mclass = 'asdf'
+    p.mclass = object
+
+    assert p.name == 'alpha'
+    p.name = 'beta'
+    assert p.name == 'beta'
+
+    assert p.fixed == False
+    p.fixed = True
+    assert p.fixed == True
+
+    assert p.tied == False
+    p.tied = lambda _: 0
+
+    p.tied = False
+    assert p.tied == False
+
+    assert p.min == None
+    p.min = 42
+    assert p.min == 42
+    p.min = None
+    assert p.min == None
+
+    assert p.max == None
+    # TODO: shouldn't setting a max < min give an error?
+    p.max = 41
+    assert p.max == 41
+
+
+def test_parameter_operators():
+    """Test if the parameter arithmetic operators works,
+    i.e. whether parameters behave like numbers."""
+    par = Parameter(name='alpha', val=5., mclass=object, param_dim=1)
+    num = 5.
+    val = 3
+
+    assert par - val == num - val
+    assert val - par == val - num
+    assert par / val == num / val
+    assert val / par == val / num
+    assert par ** val == num ** val
+    assert val ** par == val ** num
+    assert par < 6
+    assert par > 3
+    assert par <= par
+    assert par >= par
+    assert par == par
+    assert -par == -num
+    assert abs(par) == abs(num)
 
 class TestParameters(object):
 
