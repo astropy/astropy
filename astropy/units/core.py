@@ -566,7 +566,8 @@ class UnitBase(object):
                 if b is None:
                     # after canceling, is what's left convertable
                     # to dimensionless (according to the equivalency)?
-                    if (unit/other).bases == [a]:
+                    a = a.decompose()
+                    if set(unit.bases) ^ set(other.bases) == set(a.bases):
                         return True
                 else:
                     if(unit.is_equivalent(a) and other.is_equivalent(b) or
