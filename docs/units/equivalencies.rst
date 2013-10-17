@@ -70,9 +70,19 @@ But when passing we pass the proper conversion function,
 
   >>> u.deg.to('', equivalencies=u.angles_dimensionless())
   0.017453292519943295
-  >>> (u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J, 0.5e38,
+  >>> (0.5e38 * u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J, 
                                    equivalencies=u.angles_dimensionless())
-  1.9739208802178715e+39
+  <Quantity 1.9739208802178715e+39 J>
+
+If one has a long piece of code that requires this, one can set it as a
+global default equivalency using `~astropy.units.set_enabled_equivalenies`.
+Alternatively, one can do so within a given scope using the context
+manager `~astropy.units.set_enabled_equivalenies_context`.
+
+  >>> with u.set_enabled_equivalencies_context(u.angles_dimensionless()):
+  ...     c = np.exp(1j*0.5*u.cycle)
+  >>> c
+  <Quantity (-1+1.2246467991473532e-16j) >
 
 Spectral Units
 ^^^^^^^^^^^^^^
