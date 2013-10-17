@@ -482,6 +482,9 @@ class Parameter(object):
     def __pow__(self, val):
         return self.value ** val
 
+    def __rpow__(self, val):
+        return val ** self.value
+
     def __div__(self, val):
         return self.value / val
 
@@ -513,7 +516,7 @@ class Parameter(object):
         return (np.asarray(self) >= np.asarray(val)).all()
 
     def __neg__(self):
-        return -self.value * (-1)
+        return -self.value
 
     def __abs__(self):
         return np.abs(self.value)
