@@ -30,8 +30,10 @@ __all__ = [
     'UnitsError', 'UnitsException', 'UnitsWarning', 'UnitBase',
     'NamedUnit', 'IrreducibleUnit', 'Unit', 'def_unit',
     'CompositeUnit', 'PrefixUnit', 'UnrecognizedUnit',
-    'get_current_unit_registry', 'set_enabled_units',
-    'add_enabled_units', 'dimensionless_unscaled']
+    'get_current_unit_registry',
+    'set_enabled_units', 'add_enabled_units',
+    'set_enabled_equivalencies', 'add_enabled_equivalencies',
+    'dimensionless_unscaled']
 
 
 def _flatten_units_collection(items):
@@ -67,15 +69,17 @@ class _UnitRegistry(object):
     """
     Manages a registry of the enabled units.
     """
-    def __init__(self, init=[]):
+    def __init__(self, init=[], equivalencies=[]):
         self._reset()
         self.add_enabled_units(init)
+        self.add_enabled_equivalencies(set(equivalencies))
 
     def _reset(self):
         self._all_units = set()
         self._non_prefix_units = set()
         self._registry = {}
         self._by_physical_type = {}
+        self._equivalencies = set()
 
     @property
     def registry(self):
@@ -159,6 +163,45 @@ class _UnitRegistry(object):
             unit._get_physical_type_id(),
             set())
 
+    @property
+    def equivalencies(self):
+        return list(self._equivalencies)
+
+    def set_enabled_equivalencies(self, equivalencies):
+        """
+        Sets the equivalencies enabled in the unit registry.
+
+        These equivalencies are used if no explicit equivalencies are given,
+        both in unit conversion and in finding equivalent units.
+
+        This is meant in particular for allowing angles to be dimensionless.
+        Use with care.
+
+        Parameters
+        ----------
+        equivalencies : list of equivalent pairs
+            E.g., as returned by `astropy.units.angles_dimensionless`.
+        """
+        self._reset()
+        return self.add_enabled_equivalencies(equivalencies)
+
+    def add_enabled_equivalencies(self, equivalencies):
+        """
+        Adds to the set of equivalencies enabled in the unit registry.
+
+        These equivalencies are used if no explicit equivalencies are given,
+        both in unit conversion and in finding equivalent units.
+
+        This is meant in particular for allowing angles to be dimensionless.
+        Use with care.
+
+        Parameters
+        ----------
+        equivalencies : list of equivalent pairs
+            E.g., as returned by `astropy.units.angles_dimensionless`.
+        """
+        self._equivalencies |= set(equivalencies)
+
 
 class _UnitContext(object):
     def __init__(self, init=[]):
@@ -172,6 +215,8 @@ class _UnitContext(object):
 
 
 _unit_registries = [_UnitRegistry()]
+
+
 def get_current_unit_registry():
     return _unit_registries[-1]
 
@@ -270,6 +315,85 @@ def add_enabled_units(units):
     context = _UnitContext(init=get_current_unit_registry().all_units)
     get_current_unit_registry().add_enabled_units(units)
     return context
+
+
+def set_enabled_equivalencies(equivalencies):
+    return (get_current_unit_registry()
+            .set_enabled_equivalencies(equivalencies))
+set_enabled_equivalencies.__doc__ = (_UnitRegistry
+                                     .set_enabled_equivalencies.__doc__)
+
+
+def add_enabled_equivalencies(equivalencies):
+    return get_current_unit_registry().add_enabled_equivalencies(equivalencies)
+add_enabled_equivalencies.__doc__ = (_UnitRegistry
+                                     .add_enabled_equivalencies.__doc__)
+
+
+@contextlib.contextmanager
+def set_enabled_equivalencies_context(equivalencies):
+    """
+    A context manager for temporarily setting the set of equivalencies that
+    are searched by default for unit conversion and finding equivalent units.
+
+    This is meant in particular for allowing angles to be dimensionless
+    Use with care.
+
+    Parameters
+    ----------
+    equivalencies : list of equivalencies
+        As returned by, e.g., the function `angles_dimensionless`.
+
+    Examples
+    --------
+
+    >>> from astropy import units as u
+    >>> with u.set_enabled_equivalencies_context(u.angles_dimensionless()):
+    ...     np.exp(1j*0.5*u.cycle)
+    ...
+        <Quantity (-1+1.2246467991473532e-16j) >
+    """
+    global _current_unit_registry
+    old_registry = get_current_unit_registry()
+    _current_unit_registry = _UnitRegistry()
+    add_enabled_units(old_registry.all_units)
+    set_enabled_equivalencies(equivalencies)
+    yield
+    _current_unit_registry = old_registry
+
+
+@contextlib.contextmanager
+def add_enabled_equivalencies_context(equivalencies):
+    """
+    A context manager for temporarily adding to the set of equivalencies that
+    are searched by default for unit conversion and finding equivalent units.
+
+    This is meant in particular for allowing angles to be dimensionless
+    Use with care.
+
+    Parameters
+    ----------
+    equivalencies : list of equivalencies
+        As returned by, e.g., the function `angles_dimensionless`.
+
+    Examples
+    --------
+
+    >>> from astropy import units as u
+    >>> with u.add_enabled_equivalencies_context(u.angles_dimensionless()):
+    ...     a = np.exp(1j*0.5*u.cycle)
+    ...
+    >>> a
+        <Quantity (-1+1.2246467991473532e-16j) >
+    """
+    global _current_unit_registry
+    old_registry = get_current_unit_registry()
+    _current_unit_registry = _UnitRegistry()
+    add_enabled_units(old_registry.all_units)
+    add_enabled_equivalencies(old_registry.equivalencies)
+    add_enabled_equivalencies(equivalencies)
+    yield
+    _current_unit_registry = old_registry
 
 
 class UnitsError(Exception):
@@ -400,6 +524,10 @@ class UnitBase(object):
         Raises a ValueError if the equivalencies list is invalid.
         """
         normalized = []
+
+        if not equivalencies:
+            equivalencies = get_current_unit_registry().equivalencies
+
         for i, equiv in enumerate(equivalencies):
             if len(equiv) == 2:
                 funit, tunit = equiv

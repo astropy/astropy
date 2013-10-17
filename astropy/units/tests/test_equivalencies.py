@@ -39,6 +39,14 @@ def test_dimensionless_angles():
     assert phase.to(1).value == u.cycle.to(u.radian)
 
 
+def test_dimensionless_angles_context():
+    with u.set_enabled_equivalencies_context(u.angles_dimensionless()):
+        phase = u.Quantity(1., u.cycle)
+        assert_allclose(np.exp(1j*phase), 1.)
+        Omega = u.cycle / (1.*u.minute)
+        assert_allclose(np.exp(1j*Omega*60.*u.second), 1.)
+
+
 functions = [u.doppler_optical, u.doppler_radio, u.doppler_relativistic]
 
 
