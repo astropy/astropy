@@ -134,6 +134,9 @@ code, pre {
   -moz-border-radius: 3px;
   border-radius: 3px;
 }
+tt {
+  font-family: Monaco, Andale Mono, Courier New, monospace;
+}
 code {
   color: rgba(0, 0, 0, 0.75);
   padding: 1px 3px;
