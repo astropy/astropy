@@ -78,7 +78,19 @@ coordinates::
     >>> c.z
     507.88994291875713
 
-The `Coordinates` subpackage also provides a quick way to get
+Coordinate objects can also store arrays of coordinates instead of a
+single coordinate.  This has a major performance advantage over 
+transforming many individual coordinate objects separtely.  It also
+allows coordinate objects to be used to find matches between two sets
+of coordinates::
+
+    >>> #assume ra1/dec1 and ra2/dec2 are arrays loaded from some file
+    >>> c = coord.ICRSCoordinates(ra1, dec1, unit=(u.degree, u.degree))
+    >>> catalog = coord.ICRSCoordinates(ra2, dec2, unit=(u.degree, u.degree))
+    >>> idx, d2d, d3d = c1.match_to_catalog_sky(catalog)
+
+
+The `coordinates` subpackage also provides a quick way to get
 coordinates for named objects (with an internet connection). All
 subclasses of
 `~astropy.coordinates.coordsystems.SphericalCoordinatesBase` have a
@@ -119,6 +131,7 @@ More details of using `astropy.coordinates` are provided in the following sectio
    separations
    distances
    transforming
+   matching
    designing
    sgr-example
 
