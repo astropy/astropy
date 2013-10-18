@@ -9,17 +9,16 @@ define their own models.
 
 from __future__ import division
 
-import bisect
 import inspect
 import functools
 import numbers
 
 import numpy as np
 
-from ..utils import isiterable, lazyproperty
+from ..utils import isiterable
 
 
-__all__ = ['Parameters', 'Parameter', 'InputParameterError']
+__all__ = ['Parameter', 'InputParameterError']
 
 
 class InputParameterError(Exception):
@@ -53,8 +52,8 @@ def _tofloat(value):
 
 
 # TODO: Is there really any need for this special exception over just, say, a
-# ValueError? Or maybe this should be a subclass of ValueError?
-class InputParameterError(Exception):
+# ValueError?
+class InputParameterError(ValueError):
     """
     Called when there's a problem with input parameters.
     """
@@ -90,10 +89,11 @@ class Parameter(object):
     # See the _nextid classmethod
     _nextid = 1
 
-    def __init__(self, name, getter=None, setter=None, fixed=False,
-                 tied=False, min=None, max=None, model=None):
+    def __init__(self, name, default=None, getter=None, setter=None,
+                 fixed=False, tied=False, min=None, max=None, model=None):
         super(Parameter, self).__init__()
         self._name = name
+        self._default = default
         self._attr = '_' + name
 
         self._default_fixed = fixed
@@ -103,6 +103,7 @@ class Parameter(object):
 
         self._order = None
 
+        self._shape = ()
         self._model = model
 
         # The getter/setter functions take one or two arguments: The first
@@ -120,7 +121,11 @@ class Parameter(object):
             self._setter = None
 
         if model is not None:
-            _, self._shape = self._validate_value(model, self.value)
+            try:
+                _, self._shape = self._validate_value(model, self.value)
+            except AttributeError:
+                # This can happen if the paramter's value has not been set yet
+                pass
         else:
             # Only Parameters declared as class-level descriptors require
             # and ordering ID
@@ -149,17 +154,7 @@ class Parameter(object):
             setter = self._create_value_wrapper(self._setter, obj)
             value = setter(value)
 
-        if (hasattr(obj, '_parameters') and
-                isinstance(obj._parameters, Parameters)):
-            # Model instance has a Parameters list (in general this means it's
-            # a ParametricModel)
-            setattr(obj, self._attr, value)
-            # Rebuild the Parameters list
-            # TODO: Is this really necessary? Could we get away with just
-            # updating this parameter's value in the Parameters list?
-            obj._parameters = Parameters(obj)
-        else:
-            setattr(obj, self._attr, value)
+        setattr(obj, self._attr, value)
 
     def __len__(self):
         if self._model is None:
@@ -216,12 +211,25 @@ class Parameter(object):
         return self._name
 
     @property
+    def default(self):
+        """Parameter default value"""
+
+        if self._model.param_dim == 1:
+            return self._default
+        else:
+            return np.repeat(self._default, self._model.param_dim)
+
+    @property
     def value(self):
         if self._model is not None:
             if not hasattr(self._model, self._attr):
-                raise AttributeError(
-                    'Parameter value for {0!r} not set'.format(self._name))
-            value = getattr(self._model, self._attr)
+                if self._default is not None:
+                    value = self.default
+                else:
+                    raise AttributeError(
+                        'Parameter value for {0!r} not set'.format(self._name))
+            else:
+                value = getattr(self._model, self._attr)
             if self._getter is None:
                 return value
             else:
@@ -502,162 +510,3 @@ class Parameter(object):
 
     def __abs__(self):
         return np.abs(self.value)
-
-
-class Parameters(object):
-    """
-    View model parameters as a flat list of floats.
-
-    This is a sequence object which provides a view of model parameters. Only
-    instances of `~astropy.modeling.core.ParametricModel` keep an instance of
-    this class as an attribute. The list of parameters can be modified by the
-    user or by an instance of `~astropy.modeling.fitting.Fitter`.
-
-    This is a list-like object which stores model parameters. Only  instances
-    of `~astropy.modeling.core.ParametricModel` keep an instance of this class
-    as an attribute. The list of parameters can be modified by the user or by
-    an instance of `~astropy.modeling.fitting.Fitter`.  This list of parameters
-    is kept in sync with single model parameter attributes.  When more than one
-    dimensional, a `~astropy.modeling.fitting.Fitter` treats each set of
-    parameters as belonging to the same model but different set of data.
-
-    Parameters
-    ----------
-    model : object
-        an instance of a subclass of `~astropy.modeling.core.ParametricModel`
-    """
-
-    def __init__(self, model):
-        self._model = model
-
-    def __repr__(self):
-        return repr(self._flatten())
-
-    def __len__(self):
-        return self.size
-
-    def __getitem__(self, key):
-        if isinstance(key, slice):
-            # TODO: For now slices are handled by generating the full flattened
-            # list and slicing it, but this can be made much more efficient
-            return self._flatten()[key]
-        else:
-            if key >= self.size:
-                raise IndexError
-            starts_idx = bisect.bisect_left(self.starts, (key, ''))
-            if starts_idx == len(self.starts):
-                starts_idx -= 1
-            param_start, param_name = self.starts[starts_idx]
-
-            if param_start > key:
-                # We want the previous parameter bin
-                param_start, param_name = self.starts[starts_idx - 1]
-
-            param = getattr(self._model, param_name)
-            if param.size == 1:
-                # Quick out for scalar parameter values
-                return param.value
-
-            # key is the index of the virtual flattened array; here we want to
-            # convert it into the correct index for this parameter's array
-            param_idx = key - param_start
-            return getattr(self._model, param_name).value.flat[param_idx]
-
-    def __setitem__(self, key, value):
-        if isinstance(key, slice):
-            for idx, val in zip(range(*key.indices(len(self))), value):
-                self.__setitem__(idx, val)
-        else:
-            if key >= self.size:
-                raise IndexError
-            starts_idx = bisect.bisect_left(self.starts, (key, ''))
-            if starts_idx == len(self.starts):
-                starts_idx -= 1
-            param_start, param_name = self.starts[starts_idx]
-            if param_start > key:
-                # We want the previous parameter bin
-                param_start, param_name = self.starts[starts_idx - 1]
-
-            param = getattr(self._model, param_name)
-
-            if param.size == 1:
-                setattr(self._model, param_name, value)
-            else:
-                param_idx = key - param_start
-                param.value.flat[param_idx] = value
-
-    def __eq__(self, other):
-        """Implement list equality."""
-
-        return self[:] == other
-
-    def __ne__(self, other):
-        """Implement list inequality."""
-
-        return self[:] != other
-
-    @lazyproperty
-    def size(self):
-        """The number of items in the flattened array."""
-
-        # This is just the end index of the last parameter
-        last = self._model.param_names[-1]
-        return self.slices[last].stop
-
-    @lazyproperty
-    def slices(self):
-        """The start and stop indces in the flattened array for each parameter.
-
-        Each parameter can have multiple items in the flattened array depending
-        on the number of parameter dimensions and the shape of each parameter.
-        This number is already fixed once a model has been created, so this
-        mapping only needs to be generated once.
-        """
-
-        slices = {}
-        index = 0
-
-        for name in self._model.param_names:
-            parameter = getattr(self._model, name)
-            size = parameter.size
-            slices[parameter.name] = slice(index, index + size)
-            index += size
-
-        return slices
-
-    @lazyproperty
-    def starts(self):
-        """A list of tuples pairing the start index of a parameter with
-        the parameter name.
-
-        This is most useful for mapping some index in the "flattened" parameter
-        value list to a specific parameter (see `__getitem__` for example).
-        """
-
-        return sorted((slc.start, name) for name, slc in self.slices.items())
-
-    def _is_same_length(self, newparams):
-        """
-        Checks if the user supplied value of
-        `~astropy.modeling.core.ParametricModel.parameters` has the same length
-        as the original parameters list.
-        """
-
-        # TODO: Would len(newpars) == len(parsize) really not be sufficient?
-        parsize = _tofloat(newparams)[0].size
-        return parsize == len(self)
-
-    def _flatten(self):
-        """
-        Create a flat list of model parameters.
-        """
-
-        params = []
-        for name in self._model.param_names:
-            value = getattr(self._model, name).value
-            if isinstance(value, np.ndarray):
-                params.extend(value.flatten())
-            else:
-                params.append(value)
-
-        return params

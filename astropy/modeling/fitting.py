@@ -148,32 +148,37 @@ class Fitter(object):
         """
 
         self._fitparams[:] = fps
+
         if any(self.fixed) or any(self.tied):
-            fitparams = list(fps[:])
-            mpars = []
+            mparams = []
+            fitparams = list(fps)
             for i, name in enumerate(self.model.param_names):
                 if self.fixed[i] == True:
-                    par = getattr(self.model, name)
-                    if len(par.shape) == 0:
-                        mpars.extend([par.value])
+                    param = getattr(self.model, name)
+                    if len(param.shape) == 0:
+                        mparams.extend([param.value])
                     else:
-                        mpars.extend(par.value)
+                        mparams.extend(param.value)
                 elif self.tied[i] != False:
-                    val = self.tied[i](self.model)
-                    if isinstance(val, numbers.Number):
-                        mpars.append(val)
+                    value = self.tied[i](self.model)
+                    if isinstance(value, numbers.Number):
+                        mparams.append(value)
                     else:
-                        mpars.extend(val)
+                        mparams.extend(value)
                 else:
-                    sl = self.model._parameters.slices[name]
-                    plen = sl.stop - sl.start
-                    mpars.extend(fitparams[:plen])
-                    del fitparams[:plen]
-            self.model.parameters = mpars
+                    # The parameters being fitted are in the fps list in the
+                    # same order they appear in the model parameters array, so
+                    # just pop the values the current parameter off the end of
+                    # the list
+                    slice_ = self.model._param_metrics[name][0]
+                    param_len = slice_.stop - slice_.start
+                    mparams.extend(fitparams[:param_len])
+                    del fitparams[:param_len]
+            self.model.parameters = mparams
         elif any([tuple(b) != (-1E12, 1E12) for b in self.bounds]):
             self._set_bounds(fps)
         else:
-            self.model.parameters[:] = fps
+            self.model.parameters = fps
 
     def _model_to_fit_params(self):
         """
@@ -185,16 +190,16 @@ class Fitter(object):
 
         fitparam_indices = []
         if any(self.model.fixed.values()) or any(self.model.tied.values()):
-            params = self.model._parameters[:]
+            params = list(self.model.parameters)
             for idx, name in enumerate(self.model.param_names[::-1]):
                 if self.model.fixed[name] or self.model.tied[name]:
-                    sl = self.model._parameters.slices[name].start
+                    sl = self.model._param_metrics[name][0].start
                     del params[sl]
                 else:
                     fitparam_indices.append(idx)
             return np.array(params), fitparam_indices
         else:
-            return (np.array(self.model._parameters),
+            return (self.model.parameters.copy(),
                     range(len(self.model.param_names)))
 
     def _set_bounds(self, pars):
@@ -226,7 +231,7 @@ class Fitter(object):
         """
 
         if any(self.fixed) or any(self.tied):
-            params = self.model._parameters
+            params = self.model.parameters
 
             if z is None:
                 full_deriv = np.array(self.model.deriv(x, *params))
@@ -478,7 +483,7 @@ class LinearLSQFitter(Fitter):
         if rank != self.model._order:
             warnings.warn("The fit may be poorly conditioned\n",
                           AstropyUserWarning)
-        self.fitparams = lacoef.flatten()[:]
+        self.fitparams = lacoef.flatten()
 
 
 class NonLinearLSQFitter(Fitter):
@@ -777,9 +782,9 @@ class JointFitter(object):
         fparams = []
         fparams.extend(self.initvals)
         for model in self.models:
-            params = model.parameters[:]
+            params = [p.flatten() for p in model.parameters]
             for pname in model.joint:
-                slc = model.parameters.slices[pname]
+                slc = model._param_metrics[pname][0]
                 del params[slc]
             fparams.extend(params)
         return fparams
@@ -819,7 +824,7 @@ class JointFitter(object):
                     # parameter is not a number
                     mparams.extend([jointfitparams[index]])
                 else:
-                    slc = model.parameters.slices[pname]
+                    slc = model._param_metrics[pname][0]
                     plen = slc.stop - slc.start
                     mparams.extend(mfparams[:plen])
                     del mfparams[:plen]
@@ -866,8 +871,8 @@ class JointFitter(object):
                     # is not a number
                     mparams.extend([jointfitparams[index]])
                 else:
-                    slc = model.parameters.slices[pname]
+                    slc = model._param_metrics[pname][0]
                     plen = slc.stop - slc.start
                     mparams.extend(mfparams[:plen])
                     del mfparams[:plen]
-            model.parameters[:] = np.array(mparams)
+            model.parameters = np.array(mparams)

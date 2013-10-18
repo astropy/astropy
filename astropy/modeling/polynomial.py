@@ -14,7 +14,7 @@ import numpy as np
 
 from .core import ParametricModel, Model, SerialCompositeModel, format_input
 from .functional_models import ShiftModel
-from .parameters import Parameter, Parameters
+from .parameters import Parameter
 from .utils import poly_map_domain, comb
 from ..logger import log
 from ..utils import lazyproperty, indent
@@ -62,9 +62,9 @@ class PolynomialBase(ParametricModel):
 
     def __getattr__(self, attr):
         if self._param_names and attr in self._param_names:
-            return Parameter(attr, model=self)
+            return Parameter(attr, default=0.0, model=self)
         else:
-            raise AttributeError(attr)
+            return super(PolynomialBase, self).__getattr__(attr)
 
     def __setattr__(self, attr, value):
         # TODO: Support a means of specifying default values for coefficients
@@ -75,29 +75,12 @@ class PolynomialBase(ParametricModel):
         # Parameter.__set__.
         # TODO: I wonder if there might be a way around that though...
         if attr[0] != '_' and self._param_names and attr in self._param_names:
-            param = Parameter(attr, model=self)
+            param = Parameter(attr, default=0.0, model=self)
             # This is a little hackish, but we can actually reuse the
             # Parameter.__set__ method here
             param.__set__(self, value)
-            # Rebuild the internal Parameters list
-            self._parameters = Parameters(self)
         else:
             super(PolynomialBase, self).__setattr__(attr, value)
-
-    def _set_default_coeffs(self, param_dim):
-        """
-        Set default values for coefficients
-        """
-
-        for name in self.param_names:
-            if param_dim == 1:
-                value = 0.0
-            else:
-                value = np.zeros(param_dim, dtype=float)
-            # This is just setting the default values, so set straight to the
-            # internal attributes instead of going through the __setattr__
-            # magic
-            setattr(self, '_' + name, value)
 
 
 class PolynomialModel(PolynomialBase):
@@ -135,8 +118,6 @@ class PolynomialModel(PolynomialBase):
                                      "({1}).".format(n_params, param_dim))
 
             self._validate_params(**params)
-
-        self._set_default_coeffs(param_dim)
 
         super(PolynomialModel, self).__init__(param_dim=param_dim)
 
@@ -275,8 +256,6 @@ class OrthoPolynomialBase(PolynomialBase):
                                      "({1})".format(n_params, param_dim))
 
             self._validate_params(**params)
-
-        self._set_default_coeffs(param_dim)
 
         super(OrthoPolynomialBase, self).__init__(param_dim=param_dim)
 
@@ -1051,8 +1030,6 @@ class _SIP1D(Model):
                             n_params, param_dim))
 
             self._validate_params(ndim=2, **params)
-
-        self._set_default_coeffs(param_dim)
 
         super(_SIP1D, self).__init__(param_dim=param_dim, **params)
 

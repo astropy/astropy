@@ -23,9 +23,8 @@ class TestParModel(ParametricModel):
     e = Parameter('e')
 
     def __init__(self, coeff, e, param_dim=1):
-        super(TestParModel, self).__init__(param_dim=param_dim)
-        self.coeff = coeff
-        self.e = e
+        super(TestParModel, self).__init__(
+                coeff=coeff, e=e, param_dim=param_dim)
 
     def __call__(self):
         pass
@@ -62,22 +61,23 @@ class TestParameters(object):
         Tests updating the parameters attribute with a slice.
         This is what fitters internally do.
         """
+
         self.model.parameters[:] = np.array([3, 4, 5, 6, 7])
-        assert(self.model.parameters == [3., 4., 5., 6., 7.])
+        assert (self.model.parameters == [3., 4., 5., 6., 7.]).all()
 
     def test_set_parameters_as_list(self):
         """
         Tests updating parameters using a list.
         """
         self.model.parameters = [30, 40, 50, 60, 70]
-        assert(self.model.parameters == [30., 40., 50., 60, 70])
+        assert (self.model.parameters == [30., 40., 50., 60, 70]).all()
 
     def test_set_parameters_as_array(self):
         """
         Tests updating parameters using an array.
         """
         self.model.parameters = np.array([3, 4, 5, 6, 7])
-        assert(self.model.parameters == [3., 4., 5., 6., 7.])
+        assert (self.model.parameters == [3., 4., 5., 6., 7.]).all()
 
     def test_set_as_tuple(self):
         """
@@ -85,7 +85,7 @@ class TestParameters(object):
         """
 
         self.model.parameters = (1, 2, 3, 4, 5)
-        assert self.model.parameters == [1, 2, 3, 4, 5]
+        assert (self.model.parameters == [1, 2, 3, 4, 5]).all()
 
     def test_set_model_attr_seq(self):
         """
@@ -94,14 +94,14 @@ class TestParameters(object):
         """
         self.model.parameters = [0, 0., 0., 0, 0]
         self.model.c0 = 7
-        assert self.model.parameters == [7, 0., 0., 0, 0]
+        assert (self.model.parameters == [7, 0., 0., 0, 0]).all()
 
     def test_set_model_attr_num(self):
         """
         Update the parameter list when a model's parameter is updated.
         """
         self.gmodel.amplitude = 7
-        assert(self.gmodel.parameters == [7, 3, 4])
+        assert (self.gmodel.parameters == [7, 3, 4]).all()
 
     def test_set_item(self):
         """
@@ -109,8 +109,8 @@ class TestParameters(object):
         """
         self.model.parameters = [1, 2, 3, 4, 5]
         self.model.parameters[0] = 10.
-        assert(self.model.parameters == [10, 2, 3, 4, 5])
-        assert(self.model.c0 == 10)
+        assert (self.model.parameters == [10, 2, 3, 4, 5]).all()
+        assert self.model.c0 == 10
 
     def test_wrong_size1(self):
         """

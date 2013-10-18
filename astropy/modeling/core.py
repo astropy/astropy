@@ -50,7 +50,7 @@ from textwrap import dedent
 
 import numpy as np
 
-from .parameters import Parameter, Parameters, InputParameterError, _tofloat
+from .parameters import Parameter, InputParameterError
 from ..utils import indent, isiterable
 
 
@@ -175,9 +175,9 @@ class Model(object):
     param_names = []
     n_inputs = 1
     n_outputs = 1
+    fittable = False
 
     def __init__(self, param_dim=1):
-        self.fittable = False
         self._param_dim = param_dim
 
     @property
@@ -362,6 +362,7 @@ class ParametricModel(Model):
     # Flag that indicates if the model derivatives are given in columns
     # or rows
     col_deriv = True
+    fittable = True
 
 
     def __init__(self, param_dim=1, **params):
@@ -378,16 +379,12 @@ class ParametricModel(Model):
         # valid
         param_names = set(self.param_names)
 
-        for name, value in params.items():
+        for name in params:
             if name not in param_names:
                 raise ValueError(
                     "Unrecognized parameter: {0}".format(name))
-            param_dim = max(param_dim, np.size(value))
 
         super(ParametricModel, self).__init__(param_dim=param_dim)
-
-        self.fittable = True
-        self._parameters = Parameters(self)
 
         # Initialize the constraints for each parameter
         if eqcons is None:
@@ -409,8 +406,7 @@ class ParametricModel(Model):
         if bounds:
             self._constraints['bounds'] = bounds
 
-        for name, value in params.items():
-            setattr(self, name, value)
+        self._initialize_parameters(params)
 
     @property
     def fixed(self):
@@ -460,24 +456,45 @@ class ParametricModel(Model):
         `~astropy.modeling.parameters.Parameters`
         """
 
-        if isinstance(value, Parameters):
-            if self._parameters._is_same_length(value):
-                self._parameters = value
-            else:
-                raise InputParameterError(
-                    "Expected the list of parameters to be the same "
-                    "length as the existing parameters list.")
-        elif isiterable(value):
-            _val = _tofloat(value)[0]
-            if self._parameters._is_same_length(_val):
-                self._parameters[:] = _val
-            else:
-                raise InputParameterError(
-                    "Expected the list of parameters to be the same "
-                    "length as the existing parameters list.")
-        else:
-            raise TypeError("Parameters must be an iterable or a Parameters "
-                            "object")
+        try:
+            value = np.array(value).reshape(self._parameters.shape)
+        except ValueError as e:
+            raise InputParameterError(
+                "Input parameter values not compatible with the model "
+                "parameters array: {0}".format(e))
+
+        self._parameters[:] = value
+
+    def __getattr__(self, attr):
+        if len(attr) > 1 and attr[0] == '_' and attr != '_param_metrics':
+            param_name = attr[1:]
+            if param_name in self._param_metrics:
+                param_slice, param_shape = self._param_metrics[param_name]
+                value = self._parameters[param_slice]
+                if self.param_dim == 1:
+                    if param_shape:
+                        return value.reshape(param_shape)
+                    else:
+                        return value[0]
+                else:
+                    if param_shape:
+                        return value.reshape((self.param_dim,) + param_shape)
+                    else:
+                        return value
+
+        raise AttributeError(attr)
+
+    def __setattr__(self, attr, value):
+        if (len(attr) > 1 and attr[0] == '_' and
+                hasattr(self, '_param_metrics')):
+            param_name = attr[1:]
+            if param_name in self._param_metrics:
+                # TODO: Maybe handle exception on invalid input shape
+                param_slice = self._param_metrics[param_name][0]
+                self._parameters[param_slice] = np.array(value).ravel()
+                return
+
+        super(ParametricModel, self).__setattr__(attr, value)
 
     def __repr__(self):
         try:
@@ -490,15 +507,13 @@ class ParametricModel(Model):
             param_dim = " "
 
         if degree:
-            fmt = "<{0}({1},".format(self.__class__.__name__, repr(self.deg))
+            fmt = "<{0}({1}, ".format(self.__class__.__name__, repr(self.deg))
         else:
             fmt = "<{0}(".format(self.__class__.__name__)
 
         for name in self.param_names:
-            fmt1 = """
-            {0}={1},
-            """.format(name, getattr(self, name))
-            fmt += fmt1.strip()
+            fmt1 = "{0}={1}, ".format(name, getattr(self, name))
+            fmt += fmt1
         if param_dim:
             fmt += "param_dim={0})>".format(self.param_dim)
 
@@ -533,6 +548,52 @@ class ParametricModel(Model):
         considered common for several models and are to be fitted together.
         """
         self.joint = jparams
+
+    def _initialize_parameters(self, params):
+        """
+        Initialize the _parameters array that stores raw parameter values for
+        all parameter sets for use with vectorized fitting algorithms; on
+        ParametricModels the _param_name attributes actually just reference
+        slices of this array.
+        """
+
+        # First we need to determine how much array space is needed by all the
+        # parameters based on the number of parameters, the shape each input
+        # parameter, and the param_dim
+        self._param_metrics = {}
+        total_size = 0
+        for name in self.param_names:
+            value = params.setdefault(name,
+                                      getattr(self, name).default)
+            if self.param_dim == 1:
+                param_size = np.size(value)
+                param_shape = np.shape(value)
+            elif self.param_dim > 1:
+                # Even for param_dim > 1 we allow a scalar value to be used for
+                # repeat across all param sets
+                try:
+                    if len(value) == self.param_dim:
+                        param_size = np.size(value[0])
+                        param_shape = np.shape(value[0])
+                    else:
+                        param_size = np.size(value)
+                        param_shape = np.shape(value)
+                except TypeError:
+                    param_size = 1
+            else:
+                raise ValueError("Model param_dim must be 1 or greater.")
+
+            param_slice = slice(total_size,
+                                total_size + param_size * self.param_dim)
+            self._param_metrics[name] = (param_slice, param_shape)
+            total_size += param_size * self.param_dim
+
+        self._parameters = np.empty(total_size, dtype=np.float64)
+
+        # Now set the parameter values (this will also fill
+        # self._parameters)
+        for name, value in params.items():
+            setattr(self, name, value)
 
 
 class LabeledInput(dict):
