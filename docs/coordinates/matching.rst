@@ -21,6 +21,6 @@ the coordinates have distances ::
     >>> catalog = coord.ICRSCoordinates(ra2, dec2, unit=(u.degree, u.degree))
     >>> idx, d2d, d3d = c1.match_to_catalog_3d(catalog)
 
-Now `idx` are indicies into `catalog` that are the closest objects to each of
+Now `idx` are indices into `catalog` that are the closest objects to each of
 the coordinates in `c`, `d2d` are the on-sky distances from between them, and
 `d3d` are the 3-dimensional distances.
