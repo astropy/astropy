@@ -7,6 +7,7 @@ import numpy as np
 
 from ...tests.helper import pytest
 from ... import table
+from ... import units as u
 
 
 class MaskedTable(table.Table):
@@ -23,13 +24,14 @@ def table_data(request):
         def __init__(self, request):
             self.Table = MaskedTable if request.param else table.Table
             self.Column = table.MaskedColumn if request.param else table.Column
+            self.units = {'a': None, 'b': u.s, 'c': u.m}
             self.COLS = [
                 self.Column(name='a', data=[1, 2, 3], description='da',
-                            format='fa', meta={'ma': 1}, unit='ua'),
+                            format='fa', meta={'ma': 1}, unit=self.units['a']),
                 self.Column(name='b', data=[4, 5, 6], description='db',
-                            format='fb', meta={'mb': 1}, unit='ub'),
+                            format='fb', meta={'mb': 1}, unit=self.units['b']),
                 self.Column(name='c', data=[7, 8, 9], description='dc',
-                            format='fc', meta={'mc': 1}, unit='ub')]
+                            format='fc', meta={'mc': 1}, unit=self.units['c'])]
             self.DATA = self.Table(self.COLS)
     return TableData(request)
 
@@ -53,12 +55,12 @@ class TestTableColumnsItems(BaseTestItems):
         assert self.tc['a'].description == 'da'
         assert self.tc['a'].format == 'fa'
         assert self.tc['a'].meta == {'ma': 1}
-        assert self.tc['a'].unit == 'ua'
+        assert self.tc['a'].unit == table_data.units['a']
         assert self.tc['a'].attrs_equal(table_data.COLS[0])
         assert isinstance(self.tc['a'], table_data.Column)
 
-        self.tc['b'][1] = 0
-        assert self.t['b'][1] == 0
+        self.tc['b'][1] = 0 * self.tc['b'].unit
+        assert self.t['b'][1] == 0 * self.tc['b'].unit
 
     def test_by_position(self, table_data):
         """Access TableColumns by position and show that item access returns
@@ -71,14 +73,14 @@ class TestTableColumnsItems(BaseTestItems):
         assert self.tc[1].description == 'db'
         assert self.tc[1].format == 'fb'
         assert self.tc[1].meta == {'mb': 1}
-        assert self.tc[1].unit == 'ub'
+        assert self.tc[1].unit == table_data.units['b']
         assert self.tc[1].attrs_equal(table_data.COLS[1])
         assert isinstance(self.tc[1], table_data.Column)
 
-        assert self.tc[2].unit == 'ub'
+        assert self.tc[2].unit == table_data.units['c']
 
-        self.tc[1][1] = 0
-        assert self.t['b'][1] == 0
+        self.tc[1][1] = 0 * self.tc[1].unit
+        assert self.t['b'][1] == 0 * self.tc[1].unit
 
     def test_mult_columns(self, table_data):
         """Access TableColumns with "fancy indexing" and showed that returned
@@ -88,13 +90,13 @@ class TestTableColumnsItems(BaseTestItems):
 
         tc2 = self.tc['b', 'c']
         assert tc2[1].name == 'c'
-        assert tc2[1][1] == 8
+        assert tc2[1][1] == 8 * tc2[1].unit
         assert tc2[0].name == 'b'
-        assert tc2[0][1] == 5
+        assert tc2[0][1] == 5 * tc2[0].unit
 
-        tc2['c'][1] = 0
-        assert self.tc['c'][1] == 0
-        assert self.t['c'][1] == 0
+        tc2['c'][1] = 0 * tc2['c'].unit
+        assert self.tc['c'][1] == 0 * self.tc['c'].unit
+        assert self.t['c'][1] == 0 * self.t['c'].unit
 
     def test_column_slice(self, table_data):
         """Access TableColumns with slice and showed that returned
@@ -104,13 +106,13 @@ class TestTableColumnsItems(BaseTestItems):
 
         tc2 = self.tc[1:3]
         assert tc2[1].name == 'c'
-        assert tc2[1][1] == 8
+        assert tc2[1][1] == 8 * tc2[1].unit
         assert tc2[0].name == 'b'
-        assert tc2[0][1] == 5
+        assert tc2[0][1] == 5 * tc2[0].unit
 
-        tc2['c'][1] = 0
-        assert self.tc['c'][1] == 0
-        assert self.t['c'][1] == 0
+        tc2['c'][1] = 0 * tc2['c'].unit
+        assert self.tc['c'][1] == 0 * self.tc['c'].unit
+        assert self.t['c'][1] == 0 * self.t['c'].unit
 
 
 @pytest.mark.usefixtures('table_data')
@@ -141,7 +143,7 @@ class TestTableItems(BaseTestItems):
         assert row[1] == 0
         if table_data.Table is not MaskedTable:
             # numpy.core.ma.mvoid makes a copy so this test is skipped for masked table
-            assert self.t['b'][1] == 0
+            assert self.t['b'][1] == 0 * self.t['b'].unit
 
     def test_table_slice(self, table_data):
         """Table slice returns REFERENCE to data"""

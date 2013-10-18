@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from .table import Column, Table, TableColumns, Row, MaskedColumn
+from .table import (Column, MaskedColumn, QuantityColumn, MaskedQuantityColumn,
+                    Table, TableColumns, Row)
 from .np_utils import TableMergeError
 from .operations import join, hstack, vstack
 
