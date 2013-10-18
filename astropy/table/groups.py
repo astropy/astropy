@@ -52,7 +52,7 @@ def table_group_by(table, keys):
         raise TypeError('Keys input must be string, list, tuple or numpy array, but got {0}'
                         .format(type(keys)))
 
-    idx_sort = table_keys.argsort()
+    idx_sort = table_keys.argsort(kind='mergesort')
     table_keys = table_keys[idx_sort]
 
     # Get all keys
