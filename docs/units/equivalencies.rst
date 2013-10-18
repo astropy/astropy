@@ -45,8 +45,8 @@ Spectral Units
 ^^^^^^^^^^^^^^
 
 `~astropy.units.equivalencies.spectral` is a function that returns an
-equivalency list to handle conversions between wavelength, frequency
-and energy.
+equivalency list to handle conversions between wavelength, frequency,
+energy, and wave number.
 
 Length and frequency are not normally convertible, so
 `~astropy.units.core.UnitBase.to` raises an exception::
@@ -68,13 +68,15 @@ frequency and energy can be converted.
 These equivalencies even work with non-base units::
 
   >>> # Inches to calories
-  >>> u.inch.to(u.Cal, 1, equivalencies=u.spectral())
+  >>> from astropy.units import imperial
+  >>> imperial.inch.to(imperial.Cal, 1, equivalencies=u.spectral())
   1.869180759162485e-27
 
 Spectral (Doppler) equivalencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Spectral equivalencies allow you to convert between wavelength, frequency, and
-energy, but not to velocity, which is frequently the quantity of interest.
+Spectral equivalencies allow you to convert between wavelength, frequency,
+energy, and wave number but not to velocity, which is frequently the quantity
+of interest.
 
 It is fairly straightforward to define the equivalency, but note that there are
 different `conventions <http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`__.
@@ -96,7 +98,6 @@ These three conventions are implemented in `astropy.units.equivalencies` as
     <Quantity -1895.43219287 km / s>
 
 
-
 Spectral Flux Density Units
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -105,15 +106,15 @@ complex, since it is necessary to also supply the location in the spectrum for
 which the conversions will be done, and the units of those spectral locations.
 The function that handles these unit conversions is
 `~astropy.units.equivalencies.spectral_density`. This function takes as its
-arguments the unit and value for the spectral location. For example::
+arguments the Quantity for the spectral location. For example::
 
-  >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.Hz, 1.,
-              equivalencies=u.spectral_density(u.AA, 3500))
-  1.0000000000000001e-23
+    >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.Hz, 1.,
+                equivalencies=u.spectral_density(3500 * u.AA))
+    1.0000000000000001e-23
+    >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.micron, 1.,
+                equivalencies=u.spectral_density(3500 * u.AA))
+    2.4472853714285712e-08
 
-  >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.micron, 1.,
-              equivalencies=u.spectral_density(u.AA, 3500))
-  2.4472853714285712e-08
 
 Brightness Temperature / Flux Density Equivalency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -194,12 +195,14 @@ Displaying available equivalencies
 ----------------------------------
 
 The `find_equivalent_units` function also understands equivalencies.
-For example, without passing equivalencies, there are no compatible
+For example, without passing equivalencies, there are three compatible
 units for `Hz` in the standard set::
 
   >>> u.Hz.find_equivalent_units()
     Primary name | Unit definition | Aliases
   [
+    Bq           | 1 / s           | becquerel    ,
+    Ci           | 2.7027e-11 / s  | curie        ,
     Hz           | 1 / (s)         | Hertz, hertz ,
   ]
 
@@ -209,26 +212,20 @@ all kinds of things that `Hz` can be converted to::
   >>> u.Hz.find_equivalent_units(equivalencies=u.spectral())
   Primary name | Unit definition        | Aliases
   [
-    AU           | 1.49598e+11 m          | au                                 ,
-    Angstrom     | 1e-10 m                | AA, angstrom                       ,
-    Hz           | 1 / s                  | Hertz, hertz                       ,
-    J            | kg m2 / s2             | Joule, joule                       ,
-    Ry           | 2.17987e-18 kg m2 / s2 | rydberg                            ,
-    a            | 3.15576e+07 s          | annum                              ,
-    cm           | 0.01 m                 | centimeter                         ,
-    d            | 86400 s                | day                                ,
-    eV           | 1.60218e-19 kg m2 / s2 | electronvolt                       ,
-    erg          | 1e-07 kg m2 / s2       |                                    ,
-    fortnight    | 1.2096e+06 s           |                                    ,
-    h            | 3600 s                 | hour, hr                           ,
-    lyr          | 9.46073e+15 m          | lightyear                          ,
-    m            | irreducible            | meter                              ,
-    micron       | 1e-06 m                |                                    ,
-    min          | 60 s                   | minute                             ,
-    pc           | 3.08568e+16 m          | parsec                             ,
-    s            | irreducible            | second                             ,
-    sday         | 86164.1 s              |                                    ,
-    solRad       | 6.95508e+08 m          | R_sun                              ,
-    wk           | 604800 s               | week                               ,
-    yr           | 3.15576e+07 s          | year                               ,
+    AU           | 1.49598e+11 m          | au             ,
+    Angstrom     | 1e-10 m                | AA, angstrom   ,
+    Bq           | 1 / s                  | becquerel      ,
+    Ci           | 2.7027e-11 / s         | curie          ,
+    Hz           | 1 / s                  | Hertz, hertz   ,
+    J            | kg m2 / s2             | Joule, joule   ,
+    Ry           | 2.17987e-18 kg m2 / s2 | rydberg        ,
+    cm           | 0.01 m                 | centimeter     ,
+    eV           | 1.60218e-19 kg m2 / s2 | electronvolt   ,
+    erg          | 1e-07 kg m2 / s2       |                ,
+    k            | 100 / m                | Kayser, kayser ,
+    lyr          | 9.46073e+15 m          | lightyear      ,
+    m            | irreducible            | meter          ,
+    micron       | 1e-06 m                |                ,
+    pc           | 3.08568e+16 m          | parsec         ,
+    solRad       | 6.95508e+08 m          | R_sun, Rsun    ,
   ]

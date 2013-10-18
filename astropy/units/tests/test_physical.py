@@ -39,8 +39,18 @@ def test_angular_momentum():
 
 
 def test_flam():
-    assert ((u.erg / (u.cm**2 * u.s * u.AA)).physical_type ==
-            'spectral flux density wav')
+    flam = u.erg / (u.cm**2 * u.s * u.AA)
+    assert flam.physical_type == 'spectral flux density wav'
+
+
+def test_photlam():
+    photlam = u.photon / (u.cm ** 2 * u.s * u.AA)
+    assert photlam.physical_type == 'photon flux density wav'
+
+
+def test_photnu():
+    photnu = u.photon / (u.cm ** 2 * u.s * u.Hz)
+    assert photnu.physical_type == 'photon flux density'
 
 
 @raises(ValueError)

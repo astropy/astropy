@@ -117,6 +117,8 @@ for unit, name in [
     (si.cd / si.m ** 2, 'luminance'),
     (astrophys.Jy, 'spectral flux density'),
     (cgs.erg / si.angstrom / si.cm ** 2 / si.s, 'spectral flux density wav'),
+    (astrophys.photon / si.Hz / si.cm ** 2 / si.s, 'photon flux density'),
+    (astrophys.photon / si.AA / si.cm ** 2 / si.s, 'photon flux density wav'),
     (astrophys.R, 'photon flux'),
     (astrophys.bit, 'data quantity'),
     (astrophys.bit / si.s, 'bandwidth')

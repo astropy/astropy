@@ -189,57 +189,136 @@ def test_spectral2():
     c = u.AA.to(u.J, 1, u.spectral())
     assert_allclose(b, c)
 
+    c = u.J.to(u.Hz, b, u.spectral())
+    assert_allclose(a, c)
+
 
 def test_spectral3():
     a = u.nm.to(u.Hz, [1000, 2000], u.spectral())
     assert_allclose(a, [2.99792458e+14, 1.49896229e+14])
 
 
-def test_spectraldensity():
+@pytest.mark.parametrize(
+    ('in_val', 'in_unit'),
+    [([0.1, 5000.0, 10000.0], u.AA),
+     ([2.99792458e+19, 5.99584916e+14, 2.99792458e+14], u.Hz),
+     ([1.98644568e-14, 3.97289137e-19, 1.98644568e-19], u.J)])
+def test_spectral4(in_val, in_unit):
+    """Wave number conversion w.r.t. wavelength, freq, and energy."""
+    # Forward
+    a = in_unit.to(u.micron ** -1, in_val, u.spectral())
+    assert_allclose(a, [1e+5, 2.0, 1.0])
 
+    # Backward
+    b = (u.micron ** -1).to(in_unit, [1e+5, 2.0, 1.0], u.spectral())
+    assert_allclose(b, in_val)
+
+
+def test_spectraldensity():
     a = u.AA.to(u.Jy, 1, u.spectral_density(u.eV, 2.2))
     assert_allclose(a, 1059416252057.8357, rtol=1e-4)
 
     b = u.Jy.to(u.AA, a, u.spectral_density(u.eV, 2.2))
     assert_allclose(b, 1)
 
+    c = u.AA.to(u.Jy, 1, u.spectral_density(2.2 * u.eV))
+    assert_allclose(c, 1059416252057.8357, rtol=1e-4)
+
+    d = u.Jy.to(u.AA, c, u.spectral_density(2.2 * u.eV))
+    assert_allclose(d, 1)
+
 
 def test_spectraldensity2():
     flambda = u.erg / u.angstrom / u.cm ** 2 / u.s
     fnu = u.erg / u.Hz / u.cm ** 2 / u.s
 
-    a = flambda.to(fnu, 1, u.spectral_density(u.AA, 3500))
+    a = flambda.to(fnu, 1, u.spectral_density(u.Quantity(3500, u.AA)))
     assert_allclose(a, 4.086160166177361e-12)
 
 
 def test_spectraldensity3():
-
     # Define F_nu in Jy
     f_nu = u.Jy
+
+    # Define F_lambda in ergs / cm^2 / s / micron
+    f_lambda = u.erg / u.cm ** 2 / u.s / u.micron
+
+    # 1 GHz
+    one_ghz = u.Quantity(1, u.GHz)
 
     # Convert to ergs / cm^2 / s / Hz
     assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s / u.Hz, 1.), 1.e-23, 10)
 
     # Convert to ergs / cm^2 / s at 10 Ghz
     assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s, 1.,
-                    equivalencies=u.spectral_density(u.GHz, 10)), 1.e-13, 10)
+                    equivalencies=u.spectral_density(one_ghz * 10)),
+                    1.e-13, 10)
 
-    # Convert to ergs / cm^2 / s / micron at 1 Ghz
-    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s / u.micron, 1.,
-                    equivalencies=u.spectral_density(u.Hz, 1.e9)),
+    # Convert to F_lambda at 1 Ghz
+    assert_allclose(f_nu.to(f_lambda, 1.,
+                    equivalencies=u.spectral_density(one_ghz)),
                     3.335640951981521e-20, 10)
-
-    # Define F_lambda in ergs / cm^2 / s / micron
-    f_lambda = u.erg / u.cm ** 2 / u.s / u.micron
 
     # Convert to Jy at 1 Ghz
     assert_allclose(f_lambda.to(u.Jy, 1.,
-                    equivalencies=u.spectral_density(u.Hz, 1.e9)),
+                    equivalencies=u.spectral_density(one_ghz)),
                     1. / 3.335640951981521e-20, 10)
 
     # Convert to ergs / cm^2 / s at 10 microns
     assert_allclose(f_lambda.to(u.erg / u.cm ** 2 / u.s, 1.,
-                    equivalencies=u.spectral_density(u.micron, 10.)), 10., 10)
+                    equivalencies=u.spectral_density(u.Quantity(10, u.micron))),
+                    10., 10)
+
+
+def test_spectraldensity3():
+    """PHOTLAM and PHOTNU conversions."""
+    flam = u.erg / (u.cm ** 2 * u.s * u.AA)
+    fnu = u.erg / (u.cm ** 2 * u.s * u.Hz)
+    photlam = u.photon / (u.cm ** 2 * u.s * u.AA)
+    photnu = u.photon / (u.cm ** 2 * u.s * u.Hz)
+
+    wave = u.Quantity([4956.8, 4959.55, 4962.3], u.AA)
+    flux_photlam = [9.7654e-3, 1.003896e-2, 9.78473e-3]
+    flux_photnu = [8.00335589e-14, 8.23668949e-14, 8.03700310e-14]
+    flux_flam = [3.9135e-14, 4.0209e-14, 3.9169e-14]
+    flux_fnu = [3.20735792e-25, 3.29903646e-25, 3.21727226e-25]
+    flux_jy = [3.20735792e-2, 3.29903646e-2, 3.21727226e-2]
+
+    # PHOTLAM <--> FLAM
+    assert_allclose(photlam.to(
+        flam, flux_photlam, u.spectral_density(wave)), flux_flam, rtol=1e-6)
+    assert_allclose(flam.to(
+        photlam, flux_flam, u.spectral_density(wave)), flux_photlam, rtol=1e-6)
+
+    # PHOTLAM <--> FNU
+    assert_allclose(photlam.to(
+        fnu, flux_photlam, u.spectral_density(wave)), flux_fnu, rtol=1e-6)
+    assert_allclose(fnu.to(
+        photlam, flux_fnu, u.spectral_density(wave)), flux_photlam, rtol=1e-6)
+
+    # PHOTLAM <--> Jy
+    assert_allclose(photlam.to(
+        u.Jy, flux_photlam, u.spectral_density(wave)), flux_jy, rtol=1e-6)
+    assert_allclose(u.Jy.to(
+        photlam, flux_jy, u.spectral_density(wave)), flux_photlam, rtol=1e-6)
+
+    # PHOTLAM <--> PHOTNU
+    assert_allclose(photlam.to(
+        photnu, flux_photlam, u.spectral_density(wave)), flux_photnu, rtol=1e-6)
+    assert_allclose(photnu.to(
+        photlam, flux_photnu, u.spectral_density(wave)), flux_photlam, rtol=1e-6)
+
+    # PHOTNU <--> FNU
+    assert_allclose(photnu.to(
+        fnu, flux_photnu, u.spectral_density(wave)), flux_fnu, rtol=1e-6)
+    assert_allclose(fnu.to(
+        photnu, flux_fnu, u.spectral_density(wave)), flux_photnu, rtol=1e-6)
+
+    # PHOTNU <--> FLAM
+    assert_allclose(photnu.to(
+        flam, flux_photnu, u.spectral_density(wave)), flux_flam, rtol=1e-6)
+    assert_allclose(flam.to(
+        photnu, flux_flam, u.spectral_density(wave)), flux_photnu, rtol=1e-6)
 
 
 def test_equivalent_units():
@@ -257,7 +336,7 @@ def test_equivalent_units2():
     units = set(u.Hz.find_equivalent_units(u.spectral()))
     match = set(
         [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr,
-         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci])
+         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k])
     assert units == match
 
     from .. import imperial
@@ -268,13 +347,13 @@ def test_equivalent_units2():
              imperial.cal, u.cm, u.eV, u.erg, imperial.ft,
              imperial.inch, imperial.kcal, u.lyr, u.m, imperial.mi,
              u.micron, u.pc, u.solRad, imperial.yd, u.Bq, u.Ci,
-             imperial.nmi])
+             imperial.nmi, u.k])
         assert units == match
 
     units = set(u.Hz.find_equivalent_units(u.spectral()))
     match = set(
         [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr,
-         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci])
+         u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k])
     assert units == match
 
 
@@ -294,13 +373,14 @@ def test_irrelevant_equivalency():
     with pytest.raises(u.UnitsException):
         u.m.to(u.kg, equivalencies=[(u.m, u.l)])
 
+
 def test_brightness_temperature():
-    omega_B = np.pi*(50*u.arcsec)**2
+    omega_B = np.pi * (50 * u.arcsec) ** 2
     nu = u.GHz * 5
     tb = 7.05258885885 * u.K
-    np.testing.assert_almost_equal(tb.value,
-                                   (1*u.Jy).to(u.K,
-                                               equivalencies=u.brightness_temperature(omega_B, nu)).value)
-    np.testing.assert_almost_equal(1.0,
-                                   tb.to(u.Jy,
-                                         equivalencies=u.brightness_temperature(omega_B, nu)).value)
+    np.testing.assert_almost_equal(
+        tb.value, (1 * u.Jy).to(
+            u.K, equivalencies=u.brightness_temperature(omega_B, nu)).value)
+    np.testing.assert_almost_equal(
+        1.0, tb.to(
+            u.Jy, equivalencies=u.brightness_temperature(omega_B, nu)).value)
