@@ -60,7 +60,7 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
                     elif left_attr != right_attr:
                         if metadata_conflicts == 'warn':
                             warnings.warn('In merged column {0!r} the {1!r} attribute does not match '
-                                          '({2} != {3}).  Using {2} for merged output'
+                                          '({2} != {3}).  Using {3} for merged output'
                                           .format(out_col.name, attr, left_attr, right_attr),
                                           metadata.MergeConflictWarning)
                         elif metadata_conflicts == 'error':
@@ -68,6 +68,8 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
                                           '({2} != {3})'.format(out_col.name, attr, left_attr, right_attr))
                         elif metadata_conflicts != 'silent':
                             raise ValueError('metadata_conflict argument must be one of "silent", "warn", or "error"')
+                        merge_attr = right_attr
+                    else:  # left_attr == right_attr
                         merge_attr = right_attr
 
                     setattr(out_col, attr, merge_attr)

@@ -506,18 +506,27 @@ class TestVStack():
         t2 = self.t2
         t4 = self.t4
 
-        # Key col 'a', should first value ('cm')
+        # Key col 'a', should last value ('km')
         t1['a'].unit = 'cm'
         t2['a'].unit = 'm'
         t4['a'].unit = 'km'
+
+        # Key col 'a' format should take last when all match
+        t1['a'].format = '%0d'
+        t2['a'].format = '%0d'
+        t4['a'].format = '%0d'
+
         # Key col 'b', take first value 't1_b'
         t1['b'].description = 't1_b'
+
         # Key col 'b', take first non-empty value '%6s'
         t4['b'].format = '%6s'
+
         # Key col 'a', should be merged meta
         t1['a'].meta.update(OrderedDict([('b', [1, 2]), ('c', {'a': 1}), ('d', 1)]))
         t2['a'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
         t4['a'].meta.update(OrderedDict([('b', [5, 6]), ('c', {'c': 1}), ('e', 1)]))
+
         # Key col 'b', should be meta2
         t2['b'].meta.update(OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)]))
 
@@ -530,6 +539,7 @@ class TestVStack():
             out = table.vstack([t1, t2, t4], join_type='outer')
 
             assert out['a'].unit == 'km'
+            assert out['a'].format == '%0d'
             assert out['b'].description == 't1_b'
             assert out['b'].format == '%6s'
             assert out['a'].meta == self.meta_merge
