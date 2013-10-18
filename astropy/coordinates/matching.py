@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from .. import units as u
+from ..extern import six
 
 __all__ = ['match_coordinates_3d', 'match_coordinates_sky']
 
@@ -72,7 +72,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree=Tr
         storekdtree = '_kdtree'
 
     # figure out where any cached KDTree might be
-    if isinstance(storekdtree, basestring):
+    if isinstance(storekdtree, six.string_types):
         kdt = getattr(catalogcoord, storekdtree, None)
         if kdt is not None and not isinstance(kdt, KDTree):
             raise ValueError('Invalid `storekdtree` string:' + storekdtree)
