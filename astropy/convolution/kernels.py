@@ -50,9 +50,10 @@ class Gaussian1DKernel(Kernel1D):
                 on an oversampled grid.
             * 'integrate'
                 Discretize model by integrating the
-                model over the bin.
+                model over the bin. Very slow.
     factor : number, optional
-        Factor of oversampling. Default factor = 10.
+        Factor of oversampling. Default factor = 10. If the factor
+        is too large, evaluation can be very slow.
 
 
     See Also
