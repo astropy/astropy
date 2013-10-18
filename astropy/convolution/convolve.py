@@ -360,12 +360,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     if array.ndim != kernel.ndim:
         raise Exception('array and kernel have differing number of dimensions')
 
-    # turn the arrays into 'complex' arrays
-    if array.dtype.kind != 'c':
-        array = array.astype(np.complex)
-    if kernel.dtype.kind != 'c':
-        kernel = kernel.astype(np.complex)
-
     # mask catching - masks must be turned into NaNs for use later
     if np.ma.is_masked(array):
         mask = array.mask
