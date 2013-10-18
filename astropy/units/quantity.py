@@ -74,8 +74,20 @@ def _validate_value(value, dtype, copy):
 
 
 def _can_have_arbitrary_unit(value):
-    return np.logical_or(value == 0.,
-                         np.logical_or(np.isinf(value), np.isnan(value)))
+    """Test whether the items in value can have arbitrary units
+
+    Numbers whose value does not change upon a unit change, i.e.,
+    zero, infinity, or not-a-number
+
+    Parameters
+    ----------
+    value : number or array
+
+    Returns
+    -------
+    `True` if each member is either zero or not finite, `False` otherwise
+    """
+    return np.all(np.logical_or(np.equal(value, 0.), ~np.isfinite(value)))
 
 
 class Quantity(np.ndarray):
@@ -201,7 +213,7 @@ class Quantity(np.ndarray):
             # can just have the unit of the quantity
             # (this allows, e.g., `q > 0.` independent of unit)
             maybe_arbitrary_arg = args[scales.index(0.)]
-            if np.all(_can_have_arbitrary_unit(maybe_arbitrary_arg)):
+            if _can_have_arbitrary_unit(maybe_arbitrary_arg):
                 scales = [1., 1.]
             else:
                 raise UnitsError("Can only apply '{0}' function to "
@@ -892,7 +904,7 @@ class Quantity(np.ndarray):
             try:
                 value = dimensionless_unscaled.to(self.unit, value)
             except UnitsError as exc:
-                if not np.all(_can_have_arbitrary_unit(value)):
+                if not _can_have_arbitrary_unit(value):
                     raise exc
 
         if(check_precision and

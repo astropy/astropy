@@ -486,6 +486,8 @@ class TestComparisonUfuncs(object):
         for arbitrary_unit_value in (0., np.inf, np.nan):
             ufunc(q_i1, arbitrary_unit_value)
             ufunc(q_i1, arbitrary_unit_value*np.ones(len(q_i1)))
+        # and just for completeness
+        ufunc(q_i1, np.array([0., np.inf, np.nan]))
 
     @pytest.mark.parametrize(('ufunc'), [np.greater, np.greater_equal,
                                          np.less, np.less_equal,
