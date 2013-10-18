@@ -409,3 +409,10 @@ def test_ScaleModel():
     m = models.ScaleModel([42, 43])
     utils.assert_equal(m(0), [0, 0])
     utils.assert_equal(m([1, 2]), [[ 42,  43], [ 84,  86]])
+
+
+def test_core():
+    """Some unit tests that cover lines in core.py that are untested at the moment"""
+    m = models.Gaussian1DModel(1,2,3)
+    assert repr(m) == '<Gaussian1DModel(amplitude=1.0,mean=2.0,stddev=3.0,param_dim=1)>'
+ 

@@ -46,7 +46,7 @@ Explanation of keywords of the dictionaries:
     If given the test of the derivative will use these parameters
     as initial values for the fit (optional)
 """
-
+from __future__ import division
 import numpy as np
 from ..functional_models import (
     Gaussian1DModel, Sine1DModel, Box1DModel, Linear1DModel, Lorentz1DModel,
