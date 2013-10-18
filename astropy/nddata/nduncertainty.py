@@ -178,6 +178,7 @@ class StdDevUncertainty(NDUncertainty):
         else:
             if value.shape != self.array.shape:
                 raise ValueError("parent shape does not match array data shape")
+        self._parent_nddata=value
 
     @property
     def array(self):
@@ -305,7 +306,7 @@ class StdDevUncertainty(NDUncertainty):
             raise ValueError("standard deviation values are not set in other_nddata")
 
         result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = (np.sqrt((self.array / self.data) ** 2
+        result_uncertainty.array = (np.sqrt((self.array / self.parent_nddata.data) ** 2
                                             + (other_nddata.uncertainty.array / other_nddata.data) ** 2)
                                     * result_data)
 
@@ -343,7 +344,7 @@ class StdDevUncertainty(NDUncertainty):
             raise ValueError("standard deviation values are not set in other_nddata")
 
         result_uncertainty = StdDevUncertainty()
-        result_uncertainty.array = (np.sqrt((self.array / self.data) ** 2
+        result_uncertainty.array = (np.sqrt((self.array / self.parent_nddata.data) ** 2
                                             + (other_nddata.uncertainty.array / other_nddata.data) ** 2)
                                     * result_data)
 

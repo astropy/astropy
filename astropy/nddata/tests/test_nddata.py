@@ -225,6 +225,25 @@ def test_nddata_subtract_uncertainties():
     assert np.all(d3.data == -1.)
     assert_array_equal(d3.uncertainty.array, np.sqrt(10.))
 
+def test_nddata_multiply_uncertainties():
+    u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
+    u2 = StdDevUncertainty(array=np.ones((5, 5)))
+    d1 = NDData(np.ones((5, 5)), uncertainty=u1)
+    d2 = NDData(np.ones((5, 5)) * 2., uncertainty=u2)
+    d3 = d1.multiply(d2)
+    assert np.all(d3.data == 2.)
+    assert_array_equal(d3.uncertainty.array, 2*np.sqrt(9.25))
+
+def test_nddata_divide_uncertainties():
+    u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
+    u2 = StdDevUncertainty(array=np.ones((5, 5)))
+    d1 = NDData(np.ones((5, 5)), uncertainty=u1)
+    d2 = NDData(np.ones((5, 5)) * 2., uncertainty=u2)
+    d3 = d1.divide(d2)
+    assert np.all(d3.data == 0.5)
+    assert_array_equal(d3.uncertainty.array, 0.5*np.sqrt(9.25))
+
+
 
 def test_nddata_subtract_uncertainties_mismatch():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
