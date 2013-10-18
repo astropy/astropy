@@ -47,7 +47,7 @@ from . import parameters
 from .utils import InputParameterError
 
 
-__all__ = ['Model', 'ParametricModel', 'PCompositeModel', 'SCompositeModel',
+__all__ = ['Model', 'ParametricModel', 'ParallelCompositeModel', 'SerialCompositeModel',
            'LabeledInput', '_convert_input', '_convert_output',
            'Parametric1DModel', 'Parametric2DModel']
 
@@ -314,9 +314,9 @@ class Model(object):
             an instance of CompositeModel
         """
         if mode in ['parallel', 'p']:
-            return PCompositeModel([self, newtr])
+            return ParallelCompositeModel([self, newtr])
         elif mode in ['serial', 's']:
-            return SCompositeModel([self, newtr])
+            return SerialCompositeModel([self, newtr])
         else:
             raise InputParameterError("Unrecognized mode {0}".format(mode))
 
@@ -723,7 +723,7 @@ class _CompositeModel(Model):
         raise NotImplementedError("Subclasses should implement this")
 
 
-class SCompositeModel(_CompositeModel):
+class SerialCompositeModel(_CompositeModel):
 
     """
 
@@ -751,16 +751,17 @@ class SCompositeModel(_CompositeModel):
     --------
     Apply a 2D rotation followed by a shift in x and y::
 
-        >>> from astropy.modeling import *
+        >>> import numpy as np
+        >>> from astropy.modeling import models, LabeledInput, SerialCompositeModel
         >>> x, y = np.mgrid[:5, :5]
-        >>> rot = models.MatrixRotation2D(angle=23.5)
-        >>> offx = models.ShiftModel(-4.23)
-        >>> offy = models.ShiftModel(2)
-        >>> linp = LabeledInput([x, y], ["x", "y"])
-        >>> scomptr = SCompositeModel([rot, offx, offy],
-        ...                           inmap=[['x', 'y'], ['x'], ['y']],
-        ...                           outmap=[['x', 'y'], ['x'], ['y']])
-        >>> result=scomptr(linp)
+        >>> rotation = models.MatrixRotation2D(angle=23.5)
+        >>> offset_x = models.ShiftModel(-4.23)
+        >>> offset_y = models.ShiftModel(2)
+        >>> labeled_input = LabeledInput([x, y], ["x", "y"])
+        >>> transform = SerialCompositeModel([rotation, offset_x, offset_y],
+        ...                                  inmap=[['x', 'y'], ['x'], ['y']],
+        ...                                  outmap=[['x', 'y'], ['x'], ['y']])
+        >>> result = transform(labeled_input)
 
     """
     def __init__(self, transforms, inmap=None, outmap=None, n_inputs=None, n_outputs=None):
@@ -772,7 +773,7 @@ class SCompositeModel(_CompositeModel):
             assert n_outputs is not None, "Expected n_inputs and n_outputs"
             n_inputs = n_inputs
             n_outputs = n_outputs
-        super(SCompositeModel, self).__init__(transforms, n_inputs, n_outputs)
+        super(SerialCompositeModel, self).__init__(transforms, n_inputs, n_outputs)
         if transforms and inmap and outmap:
             assert len(transforms) == len(inmap) == len(outmap), \
                 "Expected sequences of transform, " \
@@ -795,7 +796,7 @@ class SCompositeModel(_CompositeModel):
         else:
             inmap = None
             outmap = None
-        return SCompositeModel(transforms, inmap, outmap)
+        return SerialCompositeModel(transforms, inmap, outmap)
 
     def __call__(self, *data):
         """
@@ -841,7 +842,7 @@ class SCompositeModel(_CompositeModel):
         return result
 
 
-class PCompositeModel(_CompositeModel):
+class ParallelCompositeModel(_CompositeModel):
 
     """
 
@@ -868,8 +869,8 @@ class PCompositeModel(_CompositeModel):
         n_outputs = n_inputs
         for transform in self._transforms:
             assert transform.n_inputs == transform.n_outputs == n_inputs, \
-                ("A PCompositeModel expects n_inputs = n_outputs for all transforms")
-        super(PCompositeModel, self).__init__(transforms, n_inputs, n_outputs)
+                ("A ParallelCompositeModel expects n_inputs = n_outputs for all transforms")
+        super(ParallelCompositeModel, self).__init__(transforms, n_inputs, n_outputs)
 
         self._inmap = inmap
         self._outmap = outmap

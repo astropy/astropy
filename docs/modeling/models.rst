@@ -31,8 +31,8 @@ input arrays.
 Models also have an attribute `~astropy.modeling.core.Model.n_outputs`, which shows
 the number of output coordinates. The `~astropy.modeling.core.Model.n_inputs` and
 `~astropy.modeling.core.Model.n_outputs` attributes are used to chain transforms by
-adding models in series, `~astropy.modeling.core.SCompositeModel`, or in parallel,
-`~astropy.modeling.core.PCompositeModel`. Because composite models can
+adding models in series, `~astropy.modeling.core.SerialCompositeModel`, or in parallel,
+`~astropy.modeling.core.ParallelCompositeModel`. Because composite models can
 be nested within other composite models, creating
 theoretically infinitely complex models, a mechanism to map input data to models
 is needed. In this case the input may be wrapped in a
@@ -141,7 +141,7 @@ array([[ 0.,  1.,  2.,  3.,  4.],
 >>> x = np.arange(1,10,.1)
 >>> p1 = models.Poly1DModel(1)
 >>> g1 = models.Gaussian1DModel(10., stddev=2.1, mean=4.2)
->>> parallel_composite_model = PCompositeModel([g1, p1])
+>>> parallel_composite_model = ParallelCompositeModel([g1, p1])
 >>> y = parallel_composite_model(x)
 
 This is equivalent to applying the two models in parallel:
@@ -153,7 +153,7 @@ In more complex cases the input and output may be mapped to transformations:
 >>> x, y = np.mgrid[:5, :5]
 >>> off = models.ShiftModel(-3.2)
 >>> poly2 = models.Poly2DModel(2)
->>> serial_composite_model = SCompositeModel([off, poly2], inmap=[['x'], ['x', 'y']], outmap=[['x'], ['z']])
+>>> serial_composite_model = SerialCompositeModel([off, poly2], inmap=[['x'], ['x', 'y']], outmap=[['x'], ['z']])
 
 The above composite transform will apply an inplace shift to x, followed by a 2D
 polynomial and will save the result in an array, labeled 'z'.

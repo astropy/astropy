@@ -16,10 +16,10 @@ the existing suites of models and fitters.
 
 Furthermore, the models are designed to be combined in many ways. It
 is possible, for example, to combine models serially
-`~astropy.modeling.core.SCompositeModel`, so that the output values of one model are
+`~astropy.modeling.core.SerialCompositeModel`, so that the output values of one model are
 used as input values to another. It is also possible to form a new model by
 combining models in parallel (each model is evaluated separately with the
-original input and the deltas are summed), `~astropy.modeling.core.PCompositeModel`.
+original input and the deltas are summed), `~astropy.modeling.core.ParallelCompositeModel`.
 Since models may have multiple input values, machinery is provided that allows
 assigning outputs from one model into the appropriate input of another in a
 flexible way, `~astropy.modeling.core.LabeledInput`. Finally, it is permitted

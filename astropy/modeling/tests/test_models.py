@@ -5,7 +5,7 @@ Compare the results of some models with other programs.
 """
 from __future__ import division
 from .. import models
-from ..core import (LabeledInput, SCompositeModel, PCompositeModel,
+from ..core import (LabeledInput, SerialCompositeModel, ParallelCompositeModel,
                     Parametric1DModel, Parametric2DModel)
 from ..polynomial import PolynomialModel
 import numpy as np
@@ -21,7 +21,7 @@ except ImportError:
     HAS_SCIPY = False
 
 
-class TestSComposite(object):
+class TestSerialComposite(object):
 
     """
     Test composite models evaluation in series
@@ -33,62 +33,62 @@ class TestSComposite(object):
         self.p2 = models.Poly2DModel(3)
 
     def test_single_array_input(self):
-        scomptr = SCompositeModel([self.p1, self.p11])
-        sresult = scomptr(self.x)
+        model = SerialCompositeModel([self.p1, self.p11])
+        result = model(self.x)
         xx = self.p11(self.p1(self.x))
-        utils.assert_almost_equal(xx, sresult)
+        utils.assert_almost_equal(xx, result)
 
     def test_labeledinput_1(self):
-        ado = LabeledInput([self.x, self.y], ['x', 'y'])
-        scomptr = SCompositeModel([self.p2, self.p1],
-                                  [['x', 'y'], ['z']],
-                                  [['z'], ['z']])
-        sresult = scomptr(ado)
+        labeled_input = LabeledInput([self.x, self.y], ['x', 'y'])
+        model = SerialCompositeModel([self.p2, self.p1],
+                                     [['x', 'y'], ['z']],
+                                     [['z'], ['z']])
+        result = model(labeled_input)
         z = self.p2(self.x, self.y)
         z1 = self.p1(z)
-        utils.assert_almost_equal(z1, sresult.z)
+        utils.assert_almost_equal(z1, result.z)
 
     def test_labeledinput_2(self):
         labeled_input = LabeledInput([self.x, self.y], ['x', 'y'])
         rot = models.MatrixRotation2D(angle=23.4)
         offx = models.ShiftModel(-2)
         offy = models.ShiftModel(1.2)
-        scomptr = SCompositeModel([rot, offx, offy],
-                                  [['x', 'y'], ['x'], ['y']],
-                                  [['x', 'y'], ['x'], ['y']])
-        sresult = scomptr(labeled_input)
+        model = SerialCompositeModel([rot, offx, offy],
+                                     [['x', 'y'], ['x'], ['y']],
+                                     [['x', 'y'], ['x'], ['y']])
+        result = model(labeled_input)
         x, y = rot(self.x, self.y)
         x = offx(x)
         y = offy(y)
-        utils.assert_almost_equal(x, sresult.x)
-        utils.assert_almost_equal(y, sresult.y)
+        utils.assert_almost_equal(x, result.x)
+        utils.assert_almost_equal(y, result.y)
 
     def test_labeledinput_3(self):
         labeled_input = LabeledInput([2, 4.5], ['x', 'y'])
         rot = models.MatrixRotation2D(angle=23.4)
         offx = models.ShiftModel(-2)
         offy = models.ShiftModel(1.2)
-        scomptr = SCompositeModel([rot, offx, offy],
-                                  [['x', 'y'], ['x'], ['y']],
-                                  [['x', 'y'], ['x'], ['y']])
-        sresult = scomptr(labeled_input)
+        model = SerialCompositeModel([rot, offx, offy],
+                                     [['x', 'y'], ['x'], ['y']],
+                                     [['x', 'y'], ['x'], ['y']])
+        result = model(labeled_input)
         x, y = rot(2, 4.5)
         x = offx(x)
         y = offy(y)
-        utils.assert_almost_equal(x, sresult.x)
-        utils.assert_almost_equal(y, sresult.y)
+        utils.assert_almost_equal(x, result.x)
+        utils.assert_almost_equal(y, result.y)
 
     def test_multiple_input(self):
         rot = models.MatrixRotation2D(angle=-60)
-        scomp = SCompositeModel([rot, rot])
-        xx, yy = scomp(self.x, self.y)
-        iscomp = scomp.inverse()
-        x1, y1 = iscomp(xx, yy)
+        model = SerialCompositeModel([rot, rot])
+        xx, yy = model(self.x, self.y)
+        inverse_model = model.inverse()
+        x1, y1 = inverse_model(xx, yy)
         utils.assert_almost_equal(x1, self.x)
         utils.assert_almost_equal(y1, self.y)
 
 
-class TestPComposite(object):
+class TestParallelComposite(object):
 
     """
     Test composite models evaluation in parallel
@@ -100,27 +100,27 @@ class TestPComposite(object):
         self.p2 = models.Poly2DModel(3)
 
     def test_single_array_input(self):
-        pcomptr = PCompositeModel([self.p1, self.p11])
-        presult = pcomptr(self.x)
+        model = ParallelCompositeModel([self.p1, self.p11])
+        result = model(self.x)
         delta11 = self.p11(self.x)
         delta1 = self.p1(self.x)
         xx = self.x + delta1 + delta11
-        utils.assert_almost_equal(xx, presult)
+        utils.assert_almost_equal(xx, result)
 
     def test_labeledinput(self):
-        ado = LabeledInput([self.x, self.y], ['x', 'y'])
-        pcomptr = PCompositeModel([self.p1, self.p11], inmap=['x'], outmap=['x'])
-        presult = pcomptr(ado)
+        labeled_input = LabeledInput([self.x, self.y], ['x', 'y'])
+        model = ParallelCompositeModel([self.p1, self.p11], inmap=['x'], outmap=['x'])
+        result = model(labeled_input)
         delta11 = self.p11(self.x)
         delta1 = self.p1(self.x)
         xx = self.x + delta1 + delta11
-        utils.assert_almost_equal(xx, presult.x)
+        utils.assert_almost_equal(xx, result.x)
 
     def test_inputs_outputs_mismatch(self):
         p2 = models.Poly2DModel(1)
         ch2 = models.Chebyshev2DModel(1, 1)
         with pytest.raises(AssertionError):
-            PCompositeModel([p2, ch2])
+            ParallelCompositeModel([p2, ch2])
 
 
 def test_pickle():
@@ -135,13 +135,12 @@ def test_pickle():
 
     p1 = models.Poly1DModel(3)
     p11 = models.Poly1DModel(4)
-    p2 = models.Poly2DModel(3)
     g1 = models.Gaussian1DModel(10.3, 5.4, 1.2)
-    scomp_model = SCompositeModel([p1, g1])
-    pcomp_model = PCompositeModel([scomp_model, p11])
-    s = cPickle.dumps(pcomp_model)
+    serial_composite_model = SerialCompositeModel([p1, g1])
+    parallel_composite_model = ParallelCompositeModel([serial_composite_model, p11])
+    s = cPickle.dumps(parallel_composite_model)
     s1 = cPickle.loads(s)
-    assert s1(3) == pcomp_model(3)
+    assert s1(3) == parallel_composite_model(3)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -154,7 +153,7 @@ def test_custom_model(amplitude=4, frequency=1):
     x = np.linspace(0, 4, 50)
     sin_model = models.Custom1DModel(f)
     np.random.seed(0)
-    data = sin_model(x) + np.random.rand(50) - 0.5
+    data = sin_model(x) + np.random.rand(len(x)) - 0.5
     fitter = fitting.NonLinearLSQFitter(sin_model)
     fitter(x, data)
     assert np.all((fitter.fitpars - np.array([amplitude, frequency])) < 0.001)

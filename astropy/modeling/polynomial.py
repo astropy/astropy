@@ -7,7 +7,7 @@ import collections
 import numpy as np
 from ..logger import log
 from . import parameters
-from .core import ParametricModel, Model, SCompositeModel
+from .core import ParametricModel, Model, SerialCompositeModel
 from .core import _convert_input, _convert_output
 from .utils import poly_map_domain, comb
 from .functional_models import ShiftModel
@@ -1071,7 +1071,7 @@ class _SIP1D(Model):
         return self._eval_sip(x, y, mcoef)
 
 
-class _SIPModel(SCompositeModel):
+class _SIPModel(SerialCompositeModel):
 
     """
 
