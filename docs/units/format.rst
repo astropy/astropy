@@ -23,12 +23,22 @@ class::
    unit definitions are coming from a file format such as FITS or
    VOTable.
 
-Units can be converted to strings using the
-`~astropy.units.core.UnitBase.to_string` method::
+Units can be formatted as strings using the new-style
+`Format String Syntax <http://docs.python.org/library/string.html#format-string-syntax>`_. Format strings can either applied to the
+string as usual, or the format string can the name of a built-in
+formatter, such as ``FITS`` or ``unicode``. For example::
 
   >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
-  >>> fluxunit.to_string()
+  >>> "{0}".format(fluxunit)
   u'erg / (cm2 s)'
+  >>> "{0:console}".format(fluxunit)
+  u' erg
+  ------
+  s cm^2'
+  >>> "{0:latex}".format(fluxunit)
+  u'$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
+  >>> "{0:>20s}".format(fluxunit)
+  u'       erg / (cm2 s)'
 
 By default, the string format used is referred to as the "generic"
 format, which is based on syntax of the FITS standard's format for
@@ -37,6 +47,15 @@ representing units, but supports all of the units defined within the
 `~astropy.units.core.Unit` and
 `~astropy.units.core.UnitBase.to_string` functions also take an
 optional `format` parameter to select a different format.
+
+The `~astropy.units.core.UnitBase.to_string` method can be used to format
+units as strings, and is the underlying implementation of the new-style
+formatting::
+    
+    >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
+    >>> fluxunit.to_string('latex')
+    u'$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
+    
 
 Built-in formats
 ----------------

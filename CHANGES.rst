@@ -103,6 +103,9 @@ New Features
 
   - Added percent unit, and allowed any string containing just a number
     to be interpreted as a scaled dimensionless unit.
+    
+  - New-style format strings can be used to set the unit output format.
+    For example, ``"{0:latex}".format(u.km)`` will print with the latex formatter.
 
   - The ``Unit.is_equivalent`` method can now take a tuple. In this case, the
     method returns ``True`` if the unit is equivalent to any of the units

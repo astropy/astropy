@@ -86,6 +86,27 @@ Quantities can also easily provide their values in another unit::
    >>> q.parsec
    4.893576727099331e-16
 
+Quantities and units can be printed nicely using the new-style 
+`Format String Syntax <http://docs.python.org/library/string.html#format-string-syntax>`_.
+Format specifiers (like ``0.03f``) in new-style format
+strings will used to format the quantity value::
+
+    >>> q = 15.1 * u.meter / (32.0 * u.second)
+    >>> q
+    <Quantity 0.471875 m / s>
+    >>> "{0:0.03f}".format(q)
+    '0.472 m / s'
+
+The value and unit can also be formatted separately. Format specifiers
+used on units can be used to choose the unit formatter::
+
+    >>> q = 15.1 * u.meter / (32.0 * u.second)
+    >>> q
+    <Quantity 0.471875 m / s>
+    >>> "{0.value:0.03f} {0.unit:FITS}".format(q)
+    '0.472 m s-1'
+
+
 Using `astropy.units`
 =====================
 
