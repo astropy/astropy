@@ -55,7 +55,8 @@ from ..functional_models import (
     AiryDisk2DModel, Beta2DModel, Disk2DModel, Ring2DModel)
 from ..polynomial import Poly1DModel, Poly2DModel
 from ..powerlaws import (
-    PowerLaw1DModel, BrokenPowerLaw1DModel, ExponentialCutoffPowerLaw1DModel)
+    PowerLaw1DModel, BrokenPowerLaw1DModel, ExponentialCutoffPowerLaw1DModel,
+    LogParabola1DModel)
 
 # 1D Models
 models_1D = {}
