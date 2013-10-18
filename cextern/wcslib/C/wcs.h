@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.18 - an implementation of the FITS WCS standard.
+  WCSLIB 4.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.h,v 4.18 2013/07/13 10:00:04 mcalabre Exp $
+  $Id: wcs.h,v 4.19 2013/09/29 14:17:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.18 - C routines that implement the FITS World Coordinate System
+* WCSLIB 4.19 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -204,7 +204,7 @@
 * wcssub() can also add axes to a wcsprm struct.  The new axes will be created
 * using the defaults set by wcsini() which produce a simple, unnamed, linear
 * axis with world coordinate equal to the pixel coordinate.  These default
-* values can be changed in before invoking wcsset().
+* values can be changed afterwards, before invoking wcsset().
 *
 * Given:
 *   alloc     int       If true, allocate memory for the crpix, etc. arrays in
@@ -225,17 +225,18 @@
 *                       subimage, etc.
 *
 *                       Use an axis number of 0 to create a new axis using
-*                       the defaults set by wcsini().
+*                       the defaults set by wcsini().  They can be changed
+*                       later.
 *
 *                       nsub (the pointer) may be set to zero, and so also may
-*                       nsub, to indicate the number of axes in the input
-*                       image; the number of axes will be returned if
+*                       *nsub, which is interpreted to mean all axes in the
+*                       input image; the number of axes will be returned if
 *                       nsub != 0x0.  axes itself (the pointer) may be set to
 *                       zero to indicate the first *nsub axes in their
 *                       original order.
 *
-*                       Set both nsub and axes to zero to do a deep copy of
-*                       one wcsprm struct to another.
+*                       Set both nsub (or *nsub) and axes to zero to do a deep
+*                       copy of one wcsprm struct to another.
 *
 *                       Subimage extraction by coordinate axis type may be
 *                       done by setting the elements of axes[] to the
@@ -249,7 +250,7 @@
 *
 *                       Refer to the notes (below) for further usage examples.
 *
-*                       On return, *nsub will contain the number of axes in
+*                       On return, *nsub will be set to the number of axes in
 *                       the subimage; this may be zero if there were no axes
 *                       of the required type(s) (in which case no memory will
 *                       be allocated).  axes[] will contain the axis numbers
@@ -845,7 +846,7 @@
 *   double restfrq
 *     (Given) The rest frequency [Hz], and/or ...
 *   double restwav
-*     (Given) ... the rest wavelength in vacuuo [m], only one of which need be
+*     (Given) ... the rest wavelength in vacuo [m], only one of which need be
 *     given, the other should be set to zero.
 *
 *   int npv

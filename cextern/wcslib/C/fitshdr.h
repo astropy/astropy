@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.18 - an implementation of the FITS WCS standard.
+  WCSLIB 4.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.h,v 4.18 2013/07/13 10:00:04 mcalabre Exp $
+  $Id: fitshdr.h,v 4.19 2013/09/29 14:17:51 mcalabre Exp $
 *=============================================================================
 *
 * The Flexible Image Transport System (FITS), a data format widely used in

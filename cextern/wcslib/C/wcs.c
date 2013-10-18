@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.18 - an implementation of the FITS WCS standard.
+  WCSLIB 4.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 4.18 2013/07/13 10:00:04 mcalabre Exp $
+  $Id: wcs.c,v 4.19 2013/09/29 14:17:51 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -556,6 +556,7 @@ int wcssub(
   struct wcserr **err;
 
   if (wcssrc == 0x0) return WCSERR_NULL_POINTER;
+  if (wcsdst == 0x0) return WCSERR_NULL_POINTER;
   err = &(wcsdst->err);
 
   if ((naxis = wcssrc->naxis) <= 0) {
@@ -835,8 +836,12 @@ int wcssub(
   npv = 0;
   for (k = 0; k < wcssrc->npv; k++) {
     i = wcssrc->pv[k].i;
-    if (i == 0 || (i > 0 && map[i-1])) {
-      /* i == 0 is a special code for the latitude axis. */
+    if (i == 0) {
+      /* i == 0 is a special code that means "the latitude axis". */
+      wcsdst->pv[npv] = wcssrc->pv[k];
+      wcsdst->pv[npv].i = 0;
+      npv++;
+    } else if (i > 0 && map[i-1]) {
       wcsdst->pv[npv] = wcssrc->pv[k];
       wcsdst->pv[npv].i = map[i-1];
       npv++;

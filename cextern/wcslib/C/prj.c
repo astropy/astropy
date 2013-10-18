@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.18 - an implementation of the FITS WCS standard.
+  WCSLIB 4.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.c,v 4.18 2013/07/13 10:00:04 mcalabre Exp $
+  $Id: prj.c,v 4.19 2013/09/29 14:17:51 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -7609,9 +7609,7 @@ int stat[];
 
 {
   int h, mx, my, offset, rowlen, rowoff, status;
-  double absy, s, sigma, t, yr;
-  const double slim = prj->w[6] + 1e-12;
-  const double ylim = prj->w[9] * prj->w[4];
+  double absy, s, sigma, slim, t, ylim, yr;
   register int istat, ix, iy, *statp;
   register const double *xp, *yp;
   register double *phip, *thetap;
@@ -7622,6 +7620,9 @@ int stat[];
   if (prj->flag != HPX) {
     if ((status = hpxset(prj))) return status;
   }
+
+  slim = prj->w[6] + 1e-12;
+  ylim = prj->w[9] * prj->w[4];
 
   if (ny > 0) {
     mx = nx;

@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 4.18 and its test suite.
+# GNU makefile for building WCSLIB 4.19 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 4.18 2013/07/13 10:00:04 mcalabre Exp $
+# $Id: GNUmakefile,v 4.19 2013/09/29 14:17:51 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include ../makedefs
@@ -256,7 +256,7 @@ install : build
 	   fi
 	-  $(LN_S) $(WCSLIB) $(LIBDIR)/libwcs.a
 	-  if [ "$(SHRLIB)" != "" ] ; then \
-	     $(INSTALL) -m 644 $(SHRLIB) $(LIBDIR) ; \
+	     $(INSTALL) -m 755 $(SHRLIB) $(LIBDIR) ; \
 	     if [ -h "$(LIBDIR)/$(SONAME)" ] ; then \
 	       $(RM) $(LIBDIR)/$(SONAME) ; \
 	     fi ; \

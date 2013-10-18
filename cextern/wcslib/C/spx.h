@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.18 - an implementation of the FITS WCS standard.
+  WCSLIB 4.19 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spx.h,v 4.18 2013/07/13 10:00:04 mcalabre Exp $
+  $Id: spx.h,v 4.19 2013/09/29 14:17:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.18 - C routines that implement the spectral coordinate systems
+* WCSLIB 4.19 - C routines that implement the spectral coordinate systems
 * recognized by the FITS World Coordinate System (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -334,7 +334,7 @@
 *
 *   double dfreqwavn
 *     (Returned) Derivative of frequency with respect to wave number [m/s]
-*     (constant, = c, the speed of light in vacuuo), and ...
+*     (constant, = c, the speed of light in vacuo), and ...
 *   double dwavnfreq
 *     (Returned) ... vice versa [s/m] (constant, = 1/c, always available).
 *
@@ -394,7 +394,7 @@
 *
 *   double dvelobeta
 *     (Returned) Derivative of relativistic velocity with respect to
-*     relativistic beta [m/s] (constant, = c, the speed of light in vacuu0),
+*     relativistic beta [m/s] (constant, = c, the speed of light in vacuo),
 *     and ...
 *   double dbetavelo
 *     (Returned) ... vice versa [s/m] (constant, = 1/c, always available).
