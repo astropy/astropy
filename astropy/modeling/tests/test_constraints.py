@@ -213,7 +213,7 @@ def test_set_fixed_1():
     gauss.mean.fixed = True
     assert gauss.fixed == {'amplitude': False, 'mean': True, 'stddev': False}
     gfit = fitting.NonLinearLSQFitter(gauss)
-    assert gfit.fixed == [False, True, False]
+    assert np.all(gfit.fixed == [False, True, False])
 
 
 def test_set_fixed_2():
@@ -247,7 +247,7 @@ def test_unset_fixed():
     gauss.mean.fixed = False
     assert gauss.fixed == {'amplitude': False, 'mean': False, 'stddev': False}
     gfit._update_constraints()
-    assert gfit.fixed == [False, False, False]
+    assert np.all(gfit.fixed == [False, False, False])
 
 
 def test_unset_tied():
@@ -260,7 +260,7 @@ def test_unset_tied():
     gauss.amplitude.tied = False
     assert gauss.tied == {'amplitude': False, 'mean': False, 'stddev': False}
     gfit._update_constraints()
-    assert gfit.fixed == [False, False, False]
+    assert np.all(gfit.fixed == [False, False, False])
 
 
 def test_set_bounds_1():
@@ -270,7 +270,9 @@ def test_set_bounds_1():
     assert gauss.bounds == {'amplitude': (None, None),
                             'mean': (None, None),
                             'stddev': (0.0, None)}
-    assert gfit.bounds == [(-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12), (0.0, 10 ** 12)]
+    assert np.all(gfit.bounds ==
+                  [(-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12),
+                   (0.0, 10 ** 12)])
 
 
 def test_set_bounds_2():
@@ -281,7 +283,9 @@ def test_set_bounds_2():
                             'mean': (None, None),
                             'stddev': (0.0, None)}
     gfit._update_constraints()
-    assert gfit.bounds == [(-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12), (0.0, 10 ** 12)]
+    assert np.all(gfit.bounds ==
+                  [(-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12),
+                   (0.0, 10 ** 12)])
 
 
 def test_unset_bounds():
@@ -293,4 +297,6 @@ def test_unset_bounds():
                             'mean': (None, None),
                             'stddev': (None, None)}
     gfit = fitting.NonLinearLSQFitter(gauss)
-    assert gfit.bounds == [(-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12)]
+    assert np.all(gfit.bounds ==
+                  [(-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12),
+                   (-10 ** 12, 10 ** 12)])
