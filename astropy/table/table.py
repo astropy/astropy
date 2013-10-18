@@ -78,7 +78,7 @@ class TableColumns(OrderedDict):
         if isinstance(cols, (list, tuple)):
             cols = [(col.name, col) for col in cols]
         super(TableColumns, self).__init__(cols)
-    
+
     def __getitem__(self, item):
         """Get items from a TableColumns object.
         ::
@@ -719,7 +719,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         #
         # To handle this we are forced to reset a private variable first:
         self._fill_value = None
-        
+
         self.set_fill_value(val)  # defer to native ma.MaskedArray method
 
     @property
@@ -942,7 +942,7 @@ class Table(object):
         Metadata associated with the table.
     copy : boolean, optional
         Copy the input data (default=True).
-    
+
     """
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
@@ -1558,7 +1558,7 @@ class Table(object):
         Examples
         --------
         Create a table with three columns 'a', 'b' and 'c'::
-            
+
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
             ...           names=('a', 'b', 'c'))
             >>> print t
@@ -1771,7 +1771,7 @@ class Table(object):
             --- --- ---
               2 0.2   y
 
-        
+
         Note that there are no warnings if the slice operator extends
         outside the data::
 
