@@ -42,11 +42,29 @@ def spectral():
     ]
 
 
-def spectral_density(sunit, sfactor):
+def spectral_density(disp, factor=None):
     """
     Returns a list of equivalence pairs that handle spectral density
     with regard to wavelength and frequency.
+
+    Parameters
+    ----------
+    disp : Quantity
+        The frequency/wavelength/energy to do the conversion at.
+
+    Notes
+    -----
+    The ``factor`` argument is left for backward-compatibility with the syntax
+    ``spectral_density(unit, factor)`` but users are encouraged to use
+    ``spectral_density(factor * unit)`` instead.
     """
+
+    from .core import UnitBase
+    if isinstance(disp, UnitBase):
+        if factor is None:
+            raise ValueError("If ``disp`` is specified as a unit, ``factor`` should be set")
+        disp = factor * disp
+
     c_Aps = _si.c.value * 10 ** 10
 
     fla = cgs.erg / si.angstrom / si.cm ** 2 / si.s
@@ -55,22 +73,22 @@ def spectral_density(sunit, sfactor):
     lafla = nufnu
 
     def converter(x):
-        return x * (sunit.to(si.AA, sfactor, spectral()) ** 2 / c_Aps)
+        return x * (disp.unit.to(si.AA, disp.value, spectral()) ** 2 / c_Aps)
 
     def iconverter(x):
-        return x / (sunit.to(si.AA, sfactor, spectral()) ** 2 / c_Aps)
+        return x / (disp.unit.to(si.AA, disp.value, spectral()) ** 2 / c_Aps)
 
     def converter_fnu_nufnu(x):
-        return x * sunit.to(si.Hz, sfactor, spectral())
+        return x * disp.unit.to(si.Hz, disp.value, spectral())
 
     def iconverter_fnu_nufnu(x):
-        return x / sunit.to(si.Hz, sfactor, spectral())
+        return x / disp.unit.to(si.Hz, disp.value, spectral())
 
     def converter_fla_lafla(x):
-        return x * sunit.to(si.AA, sfactor, spectral())
+        return x * disp.unit.to(si.AA, disp.value, spectral())
 
     def iconverter_fla_lafla(x):
-        return x / sunit.to(si.AA, sfactor, spectral())
+        return x / disp.unit.to(si.AA, disp.value, spectral())
 
     return [
         (si.AA, fnu, converter, iconverter),
@@ -87,7 +105,7 @@ def doppler_radio(rest):
     Return the equivalency pairs for the radio convention for velocity.
 
     The radio convention for the relation between velocity and frequency is:
-    
+
     :math:`V = c \frac{f_0 - f}{f_0}  ;  f(V) = f_0 ( 1 - V/c )`
 
     Parameters
@@ -294,10 +312,10 @@ def mass_energy():
 
     return [(si.kg, si.J, lambda x: x * _si.c.value ** 2,
              lambda x: x / _si.c.value ** 2),
-            (si.kg / si.m ** 2, si.J / si.m ** 2 , 
+            (si.kg / si.m ** 2, si.J / si.m ** 2 ,
              lambda x: x * _si.c.value ** 2,
              lambda x: x / _si.c.value ** 2),
-            (si.kg / si.m ** 3, si.J / si.m ** 3 , 
+            (si.kg / si.m ** 3, si.J / si.m ** 3 ,
              lambda x: x * _si.c.value ** 2,
              lambda x: x / _si.c.value ** 2),
             (si.kg / si.s, si.J / si.s , lambda x: x * _si.c.value ** 2,

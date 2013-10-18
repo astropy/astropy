@@ -107,6 +107,9 @@ New Features
   - Added new spectroscopic equivalencies for velocity conversions
     (relativistic, optical, and radio conventions are supported)
 
+  - The ``spectral_density`` equivalency now also accepts a Quantity for the
+    frequency or wavelength.
+
   - Added Brightness Temperature (antenna gain) equivalency for conversion
     between :math:`T_B` and flux density.
 
