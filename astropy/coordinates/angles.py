@@ -14,7 +14,6 @@ import numpy as np
 
 from ..extern import six
 from . import angle_utilities as util
-from .errors import *
 from .. import units as u
 from ..utils import deprecated
 
@@ -690,7 +689,7 @@ def rotation_matrix(angle, axis='z', unit=None):
     """
     # TODO: This doesn't handle arrays of angles
 
-    from numpy import sin, cos, radians, sqrt
+    from numpy import sin, cos, sqrt
 
     if unit is None:
         unit = u.degree

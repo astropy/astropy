@@ -16,9 +16,6 @@ import re
 from ..extern.six.moves import urllib
 import socket
 
-# Third party
-import numpy as np
-
 # Astropy
 from ..config import ConfigurationItem
 from .builtin_systems import ICRSCoordinates

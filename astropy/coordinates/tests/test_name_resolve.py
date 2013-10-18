@@ -8,19 +8,16 @@ from __future__ import (absolute_import, division, print_function,
 
 from ...extern.six.moves import urllib
 
-# Standard library
 import time
 
-# Third party
 import numpy as np
 from ...tests.helper import pytest
 
-# Astropy
 from ..name_resolve import get_icrs_coordinates, NameResolveError, \
                            SESAME_DATABASE, _parse_response
-from ..builtin_systems import ICRSCoordinates, FK5Coordinates, FK4Coordinates, \
-                              GalacticCoordinates
+from ..builtin_systems import ICRSCoordinates
 from ...tests.helper import remote_data
+from ... import units as u
 
 _cached_ngc3642 = dict()
 _cached_ngc3642["simbad"] = """# ngc 3642	#Q22523669

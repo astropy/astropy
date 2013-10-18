@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -13,18 +14,18 @@ _lr_action_items = {'HOUR':([2,8,10,17,18,21,25,26,27,28,34,],[-15,12,-14,20,-16
 
 _lr_action = { }
 for _k, _v in _lr_action_items.items():
-   for _x,_y in zip(_v[0],_v[1]):
-      if not _x in _lr_action:  _lr_action[_x] = { }
-      _lr_action[_x][_k] = _y
+    for _x,_y in zip(_v[0],_v[1]):
+        if not _x in _lr_action:  _lr_action[_x] = { }
+        _lr_action[_x][_k] = _y
 del _lr_action_items
 
 _lr_goto_items = {'arcminute':([0,],[1,]),'angle':([0,],[3,]),'simple':([0,],[4,]),'arcsecond':([0,],[6,]),'hms':([0,],[7,]),'generic':([0,],[8,]),'dms':([0,],[9,]),'colon':([0,],[10,]),'spaced':([0,],[2,]),'sign':([0,],[11,]),'ufloat':([21,29,30,31,],[25,32,33,34,]),}
 
 _lr_goto = { }
 for _k, _v in _lr_goto_items.items():
-   for _x,_y in zip(_v[0],_v[1]):
-       if not _x in _lr_goto: _lr_goto[_x] = { }
-       _lr_goto[_x][_k] = _y
+    for _x,_y in zip(_v[0],_v[1]):
+        if not _x in _lr_goto: _lr_goto[_x] = { }
+        _lr_goto[_x][_k] = _y
 del _lr_goto_items
 _lr_productions = [
   ("S' -> angle","S'",1,None,None,None),

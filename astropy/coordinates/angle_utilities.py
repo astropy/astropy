@@ -14,7 +14,9 @@ from warnings import warn
 
 import numpy as np
 
-from .errors import *
+from .errors import (IllegalHourWarning, IllegalHourError,
+                     IllegalMinuteWarning, IllegalMinuteError,
+                     IllegalSecondWarning, IllegalSecondError)
 from ..utils import format_exception
 from .. import units as u
 

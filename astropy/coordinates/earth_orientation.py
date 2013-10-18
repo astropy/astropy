@@ -219,7 +219,6 @@ def _load_nutation_data(datastr, seriestype):
 
     Seriestype can be 'lunisolar' or 'planetary'
     """
-    from os.path import join
 
     if seriestype == 'lunisolar':
         dtypes = [('nl', int),
@@ -256,7 +255,7 @@ def _load_nutation_data(datastr, seriestype):
 
     lines = [l for l in datastr.split('\n') if not l.startswith('#') if not l.strip() == '']
 
-    lists = [[] for n in dtypes]
+    lists = [[] for _ in dtypes]
     for l in lines:
         for i, e in enumerate(l.split(' ')):
             lists[i].append(dtypes[i][1](e))
