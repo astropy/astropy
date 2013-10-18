@@ -274,7 +274,7 @@ class TestBasic():
 
         # Init from a single Time object without a scale
         t3 = Time(t1)
-        assert len(t1) == 1
+        assert t3.isscalar
         assert t3.scale == t1.scale
         assert t3.format == t1.format
         assert np.all(t3.value == t1.value)

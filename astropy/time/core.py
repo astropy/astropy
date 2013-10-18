@@ -107,6 +107,10 @@ class Time(object):
     FORMATS = TIME_FORMATS
     """Dict of time formats"""
 
+    # Make sure that reverse arithmetic (e.g., TimeDelta.__rmul__)
+    # gets called over the __mul__ of Numpy arrays.
+    __array_priority__ = 1000
+
     def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
                 lat=0.0, lon=0.0, copy=False):
@@ -565,9 +569,9 @@ class Time(object):
         val, ndim = _make_1d_array(val, copy=True)  # be conservative and copy
         if len(val) == 1:
             oval = val
-            val = np.empty(len(self), dtype=np.double)
+            val = np.empty(len(self._time), dtype=np.double)
             val[:] = oval
-        elif len(val) != len(self):
+        elif len(val) != len(self._time):
             raise ValueError('Attribute length must match Time object length')
         return val
 
@@ -700,7 +704,7 @@ class Time(object):
     """TDB - TT time scale offset"""
 
     def __len__(self):
-        return len(self._time)
+        return len(self.jd1)
 
     def __sub__(self, other):
         self_tai = self.tai
