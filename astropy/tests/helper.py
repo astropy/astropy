@@ -367,6 +367,7 @@ class astropy_test(Command, object):
                 if os.path.exists('htmlcov'):
                     shutil.rmtree('htmlcov')
                 shutil.copytree(os.path.join(testing_path, 'htmlcov'), 'htmlcov')
+                shutil.copy2(os.path.join(testing_path, '.coverage'), '.coverage')
 
         finally:
 

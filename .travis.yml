@@ -15,6 +15,10 @@ env:
 matrix:
     include:
 
+        # Do a coverage test in Python 2
+        - python: 2.7
+          env: NUMPY_VERSION=1.7.1 SETUP_CMD='test --coverage' OPTIONAL_DEPS=false
+
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time
         - python: 2.7
@@ -47,7 +51,6 @@ matrix:
           env: NUMPY_VERSION=1.6.2 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
         - python: 2.7
           env: NUMPY_VERSION=1.5.1 SETUP_CMD='test --parallel=8' OPTIONAL_DEPS=false
-
 
 before_install:
 
@@ -96,5 +99,13 @@ install:
     - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_WHEEL_COMMAND "Sphinx==dev"; fi
     - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_WHEEL_COMMAND "matplotlib>=1.3.0"; fi
 
+    # COVERAGE DEPENDENCIES
+    - if [[ $SETUP_CMD == 'test --coverage' ]]; then $PIP_WHEEL_COMMAND "pytest-cov" ; fi
+    - if [[ $SETUP_CMD == 'test --coverage' ]]; then $PIP_WHEEL_COMMAND "coveralls"; fi
+
 script:
     - python setup.py $SETUP_CMD
+
+after_success:
+  - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls; fi
+
