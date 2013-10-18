@@ -1,14 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import itertools
+
 import numpy as np
-
-from ...tests.helper import pytest
-from ...config import ConfigurationItem
-
-from ..convolve import convolve_fft
-
 from numpy.testing import assert_array_almost_equal_nulp
 
-import itertools
+from ..convolve import convolve_fft
+from ...tests.helper import pytest
+
 
 VALID_DTYPES = []
 for dtype_array in ['>f4', '<f4', '>f8', '<f8']:
