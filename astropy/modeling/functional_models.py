@@ -600,12 +600,12 @@ class Ring2DModel(Parametric2DModel):
         x position center of the disk
     y_0 : float
         y position center of the disk
-    R_in : float
-        Inner Radius of the ring
-    R_out : float
-        Outer Radius of the ring
+    r_in : float
+        Inner radius of the ring
     width : float
-        width of the ring. Can be specified instead of R_out.
+        Width of the ring.
+    r_out : float
+        Outer Radius of the ring. Can be specified instead of width.
 
     See Also
     --------
@@ -619,26 +619,28 @@ class Ring2DModel(Parametric2DModel):
 
             f(r) = \\left \\{
                      \\begin{array}{ll}
-                       A & : R_{in} \\leq r \\leq R_{out} \\\\
+                       A & : r_{in} \\leq r \\leq r_{out} \\\\
                        0 & : \\textnormal{else}
                      \\end{array}
                    \\right.
-    """
-    param_names = ['amplitude', 'x_0', 'y_0', 'R_in', 'R_out']
 
-    def __init__(self, amplitude, x_0, y_0, R_in, R_out=None, width=None, **constraints):
-        if width != None:
-            R_out = R_in + width
-        if R_out == None:
-            raise ModelDefinitionError("Either specify R_out or width.")
+    Where :math:`r_{out} = r_{in} + r_{width}`.
+    """
+    param_names = ['amplitude', 'x_0', 'y_0', 'r_in', 'width']
+
+    def __init__(self, amplitude, x_0, y_0, r_in, width=None, r_out=None, **constraints):
+        if r_out != None:
+            width = r_out - r_in
+        if r_out is None and width is None:
+            raise ModelDefinitionError("Either specify width or r_out.")
         super(Ring2DModel, self).__init__(locals())
 
-    def eval(self, x, y, amplitude, x_0, y_0, R_in, R_out):
+    def eval(self, x, y, amplitude, x_0, y_0, r_in, width):
         """
         Model function Ring2D.
         """
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
-        r_range = np.logical_and(rr >= R_in ** 2, rr <= R_out ** 2)
+        r_range = np.logical_and(rr >= r_in ** 2, rr <= (r_in + width) ** 2)
         return np.select([r_range], [amplitude])
 
 

@@ -23,6 +23,7 @@ def _round_up_to_odd_integer(value):
     else:
         return i
 
+
 class Gaussian1DKernel(Kernel1D):
     """
     1D Gaussian filter kernel.
@@ -342,8 +343,8 @@ class Ring2DKernel(Kernel2D):
     ----------
     radius_in : number
         Inner radius of the ring kernel.
-    radius_out : number
-        Outer radius of the ring kernel.
+    width : number
+        Width of the ring kernel.
     mode: string, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -374,16 +375,17 @@ class Ring2DKernel(Kernel2D):
 
         import matplotlib.pyplot as plt
         from astropy.convolution import Ring2DKernel
-        ring_2D_kernel = Ring2DKernel(9, 17)
+        ring_2D_kernel = Ring2DKernel(9, 8)
         plt.imshow(ring_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
         plt.ylabel('y [pixels]')
         plt.colorbar()
         plt.show()
     """
-    def __init__(self, radius_in, radius_out, **kwargs):
+    def __init__(self, radius_in, width, **kwargs):
+        radius_out = radius_in + width
         self._model = models.Ring2DModel(1. / (np.pi * (radius_out ** 2 - radius_in ** 2)),
-                                        0, 0, radius_in, radius_out)
+                                        0, 0, radius_in, width)
         self._default_size = _round_up_to_odd_integer(2 * radius_out)
         super(Ring2DKernel, self).__init__(**kwargs)
         self._truncation = 0
