@@ -236,7 +236,7 @@ def _pformat_col_iter(col, max_lines, show_name, show_unit, outs):
 
 
 def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
-                   show_unit=False, html=False):
+                   show_unit=False, html=False, tableid=None):
     """Return a list of lines for the formatted string representation of
     the table.
 
@@ -256,6 +256,11 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
 
     html : bool
         Format the output as an HTML table (default=False)
+
+    tableid : str or None
+        An ID tag for the table; only used if html is set.  Default is
+        "table{id}", where id is the unique integer id of the table object,
+        id(table)
 
     Returns
     -------
@@ -298,7 +303,9 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     if html:
         from ..utils.xml.writer import xml_escape
 
-        rows.append('<table>')
+        if tableid is None:
+            tableid = 'table{id}'.format(id=id(table))
+        rows.append('<table id="{tid}">'.format(tid=tableid))
         for i in range(n_rows):
             # _pformat_col output has a header line '----' which is not needed here
             if i == n_header - 1:
@@ -307,6 +314,8 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
             vals = ('<{0}>{1}</{2}>'.format(td, xml_escape(col[i].strip()), td)
                     for col in cols)
             row = ('<tr>' + ''.join(vals) + '</tr>')
+            if i < n_header:
+                row = ('<thead>' + row + '</thead>')
             rows.append(row)
         rows.append('</table>')
     else:

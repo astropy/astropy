@@ -48,13 +48,13 @@ class TestMultiD():
                          '10 .. 20 30 .. 40 50 .. 60']
 
         lines = t.pformat(html=True)
-        assert lines == ['<table>',
-                         '<tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr>',
+        assert lines == ['<table id="table{id}">'.format(id=id(t)),
+                         '<thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr></thead>',
                          '<tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td></tr>',
                          '<tr><td>10 .. 20</td><td>30 .. 40</td><td>50 .. 60</td></tr>',
                          '</table>']
-        assert t._repr_html_() == ('<table><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]'
-                                   '</th></tr><tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td>'
+        assert t._repr_html_() == ('<table id="table{tid}"><thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]'.format(tid=id(t)) +
+                                   '</th></tr></thead><tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td>'
                                    '</tr><tr><td>10 .. 20</td><td>30 .. 40</td><td>50 .. 60</td>'
                                    '</tr></table>')
 
@@ -71,8 +71,8 @@ class TestMultiD():
 def test_html_escaping():
     t = table.Table([('<script>alert("gotcha");</script>', 2, 3)])
     assert t._repr_html_() == (
-        '<table><tr><th>col0</th></tr><tr>'
-        '<td>&lt;script&gt;alert(&quot;gotcha&quot;);&lt;/script&gt;</td>'
+        '<table id="table{id}"><thead><tr><th>col0</th></tr></thead>'.format(id=id(t)) +
+        '<tr><td>&lt;script&gt;alert(&quot;gotcha&quot;);&lt;/script&gt;</td>'
         '</tr><tr><td>2</td></tr><tr><td>3</td></tr></table>')
 
 

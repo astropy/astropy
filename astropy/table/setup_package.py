@@ -17,3 +17,10 @@ def get_extensions():
         libraries=libraries,)
 
     return [table_ext]
+
+def get_package_data():
+    paths = [os.path.join('data', '*.js'),
+             os.path.join('data', '*.css'),
+             ]
+    return {'astropy.table': paths}
+    

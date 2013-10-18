@@ -1386,8 +1386,83 @@ class Table(object):
             else:
                 print line
 
+    def show_in_browser(self,
+                        css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
+                        max_lines=5000,
+                        jsviewer=False,
+                        jskwargs={},
+                        tableid=None,
+                        browser='default'):
+        """
+        Render the table in HTML and show it in a web browser.  In order to
+        make a persistent html file, i.e. one that survives refresh, the
+        returned file object must be kept in memory.
+        
+        Parameters
+        ----------
+        css : string
+            A valid CSS string declaring the formatting for the table
+        max_lines : int
+            Maximum number of rows to export to the table (set low by default
+            to avoid memory issues, since the browser view requires duplicating
+            the table in memory).  A negative value of `max_lines` indicates
+            no row limit
+        jsviewer : bool
+            If True, prepends some javascript headers so that the table is
+            rendered as a https://datatables.net data table.  This allows
+            in-browser searching & sorting.  See `JSViewer`
+        jskwargs : dict
+            Passed to the `JSViewer` init
+        tableid : str or None
+            An html ID tag for the table.  Default is "table{id}", where id is
+            the unique integer id of the table object, id(self)
+        browser : str
+            Any legal browser name, e.g. 'firefox','chrome','safari'
+            (for mac, you may need to use
+            'open -a "/Applications/Google Chrome.app" %s'
+            for Chrome).
+            If 'default', will use the system default browser.
+
+        Returns
+        -------
+        A :py:`tempfile.NamedTemporaryFile` object pointing to the html file on
+        disk.
+        """
+        import webbrowser
+        import tempfile
+        from .jsviewer import JSViewer
+
+        tmp = tempfile.NamedTemporaryFile(suffix='.html')
+
+        if tableid is None:
+            tableid = 'table{id}'.format(id=id(self))
+        linelist = self.pformat(html=True, max_width=np.inf, max_lines=max_lines,
+                                tableid=tableid)
+
+        if jsviewer:
+            jsv = JSViewer(**jskwargs)
+            js = jsv.command_line(tableid=tableid)
+        else:
+            js = []
+
+        css = ["<style>{0}</style>".format(css)]
+        html = "\n".join(['<!DOCTYPE html>','<html>'] + css + js + linelist + ['</html>'])
+
+        try:
+            tmp.write(html)
+        except TypeError:
+            tmp.write(html.encode('utf8'))
+        tmp.flush()
+
+        if browser == 'default':
+            webbrowser.open("file://"+tmp.name)
+        else:
+            webbrowser.get(browser).open("file://"+tmp.name)
+
+        return tmp
+
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-                show_unit=False, html=False):
+                show_unit=False, html=False, tableid=None):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -1417,13 +1492,19 @@ class Table(object):
         html : bool
             Format the output as an HTML table (default=False)
 
+        tableid : str or None
+            An ID tag for the table; only used if html is set.  Default is
+            "table{id}", where id is the unique integer id of the table object,
+            id(self)
+
         Returns
         -------
         lines : list
             Formatted table as a list of strings
         """
         lines, n_header = _pformat_table(self, max_lines, max_width,
-                                         show_name, show_unit, html)
+                                         show_name, show_unit, html,
+                                         tableid=tableid)
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
@@ -1460,7 +1541,9 @@ class Table(object):
                      show_unit)
 
     def _repr_html_(self):
-        lines = self.pformat(html=True)
+        # Since the user cannot provide input, need a sensible default
+        tableid = 'table{id}'.format(id=id(self))
+        lines = self.pformat(html=True, tableid=tableid)
         return ''.join(lines)
 
     def __getitem__(self, item):

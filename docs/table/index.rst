@@ -74,6 +74,13 @@ time::
 
   >>> t.more()
 
+You can also display it as an HTML-formatted table in the browser::
+
+  >>> t.show_in_browser()
+
+or as an interactive (searchable & sortable) javascript table::
+
+  >>> t.show_in_browser(jsviewer=True)
 
 Now examine some high-level information about the table::
 
