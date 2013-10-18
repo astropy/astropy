@@ -2,7 +2,7 @@
 import itertools
 
 import numpy as np
-from numpy.testing import assert_array_almost_equal_nulp
+from numpy.testing import assert_array_almost_equal_nulp, assert_allclose
 
 from ..convolve import convolve_fft
 from ...tests.helper import pytest
@@ -221,6 +221,33 @@ class TestConvolve1D(object):
 
         print boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, answer_key
         assert_array_almost_equal_nulp(z, answer_dict[answer_key], 10)
+
+    def test_masked_array(self):
+        """
+        Check whether convolve_fft works with masked arrays.
+        """
+        # Test masked array
+        array = np.array([1., np.nan, 3.], dtype='float64')
+        kernel = np.array([1, 1, 1])
+        masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
+        result = convolve_fft(masked_array, kernel)
+        assert_allclose(result, [1, 4, 3], atol=1E-10)
+
+        # Test masked kernel
+        array = np.array([1., np.nan, 3.], dtype='float64')
+        kernel = np.array([1, 1, 1])
+        masked_array = np.ma.masked_array(array, mask=[0, 1, 0])
+        result = convolve_fft(kernel, masked_array)
+        assert_allclose(result, [1, 4, 3], atol=1E-10)
+
+    def test_normalize_function(self):
+        """
+        Check if convolve_fft works when passing a normalize function.
+        """
+        array = [1, 2, 3]
+        kernel = [3, 3, 3]
+        result = convolve_fft(array, kernel, normalize_kernel=np.max)
+        assert_allclose(result, [3, 6, 5], atol=1E-10)
 
 
 class TestConvolve2D(object):
