@@ -44,7 +44,7 @@ Fitting Examples
 >>> p2 = models.Poly1DModel(3, param_dim=2)
 >>> pfit = fitting.LinearLSQFitter(p2)
 >>> pfit(x,yy)
->>> print p2.param_sets
+>>> print(p2.param_sets)
 array([[  1.00000000e+00,   1.00000000e+00],
        [  2.00000000e+00,   2.00000000e+00],
        [  3.91115939e-16,   3.91115939e-16],

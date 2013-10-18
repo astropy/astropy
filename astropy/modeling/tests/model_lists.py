@@ -47,10 +47,15 @@ Explanation of keywords of the dictionaries:
     as initial values for the fit (optional)
 """
 
-from ..functional_models import *
-from ..powerlaws import *
-from ..models import *
 import numpy as np
+from ..functional_models import (
+    Gaussian1DModel, Sine1DModel, Box1DModel, Linear1DModel, Lorentz1DModel,
+    MexicanHat1DModel, Trapezoid1DModel, Const1DModel, Beta1DModel,
+    Gaussian2DModel, Const2DModel, Box2DModel, MexicanHat2DModel, TrapezoidDisk2DModel,
+    AiryDisk2DModel, Beta2DModel, Disk2DModel, Ring2DModel)
+from ..polynomial import Poly1DModel, Poly2DModel
+from ..powerlaws import (
+    PowerLaw1DModel, BrokenPowerLaw1DModel, ExponentialCutoffPowerLaw1DModel)
 
 # 1D Models
 models_1D = {}
