@@ -630,9 +630,7 @@ class Ring2DModel(Parametric2DModel):
 
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, r_in, width):
-        """
-        Model function Ring2D.
-        """
+        """Two dimensional Ring model function."""
 
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
         r_range = np.logical_and(rr >= r_in ** 2, rr <= (r_in + width) ** 2)
