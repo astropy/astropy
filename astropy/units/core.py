@@ -431,25 +431,23 @@ class UnitBase(object):
         return CompositeUnit(1, [self], [p])._simplify()
 
     def __div__(self, m):
-        # Strictly speaking, we should be using old-style division here.
-        # However, I think it's less surprising for this to behave the
-        # same way whether __future__ division is being used or not
-        from .quantity import Quantity
+        if isinstance(m, six.string_types):
+            m = Unit(m)
+
         if isinstance(m, UnitBase):
             return CompositeUnit(1, [self, m], [1, -1])._simplify()
-        elif isinstance(m, Quantity):
-            return Quantity(1, self) / m
-        elif isinstance(m, six.string_types):
-            return self / Unit(m)
-        else:
-            return Quantity(1. / m, self)
+
+        # Cannot handle this as Unit, re-try as Quantity
+        from .quantity import Quantity
+        return Quantity(1, self) / m
 
     def __rdiv__(self, m):
-        from .quantity import Quantity
         if isinstance(m, six.string_types):
             return Unit(m) / self
-        else:
-            return Quantity(m, CompositeUnit(1.0, [self], [-1])._simplify())
+
+        # Cannot handle this as Unit, re-try as Quantity
+        from .quantity import Quantity
+        return m / Quantity(1, self)
 
     def __truediv__(self, m):
         return self.__div__(m)
@@ -458,22 +456,23 @@ class UnitBase(object):
         return self.__rdiv__(m)
 
     def __mul__(self, m):
-        from .quantity import Quantity
+        if isinstance(m, six.string_types):
+            m = Unit(m)
+
         if isinstance(m, UnitBase):
             return CompositeUnit(1, [self, m], [1, 1])._simplify()
-        elif isinstance(m, Quantity):
-            return Quantity(1, self) * m
-        elif isinstance(m, six.string_types):
-            return self * Unit(m)
-        else:
-            return Quantity(m, self)
+
+        # Cannot handle this as Unit, re-try as Quantity
+        from .quantity import Quantity
+        return Quantity(1, self) * m
 
     def __rmul__(self, m):
-        from .quantity import Quantity
         if isinstance(m, six.string_types):
             return Unit(m) * self
-        else:
-            return Quantity(m, self)
+
+        # Cannot handle this as Unit, re-try as Quantity
+        from .quantity import Quantity
+        return Quantity(1, self) * m
 
     if sys.version_info[0] >= 3:  # pragma: no cover
         def __hash__(self):
