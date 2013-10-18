@@ -11,7 +11,7 @@ from ..utils.exceptions import AstropyUserWarning
 __doctest_skip__ = ['*']
 
 
-def convolve(array, kernel, boundary=None, fill_value=0.,
+def convolve(array, kernel, boundary='fill', fill_value=0.,
              normalize_kernel=False):
     '''
     Convolve an array with a kernel.
