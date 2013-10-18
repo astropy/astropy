@@ -348,17 +348,11 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
     # returned! Note that this always makes a copy.
-    # Check kernel is kernel instance 
+    # Check kernel is kernel instance
     if isinstance(kernel, Kernel):
         kernel = kernel.array
         if isinstance(array, Kernel):
             raise Exception("Can't convolve two kernels. Use convolve() instead.")
-    array = np.asarray(array, dtype=np.complex)
-    kernel = np.asarray(kernel, dtype=np.complex)
-
-    # Check that the number of dimensions is compatible
-    if array.ndim != kernel.ndim:
-        raise Exception('array and kernel have differing number of dimensions')
 
     # mask catching - masks must be turned into NaNs for use later
     if np.ma.is_masked(array):
@@ -369,6 +363,14 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         mask = kernel.mask
         kernel = np.array(kernel)
         kernel[mask] = np.nan
+
+    # Convert array dtype to complex
+    array = np.asarray(array, dtype=np.complex)
+    kernel = np.asarray(kernel, dtype=np.complex)
+
+    # Check that the number of dimensions is compatible
+    if array.ndim != kernel.ndim:
+        raise Exception('array and kernel have differing number of dimensions')
 
     # NAN and inf catching
     nanmaskarray = np.isnan(array) + np.isinf(array)
