@@ -477,7 +477,7 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
             ns['underline'] = len(name) * '='
 
             # We now check whether a reference file exists for the module
-            # being documented. This assumes that we are in _generated, and
+            # being documented. This assumes that we are in 'api', and
             # that ../ gives us the root of the docs. We first check if the
             # current module is a file or a directory, as this will give a
             # different path for the reference file. For example, if

@@ -152,7 +152,7 @@ numpydoc_show_class_members = False
 
 autosummary_generate = True
 
-automodapi_toctreedirnm = '_generated'
+automodapi_toctreedirnm = 'api'
 
 
 # -- Options for HTML output -------------------------------------------------

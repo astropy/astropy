@@ -53,7 +53,7 @@ Functions
 
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :functions-only:
-    :toctree: _generated/
+    :toctree: api/
     {empty}
 
 Classes
@@ -61,7 +61,7 @@ Classes
 
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :classes-only:
-    :toctree: _generated/
+    :toctree: api/
     {empty}
 
 Class Inheritance Diagram
@@ -82,7 +82,7 @@ def test_am_replacer_basic():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='_generated')
+    fakeapp = FakeApp(automodapi_toctreedirnm='api')
     result = automodapi_replace(am_replacer_str.format(options=''), fakeapp)
 
     assert result == am_replacer_basic_expected
@@ -100,7 +100,7 @@ Functions
 
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :functions-only:
-    :toctree: _generated/
+    :toctree: api/
     {empty}
 
 Classes
@@ -108,7 +108,7 @@ Classes
 
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :classes-only:
-    :toctree: _generated/
+    :toctree: api/
     {empty}
 
 
@@ -123,7 +123,7 @@ def test_am_replacer_noinh():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='_generated')
+    fakeapp = FakeApp(automodapi_toctreedirnm='api')
     ops = ['', ':no-inheritance-diagram:']
     ostr = '\n    '.join(ops)
     result = automodapi_replace(am_replacer_str.format(options=ostr), fakeapp)
@@ -143,7 +143,7 @@ Functions
 
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :functions-only:
-    :toctree: _generated/
+    :toctree: api/
     {empty}
 
 Classes
@@ -151,7 +151,7 @@ Classes
 
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :classes-only:
-    :toctree: _generated/
+    :toctree: api/
     {empty}
 
 Class Inheritance Diagram
@@ -172,7 +172,7 @@ def test_am_replacer_titleandhdrs():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='_generated')
+    fakeapp = FakeApp(automodapi_toctreedirnm='api')
     ops = ['', ':title: A new title', ':headings: &*']
     ostr = '\n    '.join(ops)
     result = automodapi_replace(am_replacer_str.format(options=ostr), fakeapp)
@@ -202,7 +202,7 @@ Functions
 
 .. automodsumm:: astropy.sphinx.ext.automodapi
     :functions-only:
-    :toctree: _generated/
+    :toctree: api/
     {empty}
 
 
@@ -216,7 +216,7 @@ def test_am_replacer_nomain():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='_generated')
+    fakeapp = FakeApp(automodapi_toctreedirnm='api')
     result = automodapi_replace(am_replacer_nomain_str, fakeapp)
 
     assert result == am_replacer_nomain_expected
@@ -245,7 +245,7 @@ Functions
 
 .. automodsumm:: astropy.sphinx.ext.automodapi
     :functions-only:
-    :toctree: _generated/
+    :toctree: api/
     :skip: something1,something2
 
 
@@ -259,7 +259,7 @@ def test_am_replacer_skip():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='_generated')
+    fakeapp = FakeApp(automodapi_toctreedirnm='api')
     result = automodapi_replace(am_replacer_skip_str, fakeapp)
 
     assert result == am_replacer_skip_expected
@@ -281,7 +281,7 @@ def test_am_replacer_invalidop():
     """
     from ..automodapi import automodapi_replace
 
-    fakeapp = FakeApp(automodapi_toctreedirnm='_generated')
+    fakeapp = FakeApp(automodapi_toctreedirnm='api')
     automodapi_replace(am_replacer_invalidop_str, fakeapp)
 
     expected_warnings = [('Found additional options invalid-option in '

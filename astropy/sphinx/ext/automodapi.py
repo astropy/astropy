@@ -40,7 +40,7 @@ This extension also adds a sphinx configuration option
 `automodapi_toctreedirnm`. It must be a string that specifies the name of
 the directory the automodsumm generated documentation ends up in. This
 directory path should be relative to the documentation root (e.g., same
-place as ``index.rst``). It defaults to '_generated'
+place as ``index.rst``). It defaults to 'api'
 
 """
 
@@ -118,7 +118,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
         If True, a ":toctree:" option will be added in the "..
         automodsumm::" sections of the template, pointing to the
         appropriate "generated" directory based on the Astropy convention
-        (e.g. in ``docs/_generated``)
+        (e.g. in ``docs/api``)
     docname : str
         The name of the file for this `sourcestr` (if known - if not, it
         can be None). If not provided and `dotoctree` is True, the
@@ -268,4 +268,4 @@ def setup(app):
 
     app.connect('source-read', process_automodapi)
 
-    app.add_config_value('automodapi_toctreedirnm', '_generated', True)
+    app.add_config_value('automodapi_toctreedirnm', 'api', True)
