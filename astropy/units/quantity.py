@@ -73,7 +73,6 @@ def _validate_value(value, dtype, copy):
                     "type.")
 
 
-
 class Quantity(np.ndarray):
     """ A `Quantity` represents a number with some associated unit.
 
@@ -93,9 +92,6 @@ class Quantity(np.ndarray):
         The dtype of the resulting Numpy array or scalar that will
         hold the value.  If not provided, is is determined
         automatically from the input value.
-
-    equivalencies : list of equivalence pairs, optional
-        A list of equivalence pairs. See :ref:`unit_equivalencies`.
 
     copy : bool, optional
         If `True` (default), then the value is copied.  Otherwise, a copy
@@ -119,8 +115,7 @@ class Quantity(np.ndarray):
 
     __array_priority__ = 10000
 
-    def __new__(cls, value, unit=None, dtype=None, equivalencies=[],
-                copy=True):
+    def __new__(cls, value, unit=None, dtype=None, copy=True):
 
         from ..utils.misc import isiterable
 
@@ -148,7 +143,6 @@ class Quantity(np.ndarray):
                 self._unit = dimensionless_unscaled
         else:
             self._unit = Unit(unit)
-        self._equivalencies = Unit._normalize_equivalencies(equivalencies)
 
         return self
 
@@ -405,16 +399,14 @@ class Quantity(np.ndarray):
 
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`unit_equivalencies`.  If
-            not provided, the equivalencies that were provided in the
-            constructor will be used.
+            directly convertible.  See :ref:`unit_equivalencies`.
+            If not provided, default equivalencies for the class will be used
+            (none for `~astropy.units.Quantity`, but may be set for subclasses)
         """
         if equivalencies is None:
             equivalencies = self._equivalencies
         new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
-        return self.__quantity_instance__(new_val, unit,
-                                          equivalencies=equivalencies,
-                                          copy=False)
+        return self.__quantity_instance__(new_val, unit, copy=False)
 
     @property
     def value(self):
@@ -774,18 +766,18 @@ class Quantity(np.ndarray):
         latex_unit = (self.unit._repr_latex_()[1:-1]  # note this is unicode
                       if self.unit is not None
                       else _UNIT_NOT_INITIALISED)
-        
+
         return '${0} \; {1}$'.format(latex_value, latex_unit)
-        
+
     def __format__(self, format_spec):
         """
         Format quantities using the new-style python formatting codes
         as specifiers for the number.
-        
+
         If the format specifier correctly applies itself to the value,
         then it is used to format only the value. If it cannot be
         applied to the value, then it is applied to the whole string.
-        
+
         """
         try:
             value = format(self.value, format_spec)
@@ -797,8 +789,8 @@ class Quantity(np.ndarray):
                                   self.unit.to_string() if
                                   self.unit is not None
                                   else _UNIT_NOT_INITIALISED), full_format_spec)
-    
-    
+
+
     def decompose(self, bases=[]):
         """
         Generates a new `Quantity` with the units
