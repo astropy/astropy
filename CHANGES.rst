@@ -23,6 +23,10 @@ New Features
     closest matches between the two sets of coordiantes (see the 
     `~astropy.coordinates.matching.match_coordinates_3d` and 
     `~astropy.coordinates.matching.match_coordinates_sky` functions).
+    
+- ``astropy.io.ascii``
+
+  - Added support for writing IPAC format tables [#1152].
 
 - ``astropy.io.votable``
 
