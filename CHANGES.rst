@@ -72,19 +72,26 @@ New Features
 
 - ``astropy.table``
 
-  - Table.read and Table.write now support reading and writing of FITS tables
-    via the unified reading/writing interface [#591].
+  - Added ``join`` function to perform a database join on two tables [#1234].
+  
+  - Added ``hstack`` and ``vstack`` functions to stack two or more tables [#937].
+  
+  - Added support for selecting and manipulating groups within a table with
+    a database style ``group_by`` method [#1424].
+  
+  - Improved support for merging metadata from multiple tables [#1343].
 
-  - The 'units' and 'dtypes' attributes and keyword arguments in Column,
+  - Table ``read`` and ``write`` functions now support reading and writing of FITS
+    tables via the unified reading/writing interface [#591].
+
+  - The ``units`` and ``dtypes`` attributes and keyword arguments in Column,
     MaskedColumn, Row, and Table are now deprecated in favor of the
-    single-tense 'unit' and 'dtype' [#1174].
+    single-tense ``unit`` and ``dtype`` [#1174].
 
   - Setting a column from a Quantity now correctly sets the unit on the Column
     object [#732].
-
-  - The ``vstack``, ``hstack``, and ``join`` functions now support a
-    ``metadata_conflicts`` option that allows users to specify whether to
-    silently resolve conflicts, emit warnings, or raise exceptions [#1343].
+    
+  - Add ``remove_row`` and ``remove_rows`` to remove table rows [#1230].
 
 - ``astropy.convolution``
 
