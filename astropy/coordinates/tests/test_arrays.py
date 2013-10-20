@@ -250,3 +250,24 @@ def test_array_separation():
 
     assert abs(sepdiff.value) < 1e-5
     assert sepdiff != 0
+
+def test_array_indexing():
+    from .. import ICRSCoordinates
+
+    ra = np.linspace(0, 360, 10)
+    dec = np.linspace(-90, 90, 10)
+
+    c1 = ICRSCoordinates(ra, dec, unit=(u.degree, u.degree))
+
+    c2 = c1[4]
+    assert c2.ra.degree == 160
+    assert c2.dec.degree == -10
+
+    c3 = c1[2:5]
+    npt.assert_array_equal(c3.ra.degree, [80, 120, 160])
+    npt.assert_array_equal(c3.dec.degree, [-50, -30, -10])
+
+    c4 = c1[np.array([2, 5, 8])]
+
+    npt.assert_array_equal(c4.ra.degree, [80, 200, 320])
+    npt.assert_array_equal(c4.dec.degree, [-50, 10, 70])
