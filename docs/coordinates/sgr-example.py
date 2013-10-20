@@ -77,7 +77,7 @@ B = rotation_matrix(psi, "z", unit=u.radian)
 sgr_matrix = np.array(B.dot(C).dot(D))
 
 # Galactic to Sgr coordinates
-@transformations.transform_function(coord.GalacticCoordinates, SgrCoordinates)
+@transformations.transform_function(coord.Galactic, SgrCoordinates)
 def galactic_to_sgr(galactic_coord):
     """ Compute the transformation from Galactic spherical to Sgr coordinates.
     """
@@ -104,7 +104,7 @@ def galactic_to_sgr(galactic_coord):
     return SgrCoordinates(Lambda, Beta, distance=galactic_coord.distance,
                           unit=(u.degree, u.degree))
 
-@transformations.transform_function(SgrCoordinates, coord.GalacticCoordinates)
+@transformations.transform_function(SgrCoordinates, coord.Galactic)
 def sgr_to_galactic(sgr_coord):
     """ Compute the transformation from Sgr coordinates to spherical Galactic.
     """
@@ -124,12 +124,12 @@ def sgr_to_galactic(sgr_coord):
     if l<0:
         l += 360
 
-    return coord.GalacticCoordinates(l, b, distance=sgr_coord.distance,
+    return coord.Galactic(l, b, distance=sgr_coord.distance,
                                      unit=(u.degree, u.degree))
 
 if __name__ == "__main__":
     # Example use case for our newly defined coordinate class
-    ra_dec = coord.ICRSCoordinates(152.88572, 11.57281, unit=(u.degree,
+    ra_dec = coord.ICRS(152.88572, 11.57281, unit=(u.degree,
                                                               u.degree))
     sgr = ra_dec.transform_to(SgrCoordinates)
     print(sgr)

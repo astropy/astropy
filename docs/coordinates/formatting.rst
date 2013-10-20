@@ -4,9 +4,9 @@ Formatting Coordinate Strings
 Getting a string representation of a coordinate is best approached by
 treating the components (e.g., RA and Dec) separately.  For example::
 
-  >>> from astropy.coordinates import ICRSCoordinates
+  >>> from astropy.coordinates import ICRS
   >>> from astropy import units as u
-  >>> c = ICRSCoordinates(187.70592, 12.39112, unit=(u.degree, u.degree))
+  >>> c = ICRS(187.70592, 12.39112, unit=(u.degree, u.degree))
   >>> str(c.ra) + ' ' + str(c.dec)
   '187d42m21.312s 12d23m28.032s'
 

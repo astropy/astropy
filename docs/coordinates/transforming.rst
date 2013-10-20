@@ -17,22 +17,22 @@ that have an alias (created with
 simply using attribute style access to any other coordinate system::
 
     >>> from astropy import units as u
-    >>> from astropy.coordinates import GalacticCoordinates, ICRSCoordinates
-    >>> gc = GalacticCoordinates(l=0, b=45, unit=(u.degree, u.degree))
+    >>> from astropy.coordinates import Galactic, ICRS
+    >>> gc = Galactic(l=0, b=45, unit=(u.degree, u.degree))
     >>> gc.fk5
-    <FK5Coordinates RA=229.27250 deg, Dec=-1.12842 deg>
-    >>> ic = ICRSCoordinates(ra=0, dec=45, unit=(u.degree, u.degree))
+    <FK5 RA=229.27250 deg, Dec=-1.12842 deg>
+    >>> ic = ICRS(ra=0, dec=45, unit=(u.degree, u.degree))
     >>> ic.fk5
-    <FK5Coordinates RA=0.00001 deg, Dec=45.00000 deg>
+    <FK5 RA=0.00001 deg, Dec=45.00000 deg>
 
 While this appears to be simple attribute-style access, it is actually just
 syntactic sugar for the `transform_to` method::
 
-    >>> from astropy.coordinates import FK5Coordinates
-    >>> gc.transform_to(FK5Coordinates)
-    <FK5Coordinates RA=229.27250 deg, Dec=-1.12842 deg>
-    >>> ic.transform_to(FK5Coordinates)
-    <FK5Coordinates RA=0.00001 deg, Dec=45.00000 deg>
+    >>> from astropy.coordinates import FK5
+    >>> gc.transform_to(FK5)
+    <FK5 RA=229.27250 deg, Dec=-1.12842 deg>
+    >>> ic.transform_to(FK5)
+    <FK5 RA=0.00001 deg, Dec=45.00000 deg>
 
 The full list of supported coordinate systems and transformations is
 in the `astropy.coordinates` API documentation below.
@@ -43,21 +43,22 @@ different equinox.  Note that these systems have a default equinox
 they start with if you don't specify one::
 
     >>> from astropy.time import Time
-    >>> fk5c = FK5Coordinates('02h31m49.09s +89d15m50.8s')
+    >>> fk5c = FK5('02h31m49.09s +89d15m50.8s')
     >>> fk5c.equinox
     <Time object: scale='utc' format='jyear_str' value=J2000.000>
     >>> fk5c
-    <FK5Coordinates RA=37.95454 deg, Dec=89.26411 deg>
+    <FK5 RA=37.95454 deg, Dec=89.26411 deg>
     >>> fk5c.precess_to(Time(2100, format='jyear', scale='utc'))
-    <FK5Coordinates RA=88.32396 deg, Dec=89.54057 deg>
+    <FK5 RA=88.32396 deg, Dec=89.54057 deg>
 
 You can also specify the equinox when you create a coordinate using an
 `astropy.time.Time` object::
 
-    >>> fk5c = FK5Coordinates('02h31m49.09s +89d15m50.8s',
-    ...                       equinox=Time('J1970', scale='utc'))
+    >>> fk5c = FK5('02h31m49.09s +89d15m50.8s',
+                              equinox=Time('J1970', scale='utc'))
+    <FK5 RA=37.95454 deg, Dec=89.26411 deg>
     >>> fk5c.precess_to(Time(2000, format='jyear', scale='utc'))
-    <FK5Coordinates RA=48.02317 deg, Dec=89.38672 deg>
+    <FK5 RA=48.02317 deg, Dec=89.38672 deg>
 
 Coordinate systems do not necessarily all support an equinox nor
 precession, as it is a meaningless action for coordinate systems that

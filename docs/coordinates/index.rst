@@ -26,22 +26,22 @@ include lists of multiple coordinates in one object::
 
     >>> from astropy import coordinates as coord
     >>> from astropy import units as u
-    >>> coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=(u.degree, u.degree))
-    <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
-    >>> coord.ICRSCoordinates('00h42m44.3s +41d16m9s')
-    <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
-    >>> coord.ICRSCoordinates('00h42m44.3s +41d16m9s')
-    <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
-    >>> coord.ICRSCoordinates(ra=[10.68458, 83.82208], dec=[41.26917, -5.39111], unit=(u.degree, u.degree))
-    <ICRSCoordinates RA=[ 10.68458  83.82208] deg, Dec=[ 41.26917  -5.39111] deg>
+    >>> coord.ICRS(ra=10.68458, dec=41.26917, unit=(u.degree, u.degree))
+    <ICRS RA=10.68458 deg, Dec=41.26917 deg>
+    >>> coord.ICRS('00h42m44.3s +41d16m9s')
+    <ICRS RA=10.68458 deg, Dec=41.26917 deg>
+    >>> coord.ICRS('00h42m44.3s +41d16m9s')
+    <ICRS RA=10.68458 deg, Dec=41.26917 deg>
+    >>> coord.ICRS(ra=[10.68458, 83.82208], dec=[41.26917, -5.39111], unit=(u.degree, u.degree))
+    <ICRS RA=[ 10.68458  83.82208] deg, Dec=[ 41.26917  -5.39111] deg>
 
 The individual components of a coordinate are `~astropy.coordinates.angles.Longitude`
 or `~astropy.coordinates.angles.Latitude` objects, which are specialized versions
 of the general `~astropy.coordinates.angles.Angle` class.  The component values are
 accessed using aptly named attributes::
 
-    >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917,
-    ...                           unit=(u.degree, u.degree))
+    >>> c = coord.ICRS(ra=10.68458, dec=41.26917,
+                                  unit=(u.degree, u.degree))
     >>> c.ra
     <Longitude 10.684579999999983 deg>
     >>> c.ra.hour
@@ -59,18 +59,18 @@ but explicit transformations via the `transform_to` method are also
 available::
 
     >>> c.galactic
-    <GalacticCoordinates l=121.17430 deg, b=-21.57280 deg>
-    >>> c.transform_to(coord.GalacticCoordinates)
-    <GalacticCoordinates l=121.17430 deg, b=-21.57280 deg>
+    <Galactic l=121.17430 deg, b=-21.57280 deg>
+    >>> c.transform_to(coord.Galactic)
+    <Galactic l=121.17430 deg, b=-21.57280 deg>
 
 Distance from the origin (which is system-dependent, but often the
 Earth center) can also be assigned to a coordinate. This specifies a
 unique point in 3D space, which also allows conversion to Cartesian
 coordinates::
 
-    >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917,
-    ...                           unit=(u.degree, u.degree),
-    ...                           distance=coord.Distance(770, u.kpc))
+    >>> c = coord.ICRS(ra=10.68458, dec=41.26917,
+                                  unit=(u.degree, u.degree),
+                                  distance=coord.Distance(770, u.kpc))
     >>> c.x
     <Quantity 568.7128654235232 kpc>
     >>> c.y
@@ -85,8 +85,8 @@ allows coordinate objects to be used to find matches between two sets
 of coordinates::
 
     >>> #assume ra1/dec1 and ra2/dec2 are arrays loaded from some file
-    >>> c = coord.ICRSCoordinates(ra1, dec1, unit=(u.degree, u.degree))  # doctest: +SKIP
-    >>> catalog = coord.ICRSCoordinates(ra2, dec2, unit=(u.degree, u.degree))  # doctest: +SKIP
+    >>> c = coord.ICRS(ra1, dec1, unit=(u.degree, u.degree))  # doctest: +SKIP
+    >>> catalog = coord.ICRS(ra2, dec2, unit=(u.degree, u.degree))  # doctest: +SKIP
     >>> idx, d2d, d3d = c1.match_to_catalog_sky(catalog)  # doctest: +SKIP
 
 These array coordinates can also be indexed in the same way as numpy
@@ -109,14 +109,14 @@ special class method, `from_name()`, that accepts a string and queries
 `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve
 coordinates for that object::
 
-    >>> c = coord.ICRSCoordinates.from_name("M42")
+    >>> c = coord.ICRS.from_name("M42")
     >>> c.ra, c.dec
     (<Longitude 83.82208... deg>, <Latitude -5.39111... deg>)
 
 This works for any subclass of
 `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`::
 
-    >>> c = coord.GalacticCoordinates.from_name("M42")
+    >>> c = coord.Galactic.from_name("M42")
     >>> c.l, c.b
     (<Longitude 3.64797... rad>, <Latitude -0.33827... rad>)
 
