@@ -44,6 +44,12 @@ Backwards-Incompatible Changes
   indicating that the change occurred, but this will be removed in the
   next version.
 
+* All of the builtin coordinate classes no longer end in ``Coordinates``.
+  E.g., `ICRSCoordinates` is not `ICRS`, `GalacticCoordinates` are now
+  `Galactic`, etc.
+
+* `HorizontalCoordinates` is now called `AltAz`. 
+
 
 Warnings about backwards incompatible changes can be disabled by doing::
 
