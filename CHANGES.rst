@@ -16,8 +16,10 @@ New Features
     modulii.
 
   - `astropy.coordinates.SphericalCoordinateBase` and derived classes now
-    support arrays of coordinates, enabling large speed-ups for some
-    operations on multiple coordinates at the same time.
+    support arrays of coordinates, enabling large speed-ups for some 
+    operations on multiple coordinates at the same time. These coordinates
+    can also be indexed using standard slicing or any numpy-compatible 
+    indexing.
 
   - Array coordinates can be matched to other array coordinates, finding the
     closest matches between the two sets of coordiantes (see the
