@@ -242,8 +242,8 @@ class SphericalCoordinatesBase(object):
                                       lonname=lonname))
 
         # now actually set the values
-        setattr(self, lonname, lonang)
-        setattr(self, latname, latang)
+        self._lonangle = lonang
+        self._latangle = latang
         self._distance = dist
 
 
@@ -271,31 +271,27 @@ class SphericalCoordinatesBase(object):
                           latval=self.latangle.degree, lonnm=self._repr_lon_name,
                           latnm=self._repr_lat_name, diststr=diststr)
 
-    @abstractproperty
+    @property
     def latangle(self):
         """
         The latitudinal/elevation angle for these coordinates as an
-        `~astropy.coorinates.angles.Angle` object.
+        `~astropy.coordinates.angles.Angle` object.
 
-        .. note ::
-            This should be overridden in subclasses as a read-only property that
-            just returns an attribute a way to abstract the exact choice of
-            names for the coordiantes. E.g., `ICRSCoordinates` implements this
-            by doing ``return self.ra``.
+        Subclasses will often provide properties returning the same object, but
+        with a name more appropriate for the particular subclass.
         """
+        return self._latangle
 
-    @abstractproperty
+    @property
     def lonangle(self):
         """
         The longitudinal/azimuthal angle for these coordinates as an
-        `~astropy.coorinates.angles.Angle` object.
+        `~astropy.coordinates.angles.Angle` object.
 
-        .. note ::
-            This should be overridden in subclasses as a read-only property that
-            just returns an attribute a way to abstract the exact choice of
-            names for the coordinates. E.g., `ICRSCoordinates` implements this
-            by doing ``return self.dec``.
+        Subclasses will often provide properties returning the same object, but
+        with a name more appropriate for the particular subclass.
         """
+        return self._lonangle
 
     @property
     def equinox(self):
