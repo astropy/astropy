@@ -435,10 +435,10 @@ class Galactic(SphericalCoordinatesBase):
         return self._latangle
 
 
-@transformations.coordinate_alias('horizontal')
+@transformations.coordinate_alias('altaz')
 class AltAz(SphericalCoordinatesBase):
     """
-    A coordinate in the Horizontal or "az/el" system.
+    A coordinate in the altitude/azimuth or "horizontal" system.
 
     Parameters
     ----------
@@ -471,14 +471,14 @@ class AltAz(SphericalCoordinatesBase):
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
             self.az = newcoord.az
-            self.el = newcoord.el
+            self.el = newcoord.alt
             self._distance = newcoord._distance
         else:
-            super(AltAz, self)._initialize_latlon('az', 'el', args, kwargs)
+            super(AltAz, self)._initialize_latlon('az', 'alt', args, kwargs)
 
     #strings used for making __repr__ work
     _repr_lon_name = 'az'
-    _repr_lat_name = 'el'
+    _repr_lat_name = 'alt'
 
     @property
     def az(self):
