@@ -271,6 +271,40 @@ class SphericalCoordinatesBase(object):
                           latval=self.latangle.degree, lonnm=self._repr_lon_name,
                           latnm=self._repr_lat_name, diststr=diststr)
 
+    def __getitem__(self, key):
+        from copy import deepcopy
+
+        oldlat = self._latangle 
+        oldlon = self._lonangle
+        olddist = self._distance
+
+        newlat = oldlat[key]
+        newlon = oldlon[key]
+        if olddist is not None:
+            newdist = olddist[key]
+        else:
+            newdist = None
+
+        try:
+            #don't want to copy the old values, because we've already
+            #copied them above as new*
+            self._latangle = None
+            self._lonangle = None
+            self._distance = None
+
+            newcoo =  deepcopy(self)
+
+            newcoo._latangle = newlat
+            newcoo._lonangle = newlon
+            newcoo._distance = newdist
+
+            return newcoo
+        finally:
+            self._latangle = oldlat
+            self._lonangle = oldlon
+            self._distance = olddist
+
+
     @property
     def latangle(self):
         """
