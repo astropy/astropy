@@ -252,12 +252,14 @@ def test_array_separation():
     assert sepdiff != 0
 
 def test_array_indexing():
-    from .. import ICRSCoordinates
+    from .. import FK5Coordinates
+    from ...time import Time
 
     ra = np.linspace(0, 360, 10)
     dec = np.linspace(-90, 90, 10)
+    j1975 = Time(1975, format='jyear', scale='utc')
 
-    c1 = ICRSCoordinates(ra, dec, unit=(u.degree, u.degree))
+    c1 = FK5Coordinates(ra, dec, unit=(u.degree, u.degree), equinox=j1975)
 
     c2 = c1[4]
     assert c2.ra.degree == 160
@@ -271,3 +273,8 @@ def test_array_indexing():
 
     npt.assert_array_equal(c4.ra.degree, [80, 200, 320])
     npt.assert_array_equal(c4.dec.degree, [-50, 10, 70])
+
+    #now make sure the equinox is preserved
+    assert c2.equinox == c1.equinox
+    assert c3.equinox == c1.equinox
+    assert c4.equinox == c1.equinox
