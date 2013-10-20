@@ -114,6 +114,15 @@ printing out a value initially provided in hours, its `to_string()`
 will, by default, also be expressed in hours.  Additionally, `Angle`
 can now store an array of angles.
 
+Coordinate objects can now store arrays of coordinates instead of just
+a single coordinate.  This dramatically speeds-up some operations.
+
+Coordinate objects now support matching one set of coordinates to another
+using the array coordinates functionality described above.  See 
+`~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog`
+and `~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog_3d`
+for more details.
+
 Virtual Observatory Simple Cone Search
 --------------------------------------
 
