@@ -16,9 +16,7 @@ from ..time import Time
 from . import transformations
 from .. import units as u
 
-__all__ = ['ICRSCoordinates', 'FK5Coordinates', 'FK4Coordinates',
-           'FK4NoETermCoordinates', 'GalacticCoordinates', 'HorizontalCoordinates'
-          ]
+__all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'AltAz']
 
 # The UTC time scale is not properly defined prior to 1960, so Time('B1950',
 # scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')
@@ -29,12 +27,12 @@ _EQUINOX_B1950 = Time('B1950', scale='tai')
 
 #<--------------Coordinate definitions; transformations are below-------------->
 @transformations.coordinate_alias('icrs')
-class ICRSCoordinates(SphericalCoordinatesBase):
+class ICRS(SphericalCoordinatesBase):
     """
     A coordinate in the ICRS.
 
     If you're looking for "J2000" coordinates, and aren't sure if you
-    want to use this or `FK5Coordinates`, you probably want to use ICRS.
+    want to use this or `FK5`, you probably want to use ICRS.
     It's more well-defined as a catalog coordinate and is an inertial
     system.
 
@@ -47,14 +45,14 @@ class ICRSCoordinates(SphericalCoordinatesBase):
         to be the same as the `equinox`.
 
     Alternatively, a single argument that is any kind of spherical coordinate
-    can be provided, and will be converted to ICRSCoordinates and used as this
+    can be provided, and will be converted to ICRS and used as this
     coordinate.
 
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='ra', latnm='dec'))
 
     def __init__(self, *args, **kwargs):
-        super(ICRSCoordinates, self).__init__()
+        super(ICRS, self).__init__()
 
         self._obstime = kwargs.pop('obstime', None)
 
@@ -67,7 +65,7 @@ class ICRSCoordinates(SphericalCoordinatesBase):
             self.dec = newcoord.dec
             self._distance = newcoord._distance
         else:
-            super(ICRSCoordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
+            super(ICRS, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
     #strings used for making __repr__ work
     _repr_lon_name = 'RA'
@@ -94,7 +92,7 @@ class ICRSCoordinates(SphericalCoordinatesBase):
 
 
 @transformations.coordinate_alias('fk5')
-class FK5Coordinates(SphericalCoordinatesBase):
+class FK5(SphericalCoordinatesBase):
     """
     A coordinate in the FK5 system.
 
@@ -108,13 +106,13 @@ class FK5Coordinates(SphericalCoordinatesBase):
         to be the same as the `equinox`.
 
     Alternatively, a single argument that is any kind of spherical coordinate
-    can be provided, and will be converted to `FK5Coordinates` and used as this
+    can be provided, and will be converted to `FK5` and used as this
     coordinate.
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='ra', latnm='dec'))
 
     def __init__(self, *args, **kwargs):
-        super(FK5Coordinates, self).__init__()
+        super(FK5, self).__init__()
 
         self._equinox = kwargs.pop('equinox', _EQUINOX_J2000)
         self._obstime = kwargs.pop('obstime', None)
@@ -132,7 +130,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
             self.dec = newcoord.dec
             self._distance = newcoord._distance
         else:
-            super(FK5Coordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
+            super(FK5, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
     #strings used for making __repr__ work
     _repr_lon_name = 'RA'
@@ -169,7 +167,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
 
         Returns
         -------
-        newcoord : FK5Coordinates
+        newcoord : FK5
             The new coordinate
         """
         from .earth_orientation import precession_matrix_Capitaine
@@ -186,7 +184,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
 
 
 @transformations.coordinate_alias('fk4')
-class FK4Coordinates(SphericalCoordinatesBase):
+class FK4(SphericalCoordinatesBase):
     """
     A coordinate in the FK4 system.
 
@@ -201,13 +199,13 @@ class FK4Coordinates(SphericalCoordinatesBase):
         to be the same as the `equinox`.
 
     Alternatively, a single argument that is any kind of spherical coordinate
-    can be provided, and will be converted to `FK4Coordinates` and used as this
+    can be provided, and will be converted to `FK4` and used as this
     coordinate.
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='ra', latnm='dec'))
 
     def __init__(self, *args, **kwargs):
-        super(FK4Coordinates, self).__init__()
+        super(FK4, self).__init__()
 
         self._equinox = kwargs.pop('equinox', _EQUINOX_B1950)
         self._obstime = kwargs.pop('obstime', None)
@@ -225,7 +223,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
             self.dec = newcoord.dec
             self._distance = newcoord._distance
         else:
-            super(FK4Coordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
+            super(FK4, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
     #strings used for making __repr__ work
     _repr_lon_name = 'RA'
@@ -261,7 +259,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
 
         Returns
         -------
-        newcoord : FK4Coordinates
+        newcoord : FK4
             The new coordinate
         """
         from .earth_orientation import _precession_matrix_besselian
@@ -278,7 +276,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
 
 
 @transformations.coordinate_alias('fk4_no_e')
-class FK4NoETermCoordinates(SphericalCoordinatesBase):
+class FK4NoETerms(SphericalCoordinatesBase):
     """
     A coordinate in the FK4 system.
 
@@ -293,13 +291,13 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
         to be the same as the `equinox`.
 
     Alternatively, a single argument that is any kind of spherical coordinate
-    can be provided, and will be converted to `FK4NoETermCoordinates` and used as this
+    can be provided, and will be converted to `FK4NoETerms` and used as this
     coordinate.
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='ra', latnm='dec'))
 
     def __init__(self, *args, **kwargs):
-        super(FK4NoETermCoordinates, self).__init__()
+        super(FK4NoETerms, self).__init__()
 
         self._equinox = kwargs.pop('equinox', _EQUINOX_B1950)
         self._obstime = kwargs.pop('obstime', None)
@@ -317,7 +315,7 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
             self.dec = newcoord.dec
             self._distance = newcoord._distance
         else:
-            super(FK4NoETermCoordinates, self)._initialize_latlon('ra', 'dec', args, kwargs)
+            super(FK4NoETerms, self)._initialize_latlon('ra', 'dec', args, kwargs)
 
     #strings used for making __repr__ work
     _repr_lon_name = 'RA'
@@ -353,7 +351,7 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
 
         Returns
         -------
-        newcoord : FK4NoETermCoordinates
+        newcoord : FK4NoETerms
             The new coordinate
         """
         from .earth_orientation import _precession_matrix_besselian
@@ -370,7 +368,7 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
 
 
 @transformations.coordinate_alias('galactic')
-class GalacticCoordinates(SphericalCoordinatesBase):
+class Galactic(SphericalCoordinatesBase):
     """
     A coordinate in Galactic Coordinates.
 
@@ -393,7 +391,7 @@ class GalacticCoordinates(SphericalCoordinatesBase):
         to be the same as the `equinox`.
 
     Alternatively, a single argument that is any kind of spherical coordinate
-    can be provided, and will be converted to `GalacticCoordinates` and
+    can be provided, and will be converted to `Galactic` and
     used as this coordinate.
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='l', latnm='b'))
@@ -402,14 +400,14 @@ class GalacticCoordinates(SphericalCoordinatesBase):
     # transformations to/from FK4/5
 
     # These are from Reid & Brunthaler 2004
-    _ngp_J2000 = FK5Coordinates(192.859508, 27.128336, unit=(u.degree, u.degree))
+    _ngp_J2000 = FK5(192.859508, 27.128336, unit=(u.degree, u.degree))
     _lon0_J2000 = Angle(122.932, unit=u.degree)
     # These are from the IAU's definition of galactic coordinates
-    _ngp_B1950 = FK4Coordinates(192.25, 27.4, unit=(u.degree, u.degree))
+    _ngp_B1950 = FK4(192.25, 27.4, unit=(u.degree, u.degree))
     _lon0_B1950 = Angle(123, unit=u.degree)
 
     def __init__(self, *args, **kwargs):
-        super(GalacticCoordinates, self).__init__()
+        super(Galactic, self).__init__()
 
         self._obstime = kwargs.pop('obstime', None)
 
@@ -422,7 +420,7 @@ class GalacticCoordinates(SphericalCoordinatesBase):
             self.b = newcoord.b
             self._distance = newcoord._distance
         else:
-            super(GalacticCoordinates, self)._initialize_latlon('l', 'b', args, kwargs)
+            super(Galactic, self)._initialize_latlon('l', 'b', args, kwargs)
 
     #strings used for making __repr__ work
     _repr_lon_name = 'l'
@@ -438,7 +436,7 @@ class GalacticCoordinates(SphericalCoordinatesBase):
 
 
 @transformations.coordinate_alias('horizontal')
-class HorizontalCoordinates(SphericalCoordinatesBase):
+class AltAz(SphericalCoordinatesBase):
     """
     A coordinate in the Horizontal or "az/el" system.
 
@@ -452,13 +450,13 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
         to be the same as the `equinox`.
 
     Alternatively, a single argument that is any kind of spherical coordinate
-    can be provided, and will be converted to `HorizontalCoordinates` and used
+    can be provided, and will be converted to `AltAz` and used
     as this coordinate.
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='az', latnm='el'))
 
     def __init__(self, *args, **kwargs):
-        super(HorizontalCoordinates, self).__init__()
+        super(AltAz, self).__init__()
 
         self._equinox = kwargs.pop('equinox', _EQUINOX_J2000)
         self._obstime = kwargs.pop('obstime', None)
@@ -476,7 +474,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
             self.el = newcoord.el
             self._distance = newcoord._distance
         else:
-            super(HorizontalCoordinates, self)._initialize_latlon('az', 'el', args, kwargs)
+            super(AltAz, self)._initialize_latlon('az', 'el', args, kwargs)
 
     #strings used for making __repr__ work
     _repr_lon_name = 'az'
@@ -504,7 +502,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
 
 #<--------------------------------transformations------------------------------>
 # ICRS to/from FK5
-@transformations.static_transform_matrix(ICRSCoordinates, FK5Coordinates)
+@transformations.static_transform_matrix(ICRS, FK5)
 def icrs_to_fk5():
     """
     B-matrix from USNO circular 179
@@ -523,7 +521,7 @@ def icrs_to_fk5():
 
 
 # can't be static because the equinox is needed
-@transformations.dynamic_transform_matrix(FK5Coordinates, ICRSCoordinates)
+@transformations.dynamic_transform_matrix(FK5, ICRS)
 def fk5_to_icrs(fk5c):
     from .earth_orientation import _precess_from_J2000_Capitaine
 
@@ -537,8 +535,8 @@ def fk5_to_icrs(fk5c):
 # FK4-NO-E to/from FK4
 
 # In the present framework, we include two coordinate classes for FK4
-# coordinates - one including the E-terms of aberration (FK4Coordinates), and
-# one not including them (FK4NoETermCoordinates). In the following functions,
+# coordinates - one including the E-terms of aberration (FK4), and
+# one not including them (FK4NoETerms). In the following functions,
 # we describe the transformation between these two.
 
 def fk4_e_terms(equinox):
@@ -573,7 +571,7 @@ def fk4_e_terms(equinox):
            -e * k * np.cos(g) * np.sin(o)
 
 
-@transformations.transform_function(FK4Coordinates, FK4NoETermCoordinates, priority=1)
+@transformations.transform_function(FK4, FK4NoETerms, priority=1)
 def fk4_to_fk4_no_e(fk4c):
 
     # Extract cartesian vector
@@ -599,10 +597,10 @@ def fk4_to_fk4_no_e(fk4c):
     z = r[2].reshape(subshape)
 
     newunit = None if fk4c.distance is None else fk4c.distance.unit
-    return FK4NoETermCoordinates(x=x, y=y, z=z, unit=newunit, equinox=fk4c.equinox)
+    return FK4NoETerms(x=x, y=y, z=z, unit=newunit, equinox=fk4c.equinox)
 
 
-@transformations.transform_function(FK4NoETermCoordinates, FK4Coordinates, priority=1)
+@transformations.transform_function(FK4NoETerms, FK4, priority=1)
 def fk4_no_e_to_fk4(fk4c):
 
     # Extract cartesian vector
@@ -630,7 +628,7 @@ def fk4_no_e_to_fk4(fk4c):
     z = r[2].reshape(subshape)
 
     newunit = None if fk4c.distance is None else fk4c.distance.unit
-    return FK4Coordinates(x=x, y=y, z=z, unit=newunit, equinox=fk4c.equinox)
+    return FK4(x=x, y=y, z=z, unit=newunit, equinox=fk4c.equinox)
 
 # FK5 to/from FK4
 
@@ -650,7 +648,7 @@ FK4_CORR = \
             [-2.1112979048, -0.0056024448, +0.0102587734]]) * 1.e-6
 
 # This transformation can't be static because the observation date is needed.
-@transformations.dynamic_transform_matrix(FK4NoETermCoordinates, FK5Coordinates, priority=1)
+@transformations.dynamic_transform_matrix(FK4NoETerms, FK5, priority=1)
 def fk4_no_e_to_fk5(fk4c, skip_precession=False):
 
     # Add in correction terms for FK4 rotating system - Murray 89 eqn 29
@@ -667,7 +665,7 @@ def fk4_no_e_to_fk5(fk4c, skip_precession=False):
         return B * _precession_matrix_besselian(fk4c.equinox.byear, 1950)
 
 # This transformation can't be static because the observation date is needed.
-@transformations.dynamic_transform_matrix(FK5Coordinates, FK4NoETermCoordinates, priority=1)
+@transformations.dynamic_transform_matrix(FK5, FK4NoETerms, priority=1)
 def fk5_to_fk4_no_e(fk5c):
 
     # Get transposed matrix from FK4 -> FK5 assuming equinox B1950 -> J2000
@@ -680,9 +678,9 @@ def fk5_to_fk4_no_e(fk5c):
         from .earth_orientation import precession_matrix_Capitaine
         return B * precession_matrix_Capitaine(fk5c.equinox, _EQUINOX_J2000)
 
-# GalacticCoordinates to/from FK4/FK5
+# Galactic to/from FK4/FK5
 # can't be static because the equinox is needed
-@transformations.dynamic_transform_matrix(FK5Coordinates, GalacticCoordinates)
+@transformations.dynamic_transform_matrix(FK5, Galactic)
 def _fk5_to_gal(fk5coords):
     from .angles import rotation_matrix
     from .earth_orientation import _precess_from_J2000_Capitaine
@@ -690,20 +688,20 @@ def _fk5_to_gal(fk5coords):
     # needed mainly to support inverse from galactic
     jequinox = 2000 if fk5coords.equinox is None else fk5coords.equinox.jyear
 
-    mat1 = rotation_matrix(180 - GalacticCoordinates._lon0_J2000.degree, 'z')
-    mat2 = rotation_matrix(90 - GalacticCoordinates._ngp_J2000.dec.degree, 'y')
-    mat3 = rotation_matrix(GalacticCoordinates._ngp_J2000.ra.degree, 'z')
+    mat1 = rotation_matrix(180 - Galactic._lon0_J2000.degree, 'z')
+    mat2 = rotation_matrix(90 - Galactic._ngp_J2000.dec.degree, 'y')
+    mat3 = rotation_matrix(Galactic._ngp_J2000.ra.degree, 'z')
     # transpose gets equinox -> J2000
     matprec = _precess_from_J2000_Capitaine(jequinox).T
     return mat1 * mat2 * mat3 * matprec
 
 
-@transformations.dynamic_transform_matrix(GalacticCoordinates, FK5Coordinates)
+@transformations.dynamic_transform_matrix(Galactic, FK5)
 def _gal_to_fk5(galcoords):
     return _fk5_to_gal(galcoords).T
 
 
-@transformations.dynamic_transform_matrix(FK4NoETermCoordinates, GalacticCoordinates, priority=1)
+@transformations.dynamic_transform_matrix(FK4NoETerms, Galactic, priority=1)
 def _fk4_to_gal(fk4coords):
     from .angles import rotation_matrix
     from .earth_orientation import _precession_matrix_besselian
@@ -711,14 +709,14 @@ def _fk4_to_gal(fk4coords):
     # needed mainly to support inverse from galactic
     bequinox = 1950 if fk4coords.equinox is None else fk4coords.equinox.byear
 
-    mat1 = rotation_matrix(180 - GalacticCoordinates._lon0_B1950.degree, 'z')
-    mat2 = rotation_matrix(90 - GalacticCoordinates._ngp_B1950.dec.degree, 'y')
-    mat3 = rotation_matrix(GalacticCoordinates._ngp_B1950.ra.degree, 'z')
+    mat1 = rotation_matrix(180 - Galactic._lon0_B1950.degree, 'z')
+    mat2 = rotation_matrix(90 - Galactic._ngp_B1950.dec.degree, 'y')
+    mat3 = rotation_matrix(Galactic._ngp_B1950.ra.degree, 'z')
     matprec = _precession_matrix_besselian(bequinox, 1950)
     return mat1 * mat2 * mat3 * matprec
 
 
-@transformations.dynamic_transform_matrix(GalacticCoordinates, FK4NoETermCoordinates, priority=1)
+@transformations.dynamic_transform_matrix(Galactic, FK4NoETerms, priority=1)
 def _gal_to_fk4(galcoords):
     return _fk4_to_gal(galcoords).T
 
@@ -752,8 +750,8 @@ def _make_transform_graph_docs():
     preferred order when two trasnformation paths have the same number
     of steps.  These priorities are defined such that path with a
     *smaller* total priority are favored over larger.
-    E.g., the path from `ICRSCoordinates` to `GalacticCoordinates` goes
-    through `FK5Coordinates` because the total path length is 2 instead
+    E.g., the path from `ICRS` to `Galactic` goes
+    through `FK5` because the total path length is 2 instead
     of 2.03.
 
 

@@ -28,10 +28,10 @@ def test_fk5_seps():
 
     This is a regression test for github issue #891
     """
-    from astropy.coordinates import FK5Coordinates
+    from astropy.coordinates import FK5
 
-    a = FK5Coordinates(1., 1., unit=('deg', 'deg'))
-    b = FK5Coordinates(2., 2., unit=('deg', 'deg'))
+    a = FK5(1., 1., unit=('deg', 'deg'))
+    b = FK5(2., 2., unit=('deg', 'deg'))
     a.separation(b)
 
 

@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 from .... import units as u
-from ... import GalacticCoordinates, FK4Coordinates
+from ... import Galactic, FK4
 from ....time import Time
 from ....table import Table
 from ...angle_utilities import angular_separation
@@ -27,10 +27,10 @@ def test_galactic_fk4():
         r = t[i]
 
         # FK4 to FK5
-        c1 = GalacticCoordinates(r['lon_in'], r['lat_in'],
+        c1 = Galactic(r['lon_in'], r['lat_in'],
                                  unit=(u.degree, u.degree),
                                  obstime=Time(r['obstime'], scale='utc'))
-        c2 = c1.transform_to(FK4Coordinates).precess_to(Time(r['equinox_fk4'], scale='utc'))
+        c2 = c1.transform_to(FK4).precess_to(Time(r['equinox_fk4'], scale='utc'))
 
         # Find difference
         diff = angular_separation(c2.ra.radian, c2.dec.radian,
@@ -39,11 +39,11 @@ def test_galactic_fk4():
         assert np.degrees(diff) * 3600. < TOLERANCE
 
         # FK5 to FK4
-        c1 = FK4Coordinates(r['lon_in'], r['lat_in'],
+        c1 = FK4(r['lon_in'], r['lat_in'],
                             unit=(u.degree, u.degree),
                             obstime=Time(r['obstime'], scale='utc'),
                             equinox=Time(r['equinox_fk4'], scale='utc'))
-        c2 = c1.transform_to(GalacticCoordinates)
+        c2 = c1.transform_to(Galactic)
 
         # Find difference
         diff = angular_separation(c2.l.radian, c2.b.radian,

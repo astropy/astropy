@@ -8,7 +8,7 @@ import os
 import numpy as np
 
 from .... import units as u
-from ... import FK4NoETermCoordinates, FK4Coordinates
+from ... import FK4NoETerms, FK4
 from ....time import Time
 from ....table import Table
 from ...angle_utilities import angular_separation
@@ -31,10 +31,10 @@ def test_fk4_no_e_fk5():
         r = t[i]
 
         # FK4 to FK5
-        c1 = FK4Coordinates(r['ra_in'], r['dec_in'],
+        c1 = FK4(r['ra_in'], r['dec_in'],
                             unit=(u.degree, u.degree),
                             obstime=Time(r['obstime'], scale='utc'))
-        c2 = c1.transform_to(FK4NoETermCoordinates)
+        c2 = c1.transform_to(FK4NoETerms)
 
         # Find difference
         diff = angular_separation(c2.ra.radian, c2.dec.radian,
@@ -43,10 +43,10 @@ def test_fk4_no_e_fk5():
         assert np.degrees(diff) * 3600. < TOLERANCE
 
         # FK5 to FK4
-        c1 = FK4NoETermCoordinates(r['ra_in'], r['dec_in'],
+        c1 = FK4NoETerms(r['ra_in'], r['dec_in'],
                                    unit=(u.degree, u.degree),
                                    obstime=Time(r['obstime'], scale='utc'))
-        c2 = c1.transform_to(FK4Coordinates)
+        c2 = c1.transform_to(FK4)
 
         # Find difference
         diff = angular_separation(c2.ra.radian, c2.dec.radian,

@@ -16,11 +16,11 @@ tests.  Right now that's just regression tests.
 
 
 def test_distance_change():
-    from .. import Longitude, Latitude, ICRSCoordinates, Distance
+    from .. import Longitude, Latitude, ICRS, Distance
 
     ra = Longitude("4:08:15.162342", unit=u.hour)
     dec = Latitude("-41:08:15.162342", unit=u.degree)
-    c = ICRSCoordinates(ra, dec)
+    c = ICRS(ra, dec)
 
     c.distance = Distance(1, unit=u.kpc)
 
@@ -84,11 +84,11 @@ def test_distance_in_coordinates():
     test that distances can be created from quantities and that CartesianPoints
     can be built from them sucessfully
     """
-    from .. import Longitude, Latitude, ICRSCoordinates, CartesianPoints
+    from .. import Longitude, Latitude, ICRS, CartesianPoints
 
     ra = Longitude("4:08:15.162342", unit=u.hour)
     dec = Latitude("-41:08:15.162342", unit=u.degree)
-    c = ICRSCoordinates(ra, dec)
+    c = ICRS(ra, dec)
 
     c.distance = 2 * u.kpc  # auto-converts
 

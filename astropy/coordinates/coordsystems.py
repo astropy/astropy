@@ -682,8 +682,8 @@ class SphericalCoordinatesBase(object):
         -------
         coord : SphericalCoordinatesBase
             Instance of a Coordinates class, specified by the class this is
-            called on, e.g. if `GalacticCoordinates.from_name('m42')`, will
-            get an instance of `GalacticCoordinates` representing the
+            called on, e.g. if `Galactic.from_name('m42')`, will
+            get an instance of `Galactic` representing the
             position of M42.
         """
 
