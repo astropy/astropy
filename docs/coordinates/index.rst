@@ -180,3 +180,11 @@ Reference/API
 =============
 
 .. automodapi:: astropy.coordinates
+  :skip: ICRSCoordinates
+  :skip: FK5Coordinates
+  :skip: FK4Coordinates
+  :skip: FK4NoETermCoordinates
+  :skip: GalacticCoordinates
+  :skip: HorizontalCoordinates
+
+.. the ":skip:"s above are to not document the v0.3 backwards-compatibility names.  They will be removed in the next version
