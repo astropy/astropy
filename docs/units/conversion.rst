@@ -1,5 +1,10 @@
-Unit Conversion
-===============
+Low-level unit conversion
+=========================
+
+Conversion of quantities from one unit to another is handled using the
+`Quantity.to <astropy.units.quantity.Quantity.to>` method.  This page
+describes some low-level features for handling unit conversion that
+are rarely required in user code.
 
 There are two ways of handling conversions between units.
 

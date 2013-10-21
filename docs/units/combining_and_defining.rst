@@ -1,13 +1,17 @@
 Combining and defining units
 ============================
 
-Units can be combined together using the regular Python numeric
-operators.  For example::
+Units and quantities can be combined together using the regular Python
+numeric operators.  For example::
 
   >>> from astropy import units as u
   >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
   >>> fluxunit
   Unit("erg / (cm2 s)")
+  >>> 52.0 * fluxunit
+  <Quantity 52.0 erg / (cm2 s)>
+  >>> 52.0 * fluxunit / u.s
+  <Quantity 52.0 erg / (cm2 s2)>
 
 Users are free to define new units, either fundamental or compound
 using the `~astropy.units.core.def_unit` function.  For example::
@@ -29,8 +33,8 @@ Creating a new fundamental unit is simple::
   240
 
 By default, custom units are not searched by methods such as
-`UnitBase.find_equivalent_units`.  However, they can be enabled by
-calling `~astropy.units.add_enabled_units`::
+`~astropy.units.core.UnitBase.find_equivalent_units`.  However, they
+can be enabled by calling `~astropy.units.core.add_enabled_units`::
 
   >>> kmph = u.def_unit('kmph', u.km / u.h)
   >>> (u.m / u.s).find_equivalent_units()

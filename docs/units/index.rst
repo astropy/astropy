@@ -4,6 +4,8 @@
 Units (`astropy.units`)
 ***********************
 
+.. |quantity| replace:: :class:`~astropy.units.quantity.Quantity`
+
 .. currentmodule:: astropy.units
 
 Introduction
@@ -16,77 +18,92 @@ with associated units).
 Getting Started
 ===============
 
-  >>> from astropy import units as u
-  >>> # Convert from parsec to meter
-  >>> u.pc.to(u.m)
-  30856775814671916.0
-  >>> cms = u.cm / u.s
+Most users of the `astropy.units` package will work with "quantities":
+the combination of a value and a unit.  The easiest way to create a
+|quantity| is to simply multiply or divide a value by one of the
+built-in units.  It works with scalars, sequences and Numpy arrays::
 
-  >>> # Enable imperial units...
-  >>> from astropy.units import imperial
-  >>> imperial.enable()
+    >>> from astropy import units as u
+    >>> 42.0 * u.meter
+    <Quantity 42.0 m>
+    >>> [1., 2., 3.] * u.m
+    <Quantity [ 1., 2., 3.] m>
+    >>> import numpy as np
+    >>> np.array([1., 2., 3.]) * u.m
+    <Quantity [ 1., 2., 3.] m>
 
-  >>> # ...and then use some imperial units
-  >>> mph = imperial.mile / u.hour
+You can get the unit and value from a |quantity| using the unit and
+value members::
 
-  >>> # And do some conversions
-  >>> cms.to(mph, 1)
-  0.02236936292054402
-  >>> cms.to(mph, [1., 1000., 5000.])
-  array([  2.23693629e-02,   2.23693629e+01,   1.11846815e+02])
+    >>> q = 42.0 * u.meter
+    >>> q.value
+    42.0
+    >>> q.unit
+    Unit("m")
+
+From this simple building block, it's easy to start combining
+quantities with different units::
+
+    >>> 15.1 * u.meter / (32.0 * u.second)
+    <Quantity 0.471875 m / s>
+    >>> 3.0 * u.kilometer / (130.51 * u.meter / u.second)
+    <Quantity 0.0229867443108 km s / m>
+    >>> (3.0 * u.kilometer / (130.51 * u.meter / u.second)).decompose()
+    <Quantity 22.9867443108 s>
+
+Unit conversion is done using the
+:meth:`~astropy.units.quantity.Quantity.to` method, which returns a new
+|quantity| in the given unit::
+
+    >>> x = 1.0 * u.parsec
+    >>> x.to(u.km)
+    <Quantity 30856775814671.918 km>
+
+It is also possible to work directly with units at a lower level, for
+example, to create custom units::
+
+    >>> from astropy.units import imperial
+
+    >>> cms = u.cm / u.s
+    >>> # ...and then use some imperial units
+    >>> mph = imperial.mile / u.hour
+
+    >>> # And do some conversions
+    >>> q = 42.0 * cms
+    >>> cms.to(mph)
+    <Quantity 0.9395132426628489 mi / h>
 
 Units that "cancel out" become a special unit called the
 "dimensionless unit":
 
-  >>> u.m / u.m
-  Unit(dimensionless)
+    >>> u.m / u.m
+    Unit(dimensionless)
 
 `astropy.units` is able to match compound units against the units it already
 knows about::
 
-  >>> (u.s ** -1).compose()
-  [Unit("Hz"), ...]
+    >>> (u.s ** -1).compose()
+    [Unit("Hz"), ...]
 
-And it can convert between unit systems::
+And it can convert between unit systems, such as SI or CGS::
 
-  >>> u.Pa.to_system(u.cgs)
-  [Unit("10 Ba")]
+    >>> (1.0 * u.Pa).cgs
+    <Quantity 10.0 Ba>
 
 `astropy.units` also handles equivalencies, such as that between wavelength
 and frequency. To use that feature, equivalence objects are passed to the
-:meth:`~astropy.units.core.UnitBase.to` conversion method. For instance, a
+:meth:`~astropy.units.quantity.Quantity.to` conversion method. For instance, a
 conversion from wavelength to frequency doesn't normally work:
 
-  >>> u.nm.to(u.Hz, [1000, 2000])
-  UnitsError: 'nm' (length) and 'Hz' (frequency) are not convertible
+    >>> (1000 * u.nm).to(u.Hz)
+    UnitsError: 'nm' (length) and 'Hz' (frequency) are not convertible
 
 but by passing an equivalency list, in this case ``spectral()``, it does:
 
-  >>> u.nm.to(u.Hz, [1000, 2000], equivalencies=u.spectral())
-  array([  2.99792458e+14,   1.49896229e+14])
-  >>> u.nm.to(u.eV, [1000, 2000], equivalencies=u.spectral())
-  array([ 1.23984201,  0.61992101])
+    >>> (1000 * u.nm).to(u.Hz, equivalencies=u.spectral())
+    <Quantity 299792457999999.94 Hz>
 
-Also included in the `astropy.units` package is the
-:class:`~astropy.units.quantity.Quantity` object, which represents a numerical
-value with an associated unit. These objects support arithmetic with other
-numbers and :class:`~astropy.units.quantity.Quantity` objects and preserve
-their units::
-
-   >>> 15.1 * u.meter / (32.0 * u.second)
-   <Quantity 0.471875 m / s>
-   >>> 3.0 * u.kilometer / (130.51 * u.meter / u.second)
-   <Quantity 0.0229867443108 km s / m>
-   >>> (3.0 * u.kilometer / (130.51 * u.meter / u.second)).decompose()
-   <Quantity 22.9867443108 s>
-
-Quantities can also easily provide their values in another unit::
-
-   >>> q = 15.1 * u.meter
-   >>> q.parsec
-   4.893576727099331e-16
-
-Quantities and units can be printed nicely using the new-style 
+Quantities and units can be printed nicely using the new-style
 `Format String Syntax <http://docs.python.org/library/string.html#format-string-syntax>`_.
 Format specifiers (like ``0.03f``) in new-style format
 strings will used to format the quantity value::
@@ -106,20 +123,19 @@ used on units can be used to choose the unit formatter::
     >>> "{0.value:0.03f} {0.unit:FITS}".format(q)
     '0.472 m s-1'
 
-
 Using `astropy.units`
 =====================
 
 .. toctree::
    :maxdepth: 2
 
+   quantity
    standard_units
    combining_and_defining
    decomposing_and_composing
-   conversion
    format
    equivalencies
-   quantity
+   conversion
 
 See Also
 ========
@@ -146,6 +162,8 @@ See Also
 Reference/API
 =============
 
+.. automodapi:: astropy.units.quantity
+
 .. automodapi:: astropy.units
 
 .. automodapi:: astropy.units.format
@@ -161,8 +179,6 @@ Reference/API
 .. automodapi:: astropy.units.cds
 
 .. automodapi:: astropy.units.equivalencies
-
-.. automodapi:: astropy.units.quantity
 
 
 Acknowledgments

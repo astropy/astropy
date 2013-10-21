@@ -28,21 +28,26 @@ specifying a value and unit:
     >>> u.Quantity(15, u.m / u.s)
     <Quantity 15 m / s>
 
-|quantity| objects can also be created automatically from Numpy arrays:
+|quantity| objects can also be created automatically from Numpy arrays
+or Python sequences:
 
+    >>> [1, 2, 3] * u.m
+    <Quantity [1 2 3] m>
     >>> import numpy as np
-    >>> np.array([1,2,3]) * u.m
+    >>> np.array([1, 2, 3]) * u.m
     <Quantity [1 2 3] m>
 
-|quantity| objects can also be created from sequences of |quantity| objects,
-and will automatically convert to Numpy arrays.
+|quantity| objects can also be created from sequences of |quantity|
+objects, as long as all of their units are equivalent, and will
+automatically convert to Numpy arrays.
 
     >>> qlst = [60 * u.s, 120 * u.s]
     >>> u.Quantity(qlst, u.minute)
     <Quantity [ 1.  2.] min>
 
-Finally, the current unit and value can be accessed via the ``unit`` and
-``value`` attributes:
+Finally, the current unit and value can be accessed via the
+`~astropy.units.quantity.Quantity.unit` and
+`~astropy.units.quantity.Quantity.value` attributes:
 
     >>> q = 2.3 * u.m / u.s
     >>> q.unit
@@ -60,27 +65,15 @@ Converting to different units
     >>> q.to(u.km / u.h)
     <Quantity 8.28 km / h>
 
-For convenience, the `si` and `cgs` attributes can be used to convert the
-|quantity| to base S.I. or c.g.s units:
+For convenience, the `~astropy.units.quantity.Quantity.si` and
+`~astropy.units.quantity.Quantity.cgs` attributes can be used to
+convert the |quantity| to base S.I. or c.g.s units:
 
     >>> q = 2.4 * u.m / u.s
     >>> q.si
     <Quantity 2.4 m / s>
     >>> q.cgs
     <Quantity 240.0 cm / s>
-
-The value of converting to another unit can also be obtained, by specifying
-the desired unit as an attribute::
-
-    >>> q = 180.0 * u.degree
-    >>> q.radian
-    3.141592653589793
-    >>> # The above is shorthand for...
-    >>> q.to(u.radian).value
-    3.141592653589793
-
-In code, it is considered best practice to use the `q.SOME_UNIT` rather than
-`q.value`, because then the value will always be in the requested unit.
 
 Arithmetic
 ----------
@@ -160,9 +153,10 @@ This method is also useful for more complicated arithmetic:
 Numpy functions
 ---------------
 
-|quantity| objects are actually full Numpy arrays (the |quantity| object class
-inherits from and extends the ``np.ndarray`` class), and we have tried to
-ensure that most Numpy functions behave properly with units:
+|quantity| objects are actually full Numpy arrays (the |quantity|
+object class inherits from and extends the `numpy.ndarray` class), and
+we have tried to ensure that most Numpy functions behave properly with
+units:
 
     >>> q = np.array([1., 2., 3., 4.]) * u.m / u.s
     >>> np.mean(q)
@@ -188,10 +182,11 @@ or dimensionless quantities::
 Dimensionless quantities
 ------------------------
 
-Dimensionless quantities have the characteristic that if they are added or
-subtracted from a Python scalar or unitless ``ndarray``, or if they are passed
-to a Numpy function that takes dimensionless quantities, the units are
-simplified so that the quantity is dimensionless and scale-free. For example::
+Dimensionless quantities have the characteristic that if they are
+added or subtracted from a Python scalar or unitless `~numpy.ndarray`,
+or if they are passed to a Numpy function that takes dimensionless
+quantities, the units are simplified so that the quantity is
+dimensionless and scale-free. For example::
 
     >>> 1. + 1. * u.m / u.km
     <Quantity 1.001 >
@@ -234,11 +229,8 @@ Converting to plain Python scalars or Numpy arrays
 Converting |quantity| objects does not work for non-dimensionless quantities::
 
     >>> float(3. * u.m)
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/Users/tom/Library/Python/2.7/lib/python/site-packages/astropy-0.3.dev4691-py2.7-macosx-10.6-x86_64.egg/astropy/units/quantity.py", line 627, in __float__
-        raise TypeError('Only dimensionless scalar quantities can be '
-    TypeError: Only dimensionless scalar quantities can be converted to Python scalars
+    TypeError: Only dimensionless scalar quantities can be converted to Python
+    scalars
 
 Instead, only dimensionless values can be converted to plain Python scalars::
 
@@ -248,11 +240,8 @@ Instead, only dimensionless values can be converted to plain Python scalars::
 Note that scaled dimensionless quantities such as ``m / km`` also do not work::
 
     >>> float(3. * u.m / (4. * u.km))
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/Users/tom/Library/Python/2.7/lib/python/site-packages/astropy-0.3.dev4691-py2.7-macosx-10.6-x86_64.egg/astropy/units/quantity.py", line 627, in __float__
-        raise TypeError('Only dimensionless scalar quantities can be '
-    TypeError: Only dimensionless scalar quantities can be converted to Python scalars
+    TypeError: Only dimensionless scalar quantities can be converted to Python
+    scalars
 
 If you want to simplify e.g. dimensionless quantities to their true
 dimensionless value, then you can make use of the
@@ -266,7 +255,8 @@ dimensionless value, then you can make use of the
     >>> float(q.decompose())
     0.00075
 
-Similarly, ``int`` and ``long`` work, but only for dimensionless unscaled quantities::
+Similarly, `int` and `long` work, but only for dimensionless unscaled
+quantities::
 
     >>> int(6. * u.m / (2. * u.m))
     3
@@ -276,53 +266,3 @@ that only dimensionless quantities are converted to Numpy arrays::
 
     >>> np.array([1, 2, 3] * u.m)
     array([1, 2, 3])
-
-Formatting quantities as strings
---------------------------------
-
-You can control the way that |quantity| objects print using the new
-`Format String Syntax <http://docs.python.org/library/string.html#format-string-syntax>`. 
-New-style format strings use the ``"{}".format()`` syntax. 
-Most of the format speficiers are simliar to the old ``%``-style formatting,
-so things like ``0.003f`` still work, just in the form 
-``"{:0.003f}".format()``.
-
-Format specifiers, like ``0.003f`` will be applied to the |quantity| value,
-without affecting the unit. Specifiers like ``20s``, which would only apply
-to a string, will be applied to the whole string representation of the
-|quantity|. This means you can do::
-
-    >>> q = 10 * u.km
-    >>> q
-    <Quantity 10 km>
-    >>> "{0}".format(q)
-    10 km
-    >>> "{0:+0.03f}".format(q)
-    '+10.000 km'
-    >>> "{0:20s}".format(q)
-    '10 km               '
-
-To format both the value and the unit separately, you can access the |quantity|
-class attributes within new-style format strings::
-
-    >>> q = 10 * u.km
-    >>> q
-    <Quantity 10 km>
-    >>> "{0.value:0.003f} in {0.unit:s}".format(q)
-    '10.000 in km'
-
-Units can also be :ref:`formatted <astropy-units-format>` in a number of different styles, including latex.
-For example::
-
-    >>> "{0.value:0.003f} in {0.unit:latex}".format(q)
-    '10.000 in $\\mathrm{km}$'
-
-Because Numpy arrays don't accept most format specifiers, using specifiers like
-``0.003f`` will not work when applied to a Numpy array or non-scalar |quantity|.
-Use :func:`numpy.array_str` instead. For example::
-    
-    >>> q = np.linspace(0,1,10) * u.m
-    >>> "{0} {1}".format(np.array_str(q.value, precision=1), q.unit)
-    '[ 0.   0.1  0.2  0.3  0.4  0.6  0.7  0.8  0.9  1. ] m'
-    
-Examine the numpy documentation for more examples with :func:`numpy.array_str`.

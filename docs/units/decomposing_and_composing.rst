@@ -4,8 +4,10 @@ Decomposing and composing units
 Reducing a unit to its irreducible parts
 ----------------------------------------
 
-A unit can be decomposed into its irreducible parts using the
-`~astropy.units.core.UnitBase.decompose` method::
+A unit or quantity can be decomposed into its irreducible parts using
+the `Unit.decompose <astropy.units.core.UnitBase.decompose>` or
+`Quantity.decompose <astropy.units.quantity.Quantity.decompose>`
+methods::
 
   >>> from astropy import units as u
   >>> u.Ry
@@ -80,10 +82,16 @@ between unit systems.
    >>> u.Pa.to_system(u.cgs)
    [Unit("10 Ba")]
 
+There is also a shorthand for this which only returns the first of
+many possible matches::
+
+   >>> u.Pa.cgs
+   Unit("10 Ba")
+
 This is equivalent to decomposing into the new system and then
-composing into the most complex units possible, though `to_system`
-adds some extra logic to return the results sorted in the most useful
-order::
+composing into the most complex units possible, though
+`~astropy.units.core.UnitBase.to_system` adds some extra logic to
+return the results sorted in the most useful order::
 
    >>> u.Pa.decompose(bases=u.cgs.bases)
    Unit("10 g / (cm s2)")
