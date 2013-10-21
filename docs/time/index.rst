@@ -361,8 +361,11 @@ certain subformat::
 
   >>> t = Time('2000:002:03:04', scale='utc', in_subfmt='date_hm')
   >>> t = Time('2000:002', scale='utc', in_subfmt='date_hm')
-  ERROR: ValueError: Input values did not match any of format classes
-  ['iso', 'isot', 'yday']
+  Traceback (most recent call last):
+    ...
+  ValueError: Input values did not match any of the formats where the
+  format keyword is optional ['astropy_time', 'datetime',
+  'byear_str', 'iso', 'isot', 'jyear_str', 'yday']
 
 out_subfmt
 ^^^^^^^^^^
@@ -436,12 +439,12 @@ available format names is in the `time format`_ section.
 
 Example::
 
-  >>> import matplotlib.pyplt as plt
-  >>> jyear = np.linspace(2000, 2001, 20)
-  >>> t = Time(jyear, format='jyear', scale='utc')
-  >>> plt.plot_date(t.plot_date, jyear)
-  >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant
-  >>> plt.draw()
+  >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+  >>> jyear = np.linspace(2000, 2001, 20)  # doctest: +SKIP
+  >>> t = Time(jyear, format='jyear', scale='utc')  # doctest: +SKIP
+  >>> plt.plot_date(t.plot_date, jyear)  # doctest: +SKIP
+  >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant  # doctest: +SKIP
+  >>> plt.draw()  # doctest: +SKIP
 
 Convert time scale
 ^^^^^^^^^^^^^^^^^^^^
@@ -488,7 +491,7 @@ UT1 - UTC and TDB - TT, respectively.  As an example::
   >>> t = Time('2010-01-01 00:00:00', format='iso', scale='utc')
   >>> t.delta_ut1_utc = 0.334  # Explicitly set one part of the transformation
   >>> t.ut1.iso    # ISO representation of time in UT1 scale
- '2010-01-01 00:00:00.334'
+  '2010-01-01 00:00:00.334'
 
 For the UT1 to UTC offset, one has to interpolate in observed values provided
 by the `International Earth Rotation and Reference Systems Service
@@ -593,8 +596,9 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
   >>> dt + dt2
   <TimeDelta object: scale='tai' format='jd' value=31.0005787037>
 
+  >>> import numpy as np
   >>> t1 + dt * np.linspace(0, 1, 5)
-  <Time object: scale='utc' format='iso' value=['2010-01-01 00:00:00.000' 
+  <Time object: scale='utc' format='iso' value=['2010-01-01 00:00:00.000'
   '2010-01-08 18:00:00.000' '2010-01-16 12:00:00.000' '2010-01-24 06:00:00.000'
   '2010-02-01 00:00:00.000']>
 
@@ -609,16 +613,18 @@ Usage is most easily illustrated by examples::
 
   >>> import astropy.units as u
   >>> Time(10.*u.yr, format='gps')   # time-valued quantities can be used for
-                                     # for formats requiring a time offset
-  <Time object: scale='tai' format='gps' value=315576000.0> 
+  ...                                # for formats requiring a time offset
+  <Time object: scale='tai' format='gps' value=315576000.0>
   >>> Time(10.*u.yr, 1.*u.s, format='gps')
   <Time object: scale='tai' format='gps' value=315576001.0>
   >>> Time(2000.*u.yr, scale='utc', format='jyear')
   <Time object: scale='utc' format='jyear' value=2000.0>
   >>> Time(2000.*u.yr, scale='utc', format='byear')
-                                     # but not for Besselian year, which implies
-                                     # a different time scale
+  ...                                # but not for Besselian year, which implies
+  ...                                # a different time scale
   ...
+  Traceback (most recent call last):
+    ...
   ValueError: Input values did not match the format class byear
 
   >>> TimeDelta(10.*u.yr)            # With a quantity, no format is required
@@ -634,7 +640,7 @@ Usage is most easily illustrated by examples::
   >>> Time(50000., format='mjd', scale='utc') + 1.*u.hr
   <Time object: scale='utc' format='mjd' value=50000.0416667>
   >>> dt * 10.*u.km/u.s              # for multiplication and division with a
-                                     # Quantity, TimeDelta is converted
+  ...                                # Quantity, TimeDelta is converted
   <Quantity [ 100., 200., 300.] d km / s>
   >>> dt * 10.*u.Unit(1)             # unless the Quantity is dimensionless
   <TimeDelta object: scale='tai' format='jd' value=[ 100.  200.  300.]>
@@ -650,7 +656,7 @@ Acknowledgments and Licenses
 
 This package makes use of the `ERFA Software
 <https://github.com/liberfa/erfa>`_ ANSI C library. The copyright of the ERFA
-software belongs to the NumFOCUS Foundation. The library is made available 
+software belongs to the NumFOCUS Foundation. The library is made available
 under the terms of the "BSD-three clauses" license.
 
 The ERFA library is derived, with permission, from the International
