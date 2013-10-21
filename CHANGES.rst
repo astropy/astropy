@@ -64,6 +64,9 @@ New Features
     taking the absolute value of TimeDelta objects [#1082].
 
   - Allow comparisons of Time and TimeDelta objects [#1171].
+  
+  - Support interaction of Time and Quantity objects that represent a time
+    interval [#1431].
 
 - ``astropy.stats``
 
