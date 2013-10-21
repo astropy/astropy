@@ -904,7 +904,7 @@ set_pvcards(
     }
   }
 
-  if (size < (Py_ssize_t)*npvmax) {
+  if (size <= (Py_ssize_t)*npvmax) {
     memcpy(*pv, newmem, sizeof(struct pvcard) * size);
   } else { /* (size > (Py_ssize_t)*npvmax) */
     free(*pv);
