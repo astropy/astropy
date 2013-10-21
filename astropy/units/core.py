@@ -375,13 +375,13 @@ class UnitBase(object):
         """
         f = unit_format.get_format(format)
         return f.to_string(self)
-        
+
     def __format__(self, format_spec):
         """Try to format units using a formatter."""
         try:
             return self.to_string(format=format_spec)
         except ValueError:
-            return format(str(self), format_spec)
+            return format(six.text_type(self), format_spec)
 
     @staticmethod
     def _normalize_equivalencies(equivalencies):
