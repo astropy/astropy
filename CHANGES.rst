@@ -338,6 +338,12 @@ API Changes
   - Multiplication with and division by a string now always returns a Unit
     (rather than a Quantity when the string was first)
 
+  - One can no longer pass on ``equivalencies`` in ``Quantity`` initialisation,
+    as this was felt to be rarely useful and leading to too much "magic".
+    Rather, one should explicitly pass on equivalencies, as in 
+    ``q.to(..., equivalencies=...)`` The mechanism proper remains in place,
+    and can be used at the subclass level.  [#1613]
+
 - ``astropy.wcs``
 
   - For those including the ``astropy.wcs`` C headers in their project, they

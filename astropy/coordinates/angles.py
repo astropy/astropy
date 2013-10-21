@@ -66,9 +66,6 @@ class Angle(u.Quantity):
     dtype : ~numpy.dtype, optional
         See `~astropy.units.Quantity`.
 
-    equivalencies : list of equivalence pairs, optional
-        See `~astropy.units.Quantity`.
-
     copy : bool, optional
         See `~astropy.units.Quantity`.
 
@@ -79,11 +76,10 @@ class Angle(u.Quantity):
     """
     _include_easy_conversion_members = True
 
-    def __new__(cls, angle, unit=None, dtype=None,
-                equivalencies=[], copy=True):
+    def __new__(cls, angle, unit=None, dtype=None, copy=True):
         unit = cls._convert_unit_to_angle_unit(unit)
         if (unit is not None and
-            not unit.is_equivalent(u.radian, equivalencies)):
+            not unit.is_equivalent(u.radian)):
             raise u.UnitsError(
                 "Given unit {0} is not convertible to an angle".format(
                     unit))
@@ -135,8 +131,7 @@ class Angle(u.Quantity):
             raise u.UnitsError("No unit was specified")
 
         self = super(Angle, cls).__new__(
-            cls, angle, unit, dtype=dtype,
-            equivalencies=equivalencies, copy=copy)
+            cls, angle, unit, dtype=dtype, copy=copy)
 
         return self
 
@@ -179,9 +174,6 @@ class Angle(u.Quantity):
     def __quantity_instance__(self, val, unit, **kwargs):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
-            # by default, any equivalencies remain the same
-            if 'equivalencies' not in kwargs:
-                kwargs['equivalencies'] = self.equivalencies
             return self.__class__(val, unit, **kwargs)
         return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
 
@@ -642,11 +634,9 @@ class Longitude(Angle):
     def __quantity_instance__(self, val, unit, **kwargs):
         unit = self._convert_unit_to_angle_unit(unit)
         if unit is not None and unit.is_equivalent(u.radian):
-            # by default, wrap_angle and equivalencies remain the same
-            # TODO: generalize to some _things_to_copy once #1422, #1373 merged
-            for key in ('equivalencies', 'wrap_angle'):
-                if key not in kwargs:
-                    kwargs[key] = getattr(self, key)
+            # by default, wrap_angle remains the same
+            if 'wrap_angle' not in kwargs:
+                kwargs['wrap_angle'] = getattr(self, 'wrap_angle')
             return Longitude(val, unit, **kwargs)
         return super(Angle, self).__quantity_instance__(val, unit, **kwargs)
 

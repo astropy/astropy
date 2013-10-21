@@ -422,14 +422,22 @@ def test_quantity_conversion_with_equiv():
 
 
 def test_quantity_conversion_equivalency_passed_on():
-    q1 = u.Quantity([1000,2000], unit=u.Hz, equivalencies=u.spectral())
-    q2 = q1.to(u.nm).to(u.Hz)
-    assert q2.unit == u.Hz
-    assert_allclose(q2.value, q1.value)
-    q3 = u.Quantity([1000, 2000], unit=u.nm)
-    q4 = q3.to(u.Hz, equivalencies=u.spectral()).to(u.nm)
-    assert q4.unit == u.nm
-    assert_allclose(q4.value, q3.value)
+    class MySpectral(u.Quantity):
+        _equivalencies = u.spectral()
+
+        def __quantity_instance__(self, *args, **kwargs):
+            return MySpectral(*args, **kwargs)
+
+    q1 = MySpectral([1000,2000], unit=u.Hz)
+    q2 = q1.to(u.nm)
+    assert q2.unit == u.nm
+    q3 = q2.to(u.Hz)
+    assert q3.unit == u.Hz
+    assert_allclose(q3.value, q1.value)
+    q4 = MySpectral([1000, 2000], unit=u.nm)
+    q5 = q4.to(u.Hz).to(u.nm)
+    assert q5.unit == u.nm
+    assert_allclose(q4.value, q5.value)
 
 
 def test_si():
@@ -519,7 +527,7 @@ class TestQuantityDisplay(object):
 
     def test_array_quantity_repr(self):
         assert repr(self.arrq) == "<Quantity [ 1. , 2.3, 8.9] m>"
-        
+
     def test_scalar_quantity_format(self):
         assert format(self.scalarintq, '02d') == "01 m"
         assert format(self.scalarfloatq, '.1f') == "1.3 m"
