@@ -7,8 +7,8 @@ is to directly initialize your preferred coordinate system using standard
 python class creation, using the name of the class representing that
 system and a number for the two angles.  For example::
 
-    >>> from astropy.coordinates import ICRSCoordinates, FK4Coordinates, \
-        GalacticCoordinates
+    >>> from astropy.coordinates import (ICRSCoordinates, FK4Coordinates,
+    ...                                  GalacticCoordinates)
     >>> import astropy.units as u
     >>> ICRSCoordinates(187.70592, 12.39112, unit=(u.degree, u.degree))
     <ICRSCoordinates RA=187.70592 deg, Dec=12.39112 deg>
@@ -20,7 +20,9 @@ system and a number for the two angles.  For example::
 Note that if you do not provide units explicitly, this will fail::
 
     >>> ICRSCoordinates(23, 1)
-    ERROR: UnitsError: No unit was specified [astropy.coordinates.angles]
+    Traceback (most recent call last):
+        ...
+    UnitsError: No unit was specified
 
 While the above example uses python numerical types, you can also
 provide strings to create coordinates.  If the `unit` parameter is
@@ -37,7 +39,9 @@ the exact rules for how each string is parsed, see the
     >>> ICRSCoordinates("14.12412 hours", "-41:08:15.162342 degrees")
     <ICRSCoordinates RA=211.86180 deg, Dec=-41.13755 deg>
     >>> ICRSCoordinates("14.12412 -41:08:15.162342")
-    ERROR: UnitsError: No unit specified [astropy.coordinates.angle_utilities]
+    Traceback (most recent call last):
+        ...
+    UnitsError: No unit specified
 
 You can also directly specify the units for both to resolve
 ambiguities in parsing the angle strings::
@@ -54,14 +58,16 @@ ambiguities in parsing the angle strings::
 It's also possible to create coordinates using lists or `numpy` arrays.  The same
 unit rules apply as for scalar angles.::
 
-    >>> ICRSCoordinates([187.70592, 123.45678], [12.39112, 9.87654], unit=(u.degree, u.degree))  
+    >>> ICRSCoordinates([187.70592, 123.45678], [12.39112, 9.87654], unit=(u.degree, u.degree))
     <ICRSCoordinates RA=[ 187.70592  123.45678] deg, Dec=[ 12.39112   9.87654] deg>
     >>> ICRSCoordinates([187.70592, 123.45678], [12.39112, 9.87654])
-    ERROR: astropy:UnitsError: No unit specified [astropy.coordinates.angle_utilities]
+    Traceback (most recent call last):
+        ...
+    UnitsError: No unit was specified
 
 .. warning::
-    If you try to create an angle using a tuple for each angle instead of a list or 
-    `numpy` array, it will be interpreted aa ``(hours, minutes, seconds)`` or 
+    If you try to create an angle using a tuple for each angle instead of a list or
+    `numpy` array, it will be interpreted aa ``(hours, minutes, seconds)`` or
     ``(degrees, arcmin, arcsec)``.  So if you actually want multiple coordinates from
     a tuple, convert it to a list or array.
 
