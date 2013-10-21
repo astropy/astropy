@@ -42,7 +42,7 @@ def_unit(['Angstrom', 'AA', 'angstrom'], 0.1 * nm, namespace=_ns,
 ###########################################################################
 # VOLUMES
 
-def_unit(['l', 'L', 'liter'], 1000 * cm ** 3.0, namespace=_ns, prefixes=True,
+def_unit((['l', 'L'], ['liter']), 1000 * cm ** 3.0, namespace=_ns, prefixes=True,
          format={'latex': r'\mathcal{l}', 'unicode': 'ℓ'},
          doc="liter: metric unit of volume")
 

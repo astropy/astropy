@@ -16,14 +16,14 @@ New Features
     modulii.
 
   - `astropy.coordinates.SphericalCoordinateBase` and derived classes now
-    support arrays of coordinates, enabling large speed-ups for some 
+    support arrays of coordinates, enabling large speed-ups for some
     operations on multiple coordinates at the same time.
 
   - Array coordinates can be matched to other array coordinates, finding the
-    closest matches between the two sets of coordiantes (see the 
-    `~astropy.coordinates.matching.match_coordinates_3d` and 
+    closest matches between the two sets of coordiantes (see the
+    `~astropy.coordinates.matching.match_coordinates_3d` and
     `~astropy.coordinates.matching.match_coordinates_sky` functions).
-    
+
 - ``astropy.io.ascii``
 
   - Added support for writing IPAC format tables [#1152].
@@ -64,7 +64,7 @@ New Features
     taking the absolute value of TimeDelta objects [#1082].
 
   - Allow comparisons of Time and TimeDelta objects [#1171].
-  
+
   - Support interaction of Time and Quantity objects that represent a time
     interval [#1431].
 
@@ -80,12 +80,12 @@ New Features
 - ``astropy.table``
 
   - Added ``join`` function to perform a database join on two tables [#1234].
-  
+
   - Added ``hstack`` and ``vstack`` functions to stack two or more tables [#937].
-  
+
   - Added support for selecting and manipulating groups within a table with
     a database style ``group_by`` method [#1424].
-  
+
   - Improved support for merging metadata from multiple tables [#1343].
 
   - Table ``read`` and ``write`` functions now support reading and writing of FITS
@@ -97,7 +97,7 @@ New Features
 
   - Setting a column from a Quantity now correctly sets the unit on the Column
     object [#732].
-    
+
   - Add ``remove_row`` and ``remove_rows`` to remove table rows [#1230].
 
 - ``astropy.convolution``
@@ -131,13 +131,17 @@ New Features
 
   - Added percent unit, and allowed any string containing just a number
     to be interpreted as a scaled dimensionless unit.
-    
+
   - New-style format strings can be used to set the unit output format.
     For example, ``"{0:latex}".format(u.km)`` will print with the latex formatter.
 
   - The ``Unit.is_equivalent`` method can now take a tuple. In this case, the
     method returns ``True`` if the unit is equivalent to any of the units
     listed in the tuple.
+
+  - `def_unit` can now take a 2-tuple of names of the form (short, long), where
+    each entry is a list.  This allows for handling strange units that might
+    have multiple short names.
 
 - ``astropy.utils``
 

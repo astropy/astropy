@@ -489,3 +489,12 @@ def test_unit_division_by_string():
 def test_sorted_bases():
     """See #1616."""
     assert (u.m * u.Jy).bases == (u.Jy * u.m).bases
+
+
+def test_megabit():
+    """See #1543"""
+    assert u.Mbit is u.Mb
+    assert u.megabit is u.Mb
+
+    assert u.Mbyte is u.MB
+    assert u.megabyte is u.MB

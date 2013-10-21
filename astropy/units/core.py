@@ -1108,10 +1108,14 @@ class NamedUnit(UnitBase):
 
     Parameters
     ----------
-    st : str or list of str
-        The name of the unit.  If a list, the first element is the
-        canonical (short) name, and the rest of the elements are
-        aliases.  Each name must be a valid Python identifier.
+    st : str, list of str, 2-tuple
+        The name of the unit.  If a list of strings, the first element
+        is the canonical (short) name, and the rest of the elements
+        are aliases.  If a tuple of lists, the first element is a list
+        of short names, and the second element is a list of long
+        names; all but the first short name are considered "aliases".
+        Each name *should* be a valid Python identifier to make it
+        easy to access, but this is not required.
 
     namespace : dict, optional
         When provided, inject the unit, and all of its aliases, in the
@@ -1151,11 +1155,23 @@ class NamedUnit(UnitBase):
 
         if isinstance(st, six.string_types):
             self._names = [st]
+            self._short_names = [st]
+            self._long_names = []
+        elif isinstance(st, tuple):
+            if not len(st) == 2:
+                raise ValueError("st must be string, list or 2-tuple")
+            self._names = st[0] + st[1]
+            if not len(self._names):
+                raise ValueError("must provide at least one name")
+            self._short_names = st[0][:]
+            self._long_names = st[1][:]
         else:
             if len(st) == 0:
                 raise ValueError(
                     "st list must have at least one entry")
             self._names = st[:]
+            self._short_names = [st[0]]
+            self._long_names = st[1:]
 
         if format is None:
             format = {}
@@ -1223,6 +1239,20 @@ class NamedUnit(UnitBase):
         Returns the alias (long) names for this unit.
         """
         return self._names[1:]
+
+    @property
+    def short_names(self):
+        """
+        Returns all of the short names associated with this unit.
+        """
+        return self._short_names
+
+    @property
+    def long_names(self):
+        """
+        Returns all of the long names associated with this unit.
+        """
+        return self._long_names
 
     def register(self, add_to_namespace=False):
         raise NotImplementedError(
@@ -1797,7 +1827,7 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
             if prefix in excludes:
                 continue
 
-            for alias in [u.name] + [x for x in u.aliases if len(x) <= 2]:
+            for alias in u.short_names:
                 names.append(prefix + alias)
 
                 # This is a hack to use Greek mu as a prefix
@@ -1813,9 +1843,8 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
             if prefix in excludes:
                 continue
 
-            for alias in u.aliases:
-                if len(alias) > 2:
-                    names.append(prefix + alias)
+            for alias in u.long_names:
+                names.append(prefix + alias)
 
         if len(names):
             PrefixUnit(names, CompositeUnit(factor, [u], [1]),
