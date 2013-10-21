@@ -95,6 +95,12 @@ def_unit(['ph', 'photon'], namespace=_ns)
 def_unit(['Jy', 'Jansky', 'jansky'], 1e-26 * si.W / si.m ** 2 / si.Hz,
          namespace=_ns, prefixes=True,
          doc="Jansky: spectral flux density")
+def_unit(['AB', 'ABflux'], 10.**(-0.4*48.6) * 1.e-3 * si.W / si.m**2 / si.Hz,
+         namespace=_ns, prefixes=False,
+         doc="ABflux: flux density for which AB magnitudes are 0.")
+def_unit(['ST', 'STflux'], 10.**(-0.4*21.1) * 1.e-3 * si.W / si.m**2 / si.AA,
+         namespace=_ns, prefixes=False,
+         doc="STflux: flux density for which ST magnitudes are 0.")
 def_unit(['R', 'Rayleigh', 'rayleigh'],
          (1e10 / (4 * _numpy.pi)) *
          ph * si.m ** -2 * si.s ** -1 * si.sr ** -1,
@@ -103,7 +109,6 @@ def_unit(['R', 'Rayleigh', 'rayleigh'],
 
 def_unit(['mag'], namespace=_ns, prefixes=True,
          doc="Astronomical magnitude.")
-
 
 ###########################################################################
 # MISCELLANEOUS
