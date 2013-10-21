@@ -22,8 +22,9 @@ Getting started
 An `~astropy.nddata.nddata.NDData` object can be instantiated by passing it an
 n-dimensional Numpy array::
 
+    >>> import numpy as np
     >>> from astropy.nddata import NDData
-    >>> array = np.random.random((12, 12, 12))  # a random 3-dimensional array
+    >>> array = np.zeros((12, 12, 12))  # a random 3-dimensional array
     >>> ndd = NDData(array)
 
 This object has a few attributes in common with Numpy:
@@ -38,7 +39,7 @@ This object has a few attributes in common with Numpy:
 The underlying Numpy array can be accessed via the `data` attribute::
 
     >>> ndd.data
-    array([[[ 0.05621944,  0.85569765,  0.71609697, ...,  0.76049288,
+    array([[[ 0., 0., 0., ...
     ...
 
 Values can be masked using the `mask` attribute, which should be a boolean
@@ -68,4 +69,3 @@ Reference/API
 
 .. automodapi:: astropy.nddata
     :no-inheritance-diagram:
- 

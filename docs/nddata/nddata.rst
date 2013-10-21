@@ -7,8 +7,9 @@ Initializing
 An `~astropy.nddata.nddata.NDData` object can be instantiated by passing it an
 n-dimensional Numpy array::
 
+    >>> import numpy as np
     >>> from astropy.nddata import NDData
-    >>> array = np.random.random((12, 12, 12))  # a random 3-dimensional array
+    >>> array = np.zeros((12, 12, 12))  # a random 3-dimensional array
     >>> ndd = NDData(array)
 
 or by passing it an `~astropy.nddata.nddata.NDData` object:
@@ -29,8 +30,7 @@ This object has a few attributes in common with Numpy:
 The underlying Numpy array can be accessed via the `data` attribute::
 
     >>> ndd.data
-    array([[[ 0.05621944,  0.85569765,  0.71609697, ...,  0.76049288,
-    ...
+    array([[[ 0.,  0.,  0., ...
 
 Mask
 ----
@@ -127,7 +127,7 @@ numpy arrays::
 
     >>> import numpy as np
     >>> arr = np.array(ndd)
-    >>> np.all(arr == mydataarray)
+    >>> np.all(arr == mydataarray)  # doctest: +SKIP
     True
 
 If a `mask` is defined, this will result in a `~numpy.ma.MaskedArray`, so
@@ -135,8 +135,8 @@ in all cases a useable `numpy.ndarray` or subclass will result. This allows
 straightforward plotting of `~astropy.nddata.nddata.NDData` objects with 1-
 and 2-dimensional datasets using `matplotlib`::
 
-    >>> from matplotlib import pyplot as plt
-    >>> plt.plot(ndd)
+    >>> from matplotlib import pyplot as plt  # doctest: +SKIP
+    >>> plt.plot(ndd)  # doctest: +SKIP
 
 This works because the `matplotlib` plotting functions automatically convert
 their inputs using `numpy.array`.
