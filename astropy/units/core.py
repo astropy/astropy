@@ -375,7 +375,7 @@ class UnitBase(object):
         """
         f = unit_format.get_format(format)
         return f.to_string(self)
-        
+
     def __format__(self, format_spec):
         """Try to format units using a formatter."""
         try:
@@ -963,6 +963,23 @@ class UnitBase(object):
         composed = x.compose(units=system)
         composed = sorted(composed, key=score, reverse=True)
         return composed
+
+    @property
+    def si(self):
+        """
+        Returns a copy of the current `Unit` instance in SI units.
+        """
+
+        from . import si
+        return self.to_system(si)[0]
+
+    @property
+    def cgs(self):
+        """
+        Returns a copy of the current `Unit` instance with CGS units.
+        """
+        from . import cgs
+        return self.to_system(cgs)[0]
 
     @property
     def physical_type(self):
