@@ -277,7 +277,7 @@ def get_writer(Writer=None, **kwargs):
     return writer
 
 
-def write(table, output=sys.stdout,  format=None, Writer=None, **kwargs):
+def write(table, output=None,  format=None, Writer=None, **kwargs):
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
 
@@ -294,6 +294,8 @@ def write(table, output=sys.stdout,  format=None, Writer=None, **kwargs):
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
     :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
     """
+    if output is None:
+        output = sys.stdout
 
     table = Table(table, names=kwargs.get('names'))
 

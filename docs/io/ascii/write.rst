@@ -7,10 +7,12 @@ Writing tables
 
 :mod:`astropy.io.ascii` is able to write ASCII tables out to a file or file-like
 object using the same class structure and basic user interface as for reading
-tables.  
+tables.
 
-The |write| function provides a way to write a data table as a formatted ASCII table.  For example::
+The |write| function provides a way to write a data table as a
+formatted ASCII table.  For example::
 
+  >>> import numpy as np
   >>> from astropy.io import ascii
   >>> x = np.array([1, 2, 3])
   >>> y = x ** 2
@@ -29,7 +31,7 @@ flexibility in the format for writing.  The example below writes the data as a
 LaTeX table, using the option to send the output to ``sys.stdout`` instead of a
 file::
 
-  >>> ascii.write(data, format='latex')
+  >>> ascii.write(data, format='latex')  # doctest: +SKIP
   \begin{table}
   \begin{tabular}{cc}
   x & y \\
@@ -40,7 +42,7 @@ file::
   \end{table}
 
 Input data format
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 
 The input `table` argument to |write| can be any value that is supported for
 initializing a |Table| object.  This is documented in detail in the
@@ -60,8 +62,8 @@ serve as input to the |write| function.
     >>> from astropy.table import Table
 
     >>> data = Table({'a': [1, 2, 3],
-                      'b': [4.0, 5.0, 6.0]},
-                     names=['a', 'b'])
+    ...               'b': [4.0, 5.0, 6.0]},
+    ...              names=['a', 'b'])
     >>> ascii.write(data)
     a b
     1 4.0
@@ -69,7 +71,7 @@ serve as input to the |write| function.
     3 6.0
 
     >>> data = np.array([(1, 2., 'Hello'), (2, 3., "World")],
-                        dtype=('i4,f4,a10'))
+    ...                 dtype=('i4,f4,a10'))
     >>> ascii.write(data)
     f0 f1 f2
     1 2.0 Hello
@@ -80,9 +82,12 @@ object that can be an input to the |write| function.
 
 ::
 
-    >>> data = astropy.io.ascii.read('t/daophot.dat', format='daophot')
-    >>> astropy.io.ascii.write(data, 'space_delimited_table.dat')
-
+    >>> data = ascii.read('t/daophot.dat', format='daophot')  # doctest: +SKIP
+    >>> ascii.write(data, 'space_delimited_table.dat')  # doctest: +SKIP
+    col0 col1 col2
+    1 4.0 hello
+    2 5.2 world
+    3 6.1 !!!
 
 List of lists
 """""""""""""
@@ -124,9 +129,9 @@ unpredictable unless the ``names`` argument is provided.
 
 ::
 
-    >>> data = {'x': [1, 2, 3], 
-                'y': [4, 5.2, 6.1], 
-                'z': ['hello', 'world', '!!!']}
+    >>> data = {'x': [1, 2, 3],
+    ...         'y': [4, 5.2, 6.1],
+    ...         'z': ['hello', 'world', '!!!']}
     >>> ascii.write(data, names=['x', 'y', 'z'])
     x y z
     1 4.0 hello
@@ -137,7 +142,7 @@ unpredictable unless the ``names`` argument is provided.
 .. _io_ascii_write_parameters:
 
 Parameters for ``write()``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The |write| function accepts a number of parameters that specify the detailed output table
 format.  Each of the :ref:`supported_formats` is handled by a corresponding Writer class that
@@ -156,7 +161,7 @@ details.
   - Name of a file (string)
   - File-like object (from open(), StringIO, etc)
 
-**table** : input table 
+**table** : input table
   Any value that is supported for initializing a |Table| object (see :ref:`construct_table`).
 
 **format** : output format (default='basic')
@@ -170,13 +175,13 @@ details.
   Other common values might be "," or "|" or "\\t".
 
 **comment** : string defining a comment line in table
-  For the :class:`~astropy.io.ascii.Basic` Writer this defaults to "#". 
+  For the :class:`~astropy.io.ascii.Basic` Writer this defaults to "#".
   Which and how comments are written depends on the format chosen (e.g.
   :class:`~astropy.io.ascii.CommentedHeader` puts the comment symbol in the line
   with the column names).
 
 **formats**: dict of data type converters
-  For each key (column name) use the given value to convert the column data to a string.  
+  For each key (column name) use the given value to convert the column data to a string.
   If the format value is string-like then it is used as a Python format statement,
   e.g. '%0.2f' % value.  If it is a callable function then that function
   is called with a single argument containing the column value to be converted.
@@ -194,7 +199,7 @@ details.
   From the list of column names found from the data table or the ``names``
   parameter, select for output only columns within this list.  If not supplied
   then include all names.
-  
+
 **exclude_names**: list of names to exclude from output
   Exclude these names from the list of output columns.  This is applied *after*
   the ``include_names`` filtering.  If not specified then no columns are excluded.
@@ -224,4 +229,3 @@ details.
   Note: Reader classes and Writer classes are synonymous, in other
   words Reader classes can also write, but for historical reasons they are
   often called Reader classes.
-

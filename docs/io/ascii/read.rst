@@ -9,17 +9,17 @@ The majority of commonly encountered ASCII tables can be easily read with the |r
 function::
 
   >>> from astropy.io import ascii
-  >>> data = ascii.read(table)
+  >>> data = ascii.read(table)  # doctest: +SKIP
 
-where ``table`` is the name of a file, a string representation of a table, or a 
+where ``table`` is the name of a file, a string representation of a table, or a
 list of table lines.  By default |read| will try to `guess the table format <#guess-table-format>`_
 by trying all the supported formats.  If this does not work (for unusually
 formatted tables) then one needs give `astropy.io.ascii` additional hints about the
 format, for example::
 
-   >>> data = astropy.io.ascii.read('t/nls1_stackinfo.dbout', data_start=2, delimiter='|')
-   >>> data = astropy.io.ascii.read('t/simple.txt', quotechar="'")
-   >>> data = astropy.io.ascii.read('t/simple4.txt', format='no_header', delimiter='|')
+   >>> data = astropy.io.ascii.read('t/nls1_stackinfo.dbout', data_start=2, delimiter='|')  # doctest: +SKIP
+   >>> data = astropy.io.ascii.read('t/simple.txt', quotechar="'")  # doctest: +SKIP
+   >>> data = astropy.io.ascii.read('t/simple4.txt', format='no_header', delimiter='|')  # doctest: +SKIP
 
 The |read| function accepts a number of parameters that specify the detailed
 table format.  Different formats can define different defaults, so the
@@ -29,9 +29,9 @@ the :class:`~astropy.io.ascii.Basic` format reader and other similar character-s
 .. _io_ascii_read_parameters:
 
 Parameters for ``read()``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**table** : input table 
+**table** : input table
   There are four ways to specify the table to be read:
 
   - Name of a file (string)
@@ -39,7 +39,7 @@ Parameters for ``read()``
   - File-like object with a callable read() method
   - List of strings where each list element is a table line
 
-  The first two options are distinguished by the presence of a newline in the string.  
+  The first two options are distinguished by the presence of a newline in the string.
   This assumes that valid file names will not normally contain a newline.
 
 **format** : file format (default='basic')
@@ -52,7 +52,7 @@ Parameters for ``read()``
   If set to True then |read| will try to guess the table format by cycling
   through a number of possible table format permutations and attempting to read
   the table in each case.  See the `Guess table format`_ section for further details.
-  
+
 **delimiter** : column delimiter string
   A one-character string used to separate fields which typically defaults to
   the space character.  Other common values might be "\\s" (whitespace), "," or
@@ -62,7 +62,7 @@ Parameters for ``read()``
 **comment** : regular expression defining a comment line in table
   If the ``comment`` regular expression matches the beginning of a table line then that line
   will be discarded from header or data processing.  For the ``basic`` format this
-  defaults to "\\s*#" (any whitespace followed by #).  
+  defaults to "\\s*#" (any whitespace followed by #).
 
 **quotechar** : one-character string to quote fields containing special characters
   This specifies the quote character and will typically be either the single or double
@@ -81,7 +81,7 @@ Parameters for ``read()``
 
 **data_end**: line index for the end of data (can be negative to count from end)
   If this is not None then it allows for excluding lines at the end that are not
-  valid data lines.  A negative value means to count from the end, so -1 would 
+  valid data lines.  A negative value means to count from the end, so -1 would
   exclude the last line, -2 the last two lines, and so on.
 
 **converters**: dict of data type converters
@@ -96,7 +96,7 @@ Parameters for ``read()``
   From the list of column names found from the header or the ``names``
   parameter, select for output only columns within this list.  If not supplied
   then include all names.
-  
+
 **exclude_names**: list of names to exclude from output
   Exclude these names from the list of output columns.  This is applied *after*
   the ``include_names`` filtering.  If not specified then no columns are excluded.
@@ -129,13 +129,13 @@ Parameters for ``read()``
   This specifies the top-level format of the ASCII table, for example
   if it is a basic character delimited table, fixed format table, or
   a CDS-compatible table, etc.  The value of this parameter must
-  be a Reader class.  For basic usage this means one of the 
-  built-in :ref:`extension_reader_classes`.  
+  be a Reader class.  For basic usage this means one of the
+  built-in :ref:`extension_reader_classes`.
 
 .. _replace_bad_or_missing_values:
 
 Bad or missing values
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
 
 ASCII data tables can contain bad or missing values.  A common case is when a table
 contains blank entries with no available data, for example::
@@ -150,7 +150,7 @@ Table with those entries masked out by setting the corresponding mask value set 
 ``True``.  If you have read the above table into a variable ``dat``, you would see the
 output below, where the ``--`` values indicate missing data::
 
-  >>> print dat
+  >>> print dat  # doctest: +SKIP
   day  precip type
   ---- ------ ----
    Mon    1.5 rain
@@ -161,13 +161,13 @@ If you want to replace the masked (missing) values with particular values, set t
 column ``fill_value`` attribute and then get the "filled" version of the table.  This
 looks like the following::
 
-  >>> dat['precip'].fill_value = -99.9
-  >>> dat['type'].fill_value = ''
-  >>> print dat.filled()
+  >>> dat['precip'].fill_value = -99.9  # doctest: +SKIP
+  >>> dat['type'].fill_value = ''  # doctest: +SKIP
+  >>> print dat.filled()  # doctest: +SKIP
   day  precip type
   ---- ------ ----
    Mon    1.5 rain
-  Tues  -99.9     
+  Tues  -99.9
    Wed    1.1 snow
 
 ASCII tables may also have other indicators of bad or missing data.  For
@@ -194,19 +194,23 @@ occurrence of ``<old>`` then the first one determines the ``<new>`` value.  For
 instance the following will replace an empty data value in the ``x`` or ``y``
 columns with "1e38" while empty values in any other column will get "-999"::
 
-  >>> ascii.read(table, fill_values=[('', '1e38', 'x', 'y'), ('', '-999')])
+  >>> ascii.read(table, fill_values=[('', '1e38', 'x', 'y'), ('', '-999')])  # doctest: +SKIP
 
 The following shows an example where string information needs to be exchanged before the
 conversion to float values happens. Here ``no_rain`` and ``no_snow`` is replaced by
 ``0.0``::
 
   >>> table = ['day  rain     snow',    # column names
-               #---  -------  --------
-               'Mon  3.2      no_snow', 
-               'Tue  no_rain  1.1', 
-               'Wed  0.3      no_snow']
-  >>> print ascii.read(table, fill_values=[('no_rain', '0.0'), ('no_snow', '0.0')])
-  [('Mon', 3.2, --) ('Tue', --, 1.1) ('Wed', 0.3, --)]
+  ...          #---  -------  --------
+  ...          'Mon  3.2      no_snow',
+  ...          'Tue  no_rain  1.1',
+  ...          'Wed  0.3      no_snow']
+  >>> print(ascii.read(table, fill_values=[('no_rain', '0.0'), ('no_snow', '0.0')]))
+  day rain snow
+  --- ---- ----
+  Mon  3.2   --
+  Tue   --  1.1
+  Wed  0.3   --
 
 Sometimes these rules apply only to specific columns in the table. Columns can be selected with
 ``fill_include_names`` or excluded with ``fill_exclude_names``. Also, column names can be
@@ -214,7 +218,10 @@ given directly with fill_values::
 
   >>> asciidata = ['text,no1,no2', 'text1,1,1.',',2,']
   >>> print ascii.read(asciidata, fill_values = ('', 'nan','no1','no2'), delimiter = ',')
-  [('text1', 1, 1.0) ('', 2, --)]
+   text no1 no2
+  ----- --- ---
+  text1   1 1.0
+          2  --
 
 Here, the empty value ``''`` in column ``no2`` is replaced by ``nan``, but the ``text``
 column remains unaltered.
@@ -232,7 +239,8 @@ If any table elements match the fill specification then |read| returns a masked
    column where one of values happens to be ``""``.
 
 Guess table format
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
+
 If the ``guess`` parameter in |read| is set to True (which is the default) then
 |read| will try to guess the table format by cycling through a number of
 possible table format permutations and attempting to read the table in each case.
@@ -243,17 +251,17 @@ column requirements:
  * At least two table columns
  * No column names are a float or int number
  * No column names begin or end with space, comma, tab, single quote, double quote, or
-   a vertical bar (|). 
+   a vertical bar (|).
 
 These requirements reduce the chance for a false positive where a table is
 successfully parsed with the wrong format.  A common situation is a table
 with numeric columns but no header row, and in this case ``astropy.io.ascii`` will
-auto-assign column names because of the restriction on column names that 
+auto-assign column names because of the restriction on column names that
 look like a number.
 
 The order of guessing is shown by this Python code, where ``Reader`` is the
 class which actually implements reading the different file formats::
-  
+
   for Reader in (Rdb, Tab, Cds, Daophot, SExtractor, Ipac):
       read(Reader=Reader)
   for Reader in (CommentedHeader, Basic, NoHeader):
@@ -274,7 +282,7 @@ The guessing process respects any values of the Reader, delimiter, and
 quotechar parameters that were supplied to the read() function.  Any guesses
 that would conflict are skipped.  For example the call::
 
- >>> data = astropy.io.ascii.read(table, Reader=NoHeader, quotechar="'")
+ >>> data = ascii.read(table, Reader=ascii.NoHeader, quotechar="'")
 
 would only try the four delimiter possibilities, skipping all the conflicting
 Reader and quotechar combinations.
@@ -286,14 +294,14 @@ Guessing can be disabled in two ways::
   data = astropy.io.ascii.read(table, guess=False)  # disable for this call
   astropy.io.ascii.set_guess(False)                 # set default to False globally
   data = astropy.io.ascii.read(table)               # guessing disabled
-  
+
 Converters
-^^^^^^^^^^^^^^
+^^^^^^^^^^
 
 :mod:`astropy.io.ascii` converts the raw string values from the table into
 numeric data types by using converter functions such as the Python ``int`` and
 ``float`` functions.  For example ``int("5.0")`` will fail while float("5.0")
-will succeed and return 5.0 as a Python float.  
+will succeed and return 5.0 as a Python float.
 
 The default converters are::
 
@@ -312,12 +320,13 @@ as described in the previous section.  The type provided to
 The default converters for each column can be overridden with the
 ``converters`` keyword::
 
-  >>> converters = {'col1': [astropy.io.ascii.convert_numpy(numpy.uint)],
-                    'col2': [astropy.io.ascii.convert_numpy(numpy.float32)]}
-  >>> ascii.read('file.dat', converters=converters)
+  >>> import numpy as np
+  >>> converters = {'col1': [ascii.convert_numpy(np.uint)],
+  ...               'col2': [ascii.convert_numpy(np.float32)]}
+  >>> ascii.read('file.dat', converters=converters)  # doctest: +SKIP
 
 Advanced customization
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
 
 Here we provide a few examples that demonstrate how to extend the base
 functionality to handle special cases.  To go beyond these simple examples the
@@ -331,7 +340,7 @@ best reference is to read the code for the existing
        reader = astropy.io.ascii.Basic()
        reader.header.splitter.delimiter = '\t'
        reader.data.splitter.delimiter = '\t'
-       reader.header.splitter.process_line = None  
+       reader.header.splitter.process_line = None
        reader.data.splitter.process_line = None
        reader.data.start_line = 2
 
@@ -347,7 +356,7 @@ best reference is to read the code for the existing
            self.header.splitter.delimiter = '\t'
            self.data.splitter.delimiter = '\t'
            # Don't strip line whitespace since that includes tabs
-           self.header.splitter.process_line = None  
+           self.header.splitter.process_line = None
            self.data.splitter.process_line = None
            # Don't strip data value spaces since that is significant in TSV tables
            self.data.splitter.process_val = None
@@ -361,7 +370,7 @@ best reference is to read the code for the existing
 **Create a custom splitter.process_val function**
 ::
 
-   # The default process_val() normally just strips whitespace.  
+   # The default process_val() normally just strips whitespace.
    # In addition have it replace empty fields with -999.
    def process_val(x):
        """Custom splitter process_val function: Remove whitespace at the beginning

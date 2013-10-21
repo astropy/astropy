@@ -50,8 +50,8 @@ function.  Assume you have a file named ``sources.dat`` with the following conte
 This table can be read with the following::
 
   >>> from astropy.io import ascii
-  >>> data = ascii.read("sources.dat")
-  >>> print data
+  >>> data = ascii.read("sources.dat")  # doctest: +SKIP
+  >>> print data  # doctest: +SKIP
   obsid redshift  X    Y      object
   ----- -------- ---- ---- -----------
    3102     0.32 4167 4085 Q1250+568-A
@@ -65,11 +65,11 @@ one needs give astropy.io.ascii additional hints about the format, for
 example::
 
    >>> lines = ['objID                   & osrcid            & xsrcid       ',
-                '----------------------- & ----------------- & -------------',
-                '              277955213 & S000.7044P00.7513 & XS04861B6_005',
-                '              889974380 & S002.9051P14.7003 & XS03957B7_004']
+   ...          '----------------------- & ----------------- & -------------',
+   ...          '              277955213 & S000.7044P00.7513 & XS04861B6_005',
+   ...          '              889974380 & S002.9051P14.7003 & XS03957B7_004']
    >>> data = ascii.read(lines, data_start=2, delimiter='&')
-   >>> print data
+   >>> print(data)
      objID         osrcid          xsrcid
    --------- ----------------- -------------
    277955213 S000.7044P00.7513 XS04861B6_005
@@ -88,6 +88,7 @@ The |write| function provides a way to write a data table as a formatted ASCII
 table.  For example the following writes a table as a simple space-delimited
 file::
 
+  >>> import numpy as np
   >>> from astropy.table import Table
   >>> x = np.array([1, 2, 3])
   >>> y = x ** 2
@@ -106,6 +107,7 @@ also supported for writing.  This provides a great deal of flexibility in the
 format for writing.  The example below writes the data as a LaTeX table, using
 the option to send the output to ``sys.stdout`` instead of a file::
 
+  >>> import sys
   >>> ascii.write(data, sys.stdout, format='latex')
   \begin{table}
   \begin{tabular}{cc}
@@ -195,5 +197,3 @@ Reference/API
 =============
 
 .. automodapi:: astropy.io.ascii
-
-
