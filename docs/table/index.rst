@@ -53,7 +53,7 @@ about the table values and column definitions as follows::
   >>> t
   <Table rows=3 names=('a','b','c')>
   array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8.2, 'z')],
-        dtype=[('a', '<i8'), ('b', '<f8'), ('c', '|S1')])
+        dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
 
 From within the IPython notebook, the table is displayed as a formatted HTML table:
 
@@ -72,15 +72,15 @@ then a formatted version appears::
 For a long table you can scroll up and down through the table one page at
 time::
 
-  >>> t.more()
+  >>> t.more()  # doctest: +SKIP
 
 You can also display it as an HTML-formatted table in the browser::
 
-  >>> t.show_in_browser()
+  >>> t.show_in_browser()  # doctest: +SKIP
 
 or as an interactive (searchable & sortable) javascript table::
 
-  >>> t.show_in_browser(jsviewer=True)
+  >>> t.show_in_browser(jsviewer=True)  # doctest: +SKIP
 
 Now examine some high-level information about the table::
 
@@ -103,7 +103,7 @@ Access the data by column or row using familiar `numpy` structured array syntax:
   >>> t[1]         # Row obj for with row 1 values
   <Row 1 of table
    values=(4, 5.0, 'y')
-   dtype=[('a', '<i8'), ('b', '<f8'), ('c', '|S1')]>
+   dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')]>
 
   >>> t[1]['a']    # Column 'a' of row 1
   4
@@ -118,11 +118,9 @@ columns (using column names), where the subset is returned as a new table::
     4 5.0   y
 
   >>> t['a', 'c']  # Table with cols 'a', 'c'
-   a   c
-  --- ---
-    1   x
-    4   y
-    5   z
+  <Table rows=3 names=('a','c')>
+  array([(1, 'x'), (4, 'y'), (5, 'z')],
+        dtype=[('a', '<i8'), ('c', 'S1')])
 
 Modifying table values in place is flexible and works as one would expect::
 
@@ -162,10 +160,10 @@ Lastly, one can create a table with support for missing values, for example by s
   masked_array(data = [(--, 2.0, 'x') (--, 5.0, 'y') (5, 8.2, 'z')],
                mask = [(True, False, False) (True, False, False) (False, False, False)],
          fill_value = (999999, 1e+20, 'N'),
-              dtype = [('a', '<i8'), ('b', '<f8'), ('c', '|S1')])
-  
+              dtype = [('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
+
   >>> print(t)
-   a   b   c 
+   a   b   c
   --- --- ---
    -- 2.0   x
    -- 5.0   y

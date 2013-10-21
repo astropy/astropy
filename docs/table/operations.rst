@@ -33,7 +33,7 @@ table from one or more input tables.  This includes:
 
 
 Grouped operations
-^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
 
 Sometimes in a table or table column there are natural groups within the dataset for which
 it makes sense to compute some derived values.  A simple example is a list of objects with
@@ -41,17 +41,17 @@ photometry from various observing runs::
 
   >>> from astropy.table import Table
   >>> obs = Table.read("""name    obs_date    mag_b  mag_v
-                          M31     2012-01-02  17.0   17.5
-                          M31     2012-01-02  17.1   17.4
-                          M101    2012-01-02  15.1   13.5
-                          M82     2012-02-14  16.2   14.5
-                          M31     2012-02-14  16.9   17.3
-                          M82     2012-02-14  15.2   15.5
-                          M101    2012-02-14  15.0   13.6
-                          M82     2012-03-26  15.7   16.5
-                          M101    2012-03-26  15.1   13.5
-                          M101    2012-03-26  14.8   14.3
-                          """, format='ascii')
+  ...                     M31     2012-01-02  17.0   17.5
+  ...                     M31     2012-01-02  17.1   17.4
+  ...                     M101    2012-01-02  15.1   13.5
+  ...                     M82     2012-02-14  16.2   14.5
+  ...                     M31     2012-02-14  16.9   17.3
+  ...                     M82     2012-02-14  15.2   15.5
+  ...                     M101    2012-02-14  15.0   13.6
+  ...                     M82     2012-03-26  15.7   16.5
+  ...                     M101    2012-03-26  15.1   13.5
+  ...                     M101    2012-03-26  14.8   14.3
+  ...                     """, format='ascii')
 
 Table groups
 ~~~~~~~~~~~~~~
@@ -62,7 +62,7 @@ a new table sorted by ``name`` which has a ``groups`` property specifying the un
 values of ``name`` and the corresponding table rows::
 
   >>> obs_by_name = obs.group_by('name')
-  >>> print obs_by_name
+  >>> print obs_by_name  # doctest: +SKIP
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
   M101 2012-01-02  15.1  13.5  << First group (index=0, key='M101')
@@ -172,7 +172,6 @@ One can iterate over the group sub-tables and corresponding keys with::
   ...     print group
   ...     print
   ...
-
   ****** M101 *******
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
@@ -180,21 +179,18 @@ One can iterate over the group sub-tables and corresponding keys with::
   M101 2012-02-14  15.0  13.6
   M101 2012-03-26  15.1  13.5
   M101 2012-03-26  14.8  14.3
-
   ****** M31 *******
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
    M31 2012-01-02  17.0  17.5
    M31 2012-01-02  17.1  17.4
    M31 2012-02-14  16.9  17.3
-
   ****** M82 *******
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
-   M82 2012-01-02  16.2  14.5
+   M82 2012-02-14  16.2  14.5
    M82 2012-02-14  15.2  15.5
    M82 2012-03-26  15.7  16.5
-
 
 Column Groups
 ~~~~~~~~~~~~~~
@@ -210,6 +206,7 @@ names since that doesn't make sense for a `Column`.
 Examples::
 
   >>> from astropy.table import Column
+  >>> import numpy as np
   >>> c = Column([1, 2, 3, 4, 5, 6], name='a')
   >>> key_vals = np.array(['foo', 'bar', 'foo', 'foo', 'qux', 'qux'])
   >>> cg = c.group_by(key_vals)
@@ -223,14 +220,12 @@ Examples::
    a
   ---
     2
-
   ****** foo *******
    a
   ---
     1
     3
     4
-
   ****** qux *******
    a
   ---
@@ -250,10 +245,10 @@ argument and return a single scalar value.  Common function examples are
 For the example grouped table ``obs_by_name`` from above we compute the group means with
 the `~astropy.table.groups.TableGroups.aggregate` method::
 
-  >>> obs_mean = obs_by_name.groups.aggregate(np.mean)
+  >>> obs_mean = obs_by_name.groups.aggregate(np.mean)  # doctest: +SKIP
   WARNING: Cannot aggregate column 'obs_date' [astropy.table.groups]
-  >>> print obs_mean
-  name mag_b mag_v 
+  >>> print obs_mean  # doctest: +SKIP
+  name mag_b mag_v
   ---- ----- ------
   M101  15.0 13.725
    M31  17.0   17.4
@@ -302,9 +297,10 @@ A single column of data can be aggregated as well::
 Filtering
 ~~~~~~~~~~
 
-Table groups can be filtered by means of the `~astropy.table.groups.TableGroups.filter`
-method.  This is done by supplying a function which is called for each
-group.   The function which is passed to this method must accept two arguments:
+Table groups can be filtered by means of the
+`~astropy.table.groups.TableGroups.filter` method.  This is done by
+supplying a function which is called for each group.  The function
+which is passed to this method must accept two arguments:
 
 - ``table`` : `Table` object
 - ``key_colnames`` : list of columns in ``table`` used as keys for grouping
@@ -312,37 +308,37 @@ group.   The function which is passed to this method must accept two arguments:
 It must then return either `True` or `False`.  As an example, the following
 will select all table groups with only positive values in the non-key columns::
 
-  def all_positive(table, key_colnames):
-      colnames = [name for name in table.colnames if name not in key_colnames]
-      for colname in colnames:
-          if np.any(table[colname] < 0):
-              return False
-      return True
+  >>> def all_positive(table, key_colnames):
+  ...     colnames = [name for name in table.colnames if name not in key_colnames]
+  ...     for colname in colnames:
+  ...         if np.any(table[colname] < 0):
+  ...             return False
+  ...     return True
 
 An example of using this function is::
 
   >>> t = Table.read(""" a   b    c
-                        -2  7.0   0
-                        -2  5.0   1
-                         1  3.0  -5
-                         1 -2.0  -6
-                         1  1.0   7
-                         0  0.0   4
-                         3  3.0   5
-                         3 -2.0   6
-                         3  1.0   7""", format='ascii')
+  ...                   -2  7.0   0
+  ...                   -2  5.0   1
+  ...                    1  3.0  -5
+  ...                    1 -2.0  -6
+  ...                    1  1.0   7
+  ...                    0  0.0   4
+  ...                    3  3.0   5
+  ...                    3 -2.0   6
+  ...                    3  1.0   7""", format='ascii')
   >>> tg = t.group_by('a')
   >>> t_positive = tg.groups.filter(all_positive)
   >>> for group in t_positive.groups:
   ...     print group
   ...     print
   ...
-   a   c   d
+   a   b   c
   --- --- ---
    -2 7.0   0
    -2 5.0   1
-
-   a   c   d
+  <BLANKLINE>
+   a   b   c
   --- --- ---
     0 0.0   4
 
@@ -372,14 +368,14 @@ column names in common::
 
   >>> from astropy.table import Table, vstack
   >>> obs1 = Table.read("""name    obs_date    mag_b  logLx
-                           M31     2012-01-02  17.0   42.5
-                           M82     2012-10-29  16.2   43.5
-                           M101    2012-10-31  15.1   44.5""", format='ascii')
+  ...                      M31     2012-01-02  17.0   42.5
+  ...                      M82     2012-10-29  16.2   43.5
+  ...                      M101    2012-10-31  15.1   44.5""", format='ascii')
 
   >>> obs2 = Table.read("""name    obs_date    logLx
-                           NGC3516 2011-11-11  42.1
-                           M31     1999-01-05  43.1
-                           M82     2012-10-30  45.0""", format='ascii')
+  ...                      NGC3516 2011-11-11  42.1
+  ...                      M31     1999-01-05  43.1
+  ...                      M82     2012-10-30  45.0""", format='ascii')
 
 Now we can stack these two tables::
 
@@ -409,9 +405,10 @@ table those values are marked as missing.  This is the default behavior and corr
       M82 2012-10-30  45.0
 
   >>> print vstack([obs1, obs2], join_type='exact')
-  ...
-  TableMergeError: Inconsistent columns in input arrays (use 'inner' or
-  'outer' join_type to allow non-matching columns)
+  Traceback (most recent call last):
+    ...
+  TableMergeError: Inconsistent columns in input arrays (use 'inner'
+  or 'outer' join_type to allow non-matching columns)
 
 In the case of ``join_type='inner'``, only the common columns (the intersection) are
 present in the output table.  When ``join_type='exact'`` is specified then
@@ -421,7 +418,7 @@ have exactly the same column names.
 More than two tables can be stacked by supplying a list of table objects::
 
   >>> obs3 = Table.read("""name    obs_date    mag_b  logLx
-                           M45     2012-02-03  15.0   40.5""", format='ascii')
+  ...                      M45     2012-02-03  15.0   40.5""", format='ascii')
   >>> print vstack([obs1, obs2, obs3])
     name   obs_date  mag_b logLx
   ------- ---------- ----- -----
@@ -449,13 +446,12 @@ For example, suppose one has the following two tables::
 
   >>> from astropy.table import Table, hstack
   >>> t1 = Table.read("""a   b    c
-                         1   foo  1.4
-                         2   bar  2.1
-                         3   baz  2.8""", format='ascii')
-
+  ...                    1   foo  1.4
+  ...                    2   bar  2.1
+  ...                    3   baz  2.8""", format='ascii')
   >>> t2 = Table.read("""d     e
-                         ham   eggs
-                         spam  toast""", format='ascii')
+  ...                    ham   eggs
+  ...                    spam  toast""", format='ascii')
 
 Now we can stack these two tables horizontally::
 
@@ -480,16 +476,17 @@ number of rows::
     2 bar 2.1 spam toast
 
   >>> print hstack([t1, t2], join_type='exact')
-  ...
+  Traceback (most recent call last):
+    ...
   TableMergeError: Inconsistent number of rows in input arrays (use 'inner' or
-  'outer' join_type to allow non-matching columns)
+  'outer' join_type to allow non-matching rows)
 
 More than two tables can be stacked by supplying a list of table objects.  The example
 below also illustrates the behavior when there is a conflict in the input column names
 (see the section on `Column renaming`_ for details)::
 
   >>> t3 = Table.read("""a    b
-                         M45  2012-02-03""", format='ascii')
+  ...                    M45  2012-02-03""", format='ascii')
   >>> print hstack([t1, t2, t3])
   a_1 b_1  c   d     e   a_3    b_3
   --- --- --- ---- ----- --- ----------
@@ -514,14 +511,13 @@ and the second with X-ray luminosities of an overlapping (but not identical) sam
 
   >>> from astropy.table import Table, join
   >>> optical = Table.read("""name    obs_date    mag_b  mag_v
-                              M31     2012-01-02  17.0   16.0
-                              M82     2012-10-29  16.2   15.2
-                              M101    2012-10-31  15.1   15.5""", format='ascii')
-
+  ...                         M31     2012-01-02  17.0   16.0
+  ...                         M82     2012-10-29  16.2   15.2
+  ...                         M101    2012-10-31  15.1   15.5""", format='ascii')
   >>> xray = Table.read("""   name    obs_date    logLx
-                              NGC3516 2011-11-11  42.1
-                              M31     1999-01-05  43.1
-                              M82     2012-10-29  45.0""", format='ascii')
+  ...                         NGC3516 2011-11-11  42.1
+  ...                         M31     1999-01-05  43.1
+  ...                         M82     2012-10-29  45.0""", format='ascii')
 
 The |join| method allows one to merge these two tables into a single table based on
 matching values in the "key columns".  By default the key columns are the set of columns
@@ -572,7 +568,7 @@ matching key includes both ``name`` and ``obs_date``.  Specifying the key as onl
   name obs_date_1 mag_b mag_v obs_date_2 logLx
   ---- ---------- ----- ----- ---------- -----
   M101 2012-10-31  15.1  15.5         --    --
-   M31 2012-01-02  17.0  16.0 2012-01-05  43.1
+   M31 2012-01-02  17.0  16.0 1999-01-05  43.1
    M82 2012-10-29  16.2  15.2 2012-10-29  45.0
 
 Likewise one can construct a new table with every row of the right table and matching left
@@ -584,8 +580,8 @@ Finally, to make a table with the union of rows from both tables do an "outer" j
     name   obs_date  mag_b mag_v logLx
   ------- ---------- ----- ----- -----
      M101 2012-10-31  15.1  15.5    --
+      M31 1999-01-05    --    --  43.1
       M31 2012-01-02  17.0  16.0    --
-      M31 2012-01-05    --    --  43.1
       M82 2012-10-29  16.2  15.2  45.0
   NGC3516 2011-11-11    --    --  42.1
 
@@ -681,8 +677,8 @@ This is most easily understood by example using the ``optical`` and ``xray`` tab
 in the |join| example defined previously::
 
   >>> print join(optical, xray, keys='name',
-                 table_names=['OPTICAL', 'XRAY'],
-                 uniq_col_name='{table_name}_{col_name}')
+  ...            table_names=['OPTICAL', 'XRAY'],
+  ...            uniq_col_name='{table_name}_{col_name}')
   name OPTICAL_obs_date mag_b mag_v XRAY_obs_date logLx
   ---- ---------------- ----- ----- ------------- -----
    M31       2012-01-02  17.0  16.0    1999-01-05  43.1
@@ -736,9 +732,9 @@ order and taking the first value which is defined (i.e. is not None).  For examp
   >>> t3 = Table([col3])
   >>> out = vstack([t1, t2, t3])
   WARNING: MergeConflictWarning: In merged column 'a' the 'unit' attribute does
-  not match (cm != m).  Using cm for merged output [astropy.table.table]
+  not match (cm != m).  Using m for merged output [astropy.table.operations]
   >>> out['a'].unit
-  Unit("cm")
+  Unit("m")
 
 The rules for merging are as for `Merging metadata`_, and the
 ``metadata_conflicts`` option also controls the merging of column attributes.

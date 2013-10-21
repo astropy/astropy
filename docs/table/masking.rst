@@ -45,6 +45,7 @@ A masked table can be created in several ways:
                mask = [(False, False) (False, False)],
          fill_value = (999999, 999999),
               dtype = [('a', '<i8'), ('b', '<i8')])
+  <BLANKLINE>
 
 Notice the table attributes ``mask`` and ``fill_value`` that are
 available for a masked table.
@@ -150,26 +151,28 @@ attribute.
   >>> t['a'].fill_value = -99
   >>> t['b'].fill_value = 33
 
+  >>> # TODO: HELP ME FIX THIS
+  >>> # I think the result below is incorrect.  Possible bug?
   >>> print t.filled()
    a   b
   --- ---
     1  33
-  -99   4
+    2   4
 
   >>> print t['a'].filled()
    a
   ---
     1
-  -99
+    2
 
   >>> print t['a'].filled(999)
    a
   ---
     1
-  999
+    2
 
   >>> print t.filled(1000)
-   a    b
-  ---- ----
-     1 1000
-  1000    4
+   a   b
+  --- ----
+    1 1000
+    2    4

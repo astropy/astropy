@@ -129,7 +129,13 @@ built-in function, it is formatted according to the ``format`` attribute (see
 :ref:`table_format_string`)::
 
   >>> print t['a'].description, t['a']
-  unladen swallow velocity  0.000,  3.000,  6.000,  9.000, 12.000
+    unladen swallow velocity   a
+    ------
+     0.000
+     3.000
+     6.000
+     9.000
+    12.000
 
 Likewise a table row and a column from that row can be selected::
 
@@ -178,7 +184,7 @@ selected rows or columns.  ::
   12.000  13  14
 
   >>> print t['a', 'c']  # or t[['a', 'c']] or t[('a', 'c')]
-                         # Table with cols 'a', 'c' (copy)
+  ...                    # Table with cols 'a', 'c' (copy)
     a     c
   ------ ---
    0.000   2
@@ -213,7 +219,7 @@ table using one of several methods:
   way to save a table.
 
 These methods use :ref:`table_format_string`
-if available and strive to make the output readable.  
+if available and strive to make the output readable.
 By default, table and column printing will
 not print the table larger than the available interactive screen size.  If the
 screen size cannot be determined (in a non-interactive environment or on
@@ -291,7 +297,7 @@ meaning as shown below::
 
   >>> t.pprint(max_lines=8, max_width=40, show_unit=True)
       col0     ...    col29
-     km**2     ... kg sec m**-2
+      km2      ... kg sec m**-2
   ------------ ... ------------
   0.000000e+00 ...         29.0
   3.000000e+01 ...         59.0
@@ -314,25 +320,12 @@ set ``max_lines`` or ``max_width`` to ``-1``, respectively.  For the wide
 table in this example one sees 6 lines of wrapped output like the following::
 
   >>> t.pprint(max_lines=6, max_width=-1)
-
-      col0         col1     col2   col3   col4   col5   col6   col7   col8   col
-  9  col10  col11  col12  col13  col14  col15  col16  col17  col18  col19  col20
-    col21  col22  col23  col24  col25  col26  col27  col28  col29
-  ------------ ----------- ------ ------ ------ ------ ------ ------ ------ ----
-  -- ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ -----
-  - ------ ------ ------ ------ ------ ------ ------ ------ ------
-  0.000000e+00    1.000000    2.0    3.0    4.0    5.0    6.0    7.0    8.0    9
-  .0   10.0   11.0   12.0   13.0   14.0   15.0   16.0   17.0   18.0   19.0   20.
-  0   21.0   22.0   23.0   24.0   25.0   26.0   27.0   28.0   29.0
-  3.000000e+01   31.000000   32.0   33.0   34.0   35.0   36.0   37.0   38.0   39
-  .0   40.0   41.0   42.0   43.0   44.0   45.0   46.0   47.0   48.0   49.0   50.
-  0   51.0   52.0   53.0   54.0   55.0   56.0   57.0   58.0   59.0
-           ...         ...    ...    ...    ...    ...    ...    ...    ...    .
-  ..    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ..
-  .    ...    ...    ...    ...    ...    ...    ...    ...    ...
-  2.970000e+03 2971.000000 2972.0 2973.0 2974.0 2975.0 2976.0 2977.0 2978.0 2979
-  .0 2980.0 2981.0 2982.0 2983.0 2984.0 2985.0 2986.0 2987.0 2988.0 2989.0 2990.
-  0 2991.0 2992.0 2993.0 2994.0 2995.0 2996.0 2997.0 2998.0 2999.0
+       col0         col1     col2   col3   col4   col5   col6   col7   col8   col9  col10  col11  col12  col13  col14  col15  col16  col17  col18  col19  col20  col21  col22  col23  col24  col25  col26  col27  col28  col29
+  ------------ ----------- ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------
+  0.000000e+00    1.000000    2.0    3.0    4.0    5.0    6.0    7.0    8.0    9.0   10.0   11.0   12.0   13.0   14.0   15.0   16.0   17.0   18.0   19.0   20.0   21.0   22.0   23.0   24.0   25.0   26.0   27.0   28.0   29.0
+  3.000000e+01   31.000000   32.0   33.0   34.0   35.0   36.0   37.0   38.0   39.0   40.0   41.0   42.0   43.0   44.0   45.0   46.0   47.0   48.0   49.0   50.0   51.0   52.0   53.0   54.0   55.0   56.0   57.0   58.0   59.0
+           ...         ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...
+  2.970000e+03 2971.000000 2972.0 2973.0 2974.0 2975.0 2976.0 2977.0 2978.0 2979.0 2980.0 2981.0 2982.0 2983.0 2984.0 2985.0 2986.0 2987.0 2988.0 2989.0 2990.0 2991.0 2992.0 2993.0 2994.0 2995.0 2996.0 2997.0 2998.0 2999.0
 
 For columns the syntax and behavior of
 :func:`~astropy.table.table.Column.pprint` is the same except that there is no
@@ -359,7 +352,7 @@ the Table :func:`~astropy.table.table.Table.pformat` or Column
 
   >>> lines = t['col3'].pformat(max_lines=8)
   >>> lines
-  ['  col3', '------', '   3.0', '  33.0', '  63.0', '   ...', '2943.0', '2973.0']
+  [' col3 ', '------', '   3.0', '  33.0', '  63.0', '   ...', '2943.0', '2973.0']
 
 Multidimensional columns
 ''''''''''''''''''''''''
@@ -397,9 +390,7 @@ any array::
   <Column name='a' unit=None format=None description=None>
   array([[[ 1,  2],
           [10, 20]],
-
          [[ 3,  4],
           [30, 40]],
-
          [[ 5,  6],
           [50, 60]]])

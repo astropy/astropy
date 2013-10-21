@@ -44,7 +44,7 @@ size, columns, or data are not known.
   >>> t['b'] = Column([2.0, 5.0], unit='cm', description='Velocity')
   >>> t['c'] = ['x', 'y']
 
-  >>> t = Table(names=('a', 'b', 'c'), dtypes=('f4', 'i4', 'S2'))
+  >>> t = Table(names=('a', 'b', 'c'), dtype=('f4', 'i4', 'S2'))
   >>> t.add_row((1, 2.0, 'x'))
   >>> t.add_row((4, 5.0, 'y'))
 
@@ -67,7 +67,7 @@ keyword or they will be auto-generated as ``col<N>``.
   >>> t
   <Table rows=2 names=('a','b','c')>
   array([(1, 2.0, 'x'), (4, 5.0, 'y')],
-        dtype=[('a', '<i8'), ('b', '<f8'), ('c', '|S1')])
+        dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
 
 **Make a new table using columns from the first table**
 
@@ -77,7 +77,7 @@ and putting this into a Python list, e.g. ``[ t['c'], t['a'] ]``::
   >>> Table([t['c'], t['a']])
   <Table rows=2 names=('c','a')>
   array([('x', 1), ('y', 4)],
-        dtype=[('c', '|S1'), ('a', '<i8')])
+        dtype=[('c', 'S1'), ('a', '<i8')])
 
 **Make a new table using expressions involving columns**
 
@@ -103,7 +103,7 @@ of different data types to initialize a table::
   >>> Table(arr)  # Data column named "c" has a name "axis" that table
   <Table rows=2 names=('col0','col1','axis')>
   array([(1, [2, 3], 'x'), (4, [5, 6], 'y')],
-        dtype=[('col0', '<i8'), ('col1', '<i8', (2,)), ('axis', '|S1')])
+        dtype=[('col0', '<i8'), ('col1', '<i8', (2,)), ('axis', 'S1')])
 
 Notice that in the third column the existing column name ``'axis'`` is used.
 
@@ -116,20 +116,15 @@ list of dict objects.  The keys determine the column names::
   >>> data = [{'a': 5, 'b': 10}, {'a': 15, 'b': 20}]
   >>> Table(data)
   <Table rows=2 names=('a','b')>
-  array([(5, 10), (15, 30)],
+  array([(5, 10), (15, 20)],
         dtype=[('a', '<i8'), ('b', '<i8')])
 
 Every row must have the same set of keys or a ValueError will be thrown::
 
   >>> t = Table([{'a': 5, 'b': 10}, {'a': 15, 'b': 30, 'c': 50}])
-  ERROR: ValueError: Row 0 is has no value for column 'c' [astropy.table.table]
   Traceback (most recent call last):
-    File "<stdin>", line 1, in <module>
-    File "astropy/table/table.py", line 944, in __init__
-      init_func(data, names, dtypes, n_cols, copy)
-    File "astropy/table/table.py", line 1070, in _init_from_list
-      raise ValueError('Row {0} has no value for column {1!r}'.format(i, name))
-  ValueError: Row 0 is has no value for column 'c'
+    ...
+  ValueError: Row 0 has no value for column c
 
 Row input
 """""""""
@@ -157,27 +152,27 @@ A dictionary of column data can be used to initialize a |Table|.
   >>> Table(arr)
   <Table rows=2 names=('a','c','b')>
   array([(1, 'x', 2.0), (4, 'y', 5.0)],
-        dtype=[('a', '<i8'), ('c', '|S1'), ('b', '<f8')])
+        dtype=[('a', '<i8'), ('c', 'S1'), ('b', '<f8')])
 
 **Specify the column order and optionally the data types**
 ::
 
-  >>> Table(arr, names=('a', 'b', 'c'), dtypes=('f4', 'i4', 'S2'))
+  >>> Table(arr, names=('a', 'b', 'c'), dtype=('f4', 'i4', 'S2'))
   <Table rows=2 names=('a','b','c')>
   array([(1.0, 2, 'x'), (4.0, 5, 'y')],
-        dtype=[('a', '<f4'), ('b', '<i4'), ('c', '|S2')])
+        dtype=[('a', '<f4'), ('b', '<i4'), ('c', 'S2')])
 
 **Different types of column data**
 
 The input column data can be any data type that can initialize a |Column| object::
 
   >>> arr = {'a': (1, 4),
-             'b': np.array([[2, 3], [5, 6]]),
-             'c': Column(['x', 'y'], name='axis')}
+  ...        'b': np.array([[2, 3], [5, 6]]),
+  ...        'c': Column(['x', 'y'], name='axis')}
   >>> Table(arr, names=('a', 'b', 'c'))
   <Table rows=2 names=('a','b','c')>
   array([(1, [2, 3], 'x'), (4, [5, 6], 'y')],
-        dtype=[('a', '<i8'), ('b', '<i8', (2,)), ('c', '|S1')])
+        dtype=[('a', '<i8'), ('b', '<i8', (2,)), ('c', 'S1')])
 
 Notice that the key ``'c'`` takes precendence over the existing column name
 ``'axis'`` in the third column.  Also see that the ``'b'`` column is a vector
@@ -188,11 +183,7 @@ column where each row element is itself a 2-element array.
 
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'))
   Traceback (most recent call last):
-    File "<stdin>", line 2, in <module>
-    File "astropy/table/table.py", line 404, in __init__
-      init_func(data, names, dtypes, n_cols, copy)
-    File "astropy/table/table.py", line 467, in _init_from_dict
-      data_list = [data[name] for name in names]
+    ...
   KeyError: 'a_new'
 
 
@@ -215,7 +206,7 @@ From ``arr`` it is simple to create the corresponding |Table| object::
   >>> Table(arr)
   <Table rows=2 names=('a','b','c')>
   array([(1, 2.0, 'x'), (4, 5.0, 'y')],
-        dtype=[('a', '<i8'), ('b', '<f8'), ('c', '|S2')])
+        dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S2')])
 
 Note that in the above example and most the following ones we are creating a
 table and immediately asking the interactive Python interpreter to print the
@@ -223,6 +214,10 @@ table to see what we made.  In real code you might do something like::
 
   >>> table = Table(arr)
   >>> print table
+   a   b   c
+  --- --- ---
+    1 2.0   x
+    4 5.0   y
 
 **New column names**
 
@@ -232,21 +227,21 @@ The column names can be changed from the original values by providing the
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'))
   <Table rows=2 names=('a_new','b_new','c_new')>
   array([(1, 2.0, 'x'), (4, 5.0, 'y')],
-        dtype=[('a_new', '<i8'), ('b_new', '<f8'), ('c_new', '|S2')])
+        dtype=[('a_new', '<i8'), ('b_new', '<f8'), ('c_new', 'S2')])
 
 **New data types**
 
-Likewise the data type for each column can by changed with ``dtypes``::
+Likewise the data type for each column can by changed with ``dtype``::
 
-  >>> Table(arr, dtypes=('f4', 'i4', 'S4'))
+  >>> Table(arr, dtype=('f4', 'i4', 'S4'))
   <Table rows=2 names=('a','b','c')>
   array([(1.0, 2, 'x'), (4.0, 5, 'y')],
-        dtype=[('a', '<f4'), ('b', '<i4'), ('c', '|S4')])
+        dtype=[('a', '<f4'), ('b', '<i4'), ('c', 'S4')])
 
-  >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtypes=('f4', 'i4', 'S4'))
+  >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtype=('f4', 'i4', 'S4'))
   <Table rows=2 names=('a_new','b_new','c_new')>
   array([(1.0, 2, 'x'), (4.0, 5, 'y')],
-        dtype=[('a_new', '<f4'), ('b_new', '<i4'), ('c_new', '|S4')])
+        dtype=[('a_new', '<f4'), ('b_new', '<i4'), ('c_new', 'S4')])
 
 
 
@@ -270,10 +265,10 @@ generated as ``col<N>`` where ``<N>`` is the column number.
 **Column names and types specified**
 ::
 
-  >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtypes=('f4', 'i4', 'S4'))
+  >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtype=('f4', 'i4', 'S4'))
   <Table rows=2 names=('a_new','b_new','c_new')>
   array([(1.0, 2, '3'), (4.0, 5, '6')],
-        dtype=[('a_new', '<f4'), ('b_new', '<i4'), ('c_new', '|S4')])
+        dtype=[('a_new', '<f4'), ('b_new', '<i4'), ('c_new', 'S4')])
 
 **Referencing the original data**
 
@@ -312,7 +307,7 @@ following trick to effectively transpose into a list of columns for
 initializing a |Table| object::
 
    >>> arr = [[1, 2.0, 'string'],  # list of rows
-              [2, 3.0, 'values']]
+   ...        [2, 3.0, 'values']]
    >>> col_arr = zip(*arr)  # transpose to a list of columns
    >>> col_arr
    [(1, 2), (2.0, 3.0), ('string', 'values')]
@@ -326,9 +321,8 @@ table::
   >>> t = Table(names=('a', 'b', 'c'))
   >>> t2 = t['c', 'b', 'a']  # Makes a copy of the data
   >>> print t2
-  <Table rows=0 names=('c','b','a')>
-  array([],
-        dtype=[('c', '<f8'), ('b', '<f8'), ('a', '<f8')])
+   c   b   a
+  --- --- ---
 
 An alternate way to use the ``columns`` attribute (explained in the
 `TableColumns`_ section) to initialize a new table.  This let's you choose
@@ -355,7 +349,7 @@ object with the following arguments, all of which are optional:
     Data to initialize table.
 ``names`` : list
     Specify column names
-``dtypes`` : list
+``dtype`` : list
     Specify column data types
 ``meta`` : dict-like
     Meta-Data associated with the table
@@ -374,7 +368,7 @@ for the ``data`` argument.
 **numpy ndarray (structured array)**
     The base column names are the field names of the ``data`` structured
     array.  The ``names`` list (optional) can be used to select
-    particular fields and/or reorder the base names.  The ``dtypes`` list
+    particular fields and/or reorder the base names.  The ``dtype`` list
     (optional) must match the length of ``names`` and is used to
     override the existing ``data`` types.
 
@@ -386,14 +380,14 @@ for the ``data`` argument.
 
     If provided the ``names`` list must match the "width" of the ``data``
     argument.  The default for ``names`` is to auto-generate column names
-    in the form "col<N>".  If provided the ``dtypes`` list overrides the
+    in the form "col<N>".  If provided the ``dtype`` list overrides the
     base column types and must match the length of ``names``.
 
 **dict-like**
     The keys of the ``data`` object define the base column names.  The
     corresponding values can be Column objects, numpy arrays, or list-like
     objects.  The ``names`` list (optional) can be used to select
-    particular fields and/or reorder the base names.  The ``dtypes`` list
+    particular fields and/or reorder the base names.  The ``dtype`` list
     (optional) must match the length of ``names`` and is used to override
     the existing or default data types.
 
@@ -403,7 +397,7 @@ for the ``data`` argument.
     ``names`` list defines the name of each column.  The names will be
     auto-generated if not provided (either from the ``names`` argument or
     by Column objects).  If provided the ``names`` argument must match the
-    number of items in the ``data`` list.  The optional ``dtypes`` list
+    number of items in the ``data`` list.  The optional ``dtype`` list
     will override the existing or default data types and must match
     ``names`` in length.
 
@@ -413,13 +407,13 @@ for the ``data`` argument.
     key values in each dict define the column names and each row must
     have identical column names.  The ``names`` argument may be supplied
     to specify colum ordering.  If it is not provided, the column order will
-    default to alphabetical.  The ``dtypes`` list may be specified, and must
+    default to alphabetical.  The ``dtype`` list may be specified, and must
     correspond to the order of output columns.  If any row's keys do no match
     the rest of the rows, a ValueError will be thrown.
 
 
 **None**
-    Initialize a zero-length table.  If ``names`` and optionally ``dtypes``
+    Initialize a zero-length table.  If ``names`` and optionally ``dtype``
     are provided then the corresponding columns are created.
 
 names
@@ -437,18 +431,18 @@ argument can be supplied to specify the order of columns.  The ``names`` list
 must then contain each of the keys in the ``data`` dict.  If ``names`` is not
 supplied then the order of columns in the output table is not determinate.
 
-dtypes
-""""""
+dtype
+"""""
 
-The ``dtypes`` argument provides a way to specify the table column data
+The ``dtype`` argument provides a way to specify the table column data
 types or override the existing types.  By default the types are either
 taken from existing types (for ``ndarray`` or ``Table`` input) or
-auto-generated by the ``numpy.array()`` routine.  If ``dtypes`` is provided
+auto-generated by the ``numpy.array()`` routine.  If ``dtype`` is provided
 then it must be a list with the same length as the number of columns.  The
 values must be valid ``numpy.dtype`` initializers or ``None``.  Any list
 elements with value ``None`` fall back to the default type.
 
-In the case where `data` is provided as dict of columns, the ``dtypes`` argument
+In the case where `data` is provided as dict of columns, the ``dtype`` argument
 must be accompanied by a corresponding ``names`` argument in order to uniquely
 specify the column ordering.
 
@@ -502,12 +496,10 @@ Note that when referencing the data it is not possible to change the data types
 since that operation requires making a copy of the data.  In this case an error
 occurs::
 
-  >>> t = Table(arr, copy=False, dtypes=('f4', 'i4', 'S4'))
+  >>> t = Table(arr, copy=False, dtype=('f4', 'i4', 'S4'))
   Traceback (most recent call last):
-    File "<stdin>", line 2, in <module>
-    File "astropy/table/table.py", line 351, in __init__
-      raise ValueError('Cannot specify dtypes when copy=False')
-  ValueError: Cannot specify dtypes when copy=False
+    ...
+  ValueError: Cannot specify dtype when copy=False
 
 Another caveat in using referenced data is that you cannot add new row to the
 table.  This generates an error because of conflict between the two references
@@ -633,19 +625,20 @@ following example this is used to make a LaTeX ready output::
 
     >>> t = Table([[1,2],[1.234e9,2.34e-12]], names = ('a','b'))
     >>> def latex_exp(value):
-            val = '{:8.2}'.format(value)
-            mant, exp = val.split('e')
-            # remove leading zeros
-            exp = exp[0] + exp[1:].lstrip('0')
-            return '$ {0} \\times 10^{{ {1} }}$' .format(mant, exp)
+    ...     val = '{:8.2}'.format(value)
+    ...     mant, exp = val.split('e')
+    ...     # remove leading zeros
+    ...     exp = exp[0] + exp[1:].lstrip('0')
+    ...     return '$ {0} \\times 10^{{ {1} }}$' .format(mant, exp)
     >>> t['b'].format = latex_exp
     >>> t['a'].format = '{0:.4f}'
-    >>> t.write(sys.stdout, format = 'latex')
+    >>> import sys
+    >>> t.write(sys.stdout, format='latex')
     \begin{table}
     \begin{tabular}{cc}
     a & b \\
-    1.0000 & $ 1.2\times 10^{+9}$ \\
-    2.0000 & $ 2.3\times 10^{-12}$ \\
+    1.0000 & $  1.2 \times 10^{ +9 }$ \\
+    2.0000 & $  2.3 \times 10^{ -12 }$ \\
     \end{tabular}
     \end{table}
 

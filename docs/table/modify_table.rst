@@ -62,10 +62,10 @@ Finally, columns can also be added from
 ``.unit`` attribute on the column:
 
   >>> from astropy import units as u
-  >>> t['d'] = [1, 2, 3] * u.m
+  >>> t['d'] = [1, 2, 3, 4, 5] * u.m
   >>> t['d']
   <Column name='d' unit='m' format=None description=None>
-  array([1, 2, 3])
+  array([1, 2, 3, 4, 5])
 
 **Remove columns**
 ::
@@ -148,7 +148,7 @@ using column selection with ``t['a', 'c']`` in combination with row index select
   >>> t = Table([[1, 2], [3, 4], [5, 6]], names=('a', 'b', 'c'))
   >>> t['a', 'c'][1] = (100, 100)
   >>> print t
-   a   b   c 
+   a   b   c
   --- --- ---
     1   3   5
     2   4   6
@@ -160,4 +160,3 @@ row 1 of the copy.  The original ``t`` table was unaffected and the new
 temporary table disappeared once the statement was complete.  The takeaway
 is to pay attention to how certain operations are performed one step at
 a time.
-
