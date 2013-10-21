@@ -923,13 +923,6 @@ PyWcsprm_get_ps(
     /*@unused@*/ PyObject* args,
     /*@unused@*/ PyObject* kwds) {
 
-  if (self->x.ps == NULL) {
-    PyErr_SetString(
-        PyExc_AssertionError,
-        "No PSi_ma records present.");
-    return NULL;
-  }
-
   return get_pscards("ps", self->x.ps, self->x.nps);
 }
 
@@ -938,13 +931,6 @@ PyWcsprm_get_pv(
     PyWcsprm* self,
     /*@unused@*/ PyObject* args,
     /*@unused@*/ PyObject* kwds) {
-
-  if (self->x.pv == NULL) {
-    PyErr_SetString(
-        PyExc_AssertionError,
-        "No PVi_ma records present.");
-    return NULL;
-  }
 
   return get_pvcards("pv", self->x.pv, self->x.npv);
 }
@@ -1503,18 +1489,14 @@ PyWcsprm_set_pv(
 
   if (is_null(self->x.pv)) {
     return NULL;
-  }
-
-  if (set_pvcards("pv", arg, &self->x.pv, &self->x.npv, &self->x.npvmax)) {
-    self->x.m_pv = self->x.pv;
+  } else if (set_pvcards("pv", arg, &self->x.pv, &self->x.npv, &self->x.npvmax)) {
     return NULL;
+  } else {
+    self->x.m_pv = self->x.pv;
+    note_change(self);
+    Py_INCREF(Py_None);
+    return Py_None;
   }
-  self->x.m_pv = self->x.pv;
-
-  note_change(self);
-
-  Py_INCREF(Py_None);
-  return Py_None;
 }
 
 /* TODO: This is convenient for debugging for now -- but it's not very

@@ -433,7 +433,10 @@ def test_find_all_wcs_crash():
     """
     with open(get_pkg_data_filename("data/too_many_pv.hdr")) as fd:
         header = fd.read()
-    wcses = wcs.find_all_wcs(header)
+    # We have to set fix=False here, because one of the fixing tasks is to
+    # remove redundant SCAMP distortion parameters when SIP distortion
+    # parameters are also present.
+    wcses = wcs.find_all_wcs(header, fix=False)
 
 
 def test_validate():
@@ -464,3 +467,14 @@ def test_all_world2pix():
         assert np.any(all_pix != wcs_pix)
 
         assert_allclose(all_world, world, rtol=0, atol=tolerance)
+
+
+def test_scamp_sip_distortion_parameters():
+    """
+    Test parsing of WCS parameters with redundant SIP and SCAMP distortion
+    parameters.
+    """
+    header = get_pkg_data_contents('data/validate.fits', encoding='binary')
+    w = wcs.WCS(header)
+    # Just check that this doesn't raise an exception.
+    w.all_pix2world(0, 0, 0)
