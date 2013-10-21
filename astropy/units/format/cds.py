@@ -25,7 +25,9 @@ class CDS(Base):
     Support the `Centre de Données astronomiques de Strasbourg
     <http://cds.u-strasbg.fr/>`_ `Standards for Astronomical
     Catalogues 2.0 <http://cds.u-strasbg.fr/doc/catstd-3.2.htx>`_
-    format.  This format is used by VOTable up to version 1.2.
+    format, and the `complete set of supported units
+    <http://vizier.u-strasbg.fr/cgi-bin/Unit>`_.  This format is used
+    by VOTable up to version 1.2.
     """
     def __init__(self):
         # Build this on the class, so it only gets generated once.
@@ -37,59 +39,14 @@ class CDS(Base):
 
     @staticmethod
     def _generate_unit_names():
-        import keyword
+        from .. import cds
         from ... import units as u
-        from .. import core
-
-        bases = [
-            'A', 'a', 'arcmin', 'arcsec', 'AU', 'barn', 'bit', 'byte',
-            'C', 'cd', 'eV', 'F', 'g', 'H', 'Hz', 'J', 'Jy', 'K',
-            'lm', 'lx', 'm', 'mag', 'mol', 'N', 'Ohm', 'Pa', 'pc',
-            'rad', 's', 'S', 'solLum', 'solMass', 'sr', 'T', 'V', 'W',
-            'Wb', 'yr']
-
-        # These are bases which don't have prefix units in astropy.units
-        # itself, but that we need to fake for the sake of CDS.
-        faux_bases = [
-            'ct', 'D', 'd', 'deg', 'h', 'min', 'pix', 'Ry', 'solRad',
-            'Sun']
-
-        # "mas" doesn't have prefixes, according to the cds standard
-        unprefixed = [
-            'mas']
-
-        # We need to define all of the base units first, and then
-        # only add prefixed units if they don't already exist in names
-        # to prevent ambiguities like cd (candela vs. centi-day)
 
         names = {}
 
-        names['%'] = u.Unit('percent')
-        # --- is used for dimensionless if an empty string is unhandy, e.g.,
-        # eg., in Vizier ReadMe's; pers. comm. to MHvK from
-        # François Ochsenbein <Francois.Ochsenbein@astro.unistra.fr>
-        # for an example, http://cdsarc.u-strasbg.fr/viz-bin/Cat?I/100A
-        names['---'] = u.dimensionless_unscaled
-
-        for base in bases + faux_bases + unprefixed:
-            names[base] = getattr(u, base)
-
-        for base in bases:
-            for p_name, p_long_name, p_value in core.si_prefixes:
-                for name in p_name:
-                    key = name + base
-                    if key not in names:
-                        if keyword.iskeyword(key):
-                            continue
-                        names[key] = getattr(u, key)
-
-        for base in faux_bases:
-            names[base] = getattr(u, base)
-            for p_name, p_long_name, p_value in core.si_prefixes:
-                for name in p_name:
-                    key = name + base
-                    if key not in names:
-                        names[key] = u.Unit(p_value * getattr(u, base))
+        for key, val in cds.__dict__.items():
+            if isinstance(val, u.UnitBase):
+                names[key] = val
 
         return names
 

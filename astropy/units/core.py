@@ -1228,16 +1228,11 @@ class NamedUnit(UnitBase):
         # Loop through all of the names first, to ensure all of them
         # are new, then add them all as a single "transaction" below.
         for name in self._names:
-            # Names must be valid Python identifier
-            if not re.match("^[A-Za-z_]+$", name):
-                raise ValueError(
-                    "Invalid unit name {0!r}".format(st))
-
-        for name in self._names:
             if name in namespace and self != namespace[name]:
                 raise ValueError(
                     "Object with name {0!r} already exists in "
-                    "given namespace.".format(name))
+                    "given namespace ({1!r}).".format(
+                        name, namespace[name]))
 
         for name in self._names:
             namespace[name] = self
@@ -1752,7 +1747,7 @@ si_prefixes = [
 ]
 
 
-def _add_prefixes(u, excludes=[], namespace=None):
+def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
     """
     Set up all of the standard metric prefixes for a unit.  This
     function should not be used directly, but instead use the
@@ -1767,8 +1762,18 @@ def _add_prefixes(u, excludes=[], namespace=None):
     namespace : dict, optional
         When provided, inject the unit (and all of its aliases) into
         the given namespace dictionary.
+
+    prefixes : list, optional
+        When provided, it is a list of prefix definitions of the form:
+
+            (short_names, long_tables, factor)
     """
-    for short, full, factor in si_prefixes:
+    if prefixes is True:
+        prefixes = si_prefixes
+    elif prefixes is False:
+        prefixes = []
+
+    for short, full, factor in prefixes:
         names = []
         format = {}
         for prefix in short:
@@ -1829,12 +1834,17 @@ def def_unit(s, represents=None, register=None, doc=None,
 
             {'latex': r'\\Omega'}
 
-    prefixes : bool, optional
+    prefixes : bool or list, optional
         When `True`, generate all of the SI prefixed versions of the
-        unit as well.  For example, for a given unit `m`, will generate
-        `mm`, `cm`, `km`, etc.  Default is `False`.  This function
-        always returns the base unit object, even if multiple scaled
-        versions of the unit were created.
+        unit as well.  For example, for a given unit `m`, will
+        generate `mm`, `cm`, `km`, etc.  When a list, it is a list of
+        prefix definitions of the form:
+
+            (short_names, long_tables, factor)
+
+        Default is `False`.  This function always returns the base
+        unit object, even if multiple scaled versions of the unit were
+        created.
 
     exclude_prefixes : list of str, optional
         If any of the SI prefixes need to be excluded, they may be
@@ -1869,7 +1879,8 @@ def def_unit(s, represents=None, register=None, doc=None,
             s, namespace=namespace, doc=doc, format=format)
 
     if prefixes:
-        _add_prefixes(result, excludes=exclude_prefixes, namespace=namespace)
+        _add_prefixes(result, excludes=exclude_prefixes, namespace=namespace,
+                      prefixes=prefixes)
     return result
 
 

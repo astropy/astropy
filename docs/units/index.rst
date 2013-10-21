@@ -158,6 +158,8 @@ Reference/API
 
 .. automodapi:: astropy.units.imperial
 
+.. automodapi:: astropy.units.cds
+
 .. automodapi:: astropy.units.equivalencies
 
 .. automodapi:: astropy.units.quantity

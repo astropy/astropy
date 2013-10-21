@@ -183,9 +183,9 @@ def find_mod_objs(modname, onlylocals=False):
     mod = sys.modules[modname]
 
     if hasattr(mod, '__all__'):
-        pkgitems = [(k, getattr(mod, k)) for k in mod.__all__]
+        pkgitems = [(k, mod.__dict__[k]) for k in mod.__all__]
     else:
-        pkgitems = [(k, getattr(mod, k)) for k in dir(mod) if k[0] != '_']
+        pkgitems = [(k, mod.__dict__[k]) for k in dir(mod) if k[0] != '_']
 
     #filter out modules and pull the names and objs out
     localnames = [k for k, v in pkgitems if not ismodule(v)]
