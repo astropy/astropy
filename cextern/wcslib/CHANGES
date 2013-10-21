@@ -1,3 +1,19 @@
+WCSLIB version 4.19 (2013/09/30)
+--------------------------------
+
+
+* C library
+
+  - Bug fix in wcshdo(), uncovered by cppcheck and reported by David
+    Binderman.  Fixed additional minor inconsistencies in hpxx2s(),
+    wcsprintf(), and wcsfprintf() reported by cppcheck.
+
+  - Minor fix to twcstab reported by cppcheck.
+
+  - Bug fix in wcssub() for handling (non-standard) PROJPn keywords
+    (uncovered by valgrind, reported by Paul Price).
+
+
 WCSLIB version 4.18 (2013/07/13)
 --------------------------------
 
@@ -2026,4 +2042,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 4.18 2013/07/13 10:00:06 mcalabre Exp $
+$Id: CHANGES,v 4.19 2013/09/29 14:17:53 mcalabre Exp $
