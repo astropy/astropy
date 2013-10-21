@@ -204,7 +204,7 @@ class CartesianPoints(u.Quantity):
 
     Parameters
     ----------
-    xorarr : `~astropy.units.Quantity` or array-like
+    x : `~astropy.units.Quantity` or array-like
         The first cartesian coordinate or a single array or
         `~astropy.units.Quantity` where the first dimension is length-3.
     y : `~astropy.units.Quantity` or array-like, optional
@@ -224,9 +224,9 @@ class CartesianPoints(u.Quantity):
     astropy.units.UnitsError
         If the units on `x`, `y`, and `z` do not match or an invalid unit is given
     ValueError
-        If `y` and `z` don't match `xorarr`'s shape or `xorarr` is not length-3
+        If `y` and `z` don't match `x`'s shape or `x` is not length-3
     TypeError
-        If incompatible array types are passed into `xorarr`, `y`, or `z`
+        If incompatible array types are passed into `x`, `y`, or `z`
 
     """
 
@@ -234,17 +234,15 @@ class CartesianPoints(u.Quantity):
     #where a quantity is first, like ``3*u.m + c``
     __array_priority__ = 10001
 
-    def __new__(cls, xorarr, y=None, z=None, unit=None, dtype=None, copy=True):
+    def __new__(cls, x, y=None, z=None, unit=None, dtype=None, copy=True):
         if y is None and z is None:
-            if len(xorarr) != 3:
+            if len(x) != 3:
                 raise ValueError('input to CartesianPoints is not length 3')
 
-            qarr = xorarr
+            qarr = x
             if unit is None and hasattr(qarr, 'unit'):
                 unit = qarr.unit  # for when a Quantity is given
         elif y is not None and z is not None:
-            x = xorarr
-
             if unit is None:
                 #they must all match units or this fails
                 for coo in (x, y, z):
