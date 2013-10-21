@@ -498,3 +498,11 @@ def test_megabit():
 
     assert u.Mbyte is u.MB
     assert u.megabyte is u.MB
+
+
+def test_composite_unit_get_format_name():
+    """See #1576"""
+    unit1 = u.Unit('nrad/s')
+    unit2 = u.Unit('Hz(1/2)')
+    assert (str(u.CompositeUnit(1, [unit1, unit2], [1, -1])) ==
+            'nrad / (Hz(1/2) s)')

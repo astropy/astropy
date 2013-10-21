@@ -595,14 +595,14 @@ class UnitBase(object):
         return p
 
     def __pow__(self, p):
-        return CompositeUnit(1, [self], [p])._simplify()
+        return CompositeUnit(1, [self], [p])
 
     def __div__(self, m):
         if isinstance(m, six.string_types):
             m = Unit(m)
 
         if isinstance(m, UnitBase):
-            return CompositeUnit(1, [self, m], [1, -1])._simplify()
+            return CompositeUnit(1, [self, m], [1, -1])
 
         # Cannot handle this as Unit, re-try as Quantity
         from .quantity import Quantity
@@ -627,7 +627,7 @@ class UnitBase(object):
             m = Unit(m)
 
         if isinstance(m, UnitBase):
-            return CompositeUnit(1, [self, m], [1, 1])._simplify()
+            return CompositeUnit(1, [self, m], [1, 1])
 
         # Cannot handle this as Unit, re-try as Quantity
         from .quantity import Quantity
@@ -678,13 +678,6 @@ class UnitBase(object):
 
     def __neg__(self):
         return self * -1.
-
-    def _simplify(self):
-        """
-        Compresses a possibly composite unit down to a single
-        instance.
-        """
-        return self
 
     def is_equivalent(self, other, equivalencies=[]):
         """
@@ -1833,7 +1826,8 @@ class CompositeUnit(UnitBase):
         A sequence of powers (in parallel with `bases`) for each
         of the base units.
     """
-    def __init__(self, scale, bases, powers):
+    def __init__(self, scale, bases, powers, decompose=False,
+                 decompose_bases=set()):
         if scale == 1. or is_effectively_unity(scale):
             scale = 1
         self._scale = scale
@@ -1844,6 +1838,7 @@ class CompositeUnit(UnitBase):
         powers = [self._validate_power(p) for p in powers]
         self._powers = powers
         self._decomposed_cache = None
+        self._expand_and_gather(decompose=decompose, bases=decompose_bases)
 
     def __repr__(self):
         if len(self._bases):
@@ -1928,11 +1923,6 @@ class CompositeUnit(UnitBase):
         """
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
-    def _simplify(self):
-        self._expand_and_gather()
-        return self
-    _simplify.__doc__ = UnitBase._simplify.__doc__
-
     def decompose(self, bases=set()):
         if len(bases) == 0 and self._decomposed_cache is not None:
             return self._decomposed_cache
@@ -1946,8 +1936,8 @@ class CompositeUnit(UnitBase):
                 self._decomposed_cache = self
             return self
 
-        x = CompositeUnit(self.scale, self.bases, self.powers)
-        x._expand_and_gather(True, bases=bases)
+        x = CompositeUnit(self.scale, self.bases, self.powers, decompose=True,
+                          decompose_bases=bases)
         if len(bases) == 0:
             self._decomposed_cache = x
         return x
