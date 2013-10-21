@@ -81,7 +81,7 @@ User Documentation
 .. toctree::
    :maxdepth: 1
 
-   configs/index
+   config/index
    io/registry
    logging
    warnings

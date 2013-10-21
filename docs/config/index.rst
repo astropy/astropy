@@ -1,3 +1,5 @@
+.. doctest_skip
+
 .. _astropy_config:
 
 ***************************************
@@ -86,7 +88,7 @@ modified in an active python session using the
 `ConfigurationItem` object can be used to make these changes. These items
 are found in the same module as the configuration section they are in,
 and usually have the same name as in the configuration files, but in all
-caps. 
+caps.
 
 For example, if there is a part of your configuration file that looks like::
 
