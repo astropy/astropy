@@ -479,3 +479,8 @@ def test_unit_division_by_string():
     us = 'kg'
     assert us / u1 == u.Unit(us) / u1
     assert u1 / us == u1 / u.Unit(us)
+
+
+def test_sorted_bases():
+    """See #1616."""
+    assert (u.m * u.Jy).bases == (u.Jy * u.m).bases
