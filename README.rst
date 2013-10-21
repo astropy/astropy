@@ -23,3 +23,8 @@ Travis Build Status
 .. image:: https://travis-ci.org/astropy/astropy.png
     :target: https://travis-ci.org/astropy/astropy
 
+Test Coverage Status
+--------------------
+
+.. image:: https://coveralls.io/repos/astropy/astropy/badge.png
+    :target: https://coveralls.io/r/astropy/astropy
