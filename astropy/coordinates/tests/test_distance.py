@@ -71,7 +71,7 @@ def test_distmod():
     assert d.kpc == 100
 
     d = Distance(distmod=-1., unit=u.au)
-    npt.assert_almost_equal(d.value, 1301442.9440836983)
+    npt.assert_allclose(d.value, 1301442.9440836983)
 
     with pytest.raises(ValueError):
         d = Distance(value=d, distmod=20)

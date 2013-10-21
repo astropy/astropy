@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import sys
 import warnings
-from math import sqrt, pi, exp, log
+from math import sqrt, pi, exp, log, floor
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
@@ -39,6 +39,9 @@ arcmin_in_radians = 1 / 60. * pi / 180
 # Radiation parameter over c^2 in cgs
 a_B_c2 = 4 * const.sigma_sb.cgs.value / const.c.cgs.value ** 3
 
+# Boltzmann constant in eV / K
+kB_evK = const.k_B.decompose().to(u.eV / u.K)
+
 DEFAULT_COSMOLOGY = ConfigurationItem(
     'default_cosmology', 'no_default',
     'The default cosmology to use. Note this is only read on import, '
@@ -73,7 +76,8 @@ class FLRW(Cosmology):
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, name='FLRW'):
+    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, 
+                 m_nu=u.Quantity(0.0, u.eV), name='FLRW'):
         """ Initializer.
 
         Parameters
@@ -91,10 +95,20 @@ class FLRW(Cosmology):
 
         Tcmb0 : float or scalar astropy.units.Quantity
           Temperature of the CMB z=0.  If a float, must be in [K].
-          Default: 2.725.
+          Default: 2.725.  Setting this to zero will turn off both
+          photons and neutrinos (even massive ones)
 
         Neff : float
           Effective number of Neutrino species. Default 3.04.
+
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
 
         name : string
           Optional name for this cosmological object.
@@ -102,8 +116,13 @@ class FLRW(Cosmology):
 
         # all densities are in units of the critical density
         self._Om0 = float(Om0)
+        if self._Om0 < 0.0:
+            raise ValueError("Matter density can not be negative")
         self._Ode0 = float(Ode0)
         self._Neff = float(Neff)
+        if self._Neff < 0.0:
+            raise ValueError("Effective number of neutrinos can "
+                             "not be negative")
         self.name = name
 
         # Tcmb may have units
@@ -135,6 +154,62 @@ class FLRW(Cosmology):
         self._critical_density0 = (3. * H0_s ** 2 /
             (8. * pi * const.G.cgs)).cgs
 
+        # Load up neutrino masses.
+        self._nneutrinos = floor(self._Neff)
+        # We are going to share Neff between the neutrinos equally.
+        # In detail this is not correct, but it is a standard assumption
+        # because propertly calculating it is a) complicated b) depends
+        # on the details of the massive nuetrinos (e.g., their weak
+        # interactions, which could be unusual if one is considering sterile
+        # neutrinos)
+        self._massivenu = False
+        if self._nneutrinos > 0 and self._Tcmb0.value > 0:
+            self._neff_per_nu = self._Neff / self._nneutrinos
+
+            if not isinstance(m_nu, u.Quantity):
+                raise ValueError("m_nu must be a Quantity")
+            
+            m_nu = m_nu.to(u.eV, equivalencies=u.mass_energy())
+
+            # Now, figure out if we have massive neutrinos to deal with,
+            # and, if so, get the right number of masses
+            # It is worth the effort to keep track of massless ones seperately
+            # (since they are quite easy to deal with, and a common use case
+            # is to set only one neutrino to have mass)
+            if m_nu.isscalar:
+                # Assume all neutrinos have the same mass
+                if m_nu.value == 0:
+                    self._nmasslessnu = self._nneutrinos
+                    self._nmassivenu = 0
+                else:
+                    self._massivenu = True
+                    self._nmasslessnu = 0
+                    self._nmassivenu = self._nneutrinos
+                    self._massivenu_mass = m_nu.value *\
+                                           np.ones(self._nneutrinos)
+            else:
+                # Make sure we have the right number of masses
+                # -unless- they are massless, in which case we cheat a little
+                if m_nu.value.min() < 0:
+                    raise ValueError("Invalid (negative) neutrino mass"
+                                     " encountered")
+                if m_nu.value.max() == 0:
+                    self._nmasslessnu = self._nneutrinos 
+                    self._nmassivenu = 0
+                else:
+                    self._massivenu = True
+                    if len(m_nu) != self._nneutrinos:
+                        raise ValueError("Unexpected number of neutrino masses")
+                    # Segregate out the massless ones
+                    try:
+                        # Numpy < 1.6 doesn't have count_nonzero
+                        self._nmasslessnu = np.count_nonzero(m_nu.value == 0)
+                    except AttributeError:
+                        self._nmasslessnu = len(np.nonzero(m_nu.value == 0)[0])
+                    self._nmassivenu = self._nneutrinos - self._nmasslessnu
+                    w = np.nonzero(m_nu.value > 0)[0]
+                    self._massivenu_mass = m_nu[w]
+
         # Compute photon density, Tcmb, neutrino parameters
         # Tcmb0=0 removes both photons and neutrinos, is handled
         # as a special case for efficiency
@@ -143,21 +218,40 @@ class FLRW(Cosmology):
             self._Ogamma0 = a_B_c2 * self._Tcmb0.value ** 4 /\
                 self._critical_density0.value
 
-            # Compute Neutrino Omega
-            # The constant in front is 7/8 (4/11)^4/3 -- see any
-            #  cosmology book for an explanation; the 7/8 is FD vs. BE
-            #  statistics, the 4/11 is the temperature effect
-            self._Onu0 = 0.2271073 * self._Neff * self._Ogamma0
+            # Compute Neutrino temperature
+            # The constant in front is (4/11)^1/3 -- see any
+            #  cosmology book for an explanation -- for example,
+            #  Weinberg 'Cosmology' p 154 eq (3.1.21)
+            self._Tnu0 = 0.7137658555036082 * self._Tcmb0
+
+            # Compute Neutrino Omega and total relativistic component
+            # for massive neutrinos
+            if self._massivenu:
+                nu_y = self._massivenu_mass / (kB_evK * self._Tnu0)
+                self._nu_y = nu_y.value
+                self._Onu0 = self._Ogamma0 * self.nu_relative_density(0)
+            else:
+                # This case is particularly simple, so do it directly
+                # The 0.2271... is 7/8 (4/11)^(4/3) -- the temperature
+                # bit ^4 (blackbody energy density) times 7/8 for
+                # FD vs. BE statistics.
+                self._Onu0 = 0.22710731766 * self._Neff * self._Ogamma0
+
         else:
             self._Ogamma0 = 0.0
+            self._Tnu0 = u.Quantity(0.0, u.K)
             self._Onu0 = 0.0
 
         # Compute curvature density
         self._Ok0 = 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g)" % \
-            (self.name, self._H0.value, self._Om0, self._Ode0, self._Ok0)
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, Tcmb0=%r, Neff=%.3g, "\
+                 "m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._Tcmb0, self._Neff, self.m_nu)
+        return retstr
+            
 
     # Set up a set of properties for H0, Om0, Ode0, Ok0, etc. for user access.
     # Note that we don't let these be set (so, obj.Om0 = value fails)
@@ -189,9 +283,36 @@ class FLRW(Cosmology):
         return self._Tcmb0
 
     @property
+    def Tnu0(self):
+        """ Temperature of the neutrino background as astropy.units.Quantity at z=0"""
+        return self._Tnu0
+
+    @property
     def Neff(self):
         """ Number of effective neutrino species"""
         return self._Neff
+
+    @property
+    def has_massive_nu(self):
+        """ Does this cosmology have at least one massive neutrino species?"""
+        if self._Tnu0.value == 0:
+            return False
+        return self._massivenu
+
+    @property
+    def m_nu(self):
+        """ Mass of neutrino species"""
+        if self._Tnu0.value == 0:
+            return None
+        if not self._massivenu:
+            # Only massless
+            return u.Quantity(np.zeros(self._nmasslessnu), u.eV)
+        if self._nmasslessnu == 0:
+            # Only massive
+            return u.Quantity(self._massivenu_mass, u.eV)
+        # A mix -- the most complicated case
+        return u.Quantity(np.append(np.zeros(self._nmasslessnu),
+                                    self._massivenu_mass.value), u.eV)
 
     @property
     def h(self):
@@ -347,8 +468,10 @@ class FLRW(Cosmology):
         -------
         Onu : ndarray, or float if input scalar
           The energy density of photons relative to the critical
-          density at each redshift.  Note that this includes only
-          their relativistic energy, since they are assumed massless.
+          density at each redshift.  Note that this includes their
+          kinetic energy (if they have mass), so it is not equal to
+          the commonly used :math:`\\sum \\frac{m_{\\nu}}{94 eV}`,
+          which does not include kinetic energy.
         """
 
         if self._Onu0 == 0:
@@ -358,7 +481,7 @@ class FLRW(Cosmology):
 
         if isiterable(z):
             z = np.asarray(z)
-        return self._Onu0 * (1. + z) ** 4 * self.inv_efunc(z) ** 2
+        return self.Ogamma(z) * self.nu_relative_density(z)
 
     def Tcmb(self, z):
         """ Return the CMB temperature at redshift `z`.
@@ -377,6 +500,73 @@ class FLRW(Cosmology):
         if isiterable(z):
             z = np.asarray(z)
         return self._Tcmb0 * (1.0 + z)
+
+    def nu_relative_density(self, z):
+        """ Neutrino density function relative to the energy density in
+        photons.
+
+        Parameters
+        ----------
+        z : array like
+           Redshift
+
+        Returns
+        -------
+         f : ndarray, or float if z is scalar
+           The neutrino density scaling factor relative to the density
+           in photons at each redshift
+
+        Notes
+        -----
+        The density in neutrinos is given by
+
+        .. math::
+
+          \\rho_{\\nu} \\left(a\\right) = 0.2271 \\, N_{eff} \\,
+          f\\left(m_{\\nu} a / T_{\\nu 0} \\right) \\,
+          \\rho_{\\gamma} \\left( a \\right)
+
+        where
+
+        .. math::
+
+          f \\left(y\\right) = \\frac{120}{7 \\pi^4}
+          \\int_0^{\\infty} \\, dx \\frac{x^2 \\sqrt{x^2 + y^2}}
+          {e^x + 1}
+
+        assuming that all neutrino species have the same mass.
+        If they have different masses, a similar term is calculated
+        for each one. Note that f has the asymptotic behavior :math:`f(0) = 1`.
+        This method returns :math:`0.2271 f` using an
+        analytical fitting formula given in Komatsu et al. 2011, ApJS 192, 18.
+        """
+
+        #See Komatsu et al. 2011, eq 26 and the surrounding discussion
+        # However, this is modified to handle multiple neutrino masses
+        # by computing the above for each mass, then summing
+        prefac = 0.22710731766 # 7/8 (4/11)^4/3 -- see any cosmo book
+        
+        # The massive and massless contribution must be handled seperately
+        # But check for common cases first
+        if not self._massivenu:
+            return prefac * self._Neff * np.ones_like(z)
+
+        p = 1.83
+        invp = 1.0 / 1.83
+        if np.isscalar(z):
+            curr_nu_y = self._nu_y / (1.0 + z) # only includes massive ones
+            rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
+            rel_mass = rel_mass_per.sum() + self._nmasslessnu
+            return prefac * self._neff_per_nu * rel_mass
+        else:
+            z = np.asarray(z)
+            retarr = np.empty_like(z)
+            for i, redshift in enumerate(z):
+                curr_nu_y = self._nu_y / (1.0 + redshift)
+                rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
+                rel_mass = rel_mass_per.sum() + self._nmasslessnu
+                retarr[i] = prefac * self._neff_per_nu * rel_mass
+            return retarr
 
     def _w_integrand(self, ln1pz):
         """ Internal convenience function for w(z) integral."""
@@ -463,10 +653,13 @@ class FLRW(Cosmology):
             z = np.asarray(z)
 
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
-        Or0 = self._Ogamma0 + self._Onu0
+        if self._massivenu:
+            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+        else:
+            Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return np.sqrt(zp1 ** 2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) +
+        return np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
                        Ode0 * self.de_density_scale(z))
 
     def inv_efunc(self, z):
@@ -487,10 +680,13 @@ class FLRW(Cosmology):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
-        Or0 = self._Ogamma0 + self._Onu0
+        if self._massivenu:
+            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+        else:
+            Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1 ** 2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) +
+        return 1.0 / np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
                              Ode0 * self.de_density_scale(z))
 
     def _tfunc(self, z):
@@ -833,7 +1029,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : astropy.units.Quantity
+        d : float or ndarray
           Absorption distance (dimensionless) at each input redshift.
 
         References
@@ -846,7 +1042,7 @@ class FLRW(Cosmology):
         if not isiterable(z):
             return quad(self._xfunc, 0, z)[0]
 
-        out = [quad(self._xfunc, 0, redshift)[0] for redshift in z]
+        out = np.array([quad(self._xfunc, 0, redshift)[0] for redshift in z])
         return out
 
     def distmod(self, z):
@@ -993,8 +1189,8 @@ class LambdaCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
-                 name='LambdaCDM'):
+    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, 
+                 m_nu=u.Quantity(0.0, u.eV), name='LambdaCDM'):
         """ Initializer.
 
         Parameters
@@ -1017,10 +1213,19 @@ class LambdaCDM(FLRW):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
+
         name : string
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
 
     def w(self, z):
         """Returns dark energy equation of state at redshift `z`.
@@ -1091,10 +1296,13 @@ class LambdaCDM(FLRW):
         # We override this because it takes a particularly simple
         # form for a cosmological constant
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
-        Or0 = self._Ogamma0 + self._Onu0
+        if self._massivenu:
+            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+        else:
+            Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return np.sqrt(zp1 ** 2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) + Ode0)
+        return np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) + Ode0)
 
     def inv_efunc(self, z):
         r""" Function used to calculate :math:`\frac{1}{H_z}`.
@@ -1118,10 +1326,13 @@ class LambdaCDM(FLRW):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
-        Or0 = self._Ogamma0 + self._Onu0
+        if self._massivenu:
+            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+        else:
+            Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1 ** 2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) + Ode0)
+        return 1.0 / np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) + Ode0)
 
 
 class FlatLambdaCDM(LambdaCDM):
@@ -1139,7 +1350,8 @@ class FlatLambdaCDM(LambdaCDM):
     >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
-    def __init__(self, H0, Om0, Tcmb0=2.725, Neff=3.04, name='FlatLambdaCDM'):
+    def __init__(self, H0, Om0, Tcmb0=2.725, Neff=3.04, 
+                 m_nu=u.Quantity(0.0, u.eV), name='FlatLambdaCDM'):
         """ Initializer.
 
         Parameters
@@ -1158,17 +1370,22 @@ class FlatLambdaCDM(LambdaCDM):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
+
         name : string
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, name=name)
+        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
-
-    def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g)" % \
-            (self.name, self._H0.value, self._Om0, self._Ode0)
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -1194,10 +1411,13 @@ class FlatLambdaCDM(LambdaCDM):
         # We override this because it takes a particularly simple
         # form for a cosmological constant
         Om0, Ode0 = self._Om0, self._Ode0
-        Or0 = self._Ogamma0 + self._Onu0
+        if self._massivenu:
+            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+        else:
+            Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return np.sqrt(zp1 ** 3 * (Or0 * zp1 + Om0) + Ode0)
+        return np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) + Ode0)
 
     def inv_efunc(self, z):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
@@ -1220,10 +1440,13 @@ class FlatLambdaCDM(LambdaCDM):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0 = self._Om0, self._Ode0
-        Or0 = self._Ogamma0 + self._Onu0
+        if self._massivenu:
+            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+        else:
+            Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1 ** 3 * (Or0 * zp1 + Om0) + Ode0)
+        return 1.0 / np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) + Ode0)
 
 
 class wCDM(FLRW):
@@ -1244,7 +1467,7 @@ class wCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., Tcmb0=2.725,
-                 Neff=3.04, name='wCDM'):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='wCDM'):
         """ Initializer.
 
         Parameters
@@ -1272,16 +1495,27 @@ class wCDM(FLRW):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
+
         name : string
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
         self._w0 = float(w0)
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g, w0=%.3g)" % \
-            (self.name, self._H0.value, self._Om0,
-             self._Ode0, self._Ok0, self._w0)
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, Tcmb0=%r, "\
+                 "Neff=%.3g, m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._w0, self._Tcmb0, self._Neff, self.m_nu)
+        return retstr
 
     @property
     def w0(self):
@@ -1357,10 +1591,13 @@ class wCDM(FLRW):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode, self._Ok0, self._w0
-        Or0 = self._Ogamma0 + self._Onu0
+        if self._massivenu:
+            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+        else:
+            Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return np.sqrt(zp1 ** 2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) +
+        return np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
                        Ode0 * zp1 ** (3.0 * (1 + w0)))
 
     def inv_efunc(self, z):
@@ -1384,10 +1621,13 @@ class wCDM(FLRW):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
-        Or0 = self._Ogamma0 + self._Onu0
+        if self._massivenu:
+            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+        else:
+            Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1 ** 2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) +
+        return 1.0 / np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
                              Ode0 * zp1 ** (3 * (1 + w0)))
 
 
@@ -1409,7 +1649,7 @@ class FlatwCDM(wCDM):
     """
 
     def __init__(self, H0, Om0, w0=-1., Tcmb0=2.725,
-                 Neff=3.04, name='FlatwCDM'):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='FlatwCDM'):
         """ Initializer.
 
         Parameters
@@ -1433,19 +1673,30 @@ class FlatwCDM(wCDM):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
+
         name: string
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, name=name)
+        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
         self._w0 = float(w0)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, w0=%.3g)" % \
-            (self.name, self._H0.value, self._Om0,
-             self._Ode0, self._w0)
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, Tcmb0=%r, "\
+                 "Neff=%.3g, m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._w0, self._Tcmb0, self._Neff, self.m_nu)
+        return retstr
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -1468,10 +1719,13 @@ class FlatwCDM(wCDM):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, w0 = self._Om0, self._Ode, self._w0
-        Or0 = self._Ogamma0 + self._Onu0
+        if self._massivenu:
+            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+        else:
+            Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return np.sqrt(zp1 ** 3 * (Or0 * zp1 + Om0) +
+        return np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) +
                        Ode0 * zp1 ** (3.0 * (1 + w0)))
 
     def inv_efunc(self, z):
@@ -1495,10 +1749,13 @@ class FlatwCDM(wCDM):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
-        Or0 = self._Ogamma0 + self._Onu0
+        if self._massivenu:
+            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
+        else:
+            Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1 ** 3 * (Or0 * zp1 + Om0) +
+        return 1.0 / np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) +
                              Ode0 * zp1 ** (3 * (1 + w0)))
 
 
@@ -1522,7 +1779,7 @@ class w0waCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., Tcmb0=2.725,
-                 Neff=3.04, name='w0waCDM'):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='w0waCDM'):
         """ Initializer.
 
         Parameters
@@ -1554,17 +1811,28 @@ class w0waCDM(FLRW):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
+
         name : string
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
         self._w0 = float(w0)
         self._wa = float(wa)
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g, w0=%.3g, wa=%.3g)" %\
-            (self.name, self._H0.value, self._Om0, self._Ode0, self._Ok0,
-             self._w0, self._wa)
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, wa=%.3g, Tcmb0=%r, "\
+                 "Neff=%.3g, m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._w0, self._wa, self._Tcmb0, self._Neff, self.m_nu)
+        return retstr
 
     @property
     def w0(self):
@@ -1653,7 +1921,7 @@ class Flatw0waCDM(w0waCDM):
     >>> dc = cosmo.comoving_distance(z)
     """
     def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=2.725,
-                 Neff=3.04, name='Flatw0waCDM'):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='Flatw0waCDM'):
         """ Initializer.
 
         Parameters
@@ -1681,10 +1949,19 @@ class Flatw0waCDM(w0waCDM):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
+
         name : string
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, name=name)
+        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
@@ -1692,10 +1969,11 @@ class Flatw0waCDM(w0waCDM):
         self._wa = float(wa)
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, w0=%.3g, wa=%.3g)" %\
-            (self.name, self._H0.value, self._Om0, self._Ode0, self._w0,
-             self._wa)
-
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, wa=%.3g, Tcmb0=%r, "\
+                 "Neff=%.3g, m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._w0, self._wa, self._Tcmb0, self._Neff, self.m_nu)
+        return retstr
 
 class wpwaCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state, a pivot
@@ -1720,7 +1998,8 @@ class wpwaCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0,
-                 Tcmb0=2.725, Neff=3.04, name='wpwaCDM'):
+                 Tcmb0=2.725, Neff=3.04, m_nu=u.Quantity(0.0, u.eV),
+                 name='wpwaCDM'):
         """ Initializer.
 
         Parameters
@@ -1755,19 +2034,30 @@ class wpwaCDM(FLRW):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
+        m_nu : astropy.units.Quantity
+          Mass of each neutrino species.  If this is a scalar Quantity, 
+          then all neutrino species are assumed to have that mass.  
+          Otherwise, the mass of each species.  The actual number of 
+          neutrino species (and hence the number of elements of m_nu if 
+          it is not scalar) must be the floor of Neff.  Usually this means 
+          you must provide three neutrino masses unless you are considering 
+          something like a sterile neutrino.
+
         name : string
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
         self._wp = float(wp)
         self._wa = float(wa)
         self._zp = float(zp)
 
     def __repr__(self):
-        str = "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g, wp=%.3g, " +\
-            "wa=%.3g, zp=%.3g)"
-        return str % (self.name, self._H0.value, self._Om0, self._Ode0,
-                      self._Ok0, self._wp, self._wa, self._zp)
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, wp=%.3g, wa=%.3g, zp=%.3g, "\
+                 "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._wp, self._wa, self._zp, self._Tcmb0, self._Neff, 
+                   self.m_nu)
+        return retstr
 
     @property
     def wp(self):
@@ -1868,7 +2158,7 @@ class w0wzCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wz=0., Tcmb0=2.725,
-                 Neff=3.04, name='w0wzCDM'):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='w0wzCDM'):
         """ Initializer.
 
         Parameters
@@ -1903,17 +2193,30 @@ class w0wzCDM(FLRW):
         Neff : float
           Effective number of Neutrino species. Default 3.04.
 
+        m_nu : float or ndarray or astropy.units.Quantity
+          Mass of each neutrino species, in eV.  If this is a float or
+          scalar Quantity, then all neutrino species are assumed to have
+          that mass.  If a ndarray or array Quantity, then these are the values
+          of the mass of each species.  The actual number of neutrino species
+          (and hence the number of elements of m_nu if it is not scalar)
+          must be the floor of Neff.  Usually this means you must provide three
+          neutrino masses unless you are considering something like a 
+          sterile neutrino.
+
         name : string
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
         self._w0 = float(w0)
         self._wz = float(wz)
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, w0=%.3g, wz=%.3g)" % \
-            (self.name, self._H0.value, self._Om0, self._Ode0, self._w0,
-             self._wz)
+        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, wz=%.3g, "\
+                 "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
+        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
+                   self._w0, self._wz, self._Tcmb0, self._Neff, 
+                   self.m_nu)
+        return retstr
 
     @property
     def w0(self):
@@ -1991,11 +2294,13 @@ for key in parameters.available:
     par = getattr(parameters, key)
     if par['flat']:
         cosmo = FlatLambdaCDM(par['H0'], par['Om0'], Tcmb0=par['Tcmb0'],
-                              Neff=par['Neff'], name=key)
+                              Neff=par['Neff'], 
+                              m_nu=u.Quantity(par['m_nu'], u.eV),
+                              name=key)
     else:
         cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'],
                           Tcmb0=par['Tcmb0'], Neff=par['Neff'],
-                          m_nu=par['m_nu'], name=key)
+                          m_nu=u.Quantity(par['m_nu'], u.eV), name=key)
     cosmo.__doc__ = "%s cosmology\n\n(from %s)" % (key, par['reference'])
     setattr(sys.modules[__name__], key, cosmo)
 

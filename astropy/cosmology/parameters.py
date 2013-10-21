@@ -25,7 +25,7 @@ The list of cosmologies available are given by the tuple
 `available`. Current cosmologies available:
 
 Planck13 parameters from Planck Collaboration 2013, arXiv:1303.5076
-(Paper XVI), Table 5 (Planck + WP + lensing + highL + BAO)
+ (Paper XVI), Table 5 (Planck + WP + highL + BAO)
 
 WMAP 9 year parameters from Hinshaw et al. 2013, ApJS, 208, 19,
 doi: 10.1088/0067-0049/208/2/19. Table 4 (WMAP9 + eCMB + BAO + H0)
@@ -56,6 +56,7 @@ Planck13 = dict(
     Tcmb0=2.7255,
     Neff=3.046,
     flat=True,
+    m_nu=[0., 0., 0.06],
     reference=("Planck Collaboration 2013, Paper XVI, arXiv:1303.5076"
                " Table 5 (Planck + WP + highL + BAO)")
 )
@@ -73,6 +74,7 @@ WMAP9 = dict(
     t0=13.772,
     Tcmb0=2.725,
     Neff=3.04,
+    m_nu=0.0,
     flat=True,
     reference=("Hinshaw et al. 2013, ApJS, 208, 19, "
                "doi: 10.1088/0067-0049/208/2/19. "
@@ -91,6 +93,7 @@ WMAP7 = dict(
     t0=13.76,
     Tcmb0=2.725,
     Neff=3.04,
+    m_nu=0.0,
     flat=True,
     reference=("Komatsu et al. 2011, ApJS, 192, 18, "
                "doi: 10.1088/0067-0049/192/2/18. "
@@ -109,6 +112,7 @@ WMAP5 = dict(
     t0=13.72,
     Tcmb0=2.725,
     Neff=3.04,
+    m_nu=0.0,
     flat=True,
     reference=("Komatsu et al. 2009, ApJS, 180, 330, "
                "doi: 10.1088/0067-0049/180/2/330. "

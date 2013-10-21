@@ -73,7 +73,7 @@ def test_create_angles():
     # (deg,min,sec) *tuples* are acceptable, but lists/arrays are *not*
     # because of the need to eventually support arrays of coordinates
     a9 = Angle([54, 7, 26.832], unit=u.degree)
-    npt.assert_almost_equal(a9.value, [54, 7, 26.832])
+    npt.assert_allclose(a9.value, [54, 7, 26.832])
     assert a9.unit is u.degree
 
     a10 = Angle(3.60827466667, unit=u.hour)
@@ -100,12 +100,12 @@ def test_create_angles():
 
     #ensure the above angles that should match do
     assert a1 == a2 == a3 == a4 == a5 == a6 == a7
-    npt.assert_almost_equal(a1.radian, a2.radian)
-    npt.assert_almost_equal(a2.degree, a3.degree)
-    npt.assert_almost_equal(a3.radian, a4.radian)
-    npt.assert_almost_equal(a4.radian, a5.radian)
-    npt.assert_almost_equal(a5.radian, a6.radian)
-    npt.assert_almost_equal(a6.radian, a7.radian)
+    npt.assert_allclose(a1.radian, a2.radian)
+    npt.assert_allclose(a2.degree, a3.degree)
+    npt.assert_allclose(a3.radian, a4.radian)
+    npt.assert_allclose(a4.radian, a5.radian)
+    npt.assert_allclose(a5.radian, a6.radian)
+    npt.assert_allclose(a6.radian, a7.radian)
     #assert a10 == a11 == a12
 
     # check for illegal ranges / values
@@ -158,14 +158,14 @@ def test_angle_ops():
     with raises(TypeError):
         a1 * a2
 
-    npt.assert_almost_equal((a1 * 2).hour, 2 * 3.6082746666700003)
+    npt.assert_allclose((a1 * 2).hour, 2 * 3.6082746666700003)
     assert abs((a1 / 3.123456).hour - 3.60827466667 / 3.123456) < 1e-10
 
     # commutativity
     assert (2 * a1).hour == (a1 * 2).hour
 
     a3 = Angle(a1)  # makes a *copy* of the object, but identical content as a1
-    npt.assert_almost_equal(a1.radian, a3.radian)
+    npt.assert_allclose(a1.radian, a3.radian)
     assert a1 is not a3
 
     a4 = abs(-a1)
@@ -188,21 +188,21 @@ def test_angle_convert():
 
     angle = Angle("54.12412", unit=u.degree)
 
-    npt.assert_almost_equal(angle.hour, 3.60827466667)
-    npt.assert_almost_equal(angle.radian, 0.944644098745)
-    npt.assert_almost_equal(angle.degree, 54.12412)
+    npt.assert_allclose(angle.hour, 3.60827466667)
+    npt.assert_allclose(angle.radian, 0.944644098745)
+    npt.assert_allclose(angle.degree, 54.12412)
 
     assert len(angle.hms) == 3
     assert isinstance(angle.hms, tuple)
     assert angle.hms[0] == 3
     assert angle.hms[1] == 36
-    npt.assert_almost_equal(angle.hms[2], 29.78879999999947)
+    npt.assert_allclose(angle.hms[2], 29.78879999999947)
 
     assert len(angle.dms) == 3
     assert isinstance(angle.dms, tuple)
     assert angle.dms[0] == 54
     assert angle.dms[1] == 7
-    npt.assert_almost_equal(angle.dms[2], 26.831999999992036)
+    npt.assert_allclose(angle.dms[2], 26.831999999992036)
 
     assert isinstance(angle.dms[0], float)
     assert isinstance(angle.hms[0], float)
@@ -332,8 +332,8 @@ def test_angle_format_roundtripping():
     ra = Longitude('1h2m3.4s')
     dec = Latitude('1d2m3.4s')
 
-    npt.assert_almost_equal(Angle(str(ra)).degree, ra.degree)
-    npt.assert_almost_equal(Angle(str(dec)).degree, dec.degree)
+    npt.assert_allclose(Angle(str(ra)).degree, ra.degree)
+    npt.assert_allclose(Angle(str(dec)).degree, dec.degree)
 
 
 def test_radec():
@@ -364,7 +364,7 @@ def test_radec():
     #TODO: adjust in 0.3 for whatever behavior is decided on
 
     #ra = Longitude("26:34:15.345634")  # unambiguous b/c hours don't go past 24
-    #npt.assert_almost_equal(ra.degree, 26.570929342)
+    #npt.assert_allclose(ra.degree, 26.570929342)
     with raises(u.UnitsError):
         ra = Longitude("26:34:15.345634")
 
@@ -379,7 +379,7 @@ def test_radec():
         ra = Longitude("garbage containing a d and no units")
 
     ra = Longitude("12h43m23s")
-    npt.assert_almost_equal(ra.hour, 12.7230555556)
+    npt.assert_allclose(ra.hour, 12.7230555556)
 
     ra = Longitude((56, 14, 52.52), unit=u.degree)      # can accept tuples
     #TODO: again, fix based on >24 behavior
@@ -425,7 +425,8 @@ def test_create_coordinate():
 
     # ra and dec are Longitude and Latitude objects, or Angle objects
     c = ICRSCoordinates(ra, dec)
-    c = ICRSCoordinates(Angle(4.137545095, u.hour), Angle(-41.137545095, u.degree))
+    c = ICRSCoordinates(Angle(4.137545095, u.hour), 
+                        Angle(-41.137545095, u.degree))
 
     c = ICRSCoordinates("54.12412 deg", "-41:08:15.162342 deg")
     assert isinstance(c.dec, Latitude)  # dec is a Latitude object
@@ -433,7 +434,7 @@ def test_create_coordinate():
     #make sure ICRSCoordinates has a working repr
     repr(c)
 
-    npt.assert_almost_equal(dec.degree, -41.137545095)
+    npt.assert_allclose(dec.degree, -41.137545095)
 
     # We should be really robust in what we accept.
     with raises(u.UnitsError):
@@ -515,9 +516,9 @@ def test_convert_api():
     dec = Latitude("-41:08:15.162342", unit=u.degree)
     c = ICRSCoordinates(ra=ra, dec=dec)
 
-    npt.assert_almost_equal(c.galactic.l.degree, 245.28098, 5)
+    npt.assert_allclose(c.galactic.l.degree, 245.28098, 5)
     assert isinstance(c.galactic.b, Angle)
-    npt.assert_almost_equal(c.galactic.b.degree, -47.554501, 5)
+    npt.assert_allclose(c.galactic.b.degree, -47.554501, 5)
 
     # can also explicitly specify a coordinate class to convert to
     gal = c.transform_to(GalacticCoordinates)
@@ -573,7 +574,7 @@ def test_proj_separations():
     assert isinstance(sep, Angle)
 
     assert sep.degree == 1
-    npt.assert_almost_equal(sep.arcminute, 60.)
+    npt.assert_allclose(sep.arcminute, 60.)
 
     # these operations have ambiguous interpretations for points on a sphere
     with raises(TypeError):
@@ -586,10 +587,10 @@ def test_proj_separations():
 
     # if there is a defined conversion between the relevant coordinate systems,
     # it will be automatically performed to get the right angular separation
-    npt.assert_almost_equal(ncp.separation(ngp.icrs).degree, ncp.separation(ngp).degree)
+    npt.assert_allclose(ncp.separation(ngp.icrs).degree, ncp.separation(ngp).degree)
 
     # distance from the north galactic pole to celestial pole
-    npt.assert_almost_equal(ncp.separation(ngp.icrs).degree, 62.8716627659)
+    npt.assert_allclose(ncp.separation(ngp.icrs).degree, 62.8716627659)
 
 
     @coordinate_alias('my_coord2')
@@ -626,12 +627,13 @@ def test_distances():
         Distance(12)
 
     # standard units are pre-defined
-    npt.assert_almost_equal(distance.lyr, 39.138765325702551)
-    npt.assert_almost_equal(distance.km, 370281309776063.0)
+    npt.assert_allclose(distance.lyr, 39.138765325702551)
+    npt.assert_allclose(distance.km, 370281309776063.0)
 
     # Coordinate objects can be assigned a distance object, giving them a full
     # 3D position
-    c = GalacticCoordinates(l=158.558650, b=-43.350066, unit=(u.degree, u.degree))
+    c = GalacticCoordinates(l=158.558650, b=-43.350066, 
+                            unit=(u.degree, u.degree))
     c.distance = Distance(12, u.parsec)
 
     #can also set distances using tuple-format
@@ -660,7 +662,7 @@ def test_distances():
     # returns a *3d* distance between the c1 and c2 coordinates
     # not that this does *not*
     assert isinstance(sep12, Distance)
-    npt.assert_almost_equal(sep12.pc, 12005.784163916317, 10)
+    npt.assert_allclose(sep12.pc, 12005.784163916317, 10)
 
     '''
     All spherical coordinate systems with distances can be converted to
@@ -671,32 +673,34 @@ def test_distances():
     #this only computes the CartesianPoints *once*, and then caches it
     #note that the x/y/z are Quantity objects
     assert isinstance(x, u.Quantity)
-    npt.assert_almost_equal(x.value, 2)
-    npt.assert_almost_equal(y.value, 4)
-    npt.assert_almost_equal(z.value, 8)
+    npt.assert_allclose(x.value, 2)
+    npt.assert_allclose(y.value, 4)
+    npt.assert_allclose(z.value, 8)
 
     cpt = c2.cartesian
     assert isinstance(cpt, CartesianPoints)
-    npt.assert_almost_equal(cpt.x.value, 2)
-    npt.assert_almost_equal(cpt.y.value, 4)
-    npt.assert_almost_equal(cpt.z.value, 8)
+    npt.assert_allclose(cpt.x.value, 2)
+    npt.assert_allclose(cpt.y.value, 4)
+    npt.assert_allclose(cpt.z.value, 8)
 
     # with no distance, the unit sphere is assumed when converting to cartesian
-    c3 = GalacticCoordinates(l=158.558650, b=-43.350066, unit=(u.degree, u.degree), distance=None)
+    c3 = GalacticCoordinates(l=158.558650, b=-43.350066, 
+                             unit=(u.degree, u.degree), distance=None)
     unitcart = c3.cartesian
-    npt.assert_almost_equal(((unitcart.x**2 + unitcart.y**2 + unitcart.z**2)**0.5).value, 1.0)
+    npt.assert_allclose(((unitcart.x**2 + unitcart.y**2 + 
+                          unitcart.z**2)**0.5).value, 1.0)
 
     # CartesianPoints objects can be added and subtracted, which are
     # vector/elementwise they can also be given as arguments to a coordinate
     # system
     csum = ICRSCoordinates(c1.cartesian + c2.cartesian)
 
-    npt.assert_almost_equal(csum.x.value, -8.12016610185)
-    npt.assert_almost_equal(csum.y.value, 3.19380597435)
-    npt.assert_almost_equal(csum.z.value, -8.2294483707)
-    npt.assert_almost_equal(csum.ra.degree, 158.529401774)
-    npt.assert_almost_equal(csum.dec.degree, -43.3235825777)
-    npt.assert_almost_equal(csum.distance.kpc, 11.9942200501)
+    npt.assert_allclose(csum.x.value, -8.12016610185)
+    npt.assert_allclose(csum.y.value, 3.19380597435)
+    npt.assert_allclose(csum.z.value, -8.2294483707)
+    npt.assert_allclose(csum.ra.degree, 158.529401774)
+    npt.assert_allclose(csum.dec.degree, -43.3235825777)
+    npt.assert_allclose(csum.distance.kpc, 11.9942200501)
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
@@ -710,12 +714,13 @@ def test_distances_scipy():
 
     #try different ways to initialize a Distance
     d4 = Distance(z=0.23)  # uses default cosmology - as of writing, WMAP7
-    d5 = Distance(z=0.23, cosmology=WMAP5)
-    d6 = Distance(z=0.23, cosmology=WMAP5, unit=u.km)
+    npt.assert_allclose(d4.z, 0.23, rtol=1e-8)
 
-    assert abs(d4.z - 0.23) < 1e-8  # redshift, assuming "current" cosmology
-    assert abs(d5.compute_z(WMAP5) - 0.23) < 1e-8  # specifying a cosmology possible
-    npt.assert_almost_equal(d6.value, 3.5417046898762366e+22)
+    d5 = Distance(z=0.23, cosmology=WMAP5)
+    npt.assert_allclose(d5.compute_z(WMAP5), 0.23, rtol=1e-8)
+
+    d6 = Distance(z=0.23, cosmology=WMAP5, unit=u.km)
+    npt.assert_allclose(d6.value, 3.5417046898762366e+22)
 
 
 def test_unicode():
