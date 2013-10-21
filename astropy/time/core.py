@@ -86,6 +86,12 @@ class Time(object):
         Format of input value(s)
     scale : str, optional
         Time scale of input value(s)
+    precision : int, optional
+        Digits of precision in string representation of time
+    in_subfmt : str, optional
+        Subformat for inputting string times
+    out_subfmt : str, optional
+        Subformat for outputting string times
     lat : float, optional
         Earth latitude of observer (decimal degrees)
     lon : float, optional
@@ -829,6 +835,8 @@ class TimeDelta(Time):
         Data to initialize table.
     format : str, optional
         Format of input value(s)
+    scale : str, optional
+        Time scale of input value(s)
     copy : bool, optional
         Make a copy of the input values
     """
