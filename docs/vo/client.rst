@@ -66,12 +66,12 @@ title: USNO-A2 Catalogue
 url: http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-A2&
 >>> print(my_cat.dumps())
 {
-    "capabilityClass": "ConeSearch", 
-    "capabilityStandardID": "ivo://ivoa.net/std/ConeSearch", 
-    "capabilityValidationLevel": "", 
-    "contentLevel": "#University#Research#Amateur#", 
+    "capabilityClass": "ConeSearch",
+    "capabilityStandardID": "ivo://ivoa.net/std/ConeSearch",
+    "capabilityValidationLevel": "",
+    "contentLevel": "#University#Research#Amateur#",
     # ...
-    "version": "", 
+    "version": "",
     "waveband": "#Optical#"
 }
 >>> my_cat.keys()
@@ -94,12 +94,12 @@ re-register the URL with a different title), only the first match is returned:
 ...     'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/255/out&')
 >>> print(my_cat2.dumps())
 {
-    "capabilityClass": "ConeSearch", 
-    "capabilityStandardID": "ivo://ivoa.net/std/ConeSearch", 
-    "capabilityValidationLevel": "", 
-    "contentLevel": "#Research#", 
+    "capabilityClass": "ConeSearch",
+    "capabilityStandardID": "ivo://ivoa.net/std/ConeSearch",
+    "capabilityValidationLevel": "",
+    "contentLevel": "#Research#",
     # ...
-    "version": "15-Sep-1999", 
+    "version": "15-Sep-1999",
     "waveband": "#Optical#"
 }
 
@@ -133,12 +133,16 @@ To call a given VO service; In this case, a Cone Search
 (also see :ref:`Cone Search Examples <vo-sec-scs-examples>`):
 
 >>> from astropy import coordinates as coord
+>>> from astropy import units as u
 >>> c = coord.ICRSCoordinates.from_name('47 Tuc')
 >>> c
 <ICRSCoordinates RA=6.02233 deg, Dec=-72.08144 deg>
+>>> sr = 0.5 * u.degree
+>>> sr
+<Quantity 0.5 deg>
 >>> result = vos_catalog.call_vo_service(
 ...     'conesearch_good',
-...     kwargs={'RA': c.ra.degrees, 'DEC': c.dec.degrees, 'SR': 0.5},
+...     kwargs={'RA': c.ra.degree, 'DEC': c.dec.degree, 'SR': sr.degree},
 ...     catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1')
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/243/out&
 Downloading ...
@@ -155,7 +159,7 @@ To repeat the above and suppress *all* the screen outputs (not recommended):
 ...     warnings.simplefilter('ignore')
 ...     result = vos_catalog.call_vo_service(
 ...         'conesearch_good',
-...         kwargs={'RA': c.ra.degrees, 'DEC': c.dec.degrees, 'SR': 0.5},
+...         kwargs={'RA': c.ra.degree, 'DEC': c.dec.degree, 'SR': sr.degree},
 ...         catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1',
 ...         verbose=False)
 
@@ -184,9 +188,15 @@ in :ref:`vo-sec-scs-config` below. Here are the available options:
 In the default setting, it searches the good Cone Search services one by one,
 stops at the first one that gives non-zero match(es), and returns the result.
 Since the list of services are extracted from a Python dictionary, the search
-order might differ from call to call. :ref:`vo-sec-scs-examples` below show
-how to use non-default search behaviors, where the user has more control of
-which catalog(s) to search.
+order might differ from call to call.
+
+There are also functions, both synchronously and asynchronously, available to
+return *all* the Cone Search query results. However, this is not recommended
+unless one knows what one is getting into, as it could potentially take up
+significant run time and computing resources.
+
+:ref:`vo-sec-scs-examples` below show how to use non-default search behaviors,
+where the user has more control of which catalog(s) to search, et cetera.
 
 .. note::
 
@@ -256,11 +266,14 @@ downloaded to local cache. To run this again without
 using cached data, set ``cache=False``:
 
 >>> from astropy import coordinates as coord
+>>> from astropy import units as u
 >>> c = coord.ICRSCoordinates.from_name('47 Tuc')
 >>> c
 <ICRSCoordinates RA=6.02233 deg, Dec=-72.08144 deg>
->>> result = conesearch.conesearch(
-...     c.ra.degrees, c.dec.degrees, 0.5, catalog_db=my_catname)
+>>> sr = 0.5 * u.degree
+>>> sr
+<Quantity 0.5 deg>
+>>> result = conesearch.conesearch(c, sr, catalog_db=my_catname)
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/243/out&
 Downloading ...
 WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
@@ -270,17 +283,15 @@ To run the command above using custom timeout of
 
 >>> from astropy.utils.data import REMOTE_TIMEOUT
 >>> with REMOTE_TIMEOUT.set_temp(30):
-...     result = conesearch.conesearch(
-...         c.ra.degrees, c.dec.degrees, 0.5, catalog_db=my_catname)
+...     result = conesearch.conesearch(c, sr, catalog_db=my_catname)
 
 To suppress *all* the screen outputs (not recommended):
 
 >>> import warnings
 >>> with warnings.catch_warnings():
 ...     warnings.simplefilter('ignore')
-...     result = conesearch.conesearch(
-...         c.ra.degrees, c.dec.degrees, 0.5, catalog_db=my_catname,
-...         verbose=False)
+...     result = conesearch.conesearch(c, sr, catalog_db=my_catname,
+...                                    verbose=False)
 
 Extract Numpy array containing the matched objects. See
 `numpy` for available operations:
@@ -292,7 +303,7 @@ array([(0.499298, 4.403473, -72.124045, '0150-00088188'),
        (0.499528, 4.404531, -72.045198, '0150-00088210'), ...,
        (0.4988, 7.641731, -72.113156, '0150-00225965'),
        (0.499554, 7.645489, -72.103167, '0150-00226134'),
-       (0.499917, 7.6474, -72.0876, '0150-00226223')], 
+       (0.499917, 7.6474, -72.0876, '0150-00226223')],
       dtype=[('_r', '<f8'), ('_RAJ2000', '<f8'), ('_DEJ2000', '<f8'),
              ('USNO-A1.0', '|S13')])
 >>> cone_arr.dtype.names
@@ -331,7 +342,7 @@ array([(0.081971, 5.917787, -72.006075, '0150-00145335'),
        (0.089166, 5.732798, -72.077698, '0150-00137181'), ...,
        (0.499981, 7.024962, -72.477503, '0150-00198745'),
        (0.499987, 6.423773, -71.597364, '0150-00168596'),
-       (0.499989, 6.899589, -72.5043, '0150-00192872')], 
+       (0.499989, 6.899589, -72.5043, '0150-00192872')],
       dtype=[('_r', '<f8'), ('_RAJ2000', '<f8'), ('_DEJ2000', '<f8'),
              ('USNO-A1.0', '|S13')])
 
@@ -356,8 +367,7 @@ Queries to individual Cone Search services are still governed by
 to run in silent mode asynchronously, but warnings are still
 controlled by :py:mod:`warnings`:
 
->>> async_search = conesearch.AsyncConeSearch(
-...     c.ra.degrees, c.dec.degrees, 0.5, catalog_db=my_catname)
+>>> async_search = conesearch.AsyncConeSearch(c, sr, catalog_db=my_catname)
 
 Check asynchronous search status:
 
@@ -390,8 +400,7 @@ timeout of 30 seconds and runs silently (except for warnings):
 u'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/243/out&'
 >>> with REMOTE_TIMEOUT.set_temp(30):
 ...     t_est, n_est = conesearch.predict_search(
-...         result.url, c.ra.degrees, c.dec.degrees, 0.5,
-...         verbose=False, plot=True)
+...         result.url, c, sr, verbose=False, plot=True)
 WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
 # ...
 >>> t_est  # Predicted execution time
@@ -414,7 +423,7 @@ Keep in mind that running this for every prediction
 would defeat the purpose of the prediction itself:
 
 >>> t_real, tab = conesearch.conesearch_timer(
-...     c.ra.degrees, c.dec.degrees, 0.5, catalog_db=result.url, verbose=False)
+...     c, sr, catalog_db=result.url, verbose=False)
 INFO: conesearch_timer took 11.5103080273 s on AVERAGE for 1 call(s). [...]
 >>> t_real  # Actual execution time
 11.510308027267456
@@ -433,8 +442,7 @@ Therefore, the order of catalog names given in ``catalog_db`` is important:
  u'The HST Guide Star Catalog, Version 1.1 (Lasker+ 1992) 1',
  u'The HST Guide Star Catalog, Version 1.2 (Lasker+ 1996) 1',
  u'The HST Guide Star Catalog, Version GSC-ACT (Lasker+ 1996-99) 1']
->>> gsc_result = conesearch.conesearch(
-...     c.ra.degrees, c.dec.degrees, 0.5, catalog_db=gsc_cats)
+>>> gsc_result = conesearch.conesearch(c, sr, catalog_db=gsc_cats)
 Trying http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&
 WARNING: W25: ... failed with: timed out [...]
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/220/out&
@@ -454,8 +462,7 @@ different order:
  u'The HST Guide Star Catalog, Version 1.1 (Lasker+ 1992) 1',
  u'The HST Guide Star Catalog, Version 1.2 (Lasker+ 1996) 1',
  u'Guide Star Catalog 2.3 1']
->>> gsc_result = conesearch.conesearch(
-...     c.ra.degrees, c.dec.degrees, 0.5, catalog_db=gsc_cats_reordered)
+>>> gsc_result = conesearch.conesearch(c, sr, catalog_db=gsc_cats_reordered)
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/255/out&
 Downloading ...
 WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
@@ -463,6 +470,39 @@ WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
 2997
 >>> gsc_result.url
 u'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/255/out&'
+
+To obtain results from *all* the services above:
+
+>>> all_gsc_results = conesearch.search_all(c, sr, catalog_db=gsc_cats)
+Trying http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&
+WARNING: W25: ... failed with: <urlopen error timed out> [...]
+Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/220/out&
+Downloading ...
+WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
+Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/254/out&
+Downloading ...
+WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
+Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/255/out&
+Downloading ...
+WARNING: W22: ... The DEFINITIONS element is deprecated in VOTable 1.1...
+>>> all_gsc_results
+{u'http://.../220/out&': <astropy.io.votable.tree.Table at 0x2988e10>,
+ u'http://.../254/out&': <astropy.io.votable.tree.Table at 0x2993350>,
+ u'http://.../255/out&': <astropy.io.votable.tree.Table at 0x298de90>}
+>>> for url, tab in all_gsc_results.items():
+...     print('{0} has {1} results'.format(url[-17:], tab.array.size))
+source=I/254/out& has 2998 results
+source=I/255/out& has 2997 results
+source=I/220/out& has 2997 results
+
+To repeat the above asynchronously:
+
+>>> async_search_all = conesearch.AsyncSearchAll(c, sr, catalog_db=gsc_cats)
+>>> async_search_all.running()
+True
+>>> async_search_all.done()
+False
+>>> all_gsc_results = async_search_all.get()
 
 If one is unable to obtain any results using the default
 Cone Search database, 'conesearch_good', that only contains

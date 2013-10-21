@@ -133,9 +133,9 @@ Virtual Observatory Simple Cone Search
      u'USNO-A2.0 1']
     >>> my_catname = 'Two Micron All Sky Survey (2MASS) 1'
     >>> from astropy import coordinates as coord
+    >>> from astropy import units as u
     >>> c = coord.ICRSCoordinates.from_name('M31')
-    >>> result = conesearch.conesearch(
-    ...     c.ra.degrees, c.dec.degrees, 0.1, catalog_db=my_catname)
+    >>> result = conesearch.conesearch(c, 0.1 * u.degree, catalog_db=my_catname)
     Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
     Downloading ...
     WARNING: W06: ... UCD has invalid character '?' in '??' [...]

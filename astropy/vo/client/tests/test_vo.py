@@ -26,12 +26,22 @@ import numpy as np
 
 # LOCAL
 from .. import conesearch, vos_catalog
+from .... import units as u
+from ....coordinates import Angle, ICRSCoordinates
 from ....tests.helper import pytest, remote_data
 from ....utils.data import get_pkg_data_filename
 from ....utils.data import REMOTE_TIMEOUT
 
 
 __doctest_skip__ = ['*']
+
+
+# Global variables for TestConeSearch
+SCS_RA = 0
+SCS_DEC = 0
+SCS_SR = 0.1
+SCS_CENTER = ICRSCoordinates(SCS_RA, SCS_DEC, unit=(u.degree, u.degree))
+SCS_RADIUS = Angle(SCS_SR, unit=u.degree)
 
 
 @remote_data
@@ -84,11 +94,6 @@ class TestConeSearch(object):
         self.url = 'http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-A2&'
         self.catname = 'USNO-A2'
 
-        # Search to perform
-        self.ra = 0
-        self.dec = 0
-        self.sr = 0.1
-
         # Avoid downloading the full database
         conesearch.CONESEARCH_DBNAME.set('conesearch_simple')
 
@@ -101,28 +106,31 @@ class TestConeSearch(object):
         assert (conesearch.list_catalogs(pattern='usno*a') ==
                 ['USNO ACT', 'USNO NOMAD', 'USNO-A2'])
 
-    def test_one_search(self):
+    @pytest.mark.parametrize(('center', 'radius'),
+                             [((SCS_RA, SCS_DEC), SCS_SR),
+                              (SCS_CENTER, SCS_RADIUS)])
+    def test_one_search(self, center, radius):
         """This does not necessarily uses ``self.url`` because of
         unordered dict in JSON tree.
 
         """
         tab_1 = conesearch.conesearch(
-            self.ra, self.dec, self.sr,
-            pedantic=self.pedantic, verbose=self.verbose)
+            center, radius, pedantic=self.pedantic, verbose=self.verbose)
 
         assert tab_1.array.size > 0
 
     def test_searches(self):
         tab_2 = conesearch.conesearch(
-            self.ra, self.dec, self.sr, catalog_db=self.url,
+            SCS_CENTER, SCS_RADIUS, catalog_db=self.url,
             pedantic=self.pedantic, verbose=self.verbose)
 
         tab_3 = conesearch.conesearch(
-            self.ra, self.dec, self.sr, catalog_db=[self.catname, self.url],
+            SCS_CENTER, SCS_RADIUS,
+            catalog_db=[self.catname, self.url],
             pedantic=self.pedantic, verbose=self.verbose)
 
         tab_4 = conesearch.conesearch(
-            self.ra, self.dec, self.sr,
+            SCS_CENTER, SCS_RADIUS,
             catalog_db=vos_catalog.get_remote_catalog_db(
                 conesearch.CONESEARCH_DBNAME()),
             pedantic=self.pedantic, verbose=self.verbose)
@@ -136,24 +144,51 @@ class TestConeSearch(object):
         else:
             pytest.xfail('conesearch_simple.json used a different URL')
 
+    @pytest.mark.parametrize(('center', 'radius'),
+                             [((SCS_RA, SCS_DEC), SCS_SR),
+                              (SCS_CENTER, SCS_RADIUS)])
+    def test_search_all(self, center, radius):
+        all_results = conesearch.search_all(
+            center, radius, catalog_db=['BROKEN', self.url],
+            pedantic=self.pedantic, verbose=self.verbose)
+
+        assert len(all_results) == 1
+
+        tab_1 = all_results[self.url]
+
+        assert tab_1.array.size > 0
+
     def test_async(self):
         async_search = conesearch.AsyncConeSearch(
-            self.ra, self.dec, self.sr, pedantic=self.pedantic)
+            SCS_CENTER, SCS_RADIUS, pedantic=self.pedantic)
 
         tab = async_search.get(timeout=REMOTE_TIMEOUT())
 
         assert async_search.done()
         assert tab.array.size > 0
 
-    def test_prediction(self):
+    def test_async_all(self):
+        async_search_all = conesearch.AsyncSearchAll(
+            SCS_CENTER, SCS_RADIUS, pedantic=self.pedantic)
+
+        all_results = async_search_all.get(timeout=(REMOTE_TIMEOUT() * 2))
+
+        assert async_search_all.done()
+        for tab in all_results.values():
+            assert tab.array.size > 0
+
+    @pytest.mark.parametrize(('center', 'radius'),
+                             [((SCS_RA, SCS_DEC), SCS_SR),
+                              (SCS_CENTER, SCS_RADIUS)])
+    def test_prediction(self,  center, radius):
         """Prediction tests are not very accurate but will have to do."""
         t_1, tab_1 = conesearch.conesearch_timer(
-            self.ra, self.dec, self.sr, catalog_db=self.url,
+            center, radius, catalog_db=self.url,
             pedantic=self.pedantic, verbose=self.verbose)
         n_1 = tab_1.array.size
 
         t_2, n_2 = conesearch.predict_search(
-            self.url, self.ra, self.dec, self.sr,
+            self.url, (SCS_RA, SCS_DEC), SCS_SR,
             pedantic=self.pedantic, verbose=self.verbose)
 
         assert n_2 > 0 and n_2 <= n_1 * 1.5
