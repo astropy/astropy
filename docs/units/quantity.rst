@@ -41,9 +41,9 @@ or Python sequences:
 objects, as long as all of their units are equivalent, and will
 automatically convert to Numpy arrays.
 
-    >>> qlst = [60 * u.s, 120 * u.s]
+    >>> qlst = [60 * u.s, 1 * u.min]
     >>> u.Quantity(qlst, u.minute)
-    <Quantity [ 1.  2.] min>
+    <Quantity [ 1.  1.] min>
 
 Finally, the current unit and value can be accessed via the
 `~astropy.units.quantity.Quantity.unit` and
