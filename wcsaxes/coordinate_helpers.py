@@ -73,9 +73,9 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
             raise NotImplementedError()  # figure out how to swap out formatter
         elif isinstance(formatter, six.string_types):
             self._fl_helper.format = formatter
-            self._grid_helper.invalidate()
         else:
             raise TypeError("formatter should be a string for Formatter instance")
+        self._grid_helper.invalidate()
 
     def set_ticks(self, values=None, spacing=None, number=None):
         if values is not None:
@@ -86,6 +86,7 @@ class SkyCoordinateHelper(BaseCoordinateHelper):
             self._fl_helper.number = number
         else:
             raise ValueError("one of values, spacing, or number should be specified")
+        self._grid_helper.invalidate()
 
 
 class ScalarCoordinateHelper(BaseCoordinateHelper):
