@@ -1,0 +1,20 @@
+Remaining TODOs
+===============
+
+- Tick label placement
+
+- More detailed coordinate transformation (currently only FK5 J2000 and
+  Galactic)
+
+- Support for multi-dimensional datasets as described in the API document
+
+- Floating axes
+
+- Offset systems
+
+- Start writing tests. Can check for a particular image what tick labels
+  are returned by the formatter, etc. (don't necessarily have to compare
+  the image directly). But we also need image tests eventually.
+
+- Start writing documentation
+
