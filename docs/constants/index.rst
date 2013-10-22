@@ -61,7 +61,9 @@ cannot be used in expressions without specifying a system::
     >>> 100 * const.e
     Traceback (most recent call last):
         ...
-    TypeError: Constant u'e' does not have physically compatible units across all systems of units and cannot be combined with other values without specifying a system (eg. e.emu)
+    TypeError: Constant u'e' does not have physically compatible units
+    across all systems of units and cannot be combined with other
+    values without specifying a system (eg. e.emu)
     >>> 100 * const.e.esu
     <Quantity 4.80320450571...e-08 Fr>
 
