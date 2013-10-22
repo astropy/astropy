@@ -110,19 +110,20 @@ Built-in formats
 formats:
 
   - ``"fits"``: This is the format defined in the Units section of the
-    `FITS Standard <http://fits.gsfc.nasa.gov/fits_standard.html>`_.
+    `FITS Standard <http://fits.gsfc.nasa.gov/fits_standard.html>`__.
     Unlike the "generic" string format, this will only accept or
     generate units defined in the FITS standard.
 
   - ``"vounit"``: The `proposed IVOA standard
-    <http://www.ivoa.net/Documents/VOUnits/>`_ for representing units
+    <http://www.ivoa.net/Documents/VOUnits/>`__ for representing units
     in the VO.  Again, based on the FITS syntax, but the collection of
     supported units is different.
 
   - ``"cds"``: `Standards for astronomical catalogues from Centre de
     Données astronomiques de Strasbourg
-    <http://cds.u-strasbg.fr/doc/catstd-3.2.htx>`_: This is the
-    standard used, for example, by VOTable versions 1.2 and earlier.
+    <http://cds.u-strasbg.fr/doc/catstd-3.2.htx>`__: This is the
+    standard used by `Vizier tables <http://vizier.u-strasbg.fr/>`__,
+    as well as what is used by VOTable versions 1.2 and earlier.
 
 .. These are to-be-implemented
 
@@ -134,7 +135,7 @@ following formats:
 
   - ``"latex"``: Writes units out using LaTeX math syntax using the
     `IAU Style Manual
-    <http://www.iau.org/static/publications/stylemanual1989.pdf>`_
+    <http://www.iau.org/static/publications/stylemanual1989.pdf>`__
     recommendations for unit presentation.  This format is
     automatically used when printing a unit in the IPython notebook::
 
