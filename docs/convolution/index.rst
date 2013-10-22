@@ -61,7 +61,7 @@ For example, to convolve a 1-d dataset with a user-specified kernel, you can do:
 
     >>> from astropy.convolution import convolve
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
-    array([ 0. ,  3.4,  5. ,  5.6,  5.6,  5.2,  0. ])
+    array([ 1.4,  3.6,  5. ,  5.6,  5.6,  6.8,  6.2])
 
 Notice that the end points are set to zero - by default, points that are too close to the boundary to have a convolved value calculated are set to zero. However, the :func:`~astropy.convolution.convolve.convolve` function allows for a `boundary` argument that can be used to specify alternate behaviors. For example, setting `boundary='extend'` causes values near the edges to be computed, assuming the original data is simply extended using a constant extrapolation beyond the boundary::
 

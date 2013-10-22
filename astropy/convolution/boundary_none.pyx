@@ -38,8 +38,8 @@ def convolve1d_boundary_none(np.ndarray[DTYPE_t, ndim=1] f,
 
     # Need a first pass to replace NaN values with value convolved from
     # neighboring values
-    for i in range(wkx, nx - wkx):
-        if npy_isnan(f[i]):
+    for i in range(nx):
+        if npy_isnan(f[i]) and i >= wkx and i < nx - wkx:
             top = 0.
             bot = 0.
             for ii in range(i - wkx, i + wkx + 1):
@@ -105,9 +105,10 @@ def convolve2d_boundary_none(np.ndarray[DTYPE_t, ndim=2] f,
 
     # Need a first pass to replace NaN values with value convolved from
     # neighboring values
-    for i in range(wkx, nx - wkx):
-        for j in range(wky, ny - wky):
-            if npy_isnan(f[i, j]):
+    for i in range(nx):
+        for j in range(ny):
+            if npy_isnan(f[i, j]) and i >= wkx and i < nx - wkx \
+            and j >= wky and j < ny - wky:
                 top = 0.
                 bot = 0.
                 for ii in range(i - wkx, i + wkx + 1):
@@ -181,10 +182,11 @@ def convolve3d_boundary_none(np.ndarray[DTYPE_t, ndim=3] f,
 
     # Need a first pass to replace NaN values with value convolved from
     # neighboring values
-    for i in range(wkx, nx - wkx):
-        for j in range(wky, ny - wky):
-            for k in range(wkz, nz - wkz):
-                if npy_isnan(f[i, j, k]):
+    for i in range(nx):
+        for j in range(ny):
+            for k in range(nz):
+                if npy_isnan(f[i, j, k]) and i >= wkx and i < nx - wkx \
+                and j >= wky and j < ny - wky and k >= wkz and k <= nz - wkz:
                     top = 0.
                     bot = 0.
                     for ii in range(i - wkx, i + wkx + 1):

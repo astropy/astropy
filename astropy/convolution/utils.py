@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import division
-import warnings
 
 import numpy as np
 
 from ..modeling.core import Parametric1DModel, Parametric2DModel
-from ..utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['discretize_model']
@@ -141,20 +139,11 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
         if isinstance(model, Parametric2DModel):
             return discretize_bilinear_2D(model, x_range, y_range)
     elif mode == "oversample":
-        if y_range is not None:
-            N = factor * (x_range[1] - x_range[0]) * (y_range[1] - y_range[0])
-        else:
-            N = factor * (x_range[1] - x_range[0])
-        if N >= 10000000:
-            warnings.warn("Large oversample factor or data, computing can be very slow.",
-                          AstropyUserWarning)
         if isinstance(model, Parametric1DModel):
             return discretize_oversample_1D(model, x_range, factor)
         if isinstance(model, Parametric2DModel):
             return discretize_oversample_2D(model, x_range, y_range, factor)
     elif mode == "integrate":
-        warnings.warn("Mode 'integrate' is very slow. Use only if highest "
-                        "accuracy is required.", AstropyUserWarning)
         if isinstance(model, Parametric1DModel):
             return discretize_integrate_1D(model, x_range)
         if isinstance(model, Parametric2DModel):

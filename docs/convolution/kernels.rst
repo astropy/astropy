@@ -201,6 +201,7 @@ As convolution is a linear operation, kernels can be added or subtracted from ea
 They can also be multiplied with some number. One basic example would be the definition
 of a Difference of Gaussian filter:
 
+>>> from astropy.convolution import Gaussian1DKernel
 >>> gauss_1 = Gaussian1DKernel(10)
 >>> gauss_2 = Gaussian1DKernel(16)
 >>> DoG = gauss_2 - gauss_1
@@ -223,21 +224,29 @@ Furthermore two kernels can be convolved with each other, which is useful when
 data is filtered with two different kinds of kernels or to create a new,
 special kernel:
 
+>>> from astropy.convolution import Gaussian1DKernel, convolve
 >>> gauss_1 = Gaussian1DKernel(10)
 >>> gauss_2 = Gaussian1DKernel(16)
 >>> broad_gaussian = convolve(gauss_2,  gauss_1)
 
 Or in case of multistage smoothing:
 
->>> gauss = Gaussian1DKernel(10)
->>> box = Box1DKernel(16)
+>>> import numpy as np
+>>> from astropy.modeling.models import Lorentz1DModel
+>>> from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
+>>> lorentz = Lorentz1DModel(1, 0, 1)
+>>> x = np.linspace(-5, 5, 100)
+>>> data_1D = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
+
+>>> gauss = Gaussian1DKernel(3)
+>>> box = Box1DKernel(5)
 >>> smoothed_gauss = convolve(data_1D, gauss)
 >>> smoothed_gauss_box = convolve(smoothed_gauss, box)
 
 You would rather do the following:
 
->>> gauss = Gaussian1DKernel(10)
->>> box = Box1DKernel(16)
+>>> gauss = Gaussian1DKernel(3)
+>>> box = Box1DKernel(5)
 >>> smoothed_gauss_box = convolve(data_1D, convolve(box, gauss))
 
 Which, in most cases, will also be faster than the first method, because only
@@ -254,6 +263,7 @@ discretization step the following modes are available:
 Mode ``'center'`` (default) evaluates the response function on the grid by
 taking the value at the center of the bin.
 
+>>> from astropy.convolution import Gaussian1DKernel
 >>> gauss_center = Gaussian1DKernel(3, mode='center')
 
 Mode ``'linear_interp'`` takes the values at the corners of the bin and linearly

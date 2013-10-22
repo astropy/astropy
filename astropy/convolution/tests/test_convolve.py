@@ -25,9 +25,9 @@ class TestConvolve1D(object):
 
         y = [0.2, 0.6, 0.2]
 
-        z = convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
+        z = convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary=None)
 
-        assert_array_almost_equal_nulp(z, np.array([ 0. ,  3.4,  5. ,  5.6,  5.6,  5.2,  0. ]), 10)
+        assert_array_almost_equal_nulp(z, np.array([ 0. ,  3.6,  5. ,  5.6,  5.6,  6.8,  0. ]), 10)
 
     @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
     def test_dtype(self, dtype_array, dtype_kernel):
@@ -89,7 +89,7 @@ class TestConvolve1D(object):
         z = convolve(x, y, boundary=boundary)
 
         if boundary is None:
-            assert np.all(z == np.array([0., 0., 0.], dtype='>f8'))
+            assert np.all(z == np.array([0., 4., 0.], dtype='>f8'))
         elif boundary == 'fill':
             assert np.all(z == np.array([1., 4., 3.], dtype='>f8'))
         elif boundary == 'wrap':
@@ -137,7 +137,7 @@ class TestConvolve1D(object):
         z = convolve(x, y, boundary=boundary)
 
         if boundary is None:
-            assert_array_almost_equal_nulp(z, np.array([0., 2., 0.], dtype='>f8'), 10)
+            assert_array_almost_equal_nulp(z, np.array([0., 6., 0.], dtype='>f8'), 10)
         elif boundary == 'fill':
             assert_array_almost_equal_nulp(z, np.array([3., 6., 5.], dtype='>f8'), 10)
         elif boundary == 'wrap':
@@ -235,7 +235,7 @@ class TestConvolve2D(object):
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[0., 0., 0.],
-                                                        [0., 0., 0.],
+                                                        [0., 6., 0.],
                                                         [0., 0., 0.]], dtype='>f8'), 10)
         elif boundary == 'fill':
             assert_array_almost_equal_nulp(z, np.array([[1., 4., 3.],
@@ -299,7 +299,7 @@ class TestConvolve2D(object):
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[0., 0., 0.],
-                                                       [0., 1., 0.],
+                                                       [0., 9., 0.],
                                                        [0., 0., 0.]], dtype='>f8'), 10)
         elif boundary == 'fill':
             assert_array_almost_equal_nulp(z, np.array([[2., 6., 5.],
@@ -407,7 +407,7 @@ class TestConvolve3D(object):
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]],
-                                                       [[0., 0., 0.], [0., 3., 0.], [0., 0., 0.]],
+                                                       [[0., 0., 0.], [0., 81., 0.], [0., 0., 0.]],
                                                        [[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]]], dtype='>f8'), 10)
         elif boundary == 'fill':
             assert_array_almost_equal_nulp(z, np.array([[[23., 28., 16.], [35., 46., 25.], [25., 34., 18.]],
@@ -468,7 +468,7 @@ class TestConvolve3D(object):
 
         if boundary is None:
             assert_array_almost_equal_nulp(z, np.array([[[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]],
-                                                       [[0., 0., 0.], [0., 3., 0.], [0., 0., 0.]],
+                                                       [[0., 0., 0.], [0., 81., 0.], [0., 0., 0.]],
                                                        [[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]]], dtype='>f8'), 10)
         elif boundary == 'fill':
             assert_array_almost_equal_nulp(z, np.array([[[23., 28., 16.], [35., 46., 25.], [25., 34., 18.]],
