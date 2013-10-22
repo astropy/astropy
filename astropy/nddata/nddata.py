@@ -235,10 +235,13 @@ class NDData(object):
         if value is None:
             self._meta = OrderedDict()
         else:
-            try:
-                self._meta = OrderedDict(value)
-            except ValueError:
-                raise TypeError('NDData meta attribute must be dict-like')
+            if not isinstance(value, OrderedDict):                
+                try:
+                    self._meta = OrderedDict(value)
+                except ValueError:
+                    raise TypeError('NDData meta attribute must be dict-like')
+            else:
+                self._meta = value
 
     @property
     def unit(self):
