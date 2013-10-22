@@ -149,7 +149,7 @@ class RunTimePredictor(object):
 
     >>> p.plot(xlabeltext='Power of 10')  # doctest: +SKIP
 
-    .. image:: ../../docs/_static/timer_prediction_pow10.png
+    .. image:: /_static/timer_prediction_pow10.png
         :width: 450px
         :alt: Example plot from `astropy.utils.timer.RunTimePredictor`
 
