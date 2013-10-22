@@ -124,12 +124,13 @@ The actual mask for the table as a whole or a single column can be
 viewed and modified via the ``mask`` attribute::
 
   >>> t = Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True)
+  >>> t['a'].mask = [False, True]  # Modify column mask (boolean array)
   >>> t['b'].mask = [True, False]  # Modify column mask (boolean array)
   >>> print(t)
    a   b
   --- ---
     1  --
-    2   4
+   --   4
 
 Masked entries are shown as ``--`` when the table is printed.
 
