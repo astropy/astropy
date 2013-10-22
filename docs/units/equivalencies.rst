@@ -1,6 +1,6 @@
-.. _unit_equivalencies:
-
 .. |quantity| replace:: :class:`~astropy.units.quantity.Quantity`
+
+.. _unit_equivalencies:
 
 Equivalencies
 =============
