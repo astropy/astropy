@@ -12,7 +12,7 @@ from ..nduncertainty import StdDevUncertainty, IncompatibleUncertaintiesExceptio
 from ...tests.helper import pytest, raises
 from ...io import fits
 from ...utils import NumpyRNGContext
-from ..utils.compat.odict import OrderedDict
+from ...utils.compat.odict import OrderedDict
 
 
 class FakeUncertainty(NDUncertainty):
