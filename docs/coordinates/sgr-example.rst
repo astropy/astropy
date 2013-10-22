@@ -208,9 +208,10 @@ system has a path to transform to
 `~astropy.coordinates.builtin_systems.GalacticCoordinates`). For example, to
 transform from ICRS coordinates to `SgrCoordinates`, we simply::
 
+    >>> from astropy import units as u
     >>> import astropy.coordinates as coord
     >>> icrs = coord.ICRSCoordinates(280.161732, 11.91934, unit=(u.degree,u.degree))
-    >>> icrs.transform_to(SgrCoordinates)
+    >>> icrs.transform_to(SgrCoordinates)  # doctest: +SKIP
     <SgrCoordinates Lambda=346.81827 deg, Beta=-39.28367 deg>
 
 The complete code for the above example is included below for reference.

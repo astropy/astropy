@@ -9,7 +9,7 @@ computes the great-circle distance (*not* the small-angle approximation)::
     >>> c2 = ICRSCoordinates('0h52m44.8s -72d49m43s')
     >>> sep = c1.separation(c2)
     >>> sep
-    <Angle 20d44m46.02638s>
+    <Angle 20.746118437707477 deg>
 
 
 The returned object is an `~astropy.coordinates.angles.Angle` instance, so it
@@ -17,7 +17,7 @@ is straightforward to access the angle in any of several equivalent angular
 units::
 
     >>> sep.radian
-    0.36208807374669766
+    0.3620880737466976
     >>> sep.hour
     1.383074562513832
     >>> sep.arcminute

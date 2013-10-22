@@ -1,3 +1,5 @@
+.. doctest_skip
+
 Matching Catalogs/Finding Nearest Coordinates
 ---------------------------------------------
 
