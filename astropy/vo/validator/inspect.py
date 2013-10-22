@@ -47,16 +47,19 @@ class ConeSearchResults(object):
                 'conesearch_' + typ, cache=cache, verbose=verbose)
             self.catkeys[typ] = self.dbs[typ].list_catalogs()
 
-    def tally(self, fout=sys.stdout):
+    def tally(self, fout=None):
         """
         Tally databases.
 
         Parameters
         ----------
         fout : output stream
-            Default is screen output.
+            Default is sys.stdout.
 
         """
+        if fout is None:
+            fout = sys.stdout
+
         str_list = []
         n_tot = 0
 
@@ -69,7 +72,7 @@ class ConeSearchResults(object):
             str_list.append('total: {0} catalog(s)\n'.format(n_tot))
             fout.write('\n'.join(str_list))
 
-    def list_cats(self, typ, fout=sys.stdout, ignore_noncrit=False):
+    def list_cats(self, typ, fout=None, ignore_noncrit=False):
         """
         List catalogs in given database.
 
@@ -94,6 +97,9 @@ class ConeSearchResults(object):
             This is useful to see why a catalog failed validation.
 
         """
+        if fout is None:
+            fout = sys.stdout
+
         assert typ in self.dbtypes
         str_list = []
 
@@ -123,7 +129,7 @@ class ConeSearchResults(object):
         if len(str_list) > 0:
             fout.write('\n'.join(str_list))
 
-    def print_cat(self, key, fout=sys.stdout):
+    def print_cat(self, key, fout=None):
         """
         Display a single catalog of given key.
 
@@ -138,6 +144,9 @@ class ConeSearchResults(object):
             Default is screen output.
 
         """
+        if fout is None:
+            fout = sys.stdout
+
         str_list = []
 
         for typ in self.dbtypes:

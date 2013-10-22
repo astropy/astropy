@@ -171,7 +171,7 @@ def writeto(table, file):
     table.to_xml(file, _debug_python_based_parser=True)
 
 
-def validate(source, output=sys.stdout, xmllint=False, filename=None):
+def validate(source, output=None, xmllint=False, filename=None):
     """
     Prints a validation report for the given file.
 
@@ -202,6 +202,9 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
     """
     import textwrap
     from ...utils.console import print_code_line, color_print
+
+    if output is None:
+        output = sys.stdout
 
     return_as_str = False
     if output is None:
