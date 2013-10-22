@@ -51,7 +51,7 @@ Smooth a 1D array with a custom kernel and no boundary treatment::
 
     >>> import numpy as np
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
-    array([ 0. ,  3.4,  5. ,  5.6,  5.6,  5.2,  0. ])
+    array([ 1.4,  3.6,  5. ,  5.6,  5.6,  6.8,  6.2])
 
 As above, but using the 'extend' algorithm for boundaries::
 
