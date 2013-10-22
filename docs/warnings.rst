@@ -22,7 +22,7 @@ function may be suppressed from within a python script as follows::
      >>> import warnings
      >>> from astropy.io import fits
      >>> warnings.filterwarnings('ignore', category=UserWarning, append=True)
-     >>> fits.writeto(file, im, clobber=True)
+     >>> fits.writeto(file, im, clobber=True)  # doctest: +SKIP
 
 However, warning filters may also be modified just within a certain context
 using `warnings.catch_warnings`.
@@ -37,4 +37,3 @@ you can start Python with ``-Wi::Deprecation``.  This sets all deprecation
 warnings to ignored.  See
 http://docs.python.org/using/cmdline.html#cmdoption-unittest-discover-W
 for more information on the -W argument.
-

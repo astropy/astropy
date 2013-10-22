@@ -16,13 +16,13 @@ astropy as::
 is not very useful. Instead, it is best to import the desired sub-pacakge
 with the syntax::
 
-    >>> from astropy import subpackage
+    >>> from astropy import subpackage  # doctest: +SKIP
 
 For example, to access the FITS-related functionality, you can import
 `astropy.io.fits` with::
 
     >>> from astropy.io import fits
-    >>> hdulist = fits.open('data.fits')
+    >>> hdulist = fits.open('data.fits')  # doctest: +SKIP
 
 In specific cases, we have recommended shortcuts in the documentation for
 specific sub-packages, for example::
