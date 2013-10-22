@@ -245,7 +245,7 @@ API Changes
 
   - The coordinate classes have been renamed in a way that remove the ``Coordinates``
     at the end of the class names.  E.g., `ICRSCoordinates` from previous versions is
-    now called `Coordinates`.
+    now called `ICRS`.
 
   - `HorizontalCoordinates` are now named `AltAz`, to reflect more common terminology.
 
