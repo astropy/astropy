@@ -12,6 +12,7 @@ from ..nduncertainty import StdDevUncertainty, IncompatibleUncertaintiesExceptio
 from ...tests.helper import pytest, raises
 from ...io import fits
 from ...utils import NumpyRNGContext
+from ..utils.compat.odict import OrderedDict
 
 
 class FakeUncertainty(NDUncertainty):
@@ -28,6 +29,8 @@ class FakeUncertainty(NDUncertainty):
     def propagate_divide(self, data, final_data):
         pass
 
+class OrderedDictSub(OrderedDict):
+    pass
 
 def test_nddata_empty():
     with pytest.raises(TypeError):
@@ -298,7 +301,6 @@ def test_initializing_from_nduncertainty():
 
     assert u1.array is u2.array
 
-
 def test_meta2ordered_dict():
     hdr = fits.header.Header()
     hdr.set('observer', 'Edwin Hubble')
@@ -307,6 +309,10 @@ def test_meta2ordered_dict():
     d1 = NDData(np.ones((5, 5)), meta=hdr)
     assert d1.meta['OBSERVER'] == 'Edwin Hubble'
 
+def test_subclass_meta():
+    arr = NDData(np.random.random((10, 10)), meta=OrderedDictSub({'hello':1,
+                                                                  'world':2}))
+    assert isinstance(arr.meta, OrderedDictSub)
 
 @raises(TypeError)
 def test_meta2ordered_dict_fail():
