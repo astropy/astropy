@@ -84,10 +84,6 @@ object that can be an input to the |write| function.
 
     >>> data = ascii.read('t/daophot.dat', format='daophot')  # doctest: +SKIP
     >>> ascii.write(data, 'space_delimited_table.dat')  # doctest: +SKIP
-    col0 col1 col2
-    1 4.0 hello
-    2 5.2 world
-    3 6.1 !!!
 
 List of lists
 """""""""""""
