@@ -101,13 +101,13 @@ middle of the image and add 10% noise:
 >>> x, y = np.meshgrid(x, y)
 >>> data_2D = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
 
-Smoothing the noisy data with a 
+Smoothing the noisy data with a
 :class:`~astropy.convolution.kernels.Gaussian2DKernel` of width 2 pixels:
 
 >>> gauss_kernel = Gaussian2DKernel(2)
 >>> smoothed_data_gauss = convolve(data_2D, gauss_kernel)
 
-Smoothing the noisy data with a 
+Smoothing the noisy data with a
 :class:`~astropy.convolution.kernels.Tophat2DKernel` of width 5 pixels:
 
 >>> tophat_kernel = Tophat2DKernel(5)
@@ -158,7 +158,7 @@ Note that it has a slightly different color scale compared to the original image
                Tophat2DKernel(11),
                Gaussian2DKernel(11),
                Box2DKernel(11),
-               - 11 ** 2 * MexicanHat2DKernel(11),
+               11 ** 2 * MexicanHat2DKernel(11),
                AiryDisk2DKernel(11)]
 
     fig, axes = plt.subplots(nrows=2, ncols=3)
