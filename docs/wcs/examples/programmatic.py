@@ -20,9 +20,6 @@ w.wcs.crval = [0, -90]
 w.wcs.ctype = ["RA---AIR", "DEC--AIR"]
 w.wcs.set_pv([(2, 1, 45.0)])
 
-# Print out all of the contents of the WCS object
-w.wcs.print_contents()
-
 # Some pixel coordinates of interest.
 pixcrd = numpy.array([[0,0],[24,38],[45,98]], numpy.float_)
 
