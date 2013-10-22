@@ -12,11 +12,26 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
+def test_basic():
+    cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04)
+    assert np.allclose(cosmo.Om0, 0.27)
+    assert np.allclose(cosmo.Ode0, 0.729975, rtol=1e-4)
+    assert np.allclose(cosmo.Ogamma0, 1.463285e-5, rtol=1e-4)
+    assert np.allclose(cosmo.Onu0, 1.01026e-5, rtol=1e-4)
+    assert np.allclose(cosmo.Ok0, 0.0)
+    assert np.allclose(cosmo.Om0 + cosmo.Ode0 + cosmo.Ogamma0 + cosmo.Onu0, 
+                       1.0, rtol=1e-6)
+    assert np.allclose(cosmo.Tcmb0.value, 2.0)
+    assert np.allclose(cosmo.Tnu0.value, 1.4275317, rtol=1e-5)
+    assert np.allclose(cosmo.Neff, 3.04)
+    assert np.allclose(cosmo.h, 0.7)
+    assert np.allclose(cosmo.H0.value, 70.0)
+        
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_units():
     """ Test if the right units are being returned"""
 
-    cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=0.0)
+    cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0)
     assert cosmo.comoving_distance(1.0).unit == u.Mpc
     assert cosmo.angular_diameter_distance(1.0).unit == u.Mpc
     assert cosmo.angular_diameter_distance_z1z2(1.0, 2.0).unit == u.Mpc
@@ -27,6 +42,10 @@ def test_units():
     assert cosmo.H(1.0).unit == u.km / u.Mpc / u.s
     assert cosmo.Tcmb0.unit == u.K
     assert cosmo.Tcmb(1.0).unit == u.K
+    assert cosmo.Tcmb([0.0, 1.0]).unit == u.K
+    assert cosmo.Tnu0.unit == u.K
+    assert cosmo.Tnu(1.0).unit == u.K
+    assert cosmo.Tnu([0.0, 1.0]).unit == u.K
     assert cosmo.arcsec_per_kpc_comoving(1.0).unit == u.arcsec / u.kpc
     assert cosmo.arcsec_per_kpc_proper(1.0).unit == u.arcsec / u.kpc
     assert cosmo.kpc_comoving_per_arcmin(1.0).unit == u.kpc / u.arcmin
@@ -98,12 +117,17 @@ def test_varyde_lumdist_mathematica():
     cosmo = core.w0waCDM(H0=70, Om0=0.2, Ode0=0.8, w0=-1.1, wa=0.2, Tcmb0=0.0)
     assert np.allclose(cosmo.luminosity_distance(z).value,
                        [1004.0, 2268.62, 6265.76, 9061.84], rtol=1e-4)
+    assert np.allclose(cosmo.de_density_scale(0.0), 1.0, rtol=1e-5)
+    assert np.allclose(cosmo.de_density_scale([0.0, 0.5, 1.5]),
+                       [1.0, 0.9246310669529021, 0.9184087000251957])
+                                              
     cosmo = core.w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=0.0, Tcmb0=0.0)
     assert np.allclose(cosmo.luminosity_distance(z).value,
                        [971.667, 2141.67, 5685.96, 8107.41], rtol=1e-4)
     cosmo = core.w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=-0.5, Tcmb0=0.0)
     assert np.allclose(cosmo.luminosity_distance(z).value,
                        [974.087, 2157.08, 5783.92, 8274.08], rtol=1e-4)
+    
 
     # wpwa models
     cosmo = core.wpwaCDM(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.5,
@@ -115,6 +139,48 @@ def test_varyde_lumdist_mathematica():
     assert np.allclose(cosmo.luminosity_distance(z).value,
                        [1013.68, 2305.3, 6412.37, 9283.33], rtol=1e-4)
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_omatter():
+    # Test Om evolution
+    tcos = core.FlatLambdaCDM(70.0, 0.3)
+    assert np.allclose(tcos.Om0, 0.3)
+    assert np.allclose(tcos.H0.value, 70.0)
+    assert np.allclose(tcos.Om(0), 0.3)
+    z = np.array([0.0, 0.5, 1.0, 2.0])
+    assert np.allclose(tcos.Om(z), [0.3,  0.59112134, 0.77387435, 0.91974179],
+                       rtol=1e-4)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_ocurv():
+    # Test Ok evolution
+    # Flat, boring case
+    tcos = core.FlatLambdaCDM(70.0, 0.3)
+    assert np.allclose(tcos.Ok0, 0.0)
+    assert np.allclose(tcos.Ok(0), 0.0)
+    z = np.array([0.0, 0.5, 1.0, 2.0])
+    assert np.allclose(tcos.Ok(z), [0.0, 0.0, 0.0, 0.0],
+                       rtol=1e-6)
+
+    # Not flat
+    tcos = core.LambdaCDM(70.0, 0.3, 0.5, Tcmb0=u.Quantity(0.0, u.K))
+    assert np.allclose(tcos.Ok0, 0.2)
+    assert np.allclose(tcos.Ok(0), 0.2)
+    assert np.allclose(tcos.Ok(z), [0.2, 0.22929936, 0.21621622,  0.17307692],
+                       rtol=1e-4)
+
+    # Test the sum; note that Ogamma/Onu are 0
+    assert np.allclose(tcos.Ok(z) + tcos.Om(z) + tcos.Ode(z),
+                       [1.0, 1.0, 1.0, 1.0], rtol=1e-5)
+    
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_ode():
+    # Test Ode evolution, turn off neutrinos, cmb
+    tcos = core.FlatLambdaCDM(70.0, 0.3, Tcmb0=0)
+    assert np.allclose(tcos.Ode0, 0.7)
+    assert np.allclose(tcos.Ode(0), 0.7)
+    z = np.array([0.0, 0.5, 1.0, 2.0])
+    assert np.allclose(tcos.Ode(z), [0.7, 0.408759, 0.2258065, 0.07954545],
+                       rtol=1e-5)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_ogamma():
@@ -178,6 +244,23 @@ def test_ogamma():
         (np.sqrt((1.0 + Or0 * z) / (1.0 + z)) - 1.0) / (Or0 - 1.0)
     assert np.allclose(cosmo.comoving_distance(z).value, targvals, rtol=1e-5)
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_tcmb():
+    cosmo = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0)
+    assert np.allclose(cosmo.Tcmb0.value, 3.0)
+    assert np.allclose(cosmo.Tcmb(2).value, 9.0)
+    z = [0.0, 1.0, 2.0, 3.0, 9.0]
+    assert np.allclose(cosmo.Tcmb(z).value, 
+                       [3.0, 6.0, 9.0, 12.0, 30.0], rtol=1e-6)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_tnu():
+    cosmo = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0)
+    assert np.allclose(cosmo.Tnu0.value, 2.1412975665108247, rtol=1e-6)
+    assert np.allclose(cosmo.Tnu(2).value, 6.423892699532474, rtol=1e-6)
+    z = [0.0, 1.0, 2.0, 3.0]
+    assert np.allclose(cosmo.Tnu(z), [2.14129757, 4.28259513, 
+                                      6.4238927, 8.56519027], rtol=1e-6)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_kpc_methods():
@@ -208,10 +291,13 @@ def test_convenience():
     assert np.allclose(funcs.H(3).value, 299.80813491298068)
     assert funcs.H(3).unit == u.km / (u.Mpc * u.s)
     assert np.allclose(funcs.scale_factor(3), 0.25)
+    assert np.allclose(funcs.scale_factor([3,4]), [0.25, 0.2])
     assert np.allclose(funcs.critical_density(3).value, 1.6884621680232328e-28)
     assert funcs.critical_density(3).unit == u.g / u.cm ** 3
     assert np.allclose(funcs.lookback_time(3).value, 11.555469926558361)
     assert funcs.lookback_time(3).unit == u.Gyr
+    assert np.allclose(funcs.lookback_time([3,4]).value, 
+                       [11.555469927, 12.17718555], rtol=1e-5)
     assert np.allclose(funcs.comoving_distance(3).value, 6503.100697385924)
     assert funcs.comoving_distance(3).unit == u.Mpc
     assert np.allclose(funcs.angular_diameter_distance(3).value, 
@@ -418,8 +504,31 @@ def test_wz():
                          wa=0.2, zp=0.5)
     assert np.allclose(cosmo.w([0.1, 0.2, 0.5, 1.5, 2.5, 11.5]),
                        [-0.94848485, -0.93333333, -0.9, -0.84666667, 
-                         -0.82380952, -0.78266667])
+                        -0.82380952, -0.78266667])
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_de_densityscale():
+    cosmo = core.LambdaCDM(H0=70, Om0=0.3, Ode0=0.70)
+    z = np.array([0.1, 0.2, 0.5, 1.5, 2.5])
+    assert np.allclose(cosmo.de_density_scale(z), 
+                       [1.0, 1.0, 1.0, 1.0, 1.0])
+    cosmo = core.wCDM(H0=70, Om0=0.3, Ode0=0.60, w0=-0.5)
+    assert np.allclose(cosmo.de_density_scale(z), 
+                       [1.15369, 1.31453,  1.83712,  3.95285,  6.5479],
+                       rtol=1e-4)
+    cosmo = core.w0wzCDM(H0=70, Om0=0.3, Ode0=0.50, w0=-1, wz=0.5)
+    assert np.allclose(cosmo.de_density_scale(z), 
+                       [0.746048, 0.5635595, 0.25712378, 0.026664129,
+                        0.0035916468], rtol=1e-4)
+    cosmo = core.w0waCDM(H0=70, Om0=0.3, Ode0=0.70, w0=-1, wa=-0.5)
+    assert np.allclose(cosmo.de_density_scale(z),
+                       [0.9934201, 0.9767912, 0.897450,
+                        0.622236, 0.4458753], rtol=1e-4)
+    cosmo = core.wpwaCDM(H0=70, Om0=0.3, Ode0=0.70, wp=-0.9,
+                         wa=0.2, zp=0.5)
+    assert np.allclose(cosmo.de_density_scale(z),
+                       [1.012246048, 1.0280102, 1.087439,
+                        1.324988, 1.565746], rtol=1e-4)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_age():
@@ -462,7 +571,6 @@ def test_angular_diameter_distance_z1z2():
     assert np.allclose(tcos.angular_diameter_distance_z1z2(z1, z2).value,
                        results)
 
-
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_absorption_distance():
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
@@ -472,6 +580,17 @@ def test_absorption_distance():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_massivenu_basic():
+    # Test no neutrinos case
+    tcos = core.FlatLambdaCDM(70.4, 0.272, Neff=4.05, m_nu=u.Quantity(0, u.eV))
+    assert np.allclose(tcos.Neff, 4.05)
+    assert not tcos.has_massive_nu
+    mnu = tcos.m_nu
+    assert len(mnu) == 4
+    assert mnu.unit == u.eV
+    assert np.allclose(mnu.value, [0.0, 0.0, 0.0, 0.0])
+    assert np.allclose(tcos.nu_relative_density(1.0), 0.22710731766 * 4.05, 
+                       rtol=1e-6)
+
     # Test basic setting, retrieval of values
     tcos = core.FlatLambdaCDM(70.4, 0.272, 
                               m_nu=u.Quantity([0.0, 0.01, 0.02], u.eV))
@@ -480,6 +599,16 @@ def test_massivenu_basic():
     assert len(mnu) == 3
     assert mnu.unit == u.eV
     assert np.allclose(mnu.value, [0.0, 0.01, 0.02])
+
+    # All massive neutrinos case
+    tcos = core.FlatLambdaCDM(70.4, 0.272, m_nu=u.Quantity(0.1, u.eV), 
+                              Neff=3.1)
+    assert np.allclose(tcos.Neff, 3.1)
+    assert tcos.has_massive_nu
+    mnu = tcos.m_nu
+    assert len(mnu) == 3
+    assert mnu.unit == u.eV
+    assert np.allclose(mnu.value, [0.1, 0.1, 0.1])
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_massivenu_density():
@@ -501,6 +630,7 @@ def test_massivenu_density():
     nurel_exp = nuprefac * tcos.Neff * np.array([171969, 85984.5, 57323,
                                                  15633.5, 171.801])
     assert np.allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=5e-3)
+    assert np.allclose(tcos.efunc([0.0, 1.0]), [1.0, 7.46144727668], rtol=5e-3)
 
     # Next, slightly less massive
     tcos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0, Neff=3, 
@@ -526,6 +656,10 @@ def test_massivenu_density():
     onu_exp = np.array([0.00066599, 0.00172677, 0.0020732,
                         0.00268404, 0.0978313])
     assert np.allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
+    assert np.allclose(tcos.efunc([1.0, 2.0]), [1.76225893, 2.97022048],
+                       rtol=1e-4)
+    assert np.allclose(tcos.inv_efunc([1.0, 2.0]), [0.5674535, 0.33667534],
+                       rtol=1e-4)
 
     # Now a mixture of neutrino masses, with non-integer Neff
     tcos = core.FlatLambdaCDM(80.0, 0.30, Tcmb0=3.0, Neff=3.04,
