@@ -965,6 +965,23 @@ class UnitBase(object):
         return composed
 
     @property
+    def si(self):
+        """
+        Returns a copy of the current `Unit` instance in SI units.
+        """
+
+        from . import si
+        return self.to_system(si)[0]
+
+    @property
+    def cgs(self):
+        """
+        Returns a copy of the current `Unit` instance with CGS units.
+        """
+        from . import cgs
+        return self.to_system(cgs)[0]
+
+    @property
     def physical_type(self):
         """
         Return the physical type on the unit.

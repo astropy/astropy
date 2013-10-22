@@ -444,9 +444,7 @@ class Quantity(np.ndarray):
         Returns a copy of the current `Quantity` instance with SI units. The
         value of the resulting object will be scaled.
         """
-
-        from . import si
-        si_unit = self.unit.to_system(si)[0]
+        si_unit = self.unit.si
         return self.__quantity_instance__(
             self.value * si_unit.scale, si_unit / si_unit.scale,
             copy=False)
@@ -457,9 +455,7 @@ class Quantity(np.ndarray):
         Returns a copy of the current `Quantity` instance with CGS units. The
         value of the resulting object will be scaled.
         """
-
-        from . import cgs
-        cgs_unit = self.unit.to_system(cgs)[0]
+        cgs_unit = self.unit.cgs
         return self.__quantity_instance__(
             self.value * cgs_unit.scale, cgs_unit / cgs_unit.scale,
             copy=False)
