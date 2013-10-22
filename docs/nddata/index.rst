@@ -24,7 +24,7 @@ n-dimensional Numpy array::
 
     >>> import numpy as np
     >>> from astropy.nddata import NDData
-    >>> array = np.zeros((12, 12, 12))  # a random 3-dimensional array
+    >>> array = np.zeros((12, 12, 12))  # a 3-dimensional array with all zeros
     >>> ndd = NDData(array)
 
 This object has a few attributes in common with Numpy:
