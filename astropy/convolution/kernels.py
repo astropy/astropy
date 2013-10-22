@@ -515,10 +515,11 @@ class MexicanHat1DKernel(Kernel1D):
     """
     1D Mexican hat filter kernel.
 
-    The Mexican Hat or Gaussian-Laplace filter is a bandpass filter. It
-    smoothes the data and removes slowly varying or constant structures
-    (e.g. Background). It is useful for peak or multi-scale detection.
-    This kernel is derived from a normalized Gaussian.
+    The Mexican Hat, or inverted Gaussian-Laplace filter, is a
+    bandpass filter. It smoothes the data and removes slowly varying
+    or constant structures (e.g. Background). It is useful for peak or
+    multi-scale detection.  This kernel is derived from a normalized
+    Gaussian.
 
     Parameters
     ----------
@@ -567,7 +568,7 @@ class MexicanHat1DKernel(Kernel1D):
     _is_bool = True
 
     def __init__(self, width, **kwargs):
-        self._model = models.MexicanHat1DModel(-1. / (np.sqrt(2 * np.pi) * width ** 3), 0, width)
+        self._model = models.MexicanHat1DModel(1.0 / (np.sqrt(2 * np.pi) * width ** 3), 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super(MexicanHat1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
@@ -578,10 +579,11 @@ class MexicanHat2DKernel(Kernel2D):
     """
     2D Mexican hat filter kernel.
 
-    The Mexican Hat or Gaussian-Laplace filter is a bandpass filter. It
-    smoothes the data and removes slowly varying or constant structures
-    (e.g. Background). It is useful for peak or multi-scale detection.
-    This kernel is derived from a normalized Gaussian.
+    The Mexican Hat, or inverted Gaussian-Laplace filter, is a
+    bandpass filter. It smoothes the data and removes slowly varying
+    or constant structures (e.g. Background). It is useful for peak or
+    multi-scale detection.  This kernel is derived from a normalized
+    Gaussian.
 
     Parameters
     ----------
@@ -633,7 +635,7 @@ class MexicanHat2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, width, **kwargs):
-        self._model = models.MexicanHat2DModel(-1. / (np.pi * width ** 4), 0, 0, width)
+        self._model = models.MexicanHat2DModel(1.0 / (np.pi * width ** 4), 0, 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super(MexicanHat2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)

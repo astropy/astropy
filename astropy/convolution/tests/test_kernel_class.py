@@ -72,8 +72,10 @@ class TestKernels(object):
         astropy_1D = convolve(delta_pulse_1D, mexican_kernel_1D, boundary='fill')
         astropy_2D = convolve(delta_pulse_2D, mexican_kernel_2D, boundary='fill')
 
-        scipy_1D = filters.gaussian_laplace(delta_pulse_1D, width)
-        scipy_2D = filters.gaussian_laplace(delta_pulse_2D, width)
+        # The Laplace of Gaussian filter is an inverted Mexican Hat
+        # filter.
+        scipy_1D = -filters.gaussian_laplace(delta_pulse_1D, width)
+        scipy_2D = -filters.gaussian_laplace(delta_pulse_2D, width)
 
         # There is a slight deviation in the normalization. They differ by a
         # factor of ~1.0000284132604045. The reason is not known.
