@@ -30,8 +30,12 @@ def test_angles_dimensionless():
     Omega = u.cycle / (1.*u.s)
     Erot = 0.5 * I * Omega**2
     assert Erot.to(u.erg, equivalencies=rad1) == (Erot/u.radian**2)
-    # test build-in
-    phase = u.Quantity(1., u.cycle, equivalencies=rad1)
+
+    # test build-in equivalency in subclass
+    class MyRad1(u.Quantity):
+        _equivalencies = rad1
+
+    phase = MyRad1(1., u.cycle)
     assert phase.to(1).value == u.cycle.to(u.radian)
 
 
