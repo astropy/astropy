@@ -101,13 +101,13 @@ middle of the image and add 10% noise:
 >>> x, y = np.meshgrid(x, y)
 >>> data_2D = gauss(x, y) + 0.1 * (np.random.rand(201, 201) - 0.5)
 
-Smoothing the noisy data with a 
+Smoothing the noisy data with a
 :class:`~astropy.convolution.kernels.Gaussian2DKernel` of width 2 pixels:
 
 >>> gauss_kernel = Gaussian2DKernel(2)
 >>> smoothed_data_gauss = convolve(data_2D, gauss_kernel)
 
-Smoothing the noisy data with a 
+Smoothing the noisy data with a
 :class:`~astropy.convolution.kernels.Tophat2DKernel` of width 5 pixels:
 
 >>> tophat_kernel = Tophat2DKernel(5)
@@ -281,7 +281,7 @@ Mode ``'integrate'`` integrates the function over the pixel using
 ``scipy.integrate.quad`` and ``scipy.integrate.dblquad``. This mode is very
 slow and only recommended when highest accuracy is required.
 
->>> gauss_integrate = Gaussian1DKernel(3, mode='integrate')
+>>> gauss_integrate = Gaussian1DKernel(3, mode='integrate')  # doctest: +REQUIRES_SCIPY
 
 Especially in the range where the kernel width is in order of only a few pixels
 it can be advantageous to use the mode ``oversample`` or ``integrate`` to
@@ -315,4 +315,3 @@ Note that for :class:`~astropy.convolution.kernels.MexicanHat1DKernel`
 and :class:`~astropy.convolution.kernels.MexicanHat2DKernel` there is
 :math:`\int_{-\infty}^{\infty} f(x) dx = 0`. To define a proper normalization
 both filters are derived from a normalized Gaussian function.
-

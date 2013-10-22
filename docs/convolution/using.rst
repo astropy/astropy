@@ -6,12 +6,12 @@ Overview
 
 Two convolution functions are provided.  They are imported as::
 
-    from astropy.convolution import convolve, convolve_fft
+    >>> from astropy.convolution import convolve, convolve_fft
 
 and are both used as::
 
-    result = convolve(image, kernel)
-    result = convolve_fft(image, kernel)
+    >>> result = convolve(image, kernel)  # doctest: +SKIP
+    >>> result = convolve_fft(image, kernel)  # doctest: +SKIP
 
 :func:`~astropy.convolution.convolve.convolve` is implemented as a
 direct convolution algorithm, while
@@ -42,48 +42,53 @@ the edge of the array. The values for ``boundary`` can be:
 By default, the kernel is not normalized. To normalize it prior to convolution,
 use::
 
-    >>> result = convolve(image, kernel, normalize_kernel=True)
+    >>> result = convolve(image, kernel, normalize_kernel=True)  # doctest: +SKIP
 
 Examples
 --------
 
 Smooth a 1D array with a custom kernel and no boundary treatment::
 
+    >>> import numpy as np
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
-    array([ 0. ,  3.4,  5. ,  5.6,  5.6,  5.2,  0. ])
+    array([ 1.4,  3.6,  5. ,  5.6,  5.6,  6.8,  6.2])
 
 As above, but using the 'extend' algorithm for boundaries::
 
     >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
     array([ 1.6,  3.6,  5. ,  5.6,  5.6,  6.8,  7.8])
 
-If a NaN value is present in the original array, it will be interpolated using the kernel::
+If a NaN value is present in the original array, it will be
+interpolated using the kernel::
 
     >>> import numpy as np
     >>> convolve([1, 4, 5, 6, np.nan, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
     array([ 1.6,  3.6,  5. ,  5.9,  6.5,  7.1,  7.8])
 
-Kernels and arrays can be specified either as lists or as Numpy arrays. The following examples show how to construct a 1-d array as a list::
+Kernels and arrays can be specified either as lists or as Numpy
+arrays. The following examples show how to construct a 1-d array as a
+list::
 
     >>> kernel = [0, 1, 0]
-    >>> result = convolve(spectrum, kernel)
+    >>> result = convolve(spectrum, kernel)  # doctest: +SKIP
 
 a 2-d array as a list::
 
-    >>> kernel = [[0, 1, 0], \
-                  [1, 2, 1], \
-                  [0, 1, 0]]
-    >>> result = convolve(image, kernel)
+    >>> kernel = [[0, 1, 0],
+    ...           [1, 2, 1],
+    ...           [0, 1, 0]]
+    >>> result = convolve(image, kernel)  # doctest: +SKIP
 
 and a 3-d array as a list::
 
-    >>> kernel = [[[0, 0, 0], [0, 2, 0], [0, 0, 0]], \
-                  [[0, 1, 0], [2, 3, 2], [0, 1, 0]], \
-                  [[0, 0, 0], [0, 2, 0], [0, 0, 0]]]
-    >>> result = convolve(cube, kernel)
+    >>> kernel = [[[0, 0, 0], [0, 2, 0], [0, 0, 0]],
+    ...           [[0, 1, 0], [2, 3, 2], [0, 1, 0]],
+    ...           [[0, 0, 0], [0, 2, 0], [0, 0, 0]]]
+    >>> result = convolve(cube, kernel)  # doctest: +SKIP
 
 Kernels
 -------
 
-The above examples uses custom kernels, but `astropy.convolution` also includes a
-number of built-in kernels, which are described in :doc:`kernels`.
+The above examples uses custom kernels, but `astropy.convolution` also
+includes a number of built-in kernels, which are described in
+:doc:`kernels`.
