@@ -183,16 +183,18 @@ def test_roundtrip():
 
 
 def test_roundtrip_vo_unit():
-    def _test_roundtrip_vo_unit(unit):
+    def _test_roundtrip_vo_unit(unit, skip_decompose):
         a = core.Unit(unit.to_string('vounit'), format='vounit')
-        b = core.Unit(unit.decompose().to_string('vounit'), format='vounit')
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
+        if skip_decompose:
+            return
+        b = core.Unit(unit.decompose().to_string('vounit'), format='vounit')
         assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
     x = u_format.VOUnit()
     for key, val in x._units.items():
         if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
-            yield _test_roundtrip_vo_unit, val
+            yield _test_roundtrip_vo_unit, val, val in (u.mag, u.dB)
 
 
 def test_roundtrip_fits():
@@ -207,16 +209,18 @@ def test_roundtrip_fits():
 
 
 def test_roundtrip_cds():
-    def _test_roundtrip_cds(unit):
+    def _test_roundtrip_cds(unit, skip_decompose):
         a = core.Unit(unit.to_string('cds'), format='cds')
-        b = core.Unit(unit.decompose().to_string('cds'), format='cds')
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
+        if skip_decompose:
+            return
+        b = core.Unit(unit.decompose().to_string('cds'), format='cds')
         assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
     x = u_format.CDS()
     for key, val in x._units.items():
         if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
-            yield _test_roundtrip_cds, val
+            yield _test_roundtrip_cds, val, val in (u.mag,)
 
 
 def test_roundtrip_ogip():

@@ -53,11 +53,11 @@ class VOUnit(generic.Generic):
                 names[key] = getattr(u, key)
 
         simple_units = [
-            'min', 'h', 'd', 'a', 'yr', 'deg', 'arcsec', 'arcmin', 'deg',
+            'min', 'h', 'd', 'a', 'yr', 'arcsec', 'arcmin', 'deg',
             'mas', 'AU', 'pc', 'u', 'eV', 'Jy']
 
         deprecated_units = [
-            'angstrom', 'Angstrom', 'barn', 'erg', 'G', 'mag', 'solMass',
+            'angstrom', 'Angstrom', 'barn', 'erg', 'G', 'mag', 'dB', 'solMass',
             'solLum', 'solRad', 'lyr', 'ct', 'count', 'photon', 'ph', 'R',
             'pix', 'pixel', 'D', 'Sun', 'chan', 'bin', 'voxel', 'bit', 'byte',
             'adu', 'beam']
