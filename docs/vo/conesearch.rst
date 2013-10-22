@@ -87,9 +87,9 @@ Select a 2MASS catalog from the list above that is to be searched:
 
 Query the selected 2MASS catalog around M31 with a 0.1-degree search radius:
 
->>> from astropy import coordinates as coord
+>>> from astropy.coordinates import ICRS
 >>> from astropy import units as u
->>> c = coord.ICRSCoordinates.from_name('M31')
+>>> c = ICRS.from_name('M31')
 >>> c.ra, c.dec
 (<Longitude 10d41m04.94988s>, <Latitude 41d16m07.50000s>)
 >>> result = conesearch.conesearch(c, 0.1 * u.degree, catalog_db=my_catname)
