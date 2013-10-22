@@ -151,28 +151,26 @@ attribute.
   >>> t['a'].fill_value = -99
   >>> t['b'].fill_value = 33
 
-  >>> # TODO: HELP ME FIX THIS
-  >>> # I think the result below is incorrect.  Possible bug?
   >>> print t.filled()
    a   b
   --- ---
     1  33
-    2   4
+  -99   4
 
   >>> print t['a'].filled()
    a
   ---
     1
-    2
+  -99
 
   >>> print t['a'].filled(999)
    a
   ---
     1
-    2
+  999
 
   >>> print t.filled(1000)
-   a   b
-  --- ----
-    1 1000
-    2    4
+   a    b
+  ---- ----
+     1 1000
+  1000    4
