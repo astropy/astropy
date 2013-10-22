@@ -8,6 +8,8 @@ Remaining TODOs
 
 - Support for multi-dimensional datasets as described in the API document
 
+- Non sky projections
+
 - Floating axes
 
 - Offset systems
