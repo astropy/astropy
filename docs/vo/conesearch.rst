@@ -17,13 +17,13 @@ Currently, the default Cone Search services used are a subset of those found in
 the STScI VAO Registry. They were hand-picked to represent commonly used
 catalogs below:
 
-    * 2MASS All-Sky
-    * HST Guide Star Catalog
-    * SDSS Data Release 7
-    * SDSS-III Data Release 8
-    * USNO A1
-    * USNO A2
-    * USNO B1
+* 2MASS All-Sky
+* HST Guide Star Catalog
+* SDSS Data Release 7
+* SDSS-III Data Release 8
+* USNO A1
+* USNO A2
+* USNO B1
 
 This subset undergoes daily validations hosted by STScI using
 :ref:`vo-sec-validator-validate`. Those that pass without
@@ -31,14 +31,14 @@ critical warnings or exceptions are used by :ref:`vo-sec-client-scs` by
 default. They are controlled by
 ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``:
 
-    #. 'conesearch_good'
-           Default. Passed validation without critical warnings and exceptions.
-    #. 'conesearch_warn'
-           Has critical warnings but no exceptions. Use at your own risk.
-    #. 'conesearch_exception'
-           Has some exceptions. *Never* use this.
-    #. 'conesearch_error'
-           Has network connection error. *Never* use this.
+#. ``'conesearch_good'``
+   Default. Passed validation without critical warnings and exceptions.
+#. ``'conesearch_warn'``
+   Has critical warnings but no exceptions. Use at your own risk.
+#. ``'conesearch_exception'``
+   Has some exceptions. *Never* use this.
+#. ``'conesearch_error'``
+   Has network connection error. *Never* use this.
 
 If you are a Cone Search service provider and would like to include your
 service in the list above, please open a
@@ -50,7 +50,7 @@ Caching
 
 Caching of downloaded contents is controlled by `astropy.utils.data`.
 To *not* use cached data, some functions in this package have a ``cache``
-keyword that can be set to `False`.
+keyword that can be set to ``False``.
 
 
 Getting Started
@@ -91,7 +91,7 @@ Query the selected 2MASS catalog around M31 with a 0.1-degree search radius:
 >>> from astropy import units as u
 >>> c = coord.ICRSCoordinates.from_name('M31')
 >>> c.ra, c.dec
-(<Longitude 10d41m04.94988s>, <Latitude 41d16m07.50000s>)
+(<Longitude 10.684708300000011 deg>, <Latitude 41.26875 deg>)
 >>> result = conesearch.conesearch(c, 0.1 * u.degree, catalog_db=my_catname)
 Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
 Downloading ...
@@ -129,8 +129,8 @@ masked_array(data = [41.192303 41.19426 41.19445 ..., 41.262123],
        fill_value = 1e+20)
 
 
-Using ``astropy.vo``
---------------------
+Using `astropy.vo`
+------------------
 
 This package has four main components across two subpackages:
 

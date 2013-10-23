@@ -1,8 +1,7 @@
-Using ``astropy.vo.client``
-===========================
+Using `astropy.vo.client`
+=========================
 
 This subpackage contains modules supporting VO client-side operations.
-
 
 .. _vo-sec-client-vos:
 
@@ -19,17 +18,17 @@ Configurable Items
 
 These parameters are set via :ref:`astropy_config`:
 
-    * ``astropy.io.votable.table.PEDANTIC``
-    * ``astropy.utils.data.REMOTE_TIMEOUT``
-    * ``astropy.vo.client.vos_catalog.BASEURL``
+* ``astropy.io.votable.table.PEDANTIC``
+* ``astropy.utils.data.REMOTE_TIMEOUT``
+* ``astropy.vo.client.vos_catalog.BASEURL``
 
 Examples
 ^^^^^^^^
 
 >>> from astropy.vo.client import vos_catalog
 
-Get all catalogs from a database named 'conesearch_good' (this contains
-Cone Search services that cleanly passed daily validations;
+Get all catalogs from a database named ``'conesearch_good'`` (this contains
+cone search services that cleanly passed daily validations;
 also see :ref:`Cone Search Examples <vo-sec-scs-examples>`):
 
 >>> my_db = vos_catalog.get_remote_catalog_db('conesearch_good')
@@ -37,7 +36,7 @@ Downloading http://stsdas.stsci.edu/astrolib/vo_databases/conesearch_good.json
 |============================================|  56/ 56k (100.00%)        00s
 >>> my_db
 <astropy.vo.client.vos_catalog.VOSDatabase at 0x2b0f3d0>
->>> print(str(my_db))
+>>> print(my_db)
 Guide Star Catalog 2.3 1
 SDSS DR7 - Sloan Digital Sky Survey Data Release 7 1
 SDSS DR7 - Sloan Digital Sky Survey Data Release 7 2
@@ -51,17 +50,17 @@ If you get timeout error, you need to use a custom timeout as follows:
 >>> with REMOTE_TIMEOUT.set_temp(30):
 ...     my_db = vos_catalog.get_remote_catalog_db('conesearch_good')
 
-Find catalog names containing 'usno*a2':
+Find catalog names containing ``'usno*a2'``:
 
 >>> my_db.list_catalogs(pattern='usno*a2')
 [u'The USNO-A2.0 Catalogue (Monet+ 1998) 1', u'USNO-A2 Catalogue 1']
 
-Get information for a catalog titled 'USNO-A2 Catalogue 1':
+Get information for a catalog titled ``'USNO-A2 Catalogue 1'``:
 
 >>> my_cat = my_db.get_catalog('USNO-A2 Catalogue 1')
 >>> my_cat
 <astropy.vo.client.vos_catalog.VOSCatalog at 0x1f78150>
->>> print(str(my_cat))
+>>> print(my_cat)
 title: USNO-A2 Catalogue
 url: http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-A2&
 >>> print(my_cat.dumps())
@@ -123,7 +122,7 @@ To get all catalogs in the database:
 
 >>> all_cats = [cat for key, cat in my_db.get_catalogs()]
 
-By default, pedantic is `False`:
+By default, pedantic is ``False``:
 
 >>> from astropy.io.votable.table import PEDANTIC
 >>> PEDANTIC()
@@ -142,7 +141,7 @@ To call a given VO service; In this case, a Cone Search
 <Quantity 0.5 deg>
 >>> result = vos_catalog.call_vo_service(
 ...     'conesearch_good',
-...     kwargs={'RA': c.ra.degree, 'DEC': c.dec.degree, 'SR': sr.degree},
+...     kwargs={'RA': c.ra.degree, 'DEC': c.dec.degree, 'SR': sr},
 ...     catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1')
 Trying http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/243/out&
 Downloading ...
@@ -159,7 +158,7 @@ To repeat the above and suppress *all* the screen outputs (not recommended):
 ...     warnings.simplefilter('ignore')
 ...     result = vos_catalog.call_vo_service(
 ...         'conesearch_good',
-...         kwargs={'RA': c.ra.degree, 'DEC': c.dec.degree, 'SR': sr.degree},
+...         kwargs={'RA': c.ra.degree, 'DEC': c.dec.degree, 'SR': sr},
 ...         catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1',
 ...         verbose=False)
 
@@ -176,14 +175,14 @@ Available databases are generated on the server-side hosted by STScI using
 ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``, which can be changed
 in :ref:`vo-sec-scs-config` below. Here are the available options:
 
-    #. 'conesearch_good'
-           Default. Passed validation without critical warnings and exceptions.
-    #. 'conesearch_warn'
-           Has critical warnings but no exceptions. Use at your own risk.
-    #. 'conesearch_exception'
-           Has some exceptions. *Never* use this.
-    #. 'conesearch_error'
-           Has network connection error. *Never* use this.
+#. ``'conesearch_good'``
+     Default. Passed validation without critical warnings and exceptions.
+#. ``'conesearch_warn'``
+     Has critical warnings but no exceptions. Use at your own risk.
+#. ``'conesearch_exception'``
+     Has some exceptions. *Never* use this.
+#. ``'conesearch_error'``
+     Has network connection error. *Never* use this.
 
 In the default setting, it searches the good Cone Search services one by one,
 stops at the first one that gives non-zero match(es), and returns the result.
@@ -215,10 +214,10 @@ Configurable Items
 
 These parameters are set via :ref:`astropy_config`:
 
-    * ``astropy.utils.data.REMOTE_TIMEOUT``
-    * ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``
-    * Also depends on
-      :ref:`General VO Services Access Configurable Items <vo-sec-vos-config>`
+* ``astropy.utils.data.REMOTE_TIMEOUT``
+* ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``
+
+Also depends on :ref:`General VO Services Access Configurable Items <vo-sec-vos-config>`.
 
 .. _vo-sec-scs-examples:
 
@@ -252,7 +251,7 @@ Select a catalog to search:
 
 >>> my_catname = 'The PMM USNO-A1.0 Catalogue (Monet 1997) 1'
 
-By default, pedantic is `False`:
+By default, pedantic is ``False``:
 
 >>> from astropy.io.votable.table import PEDANTIC
 >>> PEDANTIC()
@@ -431,7 +430,7 @@ INFO: conesearch_timer took 11.5103080273 s on AVERAGE for 1 call(s). [...]
 36184
 
 One can also search in a list of catalogs instead of a single one.
-In this example, we look for all catalogs containing 'guide*star' in their
+In this example, we look for all catalogs containing ``'guide*star'`` in their
 titles and only perform Cone Search using those services.
 The first catalog in the list to successfully return non-zero result is used.
 Therefore, the order of catalog names given in ``catalog_db`` is important:
@@ -505,9 +504,9 @@ False
 >>> all_gsc_results = async_search_all.get()
 
 If one is unable to obtain any results using the default
-Cone Search database, 'conesearch_good', that only contains
+Cone Search database, ``'conesearch_good'``, that only contains
 sites that cleanly passed validation, one can use :ref:`astropy_config`
-to use another database, 'conesearch_warn', containing sites with
+to use another database, ``'conesearch_warn'``, containing sites with
 validation warnings. One should use these sites with caution:
 
 >>> conesearch.CONESEARCH_DBNAME.set('conesearch_warn')

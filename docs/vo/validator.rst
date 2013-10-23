@@ -1,12 +1,11 @@
-Using ``astropy.vo.validator``
-==============================
+Using `astropy.vo.validator`
+============================
 
 VO services validator is used by STScI to support :ref:`vo-sec-client-scs`.
 Currently, only Cone Search services are supported.
 A typical user should not need the validator. However, this could be used by
 VO service providers to validate their services. Currently, any service
 to be validated has to be registered in STScI VAO Registry.
-
 
 .. _vo-sec-validator-validate:
 
@@ -34,25 +33,25 @@ it uses a default search for ``RA=0&DEC=0&SR=1``.
 The results are separated into 4 groups below. Each group
 is stored as a JSON database:
 
-    #. *conesearch_good.json*
-           Passed validation without critical warnings and
-           exceptions. This database residing in
-           ``astropy.vo.client.vos_catalog.BASEURL`` is the one used
-           by :ref:`vo-sec-client-scs` by default.
-    #. *conesearch_warn.json*
-           Has critical warnings but no exceptions. Users
-           can manually set
-           ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``
-           to use this at their own risk.
-    #. *conesearch_exception.json*
-           Has some exceptions. *Never* use this.
-           For informational purpose only.
-    #. *conesearch_error.json*
-           Has network connection error. *Never* use this.
-           For informational purpose only.
+#. ``conesearch_good.json``
+     Passed validation without critical warnings and
+     exceptions. This database residing in
+     ``astropy.vo.client.vos_catalog.BASEURL`` is the one used
+     by :ref:`vo-sec-client-scs` by default.
+#. ``conesearch_warn.json``
+     Has critical warnings but no exceptions. Users
+     can manually set
+     ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``
+     to use this at their own risk.
+#. ``conesearch_exception.json``
+     Has some exceptions. *Never* use this.
+     For informational purpose only.
+#. ``conesearch_error.json``
+     Has network connection error. *Never* use this.
+     For informational purpose only.
 
 HTML pages summarizing the validation results are stored in
-'results' sub-directory, which also contains downloaded XML
+``'results'`` sub-directory, which also contains downloaded XML
 files from individual Cone Search queries.
 
 Warnings and Exceptions
@@ -62,16 +61,15 @@ A subset of `astropy.io.votable.exceptions` that is considered
 non-critical is defined by ``astropy.vo.validator.validate.NONCRIT_WARNINGS``,
 which will not be flagged as bad by the validator. However,
 this does not change the behavior of ``astropy.io.votable.table.PEDANTIC``,
-which still needs to be set to `False` for them not to be thrown out
+which still needs to be set to ``False`` for them not to be thrown out
 by :func:`~astropy.vo.client.conesearch.conesearch`.
 Despite being listed as non-critical, user is responsible
 to check whether the results are reliable; They should not be
 used blindly.
 
-Some
-`units recognized by VizieR <http://cdsarc.u-strasbg.fr/vizier/Units.htx>`_
+Some `units recognized by VizieR <http://cdsarc.u-strasbg.fr/vizier/Units.htx>`_
 are considered invalid by Cone Search standards. As a result,
-they will give the warning 'W50', which is non-critical by default.
+they will give the warning ``'W50'``, which is non-critical by default.
 
 User can also modify ``astropy.vo.validator.validate.NONCRIT_WARNINGS`` to
 include or exclude any warnings or exceptions, as desired.
@@ -119,12 +117,12 @@ In the case of the same access URL appearing multiple times in
 the registry, the validator will store the first catalog with
 that access URL and throw out the rest. However, it will keep
 count of the number of duplicates thrown out in the
-'duplicatesIgnored' dictionary key of the catalog kept in the
+``'duplicatesIgnored'`` dictionary key of the catalog kept in the
 database.
 
 All the existing catalog tags will be copied over as dictionary
-keys, except 'accessURL' that is renamed to 'url' for simplicity.
-In addition, new keys named 'validate_xxx' are added; 'xxx' will
+keys, except ``'accessURL'`` that is renamed to ``'url'`` for simplicity.
+In addition, new keys named ``'validate_xxx'`` are added; ``'xxx'`` will
 be the original attribute names of
 `astropy.io.votable.validator.result.Result`.
 
@@ -133,12 +131,13 @@ Configurable Items
 
 These parameters are set via :ref:`astropy_config`:
 
-    * ``astropy.utils.data.REMOTE_TIMEOUT``
-    * ``astropy.vo.validator.validate.CS_MSTR_LIST``
-    * ``astropy.vo.validator.validate.CS_URLS``
-    * ``astropy.vo.validator.validate.NONCRIT_WARNINGS``
-    * Also depends on properties in
-      :ref:`Simple Cone Search Configurable Items <vo-sec-scs-config>`
+* ``astropy.utils.data.REMOTE_TIMEOUT``
+* ``astropy.vo.validator.validate.CS_MSTR_LIST``
+* ``astropy.vo.validator.validate.CS_URLS``
+* ``astropy.vo.validator.validate.NONCRIT_WARNINGS``
+
+Also depends on properties in
+:ref:`Simple Cone Search Configurable Items <vo-sec-scs-config>`.
 
 .. _vo-sec-validate-examples:
 
@@ -169,7 +168,7 @@ INFO: total: 31 catalog(s) [astropy.vo.server.validate]
 INFO: Validation of 31 site(s) took 129.094 s [astropy.vo.server.validate]
 
 From the master registry, select Cone Search access URLs
-hosted by 'stsci.edu':
+hosted by ``'stsci.edu'``:
 
 >>> import numpy as np
 >>> from astropy.io.votable import parse_single_table
@@ -196,7 +195,7 @@ WARNING: W20: None:2:0: W20: No version number specified in file...
 Validate only the URLs found above without verbose
 outputs (except warnings that are controlled by :py:mod:`warnings`)
 or multiprocessing, and write results in
-'subset' sub-directory instead of the current directory:
+``'subset'`` sub-directory instead of the current directory:
 
 >>> with REMOTE_TIMEOUT.set_temp(30):
 ...     validate.check_conesearch_sites(
@@ -204,7 +203,7 @@ or multiprocessing, and write results in
 WARNING: W49: ... Empty cell illegal for integer fields...
 # ...
 
-Add 'W24' from `astropy.io.votable.exceptions` to the list of
+Add ``'W24'`` from `astropy.io.votable.exceptions` to the list of
 non-critical warnings to be ignored and re-run default validation.
 This is *not* recommended unless you know exactly what you are doing:
 
@@ -214,7 +213,7 @@ This is *not* recommended unless you know exactly what you are doing:
 
 Reset the list of ignored warnings back to default value.
 Validate *all* Cone Search services in the master registry
-(this will take a while) and write results in 'all' sub-directory:
+(this will take a while) and write results in ``'all'`` sub-directory:
 
 >>> validate.NONCRIT_WARNINGS.set(validate.NONCRIT_WARNINGS.defaultvalue)
 >>> with REMOTE_TIMEOUT.set_temp(30):
@@ -257,7 +256,7 @@ the actual VO Table returned by the Cone Search query:
 Inspection of Validation Results
 --------------------------------
 
-`astropy.vo.validator.inspect` inspects results from
+`~astropy.vo.validator.inspect` inspects results from
 :ref:`vo-sec-validator-validate`. It reads in JSON databases
 residing in ``astropy.vo.client.vos_catalog.BASEURL``, which
 can be changed to point to a different location.
@@ -267,7 +266,7 @@ Configurable Items
 
 This parameter is set via :ref:`astropy_config`:
 
-    * ``astropy.vo.client.vos_catalog.BASEURL``
+* ``astropy.vo.client.vos_catalog.BASEURL``
 
 Examples
 ^^^^^^^^
@@ -317,7 +316,7 @@ W17,W42,W21
 
 List Cone Search catalogs with warnings, excluding warnings that
 were ignored in ``astropy.vo.validator.validate.NONCRIT_WARNINGS``,
-and writes the output to a file named 'warn_cats.txt' in the current
+and writes the output to a file named ``'warn_cats.txt'`` in the current
 directory. This is useful to see why the services failed validations:
 
 >>> with open('warn_cats.txt', 'w') as fout:
@@ -332,7 +331,7 @@ List the titles of all good Cone Search catalogs:
  u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 3', ...,
  u'USNO-A2 Catalogue 1']
 
-Print the details of catalog titled 'USNO-A2 Catalogue 1':
+Print the details of catalog titled ``'USNO-A2 Catalogue 1'``:
 
 >>> r.print_cat('USNO-A2 Catalogue 1')
 {
@@ -346,7 +345,7 @@ Print the details of catalog titled 'USNO-A2 Catalogue 1':
 }
 Found in good
 
-Load Cone Search validation results from a local directory named 'subset'.
+Load Cone Search validation results from a local directory named ``'subset'``.
 This is useful if you ran your own :ref:`vo-sec-validator-validate`
 and wish to inspect the output databases. This example reads in
 validation of STScI Cone Search services done in
