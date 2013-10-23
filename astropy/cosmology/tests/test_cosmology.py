@@ -298,12 +298,9 @@ def test_efunc_vs_invefunc():
     z0 = 0.5
     z = np.array([0.5, 1.0, 2.0, 5.0])
     
-    # Try to do all the classes here
-    # FLRW is abstract, so requires test_cos_sub defined earlier
-    cosmo = test_cos_sub()
-    assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
-    assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
     # Below are the 'standard' included cosmologies
+    # We do the non-standard case in test_efunc_vs_invefunc_flrw,
+    # since it requires scipy
     cosmo = core.LambdaCDM(70, 0.3, 0.5)
     assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
     assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
@@ -331,6 +328,18 @@ def test_efunc_vs_invefunc():
     cosmo = core.w0wzCDM(55.0, 0.4, 0.8, w0=-1.05, wz=-0.2)
     assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
     assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_efunc_vs_invefunc_flrw():
+    z0 = 0.5
+    z = np.array([0.5, 1.0, 2.0, 5.0])
+    
+    # FLRW is abstract, so requires test_cos_sub defined earlier
+    # This requires scipy, unlike the built-ins
+    cosmo = test_cos_sub()
+    assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_kpc_methods():
