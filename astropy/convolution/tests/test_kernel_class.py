@@ -177,5 +177,123 @@ class TestKernels(object):
         """
         Check if multiplying two kernels with eachother works correctly.
         """
-        gauss = Gaussian1DKernel(3)
-        assert np.all(np.abs(3 * gauss.array - 3 * gauss) < 0.000001)
+        gauss = 1 * Gaussian1DKernel(3)
+        assert np.all(np.abs(3 * gauss.array - gauss * 3) < 0.000001)
+
+    def test_custom_1D_kernel(self):
+        """
+        Check if CustomKernel against Box1DKernel.
+        """
+        #Define one dimensional array:
+        array = np.ones(5)
+        custom = CustomKernel(array)
+        custom.normalize()
+        box = Box1DKernel(5)
+
+        c2 = convolve(delta_pulse_1D, custom, boundary='fill')
+        c1 = convolve(delta_pulse_1D, box, boundary='fill')
+        assert_almost_equal(c1, c2, decimal=12)
+
+    def test_custom_2D_kernel(self):
+        """
+        Check if CustomKernel against Box1DKernel.
+        """
+        #Define one dimensional array:
+        array = np.ones((5, 5))
+        custom = CustomKernel(array)
+        custom.normalize()
+        box = Box2DKernel(5)
+
+        c2 = convolve(delta_pulse_2D, custom, boundary='fill')
+        c1 = convolve(delta_pulse_2D, box, boundary='fill')
+        assert_almost_equal(c1, c2, decimal=12)
+
+    def test_custom_1D_kernel_list(self):
+        """
+        Check if CustomKernel works with lists.
+        """
+        custom = CustomKernel([1, 1, 1, 1, 1])
+        assert custom.is_bool == True
+
+    def test_custom_2D_kernel_list(self):
+        """
+        Check if CustomKernel works with lists.
+        """
+        custom = CustomKernel([[1, 1, 1],
+                               [1, 1, 1],
+                               [1, 1, 1]])
+        assert custom.is_bool == True
+
+    def test_custom_kernel_odd_error(self):
+        """
+        Check if CustomKErnel raises if the array size is odd.
+        """
+        with pytest.raises(KernelSizeError):
+            custom = CustomKernel([1, 1, 1, 1])
+
+    def test_add_1D_kernels(self):
+        """
+        Check if adding of two 1D kernels works.
+        """
+        box_1 = Box1DKernel(5)
+        box_2 = Box1DKernel(3)
+        box_3 = Box1DKernel(1)
+        box_sum = box_1 + box_2 + box_3
+        ref = [1/5., 1/5. + 1/3., 1 + 1/3. + 1/5., 1/5. + 1/3., 1/5.]
+        assert_almost_equal(box_sum.array, ref, decimal=12)
+
+    def test_add_2D_kernels(self):
+        """
+        Check if adding of two 1D kernels works.
+        """
+        box_1 = Box2DKernel(3)
+        box_2 = Box2DKernel(1)
+        box_sum = box_1 + box_2
+        ref = [[1 / 9., 1 / 9., 1 / 9.],
+               [1 / 9., 1 + 1 / 9., 1 / 9.],
+               [1 / 9., 1 / 9., 1 / 9.]]
+        assert_almost_equal(box_sum.array, ref, decimal=12)
+
+    def test_Gaussian1DKernel_even_size(self):
+        """
+        Check if even size for GaussianKernel works.
+        """
+        gauss = Gaussian1DKernel(3, x_size=10)
+        assert gauss.array.size == 10
+
+    def test_Gaussian2DKernel_even_size(self):
+        """
+        Check if even size for GaussianKernel works.
+        """
+        gauss = Gaussian2DKernel(3, x_size=10, y_size=10)
+        assert gauss.array.shape == (10, 10)
+
+    def test_normalize_peak(self):
+        """
+        Check if normalize works with peak mode.
+        """
+        custom = CustomKernel([1, 2, 3, 2, 1])
+        custom.normalize(mode='peak')
+        assert custom.array.max() == 1
+
+    def test_check_kernel_attributes(self):
+        """
+        Check if kernel attributes are correct.
+        """
+        box = Box2DKernel(5)
+
+        # Check truncation
+        assert box.truncation == 0
+
+        # Check model
+        assert isinstance(box.model, Box2DModel)
+
+        # Check center
+        assert box.center == [2, 2]
+
+        # Check normalization
+        assert box.normalization == 1.
+
+        # Check seperability
+        assert box.separable
+
