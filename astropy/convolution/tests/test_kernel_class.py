@@ -1,16 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import itertools
+
 import numpy as np
+from numpy.testing import assert_almost_equal
 
 from ...tests.helper import pytest
 from ..convolve import convolve, convolve_fft
 from ..kernels import (
     Gaussian1DKernel, Gaussian2DKernel, Box1DKernel, Box2DKernel,
     Trapezoid1DKernel, TrapezoidDisk2DKernel, MexicanHat1DKernel,
-    Tophat2DKernel, MexicanHat2DKernel, Ring2DKernel)
+    Tophat2DKernel, MexicanHat2DKernel, AiryDisk2DKernel, Ring2DKernel,
+    CustomKernel)
 
-from numpy.testing import assert_almost_equal
-
-import itertools
+from ..utils import KernelSizeError
+from ...modeling.models import Box2DModel
 
 try:
     from scipy.ndimage import filters
@@ -22,7 +25,7 @@ widths = [3, 5, 7, 9]
 kernel_types = [Gaussian1DKernel, Gaussian2DKernel,
                 Box1DKernel, Box2DKernel,
                 Trapezoid1DKernel, TrapezoidDisk2DKernel,
-                MexicanHat1DKernel, Tophat2DKernel, Ring2DKernel]
+                MexicanHat1DKernel, Tophat2DKernel, AiryDisk2DKernel, Ring2DKernel]
 
 # Test data
 delta_pulse_1D = np.zeros(81)
@@ -85,6 +88,8 @@ class TestKernels(object):
         """
         Test smoothing of an image with a single positive pixel
         """
+        if kernel_type == AiryDisk2DKernel and not HAS_SCIPY:
+            pytest.skip("Omitting AiryDisk2DKernel, which requires SciPy")
         if not kernel_type == Ring2DKernel:
             kernel = kernel_type(width)
         else:
@@ -104,6 +109,8 @@ class TestKernels(object):
         """
         Test smoothing of an image made of random noise
         """
+        if kernel_type == AiryDisk2DKernel and not HAS_SCIPY:
+            pytest.skip("Omitting AiryDisk2DKernel, which requires SciPy")
         if not kernel_type == Ring2DKernel:
             kernel = kernel_type(width)
         else:
@@ -135,8 +142,6 @@ class TestKernels(object):
     def test_smallkernel_vs_Box2DKernel(self, width):
         """
         Test smoothing of an image with a single positive pixel
-
-        Compares a small kernel to something produced by makekernel
         """
         kernel1 = np.ones([width, width]) / width ** 2
         kernel2 = Box2DKernel(width)
