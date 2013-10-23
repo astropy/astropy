@@ -301,7 +301,7 @@ def get_package_data():
                                    'data/*.txt',
                                    'maps/*.hdr', 'spectra/*.hdr'],
         str('astropy.wcs'): ['include/astropy_wcs/*.h',
-                             'include/*.h']
+                             'include/astropy_wcs_api.h']
     }
 
 
