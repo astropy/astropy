@@ -349,5 +349,5 @@ def kernel_arithmetics(kernel, value, operation):
         else:
             raise Exception("Kernel operation not supported.")
     else:
-        raise Exception("Kernel operation not supported.")
+        raise Exception("Operations between 1D and 2D kernels are not supported.")
     return new_kernel
