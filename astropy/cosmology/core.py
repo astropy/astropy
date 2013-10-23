@@ -71,8 +71,6 @@ class FLRW(Cosmology):
     Class instances are static -- you can't change the values
     of the parameters.  That is, all of the attributes above are
     read only.
-
-    The neutrino treatment assumes all neutrino species are massless.
     """
     __metaclass__ = ABCMeta
 
@@ -1608,7 +1606,7 @@ class wCDM(FLRW):
 
         if isiterable(z):
             z = np.asarray(z)
-        Om0, Ode0, Ok0, w0 = self._Om0, self._Ode, self._Ok0, self._w0
+        Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
         if self._massivenu:
             Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
         else:
@@ -1736,7 +1734,7 @@ class FlatwCDM(wCDM):
 
         if isiterable(z):
             z = np.asarray(z)
-        Om0, Ode0, w0 = self._Om0, self._Ode, self._w0
+        Om0, Ode0, w0 = self._Om0, self._Ode0, self._w0
         if self._massivenu:
             Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
         else:

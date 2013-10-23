@@ -106,7 +106,7 @@ def test_flat_z1():
 
 # This class is to test whether the routines work correctly
 # if one only overloads w(z)
-class test_cos(core.FLRW):
+class test_cos_sub(core.FLRW):
     def __init__(self):
         core.FLRW.__init__(self, 70.0, 0.27, 0.73, Tcmb0=0.0, name="test_cos")
         self._w0 = -0.9
@@ -124,7 +124,7 @@ def test_de_subclass():
     assert np.allclose(cosmo.luminosity_distance(z).value,
                        [975.5, 2158.2, 3507.3, 5773.1], rtol=1e-3)
     # Now try the subclass that only gives w(z)
-    cosmo = test_cos()
+    cosmo = test_cos_sub()
     assert np.allclose(cosmo.luminosity_distance(z).value,
                        [975.5, 2158.2, 3507.3, 5773.1], rtol=1e-3)
     # Test efunc
@@ -292,6 +292,45 @@ def test_tnu():
     z = [0.0, 1.0, 2.0, 3.0]
     assert np.allclose(cosmo.Tnu(z), [2.14129757, 4.28259513, 
                                       6.4238927, 8.56519027], rtol=1e-6)
+
+def test_efunc_vs_invefunc():
+    # Test that efunc and inv_efunc give the same values
+    z0 = 0.5
+    z = np.array([0.5, 1.0, 2.0, 5.0])
+    
+    # Try to do all the classes here
+    # FLRW is abstract, so requires test_cos_sub defined earlier
+    cosmo = test_cos_sub()
+    assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+    # Below are the 'standard' included cosmologies
+    cosmo = core.LambdaCDM(70, 0.3, 0.5)
+    assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+    cosmo = core.LambdaCDM(70, 0.3, 0.5, m_nu=u.Quantity(0.01, u.eV))
+    assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+    cosmo = core.FlatLambdaCDM(50.0, 0.27)
+    assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+    cosmo = core.wCDM(60.0, 0.27, 0.6, w0=-0.8)
+    assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+    cosmo = core.FlatwCDM(65.0, 0.27, w0=-0.6)
+    assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+    cosmo = core.w0waCDM(60.0, 0.25, 0.4, w0=-0.6, wa=0.1)
+    assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+    cosmo = core.Flatw0waCDM(55.0, 0.35, w0=-0.9, wa=-0.2)
+    assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+    cosmo = core.wpwaCDM(50.0, 0.3, 0.3, wp=-0.9, wa=-0.2, zp=0.3)
+    assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+    cosmo = core.w0wzCDM(55.0, 0.4, 0.8, w0=-1.05, wz=-0.2)
+    assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_kpc_methods():
