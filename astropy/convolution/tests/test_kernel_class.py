@@ -22,6 +22,7 @@ except ImportError:
     HAS_SCIPY = False
 
 widths = [3, 5, 7, 9]
+modes = ['center', 'linear_interp', 'oversample', 'integrate']
 kernel_types = [Gaussian1DKernel, Gaussian2DKernel,
                 Box1DKernel, Box2DKernel,
                 Trapezoid1DKernel, TrapezoidDisk2DKernel,
@@ -296,4 +297,27 @@ class TestKernels(object):
 
         # Check seperability
         assert box.separable
+
+    @pytest.mark.parametrize(('kernel_type', 'mode'), list(itertools.product(kernel_types, modes)))
+    def test_dicretize_modes(self, kernel_type, mode):
+        """
+        Check if the different modes result in kernels that work with convolve.
+        Use only small kernel width, to make the test pass quickly.
+        """
+        if kernel_type == AiryDisk2DKernel and not HAS_SCIPY:
+            pytest.skip("Omitting AiryDisk2DKernel, which requires SciPy")
+        if not kernel_type == Ring2DKernel:
+            kernel = kernel_type(3)
+        else:
+            kernel = kernel_type(3, 3 * 0.2)
+
+        if kernel.dimension == 1:
+            c1 = convolve_fft(delta_pulse_1D, kernel, boundary='fill')
+            c2 = convolve(delta_pulse_1D, kernel, boundary='fill')
+            assert_almost_equal(c1, c2, decimal=12)
+        else:
+            c1 = convolve_fft(delta_pulse_2D, kernel, boundary='fill')
+            c2 = convolve(delta_pulse_2D, kernel, boundary='fill')
+            assert_almost_equal(c1, c2, decimal=12)
+
 
