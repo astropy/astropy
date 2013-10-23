@@ -21,11 +21,33 @@ def test_basic():
     assert np.allclose(cosmo.Ok0, 0.0)
     assert np.allclose(cosmo.Om0 + cosmo.Ode0 + cosmo.Ogamma0 + cosmo.Onu0, 
                        1.0, rtol=1e-6)
+    assert np.allclose(cosmo.Om(1) + cosmo.Ode(1) + cosmo.Ogamma(1) +\
+                       cosmo.Onu(1), 1.0, rtol=1e-6)
     assert np.allclose(cosmo.Tcmb0.value, 2.0)
     assert np.allclose(cosmo.Tnu0.value, 1.4275317, rtol=1e-5)
     assert np.allclose(cosmo.Neff, 3.04)
     assert np.allclose(cosmo.h, 0.7)
     assert np.allclose(cosmo.H0.value, 70.0)
+
+    # Make sure setting them as quantities gives the same results
+    H0 = u.Quantity(70, u.km / (u.s * u.Mpc))
+    T = u.Quantity(2.0, u.K)
+    cosmo = core.FlatLambdaCDM(H0=H0, Om0=0.27, Tcmb0=T, Neff=3.04)
+    assert np.allclose(cosmo.Om0, 0.27)
+    assert np.allclose(cosmo.Ode0, 0.729975, rtol=1e-4)
+    assert np.allclose(cosmo.Ogamma0, 1.463285e-5, rtol=1e-4)
+    assert np.allclose(cosmo.Onu0, 1.01026e-5, rtol=1e-4)
+    assert np.allclose(cosmo.Ok0, 0.0)
+    assert np.allclose(cosmo.Om0 + cosmo.Ode0 + cosmo.Ogamma0 + cosmo.Onu0, 
+                       1.0, rtol=1e-6)
+    assert np.allclose(cosmo.Om(1) + cosmo.Ode(1) + cosmo.Ogamma(1) +\
+                       cosmo.Onu(1), 1.0, rtol=1e-6)
+    assert np.allclose(cosmo.Tcmb0.value, 2.0)
+    assert np.allclose(cosmo.Tnu0.value, 1.4275317, rtol=1e-5)
+    assert np.allclose(cosmo.Neff, 3.04)
+    assert np.allclose(cosmo.h, 0.7)
+    assert np.allclose(cosmo.H0.value, 70.0)
+    
         
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_units():
@@ -105,7 +127,16 @@ def test_de_subclass():
     cosmo = test_cos()
     assert np.allclose(cosmo.luminosity_distance(z).value,
                        [975.5, 2158.2, 3507.3, 5773.1], rtol=1e-3)
-
+    # Test efunc
+    assert np.allclose(cosmo.efunc(1.0), 1.7489240754, rtol=1e-5)
+    assert np.allclose(cosmo.efunc([0.5, 1.0]), 
+                       [1.31744953, 1.7489240754], rtol=1e-5)
+    assert np.allclose(cosmo.inv_efunc([0.5, 1.0]), 
+                       [0.75904236, 0.57178011], rtol=1e-5)
+    # Test de_density_scale
+    assert np.allclose(cosmo.de_density_scale(1.0), 1.23114444, rtol=1e-4)
+    assert np.allclose(cosmo.de_density_scale([0.5, 1.0]), 
+                       [1.12934694, 1.23114444], rtol=1e-4)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_varyde_lumdist_mathematica():
