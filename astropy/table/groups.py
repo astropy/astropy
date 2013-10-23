@@ -1,3 +1,4 @@
+import platform
 import warnings
 from itertools import izip, count
 
@@ -52,12 +53,26 @@ def table_group_by(table, keys):
         raise TypeError('Keys input must be string, list, tuple or numpy array, but got {0}'
                         .format(type(keys)))
 
-    idx_sort = table_keys.argsort()
+    try:
+        idx_sort = table_keys.argsort(kind='mergesort')
+        stable_sort = True
+    except TypeError:
+        # Some versions (likely 1.6 and earlier) of numpy don't support
+        # 'mergesort' for all data types.  MacOSX (Darwin) doesn't have a stable
+        # sort by default while Linux does (or appears to).
+        idx_sort = table_keys.argsort()
+        stable_sort = platform.system() != 'Darwin'
     table_keys = table_keys[idx_sort]
 
     # Get all keys
     diffs = np.concatenate(([True], table_keys[1:] != table_keys[:-1], [True]))
     indices = np.flatnonzero(diffs)
+
+    # If the sort is not stable (preserves original table order) then sort idx_sort in
+    # place within each group.
+    if not stable_sort:
+        for i0, i1 in izip(indices[:-1], indices[1:]):
+            idx_sort[i0:i1].sort()
 
     # Make a new table and set the _groups to the appropriate TableGroups object.
     # Take the subset of the original keys at the indices values (group boundaries).

@@ -2273,7 +2273,7 @@ class Table(object):
         if hasattr(self, '_groups'):
             del self._groups
 
-    def argsort(self, keys=None):
+    def argsort(self, keys=None, kind=None):
         """
         Return the indices which would sort the table according to one or more key columns.
         This simply calls the `numpy.argsort` function on the table with the ``order``
@@ -2283,6 +2283,8 @@ class Table(object):
         ----------
         keys : str or list of str
             The column name(s) to order the table by
+        kind : {'quicksort', 'mergesort', 'heapsort'}, optional
+            Sorting algorithm.
 
         Returns
         -------
@@ -2291,7 +2293,12 @@ class Table(object):
         """
         if isinstance(keys, basestring):
             keys = [keys]
-        kwargs = {'order': keys} if keys else {}
+        kwargs = {}
+        if keys:
+            kwargs['order'] = keys
+        if kind:
+            kwargs['kind'] = kind
+
         return self._data.argsort(**kwargs)
 
     def sort(self, keys):
