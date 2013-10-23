@@ -191,9 +191,8 @@ def set_enabled_units(units):
     units : list of sequences, dicts, or modules containing units, or units
         This is a list of things in which units may be found
         (sequences, dicts or modules), or units themselves.  The
-        entire set will be "enabled" for searching through by
-        methods like `UnitBase.find_equivalent_units` and
-        `UnitBase.compose`.
+        entire set will be "enabled" for searching through by methods
+        like `UnitBase.find_equivalent_units` and `UnitBase.compose`.
 
     Examples
     --------
@@ -237,11 +236,11 @@ def add_enabled_units(units):
     Parameters
     ----------
     units : list of sequences, dicts, or modules containing units, or units
-            This is a list of things in which units may be found
+        This is a list of things in which units may be found
         (sequences, dicts or modules), or units themselves.  The
-        entire set will be added to the "enabled" set for
-        searching through by methods like
-        `UnitBase.find_equivalent_units` and `UnitBase.compose`.
+        entire set will be added to the "enabled" set for searching
+        through by methods like `UnitBase.find_equivalent_units` and
+        `UnitBase.compose`.
 
     Examples
     --------
