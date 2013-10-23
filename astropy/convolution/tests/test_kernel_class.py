@@ -293,7 +293,7 @@ class TestKernels(object):
         assert box.center == [2, 2]
 
         # Check normalization
-        assert box.normalization == 1.
+        assert_almost_equal(box.normalization, 1., decimal=12)
 
         # Check seperability
         assert box.separable
