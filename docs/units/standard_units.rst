@@ -28,8 +28,8 @@ to worry about the various kinds of unit classes unless one wants to
 design a more complex case.
 
 There are many units already predefined in the module. One may use the
-following function to list all the existing predefined units of a
-given type::
+`~astropy.units.core.UnitBase.find_equivalent_units` method to list
+all the existing predefined units of a given type::
 
   >>> from astropy import units as u
   >>> u.g.find_equivalent_units()
@@ -54,7 +54,7 @@ equal to `None`: that indicates that no unit was specified in the data
 or by the user.
 
 For convenience, there is a unit that is both dimensionless and
-unscaled: the `~astropy.units.dimensionless_unscaled` object::
+unscaled: the `~astropy.units.core.dimensionless_unscaled` object::
 
    >>> from astropy import units as u
    >>> u.dimensionless_unscaled
@@ -86,7 +86,7 @@ For example::
    False
 
 To determine if a unit is dimensionless (but regardless of the scale),
-use the `physical_type` property::
+use the `~astropy.units.core.UnitBase.physical_type` property::
 
    >>> (u.km / u.m).physical_type
    u'dimensionless'
@@ -101,9 +101,10 @@ Enabling other units
 --------------------
 
 By default, only the "default" units are searched by
-`find_equivalent_units` and similar methods that do searching.  This
-includes SI, CGS and astrophysical units.  However, one may wish to
-enable the imperial or other user-defined units.
+`~astropy.units.core.UnitBase.find_equivalent_units` and similar
+methods that do searching.  This includes SI, CGS and astrophysical
+units.  However, one may wish to enable the imperial or other
+user-defined units.
 
 For example, to enable Imperial units, simply do::
 
@@ -127,14 +128,15 @@ For example, to enable Imperial units, simply do::
       yd           | 0.9144 m        | yard             ,
     ]
 
-To enable just specific units, use `~astropy.units.add_enabled_units`::
+To enable just specific units, use
+`~astropy.units.core.add_enabled_units`::
 
     >>> from astropy import units as u
     >>> from astropy.units import imperial
     >>> u.add_enabled_units([imperial.knot])
 
-A context manager, `~astropy.units.add_enabled_units_context` is also
-provided, to temporarily enable additional units::
+A context manager, `~astropy.units.core.add_enabled_units_context` is
+also provided, to temporarily enable additional units::
 
     >>> from astropy import units as u
     >>> from astropy.units import imperial
