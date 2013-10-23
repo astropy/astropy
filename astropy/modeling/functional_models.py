@@ -939,8 +939,13 @@ class AiryDisk2DModel(Parametric2DModel):
         Model function Airy2D.
         """
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / width
-        return np.select([r == 0], [1], amplitude * (self._j1(2 * np.pi * r)
-                                                     / (np.pi * r)) ** 2)
+
+        # Since r can be zero, we have to take care to treat that case
+        # separately so as not to raise a Numpy warning
+        z = np.ones(r.shape)
+        z[r > 0] = amplitude * (self._j1(2 * np.pi * r[r > 0]) / (np.pi * r[r > 0])) ** 2
+
+        return z
 
 
 class Beta1DModel(Parametric1DModel):
