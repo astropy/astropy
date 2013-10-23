@@ -307,7 +307,7 @@ class Generic(Base):
             if p[1] == 'sqrt':
                 p[0] = p[3] ** 0.5
             else:
-               raise ValueError(
+                raise ValueError(
                    '{0!r} is not a recognized function'.format(p[1]))
 
         def p_error(p):

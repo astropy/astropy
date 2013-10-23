@@ -12,18 +12,18 @@ _lr_action_items = {'DIVISION':([0,4,6,9,10,11,12,13,17,18,20,23,26,27,29,31,32,
 
 _lr_action = { }
 for _k, _v in _lr_action_items.items():
-   for _x,_y in zip(_v[0],_v[1]):
-      if not _x in _lr_action:  _lr_action[_x] = { }
-      _lr_action[_x][_k] = _y
+    for _x,_y in zip(_v[0],_v[1]):
+        if not _x in _lr_action:  _lr_action[_x] = { }
+        _lr_action[_x][_k] = _y
 del _lr_action_items
 
 _lr_goto_items = {'division_of_units':([0,9,12,26,27,],[2,2,2,2,2,]),'main':([0,],[3,]),'unit_with_power':([0,1,9,12,26,27,],[4,4,4,4,4,4,]),'signed_float':([0,],[6,]),'sign':([0,11,],[7,24,]),'product_of_units':([0,9,12,26,27,],[8,8,8,8,8,]),'signed_int':([10,28,30,],[20,35,36,]),'factor':([0,],[12,]),'unit_expression':([0,1,9,12,26,27,],[13,15,13,13,13,13,]),'numeric_power':([11,],[23,]),'combined_units':([0,9,12,26,27,],[14,19,25,33,34,]),}
 
 _lr_goto = { }
 for _k, _v in _lr_goto_items.items():
-   for _x,_y in zip(_v[0],_v[1]):
-       if not _x in _lr_goto: _lr_goto[_x] = { }
-       _lr_goto[_x][_k] = _y
+    for _x,_y in zip(_v[0],_v[1]):
+        if not _x in _lr_goto: _lr_goto[_x] = { }
+        _lr_goto[_x][_k] = _y
 del _lr_goto_items
 _lr_productions = [
   ("S' -> main","S'",1,None,None,None),

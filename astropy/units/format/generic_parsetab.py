@@ -12,18 +12,18 @@ _lr_action_items = {'CARET':([17,18,34,40,],[35,35,35,35,]),'SOLIDUS':([0,3,4,7,
 
 _lr_action = { }
 for _k, _v in _lr_action_items.items():
-   for _x,_y in zip(_v[0],_v[1]):
-      if not _x in _lr_action:  _lr_action[_x] = { }
-      _lr_action[_x][_k] = _y
+    for _x,_y in zip(_v[0],_v[1]):
+        if not _x in _lr_action:  _lr_action[_x] = { }
+        _lr_action[_x][_k] = _y
 del _lr_action_items
 
 _lr_goto_items = {'function':([0,6,7,8,13,23,28,32,],[12,12,12,12,12,12,12,12,]),'division':([0,4,7,25,64,],[13,23,13,23,66,]),'product':([8,],[28,]),'frac':([43,],[57,]),'factor_int':([0,],[19,]),'power':([17,18,34,40,],[36,41,49,53,]),'unit_with_power':([0,6,7,8,13,23,28,32,],[3,3,3,3,3,3,3,3,]),'signed_float':([0,43,],[14,58,]),'product_of_units':([0,6,7,8,28,],[4,24,25,31,47,]),'factor_float':([0,],[15,]),'sign':([0,18,36,41,43,49,53,66,],[2,42,42,42,59,42,42,67,]),'signed_int':([17,34,40,],[39,50,54,]),'division_product_of_units':([0,7,],[5,26,]),'factor':([0,],[7,]),'unit_expression':([0,6,7,8,13,23,28,32,],[8,8,8,8,33,45,8,48,]),'numeric_power':([18,36,41,49,53,],[44,51,55,62,63,]),'main':([0,],[9,]),'paren_expr':([43,],[60,]),'inverse_unit':([0,7,],[10,27,]),'function_name':([0,6,7,8,13,23,28,32,],[11,11,11,11,11,11,11,11,]),}
 
 _lr_goto = { }
 for _k, _v in _lr_goto_items.items():
-   for _x,_y in zip(_v[0],_v[1]):
-       if not _x in _lr_goto: _lr_goto[_x] = { }
-       _lr_goto[_x][_k] = _y
+    for _x,_y in zip(_v[0],_v[1]):
+        if not _x in _lr_goto: _lr_goto[_x] = { }
+        _lr_goto[_x][_k] = _y
 del _lr_goto_items
 _lr_productions = [
   ("S' -> main","S'",1,None,None,None),
