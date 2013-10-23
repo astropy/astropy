@@ -89,6 +89,11 @@ or dimensionless quantities::
           be implicitly dropped without a warning. Always check that the
           function you are using treats the units correctly.
 
+Imperial units are not enabled by default.  To enable them do:
+
+    >>> from astropy.units import imperial
+    >>> imperial.enable()
+
 Deprecated API
 ``````````````
 The exception `astropy.units.UnitsException` has been renamed to
