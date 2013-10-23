@@ -14,10 +14,10 @@ from . import astrophys
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
-           'brightness_temperature', 'angles_dimensionless']
+           'brightness_temperature', 'dimensionless_angles']
 
 
-def angles_dimensionless():
+def dimensionless_angles():
     """Allow angles to be equivalent to dimensionless (with 1 rad = 1 m/m = 1).
 
     It is special compared to other equivalency pairs in that it

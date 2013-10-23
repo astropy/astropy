@@ -52,12 +52,12 @@ Angles as Dimensionless Units
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Angles are treated as a physically distinct type, which usually helps
 to avoid mistakes.  For units such as rotational energy, however, it
-is not very handy.  The function 
-`~astropy.units.equivalencies.angles_dimensionless` provides the
+is not very handy.  The function
+`~astropy.units.equivalencies.dimensionless_angles` provides the
 required equivalency list that helps convert.  It is somewhat
 different from all others in that it allows an arbitrary change in the
 number of powers to which radian is raised (i.e., including zero and
-thus dimensionless).  For instance, normally the following raise exceptions:: 
+thus dimensionless).  For instance, normally the following raise exceptions::
 
   >>> from astropy import units as u
   >>> u.degree.to('')
@@ -65,13 +65,13 @@ thus dimensionless).  For instance, normally the following raise exceptions::
   >>> (u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J)
   UnitsError: 'cycle2 kg m2 / s2' and 'J' (energy) are not convertible
 
-But when passing we pass the proper conversion function, 
-`~astropy.units.equivalencies.angles_dimensionless`, it works.
+But when passing we pass the proper conversion function,
+`~astropy.units.equivalencies.dimensionless_angles`, it works.
 
-  >>> u.deg.to('', equivalencies=u.angles_dimensionless())
+  >>> u.deg.to('', equivalencies=u.dimensionless_angles())
   0.017453292519943295
   >>> (u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J, 0.5e38,
-                                   equivalencies=u.angles_dimensionless())
+                                   equivalencies=u.dimensionless_angles())
   1.9739208802178715e+39
 
 Spectral Units

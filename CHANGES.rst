@@ -139,7 +139,7 @@ New Features
     method returns ``True`` if the unit is equivalent to any of the units
     listed in the tuple.
 
-  - Added ``angles_dimensionless`` equivalency, which allows conversion of
+  - Added ``dimensionless_angles`` equivalency, which allows conversion of
     any power of radian to dimensionless.
 
 - ``astropy.utils``
