@@ -58,7 +58,8 @@ avoid mistakes.  For units such as rotational energy, however, it is not
 very handy.  (Indeed, this double-sidedness underlies why radian went from
 `supplementary to derived unit <http://www.bipm.org/en/CGPM/db/20/8/>`__.)
 The function :func:`~astropy.units.equivalencies.dimensionless_angles`
-provides the required equivalency list that helps convert.  It is somewhat
+provides the required equivalency list that helps convert between
+angles and dimensionless units.  It is somewhat
 different from all others in that it allows an arbitrary change in the
 number of powers to which radian is raised (i.e., including zero and thus
 dimensionless).  For instance, normally the following raise exceptions::

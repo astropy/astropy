@@ -17,10 +17,9 @@ from ... import units as u
 
 
 def test_dimensionless_angles():
-    rad1 = u.dimensionless_angles()
     # test that the angles_dimensionless option allows one to change
     # by any order in radian in the unit (#1161)
-    rad1 = u.angles_dimensionless()
+    rad1 = u.dimensionless_angles()
     assert u.radian.to(1, equivalencies=rad1) == 1.
     assert u.deg.to(1, equivalencies=rad1) == u.deg.to(u.rad)
     assert u.steradian.to(1, equivalencies=rad1) == 1.
@@ -419,7 +418,7 @@ def test_brightness_temperature():
 
 
 def test_equivalency_context():
-    with u.set_enabled_equivalencies_context(u.angles_dimensionless()):
+    with u.set_enabled_equivalencies(u.dimensionless_angles()):
         phase = u.Quantity(1., u.cycle)
         assert_allclose(np.exp(1j*phase), 1.)
         Omega = u.cycle / (1.*u.minute)
@@ -428,7 +427,7 @@ def test_equivalency_context():
         with pytest.raises(u.UnitsError):
             phase.to(1, equivalencies=None)
 
-    with u.set_enabled_equivalencies_context(u.spectral()):
+    with u.set_enabled_equivalencies(u.spectral()):
         u.GHz.to(u.cm)
         eq_on = u.GHz.find_equivalent_units()
         with pytest.raises(u.UnitsError):

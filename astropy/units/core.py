@@ -112,6 +112,10 @@ class _UnitRegistry(object):
     Manages a registry of the enabled units.
     """
     def __init__(self, init=[], equivalencies=[]):
+        if isinstance(init, _UnitRegistry):
+            equivalencies = init.equivalencies
+            init = init.all_units
+
         self._reset_units()
         self._reset_equivalencies()
         self.add_enabled_units(init)
@@ -251,8 +255,9 @@ class _UnitRegistry(object):
 
 
 class _UnitContext(object):
-    def __init__(self, init=[]):
-        _unit_registries.append(_UnitRegistry(init=init))
+    def __init__(self, init=[], equivalencies=[]):
+        _unit_registries.append(_UnitRegistry(init=init,
+                                              equivalencies=[]))
 
     def __enter__(self):
         pass
@@ -310,7 +315,10 @@ def set_enabled_units(units):
       solRad       | 6.95508e+08 m   | R_sun, Rsun  ,
     ]
     """
-    context = _UnitContext()
+    # get a context with a new registry, using equivalencies of the current one
+    context = _UnitContext(
+        equivalencies=get_current_unit_registry().equivalencies)
+    # in this new current registry, enable the units requested
     get_current_unit_registry().set_enabled_units(units)
     return context
 
@@ -359,86 +367,67 @@ def add_enabled_units(units):
       yd           | 0.9144 m        | yard             ,
     ]
     """
-    context = _UnitContext(init=get_current_unit_registry().all_units)
+    # get a context with a new registry, which is a copy of the current one
+    context = _UnitContext(get_current_unit_registry())
+    # in this new current registry, enable the further units requested
     get_current_unit_registry().add_enabled_units(units)
     return context
 
 
 def set_enabled_equivalencies(equivalencies):
-    return (get_current_unit_registry()
-            .set_enabled_equivalencies(equivalencies))
-set_enabled_equivalencies.__doc__ = (_UnitRegistry
-                                     .set_enabled_equivalencies.__doc__)
+    """
+    Sets the equivalencies enabled in the unit registry.
+
+    These equivalencies are used if no explicit equivalencies are given,
+    both in unit conversion and in finding equivalent units.
+
+    This is meant in particular for allowing angles to be dimensionless.
+    Use with care.
+
+    Parameters
+    ----------
+    equivalencies : list of equivalent pairs
+        E.g., as returned by `astropy.units.angles_dimensionless`.
+
+    Examples
+    --------
+    Exponentiation normally requires dimensionless quantities.  To avoid
+    problems with complex phases::
+
+    >>> from astropy import units as u
+    >>> with u.set_enabled_equivalencies(u.dimensionless_angles()):
+    ...    phase = 0.5 * u.cycle
+    ...    np.exp(1j*phase)                          # doctest: +ELLIPSIS
+    <Quantity (-1+...j) >
+    """
+    # get a context with a new registry, using all units of the current one
+    context = _UnitContext(get_current_unit_registry().all_units)
+    # in this new current registry, enable the equivalencies requested
+    get_current_unit_registry().set_enabled_equivalencies(equivalencies)
+    return context
 
 
 def add_enabled_equivalencies(equivalencies):
-    return get_current_unit_registry().add_enabled_equivalencies(equivalencies)
-add_enabled_equivalencies.__doc__ = (_UnitRegistry
-                                     .add_enabled_equivalencies.__doc__)
-
-
-@contextlib.contextmanager
-def set_enabled_equivalencies_context(equivalencies):
     """
-    A context manager for temporarily setting the set of equivalencies that
-    are searched by default for unit conversion and finding equivalent units.
+    Adds to the equivalencies enabled in the unit registry.
 
-    This is meant in particular for allowing angles to be dimensionless
-    Use with care.
+    These equivalencies are used if no explicit equivalencies are given,
+    both in unit conversion and in finding equivalent units.
+
+    This is meant in particular for allowing angles to be dimensionless.
+    Since no equivalencies are enabled by default, generally it is recommended
+    to use `set_enabled_equivalencies`.
 
     Parameters
     ----------
-    equivalencies : list of equivalencies
-        As returned by, e.g., the function `angles_dimensionless`.
-
-    Examples
-    --------
-
-    >>> from astropy import units as u
-    >>> with u.set_enabled_equivalencies_context(u.angles_dimensionless()):
-    ...     np.exp(1j*0.5*u.cycle)    # doctest: +ELLIPSIS
-    ...
-        <Quantity (-1+...j) >
+    equivalencies : list of equivalent pairs
+        E.g., as returned by `astropy.units.angles_dimensionless`.
     """
-    global _current_unit_registry
-    old_registry = get_current_unit_registry()
-    _current_unit_registry = _UnitRegistry(old_registry.all_units,
-                                           equivalencies)
-    yield
-    _current_unit_registry = old_registry
-
-
-@contextlib.contextmanager
-def add_enabled_equivalencies_context(equivalencies):
-    """
-    A context manager for temporarily adding to the set of equivalencies that
-    are searched by default for unit conversion and finding equivalent units.
-
-    This is meant in particular for allowing angles to be dimensionless
-    Use with care.
-
-    Parameters
-    ----------
-    equivalencies : list of equivalencies
-        As returned by, e.g., the function `angles_dimensionless`.
-
-    Examples
-    --------
-
-    >>> from astropy import units as u
-    >>> with u.add_enabled_equivalencies_context(u.angles_dimensionless()):
-    ...     a = np.exp(1j*0.5*u.cycle)  # doctest: +ELLIPSIS
-    ...
-    >>> a
-        <Quantity (-1+...j) >
-    """
-    global _current_unit_registry
-    old_registry = get_current_unit_registry()
-    _current_unit_registry = _UnitRegistry(old_registry.all_units,
-                                           old_registry.equivalencies)
-    add_enabled_equivalencies(equivalencies)
-    yield
-    _current_unit_registry = old_registry
+    # get a context with a new registry, which is a copy of the current one
+    context = _UnitContext(get_current_unit_registry())
+    # in this new current registry, enable the further equivalencies requested
+    get_current_unit_registry().add_enabled_equivalencies(equivalencies)
+    return context
 
 
 class UnitsError(Exception):
