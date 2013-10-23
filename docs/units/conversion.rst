@@ -50,7 +50,8 @@ Incompatible Conversions
 If you attempt to convert to a incompatible unit, an exception will result:
 
   >>> cms.to(u.km)
-  ...
+  Traceback (most recent call last):
+    ...
   UnitsError: 'cm / s' (speed) and 'mi' (length) are not convertible
 
 You can check whether a particular conversion is possible using the

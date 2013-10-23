@@ -13,7 +13,7 @@ methods::
   >>> u.Ry
   Unit("Ry")
   >>> u.Ry.decompose()
-  Unit("2.17987e-18 m2 kg / s2")
+  Unit("2.17987e-18 kg m2 / s2")
 
 You can limit the selection of units that you want to decompose to
 using the `bases` keyword argument::
@@ -48,7 +48,7 @@ Some other interesting examples::
 
 Composition can be combined with :ref:`unit_equivalencies`::
 
-   >>> (u.s ** -1).compose(equivalencies=u.spectral())
+   >>> (u.s ** -1).compose(equivalencies=u.spectral())  # doctest: +SKIP
    [Unit("m"),
     Unit("Hz"),
     Unit("J"),

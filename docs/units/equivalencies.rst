@@ -35,6 +35,8 @@ exception::
 
   >>> from astropy import units as u
   >>> (8.0 * u.arcsec).to(u.parsec, 8)
+  Traceback (most recent call last):
+    ...
   UnitsError: 'arcsec' (angle) and 'pc' (length) are not convertible
 
 However, when passing the result of
@@ -64,8 +66,7 @@ energy can be converted.
   >>> ([1000, 2000] * u.nm).to(u.Hz, equivalencies=u.spectral())
   <Quantity [  2.99792458e+14,  1.49896229e+14] Hz>
   >>> ([1000, 2000] * u.nm).to(u.eV, equivalencies=u.spectral())
-  >>> u.nm.to(u.eV, [1000, 2000], equivalencies=u.spectral())
-  <Quantity [ 1.23984193, 0.61992096] eV>
+  <Quantity [ 1.239..., 0.619...] eV>
 
 These equivalencies even work with non-base units::
 
@@ -115,10 +116,10 @@ function takes as its arguments the |quantity| for the spectral
 location. For example::
 
     >>> (1.0 * u.Jy).to(u.erg / u.cm**2 / u.s / u.Hz,
-                        equivalencies=u.spectral_density(3500 * u.AA))
+    ...                 equivalencies=u.spectral_density(3500 * u.AA))
     <Quantity 1.0000000000000001e-23 erg / (cm2 Hz s)>
     >>> (1.0 * u.Jy).to(u.erg / u.cm**2 / u.s / u.micron,
-                        equivalencies=u.spectral_density(3500 * u.AA))
+    ...                 equivalencies=u.spectral_density(3500 * u.AA))
     <Quantity 2.4472853714285712e-08 erg / (cm2 micron s)>
 
 Brightness Temperature / Flux Density Equivalency
@@ -135,6 +136,7 @@ for details.
 The `~astropy.units.equivalencies.brightness_temperature` equivalency
 requires the beam area and frequency as arguments.  Example::
 
+    >>> import numpy as np
     >>> omega_B = np.pi * (50 * u.arcsec)**2
     >>> freq = 5 * u.GHz
     >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
@@ -158,16 +160,15 @@ not normally directly convertible, but if we hold the constants in the
 for them::
 
   >>> liters_water = [
-         (u.l, u.g, lambda x: 1000.0 * x, lambda x: x / 1000.0)
-      ]
+  ...    (u.l, u.g, lambda x: 1000.0 * x, lambda x: x / 1000.0)
+  ... ]
   >>> u.l.to(u.kg, 1, equivalencies=liters_water)
   1.0
 
 Note that the equivalency can be used with any other compatible units::
 
   >>> from astropy.units import imperial
-  >>> u.add_enabled_units(imperial)
-  >>> u.gallon.to(u.pound, 1, equivalencies=liters_water)
+  >>> imperial.gallon.to(imperial.pound, 1, equivalencies=liters_water)
   8.345404463333525
 
 And it also works in the other direction::
@@ -182,14 +183,15 @@ We show how to define an equivalency using the radio convention for CO 1-0.
 This function is already defined in `astropy.units.equivalencies.doppler_radio`,
 but this example is illustrative::
 
+    >>> from astropy.constants import si
     >>> restfreq = 115.27120  # rest frequency of 12 CO 1-0 in GHz
     >>> freq_to_vel = [(u.GHz, u.km/u.s,
-        lambda x: (restfreq-x) / restfreq * c.c.to('km/s').value,
-        lambda x: (1-x/c.c.to('km/s').value) * restfreq )]
-    >>> u.Hz.to(u.km/u.s,116e9,equivalencies=freq_to_vel)
-    -1895.432192866963
-    >>> (116e9*u.Hz).to(u.km/u.s,equivalencies=freq_to_vel)
-    <Quantity -1895.43219287 km / s>
+    ... lambda x: (restfreq-x) / restfreq * c.c.to('km/s').value,
+    ... lambda x: (1-x/c.c.to('km/s').value) * restfreq )]
+    >>> u.Hz.to(u.km / u.s, 116e9, equivalencies=freq_to_vel)
+    -1895.432192...
+    >>> (116e9 * u.Hz).to(u.km / u.s, equivalencies=freq_to_vel)
+    <Quantity -1895.432192... km / s>
 
 Note that once this is defined for GHz and km/s, it will work for all other
 units of frequency and velocity.  ``x`` is converted from the input frequency
@@ -210,7 +212,7 @@ standard set::
   [
     Bq           | 1 / s           | becquerel    ,
     Ci           | 2.7027e-11 / s  | curie        ,
-    Hz           | 1 / (s)         | Hertz, hertz ,
+    Hz           | 1 / s           | Hertz, hertz ,
   ]
 
 However, when passing the spectral equivalency, you can see there are
