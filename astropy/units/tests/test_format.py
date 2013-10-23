@@ -164,12 +164,12 @@ def test_latex():
 def test_new_style_latex():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
     assert "{0:latex}".format(fluxunit) == r'$\mathrm{\frac{erg}{s\,cm^{2}}}$'
-    
+
 def test_format_styles():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
     def _test_format_styles(format_spec, s):
         assert format(fluxunit, format_spec) == s
-        
+
     format_s_pairs = [
         ('generic','erg / (cm2 s)'),
         ('s', 'erg / (cm2 s)'),
@@ -177,7 +177,7 @@ def test_format_styles():
         ('latex', '$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'),
         ('>20s','       erg / (cm2 s)'),
     ]
-    
+
     for format_, s in format_s_pairs:
         yield _test_format_styles, format_, s
 
@@ -209,7 +209,7 @@ def test_flatten_to_known():
 @raises(ValueError)
 def test_flatten_impossible():
     myunit = u.def_unit("FOOBAR_Two")
-    with u.add_enabled_units_context(myunit):
+    with u.add_enabled_units(myunit):
         myunit.to_string('fits')
 
 
