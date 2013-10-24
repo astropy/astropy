@@ -71,8 +71,6 @@ class FLRW(Cosmology):
     Class instances are static -- you can't change the values
     of the parameters.  That is, all of the attributes above are
     read only.
-
-    The neutrino treatment assumes all neutrino species are massless.
     """
     __metaclass__ = ABCMeta
 
@@ -500,6 +498,24 @@ class FLRW(Cosmology):
         if isiterable(z):
             z = np.asarray(z)
         return self._Tcmb0 * (1.0 + z)
+
+    def Tnu(self, z):
+        """ Return the neutrino temperature at redshift `z`.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        Tnu : astropy.units.Quantity
+          The temperature of the cosmic neutrino background in K.
+        """
+
+        if isiterable(z):
+            z = np.asarray(z)
+        return self._Tnu0 * (1.0 + z)
 
     def nu_relative_density(self, z):
         """ Neutrino density function relative to the energy density in
@@ -1590,7 +1606,7 @@ class wCDM(FLRW):
 
         if isiterable(z):
             z = np.asarray(z)
-        Om0, Ode0, Ok0, w0 = self._Om0, self._Ode, self._Ok0, self._w0
+        Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
         if self._massivenu:
             Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
         else:
@@ -1718,7 +1734,7 @@ class FlatwCDM(wCDM):
 
         if isiterable(z):
             z = np.asarray(z)
-        Om0, Ode0, w0 = self._Om0, self._Ode, self._w0
+        Om0, Ode0, w0 = self._Om0, self._Ode0, self._w0
         if self._massivenu:
             Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
         else:
@@ -1899,7 +1915,7 @@ class w0waCDM(FLRW):
             z = np.asarray(z)
         zp1 = 1.0 + z
         return zp1 ** (3 * (1 + self._w0 + self._wa)) * \
-            exp(-3 * self._wa * z / zp1)
+            np.exp(-3 * self._wa * z / zp1)
 
 
 class Flatw0waCDM(w0waCDM):
@@ -2134,7 +2150,7 @@ class wpwaCDM(FLRW):
         zp1 = 1.0 + z
         apiv = 1.0 / (1.0 + self._zp)
         return zp1 ** (3 * (1 + self._wp + apiv * self._wa)) * \
-            exp(-3 * self._wa * z / zp1)
+            np.exp(-3 * self._wa * z / zp1)
 
 
 class w0wzCDM(FLRW):
@@ -2282,7 +2298,8 @@ class w0wzCDM(FLRW):
         if isiterable(z):
             z = np.asarray(z)
         zp1 = 1.0 + z
-        return zp1 ** (3 * (1 + self._w0 - self._wz)) * exp(-3 * self._wz * z)
+        return zp1 ** (3 * (1 + self._w0 - self._wz)) *\
+            np.exp(-3 * self._wz * z)
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
 # parameters module and creates a LambdaCDM or FlatLambdaCDM instance
