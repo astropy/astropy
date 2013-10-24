@@ -158,7 +158,7 @@ Note that it has a slightly different color scale compared to the original image
                Tophat2DKernel(11),
                Gaussian2DKernel(11),
                Box2DKernel(11),
-               - 11 ** 2 * MexicanHat2DKernel(11),
+               11 ** 2 * MexicanHat2DKernel(11),
                AiryDisk2DKernel(11)]
 
     fig, axes = plt.subplots(nrows=2, ncols=3)
