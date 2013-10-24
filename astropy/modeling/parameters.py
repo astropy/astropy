@@ -21,6 +21,8 @@ from ..utils import isiterable
 __all__ = ['Parameter', 'InputParameterError']
 
 
+# TODO: Is there really any need for this special exception over just, say, a
+# ValueError?
 class InputParameterError(Exception):
     """Used for incorrect input parameter values and definitions."""
 
@@ -49,14 +51,6 @@ def _tofloat(value):
             "Don't know how to convert parameter of {0} to "
             "float".format(type(value)))
     return value, shape
-
-
-# TODO: Is there really any need for this special exception over just, say, a
-# ValueError?
-class InputParameterError(ValueError):
-    """
-    Called when there's a problem with input parameters.
-    """
 
 
 class Parameter(object):
