@@ -340,7 +340,7 @@ def test_equivalent_units2():
     assert units == match
 
     from .. import imperial
-    with u.add_enabled_units_context(imperial):
+    with u.add_enabled_units(imperial):
         units = set(u.Hz.find_equivalent_units(u.spectral()))
         match = set(
             [u.AU, u.Angstrom, imperial.BTU, u.Hz, u.J, u.Ry,

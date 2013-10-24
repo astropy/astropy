@@ -9,10 +9,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 
-import contextlib
 import inspect
 import numbers
-import re
 import sys
 import textwrap
 import warnings
@@ -33,8 +31,7 @@ __all__ = [
     'NamedUnit', 'IrreducibleUnit', 'Unit', 'def_unit',
     'CompositeUnit', 'PrefixUnit', 'UnrecognizedUnit',
     'get_current_unit_registry', 'set_enabled_units',
-    'add_enabled_units', 'set_enabled_units_context',
-    'add_enabled_units_context', 'dimensionless_unscaled']
+    'add_enabled_units', 'dimensionless_unscaled']
 
 
 def _flatten_units_collection(items):
@@ -163,37 +160,45 @@ class _UnitRegistry(object):
             set())
 
 
-_current_unit_registry = _UnitRegistry()
+class _UnitContext(object):
+    def __init__(self, init=[]):
+        _unit_registries.append(_UnitRegistry(init=init))
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, tb):
+        _unit_registries.pop()
+
+
+_unit_registries = [_UnitRegistry()]
 def get_current_unit_registry():
-    return _current_unit_registry
+    return _unit_registries[-1]
 
 
 def set_enabled_units(units):
-    return get_current_unit_registry().set_enabled_units(units)
-set_enabled_units.__doc__ = _UnitRegistry.set_enabled_units.__doc__
-
-
-def add_enabled_units(units):
-    return get_current_unit_registry().add_enabled_units(units)
-add_enabled_units.__doc__ = _UnitRegistry.add_enabled_units.__doc__
-
-
-@contextlib.contextmanager
-def set_enabled_units_context(units):
     """
-    A context manager for temporarily setting the set of units that
-    are searched by methods like `UnitBase.find_equivalent_units`.
+    Sets the units enabled in the unit registry.
+
+    These units are searched when using
+    `UnitBase.find_equivalent_units`, for example.
+
+    This may be used either permanently, or as a context manager using
+    the ``with`` statement (see example below).
 
     Parameters
     ----------
     units : list of sequences, dicts, or modules containing units, or units
-        See `set_enabled_units`.
+        This is a list of things in which units may be found
+        (sequences, dicts or modules), or units themselves.  The
+        entire set will be "enabled" for searching through by methods
+        like `UnitBase.find_equivalent_units` and `UnitBase.compose`.
 
     Examples
     --------
 
     >>> from astropy import units as u
-    >>> with u.set_enabled_units_context([u.pc]):
+    >>> with u.set_enabled_units([u.pc]):
     ...     u.m.find_equivalent_units()
     ...
       Primary name | Unit definition | Aliases
@@ -213,31 +218,36 @@ def set_enabled_units_context(units):
       solRad       | 6.95508e+08 m   | R_sun, Rsun  ,
     ]
     """
-    global _current_unit_registry
-    old_registry = get_current_unit_registry()
-    _current_unit_registry = _UnitRegistry()
-    set_enabled_units(units)
-    yield
-    _current_unit_registry = old_registry
+    context = _UnitContext()
+    get_current_unit_registry().set_enabled_units(units)
+    return context
 
 
-@contextlib.contextmanager
-def add_enabled_units_context(units):
+def add_enabled_units(units):
     """
-    A context manager for temporarily adding to the set of units that
-    are searched by methods like `UnitBase.find_equivalent_units`.
+    Adds to the set of units enabled in the unit registry.
+
+    These units are searched when using
+    `UnitBase.find_equivalent_units`, for example.
+
+    This may be used either permanently, or as a context manager using
+    the ``with`` statement (see example below).
 
     Parameters
     ----------
     units : list of sequences, dicts, or modules containing units, or units
-        See `add_enabled_units`.
+        This is a list of things in which units may be found
+        (sequences, dicts or modules), or units themselves.  The
+        entire set will be added to the "enabled" set for searching
+        through by methods like `UnitBase.find_equivalent_units` and
+        `UnitBase.compose`.
 
     Examples
     --------
 
     >>> from astropy import units as u
     >>> from astropy.units import imperial
-    >>> with u.add_enabled_units_context(imperial):
+    >>> with u.add_enabled_units(imperial):
     ...     u.m.find_equivalent_units()
     ...
       Primary name | Unit definition | Aliases
@@ -257,13 +267,9 @@ def add_enabled_units_context(units):
       yd           | 0.9144 m        | yard             ,
     ]
     """
-    global _current_unit_registry
-    old_registry = get_current_unit_registry()
-    _current_unit_registry = _UnitRegistry()
-    add_enabled_units(old_registry.all_units)
-    add_enabled_units(units)
-    yield
-    _current_unit_registry = old_registry
+    context = _UnitContext(init=get_current_unit_registry().all_units)
+    get_current_unit_registry().add_enabled_units(units)
+    return context
 
 
 class UnitsError(Exception):

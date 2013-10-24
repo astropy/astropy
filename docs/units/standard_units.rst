@@ -128,15 +128,17 @@ For example, to enable Imperial units, simply do::
       yd           | 0.9144 m        | yard             ,
     ]
 
-To enable just specific units, use
-`~astropy.units.core.add_enabled_units`::
+
+This may also be used with the ``with`` statement, to temporarily
+enable additional units::
 
     >>> from astropy import units as u
     >>> from astropy.units import imperial
-    >>> u.add_enabled_units([imperial.knot])  # doctest: +SKIP
+    >>> with imperial.enable():
+    ...     u.m.find_equivalent_units()
+    ...
 
-A context manager, `~astropy.units.core.add_enabled_units_context` is
-also provided, to temporarily enable additional units::
+To enable just specific units, use `~astropy.units.add_enabled_units`::
 
     >>> from astropy import units as u
     >>> from astropy.units import imperial

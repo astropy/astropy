@@ -179,9 +179,12 @@ def enable():
     """
     Enable CDS units so they appear in results of
     `Unit.find_equivalent_units` and `Unit.compose`.
+
+    This may be used with the ``with`` statement to enable CDS
+    units only temporarily.
     """
     # Local import to avoid cyclical import
     from .core import add_enabled_units
     # Local import to avoid polluting namespace
     import inspect
-    add_enabled_units(inspect.getmodule(enable))
+    return add_enabled_units(inspect.getmodule(enable))

@@ -22,7 +22,7 @@ def test_getting_started():
     Corresponds to "Getting Started" section in the docs.
     """
     from .. import imperial
-    with u.add_enabled_units_context(imperial):
+    with imperial.enable():
         speed_unit = u.cm / u.s
         x = speed_unit.to(imperial.mile / u.hour, 1)
         assert_allclose(x, 0.02236936292054402)
@@ -166,7 +166,7 @@ def test_cds_power():
 def test_register():
     foo = u.def_unit("foo", u.m ** 3, namespace=locals())
     assert 'foo' in locals()
-    with u.add_enabled_units_context(foo):
+    with u.add_enabled_units(foo):
         assert 'foo' in u.get_current_unit_registry().registry
     assert 'foo' not in u.get_current_unit_registry().registry
 
