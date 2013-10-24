@@ -6,10 +6,8 @@ Implements spherical rotations, defined in WCS Paper II [1]_
 RotateNative2Celestial and RotateCelestial2Native follow the convention
 in WCS paper II to rotate to/from a native sphere and the celestial sphere.
 
-The user interface uses angles in deg but internally radians are used.  This is
-managed through properties. To bypass the use of Model's properties, an empty
-param_names list is passed to `~astropy.modeling.core.Model.__init__` and the
-properties are defined in the rotations classes.
+The user interface uses angles in degrees but the values are stored internally
+in radians.  This is managed through the parameter setters/getters.
 
 References
 ----------

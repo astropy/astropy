@@ -1,6 +1,6 @@
-*********************
-Defining a New Models
-*********************
+**************************
+Defining New Model Classes
+**************************
 
 This document describes how to add a model to the package or to create a
 user-defined model.  In short, one needs to define all model parameters and
@@ -42,7 +42,7 @@ and custom getters/setters for the parameter value.
         stddev = Parameter('stddev')
 
 At a minimum, the ``__init__`` method takes all parameters and the number of
-parameter sets, `~astropy.modeling.Model.param_dim`::
+parameter sets, `~astropy.modeling.core.Model.param_dim`::
 
     def __init__(self, amplitude, mean, stddev, param_dim=1, **constraints):
         # Note that this __init__ does nothing different from the base class's
@@ -60,12 +60,13 @@ parameter sets, `~astropy.modeling.Model.param_dim`::
     the parameters have default values.
 
 Parametric models can be linear or nonlinear in a regression sense. The default
-value of the `~astropy.modeling.core.Model.linear` attribute is ``False``.
-Linear models should define the ``linear`` class attribute as ``True``.  The
-`~astropy.modeling.core.Model.n_inputs` attribute stores the number of input
-variables the model expects.. The `~astropy.modeling.core.Model.n_outputs`
-attribute stores the number of output variables returned after evaluating the
-model.  These two attributes are used with composite models.
+value of the `~astropy.modeling.core.Model.linear` attribute is ``True``.
+Nonlinear models should define the ``linear`` class attribute as ``False``.
+The `~astropy.modeling.core.Model.n_inputs` attribute stores the number of
+input variables the model expects.  The
+`~astropy.modeling.core.Model.n_outputs` attribute stores the number of output
+variables returned after evaluating the model.  These two attributes are used
+with composite models.
 
 Next, provide a `staticmethod`, called ``eval`` to evaluate the model and a
 `staticmethod`, called ``deriv``,  to compute its derivatives. The evaluation
@@ -88,7 +89,7 @@ which case the ``deriv`` method should be ``None``::
                   (x - mean) / (stddev**2))
         d_stddev = (2 * amplitude *
                     np.exp((-(1 / (stddev**2)) * (x - mean)**2)) *
-                    ((x - mean)**2) / (stddev**3)
+                    ((x - mean)**2) / (stddev**3))
         return [d_amplitude, d_mean, d_stddev]
 
 .. note::
@@ -147,9 +148,9 @@ A full example of a LineModel
         return self.eval(x, *self.param_sets)
 
 
-*****************************
-Creating a New Type of Fitter
-*****************************
+***************************
+Defining New Fitter Classes
+***************************
 
 This section describes how to add a new nonlinear fitting algorithm to this
 package or write a user-defined fitter.  In short, one needs to define an error
@@ -157,7 +158,7 @@ function and a ``__call__`` method and define the types of constraints which
 work with this fitter (if any).
 
 The details are described below using scipy's SLSQP algorithm as an example.
-The base class for all fitters is `~astropy.modeling.fitting.Fitter`.::
+The base class for all fitters is `~astropy.modeling.fitting.Fitter`::
 
     class SLSQPFitter(Fitter):
         supported_constraints = ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']

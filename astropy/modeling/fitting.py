@@ -476,7 +476,7 @@ class NonLinearLSQFitter(Fitter):
 
     Parameters
     ----------
-    model : a fittable :class: `~astropy.modeling.core.ParametricModel`
+    model : a fittable `~astropy.modeling.core.ParametricModel`
         model to fit to data
 
     Raises
@@ -604,11 +604,11 @@ class SLSQPFitter(Fitter):
 
     The algorithm is described in [1]_. It supports tied and fixed
     parameters, as well as bounded constraints. Uses
-    `scipy.optimize.slsqp`.
+    `scipy.optimize.fmin_slsqp`.
 
     Parameters
     ----------
-    model : a fittable :class: `models.ParametricModel`
+    model : a fittable `~astropy.modeling.core.ParametricModel`
         model to fit to data
 
     Raises

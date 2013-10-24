@@ -7,9 +7,10 @@ fittable models should subclass `~astropy.modeling.core.ParametricModel`.
 Parametric models can be linear or nonlinear in a regression analysis sense.
 
 Model instances are callabale, that is, o evaluate a model it is called like a
-function. When possible the transformation is done using multiple `parameter
-sets <~astropy.modeling.core.Model.param_sets>`.  The number of parameter sets
-is stored in an attribute `~astropy.modeling.core.Model.param_dim`.
+function. When possible the transformation is done using multiple
+:attr:`param_sets <astropy.modeling.core.Model.param_sets>`.  The number of
+parameter sets is stored in an attribute
+`~astropy.modeling.core.Model.param_dim`.
 
 Parametric models also store a flat array of all parameter values.  When
 fitting, this array is directly modified by a subclass of
@@ -23,18 +24,18 @@ coordinates as separate arguments.  For example a 2D model expects x and y to
 be passed separately, e.g. as two arrays or two lists. When a model has
 multiple parameter sets and x, y are 2D arrays, the model is evaluated with
 each of the parameter sets and the same x, y as input. The shape of the output
-array is (param_dim, x_shape, y_shape) where param_dim is the number of
-parameter sets and x_shape, y_shape is the shape of the input array.  In all
-other cases the shape of the output array is the same as the shape of the input
-arrays.
+array is ``(param_dim, x_shape, y_shape)`` where param_dim is the number of
+parameter sets and ``x_shape, y_shape`` is the shape of the input array.  In
+all other cases the shape of the output array is the same as the shape of the
+input arrays.
 
 Models also have an attribute `~astropy.modeling.core.Model.n_outputs`, which
 shows the number of output coordinates. The
 `~astropy.modeling.core.Model.n_inputs` and
 `~astropy.modeling.core.Model.n_outputs` attributes are used to chain
-transforms by adding models in `series
-<~astropy.modeling.core.SerialCompositeModel>` or in `parallel
-<~astropy.modeling.core.ParallelCompositeModel>`. Because composite models can
+transforms by adding models in :class:`series
+<astropy.modeling.core.SerialCompositeModel>` or in :class:`parallel
+<astropy.modeling.core.ParallelCompositeModel>`. Because composite models can
 be nested within other composite models, creating theoretically infinitely
 complex models, a mechanism to map input data to models is needed. In this case
 the input may be wrapped in a `~astropy.modeling.core.LabeledInput` object-- a
@@ -60,17 +61,17 @@ The examples here assume this import statement was executed::
            [  2.      ,   3.      ],
            [  0.127398,   0.084932]])
 
-Evaluate the model on one data set::
+  Evaluate the model on one data set::
 
-    >>> y = g1(x)
-    >>> print(y.shape)
-    (90, 2)
+      >>> y = g1(x)
+      >>> print(y.shape)
+      (90, 2)
 
-or two data sets (any other number would be an error)::
+  or two data sets (any other number would be an error)::
 
-    >>> y = g1(np.array([x, x]).T)
-    >>> print(y.shape)
-    (90, 2)
+      >>> y = g1(np.array([x, x]).T)
+      >>> print(y.shape)
+      (90, 2)
 
 .. plot::
 
@@ -151,27 +152,27 @@ or two data sets (any other number would be an error)::
     >>> parallel_composite_model = ParallelCompositeModel([g1, p1])
     >>> y = parallel_composite_model(x)
 
-This is equivalent to applying the two models in parallel::
+  This is equivalent to applying the two models in parallel::
 
-    >>> y = x + g1(x) + p1(x)
+      >>> y = x + g1(x) + p1(x)
 
 In more complex cases the input and output may be mapped to transformations::
 
     >>> x, y = np.mgrid[:5, :5]
     >>> off = models.ShiftModel(-3.2)
-    >>> poly2 = models.Poly2DModel(2)
+    >>> poly2 = models.Polynomial2DModel(2)
     >>> serial_composite_model = SerialCompositeModel(
     ...     [off, poly2], inmap=[['x'], ['x', 'y']], outmap=[['x'], ['z']])
 
 The above composite transform will apply an inplace shift to x, followed by a
 2D polynomial and will save the result in an array, labeled 'z'.  To evaluate
-this model use a `astropy.modeling.LabeledInput` object::
+this model use a `~astropy.modeling.core.LabeledInput` object::
 
     >>> labeled_data = LabeledInput([x, y], ['x', 'y'])
     >>> result = serial_composite_model(labeled_data)
 
-The output is also a `astropy.modeling.LabeledInput` object and the result is
-stored in label 'z'::
+The output is also a `~astropy.modeling.core.LabeledInput` object and the
+result is stored in label 'z'::
 
     >>> print(result)
     {'x': array([[-3.2, -3.2, -3.2, -3.2, -3.2],

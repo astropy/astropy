@@ -46,6 +46,44 @@ class Gaussian1DModel(Parametric1DModel):
 
         .. math:: f(x) = A e^{- \\frac{\\left(x - x_{0}\\right)^{2}}{2 \\sigma^{2}}}
 
+    Examples
+    --------
+    >>> from astropy.modeling import models
+    >>> def tie_center(model):
+    ...         mean = 50 * model.stddev
+    ...         return mean
+    >>> tied_parameters = {'mean': tie_center}
+
+    Specify that 'mean' is a tied parameter in one of two ways:
+
+    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3,
+    ...                             tied=tied_parameters)
+
+    or
+
+    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3)
+    >>> g1.mean.tied
+    False
+    >>> g1.mean.tied = tie_center
+    >>> g1.mean.tied
+    <function tie_center at 0x...>
+
+    Fixed parameters:
+
+    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3,
+    ...                             fixed={'stddev': True})
+    >>> g1.stddev.fixed
+    True
+
+    or
+
+    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3)
+    >>> g1.stddev.fixed
+    False
+    >>> g1.stddev.fixed = True
+    >>> g1.stddev.fixed
+    True
+
     See Also
     --------
     Gaussian2DModel, Box1DModel, Beta1DModel, Lorentz1DModel

@@ -56,18 +56,17 @@ from ..utils import indent, isiterable
 
 __all__ = ['Model', 'ParametricModel', 'ParallelCompositeModel',
            'SerialCompositeModel', 'LabeledInput', 'Parametric1DModel',
-           'Parametric2DModel', 'ModelDefinitionError']
+           'Parametric2DModel', 'ModelDefinitionError', 'format_input']
 
 
 class ModelDefinitionError(Exception):
-    """Used for incorrect models definitions."""
+    """Used for incorrect models definitions"""
 
 
 def format_input(func):
     """
-    Wrap a model's ``__call__`` method so that the input arrays are
-    converted into the appropriate shape given the model's parameter
-    dimensions.
+    Wraps a model's ``__call__`` method so that the input arrays are converted
+    into the appropriate shape given the model's parameter dimensions.
 
     Wraps the result to match the shape of the last input array.
     """
@@ -160,11 +159,11 @@ class Model(object):
     """
     Base class for all models.
 
-    This is an abstract class and should not be instantiated.
+    This is an abstract class and should not be instantiated directly.
 
     Notes
     -----
-    Models which are not meant to be fit to data should subclass this class
+    Models which are not meant to be fit to data should subclass this class.
 
     This class sets the properties for all individual parameters and performs
     parameter validation.
@@ -176,6 +175,7 @@ class Model(object):
     n_inputs = 1
     n_outputs = 1
     fittable = False
+    linear = True
 
     def __init__(self, param_dim=1):
         self._param_dim = param_dim
@@ -292,7 +292,7 @@ class ParametricModel(Model):
         number of parameter sets
     fittable : boolean
         indicator if the model is fittable
-    fixed: a dict
+    fixed : a dict
         a dictionary ``{parameter_name: boolean}`` of parameters to not be
         varied during fitting. True means the parameter is held fixed.
         Alternatively the `~astropy.modeling.parameters.Parameter.fixed`
@@ -411,7 +411,7 @@ class ParametricModel(Model):
     @property
     def fixed(self):
         """
-        A dictionary mapping parameter names to their fixed constraint.
+        A dictionary mapping parameter names to their fixed constraint
         """
 
         return dict((name, getattr(self, name).fixed)
@@ -420,7 +420,7 @@ class ParametricModel(Model):
     @property
     def tied(self):
         """
-        A dictionary mapping parameter names to their tied constraint.
+        A dictionary mapping parameter names to their tied constraint
         """
 
         return dict((name, getattr(self, name).tied)
@@ -442,7 +442,7 @@ class ParametricModel(Model):
     @property
     def parameters(self):
         """
-        An instance of `~astropy.modeling.parameters.Parameters`.
+        A flattened array of all parameter values in all parameter sets
 
         Fittable parameters maintain this list and fitters modify it.
         """
@@ -452,8 +452,8 @@ class ParametricModel(Model):
     @parameters.setter
     def parameters(self, value):
         """
-        Resets the parameters attribute using an instance of
-        `~astropy.modeling.parameters.Parameters`
+        Assigning to this attribute updates the parameters array rather than
+        replacing it.
         """
 
         try:
@@ -703,9 +703,7 @@ class LabeledInput(dict):
 
 class _CompositeModel(Model):
     def __init__(self, transforms, n_inputs, n_outputs):
-        """
-        A Base class for all composite models.
-        """
+        """Base class for all composite models."""
 
         self._transforms = transforms
         param_names = []
@@ -748,7 +746,7 @@ class _CompositeModel(Model):
 
 class SerialCompositeModel(_CompositeModel):
     """
-    Execute models in series.
+    Composite model that evaluates models in series.
 
     Parameters
     ----------
@@ -877,7 +875,7 @@ class SerialCompositeModel(_CompositeModel):
 
 class ParallelCompositeModel(_CompositeModel):
     """
-    Execute models in parallel.
+    Composite model that evaluates models in parallel.
 
     Parameters
     --------------
@@ -947,7 +945,7 @@ class ParallelCompositeModel(_CompositeModel):
 
 class Parametric1DModel(ParametricModel):
     """
-    Base class for one dimensional parametric models
+    Base class for one dimensional parametric models.
 
     This class provides an easier interface to defining new models.
     Examples can be found in functional_models.py
@@ -977,7 +975,7 @@ class Parametric1DModel(ParametricModel):
 
 class Parametric2DModel(ParametricModel):
     """
-    Base class for two dimensional parametric models
+    Base class for two dimensional parametric models.
 
     This class provides an easier interface to defining new models.
     Examples can be found in functional_models.py

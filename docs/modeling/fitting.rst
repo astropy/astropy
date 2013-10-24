@@ -1,5 +1,5 @@
 **********************
-Fitting Models to data
+Fitting Models to Data
 **********************
 
 This module provides wrappers, called Fitters, around some Numpy and Scipy
@@ -10,7 +10,7 @@ make this extensible and allow users to easily add other fitters.
 
 Linear fitting is done using Numpy's `~numpy.linalg.lstsq` function.  There are
 currently two non-linear fitters which use `~scipy.optimize.leastsq` and
-`~scipy.optimize.slsqp`.
+`~scipy.optimize.fmin_slsqp`.
 
 The rules for passing input to fitters are:
 

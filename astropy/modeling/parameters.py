@@ -21,9 +21,7 @@ from ..utils import isiterable
 __all__ = ['Parameter', 'InputParameterError']
 
 
-# TODO: Is there really any need for this special exception over just, say, a
-# ValueError?
-class InputParameterError(Exception):
+class InputParameterError(ValueError):
     """Used for incorrect input parameter values and definitions."""
 
 
@@ -57,27 +55,50 @@ class Parameter(object):
     """
     Wraps individual parameters.
 
-    This class represents a model's parameter (in a somewhat broad sense). To
-    support multiple parameter sets, a parameter has a dimension (dim).
-    Parameter objects behave like numbers.
+    This class represents a model's parameter (in a somewhat broad sense).  It
+    acts as both a descriptor that can be assigned to a class attribute to
+    describe the parameters accepted by an individual model (this is called an
+    "unbound parameter"), or it can act as a proxy for the parameter values on
+    an individual model instance (called a "bound parameter").
+
+    Parameter instances never store the actual value of the parameter
+    directly.  Rather, each instance of a model stores its own parameters
+    as either hidden attributes or (in the case of
+    `~astropy.modeling.core.ParametricModel`) in an array.  A *bound*
+    Parameter simply wraps the value in a Parameter proxy which provides some
+    additional information about the parameter such as its constraints.
+
+    *Unbound* Parameters are not associated with any specific model instance,
+    and are merely used by model classes to determine the names of their
+    parameters and other information about each parameter such as their default
+    values and default constraints.
 
     Parameters
     ----------
     name : string
         parameter name
-    val :  number or an iterable of numbers
-    model : object
-        an instance of a Model class
-    dim : int
-        parameter dimension
-    fixed: boolean
+    default : float or array
+        default value to use for this parameter
+    getter : callable
+        a function that wraps the raw (internal) value of the parameter
+        when returning the value through the parameter proxy (eg. a
+        parameter may be stored internally as radians but returned to the
+        user as degrees)
+    setter : callable
+        a function that wraps any values assigned to this parameter; should
+        be the inverse of getter
+    fixed : boolean
         if True the parameter is not varied during fitting
-    tied: callable or False
-        if callable is suplplied it provides a way to link to another parameter
-    min: float
+    tied : callable or False
+        if callable is supplied it provides a way to link the value of this
+        parameter to another parameter (or some other arbitrary function)
+    min : float
         the lower bound of a parameter
-    max: float
+    max : float
         the upper bound of a parameter
+    model : object
+        an instance of a Model class; this should only be used internally for
+        creating bound Parameters
     """
 
     # See the _nextid classmethod
@@ -215,6 +236,8 @@ class Parameter(object):
 
     @property
     def value(self):
+        """The unadorned value proxied by this parameter"""
+
         if self._model is not None:
             if not hasattr(self._model, self._attr):
                 if self._default is not None:
@@ -372,7 +395,7 @@ class Parameter(object):
     @classmethod
     def _get_nextid(cls):
         """Returns a monotonically increasing ID used to order Parameter
-        descriptors delcared at the class-level of Model subclasses.
+        descriptors declared at the class-level of Model subclasses.
 
         This allows the desired parameter order to be determined without
         having to list it manually in the param_names class attribute.

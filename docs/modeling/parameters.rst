@@ -16,7 +16,7 @@ with models is through individual parameters.
 The goal of this package is, when possible, to allow simultaneous model
 evaluation and fitting with multiple parameter sets. Because of this, all
 models have a `~astropy.modeling.core.Model.param_sets` attribute, an array of
-shape `(len(param_names), param_dim)`, where
+shape ``(len(param_names), param_dim)``, where
 `~astropy.modeling.core.Model.param_dim` is the number of parameter sets.
 Typically the array is of type float but can become an object array in some
 cases. `~astropy.modeling.core.Model.param_sets` is used for model evaluation.
@@ -38,14 +38,14 @@ Parameter examples
     >>> p1.param_names
     ['c0', 'c1', 'c2', 'c3', 'c4']
     >>> p1.parameters
-    [0.0, 0.0, 0.0, 0.0, 0.0]
+    array([0., 0., 0., 0., 0.])
 
 - Coefficients can be set using the
   `~astropy.modeling.core.ParametricModel.parameters` attribute::
 
     >>> p1.parameters = [0, 1, 2, 3, 4]
     >>> p1.parameters
-    [0.0, 1.0, 2.0, 3.0, 4.0]
+    array([0., 1., 2., 3., 4.])
 
 - It is possible to set the coefficients passing the parameters in a
   dictionary::

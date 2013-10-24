@@ -18,69 +18,29 @@ Note: add new models to this list
 
 CONSTRAINTS_DOC = """
     fixed: a dict
-        a dictionary {parameter_name: boolean} of parameters to not be
+        a dictionary ``{parameter_name: boolean}`` of parameters to not be
         varied during fitting. True means the parameter is held fixed.
         Alternatively the `~astropy.modeling.parameters.Parameter.fixed`
         property of a parameter may be used.
     tied: dict
-        a dictionary {parameter_name: callable} of parameters which are
+        a dictionary ``{parameter_name: callable}`` of parameters which are
         linked to some other parameter. The dictionary values are callables
-        providing the linking relationship.
-        Alternatively the `~astropy.modeling.parameters.Parameter.tied`
-        property of a parameter may be used.
+        providing the linking relationship.  Alternatively the
+        `~astropy.modeling.parameters.Parameter.tied` property of a parameter
+        may be used.
     bounds: dict
-        a dictionary {parameter_name: boolean} of lower and upper bounds of
-        parameters. Keys  are parameter names. Values  are a list of length
-        2 giving the desired range for the parameter.
-        Alternatively the `~astropy.modeling.parameters.Parameter.min` and
+        a dictionary ``{parameter_name: boolean}`` of lower and upper bounds of
+        parameters. Keys  are parameter names. Values  are a list of length 2
+        giving the desired range for the parameter.  Alternatively the
+        `~astropy.modeling.parameters.Parameter.min` and
         `~astropy.modeling.parameters.Parameter.max` properties of a parameter
         may be used.
     eqcons: list
-        A list of functions of length n such that
-        eqcons[j](x0,*args) == 0.0 in a successfully optimized
-        problem.
+        A list of functions of length ``n`` such that ``eqcons[j](x0,*args) ==
+        0.0`` in a successfully optimized problem.
     ineqcons : list
-        A list of functions of length n such that
-        ieqcons[j](x0,*args) >= 0.0 is a successfully optimized
-        problem.
-
-    Examples
-    --------
-    >>> from astropy.modeling import models
-    >>> def tie_center(model):
-    ...         mean = 50 * model.stddev
-    ...         return mean
-    >>> tied_parameters = {'mean': tie_center}
-
-    Specify that 'mean' is a tied parameter in one of two ways:
-
-    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3,
-    ...                             tied=tied_parameters)
-
-    or
-
-    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3)
-    >>> g1.mean.tied
-    False
-    >>> g1.mean.tied = tie_center
-    >>> g1.mean.tied
-    <function tie_center at 0x...>
-
-    Fixed parameters:
-
-    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3,
-    ...                             fixed={'stddev': True})
-    >>> g1.stddev.fixed
-    True
-
-    or
-
-    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3)
-    >>> g1.stddev.fixed
-    False
-    >>> g1.stddev.fixed = True
-    >>> g1.stddev.fixed
-    True
+        A list of functions of length ``n`` such that ``ieqcons[j](x0,*args) >=
+        0.0`` is a successfully optimized problem.
 """
 
 
