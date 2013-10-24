@@ -264,7 +264,7 @@ def discretize_integrate_2D(model, x_range, y_range):
     # Set up grid
     x = np.arange(x_range[0] - 0.5, x_range[1] + 0.5)
     y = np.arange(y_range[0] - 0.5, y_range[1] + 0.5)
-    values = np.empty((y.size, x.size))
+    values = np.empty((y.size - 1, x.size - 1))
 
     # Integrate over all pixels
     for i in range(x.size - 1):
