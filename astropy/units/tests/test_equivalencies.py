@@ -15,6 +15,30 @@ from ...tests.helper import pytest
 from ...extern.six.moves import zip
 from ... import units as u
 
+
+def test_dimensionless_angles():
+    rad1 = u.dimensionless_angles()
+    assert u.radian.to(1, equivalencies=rad1) == 1.
+    assert u.deg.to(1, equivalencies=rad1) == u.deg.to(u.rad)
+    assert u.steradian.to(1, equivalencies=rad1) == 1.
+    # now quantities
+    assert (1.*u.radian).to(1, equivalencies=rad1).value == 1.
+    assert (1.*u.deg).to(1, equivalencies=rad1).value == u.deg.to(u.rad)
+    assert (1.*u.steradian).to(1, equivalencies=rad1).value == 1.
+    # more complicated example
+    I = 1.e45 * u.g * u.cm**2
+    Omega = u.cycle / (1.*u.s)
+    Erot = 0.5 * I * Omega**2
+    assert Erot.to(u.erg, equivalencies=rad1) == (Erot/u.radian**2)
+
+    # test build-in equivalency in subclass
+    class MyRad1(u.Quantity):
+        _equivalencies = rad1
+
+    phase = MyRad1(1., u.cycle)
+    assert phase.to(1).value == u.cycle.to(u.radian)
+
+
 functions = [u.doppler_optical, u.doppler_radio, u.doppler_relativistic]
 
 
@@ -131,6 +155,10 @@ def test_massenergy():
 
 def test_is_equivalent():
     assert u.m.is_equivalent(u.pc)
+    assert u.cycle.is_equivalent(u.mas)
+    assert not u.cycle.is_equivalent(u.dimensionless_unscaled)
+    assert u.cycle.is_equivalent(u.dimensionless_unscaled,
+                                 u.dimensionless_angles())
     assert not (u.Hz.is_equivalent(u.J))
     assert u.Hz.is_equivalent(u.J, u.spectral())
     assert u.J.is_equivalent(u.Hz, u.spectral())
