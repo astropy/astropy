@@ -21,12 +21,12 @@ whether there is no header line (:class:`~astropy.io.ascii.FixedWidthNoHeader`),
 header line (:class:`~astropy.io.ascii.FixedWidth`), or two header lines
 (:class:`~astropy.io.ascii.FixedWidthTwoLine`).  Next, there are variations in the
 delimiter character, whether the delimiter appears on either end ("bookends"),
-and padding around the delimiter.  
+and padding around the delimiter.
 
 Details are available in the class API documentation, but the easiest way to
 understand all the options and their interactions is by example.
 
-Reading 
+Reading
 ^^^^^^^
 
 FixedWidth
@@ -43,8 +43,9 @@ FixedWidth
   ... |  2.4   |'s worlds|
   ... """
   >>> ascii.read(table, format='fixed_width')
-  rec.array([(1.2, '"hello"'), (2.4, "'s worlds")], 
-        dtype=[('Col1', '<f8'), ('Col2', '|S9')])
+  <Table rows=2 names=('Col1','Col2')>
+  array([(1.2, '"hello"'), (2.4, "'s worlds")],
+        dtype=[('Col1', '<f8'), ('Col2', 'S9')])
 
 **Typical fixed format table with col names provided**
 ::
@@ -56,20 +57,22 @@ FixedWidth
   ... |  2.4   |'s worlds|
   ... """
   >>> ascii.read(table, format='fixed_width', names=('name1', 'name2'))
-  rec.array([(1.2, '"hello"'), (2.4, "'s worlds")], 
-        dtype=[('name1', '<f8'), ('name2', '|S9')])
+  <Table rows=2 names=('name1','name2')>
+  array([(1.2, '"hello"'), (2.4, "'s worlds")],
+        dtype=[('name1', '<f8'), ('name2', 'S9')])
 
 **Weird input table with data values chopped by col extent**
 ::
 
   >>> table = """
   ...   Col1  |  Col2 |
-  ...   1.2       "hello" 
+  ...   1.2       "hello"
   ...   2.4   sdf's worlds
   ... """
   >>> ascii.read(table, format='fixed_width')
-  rec.array([(1.2, '"hel'), (2.4, "df's wo")], 
-        dtype=[('Col1', '<f8'), ('Col2', '|S7')])
+  <Table rows=2 names=('Col1','Col2')>
+  array([(1.2, '"hel'), (2.4, "df's wo")],
+        dtype=[('Col1', '<f8'), ('Col2', 'S7')])
 
 **Table with double delimiters**
 ::
@@ -81,10 +84,11 @@ FixedWidth
   ... |   Bob  | 555-4527 | 192.168.1.9X|
   ... """
   >>> ascii.read(table, format='fixed_width')
-  rec.array([('John', '555-1234', '192.168.1.10'),
+  <Table rows=3 names=('Name','Phone','TCP')>
+  array([('John', '555-1234', '192.168.1.10'),
          ('Mary', '555-2134', '192.168.1.12'),
-         ('Bob', '555-4527', '192.168.1.9')], 
-        dtype=[('Name', '|S4'), ('Phone', '|S8'), ('TCP', '|S12')])
+         ('Bob', '555-4527', '192.168.1.9')],
+        dtype=[('Name', 'S4'), ('Phone', 'S8'), ('TCP', 'S12')])
 
 **Table with space delimiter**
 ::
@@ -96,12 +100,13 @@ FixedWidth
   ...   Bob  555-4527     192.168.1.9
   ... """
   >>> ascii.read(table, format='fixed_width', delimiter=' ')
-  rec.array([('John', '555-1234', '192.168.1.10'),
+  <Table rows=3 names=('Name','--Phone-','----TCP-----')>
+  array([('John', '555-1234', '192.168.1.10'),
          ('Mary', '555-2134', '192.168.1.12'),
-         ('Bob', '555-4527', '192.168.1.9')], 
-        dtype=[('Name', '|S4'), ('--Phone-', '|S8'), ('----TCP-----', '|S12')])
+         ('Bob', '555-4527', '192.168.1.9')],
+        dtype=[('Name', 'S4'), ('--Phone-', 'S8'), ('----TCP-----', 'S12')])
 
-**Table with no header row and auto-column naming.**  
+**Table with no header row and auto-column naming.**
 
 Use header_start and data_start keywords to indicate no header line.
 ::
@@ -112,13 +117,14 @@ Use header_start and data_start keywords to indicate no header line.
   ... |   Bob  | 555-4527 | 192.168.1.9|
   ... """
   >>> ascii.read(table, format='fixed_width',
-  ...                 header_start=None, data_start=0)
-  rec.array([('John', '555-1234', '192.168.1.10'),
+  ...            header_start=None, data_start=0)
+  <Table rows=3 names=('col1','col2','col3')>
+  array([('John', '555-1234', '192.168.1.10'),
          ('Mary', '555-2134', '192.168.1.12'),
-         ('Bob', '555-4527', '192.168.1.9')], 
-        dtype=[('col1', '|S4'), ('col2', '|S8'), ('col3', '|S12')])
+         ('Bob', '555-4527', '192.168.1.9')],
+        dtype=[('col1', 'S4'), ('col2', 'S8'), ('col3', 'S12')])
 
-**Table with no header row and with col names provided.** 
+**Table with no header row and with col names provided.**
 
 Second and third rows also have hanging spaces after final "|".  Use header_start and data_start
 keywords to indicate no header line.
@@ -130,8 +136,9 @@ keywords to indicate no header line.
   >>> ascii.read(table, format='fixed_width',
   ...                 header_start=None, data_start=0,
   ...                 names=('Name', 'Phone', 'TCP'))
-  rec.array([('John', '555-1234', '192.168.1.10')], 
-        dtype=[('Name', '|S4'), ('Phone', '|S8'), ('TCP', '|S12')])
+  <Table rows=1 names=('Name','Phone','TCP')>
+  array([('John', '555-1234', '192.168.1.10')],
+        dtype=[('Name', 'S4'), ('Phone', 'S8'), ('TCP', 'S12')])
 
 FixedWidthNoHeader
 """"""""""""""""""
@@ -146,10 +153,11 @@ convenience class.**
   ... |   Bob  | 555-4527 | 192.168.1.9|
   ... """
   >>> ascii.read(table, format='fixed_width_no_header')
-  rec.array([('John', '555-1234', '192.168.1.10'),
+  <Table rows=3 names=('col1','col2','col3')>
+  array([('John', '555-1234', '192.168.1.10'),
          ('Mary', '555-2134', '192.168.1.12'),
-         ('Bob', '555-4527', '192.168.1.9')], 
-        dtype=[('col1', '|S4'), ('col2', '|S8'), ('col3', '|S12')])
+         ('Bob', '555-4527', '192.168.1.9')],
+        dtype=[('col1', 'S4'), ('col2', 'S8'), ('col3', 'S12')])
 
 **Table with no delimiter with column start and end values specified.**
 
@@ -170,10 +178,11 @@ will select the first 6 characters.
   ...                 col_starts=(0, 9, 18),
   ...                 col_ends=(5, 17, 28),
   ...                 )
-  rec.array([('John', '555- 1234', '192.168.1.'),
+  <Table rows=3 names=('Name','Phone','TCP')>
+  array([('John', '555- 1234', '192.168.1.'),
          ('Mary', '555- 2134', '192.168.1.'),
-         ('Bob', '555- 4527', '192.168.1')], 
-        dtype=[('Name', '|S4'), ('Phone', '|S9'), ('TCP', '|S10')])
+         ('Bob', '555- 4527', '192.168.1')],
+        dtype=[('Name', 'S4'), ('Phone', 'S9'), ('TCP', 'S10')])
 
 FixedWidthTwoLine
 """""""""""""""""
@@ -182,30 +191,32 @@ FixedWidthTwoLine
 ::
 
   >>> table = """
-  ...   Col1    Col2 
-  ...   ----  --------- 
-  ...    1.2xx"hello" 
+  ...   Col1    Col2
+  ...   ----  ---------
+  ...    1.2xx"hello"
   ...   2.4   's worlds
   ... """
   >>> ascii.read(table, format='fixed_width_two_line')
-  rec.array([(1.2, '"hello"'), (2.4, "'s worlds")], 
-        dtype=[('Col1', '<f8'), ('Col2', '|S9')])
+  <Table rows=2 names=('Col1','Col2')>
+  array([(1.2, '"hello"'), (2.4, "'s worlds")],
+        dtype=[('Col1', '<f8'), ('Col2', 'S9')])
 
 **Restructured text table**
 ::
 
   >>> table = """
   ... ======= ===========
-  ...   Col1    Col2 
+  ...   Col1    Col2
   ... ======= ===========
-  ...   1.2   "hello" 
+  ...   1.2   "hello"
   ...   2.4   's worlds
   ... ======= ===========
   ... """
   >>> ascii.read(table, format='fixed_width_two_line',
   ...                 header_start=1, position_line=2, data_end=-1)
-  rec.array([(1.2, '"hello"'), (2.4, "'s worlds")], 
-        dtype=[('Col1', '<f8'), ('Col2', '|S9')])
+  <Table rows=2 names=('Col1','Col2')>
+  array([(1.2, '"hello"'), (2.4, "'s worlds")],
+        dtype=[('Col1', '<f8'), ('Col2', 'S9')])
 
 **Text table designed for humans and test having position line before the header line.**
 ::
@@ -220,8 +231,9 @@ FixedWidthTwoLine
   ... """
   >>> ascii.read(table, format='fixed_width_two_line', delimiter='+',
   ...                 header_start=1, position_line=0, data_start=3, data_end=-1)
-  rec.array([(1.2, '"hello"'), (2.4, "'s worlds")], 
-        dtype=[('Col1', '<f8'), ('Col2', '|S9')])
+  <Table rows=2 names=('Col1','Col2')>
+  array([(1.2, '"hello"'), (2.4, "'s worlds")],
+        dtype=[('Col1', '<f8'), ('Col2', 'S9')])
 
 Writing
 ^^^^^^^
@@ -286,28 +298,28 @@ FixedWidthNoHeader
 **Write a table as a normal fixed width table.**
 ::
 
-  >>> ascii.write(dat, format='fixed_width'NoHeader)
+  >>> ascii.write(dat, format='fixed_width_no_header')
   | 1.2 |   "hello" | 1 | a |
   | 2.4 | 's worlds | 2 | 2 |
 
 **Write a table as a fixed width table with no padding.**
 ::
 
-  >>> ascii.write(dat, format='fixed_width'NoHeader, delimiter_pad=None)
+  >>> ascii.write(dat, format='fixed_width_no_header', delimiter_pad=None)
   |1.2|  "hello"|1|a|
   |2.4|'s worlds|2|2|
 
 **Write a table as a fixed width table with no bookend.**
 ::
 
-  >>> ascii.write(dat, format='fixed_width'NoHeader, bookend=False)
+  >>> ascii.write(dat, format='fixed_width_no_header', bookend=False)
   1.2 |   "hello" | 1 | a
   2.4 | 's worlds | 2 | 2
 
 **Write a table as a fixed width table with no delimiter.**
 ::
 
-  >>> ascii.write(dat, format='fixed_width'NoHeader, bookend=False,
+  >>> ascii.write(dat, format='fixed_width_no_header', bookend=False,
   ...                  delimiter=None)
   1.2    "hello"  1  a
   2.4  's worlds  2  2
