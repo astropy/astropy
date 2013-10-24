@@ -40,7 +40,7 @@ Fit a data set with a Gaussian model::
     >>> x = np.arange(1, 10, .1)
     >>> g1 = models.Gaussian1DModel(10., stddev=2.1, mean=4.2)
     >>> g1
-    <Gaussian1DModel(amplitude=[10.0], mean=[4.2000000000000002], stddev=[2.1000000000000001], param_dim=1)>
+    <Gaussian1DModel(amplitude=Parameter('amplitude', value=10.0), mean=Parameter('mean', value=4.2000000000000002), stddev=Parameter('stddev', value=2.1000000000000001), param_dim=1)>
     >>> y = g1(x)
     >>> n = np.random.randn(90)
     >>> ny = y + n
@@ -48,32 +48,32 @@ Fit a data set with a Gaussian model::
     >>> gfit(x, ny)
     >>> print(g1)
     Model: Gaussian1DModel
-    Dim:   1
+    n_inputs:   1
     Degree: N/A
     Parameter sets: 1
     Parameters:
-               amplitude:  [10.141697966089579]
-               mean:  [4.2140429078454309]
-               stddev:  [2.0780002458907352]
+               amplitude: Parameter('amplitude', value=10.315151071186117)
+               mean: Parameter('mean', value=4.1780718585869554)
+               stddev:  Parameter('stddev', value=2.0585618180947494)
 
 Create data using a 1D Chebyshev model::
 
     >>> ch1 = models.Chebyshev1DModel(3, domain=[x.min(), x.max()])
     >>> ch1.parameters
-    [0.0, 0.0, 0.0, 0.0]
+    array([0., 0., 0., 0.])
     >>> ch1.parameters = [1, 2, 3, 4]
     >>> ch1.parameters
-    [1.0, 2.0, 3.0, 4.0]
+    array([1., 2., 3., 4.])
     >>> print(ch1)
     Model: Chebyshev1DModel
-    Dim:   1
+    n_inputs:   1
     Degree: 3
     Parameter sets: 1
     Parameters:
-               c0:  [1.0]
-               c1:  [2.0]
-               c2:  [3.0]
-               c3:  [4.0]
+               c0: Parameter('c0', value=1.0)
+               c1: Parameter('c1', value=2.0)
+               c2: Parameter('c2', value=3.0)
+               c3: Parameter('c3', value=4.0)
     >>> y = ch1(x)
 
 Add some noise::
@@ -87,7 +87,7 @@ Fit a Chebyshev polynomial to the data::
     >>> chfit = fitting.LinearLSQFitter(ch2)
     >>> chfit(x, ny)
     >>> ch2.parameters
-    [0.957, 1.931, 3.029, 4.305]
+    array([ 1.08612543,  1.79746444,  3.15233293,  4.06529137])
 
 .. plot::
 
@@ -125,22 +125,23 @@ Fit a 2D polynomial to the data::
     >>> p2 = models.Polynomial2DModel(2)
     >>> print(p2)
     Model: Polynomial2DModel
-    Dim:   2
+    n_inputs:   2
     Degree: 2
     Parameter sets: 1
     Parameters:
-               c0_0:  [0.0]
-               c1_0:  [0.0]
-               c2_0:  [0.0]
-               c0_1:  [0.0]
-               c0_2:  [0.0]
-               c1_1:  [0.0]
+               c0_0: Parameter('c0_0', value=0.0)
+               c1_0: Parameter('c1_0', value=0.0)
+               c2_0: Parameter('c2_0', value=0.0)
+               c0_1: Parameter('c0_1', value=0.0)
+               c0_2: Parameter('c0_2', value=0.0)
+               c1_1: Parameter('c1_1', value=0.0)
     >>> pfit = fitting.LinearLSQFitter(p2)
     >>> n = np.random.randn(100)
     >>> n.shape = (10, 10)
     >>> pfit(x, y, z+n)
     >>> p2.parameters
-    [0.6354845, 2.016544, 3.0035796, 4.0907439, 4.989999, 6.000127]
+    array([ 0.97599264,  1.95050208,  3.00524297,  4.01663038,  5.00150801,
+            5.999489  ])
 
 
 Using `modeling`

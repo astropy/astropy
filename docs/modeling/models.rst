@@ -102,7 +102,6 @@ or two data sets (any other number would be an error)::
 - Evaluating polynomial models with multiple parameter sets with one input data
   set creates multiple output data sets::
 
-    >>> p1 = models.Polynomial1DModel(1, param_dim=5)
     >>> len(p1.parameters)
     10
     >>> p1.c1 = [0, 1, 2, 3, 4]
