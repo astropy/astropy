@@ -445,8 +445,6 @@ class Trapezoid1DKernel(Kernel1D):
     def __init__(self, width, slope=1., **kwargs):
         self._model = models.Trapezoid1DModel(1, 0, width, slope)
         self._default_size = _round_up_to_odd_integer(width + 2. / slope)
-        if self._default_size % 2 == 0:
-            self._default_size += 1
         super(Trapezoid1DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()
@@ -506,8 +504,6 @@ class TrapezoidDisk2DKernel(Kernel2D):
     def __init__(self, radius, slope=1., **kwargs):
         self._model = models.TrapezoidDisk2DModel(1, 0, 0, radius, slope)
         self._default_size = _round_up_to_odd_integer(2 * radius + 2. / slope)
-        if self._default_size % 2 == 0:
-            self._default_size += 1
         super(TrapezoidDisk2DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()

@@ -2,6 +2,7 @@
 import itertools
 
 import numpy as np
+from numpy.testing import assert_allclose
 
 from ...tests.helper import pytest
 
@@ -33,7 +34,7 @@ def test_pixel_sum_1D(model_class, mode):
     model = create_model(model_class, parameters)
 
     values = discretize_model(model, models_1D[model_class]['x_lim'], mode=mode)
-    assert (np.abs(values.sum() - models_1D[model_class]['integral']) < 0.0001)
+    assert_allclose(values.sum(), models_1D[model_class]['integral'], atol=0.0001)
 
 
 @pytest.mark.parametrize('mode', modes)
@@ -46,8 +47,7 @@ def test_gaussian_eval_1D(mode):
     x = np.arange(-100, 101)
     values = model(x)
     disc_values = discretize_model(model, (-100, 101), mode=mode)
-
-    assert np.all(np.abs(values - disc_values) < 0.001)
+    assert_allclose(values, disc_values, atol=0.001)
 
 
 @pytest.mark.parametrize(('model_class', 'mode'), list(itertools.product(test_models_2D, modes)))
@@ -60,7 +60,7 @@ def test_pixel_sum_2D(model_class, mode):
 
     values = discretize_model(model, models_2D[model_class]['x_lim'],
                               models_2D[model_class]['y_lim'], mode=mode)
-    assert (np.abs(values.sum() - models_2D[model_class]['integral']) < 0.0001)
+    assert_allclose(values.sum(), models_2D[model_class]['integral'], atol=0.0001)
 
 
 @pytest.mark.parametrize('mode', modes)
@@ -75,7 +75,7 @@ def test_gaussian_eval_2D(mode):
     y, x = np.meshgrid(y, x)
     values = model(x, y)
     disc_values = discretize_model(model, (-100, 101), (-100, 101), mode=mode)
-    assert np.all(np.abs(values - disc_values) < 0.001)
+    assert_allclose(values, disc_values, atol=0.001)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -85,7 +85,7 @@ def test_subpixel_gauss_1D():
     """
     gauss_1D = Gaussian1DModel(1, 0, 0.1)
     values = discretize_model(gauss_1D, (-1, 2), mode='integrate', factor=100)
-    assert np.abs(values.sum() - np.sqrt(2 * np.pi) * 0.1) < 0.00001
+    assert_allclose(values.sum(), np.sqrt(2 * np.pi) * 0.1, atol=0.00001)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -95,4 +95,4 @@ def test_subpixel_gauss_2D():
     """
     gauss_2D = Gaussian2DModel(1, 0, 0, 0.1, 0.1)
     values = discretize_model(gauss_2D, (-1, 2), (-1, 2), mode='integrate', factor=100)
-    assert np.abs(values.sum() - 2 * np.pi * 0.01) < 0.00001
+    assert_allclose(values.sum(), 2 * np.pi * 0.01, atol=0.00001)
