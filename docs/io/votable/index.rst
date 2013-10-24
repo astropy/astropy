@@ -1,3 +1,5 @@
+.. doctest_skip
+
 .. include:: references.txt
 
 .. _astropy-io-votable:
