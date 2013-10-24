@@ -44,7 +44,7 @@ def test_distance_is_quantity():
 
     d = Distance([2, 3.1], u.kpc)
 
-    d.shape == (2,)
+    assert d.shape == (2,)
 
     a = d.view(ndarray)
     q = d.view(u.Quantity)

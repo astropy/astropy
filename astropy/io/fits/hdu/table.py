@@ -236,16 +236,16 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             self.update()
 
             try:
-               # Make the ndarrays in the Column objects of the ColDefs
-               # object of the HDU reference the same ndarray as the HDU's
-               # FITS_rec object.
+                # Make the ndarrays in the Column objects of the ColDefs
+                # object of the HDU reference the same ndarray as the HDU's
+                # FITS_rec object.
                 for idx in range(len(self.columns)):
                     self.columns[idx].array = self.data.field(idx)
 
                 # Delete the _arrays attribute so that it is recreated to
                 # point to the new data placed in the column objects above
                 del self.columns._arrays
-            except (TypeError, AttributeError) as e:
+            except (TypeError, AttributeError):
                 # This shouldn't happen as long as self.columns._arrays
                 # is a lazyproperty
                 pass

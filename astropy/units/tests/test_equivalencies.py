@@ -270,7 +270,7 @@ def test_spectraldensity3():
                     10., 10)
 
 
-def test_spectraldensity3():
+def test_spectraldensity4():
     """PHOTLAM and PHOTNU conversions."""
     flam = u.erg / (u.cm ** 2 * u.s * u.AA)
     fnu = u.erg / (u.cm ** 2 * u.s * u.Hz)
