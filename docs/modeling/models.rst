@@ -95,7 +95,7 @@ or two data sets (any other number would be an error)
 
 - Evaluating polynomial models with multiple parameter sets with one input data set creates multiple output data sets
 
->>> p1 = models.Poly1DModel(1, param_dim=5)
+>>> p1 = models.Polynomial1DModel(1, param_dim=5)
 >>> len(p1.parameters)
 10
 >>> p1.c1 = [0, 1, 2, 3, 4]
@@ -111,11 +111,11 @@ array([[ 0.,  0.,  0.,  0.,  0.],
   import numpy as np
   from astropy.modeling import models, fitting
   x = np.arange(1, 10, .1)
-  p1 = models.Poly1DModel(1, param_dim=5)
+  p1 = models.Polynomial1DModel(1, param_dim=5)
   p1.c1 = [0, 1, 2, 3, 4]
   y = p1(x)
   plt.plot(x, y)
-  plt.title("Poly1DModel with 5 parameter sets")
+  plt.title("Polynomial1DModel with 5 parameter sets")
   plt.show()
 
 - When passed a 2D array, the same polynomial will map parameter sets to array columns
@@ -139,7 +139,7 @@ array([[ 0.,  1.,  2.,  3.,  4.],
 - Create and evaluate a parallel composite model
 
 >>> x = np.arange(1,10,.1)
->>> p1 = models.Poly1DModel(1)
+>>> p1 = models.Polynomial1DModel(1)
 >>> g1 = models.Gaussian1DModel(10., stddev=2.1, mean=4.2)
 >>> parallel_composite_model = ParallelCompositeModel([g1, p1])
 >>> y = parallel_composite_model(x)
