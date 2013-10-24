@@ -117,8 +117,12 @@ created as shown in the following example::
 
   >>> t = Table(arr, names=('a', 'b', 'c'))
   >>> t_acb = t['a', 'c', 'b']
-  >>> new_order = ['a', 'c']  # List or tuple
-  >>> t_ac = t[neworder]
+
+Another way to do the same thing is to provide a list or tuple
+as the item as shown below::
+
+  >>> new_order = ['a', 'c', 'b']  # List or tuple
+  >>> t_acb = t[new_order]
 
 
 Caveats
