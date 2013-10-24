@@ -1,5 +1,4 @@
 http://archive.noao.edu/nvo/usno.php?cat=a&amp;
-http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=gsc&amp;
 http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&amp;
 http://irsa.ipac.caltech.edu/cgi-bin/Oasis/CatSearch/nph-catsearch?CAT=fp_psc&amp;
 http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/220/out&amp;
