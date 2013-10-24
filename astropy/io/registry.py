@@ -15,6 +15,41 @@ _writers = OrderedDict()
 _identifiers = OrderedDict()
 
 
+def get_formats(data_class=None):
+    """
+    Get the list of registered I/O formats as a Table.
+
+    Parameters
+    ----------
+    data_class : classobj
+        Filter readers/writer to match data class (default = all classes)
+
+    Returns
+    -------
+    format_table: Table
+        Table of available I/O formats
+    """
+    from ..table import Table
+    format_classes = sorted(set(_readers) | set(_writers))
+    rows = []
+
+    for format_class in format_classes:
+        if data_class is not None and format_class[1] is not data_class:
+            continue
+
+        has_read = 'Yes' if format_class in _readers else 'No'
+        has_write = 'Yes' if format_class in _writers else 'No'
+        has_identify = 'Yes' if format_class in _identifiers else 'No'
+
+        rows.append((format_class[1].__name__, format_class[0], has_read, has_write, has_identify))
+
+    format_table = Table(zip(*rows),
+                         names=('Data class', 'Format', 'Read', 'Write', 'Auto-identify'))
+    format_table.sort(['Data class', 'Format'])
+
+    return format_table
+
+
 def register_reader(data_format, data_class, function, force=False):
     """
     Register a reader function.
