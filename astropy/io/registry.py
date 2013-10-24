@@ -4,6 +4,8 @@ import re
 import io
 import sys
 
+import numpy as np
+
 from ..utils import OrderedDict
 
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
@@ -42,14 +44,23 @@ def get_formats(data_class=None):
         has_write = 'Yes' if format_class in _writers else 'No'
         has_identify = 'Yes' if format_class in _identifiers else 'No'
 
-        rows.append((format_class[1].__name__, format_class[0], has_read, has_write, has_identify))
+        # Check if this is a short name (e.g. 'rdb') which is deprecated in favor
+        # of the full 'ascii.rdb'.
+        ascii_format_class = ('ascii.' + format_class[0], format_class[1])
+        deprecated = 'Yes' if ascii_format_class in format_classes else ''
+
+        rows.append((format_class[1].__name__, format_class[0], has_read, has_write,
+                     has_identify, deprecated))
 
     if not rows:
         raise ValueError('No formats have data class {0!r}'.format(data_class.__name__))
 
-    format_table = Table(zip(*rows),
-                         names=('Data class', 'Format', 'Read', 'Write', 'Auto-identify'))
+    format_table = Table(zip(*rows), names=('Data class', 'Format', 'Read', 'Write',
+                                            'Auto-identify', 'Deprecated'))
     format_table.sort(['Data class', 'Format'])
+
+    if not np.any(format_table['Deprecated'] == 'Yes'):
+        format_table.remove_column('Deprecated')
 
     return format_table
 
@@ -85,6 +96,14 @@ def _update__doc__(data_class, readwrite):
     new_lines[1] = table_rst_sep
     new_lines.insert(0, table_rst_sep)
     new_lines.append(table_rst_sep)
+
+    # Check for deprecated names and include a warning at the end.
+    if 'Deprecated' in format_table.colnames:
+        new_lines.extend(['',
+                          'Deprecated format names like ``aastex`` will be removed in a '
+                          'future version.',
+                          'Use the full name (e.g. ``ascii.aastex``) instead.'])
+
     lines.extend([' ' * left_indent + line for line in new_lines])
 
     class_readwrite_func.__func__.__doc__ = '\n'.join(lines)
