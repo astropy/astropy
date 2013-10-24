@@ -43,6 +43,9 @@ def get_formats(data_class=None):
 
         rows.append((format_class[1].__name__, format_class[0], has_read, has_write, has_identify))
 
+    if not rows:
+        raise ValueError('No formats have data class {!r:}'.format(data_class.__name__))
+
     format_table = Table(zip(*rows),
                          names=('Data class', 'Format', 'Read', 'Write', 'Auto-identify'))
     format_table.sort(['Data class', 'Format'])
