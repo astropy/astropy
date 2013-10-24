@@ -124,7 +124,6 @@ as the item as shown below::
   >>> new_order = ['a', 'c', 'b']  # List or tuple
   >>> t_acb = t[new_order]
 
-
 Caveats
 ^^^^^^^
 

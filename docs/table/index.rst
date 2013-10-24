@@ -117,10 +117,12 @@ columns (using column names), where the subset is returned as a new table::
     1 2.0   x
     4 5.0   y
 
-  >>> t['a', 'c']  # Table with cols 'a', 'c'
-  <Table rows=3 names=('a','c')>
-  array([(1, 'x'), (4, 'y'), (5, 'z')],
-        dtype=[('a', '<i8'), ('c', 'S1')])
+  >>> print(t['a', 'c'])  # Table with cols 'a', 'c'
+   a   c
+  --- ---
+    1   x
+    4   y
+    5   z
 
 Modifying table values in place is flexible and works as one would expect::
 
