@@ -298,10 +298,20 @@ def get_extensions():
 
 def get_package_data():
     # Installs the testing data files
+    api_files = [
+        'astropy_wcs_api.h',
+        'wcsconfig.h',
+        'pyutil.h',
+        'util.h',
+        'distortion.h',
+        'pipeline.h',
+        'sip.h'
+        ]
+    api_files = [join('include', x) for x in api_files]
     return {
         'astropy.wcs.tests': ['data/*.hdr', 'data/*.fits',
                               'maps/*.hdr', 'spectra/*.hdr'],
-        'astropy.wcs': ['include/*.h']}
+        'astropy.wcs': api_files}
 
 
 def get_legacy_alias():
