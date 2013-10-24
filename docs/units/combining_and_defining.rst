@@ -30,7 +30,7 @@ Creating a new fundamental unit is simple::
   >>> rofl = u.def_unit('rofl', 4 * guffaw)
   >>> death_by_laughing = u.def_unit('death_by_laughing', 10 * rofl)
   >>> rofl.to(titter, 1)
-  240
+  240.0
 
 By default, custom units are not searched by methods such as
 `~astropy.units.core.UnitBase.find_equivalent_units`.  However, they
@@ -38,7 +38,7 @@ can be enabled by calling `~astropy.units.core.add_enabled_units`::
 
   >>> kmph = u.def_unit('kmph', u.km / u.h)
   >>> (u.m / u.s).find_equivalent_units()
-  # ... nothing ...
+  []
   >>> u.add_enabled_units([kmph])
   >>> (u.m / u.s).find_equivalent_units()
     Primary name | Unit definition | Aliases

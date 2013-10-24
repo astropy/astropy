@@ -47,9 +47,9 @@ quantities with different units::
     >>> 15.1 * u.meter / (32.0 * u.second)
     <Quantity 0.471875 m / s>
     >>> 3.0 * u.kilometer / (130.51 * u.meter / u.second)
-    <Quantity 0.0229867443108 km s / m>
+    <Quantity 0.0229867443... km s / m>
     >>> (3.0 * u.kilometer / (130.51 * u.meter / u.second)).decompose()
-    <Quantity 22.9867443108 s>
+    <Quantity 22.9867443... s>
 
 Unit conversion is done using the
 :meth:`~astropy.units.quantity.Quantity.to` method, which returns a new
@@ -83,7 +83,7 @@ Units that "cancel out" become a special unit called the
 knows about::
 
     >>> (u.s ** -1).compose()
-    [Unit("Hz"), ...]
+    [Unit("Bq"), Unit("Hz"), Unit("3.7e+10 Ci")]
 
 And it can convert between unit systems, such as SI or CGS::
 
@@ -96,6 +96,8 @@ and frequency. To use that feature, equivalence objects are passed to the
 conversion from wavelength to frequency doesn't normally work:
 
     >>> (1000 * u.nm).to(u.Hz)
+    Traceback (most recent call last):
+      ...
     UnitsError: 'nm' (length) and 'Hz' (frequency) are not convertible
 
 but by passing an equivalency list, in this case ``spectral()``, it does:

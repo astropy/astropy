@@ -24,7 +24,7 @@ whole string representation of the |quantity|. This means you can do::
     >>> q
     <Quantity 10 km>
     >>> "{0}".format(q)
-    10 km
+    '10 km'
     >>> "{0:+0.03f}".format(q)
     '+10.000 km'
     >>> "{0:20s}".format(q)
@@ -64,10 +64,10 @@ optional parameter to select a different format, including
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
     >>> "{0}".format(fluxunit)
     u'erg / (cm2 s)'
-    >>> "{0:console}".format(fluxunit)
-    u' erg
+    >>> print("{0:console}".format(fluxunit))
+     erg
     ------
-    s cm^2'
+    s cm^2
     >>> "{0:latex}".format(fluxunit)
     u'$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
     >>> "{0:>20s}".format(fluxunit)
@@ -88,9 +88,9 @@ formats using the `~astropy.units.core.Unit` class::
   >>> u.Unit("m")
   Unit("m")
   >>> u.Unit("erg / (s cm2)")
-  Unit("erg / (s cm2)")
+  Unit("erg / (cm2 s)")
   >>> u.Unit("erg.s-1.cm-2", format="cds")
-  Unit("erg / (s cm2)")
+  Unit("erg / (cm2 s)")
 
 .. note::
 
@@ -139,7 +139,7 @@ following formats:
     recommendations for unit presentation.  This format is
     automatically used when printing a unit in the IPython notebook::
 
-      >>> fluxunit
+      >>> fluxunit  # doctest: +SKIP
 
     .. math::
 
@@ -157,9 +157,9 @@ following formats:
     characters::
 
       >>> print u.Ry.decompose().to_string('unicode')
-                 m² kg
-      2.18×10-¹⁸ ─────
-                  s²
+                      m² kg
+      2.1798721×10-¹⁸ ─────
+                       s²
 
 Unrecognized Units
 ------------------
@@ -172,7 +172,10 @@ parse.
 Normally, passing an unrecognized unit string raises an exception::
 
   >>> u.Unit("m/s/s")  # The FITS standard only allows one '/'
-  ValueError: Expected end of text (at char 3) in 'm/s/s'
+  Traceback (most recent call last):
+    ...
+  ValueError: 'm/s/s' did not parse as unit format 'generic': Syntax
+  error parsing unit string 'm/s/s'
 
 However, the `~astropy.units.core.Unit` constructor has the keyword
 argument `parse_strict` that can take one of three values to control
@@ -189,8 +192,9 @@ this behavior:
 So, for example, one can do::
 
    >>> x = u.Unit("m/s/s", parse_strict="warn")
-   WARNING: UnitsWarning: 'm/s/s' did not parse using format 'generic'.
-   Expected end of text (at char 3) in 'm/s/s' [astropy.units.core]
+   WARNING: UnitsWarning: 'm/s/s' did not parse as unit format
+   'generic': Syntax error parsing unit string 'm/s/s'
+   [astropy.units.core]
 
 This `~astropy.units.core.UnrecognizedUnit` object remembers the
 original string it was created with, so it can be written back out,
@@ -200,8 +204,12 @@ unit or composing with other units, will fail.
    >>> x.to_string()
    'm/s/s'
    >>> x.to(u.km / u.s / u.s)
-   ValueError: The unit 'm/s/s' is unrecognized.  It can not be converted to
-   other units.
+   Traceback (most recent call last):
+     ...
+   ValueError: The unit 'm/s/s' is unrecognized.  It can not be
+   converted to other units.
    >>> x / u.m
-   ValueError: The unit 'm/s/s' is unrecognized, so all arithmetic operations
-   with it are invalid.
+   Traceback (most recent call last):
+     ...
+   ValueError: The unit 'm/s/s' is unrecognized, so all arithmetic
+   operations with it are invalid.
