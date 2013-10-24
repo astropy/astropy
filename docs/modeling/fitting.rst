@@ -37,7 +37,7 @@ Fitting Examples
 >>> p1.c0 = 1
 >>> p1.c1 = 2
 >>> p1.parameters
-[1.0, 2.0, 0.0, 0.0]
+array([ 1.,  2.,  0.,  0.])
 >>> x = np.arange(10)
 >>> y = p1(x)
 >>> yy = np.array([y, y]).T
@@ -45,10 +45,10 @@ Fitting Examples
 >>> pfit = fitting.LinearLSQFitter(p2)
 >>> pfit(x,yy)
 >>> print(p2.param_sets)
-array([[  1.00000000e+00,   1.00000000e+00],
-       [  2.00000000e+00,   2.00000000e+00],
-       [  3.91115939e-16,   3.91115939e-16],
-       [ -2.99676984e-17,  -2.99676984e-17]])
+[[  1.00000000e+00   1.00000000e+00]
+ [  2.00000000e+00   2.00000000e+00]
+ [  1.35314993e-16   1.35314993e-16]
+ [ -1.65733755e-17  -1.65733755e-17]]
 
 Fitters support constraint fitting.
 
@@ -58,7 +58,7 @@ Fitters support constraint fitting.
 
 For linear fitters freezing a polynomial coefficient means that a
 polynomial without that term will be fitted to the data. For example, fixing
-c0 in a polynomial model will fit a polynomial with the zero-th order term missing.
+``c0`` in a polynomial model will fit a polynomial with the zero-th order term missing.
 However, the fixed value of the coefficient is used when evaluating the model.
 
 >>> x = np.arange(1, 10, .1)
@@ -82,8 +82,8 @@ array([[ 5.50225913,  5.50225913],
   (linked to another parameter). This can be done in two ways:
 
 >>> def tiedfunc(g1):
-    ...    mean = 3 * g1.stddev[0]
-    ...    return mean
+...    mean = 3 * g1.stddev[0]
+...    return mean
 >>> g1 = models.Gaussian1DModel(amplitude=10., mean=3, stddev=.5, tied={'mean': tiedfunc})
 
 or
