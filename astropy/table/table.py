@@ -2340,7 +2340,7 @@ class Table(object):
         The arguments and keywords (other than ``format``) provided to this function are
         passed through to the underlying data reader (e.g. `~astropy.io.ascii.ui.read`).
 
-        The available formats are:
+        The available built-in formats are:
 
         ========== =========================== ==== ===== =============
         Data class            Format           Read Write Auto-identify
@@ -2364,7 +2364,7 @@ class Table(object):
         The arguments and keywords (other than ``format``) provided to this function are
         passed through to the underlying data reader (e.g. `~astropy.io.ascii.ui.read`).
 
-        The available formats are:
+        The available built-in formats are:
 
         ========== =========================== ==== ===== =============
         Data class            Format           Read Write Auto-identify

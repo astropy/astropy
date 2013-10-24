@@ -45,7 +45,7 @@ def get_formats(data_class=None):
         rows.append((format_class[1].__name__, format_class[0], has_read, has_write, has_identify))
 
     if not rows:
-        raise ValueError('No formats have data class {!r:}'.format(data_class.__name__))
+        raise ValueError('No formats have data class {0!r}'.format(data_class.__name__))
 
     format_table = Table(zip(*rows),
                          names=('Data class', 'Format', 'Read', 'Write', 'Auto-identify'))
@@ -59,12 +59,18 @@ def _update__doc__(data_class, readwrite):
     Update the docstring to include all the available readers / writers for the
     ``data_class.read`` or ``data_class.write`` functions (respectively).
     """
+    # Get the existing read or write method and its docstring
     class_readwrite_func = getattr(data_class, readwrite)
     lines = class_readwrite_func.__doc__.splitlines()
+
+    # Find the location of the existing formats table and its indentation
     sep_indices = [ii for ii, line in enumerate(lines) if '=======' in line]
     left_indent = lines[sep_indices[0]].index('=')
+
+    # Chop off the existing table.
     lines = lines[:sep_indices[0]]
 
+    # Get the available unified I/O formats for this class
     format_table = get_formats(data_class)
 
     # Include only formats that have a reader, and drop the 'Data class' column
@@ -72,6 +78,8 @@ def _update__doc__(data_class, readwrite):
     format_table = format_table[has_read]
     format_table.remove_column('Data class')
 
+    # Get the available formats as a table, then munge the output of pformat() a bit and
+    # put it into the docstring.
     new_lines = format_table.pformat(max_lines=-1)
     table_rst_sep = re.sub('-', '=', new_lines[1])
     new_lines[1] = table_rst_sep
@@ -202,20 +210,35 @@ def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
     return valid_formats
 
 
+def _get_format_table_str(data_class, readwrite):
+    format_table = get_formats(data_class)
+    has_readwrite = format_table[readwrite] == 'Yes'
+    format_table = format_table[has_readwrite]
+    format_table.remove_column('Data class')
+    format_table_str = '\n'.join(format_table.pformat(max_lines=-1))
+    return format_table_str
+
+
 def get_reader(data_format, data_class):
     if (data_format, data_class) in _readers:
         return _readers[(data_format, data_class)]
     else:
-        raise Exception('No reader defined for format {0!r} and class '
-                        '{1!r}'.format(data_format, data_class.__name__))
+        format_table_str = _get_format_table_str(data_class, 'Read')
+        raise Exception('No reader is defined for format {0!r} and class {1!r}.\n'
+                        'The available formats are:\n'
+                        '{2}'
+                        .format(data_format, data_class.__name__, format_table_str))
 
 
 def get_writer(data_format, data_class):
     if (data_format, data_class) in _writers:
         return _writers[(data_format, data_class)]
     else:
-        raise Exception('No writer defined for format {0!r} and class '
-                        '{1!r}'.format(data_format, data_class.__name__))
+        format_table_str = _get_format_table_str(data_class, 'Write')
+        raise Exception('No writer is defined for format {0!r} and class {1!r}.\n'
+                        'The available formats are:\n'
+                        '{2}'
+                        .format(data_format, data_class.__name__, format_table_str))
 
 
 def read(cls, *args, **kwargs):
