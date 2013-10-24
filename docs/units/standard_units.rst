@@ -97,6 +97,8 @@ use the `~astropy.units.core.UnitBase.physical_type` property::
    >>> (u.m / u.m) == u.dimensionless_unscaled
    True
 
+.. _enabling-other-units:
+
 Enabling other units
 --------------------
 

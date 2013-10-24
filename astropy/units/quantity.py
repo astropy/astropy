@@ -387,7 +387,7 @@ class Quantity(np.ndarray):
         unit, = own_state
         self._unit = unit
 
-    def to(self, unit, equivalencies=None):
+    def to(self, unit, equivalencies=[]):
         """ Returns a new `Quantity` object with the specified units.
 
         Parameters
@@ -400,10 +400,12 @@ class Quantity(np.ndarray):
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
-            If not provided, default equivalencies for the class will be used
+            If not provided or `[]`, class default equivalencies will be used
             (none for `~astropy.units.Quantity`, but may be set for subclasses)
+            If `None`, no equivalencies will be applied at all, not even any
+            set globally or within a context.
         """
-        if equivalencies is None:
+        if equivalencies == []:
             equivalencies = self._equivalencies
         new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
         return self.__quantity_instance__(new_val, unit, copy=False)
@@ -432,7 +434,7 @@ class Quantity(np.ndarray):
     @property
     def equivalencies(self):
         """
-        A list of equivalencies that will be applied implicitly during
+        A list of equivalencies that will be applied by default during
         unit conversions.
         """
 
@@ -496,8 +498,9 @@ class Quantity(np.ndarray):
         if not self._include_easy_conversion_members:
             return []
         extra_members = set()
+        equivalencies = Unit._normalize_equivalencies(self.equivalencies)
         for equivalent in self.unit._get_units_with_same_physical_type(
-                self._equivalencies):
+                equivalencies):
             extra_members.update(equivalent.names)
         return extra_members
 

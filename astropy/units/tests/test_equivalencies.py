@@ -17,10 +17,13 @@ from ... import units as u
 
 
 def test_dimensionless_angles():
+    # test that the angles_dimensionless option allows one to change
+    # by any order in radian in the unit (#1161)
     rad1 = u.dimensionless_angles()
     assert u.radian.to(1, equivalencies=rad1) == 1.
     assert u.deg.to(1, equivalencies=rad1) == u.deg.to(u.rad)
     assert u.steradian.to(1, equivalencies=rad1) == 1.
+    assert u.dimensionless_unscaled.to(u.steradian, equivalencies=rad1) == 1.
     # now quantities
     assert (1.*u.radian).to(1, equivalencies=rad1).value == 1.
     assert (1.*u.deg).to(1, equivalencies=rad1).value == u.deg.to(u.rad)
@@ -412,3 +415,59 @@ def test_brightness_temperature():
     np.testing.assert_almost_equal(
         1.0, tb.to(
             u.Jy, equivalencies=u.brightness_temperature(omega_B, nu)).value)
+
+
+def test_equivalency_context():
+    with u.set_enabled_equivalencies(u.dimensionless_angles()):
+        phase = u.Quantity(1., u.cycle)
+        assert_allclose(np.exp(1j*phase), 1.)
+        Omega = u.cycle / (1.*u.minute)
+        assert_allclose(np.exp(1j*Omega*60.*u.second), 1.)
+        # ensure we can turn off equivalencies even within the scope
+        with pytest.raises(u.UnitsError):
+            phase.to(1, equivalencies=None)
+
+    with u.set_enabled_equivalencies(u.spectral()):
+        u.GHz.to(u.cm)
+        eq_on = u.GHz.find_equivalent_units()
+        with pytest.raises(u.UnitsError):
+            u.GHz.to(u.cm, equivalencies=None)
+
+    # without equivalencies, we should find a smaller (sub)set
+    eq_off = u.GHz.find_equivalent_units()
+    assert all(eq in set(eq_on) for eq in eq_off)
+    assert set(eq_off) < set(eq_on)
+
+
+def test_equivalency_context_manager():
+    base_registry = u.get_current_unit_registry()
+
+    def just_to_from_units(equivalencies):
+        return [(equiv[0], equiv[1]) for equiv in equivalencies]
+
+    tf_dimensionless_angles = just_to_from_units(u.dimensionless_angles())
+    tf_spectral = just_to_from_units(u.spectral())
+    assert base_registry.equivalencies == []
+    with u.set_enabled_equivalencies(u.dimensionless_angles()):
+        new_registry = u.get_current_unit_registry()
+        assert (set(just_to_from_units(new_registry.equivalencies)) ==
+                set(tf_dimensionless_angles))
+        assert set(new_registry.all_units) == set(base_registry.all_units)
+        with u.set_enabled_equivalencies(u.spectral()):
+            newer_registry = u.get_current_unit_registry()
+            assert (set(just_to_from_units(newer_registry.equivalencies)) ==
+                    set(tf_spectral))
+            assert (set(newer_registry.all_units) ==
+                    set(base_registry.all_units))
+
+        assert (set(just_to_from_units(new_registry.equivalencies)) ==
+                set(tf_dimensionless_angles))
+        assert set(new_registry.all_units) == set(base_registry.all_units)
+        with u.add_enabled_equivalencies(u.spectral()):
+            newer_registry = u.get_current_unit_registry()
+            assert (set(just_to_from_units(newer_registry.equivalencies)) ==
+                    set(tf_dimensionless_angles) | set(tf_spectral))
+            assert (set(newer_registry.all_units) ==
+                    set(base_registry.all_units))
+
+    assert base_registry is u.get_current_unit_registry()
