@@ -139,6 +139,12 @@ New Features
     method returns ``True`` if the unit is equivalent to any of the units
     listed in the tuple.
 
+  - Added ``dimensionless_angles`` equivalency, which allows conversion of
+    any power of radian to dimensionless.
+
+  - Added the ability to enable set of units, or equivalencies that
+    are used by default.  Also provided context managers for these cases.
+
 - ``astropy.utils``
 
   - Added ``astropy.utils.iers`` which allows reading in of IERS A or

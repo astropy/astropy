@@ -97,6 +97,8 @@ use the `~astropy.units.core.UnitBase.physical_type` property::
    >>> (u.m / u.m) == u.dimensionless_unscaled
    True
 
+.. _enabling-other-units:
+
 Enabling other units
 --------------------
 
@@ -128,18 +130,18 @@ For example, to enable Imperial units, simply do::
       yd           | 0.9144 m        | yard             ,
     ]
 
-To enable just specific units, use
-`~astropy.units.core.add_enabled_units`::
+
+This may also be used with the ``with`` statement, to temporarily
+enable additional units::
+
+    >>> from astropy import units as u
+    >>> from astropy.units import imperial
+    >>> with imperial.enable():
+    ...     u.m.find_equivalent_units()
+    ...
+
+To enable just specific units, use `~astropy.units.add_enabled_units`::
 
     >>> from astropy import units as u
     >>> from astropy.units import imperial
     >>> u.add_enabled_units([imperial.knot])
-
-A context manager, `~astropy.units.core.add_enabled_units_context` is
-also provided, to temporarily enable additional units::
-
-    >>> from astropy import units as u
-    >>> from astropy.units import imperial
-    >>> with u.add_enabled_units_context([imperial.knot]):
-    ...     u.m.find_equivalent_units()
-    ...
