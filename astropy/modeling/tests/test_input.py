@@ -9,6 +9,8 @@ from .. import fitting
 from numpy.testing import utils
 from ...tests.helper import pytest
 
+np.seterr(all='raise')
+
 try:
     from scipy import optimize
     HAS_SCIPY = True

@@ -10,7 +10,7 @@ from numpy.testing import utils
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
 from .. import ParametricModel, Parameter
-
+np.seterr(all='raise')
 
 class TestParModel(ParametricModel):
 

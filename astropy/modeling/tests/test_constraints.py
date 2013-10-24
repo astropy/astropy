@@ -7,6 +7,7 @@ import numpy as np
 from numpy.testing import utils
 from numpy.random import RandomState
 from ...tests.helper import pytest
+np.seterr(all='raise')
 
 try:
     from scipy import optimize

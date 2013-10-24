@@ -11,7 +11,7 @@ from ...io import fits
 from ... import wcs
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
-
+n.seterr(all='raise')
 
 def test_Projection_properties():
     projection = projections.Sky2Pix_CAR()
