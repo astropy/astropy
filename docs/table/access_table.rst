@@ -128,8 +128,14 @@ When a table column is printed, either with ``print`` or via the ``str()``
 built-in function, it is formatted according to the ``format`` attribute (see
 :ref:`table_format_string`)::
 
-  >>> print t['a'].description, t['a']
-  unladen swallow velocity  0.000,  3.000,  6.000,  9.000, 12.000
+  >>> print(t['a'])
+      a
+    ------
+     0.000
+     3.000
+     6.000
+     9.000
+    12.000
 
 Likewise a table row and a column from that row can be selected::
 
@@ -178,7 +184,7 @@ selected rows or columns.  ::
   12.000  13  14
 
   >>> print t['a', 'c']  # or t[['a', 'c']] or t[('a', 'c')]
-                         # Table with cols 'a', 'c' (copy)
+  ...                    # Table with cols 'a', 'c' (copy)
     a     c
   ------ ---
    0.000   2
@@ -213,7 +219,7 @@ table using one of several methods:
   way to save a table.
 
 These methods use :ref:`table_format_string`
-if available and strive to make the output readable.  
+if available and strive to make the output readable.
 By default, table and column printing will
 not print the table larger than the available interactive screen size.  If the
 screen size cannot be determined (in a non-interactive environment or on
@@ -291,7 +297,7 @@ meaning as shown below::
 
   >>> t.pprint(max_lines=8, max_width=40, show_unit=True)
       col0     ...    col29
-     km**2     ... kg sec m**-2
+      km2      ... kg sec m**-2
   ------------ ... ------------
   0.000000e+00 ...         29.0
   3.000000e+01 ...         59.0
@@ -313,8 +319,7 @@ In order to force printing all values regardless of the output length or width
 set ``max_lines`` or ``max_width`` to ``-1``, respectively.  For the wide
 table in this example one sees 6 lines of wrapped output like the following::
 
-  >>> t.pprint(max_lines=6, max_width=-1)
-
+  >>> t.pprint(max_lines=6, max_width=-1)  # doctest: +SKIP
       col0         col1     col2   col3   col4   col5   col6   col7   col8   col
   9  col10  col11  col12  col13  col14  col15  col16  col17  col18  col19  col20
     col21  col22  col23  col24  col25  col26  col27  col28  col29
@@ -359,7 +364,7 @@ the Table :func:`~astropy.table.table.Table.pformat` or Column
 
   >>> lines = t['col3'].pformat(max_lines=8)
   >>> lines
-  ['  col3', '------', '   3.0', '  33.0', '  63.0', '   ...', '2943.0', '2973.0']
+  [' col3 ', '------', '   3.0', '  33.0', '  63.0', '   ...', '2943.0', '2973.0']
 
 Multidimensional columns
 ''''''''''''''''''''''''
@@ -397,9 +402,7 @@ any array::
   <Column name='a' unit=None format=None description=None>
   array([[[ 1,  2],
           [10, 20]],
-
          [[ 3,  4],
           [30, 40]],
-
          [[ 5,  6],
           [50, 60]]])

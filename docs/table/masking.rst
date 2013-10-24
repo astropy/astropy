@@ -45,6 +45,7 @@ A masked table can be created in several ways:
                mask = [(False, False) (False, False)],
          fill_value = (999999, 999999),
               dtype = [('a', '<i8'), ('b', '<i8')])
+  <BLANKLINE>
 
 Notice the table attributes ``mask`` and ``fill_value`` that are
 available for a masked table.
