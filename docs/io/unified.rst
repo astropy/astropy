@@ -1,3 +1,5 @@
+.. doctest_skip
+
 .. _table_io:
 
 Unified file read/write interface
