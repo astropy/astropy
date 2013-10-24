@@ -2324,8 +2324,54 @@ class Table(object):
         self._data[:] = self._data[::-1].copy()
         self._rebuild_table_column_views()
 
-    read = classmethod(io_registry.read)
-    write = io_registry.write
+    @classmethod
+    def read(cls, *args, **kwargs):
+        """
+        Read and parse a data table and return as a Table.
+
+        This function provides the Table interface to the astropy unified I/O
+        layer.  This allows easily reading a file in many supported data formats
+        using syntax such as::
+
+          >>> from astropy.table import Table
+          >>> dat = Table.read('table.dat', format='ascii')  # doctest: +SKIP
+          >>> events = Table.read('events.fits', format='fits')  # doctest: +SKIP
+
+        The arguments and keywords (other than ``format``) provided to this function are
+        passed through to the underlying data reader (e.g. `~astropy.io.ascii.ui.read`).
+
+        The available formats are:
+
+        ========== =========================== ==== ===== =============
+        Data class            Format           Read Write Auto-identify
+        ========== =========================== ==== ===== =============
+        ========== =========================== ==== ===== =============
+        """
+        return io_registry.read(cls, *args, **kwargs)
+
+    def write(self, *args, **kwargs):
+        """
+        Write this Table object out in the specified format.
+
+        This function provides the Table interface to the astropy unified I/O
+        layer.  This allows easily writing a file in many supported data formats
+        using syntax such as::
+
+          >>> from astropy.table import Table
+          >>> dat = Table([[1, 2], [3, 4]], names=('a', 'b'))
+          >>> dat.write('table.dat', format='ascii')
+
+        The arguments and keywords (other than ``format``) provided to this function are
+        passed through to the underlying data reader (e.g. `~astropy.io.ascii.ui.read`).
+
+        The available formats are:
+
+        ========== =========================== ==== ===== =============
+        Data class            Format           Read Write Auto-identify
+        ========== =========================== ==== ===== =============
+        ========== =========================== ==== ===== =============
+        """
+        io_registry.write(self, *args, **kwargs)
 
     @property
     def meta(self):

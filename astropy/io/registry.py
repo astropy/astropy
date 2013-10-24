@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import re
 import io
 import sys
 
@@ -53,6 +54,34 @@ def get_formats(data_class=None):
     return format_table
 
 
+def _update__doc__(data_class, readwrite):
+    """
+    Update the docstring to include all the available readers / writers for the
+    ``data_class.read`` or ``data_class.write`` functions (respectively).
+    """
+    class_readwrite_func = getattr(data_class, readwrite)
+    lines = class_readwrite_func.__doc__.splitlines()
+    sep_indices = [ii for ii, line in enumerate(lines) if '=======' in line]
+    left_indent = lines[sep_indices[0]].index('=')
+    lines = lines[:sep_indices[0]]
+
+    format_table = get_formats(data_class)
+
+    # Include only formats that have a reader, and drop the 'Data class' column
+    has_read = format_table[readwrite.capitalize()] == 'Yes'
+    format_table = format_table[has_read]
+    format_table.remove_column('Data class')
+
+    new_lines = format_table.pformat(max_lines=-1)
+    table_rst_sep = re.sub('-', '=', new_lines[1])
+    new_lines[1] = table_rst_sep
+    new_lines.insert(0, table_rst_sep)
+    new_lines.append(table_rst_sep)
+    lines.extend([' ' * left_indent + line for line in new_lines])
+
+    class_readwrite_func.__func__.__doc__ = '\n'.join(lines)
+
+
 def register_reader(data_format, data_class, function, force=False):
     """
     Register a reader function.
@@ -76,6 +105,8 @@ def register_reader(data_format, data_class, function, force=False):
         raise Exception('Reader for format {0!r} and class {1!r} is '
                         'already defined'.format(data_format,
                                                  data_class.__name__))
+
+    _update__doc__(data_class, 'read')
 
 
 def register_writer(data_format, data_class, function, force=False):
@@ -101,6 +132,8 @@ def register_writer(data_format, data_class, function, force=False):
         raise Exception('Writer for format {0!r} and class {1!r} is '
                         'already defined'.format(data_format,
                                                  data_class.__name__))
+
+    _update__doc__(data_class, 'write')
 
 
 def register_identifier(data_format, data_class, identifier, force=False):
