@@ -94,7 +94,8 @@ class Fitter(object):
         self.ineqcons = []
 
         self._set_constraints()
-        self._fitparams, self._fitparam_indices = self._model_to_fit_params()
+        self._fitparams, self._fitparam_indices, self._param_indices = \
+                self._model_to_fit_params()
         self._validate_constraints()
         self._weights = None
 
@@ -148,31 +149,12 @@ class Fitter(object):
         self._fitparams[:] = fps
 
         if any(self.fixed) or any(self.tied):
-            mparams = []
-            fitparams = list(fps)
-            for i, name in enumerate(self.model.param_names):
-                if self.fixed[i] == True:
-                    param = getattr(self.model, name)
-                    if len(param.shape) == 0:
-                        mparams.extend([param.value])
-                    else:
-                        mparams.extend(param.value)
-                elif self.tied[i] != False:
-                    value = self.tied[i](self.model)
-                    if isinstance(value, numbers.Number):
-                        mparams.append(value)
-                    else:
-                        mparams.extend(value)
-                else:
-                    # The parameters being fitted are in the fps list in the
-                    # same order they appear in the model parameters array, so
-                    # just pop the values the current parameter off the end of
-                    # the list
+            self.model.parameters[self._param_indices] = fps
+            for idx, name in enumerate(self.model.param_names):
+                if self.tied[idx] != False:
+                    value = self.tied[idx](self.model)
                     slice_ = self.model._param_metrics[name][0]
-                    param_len = slice_.stop - slice_.start
-                    mparams.extend(fitparams[:param_len])
-                    del fitparams[:param_len]
-            self.model.parameters = mparams
+                    self.model.parameters[slice_] = value
         elif any([tuple(b) != (-1E12, 1E12) for b in self.bounds]):
             self._set_bounds(fps)
         else:
@@ -186,19 +168,20 @@ class Fitter(object):
         constant or tied.
         """
 
-        fitparam_indices = []
+        fitparam_indices = range(len(self.model.param_names))
+        param_indices = range(len(self.model.parameters))
         if any(self.model.fixed.values()) or any(self.model.tied.values()):
             params = list(self.model.parameters)
-            for idx, name in enumerate(self.model.param_names[::-1]):
+            for idx, name in list(enumerate(self.model.param_names))[::-1]:
                 if self.model.fixed[name] or self.model.tied[name]:
-                    sl = self.model._param_metrics[name][0].start
+                    sl = self.model._param_metrics[name][0]
                     del params[sl]
-                else:
-                    fitparam_indices.append(idx)
-            return np.array(params), fitparam_indices
+                    del param_indices[sl]
+                    del fitparam_indices[idx]
+            return np.array(params), fitparam_indices, param_indices
         else:
-            return (self.model.parameters.copy(),
-                    range(len(self.model.param_names)))
+            return (self.model.parameters.copy(), fitparam_indices,
+                    param_indices)
 
     def _set_bounds(self, pars):
         """
@@ -296,7 +279,8 @@ class Fitter(object):
 
     def _update_constraints(self):
         self._set_constraints()
-        self._fitparams, self._fitparam_indices = self._model_to_fit_params()
+        self._fitparams, self._fitparam_indices, self._param_indices = \
+                self._model_to_fit_params()
 
     @abc.abstractmethod
     def __call__(self):
@@ -343,17 +327,14 @@ class LinearLSQFitter(Fitter):
 
     def _deriv_with_constraints(self, params=None, x=None, y=None):
         if y is None:
-            d = self.model.deriv(x=x)
+            d = np.array(self.model.deriv(x=x))
         else:
-            d = self.model.deriv(x=x, y=y)
-        fixed = [name for name in self.model.fixed if
-                 self.model.fixed[name]]
-        ind = range(len(self.model.param_names))
-        for name in fixed:
-            index = self.model.param_names.index(name)
-            ind.remove(index)
-        res = d[:, ind]
-        return res
+            d = np.array(self.model.deriv(x=x, y=y))
+
+        if self.model.col_deriv:
+            return d[self._fitparam_indices]
+        else:
+            return d[:, self._fitparam_indices]
 
     def _map_domain_window(self, x, y=None):
         """
@@ -480,7 +461,9 @@ class LinearLSQFitter(Fitter):
         # carefully; for now it's not actually allowed
         lacoef = (lacoef.T / scl).T
         self.fit_info['params'] = lacoef
-        if rank != self.model._order:
+        # TODO: Only Polynomial models currently have an _order attribute;
+        # maybe change this to read isinstance(self.model, PolynomialBase)
+        if hasattr(self.model, '_order') and rank != self.model._order:
             warnings.warn("The fit may be poorly conditioned\n",
                           AstropyUserWarning)
         self.fitparams = lacoef.flatten()
