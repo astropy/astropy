@@ -36,14 +36,6 @@ MAXITER = 100
 EPS = np.sqrt(np.finfo(float).eps)
 
 
-# supported constraints
-# TODO: Register these automatically through a metaclass
-constraintsdef = {
-    'NonLinearLSQFitter': ['fixed', 'tied', 'bounds'],
-    'SLSQPFitter': ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied'],
-    'LinearLSQFitter': ['fixed']}
-
-
 def _convert_input(x, y, z=None):
     x = np.asarray(x)
     y = np.asarray(y)
@@ -69,7 +61,7 @@ class ModelLinearityError(ModelsError):
     """
 
 
-class UnsupportedConstraintError(ModelsError):
+class UnsupportedConstraintError(ModelsError, ValueError):
     """
     Raised when a fitter does not support a type of constraint.
     """
@@ -83,6 +75,12 @@ class Fitter(object):
     """
 
     __metaclass__ = abc.ABCMeta
+
+    # The base Fitter does not support any constraints by default; individual
+    # fitters should explicitly set this list to the specific constraints
+    # it supports
+    # May contain any of 'bounds', 'eqcons', 'ineqcons', 'fixed', or 'tied'
+    supported_constraints = []
 
     def __init__(self, model):
         if not model.fittable:
@@ -257,28 +255,28 @@ class Fitter(object):
                 return [np.ravel(_) for _ in self.model.deriv(x, y, *params)]
 
     def _validate_constraints(self):
-        fname = self.__class__.__name__
-        try:
-            c = constraintsdef[fname]
-        except KeyError:
-            raise UnsupportedConstraintError("{0} does not support fitting",
-                                             "with constraints".format(fname))
-        if any(self.fixed) and 'fixed' not in c:
-            raise ValueError("{0} cannot handle fixed parameter",
-                             "constraints .".format(fname))
-        if any(self.tied) and 'tied' not in c:
-            raise ValueError("{0} cannot handle tied parameter",
-                             "constraints ".format(fname))
+        message = '{0} cannot handle {{0}} constraints.'.format(
+                self.__class__.__name__)
+
+        if any(self.fixed) and 'fixed' not in self.supported_constraints:
+            raise UnsupportedConstraintError(
+                    message.format('fixed parameter'))
+
+        if any(self.tied) and 'tied' not in self.supported_constraints:
+            raise UnsupportedConstraintError(
+                    message.format('tied parameter'))
+
         if (any([tuple(b) != (-1E12, 1E12) for b in self.bounds]) and
-                'bounds' not in c):
-            raise ValueError("{0} cannot handle bound parameter",
-                             "constraints".format(fname))
-        if self.model.eqcons and 'eqcons' not in c:
-            raise ValueError("{0} cannot handle equality constraints but ",
-                             "eqcons given".format(fname))
-        if self.model.ineqcons and 'ineqcons' not in c:
-            raise ValueError("{0} cannot handle inequality constraints but ",
-                             "ineqcons given".format(fname))
+                'bounds' not in self.supported_constraints):
+            raise UnsupportedConstraintError(
+                    message.format('bound parameter'))
+
+        if self.model.eqcons and 'eqcons' not in self.supported_constraints:
+            raise UnsupportedConstraintError(message.format('equality'))
+
+        if (self.model.ineqcons and
+                'ineqcons' not in self.supported_constraints):
+            raise UnsupportedConstraintError(message.format('inequality'))
 
     @property
     def covar(self):
@@ -329,6 +327,8 @@ class LinearLSQFitter(Fitter):
     ModelLinearityError
         A nonlinear model is passed to a linear fitter
     """
+
+    supported_constraints = ['fixed']
 
     def __init__(self, model):
         super(LinearLSQFitter, self).__init__(model)
@@ -502,6 +502,8 @@ class NonLinearLSQFitter(Fitter):
         A linear model is passed to a nonlinear fitter
     """
 
+    supported_constraints = ['fixed', 'tied', 'bounds']
+
     def __init__(self, model):
 
         self.fit_info = {'nfev': None,
@@ -635,6 +637,8 @@ class SLSQPFitter(Fitter):
     ----------
     .. [1] http://www.netlib.org/toms/733
     """
+
+    supported_constraints = ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']
 
     def __init__(self, model):
         super(SLSQPFitter, self).__init__(model)
