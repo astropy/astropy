@@ -2362,7 +2362,7 @@ class Table(object):
           >>> dat.write('table.dat', format='ascii')
 
         The arguments and keywords (other than ``format``) provided to this function are
-        passed through to the underlying data reader (e.g. `~astropy.io.ascii.ui.read`).
+        passed through to the underlying data reader (e.g. `~astropy.io.ascii.ui.write`).
 
         The available built-in formats are:
 
