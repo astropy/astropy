@@ -386,6 +386,9 @@ Bug Fixes
   - Fixed string formatting of Angles using ``decimal=True`` which ignored the
     ``precision`` argument. [#1323]
 
+  - Fixed parsing of format strings using appropriate unicode characters
+    instead of the ASCII ``-`` for minus signs. [#1429]
+
 - ``astropy.io.ascii``
 
   - Fixed a crash in the IPAC table reader when the ``include/exclude_names``
@@ -452,6 +455,9 @@ Bug Fixes
   - Added support in the CDS unit parser/formatter for unusual unit prefixes
     that are nonetheless required to be supported by that convention. [#1426]
 
+  - Fixed the parsing of ``sqrt()`` in unit format strings which was returning
+    ``unit ** 2`` instead of ``unit ** 0.5``. [#1458]
+
 - ``astropy.wcs``
 
   - When passing a single array to the wcs transformation functions,
@@ -464,6 +470,9 @@ Bug Fixes
 
   - Fixed a crash when trying to read WCS from FITS headers on Python 3.3
     in Windows. [#1363]
+
+  - Only headers that are required as part of the WCSLIB C API are installed
+    by the package, per request of system packagers. [#1666]
 
 - Misc
 
@@ -483,8 +492,17 @@ Bug Fixes
   - Fixed a minor path normalization issue that could occur on Windows in
     ``astropy.utils.data.get_pkg_data_filename``. [#1444]
 
+  - Fixed an annoyance where configuration items intended only for testing
+    showed up in users' astropy.cfg files. [#1477]
+
+  - Prevented crashes in exception logging in unusual cases where no traceback
+    is associated with the exception. [#1518]
+
+  - Fixed a crash when running the tests in unusual environments where
+    ``sys.stdout.encoding`` is ``None``. [#1530]
+
   - Miscellaneous documentation fixes and improvements [#1308, #1317, #1377,
-    #1393, #1362]
+    #1393, #1362, #1516]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
