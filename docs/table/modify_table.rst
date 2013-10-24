@@ -110,18 +110,19 @@ Finally, columns can also be added from
 
   >>> t.meta['key'] = 'value'
 
-**Reorder columns**
+**Select or reorder columns**
 
-.. note::
+A new table with a subset or reordered list of columns can be
+created as shown in the following example::
 
-  In this example, it is important that `neworder` is a tuple, and not a
-  list, slice, or `~numpy.ndarray`.
+  >>> t = Table(arr, names=('a', 'b', 'c'))
+  >>> t_acb = t['a', 'c', 'b']
 
-::
+Another way to do the same thing is to provide a list or tuple
+as the item as shown below::
 
-  >>> t_acb = t['a','c','b']
-  >>> neworder = ('a','c','b')
-  >>> t_acb = t[neworder]
+  >>> new_order = ['a', 'c', 'b']  # List or tuple
+  >>> t_acb = t[new_order]
 
 
 Caveats
