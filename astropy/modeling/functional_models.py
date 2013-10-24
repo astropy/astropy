@@ -382,11 +382,11 @@ class Linear1DModel(Parametric1DModel):
 
     slope = Parameter('slope')
     intercept = Parameter('intercept')
+    linear = True
 
     def __init__(self, slope, intercept, **constraints):
         super(Linear1DModel, self).__init__(slope=slope, intercept=intercept,
                                             **constraints)
-        self.linear = True
 
     @staticmethod
     def eval(x, slope, intercept):
