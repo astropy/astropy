@@ -626,14 +626,16 @@ class SLSQPFitter(Fitter):
     def __init__(self, model):
         super(SLSQPFitter, self).__init__(model)
         if self.model.linear:
-            warnings.warn('Model is linear in parameters, '
-                          'consider using linear fitting methods.', AstropyUserWarning)
+            warnings.warn('Model is linear in parameters; '
+                          'consider using linear fitting methods.',
+                          AstropyUserWarning)
 
-        self.fit_info = {'final_func_val': None,
-                         'numiter': None,
-                         'exit_mode': None,
-                         'message': None
-                         }
+        self.fit_info = {
+            'final_func_val': None,
+            'numiter': None,
+            'exit_mode': None,
+            'message': None
+        }
 
     def errorfunc(self, fps, *args):
         """
