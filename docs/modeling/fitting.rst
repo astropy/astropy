@@ -33,7 +33,7 @@ Fitting Examples
 - Fitting simultaneously a polynomial model to multiple data sets
 
 
->>> p1 = models.Poly1DModel(3)
+>>> p1 = models.Polynomial1DModel(3)
 >>> p1.c0 = 1
 >>> p1.c1 = 2
 >>> p1.parameters
@@ -41,7 +41,7 @@ Fitting Examples
 >>> x = np.arange(10)
 >>> y = p1(x)
 >>> yy = np.array([y, y]).T
->>> p2 = models.Poly1DModel(3, param_dim=2)
+>>> p2 = models.Polynomial1DModel(3, param_dim=2)
 >>> pfit = fitting.LinearLSQFitter(p2)
 >>> pfit(x,yy)
 >>> print(p2.param_sets)
@@ -62,7 +62,7 @@ c0 in a polynomial model will fit a polynomial with the zero-th order term missi
 However, the fixed value of the coefficient is used when evaluating the model.
 
 >>> x = np.arange(1, 10, .1)
->>> p1 = models.Poly1DModel(2, param_dim=2)
+>>> p1 = models.Polynomial1DModel(2, param_dim=2)
 >>> p1.parameters = [1, 1, 2, 2, 3, 3]
 >>> p1.param_sets
 array([[ 1.,  1.],

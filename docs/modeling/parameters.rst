@@ -37,7 +37,7 @@ Parameters Examples
 - Polynomial models are created by default with all coefficients set to 0.
 
 >>> from astropy.modeling import *
->>> p1 = models.Poly1DModel(degree=4)
+>>> p1 = models.Polynomial1DModel(degree=4)
 >>> p1.param_names
 ['c0', 'c1', 'c2', 'c3', 'c4']
 >>> p1.parameters
