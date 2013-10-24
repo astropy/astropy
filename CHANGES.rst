@@ -143,6 +143,9 @@ New Features
     each entry is a list.  This allows for handling strange units that might
     have multiple short names.
 
+  - Added ``dimensionless_angles`` equivalency, which allows conversion of
+    any power of radian to dimensionless.
+
 - ``astropy.utils``
 
   - Added ``astropy.utils.iers`` which allows reading in of IERS A or

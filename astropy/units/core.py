@@ -413,12 +413,13 @@ class UnitBase(object):
                 raise ValueError(
                     "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
             if not (isinstance(funit, UnitBase) and
-                    isinstance(tunit, UnitBase) and
+                    (isinstance(tunit, UnitBase) or tunit is None) and
                     six.callable(a) and
                     six.callable(b)):
                 raise ValueError(
                     "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
             normalized.append((funit, tunit, a, b))
+
         return normalized
 
     def _validate_power(self, p):
@@ -568,11 +569,19 @@ class UnitBase(object):
             unit = self.decompose()
             other = other.decompose()
             for a, b, forward, backward in equivalencies:
-                if (unit.is_equivalent(a) and other.is_equivalent(b)):
-                    return True
-                elif (unit.is_equivalent(b) and other.is_equivalent(a)):
-                    return True
-            return False
+                if b is None:
+                    # after canceling, is what's left convertable
+                    # to dimensionless (according to the equivalency)?
+                    try:
+                        (unit/other).decompose([a])
+                        return True
+                    except:
+                        pass
+                else:
+                    if(unit.is_equivalent(a) and other.is_equivalent(b) or
+                       unit.is_equivalent(b) and other.is_equivalent(a)):
+                        return True
+
         return False
 
     def _apply_equivalences(self, unit, other, equivalencies):
@@ -592,14 +601,21 @@ class UnitBase(object):
         other = other.decompose()
 
         for funit, tunit, a, b in equivalencies:
-            if (unit.is_equivalent(funit) and other.is_equivalent(tunit)):
-                scale1 = (unit / funit)._dimensionless_constant()
-                scale2 = (tunit / other)._dimensionless_constant()
-                return make_converter(scale1, a, scale2)
-            elif (other.is_equivalent(funit) and unit.is_equivalent(tunit)):
-                scale1 = (unit / tunit)._dimensionless_constant()
-                scale2 = (funit / other)._dimensionless_constant()
-                return make_converter(scale1, b, scale2)
+            if tunit is None:
+                try:
+                    ratio_in_funit = (unit/other).decompose([funit])
+                    return make_converter(ratio_in_funit.scale, a, 1.)
+                except:
+                    pass
+            else:
+                if (unit.is_equivalent(funit) and other.is_equivalent(tunit)):
+                    scale1 = (unit / funit)._dimensionless_constant()
+                    scale2 = (tunit / other)._dimensionless_constant()
+                    return make_converter(scale1, a, scale2)
+                elif (other.is_equivalent(funit) and unit.is_equivalent(tunit)):
+                    scale1 = (unit / tunit)._dimensionless_constant()
+                    scale2 = (funit / other)._dimensionless_constant()
+                    return make_converter(scale1, b, scale2)
 
         def get_err_str(unit):
             unit_str = unit.to_string('unscaled')
@@ -748,10 +764,11 @@ class UnitBase(object):
         # Make a list including all of the equivalent units
         units = [unit]
         for funit, tunit, a, b in equivalencies:
-            if self.is_equivalent(funit):
-                units.append(tunit.decompose())
-            elif self.is_equivalent(tunit):
-                units.append(funit.decompose())
+            if tunit is not None:
+                if self.is_equivalent(funit):
+                    units.append(tunit.decompose())
+                elif self.is_equivalent(tunit):
+                    units.append(funit.decompose())
 
         # Store partial results
         partial_results = []
@@ -1024,12 +1041,13 @@ class UnitBase(object):
         unit_registry = get_current_unit_registry()
         units = set(unit_registry.get_units_with_physical_type(self))
         for funit, tunit, a, b in equivalencies:
-            if funit not in units:
-                units.update(
-                    unit_registry.get_units_with_physical_type(funit))
-            if tunit not in units:
-                units.update(
-                    unit_registry.get_units_with_physical_type(tunit))
+            if tunit is not None:
+                if funit not in units:
+                    units.update(
+                        unit_registry.get_units_with_physical_type(funit))
+                if tunit not in units:
+                    units.update(
+                        unit_registry.get_units_with_physical_type(tunit))
         return units
 
     class EquivalentUnitsList(list):
