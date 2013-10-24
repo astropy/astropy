@@ -257,7 +257,7 @@ class _UnitRegistry(object):
 class _UnitContext(object):
     def __init__(self, init=[], equivalencies=[]):
         _unit_registries.append(_UnitRegistry(init=init,
-                                              equivalencies=[]))
+                                              equivalencies=equivalencies))
 
     def __enter__(self):
         pass
@@ -394,11 +394,11 @@ def set_enabled_equivalencies(equivalencies):
     Exponentiation normally requires dimensionless quantities.  To avoid
     problems with complex phases::
 
-    >>> from astropy import units as u
-    >>> with u.set_enabled_equivalencies(u.dimensionless_angles()):
-    ...    phase = 0.5 * u.cycle
-    ...    np.exp(1j*phase)                          # doctest: +ELLIPSIS
-    <Quantity (-1+...j) >
+        >>> from astropy import units as u
+        >>> with u.set_enabled_equivalencies(u.dimensionless_angles()):
+        ...     phase = 0.5 * u.cycle
+        ...     np.exp(1j*phase)                          # doctest: +ELLIPSIS
+        <Quantity (-1+...j) >
     """
     # get a context with a new registry, using all units of the current one
     context = _UnitContext(get_current_unit_registry().all_units)

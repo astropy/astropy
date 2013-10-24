@@ -122,7 +122,7 @@ These equivalencies even work with non-base units::
   >>> # Inches to calories
   >>> from astropy.units import imperial
   >>> imperial.inch.to(imperial.Cal, equivalencies=u.spectral())
-                                               # doctest: +ELLIPSES
+                                               # doctest: +ELLIPSIS
   1.8691807591...e-27
 
 Spectral (Doppler) equivalencies
