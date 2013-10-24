@@ -132,7 +132,7 @@ Data Tables
 
 The :ref:`astropy.table <astropy-table>` subpackage was first introduced for
 preview in Astropy 0.1 and provides functionality for storing and manipulating
-heterogenous tables of data in a way that is familiar to numpy users.  Some key
+heterogeneous tables of data in a way that is familiar to numpy users.  Some key
 features include:
 
 * Modify a table by adding or removing columns, changing column names,

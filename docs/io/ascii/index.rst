@@ -29,7 +29,7 @@ The following formats are supported:
 
 The :mod:`astropy.io.ascii` package is built on a modular and extensible class
 structure with independent :ref:`base_class_elements` so that new formats can
-be easily accomodated.
+be easily accommodated.
 
 .. note::
 

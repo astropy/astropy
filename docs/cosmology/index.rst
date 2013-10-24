@@ -20,7 +20,7 @@ Getting Started
 
 There are many functions available to calculate cosmological quantities.
 They generally take a redshift as input. For example, the two cases
-below give you the value of the hubble constant at z=0 (i.e., `H0`), and
+below give you the value of the Hubble constant at z=0 (i.e., `H0`), and
 the number of transverse proper kpc corresponding to an arcminute at z=3:
 
   >>> from astropy import cosmology
@@ -56,7 +56,7 @@ Using `cosmology`
 
 Most of the functionality is enabled by the
 `~astropy.cosmology.core.FLRW` object. This represents a
-homogenous and isotropic cosmology (a cosmology characterized by the
+homogeneous and isotropic cosmology (a cosmology characterized by the
 Friedmann-Lemaitre-Robertson-Walker metric, named after the people who
 solved Einstein's field equation for this special case).  However,
 you can't work with this class directly, as you must specify a
@@ -64,7 +64,7 @@ dark energy model by using one of its subclasses instead,
 such as `~astropy.cosmology.core.FlatLambdaCDM`.
 
 You can create a new `~astropy.cosmology.core.FlatLambdaCDM` object with
-arguments giving the hubble parameter and omega matter (both at z=0):
+arguments giving the Hubble parameter and omega matter (both at z=0):
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
@@ -242,7 +242,7 @@ Relativistic Species
 ====================
 The cosmology classes include the contribution to the energy density
 from both photons and massless neutrinos.  The two parameters
-controlling the proporties of these species are Tcmb0 (the temperature
+controlling the properties of these species are Tcmb0 (the temperature
 of the CMB at z=0) and Neff, the effective number of neutrino species.
 Both have standard default values (2.725 and 3.04, respectively; the
 reason that Neff is not 3 has to do with a small bump in the neutrino
