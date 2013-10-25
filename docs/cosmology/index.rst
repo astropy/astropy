@@ -46,8 +46,8 @@ point (or array) values:
   (70.4, Unit("km / (Mpc s)"))
 
 There are also several standard cosmologies already defined, as
-described in `Built-in Cosmologies`_ below. These are
-objects with methods and attributes that calculate cosmological
+described in `Built-in Cosmologies`_ below. These are objects
+with methods and attributes that calculate cosmological
 values. For example, the comoving distance in Mpc to redshift 4 using
 the 5-year WMAP parameters:
 
@@ -57,7 +57,9 @@ the 5-year WMAP parameters:
 
 An important point is that the cosmological parameters of each
 instance are immutable -- that is, if you want to change, say,
-`Om`, you need to make a new instance of the class.
+`Om`, you need to make a new instance of the class.  Also note that
+the built in cosmologies are instances of classes as described below, 
+not functions.
 
 Using `cosmology`
 =================
