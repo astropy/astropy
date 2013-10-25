@@ -500,10 +500,6 @@ Bug Fixes
   - Fixed a bug in ``ProgressBar.map`` where ``multiprocess=True`` could cause
     it to hang on waiting for the process pool to be destroyed. [#1381]
 
-  - Importing ``astropy`` from within a source checkout will no longer exit
-    the Python interpreter if the extension modules have not been built
-    in-place. [#1269]
-
   - Fixed a crash on Python 3.2 when affiliated packages try to use the
     ``astropy.utils.data.get_pkg_data_*`` functions. [#1256]
 
