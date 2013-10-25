@@ -21,6 +21,11 @@ rich toolset of models and fitters such that most users will not need to define
 new model classes, nor special purpose fitting routines (but not making that
 hard to do if it is necessary).
 
+.. warning::
+    `~astropy.modeling` is currently a work-in-progress, and thus it is
+    likely there will be significant API changes in later versions of
+    Astropy.
+
 
 Getting started
 ===============
