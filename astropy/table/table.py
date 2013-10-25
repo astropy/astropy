@@ -1397,7 +1397,7 @@ class Table(object):
         Render the table in HTML and show it in a web browser.  In order to
         make a persistent html file, i.e. one that survives refresh, the
         returned file object must be kept in memory.
-        
+
         Parameters
         ----------
         css : string
@@ -1936,7 +1936,7 @@ class Table(object):
 
 
         Note that there are no warnings if the slice operator extends
-        outside the data
+        outside the data::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
             ...           names=('a', 'b', 'c'))
@@ -2037,7 +2037,7 @@ class Table(object):
               2
               3
 
-        Specifying only a single column also works. Remove column 'b' from the table:
+        Specifying only a single column also works. Remove column 'b' from the table::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3], ['x', 'y', 'z']],
             ...     names=('a', 'b', 'c'))
@@ -2077,6 +2077,7 @@ class Table(object):
             table = None
 
         self._data = table
+
 
     def keep_columns(self, names):
         '''
@@ -2152,6 +2153,26 @@ class Table(object):
             The current name of the column.
         new_name : str
             The new name for the column
+
+        Examples
+        --------
+        Create a table with three columns 'a', 'b' and 'c'::
+
+            >>> t = Table([[1,2],[3,4],[5,6]], names=('a','b','c'))
+            >>> t.pprint()
+             a   b   c
+            --- --- ---
+              1   3   5
+              2   4   6
+
+        Renaming column 'a' to 'aa'::
+
+            >>> t.rename_column('a' , 'aa')
+            >>> t.pprint()
+             aa  b   c
+            --- --- ---
+              1   3   5
+              2   4   6
         '''
 
         if name not in self.keys():
@@ -2186,6 +2207,27 @@ class Table(object):
         ----------
         vals : tuple, list, dict or None
             Use the specified values in the new row
+
+        Examples
+        --------
+        Create a table with three columns 'a', 'b' and 'c'::
+
+           >>> t = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
+           >>> t.pprint()
+            a   b   c
+           --- --- ---
+             1   4   7
+             2   5   8
+
+        Adding a new row with entries '3' in 'a', '6' in 'b' and '9' in 'c'::
+
+           >>> t.add_row([3,6,9])
+           >>> t.pprint()
+             a   b   c
+             --- --- ---
+             1   4   7
+             2   5   8
+             3   6   9
         """
 
         def _is_mapping(obj):
@@ -2310,6 +2352,29 @@ class Table(object):
         ----------
         keys : str or list of str
             The key(s) to order the table by
+
+        Examples
+        --------
+        Create a table with 3 columns::
+
+            >>> t = Table([['Max', 'Jo', 'John'], ['Miller','Miller','Jackson'],
+            ...         [12,15,18]], names=('firstname','name','tel'))
+            >>> t.pprint()
+            firstname   name  tel
+            --------- ------- ---
+                  Max  Miller  12
+                   Jo  Miller  15
+                 John Jackson  18
+
+        Sorting according to standard sorting rules, first 'name' then 'firstname'::
+
+            >>> t.sort(['name','firstname'])
+            >>> t.pprint()
+            firstname   name  tel
+            --------- ------- ---
+                 John Jackson  18
+                   Jo  Miller  15
+                  Max  Miller  12
         '''
         if type(keys) is not list:
             keys = [keys]
@@ -2320,6 +2385,29 @@ class Table(object):
         '''
         Reverse the row order of table rows.  The table is reversed
         in place and there are no function arguments.
+
+        Examples
+        --------
+        Create a table with three columns::
+        
+            >>> t = Table([['Max', 'Jo', 'John'], ['Miller','Miller','Jackson'],
+            ...         [12,15,18]], names=('firstname','name','tel'))
+            >>> t.pprint()
+            firstname   name  tel
+            --------- ------- ---
+                  Max  Miller  12
+                   Jo  Miller  15
+                 John Jackson  18
+
+        Reversing order::
+
+            >>> t.reverse()
+            >>> t.pprint()
+            firstname   name  tel
+            --------- ------- ---
+                 John Jackson  18
+                   Jo  Miller  15
+                  Max  Miller  12
         '''
         self._data[:] = self._data[::-1].copy()
         self._rebuild_table_column_views()
