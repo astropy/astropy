@@ -77,6 +77,7 @@ def pytest_configure(config):
 
 
 class DoctestPlus(object):
+
     def __init__(self, doctest_module_item_cls):
         """
         doctest_module_item_cls should be a class inheriting
@@ -89,14 +90,12 @@ class DoctestPlus(object):
 
         self._doctest_module_item_cls = doctest_module_item_cls
 
-
     def pytest_ignore_collect(self, path, config):
         """Skip paths that match any of the doctest_norecursedirs patterns."""
 
         for pattern in config.getini("doctest_norecursedirs"):
             if path.check(fnmatch=pattern):
                 return True
-
 
     def pytest_collect_file(self, path, parent):
         """Implements an enhanced version of the doctest module from py.test

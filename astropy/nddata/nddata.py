@@ -377,9 +377,9 @@ class NDData(object):
         elif operand.uncertainty is None:
             result.uncertainty = self.uncertainty
         else:  # both self and operand have uncertainties
-            if WARN_UNSUPPORTED_CORRELATED() and \
-               (not self.uncertainty.support_correlated or
-               not operand.uncertainty.support_correlated):
+            if (WARN_UNSUPPORTED_CORRELATED() and
+                (not self.uncertainty.support_correlated or
+                 not operand.uncertainty.support_correlated)):
                 log.info("The uncertainty classes used do not support the "
                          "propagation of correlated errors, so uncertainties"
                          " will be propagated assuming they are uncorrelated")

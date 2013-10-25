@@ -369,7 +369,6 @@ class astropy_test(Command, object):
                     shutil.rmtree('htmlcov')
                 shutil.copytree(os.path.join(testing_path, 'htmlcov'), 'htmlcov')
 
-
                 # The coverage report includes the full path to the temporary
                 # directory, so we replace all the paths with the true source
                 # path. This means that the coverage line-by-line report will
