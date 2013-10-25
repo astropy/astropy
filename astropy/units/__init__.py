@@ -26,6 +26,9 @@ from .physical import *
 
 from .equivalencies import *
 
+from .functional import (MagUnit, DecibelUnit, DexUnit,
+                         Magnitude, Decibel, Dex)
+
 del bases
 
 # Enable the set of default units.  This notably does *not* include

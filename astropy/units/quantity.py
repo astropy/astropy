@@ -171,7 +171,7 @@ class Quantity(np.ndarray):
     # Constants can not initialize properly
     _equivalencies = []
 
-    __array_priority__ = 10000
+    __array_priority__ = 2000
 
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
                 subok=False, ndmin=0):
@@ -756,7 +756,10 @@ class Quantity(np.ndarray):
         """ Multiplication between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
-            return self._new_view(self.copy(), other * self.unit)
+            try:
+                return self._new_view(self.copy(), other * self.unit)
+            except UnitsError:  # let other try to deal with it
+                return NotImplemented
 
         return np.multiply(self, other)
 
@@ -780,7 +783,10 @@ class Quantity(np.ndarray):
         """ Division between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
-            return self._new_view(self.copy(), self.unit / other)
+            try:
+                return self._new_view(self.copy(), self.unit / other)
+            except UnitsError:  # let other try to deal with it
+                return NotImplemented
 
         return np.true_divide(self, other)
 
@@ -1081,7 +1087,8 @@ class Quantity(np.ndarray):
 
     def _to_own_unit(self, value, check_precision=True):
         try:
-            _value = value.to(self.unit).value
+            # for speed, "unit.to(...)" instead of "value.to(self.unit).value
+            _value = value.unit.to(self.unit, value.value)
         except AttributeError:
             try:
                 _value = dimensionless_unscaled.to(self.unit, value)
