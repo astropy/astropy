@@ -178,7 +178,7 @@ class StdDevUncertainty(NDUncertainty):
         else:
             if value.shape != self.array.shape:
                 raise ValueError("parent shape does not match array data shape")
-        self._parent_nddata=value
+        self._parent_nddata = value
 
     @property
     def array(self):
