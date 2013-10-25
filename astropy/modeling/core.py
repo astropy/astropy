@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 This module defines base classes for all models.
 The base class of all models is `~astropy.modeling.Model`.
@@ -37,242 +38,193 @@ In all these cases the output has the same shape as the input.
 
 - A model with N parameter sets works with 1D input arrays. The shape
   of the output is (M, N)
-
 """
+
 from __future__ import division
+
 import abc
+import functools
+
 from itertools import izip
+from textwrap import dedent
+
 import numpy as np
-from . import parameters
-from .utils import InputParameterError
+
+from .parameters import Parameter, InputParameterError
+from ..utils import indent, isiterable
 
 
-__all__ = ['Model', 'ParametricModel', 'ParallelCompositeModel', 'SerialCompositeModel',
-           'LabeledInput', '_convert_input', '_convert_output',
-           'Parametric1DModel', 'Parametric2DModel']
+__all__ = ['Model', 'ParametricModel', 'ParallelCompositeModel',
+           'SerialCompositeModel', 'LabeledInput', 'Parametric1DModel',
+           'Parametric2DModel', 'ModelDefinitionError', 'format_input']
 
 
-def _convert_input(x, pdim):
+class ModelDefinitionError(Exception):
+    """Used for incorrect models definitions"""
+
+
+def format_input(func):
     """
-    Format the input into appropriate shape
+    Wraps a model's ``__call__`` method so that the input arrays are converted
+    into the appropriate shape given the model's parameter dimensions.
 
-    Parameters
-    ----------
-    x : scalar, array or a sequence of numbers
-        input data
-    pdim : int
-        number of parameter sets
-
-    The meaning of the internally used format is:
-
-    'N' - the format of the input was not changed
-    'T' - input was transposed
-    'S' - input is a scalar
+    Wraps the result to match the shape of the last input array.
     """
-    x = np.asarray(x) + 0.
-    fmt = 'N'
-    if pdim == 1:
-        if x.ndim == 0:
-            fmt = 'S'
-            return x, fmt
+
+    @functools.wraps(func)
+    def wrapped_call(self, *args):
+        converted = []
+
+        for arg in args:
+            # Reset these flags; their value only matters for the last
+            # argument
+            transposed = False
+            scalar = False
+
+            arg = np.asarray(arg) + 0.
+            if self.param_dim == 1:
+                if arg.ndim == 0:
+                    scalar = True
+                converted.append(arg)
+                continue
+
+            if arg.ndim < 2:
+                converted.append(np.array([arg]).T)
+            elif arg.ndim == 2:
+                assert arg.shape[-1] == self.param_dim, \
+                    ("Cannot broadcast with shape "
+                     "({0}, {1})".format(arg.shape[0], arg.shape[1]))
+                converted.append(arg)
+            elif arg.ndim > 2:
+                assert arg.shape[0] == self.param_dim, \
+                    ("Cannot broadcast with shape "
+                     "({0}, {1}, {2})".format(arg.shape[0], arg.shape[1],
+                                              arg.shape[2]))
+                transposed = True
+                converted.append(arg.T)
+
+        result = func(self, *converted)
+
+        if transposed:
+            return result.T
+        elif scalar:
+            try:
+                return result[0]
+            except IndexError:
+                return result
+
+        return result
+
+    return wrapped_call
+
+
+class _ModelMeta(abc.ABCMeta):
+    """
+    Metaclass for Model.
+
+    Currently just handles auto-generating the param_names list based on
+    Parameter descriptors declared at the class-level of Model subclasses.
+    """
+
+    def __new__(mcls, name, bases, members):
+        param_names = members.get('param_names', [])
+        parameters = dict((value.name, value) for value in members.values()
+                          if isinstance(value, Parameter))
+
+        # If no parameters were defined get out early--this is especially
+        # important for PolynomialModels which take a different approach to
+        # parameters, since they can have a variable number of them
+        if not parameters:
+            return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
+
+        # If param_names was declared explicitly we use only the parameters
+        # listed manually in param_names, but still check that all listed
+        # parameters were declared
+        if param_names and isiterable(param_names):
+            for param_name in param_names:
+                if param_name not in parameters:
+                    raise RuntimeError(
+                        "Parameter {0!r} listed in {1}.param_names was not "
+                        "declared in the class body.".format(param_name, name))
         else:
-            return x, fmt
-    else:
-        if x.ndim < 2:
-            fmt = 'N'
-            return np.array([x]).T, fmt
-        elif x.ndim == 2:
-            assert x.shape[-1] == pdim, "Cannot broadcast with shape"\
-                "({0}, {1})".format(x.shape[0], x.shape[1])
-            return x, fmt
-        elif x.ndim > 2:
-            assert x.shape[0] == pdim, "Cannot broadcast with shape " \
-                "({0}, {1}, {2})".format(x.shape[0], x.shape[1], x.shape[2])
-            fmt = 'T'
-            return x.T, fmt
+            param_names = [param.name for param in
+                           sorted(parameters.values(),
+                                  key=lambda p: p._order)]
+            members['param_names'] = param_names
 
-
-def _convert_output(x, fmt):
-    """
-    Put the output in the shpae/type of the original input
-
-    Parameters
-    ----------
-    x : scalar, array or a sequence of numbers
-        output data
-    fmt : string
-        original format
-    """
-    if fmt == 'N':
-        return x
-    elif fmt == 'T':
-        return x.T
-    elif fmt == 'S':
-        try:
-            return x[0]
-        except IndexError:
-            return x
-    else:
-        raise ValueError("Unrecognized output conversion format")
-
-
-class _ParameterProperty(object):
-
-    """
-    Create a property for a parameter.
-
-    Parameters
-    ----------
-    name: string
-        the name of the parameter
-
-    """
-    def __init__(self, name):
-        self.aname = '_' + name
-        self.name = name
-
-    def __get__(self, obj, objtype):
-        par = getattr(obj, self.aname)
-        return par
-
-    def __set__(self, obj, val):
-        val, _ = parameters._tofloat(val)
-        oldpar = getattr(obj, self.name)
-        par = parameters.Parameter(self.name, val, obj, obj.param_dim)
-        if self.name in obj._parcheck:
-            obj._parcheck[self.name](val)
-        if isinstance(obj, ParametricModel):
-            if not obj._parameters._changed:
-                par = parameters.Parameter(self.name, val, obj, obj.param_dim)
-                if oldpar is not None and oldpar.parshape != par.parshape:
-                    raise InputParameterError(
-                        "Input parameter {0} does not "
-                        "have the required shape".format(self.name))
-                else:
-                    setattr(oldpar, "value", val)
-                obj._parameters = parameters.Parameters(obj,
-                                                        obj.param_names,
-                                                        param_dim=obj.param_dim)
-            else:
-                setattr(oldpar, "value", val)
-        else:
-            if oldpar is not None and oldpar.parshape != par.parshape:
-                raise InputParameterError(
-                    "Input parameter {0} does not "
-                    "have the required shape".format(self.name))
-            else:
-                setattr(oldpar, "value", val)
+        return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
 
 class Model(object):
-
     """
     Base class for all models.
 
-    This is an abstract class and should not be instanciated.
+    This is an abstract class and should not be instantiated directly.
 
     Notes
     -----
-    Models which are not meant to be fit to data should subclass this class
+    Models which are not meant to be fit to data should subclass this class.
 
     This class sets the properties for all individual parameters and performs
     parameter validation.
-
     """
-    __metaclass__ = abc.ABCMeta
+
+    __metaclass__ = _ModelMeta
 
     param_names = []
+    n_inputs = 1
+    n_outputs = 1
+    fittable = False
+    linear = True
 
-    def __init__(self, param_names, n_inputs, n_outputs, param_dim=1):
+    def __init__(self, param_dim=1):
         self._param_dim = param_dim
-        self._n_inputs = n_inputs
-        self._n_outputs = n_outputs
-        self._param_names = param_names
-        self.fittable = False
-        #_parcheck is a dictionary to register parameter validation funcitons
-        # key: value pairs are parameter_name: parameter_validation_function_name
-        # see projections.AZP for example
-        self._parcheck = {}
-        for par in param_names:
-            setattr(self.__class__, par, _ParameterProperty(par))
-
-    @property
-    def n_inputs(self):
-        """
-        Number of input variables in model evaluation.
-        """
-        return self._n_inputs
-
-    @property
-    def n_outputs(self):
-        """
-        Number of output variables returned when a model is evaluated.
-        """
-        return self._n_outputs
 
     @property
     def param_dim(self):
-        """
-        Number of parameter sets in a model.
-        """
+        """Number of parameter sets in a model."""
+
         return self._param_dim
-
-    @param_dim.setter
-    def param_dim(self, val):
-        """
-        Set the number of parameter sets in a model.
-        """
-        self._param_dim = val
-
-    @property
-    def param_names(self):
-        """
-        A list of names of the parameters defining a model.
-        """
-        return self._param_names
-
-    @param_names.setter
-    def param_names(self, val):
-        self._param_names = val
 
     def __repr__(self):
         fmt = "{0}(".format(self.__class__.__name__)
-        for i in range(len(self.param_names)):
+        for name in self.param_names:
             fmt1 = """
             {0}={1},
-            """.format(self.param_names[i], getattr(self, self.param_names[i]))
+            """.format(name, getattr(self, name))
             fmt += fmt1
         fmt += ")"
 
         return fmt
 
     def __str__(self):
-
         fmt = """
         Model: {0}
         Parameter sets: {1}
-        Parameters:
-                   {2}
+        Parameters: \n{2}
         """.format(
               self.__class__.__name__,
               self.param_dim,
-              "\n                   ".join(i + ': ' +
-                                           str(self.__getattribute__(i)) for i in self.param_names)
-        )
+              indent('\n'.join('{0}: {1}'.format(n, getattr(self, n))
+                               for n in self.param_names),
+                     width=19))
 
-        return fmt
+        return dedent(fmt[1:])
 
     @property
     def param_sets(self):
         """
         Return parameters as a pset.
+
         This is an array where each column represents one parameter set.
         """
-        parameters = [getattr(self, '_'+attr) for attr in self.param_names]
+
+        parameters = [getattr(self, attr) for attr in self.param_names]
         values = [par.value for par in parameters]
-        shapes = [par.parshape for par in parameters]
-        lenshapes = np.asarray([len(p.parshape) for p in parameters])
-        if (lenshapes > 1).any():
+        shapes = [par.shape for par in parameters]
+        n_dims = np.asarray([len(p.shape) for p in parameters])
+
+        if (n_dims > 1).any():
             if () in shapes:
                 psets = np.asarray(values, dtype=np.object)
             else:
@@ -283,16 +235,14 @@ class Model(object):
         return psets
 
     def inverse(self):
-        """
-        Return a callable object which does the inverse transform
-        """
-        raise NotImplementedError("An analytical inverse transform has not been"
-                                  " implemented for this model.")
+        """Returns a callable object which performs the inverse transform."""
+
+        raise NotImplementedError("An analytical inverse transform has not "
+                                  "been implemented for this model.")
 
     def invert(self):
-        """
-        Invert coordinates iteratively if possible
-        """
+        """Invert coordinates iteratively if possible."""
+
         raise NotImplementedError("Subclasses should implement this")
 
     def add_model(self, newtr, mode):
@@ -313,6 +263,7 @@ class Model(object):
         model : CompositeModel
             an instance of CompositeModel
         """
+
         if mode in ['parallel', 'p']:
             return ParallelCompositeModel([self, newtr])
         elif mode in ['serial', 's']:
@@ -326,7 +277,6 @@ class Model(object):
 
 
 class ParametricModel(Model):
-
     """
     Base class for all fittable models.
 
@@ -338,41 +288,35 @@ class ParametricModel(Model):
 
     Parameters
     ----------
-    param_names: list
-        parameter names
-    n_inputs: int
-        number of inputs
-    n_outputs: int
-        number of output quantities
-    param_dim: int
+    param_dim : int
         number of parameter sets
-    fittable: boolean
+    fittable : boolean
         indicator if the model is fittable
-    fixed: a dict
-        a dictionary {parameter_name: boolean} of parameters to not be
+    fixed : a dict
+        a dictionary ``{parameter_name: boolean}`` of parameters to not be
         varied during fitting. True means the parameter is held fixed.
         Alternatively the `~astropy.modeling.parameters.Parameter.fixed`
         property of a parameter may be used.
-    tied: dict
-        a dictionary {parameter_name: callable} of parameters which are
+    tied : dict
+        a dictionary ``{parameter_name: callable}`` of parameters which are
         linked to some other parameter. The dictionary values are callables
         providing the linking relationship.
         Alternatively the `~astropy.modeling.parameters.Parameter.tied`
         property of a parameter may be used.
-    bounds: dict
-        a dictionary {parameter_name: boolean} of lower and upper bounds of
-        parameters. Keys  are parameter names. Values  are a list of length
-        2 giving the desired range for the parameter.
-        Alternatively the `~astropy.modeling.parameters.Parameter.min` and
+    bounds : dict
+        a dictionary ``{parameter_name: boolean}`` of lower and upper bounds of
+        parameters. Keys are parameter names. Values are a list of length 2
+        giving the desired range for the parameter.  Alternatively the
+        `~astropy.modeling.parameters.Parameter.min` and
         `~astropy.modeling.parameters.Parameter.max` properties of a parameter
         may be used.
-    eqcons: list
+    eqcons : list
         A list of functions of length n such that
-        eqcons[j](x0,*args) == 0.0 in a successfully optimized
+        ``eqcons[j](x0, *args) == 0.0`` in a successfully optimized
         problem.
     ineqcons : list
         A list of functions of length n such that
-        ieqcons[j](x0,*args) >= 0.0 is a successfully optimized
+        ``ieqcons[j](x0, *args) >= 0.0`` is a successfully optimized
         problem.
 
     Examples
@@ -383,7 +327,7 @@ class ParametricModel(Model):
     ...         return mean
     >>> tied_parameters = {'mean': tie_center}
 
-    Specify that 'mean' is a tied parameter in one of two ways:
+    Specify that ``'mean'`` is a tied parameter in one of two ways:
 
     >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3,
     ...                             tied=tied_parameters)
@@ -412,27 +356,37 @@ class ParametricModel(Model):
     >>> g1.stddev.fixed = True
     >>> g1.stddev.fixed
     True
-
     """
-    __metaclass__ = abc.ABCMeta
 
-    def __init__(self, param_names, n_inputs, n_outputs, param_dim=1, **cons):
-        self.linear = False
-        bounds = cons.pop('bounds', None)
-        fixed = cons.pop('fixed', None)
-        tied = cons.pop('tied', None)
-        eqcons = cons.pop('eqcons', None)
-        ineqcons = cons.pop('ineqcons', None)
-        if cons != {}:
-            raise TypeError("Unrecognized constraints type: {0}".format(repr(cons.keys())))
+    linear = False
+    # Flag that indicates if the model derivatives are given in columns
+    # or rows
+    col_deriv = True
+    fittable = True
 
-        super(ParametricModel, self).__init__(param_names, n_inputs, n_outputs,
-                                              param_dim=param_dim)
-        self.fittable = True
-        self._parameters = parameters.Parameters(self, self.param_names,
-                                                 param_dim=param_dim)
+
+    def __init__(self, param_dim=1, **params):
+        bounds = params.pop('bounds', None)
+        fixed = params.pop('fixed', None)
+        tied = params.pop('tied', None)
+        eqcons = params.pop('eqcons', None)
+        ineqcons = params.pop('ineqcons', None)
+
+        # Determine the number of parameter sets: This will be based
+        # on the size of any parameters whose values have been specified
+        # or the default of 1 is used
+        # This loop also checks that all the supplied parameter names are
+        # valid
+        param_names = set(self.param_names)
+
+        for name in params:
+            if name not in param_names:
+                raise ValueError(
+                    "Unrecognized parameter: {0}".format(name))
+
+        super(ParametricModel, self).__init__(param_dim=param_dim)
+
         # Initialize the constraints for each parameter
-        _bounds = {}.fromkeys(self.param_names, [None, None])
         if eqcons is None:
             self._eqcons = []
         else:
@@ -441,47 +395,41 @@ class ParametricModel(Model):
             self._ineqcons = []
         else:
             self._ineqcons = ineqcons
-        # Flag that indicates if the model derivatives are given in columns
-        # or rows
-        self.col_deriv = 1
-        # Set constraints
-        if fixed:
-            for name in fixed:
-                par = getattr(self, name)
-                setattr(par, 'fixed', fixed[name])
-        if tied:
-            for name in tied:
-                par = getattr(self, name)
-                setattr(par, 'tied', tied[name])
-        if bounds:
-            _bounds.update(bounds)
 
-        for name in _bounds:
-            par = getattr(self, name)
-            setattr(par, 'min', _bounds[name][0])
-            setattr(par, 'max', _bounds[name][1])
+        # Set constraints
+        self._constraints = {}
+
+        if fixed:
+            self._constraints['fixed'] = fixed
+        if tied:
+            self._constraints['tied'] = tied
+        if bounds:
+            self._constraints['bounds'] = bounds
+
+        self._initialize_parameters(params)
 
     @property
     def fixed(self):
         """
-        Return a dictionary of parameter fixed attributes
+        A dictionary mapping parameter names to their fixed constraint
         """
-        fixed = [getattr(self, name).fixed for name in self.param_names]
-        return dict(zip(self.param_names, fixed))
+
+        return dict((name, getattr(self, name).fixed)
+                    for name in self.param_names)
 
     @property
     def tied(self):
         """
-        Return a dictionary of parameter fixed attributes
+        A dictionary mapping parameter names to their tied constraint
         """
-        tied = [getattr(self, name).tied for name in self.param_names]
-        return dict(zip(self.param_names, tied))
+
+        return dict((name, getattr(self, name).tied)
+                    for name in self.param_names)
 
     @property
     def bounds(self):
-        pars = [getattr(self, name) for name in self.param_names]
-        bounds = [(par.min, par.max) for par in pars]
-        return dict(zip(self.param_names, bounds))
+        return dict((name, getattr(self, name).bounds)
+                    for name in self.param_names)
 
     @property
     def eqcons(self):
@@ -490,6 +438,63 @@ class ParametricModel(Model):
     @property
     def ineqcons(self):
         return self._ineqcons
+
+    @property
+    def parameters(self):
+        """
+        A flattened array of all parameter values in all parameter sets
+
+        Fittable parameters maintain this list and fitters modify it.
+        """
+
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, value):
+        """
+        Assigning to this attribute updates the parameters array rather than
+        replacing it.
+        """
+
+        try:
+            value = np.array(value).reshape(self._parameters.shape)
+        except ValueError as e:
+            raise InputParameterError(
+                "Input parameter values not compatible with the model "
+                "parameters array: {0}".format(e))
+
+        self._parameters[:] = value
+
+    def __getattr__(self, attr):
+        if len(attr) > 1 and attr[0] == '_' and attr != '_param_metrics':
+            param_name = attr[1:]
+            if param_name in self._param_metrics:
+                param_slice, param_shape = self._param_metrics[param_name]
+                value = self._parameters[param_slice]
+                if self.param_dim == 1:
+                    if param_shape:
+                        return value.reshape(param_shape)
+                    else:
+                        return value[0]
+                else:
+                    if param_shape:
+                        return value.reshape((self.param_dim,) + param_shape)
+                    else:
+                        return value
+
+        raise AttributeError(attr)
+
+    def __setattr__(self, attr, value):
+        if (len(attr) > 1 and attr[0] == '_' and
+                hasattr(self, '_param_metrics')):
+            param_name = attr[1:]
+            if param_name in self._param_metrics:
+                # TODO: Maybe handle exception on invalid input shape
+                param_slice = self._param_metrics[param_name][0]
+                self._parameters[param_slice] = np.array(value).ravel()
+                return
+
+        super(ParametricModel, self).__setattr__(attr, value)
 
     def __repr__(self):
         try:
@@ -502,14 +507,13 @@ class ParametricModel(Model):
             param_dim = " "
 
         if degree:
-            fmt = "<{0}({1},".format(self.__class__.__name__, repr(self.deg))
+            fmt = "<{0}({1}, ".format(self.__class__.__name__, repr(self.deg))
         else:
             fmt = "<{0}(".format(self.__class__.__name__)
-        for i in range(len(self.param_names)):
-            fmt1 = """
-            {0}={1},
-            """.format(self.param_names[i], getattr(self, self.param_names[i]))
-            fmt += fmt1.strip()
+
+        for name in self.param_names:
+            fmt1 = "{0}={1}, ".format(name, getattr(self, name))
+            fmt += fmt1
         if param_dim:
             fmt += "param_dim={0})>".format(self.param_dim)
 
@@ -517,70 +521,82 @@ class ParametricModel(Model):
 
     def __str__(self):
         try:
-            degree = str(self.deg)
+            degree = str(self.degree)
         except AttributeError:
             degree = 'N/A'
+
         fmt = """
         Model: {0}
         n_inputs:   {1}
         Degree: {2}
         Parameter sets: {3}
-        Parameters:
-                   {4}
+        Parameters: \n{4}
         """.format(
               self.__class__.__name__,
               self.n_inputs,
               degree,
               self.param_dim,
-              "\n                   ".join(i + ': ' +
-                                           str(self.__getattribute__(i)) for i in self.param_names)
-        )
+              indent('\n'.join('{0}: {1}'.format(n, getattr(self, n))
+                     for n in self.param_names),
+                     width=19))
 
-        return fmt
+        return dedent(fmt[1:])
 
-    @property
-    def parameters(self):
+    def set_joint_parameters(self, jparams):
         """
-        An instance of `~astropy.modeling.parameters.Parameters`.
-        Fittable parameters maintain this list and fitters modify it.
-        """
-        return self._parameters
-
-    @parameters.setter
-    def parameters(self, value):
-        """
-        Reset the parameters attribute as an instance of
-        `~astropy.modeling.parameters.Parameters`
-        """
-        if isinstance(value, parameters.Parameters):
-            if self._parameters._is_same_length(value):
-                self._parameters = value
-            else:
-                raise InputParameterError(
-                    "Expected the list of parameters to be the same "
-                    "length as the initial list.")
-        elif isinstance(value, (list, np.ndarray)):
-            _val = parameters._tofloat(value)[0]
-            if self._parameters._is_same_length(_val):
-                self._parameters._changed = True
-                self._parameters[:] = _val
-            else:
-                raise InputParameterError(
-                    "Expected the list of parameters to be the same "
-                    "length as the initial list.")
-        else:
-            raise TypeError("Parameters must be of type 'list' or 'Parameters'")
-
-    def set_joint_parameters(self, jpars):
-        """
-        Used by the JointFitter class to store parameters which are
+        Used by the `JointFitter` class to store parameters which are
         considered common for several models and are to be fitted together.
         """
-        self.joint = jpars
+        self.joint = jparams
+
+    def _initialize_parameters(self, params):
+        """
+        Initialize the _parameters array that stores raw parameter values for
+        all parameter sets for use with vectorized fitting algorithms; on
+        ParametricModels the _param_name attributes actually just reference
+        slices of this array.
+        """
+
+        # First we need to determine how much array space is needed by all the
+        # parameters based on the number of parameters, the shape each input
+        # parameter, and the param_dim
+        self._param_metrics = {}
+        total_size = 0
+        for name in self.param_names:
+            value = params.setdefault(name,
+                                      getattr(self, name).default)
+            if self.param_dim == 1:
+                param_size = np.size(value)
+                param_shape = np.shape(value)
+            elif self.param_dim > 1:
+                # Even for param_dim > 1 we allow a scalar value to be used for
+                # repeat across all param sets
+                try:
+                    if len(value) == self.param_dim:
+                        param_size = np.size(value[0])
+                        param_shape = np.shape(value[0])
+                    else:
+                        param_size = np.size(value)
+                        param_shape = np.shape(value)
+                except TypeError:
+                    param_size = 1
+            else:
+                raise ValueError("Model param_dim must be 1 or greater.")
+
+            param_slice = slice(total_size,
+                                total_size + param_size * self.param_dim)
+            self._param_metrics[name] = (param_slice, param_shape)
+            total_size += param_size * self.param_dim
+
+        self._parameters = np.empty(total_size, dtype=np.float64)
+
+        # Now set the parameter values (this will also fill
+        # self._parameters)
+        for name, value in params.items():
+            setattr(self, name, value)
 
 
 class LabeledInput(dict):
-
     """
     Create a container with all input data arrays, assigning labels for
     each one.
@@ -606,18 +622,18 @@ class LabeledInput(dict):
     >>> ado = LabeledInput([x, y, l], ['x', 'y', 'pixel'])
     >>> ado.x
     array([[0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1],
-    [2, 2, 2, 2, 2],
-    [3, 3, 3, 3, 3],
-    [4, 4, 4, 4, 4]])
+           [1, 1, 1, 1, 1],
+           [2, 2, 2, 2, 2],
+           [3, 3, 3, 3, 3],
+           [4, 4, 4, 4, 4]])
     >>> ado['x']
     array([[0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1],
-    [2, 2, 2, 2, 2],
-    [3, 3, 3, 3, 3],
-    [4, 4, 4, 4, 4]])
-
+           [1, 1, 1, 1, 1],
+           [2, 2, 2, 2, 2],
+           [3, 3, 3, 3, 3],
+           [4, 4, 4, 4, 4]])
     """
+
     def __init__(self, data, labels):
         dict.__init__(self)
         assert len(labels) == len(data)
@@ -651,8 +667,8 @@ class LabeledInput(dict):
             coordinate value
         kw : dictionary
             if given this is a dictionary of {label: value} pairs
-
         """
+
         if kw:
             if label is None or value is None:
                 self.update(kw)
@@ -686,24 +702,25 @@ class LabeledInput(dict):
 
 
 class _CompositeModel(Model):
-
     def __init__(self, transforms, n_inputs, n_outputs):
-        """
-        A Base class for all composite models.
+        """Base class for all composite models."""
 
-        """
         self._transforms = transforms
         param_names = []
         for tr in self._transforms:
             param_names.extend(tr.param_names)
-        super(_CompositeModel, self).__init__(param_names, n_inputs, n_outputs)
+        super(_CompositeModel, self).__init__()
+        self.param_names = param_names
+        self.n_inputs = n_inputs
+        self.n_outputs = n_outputs
         self.fittable = False
 
     def __repr__(self):
         fmt = """
             Model:  {0}
             """.format(self.__class__.__name__)
-        fmt1 = " %s  " * len(self._transforms) % tuple([repr(tr) for tr in self._transforms])
+        fmt_args = tuple(repr(tr) for tr in self._transforms)
+        fmt1 = (" %s  " * len(self._transforms)) % fmt_args
         fmt = fmt + fmt1
         return fmt
 
@@ -711,9 +728,13 @@ class _CompositeModel(Model):
         fmt = """
             Model:  {0}
             """.format(self.__class__.__name__)
-        fmt1 = " %s  " * len(self._transforms) % tuple([str(tr) for tr in self._transforms])
+        fmt_args = tuple(str(tr) for tr in self._transforms)
+        fmt1 = (" %s  " * len(self._transforms)) % fmt_args
         fmt = fmt + fmt1
         return fmt
+
+    def add_model(self, transf, inmap, outmap):
+        self[transf] = [inmap, outmap]
 
     def invert(self):
         raise NotImplementedError("Subclasses should implement this")
@@ -724,10 +745,8 @@ class _CompositeModel(Model):
 
 
 class SerialCompositeModel(_CompositeModel):
-
     """
-
-    Execute models in series.
+    Composite model that evaluates models in series.
 
     Parameters
     ----------
@@ -762,26 +781,34 @@ class SerialCompositeModel(_CompositeModel):
         ...                                  inmap=[['x', 'y'], ['x'], ['y']],
         ...                                  outmap=[['x', 'y'], ['x'], ['y']])
         >>> result = transform(labeled_input)
-
     """
-    def __init__(self, transforms, inmap=None, outmap=None, n_inputs=None, n_outputs=None):
+
+    def __init__(self, transforms, inmap=None, outmap=None, n_inputs=None,
+                 n_outputs=None):
         if n_inputs is None:
             n_inputs = max([tr.n_inputs for tr in transforms])
-            # the output dimension is equal to the output dim of the last transform
+            # the output dimension is equal to the output dim of the last
+            # transform
             n_outputs = transforms[-1].n_outputs
         else:
             assert n_outputs is not None, "Expected n_inputs and n_outputs"
             n_inputs = n_inputs
             n_outputs = n_outputs
-        super(SerialCompositeModel, self).__init__(transforms, n_inputs, n_outputs)
+
+        super(SerialCompositeModel, self).__init__(transforms, n_inputs,
+                                                   n_outputs)
+
         if transforms and inmap and outmap:
             assert len(transforms) == len(inmap) == len(outmap), \
                 "Expected sequences of transform, " \
                 "inmap and outmap to have the same length"
+
         if inmap is None:
             inmap = [None] * len(transforms)
+
         if outmap is None:
             outmap = [None] * len(transforms)
+
         self._inmap = inmap
         self._outmap = outmap
 
@@ -799,9 +826,8 @@ class SerialCompositeModel(_CompositeModel):
         return SerialCompositeModel(transforms, inmap, outmap)
 
     def __call__(self, *data):
-        """
-        Transforms data using this model.
-        """
+        """Transforms data using this model."""
+
         if len(data) == 1:
             if not isinstance(data[0], LabeledInput):
                 assert self._transforms[0].n_inputs == 1, \
@@ -814,14 +840,19 @@ class SerialCompositeModel(_CompositeModel):
                 return result
             else:
                 labeled_input = data[0].copy()
-                # we want to return the entire labeled object because some parts
-                # of it may be used in another transform of which this
+                # we want to return the entire labeled object because some
+                # parts of it may be used in another transform of which this
                 # one is a component
-                assert self._inmap is not None, ("Parameter 'inmap' must be provided when"
-                                                 "input is a labeled object")
-                assert self._outmap is not None, ("Parameter 'outmap' must be "
-                                                  "provided when input is a labeled object")
-                for transform, incoo, outcoo in izip(self._transforms, self._inmap, self._outmap):
+                assert self._inmap is not None, \
+                    ("Parameter 'inmap' must be provided when "
+                     "input is a labeled object.")
+                assert self._outmap is not None, \
+                    ("Parameter 'outmap' must be provided when input is a "
+                     "labeled object")
+
+                for transform, incoo, outcoo in izip(self._transforms,
+                                                     self._inmap,
+                                                     self._outmap):
                     inlist = [labeled_input[label] for label in incoo]
                     result = transform(*inlist)
                     if len(outcoo) == 1:
@@ -833,8 +864,8 @@ class SerialCompositeModel(_CompositeModel):
                         setattr(labeled_input, label, res)
                 return labeled_input
         else:
-            assert self.n_inputs == len(data), "This transform expects "
-            "{0} inputs".format(self._n_inputs)
+            assert self.n_inputs == len(data), \
+                "This transform expects {0} inputs".format(self._n_inputs)
 
             result = self._transforms[0](*data)
             for transform in self._transforms[1:]:
@@ -843,10 +874,8 @@ class SerialCompositeModel(_CompositeModel):
 
 
 class ParallelCompositeModel(_CompositeModel):
-
     """
-
-    Execute models in parallel.
+    Composite model that evaluates models in parallel.
 
     Parameters
     --------------
@@ -861,24 +890,26 @@ class ParallelCompositeModel(_CompositeModel):
     Notes
     -----
     Evaluate each model separately and add the results to the input_data.
-
     """
+
     def __init__(self, transforms, inmap=None, outmap=None):
         self._transforms = transforms
         n_inputs = self._transforms[0].n_inputs
         n_outputs = n_inputs
         for transform in self._transforms:
             assert transform.n_inputs == transform.n_outputs == n_inputs, \
-                ("A ParallelCompositeModel expects n_inputs = n_outputs for all transforms")
-        super(ParallelCompositeModel, self).__init__(transforms, n_inputs, n_outputs)
+                ("A ParallelCompositeModel expects n_inputs = n_outputs for "
+                 "all transforms")
+
+        super(ParallelCompositeModel, self).__init__(transforms, n_inputs,
+                                                     n_outputs)
 
         self._inmap = inmap
         self._outmap = outmap
 
     def __call__(self, *data):
-        """
-        Transforms data using this model.
-        """
+        """Transforms data using this model."""
+
         if len(data) == 1:
             if not isinstance(data[0], LabeledInput):
                 result = data[0]
@@ -886,13 +917,16 @@ class ParallelCompositeModel(_CompositeModel):
                 deltas = sum(tr(x) for tr in self._transforms)
                 return result + deltas
             else:
-                assert self._inmap is not None, ("Parameter 'inmap' must be "
-                                                 "provided when input is a labeled object")
-                assert self._outmap is not None, ("Parameter 'outmap' must be "
-                                                  "provided when input is a labeled object")
+                assert self._inmap is not None, \
+                    ("Parameter 'inmap' must be provided when "
+                     "input is a labeled object.")
+                assert self._outmap is not None, \
+                    ("Parameter 'outmap' must be provided when input is a "
+                     "labeled object")
                 labeled_input = data[0].copy()
                 # create a list of inputs to be passed to the transforms
-                inlist = [getattr(labeled_input, label) for label in self._inmap]
+                inlist = [getattr(labeled_input, label)
+                          for label in self._inmap]
                 deltas = [np.zeros_like(x) for x in inlist]
                 for transform in self._transforms:
                     deltas = [transform(*inlist)]
@@ -910,36 +944,22 @@ class ParallelCompositeModel(_CompositeModel):
 
 
 class Parametric1DModel(ParametricModel):
-
     """
-    Base class for one dimensional parametric models
+    Base class for one dimensional parametric models.
 
     This class provides an easier interface to defining new models.
     Examples can be found in functional_models.py
 
     Parameters
     ----------
-    parameter_dict : dictionary
+    parameters : dictionary
         Dictionary of model parameters with initialisation values
         {'parameter_name': 'parameter_value'}
-
     """
+
     deriv = None
 
-    def __init__(self, param_dict):
-        # Get parameter dimension
-        param_dim = np.size(param_dict[self.param_names[0]])
-        cons = param_dict.pop('constraints', {})
-        # Initialize model parameters. This is preliminary as long there is
-        # no new parameter class. It may be more reasonable and clear to init
-        # the parameters in the model constructor itself, with constraints etc.
-        for param_name in self.param_names:
-            setattr(self, "_" + param_name, parameters.Parameter(name=param_name,
-                                                                 val=param_dict[param_name], mclass=self, param_dim=param_dim))
-
-        super(Parametric1DModel, self).__init__(self.param_names, n_inputs=1,
-                                                n_outputs=1, param_dim=param_dim, **cons)
-
+    @format_input
     def __call__(self, x):
         """
         Transforms data using this model.
@@ -949,15 +969,13 @@ class Parametric1DModel(ParametricModel):
         x : array like or a number
             input
         """
-        x, fmt = _convert_input(x, self.param_dim)
-        result = self.eval(x, *self.param_sets)
-        return _convert_output(result, fmt)
+
+        return self.eval(x, *self.param_sets)
 
 
 class Parametric2DModel(ParametricModel):
-
     """
-    Base class for two dimensional parametric models
+    Base class for two dimensional parametric models.
 
     This class provides an easier interface to defining new models.
     Examples can be found in functional_models.py
@@ -967,24 +985,13 @@ class Parametric2DModel(ParametricModel):
     parameter_dict : dictionary
         Dictionary of model parameters with initialization values
         {'parameter_name': 'parameter_value'}
-
     """
+
     deriv = None
+    n_inputs = 2
+    n_outputs = 1
 
-    def __init__(self, param_dict):
-        # Get parameter dimension
-        param_dim = np.size(param_dict[self.param_names[0]])
-        cons = param_dict.pop('constraints', {})
-        # Initialize model parameters. This is preliminary as long there is
-        # no new parameter class. It may be more reasonable and clear to init
-        # the parameters in the model constructor itself, with constraints etc.
-        for param_name in self.param_names:
-            setattr(self, "_" + param_name, parameters.Parameter(name=param_name,
-                                                                 val=param_dict[param_name], mclass=self, param_dim=param_dim))
-
-        super(Parametric2DModel, self).__init__(self.param_names, n_inputs=2,
-                                                n_outputs=1, param_dim=param_dim, **cons)
-
+    @format_input
     def __call__(self, x, y):
         """
         Transforms data using this model.
@@ -994,7 +1001,5 @@ class Parametric2DModel(ParametricModel):
         x : array like or a number
             input
         """
-        x, _ = _convert_input(x, self.param_dim)
-        y, fmt = _convert_input(y, self.param_dim)
-        result = self.eval(x, y, *self.param_sets)
-        return _convert_output(result, fmt)
+
+        return self.eval(x, y, *self.param_sets)

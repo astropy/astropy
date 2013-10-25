@@ -2,32 +2,29 @@
 """
 Tests models.parameters
 """
-from .. import models, fitting
-from . import irafutil
-from ..utils import InputParameterError
+
 import numpy as np
 from numpy.testing import utils
+
+from . import irafutil
+from .. import models, fitting
+from ..core import ParametricModel
+from ..parameters import Parameter, InputParameterError
 from ...utils.data import get_pkg_data_filename
 from ...tests.helper import pytest
-from .. import ParametricModel, Parameter
 
 
 class TestParModel(ParametricModel):
-
     """
     A toy model to test parameters machinery
     """
-    param_names = ['coeff', 'e']
+
+    coeff = Parameter('coeff')
+    e = Parameter('e')
 
     def __init__(self, coeff, e, param_dim=1):
-        self._coeff = Parameter(name='coeff', val=coeff, mclass=self, param_dim=param_dim)
-        self._e = Parameter(name='e', val=e, mclass=self, param_dim=param_dim)
-        ParametricModel.__init__(
-            self,
-            self.param_names,
-            n_inputs=1,
-            n_outputs=1,
-            param_dim=param_dim)
+        super(TestParModel, self).__init__(
+                coeff=coeff, e=e, param_dim=param_dim)
 
     def __call__(self):
         pass
@@ -64,29 +61,31 @@ class TestParameters(object):
         Tests updating the parameters attribute with a slice.
         This is what fitters internally do.
         """
+
         self.model.parameters[:] = np.array([3, 4, 5, 6, 7])
-        assert(self.model.parameters == [3., 4., 5., 6., 7.])
+        assert (self.model.parameters == [3., 4., 5., 6., 7.]).all()
 
     def test_set_parameters_as_list(self):
         """
         Tests updating parameters using a list.
         """
         self.model.parameters = [30, 40, 50, 60, 70]
-        assert(self.model.parameters == [30., 40., 50., 60, 70])
+        assert (self.model.parameters == [30., 40., 50., 60, 70]).all()
 
     def test_set_parameters_as_array(self):
         """
         Tests updating parameters using an array.
         """
         self.model.parameters = np.array([3, 4, 5, 6, 7])
-        assert(self.model.parameters == [3., 4., 5., 6., 7.])
+        assert (self.model.parameters == [3., 4., 5., 6., 7.]).all()
 
-    def test_set_as_list(self):
+    def test_set_as_tuple(self):
         """
-        Parameters can be reset only by using a list or an array
+        Tests updating parameters using a tuple.
         """
-        with pytest.raises(TypeError):
-            self.model.parameters = (1, 2, 3, 4, 5)
+
+        self.model.parameters = (1, 2, 3, 4, 5)
+        assert (self.model.parameters == [1, 2, 3, 4, 5]).all()
 
     def test_set_model_attr_seq(self):
         """
@@ -95,14 +94,14 @@ class TestParameters(object):
         """
         self.model.parameters = [0, 0., 0., 0, 0]
         self.model.c0 = 7
-        assert(self.model.parameters == [7, 0., 0., 0, 0])
+        assert (self.model.parameters == [7, 0., 0., 0, 0]).all()
 
     def test_set_model_attr_num(self):
         """
         Update the parameter list when a model's parameter is updated.
         """
         self.gmodel.amplitude = 7
-        assert(self.gmodel.parameters == [7, 3, 4])
+        assert (self.gmodel.parameters == [7, 3, 4]).all()
 
     def test_set_item(self):
         """
@@ -110,8 +109,8 @@ class TestParameters(object):
         """
         self.model.parameters = [1, 2, 3, 4, 5]
         self.model.parameters[0] = 10.
-        assert(self.model.parameters == [10, 2, 3, 4, 5])
-        assert(self.model.c0 == 10)
+        assert (self.model.parameters == [10, 2, 3, 4, 5]).all()
+        assert self.model.c0 == 10
 
     def test_wrong_size1(self):
         """
@@ -152,13 +151,13 @@ class TestParameters(object):
                                    0.90252884366711317]),
                               rtol=10 ** (-2))
 
-    def testPoly1D(self):
+    def testPolynomial1D(self):
         d = {'c0': 11, 'c1': 12, 'c2': 13, 'c3': 14}
-        p1 = models.Poly1DModel(3, **d)
+        p1 = models.Polynomial1DModel(3, **d)
         utils.assert_equal(p1.parameters, [11, 12, 13, 14])
 
     def test_poly1d_multiple_sets(self):
-        p1 = models.Poly1DModel(3, param_dim=3)
+        p1 = models.Polynomial1DModel(3, param_dim=3)
         utils.assert_equal(p1.parameters, [0.0, 0.0, 0.0, 0, 0, 0,
                                            0, 0, 0, 0, 0, 0])
         utils.assert_equal(p1.c0, [0., 0, 0])
@@ -170,20 +169,20 @@ class TestParameters(object):
         """
         Test assigning to a parameter slice
         """
-        p1 = models.Poly1DModel(3, param_dim=3)
+        p1 = models.Polynomial1DModel(3, param_dim=3)
         p1.c0[:2] = [10, 10]
         utils.assert_equal(p1.parameters, [10.0, 10.0, 0.0, 0, 0,
                                            0, 0, 0, 0, 0, 0, 0])
 
     def test_poly2d(self):
-        p2 = models.Poly2DModel(degree=3)
+        p2 = models.Polynomial2DModel(degree=3)
         p2.c0_0 = 5
         utils.assert_equal(p2.parameters, [5, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     def test_poly2d_multiple_sets(self):
         kw = {'c0_0': [2, 3], 'c1_0': [1, 2], 'c2_0': [4, 5],
               'c0_1': [1, 1], 'c0_2': [2, 2], 'c1_1': [5, 5]}
-        p2 = models.Poly2DModel(2, **kw)
+        p2 = models.Polynomial2DModel(2, **kw)
         utils.assert_equal(p2.parameters, [2, 3, 1, 2, 4, 5,
                                            1, 1, 2, 2, 5, 5])
 
@@ -201,6 +200,7 @@ class TestParameters(object):
         sh1 = models.ShiftModel(2)
         with pytest.raises(InputParameterError):
             sh1.offsets = [3, 3]
+
 
 
 class TestMultipleParameterSets(object):
@@ -248,16 +248,16 @@ class TestMultipleParameterSets(object):
         utils.assert_almost_equal(self.gmodel.amplitude.value, [13., 10.])
         utils.assert_almost_equal(self.gmodel.mean.value, [9., 5.2])
 
-    def test_object_pars(self):
+    def test_object_params(self):
         l2 = TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3), param_dim=2)
         utils.assert_almost_equal(l2.parameters, [1.0, 2.0, 3.0, 4.0, 2.0, 3.0])
         # utils.assert_almost_equal(l2.param_sets, np.array([[[1,2.],[3., 4.]],
         #                                               [2., 3.]], dtype=np.object))
 
-    def test_wrong_number_of_pars(self):
+    def test_wrong_number_of_params(self):
         with pytest.raises(InputParameterError):
             TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), param_dim=2)
 
-    def test_wrong_number_of_pars2(self):
+    def test_wrong_number_of_params2(self):
         with pytest.raises(InputParameterError):
             TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)

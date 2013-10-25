@@ -17,7 +17,6 @@ def test_Projection_properties():
     projection = projections.Sky2Pix_CAR()
     assert projection.n_inputs == 2
     assert projection.n_outputs == 2
-    assert projection.pdim == 1
 
 PIX_COORDINATES = [-10, 30]
 

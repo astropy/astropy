@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 from .. import models
 from numpy.testing import utils
 from ...tests.helper import pytest
+
 
 def test_RotateNative2Celestial():
     phi, theta, psi = 42, 43, 44
@@ -28,14 +30,15 @@ def test_native_celestial_native():
     assert n2c.inverse()(nnphi, ntheta) == c2n(nnphi, ntheta)
     assert c2n.inverse()(nnphi, ntheta) == n2c(nnphi, ntheta)
 
+
 def test_native_celestial_theta90():
     n2c = models.RotateNative2Celestial(1, 90, 0)
     alpha, delta = n2c(1, 1)
     utils.assert_allclose( delta, 1)
     utils.assert_allclose(alpha, 182)
 
+
 def test_MatrixRotation2D():
     model = models.MatrixRotation2D(angle=90)
     x, y = model(1, 0)
-    utils.assert_allclose([x, y], [0, -1], atol=1e-10) 
-
+    utils.assert_allclose([x, y], [0, -1], atol=1e-10)

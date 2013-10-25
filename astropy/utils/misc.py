@@ -26,7 +26,7 @@ from .exceptions import AstropyDeprecationWarning, AstropyPendingDeprecationWarn
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'deprecated_attribute', 'silence', 'format_exception',
            'NumpyRNGContext', 'find_api_page', 'is_path_hidden',
-           'walk_skip_hidden', 'JsonCustomEncoder']
+           'walk_skip_hidden', 'JsonCustomEncoder', 'indent']
 
 __doctest_skip__ = ['find_current_module']
 
@@ -216,6 +216,17 @@ def isiterable(obj):
         return True
     except TypeError:
         return False
+
+
+def indent(s, shift=1, width=4):
+    """Indent a block of text.  The indentation is applied to each line."""
+
+    indented = '\n'.join(' ' * (width * shift) + l if l else ''
+                         for l in s.splitlines())
+    if s[-1] == '\n':
+        indented += '\n'
+
+    return indented
 
 
 class lazyproperty(object):

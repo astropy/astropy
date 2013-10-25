@@ -21,13 +21,13 @@ except ImportError:
     HAS_SCIPY = False
 
 
-class TestPoly2D(object):
+class TestPolynomial2D(object):
 
     """
     Tests for 2D polynomail fitting
     """
     def setup_class(self):
-        self.model = models.Poly2DModel(2)
+        self.model = models.Polynomial2DModel(2)
         self.x, self.y = np.mgrid[:5, :5]
 
         def poly2(x, y):
@@ -51,18 +51,18 @@ class TestICheb2D(object):
     """
     Tests 2D Chebyshev polynomial fitting
 
-    Create a 2D polynomial (z) using Poly2DModel and default coefficients
+    Create a 2D polynomial (z) using Polynomial2DModel and default coefficients
     Fit z using a ICheb2D model
     Evaluate the ICheb2D polynomial and compare with the initial z
     """
     def setup_class(self):
-        self.pmodel = models.Poly2DModel(2)
+        self.pmodel = models.Polynomial2DModel(2)
         self.x, self.y = np.mgrid[:5, :5]
         self.z = self.pmodel(self.x, self.y)
         self.cheb2 = models.Chebyshev2DModel(2, 2)
         self.fitter = fitting.LinearLSQFitter(self.cheb2)
 
-    def test_default_pars(self):
+    def test_default_params(self):
         self.cheb2.parameters = np.arange(9)
         p = np.array([1344., 1772., 400., 1860., 2448., 552., 432., 568.,
                       128.])
@@ -91,7 +91,8 @@ class TestJointFitter(object):
         self.g1 = models.Gaussian1DModel(10, mean=14.9, stddev=.3)
         self.g2 = models.Gaussian1DModel(10, mean=13, stddev=.4)
         self.jf = fitting.JointFitter([self.g1, self.g2],
-                                      {self.g1: ['amplitude'], self.g2: ['amplitude']}, [9.8])
+                                      {self.g1: ['amplitude'],
+                                       self.g2: ['amplitude']}, [9.8])
         self.x = np.arange(10, 20, .1)
         y1 = self.g1(self.x)
         y2 = self.g2(self.x)
@@ -104,8 +105,8 @@ class TestJointFitter(object):
         """
         Tests that the amplitude of the two models is the same
         """
-        utils.assert_allclose(self.jf.fitpars[0], self.g1.parameters[0])
-        utils.assert_allclose(self.jf.fitpars[0], self.g2.parameters[0])
+        utils.assert_allclose(self.jf.fitparams[0], self.g1.parameters[0])
+        utils.assert_allclose(self.jf.fitparams[0], self.g2.parameters[0])
 
     def test_joint_fitter(self):
         """
@@ -121,7 +122,7 @@ class TestJointFitter(object):
                                                                   x1) - y1, compmodel(p[0], p[3:], x2) - y2])
         coeff, _ = optimize.leastsq(errf, p, args=(self.x, self.ny1, self.x,
                                                    self.ny2))
-        utils.assert_allclose(coeff, self.jf.fitpars, rtol=10 ** (-2))
+        utils.assert_allclose(coeff, self.jf.fitparams, rtol=10 ** (-2))
 
 
 class TestLinearLSQFitter(object):
@@ -190,8 +191,9 @@ class TestNonLinearFitters(object):
         fslsqp = fitting.SLSQPFitter(g1_slsqp)
         fslsqp(self.xdata, self.ydata)
         fitter(self.xdata, self.ydata)
-        # There's a bug in the SLSQP algorithm and sometimes it gives the negative
-        # value of the result. unitl this is understood, for this test, take np.abs()
+        # There's a bug in the SLSQP algorithm and sometimes it gives the
+        # negative value of the result. unitl this is understood, for this
+        # test, take np.abs()
         utils.assert_allclose(g1.parameters, np.abs(g1_slsqp.parameters),
                               rtol=10 ** (-4))
 
@@ -204,7 +206,8 @@ class TestNonLinearFitters(object):
         fslsqp = fitting.SLSQPFitter(g1_slsqp)
         fslsqp(self.xdata, self.ydata)
         fitter(self.xdata, self.ydata)
-        # There's a bug in the SLSQP algorithm and sometimes it gives the negative
-        # value of the result. unitl this is understood, for this test, take np.abs()
+        # There's a bug in the SLSQP algorithm and sometimes it gives the
+        # negative value of the result. unitl this is understood, for this
+        # test, take np.abs()
         utils.assert_allclose(g1.parameters, np.abs(g1_slsqp.parameters),
                               rtol=10 ** (-4))

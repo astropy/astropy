@@ -15,17 +15,20 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-model1d_pars = [(models.Poly1DModel, [2]),
-                (models.Legendre1DModel, [2]),
-                (models.Chebyshev1DModel, [2]),
-                (models.ShiftModel, [2]),
-                (models.ScaleModel, [2]),
-                ]
 
-model2d_pars = [(models.Poly2DModel, [2]),
-                (models.Legendre2DModel, [1, 2]),
-                (models.Chebyshev2DModel, [1, 2]),
-                ]
+model1d_params = [
+    (models.Polynomial1DModel, [2]),
+    (models.Legendre1DModel, [2]),
+    (models.Chebyshev1DModel, [2]),
+    (models.ShiftModel, [2]),
+    (models.ScaleModel, [2])
+]
+
+model2d_params = [
+    (models.Polynomial2DModel, [2]),
+    (models.Legendre2DModel, [1, 2]),
+    (models.Chebyshev2DModel, [1, 2])
+]
 
 
 class TestInputType(object):
@@ -42,14 +45,14 @@ class TestInputType(object):
         self.y1 = np.arange(1, 10, .1)
         self.x2, self.y2 = np.mgrid[:10, :8]
 
-    @pytest.mark.parametrize(('model', 'params'), model1d_pars)
+    @pytest.mark.parametrize(('model', 'params'), model1d_params)
     def test_input1D(self, model, params):
         m = model(*params)
         m(self.x)
         m(self.x1)
         m(self.x2)
 
-    @pytest.mark.parametrize(('model', 'params'), model2d_pars)
+    @pytest.mark.parametrize(('model', 'params'), model2d_params)
     def test_input2D(self, model, params):
         m = model(*params)
         m(self.x, self.y)
@@ -71,7 +74,7 @@ class TestFitting(object):
         1 set 1D x, 1pset
         """
         expected = np.array([0, 1, 1, 1])
-        p1 = models.Poly1DModel(3)
+        p1 = models.Polynomial1DModel(3)
         p1.parameters = [0, 1, 1, 1]
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter(p1)
@@ -83,12 +86,12 @@ class TestFitting(object):
         1 set 1D x, 2 sets 1D y, 2 param_sets
         """
         expected = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
-        p1 = models.Poly1DModel(3, param_dim=2)
+        p1 = models.Polynomial1DModel(3, param_dim=2)
         p1.parameters = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0]
-        pars = {}
+        params = {}
         for i in range(4):
-            pars[p1.param_names[i]] = [i, i]
-        p1 = models.Poly1DModel(3, param_dim=2, **pars)
+            params[p1.param_names[i]] = [i, i]
+        p1 = models.Polynomial1DModel(3, param_dim=2, **params)
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter(p1)
         pfit(self.x1, y1)
@@ -127,7 +130,7 @@ class TestFitting(object):
         utils.assert_allclose(leg1.param_sets, expected, atol=10 ** (-12))
 
     def test_linear_fitter_1set2d(self):
-        p2 = models.Poly2DModel(2)
+        p2 = models.Polynomial2DModel(2)
         p2.parameters = [0, 1, 2, 3, 4, 5]
         expected = [0, 1, 2, 3, 4, 5]
         z = p2(self.x, self.y)
@@ -143,9 +146,9 @@ class TestFitting(object):
         with a model with multiple parameter sets.
         """
         with pytest.raises(ValueError):
-            p1 = models.Poly1DModel(5)
+            p1 = models.Polynomial1DModel(5)
             y1 = p1(self.x1)
-            p1 = models.Poly1DModel(5, param_dim=2)
+            p1 = models.Polynomial1DModel(5, param_dim=2)
             pfit = fitting.LinearLSQFitter(p1)
             pfit(self.x1, y1)
 
@@ -159,11 +162,11 @@ class TestFitting(object):
                              [1, 3],
                              [1, 4],
                              [1, 5]])
-        p1 = models.Poly1DModel(5, param_dim=2)
-        pars = {}
+        p1 = models.Polynomial1DModel(5, param_dim=2)
+        params = {}
         for i in range(6):
-            pars[p1.param_names[i]] = [1, i]
-        p1 = models.Poly1DModel(5, param_dim=2, **pars)
+            params[p1.param_names[i]] = [1, i]
+        p1 = models.Polynomial1DModel(5, param_dim=2, **params)
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter(p1)
         pfit(self.x1, y1)
@@ -229,7 +232,7 @@ class TestEvaluation(object):
     def test_non_linear_NYset(self):
         """
         This case covers:
-            N parsets , 1 set 1D x --> N 1D y data
+            N param sets , 1 set 1D x --> N 1D y data
         """
         g1 = models.Gaussian1DModel([10, 10], [3, 3], [.2, .2])
         y1 = g1(self.x1)
@@ -237,7 +240,7 @@ class TestEvaluation(object):
 
     def test_non_linear_NXYset(self):
         """
-        This case covers: N parsets , N sets 1D x --> N N sets 1D y data
+        This case covers: N param sets , N sets 1D x --> N N sets 1D y data
         """
         g1 = models.Gaussian1DModel([10, 10], [3, 3], [.2, .2])
         xx = np.array([self.x1, self.x1])
@@ -246,26 +249,26 @@ class TestEvaluation(object):
 
     def test_p1_1set_1pset(self):
         """
-        1 data set, 1 pset, Poly1D
+        1 data set, 1 pset, Polynomial1D
         """
-        p1 = models.Poly1DModel(4)
+        p1 = models.Polynomial1DModel(4)
         y1 = p1(self.x1)
         assert y1.shape == (20,)
 
     def test_p1_nset_npset(self):
         """
-        N data sets, N param_sets, Poly1D
+        N data sets, N param_sets, Polynomial1D
         """
-        p1 = models.Poly1DModel(4, param_dim=2)
+        p1 = models.Polynomial1DModel(4, param_dim=2)
         y1 = p1(np.array([self.x1, self.x1]).T)
         assert y1.shape == (20, 2)
         utils.assert_allclose(y1[:, 0], y1[:, 1], atol=10 ** (-12))
 
     def test_p2_1set_1pset(self):
         """
-        1 pset, 1 2D data set, Poly2D
+        1 pset, 1 2D data set, Polynomial2D
         """
-        p2 = models.Poly2DModel(5)
+        p2 = models.Polynomial2DModel(5)
         z = p2(self.x, self.y)
         assert z.shape == (10, 10)
 
@@ -273,7 +276,7 @@ class TestEvaluation(object):
         """
         N param_sets, N 2D data sets, Poly2d
         """
-        p2 = models.Poly2DModel(5, param_dim=2)
+        p2 = models.Polynomial2DModel(5, param_dim=2)
         xx = np.array([self.x, self.x])
         yy = np.array([self.y, self.y])
         z = p2(xx, yy)
@@ -287,13 +290,13 @@ class TestEvaluation(object):
         xx[0, 0] = 100
         xx[1, 0] = 100
         xx[2, 0] = 99
-        p1 = models.Poly1DModel(5, param_dim=2)
+        p1 = models.Polynomial1DModel(5, param_dim=2)
         yy = p1(xx)
         x1 = xx[:, 0]
         x2 = xx[:, 1]
-        p1 = models.Poly1DModel(5)
+        p1 = models.Polynomial1DModel(5)
         utils.assert_allclose(p1(x1), yy[:, 0], atol=10 ** (-12))
-        p1 = models.Poly1DModel(5)
+        p1 = models.Polynomial1DModel(5)
         utils.assert_allclose(p1(x2), yy[:, 1], atol=10 ** (-12))
 
     def test_evaluate_gauss2d(self):

@@ -1,10 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Power law model variants
 """
+
 from __future__ import division
+
 import numpy as np
+
 from .core import Parametric1DModel
+from .parameters import Parameter
+
 
 __all__ = sorted(['PowerLaw1DModel', 'BrokenPowerLaw1DModel',
                   'ExponentialCutoffPowerLaw1DModel', 'LogParabola1DModel'])
@@ -34,22 +40,26 @@ class PowerLaw1DModel(Parametric1DModel):
         .. math:: f(x) = A (x / x_0) ^ {-\\alpha}
 
     """
-    param_names = ['amplitude', 'x_0', 'alpha']
+
+    amplitude = Parameter('amplitude')
+    x_0 = Parameter('x_0')
+    alpha = Parameter('alpha')
 
     def __init__(self, amplitude, x_0, alpha, **constraints):
-        super(PowerLaw1DModel, self).__init__(locals())
+        super(PowerLaw1DModel, self).__init__(amplitude=amplitude, x_0=x_0,
+                                              alpha=alpha, **constraints)
 
-    def eval(self, x, amplitude, x_0, alpha):
-        """
-        Model function PowerLaw1D.
-        """
+    @staticmethod
+    def eval(x, amplitude, x_0, alpha):
+        """One dimensional power law model function"""
+
         xx = x / x_0
         return amplitude * xx ** (-alpha)
 
-    def deriv(self, x, amplitude, x_0, alpha):
-        """
-        Model derivative PowerLaw1D.
-        """
+    @staticmethod
+    def deriv(x, amplitude, x_0, alpha):
+        """One dimensional power law derivative"""
+
         xx = x / x_0
 
         d_amplitude = xx ** (-alpha)
@@ -92,23 +102,29 @@ class BrokenPowerLaw1DModel(Parametric1DModel):
                      \\end{array}
                    \\right.
     """
-    param_names = ['amplitude', 'x_break', 'alpha_1', 'alpha_2']
+
+    amplitude = Parameter('amplitude')
+    x_break = Parameter('x_break')
+    alpha_1 = Parameter('alpha_1')
+    alpha_2 = Parameter('alpha_2')
 
     def __init__(self, amplitude, x_break, alpha_1, alpha_2, **constraints):
-        super(BrokenPowerLaw1DModel, self).__init__(locals())
+        super(BrokenPowerLaw1DModel, self).__init__(
+            amplitude=amplitude, x_break=x_break, alpha_1=alpha_1,
+            alpha_2=alpha_2, **constraints)
 
-    def eval(self, x, amplitude, x_break, alpha_1, alpha_2):
-        """
-        Model function BrokenPowerLaw1D.
-        """
+    @staticmethod
+    def eval(x, amplitude, x_break, alpha_1, alpha_2):
+        """One dimensional broken power law model function"""
+
         alpha = np.where(x < x_break, alpha_1, alpha_2)
         xx = x / x_break
         return amplitude * xx ** (-alpha)
 
-    def deriv(self, x, amplitude, x_break, alpha_1, alpha_2):
-        """
-        Model derivative BrokenPowerLaw1D.
-        """
+    @staticmethod
+    def deriv(x, amplitude, x_break, alpha_1, alpha_2):
+        """One dimensional broken power law derivative"""
+
         alpha = np.where(x < x_break, alpha_1, alpha_2)
         xx = x / x_break
 
@@ -147,22 +163,28 @@ class ExponentialCutoffPowerLaw1DModel(Parametric1DModel):
         .. math:: f(x) = A (x / x_0) ^ {-\\alpha} \\exp (-x / x_{cutoff})
 
     """
-    param_names = ['amplitude', 'x_0', 'alpha', 'x_cutoff']
+
+    amplitude = Parameter('amplitude')
+    x_0 = Parameter('x_0')
+    alpha = Parameter('alpha')
+    x_cutoff = Parameter('x_cutoff')
 
     def __init__(self, amplitude, x_0, alpha, x_cutoff, **constraints):
-        super(ExponentialCutoffPowerLaw1DModel, self).__init__(locals())
+        super(ExponentialCutoffPowerLaw1DModel, self).__init__(
+            amplitude=amplitude, x_0=x_0, alpha=alpha, x_cutoff=x_cutoff,
+            **constraints)
 
-    def eval(self, x, amplitude, x_0, alpha, x_cutoff):
-        """
-        Model function ExponentialCutoffPowerLaw1D.
-        """
+    @staticmethod
+    def eval(x, amplitude, x_0, alpha, x_cutoff):
+        """One dimensional exponential cutoff power law model function"""
+
         xx = x / x_0
         return amplitude * xx ** (-alpha) * np.exp(-x / x_cutoff)
 
-    def deriv(self, x, amplitude, x_0, alpha, x_cutoff):
-        """
-        Model derivative ExponentialCutoffPowerLaw1D.
-        """
+    @staticmethod
+    def deriv(x, amplitude, x_0, alpha, x_cutoff):
+        """One dimensional exponential cutoff power law derivative"""
+
         xx = x / x_0
         xc = x / x_cutoff
 
@@ -200,23 +222,29 @@ class LogParabola1DModel(Parametric1DModel):
         .. math:: f(x) = A \\left(\\frac{x}{x_{0}}\\right)^{- \\alpha - \\beta \\log{\\left (\\frac{x}{x_{0}} \\right )}}
 
     """
-    param_names = ['amplitude', 'x_0', 'alpha', 'beta']
+
+    amplitude = Parameter('amplitude')
+    x_0 = Parameter('x_0')
+    alpha = Parameter('alpha')
+    beta = Parameter('beta')
 
     def __init__(self, amplitude, x_0, alpha, beta, **constraints):
-        super(LogParabola1DModel, self).__init__(locals())
+        super(LogParabola1DModel, self).__init__(
+            amplitude=amplitude, x_0=x_0, alpha=alpha, beta=beta,
+            **constraints)
 
-    def eval(self, x, amplitude, x_0, alpha, beta):
-        """
-        Model function LogParabola1D.
-        """
+    @staticmethod
+    def eval(x, amplitude, x_0, alpha, beta):
+        """One dimenional log parabola model function"""
+
         xx = x / x_0
         exponent = -alpha - beta * np.log(xx)
         return amplitude * xx ** exponent
 
-    def deriv(self, x, amplitude, x_0, alpha, beta):
-        """
-        Model derivative LogParabola1D.
-        """
+    @staticmethod
+    def deriv(x, amplitude, x_0, alpha, beta):
+        """One dimensional log parabola derivative"""
+
         xx = x / x_0
         log_xx = np.log(xx)
         exponent = -alpha - beta * log_xx

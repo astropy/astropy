@@ -12,7 +12,7 @@ import numpy as np
 from numpy.testing import utils
 from ...tests.helper import pytest
 from .. import fitting
-from .model_lists import models_1D, models_2D
+from .example_models import models_1D, models_2D
 
 try:
     from scipy import optimize
@@ -28,9 +28,9 @@ class TestSerialComposite(object):
     """
     def setup_class(self):
         self.x, self.y = np.mgrid[:5, :5]
-        self.p1 = models.Poly1DModel(3)
-        self.p11 = models.Poly1DModel(3)
-        self.p2 = models.Poly2DModel(3)
+        self.p1 = models.Polynomial1DModel(3)
+        self.p11 = models.Polynomial1DModel(3)
+        self.p2 = models.Polynomial2DModel(3)
 
     def test_single_array_input(self):
         model = SerialCompositeModel([self.p1, self.p11])
@@ -95,9 +95,9 @@ class TestParallelComposite(object):
     """
     def setup_class(self):
         self.x, self.y = np.mgrid[:5, :5]
-        self.p1 = models.Poly1DModel(3)
-        self.p11 = models.Poly1DModel(3)
-        self.p2 = models.Poly2DModel(3)
+        self.p1 = models.Polynomial1DModel(3)
+        self.p11 = models.Polynomial1DModel(3)
+        self.p2 = models.Polynomial2DModel(3)
 
     def test_single_array_input(self):
         model = ParallelCompositeModel([self.p1, self.p11])
@@ -117,7 +117,7 @@ class TestParallelComposite(object):
         utils.assert_almost_equal(xx, result.x)
 
     def test_inputs_outputs_mismatch(self):
-        p2 = models.Poly2DModel(1)
+        p2 = models.Polynomial2DModel(1)
         ch2 = models.Chebyshev2DModel(1, 1)
         with pytest.raises(AssertionError):
             ParallelCompositeModel([p2, ch2])
@@ -133,8 +133,8 @@ def test_pickle():
 
     copy_reg.pickle(types.MethodType, reduce_method)
 
-    p1 = models.Poly1DModel(3)
-    p11 = models.Poly1DModel(4)
+    p1 = models.Polynomial1DModel(3)
+    p11 = models.Polynomial1DModel(4)
     g1 = models.Gaussian1DModel(10.3, 5.4, 1.2)
     serial_composite_model = SerialCompositeModel([p1, g1])
     parallel_composite_model = ParallelCompositeModel([serial_composite_model, p11])
@@ -145,25 +145,26 @@ def test_pickle():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_custom_model(amplitude=4, frequency=1):
-    def f(x, amplitude=4, frequency=1):
+    @models.custom_model_1d
+    def SineModel(x, amplitude=4, frequency=1):
         """
         Model function
         """
         return amplitude * np.sin(2 * np.pi * frequency * x)
     x = np.linspace(0, 4, 50)
-    sin_model = models.Custom1DModel(f)
+    sin_model = SineModel()
     np.random.seed(0)
     data = sin_model(x) + np.random.rand(len(x)) - 0.5
     fitter = fitting.NonLinearLSQFitter(sin_model)
     fitter(x, data)
-    assert np.all((fitter.fitpars - np.array([amplitude, frequency])) < 0.001)
+    assert np.all((fitter.fitparams - np.array([amplitude, frequency])) < 0.001)
 
 
 class TestParametricModels(object):
     """
     Test class for all parametric models.
 
-    Test values have to be defined in model_lists.py. It currently test the model
+    Test values have to be defined in example_models.py. It currently test the model
     with different input types, evaluates the model at different positions and
     assures that it gives the correct values. And tests if the  model works with
     the NonLinearFitter.
@@ -226,9 +227,13 @@ class TestParametricModels(object):
         data = (1 + relative_noise_amplitude * np.random.randn(len(x))) * model(x)
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(x, data)
+
         # Only check parameters that were free in the fit
-        fitted_parameters = [val for (val, fixed) in zip(parameters, fitter.fixed) if not fixed]
-        utils.assert_allclose(fitter.fitpars, fitted_parameters, atol=self.fit_error)
+        fitted_parameters = [val
+                             for (val, fixed) in zip(parameters, fitter.fixed)
+                             if not fixed]
+        utils.assert_allclose(fitter.fitparams, fitted_parameters,
+                              atol=self.fit_error)
 
     @pytest.mark.parametrize(('model_class'), models_2D.keys())
     def test_input2D(self, model_class):
@@ -282,7 +287,7 @@ class TestParametricModels(object):
         data = model(xv, yv) + 0.1 * parameters[0] * (np.random.rand(self.N, self.N) - 0.5)
         fitter = fitting.NonLinearLSQFitter(model)
         fitter(xv, yv, data)
-        assert np.all((np.abs(fitter.fitpars - np.array(parameters))
+        assert np.all((np.abs(fitter.fitparams - np.array(parameters))
                         < self.fit_error))
 
     @pytest.mark.skipif('not HAS_SCIPY')
@@ -297,7 +302,7 @@ class TestParametricModels(object):
 
         if model_class.deriv is None:
             pytest.skip("Derivative function is not defined for model.")
-        if issubclass(model_class, (models.PolynomialModel, models.OrthogPolyBase)):
+        if issubclass(model_class, (models.PolynomialModel, models.OrthoPolynomialBase)):
             pytest.skip("Skip testing derivative of polynomials.")
 
         if "log_fit" in models_2D[model_class]:
@@ -340,7 +345,7 @@ class TestParametricModels(object):
 
         if model_class.deriv is None:
             pytest.skip("Derivative function is not defined for model.")
-        if issubclass(model_class, (models.PolynomialModel, models.OrthogPolyBase)):
+        if issubclass(model_class, (models.PolynomialModel, models.OrthoPolynomialBase)):
             pytest.skip("Skip testing derivative of polynomials.")
 
         if "log_fit" in models_1D[model_class]:
@@ -372,7 +377,7 @@ def create_model(model_class, parameters, use_constraints=True):
     if issubclass(model_class, Parametric1DModel):
         if "requires_scipy" in models_1D[model_class] and not HAS_SCIPY:
             pytest.skip("SciPy not found")
-        if use_constraints:   
+        if use_constraints:
             if 'constraints' in models_1D[model_class]:
                 constraints = models_1D[model_class]['constraints']
         return model_class(*parameters, **constraints)
@@ -387,7 +392,8 @@ def create_model(model_class, parameters, use_constraints=True):
 
     elif issubclass(model_class, PolynomialModel):
         return model_class(**parameters)
-    
+
+
 def test_ShiftModel():
     # Shift by a scalar
     m = models.ShiftModel(42)
@@ -398,6 +404,7 @@ def test_ShiftModel():
     m = models.ShiftModel([42, 43])
     utils.assert_equal(m(0), [42, 43])
     utils.assert_equal(m([1, 2]), [[ 43,  44], [ 44,  45]])
+
 
 def test_ScaleModel():
     # Scale by a scalar
