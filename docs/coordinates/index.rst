@@ -89,10 +89,21 @@ of coordinates::
     >>> catalog = coord.ICRSCoordinates(ra2, dec2, unit=(u.degree, u.degree))  # doctest: +SKIP
     >>> idx, d2d, d3d = c1.match_to_catalog_sky(catalog)  # doctest: +SKIP
 
+These array coordinates can also be indexed in the same way as numpy
+arrays::
+
+    >>> len(c[0].ra) # doctest: +SKIP
+    TypeError: 'Longitude' object with a scalar value has no len()
+    >>> len(c[1:5].ra) # doctest: +SKIP
+    4
+    >>> matches = catalog[idx]  # doctest: +SKIP
+    >>> len(matches) == len(c)  # doctest: +SKIP
+    True
+
 
 The `coordinates` subpackage also provides a quick way to get
-coordinates for named objects (with an internet connection). All
-subclasses of
+coordinates for named objects (if you have an active internet 
+connection). All subclasses of
 `~astropy.coordinates.coordsystems.SphericalCoordinatesBase` have a
 special class method, `from_name()`, that accepts a string and queries
 `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve
