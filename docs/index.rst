@@ -52,6 +52,7 @@ User Documentation
    table/index
    time/index
    coordinates/index
+   magnitudes/index
    wcs/index
    modeling/index
 

@@ -114,6 +114,21 @@ printing out a value initially provided in hours, its `to_string()`
 will, by default, also be expressed in hours.  Additionally, `Angle`
 can now store an array of angles.
 
+
+Magnitudes
+----------
+
+:ref:`astropy_magnitudes` is added to handle conversion between flux and
+magnitudes. Example:
+
+    >>> from astropy import magnitudes as m
+    >>> mag = m.Magnitude(-5)
+    >>> mag
+    <Magnitude -5 mag>
+    >>> mag.to_flux()
+    100.0
+
+
 Virtual Observatory Simple Cone Search
 --------------------------------------
 
