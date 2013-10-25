@@ -104,10 +104,12 @@ class Parameter(object):
     # See the _nextid classmethod
     _nextid = 1
 
-    def __init__(self, name, default=None, getter=None, setter=None,
-                 fixed=False, tied=False, min=None, max=None, model=None):
+    def __init__(self, name, description='', default=None, getter=None,
+                 setter=None, fixed=False, tied=False, min=None, max=None,
+                 model=None):
         super(Parameter, self).__init__()
         self._name = name
+        self.__doc__ = description.strip()
         self._default = default
         self._attr = '_' + name
 
