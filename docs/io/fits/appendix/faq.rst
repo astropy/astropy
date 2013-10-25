@@ -53,11 +53,9 @@ PyFITS (2.4 and earlier) are no longer actively supported.
 
 PyFITS is also included as a major component of upcoming Astropy_ project as
 the :mod:`astropy.io.fits` module.  The goal is for Astropy to eventually serve
-as a drop-in replacement for PyFITS (it even includes a legacy-compatibility
-mode where the :mod:`astropy.io.fits` module can still be imported as `pyfits`.
-However, for the time being PyFITS will still be released as an independent
-product as well, until such time that the Astropy project proves successful and
-widely-adopted.
+as a drop-in replacement for PyFITS. However, for the time being PyFITS will
+still be released as an independent product as well, until such time that the
+Astropy project proves successful and widely-adopted.
 
 .. _Space Telescope Science Institute: http://www.stsci.edu/
 .. _AURA: http://www.aura-astronomy.org/
