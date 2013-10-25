@@ -105,6 +105,9 @@ def write_wcsconfig_h():
     #endif
     """.format(WCSVERSION, determine_64_bit_int()))
     setup_helpers.write_if_different(
+        join(WCSROOT, 'include', 'astropy_wcs', 'wcsconfig.h'),
+        h_file.getvalue().encode('ascii'))
+    setup_helpers.write_if_different(
         join(WCSROOT, 'include', 'wcsconfig.h'),
         h_file.getvalue().encode('ascii'))
 
@@ -296,12 +299,23 @@ def get_extensions():
 
 def get_package_data():
     # Installs the testing data files
+    api_files = [
+        'astropy_wcs_api.h',
+        'wcsconfig.h',
+        'pyutil.h',
+        'util.h',
+        'distortion.h',
+        'pipeline.h',
+        'sip.h'
+        ]
+    api_files = [join('include', 'astropy_wcs', x) for x in api_files]
+    api_files.append(join('include', 'astropy_wcs_api.h'))
+
     return {
         str('astropy.wcs.tests'): ['data/*.hdr', 'data/*.fits',
                                    'data/*.txt',
                                    'maps/*.hdr', 'spectra/*.hdr'],
-        str('astropy.wcs'): ['include/astropy_wcs/*.h',
-                             'include/astropy_wcs_api.h']
+        str('astropy.wcs'): api_files
     }
 
 
