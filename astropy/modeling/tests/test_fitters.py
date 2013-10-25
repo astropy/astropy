@@ -45,6 +45,13 @@ class TestPolynomial2D(object):
         self.fitter(self.x, self.y, self.z)
         utils.assert_allclose(self.model(self.x, self.y), self.z)
 
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_polynomial2D_nonlinear_fitting(self):
+        self.model.parameters = [.6, 1.8, 2.9, 3.7, 4.9, 6.7]
+        nlfitter = fitting.NonLinearLSQFitter(self.model)
+        nlfitter(self.x, self.y, self.z)
+        utils.assert_allclose(self.model.parameters, [1, 2, 3, 4, 5, 6])
+
 
 class TestICheb2D(object):
 
@@ -74,6 +81,16 @@ class TestICheb2D(object):
         self.fitter(self.x, self.y, self.z)
         z1 = self.cheb2(self.x, self.y)
         utils.assert_almost_equal(self.z, z1)
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_chebyshev2D_nonlinear_fitting(self):
+        cheb2d = models.Chebyshev2DModel(2, 2)
+        cheb2d.parameters = np.arange(9)
+        z = cheb2d(self.x, self.y)
+        cheb2d.parameters = [0.1, .6, 1.8, 2.9, 3.7, 4.9, 6.7, 7.5, 8.9]
+        nlfitter = fitting.NonLinearLSQFitter(cheb2d)
+        nlfitter(self.x, self.y, z)
+        utils.assert_allclose(cheb2d.parameters, [0, 1, 2, 3, 4, 5, 6, 7, 8], atol=10**-9)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
