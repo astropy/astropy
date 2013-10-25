@@ -109,15 +109,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree=Tr
         #cache the kdtree
         setattr(catalogcoord, storekdtree, kdt)
 
-    #TODO: switch to this once __getitem__ on coordinates is working
-    #sep2d = catalogcoord[idx].separation(matchcoord)
-    from .angle_utilities import angular_separation
-    from . import Angle
-    sep2d = Angle(angular_separation(catalogcoord.lonangle[idx],
-                                     catalogcoord.latangle[idx],
-                                     matchcoord.lonangle,
-                                     matchcoord.latangle))
-
+    sep2d = catalogcoord[idx].separation(matchcoord)
     return idx.reshape(cart.shape[1:]), sep2d, dist.reshape(cart.shape[1:]) * catunit
 
 

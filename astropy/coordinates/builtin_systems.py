@@ -74,12 +74,12 @@ class ICRSCoordinates(SphericalCoordinatesBase):
     _repr_lat_name = 'Dec'
 
     @property
-    def lonangle(self):
-        return self.ra
+    def ra(self):
+        return self._lonangle
 
     @property
-    def latangle(self):
-        return self.dec
+    def dec(self):
+        return self._latangle
 
     @property
     def equinox(self):
@@ -139,12 +139,12 @@ class FK5Coordinates(SphericalCoordinatesBase):
     _repr_lat_name = 'Dec'
 
     @property
-    def lonangle(self):
-        return self.ra
+    def ra(self):
+        return self._lonangle
 
     @property
-    def latangle(self):
-        return self.dec
+    def dec(self):
+        return self._latangle
 
     @property
     def equinox(self):
@@ -232,12 +232,12 @@ class FK4Coordinates(SphericalCoordinatesBase):
     _repr_lat_name = 'Dec'
 
     @property
-    def lonangle(self):
-        return self.ra
+    def ra(self):
+        return self._lonangle
 
     @property
-    def latangle(self):
-        return self.dec
+    def dec(self):
+        return self._latangle
 
     @property
     def equinox(self):
@@ -324,12 +324,12 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
     _repr_lat_name = 'Dec'
 
     @property
-    def lonangle(self):
-        return self.ra
+    def ra(self):
+        return self._lonangle
 
     @property
-    def latangle(self):
-        return self.dec
+    def dec(self):
+        return self._latangle
 
     @property
     def equinox(self):
@@ -429,12 +429,12 @@ class GalacticCoordinates(SphericalCoordinatesBase):
     _repr_lat_name = 'b'
 
     @property
-    def lonangle(self):
-        return self.l
+    def l(self):
+        return self._lonangle
 
     @property
-    def latangle(self):
-        return self.b
+    def b(self):
+        return self._latangle
 
 
 @transformations.coordinate_alias('horizontal')
@@ -483,12 +483,12 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     _repr_lat_name = 'el'
 
     @property
-    def lonangle(self):
-        return self.az
+    def az(self):
+        return self._lonangle
 
     @property
-    def latangle(self):
-        return self.el
+    def alt(self):
+        return self._latangle
 
     @property
     def equinox(self):
