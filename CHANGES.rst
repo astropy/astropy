@@ -28,6 +28,14 @@ New Features
 
   - Added support for writing IPAC format tables [#1152].
 
+- ``astropy.cosmology``
+
+  - Added support for including massive Neutrinos in the cosmology classes. The
+    Planck (2013) cosmology has been updated to use this [#1364].
+
+  - Calculations now use and return ``Quantity`` objects where appropriate
+    [#1237].
+
 - ``astropy.io.votable``
 
   - The format of the units of a VOTable file can be specified using
@@ -232,6 +240,14 @@ API Changes
 
   - The `astropy.coordinates.AngularSeparation` class has been removed.  The output
     of the coordinates `separation()` method is now an `astropy.coordinates.Angle`.
+
+- ``astropy.cosmology``
+
+  - The Planck (2013) cosmology will likely give slightly different (and more
+    accurate) results due to the inclusion of Neutrino masses [#1364].
+
+  - Cosmology class properties now return ``Quantity`` objects instead of
+    simple floating-point values [#1237].
 
 - ``astropy.io.ascii``
 
