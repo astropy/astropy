@@ -24,7 +24,9 @@ hard to do if it is necessary).
 .. warning::
     `~astropy.modeling` is currently a work-in-progress, and thus it is
     likely there will be significant API changes in later versions of
-    Astropy.
+    Astropy. If you have specific ideas for how it might be improved, 
+    feel free to let us know on the `astropy-dev mailing list`_ or at 
+    http://feedback.astropy.org 
 
 
 Getting started

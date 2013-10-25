@@ -105,8 +105,7 @@ Getting help
 
 If you want to get help or discuss issues with other Astropy users, you can
 sign up for the `astropy mailing list <http://mail.scipy.org/mailman/listinfo/astropy>`_.
-Alternatively, the `astropy-dev
-<http://groups.google.com/group/astropy-dev>`_ list is where you should go to
+Alternatively, the `astropy-dev mailing list`_ is where you should go to
 discuss more technical aspects of Astropy with the developers.
 
 ***********************
