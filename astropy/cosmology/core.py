@@ -74,7 +74,7 @@ class FLRW(Cosmology):
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, 
+    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
                  m_nu=u.Quantity(0.0, u.eV), name='FLRW'):
         """ Initializer.
 
@@ -100,12 +100,12 @@ class FLRW(Cosmology):
           Effective number of Neutrino species. Default 3.04.
 
         m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity, 
-          then all neutrino species are assumed to have that mass.  
-          Otherwise, the mass of each species.  The actual number of 
-          neutrino species (and hence the number of elements of m_nu if 
-          it is not scalar) must be the floor of Neff.  Usually this means 
-          you must provide three neutrino masses unless you are considering 
+          Mass of each neutrino species.  If this is a scalar Quantity,
+          then all neutrino species are assumed to have that mass.
+          Otherwise, the mass of each species.  The actual number of
+          neutrino species (and hence the number of elements of m_nu if
+          it is not scalar) must be the floor of Neff.  Usually this means
+          you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
         name : string
@@ -145,12 +145,12 @@ class FLRW(Cosmology):
         self._hubble_distance = (const.c / self._H0).to(u.Mpc)
         # H0 in s^-1
         H0_s = self._H0.to(1.0 / u.s)
-        # Hubble time 
+        # Hubble time
         self._hubble_time = (1. / H0_s).to(u.Gyr)
 
         # critical density at z=0 (grams per cubic cm)
         self._critical_density0 = (3. * H0_s ** 2 /
-            (8. * pi * const.G.cgs)).cgs
+                                   (8. * pi * const.G.cgs)).cgs
 
         # Load up neutrino masses.
         self._nneutrinos = floor(self._Neff)
@@ -166,7 +166,7 @@ class FLRW(Cosmology):
 
             if not isinstance(m_nu, u.Quantity):
                 raise ValueError("m_nu must be a Quantity")
-            
+
             m_nu = m_nu.to(u.eV, equivalencies=u.mass_energy())
 
             # Now, figure out if we have massive neutrinos to deal with,
@@ -183,8 +183,8 @@ class FLRW(Cosmology):
                     self._massivenu = True
                     self._nmasslessnu = 0
                     self._nmassivenu = self._nneutrinos
-                    self._massivenu_mass = m_nu.value *\
-                                           np.ones(self._nneutrinos)
+                    self._massivenu_mass = (m_nu.value *
+                                            np.ones(self._nneutrinos))
             else:
                 # Make sure we have the right number of masses
                 # -unless- they are massless, in which case we cheat a little
@@ -192,7 +192,7 @@ class FLRW(Cosmology):
                     raise ValueError("Invalid (negative) neutrino mass"
                                      " encountered")
                 if m_nu.value.max() == 0:
-                    self._nmasslessnu = self._nneutrinos 
+                    self._nmasslessnu = self._nneutrinos
                     self._nmassivenu = 0
                 else:
                     self._massivenu = True
@@ -249,7 +249,6 @@ class FLRW(Cosmology):
         retstr %= (self.name, self._H0, self._Om0, self._Ode0,
                    self._Tcmb0, self._Neff, self.m_nu)
         return retstr
-            
 
     # Set up a set of properties for H0, Om0, Ode0, Ok0, etc. for user access.
     # Note that we don't let these be set (so, obj.Om0 = value fails)
@@ -557,11 +556,11 @@ class FLRW(Cosmology):
         analytical fitting formula given in Komatsu et al. 2011, ApJS 192, 18.
         """
 
-        #See Komatsu et al. 2011, eq 26 and the surrounding discussion
+        # See Komatsu et al. 2011, eq 26 and the surrounding discussion
         # However, this is modified to handle multiple neutrino masses
         # by computing the above for each mass, then summing
-        prefac = 0.22710731766 # 7/8 (4/11)^4/3 -- see any cosmo book
-        
+        prefac = 0.22710731766  # 7/8 (4/11)^4/3 -- see any cosmo book
+
         # The massive and massless contribution must be handled seperately
         # But check for common cases first
         if not self._massivenu:
@@ -570,7 +569,7 @@ class FLRW(Cosmology):
         p = 1.83
         invp = 1.0 / 1.83
         if np.isscalar(z):
-            curr_nu_y = self._nu_y / (1.0 + z) # only includes massive ones
+            curr_nu_y = self._nu_y / (1.0 + z)  # only includes massive ones
             rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
             rel_mass = rel_mass_per.sum() + self._nmasslessnu
             return prefac * self._neff_per_nu * rel_mass
@@ -1017,7 +1016,7 @@ class FLRW(Cosmology):
         dm1 = self.comoving_transverse_distance(z1).value
         dm2 = self.comoving_transverse_distance(z2).value
         dh_2 = self._hubble_distance.value ** 2
-        
+
         if Ok0 == 0:
             # Common case worth checking
             out = (dm2 - dm1) / (1. + z2)
@@ -1105,9 +1104,9 @@ class FLRW(Cosmology):
         if Ok0 == 0:
             return 4. / 3. * pi * self.comoving_distance(z) ** 3
 
-        dh = self._hubble_distance.value #.value for speed
+        dh = self._hubble_distance.value  # .value for speed
         dm = self.comoving_transverse_distance(z).value
-        term1 = 4. * pi * dh ** 3 / (2. * Ok0) * u.Mpc**3
+        term1 = 4. * pi * dh ** 3 / (2. * Ok0) * u.Mpc ** 3
         term2 = dm / dh * np.sqrt(1 + Ok0 * (dm / dh) ** 2)
         term3 = sqrt(abs(Ok0)) * dm / dh
 
@@ -1205,7 +1204,7 @@ class LambdaCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, 
+    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
                  m_nu=u.Quantity(0.0, u.eV), name='LambdaCDM'):
         """ Initializer.
 
@@ -1230,12 +1229,12 @@ class LambdaCDM(FLRW):
           Effective number of Neutrino species. Default 3.04.
 
         m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity, 
-          then all neutrino species are assumed to have that mass.  
-          Otherwise, the mass of each species.  The actual number of 
-          neutrino species (and hence the number of elements of m_nu if 
-          it is not scalar) must be the floor of Neff.  Usually this means 
-          you must provide three neutrino masses unless you are considering 
+          Mass of each neutrino species.  If this is a scalar Quantity,
+          then all neutrino species are assumed to have that mass.
+          Otherwise, the mass of each species.  The actual number of
+          neutrino species (and hence the number of elements of m_nu if
+          it is not scalar) must be the floor of Neff.  Usually this means
+          you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
         name : string
@@ -1366,7 +1365,8 @@ class FlatLambdaCDM(LambdaCDM):
     >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
-    def __init__(self, H0, Om0, Tcmb0=2.725, Neff=3.04, 
+
+    def __init__(self, H0, Om0, Tcmb0=2.725, Neff=3.04,
                  m_nu=u.Quantity(0.0, u.eV), name='FlatLambdaCDM'):
         """ Initializer.
 
@@ -1387,12 +1387,12 @@ class FlatLambdaCDM(LambdaCDM):
           Effective number of Neutrino species. Default 3.04.
 
         m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity, 
-          then all neutrino species are assumed to have that mass.  
-          Otherwise, the mass of each species.  The actual number of 
-          neutrino species (and hence the number of elements of m_nu if 
-          it is not scalar) must be the floor of Neff.  Usually this means 
-          you must provide three neutrino masses unless you are considering 
+          Mass of each neutrino species.  If this is a scalar Quantity,
+          then all neutrino species are assumed to have that mass.
+          Otherwise, the mass of each species.  The actual number of
+          neutrino species (and hence the number of elements of m_nu if
+          it is not scalar) must be the floor of Neff.  Usually this means
+          you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
         name : string
@@ -1512,12 +1512,12 @@ class wCDM(FLRW):
           Effective number of Neutrino species. Default 3.04.
 
         m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity, 
-          then all neutrino species are assumed to have that mass.  
-          Otherwise, the mass of each species.  The actual number of 
-          neutrino species (and hence the number of elements of m_nu if 
-          it is not scalar) must be the floor of Neff.  Usually this means 
-          you must provide three neutrino masses unless you are considering 
+          Mass of each neutrino species.  If this is a scalar Quantity,
+          then all neutrino species are assumed to have that mass.
+          Otherwise, the mass of each species.  The actual number of
+          neutrino species (and hence the number of elements of m_nu if
+          it is not scalar) must be the floor of Neff.  Usually this means
+          you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
         name : string
@@ -1690,12 +1690,12 @@ class FlatwCDM(wCDM):
           Effective number of Neutrino species. Default 3.04.
 
         m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity, 
-          then all neutrino species are assumed to have that mass.  
-          Otherwise, the mass of each species.  The actual number of 
-          neutrino species (and hence the number of elements of m_nu if 
-          it is not scalar) must be the floor of Neff.  Usually this means 
-          you must provide three neutrino masses unless you are considering 
+          Mass of each neutrino species.  If this is a scalar Quantity,
+          then all neutrino species are assumed to have that mass.
+          Otherwise, the mass of each species.  The actual number of
+          neutrino species (and hence the number of elements of m_nu if
+          it is not scalar) must be the floor of Neff.  Usually this means
+          you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
         name: string
@@ -1828,12 +1828,12 @@ class w0waCDM(FLRW):
           Effective number of Neutrino species. Default 3.04.
 
         m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity, 
-          then all neutrino species are assumed to have that mass.  
-          Otherwise, the mass of each species.  The actual number of 
-          neutrino species (and hence the number of elements of m_nu if 
-          it is not scalar) must be the floor of Neff.  Usually this means 
-          you must provide three neutrino masses unless you are considering 
+          Mass of each neutrino species.  If this is a scalar Quantity,
+          then all neutrino species are assumed to have that mass.
+          Otherwise, the mass of each species.  The actual number of
+          neutrino species (and hence the number of elements of m_nu if
+          it is not scalar) must be the floor of Neff.  Usually this means
+          you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
         name : string
@@ -1936,6 +1936,7 @@ class Flatw0waCDM(w0waCDM):
     >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
+
     def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=2.725,
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='Flatw0waCDM'):
         """ Initializer.
@@ -1966,12 +1967,12 @@ class Flatw0waCDM(w0waCDM):
           Effective number of Neutrino species. Default 3.04.
 
         m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity, 
-          then all neutrino species are assumed to have that mass.  
-          Otherwise, the mass of each species.  The actual number of 
-          neutrino species (and hence the number of elements of m_nu if 
-          it is not scalar) must be the floor of Neff.  Usually this means 
-          you must provide three neutrino masses unless you are considering 
+          Mass of each neutrino species.  If this is a scalar Quantity,
+          then all neutrino species are assumed to have that mass.
+          Otherwise, the mass of each species.  The actual number of
+          neutrino species (and hence the number of elements of m_nu if
+          it is not scalar) must be the floor of Neff.  Usually this means
+          you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
         name : string
@@ -1990,6 +1991,7 @@ class Flatw0waCDM(w0waCDM):
         retstr %= (self.name, self._H0, self._Om0, self._Ode0,
                    self._w0, self._wa, self._Tcmb0, self._Neff, self.m_nu)
         return retstr
+
 
 class wpwaCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state, a pivot
@@ -2051,12 +2053,12 @@ class wpwaCDM(FLRW):
           Effective number of Neutrino species. Default 3.04.
 
         m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity, 
-          then all neutrino species are assumed to have that mass.  
-          Otherwise, the mass of each species.  The actual number of 
-          neutrino species (and hence the number of elements of m_nu if 
-          it is not scalar) must be the floor of Neff.  Usually this means 
-          you must provide three neutrino masses unless you are considering 
+          Mass of each neutrino species.  If this is a scalar Quantity,
+          then all neutrino species are assumed to have that mass.
+          Otherwise, the mass of each species.  The actual number of
+          neutrino species (and hence the number of elements of m_nu if
+          it is not scalar) must be the floor of Neff.  Usually this means
+          you must provide three neutrino masses unless you are considering
           something like a sterile neutrino.
 
         name : string
@@ -2071,7 +2073,7 @@ class wpwaCDM(FLRW):
         retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, wp=%.3g, wa=%.3g, zp=%.3g, "\
                  "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
         retstr %= (self.name, self._H0, self._Om0, self._Ode0,
-                   self._wp, self._wa, self._zp, self._Tcmb0, self._Neff, 
+                   self._wp, self._wa, self._zp, self._Tcmb0, self._Neff,
                    self.m_nu)
         return retstr
 
@@ -2216,7 +2218,7 @@ class w0wzCDM(FLRW):
           of the mass of each species.  The actual number of neutrino species
           (and hence the number of elements of m_nu if it is not scalar)
           must be the floor of Neff.  Usually this means you must provide three
-          neutrino masses unless you are considering something like a 
+          neutrino masses unless you are considering something like a
           sterile neutrino.
 
         name : string
@@ -2230,7 +2232,7 @@ class w0wzCDM(FLRW):
         retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, wz=%.3g, "\
                  "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
         retstr %= (self.name, self._H0, self._Om0, self._Ode0,
-                   self._w0, self._wz, self._Tcmb0, self._Neff, 
+                   self._w0, self._wz, self._Tcmb0, self._Neff,
                    self.m_nu)
         return retstr
 
@@ -2311,7 +2313,7 @@ for key in parameters.available:
     par = getattr(parameters, key)
     if par['flat']:
         cosmo = FlatLambdaCDM(par['H0'], par['Om0'], Tcmb0=par['Tcmb0'],
-                              Neff=par['Neff'], 
+                              Neff=par['Neff'],
                               m_nu=u.Quantity(par['m_nu'], u.eV),
                               name=key)
     else:
