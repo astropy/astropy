@@ -782,6 +782,7 @@ def test_equality():
     assert np.all((t._data == t2) == np.array([1,1,0,1,0,1,0,1], dtype=bool))
 
 
+@pytest.mark.xfail('numpy_lt_1p5')
 def test_equality_masked():
 
     t = table.Table.read([' a b  c  d',
