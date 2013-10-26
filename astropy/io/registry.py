@@ -111,7 +111,12 @@ def _update__doc__(data_class, readwrite):
     new_lines = [FORMATS_TEXT, ''] + new_lines
     lines.extend([' ' * left_indent + line for line in new_lines])
 
-    class_readwrite_func.__func__.__doc__ = '\n'.join(lines)
+    # Depending on Python version and whether class_readwrite_func is
+    # an instancemethod or classmethod, one of the following will work.
+    try:
+        class_readwrite_func.__doc__ = '\n'.join(lines)
+    except AttributeError:
+        class_readwrite_func.__func__.__doc__ = '\n'.join(lines)
 
 
 def register_reader(data_format, data_class, function, force=False):
