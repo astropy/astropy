@@ -70,16 +70,22 @@ def _update__doc__(data_class, readwrite):
     Update the docstring to include all the available readers / writers for the
     ``data_class.read`` or ``data_class.write`` functions (respectively).
     """
+    FORMATS_TEXT = 'The available built-in formats are:'
+
     # Get the existing read or write method and its docstring
     class_readwrite_func = getattr(data_class, readwrite)
     lines = class_readwrite_func.__doc__.splitlines()
 
-    # Find the location of the existing formats table and its indentation
-    sep_indices = [ii for ii, line in enumerate(lines) if '=======' in line]
-    left_indent = lines[sep_indices[0]].index('=')
+    # Find the location of the existing formats table if it exists
+    sep_indices = [ii for ii, line in enumerate(lines) if FORMATS_TEXT in line]
+    if sep_indices:
+        # Chop off the existing formats table, including the initial blank line.
+        chop_index = sep_indices[0]
+        lines = lines[:chop_index]
 
-    # Chop off the existing table.
-    lines = lines[:sep_indices[0]]
+    # Find the minimum indent, skipping the first line because it might be odd
+    matches = [re.search('(\S)', line) for line in lines[1:]]
+    left_indent = min(match.start() for match in matches if match)
 
     # Get the available unified I/O formats for this class
     format_table = get_formats(data_class)
@@ -104,6 +110,7 @@ def _update__doc__(data_class, readwrite):
                           'future version.',
                           'Use the full name (e.g. ``ascii.aastex``) instead.'])
 
+    new_lines = [FORMATS_TEXT, ''] + new_lines
     lines.extend([' ' * left_indent + line for line in new_lines])
 
     class_readwrite_func.__func__.__doc__ = '\n'.join(lines)

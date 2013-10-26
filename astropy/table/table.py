@@ -2339,13 +2339,6 @@ class Table(object):
 
         The arguments and keywords (other than ``format``) provided to this function are
         passed through to the underlying data reader (e.g. `~astropy.io.ascii.ui.read`).
-
-        The available built-in formats are:
-
-        ========== =========================== ==== ===== =============
-        Data class            Format           Read Write Auto-identify
-        ========== =========================== ==== ===== =============
-        ========== =========================== ==== ===== =============
         """
         return io_registry.read(cls, *args, **kwargs)
 
@@ -2363,13 +2356,6 @@ class Table(object):
 
         The arguments and keywords (other than ``format``) provided to this function are
         passed through to the underlying data reader (e.g. `~astropy.io.ascii.ui.write`).
-
-        The available built-in formats are:
-
-        ========== =========================== ==== ===== =============
-        Data class            Format           Read Write Auto-identify
-        ========== =========================== ==== ===== =============
-        ========== =========================== ==== ===== =============
         """
         io_registry.write(self, *args, **kwargs)
 
