@@ -1,14 +1,14 @@
-#ifndef ERFAHDEF
-#define ERFAHDEF
+#ifndef SRCHDEF
+#define SRCHDEF
 
 #include <math.h>
 
 /*
 **  - - - - - - -
-**   e r f a . h
+**   s r c . h
 **  - - - - - - -
 **
-**  Prototype function declarations and macros for erfa library.
+**  Prototype function declarations and macros for src library.
 **
 */
 
@@ -321,85 +321,85 @@ void eraSxpv(double s, double pv[2][3], double spv[2][3]);
 
 
 /* Pi */
-#define DPI (3.141592653589793238462643)
+#define ERFA_DPI (3.141592653589793238462643)
 
 /* 2Pi */
-#define D2PI (6.283185307179586476925287)
+#define ERFA_D2PI (6.283185307179586476925287)
 
 /* Degrees to radians */
-#define DD2R (1.745329251994329576923691e-2)
+#define ERFA_DD2R (1.745329251994329576923691e-2)
 
 /* Radians to arcseconds */
-#define DR2AS (206264.8062470963551564734)
+#define ERFA_DR2AS (206264.8062470963551564734)
 
 /* Arcseconds to radians */
-#define DAS2R (4.848136811095359935899141e-6)
+#define ERFA_DAS2R (4.848136811095359935899141e-6)
 
 /* Seconds of time to radians */
-#define DS2R (7.272205216643039903848712e-5)
+#define ERFA_DS2R (7.272205216643039903848712e-5)
 
 /* Arcseconds in a full circle */
-#define TURNAS (1296000.0)
+#define ERFA_TURNAS (1296000.0)
 
 /* Milliarcseconds to radians */
-#define DMAS2R (DAS2R / 1e3)
+#define ERFA_DMAS2R (ERFA_DAS2R / 1e3)
 
 /* Length of tropical year B1900 (days) */
-#define DTY (365.242198781)
+#define ERFA_DTY (365.242198781)
 
 /* Seconds per day. */
-#define DAYSEC (86400.0)
+#define ERFA_DAYSEC (86400.0)
 
 /* Days per Julian year */
-#define DJY (365.25)
+#define ERFA_DJY (365.25)
 
 /* Days per Julian century */
-#define DJC (36525.0)
+#define ERFA_DJC (36525.0)
 
 /* Days per Julian millennium */
-#define DJM (365250.0)
+#define ERFA_DJM (365250.0)
 
 /* Reference epoch (J2000.0), Julian Date */
-#define DJ00 (2451545.0)
+#define ERFA_DJ00 (2451545.0)
 
 /* Julian Date of Modified Julian Date zero */
-#define DJM0 (2400000.5)
+#define ERFA_DJM0 (2400000.5)
 
 /* Reference epoch (J2000.0), Modified Julian Date */
-#define DJM00 (51544.5)
+#define ERFA_DJM00 (51544.5)
 
 /* 1977 Jan 1.0 as MJD */
-#define DJM77 (43144.0)
+#define ERFA_DJM77 (43144.0)
 
 /* TT minus TAI (s) */
-#define TTMTAI (32.184)
+#define ERFA_TTMTAI (32.184)
 
 /* AU (m) */
-#define DAU (149597870e3)
+#define ERFA_DAU (149597870e3)
 
 /* Speed of light (AU per day) */
-#define DC (DAYSEC / 499.004782)
+#define ERFA_DC (ERFA_DAYSEC / 499.004782)
 
 /* L_G = 1 - d(TT)/d(TCG) */
-#define ELG (6.969290134e-10)
+#define ERFA_ELG (6.969290134e-10)
 
 /* L_B = 1 - d(TDB)/d(TCB), and TDB (s) at TAI 1977/1/1.0 */
-#define ELB (1.550519768e-8)
-#define TDB0 (-6.55e-5)
+#define ERFA_ELB (1.550519768e-8)
+#define ERFA_TDB0 (-6.55e-5)
 
-/* dint(A) - truncate to nearest whole number towards zero (double) */
-#define dint(A) ((A)<0.0?ceil(A):floor(A))
+/* ERFA_DINT(A) - truncate to nearest whole number towards zero (double) */
+#define ERFA_DINT(A) ((A)<0.0?ceil(A):floor(A))
 
-/* dnint(A) - round to nearest whole number (double) */
-#define dnint(A) ((A)<0.0?ceil((A)-0.5):floor((A)+0.5))
+/* ERFA_DNINT(A) - round to nearest whole number (double) */
+#define ERFA_DNINT(A) ((A)<0.0?ceil((A)-0.5):floor((A)+0.5))
 
-/* dsign(A,B) - magnitude of A with sign of B (double) */
-#define dsign(A,B) ((B)<0.0?-fabs(A):fabs(A))
+/* ERFA_DSIGN(A,B) - magnitude of A with sign of B (double) */
+#define ERFA_DSIGN(A,B) ((B)<0.0?-fabs(A):fabs(A))
 
 /* Reference ellipsoids */
-#define WGS84 1
-#define GRS80 2
-#define WGS72 3
+#define ERFA_WGS84 1
+#define ERFA_GRS80 2
+#define ERFA_WGS72 3
 
 #endif
 

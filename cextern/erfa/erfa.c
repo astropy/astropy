@@ -60,7 +60,7 @@ void eraA2af(int ndp, double angle, char *sign, int idmsf[4])
 */
 {
 /* Hours to degrees * radians to turns */
-   const double F = 15.0 / D2PI;
+   const double F = 15.0 / ERFA_D2PI;
 
 
 /* Scale then use days to h,m,s function. */
@@ -126,7 +126,7 @@ void eraA2tf(int ndp, double angle, char *sign, int ihmsf[4])
 */
 {
 /* Scale then use days to h,m,s function. */
-   eraD2tf(ndp, angle/D2PI, sign, ihmsf);
+   eraD2tf(ndp, angle/ERFA_D2PI, sign, ihmsf);
 
    return;
 
@@ -174,7 +174,7 @@ int eraAf2a(char s, int ideg, int iamin, double asec, double *rad)
    *rad  = ( s == '-' ? -1.0 : 1.0 ) *
            ( 60.0 * ( 60.0 * ( (double) abs(ideg) ) +
                              ( (double) abs(iamin) ) ) +
-                                        fabs(asec) ) * DAS2R;
+                                        fabs(asec) ) * ERFA_DAS2R;
 
 /* Validate arguments and return status. */
    if ( ideg < 0 || ideg > 359 ) return 1;
@@ -205,8 +205,8 @@ double eraAnp(double a)
    double w;
 
 
-   w = fmod(a, D2PI);
-   if (w < 0) w += D2PI;
+   w = fmod(a, ERFA_D2PI);
+   if (w < 0) w += ERFA_D2PI;
 
    return w;
 
@@ -233,8 +233,8 @@ double eraAnpm(double a)
    double w;
 
 
-   w = fmod(a, D2PI);
-   if (fabs(w) >= DPI) w -= dsign(D2PI, a);
+   w = fmod(a, ERFA_D2PI);
+   if (fabs(w) >= ERFA_DPI) w -= ERFA_DSIGN(ERFA_D2PI, a);
 
    return w;
 
@@ -286,11 +286,11 @@ void eraBi00(double *dpsibi, double *depsbi, double *dra)
 */
 {
 /* The frame bias corrections in longitude and obliquity */
-   const double DPBIAS = -0.041775  * DAS2R,
-                DEBIAS = -0.0068192 * DAS2R;
+   const double DPBIAS = -0.041775  * ERFA_DAS2R,
+                DEBIAS = -0.0068192 * ERFA_DAS2R;
 
 /* The ICRS RA of the J2000.0 equinox (Chapront et al., 2002) */
-   const double DRA0 = -0.0146 * DAS2R;
+   const double DRA0 = -0.0146 * ERFA_DAS2R;
 
 
 /* Return the results (which are fixed). */
@@ -377,7 +377,7 @@ void eraBp00(double date1, double date2,
 */
 {
 /* J2000.0 obliquity (Lieske et al. 1977) */
-   const double EPS0 = 84381.448 * DAS2R;
+   const double EPS0 = 84381.448 * ERFA_DAS2R;
 
    double t, dpsibi, depsbi;
    double dra0, psia77, oma77, chia, dpsipr, depspr, psia, oma,
@@ -385,15 +385,15 @@ void eraBp00(double date1, double date2,
 
 
 /* Interval between fundamental epoch J2000.0 and current date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* Frame bias. */
    eraBi00(&dpsibi, &depsbi, &dra0);
 
 /* Precession angles (Lieske et al. 1977) */
-   psia77 = (5038.7784 + (-1.07259 + (-0.001147) * t) * t) * t * DAS2R;
-   oma77  =       EPS0 + ((0.05127 + (-0.007726) * t) * t) * t * DAS2R;
-   chia   = (  10.5526 + (-2.38064 + (-0.001125) * t) * t) * t * DAS2R;
+   psia77 = (5038.7784 + (-1.07259 + (-0.001147) * t) * t) * t * ERFA_DAS2R;
+   oma77  =       EPS0 + ((0.05127 + (-0.007726) * t) * t) * t * ERFA_DAS2R;
+   chia   = (  10.5526 + (-2.38064 + (-0.001125) * t) * t) * t * ERFA_DAS2R;
 
 /* Apply IAU 2000 precession corrections. */
    eraPr00(date1, date2, &dpsipr,  &depspr);
@@ -489,7 +489,7 @@ void eraBp06(double date1, double date2,
 
 
 /* B matrix. */
-   eraPfw06(DJM0, DJM00, &gamb, &phib, &psib, &epsa);
+   eraPfw06(ERFA_DJM0, ERFA_DJM00, &gamb, &phib, &psib, &epsa);
    eraFw2m(gamb, phib, psib, epsa, rb);
 
 /* PxB matrix. */
@@ -1996,7 +1996,7 @@ int eraD2dtf(const char *scale, int ndp, double d1, double d2,
 
    /* If leap second day, scale the fraction of a day into SI. */
       leap = fabs(ddt) > 0.5;
-      if (leap) fd += fd * ddt/DAYSEC;
+      if (leap) fd += fd * ddt/ERFA_DAYSEC;
    }
 
 /* Provisional time of day. */
@@ -2104,7 +2104,7 @@ void eraD2tf(int ndp, double days, char *sign, int ihmsf[4])
    *sign = (char) ( ( days >= 0.0 ) ? '+' : '-' );
 
 /* Interval in seconds. */
-   a = DAYSEC * fabs(days);
+   a = ERFA_DAYSEC * fabs(days);
 
 /* Pre-round if resolution coarser than 1s (then pretend ndp=1). */
    if (ndp < 0) {
@@ -2114,7 +2114,7 @@ void eraD2tf(int ndp, double days, char *sign, int ihmsf[4])
       }
       rs = (double) nrs;
       w = a / rs;
-      a = rs * dnint(w);
+      a = rs * ERFA_DNINT(w);
    }
 
 /* Express the unit of each field in resolution units. */
@@ -2127,17 +2127,17 @@ void eraD2tf(int ndp, double days, char *sign, int ihmsf[4])
    rh = rm * 60.0;
 
 /* Round the interval and express in resolution units. */
-   a = dnint(rs * a);
+   a = ERFA_DNINT(rs * a);
 
 /* Break into fields. */
    ah = a / rh;
-   ah = dint(ah);
+   ah = ERFA_DINT(ah);
    a -= ah * rh;
    am = a / rm;
-   am = dint(am);
+   am = ERFA_DINT(am);
    a -= am * rm;
    as = a / rs;
-   as = dint(as);
+   as = ERFA_DINT(as);
    af = a - as * rs;
 
 /* Return results. */
@@ -3448,14 +3448,14 @@ double eraDtdb(double date1, double date2,
 
 
 /* Time since J2000.0 in Julian millennia. */
-   t = ((date1 - DJ00) + date2) / DJM;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJM;
 
 /* ================= */
 /* Topocentric terms */
 /* ================= */
 
 /* Convert UT to local solar time in radians. */
-   tsol = fmod(ut, 1.0) * D2PI + elong;
+   tsol = fmod(ut, 1.0) * ERFA_D2PI + elong;
 
 /* FUNDAMENTAL ARGUMENTS:  Simon et al. 1994. */
 
@@ -3463,19 +3463,19 @@ double eraDtdb(double date1, double date2,
    w = t / 3600.0;
 
 /* Sun Mean Longitude. */
-   elsun = fmod(280.46645683 + 1296027711.03429 * w, 360.0) * DD2R;
+   elsun = fmod(280.46645683 + 1296027711.03429 * w, 360.0) * ERFA_DD2R;
 
 /* Sun Mean Anomaly. */
-   emsun = fmod(357.52910918 + 1295965810.481 * w, 360.0) * DD2R;
+   emsun = fmod(357.52910918 + 1295965810.481 * w, 360.0) * ERFA_DD2R;
 
 /* Mean Elongation of Moon from Sun. */
-   d = fmod(297.85019547 + 16029616012.090 * w, 360.0) * DD2R;
+   d = fmod(297.85019547 + 16029616012.090 * w, 360.0) * ERFA_DD2R;
 
 /* Mean Longitude of Jupiter. */
-   elj = fmod(34.35151874 + 109306899.89453 * w, 360.0) * DD2R;
+   elj = fmod(34.35151874 + 109306899.89453 * w, 360.0) * ERFA_DD2R;
 
 /* Mean Longitude of Saturn. */
-   els = fmod(50.07744430 + 44046398.47038 * w, 360.0) * DD2R;
+   els = fmod(50.07744430 + 44046398.47038 * w, 360.0) * ERFA_DD2R;
 
 /* TOPOCENTRIC TERMS:  Moyer 1981 and Murray 1983. */
    wt =   +  0.00029e-10 * u * sin(tsol + elsun - els)
@@ -3629,7 +3629,7 @@ int eraDtf2d(const char *scale, int iy, int im, int id,
    dj += w;
 
 /* Day length and final minute length in seconds (provisional). */
-   day = DAYSEC;
+   day = ERFA_DAYSEC;
    seclim = 60;
 
 /* Deal with the UTC leap second case. */
@@ -4169,7 +4169,7 @@ double eraEect00(double date1, double date2)
 /*--------------------------------------------------------------------*/
 
 /* Interval between fundamental epoch J2000.0 and current date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* Fundamental Arguments (from IERS Conventions 2003) */
 
@@ -4217,7 +4217,7 @@ double eraEect00(double date1, double date2)
       s1 += e1[i].s * sin(a) + e1[i].c * cos(a);
    }
 
-   eect = (s0 + s1 * t ) * DAS2R;
+   eect = (s0 + s1 * t ) * ERFA_DAS2R;
 
    return eect;
 
@@ -4249,12 +4249,12 @@ int eraEform ( int n, double *a, double *f )
 **
 **        n    ellipsoid
 **
-**        1     WGS84
-**        2     GRS80
-**        3     WGS72
+**        1     ERFA_WGS84
+**        2     ERFA_GRS80
+**        3     ERFA_WGS72
 **
 **     The n value has no significance outside the ERFA software.  For
-**     convenience, symbols WGS84 etc. are defined in erfam.h.
+**     convenience, symbols ERFA_WGS84 etc. are defined in erfam.h.
 **
 **  2) The ellipsoid parameters are returned in the form of equatorial
 **     radius in meters (a) and flattening (f).  The latter is a number
@@ -4286,17 +4286,17 @@ int eraEform ( int n, double *a, double *f )
 /* Look up a and f for the specified reference ellipsoid. */
    switch ( n ) {
 
-   case WGS84:
+   case ERFA_WGS84:
       *a = 6378137.0;
       *f = 1.0 / 298.257223563;
       break;
 
-   case GRS80:
+   case ERFA_GRS80:
       *a = 6378137.0;
       *f = 1.0 / 298.257222101;
       break;
 
-   case WGS72:
+   case ERFA_WGS72:
       *a = 6378135.0;
       *f = 1.0 / 298.26;
       break;
@@ -4482,7 +4482,7 @@ double eraEpb(double dj1, double dj2)
    double epb;
 
 
-   epb = 1900.0 + ((dj1 - DJ00) + (dj2 + D1900)) / DTY;
+   epb = 1900.0 + ((dj1 - ERFA_DJ00) + (dj2 + D1900)) / ERFA_DTY;
 
    return epb;
 
@@ -4519,7 +4519,7 @@ void eraEpb2jd(double epb, double *djm0, double *djm)
 */
 {
    *djm0 = 2400000.5;
-   *djm  =   15019.81352 + (epb - 1900.0) * DTY;
+   *djm  =   15019.81352 + (epb - 1900.0) * ERFA_DTY;
 
    return;
 
@@ -4558,7 +4558,7 @@ double eraEpj(double dj1, double dj2)
    double epj;
 
 
-   epj = 2000.0 + ((dj1 - DJ00) + dj2) / DJY;
+   epj = 2000.0 + ((dj1 - ERFA_DJ00) + dj2) / ERFA_DJY;
 
    return epj;
 
@@ -6989,7 +6989,7 @@ int eraEpv00(double date1, double date2,
 /*--------------------------------------------------------------------*/
 
 /* Time since reference epoch, Julian years. */
-   t = ((date1 - DJ00) + date2) / DJY;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJY;
    t2 = t*t;
 
 /* Set status. */
@@ -7048,7 +7048,7 @@ int eraEpv00(double date1, double date2,
 
    /* Heliocentric Earth position and velocity component. */
       ph[i] = xyz;
-      vh[i] = xyzd / DJY;
+      vh[i] = xyzd / ERFA_DJY;
 
    /* ------------------------------------------------ */
    /* Obtain component of SSB to Earth ecliptic vector */
@@ -7096,7 +7096,7 @@ int eraEpv00(double date1, double date2,
 
    /* Barycentric Earth position and velocity component. */
      pb[i] = xyz;
-     vb[i] = xyzd / DJY;
+     vb[i] = xyzd / ERFA_DJY;
 
    /* Next Cartesian component. */
    }
@@ -7194,20 +7194,20 @@ double eraEqeq94(double date1, double date2)
 
 
 /* Interval between fundamental epoch J2000.0 and given date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* Longitude of the mean ascending node of the lunar orbit on the */
 /* ecliptic, measured from the mean equinox of date. */
    om = eraAnpm((450160.280 + (-482890.539
-           + (7.455 + 0.008 * t) * t) * t) * DAS2R
-           + fmod(-5.0 * t, 1.0) * D2PI);
+           + (7.455 + 0.008 * t) * t) * t) * ERFA_DAS2R
+           + fmod(-5.0 * t, 1.0) * ERFA_D2PI);
 
 /* Nutation components and mean obliquity. */
    eraNut80(date1, date2, &dpsi, &deps);
    eps0 = eraObl80(date1, date2);
 
 /* Equation of the equinoxes. */
-   ee = dpsi*cos(eps0) + DAS2R*(0.00264*sin(om) + 0.000063*sin(om+om));
+   ee = dpsi*cos(eps0) + ERFA_DAS2R*(0.00264*sin(om) + 0.000063*sin(om+om));
 
    return ee;
 
@@ -7282,13 +7282,13 @@ double eraEra00(double dj1, double dj2)
       d1 = dj2;
       d2 = dj1;
    }
-   t = d1 + (d2- DJ00);
+   t = d1 + (d2- ERFA_DJ00);
 
 /* Fractional part of T (days). */
    f = fmod(d1, 1.0) + fmod(d2, 1.0);
 
 /* Earth rotation angle at this UT1. */
-   theta = eraAnp(D2PI * (f + 0.7790572732640
+   theta = eraAnp(ERFA_D2PI * (f + 0.7790572732640
                             + 0.00273781191135448 * t));
 
    return theta;
@@ -7338,7 +7338,7 @@ double eraFad03(double t)
              t * ( 1602961601.2090 +
              t * (        - 6.3706 +
              t * (          0.006593 +
-             t * (        - 0.00003169 ) ) ) ), TURNAS ) * DAS2R;
+             t * (        - 0.00003169 ) ) ) ), ERFA_TURNAS ) * ERFA_DAS2R;
 
    return a;
 
@@ -7386,7 +7386,7 @@ double eraFae03(double t)
 
 
 /* Mean longitude of Earth (IERS Conventions 2003). */
-   a = fmod(1.753470314 + 628.3075849991 * t, D2PI);
+   a = fmod(1.753470314 + 628.3075849991 * t, ERFA_D2PI);
 
    return a;
 
@@ -7437,7 +7437,7 @@ double eraFaf03(double t)
              t * ( 1739527262.8478 +
              t * (       - 12.7512 +
              t * (        - 0.001037 +
-             t * (          0.00000417 ) ) ) ), TURNAS ) * DAS2R;
+             t * (          0.00000417 ) ) ) ), ERFA_TURNAS ) * ERFA_DAS2R;
 
    return a;
 
@@ -7486,7 +7486,7 @@ double eraFaju03(double t)
 
 
 /* Mean longitude of Jupiter (IERS Conventions 2003). */
-   a = fmod(0.599546497 + 52.9690962641 * t, D2PI);
+   a = fmod(0.599546497 + 52.9690962641 * t, ERFA_D2PI);
 
    return a;
 
@@ -7535,7 +7535,7 @@ double eraFal03(double t)
              t * ( 1717915923.2178 +
              t * (         31.8792 +
              t * (          0.051635 +
-             t * (        - 0.00024470 ) ) ) ), TURNAS ) * DAS2R;
+             t * (        - 0.00024470 ) ) ) ), ERFA_TURNAS ) * ERFA_DAS2R;
 
    return a;
 
@@ -7584,7 +7584,7 @@ double eraFalp03(double t)
              t * ( 129596581.0481 +
              t * (       - 0.5532 +
              t * (         0.000136 +
-             t * (       - 0.00001149 ) ) ) ), TURNAS ) * DAS2R;
+             t * (       - 0.00001149 ) ) ) ), ERFA_TURNAS ) * ERFA_DAS2R;
 
    return a;
 
@@ -7632,7 +7632,7 @@ double eraFama03(double t)
 
 
 /* Mean longitude of Mars (IERS Conventions 2003). */
-   a = fmod(6.203480913 + 334.0612426700 * t, D2PI);
+   a = fmod(6.203480913 + 334.0612426700 * t, ERFA_D2PI);
 
    return a;
 
@@ -7680,7 +7680,7 @@ double eraFame03(double t)
 
 
 /* Mean longitude of Mercury (IERS Conventions 2003). */
-   a = fmod(4.402608842 + 2608.7903141574 * t, D2PI);
+   a = fmod(4.402608842 + 2608.7903141574 * t, ERFA_D2PI);
 
    return a;
 
@@ -7725,7 +7725,7 @@ double eraFane03(double t)
 
 
 /* Mean longitude of Neptune (IERS Conventions 2003). */
-   a = fmod(5.311886287 + 3.8133035638 * t, D2PI);
+   a = fmod(5.311886287 + 3.8133035638 * t, ERFA_D2PI);
 
    return a;
 
@@ -7775,7 +7775,7 @@ double eraFaom03(double t)
              t * ( - 6962890.5431 +
              t * (         7.4722 +
              t * (         0.007702 +
-             t * (       - 0.00005939 ) ) ) ), TURNAS ) * DAS2R;
+             t * (       - 0.00005939 ) ) ) ), ERFA_TURNAS ) * ERFA_DAS2R;
 
    return a;
 
@@ -7872,7 +7872,7 @@ double eraFasa03(double t)
 
 
 /* Mean longitude of Saturn (IERS Conventions 2003). */
-   a = fmod(0.874016757 + 21.3299104960 * t, D2PI);
+   a = fmod(0.874016757 + 21.3299104960 * t, ERFA_D2PI);
 
    return a;
 
@@ -7917,7 +7917,7 @@ double eraFaur03(double t)
 
 
 /* Mean longitude of Uranus (IERS Conventions 2003). */
-   a = fmod(5.481293872 + 7.4781598567 * t, D2PI);
+   a = fmod(5.481293872 + 7.4781598567 * t, ERFA_D2PI);
 
    return a;
 
@@ -7965,7 +7965,7 @@ double eraFave03(double t)
 
 
 /* Mean longitude of Venus (IERS Conventions 2003). */
-   a = fmod(3.176146697 + 1021.3285546211 * t, D2PI);
+   a = fmod(3.176146697 + 1021.3285546211 * t, ERFA_D2PI);
 
    return a;
 
@@ -8107,13 +8107,13 @@ void eraFk5hip(double r5h[3][3], double s5h[3])
    double omx, omy, omz;
 
 
-   epx = -19.9e-3 * DAS2R;
-   epy =  -9.1e-3 * DAS2R;
-   epz =  22.9e-3 * DAS2R;
+   epx = -19.9e-3 * ERFA_DAS2R;
+   epy =  -9.1e-3 * ERFA_DAS2R;
+   epz =  22.9e-3 * ERFA_DAS2R;
 
-   omx = -0.30e-3 * DAS2R;
-   omy =  0.60e-3 * DAS2R;
-   omz =  0.70e-3 * DAS2R;
+   omx = -0.30e-3 * ERFA_DAS2R;
+   omy =  0.60e-3 * ERFA_DAS2R;
+   omz =  0.70e-3 * ERFA_DAS2R;
 
 /* FK5 to Hipparcos orientation expressed as an r-vector. */
    v[0] = epx;
@@ -8210,7 +8210,7 @@ void eraFk5hz(double r5, double d5, double date1, double date2,
 
 
 /* Interval from given date to fundamental epoch J2000.0 (JY). */
-   t = - ((date1 - DJ00) + date2) / DJY;
+   t = - ((date1 - ERFA_DJ00) + date2) / ERFA_DJY;
 
 /* FK5 barycentric position vector. */
    eraS2c(r5, d5, p5e);
@@ -8415,12 +8415,12 @@ int eraGc2gd ( int n, double xyz[3],
 **
 **        n    ellipsoid
 **
-**        1     WGS84
-**        2     GRS80
-**        3     WGS72
+**        1     ERFA_WGS84
+**        2     ERFA_GRS80
+**        3     ERFA_WGS72
 **
 **     The n value has no significance outside the ERFA software.  For
-**     convenience, symbols WGS84 etc. are defined in erfam.h.
+**     convenience, symbols ERFA_WGS84 etc. are defined in erfam.h.
 **
 **  2) The geocentric vector (xyz, given) and height (height, returned)
 **     are in meters.
@@ -8509,7 +8509,7 @@ int eraGc2gde ( double a, double f, double xyz[3],
 **  6) The inverse transformation is performed in the function
 **     eraGd2gce.
 **
-**  7) The transformation for a standard ellipsoid (such as WGS84) can
+**  7) The transformation for a standard ellipsoid (such as ERFA_WGS84) can
 **     more conveniently be performed by calling eraGc2gd, which uses a
 **     numerical code to identify the required A and F values.
 **
@@ -8596,7 +8596,7 @@ int eraGc2gde ( double a, double f, double xyz[3],
    } else {
 
    /* Exception: pole. */
-      *phi = DPI / 2.0;
+      *phi = ERFA_DPI / 2.0;
       *height = absz - b;
    }
 
@@ -8639,12 +8639,12 @@ int eraGd2gc ( int n, double elong, double phi, double height,
 **
 **        n    ellipsoid
 **
-**        1     WGS84
-**        2     GRS80
-**        3     WGS72
+**        1     ERFA_WGS84
+**        2     ERFA_GRS80
+**        3     ERFA_WGS72
 **
 **     The n value has no significance outside the ERFA software.  For
-**     convenience, symbols WGS84 etc. are defined in erfam.h.
+**     convenience, symbols ERFA_WGS84 etc. are defined in erfam.h.
 **
 **  2) The height (height, given) and the geocentric vector (xyz,
 **     returned) are in meters.
@@ -8729,7 +8729,7 @@ int eraGd2gce ( double a, double f, double elong, double phi,
 **  5) The inverse transformation is performed in the function
 **     eraGc2gde.
 **
-**  6) The transformation for a standard ellipsoid (such as WGS84) can
+**  6) The transformation for a standard ellipsoid (such as ERFA_WGS84) can
 **     more conveniently be performed by calling eraGd2gc,  which uses a
 **     numerical code to identify the required a and f values.
 **
@@ -8846,7 +8846,7 @@ double eraGmst00(double uta, double utb, double tta, double ttb)
 
 
 /* TT Julian centuries since J2000.0. */
-   t = ((tta - DJ00) + ttb) / DJC;
+   t = ((tta - ERFA_DJ00) + ttb) / ERFA_DJC;
 
 /* Greenwich Mean Sidereal Time, IAU 2000. */
    gmst = eraAnp(eraEra00(uta, utb) +
@@ -8855,7 +8855,7 @@ double eraGmst00(double uta, double utb, double tta, double ttb)
                    (     1.39667721 +
                    (    -0.00009344 +
                    (     0.00001882 )
-          * t) * t) * t) * t) * DAS2R);
+          * t) * t) * t) * t) * ERFA_DAS2R);
 
    return gmst;
 
@@ -8927,7 +8927,7 @@ double eraGmst06(double uta, double utb, double tta, double ttb)
 
 
 /* TT Julian centuries since J2000.0. */
-   t = ((tta - DJ00) + ttb) / DJC;
+   t = ((tta - ERFA_DJ00) + ttb) / ERFA_DJC;
 
 /* Greenwich mean sidereal time, IAU 2006. */
    gmst = eraAnp(eraEra00(uta, utb) +
@@ -8937,7 +8937,7 @@ double eraGmst06(double uta, double utb, double tta, double ttb)
                   (    -0.00000044  +
                   (    -0.000029956 +
                   (    -0.0000000368 )
-          * t) * t) * t) * t) * t) * DAS2R);
+          * t) * t) * t) * t) * t) * ERFA_DAS2R);
 
    return gmst;
 
@@ -9008,7 +9008,7 @@ double eraGmst82(double dj1, double dj2)
 */
 {
 /* Coefficients of IAU 1982 GMST-UT1 model */
-   double A = 24110.54841  -  DAYSEC / 2.0;
+   double A = 24110.54841  -  ERFA_DAYSEC / 2.0;
    double B = 8640184.812866;
    double C = 0.093104;
    double D =  -6.2e-6;
@@ -9028,13 +9028,13 @@ double eraGmst82(double dj1, double dj2)
       d1 = dj2;
       d2 = dj1;
    }
-   t = (d1 + (d2 - DJ00)) / DJC;
+   t = (d1 + (d2 - ERFA_DJ00)) / ERFA_DJC;
 
 /* Fractional part of JD(UT1), in seconds. */
-   f = DAYSEC * (fmod(d1, 1.0) + fmod(d2, 1.0));
+   f = ERFA_DAYSEC * (fmod(d1, 1.0) + fmod(d2, 1.0));
 
 /* GMST at this UT1. */
-   gmst = eraAnp(DS2R * ((A + (B + (C + D * t) * t) * t) + f));
+   gmst = eraAnp(ERFA_DS2R * ((A + (B + (C + D * t) * t) * t) + f));
 
    return gmst;
 
@@ -9634,7 +9634,7 @@ void eraHfk5z(double rh, double dh, double date1, double date2,
 
 
 /* Time interval from fundamental epoch J2000.0 to given date (JY). */
-   t = ((date1 - DJ00) + date2) / DJY;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJY;
 
 /* Hipparcos barycentric position vector (normalized). */
    eraS2c(rh, dh, ph);
@@ -10327,7 +10327,7 @@ void eraNut00a(double date1, double date2, double *dpsi, double *deps)
           dpsipl, depspl;
 
 /* Units of 0.1 microarcsecond to radians */
-   const double U2R = DAS2R / 1e7;
+   const double U2R = ERFA_DAS2R / 1e7;
 
 /* ------------------------- */
 /* Luni-Solar nutation model */
@@ -12019,7 +12019,7 @@ void eraNut00a(double date1, double date2, double *dpsi, double *deps)
 /*--------------------------------------------------------------------*/
 
 /* Interval between fundamental date J2000.0 and given date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* ------------------- */
 /* LUNI-SOLAR NUTATION */
@@ -12035,7 +12035,7 @@ void eraNut00a(double date1, double date2, double *dpsi, double *deps)
             t * (129596581.0481  +
             t * (-0.5532  +
             t * (0.000136  +
-            t * (-0.00001149)))), TURNAS) * DAS2R;
+            t * (-0.00001149)))), ERFA_TURNAS) * ERFA_DAS2R;
 
 /* Mean longitude of the Moon minus that of the ascending node */
 /* (IERS 2003. */
@@ -12046,7 +12046,7 @@ void eraNut00a(double date1, double date2, double *dpsi, double *deps)
           t * (1602961601.2090  +
           t * (-6.3706  +
           t * (0.006593  +
-          t * (-0.00003169)))), TURNAS) * DAS2R;
+          t * (-0.00003169)))), ERFA_TURNAS) * ERFA_DAS2R;
 
 /* Mean longitude of the ascending node of the Moon (IERS 2003). */
    om = eraFaom03(t);
@@ -12063,7 +12063,7 @@ void eraNut00a(double date1, double date2, double *dpsi, double *deps)
                  (double)xls[i].nlp * elp +
                  (double)xls[i].nf  * f +
                  (double)xls[i].nd  * d +
-                 (double)xls[i].nom * om, D2PI);
+                 (double)xls[i].nom * om, ERFA_D2PI);
       sarg = sin(arg);
       carg = cos(arg);
 
@@ -12088,17 +12088,17 @@ void eraNut00a(double date1, double date2, double *dpsi, double *deps)
 /* 0.1 microarcsecond. */
 
 /* Mean anomaly of the Moon (MHB2000). */
-   al = fmod(2.35555598 + 8328.6914269554 * t, D2PI);
+   al = fmod(2.35555598 + 8328.6914269554 * t, ERFA_D2PI);
 
 /* Mean longitude of the Moon minus that of the ascending node */
 /*(MHB2000). */
-   af = fmod(1.627905234 + 8433.466158131 * t, D2PI);
+   af = fmod(1.627905234 + 8433.466158131 * t, ERFA_D2PI);
 
 /* Mean elongation of the Moon from the Sun (MHB2000). */
-   ad = fmod(5.198466741 + 7771.3771468121 * t, D2PI);
+   ad = fmod(5.198466741 + 7771.3771468121 * t, ERFA_D2PI);
 
 /* Mean longitude of the ascending node of the Moon (MHB2000). */
-   aom = fmod(2.18243920 - 33.757045 * t, D2PI);
+   aom = fmod(2.18243920 - 33.757045 * t, ERFA_D2PI);
 
 /* General accumulated precession in longitude (IERS 2003). */
    apa = eraFapa03(t);
@@ -12113,7 +12113,7 @@ void eraNut00a(double date1, double date2, double *dpsi, double *deps)
    alur = eraFaur03(t);
 
 /* Neptune longitude (MHB2000). */
-   alne = fmod(5.321159000 + 3.8127774000 * t, D2PI);
+   alne = fmod(5.321159000 + 3.8127774000 * t, ERFA_D2PI);
 
 /* Initialize the nutation values. */
    dp = 0.0;
@@ -12135,7 +12135,7 @@ void eraNut00a(double date1, double date2, double *dpsi, double *deps)
                  (double)xpl[i].nsa * alsa +
                  (double)xpl[i].nur * alur +
                  (double)xpl[i].nne * alne +
-                 (double)xpl[i].npa * apa, D2PI);
+                 (double)xpl[i].npa * apa, ERFA_D2PI);
       sarg = sin(arg);
       carg = cos(arg);
 
@@ -12286,14 +12286,14 @@ void eraNut00b(double date1, double date2, double *dpsi, double *deps)
    int i;
 
 /* Units of 0.1 microarcsecond to radians */
-   static const double U2R = DAS2R / 1e7;
+   static const double U2R = ERFA_DAS2R / 1e7;
 
 /* ---------------------------------------- */
 /* Fixed offsets in lieu of planetary terms */
 /* ---------------------------------------- */
 
-   static const double DPPLAN = -0.135 * DMAS2R;
-   static const double DEPLAN =  0.388 * DMAS2R;
+   static const double DPPLAN = -0.135 * ERFA_DMAS2R;
+   static const double DEPLAN =  0.388 * ERFA_DMAS2R;
 
 /* --------------------------------------------------- */
 /* Luni-solar nutation: argument and term coefficients */
@@ -12411,7 +12411,7 @@ void eraNut00b(double date1, double date2, double *dpsi, double *deps)
 /*--------------------------------------------------------------------*/
 
 /* Interval between fundamental epoch J2000.0 and given date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* --------------------*/
 /* LUNI-SOLAR NUTATION */
@@ -12420,19 +12420,19 @@ void eraNut00b(double date1, double date2, double *dpsi, double *deps)
 /* Fundamental (Delaunay) arguments from Simon et al. (1994) */
 
 /* Mean anomaly of the Moon. */
-   el = fmod(485868.249036 + (1717915923.2178) * t, TURNAS) * DAS2R;
+   el = fmod(485868.249036 + (1717915923.2178) * t, ERFA_TURNAS) * ERFA_DAS2R;
 
 /* Mean anomaly of the Sun. */
-   elp = fmod(1287104.79305 + (129596581.0481) * t, TURNAS) * DAS2R;
+   elp = fmod(1287104.79305 + (129596581.0481) * t, ERFA_TURNAS) * ERFA_DAS2R;
 
 /* Mean argument of the latitude of the Moon. */
-   f = fmod(335779.526232 + (1739527262.8478) * t, TURNAS) * DAS2R;
+   f = fmod(335779.526232 + (1739527262.8478) * t, ERFA_TURNAS) * ERFA_DAS2R;
 
 /* Mean elongation of the Moon from the Sun. */
-   d = fmod(1072260.70369 + (1602961601.2090) * t, TURNAS) * DAS2R;
+   d = fmod(1072260.70369 + (1602961601.2090) * t, ERFA_TURNAS) * ERFA_DAS2R;
 
 /* Mean longitude of the ascending node of the Moon. */
-   om = fmod(450160.398036 + (-6962890.5431) * t, TURNAS) * DAS2R;
+   om = fmod(450160.398036 + (-6962890.5431) * t, ERFA_TURNAS) * ERFA_DAS2R;
 
 /* Initialize the nutation values. */
    dp = 0.0;
@@ -12446,7 +12446,7 @@ void eraNut00b(double date1, double date2, double *dpsi, double *deps)
                   (double)x[i].nlp * elp +
                   (double)x[i].nf  * f   +
                   (double)x[i].nd  * d   +
-                  (double)x[i].nom * om, D2PI  );
+                  (double)x[i].nom * om, ERFA_D2PI  );
       sarg = sin(arg);
       carg = cos(arg);
 
@@ -12562,7 +12562,7 @@ void eraNut06a(double date1, double date2, double *dpsi, double *deps)
 
 
 /* Interval between fundamental date J2000.0 and given date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* Factor correcting for secular variation of J2. */
    fj2 = -2.7774e-6 * t;
@@ -12634,7 +12634,7 @@ void eraNut80(double date1, double date2, double *dpsi, double *deps)
    int j;
 
 /* Units of 0.1 milliarcsecond to radians */
-   const double U2R = DAS2R / 1e4;
+   const double U2R = ERFA_DAS2R / 1e4;
 
 /* ------------------------------------------------ */
 /* Table of multiples of arguments and coefficients */
@@ -12784,7 +12784,7 @@ void eraNut80(double date1, double date2, double *dpsi, double *deps)
 /*--------------------------------------------------------------------*/
 
 /* Interval between fundamental epoch J2000.0 and given date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* --------------------- */
 /* Fundamental arguments */
@@ -12793,28 +12793,28 @@ void eraNut80(double date1, double date2, double *dpsi, double *deps)
 /* Mean longitude of Moon minus mean longitude of Moon's perigee. */
    el = eraAnpm(
         (485866.733 + (715922.633 + (31.310 + 0.064 * t) * t) * t)
-        * DAS2R + fmod(1325.0 * t, 1.0) * D2PI);
+        * ERFA_DAS2R + fmod(1325.0 * t, 1.0) * ERFA_D2PI);
 
 /* Mean longitude of Sun minus mean longitude of Sun's perigee. */
    elp = eraAnpm(
          (1287099.804 + (1292581.224 + (-0.577 - 0.012 * t) * t) * t)
-         * DAS2R + fmod(99.0 * t, 1.0) * D2PI);
+         * ERFA_DAS2R + fmod(99.0 * t, 1.0) * ERFA_D2PI);
 
 /* Mean longitude of Moon minus mean longitude of Moon's node. */
    f = eraAnpm(
        (335778.877 + (295263.137 + (-13.257 + 0.011 * t) * t) * t)
-       * DAS2R + fmod(1342.0 * t, 1.0) * D2PI);
+       * ERFA_DAS2R + fmod(1342.0 * t, 1.0) * ERFA_D2PI);
 
 /* Mean elongation of Moon from Sun. */
    d = eraAnpm(
        (1072261.307 + (1105601.328 + (-6.891 + 0.019 * t) * t) * t)
-       * DAS2R + fmod(1236.0 * t, 1.0) * D2PI);
+       * ERFA_DAS2R + fmod(1236.0 * t, 1.0) * ERFA_D2PI);
 
 /* Longitude of the mean ascending node of the lunar orbit on the */
 /* ecliptic, measured from the mean equinox of date. */
    om = eraAnpm(
         (450160.280 + (-482890.539 + (7.455 + 0.008 * t) * t) * t)
-        * DAS2R + fmod(-5.0 * t, 1.0) * D2PI);
+        * ERFA_DAS2R + fmod(-5.0 * t, 1.0) * ERFA_D2PI);
 
 /* --------------- */
 /* Nutation series */
@@ -12962,7 +12962,7 @@ double eraObl06(double date1, double date2)
 
 
 /* Interval between fundamental date J2000.0 and given date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* Mean obliquity. */
    eps0 = (84381.406     +
@@ -12970,7 +12970,7 @@ double eraObl06(double date1, double date2)
           ( -0.0001831   +
           (  0.00200340  +
           ( -0.000000576 +
-          ( -0.0000000434) * t) * t) * t) * t) * t) * DAS2R;
+          ( -0.0000000434) * t) * t) * t) * t) * t) * ERFA_DAS2R;
 
    return eps0;
 
@@ -13028,10 +13028,10 @@ double eraObl80(double date1, double date2)
 
 
 /* Interval between fundamental epoch J2000.0 and given date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* Mean obliquity of date. */
-   eps0 = DAS2R * (84381.448  +
+   eps0 = ERFA_DAS2R * (84381.448  +
                   (-46.8150   +
                   (-0.00059   +
                   ( 0.001813) * t) * t) * t);
@@ -13168,11 +13168,11 @@ void eraP06e(double date1, double date2,
 
 
 /* Interval between fundamental date J2000.0 and given date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* Obliquity at J2000.0. */
 
-   *eps0 = 84381.406 * DAS2R;
+   *eps0 = 84381.406 * ERFA_DAS2R;
 
 /* Luni-solar precession. */
 
@@ -13181,7 +13181,7 @@ void eraP06e(double date1, double date2,
            (   -0.00114045   +
            (    0.000132851  +
            (   -0.0000000951 )
-           * t) * t) * t) * t) * t * DAS2R;
+           * t) * t) * t) * t) * t * ERFA_DAS2R;
 
 /* Inclination of mean equator with respect to the J2000.0 ecliptic. */
 
@@ -13190,7 +13190,7 @@ void eraP06e(double date1, double date2,
                   ( -0.00772503   +
                   ( -0.000000467  +
                   (  0.0000003337 )
-                  * t) * t) * t) * t) * t * DAS2R;
+                  * t) * t) * t) * t) * t * ERFA_DAS2R;
 
 /* Ecliptic pole x, J2000.0 ecliptic triad. */
 
@@ -13199,7 +13199,7 @@ void eraP06e(double date1, double date2,
           ( -0.00022466   +
           ( -0.000000912  +
           (  0.0000000120 )
-          * t) * t) * t) * t) * t * DAS2R;
+          * t) * t) * t) * t) * t * ERFA_DAS2R;
 
 /* Ecliptic pole -y, J2000.0 ecliptic triad. */
 
@@ -13208,7 +13208,7 @@ void eraP06e(double date1, double date2,
           (   0.00052413   +
           (  -0.000000646  +
           (  -0.0000000172 )
-          * t) * t) * t) * t) * t * DAS2R;
+          * t) * t) * t) * t) * t * ERFA_DAS2R;
 
 /* Angle between moving and J2000.0 ecliptics. */
 
@@ -13217,7 +13217,7 @@ void eraP06e(double date1, double date2,
           ( -0.00012559   +
           (  0.000000113  +
           ( -0.0000000022 )
-          * t) * t) * t) * t) * t * DAS2R;
+          * t) * t) * t) * t) * t * ERFA_DAS2R;
 
 /* Longitude of ascending node of the moving ecliptic. */
 
@@ -13227,7 +13227,7 @@ void eraP06e(double date1, double date2,
            (     -0.0005371   +
            (     -0.00004797  +
            (      0.000000072 )
-           * t) * t) * t) * t) * t) * DAS2R;
+           * t) * t) * t) * t) * t) * ERFA_DAS2R;
 
 /* Mean obliquity of the ecliptic. */
 
@@ -13240,7 +13240,7 @@ void eraP06e(double date1, double date2,
            ( -0.00121197   +
            (  0.000170663  +
            ( -0.0000000560 )
-           * t) * t) * t) * t) * t * DAS2R;
+           * t) * t) * t) * t) * t * ERFA_DAS2R;
 
 /* Equatorial precession: minus the third of the 323 Euler angles. */
 
@@ -13250,7 +13250,7 @@ void eraP06e(double date1, double date2,
          (    0.01826837   +
          (   -0.000028596  +
          (   -0.0000002904 )
-         * t) * t) * t) * t) * t) * DAS2R;
+         * t) * t) * t) * t) * t) * ERFA_DAS2R;
 
 /* Equatorial precession: minus the first of the 323 Euler angles. */
 
@@ -13260,7 +13260,7 @@ void eraP06e(double date1, double date2,
             (    0.01801828   +
             (   -0.000005971  +
             (   -0.0000003173 )
-            * t) * t) * t) * t) * t) * DAS2R;
+            * t) * t) * t) * t) * t) * ERFA_DAS2R;
 
 /* Equatorial precession: second of the 323 Euler angles. */
 
@@ -13269,7 +13269,7 @@ void eraP06e(double date1, double date2,
              (   -0.04182264   +
              (   -0.000007089  +
              (   -0.0000001274 )
-             * t) * t) * t) * t) * t * DAS2R;
+             * t) * t) * t) * t) * t * ERFA_DAS2R;
 
 /* General precession. */
 
@@ -13278,7 +13278,7 @@ void eraP06e(double date1, double date2,
          (    0.00007964   +
          (   -0.000023857  +
          (    0.0000000383 )
-         * t) * t) * t) * t) * t * DAS2R;
+         * t) * t) * t) * t) * t * ERFA_DAS2R;
 
 /* Fukushima-Williams angles for precession. */
 
@@ -13287,21 +13287,21 @@ void eraP06e(double date1, double date2,
           ( -0.00031238   +
           ( -0.000002788  +
           (  0.0000000260 )
-          * t) * t) * t) * t) * t * DAS2R;
+          * t) * t) * t) * t) * t * ERFA_DAS2R;
 
    *phi = *eps0 + ( -46.811015     +
                   (   0.0511269    +
                   (   0.00053289   +
                   (  -0.000000440  +
                   (  -0.0000000176 )
-                  * t) * t) * t) * t) * t * DAS2R;
+                  * t) * t) * t) * t) * t * ERFA_DAS2R;
 
    *psi = ( 5038.481507     +
           (    1.5584176    +
           (   -0.00018522   +
           (   -0.000026452  +
           (   -0.0000000148 )
-          * t) * t) * t) * t) * t * DAS2R;
+          * t) * t) * t) * t) * t * ERFA_DAS2R;
 
    return;
 
@@ -13583,7 +13583,7 @@ void eraPb06(double date1, double date2,
    *bzeta = atan2 (r[1][0], r[1][1]);
    r31 = r[2][0];
    r32 = r[2][1];
-   *btheta = atan2(-dsign(sqrt(r31 * r31 + r32 * r32), r[0][2]),
+   *btheta = atan2(-ERFA_DSIGN(sqrt(r31 * r31 + r32 * r32), r[0][2]),
                    r[2][2]);
 
    return;
@@ -13701,7 +13701,7 @@ void eraPfw06(double date1, double date2,
 
 
 /* Interval between fundamental date J2000.0 and given date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* P03 bias+precession angles. */
    *gamb = (    -0.052928     +
@@ -13710,21 +13710,21 @@ void eraPfw06(double date1, double date2,
            (    -0.00031238   +
            (    -0.000002788  +
            (     0.0000000260 )
-           * t) * t) * t) * t) * t) * DAS2R;
+           * t) * t) * t) * t) * t) * ERFA_DAS2R;
    *phib = ( 84381.412819     +
            (   -46.811016     +
            (     0.0511268    +
            (     0.00053289   +
            (    -0.000000440  +
            (    -0.0000000176 )
-           * t) * t) * t) * t) * t) * DAS2R;
+           * t) * t) * t) * t) * t) * ERFA_DAS2R;
    *psib = (    -0.041775     +
            (  5038.481484     +
            (     1.5584175    +
            (    -0.00018522   +
            (    -0.000026452  +
            (    -0.0000000148 )
-           * t) * t) * t) * t) * t) * DAS2R;
+           * t) * t) * t) * t) * t) * ERFA_DAS2R;
    *epsa =  eraObl06(date1, date2);
 
    return;
@@ -14085,7 +14085,7 @@ int eraPlan94(double date1, double date2, int np, double pv[2][3])
       np--;
 
    /* Time: Julian millennia since J2000.0. */
-      t = ((date1 - DJ00) + date2) / DJM;
+      t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJM;
 
    /* OK status unless remote date. */
       jstat = fabs(t) <= 1.0 ? 0 : 1;
@@ -14096,19 +14096,19 @@ int eraPlan94(double date1, double date2, int np, double pv[2][3])
            a[np][2] * t) * t;
       dl = (3600.0 * dlm[np][0] +
                     (dlm[np][1] +
-                     dlm[np][2] * t) * t) * DAS2R;
+                     dlm[np][2] * t) * t) * ERFA_DAS2R;
       de = e[np][0] +
          ( e[np][1] +
            e[np][2] * t) * t;
       dp = eraAnpm((3600.0 * pi[np][0] +
                             (pi[np][1] +
-                             pi[np][2] * t) * t) * DAS2R);
+                             pi[np][2] * t) * t) * ERFA_DAS2R);
       di = (3600.0 * dinc[np][0] +
                     (dinc[np][1] +
-                     dinc[np][2] * t) * t) * DAS2R;
+                     dinc[np][2] * t) * t) * ERFA_DAS2R;
       dom = eraAnpm((3600.0 * omega[np][0] +
                              (omega[np][1] +
-                              omega[np][2] * t) * t) * DAS2R);
+                              omega[np][2] * t) * t) * ERFA_DAS2R);
 
    /* Apply the trigonometric terms. */
       dmu = 0.35953620 * t;
@@ -14128,7 +14128,7 @@ int eraPlan94(double date1, double date2, int np, double pv[2][3])
          dl += t * (cl[np][k] * cos(argl) +
                     sl[np][k] * sin(argl)) * 1e-7;
       }
-      dl = fmod(dl, D2PI);
+      dl = fmod(dl, ERFA_D2PI);
 
    /* Iterative soln. of Kepler's equation to get eccentric anomaly. */
       am = dl - dp;
@@ -14426,7 +14426,7 @@ void eraPmat76(double date1, double date2, double rmatp[3][3])
 
 
 /* Precession Euler angles, J2000.0 to specified date. */
-   eraPrec76(DJ00, 0.0, date1, date2, &zeta, &z, &theta);
+   eraPrec76(ERFA_DJ00, 0.0, date1, date2, &zeta, &z, &theta);
 
 /* Form the rotation matrix. */
    eraIr(  wmat);
@@ -14965,7 +14965,7 @@ void eraPn06(double date1, double date2, double dpsi, double deps,
 
 
 /* Bias-precession Fukushima-Williams angles of J2000.0 = frame bias. */
-   eraPfw06(DJM0, DJM00, &gamb, &phib, &psib, &eps);
+   eraPfw06(ERFA_DJM0, ERFA_DJM00, &gamb, &phib, &psib, &eps);
 
 /* B matrix. */
    eraFw2m(gamb, phib, psib, eps, r1);
@@ -15576,12 +15576,12 @@ void eraPr00(double date1, double date2, double *dpsipr, double *depspr)
    double t;
 
 /* Precession and obliquity corrections (radians per century) */
-   static const double PRECOR = -0.29965 * DAS2R,
-                       OBLCOR = -0.02524 * DAS2R;
+   static const double PRECOR = -0.29965 * ERFA_DAS2R,
+                       OBLCOR = -0.02524 * ERFA_DAS2R;
 
 
 /* Interval between fundamental epoch J2000.0 and given date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* Precession rate contributions with respect to IAU 1976/80. */
    *dpsipr = PRECOR * t;
@@ -15665,13 +15665,13 @@ void eraPrec76(double ep01, double ep02, double ep11, double ep12,
 
 
 /* Interval between fundamental epoch J2000.0 and start epoch (JC). */
-   t0 = ((ep01 - DJ00) + ep02) / DJC;
+   t0 = ((ep01 - ERFA_DJ00) + ep02) / ERFA_DJC;
 
 /* Interval over which precession required (JC). */
-   t = ((ep11 - ep01) + (ep12 - ep02)) / DJC;
+   t = ((ep11 - ep01) + (ep12 - ep02)) / ERFA_DJC;
 
 /* Euler angles. */
-   tas2r = t * DAS2R;
+   tas2r = t * ERFA_DAS2R;
    w = 2306.2181 + (1.39656 - 0.000139 * t0) * t0;
 
    *zeta = (w + ((0.30188 - 0.000344 * t0) + 0.017998 * t) * t) * tas2r;
@@ -16059,8 +16059,8 @@ int eraPvstar(double pv[2][3], double *ra, double *dec,
    vt = eraPm(ut);
 
 /* Special-relativity dimensionless parameters. */
-   bett = vt / DC;
-   betr = vr / DC;
+   bett = vt / ERFA_DC;
+   betr = vr / ERFA_DC;
 
 /* The inertial-to-observed correction terms. */
    d = 1.0 + betr;
@@ -16087,14 +16087,14 @@ int eraPvstar(double pv[2][3], double *ra, double *dec,
    *ra = eraAnp(a);
 
 /* Return proper motions in radians per year. */
-   *pmr = rad * DJY;
-   *pmd = decd * DJY;
+   *pmr = rad * ERFA_DJY;
+   *pmd = decd * ERFA_DJY;
 
 /* Return parallax in arcsec. */
-   *px = DR2AS / r;
+   *px = ERFA_DR2AS / r;
 
 /* Return radial velocity in km/s. */
-   *rv = 1e-3 * rd * DAU / DAYSEC;
+   *rv = 1e-3 * rd * ERFA_DAU / ERFA_DAYSEC;
 
 /* OK status. */
    return 0;
@@ -16908,7 +16908,7 @@ double eraS00(double date1, double date2, double x, double y)
 /*--------------------------------------------------------------------*/
 
 /* Interval between fundamental epoch J2000.0 and current date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* Fundamental Arguments (from IERS Conventions 2003) */
 
@@ -16989,7 +16989,7 @@ double eraS00(double date1, double date2, double x, double y)
        (w2 +
        (w3 +
        (w4 +
-        w5 * t) * t) * t) * t) * t) * DAS2R - x*y/2.0;
+        w5 * t) * t) * t) * t) * t) * ERFA_DAS2R - x*y/2.0;
 
    return s;
 
@@ -17400,7 +17400,7 @@ double eraS06(double date1, double date2, double x, double y)
 /*--------------------------------------------------------------------*/
 
 /* Interval between fundamental epoch J2000.0 and current date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* Fundamental Arguments (from IERS Conventions 2003) */
 
@@ -17481,7 +17481,7 @@ double eraS06(double date1, double date2, double x, double y)
        (w2 +
        (w3 +
        (w4 +
-        w5 * t) * t) * t) * t) * t) * DAS2R - x*y/2.0;
+        w5 * t) * t) * t) * t) * t) * ERFA_DAS2R - x*y/2.0;
 
    return s;
 
@@ -17870,10 +17870,10 @@ double eraSp00(double date1, double date2)
 
 
 /* Interval between fundamental epoch J2000.0 and current date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* Approximate s'. */
-   sp = -47e-6 * t * DAS2R;
+   sp = -47e-6 * t * ERFA_DAS2R;
 
    return sp;
 
@@ -17998,7 +17998,7 @@ int eraStarpm(double ra1, double dec1,
    j1 = eraStarpv(ra1, dec1, pmr1, pmd1, px1, rv1, pv1);
 
 /* Light time when observed (days). */
-   tl1 = eraPm(pv1[0]) / DC;
+   tl1 = eraPm(pv1[0]) / ERFA_DC;
 
 /* Time interval, "before" to "after" (days). */
    dt = (ep2a - ep1a) + (ep2b - ep1b);
@@ -18012,7 +18012,7 @@ int eraStarpm(double ra1, double dec1,
    r2 = eraPdp(pv[0], pv[0]);
    rdv = eraPdp(pv[0], pv[1]);
    v2 = eraPdp(pv[1], pv[1]);
-   c2mv2 = DC*DC - v2;
+   c2mv2 = ERFA_DC*ERFA_DC - v2;
    if (c2mv2 <=  0) return -1;
    tl2 = (-rdv + sqrt(rdv*rdv + c2mv2*r2)) / c2mv2;
 
@@ -18173,21 +18173,21 @@ int eraStarpv(double ra, double dec,
       w = PXMIN;
       iwarn = 1;
    }
-   r = DR2AS / w;
+   r = ERFA_DR2AS / w;
 
 /* Radial velocity (AU/day). */
-   rd = DAYSEC * rv * 1e3 / DAU;
+   rd = ERFA_DAYSEC * rv * 1e3 / ERFA_DAU;
 
 /* Proper motion (radian/day). */
-   rad = pmr / DJY;
-   decd = pmd / DJY;
+   rad = pmr / ERFA_DJY;
+   decd = pmd / ERFA_DJY;
 
 /* To pv-vector (AU,AU/day). */
    eraS2pv(ra, dec, r, rad, decd, rd, pv);
 
 /* If excessive velocity, arbitrarily set it to zero. */
    v = eraPm(pv[1]);
-   if (v / DC > VMAX) {
+   if (v / ERFA_DC > VMAX) {
       eraZp(pv[1]);
       iwarn += 2;
    }
@@ -18202,8 +18202,8 @@ int eraStarpv(double ra, double dec,
    vst = eraPm(ust);
 
 /* Special-relativity dimensionless parameters. */
-   betsr = vsr / DC;
-   betst = vst / DC;
+   betsr = vsr / ERFA_DC;
+   betst = vst / ERFA_DC;
 
 /* Determine the inertial-to-observed relativistic correction terms. */
    bett = betst;
@@ -18340,7 +18340,7 @@ int eraTaitt(double tai1, double tai2, double *tt1, double *tt2)
 {
 
 /* TT minus TAI (days). */
-   static const double dtat = TTMTAI/DAYSEC;
+   static const double dtat = ERFA_TTMTAI/ERFA_DAYSEC;
 
 
 /* Result, safeguarding precision. */
@@ -18400,7 +18400,7 @@ int eraTaiut1(double tai1, double tai2, double dta,
 
 
 /* Result, safeguarding precision. */
-   dtad = dta / DAYSEC;
+   dtad = dta / ERFA_DAYSEC;
    if ( tai1 > tai2 ) {
       *ut11 = tai1;
       *ut12 = tai2 + dtad;
@@ -18498,7 +18498,7 @@ int eraTaiutc(double tai1, double tai2, double *utc1, double *utc2)
       if ( js < 0 ) return -1;
       if ( i == -1 ) dats1 = dats2;
       ddats = dats2 - dats1;
-      datd = dats1 / DAYSEC;
+      datd = dats1 / ERFA_DAYSEC;
       if ( fabs(ddats) >= 0.5 ) {
 
       /* Yes.  Get TAI for the start of the UTC day that */
@@ -18513,10 +18513,10 @@ int eraTaiutc(double tai1, double tai2, double *utc1, double *utc2)
          if ( da > 0 ) {
 
          /* Yes:  fraction of the current UTC day that has elapsed. */
-            fd = da * DAYSEC / ( DAYSEC + ddats );
+            fd = da * ERFA_DAYSEC / ( ERFA_DAYSEC + ddats );
 
          /* Ramp TAI-UTC to bring about ERFA's JD(UTC) convention. */
-            datd += ddats * ( fd <= 1.0 ? fd : 1.0 ) / DAYSEC;
+            datd += ddats * ( fd <= 1.0 ? fd : 1.0 ) / ERFA_DAYSEC;
          }
 
       /* Done. */
@@ -18595,11 +18595,11 @@ int eraTcbtdb(double tcb1, double tcb2, double *tdb1, double *tdb2)
 {
 
 /* 1977 Jan 1 00:00:32.184 TT, as two-part JD */
-   static const double t77td = DJM0 + DJM77;
-   static const double t77tf = TTMTAI/DAYSEC;
+   static const double t77td = ERFA_DJM0 + ERFA_DJM77;
+   static const double t77tf = ERFA_TTMTAI/ERFA_DAYSEC;
 
 /* TDB (days) at TAI 1977 Jan 1.0 */
-   static const double tdb0 = TDB0/DAYSEC;
+   static const double tdb0 = ERFA_TDB0/ERFA_DAYSEC;
 
    double d;
 
@@ -18608,10 +18608,10 @@ int eraTcbtdb(double tcb1, double tcb2, double *tdb1, double *tdb2)
    if ( tcb1 > tcb2 ) {
       d = tcb1 - t77td;
       *tdb1 = tcb1;
-      *tdb2 = tcb2 + tdb0 - ( d + ( tcb2 - t77tf ) ) * ELB;
+      *tdb2 = tcb2 + tdb0 - ( d + ( tcb2 - t77tf ) ) * ERFA_ELB;
    } else {
       d = tcb2 - t77td;
-      *tdb1 = tcb1 + tdb0 - ( d + ( tcb1 - t77tf ) ) * ELB;
+      *tdb1 = tcb1 + tdb0 - ( d + ( tcb1 - t77tf ) ) * ERFA_ELB;
       *tdb2 = tcb2;
    }
 
@@ -18658,15 +18658,15 @@ int eraTcgtt(double tcg1, double tcg2, double *tt1, double *tt2)
 {
 
 /* 1977 Jan 1 00:00:32.184 TT, as MJD */
-   static const double t77t = DJM77 + TTMTAI/DAYSEC;
+   static const double t77t = ERFA_DJM77 + ERFA_TTMTAI/ERFA_DAYSEC;
 
 
 /* Result, safeguarding precision. */
    if ( tcg1 > tcg2 ) {
       *tt1 = tcg1;
-      *tt2 = tcg2 - ( ( tcg1 - DJM0 ) + ( tcg2 - t77t ) ) * ELG;
+      *tt2 = tcg2 - ( ( tcg1 - ERFA_DJM0 ) + ( tcg2 - t77t ) ) * ERFA_ELG;
    } else {
-      *tt1 = tcg1 - ( ( tcg2 - DJM0 ) + ( tcg1 - t77t ) ) * ELG;
+      *tt1 = tcg1 - ( ( tcg2 - ERFA_DJM0 ) + ( tcg1 - t77t ) ) * ERFA_ELG;
       *tt2 = tcg2;
    }
 
@@ -18728,14 +18728,14 @@ int eraTdbtcb(double tdb1, double tdb2, double *tcb1, double *tcb2)
 {
 
 /* 1977 Jan 1 00:00:32.184 TT, as two-part JD */
-   static const double t77td = DJM0 + DJM77;
-   static const double t77tf = TTMTAI/DAYSEC;
+   static const double t77td = ERFA_DJM0 + ERFA_DJM77;
+   static const double t77tf = ERFA_TTMTAI/ERFA_DAYSEC;
 
 /* TDB (days) at TAI 1977 Jan 1.0 */
-   static const double tdb0 = TDB0/DAYSEC;
+   static const double tdb0 = ERFA_TDB0/ERFA_DAYSEC;
 
 /* TDB to TCB rate */
-   static const double elbb = ELB/(1.0-ELB);
+   static const double elbb = ERFA_ELB/(1.0-ERFA_ELB);
 
    double d, f;
 
@@ -18811,7 +18811,7 @@ int eraTdbtt(double tdb1, double tdb2, double dtr,
 
 
 /* Result, safeguarding precision. */
-   dtrd = dtr / DAYSEC;
+   dtrd = dtr / ERFA_DAYSEC;
    if ( tdb1 > tdb2 ) {
       *tt1 = tdb1;
       *tt2 = tdb2 - dtrd;
@@ -18867,7 +18867,7 @@ int eraTf2a(char s, int ihour, int imin, double sec, double *rad)
    *rad  = ( s == '-' ? -1.0 : 1.0 ) *
            ( 60.0 * ( 60.0 * ( (double) abs(ihour) ) +
                              ( (double) abs(imin) ) ) +
-                                        fabs(sec) ) * DS2R;
+                                        fabs(sec) ) * ERFA_DS2R;
 
 /* Validate arguments and return status. */
    if ( ihour < 0 || ihour > 23 ) return 1;
@@ -18919,7 +18919,7 @@ int eraTf2d(char s, int ihour, int imin, double sec, double *days)
    *days  = ( s == '-' ? -1.0 : 1.0 ) *
             ( 60.0 * ( 60.0 * ( (double) abs(ihour) ) +
                               ( (double) abs(imin) ) ) +
-                                         fabs(sec) ) / DAYSEC;
+                                         fabs(sec) ) / ERFA_DAYSEC;
 
 /* Validate arguments and return status. */
    if ( ihour < 0 || ihour > 23 ) return 1;
@@ -19085,7 +19085,7 @@ int eraTttai(double tt1, double tt2, double *tai1, double *tai2)
 {
 
 /* TT minus TAI (days). */
-   static const double dtat = TTMTAI/DAYSEC;
+   static const double dtat = ERFA_TTMTAI/ERFA_DAYSEC;
 
 
 /* Result, safeguarding precision. */
@@ -19140,18 +19140,18 @@ int eraTttcg(double tt1, double tt2, double *tcg1, double *tcg2)
 {
 
 /* 1977 Jan 1 00:00:32.184 TT, as MJD */
-   static const double t77t = DJM77 + TTMTAI/DAYSEC;
+   static const double t77t = ERFA_DJM77 + ERFA_TTMTAI/ERFA_DAYSEC;
 
 /* TT to TCG rate */
-   static const double elgg = ELG/(1.0-ELG);
+   static const double elgg = ERFA_ELG/(1.0-ERFA_ELG);
 
 
 /* Result, safeguarding precision. */
    if ( tt1 > tt2 ) {
       *tcg1 = tt1;
-      *tcg2 = tt2 + ( ( tt1 - DJM0 ) + ( tt2 - t77t ) ) * elgg;
+      *tcg2 = tt2 + ( ( tt1 - ERFA_DJM0 ) + ( tt2 - t77t ) ) * elgg;
    } else {
-      *tcg1 = tt1 + ( ( tt2 - DJM0 ) + ( tt1 - t77t ) ) * elgg;
+      *tcg1 = tt1 + ( ( tt2 - ERFA_DJM0 ) + ( tt1 - t77t ) ) * elgg;
       *tcg2 = tt2;
    }
 
@@ -19213,7 +19213,7 @@ int eraTttdb(double tt1, double tt2, double dtr,
 
 
 /* Result, safeguarding precision. */
-   dtrd = dtr / DAYSEC;
+   dtrd = dtr / ERFA_DAYSEC;
    if ( tt1 > tt2 ) {
       *tdb1 = tt1;
       *tdb2 = tt2 + dtrd;
@@ -19269,7 +19269,7 @@ int eraTtut1(double tt1, double tt2, double dt,
 
 
 /* Result, safeguarding precision. */
-   dtd = dt / DAYSEC;
+   dtd = dt / ERFA_DAYSEC;
    if ( tt1 > tt2 ) {
       *ut11 = tt1;
       *ut12 = tt2 - dtd;
@@ -19326,7 +19326,7 @@ int eraUt1tai(double ut11, double ut12, double dta,
 
 
 /* Result, safeguarding precision. */
-   dtad = dta / DAYSEC;
+   dtad = dta / ERFA_DAYSEC;
    if ( ut11 > ut12 ) {
       *tai1 = ut11;
       *tai2 = ut12 - dtad;
@@ -19382,7 +19382,7 @@ int eraUt1tt(double ut11, double ut12, double dt,
 
 
 /* Result, safeguarding precision. */
-   dtd = dt / DAYSEC;
+   dtd = dt / ERFA_DAYSEC;
    if ( ut11 > ut12 ) {
       *tt1 = ut11;
       *tt2 = ut12 + dtd;
@@ -19498,7 +19498,7 @@ int eraUt1utc(double ut11, double ut12, double dut1,
       /* UT1 for the start of the UTC day that ends in a leap. */
          if ( eraCal2jd(iy, im, id, &d1, &d2) ) return -1;
          us1 = d1;
-         us2 = d2 - 1.0 + duts/DAYSEC;
+         us2 = d2 - 1.0 + duts/ERFA_DAYSEC;
 
       /* Is the UT1 after this point? */
          du = u1 - us1;
@@ -19506,7 +19506,7 @@ int eraUt1utc(double ut11, double ut12, double dut1,
          if ( du > 0 ) {
 
          /* Yes:  fraction of the current UTC day that has elapsed. */
-            fd = du * DAYSEC / ( DAYSEC + ddats );
+            fd = du * ERFA_DAYSEC / ( ERFA_DAYSEC + ddats );
 
          /* Ramp UT1-UTC to bring about ERFA's JD(UTC) convention. */
             duts += ddats * ( fd <= 1.0 ? fd : 1.0 );
@@ -19519,7 +19519,7 @@ int eraUt1utc(double ut11, double ut12, double dut1,
    }
 
 /* Subtract the (possibly adjusted) UT1-UTC from UT1 to give UTC. */
-   u2 -= duts / DAYSEC;
+   u2 -= duts / ERFA_DAYSEC;
 
 /* Result, safeguarding precision. */
    if ( big1 ) {
@@ -19621,7 +19621,7 @@ int eraUtctai(double utc1, double utc2, double *tai1, double *tai2)
 
 /* If today ends in a leap second, scale the fraction into SI days. */
    ddat = datst - dats;
-   if ( fabs(ddat) > 0.5 ) fd += fd * ddat / DAYSEC;
+   if ( fabs(ddat) > 0.5 ) fd += fd * ddat / ERFA_DAYSEC;
 
 /* Today's calendar date to 2-part JD. */
    if ( eraCal2jd(iy, im, id, &z1, &z2) ) return -1;
@@ -19629,7 +19629,7 @@ int eraUtctai(double utc1, double utc2, double *tai1, double *tai2)
 /* Assemble the TAI result, preserving the UTC split and order. */
    a2 = z1 - u1;
    a2 += z2;
-   a2 += fd + dats / DAYSEC;
+   a2 += fd + dats / ERFA_DAYSEC;
    if ( big1 ) {
       *tai1 = u1;
       *tai2 = a2;
@@ -22298,7 +22298,7 @@ void eraXy06(double date1, double date2, double *x, double *y)
 /*--------------------------------------------------------------------*/
 
 /* Interval between fundamental date J2000.0 and given date (JC). */
-   t = ((date1 - DJ00) + date2) / DJC;
+   t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
 
 /* Powers of T. */
    w = 1.0;
@@ -22437,8 +22437,8 @@ void eraXy06(double date1, double date2, double *x, double *y)
 /* Results:  CIP unit vector components */
 /* ------------------------------------ */
 
-   *x = DAS2R * (xypr[0] + (xyls[0] + xypl[0]) / 1e6);
-   *y = DAS2R * (xypr[1] + (xyls[1] + xypl[1]) / 1e6);
+   *x = ERFA_DAS2R * (xypr[0] + (xyls[0] + xypl[0]) / 1e6);
+   *y = ERFA_DAS2R * (xypr[1] + (xyls[1] + xypl[1]) / 1e6);
 
    return;
 
