@@ -416,68 +416,67 @@ def test_create_coordinate():
     coordinates with conversions to standard coordinates.
     '''
 
-    from .. import Angle, Longitude, Latitude, ICRSCoordinates, GalacticCoordinates
-    from .. import HorizontalCoordinates
+    from .. import Angle, Longitude, Latitude, ICRS, Galactic
+    from .. import AltAz
     import numpy.testing as npt
 
     ra = Longitude("4:08:15.162342", unit=u.hour)
     dec = Latitude("-41:08:15.162342", unit=u.degree)
 
     # ra and dec are Longitude and Latitude objects, or Angle objects
-    c = ICRSCoordinates(ra, dec)
-    c = ICRSCoordinates(Angle(4.137545095, u.hour), 
-                        Angle(-41.137545095, u.degree))
+    c = ICRS(ra, dec)
+    c = ICRS(Angle(4.137545095, u.hour), Angle(-41.137545095, u.degree))
 
-    c = ICRSCoordinates("54.12412 deg", "-41:08:15.162342 deg")
+    c = ICRS("54.12412 deg", "-41:08:15.162342 deg")
     assert isinstance(c.dec, Latitude)  # dec is a Latitude object
 
-    #make sure ICRSCoordinates has a working repr
+    #make sure ICRS has a working repr
     repr(c)
 
     npt.assert_allclose(dec.degree, -41.137545095)
 
     # We should be really robust in what we accept.
     with raises(u.UnitsError):
-        c = ICRSCoordinates("12 34 56  -56 23 21") # ambiguous
+        c = ICRS("12 34 56  -56 23 21") # ambiguous
 
     with raises(TypeError):
-        c = ICRSCoordinates() # not allowed
+        c = ICRS() # not allowed
 
-    c = ICRSCoordinates(ra="12 43 12", dec=dec, unit=(u.hour, u.hour))
-
-    with raises(TypeError):
-        c = ICRSCoordinates(ra="12 43 12", unit=(u.hour,))
+    c = ICRS(ra="12 43 12", dec=dec, unit=(u.hour, u.hour))
 
     with raises(TypeError):
-        c = ICRSCoordinates(ra="12h43m32", b="12:32:43")
+        c = ICRS(ra="12 43 12", unit=(u.hour,))
 
     with raises(TypeError):
-        c = ICRSCoordinates(ra="12h43m32")
+        c = ICRS(ra="12h43m32", b="12:32:43")
 
     with raises(TypeError):
-        c = ICRSCoordinates(dec="12 32 54")
+        c = ICRS(ra="12h43m32")
+
+    with raises(TypeError):
+        c = ICRS(dec="12 32 54")
 
     # It would be convenient to accept both (e.g. ra, dec) coordinates as a
     # single string in the initializer. This can lead to ambiguities
     # particularly when both are different units. The solution is to accept a
     # sequence for the "unit" keyword  that one would expect to sent to Angle.
     # This must be a 2-sequence with the two elements' units.
-    ICRSCoordinates('4 23 43.43  +23 45 12.324', unit=(u.hour, u.degree))
+    ICRS('4 23 43.43  +23 45 12.324', unit=(u.hour, u.degree))
 
     # If one of them is None, try to guess for unambiguous cases
-    ICRSCoordinates('12h43m32 +23:45:12.324', unit=(None, u.degree))
+    ICRS('12h43m32 +23:45:12.324', unit=(None, u.degree))
 
     # unit=None is the same as unit=(None, None)
-    ICRSCoordinates('12h43m32 +23d45m12.324s', unit=None)
+    ICRS('12h43m32 +23d45m12.324s', unit=None)
 
 
     # Other types of coordinate systems have their own classes
     l = Angle(123.4, unit=u.degree)
     b = Angle(76.5, unit=u.degree)
-    c = GalacticCoordinates(l, b)  # accepts Angle objects and Longitude/Latitude
-    d = GalacticCoordinates(ra, dec)
+    c = Galactic(l, b)  # accepts Angle objects and Longitude/Latitude
+    d = Galactic(ra, dec)
 
-    #make sure GalacticCoordinates has a working repr
+    #make sure Galactic has a working repr
     repr(c)
 
     assert isinstance(c.l, Angle)  # *not* Longitude or Latitude
@@ -489,14 +488,14 @@ def test_create_coordinate():
     alt = Angle(20.5, unit=u.degree)
     az = Angle(45, unit=u.degree)
     timeobj = Time('J2000', scale='utc')
-    HorizontalCoordinates(alt, az, equinox=timeobj)
+    AltAz(alt, az, equinox=timeobj)
 
     #some also have an option for an observation time
-    ICRSCoordinates(12, 13, unit=(u.hour, u.degree), obstime=timeobj)
+    ICRS(12, 13, unit=(u.hour, u.degree), obstime=timeobj)
 
     #passing in a non-time object give a TypeError
     with raises(TypeError):
-        ICRSCoordinates(12, 13, unit=(u.hour, u.degree), obstime=2000.)
+        ICRS(12, 13, unit=(u.hour, u.degree), obstime=2000.)
 
 
 
@@ -505,7 +504,7 @@ def test_convert_api():
     Tests the basic coordinate conversion functionality.
     """
 
-    from .. import Angle, Longitude, Latitude, ICRSCoordinates, GalacticCoordinates, HorizontalCoordinates
+    from .. import Angle, Longitude, Latitude, ICRS, Galactic, AltAz
     from ..transformations import coordinate_alias, transform_function, master_transform_graph
 
     '''
@@ -514,14 +513,14 @@ def test_convert_api():
 
     ra = Longitude("4:08:15.162342", unit=u.hour)
     dec = Latitude("-41:08:15.162342", unit=u.degree)
-    c = ICRSCoordinates(ra=ra, dec=dec)
+    c = ICRS(ra=ra, dec=dec)
 
     npt.assert_allclose(c.galactic.l.degree, 245.28098, 5)
     assert isinstance(c.galactic.b, Angle)
     npt.assert_allclose(c.galactic.b.degree, -47.554501, 5)
 
     # can also explicitly specify a coordinate class to convert to
-    gal = c.transform_to(GalacticCoordinates)
+    gal = c.transform_to(Galactic)
 
     # can still convert back to equatorial using the shorthand
     assert gal.icrs.ra.to_string(unit=u.hour, sep=":",
@@ -529,14 +528,14 @@ def test_convert_api():
 
     with raises(ConvertError):
         # there's no way to convert to alt/az without a specified location
-        c.transform_to(HorizontalCoordinates)
+        c.transform_to(AltAz)
 
     # users can specify their own coordinates and conversions
     @coordinate_alias('my_coord')
-    class CustomCoordinates(ICRSCoordinates):
+    class CustomCoordinates(ICRS):
         pass
 
-    @transform_function(ICRSCoordinates, CustomCoordinates)
+    @transform_function(ICRS, CustomCoordinates)
     def icrs_to_custom(icrs_coo):
         return CustomCoordinates(icrs_coo.ra.degree,
                                  icrs_coo.dec.degree + 2.5,
@@ -551,7 +550,7 @@ def test_convert_api():
         assert isinstance(mycoord2, CustomCoordinates)
     finally:
         #be sure to remove the registered transform
-        master_transform_graph._graph[ICRSCoordinates][CustomCoordinates].unregister()
+        master_transform_graph._graph[ICRS][CustomCoordinates].unregister()
 
 
 def test_proj_separations():
@@ -559,15 +558,15 @@ def test_proj_separations():
     Test angular separation functionality
     """
 
-    from .. import ICRSCoordinates, GalacticCoordinates, coordinate_alias, Angle
+    from .. import ICRS, Galactic, coordinate_alias, Angle
 
     '''
     Angular separations between two points on a sphere are supported via the
     `separation` method.
     '''
 
-    c1 = ICRSCoordinates(ra=0, dec=0, unit=(u.degree, u.degree))
-    c2 = ICRSCoordinates(ra=0, dec=1, unit=(u.degree, u.degree))
+    c1 = ICRS(ra=0, dec=0, unit=(u.degree, u.degree))
+    c2 = ICRS(ra=0, dec=1, unit=(u.degree, u.degree))
 
     sep = c2.separation(c1)
     #returns an Angle object
@@ -582,8 +581,8 @@ def test_proj_separations():
     with raises(TypeError):
         c1 - c2
 
-    ngp = GalacticCoordinates(l=0, b=90, unit=(u.degree, u.degree))
-    ncp = ICRSCoordinates(ra=0, dec=90, unit=(u.degree, u.degree))
+    ngp = Galactic(l=0, b=90, unit=(u.degree, u.degree))
+    ncp = ICRS(ra=0, dec=90, unit=(u.degree, u.degree))
 
     # if there is a defined conversion between the relevant coordinate systems,
     # it will be automatically performed to get the right angular separation
@@ -594,7 +593,7 @@ def test_proj_separations():
 
 
     @coordinate_alias('my_coord2')
-    class CustomCoordinate(ICRSCoordinates):
+    class CustomCoordinate(ICRS):
         pass  # does not specify a coordinate transform
 
     c4 = CustomCoordinate(0, 0, unit=(u.degree, u.degree))
@@ -609,7 +608,7 @@ def test_distances():
     Tests functionality for Coordinate class distances and cartesian
     transformations.
     """
-    from .. import Distance, ICRSCoordinates, GalacticCoordinates, CartesianPoints
+    from .. import Distance, ICRS, Galactic, CartesianPoints
     from ...cosmology import WMAP5, WMAP7
 
     '''
@@ -632,8 +631,7 @@ def test_distances():
 
     # Coordinate objects can be assigned a distance object, giving them a full
     # 3D position
-    c = GalacticCoordinates(l=158.558650, b=-43.350066, 
-                            unit=(u.degree, u.degree))
+    c = Galactic(l=158.558650, b=-43.350066, unit=(u.degree, u.degree))
     c.distance = Distance(12, u.parsec)
 
     #can also set distances using tuple-format
@@ -650,13 +648,13 @@ def test_distances():
     # Coordinate objects can be initialized with a distance using special
     # syntax
     #TODO: use this commented line once quantity is in
-    #c1 = GalacticCoordinates(l=158.558650, b=-43.350066, unit=u.degree, distance=12 * u.kpc)
-    c1 = GalacticCoordinates(l=158.558650, b=-43.350066,
+    #c1 = Galactic(l=158.558650, b=-43.350066, unit=u.degree, distance=12 * u.kpc)
+    c1 = Galactic(l=158.558650, b=-43.350066,
         unit=(u.degree, u.degree), distance=Distance(12, u.kpc))
 
     # Coordinate objects can be instantiated with cartesian coordinates
     # Internally they will immediately be converted to two angles + a distance
-    c2 = GalacticCoordinates(x=2, y=4, z=8, unit=u.parsec)
+    c2 = Galactic(x=2, y=4, z=8, unit=u.parsec)
 
     sep12 = c1.separation_3d(c2)
     # returns a *3d* distance between the c1 and c2 coordinates
@@ -684,8 +682,7 @@ def test_distances():
     npt.assert_allclose(cpt.z.value, 8)
 
     # with no distance, the unit sphere is assumed when converting to cartesian
-    c3 = GalacticCoordinates(l=158.558650, b=-43.350066, 
-                             unit=(u.degree, u.degree), distance=None)
+    c3 = Galactic(l=158.558650, b=-43.350066, unit=(u.degree, u.degree), distance=None)
     unitcart = c3.cartesian
     npt.assert_allclose(((unitcart.x**2 + unitcart.y**2 + 
                           unitcart.z**2)**0.5).value, 1.0)
@@ -693,7 +690,7 @@ def test_distances():
     # CartesianPoints objects can be added and subtracted, which are
     # vector/elementwise they can also be given as arguments to a coordinate
     # system
-    csum = ICRSCoordinates(c1.cartesian + c2.cartesian)
+    csum = ICRS(c1.cartesian + c2.cartesian)
 
     npt.assert_allclose(csum.x.value, -8.12016610185)
     npt.assert_allclose(csum.y.value, 3.19380597435)
@@ -729,6 +726,6 @@ def test_unicode():
     is not `utf-8` -- but given a recent fix, is expected to pass on
     all platforms.
     """
-    from .. import ICRSCoordinates
+    from .. import ICRS
     u = six.text_type("12h46m11.086s -00d30m11.99s")
-    c = ICRSCoordinates(u)
+    c = ICRS(u)

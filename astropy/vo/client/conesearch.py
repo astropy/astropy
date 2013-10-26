@@ -12,7 +12,7 @@ from . import vos_catalog
 from .async import AsyncBase
 from ... import units as u
 from ...config.configuration import ConfigurationItem
-from ...coordinates import Angle, ICRSCoordinates, SphericalCoordinatesBase
+from ...coordinates import Angle, ICRS, SphericalCoordinatesBase
 from ...logger import log
 from ...utils.data import REMOTE_TIMEOUT
 from ...utils.timer import timefunc, RunTimePredictor
@@ -51,7 +51,7 @@ class AsyncConeSearch(AsyncBase):
     --------
     >>> from astropy import coordinates as coord
     >>> from astropy import units as u
-    >>> c = coord.ICRSCoordinates(6.0223, -72.0814, unit=(u.degree, u.degree))
+    >>> c = coord.ICRS(6.0223, -72.0814, unit=(u.degree, u.degree))
     >>> async_search = conesearch.AsyncConeSearch(
     ...     c, 0.5 * u.degree,
     ...     catalog_db='The PMM USNO-A1.0 Catalogue (Monet 1997) 1')
@@ -96,7 +96,7 @@ def conesearch(center, radius, verb=1, **kwargs):
               given in decimal degrees.
             - If astropy coordinates object is given, it will
               be converted internally to
-              `~astropy.coordinates.builtin_systems.ICRSCoordinates`.
+              `~astropy.coordinates.builtin_systems.ICRS`.
 
     radius : float or `~astropy.coordinates.angles.Angle` object
         Radius of the cone to search:
@@ -211,7 +211,7 @@ class AsyncSearchAll(AsyncBase):
     --------
     >>> from astropy import coordinates as coord
     >>> from astropy import units as u
-    >>> c = coord.ICRSCoordinates(6.0223, -72.0814, unit=(u.degree, u.degree))
+    >>> c = coord.ICRS(6.0223, -72.0814, unit=(u.degree, u.degree))
     >>> async_searchall = conesearch.AsyncSearchAll(c, 0.5 * u.degree)
 
     Check search status:
@@ -487,9 +487,9 @@ def _local_conversion(func, x):
 
 def _validate_coord(center):
     if isinstance(center, SphericalCoordinatesBase):
-        icrscoord = center.transform_to(ICRSCoordinates)
+        icrscoord = center.transform_to(ICRS)
     else:
-        icrscoord = ICRSCoordinates(*center, unit=(u.degree, u.degree))
+        icrscoord = ICRS(*center, unit=(u.degree, u.degree))
 
     return icrscoord.ra.degree, icrscoord.dec.degree
 

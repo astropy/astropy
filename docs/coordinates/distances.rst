@@ -8,7 +8,7 @@ The `~astropy.coordinates.distances.Distance` class is provided to represent a
 line-of-sight distance for a coordinate.  It must include a length unit to be
 valid.::
 
-    >>> from astropy.coordinates import Distance, ICRSCoordinates
+    >>> from astropy.coordinates import Distance, ICRS
     >>> from astropy import units as u
     >>> d = Distance(770)
     Traceback (most recent call last):
@@ -17,16 +17,16 @@ valid.::
     >>> d = Distance(770, u.kpc)
     >>> d
     <Distance 770 kpc>
-    >>> c = ICRSCoordinates('00h42m44.3s +41d16m9s', distance=d)
+    >>> c = ICRS('00h42m44.3s +41d16m9s', distance=d)
     >>> c
-    <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
+    <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
 
 Because `Distance` is a subclass of `~astropy.units.Quantity`, in general a
 `~astropy.units.Quantity` with units of length may be provided and it will
 automatically convert to a `Distance`::
 
-    >>> ICRSCoordinates('00h42m44.3s +41d16m9s', distance=770 *  u.kpc)
-    <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
+    >>> ICRS('00h42m44.3s +41d16m9s', distance=770 *  u.kpc)
+    <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
 
 If a `distance` is present, the coordinate can be converted into Cartesian
 coordinates using the `x`/`y`/`z` attributes (which are
@@ -43,7 +43,7 @@ If a `distance` is not present, the Cartesian coordinates are still
 available, but the point is interpreted as lying on the (dimensionless)
 unit sphere::
 
-    >>> c2 = ICRSCoordinates('00h42m44.3s +41d16m9s')
+    >>> c2 = ICRS('00h42m44.3s +41d16m9s')
     >>> c2.x
     <Quantity 0.7385881665150235 >
     >>> c2.y
@@ -82,19 +82,17 @@ This Cartesian representation can also be used to create a new coordinate
 object, either directly or through a `CartesianPoints` object::
 
     >>> from astropy.coordinates import CartesianPoints
-    >>> ICRSCoordinates(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)
-    <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
-    >>> # TODO: HELP ME FIX THIS
-    >>> # "__new__() got an unexpected keyword argument 'x'",
-    >>> cp = CartesianPoints(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)  # doctest: +SKIP
-    >>> ICRSCoordinates(cp)
-    <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
+    >>> ICRS(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)
+    <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
+    >>> cp = CartesianPoints(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)
+    >>> ICRS(cp)
+    <ICRS RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
 
 Finally, two coordinates with distances can be used to derive a real-space
 distance (i.e., non-projected separation)::
 
-    >>> c1 = ICRSCoordinates('5h23m34.5s -69d45m22s', distance=Distance(49, u.kpc))
-    >>> c2 = ICRSCoordinates('0h52m44.8s -72d49m43s', distance=Distance(61, u.kpc))
+    >>> c1 = ICRS('5h23m34.5s -69d45m22s', distance=Distance(49, u.kpc))
+    >>> c2 = ICRS('0h52m44.8s -72d49m43s', distance=Distance(61, u.kpc))
     >>> sep3d = c1.separation_3d(c2)
     >>> sep3d
     <Distance 23.05684814695706 kpc>

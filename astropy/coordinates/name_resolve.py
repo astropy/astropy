@@ -18,7 +18,7 @@ import socket
 
 # Astropy
 from ..config import ConfigurationItem
-from .builtin_systems import ICRSCoordinates
+from .builtin_systems import ICRS
 from .. import units as u
 
 __all__ = ["get_icrs_coordinates"]
@@ -75,7 +75,7 @@ def _parse_response(resp_data):
 
 def get_icrs_coordinates(name):
     """
-    Retrieve an ICRSCoordinates object by using an online name resolving
+    Retrieve an ICRS object by using an online name resolving
     service to retrieve coordinates for the specified name. By default,
     this will search all available databases until a match is found. If
     you would like to specify the database, use the configuration item
@@ -96,7 +96,7 @@ def get_icrs_coordinates(name):
     Returns
     -------
     coord : SphericalCoordinatesBase
-        An `ICRSCoordinates` instance for the object name specified.
+        An `ICRS` instance for the object name specified.
 
     """
 
@@ -152,4 +152,4 @@ def get_icrs_coordinates(name):
 
         raise NameResolveError(err)
 
-    return ICRSCoordinates(ra, dec, unit=(u.degree, u.degree))
+    return ICRS(ra, dec, unit=(u.degree, u.degree))

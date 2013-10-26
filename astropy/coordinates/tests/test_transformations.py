@@ -9,18 +9,18 @@ from numpy import testing as npt
 from ... import units as u
 from ..distances import Distance
 from .. import transformations as t
-from ..builtin_systems import ICRSCoordinates, FK5Coordinates, FK4Coordinates, FK4NoETermCoordinates
-from ..builtin_systems import GalacticCoordinates
+from ..builtin_systems import ICRS, FK5, FK4, FK4NoETerms
+from ..builtin_systems import Galactic
 from ...tests.helper import pytest
 
 
 
-#Coordinates just for these tests. TODO: expunge
-class TestCoo1(ICRSCoordinates):
+#Coordinates just for these tests.
+class TestCoo1(ICRS):
     pass
 
 
-class TestCoo2(ICRSCoordinates):
+class TestCoo2(ICRS):
     pass
 
 
@@ -179,7 +179,7 @@ def test_sphere_cart():
     assert_allclose(z, z2)
 
 
-m31_sys = [(ICRSCoordinates, 'icrs'), (FK5Coordinates, 'fk5'), (FK4Coordinates, 'fk4'), (GalacticCoordinates, 'galactic')]
+m31_sys = [(ICRS, 'icrs'), (FK5, 'fk5'), (FK4, 'fk4'), (Galactic, 'galactic')]
 m31_coo = [(10.6847929, 41.2690650), (10.6847929, 41.2690650), (10.0004738, 40.9952444), (121.1744050, -21.5729360)]
 m31_dist = Distance(770, u.kpc)
 convert_precision = 1 / 3600.  # 1 arcsec
@@ -204,7 +204,7 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
 
     coo1 = fromsys[0](fromcoo[0], fromcoo[1], unit=(u.degree, u.degree), distance=m31_dist)
     coo2 = coo1.transform_to(tosys[0])
-    if tosys[0] is FK4Coordinates:
+    if tosys[0] is FK4:
         coo2_prec = coo2.precess_to(Time('B1950', scale='utc'))
         assert fabs(coo2_prec.lonangle.degree - tocoo[0]) < convert_precision  # <1 arcsec
         assert fabs(coo2_prec.latangle.degree - tocoo[1]) < convert_precision
@@ -239,12 +239,12 @@ def test_precession():
     j1975 = Time('J1975', scale='utc')
     b1975 = Time('B1975', scale='utc')
 
-    fk4 = FK4Coordinates(1, 0.5, unit=(u.radian, u.radian))
+    fk4 = FK4(1, 0.5, unit=(u.radian, u.radian))
     assert fk4.equinox.byear == b1950.byear
     fk4_2 = fk4.precess_to(b1975)
     assert fk4_2.equinox.byear == b1975.byear
 
-    fk5 = FK5Coordinates(1, 0.5, unit=(u.radian, u.radian))
+    fk5 = FK5(1, 0.5, unit=(u.radian, u.radian))
     assert fk5.equinox.jyear == j2000.jyear
     fk5_2 = fk5.precess_to(j1975)
     assert fk5_2.equinox.jyear == j1975.jyear
@@ -256,9 +256,9 @@ def test_alias_transform():
     a system to itself.  Also checks that `dir` correctly includes
     valid transforms
     """
-    c = ICRSCoordinates(12.34, 56.78, unit=(u.hour, u.degree))
-    assert isinstance(c.galactic, GalacticCoordinates)
-    assert isinstance(c.icrs, ICRSCoordinates)
+    c = ICRS(12.34, 56.78, unit=(u.hour, u.degree))
+    assert isinstance(c.galactic, Galactic)
+    assert isinstance(c.icrs, ICRS)
 
     d = dir(c)
     assert 'galactic' in d
@@ -273,13 +273,13 @@ def test_transform_path_pri():
     and not FK4.
     """
     t.master_transform_graph.invalidate_cache()
-    tpath, td = t.master_transform_graph.find_shortest_path(ICRSCoordinates, GalacticCoordinates)
-    assert tpath == [ICRSCoordinates, FK5Coordinates, GalacticCoordinates]
+    tpath, td = t.master_transform_graph.find_shortest_path(ICRS, Galactic)
+    assert tpath == [ICRS, FK5, Galactic]
     assert td == 2
 
     #but direct from FK4 to Galactic should still be possible
-    tpath, td = t.master_transform_graph.find_shortest_path(FK4Coordinates, GalacticCoordinates)
-    assert tpath == [FK4Coordinates, FK4NoETermCoordinates, GalacticCoordinates]
+    tpath, td = t.master_transform_graph.find_shortest_path(FK4, Galactic)
+    assert tpath == [FK4, FK4NoETerms, Galactic]
     assert td == 2
 
 
@@ -293,11 +293,11 @@ def test_obstime():
     b1950 = Time('B1950', scale='utc')
     j1975 = Time('J1975', scale='utc')
 
-    fk4_50 = FK4Coordinates(1, 2, unit=(u.degree, u.degree), obstime=b1950)
-    fk4_75 = FK4Coordinates(1, 2, unit=(u.degree, u.degree), obstime=j1975)
+    fk4_50 = FK4(1, 2, unit=(u.degree, u.degree), obstime=b1950)
+    fk4_75 = FK4(1, 2, unit=(u.degree, u.degree), obstime=j1975)
 
-    icrs_50 = fk4_50.transform_to(ICRSCoordinates)
-    icrs_75 = fk4_75.transform_to(ICRSCoordinates)
+    icrs_50 = fk4_50.transform_to(ICRS)
+    icrs_75 = fk4_75.transform_to(ICRS)
 
     assert icrs_50.obstime == fk4_50.obstime
     assert icrs_75.obstime == fk4_75.obstime

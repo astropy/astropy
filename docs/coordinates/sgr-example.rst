@@ -16,7 +16,7 @@ subclass. Then we'll add some glue to the default initializer to recognize that
 we want to call the coordinates `Lambda` and `Beta`. Then we have to define the
 transformation from this coordinate system to some other built-in system, in
 this case we will use spherical Galactic Coordinates as defined in
-`~astropy.coordinates.builtin_systems.GalacticCoordinates`.
+`~astropy.coordinates.builtin_systems.Galactic`.
 
 The first step is to create a new class for our coordinates, let's call it
 `SgrCoordinates` and make it a subclass of
@@ -114,7 +114,7 @@ able to transform to and from any other coordinate systems because we haven't
 yet defined how to do that.
 
 We will define the coordinate transformation as a function that accepts a
-`~astropy.coordinates.builtin_systems.GalacticCoordinates` object and returns an
+`~astropy.coordinates.builtin_systems.Galactic` object and returns an
 `SgrCoordinates` object. We could alternatively define the transformation by
 specifying a transformation matrix (
 `~astropy.coordinates.transformations.static_transform_matrix`), but in this
@@ -138,7 +138,7 @@ This is done at the module level, since it will be used by both the
 transformation from Sgr to Galactic as well as the inverse from Galactic to Sgr.
 Now we can define our first transformation function::
 
-    @transformations.transform_function(coord.GalacticCoordinates,
+    @transformations.transform_function(coord.Galactic,
                                         SgrCoordinates)
     def galactic_to_sgr(galactic_coord):
         """ Compute the transformation from Galactic spherical to Sgr
@@ -167,20 +167,20 @@ Now we can define our first transformation function::
                               unit=(u.degree, u.degree))
 
 The decorator
-`@transformations.transform_function(coord.GalacticCoordinates, SgrCoordinates)`
+`@transformations.transform_function(coord.Galactic, SgrCoordinates)`
 registers this function with the `Coordinates` subpackage as a transformation.
 Inside the function, we simply follow the same procedure as detailed by David
 Law's
 `transformation code <http://www.astro.virginia.edu/~srm4n/Sgr/code.html>`. Note
 that in this case, both coordinate systems are heliocentric, so we can simply
 copy any distance from the
-`~astropy.coordinates.builtin_systems.GalacticCoordinates` object.
+`~astropy.coordinates.builtin_systems.Galactic` object.
 
 We then register the inverse transformation by using the Transpose of the
 rotation matrix::
 
     @transformations.transform_function(SgrCoordinates,
-                                        coord.GalacticCoordinates)
+                                        coord.Galactic)
     def sgr_to_galactic(sgr_coord):
         L = sgr_coord.Lambda.radian
         B = sgr_coord.Beta.radian
@@ -198,19 +198,19 @@ rotation matrix::
         if l<0:
             l += 360
 
-        return coord.GalacticCoordinates(l, b, distance=sgr_coord.distance,
+        return coord.Galactic(l, b, distance=sgr_coord.distance,
                                          unit=(u.degree, u.degree))
 
 Now that we've registered these transformations between `SgrCoordinates` and
-`~astropy.coordinates.builtin_systems.GalacticCoordinates`, we can transform
+`~astropy.coordinates.builtin_systems.Galactic`, we can transform
 between *any* coordinate system and `SgrCoordinates` (as long as the other
 system has a path to transform to
-`~astropy.coordinates.builtin_systems.GalacticCoordinates`). For example, to
+`~astropy.coordinates.builtin_systems.Galactic`). For example, to
 transform from ICRS coordinates to `SgrCoordinates`, we simply::
 
     >>> from astropy import units as u
     >>> import astropy.coordinates as coord
-    >>> icrs = coord.ICRSCoordinates(280.161732, 11.91934, unit=(u.degree,u.degree))
+    >>> icrs = coord.ICRS(280.161732, 11.91934, unit=(u.degree,u.degree))
     >>> icrs.transform_to(SgrCoordinates)  # doctest: +SKIP
     <SgrCoordinates Lambda=346.81827 deg, Beta=-39.28367 deg>
 

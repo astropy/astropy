@@ -27,7 +27,7 @@ import numpy as np
 # LOCAL
 from .. import conesearch, vos_catalog
 from .... import units as u
-from ....coordinates import Angle, ICRSCoordinates
+from ....coordinates import Angle, ICRS
 from ....tests.helper import pytest, remote_data
 from ....utils.data import get_pkg_data_filename
 from ....utils.data import REMOTE_TIMEOUT
@@ -40,7 +40,7 @@ __doctest_skip__ = ['*']
 SCS_RA = 0
 SCS_DEC = 0
 SCS_SR = 0.1
-SCS_CENTER = ICRSCoordinates(SCS_RA, SCS_DEC, unit=(u.degree, u.degree))
+SCS_CENTER = ICRS(SCS_RA, SCS_DEC, unit=(u.degree, u.degree))
 SCS_RADIUS = Angle(SCS_SR, unit=u.degree)
 
 

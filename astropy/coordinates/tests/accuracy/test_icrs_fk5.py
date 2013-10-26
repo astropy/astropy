@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 from .... import units as u
-from ... import ICRSCoordinates, FK5Coordinates
+from ... import ICRS, FK5
 from ....time import Time
 from ....table import Table
 from ...angle_utilities import angular_separation
@@ -27,10 +27,10 @@ def test_icrs_no_e_fk5():
         r = t[i]
 
         # FK4 to FK5
-        c1 = ICRSCoordinates(r['ra_in'], r['dec_in'],
+        c1 = ICRS(r['ra_in'], r['dec_in'],
                              unit=(u.degree, u.degree),
                              obstime=Time(r['obstime'], scale='utc'))
-        c2 = c1.transform_to(FK5Coordinates).precess_to(Time(r['equinox_fk5'], scale='utc'))
+        c2 = c1.transform_to(FK5).precess_to(Time(r['equinox_fk5'], scale='utc'))
 
         # Find difference
         diff = angular_separation(c2.ra.radian, c2.dec.radian,
@@ -39,11 +39,11 @@ def test_icrs_no_e_fk5():
         assert np.degrees(diff) * 3600. < TOLERANCE
 
         # FK5 to FK4
-        c1 = FK5Coordinates(r['ra_in'], r['dec_in'],
+        c1 = FK5(r['ra_in'], r['dec_in'],
                             unit=(u.degree, u.degree),
                             obstime=Time(r['obstime'], scale='utc'),
                             equinox=Time(r['equinox_fk5'], scale='utc'))
-        c2 = c1.transform_to(ICRSCoordinates)
+        c2 = c1.transform_to(ICRS)
 
         # Find difference
         diff = angular_separation(c2.ra.radian, c2.dec.radian,

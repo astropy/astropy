@@ -243,6 +243,12 @@ API Changes
   - The `astropy.coordinates.AngularSeparation` class has been removed.  The output
     of the coordinates `separation()` method is now an `astropy.coordinates.Angle`.
 
+  - The coordinate classes have been renamed in a way that remove the ``Coordinates``
+    at the end of the class names.  E.g., `ICRSCoordinates` from previous versions is
+    now called `ICRS`.
+
+  - `HorizontalCoordinates` are now named `AltAz`, to reflect more common terminology.
+
 - ``astropy.cosmology``
 
   - The Planck (2013) cosmology will likely give slightly different (and more
