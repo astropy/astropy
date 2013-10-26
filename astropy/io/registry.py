@@ -52,11 +52,9 @@ def get_formats(data_class=None):
         rows.append((format_class[1].__name__, format_class[0], has_read, has_write,
                      has_identify, deprecated))
 
-    if not rows:
-        raise ValueError('No formats have data class {0!r}'.format(data_class.__name__))
-
-    format_table = Table(zip(*rows), names=('Data class', 'Format', 'Read', 'Write',
-                                            'Auto-identify', 'Deprecated'))
+    data = zip(*rows) if rows else None
+    format_table = Table(data, names=('Data class', 'Format', 'Read', 'Write',
+                                      'Auto-identify', 'Deprecated'))
     format_table.sort(['Data class', 'Format'])
 
     if not np.any(format_table['Deprecated'] == 'Yes'):
@@ -238,8 +236,9 @@ def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
 
 def _get_format_table_str(data_class, readwrite):
     format_table = get_formats(data_class)
-    has_readwrite = format_table[readwrite] == 'Yes'
-    format_table = format_table[has_readwrite]
+    if len(format_table) > 0:
+        has_readwrite = format_table[readwrite] == 'Yes'
+        format_table = format_table[has_readwrite]
     format_table.remove_column('Data class')
     format_table_str = '\n'.join(format_table.pformat(max_lines=-1))
     return format_table_str
@@ -250,7 +249,7 @@ def get_reader(data_format, data_class):
         return _readers[(data_format, data_class)]
     else:
         format_table_str = _get_format_table_str(data_class, 'Read')
-        raise Exception('No reader is defined for format {0!r} and class {1!r}.\n'
+        raise Exception('No reader defined for format {0!r} and class {1!r}.\n'
                         'The available formats are:\n'
                         '{2}'
                         .format(data_format, data_class.__name__, format_table_str))
@@ -261,7 +260,7 @@ def get_writer(data_format, data_class):
         return _writers[(data_format, data_class)]
     else:
         format_table_str = _get_format_table_str(data_class, 'Write')
-        raise Exception('No writer is defined for format {0!r} and class {1!r}.\n'
+        raise Exception('No writer defined for format {0!r} and class {1!r}.\n'
                         'The available formats are:\n'
                         '{2}'
                         .format(data_format, data_class.__name__, format_table_str))
