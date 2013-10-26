@@ -6,6 +6,7 @@ from copy import deepcopy
 from itertools import izip
 import functools
 import warnings
+import operator
 
 import numpy as np
 from numpy import ma
@@ -126,9 +127,31 @@ class TableColumns(OrderedDict):
         return list(OrderedDict.values(self))
 
 
+def _column_compare(op):
+    """
+    Convenience function to return a function that properly does a
+    comparison between a column object and something else.
+    """
+    def compare(self, other):
+        # We have to define this to ensure that we always return boolean arrays
+        # (otherwise in some cases, Column objects are returned).
+        if isinstance(other, BaseColumn):
+            other = other.data
+        return op(self.data, other)
+    return compare
+
+
 class BaseColumn(object):
 
     __metaclass__ = abc.ABCMeta
+
+    # Define comparison operators
+    __eq__ = _column_compare(operator.eq)
+    __ne__ = _column_compare(operator.ne)
+    __lt__ = _column_compare(operator.lt)
+    __le__ = _column_compare(operator.le)
+    __gt__ = _column_compare(operator.gt)
+    __ge__ = _column_compare(operator.ge)
 
     def __array_finalize__(self, obj):
         # Obj will be none for direct call to Column() creator
@@ -162,17 +185,6 @@ class BaseColumn(object):
             return np.ndarray.__array_wrap__(self, out_arr, context)
         else:
             return out_arr.view(np.ndarray)[()]
-
-    def __eq__(self, other):
-        # We have to define this to ensure that we always return boolean arrays
-        # (otherwise in some cases, Column objects are returned).
-        if isinstance(other, BaseColumn):
-            return self.data == other.data
-        else:
-            return self.data == other
-
-    def __ne__(self, other):
-        return ~self.__eq__(other)
 
     @property
     def name(self):

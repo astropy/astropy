@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import operator
 from distutils import version
+
 import numpy as np
 
 from ... import units as u
@@ -33,15 +35,21 @@ class TestColumn():
         arr = np.array([1, 2, 3])
         c = Column(arr, name='a')
 
-        for eq in (c == arr, arr == c):
+        for op, test_equal in ((operator.eq, True),
+                               (operator.ne, False),
+                               (operator.ge, True),
+                               (operator.gt, False),
+                               (operator.le, True),
+                               (operator.lt, False)):
+            for eq in (op(c, arr), op(arr, c)):
 
-            assert np.all(eq)
-            assert len(eq) == 3
-            if Column is table.Column:
-                assert type(eq) == np.ndarray
-            else:
-                assert type(eq) == np.ma.core.MaskedArray
-            assert eq.dtype.str == '|b1'
+                assert np.all(eq) if test_equal else not np.any(eq)
+                assert len(eq) == 3
+                if Column is table.Column:
+                    assert type(eq) == np.ndarray
+                else:
+                    assert type(eq) == np.ma.core.MaskedArray
+                assert eq.dtype.str == '|b1'
 
         lt = c - 1 < arr
         assert np.all(lt)
