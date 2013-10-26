@@ -10,9 +10,7 @@ from numpy.testing import assert_array_equal
 from ..nddata import NDData
 from ..nduncertainty import StdDevUncertainty, IncompatibleUncertaintiesException, NDUncertainty
 from ...tests.helper import pytest, raises
-from ...io import fits
 from ...utils import NumpyRNGContext
-from ...utils.compat.odict import OrderedDict
 
 
 class FakeUncertainty(NDUncertainty):
@@ -29,8 +27,6 @@ class FakeUncertainty(NDUncertainty):
     def propagate_divide(self, data, final_data):
         pass
 
-class OrderedDictSub(OrderedDict):
-    pass
 
 def test_nddata_empty():
     with pytest.raises(TypeError):
@@ -300,25 +296,6 @@ def test_initializing_from_nduncertainty():
     u2 = StdDevUncertainty(u1, copy=False)
 
     assert u1.array is u2.array
-
-def test_meta2ordered_dict():
-    hdr = fits.header.Header()
-    hdr.set('observer', 'Edwin Hubble')
-    hdr.set('exptime', '3600')
-
-    d1 = NDData(np.ones((5, 5)), meta=hdr)
-    assert d1.meta['OBSERVER'] == 'Edwin Hubble'
-
-def test_subclass_meta():
-    arr = NDData(np.random.random((10, 10)), meta=OrderedDictSub({'hello':1,
-                                                                  'world':2}))
-    assert isinstance(arr.meta, OrderedDictSub)
-
-@raises(TypeError)
-def test_meta2ordered_dict_fail():
-    hdr = 'this is not a valid header'
-    d1 = NDData(np.ones((5, 5)), meta=hdr)
-
 
 def test_masked_array_input():
 
