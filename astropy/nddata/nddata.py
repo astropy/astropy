@@ -3,6 +3,9 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import collections
+from copy import deepcopy
+
 import numpy as np
 
 from ..units import Unit
@@ -123,19 +126,19 @@ class NDData(object):
 
             if mask is not None:
                 self.mask = mask
-                log.info("Overwriting NDData's current mask being overwritten with specified mask")
+                log.info("Overwriting NDData's current mask with specified mask")
 
             if flags is not None:
                 self.flags = flags
-                log.info("Overwriting NDData's current flags being overwritten with specified flag")
+                log.info("Overwriting NDData's current flags with specified flag")
 
             if wcs is not None:
                 self.wcs = wcs
-                log.info("Overwriting NDData's current wcs being overwritten with specified wcs")
+                log.info("Overwriting NDData's current wcs with specified wcs")
 
             if meta is not None:
-                self.meta = meta
-                log.info("Overwriting NDData's current meta being overwritten with specified meta")
+                self._meta = meta
+                log.info("Overwriting NDData's current meta with specified meta")
 
             if unit is not None:
                 raise ValueError('To convert to different unit please use .to')
@@ -158,7 +161,15 @@ class NDData(object):
             self.uncertainty = uncertainty
             self.flags = flags
             self.wcs = wcs
-            self.meta = meta
+
+            if meta is None:
+                self._meta = OrderedDict()
+            else:
+                if isinstance(meta, collections.Mapping):
+                    self._meta = deepcopy(meta)
+                else:
+                    raise TypeError("meta attribute must be dict-like")
+
             self.unit = unit
 
     def __str__(self):
@@ -229,16 +240,6 @@ class NDData(object):
     @property
     def meta(self):
         return self._meta
-
-    @meta.setter
-    def meta(self, value):
-        if value is None:
-            self._meta = OrderedDict()
-        else:
-            try:
-                self._meta = OrderedDict(value)
-            except ValueError:
-                raise TypeError('NDData meta attribute must be dict-like')
 
     @property
     def unit(self):
@@ -405,7 +406,7 @@ class NDData(object):
 
         result.flags = None
         result.wcs = self.wcs
-        result.meta = None
+        result.meta.clear()
         result.unit = self.unit
 
         return result
@@ -479,7 +480,7 @@ class NDData(object):
         result.mask = self.mask
         result.flags = None
         result.wcs = self.wcs
-        result.meta = self.meta
+        result.meta.update(self.meta)
         result.unit = unit
 
         return result

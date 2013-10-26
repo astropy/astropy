@@ -1040,7 +1040,14 @@ class Table(object):
         self._data = None
         self._set_masked(masked)
         self.columns = TableColumns()
-        self._meta = OrderedDict() if meta is None else deepcopy(meta)
+
+        if meta is None:
+            self._meta = OrderedDict()
+        else:
+            if isinstance(meta, collections.Mapping):
+                self._meta = deepcopy(meta)
+            else:
+                raise TypeError("meta attribute must be dict-like")
 
         # Must copy if dtype are changing
         if not copy and dtype is not None:
@@ -2401,7 +2408,7 @@ class Table(object):
         Examples
         --------
         Create a table with three columns::
-        
+
             >>> t = Table([['Max', 'Jo', 'John'], ['Miller','Miller','Jackson'],
             ...         [12,15,18]], names=('firstname','name','tel'))
             >>> t.pprint()
