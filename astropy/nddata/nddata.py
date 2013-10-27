@@ -470,7 +470,7 @@ class NDData(object):
         result.mask = self.mask
         result.flags = None
         result.wcs = self.wcs
-        result.meta.update(self.meta)
+        result.meta = self.meta
         result.unit = unit
 
         return result
