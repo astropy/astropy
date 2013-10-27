@@ -16,7 +16,7 @@ from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
 from ..io import registry as io_registry
 from ..config import ConfigurationItem
-
+from ..utils.metadata import MetaData
 
 __all__ = ['NDData']
 
@@ -113,6 +113,8 @@ class NDData(object):
 
     """
 
+    meta = MetaData()
+
     def __init__(self, data, uncertainty=None, mask=None, flags=None, wcs=None,
                  meta=None, unit=None):
 
@@ -137,7 +139,7 @@ class NDData(object):
                 log.info("Overwriting NDData's current wcs with specified wcs")
 
             if meta is not None:
-                self._meta = meta
+                self.meta = meta
                 log.info("Overwriting NDData's current meta with specified meta")
 
             if unit is not None:
@@ -161,15 +163,7 @@ class NDData(object):
             self.uncertainty = uncertainty
             self.flags = flags
             self.wcs = wcs
-
-            if meta is None:
-                self._meta = OrderedDict()
-            else:
-                if isinstance(meta, collections.Mapping):
-                    self._meta = deepcopy(meta)
-                else:
-                    raise TypeError("meta attribute must be dict-like")
-
+            self.meta = meta
             self.unit = unit
 
     def __str__(self):
@@ -236,10 +230,6 @@ class NDData(object):
                 raise TypeError("Uncertainty must be an instance of a NDUncertainty object")
         else:
             self._uncertainty = value
-
-    @property
-    def meta(self):
-        return self._meta
 
     @property
     def unit(self):
