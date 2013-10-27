@@ -89,8 +89,8 @@ def _update__doc__(data_class, readwrite):
     format_table = get_formats(data_class)
 
     # Include only formats that have a reader, and drop the 'Data class' column
-    has_read = format_table[readwrite.capitalize()] == 'Yes'
-    format_table = format_table[has_read]
+    has_readwrite = format_table[readwrite.capitalize()] == 'Yes'
+    format_table = format_table[has_readwrite]
     format_table.remove_column('Data class')
 
     # Get the available formats as a table, then munge the output of pformat() a bit and
