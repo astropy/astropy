@@ -63,8 +63,8 @@ def test_dms():
     a1 = Angle([0, 45.5, -45.5], unit=u.degree)
     d, m, s = a1.dms
     npt.assert_almost_equal(d, [0, 45, -45])
-    npt.assert_almost_equal(m, [0, 30, 30])
-    npt.assert_almost_equal(s, [0, 0, 0])
+    npt.assert_almost_equal(m, [0, 30, -30])
+    npt.assert_almost_equal(s, [0, 0, -0])
 
     dms = a1.dms
     degrees = dms_to_degrees(*dms)
@@ -82,8 +82,8 @@ def test_hms():
     a1 = Angle([0, 11.5, -11.5], unit=u.hour)
     h, m, s = a1.hms
     npt.assert_almost_equal(h, [0, 11, -11])
-    npt.assert_almost_equal(m, [0, 30, 30])
-    npt.assert_almost_equal(s, [0, 0, 0])
+    npt.assert_almost_equal(m, [0, 30, -30])
+    npt.assert_almost_equal(s, [0, 0, -0])
 
     hms = a1.hms
     hours = hms_to_hours(*hms)
