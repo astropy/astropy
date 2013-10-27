@@ -1,8 +1,6 @@
-import numpy as np
-
 from ..metadata import MetaData
 from ..compat.odict import OrderedDict
-from ...tests.helper import pytest, raises
+from ...tests.helper import pytest
 from ...io import fits
 
 
@@ -35,7 +33,7 @@ def test_mapping_init(meta):
 @pytest.mark.parametrize(('meta'), (["ceci n'est pas un meta", 1.2, [1, 2, 3]]))
 def test_non_mapping_init(meta):
     with pytest.raises(TypeError):
-        d = Data(meta=meta)
+        Data(meta=meta)
 
 
 @pytest.mark.parametrize(('meta'), ([dict([('a', 1)]),
@@ -50,7 +48,7 @@ def test_mapping_set(meta):
 @pytest.mark.parametrize(('meta'), (["ceci n'est pas un meta", 1.2, [1, 2, 3]]))
 def test_non_mapping_set(meta):
     with pytest.raises(TypeError):
-        d = Data(meta=meta)
+        Data(meta=meta)
 
 
 def test_meta_fits_header():
