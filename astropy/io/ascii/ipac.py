@@ -158,7 +158,8 @@ class Ipac(fixedwidth.FixedWidth):
         :returns: list of strings corresponding to ASCII table
         """
 
-        core._apply_include_exclude_names(table, self.include_names, self.exclude_names)
+        core._apply_include_exclude_names(table, self.names, self.include_names,
+                                          self.exclude_names)
 
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = table.columns.values()

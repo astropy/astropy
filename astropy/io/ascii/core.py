@@ -381,18 +381,16 @@ class BaseHeader(object):
         start_line = _get_line_index(self.start_line, self.process_lines(lines))
         if start_line is None:
             # No header line so auto-generate names from n_data_cols
-            if self.names is None:
-                # Get the data values from the first line of table data to determine n_data_cols
-                try:
-                    first_data_vals = next(self.data.get_str_vals())
-                except StopIteration:
-                    raise InconsistentTableError('No data lines found so cannot autogenerate '
-                                                 'column names')
-                n_data_cols = len(first_data_vals)
-                self.names = [self.auto_format % i for i in range(1, n_data_cols+1)]
+            # Get the data values from the first line of table data to determine n_data_cols
+            try:
+                first_data_vals = next(self.data.get_str_vals())
+            except StopIteration:
+                raise InconsistentTableError('No data lines found so cannot autogenerate '
+                                             'column names')
+            n_data_cols = len(first_data_vals)
+            self.names = [self.auto_format % i for i in range(1, n_data_cols+1)]
 
-        elif self.names is None:
-            # No column names supplied so read them from header line in table.
+        else:
             for i, line in enumerate(self.process_lines(lines)):
                 if i == start_line:
                     break
@@ -708,13 +706,19 @@ class MetaBaseReader(type):
                 func = functools.partial(connect.io_write, io_format)
                 connect.io_registry.register_writer(io_format, Table, func)
 
-def _apply_include_exclude_names(table, include_names, exclude_names):
+def _apply_include_exclude_names(table, names, include_names, exclude_names):
     """apply include_names and exclude_names to a table.
 
     :param table: input table (Reader object, NumPy struct array, list of lists, etc)
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
     """
+    if names is not None:
+        if len(names) != len(table.colnames):
+            raise ValueError('FIXME')
+        for name, colname in zip(names, table.colnames):
+            table.rename_column(colname, name)
+
     names = set(table.colnames)
     if include_names is not None:
         names.intersection_update(include_names)
@@ -740,6 +744,7 @@ class BaseReader(object):
     """
     __metaclass__ = MetaBaseReader
 
+    names = None
     include_names = None
     exclude_names = None
 
@@ -828,7 +833,7 @@ class BaseReader(object):
         table = self.outputter(cols, self.meta)
         self.cols = self.header.cols
 
-        _apply_include_exclude_names(table, self.include_names, self.exclude_names)
+        _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
 
         return table
 
@@ -871,7 +876,7 @@ class BaseReader(object):
         :returns: list of strings corresponding to ASCII table
         """
 
-        _apply_include_exclude_names(table, self.include_names, self.exclude_names)
+        _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
 
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = table.columns.values()
@@ -984,7 +989,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     if 'header_Splitter' in kwargs:
         reader.header.splitter = kwargs['header_Splitter']()
     if 'names' in kwargs:
-        reader.header.names = kwargs['names']
+        reader.names = kwargs['names']
     if 'include_names' in kwargs:
         reader.include_names = kwargs['include_names']
     if 'exclude_names' in kwargs:
