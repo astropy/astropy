@@ -160,15 +160,6 @@ def read(table, guess=None, **kwargs):
     return dat
 
 
-def _is_number(x):
-    try:
-        x = float(x)
-        return True
-    except ValueError:
-        pass
-    return False
-
-
 def _guess(table, read_kwargs):
     """Try to read the table using various sets of keyword args. First try the
     original args supplied in the read() call. Then try the standard guess
@@ -198,15 +189,11 @@ def _guess(table, read_kwargs):
             continue
 
         try:
+            guess_kwargs['strict_names'] = True  # Impose strict req'ts on column names
             reader = get_reader(**guess_kwargs)
             dat = reader.read(table)
-            # When guessing impose additional requirements on column names and number of cols
-            bads = [" ", ",", "|", "\t", "'", '"']
-            if (len(reader.cols) <= 1 or
-                any(_is_number(col.name) or
-                    len(col.name) == 0 or
-                    col.name[0] in bads or
-                    col.name[-1] in bads for col in reader.cols)):
+            # When guessing require at least two columns
+            if len(reader.cols) <= 1:
                 raise ValueError
             return dat
         except (core.InconsistentTableError, ValueError, TypeError):

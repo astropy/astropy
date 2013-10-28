@@ -159,7 +159,7 @@ class Ipac(fixedwidth.FixedWidth):
         """
 
         core._apply_include_exclude_names(table, self.names, self.include_names,
-                                          self.exclude_names)
+                                          self.exclude_names, self.strict_names)
 
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = table.columns.values()
