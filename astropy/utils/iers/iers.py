@@ -68,7 +68,7 @@ IERS_A_FILE = 'finals2000A.all'
 IERS_A_URL = 'http://maia.usno.navy.mil/ser7/finals2000A.all'
 IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
 # IERS-B default file name, URL, and ReadMe with content description
-IERS_B_FILE = get_pkg_data_filename('data/eopc04_IAU2000.62-now.gz')
+IERS_B_FILE = get_pkg_data_filename('data/eopc04_IAU2000.62-now')
 IERS_B_URL = 'http://hpiers.obspm.fr/iers/eop/eopc04/eopc04_IAU2000.62-now'
 IERS_B_README = get_pkg_data_filename('data/ReadMe.eopc04_IAU2000')
 # Status/source values returned by IERS.ut1_utc
