@@ -425,18 +425,16 @@ class Chebyshev1DModel(PolynomialModel):
                 c1 = tmp + c1 * x2
         return c0 + c1 * x
 
-    def deriv(self, params=None, x=None, y=None):
+    def deriv(self, x, *params):
         """
         Computes the Vandermonde matrix.
 
         Parameters
         ----------
-        params : throw away parameter
-            parameter list returned by non-linear fitters
         x : ndarray
             input
-        y : throw away parameter
-            Present here so that the non-linear fitting algorithms can work
+        params : throw away parameter
+            parameter list returned by non-linear fitters
 
         Returns
         -------
@@ -515,18 +513,16 @@ class Legendre1DModel(PolynomialModel):
                 c1 = tmp + (c1 * x * (2 * nd - 1)) / nd
         return c0 + c1 * x
 
-    def deriv(self, params=None, x=None, y=None):
+    def deriv(self, x, *params):
         """
         Computes the Vandermonde matrix.
 
         Parameters
         ----------
-        params : throw away parameter
-            parameter list returned by non-linear fitters
         x : ndarray
             input
-        y : throw away parameter
-            Present here so that the non-linear fitting algorithms can work
+        params : throw away parameter
+            parameter list returned by non-linear fitters
 
         Returns
         -------
@@ -590,12 +586,10 @@ class Polynomial1DModel(PolynomialModel):
 
         Parameters
         ----------
-        params : throw away parameter
-            parameter list returned by non-linear fitters
         x : ndarray
             input
-        y : throw away parameter
-            Present here so that the non-linear fitting algorithms can work
+        params : throw away parameter
+            parameter list returned by non-linear fitters
 
         Returns
         -------
@@ -699,14 +693,12 @@ class Polynomial2DModel(PolynomialModel):
 
         Parameters
         ----------
-        params : throw away parameter
-            parameter list returned by non-linear fitters
         x : ndarray
             input
         y : ndarray
             input
-        z : throw away parameter
-            Present here so that the non-linear fitting algorithms can work
+        params : throw away parameter
+            parameter list returned by non-linear fitters
 
         Returns
         -------
@@ -824,7 +816,7 @@ class Chebyshev2DModel(OrthoPolynomialBase):
             kfunc[n] = 2 * y * kfunc[n - 1] - kfunc[n - 2]
         return kfunc
 
-    def deriv(self, params=None, x=None, y=None, z=None):
+    def deriv(self, x, y, *params):
         """
         Derivatives with respect to the coefficients.
 
@@ -834,14 +826,12 @@ class Chebyshev2DModel(OrthoPolynomialBase):
 
         Parameters
         ----------
-        params : throw away parameter
-            parameter list returned by non-linear fitters
         x : ndarray
             input
         y : ndarray
             input
-        z : throw away parameter
-            Present here so that the non-linear fitting algorithms can work
+        params : throw away parameter
+            parameter list returned by non-linear fitters
 
         Returns
         -------
@@ -941,7 +931,7 @@ class Legendre2DModel(OrthoPolynomialBase):
                                   (n - 1) * kfunc[n + x_terms - 2]) / (n)
         return kfunc
 
-    def deriv(self, params=None, x=None, y=None, z=None):
+    def deriv(self, x, y, *params):
         """
         Derivatives with repect to the coefficients.
         This is an array with Legendre polynomials:
@@ -950,14 +940,12 @@ class Legendre2DModel(OrthoPolynomialBase):
 
         Parameters
         ----------
-        params : throw away parameter
-            parameter list returned by non-linear fitters
         x : ndarray
             input
         y : ndarray
             input
-        z : throw away parameter
-            Present here so that the non-linear fitting algorithms can work
+        params : throw away parameter
+            parameter list returned by non-linear fitters
 
         Returns
         -------
