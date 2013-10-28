@@ -45,6 +45,31 @@ def test_dimensionless_angles():
     assert phase.to(1).value == u.cycle.to(u.radian)
 
 
+@pytest.mark.parametrize('log_unit', (u.mag, u.dex, u.dB))
+def test_logarithmic(log_unit):
+    # check conversion of mag, dB, and dex to dimensionless and vice versa
+    with pytest.raises(u.UnitsError):
+        log_unit.to(1, 0.)
+    with pytest.raises(u.UnitsError):
+        u.dimensionless_unscaled.to(log_unit)
+
+    assert log_unit.to(1, 0., equivalencies=u.logarithmic()) == 1.
+    assert u.dimensionless_unscaled.to(log_unit,
+                                       equivalencies=u.logarithmic()) == 0.
+    # also try with quantities
+
+    q_dex = np.array([0., -1., 1., 2.]) * u.dex
+    q_expected = 10.**q_dex.value * u.dimensionless_unscaled
+    q_log_unit = q_dex.to(log_unit)
+    assert np.all(q_log_unit.to(1, equivalencies=u.logarithmic()) ==
+                  q_expected)
+    assert np.all(q_expected.to(log_unit, equivalencies=u.logarithmic()) ==
+                  q_log_unit)
+    with u.set_enabled_equivalencies(u.logarithmic()):
+        assert np.all(np.abs(q_log_unit - q_expected.to(log_unit)) <
+                      1.e-10*log_unit)
+
+
 functions = [u.doppler_optical, u.doppler_radio, u.doppler_relativistic]
 
 

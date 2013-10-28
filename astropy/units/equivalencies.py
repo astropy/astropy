@@ -11,11 +11,13 @@ from ..constants import si as _si
 from . import si
 from . import cgs
 from . import astrophys
+from . import dimensionless_unscaled
 
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'doppler_optical', 'doppler_relativistic', 'mass_energy',
-           'brightness_temperature', 'dimensionless_angles']
+           'brightness_temperature', 'dimensionless_angles',
+           'logarithmic']
 
 
 def dimensionless_angles():
@@ -26,6 +28,14 @@ def dimensionless_angles():
     and indepedent of whether it is part of a more complicated unit.
     """
     return [(si.radian, None)]
+
+
+def logarithmic():
+    """Allow logarithmic units to be converted to dimensionless fractions"""
+    return [
+        (dimensionless_unscaled, astrophys.dex,
+         lambda x: np.log10(x), lambda x: 10.**x)
+    ]
 
 
 def parallax():
