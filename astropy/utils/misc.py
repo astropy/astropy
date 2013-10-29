@@ -647,7 +647,7 @@ def find_api_page(obj, version='dev', openinbrowser=True, timeout=None):
     from inspect import ismodule
     from zlib import decompress
 
-    if (not isinstance(obj, string_types) and
+    if (not isinstance(obj, six.string_types) and
             hasattr(obj, '__module__') and
             hasattr(obj, '__name__')):
         obj = obj.__module__ + '.' + obj.__name__

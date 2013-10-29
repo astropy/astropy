@@ -20,7 +20,6 @@ TESTURL = 'http://www.google.com/index.html'
 
 @remote_data
 def test_download_nocache():
-
     from ..data import download_file
 
     fnout = download_file(TESTURL)
@@ -29,6 +28,8 @@ def test_download_nocache():
 
 @remote_data
 def test_download_noprogress():
+    from ..data import download_file
+
     fnout = download_file(TESTURL, show_progress=False)
     assert os.path.isfile(fnout)
 
@@ -187,7 +188,6 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
     """
 
     from .. import data
-    from ...tests.helper.pytest import raises
     from ...config import paths
 
     # needed for testing the *real* lock at the end
