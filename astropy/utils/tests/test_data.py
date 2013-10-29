@@ -76,6 +76,17 @@ def test_find_by_hash():
     assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
 
+@remote_data
+def test_find_by_hash():
+    from urllib2 import URLError
+    from ..data import get_pkg_data_filename
+
+    #this is of course not a real data file and not on any remote server, but it should *try* to go to the remote server
+    with raises(URLError):
+        get_pkg_data_filename('kjfrhgjklahgiulrhgiuraehgiurhgiuhreglhurieghruelighiuerahiulruli')
+
+
+
 # Package data functions
 @pytest.mark.parametrize(('filename'), ['local.dat', 'local.dat.gz', 'local.dat.bz2'])
 def test_local_data_obj(filename):
