@@ -13,15 +13,8 @@ NUMPY_LT_1P6 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 6]
 class TestUfuncCoverage(object):
     """Test that we cover all ufunc's"""
     def test_coverage(self):
-        all_np_ufuncs = set([np.__dict__[i] for i in np.__dict__
-                             if getattr(np.__dict__[i],
-                                        '__class__', None) == np.ufunc])
-
-        # Prior to Numpy 1.7, np.ones_like was included in the list of ufuncs,
-        # but is not really a ufunc, so we remove it
-        all_np_ufuncs -= set([np.ones_like])
-        # but add the "private" _ones_like, which is internally (e.g., in q**0)
-        all_np_ufuncs |= set([np.core.umath._ones_like])
+        all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
+                             if type(ufunc) == np.ufunc])
 
         from .. import quantity_helper as qh
 
