@@ -60,6 +60,8 @@ UFUNC_HELPERS[np.trunc] = helper_invariant
 UFUNC_HELPERS[np.sqrt] = lambda f, unit: ([1.], unit ** 0.5)
 UFUNC_HELPERS[np.square] = lambda f, unit: ([1.], unit ** 2)
 UFUNC_HELPERS[np.reciprocal] = lambda f, unit: ([1.], unit ** -1)
+UFUNC_HELPERS[np.core.umath._ones_like] = (lambda f, unit:
+                                           ([1.], dimensionless_unscaled))
 
 
 # ufuncs that require dimensionless input and and give dimensionless output

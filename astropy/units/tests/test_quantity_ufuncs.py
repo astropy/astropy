@@ -20,11 +20,14 @@ class TestUfuncCoverage(object):
         # Prior to Numpy 1.7, np.ones_like was included in the list of ufuncs,
         # but is not really a ufunc, so we remove it
         all_np_ufuncs -= set([np.ones_like])
+        # but add the "private" _ones_like, which is internally (e.g., in q**0)
+        all_np_ufuncs |= set([np.core.umath._ones_like])
 
         from .. import quantity_helper as qh
 
         all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |
                         set(qh.UFUNC_HELPERS.keys()))
+
         assert all_np_ufuncs - all_q_ufuncs == set([])
         assert all_q_ufuncs - all_np_ufuncs == set([])
 
@@ -272,10 +275,15 @@ class TestQuantityMathFuncs(object):
         assert np.power(4. * u.m, 2.) == 16. * u.m ** 2
         assert np.power(4., 200. * u.cm / u.m) == \
             u.Quantity(16., u.dimensionless_unscaled)
+        # regression check on #1696
+        assert np.power(4. * u.m, 0.) == 1. * u.dimensionless_unscaled
 
     def test_power_array(self):
         assert np.all(np.power(np.array([1., 2., 3.]) * u.m, 3.)
                       == np.array([1., 8., 27.]) * u.m ** 3)
+        # regression check on #1696
+        assert np.all(np.power(np.arange(4.) * u.m, 0.) ==
+                      1. * u.dimensionless_unscaled)
 
     @raises(ValueError)
     def test_power_array_array(self):
