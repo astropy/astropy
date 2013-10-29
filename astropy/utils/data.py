@@ -489,7 +489,7 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
             return download_file(
                 DATAURL() + data_name, cache=True,
                 show_progress=show_progress,
-                remote_timeout=remote_timeout)
+                timeout=remote_timeout)
         else:
             return hashfn
     else:
@@ -503,7 +503,7 @@ def get_pkg_data_filename(data_name, show_progress=True, remote_timeout=None):
             return download_file(
                 DATAURL() + data_name, cache=True,
                 show_progress=show_progress,
-                remote_timeout=remote_timeout)
+                timeout=remote_timeout)
 
 
 def get_pkg_data_contents(data_name, encoding=None, cache=True):
