@@ -346,7 +346,10 @@ def pytest_report_header(config):
         s += "Using Astropy options: {0}.\n".format(" ".join(opts))
 
     if not six.PY3:
-        s = s.encode(sys.stdout.encoding)
+        if sys.stdout.encoding:
+            s = s.encode(sys.stdout.encoding)
+        else:
+            s = s.encode('ascii', 'replace')
 
     return s
 
