@@ -5,12 +5,46 @@ import numpy as np
 
 from ....utils import OrderedDict
 from ....tests.helper import pytest
-from ... import ascii as asciitable
+from ... import ascii as asciitable  # TODO: delete this line, use ascii.*
+from ... import ascii
 from ....table import Table
 
 from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true, setup_function, teardown_function,
                      has_isnan)
+
+
+def test_read_with_names_arg():
+    """
+    Make sure reading a table with guess=True gives the expected result when
+    the names arg is specified.
+    """
+    # This is a NoHeader format table and so `names` should replace
+    # the default col0, col1 names.  It fails as a Basic format
+    # table when guessing because the column names would be '1', '2'.
+    dat = ascii.read(['1 2', '3 4'], names=('a', 'b'))
+    assert len(dat) == 2
+    assert dat.colnames == ['a', 'b']
+
+    # This is a Basic format table and the first row
+    # gives the column names 'c', 'd', which get replaced by 'a', 'b'
+    dat = ascii.read(['c d', '3 4'], names=('a', 'b'))
+    assert len(dat) == 1
+    assert dat.colnames == ['a', 'b']
+
+    # This is also a Basic format table and the first row
+    # gives the column names 'c', 'd', which get replaced by 'a', 'b'
+    dat = ascii.read(['c d', 'e f'], names=('a', 'b'))
+    assert len(dat) == 1
+    assert dat.colnames == ['a', 'b']
+
+
+@raises(ValueError)
+def test_read_with_names_arg():
+    """
+    Test that a bad value of `names` raises an exception.
+    """
+    dat = ascii.read(['c d', 'e f'], names=('a', ), guess=False)
 
 
 def test_read_all_files():
