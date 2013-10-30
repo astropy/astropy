@@ -882,6 +882,19 @@ class TestSort():
         assert np.all(t['a'] == np.array([2, 1, 3, 1, 3, 2]))
         assert np.all(t['b'] == np.array([3, 4, 4, 5, 5, 6]))
 
+    def test_multiple_with_strings(self, table_types):
+        # Before Numpy 1.6.2, and on Python 3.x, Numpy had a bug that meant
+        # that sorting with multiple column names failed when a string column
+        # was present:
+        t = table_types.Table()
+        t.add_column(table_types.Column(name='firstname', data=["Max", "Jo", "John"]))
+        t.add_column(table_types.Column(name='name', data=["Miller", "Miller", "Jackson"]))
+        t.add_column(table_types.Column(name='tel', data=[12, 15, 19]))
+        t.sort(['name','firstname'])
+        assert np.all([t['firstname'] == np.array(["John", "Jo", "Max"])])
+        assert np.all([t['name'] == np.array(["Jackson", "Miller", "Miller"])])
+        assert np.all([t['tel'] == np.array([19, 15, 12])])
+
     def test_argsort(self, table_types):
         t = table_types.Table()
         t.add_column(table_types.Column(name='a', data=[2, 1, 3, 2, 3, 1]))
