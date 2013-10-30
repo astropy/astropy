@@ -89,6 +89,10 @@ class Angle(u.Quantity):
             if unit is not None:
                 angle = angle.to(unit).value
             else:
+                if not angle.unit.is_equivalent(u.radian):
+                    raise u.UnitsError(
+                        "Given quantity {0} is not convertible to an angle".format(
+                            angle))
                 unit = angle.unit
                 angle = angle.value
 
