@@ -189,13 +189,18 @@ def _guess(table, read_kwargs):
             continue
 
         try:
-            guess_kwargs['strict_names'] = True  # Impose strict req'ts on column names
+            # If guessing will try all Readers then use strict req'ts on column names
+            if 'Reader' not in read_kwargs:
+                guess_kwargs['strict_names'] = True
+
             reader = get_reader(**guess_kwargs)
             dat = reader.read(table)
-            # When guessing require at least two columns
-            if len(reader.cols) <= 1:
+
+            # When guessing Reader require at least two columns
+            if 'Reader' not in read_kwargs and len(reader.cols) <= 1:
                 raise ValueError
             return dat
+
         except (core.InconsistentTableError, ValueError, TypeError):
             failed_kwargs.append(guess_kwargs)
             pass
