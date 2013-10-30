@@ -207,6 +207,9 @@ class TransformGraph(object):
             else:
                 result[n] = (path, d)
                 path.append(n)
+                if n not in edgeweights:
+                    # this is a system that can be transformed to, but not from.
+                    continue
                 for n2 in edgeweights[n]:
                     if n2 not in result:  # already visited
                         # find where n2 is in the heap

@@ -749,10 +749,7 @@ def _make_transform_graph_docs():
     number next to the arrow.  These priorities are used to decide the
     preferred order when two trasnformation paths have the same number
     of steps.  These priorities are defined such that path with a
-    *smaller* total priority are favored over larger.
-    E.g., the path from `ICRS` to `Galactic` goes
-    through `FK5` because the total path length is 2 instead
-    of 2.03.
+    *smaller* total priority are favored over one with larger.
 
 
     .. graphviz::
