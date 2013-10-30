@@ -295,10 +295,7 @@ def pytest_report_header(config):
     from platform import platform
     plat = platform()
     if isinstance(plat, bytes):
-        if sys.stdout.encoding:
-            plat = plat.decode(sys.stdout.encoding)
-        else:
-            plat = plat.decode('ascii', 'replace')
+        plat = plat.decode(sys.stdout.encoding or 'ascii', 'replace')
     s += "Platform: {0}\n\n".format(plat)
     s += "Executable: {0}\n\n".format(sys.executable)
     s += "Full Python Version: \n{0}\n\n".format(sys.version)
@@ -346,10 +343,7 @@ def pytest_report_header(config):
         s += "Using Astropy options: {0}.\n".format(" ".join(opts))
 
     if not six.PY3:
-        if sys.stdout.encoding:
-            s = s.encode(sys.stdout.encoding)
-        else:
-            s = s.encode('ascii', 'replace')
+        s = s.encode(sys.stdout.encoding or 'ascii', 'replace')
 
     return s
 
