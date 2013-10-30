@@ -315,3 +315,14 @@ def test_masked_array_input():
 
     assert_array_equal(nd.mask, marr.mask)
     assert_array_equal(nd.data, marr.data)
+
+# Check that the meta descriptor is working as expected. The MetaBaseTest class
+# takes care of defining all the tests, and we simply have to define the class
+# and any minimal set of args to pass.
+
+from ...utils.tests.test_metadata import MetaBaseTest
+
+
+class TestMetaNDData(MetaBaseTest):
+    test_class = NDData
+    args = np.array([[1.]])
