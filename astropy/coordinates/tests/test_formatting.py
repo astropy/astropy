@@ -91,3 +91,10 @@ def test_sexagesimal_rounding_up():
 def test_to_string_scalar():
     a = Angle(1.113355, unit=u.deg)
     assert isinstance(a.to_string(), six.text_type)
+
+from ..coordinates import coordinates
+
+def test_coordinate_to_string():
+    C = coordinates.ICRSCoordinates(12.05*u.deg, 13.5*u.deg)
+    assert C.to_string(precision=0) == u'0h48m12s 13d30m00s'
+    assert C.to_string(precision=1) == u'0h48m12.0s 13d30m00.0s'

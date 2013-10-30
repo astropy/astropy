@@ -713,20 +713,20 @@ class SphericalCoordinatesBase(object):
         --------
         >>> import astropy.coordinates as coords
         >>> C = coords.ICRSCoordinates.from_name('M 31')
-        >>> C.to_string()
-        u'0h42m44.32999s 41d16m07.50000s'
-        >>> C.to_string(sep=':')
-        u'0:42:44.32999 41:16:07.50000'
-        >>> C.to_string(style='dms')
-        u'10d41m04.94988s 41d16m07.50000s'
-        >>> C.to_string('decimal')
-        u'10.68471 41.26875'
-        >>> C.galactic.to_string('decimal')
-        u'121.17439 -21.57322'
-        >>> C.to_string(style=None)
-        u'10d41m04.94988s 41d16m07.50000s'
-        >>> C.to_string(style=None,sep=':')
-        u'10:41:04.94988 41:16:07.50000'
+        >>> C.to_string(precision=2)
+        u'0h42m44.33s 41d16m07.50s'
+        >>> C.to_string(sep=':',precision=2)
+        u'0:42:44.3e 41:16:07.50'
+        >>> C.to_string(style='dms',precision=2)
+        u'10d41m04.95s 41d16m07.50s'
+        >>> C.to_string('decimal',precision=2)
+        u'10.68 41.27'
+        >>> C.galactic.to_string('decimal',precision=2)
+        u'121.17 -21.57'
+        >>> C.to_string(style=None,precision=2)
+        u'10d41m04.95s 41d16m07.50s'
+        >>> C.to_string(style=None,sep=':',precision=2)
+        u'10:41:04.95 41:16:07.50'
         """
 
         styles = {'hmsdms': {'lonargs': {'unit':u.hour},
