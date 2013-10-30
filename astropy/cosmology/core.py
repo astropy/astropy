@@ -244,10 +244,10 @@ class FLRW(Cosmology):
         self._Ok0 = 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
 
     def __repr__(self):
-        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, Tcmb0=%r, Neff=%.3g, "\
-                 "m_nu=%r)"
-        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
-                   self._Tcmb0, self._Neff, self.m_nu)
+        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, "\
+                 "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
+        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0, 
+                   self._Ode0, self._Tcmb0, self._Neff, self.m_nu)
         return retstr
 
     # Set up a set of properties for H0, Om0, Ode0, Ok0, etc. for user access.
@@ -1527,10 +1527,11 @@ class wCDM(FLRW):
         self._w0 = float(w0)
 
     def __repr__(self):
-        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, Tcmb0=%r, "\
-                 "Neff=%.3g, m_nu=%r)"
-        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
-                   self._w0, self._Tcmb0, self._Neff, self.m_nu)
+        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
+                 "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
+        retstr %= (self.__class__.__name__, self.name, self._H0, 
+                   self._Om0, self._Ode0, self._w0, self._Tcmb0, 
+                   self._Neff, self.m_nu)
         return retstr
 
     @property
@@ -1708,10 +1709,10 @@ class FlatwCDM(wCDM):
         self._Ok0 = 0.0
 
     def __repr__(self):
-        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, Tcmb0=%r, "\
-                 "Neff=%.3g, m_nu=%r)"
-        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
-                   self._w0, self._Tcmb0, self._Neff, self.m_nu)
+        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
+                 "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
+        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0, 
+                   self._Ode0, self._w0, self._Tcmb0, self._Neff, self.m_nu)
         return retstr
 
     def efunc(self, z):
@@ -1844,10 +1845,11 @@ class w0waCDM(FLRW):
         self._wa = float(wa)
 
     def __repr__(self):
-        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, wa=%.3g, Tcmb0=%r, "\
-                 "Neff=%.3g, m_nu=%r)"
-        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
-                   self._w0, self._wa, self._Tcmb0, self._Neff, self.m_nu)
+        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
+                 "wa=%.3g, Tcmb0=%r, Neff=%.3g, m_nu=%r)"
+        retstr %= (self.__class__.__name__, self.name, self._H0, 
+                   self._Om0, self._Ode0, self._w0, self._wa, self._Tcmb0, 
+                   self._Neff, self.m_nu)
         return retstr
 
     @property
@@ -1986,10 +1988,11 @@ class Flatw0waCDM(w0waCDM):
         self._wa = float(wa)
 
     def __repr__(self):
-        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, wa=%.3g, Tcmb0=%r, "\
-                 "Neff=%.3g, m_nu=%r)"
-        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
-                   self._w0, self._wa, self._Tcmb0, self._Neff, self.m_nu)
+        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
+                 "wa=%.3g, Tcmb0=%r, Neff=%.3g, m_nu=%r)"
+        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0, 
+                   self._Ode0, self._w0, self._wa, self._Tcmb0, self._Neff, 
+                   self.m_nu)
         return retstr
 
 
@@ -2070,11 +2073,11 @@ class wpwaCDM(FLRW):
         self._zp = float(zp)
 
     def __repr__(self):
-        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, wp=%.3g, wa=%.3g, zp=%.3g, "\
-                 "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
-                   self._wp, self._wa, self._zp, self._Tcmb0, self._Neff,
-                   self.m_nu)
+        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, wp=%.3g, "\
+                 "wa=%.3g, zp=%.3g, Tcmb0=%r, Neff=%.3g, m_nu=%r)"
+        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0, 
+                   self._Ode0, self._wp, self._wa, self._zp, self._Tcmb0, 
+                   self._Neff, self.m_nu)
         return retstr
 
     @property
@@ -2229,10 +2232,10 @@ class w0wzCDM(FLRW):
         self._wz = float(wz)
 
     def __repr__(self):
-        retstr = "%s(H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, wz=%.3g, "\
-                 "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.name, self._H0, self._Om0, self._Ode0,
-                   self._w0, self._wz, self._Tcmb0, self._Neff,
+        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
+                 "wz=%.3g, Tcmb0=%r, Neff=%.3g, m_nu=%r)"
+        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0, 
+                   self._Ode0, self._w0, self._wz, self._Tcmb0, self._Neff,
                    self.m_nu)
         return retstr
 
@@ -2316,11 +2319,12 @@ for key in parameters.available:
                               Neff=par['Neff'],
                               m_nu=u.Quantity(par['m_nu'], u.eV),
                               name=key)
+        cosmo.__doc__ = "%s instance of FlatLambdaCDM cosmology\n\n(from %s)" % (key, par['reference'])
     else:
         cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'],
                           Tcmb0=par['Tcmb0'], Neff=par['Neff'],
                           m_nu=u.Quantity(par['m_nu'], u.eV), name=key)
-    cosmo.__doc__ = "%s cosmology\n\n(from %s)" % (key, par['reference'])
+        cosmo.__doc__ = "%s instance of LambdaCDM cosmology\n\n(from %s)" % (key, par['reference'])
     setattr(sys.modules[__name__], key, cosmo)
 
 # don't leave these variables floating around in the namespace
