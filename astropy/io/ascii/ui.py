@@ -196,8 +196,8 @@ def _guess(table, read_kwargs):
             reader = get_reader(**guess_kwargs)
             dat = reader.read(table)
 
-            # When guessing Reader require at least two columns
-            if 'Reader' not in read_kwargs and len(reader.cols) <= 1:
+            # When guessing require at least two columns
+            if len(dat.colnames) <= 1:
                 raise ValueError
             return dat
 
