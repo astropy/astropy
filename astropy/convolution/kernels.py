@@ -158,16 +158,22 @@ class Box1DKernel(Kernel1D):
     The Box filter or running mean is a smoothing filter. It is not isotropic
     and can produce artifacts, when applied repeatedly to the same data.
 
+    By default the Box kernel uses the `linear_interp` discretization mode,
+    which allows non shifting, even sized kernels.  This is achieved by
+    weighting the edge pixels with 1/2. E.g a Box kernel with an effective
+    smoothing of 4 pixel would have the following array: [0.5, 1, 1, 1, 0.5].
+
+
     Parameters
     ----------
     width : number
         Width of the filter kernel.
     mode: string, optional
         One of the following discretization modes:
-            * 'center' (default)
+            * 'center'
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'linear_interp'
+            * 'linear_interp' (default)
                 Discretize model by linearly interpolating
                 between the values at the corners of the bin.
             * 'oversample'
@@ -207,6 +213,7 @@ class Box1DKernel(Kernel1D):
     def __init__(self, width, **kwargs):
         self._model = models.Box1DModel(1. / width, 0, width)
         self._default_size = _round_up_to_odd_integer(width)
+        kwargs['mode'] = 'linear_interp'
         super(Box1DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()
@@ -219,16 +226,21 @@ class Box2DKernel(Kernel2D):
     The Box filter or running mean is a smoothing filter. It is not isotropic
     and can produce artifact, when applied repeatedly to the same data.
 
+    By default the Box kernel uses the `linear_interp` discretization mode,
+    which allows non shifting, even sized kernels.  This is achieved by
+    weighting the edge pixels with 1/2.
+
+
     Parameters
     ----------
     width : number
         Width of the filter kernel.
     mode: string, optional
         One of the following discretization modes:
-            * 'center' (default)
+            * 'center' 
                 Discretize model by taking the value
                 at the center of the bin.
-            * 'linear_interp'
+            * 'linear_interp' (default)
                 Discretize model by performing a bilinear interpolation
                 between the values at the corners of the bin.
             * 'oversample'
@@ -271,6 +283,7 @@ class Box2DKernel(Kernel2D):
     def __init__(self, width, **kwargs):
         self._model = models.Box2DModel(1. / width ** 2, 0, 0, width, width)
         self._default_size = _round_up_to_odd_integer(width)
+        kwargs['mode'] = 'linear_interp'
         super(Box2DKernel, self).__init__(**kwargs)
         self._truncation = 0
         self.normalize()

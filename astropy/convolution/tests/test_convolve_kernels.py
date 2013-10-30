@@ -9,7 +9,7 @@ from ..convolve import convolve, convolve_fft
 from ...tests.helper import pytest
 
 
-SHAPES_ODD = [[15, 15], [31, 31], ]
+SHAPES_ODD = [[15, 15], [31, 31]]
 SHAPES_EVEN = [[8, 8], [16, 16], [32, 32]]
 WIDTHS = [2, 3, 4, 5]
 
@@ -96,16 +96,15 @@ class Test2DConvolutions(object):
         assert_almost_equal(c1, c2, decimal=12)
 
     @pytest.mark.parametrize(('shape', 'width'), list(itertools.product(SHAPES_ODD, [1, 3, 5])))
-    def test_smallkernel_vs_makekernel(self, shape, width):
+    def test_smallkernel_Box2DKernel(self, shape, width):
         """
         Test smoothing of an image with a single positive pixel
 
-        Compares a small kernel to something produced by makekernel
+        Compares a small uniform kernel to the Box2DKernel 
         """
 
         kernel1 = np.ones([width, width]) / np.float(width) ** 2
-        kernel2 = Box2DKernel(width, x_size=shape[0], y_size=shape[1],
-                              mode='oversample', factor=10)
+        kernel2 = Box2DKernel(width, mode='oversample', factor=10)
 
         x = np.zeros(shape)
         xslice = [slice(sh // 2, sh // 2 + 1) for sh in shape]

@@ -720,8 +720,6 @@ class Box1DModel(Parametric1DModel):
             f(x) = \\left \\{
                      \\begin{array}{ll}
                        A & : x_0 - w/2 \\geq x \\geq x_0 + w/2 \\\\
-                       A/2 & :  x = x_0 + w/2 \\\\
-                       A/2 & :  x = x_0 - w/2 \\\\
                        0 & : \\textnormal{else}
                      \\end{array}
                    \\right.
@@ -739,11 +737,9 @@ class Box1DModel(Parametric1DModel):
     def eval(x, amplitude, x_0, width):
         """One dimensional Box model function"""
 
-        return np.select([np.logical_and(x > x_0 - width / 2.,
-                                         x < x_0 + width / 2.),
-                          np.logical_or(x == x_0 - width / 2.,
-                                        x == x_0 + width / 2.)],
-                         [amplitude, amplitude / 2.])
+        return np.select([np.logical_and(x >= x_0 - width / 2.,
+                                         x <= x_0 + width / 2.)],
+                                        [amplitude], 0)
 
     @classmethod
     def deriv(cls, x, amplitude, x_0, width):
@@ -786,10 +782,6 @@ class Box2DModel(Parametric2DModel):
                      \\begin{array}{ll}
                        A & : x_0 - w_x/2 \\geq x \\geq x_0 + w_x/2 \\\\
                        A & : y_0 - w_y/2 \\geq y \\geq y_0 + w_y/2 \\\\
-                       A/2 & :  x = x_0 + w_x/2 \\\\
-                       A/2 & :  x = x_0 - w_x/2 \\\\
-                       A/2 & :  y = y_0 + w_y/2 \\\\
-                       A/2 & :  y = y_0 - w_y/2 \\\\
                        0 & : \\textnormal{else}
                      \\end{array}
                    \\right.
@@ -810,15 +802,9 @@ class Box2DModel(Parametric2DModel):
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, x_width, y_width):
         """Two dimensional Box model function"""
-        x_range = np.logical_and(x > x_0 - x_width / 2., x < x_0 + x_width / 2.)
-        y_range = np.logical_and(y > y_0 - y_width / 2., y < y_0 + y_width / 2.)
-        x_boundary = np.logical_or(x == x_0 - x_width / 2., x == x_0 + x_width / 2.)
-        y_boundary = np.logical_or(y == y_0 - y_width / 2., y == y_0 + y_width / 2.)
-        return np.select([np.logical_and(x_range, y_range),
-                          np.logical_and(x_boundary, y_range),
-                          np.logical_and(y_boundary, x_range),
-                          np.logical_and(y_boundary, x_boundary)],
-                         [amplitude, amplitude / 2., amplitude / 2., amplitude / 4.])
+        x_range = np.logical_and(x >= x_0 - x_width / 2., x <= x_0 + x_width / 2.)
+        y_range = np.logical_and(y >= y_0 - y_width / 2., y <= y_0 + y_width / 2.)
+        return np.select([np.logical_and(x_range, y_range)], [amplitude], 0)
 
 
 class Trapezoid1DModel(Parametric1DModel):
