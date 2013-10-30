@@ -21,9 +21,10 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-widths = [3, 5, 7, 9]
-modes = ['center', 'linear_interp', 'oversample', 'integrate']
-kernel_types = [Gaussian1DKernel, Gaussian2DKernel,
+WIDTHS_ODD = [3, 5, 7, 9]
+WIDTHS_EVEN = [2, 4, 8, 16]
+MODES = ['center', 'linear_interp', 'oversample', 'integrate']
+KERNEL_TYPES = [Gaussian1DKernel, Gaussian2DKernel,
                 Box1DKernel, Box2DKernel,
                 Trapezoid1DKernel, TrapezoidDisk2DKernel,
                 MexicanHat1DKernel, Tophat2DKernel, AiryDisk2DKernel, Ring2DKernel]
@@ -45,7 +46,7 @@ class TestKernels(object):
     """
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    @pytest.mark.parametrize(('width'), widths)
+    @pytest.mark.parametrize(('width'), WIDTHS_ODD)
     def test_scipy_filter_gaussian(self, width):
         """
         Test GaussianKernel against SciPy ndimage gaussian filter.
@@ -65,7 +66,7 @@ class TestKernels(object):
         assert_almost_equal(astropy_2D, scipy_2D, decimal=12)
 
     @pytest.mark.skipif('not HAS_SCIPY')
-    @pytest.mark.parametrize(('width'), widths)
+    @pytest.mark.parametrize(('width'), WIDTHS_ODD)
     def test_scipy_filter_gaussian_laplace(self, width):
         """
         Test MexicanHat kernels against SciPy ndimage gaussian laplace filters.
@@ -86,7 +87,7 @@ class TestKernels(object):
         assert_almost_equal(astropy_1D, scipy_1D, decimal=5)
         assert_almost_equal(astropy_2D, scipy_2D, decimal=5)
 
-    @pytest.mark.parametrize(('kernel_type', 'width'), list(itertools.product(kernel_types, widths)))
+    @pytest.mark.parametrize(('kernel_type', 'width'), list(itertools.product(KERNEL_TYPES, WIDTHS_ODD)))
     def test_delta_data(self, kernel_type,  width):
         """
         Test smoothing of an image with a single positive pixel
@@ -107,7 +108,7 @@ class TestKernels(object):
             c2 = convolve(delta_pulse_2D, kernel, boundary='fill')
             assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('kernel_type', 'width'), list(itertools.product(kernel_types, widths)))
+    @pytest.mark.parametrize(('kernel_type', 'width'), list(itertools.product(KERNEL_TYPES, WIDTHS_ODD)))
     def test_random_data(self, kernel_type, width):
         """
         Test smoothing of an image made of random noise
@@ -128,7 +129,7 @@ class TestKernels(object):
             c2 = convolve(random_data_2D, kernel, boundary='fill')
             assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('width'), widths)
+    @pytest.mark.parametrize(('width'), WIDTHS_ODD)
     def test_uniform_smallkernel(self, width):
         """
         Test smoothing of an image with a single positive pixel
@@ -141,7 +142,7 @@ class TestKernels(object):
         c1 = convolve(delta_pulse_2D, kernel, boundary='fill')
         assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(('width'), widths)
+    @pytest.mark.parametrize(('width'), WIDTHS_ODD)
     def test_smallkernel_vs_Box2DKernel(self, width):
         """
         Test smoothing of an image with a single positive pixel
@@ -300,7 +301,7 @@ class TestKernels(object):
         # Check seperability
         assert box.separable
 
-    @pytest.mark.parametrize(('kernel_type', 'mode'), list(itertools.product(kernel_types, modes)))
+    @pytest.mark.parametrize(('kernel_type', 'mode'), list(itertools.product(KERNEL_TYPES, MODES)))
     def test_dicretize_modes(self, kernel_type, mode):
         """
         Check if the different modes result in kernels that work with convolve.
@@ -322,4 +323,15 @@ class TestKernels(object):
             c2 = convolve(delta_pulse_2D, kernel, boundary='fill')
             assert_almost_equal(c1, c2, decimal=12)
 
+    @pytest.mark.parametrize(('width'), WIDTHS_EVEN)
+    def test_box_kernels_even_size(self, width):
+        """
+        Check if BoxKernel work properly with even sizes.
+        """
+        kernel_1D = Box1DKernel(width)
+        assert kernel_1D.shape[0] % 2 != 0
+        assert kernel_1D.array.sum() == 1.
 
+        kernel_2D = Box2DKernel(width)
+        assert np.all([_ % 2 != 0 for _ in kernel_2D.shape])
+        assert kernel_2D.array.sum() == 1.
