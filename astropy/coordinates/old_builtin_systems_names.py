@@ -121,4 +121,4 @@ def _add_transforms(clses, graph):
         graph.add_transform(newcls, cls, lambda c:deepcopy(c))
 
 #Now go through and add transforms so that the old names give you transforms to new things
-_add_transforms([locals()[nm] for nm in __all__], master_transform_graph)
+_add_transforms([globals()[nm] for nm in __all__], master_transform_graph)
