@@ -286,8 +286,9 @@ if SUPPORTS_OPEN_FILE_DETECTION:
 
 
 def pytest_report_header(config):
-
     from .. import __version__
+
+    stdoutencoding = sys.stdout.encoding or 'ascii'
 
     s = "\nRunning tests with Astropy version {0}.\n".format(__version__)
     s += "Running tests in {0}.\n\n".format(" ".join(config.args))
@@ -295,7 +296,7 @@ def pytest_report_header(config):
     from platform import platform
     plat = platform()
     if isinstance(plat, bytes):
-        plat = plat.decode(sys.stdout.encoding or 'ascii', 'replace')
+        plat = plat.decode(stdoutencoding, 'replace')
     s += "Platform: {0}\n\n".format(plat)
     s += "Executable: {0}\n\n".format(sys.executable)
     s += "Full Python Version: \n{0}\n\n".format(sys.version)
@@ -343,7 +344,7 @@ def pytest_report_header(config):
         s += "Using Astropy options: {0}.\n".format(" ".join(opts))
 
     if not six.PY3:
-        s = s.encode(sys.stdout.encoding or 'ascii', 'replace')
+        s = s.encode(stdoutencoding, 'replace')
 
     return s
 
