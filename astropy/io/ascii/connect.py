@@ -29,8 +29,6 @@ io_registry.register_writer('ascii', Table, write_asciitable)
 
 def io_read(format, filename, **kwargs):
     from .ui import read
-    if 'guess' not in kwargs:
-        kwargs['guess'] = False
     format = re.sub(r'^ascii\.', '', format)
     return read(filename, format=format, **kwargs)
 
