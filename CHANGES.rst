@@ -269,6 +269,14 @@ API Changes
     argument for specifying the file format.  This is the preferred way to choose
     the format instead of the ``Reader`` and ``Writer`` arguments [#961].
 
+  - Allow numeric and otherwise unusual column names when reading a table
+    where the ``format`` argument is specified, but other format details such
+    as the delimiter or quote character are being guessed [#1692].
+
+  - When reading an ASCII table using the ``Table.read()`` method, the default
+    has changed from ``guess=False`` to ``guess=True`` to allow auto-detection
+    of file format.  This matches the default behavior of ``ascii.read()``.
+
 - ``astropy.io.fits``
 
   - The ``updateHeader``, ``updateHeaderData``, and ``updateCompressedData``
@@ -391,6 +399,10 @@ Bug Fixes
 - ``astropy.io.ascii``
 
   - The ``write()`` function was ignoring the ``fill_values`` argument. [#910]
+
+  - When a table with no header row was read without specifying the
+    format and using the ``names`` argument, then the first row could
+    be dropped [#1692].
 
 - ``astropy.units``
 
