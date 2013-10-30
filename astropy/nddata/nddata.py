@@ -396,7 +396,7 @@ class NDData(object):
 
         result.flags = None
         result.wcs = self.wcs
-        result.meta = OrderedDict()
+        result.meta = None
         result.unit = self.unit
 
         return result

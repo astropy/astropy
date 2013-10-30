@@ -119,6 +119,8 @@ class MetaData(object):
     """
 
     def __get__(self, instance, owner):
+        if not hasattr(instance, '_meta'):
+            instance._meta = OrderedDict()
         return instance._meta
 
     def __set__(self, instance, value):
