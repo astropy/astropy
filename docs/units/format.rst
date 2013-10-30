@@ -1,14 +1,14 @@
 .. _astropy-units-format:
 
-Unit formats
-============
+Printing units as strings
+=========================
 
 .. |quantity| replace:: :class:`~astropy.units.quantity.Quantity`
 
 .. |unit| replace:: :class:`~astropy.units.core.UnitBase`
 
-You can control the way that |quantity| and |unit| objects print using
-the new `Format String Syntax
+You can control the way that |quantity| and |unit| objects are rendered as
+strings using the new `Format String Syntax
 <http://docs.python.org/library/string.html#format-string-syntax>`__.
 New-style format strings use the ``"{}".format()`` syntax.  Most of
 the format speficiers are simliar to the old ``%``-style formatting,
