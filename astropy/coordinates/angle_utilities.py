@@ -285,8 +285,8 @@ def _check_minute_range(m):
     """
     if np.any(m == 60.):
         warn(IllegalMinuteWarning(m, 'Treating as 0 min, +1 hr/deg'))
-    elif np.any(m < 0.) or np.any(m > 60.):
-        # "Error: minutes not in range [0,60) ({0}).".format(min))
+    elif np.any(m < -60.) or np.any(m > 60.):
+        # "Error: minutes not in range [-60,60) ({0}).".format(min))
         raise IllegalMinuteError(m)
 
 
@@ -297,8 +297,8 @@ def _check_second_range(sec):
     """
     if np.any(sec == 60.):
         warn(IllegalSecondWarning(sec, 'Treating as 0 sec, +1 min'))
-    elif np.any(sec < 0.) or np.any(sec > 60.):
-        # "Error: seconds not in range [0,60) ({0}).".format(sec))
+    elif np.any(sec < -60.) or np.any(sec > 60.):
+        # "Error: seconds not in range [-60,60) ({0}).".format(sec))
         raise IllegalSecondError(sec)
 
 
@@ -358,7 +358,7 @@ def degrees_to_dms(d):
     (mf, m) = np.modf(df * 60.)  # (minute fraction, minute)
     s = mf * 60.
 
-    return np.floor(sign * d), np.floor(m), s
+    return np.floor(sign * d), sign * np.floor(m), sign * s
 
 
 def dms_to_degrees(d, m, s):
@@ -465,7 +465,7 @@ def hours_to_hms(h):
     (mf, m) = np.modf(hf * 60.0)  # (minute fraction, minute)
     s = mf * 60.0
 
-    return (np.floor(sign * h), np.floor(m), s)
+    return (np.floor(sign * h), sign * np.floor(m), sign * s)
 
 
 def radians_to_degrees(r):
