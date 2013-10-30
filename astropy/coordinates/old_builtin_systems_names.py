@@ -17,7 +17,6 @@ class ICRSCoordinates(ICRS):
     Using the `ICRSCoordinates` name for this class is deprecated in v0.3, and will be
     removed in the next version. Use `ICRS` instead.
     """
-    _hide_in_graph_plots = True
     def __new__(cls, *args, **kwargs):
         from warnings import warn
         from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
@@ -32,7 +31,6 @@ class FK5Coordinates(FK5):
     Using the `FK5Coordinates` name for this class is deprecated in v0.3, and will be
     removed in the next version. Use `FK5` instead.
     """
-    _hide_in_graph_plots = True
     def __new__(cls, *args, **kwargs):
         from warnings import warn
         from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
@@ -47,7 +45,6 @@ class FK4Coordinates(FK4):
     Using the `FK4Coordinates` name for this class is deprecated in v0.3, and will be
     removed in the next version. Use `FK4` instead.
     """
-    _hide_in_graph_plots = True
     def __new__(cls, *args, **kwargs):
         from warnings import warn
         from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
@@ -62,7 +59,6 @@ class FK4NoETermCoordinates(FK4NoETerms):
     Using the `FK4NoETermCoordinates` name for this class is deprecated in v0.3, and will be
     removed in the next version. Use `FK4NoETerms` instead.
     """
-    _hide_in_graph_plots = True
     def __new__(cls, *args, **kwargs):
         from warnings import warn
         from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
@@ -77,7 +73,6 @@ class GalacticCoordinates(Galactic):
     Using the `GalacticCoordinates` name for this class is deprecated in v0.3, and will be
     removed in the next version. Use `Galactic` instead.
     """
-    _hide_in_graph_plots = True
     def __new__(cls, *args, **kwargs):
         from warnings import warn
         from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
@@ -92,7 +87,6 @@ class HorizontalCoordinates(AltAz):
     Using the `HorizontalCoordinates` name for this class is deprecated in v0.3, and will be
     removed in the next version. Use `AltAz` instead.
     """
-    _hide_in_graph_plots = True
     def __new__(cls, *args, **kwargs):
         from warnings import warn
         from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
@@ -104,9 +98,11 @@ class HorizontalCoordinates(AltAz):
 
 def _add_transforms(clses, graph):
     """
-    Adds "fake" transforms that allow transforming to the old names, although
-    they should actually yield the new ones
+    Adds fake transformations that allow transforming to the old names, although
+    they actually yield the new class types
     """
+    from copy import deepcopy
+
     for cls in clses:
         newcls = cls.mro()[1]
         gdct = graph._graph
@@ -119,6 +115,10 @@ def _add_transforms(clses, graph):
         for a, b, t in toadd:
             #adds a new transform that goes *to* the old name class
             graph.add_transform(a, b, t)
+
+        #also add a transformation that just gives itself back to go from
+        #self to old-style name
+        graph.add_transform(newcls, cls, lambda c:deepcopy(c))
 
 #Now go through and add transforms so that the old names give you transforms to new things
 _add_transforms([locals()[nm] for nm in __all__], master_transform_graph)
