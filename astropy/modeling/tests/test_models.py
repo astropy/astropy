@@ -156,8 +156,8 @@ def test_custom_model(amplitude=4, frequency=1):
     np.random.seed(0)
     data = sin_model(x) + np.random.rand(len(x)) - 0.5
     fitter = fitting.NonLinearLSQFitter()
-    fitter(sin_model, x, data)
-    fitparams, _ = sin_model._model_to_fit_params()
+    model = fitter(sin_model, x, data)
+    fitparams, _ = model._model_to_fit_params()
     assert np.all((fitparams - np.array([amplitude, frequency])) < 0.001)
 
 
@@ -226,15 +226,15 @@ class TestParametricModels(object):
         relative_noise_amplitude = 0.01
         data = (1 + relative_noise_amplitude * np.random.randn(len(x))) * model(x)
         fitter = fitting.NonLinearLSQFitter()
-        fitter(model, x, data)
+        new_model = fitter(model, x, data)
 
         # Only check parameters that were free in the fit
-        params = [getattr(model, name) for name in model.param_names]
+        params = [getattr(new_model, name) for name in new_model.param_names]
         fixed = [par.fixed for par in params]
         fitted_parameters = [val
                              for (val, fixed) in zip(parameters, fixed)
                              if not fixed]
-        fitparams, _ = model._model_to_fit_params()
+        fitparams, _ = new_model._model_to_fit_params()
         utils.assert_allclose(fitparams, fitted_parameters,
                               atol=self.fit_error)
 
@@ -289,8 +289,8 @@ class TestParametricModels(object):
         # add 10% noise to the amplitude
         data = model(xv, yv) + 0.1 * parameters[0] * (np.random.rand(self.N, self.N) - 0.5)
         fitter = fitting.NonLinearLSQFitter()
-        fitter(model, xv, yv, data)
-        fitparams, _ = model._model_to_fit_params()
+        new_model = fitter(model, xv, yv, data)
+        fitparams, _ = new_model._model_to_fit_params()
         utils.assert_allclose(fitparams, parameters, atol=self.fit_error)
 
     @pytest.mark.skipif('not HAS_SCIPY')
@@ -333,10 +333,10 @@ class TestParametricModels(object):
         model = create_model(model_class, parameters, use_constraints=False)
         data = model(xv, yv) + n
         fitter_with_deriv = fitting.NonLinearLSQFitter()
-        fitter_with_deriv(model_with_deriv, xv, yv, data)
+        new_model_with_deriv = fitter_with_deriv(model_with_deriv, xv, yv, data)
         fitter_no_deriv = fitting.NonLinearLSQFitter()
-        fitter_no_deriv(model_no_deriv, xv, yv, data, estimate_jacobian=True)
-        utils.assert_allclose(model_with_deriv.parameters, model_no_deriv.parameters, rtol=0.1)
+        new_model_no_deriv = fitter_no_deriv(model_no_deriv, xv, yv, data, estimate_jacobian=True)
+        utils.assert_allclose(new_model_with_deriv.parameters, new_model_no_deriv.parameters, rtol=0.1)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     @pytest.mark.parametrize(('model_class'), list(models_1D.keys()))
@@ -367,10 +367,10 @@ class TestParametricModels(object):
 
         data = model_with_deriv(x) + n
         fitter_with_deriv = fitting.NonLinearLSQFitter()
-        fitter_with_deriv(model_with_deriv, x, data)
+        new_model_with_deriv = fitter_with_deriv(model_with_deriv, x, data)
         fitter_no_deriv = fitting.NonLinearLSQFitter()
-        fitter_no_deriv(model_no_deriv, x, data, estimate_jacobian=True)
-        utils.assert_allclose(model_with_deriv.parameters, model_no_deriv.parameters, atol=0.1)
+        new_model_no_deriv = fitter_no_deriv(model_no_deriv, x, data, estimate_jacobian=True)
+        utils.assert_allclose(new_model_with_deriv.parameters, new_model_no_deriv.parameters, atol=0.1)
 
 def create_model(model_class, parameters, use_constraints=True):
     """

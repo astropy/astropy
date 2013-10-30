@@ -141,9 +141,9 @@ class TestParameters(object):
 
         Uses an iraf example.
         """
-        self.linear_fitter(self.model, self.x, self.y)
+        new_model = self.linear_fitter(self.model, self.x, self.y)
         print self.y, self.x
-        utils.assert_allclose(self.model.parameters,
+        utils.assert_allclose(new_model.parameters,
                               np.array(
                                   [4826.1066602783685, 952.8943813407858,
                                    12.641236013982386,
@@ -200,7 +200,6 @@ class TestParameters(object):
         sh1 = models.ShiftModel(2)
         with pytest.raises(InputParameterError):
             sh1.offsets = [3, 3]
-
 
 
 class TestMultipleParameterSets(object):

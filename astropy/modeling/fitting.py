@@ -83,7 +83,7 @@ class Fitter(object):
     supported_constraints = []
 
     def __init__(self):
-        self._weights = None
+        self.weights = None
 
     def _validate_constraints(self):
         message = '{0} cannot handle {{0}} constraints.'.format(
@@ -157,7 +157,7 @@ class LinearLSQFitter(Fitter):
 
     supported_constraints = ['fixed']
 
-    def __init__(self):#, model):
+    def __init__(self):
         super(LinearLSQFitter, self).__init__()
         
         self.fit_info = {'residuals': None,
@@ -217,8 +217,8 @@ class LinearLSQFitter(Fitter):
             raise ModelLinearityError('Model is not linear in parameters, '
                                       'linear fit methods should not be used.')
         multiple = False
-
-        if model.n_inputs == 2 and z is None:
+        model_copy = model.copy()
+        if model_copy.n_inputs == 2 and z is None:
             raise ValueError("Expected x, y and z for a 2 dimensional model.")
 
         farg = _convert_input(x, y, z)
@@ -226,16 +226,16 @@ class LinearLSQFitter(Fitter):
         if len(farg) == 2:
             x, y = farg
             if y.ndim == 2:
-                assert y.shape[1] == model.param_dim, (
+                assert y.shape[1] == model_copy.param_dim, (
                     "Number of data sets (Y array is expected to equal "
                     "the number of parameter sets")
             # map domain into window
-            if hasattr(model, 'domain'):
-                x = self._map_domain_window(model, x)
-            if any(model.fixed.values()):
-                lhs = model._deriv_with_constraints(x=x)
+            if hasattr(model_copy, 'domain'):
+                x = self._map_domain_window(model_copy, x)
+            if any(model_copy.fixed.values()):
+                lhs = model_copy._deriv_with_constraints(x=x)
             else:
-                lhs = model.deriv(x=x)
+                lhs = model_copy.deriv(x=x)
             if len(y.shape) == 2:
                 rhs = y
                 multiple = y.shape[1]
@@ -247,13 +247,13 @@ class LinearLSQFitter(Fitter):
                 raise ValueError("x and z should have equal last dimensions")
 
             # map domain into window
-            if hasattr(model, 'x_domain'):
-                x, y = self._map_domain_window(model, x, y)
+            if hasattr(model_copy, 'x_domain'):
+                x, y = self._map_domain_window(model_copy, x, y)
 
-            if any(model.fixed.values()):
-                lhs = model._deriv_with_constraints(x=x, y=y)
+            if any(model_copy.fixed.values()):
+                lhs = model_copy._deriv_with_constraints(x=x, y=y)
             else:
-                lhs = model.deriv(x=x, y=y)
+                lhs = model_copy.deriv(x=x, y=y)
             if len(z.shape) == 3:
                 rhs = np.array([i.flatten() for i in z]).T
                 multiple = z.shape[0]
@@ -271,7 +271,7 @@ class LinearLSQFitter(Fitter):
                 lhs *= weights[:, np.newaxis]
                 rhs *= weights
 
-        if not multiple and model.param_dim > 1:
+        if not multiple and model_copy.param_dim > 1:
             raise ValueError("Attempting to fit a 1D data set to a model "
                              "with multiple parameter sets")
         if rcond is None:
@@ -287,19 +287,19 @@ class LinearLSQFitter(Fitter):
         # If y.n_inputs > model.n_inputs we are doing a simultanious 1D fitting
         # of several 1D arrays. Otherwise the model is 2D.
         # if y.n_inputs > self.model.n_inputs:
-        if multiple and model.param_dim != multiple:
-            model.param_dim = multiple
+        if multiple and model_copy.param_dim != multiple:
+            model_copy.param_dim = multiple
         # TODO: Changing the model's param_dim needs to be handled more
         # carefully; for now it's not actually allowed
         lacoef = (lacoef.T / scl).T
         self.fit_info['params'] = lacoef
         # TODO: Only Polynomial models currently have an _order attribute;
         # maybe change this to read isinstance(model, PolynomialBase)
-        if hasattr(model, '_order') and rank != model._order:
+        if hasattr(model_copy, '_order') and rank != model_copy._order:
             warnings.warn("The fit may be poorly conditioned\n",
                           AstropyUserWarning)
-        model.fit_parameters(lacoef.flatten())
-
+        model_copy.fit_parameters(lacoef.flatten())
+        return model_copy
 
 class NonLinearLSQFitter(Fitter):
     """
@@ -392,23 +392,23 @@ class NonLinearLSQFitter(Fitter):
         if not model.fittable:
             raise ValueError("Model must be a subclass of ParametricModel")
         from scipy import optimize
-
-        farg = (model, ) + _convert_input(x, y, z)
+        model_copy = model.copy()
+        farg = (model_copy, ) + _convert_input(x, y, z)
         self.weights = weights
-        if model.param_dim != 1:
+        if model_copy.param_dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit one "
                              "data set at a time")
-        if model.deriv is None or estimate_jacobian:
+        if model_copy.deriv is None or estimate_jacobian:
             dfunc = None
         else:
-            dfunc = model._wrap_deriv
-        init_values, _ = model._model_to_fit_params()
+            dfunc = model_copy._wrap_deriv
+        init_values, _ = model_copy._model_to_fit_params()
         fitparams, status, dinfo, mess, ierr = optimize.leastsq(
             self.errorfunc, init_values, args=farg, Dfun=dfunc,
-            col_deriv=model.col_deriv, maxfev=maxiter, epsfcn=epsilon,
+            col_deriv=model_copy.col_deriv, maxfev=maxiter, epsfcn=epsilon,
             full_output=True)
-        model.fit_parameters(fitparams)
+        model_copy.fit_parameters(fitparams)
         self.fit_info.update(dinfo)
         self.fit_info['status'] = status
         self.fit_info['message'] = mess
@@ -417,6 +417,7 @@ class NonLinearLSQFitter(Fitter):
             warnings.warn("The fit may be unsuccessful; check "
                           "fit_info['message'] for more information.",
                           AstropyUserWarning)
+        return model_copy
 
 
 class SLSQPFitter(Fitter):
@@ -505,19 +506,19 @@ class SLSQPFitter(Fitter):
             warnings.warn('Model is linear in parameters; '
                           'consider using linear fitting methods.',
                           AstropyUserWarning)
-
+        model_copy = model.copy()
         from scipy import optimize
 
         farg = _convert_input(x, y, z)
-        farg = (model, ) + farg
+        farg = (model_copy, ) + farg
         self.weights = weights
-        if model.param_dim != 1:
+        if model_copy.param_dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit "
                              "one data set at a time")
 
-        p0, _ = model._model_to_fit_params()
-        pars = [getattr(model, name) for name in model.param_names]
+        p0, _ = model_copy._model_to_fit_params()
+        pars = [getattr(model_copy, name) for name in model_copy.param_names]
         fixed = [par.fixed for par in pars]
             
         min_values = [par.min for par in pars if (par.fixed !=True and par.tied == False)]
@@ -531,8 +532,8 @@ class SLSQPFitter(Fitter):
             b.append((i, j))
         bounds = np.array(b)
 
-        eqcons = np.array(model.eqcons)
-        ineqcons = np.array(model.ineqcons) 
+        eqcons = np.array(model_copy.eqcons)
+        ineqcons = np.array(model_copy.ineqcons) 
         fitparams, final_func_val, numiter, exit_mode, mess = \
             optimize.fmin_slsqp(
             self.errorfunc, p0, args=farg, disp=verblevel, full_output=1,
@@ -548,6 +549,7 @@ class SLSQPFitter(Fitter):
             warnings.warn("The fit may be unsuccessful; check "
                           "fit_info['message'] for more information.",
                           AstropyUserWarning)
+        return model_copy
 
 
 class JointFitter(object):
