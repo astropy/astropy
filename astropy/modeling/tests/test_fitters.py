@@ -38,19 +38,19 @@ class TestPolynomial2D(object):
     def test_poly2D_fitting(self):
         v = self.model.deriv(x=self.x, y=self.y)
         p = linalg.lstsq(v, self.z.flatten())[0]
-        self.fitter(self.model, self.x, self.y, self.z)
-        utils.assert_allclose(self.model.parameters, p)
+        new_model = self.fitter(self.model, self.x, self.y, self.z)
+        utils.assert_allclose(new_model.parameters, p)
 
     def test_eval(self):
-        self.fitter(self.model, self.x, self.y, self.z)
-        utils.assert_allclose(self.model(self.x, self.y), self.z)
+        new_model = self.fitter(self.model, self.x, self.y, self.z)
+        utils.assert_allclose(new_model(self.x, self.y), self.z)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_polynomial2D_nonlinear_fitting(self):
         self.model.parameters = [.6, 1.8, 2.9, 3.7, 4.9, 6.7]
         nlfitter = fitting.NonLinearLSQFitter()
-        nlfitter(self.model, self.x, self.y, self.z)
-        utils.assert_allclose(self.model.parameters, [1, 2, 3, 4, 5, 6])
+        new_model = nlfitter(self.model, self.x, self.y, self.z)
+        utils.assert_allclose(new_model.parameters, [1, 2, 3, 4, 5, 6])
 
 
 class TestICheb2D(object):
@@ -74,12 +74,12 @@ class TestICheb2D(object):
         p = np.array([1344., 1772., 400., 1860., 2448., 552., 432., 568.,
                       128.])
         z = self.cheb2(self.x, self.y)
-        self.fitter(self.cheb2, self.x, self.y, z)
-        utils.assert_almost_equal(self.cheb2.parameters, p)
+        model = self.fitter(self.cheb2, self.x, self.y, z)
+        utils.assert_almost_equal(model.parameters, p)
 
     def test_poly2D_cheb2D(self):
-        self.fitter(self.cheb2, self.x, self.y, self.z)
-        z1 = self.cheb2(self.x, self.y)
+        model = self.fitter(self.cheb2, self.x, self.y, self.z)
+        z1 = model(self.x, self.y)
         utils.assert_almost_equal(self.z, z1)
 
     @pytest.mark.skipif('not HAS_SCIPY')
@@ -89,8 +89,8 @@ class TestICheb2D(object):
         z = cheb2d(self.x, self.y)
         cheb2d.parameters = [0.1, .6, 1.8, 2.9, 3.7, 4.9, 6.7, 7.5, 8.9]
         nlfitter = fitting.NonLinearLSQFitter()
-        nlfitter(cheb2d, self.x, self.y, z)
-        utils.assert_allclose(cheb2d.parameters, [0, 1, 2, 3, 4, 5, 6, 7, 8], atol=10**-9)
+        model = nlfitter(cheb2d, self.x, self.y, z)
+        utils.assert_allclose(model.parameters, [0, 1, 2, 3, 4, 5, 6, 7, 8], atol=10**-9)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -161,8 +161,8 @@ class TestLinearLSQFitter(object):
         self.yy = np.array([record.z, record.z])
 
     def test_chebyshev1D(self):
-        self.lf(self.model, self.x, self.y)
-        utils.assert_allclose(self.model.parameters, np.array(self.icoeff),
+        new_model = self.lf(self.model, self.x, self.y)
+        utils.assert_allclose(new_model.parameters, np.array(self.icoeff),
                               rtol=10E-2)
 
 
@@ -185,33 +185,33 @@ class TestNonLinearFitters(object):
     def test_estimated_vs_analytic_deriv(self):
         g1 = models.Gaussian1DModel(100, 5, stddev=1)
         fitter = fitting.NonLinearLSQFitter()
-        fitter(g1, self.xdata, self.ydata)
+        model = fitter(g1, self.xdata, self.ydata)
         g1e = models.Gaussian1DModel(100, 5.0, stddev=1)
         efitter = fitting.NonLinearLSQFitter()
-        efitter(g1e, self.xdata, self.ydata, estimate_jacobian=True)
-        utils.assert_allclose(g1.parameters, g1e.parameters, rtol=10 ** (-3))
+        emodel = efitter(g1e, self.xdata, self.ydata, estimate_jacobian=True)
+        utils.assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_with_optimize(self):
         g1 = models.Gaussian1DModel(100, 5, stddev=1)
         fitter = fitting.NonLinearLSQFitter()
-        fitter(g1, self.xdata, self.ydata, estimate_jacobian=True)
+        model = fitter(g1, self.xdata, self.ydata, estimate_jacobian=True)
         func = lambda p, x: p[0] * np.exp(-0.5 / p[2] ** 2 * (x - p[1]) ** 2)
         errf = lambda p, x, y: (func(p, x) - y)
         result = optimize.leastsq(errf, self.initial_values, args=(self.xdata, self.ydata))
-        utils.assert_allclose(g1.parameters, result[0], rtol=10 ** (-3))
+        utils.assert_allclose(model.parameters, result[0], rtol=10 ** (-3))
 
     def test_LSQ_SLSQP(self):
         g1 = models.Gaussian1DModel(100, 5, stddev=1)
         fitter = fitting.NonLinearLSQFitter()
         g1_slsqp = models.Gaussian1DModel(100, 5, stddev=1)
         fslsqp = fitting.SLSQPFitter()
-        fslsqp(g1_slsqp, self.xdata, self.ydata)
-        fitter(g1, self.xdata, self.ydata)
+        slsqp_model = fslsqp(g1_slsqp, self.xdata, self.ydata)
+        model = fitter(g1, self.xdata, self.ydata)
         # There's a bug in the SLSQP algorithm and sometimes it gives the
         # negative value of the result. unitl this is understood, for this
         # test, take np.abs()
-        utils.assert_allclose(g1.parameters, np.abs(g1_slsqp.parameters),
+        utils.assert_allclose(model.parameters, np.abs(slsqp_model.parameters),
                               rtol=10 ** (-4))
 
     def test_LSQ_SLSQP_cons(self):
@@ -221,10 +221,10 @@ class TestNonLinearFitters(object):
         g1_slsqp = models.Gaussian1DModel(100, 5, stddev=1)
         g1_slsqp.mean.fixed = True
         fslsqp = fitting.SLSQPFitter()
-        fslsqp(g1_slsqp, self.xdata, self.ydata)
-        fitter(g1, self.xdata, self.ydata)
+        slsqp_model = fslsqp(g1_slsqp, self.xdata, self.ydata)
+        model = fitter(g1, self.xdata, self.ydata)
         # There's a bug in the SLSQP algorithm and sometimes it gives the
         # negative value of the result. unitl this is understood, for this
         # test, take np.abs()
-        utils.assert_allclose(g1.parameters, np.abs(g1_slsqp.parameters),
+        utils.assert_allclose(model.parameters, np.abs(slsqp_model.parameters),
                               rtol=10 ** (-4))

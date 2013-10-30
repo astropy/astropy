@@ -44,7 +44,7 @@ from __future__ import division
 
 import abc
 import functools
-
+import copy
 from itertools import izip
 from textwrap import dedent
 
@@ -270,6 +270,9 @@ class Model(object):
             return SerialCompositeModel([self, newtr])
         else:
             raise InputParameterError("Unrecognized mode {0}".format(mode))
+
+    def copy(self):
+        return copy.deepcopy(self)
 
     @abc.abstractmethod
     def __call__(self):

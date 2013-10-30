@@ -1039,6 +1039,16 @@ class AiryDisk2DModel(Parametric2DModel):
                                               y_0=y_0, width=width,
                                               **constraints)
 
+    def __deepcopy__(self, memo):
+        new_model = self.__class__(self.amplitude.value, self.x_0.value,
+                                   self.y_0.value, self.width.value)
+        return new_model
+
+    def __copy__(self):
+        new_model = self.__class__(self.amplitude.value, self.x_0.value,
+                                   self.y_0.value, self.width.value)
+        return new_model
+
     @classmethod
     def eval(cls, x, y, amplitude, x_0, y_0, width):
         """Two dimensional Airy model function"""
