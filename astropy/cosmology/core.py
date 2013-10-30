@@ -243,7 +243,7 @@ class FLRW(Cosmology):
 
     def __repr__(self):
         retstr = "{0:s}(name=\"{1:s}\", H0={2:.3g}, Om0={3:.3g}, "\
-                 "Ode0={4:.3g}, Tcmb0={5:4g}, Neff={6:.3g}, m_nu={7:s})"
+                 "Ode0={4:.3g}, Tcmb0={5:.4g}, Neff={6:.3g}, m_nu={7:s})"
         return retstr.format(self.__class__.__name__, self.name, \
                              self._H0, self._Om0, self._Ode0,
                              self._Tcmb0, self._Neff, self.m_nu)
@@ -2127,8 +2127,8 @@ class wpwaCDM(FLRW):
     def __repr__(self):
         retstr = "{0:s}(name=\"{1:s}\", H0={2:.3g}, Om0={3:.3g}, "\
                  "Ode0={4:.3g}, wp={5:.3g}, wa={6:.3g}, zp={7:.3g}, "\
-                 "Tcmb0={8:4g}, Neff={9:.3g}, m_nu={10:s})"
-        return retstr.format(self.__class__.__name__, self.name,
+                 "Tcmb0={8:.4g}, Neff={9:.3g}, m_nu={10:s})"
+        return retstr.format(self.__class__.__name__, self.name, 
                              self._H0, self._Om0, self._Ode0, self._wp,
                              self._wa, self._zp, self._Tcmb0, self._Neff,
                              self.m_nu)
