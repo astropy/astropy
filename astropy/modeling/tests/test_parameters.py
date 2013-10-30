@@ -51,7 +51,7 @@ class TestParameters(object):
         order = int(record.fields['order'])
         self.model = models.Chebyshev1DModel(order - 1)
         self.gmodel = models.Gaussian1DModel(2, mean=3, stddev=4)
-        self.linear_fitter = fitting.LinearLSQFitter(self.model)
+        self.linear_fitter = fitting.LinearLSQFitter()
         self.x = record.x
         self.y = record.z
         self.yy = np.array([record.z, record.z])
@@ -61,7 +61,6 @@ class TestParameters(object):
         Tests updating the parameters attribute with a slice.
         This is what fitters internally do.
         """
-
         self.model.parameters[:] = np.array([3, 4, 5, 6, 7])
         assert (self.model.parameters == [3., 4., 5., 6., 7.]).all()
 
@@ -142,7 +141,8 @@ class TestParameters(object):
 
         Uses an iraf example.
         """
-        self.linear_fitter(self.x, self.y)
+        self.linear_fitter(self.model, self.x, self.y)
+        print self.y, self.x
         utils.assert_allclose(self.model.parameters,
                               np.array(
                                   [4826.1066602783685, 952.8943813407858,
@@ -251,8 +251,8 @@ class TestMultipleParameterSets(object):
     def test_object_params(self):
         l2 = TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3), param_dim=2)
         utils.assert_almost_equal(l2.parameters, [1.0, 2.0, 3.0, 4.0, 2.0, 3.0])
-        # utils.assert_almost_equal(l2.param_sets, np.array([[[1,2.],[3., 4.]],
-        #                                               [2., 3.]], dtype=np.object))
+        #utils.assert_almost_equal(l2.param_sets, np.array([[[1, 2.],[3., 4.]],
+        #                                                   [2., 3.]], dtype=np.object))
 
     def test_wrong_number_of_params(self):
         with pytest.raises(InputParameterError):

@@ -77,8 +77,8 @@ class TestFitting(object):
         p1 = models.Polynomial1DModel(3)
         p1.parameters = [0, 1, 1, 1]
         y1 = p1(self.x1)
-        pfit = fitting.LinearLSQFitter(p1)
-        pfit(self.x1, y1)
+        pfit = fitting.LinearLSQFitter()
+        pfit(p1, self.x1, y1)
         utils.assert_allclose(p1.parameters, expected, atol=10 ** (-7))
 
     def test_linear_fitter_Nset(self):
@@ -93,8 +93,8 @@ class TestFitting(object):
             params[p1.param_names[i]] = [i, i]
         p1 = models.Polynomial1DModel(3, param_dim=2, **params)
         y1 = p1(self.x1)
-        pfit = fitting.LinearLSQFitter(p1)
-        pfit(self.x1, y1)
+        pfit = fitting.LinearLSQFitter()
+        pfit(p1, self.x1, y1)
         utils.assert_allclose(p1.param_sets, expected, atol=10 ** (-7))
 
     def test_linear_fitter_1dcheb(self):
@@ -109,8 +109,8 @@ class TestFitting(object):
         ch1 = models.Chebyshev1DModel(3)
         ch1.parameters = [0, 1, 2, 3]
         y1 = ch1(self.x1)
-        pfit = fitting.LinearLSQFitter(ch1)
-        pfit(self.x1, y1)
+        pfit = fitting.LinearLSQFitter()
+        pfit(ch1, self.x1, y1)
         utils.assert_allclose(ch1.param_sets, expected, atol=10 ** (-2))
 
     def test_linear_fitter_1dlegend(self):
@@ -125,8 +125,8 @@ class TestFitting(object):
         leg1 = models.Legendre1DModel(3)
         leg1.parameters = [1, 2, 3, 4]
         y1 = leg1(self.x1)
-        pfit = fitting.LinearLSQFitter(leg1)
-        pfit(self.x1, y1)
+        pfit = fitting.LinearLSQFitter()
+        pfit(leg1, self.x1, y1)
         utils.assert_allclose(leg1.param_sets, expected, atol=10 ** (-12))
 
     def test_linear_fitter_1set2d(self):
@@ -134,12 +134,11 @@ class TestFitting(object):
         p2.parameters = [0, 1, 2, 3, 4, 5]
         expected = [0, 1, 2, 3, 4, 5]
         z = p2(self.x, self.y)
-        pfit = fitting.LinearLSQFitter(p2)
-        pfit(self.x, self.y, z)
+        pfit = fitting.LinearLSQFitter()
+        pfit(p2, self.x, self.y, z)
         utils.assert_allclose(p2.parameters, expected, atol=10 ** (-12))
         utils.assert_allclose(p2(self.x, self.y), z, atol=10 ** (-12))
 
-    #@raises(ValueError)
     def test_wrong_numpset(self):
         """
         A ValueError is raised if a 1 data set (1d x, 1d y) is fit
@@ -149,8 +148,8 @@ class TestFitting(object):
             p1 = models.Polynomial1DModel(5)
             y1 = p1(self.x1)
             p1 = models.Polynomial1DModel(5, param_dim=2)
-            pfit = fitting.LinearLSQFitter(p1)
-            pfit(self.x1, y1)
+            pfit = fitting.LinearLSQFitter()
+            pfit(p1, self.x1, y1)
 
     def test_wrong_pset(self):
         """
@@ -168,8 +167,8 @@ class TestFitting(object):
             params[p1.param_names[i]] = [1, i]
         p1 = models.Polynomial1DModel(5, param_dim=2, **params)
         y1 = p1(self.x1)
-        pfit = fitting.LinearLSQFitter(p1)
-        pfit(self.x1, y1)
+        pfit = fitting.LinearLSQFitter()
+        pfit(p1, self.x1, y1)
         utils.assert_allclose(p1.param_sets, expected, atol=10 ** (-7))
 
     @pytest.mark.skipif('not HAS_SCIPY')
@@ -179,8 +178,8 @@ class TestFitting(object):
         """
         g1 = models.Gaussian1DModel(10, mean=3, stddev=.2)
         y1 = g1(self.x1)
-        gfit = fitting.NonLinearLSQFitter(g1)
-        gfit(self.x1, y1)
+        gfit = fitting.NonLinearLSQFitter()
+        gfit(g1, self.x1, y1)
         utils.assert_allclose(g1.parameters, [10, 3, .2])
 
     @pytest.mark.skipif('not HAS_SCIPY')
@@ -191,8 +190,8 @@ class TestFitting(object):
         with pytest.raises(ValueError):
             g1 = models.Gaussian1DModel([10.2, 10], mean=[3, 3.2], stddev=[.23, .2])
             y1 = g1(self.x1)
-            gfit = fitting.NonLinearLSQFitter(g1)
-            gfit(self.x1, y1)
+            gfit = fitting.NonLinearLSQFitter()
+            gfit(g1, self.x1, y1)
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_1set_2d(self):
@@ -201,8 +200,8 @@ class TestFitting(object):
         """
         g2 = models.Gaussian2DModel(10, x_mean=3, y_mean=4, x_stddev=.3, y_stddev=.2, theta=0)
         z = g2(self.x, self.y)
-        gfit = fitting.NonLinearLSQFitter(g2)
-        gfit(self.x, self.y, z)
+        gfit = fitting.NonLinearLSQFitter()
+        gfit(g2, self.x, self.y, z)
         utils.assert_allclose(g2.parameters, [10, 3, 4, .3, .2, 0])
 
     @pytest.mark.skipif('not HAS_SCIPY')
@@ -214,8 +213,8 @@ class TestFitting(object):
             g2 = models.Gaussian2DModel([10, 10], [3, 3], [4, 4], x_stddev=[.3, .3],
                                         y_stddev=[.2, .2], theta=[0, 0])
             z = g2(self.x.flatten(), self.y.flatten())
-            gfit = fitting.NonLinearLSQFitter(g2)
-            gfit(self.x, self.y, z)
+            gfit = fitting.NonLinearLSQFitter()
+            gfit(g2, self.x, self.y, z)
 
 
 class TestEvaluation(object):
