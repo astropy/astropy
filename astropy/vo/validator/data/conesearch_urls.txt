@@ -15,8 +15,6 @@ http://vo.astronet.ru/sai_cas/conesearch?cat=sdssdr7&amp;tab=specobjall&amp;
 http://vo.astronet.ru/sai_cas/conesearch?cat=sdssdr7&amp;tab=specphotoall&amp;
 http://vo.astronet.ru/sai_cas/conesearch?cat=sdssdr7&amp;tab=sppparams&amp;
 http://vo.astronet.ru/sai_cas/conesearch?cat=twomass&amp;tab=psc&amp;
-http://vo.astronet.ru/sai_cas/conesearch?cat=twomass&amp;tab=psc&amp;
-http://vo.astronet.ru/sai_cas/conesearch?cat=twomass&amp;tab=xsc&amp;
 http://vo.astronet.ru/sai_cas/conesearch?cat=twomass&amp;tab=xsc&amp;
 http://vo.astronet.ru/sai_cas/conesearch?cat=usnoa2&amp;tab=main&amp;
 http://vo.astronet.ru/sai_cas/conesearch?cat=usnob1&amp;tab=main&amp;
