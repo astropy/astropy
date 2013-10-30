@@ -82,6 +82,16 @@ class PolynomialBase(ParametricModel):
         else:
             super(PolynomialBase, self).__setattr__(attr, value)
 
+    def _deriv_with_constraints(self, params=None, x=None, y=None):
+        if y is None:
+            d = np.array(self.deriv(x=x))
+        else:
+            d = np.array(self.deriv(x=x, y=y))
+
+        if self.col_deriv:
+            return d[self._fit_param_indices]
+        else:
+            return d[:, self._fit_param_indices]
 
 class PolynomialModel(PolynomialBase):
     """
