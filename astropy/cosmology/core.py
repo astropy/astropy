@@ -242,11 +242,11 @@ class FLRW(Cosmology):
         self._Ok0 = 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
 
     def __repr__(self):
-        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, "\
-                 "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0,
-                   self._Ode0, self._Tcmb0, self._Neff, self.m_nu)
-        return retstr
+        retstr = "{0:s}(name=\"{1:s}\", H0={2:.3g}, Om0={3:.3g}, "\
+                 "Ode0={4:.3g}, Tcmb0={5:4g}, Neff={6:.3g}, m_nu={7:s})"
+        return retstr.format(self.__class__.__name__, self.name, \
+                             self._H0, self._Om0, self._Ode0,
+                             self._Tcmb0, self._Neff, self.m_nu)
 
     # Set up a set of properties for H0, Om0, Ode0, Ok0, etc. for user access.
     # Note that we don't let these be set (so, obj.Om0 = value fails)
@@ -1455,6 +1455,12 @@ class FlatLambdaCDM(LambdaCDM):
 
         return 1.0 / np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) + Ode0)
 
+    def __repr__(self):
+        retstr = "{0:s}(name=\"{1:s}\", H0={2:.3g}, Om0={3:.3g}, "\
+                 "Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6:s})"
+        return retstr.format(self.__class__.__name__, self.name, \
+                             self._H0, self._Om0, self._Tcmb0, self._Neff, 
+                             self.m_nu)
 
 class wCDM(FLRW):
     """FLRW cosmology with a constant dark energy equation of state
@@ -1513,14 +1519,6 @@ class wCDM(FLRW):
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='wCDM'):
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
         self._w0 = float(w0)
-
-    def __repr__(self):
-        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
-                 "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0,
-                   self._Om0, self._Ode0, self._w0, self._Tcmb0,
-                   self._Neff, self.m_nu)
-        return retstr
 
     @property
     def w0(self):
@@ -1635,6 +1633,14 @@ class wCDM(FLRW):
         return 1.0 / np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
                              Ode0 * zp1 ** (3 * (1 + w0)))
 
+    def __repr__(self):
+        retstr = "{0:s}(name=\"{1:s}\", H0={2:.3g}, Om0={3:.3g}, "\
+                 "Ode0={4:.3g}, w0={5:.3g}, Tcmb0={6:.4g}, Neff={7:.3g}, "\
+                 "m_nu={8:s})"
+        return retstr.format(self.__class__.__name__, self.name, \
+                             self._H0, self._Om0, self._Ode0, self._w0,
+                             self._Tcmb0, self._Neff, self.m_nu)
+
 
 class FlatwCDM(wCDM):
     """FLRW cosmology with a constant dark energy equation of state
@@ -1692,13 +1698,6 @@ class FlatwCDM(wCDM):
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
-
-    def __repr__(self):
-        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
-                 "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0,
-                   self._Ode0, self._w0, self._Tcmb0, self._Neff, self.m_nu)
-        return retstr
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -1760,6 +1759,13 @@ class FlatwCDM(wCDM):
         return 1.0 / np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) +
                              Ode0 * zp1 ** (3 * (1 + w0)))
 
+    def __repr__(self):
+        retstr = "{0:s}(name=\"{1:s}\", H0={2:.3g}, Om0={3:.3g}, "\
+                 "w0={4:.3g}, Tcmb0={5:.4g}, Neff={6:.3g}, "\
+                 "m_nu={7:s})"
+        return retstr.format(self.__class__.__name__, self.name, \
+                             self._H0, self._Om0, self._w0,
+                             self._Tcmb0, self._Neff, self.m_nu)
 
 class w0waCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state and curvature.
@@ -1823,14 +1829,6 @@ class w0waCDM(FLRW):
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
         self._w0 = float(w0)
         self._wa = float(wa)
-
-    def __repr__(self):
-        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
-                 "wa=%.3g, Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0,
-                   self._Om0, self._Ode0, self._w0, self._wa, self._Tcmb0,
-                   self._Neff, self.m_nu)
-        return retstr
 
     @property
     def w0(self):
@@ -1899,6 +1897,13 @@ class w0waCDM(FLRW):
         return zp1 ** (3 * (1 + self._w0 + self._wa)) * \
             np.exp(-3 * self._wa * z / zp1)
 
+    def __repr__(self):
+        retstr = "{0:s}(name=\"{1:s}\", H0={2:.3g}, Om0={3:.3g}, "\
+                 "Ode0={4:.3g}, w0={5:.3g}, wa={6:.3g}, Tcmb0={7:.4g}, "\
+                 "Neff={8:.3g}, m_nu={9:s})"
+        return retstr.format(self.__class__.__name__, self.name, \
+                             self._H0, self._Om0, self._Ode0, self._w0,
+                             self._wa, self._Tcmb0, self._Neff, self.m_nu)
 
 class Flatw0waCDM(w0waCDM):
     """FLRW cosmology with a CPL dark energy equation of state and no curvature.
@@ -1964,13 +1969,11 @@ class Flatw0waCDM(w0waCDM):
         self._wa = float(wa)
 
     def __repr__(self):
-        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
-                 "wa=%.3g, Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0,
-                   self._Ode0, self._w0, self._wa, self._Tcmb0, self._Neff,
-                   self.m_nu)
-        return retstr
-
+        retstr = "{0:s}(name=\"{1:s}\", H0={2:.3g}, Om0={3:.3g}, "\
+                 "w0={4:.3g}, Tcmb0={5:.4g}, Neff={6:.3g}, m_nu={7:s})"
+        return retstr.format(self.__class__.__name__, self.name, \
+                             self._H0, self._Om0, self._w0,
+                             self._Tcmb0, self._Neff, self.m_nu)
 
 class wpwaCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state, a pivot
@@ -2043,14 +2046,6 @@ class wpwaCDM(FLRW):
         self._wp = float(wp)
         self._wa = float(wa)
         self._zp = float(zp)
-
-    def __repr__(self):
-        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, wp=%.3g, "\
-                 "wa=%.3g, zp=%.3g, Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0,
-                   self._Ode0, self._wp, self._wa, self._zp, self._Tcmb0,
-                   self._Neff, self.m_nu)
-        return retstr
 
     @property
     def wp(self):
@@ -2129,6 +2124,15 @@ class wpwaCDM(FLRW):
         return zp1 ** (3 * (1 + self._wp + apiv * self._wa)) * \
             np.exp(-3 * self._wa * z / zp1)
 
+    def __repr__(self):
+        retstr = "{0:s}(name=\"{1:s}\", H0={2:.3g}, Om0={3:.3g}, "\
+                 "Ode0={4:.3g}, wp={5:.3g}, wa={6:.3g}, zp={7:.3g}, "\
+                 "Tcmb0={8:4g}, Neff={9:.3g}, m_nu={10:s})"
+        return retstr.format(self.__class__.__name__, self.name,
+                             self._H0, self._Om0, self._Ode0, self._wp,
+                             self._wa, self._zp, self._Tcmb0, self._Neff,
+                             self.m_nu)
+
 
 class w0wzCDM(FLRW):
     """FLRW cosmology with a variable dark energy equation of state
@@ -2199,14 +2203,6 @@ class w0wzCDM(FLRW):
         self._w0 = float(w0)
         self._wz = float(wz)
 
-    def __repr__(self):
-        retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
-                 "wz=%.3g, Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0,
-                   self._Ode0, self._w0, self._wz, self._Tcmb0, self._Neff,
-                   self.m_nu)
-        return retstr
-
     @property
     def w0(self):
         """ Dark energy equation of state at z=0"""
@@ -2273,6 +2269,14 @@ class w0wzCDM(FLRW):
         zp1 = 1.0 + z
         return zp1 ** (3 * (1 + self._w0 - self._wz)) *\
             np.exp(-3 * self._wz * z)
+
+    def __repr__(self):
+        retstr = "{0:s}(name=\"{1:s}\", H0={2:.3g}, Om0={3:.3g}, "\
+                 "Ode0={4:.3g}, w0={5:.3g}, wz={6:.3g} Tcmb0={7:.4g}, "\
+                 "Neff={8:.3g}, m_nu={9:s})"
+        return retstr.format(self.__class__.__name__, self.name, \
+                             self._H0, self._Om0, self._Ode0, self._w0,
+                             self._wz, self._Tcmb0, self._Neff, self.m_nu)
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
 # parameters module and creates a LambdaCDM or FlatLambdaCDM instance
