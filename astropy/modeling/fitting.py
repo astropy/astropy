@@ -83,7 +83,17 @@ class Fitter(object):
     supported_constraints = []
 
     def __init__(self):
-        self.weights = None
+        self._weights = None
+
+    @property
+    def weights(self):
+        """Fitting weights."""
+        return self._weights
+
+    @weights.setter
+    def weights(self, val):
+        """Set fitting weights."""
+        self._weights = val
 
     def _validate_constraints(self):
         message = '{0} cannot handle {{0}} constraints.'.format(
