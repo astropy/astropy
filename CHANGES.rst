@@ -301,6 +301,12 @@ API Changes
     include: ``create_card``, ``create_card_from_string``, ``upper_key``,
     ``Header.get_history``, and ``Header.get_comment``.
 
+- ``astropy.io.registry``
+
+  - Identifier functions for reading/writing Table and NDData objects should
+    now accept ``(origin, *args, **kwargs)`` instead of
+    ``(origin, args, kwargs)``.
+
 - ``astropy.nddata``
 
   - The `astropy.nddata.convolution` sub-package has now been moved to
