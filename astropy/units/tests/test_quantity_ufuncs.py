@@ -13,18 +13,14 @@ NUMPY_LT_1P6 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 6]
 class TestUfuncCoverage(object):
     """Test that we cover all ufunc's"""
     def test_coverage(self):
-        all_np_ufuncs = set([np.__dict__[i] for i in np.__dict__
-                             if getattr(np.__dict__[i],
-                                        '__class__', None) == np.ufunc])
-
-        # Prior to Numpy 1.7, np.ones_like was included in the list of ufuncs,
-        # but is not really a ufunc, so we remove it
-        all_np_ufuncs -= set([np.ones_like])
+        all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
+                             if type(ufunc) == np.ufunc])
 
         from .. import quantity_helper as qh
 
         all_q_ufuncs = (qh.UNSUPPORTED_UFUNCS |
                         set(qh.UFUNC_HELPERS.keys()))
+
         assert all_np_ufuncs - all_q_ufuncs == set([])
         assert all_q_ufuncs - all_np_ufuncs == set([])
 
@@ -272,10 +268,15 @@ class TestQuantityMathFuncs(object):
         assert np.power(4. * u.m, 2.) == 16. * u.m ** 2
         assert np.power(4., 200. * u.cm / u.m) == \
             u.Quantity(16., u.dimensionless_unscaled)
+        # regression check on #1696
+        assert np.power(4. * u.m, 0.) == 1. * u.dimensionless_unscaled
 
     def test_power_array(self):
         assert np.all(np.power(np.array([1., 2., 3.]) * u.m, 3.)
                       == np.array([1., 8., 27.]) * u.m ** 3)
+        # regression check on #1696
+        assert np.all(np.power(np.arange(4.) * u.m, 0.) ==
+                      1. * u.dimensionless_unscaled)
 
     @raises(ValueError)
     def test_power_array_array(self):

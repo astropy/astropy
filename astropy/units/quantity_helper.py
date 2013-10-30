@@ -60,6 +60,13 @@ UFUNC_HELPERS[np.trunc] = helper_invariant
 UFUNC_HELPERS[np.sqrt] = lambda f, unit: ([1.], unit ** 0.5)
 UFUNC_HELPERS[np.square] = lambda f, unit: ([1.], unit ** 2)
 UFUNC_HELPERS[np.reciprocal] = lambda f, unit: ([1.], unit ** -1)
+# ones_like was not private in numpy <= 1.6
+if isinstance(getattr(np.core.umath, 'ones_like', None), np.ufunc):
+    UFUNC_HELPERS[np.core.umath.ones_like] = (lambda f, unit:
+                                              ([1.], dimensionless_unscaled))
+if isinstance(getattr(np.core.umath, '_ones_like', None), np.ufunc):
+    UFUNC_HELPERS[np.core.umath._ones_like] = (lambda f, unit:
+                                              ([1.], dimensionless_unscaled))
 
 
 # ufuncs that require dimensionless input and and give dimensionless output
@@ -291,3 +298,6 @@ def helper_twoarg_invtrig(f, unit1, unit2):
     return scales, radian
 
 UFUNC_HELPERS[np.arctan2] = helper_twoarg_invtrig
+# another private function in numpy; use getattr in case it disappears
+if isinstance(getattr(np.core.umath, '_arg', None), np.ufunc):
+    UFUNC_HELPERS[np.core.umath._arg] = helper_twoarg_invtrig
