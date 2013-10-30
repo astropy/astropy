@@ -94,12 +94,7 @@ class Gaussian1DModel(Parametric1DModel):
     stddev = Parameter('stddev')
 
     def __init__(self, amplitude, mean, stddev, **constraints):
-        try:
-            param_dim = len(amplitude)
-        except TypeError:
-            param_dim = 1
-        super(Gaussian1DModel, self).__init__(param_dim=param_dim,
-                                              amplitude=amplitude, mean=mean,
+        super(Gaussian1DModel, self).__init__(amplitude=amplitude, mean=mean,
                                               stddev=stddev, **constraints)
 
     @staticmethod

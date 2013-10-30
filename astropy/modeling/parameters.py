@@ -118,7 +118,7 @@ class Parameter(object):
 
         self._order = None
 
-        self._shape = ()
+        self._shape = None
         self._model = model
 
         # The getter/setter functions take one or two arguments: The first
@@ -155,15 +155,11 @@ class Parameter(object):
         value, shape = self._validate_value(obj, value)
         # Compare the shape against the previous value's shape, if it exists
         if hasattr(obj, self._attr):
-            oldvalue = getattr(obj, self._attr)
-            if self._getter is not None:
-                getter = self._create_value_wrapper(self._getter, obj)
-                oldvalue = getter(oldvalue)
-            oldvalue, oldshape = self._validate_value(obj, oldvalue)
-            if shape != oldshape:
+            current_shape = getattr(obj, self.name).shape
+            if shape != current_shape:
                 raise InputParameterError(
                     "Input value for parameter {0!r} does not have the "
-                    "required shape {1}".format(self.name, oldshape))
+                    "required shape {1}".format(self.name, current_shape))
 
         if self._setter is not None:
             setter = self._create_value_wrapper(self._setter, obj)
@@ -271,11 +267,7 @@ class Parameter(object):
     def size(self):
         """The size of this parameter's value array."""
 
-        if isinstance(self.value, np.ndarray):
-            return self.value.size
-        else:
-            # A scalar value
-            return 1
+        return np.size(self.value)
 
     @property
     def fixed(self):
@@ -414,30 +406,15 @@ class Parameter(object):
             # Just validate the value with _tofloat
             return _tofloat(value)
         else:
-            # If there are more parameter dimensions the value should
-            # be a sequence with at least one item
             try:
-                if len(value) != param_dim:
-                    raise InputParameterError(
-                        "Expected parameter {0!r} to be of dimension "
-                        "{1}".format(self.name, param_dim))
                 # Validate each value
-                values = [_tofloat(v) for v in value]
+                value, shape = _tofloat(value)
             except (TypeError, IndexError):
                 raise InputParameterError(
                     "Expected a multivalued input of dimension {0} "
                     "for parameter {1!r}".format(param_dim, self.name))
 
-            # Check that the value for each dimension has the same shape
-            shapes = set(v[1] for v in values)
-            if len(shapes) != 1:
-                raise InputParameterError(
-                    "The value for parameter {0!r} does not have the same "
-                    "shape for every dimension".format(self.name))
-
-            # Return the value for each dimension as a list, along with the
-            # shape
-            return np.array([v[0] for v in values]), shapes.pop()
+            return value, shape
 
     def _create_value_wrapper(self, wrapper, model):
         """Wrappers a getter/setter function to support optionally passing in
