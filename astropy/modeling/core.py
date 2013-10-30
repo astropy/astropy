@@ -54,7 +54,7 @@ from .parameters import Parameter, InputParameterError
 from ..utils import indent, isiterable
 
 
-__all__ = ['Model', 'ParametricModel', 'ParallelCompositeModel',
+__all__ = ['Model', 'ParametricModel', 'SummedCompositeModel',
            'SerialCompositeModel', 'LabeledInput', 'Parametric1DModel',
            'Parametric2DModel', 'ModelDefinitionError', 'format_input']
 
@@ -265,7 +265,7 @@ class Model(object):
         """
 
         if mode in ['parallel', 'p']:
-            return ParallelCompositeModel([self, newtr])
+            return SummedCompositeModel([self, newtr])
         elif mode in ['serial', 's']:
             return SerialCompositeModel([self, newtr])
         else:
@@ -332,12 +332,12 @@ class ParametricModel(Model):
 
     Specify that ``'mean'`` is a tied parameter in one of two ways:
 
-    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3,
+    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3,
     ...                             tied=tied_parameters)
 
     or
 
-    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3)
+    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3)
     >>> g1.mean.tied
     False
     >>> g1.mean.tied = tie_center
@@ -346,14 +346,14 @@ class ParametricModel(Model):
 
     Fixed parameters:
 
-    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3,
+    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3,
     ...                             fixed={'stddev': True})
     >>> g1.stddev.fixed
     True
 
     or
 
-    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3)
+    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3)
     >>> g1.stddev.fixed
     False
     >>> g1.stddev.fixed = True
@@ -879,8 +879,8 @@ class SerialCompositeModel(_CompositeModel):
         >>> from astropy.modeling import models, LabeledInput, SerialCompositeModel
         >>> x, y = np.mgrid[:5, :5]
         >>> rotation = models.MatrixRotation2D(angle=23.5)
-        >>> offset_x = models.ShiftModel(-4.23)
-        >>> offset_y = models.ShiftModel(2)
+        >>> offset_x = models.Shift(-4.23)
+        >>> offset_y = models.Shift(2)
         >>> labeled_input = LabeledInput([x, y], ["x", "y"])
         >>> transform = SerialCompositeModel([rotation, offset_x, offset_y],
         ...                                  inmap=[['x', 'y'], ['x'], ['y']],
@@ -978,7 +978,7 @@ class SerialCompositeModel(_CompositeModel):
         return result
 
 
-class ParallelCompositeModel(_CompositeModel):
+class SummedCompositeModel(_CompositeModel):
     """
     Composite model that evaluates models in parallel.
 
@@ -1003,11 +1003,11 @@ class ParallelCompositeModel(_CompositeModel):
         n_outputs = n_inputs
         for transform in self._transforms:
             assert transform.n_inputs == transform.n_outputs == n_inputs, \
-                ("A ParallelCompositeModel expects n_inputs = n_outputs for "
+                ("A SummedCompositeModel expects n_inputs = n_outputs for "
                  "all transforms")
 
-        super(ParallelCompositeModel, self).__init__(transforms, n_inputs,
-                                                     n_outputs)
+        super(SummedCompositeModel, self).__init__(transforms, n_inputs,
+                                                   n_outputs)
 
         self._inmap = inmap
         self._outmap = outmap
@@ -1017,10 +1017,9 @@ class ParallelCompositeModel(_CompositeModel):
 
         if len(data) == 1:
             if not isinstance(data[0], LabeledInput):
-                result = data[0]
                 x = data[0]
                 deltas = sum(tr(x) for tr in self._transforms)
-                return result + deltas
+                return deltas
             else:
                 assert self._inmap is not None, \
                     ("Parameter 'inmap' must be provided when "
@@ -1032,18 +1031,21 @@ class ParallelCompositeModel(_CompositeModel):
                 # create a list of inputs to be passed to the transforms
                 inlist = [getattr(labeled_input, label)
                           for label in self._inmap]
-                deltas = [np.zeros_like(x) for x in inlist]
+                sum_of_deltas = [np.zeros_like(x) for x in inlist]
                 for transform in self._transforms:
-                    deltas = [transform(*inlist)]
-                for outcoo, inp, delta in izip(self._outmap, inlist, deltas):
-                    setattr(labeled_input, outcoo, inp + delta)
+                    delta = [transform(*inlist)]
+                    for i in range(len(sum_of_deltas)):
+                        sum_of_deltas[i] += delta[i]
+                        
+                for outcoo, delta in izip(self._outmap, sum_of_deltas):
+                    setattr(labeled_input, outcoo, delta)
                 # always return the entire labeled object, not just the result
                 # since this may be part of another composite transform
                 return labeled_input
         else:
-            result = data[:]
+            result = self._transforms[0](*data)
             assert self.n_inputs == self.n_outputs
-            for tr in self._transforms:
+            for tr in self._transforms[1:]:
                 result += tr(*data)
             return result
 

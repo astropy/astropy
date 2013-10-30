@@ -13,7 +13,7 @@ from textwrap import dedent
 import numpy as np
 
 from .core import ParametricModel, Model, SerialCompositeModel, format_input
-from .functional_models import ShiftModel
+from .functional_models import Shift
 from .parameters import Parameter
 from .utils import poly_map_domain, comb
 from ..logger import log
@@ -21,9 +21,9 @@ from ..utils import lazyproperty, indent
 
 
 __all__ = [
-    'Chebyshev1DModel', 'Chebyshev2DModel', 'InverseSIPModel',
-    'Legendre1DModel', 'Legendre2DModel', 'Polynomial1DModel',
-    'Polynomial2DModel', 'SIPModel', 'OrthoPolynomialBase',
+    'Chebyshev1D', 'Chebyshev2D', 'InverseSIP',
+    'Legendre1D', 'Legendre2D', 'Polynomial1D',
+    'Polynomial2D', 'SIP', 'OrthoPolynomialBase',
     'PolynomialModel'
 ]
 
@@ -386,7 +386,7 @@ class OrthoPolynomialBase(PolynomialBase):
         return self.imhorner(x, y, invcoeff)
 
 
-class Chebyshev1DModel(PolynomialModel):
+class Chebyshev1D(PolynomialModel):
     """
     1D Chebyshev polynomial of the 1st kind.
 
@@ -408,9 +408,9 @@ class Chebyshev1DModel(PolynomialModel):
                  **params):
         self.domain = domain
         self.window = window
-        super(Chebyshev1DModel, self).__init__(degree, n_inputs=1, n_outputs=1,
-                                               param_dim=param_dim,
-                                               **params)
+        super(Chebyshev1D, self).__init__(degree, n_inputs=1, n_outputs=1,
+                                          param_dim=param_dim,
+                                          **params)
 
     def clenshaw(self, x, coeff):
         """
@@ -477,7 +477,7 @@ class Chebyshev1DModel(PolynomialModel):
         return self.clenshaw(x, self.param_sets)
 
 
-class Legendre1DModel(PolynomialModel):
+class Legendre1D(PolynomialModel):
     """
     1D Legendre polynomial.
 
@@ -499,9 +499,9 @@ class Legendre1DModel(PolynomialModel):
                  **params):
         self.domain = domain
         self.window = window
-        super(Legendre1DModel, self).__init__(degree, n_inputs=1, n_outputs=1,
-                                              param_dim=param_dim,
-                                              **params)
+        super(Legendre1D, self).__init__(degree, n_inputs=1, n_outputs=1,
+                                         param_dim=param_dim,
+                                         **params)
 
     def clenshaw(self, x, coeff):
         if isinstance(x, tuple) or isinstance(x, list):
@@ -564,7 +564,7 @@ class Legendre1DModel(PolynomialModel):
         return self.clenshaw(x, self.param_sets)
 
 
-class Polynomial1DModel(PolynomialModel):
+class Polynomial1D(PolynomialModel):
     """
     1D Polynomial model.
 
@@ -586,9 +586,9 @@ class Polynomial1DModel(PolynomialModel):
                  **params):
         self.domain = domain
         self.window = window
-        super(Polynomial1DModel, self).__init__(degree, n_inputs=1,
-                                                n_outputs=1,
-                                                param_dim=param_dim, **params)
+        super(Polynomial1D, self).__init__(degree, n_inputs=1,
+                                           n_outputs=1,
+                                           param_dim=param_dim, **params)
 
     def deriv(self, x, *params):
         """
@@ -634,7 +634,7 @@ class Polynomial1DModel(PolynomialModel):
         return self.horner(x, self.param_sets)
 
 
-class Polynomial2DModel(PolynomialModel):
+class Polynomial2D(PolynomialModel):
     """
     2D Polynomial  model.
 
@@ -666,9 +666,9 @@ class Polynomial2DModel(PolynomialModel):
     def __init__(self, degree, x_domain=[-1, 1], y_domain=[-1, 1],
                  x_window=[-1, 1], y_window=[-1, 1],
                  param_dim=1, **params):
-        super(Polynomial2DModel, self).__init__(degree, n_inputs=2,
-                                                n_outputs=1,
-                                                param_dim=param_dim, **params)
+        super(Polynomial2D, self).__init__(degree, n_inputs=2,
+                                           n_outputs=1,
+                                           param_dim=param_dim, **params)
         self.x_domain = x_domain
         self.y_domain = y_domain
         self.x_window = x_window
@@ -768,7 +768,7 @@ class Polynomial2DModel(PolynomialModel):
         return self.mhorner(x, y, invcoeff)
 
 
-class Chebyshev2DModel(OrthoPolynomialBase):
+class Chebyshev2D(OrthoPolynomialBase):
     """
     2D Chebyshev polynomial of the 1st kind.
 
@@ -800,12 +800,12 @@ class Chebyshev2DModel(OrthoPolynomialBase):
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
                  y_domain=None, y_window=[-1,1], param_dim=1, **params):
-        super(Chebyshev2DModel, self).__init__(x_degree, y_degree,
-                                               x_domain=x_domain,
-                                               y_domain=y_domain,
-                                               x_window=x_window,
-                                               y_window=y_window,
-                                               param_dim=param_dim, **params)
+        super(Chebyshev2D, self).__init__(x_degree, y_degree,
+                                          x_domain=x_domain,
+                                          y_domain=y_domain,
+                                          x_window=x_window,
+                                          y_window=y_window,
+                                          param_dim=param_dim, **params)
 
     def _fcache(self, x, y):
         """
@@ -881,7 +881,7 @@ class Chebyshev2DModel(OrthoPolynomialBase):
         return np.rollaxis(d, 0, d.ndim)
 
 
-class Legendre2DModel(OrthoPolynomialBase):
+class Legendre2D(OrthoPolynomialBase):
     """
     Legendre 2D polynomial.
 
@@ -913,12 +913,12 @@ class Legendre2DModel(OrthoPolynomialBase):
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
                  y_domain=None, y_window=[-1, 1], param_dim=1, **params):
-        super(Legendre2DModel, self).__init__(x_degree, y_degree,
-                                              x_domain=x_domain,
-                                              y_domain=y_domain,
-                                              x_window=x_window,
-                                              y_window=y_window,
-                                              param_dim=param_dim, **params)
+        super(Legendre2D, self).__init__(x_degree, y_degree,
+                                         x_domain=x_domain,
+                                         y_domain=y_domain,
+                                         x_window=x_window,
+                                         y_window=y_window,
+                                         param_dim=param_dim, **params)
 
     def _fcache(self, x, y):
         """
@@ -995,7 +995,7 @@ class _SIP1D(Model):
     This implements the Simple Imaging Polynomial Model (SIP) in 1D.
 
     It's unlikely it will be used in 1D so this class is private
-    and SIPModel should be used instead.
+    and SIP should be used instead.
     """
 
     n_inputs = 2
@@ -1180,8 +1180,8 @@ class _SIPModel(SerialCompositeModel):
         self.bp_order = bp_order
         self.ap_coeff = ap_coeff
         self.bp_coeff = bp_coeff
-        self.shift_a = ShiftModel(-crpix[0])
-        self.shift_b = ShiftModel(-crpix[1])
+        self.shift_a = Shift(-crpix[0])
+        self.shift_b = Shift(-crpix[1])
         self.sip1d_a = _SIP1D(a_order, coeff_prefix='A',
                               param_dim=param_dim, **a_coeff)
         self.sip1d_b = _SIP1D(b_order, coeff_prefix='B',
@@ -1196,24 +1196,24 @@ class _SIPModel(SerialCompositeModel):
 
         super(_SIPModel, self).__init__([self.shift_a, self.shift_b,
                                          self.sip1d_a, self.sip1d_b])
+        
 
-
-class SIPModel(_SIPModel):
+class SIP(_SIPModel):
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
                  ap_order=None, ap_coeff=None, bp_order=None, bp_coeff=None,
                  param_dim=1):
 
-        super(SIPModel, self).__init__(crpix, a_order, a_coeff,
-                                       b_order, b_coeff, ap_order, ap_coeff,
-                                       bp_order, bp_coeff, param_dim=1)
+        super(SIP, self).__init__(crpix, a_order, a_coeff,
+                                  b_order, b_coeff, ap_order, ap_coeff,
+                                  bp_order, bp_coeff, param_dim=1)
 
     def inverse(self):
         if (self.ap_order is not None and self.ap_coeff is not None and
                 self.bp_order is not None and self.bp_coeff is not None):
-            return InverseSIPModel(self.crpix, self.a_order, self.a_coeff,
-                                   self.b_order, self.b_coeff,
-                                   self.ap_order, self.ap_coeff,
-                                   self.bp_order, self.bp_coeff)
+            return InverseSIP(self.crpix, self.a_order, self.a_coeff,
+                              self.b_order, self.b_coeff,
+                              self.ap_order, self.ap_coeff,
+                              self.bp_order, self.bp_coeff)
         else:
             raise NotImplementedError("An analytical inverse transform has "
                                       "not been implemented for this model.")
@@ -1254,23 +1254,23 @@ class SIPModel(_SIPModel):
         return x1, y1
 
 
-class InverseSIPModel(_SIPModel):
+class InverseSIP(_SIPModel):
     def __init__(self, crpix, a_order, a_coeff, b_order, b_coeff,
                  ap_order, ap_coeff, bp_order, bp_coeff,
                  param_dim=1):
 
-        super(InverseSIPModel, self).__init__(crpix, a_order, a_coeff,
-                                              b_order, b_coeff,
-                                              ap_order, ap_coeff,
-                                              bp_order, bp_coeff, param_dim=1)
+        super(InverseSIP, self).__init__(crpix, a_order, a_coeff,
+                                         b_order, b_coeff,
+                                         ap_order, ap_coeff,
+                                         bp_order, bp_coeff, param_dim=1)
 
     def inverse(self):
         if (self.a_order is not None and self.a_coeff is not None and
                 self.b_order is not None and self.bp_coeff is not None):
-            return SIPModel(self.crpix, self.a_order, self.a_coeff,
-                            self.b_order, self.b_coeff,
-                            self.ap_order, self.ap_coeff,
-                            self.bp_order, self.bp_coeff)
+            return SIP(self.crpix, self.a_order, self.a_coeff,
+                       self.b_order, self.b_coeff,
+                       self.ap_order, self.ap_coeff,
+                       self.bp_order, self.bp_coeff)
         else:
             raise NotImplementedError("An analytical inverse transform has "
                                       "not been implemented for this model.")

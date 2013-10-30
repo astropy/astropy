@@ -27,7 +27,7 @@ class TestPolynomial2D(object):
     Tests for 2D polynomail fitting
     """
     def setup_class(self):
-        self.model = models.Polynomial2DModel(2)
+        self.model = models.Polynomial2D(2)
         self.x, self.y = np.mgrid[:5, :5]
 
         def poly2(x, y):
@@ -63,10 +63,10 @@ class TestICheb2D(object):
     Evaluate the ICheb2D polynomial and compare with the initial z
     """
     def setup_class(self):
-        self.pmodel = models.Polynomial2DModel(2)
+        self.pmodel = models.Polynomial2D(2)
         self.x, self.y = np.mgrid[:5, :5]
         self.z = self.pmodel(self.x, self.y)
-        self.cheb2 = models.Chebyshev2DModel(2, 2)
+        self.cheb2 = models.Chebyshev2D(2, 2)
         self.fitter = fitting.LinearLSQFitter()
 
     def test_default_params(self):
@@ -84,7 +84,7 @@ class TestICheb2D(object):
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_chebyshev2D_nonlinear_fitting(self):
-        cheb2d = models.Chebyshev2DModel(2, 2)
+        cheb2d = models.Chebyshev2D(2, 2)
         cheb2d.parameters = np.arange(9)
         z = cheb2d(self.x, self.y)
         cheb2d.parameters = [0.1, .6, 1.8, 2.9, 3.7, 4.9, 6.7, 7.5, 8.9]
@@ -105,8 +105,8 @@ class TestJointFitter(object):
         Create a fitter for the two models keeping the amplitude parameter
         common for the two models.
         """
-        self.g1 = models.Gaussian1DModel(10, mean=14.9, stddev=.3)
-        self.g2 = models.Gaussian1DModel(10, mean=13, stddev=.4)
+        self.g1 = models.Gaussian1D(10, mean=14.9, stddev=.3)
+        self.g2 = models.Gaussian1D(10, mean=13, stddev=.4)
         self.jf = fitting.JointFitter([self.g1, self.g2],
                                       {self.g1: ['amplitude'],
                                        self.g2: ['amplitude']}, [9.8])
@@ -153,7 +153,7 @@ class TestLinearLSQFitter(object):
         record = irafutil.IdentifyRecord(reclist[1])
         self.icoeff = record.coeff
         order = int(record.fields['order'])
-        self.model = models.Chebyshev1DModel(order - 1)
+        self.model = models.Chebyshev1D(order - 1)
         self.model.domain = record.get_range()
         self.lf = fitting.LinearLSQFitter()
         self.x = record.x
@@ -183,17 +183,17 @@ class TestNonLinearFitters(object):
         self.ydata = func(self.initial_values, self.xdata) + yerror
 
     def test_estimated_vs_analytic_deriv(self):
-        g1 = models.Gaussian1DModel(100, 5, stddev=1)
+        g1 = models.Gaussian1D(100, 5, stddev=1)
         fitter = fitting.NonLinearLSQFitter()
         model = fitter(g1, self.xdata, self.ydata)
-        g1e = models.Gaussian1DModel(100, 5.0, stddev=1)
+        g1e = models.Gaussian1D(100, 5.0, stddev=1)
         efitter = fitting.NonLinearLSQFitter()
         emodel = efitter(g1e, self.xdata, self.ydata, estimate_jacobian=True)
         utils.assert_allclose(model.parameters, emodel.parameters, rtol=10 ** (-3))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_with_optimize(self):
-        g1 = models.Gaussian1DModel(100, 5, stddev=1)
+        g1 = models.Gaussian1D(100, 5, stddev=1)
         fitter = fitting.NonLinearLSQFitter()
         model = fitter(g1, self.xdata, self.ydata, estimate_jacobian=True)
         func = lambda p, x: p[0] * np.exp(-0.5 / p[2] ** 2 * (x - p[1]) ** 2)
@@ -202,7 +202,7 @@ class TestNonLinearFitters(object):
         utils.assert_allclose(model.parameters, result[0], rtol=10 ** (-3))
 
     def test_LSQ_SLSQP(self):
-        g1 = models.Gaussian1DModel(100, 5, stddev=1)
+        g1 = models.Gaussian1D(100, 5, stddev=1)
         fitter = fitting.NonLinearLSQFitter()
         fslsqp = fitting.SLSQPFitter()
         slsqp_model = fslsqp(g1, self.xdata, self.ydata)
@@ -214,7 +214,7 @@ class TestNonLinearFitters(object):
                               rtol=10 ** (-4))
 
     def test_LSQ_SLSQP_cons(self):
-        g1 = models.Gaussian1DModel(100, 5, stddev=1)
+        g1 = models.Gaussian1D(100, 5, stddev=1)
         g1.mean.fixed = True
         fitter = fitting.NonLinearLSQFitter()
         fslsqp = fitting.SLSQPFitter()

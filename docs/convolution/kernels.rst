@@ -26,13 +26,13 @@ One application of filtering is to smooth noisy data. In this case we consider a
 Lorentz curve:
 
 >>> import numpy as np
->>> from astropy.modeling.models import Lorentz1DModel
+>>> from astropy.modeling.models import Lorentz1D
 >>> from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
->>> lorentz = Lorentz1DModel(1, 0, 1)
+>>> lorentz = Lorentz1DM(1, 0, 1)
 >>> x = np.linspace(-5, 5, 100)
 >>> data_1D = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
 
-Smoothing the noisy data with a `~astropy.convolution.kernels.Gaussian1DKernel` of width 2 pixels:
+Smoothing the noisy data with a `~astropy.convolution.kernels.Gaussian1D` of width 2 pixels:
 
 >>> gauss_kernel = Gaussian1DKernel(2)
 >>> smoothed_data_gauss = convolve(data_1D, gauss_kernel)
@@ -48,11 +48,11 @@ The following plot illustrates the results:
 
     import numpy as np
     import matplotlib.pyplot as plt
-    from astropy.modeling.models import Lorentz1DModel
+    from astropy.modeling.models import Lorentz1D
     from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
 
     # Fake Lorentz data including noise
-    lorentz = Lorentz1DModel(1, 0, 1)
+    lorentz = Lorentz1D(1, 0, 1)
     x = np.linspace(-5, 5, 100)
     data_1D = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
 
@@ -93,8 +93,8 @@ middle of the image and add 10% noise:
 
 >>> import numpy as np
 >>> from astropy.convolution import convolve, Gaussian2DKernel, Tophat2DKernel
->>> from astropy.modeling.models import Gaussian2DModel
->>> gauss = Gaussian2DModel(1, 0, 0, 3, 3)
+>>> from astropy.modeling.models import Gaussian2D
+>>> gauss = Gaussian2D(1, 0, 0, 3, 3)
 >>> # Fake image data including noise
 >>> x = np.arange(-100, 101)
 >>> y = np.arange(-100, 101)
@@ -119,8 +119,8 @@ This is what the original image looks like:
 
     import numpy as np
     import matplotlib.pyplot as plt
-    from astropy.modeling.models import Gaussian2DModel
-    gauss = Gaussian2DModel(1, 0, 0, 2, 2)
+    from astropy.modeling.models import Gaussian2D
+    gauss = Gaussian2D(1, 0, 0, 2, 2)
     # Fake image data including noise
     x = np.arange(-100, 101)
     y = np.arange(-100, 101)
@@ -141,10 +141,10 @@ Note that it has a slightly different color scale compared to the original image
     import matplotlib.pyplot as plt
 
     from astropy.convolution import *
-    from astropy.modeling.models import Gaussian2DModel
+    from astropy.modeling.models import Gaussian2D
 
     # Small Gaussian source in the middle of the image
-    gauss = Gaussian2DModel(1, 0, 0, 2, 2)
+    gauss = Gaussian2D(1, 0, 0, 2, 2)
     # Fake data including noise
     x = np.arange(-100, 101)
     y = np.arange(-100, 101)
@@ -232,9 +232,9 @@ special kernel:
 Or in case of multistage smoothing:
 
 >>> import numpy as np
->>> from astropy.modeling.models import Lorentz1DModel
+>>> from astropy.modeling.models import Lorentz1D
 >>> from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
->>> lorentz = Lorentz1DModel(1, 0, 1)
+>>> lorentz = Lorentz1D(1, 0, 1)
 >>> x = np.linspace(-5, 5, 100)
 >>> data_1D = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
 

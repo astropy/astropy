@@ -5,7 +5,7 @@ Compare the results of some models with other programs.
 """
 from __future__ import division
 from .. import models
-from ..core import (LabeledInput, SerialCompositeModel, ParallelCompositeModel,
+from ..core import (LabeledInput, SerialCompositeModel, SummedCompositeModel,
                     Parametric1DModel, Parametric2DModel)
 from ..polynomial import PolynomialModel
 import numpy as np
@@ -28,9 +28,9 @@ class TestSerialComposite(object):
     """
     def setup_class(self):
         self.x, self.y = np.mgrid[:5, :5]
-        self.p1 = models.Polynomial1DModel(3)
-        self.p11 = models.Polynomial1DModel(3)
-        self.p2 = models.Polynomial2DModel(3)
+        self.p1 = models.Polynomial1D(3)
+        self.p11 = models.Polynomial1D(3)
+        self.p2 = models.Polynomial2D(3)
 
     def test_single_array_input(self):
         model = SerialCompositeModel([self.p1, self.p11])
@@ -51,8 +51,8 @@ class TestSerialComposite(object):
     def test_labeledinput_2(self):
         labeled_input = LabeledInput([self.x, self.y], ['x', 'y'])
         rot = models.MatrixRotation2D(angle=23.4)
-        offx = models.ShiftModel(-2)
-        offy = models.ShiftModel(1.2)
+        offx = models.Shift(-2)
+        offy = models.Shift(1.2)
         model = SerialCompositeModel([rot, offx, offy],
                                      [['x', 'y'], ['x'], ['y']],
                                      [['x', 'y'], ['x'], ['y']])
@@ -66,8 +66,8 @@ class TestSerialComposite(object):
     def test_labeledinput_3(self):
         labeled_input = LabeledInput([2, 4.5], ['x', 'y'])
         rot = models.MatrixRotation2D(angle=23.4)
-        offx = models.ShiftModel(-2)
-        offy = models.ShiftModel(1.2)
+        offx = models.Shift(-2)
+        offy = models.Shift(1.2)
         model = SerialCompositeModel([rot, offx, offy],
                                      [['x', 'y'], ['x'], ['y']],
                                      [['x', 'y'], ['x'], ['y']])
@@ -88,39 +88,42 @@ class TestSerialComposite(object):
         utils.assert_almost_equal(y1, self.y)
 
 
-class TestParallelComposite(object):
+class TestSummedComposite(object):
 
     """
     Test composite models evaluation in parallel
     """
     def setup_class(self):
-        self.x, self.y = np.mgrid[:5, :5]
-        self.p1 = models.Polynomial1DModel(3)
-        self.p11 = models.Polynomial1DModel(3)
-        self.p2 = models.Polynomial2DModel(3)
+        self.x = np.linspace(1, 10, 100)
+        self.y = np.linspace(1, 10, 100)
+        self.p1 = models.Polynomial1D(3)
+        self.p11 = models.Polynomial1D(3)
+        self.p2 = models.Polynomial2D(3)
+        self.p1.parameters = [1.4, 2.2, 3.1, 4]
+        self.p2.c0_0 = 100
 
     def test_single_array_input(self):
-        model = ParallelCompositeModel([self.p1, self.p11])
+        model = SummedCompositeModel([self.p1, self.p11])
         result = model(self.x)
         delta11 = self.p11(self.x)
         delta1 = self.p1(self.x)
-        xx = self.x + delta1 + delta11
+        xx = delta1 + delta11
         utils.assert_almost_equal(xx, result)
 
     def test_labeledinput(self):
         labeled_input = LabeledInput([self.x, self.y], ['x', 'y'])
-        model = ParallelCompositeModel([self.p1, self.p11], inmap=['x'], outmap=['x'])
+        model = SummedCompositeModel([self.p1, self.p11], inmap=['x'], outmap=['x'])
         result = model(labeled_input)
         delta11 = self.p11(self.x)
         delta1 = self.p1(self.x)
-        xx = self.x + delta1 + delta11
+        xx = delta1 + delta11
         utils.assert_almost_equal(xx, result.x)
 
     def test_inputs_outputs_mismatch(self):
-        p2 = models.Polynomial2DModel(1)
-        ch2 = models.Chebyshev2DModel(1, 1)
+        p2 = models.Polynomial2D(1)
+        ch2 = models.Chebyshev2D(1, 1)
         with pytest.raises(AssertionError):
-            ParallelCompositeModel([p2, ch2])
+            SummedCompositeModel([p2, ch2])
 
 
 def test_pickle():
@@ -133,11 +136,11 @@ def test_pickle():
 
     copy_reg.pickle(types.MethodType, reduce_method)
 
-    p1 = models.Polynomial1DModel(3)
-    p11 = models.Polynomial1DModel(4)
-    g1 = models.Gaussian1DModel(10.3, 5.4, 1.2)
+    p1 = models.Polynomial1D(3)
+    p11 = models.Polynomial1D(4)
+    g1 = models.Gaussian1D(10.3, 5.4, 1.2)
     serial_composite_model = SerialCompositeModel([p1, g1])
-    parallel_composite_model = ParallelCompositeModel([serial_composite_model, p11])
+    parallel_composite_model = SummedCompositeModel([serial_composite_model, p11])
     s = cPickle.dumps(parallel_composite_model)
     s1 = cPickle.loads(s)
     assert s1(3) == parallel_composite_model(3)
@@ -399,23 +402,23 @@ def create_model(model_class, parameters, use_constraints=True):
 
 def test_ShiftModel():
     # Shift by a scalar
-    m = models.ShiftModel(42)
+    m = models.Shift(42)
     assert m(0) == 42
     utils.assert_equal(m([1, 2]), [43, 44])
 
     # Shift by a list
-    m = models.ShiftModel([42, 43])
+    m = models.Shift([42, 43])
     utils.assert_equal(m(0), [42, 43])
     utils.assert_equal(m([1, 2]), [[ 43,  44], [ 44,  45]])
 
 
 def test_ScaleModel():
     # Scale by a scalar
-    m = models.ScaleModel(42)
+    m = models.Scale(42)
     assert m(0) == 0
     utils.assert_equal(m([1, 2]), [42, 84])
 
     # Scale by a list
-    m = models.ScaleModel([42, 43])
+    m = models.Scale([42, 43])
     utils.assert_equal(m(0), [0, 0])
     utils.assert_equal(m([1, 2]), [[ 42,  43], [ 84,  86]])

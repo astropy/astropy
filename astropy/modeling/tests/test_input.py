@@ -17,17 +17,17 @@ except ImportError:
 
 
 model1d_params = [
-    (models.Polynomial1DModel, [2]),
-    (models.Legendre1DModel, [2]),
-    (models.Chebyshev1DModel, [2]),
-    (models.ShiftModel, [2]),
-    (models.ScaleModel, [2])
+    (models.Polynomial1D, [2]),
+    (models.Legendre1D, [2]),
+    (models.Chebyshev1D, [2]),
+    (models.Shift, [2]),
+    (models.Scale, [2])
 ]
 
 model2d_params = [
-    (models.Polynomial2DModel, [2]),
-    (models.Legendre2DModel, [1, 2]),
-    (models.Chebyshev2DModel, [1, 2])
+    (models.Polynomial2D, [2]),
+    (models.Legendre2D, [1, 2]),
+    (models.Chebyshev2D, [1, 2])
 ]
 
 
@@ -74,7 +74,7 @@ class TestFitting(object):
         1 set 1D x, 1pset
         """
         expected = np.array([0, 1, 1, 1])
-        p1 = models.Polynomial1DModel(3)
+        p1 = models.Polynomial1D(3)
         p1.parameters = [0, 1, 1, 1]
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter()
@@ -86,12 +86,12 @@ class TestFitting(object):
         1 set 1D x, 2 sets 1D y, 2 param_sets
         """
         expected = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
-        p1 = models.Polynomial1DModel(3, param_dim=2)
+        p1 = models.Polynomial1D(3, param_dim=2)
         p1.parameters = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0]
         params = {}
         for i in range(4):
             params[p1.param_names[i]] = [i, i]
-        p1 = models.Polynomial1DModel(3, param_dim=2, **params)
+        p1 = models.Polynomial1D(3, param_dim=2, **params)
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter()
         model = pfit(p1, self.x1, y1)
@@ -106,7 +106,7 @@ class TestFitting(object):
               4226.6249999999991,
               1680.7500000000009,
               273.37499999999926]]).T
-        ch1 = models.Chebyshev1DModel(3)
+        ch1 = models.Chebyshev1D(3)
         ch1.parameters = [0, 1, 2, 3]
         y1 = ch1(self.x1)
         pfit = fitting.LinearLSQFitter()
@@ -122,7 +122,7 @@ class TestFitting(object):
               3444.7500000000005,
               1883.2500000000014,
               364.4999999999996]]).T
-        leg1 = models.Legendre1DModel(3)
+        leg1 = models.Legendre1D(3)
         leg1.parameters = [1, 2, 3, 4]
         y1 = leg1(self.x1)
         pfit = fitting.LinearLSQFitter()
@@ -130,7 +130,7 @@ class TestFitting(object):
         utils.assert_allclose(model.param_sets, expected, atol=10 ** (-12))
 
     def test_linear_fitter_1set2d(self):
-        p2 = models.Polynomial2DModel(2)
+        p2 = models.Polynomial2D(2)
         p2.parameters = [0, 1, 2, 3, 4, 5]
         expected = [0, 1, 2, 3, 4, 5]
         z = p2(self.x, self.y)
@@ -145,9 +145,9 @@ class TestFitting(object):
         with a model with multiple parameter sets.
         """
         with pytest.raises(ValueError):
-            p1 = models.Polynomial1DModel(5)
+            p1 = models.Polynomial1D(5)
             y1 = p1(self.x1)
-            p1 = models.Polynomial1DModel(5, param_dim=2)
+            p1 = models.Polynomial1D(5, param_dim=2)
             pfit = fitting.LinearLSQFitter()
             model = pfit(p1, self.x1, y1)
 
@@ -161,11 +161,11 @@ class TestFitting(object):
                              [1, 3],
                              [1, 4],
                              [1, 5]])
-        p1 = models.Polynomial1DModel(5, param_dim=2)
+        p1 = models.Polynomial1D(5, param_dim=2)
         params = {}
         for i in range(6):
             params[p1.param_names[i]] = [1, i]
-        p1 = models.Polynomial1DModel(5, param_dim=2, **params)
+        p1 = models.Polynomial1D(5, param_dim=2, **params)
         y1 = p1(self.x1)
         pfit = fitting.LinearLSQFitter()
         model = pfit(p1, self.x1, y1)
@@ -176,7 +176,7 @@ class TestFitting(object):
         """
         1 set 1D x, 1 set 1D y, 1 pset NonLinearFitter
         """
-        g1 = models.Gaussian1DModel(10, mean=3, stddev=.2)
+        g1 = models.Gaussian1D(10, mean=3, stddev=.2)
         y1 = g1(self.x1)
         gfit = fitting.NonLinearLSQFitter()
         model = gfit(g1, self.x1, y1)
@@ -188,7 +188,7 @@ class TestFitting(object):
         1 set 1D x, 1 set 1D y, 2 param_sets, NonLinearFitter
         """
         with pytest.raises(ValueError):
-            g1 = models.Gaussian1DModel([10.2, 10], mean=[3, 3.2], stddev=[.23, .2])
+            g1 = models.Gaussian1D([10.2, 10], mean=[3, 3.2], stddev=[.23, .2])
             y1 = g1(self.x1)
             gfit = fitting.NonLinearLSQFitter()
             model = gfit(g1, self.x1, y1)
@@ -198,7 +198,7 @@ class TestFitting(object):
         """
         1 set 2d x, 1set 2D y, 1 pset, NonLinearFitter
         """
-        g2 = models.Gaussian2DModel(10, x_mean=3, y_mean=4, x_stddev=.3, y_stddev=.2, theta=0)
+        g2 = models.Gaussian2D(10, x_mean=3, y_mean=4, x_stddev=.3, y_stddev=.2, theta=0)
         z = g2(self.x, self.y)
         gfit = fitting.NonLinearLSQFitter()
         model = gfit(g2, self.x, self.y, z)
@@ -210,8 +210,8 @@ class TestFitting(object):
          1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter
         """
         with pytest.raises(ValueError):
-            g2 = models.Gaussian2DModel([10, 10], [3, 3], [4, 4], x_stddev=[.3, .3],
-                                        y_stddev=[.2, .2], theta=[0, 0])
+            g2 = models.Gaussian2D([10, 10], [3, 3], [4, 4], x_stddev=[.3, .3],
+                                   y_stddev=[.2, .2], theta=[0, 0])
             z = g2(self.x.flatten(), self.y.flatten())
             gfit = fitting.NonLinearLSQFitter()
             model = gfit(g2, self.x, self.y, z)
@@ -233,7 +233,7 @@ class TestEvaluation(object):
         This case covers:
             N param sets , 1 set 1D x --> N 1D y data
         """
-        g1 = models.Gaussian1DModel([10, 10], [3, 3], [.2, .2])
+        g1 = models.Gaussian1D([10, 10], [3, 3], [.2, .2])
         y1 = g1(self.x1)
         utils.assert_equal((y1[:, 0] - y1[:, 1]).nonzero(), (np.array([]),))
 
@@ -241,7 +241,7 @@ class TestEvaluation(object):
         """
         This case covers: N param sets , N sets 1D x --> N N sets 1D y data
         """
-        g1 = models.Gaussian1DModel([10, 10], [3, 3], [.2, .2])
+        g1 = models.Gaussian1D([10, 10], [3, 3], [.2, .2])
         xx = np.array([self.x1, self.x1])
         y1 = g1(xx.T)
         utils.assert_allclose(y1[:, 0], y1[:, 1], atol=10 ** (-12))
@@ -250,7 +250,7 @@ class TestEvaluation(object):
         """
         1 data set, 1 pset, Polynomial1D
         """
-        p1 = models.Polynomial1DModel(4)
+        p1 = models.Polynomial1D(4)
         y1 = p1(self.x1)
         assert y1.shape == (20,)
 
@@ -258,7 +258,7 @@ class TestEvaluation(object):
         """
         N data sets, N param_sets, Polynomial1D
         """
-        p1 = models.Polynomial1DModel(4, param_dim=2)
+        p1 = models.Polynomial1D(4, param_dim=2)
         y1 = p1(np.array([self.x1, self.x1]).T)
         assert y1.shape == (20, 2)
         utils.assert_allclose(y1[:, 0], y1[:, 1], atol=10 ** (-12))
@@ -267,7 +267,7 @@ class TestEvaluation(object):
         """
         1 pset, 1 2D data set, Polynomial2D
         """
-        p2 = models.Polynomial2DModel(5)
+        p2 = models.Polynomial2D(5)
         z = p2(self.x, self.y)
         assert z.shape == (10, 10)
 
@@ -275,7 +275,7 @@ class TestEvaluation(object):
         """
         N param_sets, N 2D data sets, Poly2d
         """
-        p2 = models.Polynomial2DModel(5, param_dim=2)
+        p2 = models.Polynomial2D(5, param_dim=2)
         xx = np.array([self.x, self.x])
         yy = np.array([self.y, self.y])
         z = p2(xx, yy)
@@ -289,17 +289,17 @@ class TestEvaluation(object):
         xx[0, 0] = 100
         xx[1, 0] = 100
         xx[2, 0] = 99
-        p1 = models.Polynomial1DModel(5, param_dim=2)
+        p1 = models.Polynomial1D(5, param_dim=2)
         yy = p1(xx)
         x1 = xx[:, 0]
         x2 = xx[:, 1]
-        p1 = models.Polynomial1DModel(5)
+        p1 = models.Polynomial1D(5)
         utils.assert_allclose(p1(x1), yy[:, 0], atol=10 ** (-12))
-        p1 = models.Polynomial1DModel(5)
+        p1 = models.Polynomial1D(5)
         utils.assert_allclose(p1(x2), yy[:, 1], atol=10 ** (-12))
 
     def test_evaluate_gauss2d(self):
         cov = np.array([[1., 0.8], [0.8, 3]])
-        g = models.Gaussian2DModel(1., 5., 4., cov_matrix=cov)
+        g = models.Gaussian2D(1., 5., 4., cov_matrix=cov)
         x, y = np.mgrid[:10, :10]
         g(x, y)

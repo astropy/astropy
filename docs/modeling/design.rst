@@ -14,7 +14,7 @@ possible, for example, to combine models `serially
 <astropy.modeling.core.SerialCompositeModel>` so that the output values of one
 model are used as input values to another.  It is also possible to form a new
 model by combining models in `parallel
-<astropy.modeling.core.ParallelCompositeModel>` (each model is evaluated
+<astropy.modeling.core.SummedCompositeModel>` (each model is evaluated
 separately with the original input and the deltas are summed).  Since models
 may have multiple input values, machinery is provided that allows assigning
 outputs from one model into the appropriate input of another in a flexible way,

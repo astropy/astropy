@@ -8,8 +8,8 @@ from ...tests.helper import pytest
 
 from ..utils import discretize_model
 from ...modeling.functional_models import (
-    Gaussian1DModel, Box1DModel, MexicanHat1DModel, Trapezoid1DModel,
-    Gaussian2DModel, Box2DModel, MexicanHat2DModel)
+    Gaussian1D, Box1D, MexicanHat1D, Trapezoid1D,
+    Gaussian2D, Box2D, MexicanHat2D)
 from ...modeling.tests.example_models import models_1D, models_2D
 from ...modeling.tests.test_models import create_model
 
@@ -21,8 +21,8 @@ except ImportError:
 
 
 modes = ['center', 'linear_interp', 'oversample']
-test_models_1D = [Gaussian1DModel, Box1DModel, MexicanHat1DModel]
-test_models_2D = [Gaussian2DModel, Box2DModel, MexicanHat2DModel]
+test_models_1D = [Gaussian1D, Box1D, MexicanHat1D]
+test_models_2D = [Gaussian2D, Box2D, MexicanHat2D]
 
 
 @pytest.mark.parametrize(('model_class', 'mode'), list(itertools.product(test_models_1D, modes)))
@@ -43,9 +43,9 @@ def test_pixel_sum_1D(model_class, mode):
 def test_gaussian_eval_1D(mode):
     """
     Discretize Gaussian with different modes and check
-    if result is at least similar to Gaussian1DModel.eval().
+    if result is at least similar to Gaussian1D.eval().
     """
-    model = Gaussian1DModel(1, 0, 20)
+    model = Gaussian1D(1, 0, 20)
     x = np.arange(-100, 101)
     values = model(x)
     disc_values = discretize_model(model, (-100, 101), mode=mode)
@@ -72,9 +72,9 @@ def test_pixel_sum_2D(model_class, mode):
 def test_gaussian_eval_2D(mode):
     """
     Discretize Gaussian with different modes and check
-    if result is at least similar to Gaussian1DModel.eval()
+    if result is at least similar to Gaussian1D.eval()
     """
-    model = Gaussian2DModel(1, 0, 0, 20, 20)
+    model = Gaussian2D(1, 0, 0, 20, 20)
     x = np.arange(-100, 101)
     y = np.arange(-100, 101)
     y, x = np.meshgrid(y, x)
@@ -88,7 +88,7 @@ def test_subpixel_gauss_1D():
     """
     Test subpixel accuracy of the oversample mode with gaussian 1D model.
     """
-    gauss_1D = Gaussian1DModel(1, 0, 0.1)
+    gauss_1D = Gaussian1D(1, 0, 0.1)
     values = discretize_model(gauss_1D, (-1, 2), mode='integrate', factor=100)
     assert_allclose(values.sum(), np.sqrt(2 * np.pi) * 0.1, atol=0.00001)
 
@@ -98,6 +98,6 @@ def test_subpixel_gauss_2D():
     """
     Test subpixel accuracy of the oversample mode with gaussian 2D model.
     """
-    gauss_2D = Gaussian2DModel(1, 0, 0, 0.1, 0.1)
+    gauss_2D = Gaussian2D(1, 0, 0, 0.1, 0.1)
     values = discretize_model(gauss_2D, (-1, 2), (-1, 2), mode='integrate', factor=100)
     assert_allclose(values.sum(), 2 * np.pi * 0.01, atol=0.00001)

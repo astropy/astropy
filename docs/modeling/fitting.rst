@@ -30,9 +30,7 @@ Fitting examples
 
 - Fitting a polynomial model to multiple data sets simultaneously::
 
-    >>> from astropy.modeling import models, fitting
-    >>> import numpy as np
-    >>> p1 = models.Polynomial1DModel(3)
+    >>> p1 = models.Polynomial1D(3)
     >>> p1.c0 = 1
     >>> p1.c1 = 2
     >>> p1.parameters
@@ -40,7 +38,7 @@ Fitting examples
     >>> x = np.arange(10)
     >>> y = p1(x)
     >>> yy = np.array([y, y]).T
-    >>> p2 = models.Polynomial1DModel(3, param_dim=2)
+    >>> p2 = models.Polynomial1D(3, param_dim=2)
     >>> pfit = fitting.LinearLSQFitter()
     >>> new_model = pfit(p2, x, yy)
     >>> print(new_model.param_sets)
@@ -62,7 +60,7 @@ Fitters support constrained fitting.
   model::
 
       >>> x = np.arange(1, 10, .1)
-      >>> p1 = models.Polynomial1DModel(2, param_dim=2)
+      >>> p1 = models.Polynomial1D(2, param_dim=2)
       >>> p1.parameters = [1, 1, 2, 2, 3, 3]
       >>> p1.param_sets
       array([[ 1.,  1.],
@@ -84,12 +82,12 @@ Fitters support constrained fitting.
       >>> def tiedfunc(g1):
       ...    mean = 3 * g1.stddev
       ...    return mean
-      >>> g1 = models.Gaussian1DModel(amplitude=10., mean=3, stddev=.5,
-      ...                             tied={'mean': tiedfunc})
+      >>> g1 = models.Gaussian1D(amplitude=10., mean=3, stddev=.5,
+      ...                        tied={'mean': tiedfunc})
 
   or::
 
-      >>> g1 = models.Gaussian1DModel(amplitude=10., mean=3, stddev=.5)
+      >>> g1 = models.Gaussian1D(amplitude=10., mean=3, stddev=.5)
       >>> g1.mean.tied = tiedfunc
       >>> gfit = fitting.NonLinearLSQFitter()
 
