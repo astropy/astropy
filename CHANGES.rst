@@ -305,7 +305,7 @@ API Changes
 
   - Identifier functions for reading/writing Table and NDData objects should
     now accept ``(origin, *args, **kwargs)`` instead of
-    ``(origin, args, kwargs)``.
+    ``(origin, args, kwargs)`` [#591].
 
 - ``astropy.nddata``
 
