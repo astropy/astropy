@@ -8,7 +8,10 @@ from ..extern import six
 
 import warnings
 
+import collections
 from copy import deepcopy
+
+from .compat.odict import OrderedDict
 from ..utils.exceptions import AstropyWarning
 
 
@@ -106,3 +109,25 @@ def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
                     out[key] = right[key]
 
     return out
+
+
+class MetaData(object):
+    """
+    A descriptor for classes that have a ``meta`` property.
+
+    This can be set to any valid mapping.
+    """
+
+    def __get__(self, instance, owner):
+        if not hasattr(instance, '_meta'):
+            instance._meta = OrderedDict()
+        return instance._meta
+
+    def __set__(self, instance, value):
+        if value is None:
+            instance._meta = OrderedDict()
+        else:
+            if isinstance(value, collections.Mapping):
+                instance._meta = deepcopy(value)
+            else:
+                raise TypeError("meta attribute must be dict-like")

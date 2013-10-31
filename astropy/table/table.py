@@ -20,7 +20,7 @@ from ..config import ConfigurationItem
 from ..io import registry as io_registry
 from . import operations
 from ..extern import six
-
+from ..utils.metadata import MetaData
 from ..utils.exceptions import AstropyDeprecationWarning
 from . import groups
 
@@ -144,6 +144,8 @@ def _column_compare(op):
 class BaseColumn(object):
 
     __metaclass__ = abc.ABCMeta
+
+    meta = MetaData()
 
     # Define comparison operators
     __eq__ = _column_compare(operator.eq)
@@ -583,10 +585,7 @@ class Column(BaseColumn, np.ndarray):
         self.format = format
         self.description = description
         self.parent_table = None
-
-        self.meta = OrderedDict()
-        if meta is not None:
-            self.meta.update(meta)
+        self.meta = meta
 
         return self
 
@@ -748,10 +747,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         self.format = format
         self.description = description
         self.parent_table = None
-
-        self.meta = OrderedDict()
-        if meta is not None:
-            self.meta.update(meta)
+        self.meta = meta
 
         return self
 
@@ -1028,6 +1024,8 @@ class Table(object):
 
     """
 
+    meta = MetaData()
+
     def __init__(self, data=None, masked=None, names=None, dtype=None,
                  meta=None, copy=True, dtypes=None):
 
@@ -1040,7 +1038,7 @@ class Table(object):
         self._data = None
         self._set_masked(masked)
         self.columns = TableColumns()
-        self._meta = OrderedDict() if meta is None else deepcopy(meta)
+        self.meta = meta
 
         # Must copy if dtype are changing
         if not copy and dtype is not None:
@@ -2401,7 +2399,7 @@ class Table(object):
         Examples
         --------
         Create a table with three columns::
-        
+
             >>> t = Table([['Max', 'Jo', 'John'], ['Miller','Miller','Jackson'],
             ...         [12,15,18]], names=('firstname','name','tel'))
             >>> t.pprint()
@@ -2426,10 +2424,6 @@ class Table(object):
 
     read = classmethod(io_registry.read)
     write = io_registry.write
-
-    @property
-    def meta(self):
-        return self._meta
 
     def copy(self, copy_data=True):
         '''

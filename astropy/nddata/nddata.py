@@ -3,6 +3,9 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import collections
+from copy import deepcopy
+
 import numpy as np
 
 from ..units import Unit
@@ -13,7 +16,7 @@ from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
 from ..io import registry as io_registry
 from ..config import ConfigurationItem
-
+from ..utils.metadata import MetaData
 
 __all__ = ['NDData']
 
@@ -110,6 +113,8 @@ class NDData(object):
 
     """
 
+    meta = MetaData()
+
     def __init__(self, data, uncertainty=None, mask=None, flags=None, wcs=None,
                  meta=None, unit=None):
 
@@ -123,19 +128,19 @@ class NDData(object):
 
             if mask is not None:
                 self.mask = mask
-                log.info("Overwriting NDData's current mask being overwritten with specified mask")
+                log.info("Overwriting NDData's current mask with specified mask")
 
             if flags is not None:
                 self.flags = flags
-                log.info("Overwriting NDData's current flags being overwritten with specified flag")
+                log.info("Overwriting NDData's current flags with specified flag")
 
             if wcs is not None:
                 self.wcs = wcs
-                log.info("Overwriting NDData's current wcs being overwritten with specified wcs")
+                log.info("Overwriting NDData's current wcs with specified wcs")
 
             if meta is not None:
                 self.meta = meta
-                log.info("Overwriting NDData's current meta being overwritten with specified meta")
+                log.info("Overwriting NDData's current meta with specified meta")
 
             if unit is not None:
                 raise ValueError('To convert to different unit please use .to')
@@ -225,20 +230,6 @@ class NDData(object):
                 raise TypeError("Uncertainty must be an instance of a NDUncertainty object")
         else:
             self._uncertainty = value
-
-    @property
-    def meta(self):
-        return self._meta
-
-    @meta.setter
-    def meta(self, value):
-        if value is None:
-            self._meta = OrderedDict()
-        else:
-            try:
-                self._meta = OrderedDict(value)
-            except ValueError:
-                raise TypeError('NDData meta attribute must be dict-like')
 
     @property
     def unit(self):

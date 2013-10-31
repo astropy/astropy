@@ -10,7 +10,6 @@ from numpy.testing import assert_array_equal
 from ..nddata import NDData
 from ..nduncertainty import StdDevUncertainty, IncompatibleUncertaintiesException, NDUncertainty
 from ...tests.helper import pytest, raises
-from ...io import fits
 from ...utils import NumpyRNGContext
 
 
@@ -298,22 +297,6 @@ def test_initializing_from_nduncertainty():
 
     assert u1.array is u2.array
 
-
-def test_meta2ordered_dict():
-    hdr = fits.header.Header()
-    hdr.set('observer', 'Edwin Hubble')
-    hdr.set('exptime', '3600')
-
-    d1 = NDData(np.ones((5, 5)), meta=hdr)
-    assert d1.meta['OBSERVER'] == 'Edwin Hubble'
-
-
-@raises(TypeError)
-def test_meta2ordered_dict_fail():
-    hdr = 'this is not a valid header'
-    d1 = NDData(np.ones((5, 5)), meta=hdr)
-
-
 def test_masked_array_input():
 
     with NumpyRNGContext(12345):
@@ -332,3 +315,14 @@ def test_masked_array_input():
 
     assert_array_equal(nd.mask, marr.mask)
     assert_array_equal(nd.data, marr.data)
+
+# Check that the meta descriptor is working as expected. The MetaBaseTest class
+# takes care of defining all the tests, and we simply have to define the class
+# and any minimal set of args to pass.
+
+from ...utils.tests.test_metadata import MetaBaseTest
+
+
+class TestMetaNDData(MetaBaseTest):
+    test_class = NDData
+    args = np.array([[1.]])

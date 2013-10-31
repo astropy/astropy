@@ -1129,3 +1129,15 @@ def test_equality_masked_bug():
                           ], format='ascii')
 
     assert np.all((t._data == t2) == np.array([0,1,0,1,0,1,0,1], dtype=bool))
+
+
+# Check that the meta descriptor is working as expected. The MetaBaseTest class
+# takes care of defining all the tests, and we simply have to define the class
+# and any minimal set of args to pass.
+
+from ...utils.tests.test_metadata import MetaBaseTest
+
+
+class TestMetaTable(MetaBaseTest):
+    test_class = table.Table
+    args = ()
