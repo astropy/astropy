@@ -3,8 +3,13 @@ Try the development version
 ===========================
 
 .. note::
+    `git` is the name of a source code management system. It is used to keep track of 
+    changes made to code and to manage contributions coming from several different
+    people.
+
     If you have never used `git` before, allow one hour the first time you do this. You will not need to do this every time you want to contribute; most of it is one-time setup. You can count on one hand the number of `git` commands you will need to regularly use to
     keep your local copy of `Astropy`_ up to date. If you find this taking more than an hour email the :ref:`astropy developers list for help <getting_help>`
+
 
 Trying out the development version of Astropy is useful in three ways:
 
@@ -33,7 +38,7 @@ Step-by-step instructions
 
 .. _fork_a_copy:
 
-Make your own copy of Astropy on github
+Make your own copy of Astropy on GitHub
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In the language of `GitHub`_, making a copy of someone's code is called making
@@ -76,19 +81,22 @@ Follow the instructions at `Set Up Git at GitHub`_ to take care of two essential
 .. note::
 
     Make sure you make a note of which authentication method you set up because it affects
-    the command you use to copy your GitHub fork to your computer. If you set up SSH keys
-    the URLs you use for making copies will look something like 
-    ``git@github.com:your-user-name/astropy.git``.
+    the command you use to copy your GitHub fork to your computer. 
+
     If you set up password caching (the default method) the URLs will look like 
-    ``https://github.com/your-user-name/astropy.git``.    
+    ``https://github.com/your-user-name/astropy.git``. 
+    
+    If you set up SSH keys the URLs you use for making copies will look something like 
+    ``git@github.com:your-user-name/astropy.git``.
+   
 
 .. _clone_your_fork:
 
-Copy your fork of Astropy from `GitHub`_ to your computer
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Copy your fork of Astropy from GitHub to your computer
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 One of the commands below will make a complete copy of your `GitHub`_ fork of `Astropy`_
-in a direction called `astropy`; which form you use depends on what kind of authentication
+in a directory called `astropy`; which form you use depends on what kind of authentication
 you set up in the previous step::
 
     # Use this form if you setup SSH keys...
@@ -104,7 +112,8 @@ Tell git where to look for changes in the development version of Astropy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Right now your local copy of `Astropy`_ doesn't know where the development version of
-`Astropy`_ is. In `git` the name for another location of the same repository is a *remote*
+`Astropy`_ is. THere is no easy way to keep your local copy up to date.
+In `git` the name for another location of the same repository is a *remote*
 and the repository that contains the latest "official" development version is, by tradition,
 called the *upstream* remote. 
 
@@ -152,7 +161,7 @@ You are *not quite* done yet. Git knows about this new branch; run ``git branch`
       my-own-astropy 
 
 The ``*`` indicates you are still working on master. To work on your branch instead you need to
-*checkout* the branch ``my-own-astropy``. Do that with::
+*check out* the branch ``my-own-astropy``. Do that with::
 
     git checkout my-own-astropy
 
@@ -173,8 +182,9 @@ In the directory where your copy of `Astropy`_ is type::
 
     python setup.py develop
 
-Several pages of output will follow; this wouldn't be a bad time to get a fresh cup of coffee. At the end
-of it you should see something like ``Finished processing dependencies for astropy==0.3.dev6272``.
+Several pages of output will follow the first time you do this; this wouldn't be a bad time to get a
+fresh cup of coffee. At the end of it you should see something like 
+``Finished processing dependencies for astropy==0.3.dev6272``.
 
 To make sure it has been activated **change to a different directory outside of the astropy distribution**
 and try this in python::
@@ -204,14 +214,20 @@ results. Before you try out a new feature or think you have found a bug make sur
 tests run properly on your system.
 
 If the test *don't* complete successfully, that is itself a bug--please 
-`report it <http://github.com/astropy/astropy/issues>`_.
+`report it <astropy issues page>`_.
 
 To run the tests, navigate back to the directory your copy of astropy is in on your computer,
 then, at the shell prompt, type::
 
     python setup.py test
 
-This is another good time to get some coffee or tea. The number of test is large.
+This is another good time to get some coffee or tea. The number of test is large. When the 
+test are done running you will see a message something like this::
+
+    4741 passed, 85 skipped, 11 xfailed
+
+Skips and xfails are fine, but if there are errors or failures please 
+`report them <astropy issues page>`_.
 
 .. _try_devel:
 
@@ -225,7 +241,7 @@ If you are doing this because you have found a bug and are checking that it stil
 in the development version, try running your code.
 
 Or, just for fun, try out one of the 
-`new features <http://astropy.readthedocs.org/en/latest/changelog.html>` in
+`new features <http://astropy.readthedocs.org/en/latest/changelog.html>`_ in
 the development version.
 
 Either way, once you are done, make sure you do the next step.
@@ -243,15 +259,17 @@ Navigate to the directory where your local copy of the development version is, t
     python setup.py develop -u
 
 You should really confirm it is deactivated by **changing to a different directory outside 
-of the astropy distribution** and running this python::
+of the astropy distribution** and running this in python::
 
     >>> import astropy
     >>> astropy.__version__
     '0.2.5'
 
-The actual version number you see will likely be different, but it should not have `dev` in it.
+The actual version number you see will likely be different than this example, but it 
+should not have `dev` in it.
 
 
 .. include:: ../workflow/git_links.inc
 .. include:: ../workflow/this_project.inc
 .. _Set Up Git at GitHub: http://help.github.com/articles/set-up-git
+.. _astropy issues page: http://github.com/astropy/astropy/issues
