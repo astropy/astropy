@@ -364,10 +364,10 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
     valid_formats = identify_format(mode, cls, path, fileobj, args, kwargs)
 
     if len(valid_formats) == 0:
-        raise Exception(
-            "Format could not be identified. ",
-            "Valid formats are {0}".format(
-                ', '.join(sorted(x[0] for x in funcs))))
+        format_table_str = _get_format_table_str(cls, mode.capitalize())
+        raise Exception("Format could not be identified.\n"
+                        "The available formats are:\n"
+                        "{0}".format(format_table_str))
     elif len(valid_formats) > 1:
         raise Exception(
             "Format is ambiguous - options are: {0}".format(
