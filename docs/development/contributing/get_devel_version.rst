@@ -228,10 +228,10 @@ The actual version number will be different than in this example, but it
 should have dev in the name.
 
 .. warning::
-    Right now *every* instance of python you run will use the development
-    version. That is fine for testing but you should make sure you change back
-    to the stable version unless you are developing astropy. If you want to
-    develop astropy, there is a better way of separating the development
+    Right now every time you run Python, the development version of astropy
+    will be used. That is fine for testing but you should make sure you change
+    back to the stable version unless you are developing astropy. If you want
+    to develop astropy, there is a better way of separating the development
     version from the version you do science with. That method, using a 
     `virtualenv`, is discussed later.
 
