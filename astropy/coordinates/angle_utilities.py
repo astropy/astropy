@@ -510,6 +510,12 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
     See `hours_to_string` and `degrees_to_string` for a higher-level
     interface to this functionality.
     """
+
+    # If the coordinates are negative, we need to take the absolute value of
+    # the (arc)minutes and (arc)seconds. We need to use np.abs because abs(-0)
+    # is -0.
+    values = (values[0], np.abs(values[1]), np.abs(values[2]))
+
     if pad:
         if values[0] < 0:
             pad = 3
@@ -584,7 +590,7 @@ def hours_to_string(h, precision=5, pad=False, sep=('h', 'm', 's'),
     `h` must be a scalar.
     """
     h, m, s = hours_to_hms(h)
-    return sexagesimal_to_string((h, np.abs(m), np.abs(s)), precision=precision, pad=pad,
+    return sexagesimal_to_string((h, m, s), precision=precision, pad=pad,
                                  sep=sep, fields=fields)
 
 
@@ -596,7 +602,7 @@ def degrees_to_string(d, precision=5, pad=False, sep=':', fields=3):
     `d` must be a scalar.
     """
     d, m, s = degrees_to_dms(d)
-    return sexagesimal_to_string((d, np.abs(m), np.abs(s)), precision=precision, pad=pad,
+    return sexagesimal_to_string((d, m, s), precision=precision, pad=pad,
                                  sep=sep, fields=fields)
 
 
