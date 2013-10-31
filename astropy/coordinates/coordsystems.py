@@ -717,7 +717,7 @@ class SphericalCoordinatesBase(object):
         >>> C.to_string(precision=2)
         u'0h42m44.33s 41d16m07.50s'
         >>> C.to_string(sep=':',precision=2)
-        u'0:42:44.3e 41:16:07.50'
+        u'0:42:44.33 41:16:07.50'
         >>> C.to_string(style='dms',precision=2)
         u'10d41m04.95s 41d16m07.50s'
         >>> C.to_string('decimal',precision=2)
