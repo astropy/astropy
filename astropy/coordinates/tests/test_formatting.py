@@ -2,6 +2,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from ...extern import six
+from ...tests.helper import pytest
 
 from ..angles import Angle
 from ... import units as u
@@ -96,31 +97,33 @@ import numpy as np
 from .. import ICRS, FK4, FK4NoETerms, FK5, Galactic, AltAz
 
 
-def test_coordinate_to_string_vector():
+@pytest.mark.parametrize('frame', [ICRS, FK4, FK4NoETerms, FK5])
+def test_coordinate_to_string_vector_hms(frame):
 
-    for hms_class in [ICRS, FK4, FK4NoETerms, FK5]:
-
-        C = hms_class(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
-        assert C.to_string(precision=0) == ['-0h00m00s 0d00m00s', '0h48m12s 13d30m00s']
-        assert C.to_string(precision=1) == ['-0h00m00.0s 0d00m00.0s', '0h48m12.0s 13d30m00.0s']
-
-    for dms_class in [Galactic, AltAz]:
-
-        C = dms_class(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
-        assert C.to_string(precision=0) == ['-0d00m00s 0d00m00s', '12d03m00s 13d30m00s']
-        assert C.to_string(precision=1) == ['-0d00m00.0s 0d00m00.0s', '12d03m00.0s 13d30m00.0s']
+    C = frame(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
+    assert C.to_string(precision=0) == ['-0h00m00s 0d00m00s', '0h48m12s 13d30m00s']
+    assert C.to_string(precision=1) == ['-0h00m00.0s 0d00m00.0s', '0h48m12.0s 13d30m00.0s']
 
 
-def test_coordinate_to_string_scalar():
+@pytest.mark.parametrize('frame', [Galactic, AltAz])
+def test_coordinate_to_string_vector_dms(frame):
 
-    for hms_class in [ICRS, FK4, FK4NoETerms, FK5]:
+    C = frame(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
+    assert C.to_string(precision=0) == ['-0d00m00s 0d00m00s', '12d03m00s 13d30m00s']
+    assert C.to_string(precision=1) == ['-0d00m00.0s 0d00m00.0s', '12d03m00.0s 13d30m00.0s']
 
-        C = hms_class(12.05*u.deg, 13.5*u.deg)
-        assert C.to_string(precision=0) == '0h48m12s 13d30m00s'
-        assert C.to_string(precision=1) == '0h48m12.0s 13d30m00.0s'
 
-    for dms_class in [Galactic, AltAz]:
+@pytest.mark.parametrize('frame', [ICRS, FK4, FK4NoETerms, FK5])
+def test_coordinate_to_string_scalar_hms(frame):
 
-        C = dms_class(12.05*u.deg, 13.5*u.deg)
-        assert C.to_string(precision=0) == '12d03m00s 13d30m00s'
-        assert C.to_string(precision=1) == '12d03m00.0s 13d30m00.0s'
+    C = frame(12.05*u.deg, 13.5*u.deg)
+    assert C.to_string(precision=0) == '0h48m12s 13d30m00s'
+    assert C.to_string(precision=1) == '0h48m12.0s 13d30m00.0s'
+
+
+@pytest.mark.parametrize('frame', [Galactic, AltAz])
+def test_coordinate_to_string_scalar_dms(frame):
+
+    C = frame(12.05*u.deg, 13.5*u.deg)
+    assert C.to_string(precision=0) == '12d03m00s 13d30m00s'
+    assert C.to_string(precision=1) == '12d03m00.0s 13d30m00.0s'
