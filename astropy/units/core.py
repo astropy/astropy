@@ -640,7 +640,7 @@ class UnitBase(object):
         if isinstance(m, UnitBase):
             if m.is_unity():
                 return self
-            return CompositeUnit(1, [self, m], [1, -1])
+            return CompositeUnit(1, [self, m], [1, -1], _error_check=False)
 
         # Cannot handle this as Unit, re-try as Quantity
         from .quantity import Quantity
@@ -669,7 +669,7 @@ class UnitBase(object):
                 return self
             elif self.is_unity():
                 return m
-            return CompositeUnit(1, [self, m], [1, 1])
+            return CompositeUnit(1, [self, m], [1, 1], _error_check=False)
 
         # Cannot handle this as Unit, re-try as Quantity
         from .quantity import Quantity
@@ -875,9 +875,12 @@ class UnitBase(object):
 
         equivalencies = self._normalize_equivalencies(equivalencies)
 
-        try:
-            scale = (self / other)._dimensionless_constant()
-        except UnitsError:
+        diff = CompositeUnit(
+            1, [self, other], [1, -1], decompose=True,
+            _error_check=False)
+        if len(diff.bases) == 0:
+            scale = diff.scale
+        else:
             return self._apply_equivalences(
                 self, other, equivalencies)
         return lambda val: scale * _condition_arg(val)
@@ -951,9 +954,9 @@ class UnitBase(object):
     def _compose(self, equivalencies=[], namespace=[], max_depth=2, depth=0,
                  cached_results=None):
         def make_key(unit):
-            parts = ([str(unit._scale)] +
-                     [x.name for x in unit._bases] +
-                     [str(x) for x in unit._powers])
+            parts = ([str(unit.scale)] +
+                     [x.name for x in unit.bases] +
+                     [str(x) for x in unit.powers])
             return tuple(parts)
 
         def is_final_result(unit):
@@ -992,7 +995,7 @@ class UnitBase(object):
         partial_results = []
         # Store final results that reduce to a single unit or pair of
         # units
-        if len(unit._bases) == 0:
+        if len(unit.bases) == 0:
             final_results = [set([unit]), set()]
         else:
             final_results = [set(), set()]
@@ -1006,7 +1009,7 @@ class UnitBase(object):
                 # This allows us to factor out fractional powers
                 # without needing to do an exhaustive search.
                 if len(tunit_decomposed.bases) == 1:
-                    for base, power in zip(u._bases, u._powers):
+                    for base, power in zip(u.bases, u.powers):
                         if tunit_decomposed._is_equivalent(base):
                             tunit = tunit ** power
                             tunit_decomposed = tunit_decomposed ** power
@@ -1014,7 +1017,7 @@ class UnitBase(object):
 
                 composed = (u / tunit_decomposed).decompose()
                 factored = composed * tunit
-                len_bases = len(composed._bases)
+                len_bases = len(composed.bases)
                 if is_final_result(factored) and len_bases <= 1:
                     final_results[len_bases].add(factored)
                 else:
@@ -1572,13 +1575,17 @@ class IrreducibleUnit(NamedUnit):
             for base in bases:
                 # to avoid roundrip, ensure no default equivalencies get used
                 if self.is_equivalent(base, equivalencies=[]):
-                    return CompositeUnit(self.to(base), [base], [1])
+                    scale = self.to(base)
+                    if is_effectively_unity(scale):
+                        return base
+                    return CompositeUnit(scale, [base], [1],
+                                         _error_check=False)
 
             raise UnitsError(
                 "Unit {0} can not be decomposed into the requested "
                 "bases".format(self))
 
-        return CompositeUnit(1, [self], [1])
+        return self
     decompose.__doc__ = UnitBase.decompose.__doc__
 
 
@@ -1667,16 +1674,19 @@ class _UnitMetaClass(type):
                                            powers=represents.unit.powers)
             else:
                 represents = CompositeUnit(represents.value,
-                                           bases=[represents.unit], powers=[1])
+                                           bases=[represents.unit], powers=[1],
+                                           _error_check=False)
 
         if isinstance(s, Quantity):
             if s.value == 1:
                 s = s.unit
             elif isinstance(s.unit, CompositeUnit):
-                s = CompositeUnit(s.value * s.unit.scale, bases=s.unit.bases,
+                s = CompositeUnit(s.value * s.unit.scale,
+                                  bases=s.unit.bases,
                                   powers=s.unit.powers)
             else:
-                s = CompositeUnit(s.value, bases=[s.unit], powers=[1])
+                s = CompositeUnit(s.value, bases=[s.unit], powers=[1],
+                                  _error_check=False)
 
         if isinstance(represents, UnitBase):
             # This has the effect of calling the real __new__ and
@@ -1690,7 +1700,7 @@ class _UnitMetaClass(type):
         elif isinstance(s, (bytes, six.text_type)):
             if len(s.strip()) == 0:
                 # Return the NULL unit
-                return CompositeUnit(1.0, [], [])
+                return dimensionless_unscaled
 
             if format is None:
                 format = 'generic'
@@ -1870,15 +1880,17 @@ class CompositeUnit(UnitBase):
         of the base units.
     """
     def __init__(self, scale, bases, powers, decompose=False,
-                 decompose_bases=set()):
-        if scale == 1. or is_effectively_unity(scale):
-            scale = 1
+                 decompose_bases=set(), _error_check=True):
+        if _error_check:
+            if scale == 1. or is_effectively_unity(scale):
+                scale = 1
+            for base in bases:
+                if not isinstance(base, UnitBase):
+                    raise TypeError("bases must be sequence of UnitBase instances")
+            powers = [self._validate_power(p) for p in powers]
+
         self._scale = scale
-        for base in bases:
-            if not isinstance(base, UnitBase):
-                raise TypeError("bases must be sequence of UnitBase instances")
         self._bases = bases
-        powers = [self._validate_power(p) for p in powers]
         self._powers = powers
         self._decomposed_cache = None
         self._expand_and_gather(decompose=decompose, bases=decompose_bases)
@@ -1994,11 +2006,14 @@ class CompositeUnit(UnitBase):
         better to use the `to` or `get_converter` methods
         instead.
         """
+        if not len(self.bases):
+            return self.scale
+
         x = self.decompose()
-        c = x.scale
         if len(x.bases):
             raise UnitsError(
                 "'{0}' is not dimensionless".format(self.to_string()))
+        c = x.scale
         return c
 
     def is_unity(self):
@@ -2083,7 +2098,7 @@ def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
                 names.append(prefix + alias)
 
         if len(names):
-            PrefixUnit(names, CompositeUnit(factor, [u], [1]),
+            PrefixUnit(names, CompositeUnit(factor, [u], [1], _error_check=False),
                        namespace=namespace, format=format)
 
 
@@ -2203,4 +2218,4 @@ def _condition_arg(value):
                 "float, or complex array")
 
 
-dimensionless_unscaled = CompositeUnit(1, [], [])
+dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
