@@ -381,18 +381,16 @@ class BaseHeader(object):
         start_line = _get_line_index(self.start_line, self.process_lines(lines))
         if start_line is None:
             # No header line so auto-generate names from n_data_cols
-            if self.names is None:
-                # Get the data values from the first line of table data to determine n_data_cols
-                try:
-                    first_data_vals = next(self.data.get_str_vals())
-                except StopIteration:
-                    raise InconsistentTableError('No data lines found so cannot autogenerate '
-                                                 'column names')
-                n_data_cols = len(first_data_vals)
-                self.names = [self.auto_format % i for i in range(1, n_data_cols+1)]
+            # Get the data values from the first line of table data to determine n_data_cols
+            try:
+                first_data_vals = next(self.data.get_str_vals())
+            except StopIteration:
+                raise InconsistentTableError('No data lines found so cannot autogenerate '
+                                             'column names')
+            n_data_cols = len(first_data_vals)
+            self.names = [self.auto_format % i for i in range(1, n_data_cols+1)]
 
-        elif self.names is None:
-            # No column names supplied so read them from header line in table.
+        else:
             for i, line in enumerate(self.process_lines(lines)):
                 if i == start_line:
                     break
@@ -708,13 +706,46 @@ class MetaBaseReader(type):
                 func = functools.partial(connect.io_write, io_format)
                 connect.io_registry.register_writer(io_format, Table, func)
 
-def _apply_include_exclude_names(table, include_names, exclude_names):
-    """apply include_names and exclude_names to a table.
+
+def _is_number(x):
+    try:
+        x = float(x)
+        return True
+    except ValueError:
+        pass
+    return False
+
+
+def _apply_include_exclude_names(table, names, include_names, exclude_names, strict_names):
+    """Apply names, include_names and exclude_names to a table.
 
     :param table: input table (Reader object, NumPy struct array, list of lists, etc)
+    :param names: list of names to override those in table (default=None uses existing names)
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
+    :param strict_names: apply strict checks on column names
     """
+    # Check column names.  This must be done before applying the names transformation
+    # so that guessing will fail appropriately if `names` is supplied.  For instance
+    # if the basic reader is given a table with no column header row.
+    if strict_names:
+        # Impose strict requirements on column names (normally used in guessing)
+        bads = [" ", ",", "|", "\t", "'", '"']
+        for name in table.colnames:
+            if (_is_number(name) or
+                    len(name) == 0 or
+                    name[0] in bads or
+                    name[-1] in bads):
+                raise ValueError('Column name {0!r} does not meet strict name requirements'
+                                 .format(name))
+
+    if names is not None:
+        if len(names) != len(table.colnames):
+            raise ValueError('Length of names argument ({0}) does not match number'
+                             ' of table columns ({1})'.format(len(names), len(table.colnames)))
+        for name, colname in zip(names, table.colnames):
+            table.rename_column(colname, name)
+
     names = set(table.colnames)
     if include_names is not None:
         names.intersection_update(include_names)
@@ -740,8 +771,10 @@ class BaseReader(object):
     """
     __metaclass__ = MetaBaseReader
 
+    names = None
     include_names = None
     exclude_names = None
+    strict_names = False
 
     def __init__(self):
         self.header = BaseHeader()
@@ -828,7 +861,8 @@ class BaseReader(object):
         table = self.outputter(cols, self.meta)
         self.cols = self.header.cols
 
-        _apply_include_exclude_names(table, self.include_names, self.exclude_names)
+        _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names,
+                                     self.strict_names)
 
         return table
 
@@ -871,7 +905,8 @@ class BaseReader(object):
         :returns: list of strings corresponding to ASCII table
         """
 
-        _apply_include_exclude_names(table, self.include_names, self.exclude_names)
+        _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names,
+                                     self.strict_names)
 
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = table.columns.values()
@@ -942,7 +977,7 @@ extra_reader_pars = ('Reader', 'Inputter', 'Outputter',
                      'delimiter', 'comment', 'quotechar', 'header_start',
                      'data_start', 'data_end', 'converters',
                      'data_Splitter', 'header_Splitter',
-                     'names', 'include_names', 'exclude_names',
+                     'names', 'include_names', 'exclude_names', 'strict_names',
                      'fill_values', 'fill_include_names', 'fill_exclude_names')
 
 
@@ -984,11 +1019,17 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     if 'header_Splitter' in kwargs:
         reader.header.splitter = kwargs['header_Splitter']()
     if 'names' in kwargs:
-        reader.header.names = kwargs['names']
+        reader.names = kwargs['names']
     if 'include_names' in kwargs:
         reader.include_names = kwargs['include_names']
     if 'exclude_names' in kwargs:
         reader.exclude_names = kwargs['exclude_names']
+    # Strict names is normally set only within the guessing process to
+    # indicate that column names cannot be numeric or have certain
+    # characters at the beginning or end.  It gets used in
+    # core._apply_include_exclude_names().
+    if 'strict_names' in kwargs:
+        reader.strict_names = kwargs['strict_names']
     if 'fill_values' in kwargs:
         reader.data.fill_values = kwargs['fill_values']
     if 'fill_include_names' in kwargs:

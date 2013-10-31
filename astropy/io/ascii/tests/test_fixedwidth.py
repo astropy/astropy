@@ -25,7 +25,7 @@ def test_read_normal():
 """
     reader = asciitable.get_reader(Reader=asciitable.FixedWidth)
     dat = reader.read(table)
-    assert_equal(reader.header.colnames, ('Col1', 'Col2'))
+    assert_equal(dat.colnames, ['Col1', 'Col2'])
     assert_almost_equal(dat[1][0], 2.4)
     assert_equal(dat[0][1], '"hello"')
     assert_equal(dat[1][1], "'s worlds")
@@ -42,7 +42,7 @@ def test_read_normal_names():
     reader = asciitable.get_reader(Reader=asciitable.FixedWidth,
                                    names=('name1', 'name2'))
     dat = reader.read(table)
-    assert_equal(reader.header.colnames, ('name1', 'name2'))
+    assert_equal(dat.colnames, ['name1', 'name2'])
     assert_almost_equal(dat[1][0], 2.4)
 
 

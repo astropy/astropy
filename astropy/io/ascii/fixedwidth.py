@@ -85,7 +85,6 @@ class FixedWidthHeader(core.BaseHeader):
     :param start_line: None, int, or a function of ``lines`` that returns None or int
     :param comment: regular expression for comment lines
     :param splitter_class: Splitter class for splitting data lines into columns
-    :param names: list of names corresponding to each data column
     :param position_line: row index of line that specifies position (default = 1)
     :param position_char: character used to write the position line (default = "-")
     :param col_starts: list of start positions for each column (0-based counting)
@@ -130,8 +129,7 @@ class FixedWidthHeader(core.BaseHeader):
                     'No data lines found so cannot autogenerate column names')
             vals, starts, ends = self.get_fixedwidth_params(data_lines[0])
 
-            if self.names is None:
-                self.names = [self.auto_format % i for i in range(1, len(vals) + 1)]
+            self.names = [self.auto_format % i for i in range(1, len(vals) + 1)]
 
         else:
             # This bit of code handles two cases:
@@ -156,9 +154,7 @@ class FixedWidthHeader(core.BaseHeader):
             line = self.get_line(lines, start_line)
             vals, starts, ends = self.get_fixedwidth_params(line)
 
-            # Possibly override the column names with user-supplied values
-            if self.names is None:
-                self.names = vals
+            self.names = vals
 
         self._set_cols_from_names()
 
