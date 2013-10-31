@@ -201,6 +201,14 @@ Right now you have the development version of `Astropy`_, but python will not
 see it. Though there are more sophisticated ways of managing multiple versions
 of `Astropy`_, for now this straightforward way will work.
 
+.. note::
+    There are a couple of circumstances in which this quick method of
+    activating your copy of `Astropy`_ will NOT work and you need to go
+    straight to using a virtual python environment:
+
+    + You use Python 3.
+    + You want to work on on C or Cython code in `Astropy`_. 
+
 In the directory where your copy of `Astropy`_ is type::
 
     python setup.py develop
