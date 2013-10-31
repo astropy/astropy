@@ -696,52 +696,38 @@ class SphericalCoordinatesBase(object):
         else:
             return icrs.transform_to(cls)
 
-    def to_string(self, style='hmsdms', **kwargs):
+    _default_string_style = 'dms'
+
+    def to_string(self, style=None, **kwargs):
         """
-        Return the format string in sexagesimal or decimal form.  See
-        `astropy.coordinates.Angle.to_string` for details and keyword arguments
-        (lonangle and latangle are both `Angle` instances).  kwargs are passed
-        to `Angle.to_string`
+        A string representation of the coordinates.
+
+        See :meth:`astropy.coordinates.Angle.to_string` for details and keyword
+        arguments (the two angles forming the coordinates are are both
+        :class:`astropy.coordinates.Angle` instances). Keyword arguments are passed to
+        :meth:`astropy.coordinates.Angle.to_string`.
 
         Parameters
         ----------
-        style : 'hmsdms' or 'dms' or 'decimal' or None
-            The allowed formatting specifications.  These encode the three most
-            common ways to represent coordinates.  If None is passed, no
-            defaults are changed from `Angle.to_string`.
-
-        Examples
-        --------
-        >>> import astropy.coordinates as coords
-        >>> C = coords.ICRS.from_name('M 31')
-        >>> C.to_string(precision=2)
-        u'0h42m44.33s 41d16m07.50s'
-        >>> C.to_string(sep=':',precision=2)
-        u'0:42:44.33 41:16:07.50'
-        >>> C.to_string(style='dms',precision=2)
-        u'10d41m04.95s 41d16m07.50s'
-        >>> C.to_string('decimal',precision=2)
-        u'10.68 41.27'
-        >>> C.galactic.to_string('decimal',precision=2)
-        u'121.17 -21.57'
-        >>> C.to_string(style=None,precision=2)
-        u'10d41m04.95s 41d16m07.50s'
-        >>> C.to_string(style=None,sep=':',precision=2)
-        u'10:41:04.95 41:16:07.50'
-        >>> from astropy import units as u
-        >>> C = coords.ICRS(np.arange(2)*u.deg,np.arange(2)*u.deg)
-        >>> C.to_string(precision=1)
-        [u'0h00m00.0s 0d00m00.0s', u'0h04m00.0s 1d00m00.0s']
+        style : {'hmsdms', 'dms', 'decimal', None}
+            The formatting specification to use. These encode the three most
+            common ways to represent coordinates. If `None` is passed, the
+            defaults for the current coordinate class is used.
+        kwargs
+            Keyword arguments are passed to :meth:`astropy.coordinates.Angle.to_string`.
         """
 
-        styles = {'hmsdms': {'lonargs': {'unit':u.hour},
+        if style is None:
+            style = self._default_string_style
+
+        styles = {
+                  'hmsdms': {'lonargs': {'unit':u.hour},
                              'latargs': {'unit':u.degree}},
                   'dms':    {'lonargs': {'unit':u.degree},
                              'latargs': {'unit':u.degree}},
                   'decimal':{'lonargs': {'unit':u.degree,'decimal':True},
-                             'latargs': {'unit':u.degree,'decimal':True}},
-                  None:     {'lonargs':{},
-                             'latargs':{}}}
+                             'latargs': {'unit':u.degree,'decimal':True}}
+                 }
 
         lonargs = kwargs.copy()
         latargs = kwargs.copy()
@@ -757,9 +743,11 @@ class SphericalCoordinatesBase(object):
                             + " " +
                             self.latangle.to_string(**latargs))
         else:
-            coord_string = [u"{l} {b}".format(l=l,b=b) for l,b in
-                            zip(self.lonangle.to_string(**lonargs),
-                                self.latangle.to_string(**latargs))]
+            coord_string = []
+            for lonangle, latangle in zip(self.lonangle, self.latangle):
+                coord_string += [(lonangle.to_string(**lonargs)
+                                 + " " +
+                                 latangle.to_string(**latargs))]
 
         if hasattr(coord_string,'decode'):
             return coord_string.decode()

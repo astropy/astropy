@@ -71,6 +71,9 @@ class ICRS(SphericalCoordinatesBase):
     _repr_lon_name = 'RA'
     _repr_lat_name = 'Dec'
 
+    # Default format for to_string
+    _default_string_style = 'hmsdms'
+
     @property
     def ra(self):
         return self._lonangle
@@ -135,6 +138,9 @@ class FK5(SphericalCoordinatesBase):
     #strings used for making __repr__ work
     _repr_lon_name = 'RA'
     _repr_lat_name = 'Dec'
+
+    # Default format for to_string
+    _default_string_style = 'hmsdms'
 
     @property
     def ra(self):
@@ -229,6 +235,9 @@ class FK4(SphericalCoordinatesBase):
     _repr_lon_name = 'RA'
     _repr_lat_name = 'Dec'
 
+    # Default format for to_string
+    _default_string_style = 'hmsdms'
+
     @property
     def ra(self):
         return self._lonangle
@@ -320,6 +329,9 @@ class FK4NoETerms(SphericalCoordinatesBase):
     #strings used for making __repr__ work
     _repr_lon_name = 'RA'
     _repr_lat_name = 'Dec'
+
+    # Default format for to_string
+    _default_string_style = 'hmsdms'
 
     @property
     def ra(self):
@@ -426,6 +438,9 @@ class Galactic(SphericalCoordinatesBase):
     _repr_lon_name = 'l'
     _repr_lat_name = 'b'
 
+    # Default format for to_string
+    _default_string_style = 'dms'
+
     @property
     def l(self):
         return self._lonangle
@@ -479,6 +494,9 @@ class AltAz(SphericalCoordinatesBase):
     #strings used for making __repr__ work
     _repr_lon_name = 'az'
     _repr_lat_name = 'alt'
+
+    # Default format for to_string
+    _default_string_style = 'dms'
 
     @property
     def az(self):

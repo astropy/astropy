@@ -93,14 +93,34 @@ def test_to_string_scalar():
 
 
 import numpy as np
-from ...coordinates import coordinates
+from .. import ICRS, FK4, FK4NoETerms, FK5, Galactic, AltAz
+
 
 def test_coordinate_to_string_vector():
-    C = coordinates.ICRS(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
-    assert C.to_string(precision=0) == [u'-0h00m00s 0d00m00s', u'0h48m12s 13d30m00s']
-    assert C.to_string(precision=1) == [u'-0h00m00.0s 0d00m00.0s', u'0h48m12.0s 13d30m00.0s']
+
+    for hms_class in [ICRS, FK4, FK4NoETerms, FK5]:
+
+        C = hms_class(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
+        assert C.to_string(precision=0) == [u'-0h00m00s 0d00m00s', u'0h48m12s 13d30m00s']
+        assert C.to_string(precision=1) == [u'-0h00m00.0s 0d00m00.0s', u'0h48m12.0s 13d30m00.0s']
+
+    for dms_class in [Galactic, AltAz]:
+
+        C = dms_class(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
+        assert C.to_string(precision=0) == [u'-0d00m00s 0d00m00s', u'12d03m00s 13d30m00s']
+        assert C.to_string(precision=1) == [u'-0d00m00.0s 0d00m00.0s', u'12d03m00.0s 13d30m00.0s']
+
 
 def test_coordinate_to_string_scalar():
-    C = coordinates.ICRS(12.05*u.deg, 13.5*u.deg)
-    assert C.to_string(precision=0) == u'0h48m12s 13d30m00s'
-    assert C.to_string(precision=1) == u'0h48m12.0s 13d30m00.0s'
+
+    for hms_class in [ICRS, FK4, FK4NoETerms, FK5]:
+
+        C = hms_class(12.05*u.deg, 13.5*u.deg)
+        assert C.to_string(precision=0) == u'0h48m12s 13d30m00s'
+        assert C.to_string(precision=1) == u'0h48m12.0s 13d30m00.0s'
+
+    for dms_class in [Galactic, AltAz]:
+
+        C = dms_class(12.05*u.deg, 13.5*u.deg)
+        assert C.to_string(precision=0) == u'12d03m00s 13d30m00s'
+        assert C.to_string(precision=1) == u'12d03m00.0s 13d30m00.0s'
