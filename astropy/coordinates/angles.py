@@ -89,6 +89,10 @@ class Angle(u.Quantity):
             if unit is not None:
                 angle = angle.to(unit).value
             else:
+                if not (angle.unit.is_equivalent(u.radian) or (angle.unit == u.hour)):
+                    raise u.UnitsError(
+                        "Given quantity {0} is not convertible to an angle".format(
+                            angle))
                 unit = angle.unit
                 angle = angle.value
 
@@ -159,7 +163,7 @@ class Angle(u.Quantity):
         if unit is not None:
             unit = u.Unit(unit)
 
-            if unit is u.hour:
+            if unit == u.hour:
                 unit = u.hourangle
         return unit
 
