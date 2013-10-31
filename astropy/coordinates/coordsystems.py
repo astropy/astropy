@@ -11,6 +11,7 @@ from .angles import Longitude, Latitude, Angle
 from .distances import Distance, CartesianPoints, cartesian_to_spherical, spherical_to_cartesian
 from ..utils.compat.misc import override__dir__
 from . import angle_utilities
+import numpy as np
 
 __all__ = ['SphericalCoordinatesBase']
 
@@ -727,6 +728,10 @@ class SphericalCoordinatesBase(object):
         u'10d41m04.95s 41d16m07.50s'
         >>> C.to_string(style=None,sep=':',precision=2)
         u'10:41:04.95 41:16:07.50'
+        >>> from astropy import units as u
+        >>> C = coords.ICRSCoordinates(np.arange(2)*u.deg,np.arange(2)*u.deg)
+        >>> C.to_string(precision=1)
+        ['0h00m00.0s 0d00m00.0s', '0h04m00.0s 1d00m00.0s']
         """
 
         styles = {'hmsdms': {'lonargs': {'unit':u.hour},
@@ -747,8 +752,13 @@ class SphericalCoordinatesBase(object):
         else:
             raise ValueError('Invalid style.  Valid options are: '+",".join(styles))
 
-        coord_string = (self.lonangle.to_string(**lonargs)
-                        + " " +
-                        self.latangle.to_string(**latargs))
+        if np.isscalar(self.lonangle.value):
+            coord_string = (self.lonangle.to_string(**lonargs)
+                            + " " +
+                            self.latangle.to_string(**latargs))
+        else:
+            coord_string = ["{l} {b}".format(l=l,b=b) for l,b in
+                            zip(self.lonangle.to_string(**lonargs),
+                                self.latangle.to_string(**latargs))]
 
         return coord_string

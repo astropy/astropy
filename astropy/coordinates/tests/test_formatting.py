@@ -6,7 +6,6 @@ from ...extern import six
 from ..angles import Angle
 from ... import units as u
 
-
 def test_to_string_precision():
     # There are already some tests in test_api.py, but this is a regression
     # test for the bug in issue #1319 which caused incorrect formatting of the
@@ -92,9 +91,16 @@ def test_to_string_scalar():
     a = Angle(1.113355, unit=u.deg)
     assert isinstance(a.to_string(), six.text_type)
 
+
+import numpy as np
 from ..coordinates import coordinates
 
-def test_coordinate_to_string():
+def test_coordinate_to_string_vector():
+    C = coordinates.ICRSCoordinates(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
+    assert C.to_string(precision=0) == ['-0h00m00s 0d00m00s', '0h48m12s 13d30m00s']
+    assert C.to_string(precision=1) == ['-0h00m00.0s 0d00m00.0s', '0h48m12.0s 13d30m00.0s']
+
+def test_coordinate_to_string_scalar():
     C = coordinates.ICRSCoordinates(12.05*u.deg, 13.5*u.deg)
     assert C.to_string(precision=0) == u'0h48m12s 13d30m00s'
     assert C.to_string(precision=1) == u'0h48m12.0s 13d30m00.0s'
