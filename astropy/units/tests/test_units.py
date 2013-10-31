@@ -261,11 +261,11 @@ def test_compose_roundtrip():
         composed_list = unit.decompose().compose()
         found = False
         for composed in composed_list:
-            if len(composed._bases):
-                if composed._bases[0] is unit:
+            if len(composed.bases):
+                if composed.bases[0] is unit:
                     found = True
                     break
-            elif len(unit._bases) == 0:
+            elif len(unit.bases) == 0:
                 found = True
                 break
         assert found
