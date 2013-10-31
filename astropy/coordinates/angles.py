@@ -546,7 +546,8 @@ class Latitude(Angle):
         return self
 
     def _validate_angles(self):
-        if np.any(self < -90.0 * u.deg) or np.any(self > 90.0 * u.deg):
+        degrees = self.degree
+        if np.any(degrees < -90.0) or np.any(degrees > 90.0):
             raise ValueError('Latitude angle(s) must be within -90 deg <= angle <= 90 deg, '
                              'got {0}'.format(self.degree))
 
