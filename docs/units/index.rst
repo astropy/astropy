@@ -1,8 +1,8 @@
 .. _astropy-units:
 
-***********************
-Units (`astropy.units`)
-***********************
+**************************************
+Units and Quantities (`astropy.units`)
+**************************************
 
 .. |quantity| replace:: :class:`~astropy.units.quantity.Quantity`
 
