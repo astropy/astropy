@@ -93,7 +93,7 @@ def test_to_string_scalar():
 
 
 import numpy as np
-from ..coordinates import coordinates
+from ...coordinates import coordinates
 
 def test_coordinate_to_string_vector():
     C = coordinates.ICRSCoordinates(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
