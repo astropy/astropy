@@ -130,7 +130,7 @@ Tell git where to look for changes in the development version of Astropy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Right now your local copy of `Astropy`_ doesn't know where the development
-version of `Astropy`_ is. THere is no easy way to keep your local copy up to
+version of `Astropy`_ is. There is no easy way to keep your local copy up to
 date. In `git` the name for another location of the same repository is a
 *remote* and the repository that contains the latest "official" development
 version is, by tradition, called the *upstream* remote. 
@@ -142,7 +142,7 @@ let git know about about the upstream remote::
     git remote add upstream git://github.com/astropy/astropy.git
 
 You can check that everything is set up properly so far by asking `git` to
-show you all of the remote it knows about for your local repository of 
+show you all of the remotes it knows about for your local repository of 
 `Astropy`_ with ``git remote -v``, which should display something like::
 
     upstream   git://github.com/astropy/astropy.git (fetch)
