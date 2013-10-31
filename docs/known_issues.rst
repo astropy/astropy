@@ -89,12 +89,12 @@ Colored printing of log messages and other colored text does work in Windows
 but only when running in the IPython console.  Colors are not currently
 supported in the basic Python command-line interpreter on Windows.
 
-Table sorting can silently fail in Python 3 with Numpy < 1.6.2
---------------------------------------------------------------
+Table sorting can silently fail on MacOS X with Python 3 and Numpy < 1.6.2
+--------------------------------------------------------------------------
 
 In Python 3, prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
 sorting of structured arrays to silently fail under certain circumstances (for
-example if the Table contains string columns). Since ``Table.sort`` relies on
-Numpy to internally sort the data, it is also affected by this bug. If you are
-using Python 3, and need the sorting functionality for tables, we recommend
-updating to a more recent version of Numpy.
+example if the Table contains string columns) on MacOS X. Since ``Table.sort``
+relies on Numpy to internally sort the data, it is also affected by this bug.
+If you are using Python 3, and need the sorting functionality for tables, we
+recommend updating to a more recent version of Numpy.

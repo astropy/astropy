@@ -1,11 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import sys
+import platform
 from distutils import version
 import numpy as np
 
+from ...extern import six
 from ...tests.helper import pytest
 from ... import table
 from ... import units as u
 
+
+# In Python 3, prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
+# sorting of structured arrays to silently fail under certain circumstances (for
+# example if the Table contains string columns) on MacOS X
+SKIP_STRING_SORT = (platform.system() == 'Darwin' and six.PY3 and
+                    version.LooseVersion(np.__version__) < version.LooseVersion('1.6.2'))
 
 class MaskedTable(table.Table):
     def __init__(self, *args, **kwargs):
@@ -882,6 +891,7 @@ class TestSort():
         assert np.all(t['a'] == np.array([2, 1, 3, 1, 3, 2]))
         assert np.all(t['b'] == np.array([3, 4, 4, 5, 5, 6]))
 
+    @pytest.mark.skipif('SKIP_STRING_SORT')
     def test_multiple_with_strings(self, table_types):
         # Before Numpy 1.6.2, and on Python 3.x, Numpy had a bug that meant
         # that sorting with multiple column names failed when a string column
