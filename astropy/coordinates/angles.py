@@ -615,9 +615,11 @@ class Longitude(Angle):
         Wrap the internal values in the Longitude object.  Using the `Angle`
         wrap_at() method causes recursion.
         """
-        d360 = 360.0 * u.deg
-        wrapped = np.mod(self - self.wrap_angle, d360) - (d360 - self.wrap_angle)
-        super(Longitude, self).__setitem__((), wrapped)
+        wrap_angle = self.wrap_angle.degree
+        self_angle = self.degree
+        wrapped = np.mod(self_angle - wrap_angle, 360.) - (360. - wrap_angle)
+        value = u.Quantity(u.deg.to(self.unit, wrapped), self.unit)
+        super(Longitude, self).__setitem__((), value)
 
     @property
     def wrap_angle(self):
