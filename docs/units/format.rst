@@ -1,7 +1,7 @@
 .. _astropy-units-format:
 
-Units and strings
-=================
+String representations of units
+===============================
 
 .. |quantity| replace:: :class:`~astropy.units.quantity.Quantity`
 
