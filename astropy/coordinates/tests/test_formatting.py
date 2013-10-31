@@ -96,11 +96,11 @@ import numpy as np
 from ...coordinates import coordinates
 
 def test_coordinate_to_string_vector():
-    C = coordinates.ICRSCoordinates(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
-    assert C.to_string(precision=0) == ['-0h00m00s 0d00m00s', '0h48m12s 13d30m00s']
-    assert C.to_string(precision=1) == ['-0h00m00.0s 0d00m00.0s', '0h48m12.0s 13d30m00.0s']
+    C = coordinates.ICRS(np.arange(2)*12.05*u.deg, np.arange(2)*13.5*u.deg)
+    assert C.to_string(precision=0) == [u'-0h00m00s 0d00m00s', u'0h48m12s 13d30m00s']
+    assert C.to_string(precision=1) == [u'-0h00m00.0s 0d00m00.0s', u'0h48m12.0s 13d30m00.0s']
 
 def test_coordinate_to_string_scalar():
-    C = coordinates.ICRSCoordinates(12.05*u.deg, 13.5*u.deg)
+    C = coordinates.ICRS(12.05*u.deg, 13.5*u.deg)
     assert C.to_string(precision=0) == u'0h48m12s 13d30m00s'
     assert C.to_string(precision=1) == u'0h48m12.0s 13d30m00.0s'
