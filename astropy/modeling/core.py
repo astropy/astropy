@@ -588,8 +588,8 @@ class ParametricModel(Model):
         else:
             return (self.parameters, fitparam_indices)
 
-    def fit_parameters(self, fps):
-        _fit_parameters, _fit_param_indices = self._model_to_fit_params()
+    def _fitter_to_model_params(self, fps):
+        _fit_params, _fit_param_indices = self._model_to_fit_params()
         if any(self.fixed.values()) or any(self.tied.values()):
             self.parameters[_fit_param_indices] = fps
             for idx, name in enumerate(self.param_names):
@@ -598,10 +598,13 @@ class ParametricModel(Model):
                     slice_ = self._param_metrics[name][0]
                     self.parameters[slice_] = value
         elif any([tuple(b) != (None, None) for b in self.bounds.values()]):
-            for name, par in zip(self.param_names, _fit_parameters):
+            for name, par in zip(self.param_names, _fit_params):
                 if self.bounds[name] != (None, None):
-                    par = max(par, self.bounds[name][0])
-                    par = min(par, self.bounds[name][1])
+                    b = self.bounds[name]
+                    if b[0] is not None:
+                        par = max(par, self.bounds[name][0])
+                    if b[1] is not None:
+                        par = min(par, self.bounds[name][1])
                     setattr(self, name, par)
         else:
             self.parameters = fps
@@ -695,7 +698,11 @@ class ParametricModel(Model):
             tied = list(np.where([par.tied != False for par in pars], True, tied))
             fix_and_tie = np.logical_or(fixed, tied)
             ind = np.logical_not(fix_and_tie)
-            res = full_deriv[np.nonzero(ind)]
+            if not self.col_deriv:
+                full_deriv = np.asarray(full_deriv).T
+                res = np.asarray(full_deriv[np.nonzero(ind)])
+            else:
+                res = full_deriv[np.nonzero(ind)]
             result = [np.ravel(_) for _ in res]
             return result
         else:
