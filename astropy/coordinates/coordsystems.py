@@ -715,19 +715,19 @@ class SphericalCoordinatesBase(object):
         >>> import astropy.coordinates as coords
         >>> C = coords.ICRSCoordinates.from_name('M 31')
         >>> C.to_string(precision=2)
-        u'0h42m44.33s 41d16m07.50s'
+        '0h42m44.33s 41d16m07.50s'
         >>> C.to_string(sep=':',precision=2)
-        u'0:42:44.3e 41:16:07.50'
+        '0:42:44.3e 41:16:07.50'
         >>> C.to_string(style='dms',precision=2)
-        u'10d41m04.95s 41d16m07.50s'
+        '10d41m04.95s 41d16m07.50s'
         >>> C.to_string('decimal',precision=2)
-        u'10.68 41.27'
+        '10.68 41.27'
         >>> C.galactic.to_string('decimal',precision=2)
-        u'121.17 -21.57'
+        '121.17 -21.57'
         >>> C.to_string(style=None,precision=2)
-        u'10d41m04.95s 41d16m07.50s'
+        '10d41m04.95s 41d16m07.50s'
         >>> C.to_string(style=None,sep=':',precision=2)
-        u'10:41:04.95 41:16:07.50'
+        '10:41:04.95 41:16:07.50'
         >>> from astropy import units as u
         >>> C = coords.ICRSCoordinates(np.arange(2)*u.deg,np.arange(2)*u.deg)
         >>> C.to_string(precision=1)
