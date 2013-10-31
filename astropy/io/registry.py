@@ -55,7 +55,7 @@ def get_formats(data_class=None):
     data = zip(*rows) if rows else None
     format_table = Table(data, names=('Data class', 'Format', 'Read', 'Write',
                                       'Auto-identify', 'Deprecated'))
-    format_table.sort(['Data class', 'Format'])
+    format_table.sort(['Data class', 'Deprecated', 'Format'])
 
     if not np.any(format_table['Deprecated'] == 'Yes'):
         format_table.remove_column('Deprecated')
