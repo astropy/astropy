@@ -204,9 +204,8 @@ class TestNonLinearFitters(object):
     def test_LSQ_SLSQP(self):
         g1 = models.Gaussian1DModel(100, 5, stddev=1)
         fitter = fitting.NonLinearLSQFitter()
-        g1_slsqp = models.Gaussian1DModel(100, 5, stddev=1)
         fslsqp = fitting.SLSQPFitter()
-        slsqp_model = fslsqp(g1_slsqp, self.xdata, self.ydata)
+        slsqp_model = fslsqp(g1, self.xdata, self.ydata)
         model = fitter(g1, self.xdata, self.ydata)
         # There's a bug in the SLSQP algorithm and sometimes it gives the
         # negative value of the result. unitl this is understood, for this
@@ -218,10 +217,8 @@ class TestNonLinearFitters(object):
         g1 = models.Gaussian1DModel(100, 5, stddev=1)
         g1.mean.fixed = True
         fitter = fitting.NonLinearLSQFitter()
-        g1_slsqp = models.Gaussian1DModel(100, 5, stddev=1)
-        g1_slsqp.mean.fixed = True
         fslsqp = fitting.SLSQPFitter()
-        slsqp_model = fslsqp(g1_slsqp, self.xdata, self.ydata)
+        slsqp_model = fslsqp(g1, self.xdata, self.ydata)
         model = fitter(g1, self.xdata, self.ydata)
         # There's a bug in the SLSQP algorithm and sometimes it gives the
         # negative value of the result. unitl this is understood, for this
