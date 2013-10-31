@@ -16,7 +16,8 @@ import numpy as np
 
 # AstroPy
 from ..extern import six
-from .core import Unit, dimensionless_unscaled, UnitBase, UnitsError
+from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
+                   get_current_unit_registry)
 from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
 
@@ -516,9 +517,9 @@ class Quantity(np.ndarray):
                     attr))
 
         def get_virtual_unit_attribute():
-            try:
-                to_unit = Unit(attr)
-            except ValueError:
+            registry = get_current_unit_registry().registry
+            to_unit = registry.get(attr, None)
+            if to_unit is None:
                 return None
 
             try:
