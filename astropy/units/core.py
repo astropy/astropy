@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 
+import copy
 import inspect
 import numbers
 import sys
@@ -860,7 +861,7 @@ class UnitBase(object):
             If units are inconsistent
         """
         if self is other:
-            return lambda val: 1 * val
+            return lambda val: copy.copy(val)
 
         other = Unit(other)
 
@@ -907,7 +908,7 @@ class UnitBase(object):
         if self is other:
             # Return a copy of value -- this works with scalars and
             # arrays
-            return 1 * value
+            return copy.copy(value)
 
         other = Unit(other)
         return self.get_converter(other, equivalencies=equivalencies)(value)
