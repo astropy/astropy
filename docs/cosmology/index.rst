@@ -81,9 +81,9 @@ arguments giving the Hubble parameter and omega matter (both at z=0):
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo
-  FlatLambdaCDM(name="FlatLambdaCDM", H0=<Quantity 70.0 km / (Mpc s)>,
-                Om0=0.3, Ode0=0.7, Tcmb0=<Quantity 2.725 K>, Neff=3.04,
-                m_nu=<Quantity [ 0., 0., 0.] eV>)
+  FlatLambdaCDM(H0=<Quantity 70 km / (Mpc s)>, Om0=0.3, 
+                Tcmb0=<Quantity 2.725 K>, Neff=3.04,
+                m_nu=<Quantity [ 0. 0. 0.] eV>)
 
 This can also be done more explicity using units, which is recommended:
 
@@ -91,12 +91,10 @@ This can also be done more explicity using units, which is recommended:
   >>> import astropy.units as u
   >>> cosmo = FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Om0=0.3)
 
-However, all of the parameters that accept units (`H0`, `Tcmb0`, `m_nu`)
+However, most of the parameters that accept units (`H0`, `Tcmb0`)
 have default units, so unit quantities do not have to be used.
-
-A number of additional dark energy models are provided (described below).
-Note that photons and neutrinos are included in these models, so
-Om0 + Ode0 is not quite one.
+The exception are neutrino masses, where you must supply a
+units if you want massive neutrinos.  
 
 The pre-defined cosmologies described in the `Getting Started`_
 section are instances of `~astropy.cosmology.core.FlatLambdaCDM`, and have
@@ -139,6 +137,20 @@ Note that these don't quite add up to one even though WMAP7 assumes a
 flat Universe because photons and neutrinos are included, and that
 they are not `~astropy.units.Quantity` objects because they are dimensionless.
 
+Cosmological instances have an optional name varaible which can be
+descriptively:
+
+  >>> from astropy.cosmology import FlatwCDM
+  >>> cosmo = FlatwCDM(name='SNLS3+WMAP7', H0=71.58, Om0=0.262, w0=-1.016)
+  >>> cosmo
+  FlatwCDM(name="SNLS3+WMAP7", H0=71.6 km / (Mpc s), Om0=0.262, 
+           w0=-1.02, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)
+
+This is also an example of a model with a different model for dark
+energy, a flat Universe with a constant dark energy equation of state,
+but not necessarily a cosmological constant.  A variety of additional
+dark energy models are also supported -- see `Specifying a dark energy model`_.
+
 In addition to the `~astropy.cosmology.core.LambdaCDM` object, there
 are convenience functions that calculate some of these quantities
 without needing to explicitly give a cosmology - but there are more
@@ -156,7 +168,6 @@ cosmology. This is a specific cosmology that is currently active in
 can also be explicitly given a cosmology using the `cosmo` keyword
 argument. A full list of convenience functions is included below, in
 the `Reference/API`_ section.
-
 
 The Current Cosmology
 ---------------------
@@ -269,14 +280,14 @@ energy is a cosmological constant, and should be the most commonly
 used cases; the former assumes a flat Universe, the latter allows
 for spatial curvature.  `~astropy.cosmology.core.FlatwCDM` and
 `~astropy.cosmology.core.wCDM` assum a constant dark
-energy equation of state parameterized by :math:`w_0`. Two forms of a
+energy equation of state parameterized by :math:`w_{0}`. Two forms of a
 variable dark energy equation of state are provided: the simple first
-order linear expansion :math:`w(z) = w_0 + w_z z` by
+order linear expansion :math:`w(z) = w_{0} + w_{z} z` by
 `~astropy.cosmology.core.w0wzCDM`, as well as the common CPL form by
-`~astropy.cosmology.core.w0waCDM`: :math:`w(z) = w_0 + w_a (1 - a) =
-w_0 + w_a z / (1 + z)` and its generalization to include a pivot
-redshift by `~astropy.cosmology.core.wpwaCDM`: :math:`w(z) = w_p + w_a
-(a_p - a)`.
+`~astropy.cosmology.core.w0waCDM`: :math:`w(z) = w_{0} + w_{a} (1 - a) =
+w_{0} + w_{a} z / (1 + z)` and its generalization to include a pivot
+redshift by `~astropy.cosmology.core.wpwaCDM`: :math:`w(z) = w_{p} + w_{a}
+(a_{p} - a)`.
 
 Users can specify their own equation of state by sub-classing
 `~astropy.cosmology.core.FLRW`.  See the provided subclasses for
