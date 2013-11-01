@@ -1212,9 +1212,13 @@ def custom_model_1d(func, func_deriv=None):
 
         >>> from astropy.modeling.models import custom_model_1d
         >>> import numpy as np
-        >>> @custom_model_1d
-        ... def SineModel(x, amplitude=1., frequency=1.):
+        >>> def sine_model(x, amplitude=1., frequency=1.):
         ...     return amplitude * np.sin(2 * np.pi * frequency * x)
+        >>> def sine_deriv(x, amplitude=1., frequency=1.):
+        ...     return 2 * np.pi * amplitude * \
+        ...            np.cos(2 * np.pi * frequency * x)
+        >>> SineModel = custom_model_1d(sine_model,
+        ...                             func_deriv=sine_deriv)
 
     Create an instance of the custom model and evaluate it:
 
