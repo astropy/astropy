@@ -7,6 +7,8 @@ from itertools import izip
 import functools
 import warnings
 import operator
+import platform
+from distutils import version
 
 import numpy as np
 from numpy import ma
@@ -23,6 +25,16 @@ from ..extern import six
 from ..utils.metadata import MetaData
 from ..utils.exceptions import AstropyDeprecationWarning
 from . import groups
+
+# In Python 3, prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
+# sorting of structured arrays to silently fail under certain circumstances (for
+# example if the Table contains string columns) on MacOS X
+SKIP_STRING_SORT = (platform.system() == 'Darwin' and six.PY3 and
+                    version.LooseVersion(np.__version__) < version.LooseVersion('1.6.2'))
+
+if SKIP_STRING_SORT:
+    __doctest_skip__ = ['Table.sort']
+
 
 # Python 2 and 3 source compatibility
 try:
