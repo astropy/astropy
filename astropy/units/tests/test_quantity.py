@@ -806,3 +806,8 @@ def test_unsupported():
 
     with pytest.raises(TypeError):
         q2 = np.bitwise_and(q1, q1)
+
+
+def test_unit_identity():
+    q = 1.0 * u.hour
+    assert q.unit is u.hour

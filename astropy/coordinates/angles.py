@@ -90,9 +90,13 @@ class Angle(u.Quantity):
                 angle = angle.to(unit).value
             else:
                 unit = angle.unit
-                angle = angle.value
-
                 unit = cls._convert_unit_to_angle_unit(unit)
+                if not unit.is_equivalent(u.radian):
+                    raise u.UnitsError(
+                        "Given quantity {0} is not convertible to an angle".format(
+                            angle))
+
+                angle = angle.value
 
         angle = cls._tuple_to_float(angle, unit)
 

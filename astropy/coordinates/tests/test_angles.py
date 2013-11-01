@@ -88,6 +88,18 @@ def test_angle_to_quantity():
     assert q.unit is u.deg
 
 
+def test_quantity_to_angle():
+    a = Angle(1.0*u.deg)
+    assert isinstance(a, Angle)
+    with pytest.raises(u.UnitsError):
+        Angle(1.0*u.meter)
+    a = Angle(1.0*u.hour)
+    assert isinstance(a, Angle)
+    assert a.unit is u.hourangle
+    with pytest.raises(u.UnitsError):
+        Angle(1.0*u.min)
+
+
 def test_angle_string():
     a = Angle('00:00:60', u.deg)
     assert str(a) == '0d01m00s'

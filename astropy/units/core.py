@@ -9,6 +9,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 
+import copy
 import inspect
 import numbers
 import sys
@@ -528,6 +529,33 @@ class UnitBase(object):
             "Can not get aliases from unnamed units. "
             "Perhaps you meant to_string()?")
 
+    @property
+    def scale(self):
+        """
+        Return the scale of the unit.
+        """
+        return 1.0
+
+    @property
+    def bases(self):
+        """
+        Return the bases of the unit.
+        """
+        return [self]
+
+    @property
+    def powers(self):
+        """
+        Return the powers of the unit.
+        """
+        return [1.0]
+
+    def _dimensionless_constant(self):
+        if self.is_unity():
+            return 1.0
+        raise UnitsError(
+            "'{0}' is not dimensionless".format(self.to_string()))
+
     def to_string(self, format='generic'):
         """
         Output the unit in the given format as a string.
@@ -602,6 +630,8 @@ class UnitBase(object):
             m = Unit(m)
 
         if isinstance(m, UnitBase):
+            if m.is_unity():
+                return self
             return CompositeUnit(1, [self, m], [1, -1])
 
         # Cannot handle this as Unit, re-try as Quantity
@@ -627,6 +657,10 @@ class UnitBase(object):
             m = Unit(m)
 
         if isinstance(m, UnitBase):
+            if m.is_unity():
+                return self
+            elif self.is_unity():
+                return m
             return CompositeUnit(1, [self, m], [1, 1])
 
         # Cannot handle this as Unit, re-try as Quantity
@@ -639,7 +673,7 @@ class UnitBase(object):
 
         # Cannot handle this as Unit, re-try as Quantity
         from .quantity import Quantity
-        return Quantity(1, self) * m
+        return m * Quantity(1, self)
 
     if sys.version_info[0] >= 3:  # pragma: no cover
         def __hash__(self):
@@ -648,6 +682,9 @@ class UnitBase(object):
             return id(self)
 
     def __eq__(self, other):
+        if self is other:
+            return True
+
         try:
             other = Unit(other, parse_strict='silent')
         except (ValueError, UnitsError):
@@ -823,6 +860,9 @@ class UnitBase(object):
         UnitsError
             If units are inconsistent
         """
+        if self is other:
+            return lambda val: copy.copy(val)
+
         other = Unit(other)
 
         equivalencies = self._normalize_equivalencies(equivalencies)
@@ -865,6 +905,10 @@ class UnitBase(object):
         UnitsError
             If units are inconsistent
         """
+        if self is other:
+            # Return a copy of value -- this works with scalars and
+            # arrays
+            return copy.copy(value)
 
         other = Unit(other)
         return self.get_converter(other, equivalencies=equivalencies)(value)
@@ -907,7 +951,7 @@ class UnitBase(object):
         def is_final_result(unit):
             # Returns True if this result contains only the expected
             # units
-            for base in unit._bases:
+            for base in unit.bases:
                 if base not in namespace:
                     return False
             return True
@@ -990,7 +1034,7 @@ class UnitBase(object):
                 composed_list = []
             for subcomposed in composed_list:
                 results.append(
-                    (len(subcomposed._bases), subcomposed, tunit))
+                    (len(subcomposed.bases), subcomposed, tunit))
 
         if len(results):
             results.sort(key=lambda x: x[0])
@@ -1141,15 +1185,16 @@ class UnitBase(object):
             # 'np.inf' as 'score value'.  It does not really matter which
             # number we would return. This case occurs for instance for
             # dimensionless quantities:
-            if len(compose._bases) == 0:
+            compose_bases = compose.bases
+            if len(compose_bases) == 0:
                 return np.inf
             else:
                 sum = 0
-                for base in compose._bases:
+                for base in compose_bases:
                     if base in bases:
                         sum += 1
 
-                return sum / float(len(compose._bases))
+                return sum / float(len(compose_bases))
 
         x = self.decompose(bases=bases)
         composed = x.compose(units=system)
@@ -1287,7 +1332,7 @@ class UnitBase(object):
             equivalencies=equivalencies, units=units, max_depth=1,
             include_prefix_units=include_prefix_units)
         results = [
-            x._bases[0] for x in results if len(x._bases) == 1]
+            x.bases[0] for x in results if len(x.bases) == 1]
         return self.EquivalentUnitsList(results)
 
     def is_unity(self):
@@ -1514,27 +1559,6 @@ class IrreducibleUnit(NamedUnit):
                 (list(self.names), self.name in registry),
                 self.__dict__)
 
-    @property
-    def scale(self):
-        """
-        Return the scale of the unit.
-        """
-        return 1.0
-
-    @property
-    def bases(self):
-        """
-        Return the bases of the unit.
-        """
-        return [self]
-
-    @property
-    def powers(self):
-        """
-        Return the powers of the unit.
-        """
-        return [1.0]
-
     def decompose(self, bases=set()):
         if len(bases) and not self in bases:
             for base in bases:
@@ -1548,9 +1572,6 @@ class IrreducibleUnit(NamedUnit):
 
         return CompositeUnit(1, [self], [1])
     decompose.__doc__ = UnitBase.decompose.__doc__
-
-    def is_unity(self):
-        return False
 
 
 class UnrecognizedUnit(IrreducibleUnit):
@@ -1792,6 +1813,10 @@ class Unit(NamedUnit):
     def decompose(self, bases=set()):
         return self._represents.decompose(bases=bases)
     decompose.__doc__ = UnitBase.decompose.__doc__
+
+    def is_unity(self):
+        return self._represents.is_unity()
+    is_unity.__doc__ = UnitBase.is_unity.__doc__
 
 
 class PrefixUnit(Unit):
