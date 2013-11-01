@@ -24,9 +24,9 @@ hard to do if it is necessary).
 .. warning::
     `~astropy.modeling` is currently a work-in-progress, and thus it is
     likely there will be significant API changes in later versions of
-    Astropy. If you have specific ideas for how it might be improved, 
-    feel free to let us know on the `astropy-dev mailing list`_ or at 
-    http://feedback.astropy.org 
+    Astropy. If you have specific ideas for how it might be improved,
+    feel free to let us know on the `astropy-dev mailing list`_ or at
+    http://feedback.astropy.org
 
 
 Getting started
@@ -49,28 +49,29 @@ Fit a data set with a Gaussian model::
     >>> g1
     <Gaussian1DModel(amplitude=Parameter('amplitude', value=10.0), mean=Parameter('mean', value=4.2000000000000002), stddev=Parameter('stddev', value=2.1000000000000001), param_dim=1)>
     >>> y = g1(x)
+    >>> np.random.seed(0)
     >>> n = np.random.randn(90)
     >>> ny = y + n
     >>> gfit = fitting.NonLinearLSQFitter(g1)
-    >>> gfit(x, ny)
-    >>> print(g1)
+    >>> gfit(x, ny)  # doctest: +REQUIRES_SCIPY
+    >>> print(g1)  # doctest: +REQUIRES_SCIPY
     Model: Gaussian1DModel
     n_inputs:   1
     Degree: N/A
     Parameter sets: 1
     Parameters:
-               amplitude: Parameter('amplitude', value=10.315151071186117)
-               mean: Parameter('mean', value=4.1780718585869554)
-               stddev:  Parameter('stddev', value=2.0585618180947494)
+               amplitude: Parameter('amplitude', value=9.8931826765510706)
+               mean: Parameter('mean', value=4.0263781556737737)
+               stddev: Parameter('stddev', value=2.152396119425859)
 
 Create data using a 1D Chebyshev model::
 
     >>> ch1 = models.Chebyshev1DModel(3, domain=[x.min(), x.max()])
     >>> ch1.parameters
-    array([0., 0., 0., 0.])
+    array([ 0.,  0.,  0.,  0.])
     >>> ch1.parameters = [1, 2, 3, 4]
     >>> ch1.parameters
-    array([1., 2., 3., 4.])
+    array([ 1.,  2.,  3.,  4.])
     >>> print(ch1)
     Model: Chebyshev1DModel
     n_inputs:   1
@@ -85,6 +86,7 @@ Create data using a 1D Chebyshev model::
 
 Add some noise::
 
+    >>> np.random.seed(0)
     >>> n = np.random.randn(90)
     >>> ny = y + n
 
@@ -94,7 +96,7 @@ Fit a Chebyshev polynomial to the data::
     >>> chfit = fitting.LinearLSQFitter(ch2)
     >>> chfit(x, ny)
     >>> ch2.parameters
-    array([ 1.08612543,  1.79746444,  3.15233293,  4.06529137])
+    array([ 1.17789166,  1.67145195,  3.53825251,  4.05892813])
 
 .. plot::
 
@@ -105,6 +107,7 @@ Fit a Chebyshev polynomial to the data::
    ch1 = models.Chebyshev1DModel(3, domain=[x.min(), x.max()])
    ch1.parameters = [1, 2, 3, 4]
    y = ch1(x)
+   np.random.seed(0)
    n = np.random.randn(90)
    ny = y + n
    ch2 = models.Chebyshev1DModel(3)
@@ -124,7 +127,7 @@ First create some data to be fitted with a 2D polynomial::
 
     >>> x, y = np.mgrid[:10, :10]
     >>> def poly2(x, y):
-            return 1+2*x+3*x**2+4*y+5*y**2+6*x*y
+    ...     return 1+2*x+3*x**2+4*y+5*y**2+6*x*y
     >>> z = poly2(x, y)
 
 Fit a 2D polynomial to the data::
@@ -143,12 +146,13 @@ Fit a 2D polynomial to the data::
                c0_2: Parameter('c0_2', value=0.0)
                c1_1: Parameter('c1_1', value=0.0)
     >>> pfit = fitting.LinearLSQFitter(p2)
+    >>> np.random.seed(0)
     >>> n = np.random.randn(100)
     >>> n.shape = (10, 10)
     >>> pfit(x, y, z+n)
     >>> p2.parameters
-    array([ 0.97599264,  1.95050208,  3.00524297,  4.01663038,  5.00150801,
-            5.999489  ])
+    array([ 1.79964917,  1.44891526,  3.05358047,  4.08895144,  4.98756933,
+            6.00824639])
 
 
 Using `modeling`
