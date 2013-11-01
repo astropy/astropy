@@ -546,8 +546,9 @@ class Latitude(Angle):
         return self
 
     def _validate_angles(self):
-        degrees = self.degree
-        if np.any(degrees < -90.0) or np.any(degrees > 90.0):
+        lower = u.degree.to(self.unit, -90.0)
+        upper = u.degree.to(self.unit, 90.0)
+        if np.any(self.value < lower) or np.any(self.value > upper):
             raise ValueError('Latitude angle(s) must be within -90 deg <= angle <= 90 deg, '
                              'got {0}'.format(self.degree))
 
@@ -615,10 +616,11 @@ class Longitude(Angle):
         Wrap the internal values in the Longitude object.  Using the `Angle`
         wrap_at() method causes recursion.
         """
-        wrap_angle = self.wrap_angle.degree
-        self_angle = self.degree
-        wrapped = np.mod(self_angle - wrap_angle, 360.) - (360. - wrap_angle)
-        value = u.Quantity(u.deg.to(self.unit, wrapped), self.unit)
+        a360 = u.degree.to(self.unit, 360.0)
+        wrap_angle = self.wrap_angle.to(self.unit).value
+        self_angle = self.value
+        wrapped = np.mod(self_angle - wrap_angle, a360) - (a360 - wrap_angle)
+        value = u.Quantity(wrapped, self.unit)
         super(Longitude, self).__setitem__((), value)
 
     @property
