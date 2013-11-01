@@ -746,14 +746,13 @@ class UnitBase(object):
         -------
         bool
         """
+        equivalencies = self._normalize_equivalencies(equivalencies)
 
         if isinstance(other, tuple):
-            return any(self.is_equivalent(u, equivalencies=None)
+            return any(self.is_equivalent(u, equivalencies=equivalencies)
                        for u in other)
         else:
             other = Unit(other, parse_strict='silent')
-
-        equivalencies = self._normalize_equivalencies(equivalencies)
 
         return self._is_equivalent(other, equivalencies)
 
@@ -873,17 +872,16 @@ class UnitBase(object):
 
         other = Unit(other)
 
-        equivalencies = self._normalize_equivalencies(equivalencies)
+        if (self._get_physical_type_id() == other._get_physical_type_id()):
+            diff = CompositeUnit(
+                1, [self, other], [1, -1], decompose=True,
+                _error_check=False)
+            if len(diff.bases) == 0:
+                return lambda val: diff.scale * _condition_arg(val)
 
-        diff = CompositeUnit(
-            1, [self, other], [1, -1], decompose=True,
-            _error_check=False)
-        if len(diff.bases) == 0:
-            scale = diff.scale
-        else:
-            return self._apply_equivalences(
-                self, other, equivalencies)
-        return lambda val: scale * _condition_arg(val)
+        equivalencies = self._normalize_equivalencies(equivalencies)
+        return self._apply_equivalences(
+            self, other, equivalencies)
 
     def to(self, other, value=1.0, equivalencies=[]):
         """
