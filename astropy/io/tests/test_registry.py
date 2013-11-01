@@ -39,13 +39,15 @@ def empty_identifier(*args, **kwargs):
 def test_get_reader_invalid():
     with pytest.raises(Exception) as exc:
         io_registry.get_reader('test', TestData)
-    assert exc.value.args[0] == "No reader defined for format 'test' and class 'TestData'"
+    assert exc.value.args[0].startswith(
+        "No reader defined for format 'test' and class 'TestData'")
 
 
 def test_get_writer_invalid():
     with pytest.raises(Exception) as exc:
         io_registry.get_writer('test', TestData)
-    assert exc.value.args[0] == "No writer defined for format 'test' and class 'TestData'"
+    assert exc.value.args[0].startswith(
+        "No writer defined for format 'test' and class 'TestData'")
 
 
 def test_register_reader():
@@ -106,13 +108,13 @@ def test_register_identifier_force():
 def test_read_noformat():
     with pytest.raises(Exception) as exc:
         TestData.read()
-    assert exc.value.args[0] == "Format could not be identified. "
+    assert exc.value.args[0].startswith("Format could not be identified.")
 
 
 def test_write_noformat():
     with pytest.raises(Exception) as exc:
         TestData().write()
-    assert exc.value.args[0] == "Format could not be identified. "
+    assert exc.value.args[0].startswith("Format could not be identified.")
 
 
 def test_read_noformat_arbitrary():
@@ -120,7 +122,7 @@ def test_read_noformat_arbitrary():
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
     with pytest.raises(Exception) as exc:
         TestData.read(object())
-    assert exc.value.args[0] == "Format could not be identified. "
+    assert exc.value.args[0].startswith("Format could not be identified.")
 
 
 def test_read_noformat_arbitrary_file(tmpdir):
@@ -132,8 +134,7 @@ def test_read_noformat_arbitrary_file(tmpdir):
 
     with pytest.raises(Exception) as exc:
         Table.read(testfile)
-    assert exc.value.args[0] == "Format could not be identified. "
-    assert ', '.join(sorted(r[0] for r in _readers)) in exc.value.args[1]
+    assert exc.value.args[0].startswith("Format could not be identified.")
 
 
 def test_write_noformat_arbitrary():
@@ -141,7 +142,7 @@ def test_write_noformat_arbitrary():
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
     with pytest.raises(Exception) as exc:
         TestData().write(object())
-    assert exc.value.args[0] == "Format could not be identified. "
+    assert exc.value.args[0].startswith("Format could not be identified.")
 
 
 def test_write_noformat_arbitrary_file(tmpdir):
@@ -151,8 +152,7 @@ def test_write_noformat_arbitrary_file(tmpdir):
 
     with pytest.raises(Exception) as exc:
         Table().write(testfile)
-    assert exc.value.args[0] == "Format could not be identified. "
-    assert ', '.join(sorted(r[0] for r in _writers)) in exc.value.args[1]
+    assert exc.value.args[0].startswith("Format could not be identified.")
 
 
 def test_read_toomanyformats():
@@ -174,13 +174,15 @@ def test_write_toomanyformats():
 def test_read_format_noreader():
     with pytest.raises(Exception) as exc:
         TestData.read(format='test')
-    assert exc.value.args[0] == "No reader defined for format 'test' and class 'TestData'"
+    assert exc.value.args[0].startswith(
+        "No reader defined for format 'test' and class 'TestData'")
 
 
 def test_write_format_nowriter():
     with pytest.raises(Exception) as exc:
         TestData().write(format='test')
-    assert exc.value.args[0] == "No writer defined for format 'test' and class 'TestData'"
+    assert exc.value.args[0].startswith(
+        "No writer defined for format 'test' and class 'TestData'")
 
 
 def test_read_identifier():
@@ -198,11 +200,13 @@ def test_read_identifier():
 
     with pytest.raises(Exception) as exc:
         TestData.read('abc')
-    assert exc.value.args[0] == "No reader defined for format 'test1' and class 'TestData'"
+    assert exc.value.args[0].startswith(
+        "No reader defined for format 'test1' and class 'TestData'")
 
     with pytest.raises(Exception) as exc:
         TestData.read('bac')
-    assert exc.value.args[0] == "No reader defined for format 'test2' and class 'TestData'"
+    assert exc.value.args[0].startswith(
+        "No reader defined for format 'test2' and class 'TestData'")
 
 
 def test_write_identifier():
@@ -216,11 +220,13 @@ def test_write_identifier():
 
     with pytest.raises(Exception) as exc:
         TestData().write('abc')
-    assert exc.value.args[0] == "No writer defined for format 'test1' and class 'TestData'"
+    assert exc.value.args[0].startswith(
+        "No writer defined for format 'test1' and class 'TestData'")
 
     with pytest.raises(Exception) as exc:
         TestData().write('bac')
-    assert exc.value.args[0] == "No writer defined for format 'test2' and class 'TestData'"
+    assert exc.value.args[0].startswith(
+        "No writer defined for format 'test2' and class 'TestData'")
 
 
 def test_identifier_origin():
@@ -236,11 +242,13 @@ def test_identifier_origin():
 
     with pytest.raises(Exception) as exc:
         TestData.read(format='test2')
-    assert exc.value.args[0] == "No reader defined for format 'test2' and class 'TestData'"
+    assert exc.value.args[0].startswith(
+        "No reader defined for format 'test2' and class 'TestData'")
 
     with pytest.raises(Exception) as exc:
         TestData().write(format='test1')
-    assert exc.value.args[0] == "No writer defined for format 'test1' and class 'TestData'"
+    assert exc.value.args[0].startswith(
+        "No writer defined for format 'test1' and class 'TestData'")
 
 
 def test_read_valid_return():
