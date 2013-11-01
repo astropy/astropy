@@ -594,7 +594,14 @@ class ParametricModel(Model):
             else:
                 raise ValueError("Model param_dim must be 1 or greater.")
 
-            if param_size > 1 and param_size != self.param_dim:
+            if (param_size > 1 and param_size != self.param_dim and
+                    len(value) != self.param_dim):
+                # The len(value) == self.param_dim case is a special case
+                # (see #1680) where the parameter has compound values (like [1,
+                # 2]) but we're passing in two (or more) param sets, so we want
+                # to make sure a value like [[1, 2], [3, 4]] is interpreted as
+                # having values for 2 param sets, not 4.
+
                 # For now all parameter values must have a number of elements
                 # equal to param_dim (the number of param sets) or it is
                 # invalid.  The *only* exception is, again, a scalar value is
