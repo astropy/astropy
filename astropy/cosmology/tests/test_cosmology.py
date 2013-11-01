@@ -91,15 +91,15 @@ def test_units():
 def test_repr():
     """ Test string representation of built in classes"""
     cosmo = core.LambdaCDM(70, 0.3, 0.5)
-    expected = 'LambdaCDM(name="LambdaCDM", H0=70 km / (Mpc s), Om0=0.3, Ode0=0.5, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)'
+    expected = 'LambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Ode0=0.5, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)'
     assert "{0:s}".format(cosmo) == expected
 
     cosmo = core.LambdaCDM(70, 0.3, 0.5, m_nu=u.Quantity(0.01, u.eV))
-    expected = 'LambdaCDM(name="LambdaCDM", H0=70 km / (Mpc s), Om0=0.3, Ode0=0.5, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.01  0.01  0.01] eV)'
+    expected = 'LambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Ode0=0.5, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.01  0.01  0.01] eV)'
     assert "{0:s}".format(cosmo) == expected
 
     cosmo = core.FlatLambdaCDM(50.0, 0.27)
-    expected = 'FlatLambdaCDM(name="FlatLambdaCDM", H0=50 km / (Mpc s), Om0=0.27, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)'
+    expected = 'FlatLambdaCDM(H0=50 km / (Mpc s), Om0=0.27, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)'
     assert "{0:s}".format(cosmo) == expected
 
     cosmo = core.wCDM(60.0, 0.27, 0.6, w0=-0.8, name='test1')
@@ -122,9 +122,9 @@ def test_repr():
     expected = 'wpwaCDM(name="test5", H0=50 km / (Mpc s), Om0=0.3, Ode0=0.3, wp=-0.9, wa=-0.2, zp=0.3, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)'
     assert "{0:s}".format(cosmo) == expected
 
-    cosmo = core.w0wzCDM(55.0, 0.4, 0.8, w0=-1.05, wz=-0.2, name='Fred',
+    cosmo = core.w0wzCDM(55.0, 0.4, 0.8, w0=-1.05, wz=-0.2,
                          m_nu=u.Quantity([0.001, 0.01, 0.015], u.eV))
-    expected = 'w0wzCDM(name="Fred", H0=55 km / (Mpc s), Om0=0.4, Ode0=0.8, w0=-1.05, wz=-0.2 Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.001  0.01   0.015] eV)'
+    expected = 'w0wzCDM(H0=55 km / (Mpc s), Om0=0.4, Ode0=0.8, w0=-1.05, wz=-0.2 Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.001  0.01   0.015] eV)'
     assert "{0:s}".format(cosmo) == expected
 
 @pytest.mark.skipif('not HAS_SCIPY')

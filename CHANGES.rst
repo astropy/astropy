@@ -284,6 +284,9 @@ API Changes
   - Cosmology class properties now return ``Quantity`` objects instead of
     simple floating-point values [#1237].
 
+  - The names of cosmology instances are now truly optional, and are set
+    to None rather than the name of the class if the user does not provide them.
+
 - ``astropy.io.ascii``
 
   - In the ``read`` method of ``astropy.io.ascii``, empty column values in an ASCII table
