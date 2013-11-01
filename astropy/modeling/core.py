@@ -365,12 +365,21 @@ class ParametricModel(Model):
     fittable = True
 
 
-    def __init__(self, param_dim=1, **params):
-        bounds = params.pop('bounds', None)
-        fixed = params.pop('fixed', None)
-        tied = params.pop('tied', None)
-        eqcons = params.pop('eqcons', None)
-        ineqcons = params.pop('ineqcons', None)
+    def __init__(self, **kwargs):
+        # Pop any constraints off the keyword arguments
+        bounds = kwargs.pop('bounds', None)
+        fixed = kwargs.pop('fixed', None)
+        tied = kwargs.pop('tied', None)
+        eqcons = kwargs.pop('eqcons', None)
+        ineqcons = kwargs.pop('ineqcons', None)
+
+        # Pop off the param_dims
+        param_dim = kwargs.pop('param_dim', None)
+
+        # Remaining keyword args are either parameter values or invalid
+        # Parameter values must be passed in as keyword arguments in order to
+        # distinguish them
+        params = kwargs
 
         # Determine the number of parameter sets: This will be based
         # on the size of any parameters whose values have been specified
@@ -379,10 +388,19 @@ class ParametricModel(Model):
         # valid
         param_names = set(self.param_names)
 
-        for name in params:
+        max_param_dim = 1
+        for name, value in params.items():
+            if param_dim is None:
+                # Determine the best param_dims, if not already specified,
+                # based on the sizes of the input parameter values
+                max_param_dim = max(max_param_dim, np.size(value))
+
             if name not in param_names:
                 raise ValueError(
                     "Unrecognized parameter: {0}".format(name))
+
+        if param_dim is None:
+            param_dim = max_param_dim
 
         super(ParametricModel, self).__init__(param_dim=param_dim)
 
@@ -472,15 +490,12 @@ class ParametricModel(Model):
                 param_slice, param_shape = self._param_metrics[param_name]
                 value = self._parameters[param_slice]
                 if self.param_dim == 1:
+                    return value[0]
+                else:
                     if param_shape:
                         return value.reshape(param_shape)
                     else:
                         return value[0]
-                else:
-                    if param_shape:
-                        return value.reshape((self.param_dim,) + param_shape)
-                    else:
-                        return value
 
         raise AttributeError(attr)
 
@@ -565,28 +580,44 @@ class ParametricModel(Model):
         for name in self.param_names:
             value = params.setdefault(name,
                                       getattr(self, name).default)
+
+            param_size = np.size(value)
+            param_shape = np.shape(value)
+
             if self.param_dim == 1:
-                param_size = np.size(value)
-                param_shape = np.shape(value)
+                pass
             elif self.param_dim > 1:
-                # Even for param_dim > 1 we allow a scalar value to be used for
-                # repeat across all param sets
-                try:
-                    if len(value) == self.param_dim:
-                        param_size = np.size(value[0])
-                        param_shape = np.shape(value[0])
-                    else:
-                        param_size = np.size(value)
-                        param_shape = np.shape(value)
-                except TypeError:
-                    param_size = 1
+                if param_size == 1:
+                    param_size = self.param_dim
+                    # Update the value for this param to the new repeated
+                    # version
+                    value = params[name] = np.repeat(value, param_size)
+                    param_shape = value.shape
             else:
                 raise ValueError("Model param_dim must be 1 or greater.")
 
-            param_slice = slice(total_size,
-                                total_size + param_size * self.param_dim)
+            if (param_size > 1 and param_size != self.param_dim and
+                    len(value) != self.param_dim):
+                # The len(value) == self.param_dim case is a special case
+                # (see #1680) where the parameter has compound values (like [1,
+                # 2]) but we're passing in two (or more) param sets, so we want
+                # to make sure a value like [[1, 2], [3, 4]] is interpreted as
+                # having values for 2 param sets, not 4.
+
+                # For now all parameter values must have a number of elements
+                # equal to param_dim (the number of param sets) or it is
+                # invalid.  The *only* exception is, again, a scalar value is
+                # allowed to be repeated across param sets
+                raise InputParameterError(
+                    "The input value for {0!r} has too many elements for "
+                    "param_dim={1}.  Parameter values must either match the "
+                    "model's param_dim in size, or may be a scalar value, in "
+                    "which case the value is repeated accross parameter "
+                    "sets.".format(name, self.param_dim))
+
+            param_slice = slice(total_size, total_size + param_size)
             self._param_metrics[name] = (param_slice, param_shape)
-            total_size += param_size * self.param_dim
+            total_size += param_size
 
         self._parameters = np.empty(total_size, dtype=np.float64)
 

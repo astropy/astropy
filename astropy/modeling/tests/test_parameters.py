@@ -259,5 +259,7 @@ class TestMultipleParameterSets(object):
             TestParModel(coeff=[[1, 2], [3, 4]], e=(2, 3, 4), param_dim=2)
 
     def test_wrong_number_of_params2(self):
-        with pytest.raises(InputParameterError):
-            TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)
+        # This *should* work--if param_dim > 1 and one of the parameter values
+        # is given as a scalar, repeat that value across all param sets
+        m = TestParModel(coeff=[[1, 2], [3, 4]], e=4, param_dim=2)
+        utils.assert_almost_equal(m.parameters, [1, 2, 3, 4, 4, 4])
