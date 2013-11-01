@@ -589,7 +589,9 @@ class ParametricModel(Model):
             elif self.param_dim > 1:
                 if param_size == 1:
                     param_size = self.param_dim
-                    value = np.repeat(value, param_size)
+                    # Update the value for this param to the new repeated
+                    # version
+                    value = params[name] = np.repeat(value, param_size)
                     param_shape = value.shape
             else:
                 raise ValueError("Model param_dim must be 1 or greater.")
