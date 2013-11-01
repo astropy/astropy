@@ -1677,8 +1677,7 @@ class MaskedQuantity(Quantity, np.ma.MaskedArray):
                 copy=True):
 
         self = super(MaskedQuantity, cls).__new__(
-            cls, value, unit, dtype=dtype, equivalencies=equivalencies,
-            copy=copy)
+            cls, value, unit, dtype=dtype, copy=copy)
 
         if mask is None:
             self.mask = getattr(value, 'mask', np.ma.nomask)
