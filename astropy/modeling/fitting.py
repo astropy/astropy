@@ -32,8 +32,11 @@ __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
            'JointFitter', 'Fitter']
 
 
-MAXITER = 100
-EPS = np.sqrt(np.finfo(float).eps)
+
+DEFAULT_MAXITER = 100
+DEFAULT_EPS = np.sqrt(np.finfo(float).eps)
+DEFAULT_MAX_BOUND = 10 ** 12
+DEFAULT_MIN_BOUND = 10 ** -12
 
 
 def _convert_input(x, y, z=None):
@@ -89,11 +92,13 @@ class Fitter(object):
         message = '{0} cannot handle {{0}} constraints.'.format(
                 self.__class__.__name__)
 
-        if any(model.fixed.values()) and 'fixed' not in self.supported_constraints:
+        if (any(model.fixed.values()) and
+                'fixed' not in self.supported_constraints):
             raise UnsupportedConstraintError(
                     message.format('fixed parameter'))
 
-        if any(model.tied.values()) and 'tied' not in self.supported_constraints:
+        if (any(model.tied.values()) and
+                'tied' not in self.supported_constraints):
             raise UnsupportedConstraintError(
                     message.format('tied parameter'))
 
@@ -147,7 +152,7 @@ class LinearLSQFitter(Fitter):
 
     def __init__(self):
         super(LinearLSQFitter, self).__init__()
-        
+
         self.fit_info = {'residuals': None,
                          'rank': None,
                          'singular_values': None,
@@ -204,7 +209,7 @@ class LinearLSQFitter(Fitter):
         Returns
         ------
         model_copy : `ParametricModel`
-            a copy of the input model with parameters set by the fitter 
+            a copy of the input model with parameters set by the fitter
         """
         if not model.fittable:
             raise ValueError("Model must be a subclass of ParametricModel")
@@ -298,6 +303,7 @@ class LinearLSQFitter(Fitter):
         model_copy._fitter_to_model_params(lacoef.flatten())
         return model_copy
 
+
 class NonLinearLSQFitter(Fitter):
     """
     A class performing non-linear least squares fitting using the
@@ -358,8 +364,9 @@ class NonLinearLSQFitter(Fitter):
             return None
 
 
-    def __call__(self, model, x, y, z=None, weights=None, maxiter=MAXITER,
-                 epsilon=EPS, estimate_jacobian=False):
+    def __call__(self, model, x, y, z=None, weights=None,
+                 maxiter=DEFAULT_MAXITER,
+                 epsilon=DEFAULT_EPS, estimate_jacobian=False):
         """
         Fit data to this model.
 
@@ -387,11 +394,11 @@ class NonLinearLSQFitter(Fitter):
             If False (default) and if the model has a deriv method,
             it will be used. Otherwise the Jacobian will be estimated.
             If True, the Jacobian will be estimated in any case.
-       
+
         Returns
         ------
         model_copy : `ParametricModel`
-            a copy of the input model with parameters set by the fitter 
+            a copy of the input model with parameters set by the fitter
         """
         if not model.fittable:
             raise ValueError("Model must be a subclass of ParametricModel")
@@ -447,7 +454,7 @@ class SLSQPFitter(Fitter):
 
     def __init__(self):
         super(SLSQPFitter, self).__init__()
-        
+
         self.fit_info = {
             'final_func_val': None,
             'numiter': None,
@@ -477,7 +484,7 @@ class SLSQPFitter(Fitter):
             return np.sum(self._weights * res ** 2)
 
     def __call__(self, model, x, y, z=None, weights=None, verblevel=0,
-                 maxiter=MAXITER, epsilon=EPS):
+                 maxiter=DEFAULT_MAXITER, epsilon=DEFAULT_EPS):
         """
         Fit data to this model.
 
@@ -505,7 +512,7 @@ class SLSQPFitter(Fitter):
         Returns
         ------
         model_copy : `ParametricModel`
-            a copy of the input model with parameters set by the fitter 
+            a copy of the input model with parameters set by the fitter
         """
         if not model.fittable:
             raise ValueError("Model must be a subclass of ParametricModel")
@@ -525,23 +532,27 @@ class SLSQPFitter(Fitter):
             raise ValueError("NonLinearLSQFitter can only fit "
                              "one data set at a time")
 
-        p0, _ = model_copy._model_to_fit_params()
-        pars = [getattr(model_copy, name) for name in model_copy.param_names]
-        bounds = [par.bounds for par in pars if par.fixed != True and par.tied == False]
-       
-        bounds = np.asarray(bounds)
-        for i in bounds:
-            if i[0] is None:
-                i[0] = -10 ** 12
-            if i[1] is None:
-                i[1] = 10 ** 12
+        p0, param_indices = model_copy._model_to_fit_params()
+
+        bounds = []
+        for name in model_copy.param_names:
+            b = model_copy.bounds[name]
+            if b == (None, None):
+                bounds.append((DEFAULT_MIN_BOUND, DEFAULT_MAX_BOUND))
+            else:
+                bounds.append(b)
+
+        bounds = np.asarray(bounds)[param_indices]
+
         eqcons = np.array(model_copy.eqcons)
-        ineqcons = np.array(model_copy.ineqcons) 
+        ineqcons = np.array(model_copy.ineqcons)
+
         fitparams, final_func_val, numiter, exit_mode, mess = \
             optimize.fmin_slsqp(
             self.errorfunc, p0, args=farg, disp=verblevel, full_output=1,
             bounds=bounds, eqcons=eqcons, ieqcons=ineqcons, iter=maxiter,
-            acc=1.E-6, epsilon=EPS)
+            acc=1.E-6, epsilon=DEFAULT_EPS)
+
         model_copy._fitter_to_model_params(fitparams)
         self.fit_info['final_func_val'] = final_func_val
         self.fit_info['numiter'] = numiter

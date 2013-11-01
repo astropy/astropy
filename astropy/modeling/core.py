@@ -411,7 +411,6 @@ class ParametricModel(Model):
             self._constraints['bounds'] = bounds
 
         self._initialize_parameters(params)
-        
 
     @property
     def fixed(self):
