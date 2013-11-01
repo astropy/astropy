@@ -55,6 +55,15 @@ accessed using aptly named attributes::
     >>> c.dec.radian
     0.7202828960652683
 
+Coordinates can easily be converted to strings using the ``to_string`` method::
+
+    >>> c.to_string()
+    '0h42m44.2992s 41d16m09.012s'
+    >>> c.to_string(precision=1)
+    '0h42m44.3s 41d16m09.0s'
+    >>> c.to_string(precision=1, sep=' ')
+    '0 42 44.3 41 16 09.0'
+
 To convert to some other coordinate system, the easiest method is to
 use attribute-style access with short names for the built-in systems,
 but explicit transformations via the `transform_to` method are also

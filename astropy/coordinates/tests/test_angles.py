@@ -265,3 +265,14 @@ def test_is_within_bounds():
 def test_angle_mismatched_unit():
     a = Angle('+6h7m8s', unit=u.degree)
     assert_allclose(a.value, 91.78333333333332)
+
+
+def test_regression_formatting_negative():
+    # Regression test for a bug that caused:
+    #
+    # >>> Angle(-1., unit='deg').to_string()
+    # '-1d00m-0s'
+    assert Angle(-0., unit='deg').to_string() == '-0d00m00s'
+    assert Angle(-1., unit='deg').to_string() == '-1d00m00s'
+    assert Angle(-0., unit='hour').to_string() == '-0h00m00s'
+    assert Angle(-1., unit='hour').to_string() == '-1h00m00s'

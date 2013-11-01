@@ -11,6 +11,7 @@ from .angles import Longitude, Latitude, Angle
 from .distances import Distance, CartesianPoints, cartesian_to_spherical, spherical_to_cartesian
 from ..utils.compat.misc import override__dir__
 from . import angle_utilities
+import numpy as np
 
 __all__ = ['SphericalCoordinatesBase']
 
@@ -694,3 +695,61 @@ class SphericalCoordinatesBase(object):
             return icrs
         else:
             return icrs.transform_to(cls)
+
+    _default_string_style = 'dms'
+
+    def to_string(self, style=None, **kwargs):
+        """
+        A string representation of the coordinates.
+
+        See :meth:`astropy.coordinates.Angle.to_string` for details and keyword
+        arguments (the two angles forming the coordinates are are both
+        :class:`astropy.coordinates.Angle` instances). Keyword arguments are passed to
+        :meth:`astropy.coordinates.Angle.to_string`.
+
+        Parameters
+        ----------
+        style : {'hmsdms', 'dms', 'decimal', None}
+            The formatting specification to use. These encode the three most
+            common ways to represent coordinates. If `None` is passed, the
+            defaults for the current coordinate class is used.
+        kwargs
+            Keyword arguments are passed to :meth:`astropy.coordinates.Angle.to_string`.
+        """
+
+        if style is None:
+            style = self._default_string_style
+
+        styles = {
+                  'hmsdms': {'lonargs': {'unit':u.hour},
+                             'latargs': {'unit':u.degree}},
+                  'dms':    {'lonargs': {'unit':u.degree},
+                             'latargs': {'unit':u.degree}},
+                  'decimal':{'lonargs': {'unit':u.degree,'decimal':True},
+                             'latargs': {'unit':u.degree,'decimal':True}}
+                 }
+
+        lonargs = kwargs.copy()
+        latargs = kwargs.copy()
+
+        if style in styles:
+            lonargs.update(styles[style]['lonargs'])
+            latargs.update(styles[style]['latargs'])
+        else:
+            raise ValueError('Invalid style.  Valid options are: '+",".join(styles))
+
+        if np.isscalar(self.lonangle.value):
+            coord_string = (self.lonangle.to_string(**lonargs)
+                            + " " +
+                            self.latangle.to_string(**latargs))
+        else:
+            coord_string = []
+            for lonangle, latangle in zip(self.lonangle, self.latangle):
+                coord_string += [(lonangle.to_string(**lonargs)
+                                 + " " +
+                                 latangle.to_string(**latargs))]
+
+        if hasattr(coord_string,'decode'):
+            return coord_string.decode()
+
+        return coord_string
