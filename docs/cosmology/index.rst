@@ -188,10 +188,10 @@ The 9-year WMAP and Planck 2013 cosmologies are also available
 
   >>> from astropy.cosmology import WMAP9   # WMAP 9-year
   >>> WMAP9.lookback_time(2).value          # lookback time in Gyr at z=2  # doctest: +REQUIRES_SCIPY
-  10.442114507072842
+  10.442114...
   >>> from astropy.cosmology import Planck13  # Planck 2013
   >>> Planck13.lookback_time(2)             # lookback time in Gyr at z=2  # doctest: +REQUIRES_SCIPY
-  <Quantity 10.511841788576083 Gyr>
+  <Quantity 10.511841... Gyr>
 
 .. note::
 
@@ -214,7 +214,7 @@ WMAP and Planck satellites.  For example,
 
   >>> from astropy.cosmology import Planck13  # Planck 2013
   >>> Planck13.luminosity_distance(2)         # luminosity distance to z=2  # doctest: +REQUIRES_SCIPY
-  <Quantity 15932.668054249001 Mpc>
+  <Quantity 15932.668054... Mpc>
 
 A full list of the pre-defined cosmologies is given by
 `cosmology.parameters.available`, and summarized below:
