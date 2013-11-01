@@ -579,7 +579,8 @@ class MexicanHat1DKernel(Kernel1D):
     _is_bool = True
 
     def __init__(self, width, **kwargs):
-        self._model = models.MexicanHat1D(1.0 / (np.sqrt(2 * np.pi) * width ** 3), 0, width)
+        amplitude = 1.0 / (np.sqrt(2 * np.pi) * width ** 3)
+        self._model = models.MexicanHat1D(amplitude, 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super(MexicanHat1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
@@ -646,7 +647,8 @@ class MexicanHat2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, width, **kwargs):
-        self._model = models.MexicanHat2D(1.0 / (np.pi * width ** 4), 0, 0, width)
+        amplitude = 1.0 / (np.pi * width ** 4)
+        self._model = models.MexicanHat2D(amplitude, 0, 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super(MexicanHat2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
