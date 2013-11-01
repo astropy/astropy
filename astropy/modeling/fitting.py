@@ -114,9 +114,10 @@ class Fitter(object):
                 'ineqcons' not in self.supported_constraints):
             raise UnsupportedConstraintError(message.format('inequality'))
 
-    @property
-    def covar(self):
-        return None
+    # TODO
+    # @property
+    # def covar(self):
+    #     return None
 
     @abc.abstractmethod
     def __call__(self):
@@ -344,25 +345,28 @@ class NonLinearLSQFitter(Fitter):
         else:
             return np.ravel(self._weights * (model(*args[1 : -1]) - meas))
 
-    @property
-    def covar(self):
-        """
-        Calculate the covariance matrix (doesn't take into account
-        constraints).
-        """
-        n = len(self.model.parameters)
-        # construct the permutation matrix
-        P = np.take(np.eye(n), self.fit_info['ipvt'] - 1, 0)
-        # construct the R matrix as in JP = QR
-        r = np.triu(self.fit_info['fjac'].T[:n, :])
-        r_pt = np.dot(r, P.T)
-        p_rt = np.dot(P, r.T)
-        try:
-            return np.dual.inv(np.dot(p_rt, r_pt))
-        except:
-            log.info("Could not construct a covariance matrix")
-            return None
+    # @property
+    # def covar(self):
+    #     """
+    #     Calculate the covariance matrix (doesn't take into account
+    #     constraints).
+    #     """
 
+        # NOTE: Not currently used; won't work with Fitter implementation where
+        # models are not tied to fitters
+
+        # n = len(self.model.parameters)
+        #  construct the permutation matrix
+        # P = np.take(np.eye(n), self.fit_info['ipvt'] - 1, 0)
+        #  construct the R matrix as in JP = QR
+        # r = np.triu(self.fit_info['fjac'].T[:n, :])
+        # r_pt = np.dot(r, P.T)
+        # p_rt = np.dot(P, r.T)
+        # try:
+        #     return np.dual.inv(np.dot(p_rt, r_pt))
+        # except:
+        #     log.info("Could not construct a covariance matrix")
+        #     return None
 
     def __call__(self, model, x, y, z=None, weights=None,
                  maxiter=DEFAULT_MAXITER,
