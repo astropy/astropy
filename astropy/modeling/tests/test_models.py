@@ -159,8 +159,7 @@ def test_custom_model(amplitude=4, frequency=1):
         """
         Derivative of model function
         """
-        return 2 * np.pi * frequency * amplitude * \
-                np.cos(2 * np.pi * frequency * x)
+        return 2 * np.pi * frequency * amplitude * np.cos(2 * np.pi * frequency * x)
 
     SineModel = models.custom_model_1d(sine_model,
                                        func_deriv=sine_deriv)
