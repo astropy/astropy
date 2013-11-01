@@ -36,9 +36,8 @@ The first step is to create a new class for our coordinates, let's call it
 We can use some convenience variables defined at the superclass level to
 generate a descriptive docstring for our subclass::
 
-    __doc__ = __doc__.format(params=coord.SphericalCoordinatesBase.
-                                    _init_docstring_param_templ.
-                                    format(lonnm='Lambda', latnm='Beta'))
+    __doc__ = __doc__.format(params=coord.SphericalCoordinatesBase. \
+            _init_docstring_param_templ.format(lonnm='Lambda', latnm='Beta'))
 
 This may look scary, but let's break down what it is doing. `__doc__` is a class
 attribute defined in the superclass,
@@ -63,9 +62,8 @@ spherical coordinate system with two angular coordinates, copy and paste the
 below line into the class definition and change `'Lambda'` to the name of your
 longitude coordinate, and `'Beta'` to the name of your latitude coordinate.::
 
-    __doc__ = __doc__.format(params=coord.SphericalCoordinatesBase.
-                                    _init_docstring_param_templ.
-                                    format(lonnm='Lambda', latnm='Beta'))
+    __doc__ = __doc__.format(params=coord.SphericalCoordinatesBase. \
+            _init_docstring_param_templ.format(lonnm='Lambda', latnm='Beta'))
 
 Next we can define our subclass' initializer, `__init__()`. We start by calling
 `__init__()` on the superclass. Then, we add a catch to see if the user passed
@@ -86,26 +84,37 @@ the user.::
             isinstance(args[0], coord.SphericalCoordinatesBase):
 
             newcoord = args[0].transform_to(self.__class__)
-            self.Lambda = newcoord.Lambda
-            self.Beta = newcoord.Beta
+            self._lonangle = newcoord._lonangle
+            self._latangle = newcoord._latangle
             self._distance = newcoord._distance
         else:
             super(SgrCoordinates, self).
                 _initialize_latlon('Lambda', 'Beta', args, kwargs)
 
 Next we have to tell the class what to use for the longitude and latitude when
-doing coordinate transformations with other coordinate systems. Calling
-`_initialize_latlon()` will define attributes for the names of our coordinates,
-in this case `Lambda` and `Beta`, so we just have to create two properties
-`lonangle` and `latangle` that reference the others::
+doing coordinate transformations with other coordinate systems. We do that by
+defining properties of the class -- in this case `Lambda` and `Beta` -- that
+reference the internal names for the longitude and latitude::
 
     @property
-    def lonangle(self):
-        return self.Lambda
+    def Lambda(self):
+        return self._lonangle
 
     @property
-    def latangle(self):
-        return self.Beta
+    def Beta(self):
+        return self._latangle
+
+Finally, we customize the default string formatting by specifying the string
+names of the longitude and latitude, as well as the default numerical
+representation (degree minute second for longitude and degree
+minute second for latitude)::
+
+    # strings used for making __repr__ work
+    _repr_lon_name = 'Lambda'
+    _repr_lat_name = 'Beta'
+
+    # Default format for to_string
+    _default_string_style = 'dmsdms'
 
 Now our coordinate system is set up! You can now create `SgrCoordinates` objects
 by passing any valid specifiers accepted by
@@ -124,9 +133,9 @@ constructing the rotation matrix, using the helper function
 `astropy.coordinates.angles.rotation_matrix` ::
 
     # Define the Euler angles (from Law & Majewski 2010)
-    phi = radians(180+3.75)
-    theta = radians(90-13.46)
-    psi = radians(180+14.111534)
+    phi = np.radians(180+3.75)
+    theta = np.radians(90-13.46)
+    psi = np.radians(180+14.111534)
 
     # Generate the rotation matrix using the x-convention (see Goldstein)
     D = rotation_matrix(phi, "z", unit=u.radian)
@@ -138,30 +147,28 @@ This is done at the module level, since it will be used by both the
 transformation from Sgr to Galactic as well as the inverse from Galactic to Sgr.
 Now we can define our first transformation function::
 
-    @transformations.transform_function(coord.Galactic,
-                                        SgrCoordinates)
+    # Galactic to Sgr coordinates
+    @transformations.transform_function(coord.Galactic, SgrCoordinates)
     def galactic_to_sgr(galactic_coord):
-        """ Compute the transformation from Galactic spherical to Sgr
-            coordinates.
+        """ Compute the transformation from Galactic spherical to
+            heliocentric Sgr coordinates.
         """
 
-        l = galactic_coord.l.radian
-        b = galactic_coord.b.radian
+        l = np.atleast_1d(galactic_coord.l.radian)
+        b = np.atleast_1d(galactic_coord.b.radian)
 
         X = cos(b)*cos(l)
         Y = cos(b)*sin(l)
         Z = sin(b)
 
         # Calculate X,Y,Z,distance in the Sgr system
-        Xs, Ys, Zs = rotation_matrix.dot(np.array([X, Y, Z]))
-        Zs = -Zs # left-handed to right-handed
+        Xs, Ys, Zs = sgr_matrix.dot(np.array([X, Y, Z]))
+        Zs = -Zs
 
         # Calculate the angular coordinates lambda,beta
-        Lambda = degrees(np.arctan2(Ys,Xs))
-        if Lambda < 0:
-            Lambda += 360
-
-        Beta = degrees(np.arcsin(Zs/np.sqrt(Xs*Xs+Ys*Ys+Zs*Zs)))
+        Lambda = np.degrees(np.arctan2(Ys,Xs))
+        Lambda[Lambda < 0] = Lambda[Lambda < 0] + 360
+        Beta = np.degrees(np.arcsin(Zs/np.sqrt(Xs*Xs+Ys*Ys+Zs*Zs)))
 
         return SgrCoordinates(Lambda, Beta, distance=galactic_coord.distance,
                               unit=(u.degree, u.degree))
@@ -179,27 +186,29 @@ copy any distance from the
 We then register the inverse transformation by using the Transpose of the
 rotation matrix::
 
-    @transformations.transform_function(SgrCoordinates,
-                                        coord.Galactic)
+    @transformations.transform_function(SgrCoordinates, coord.Galactic)
     def sgr_to_galactic(sgr_coord):
-        L = sgr_coord.Lambda.radian
-        B = sgr_coord.Beta.radian
+        """ Compute the transformation from heliocentric Sgr coordinates to
+            spherical Galactic.
+        """
+        L = np.atleast_1d(sgr_coord.Lambda.radian)
+        B = np.atleast_1d(sgr_coord.Beta.radian)
 
         Xs = cos(B)*cos(L)
         Ys = cos(B)*sin(L)
         Zs = sin(B)
         Zs = -Zs
 
-        X, Y, Z = rotation_matrix.T.dot(np.array([Xs, Ys, Zs]))
+        X, Y, Z = sgr_matrix.T.dot(np.array([Xs, Ys, Zs]))
 
-        l = degrees(np.arctan2(Y,X))
-        b = degrees(np.arcsin(Z/np.sqrt(X*X+Y*Y+Z*Z)))
+        l = np.degrees(np.arctan2(Y,X))
+        b = np.degrees(np.arcsin(Z/np.sqrt(X*X+Y*Y+Z*Z)))
 
         if l<0:
             l += 360
 
         return coord.Galactic(l, b, distance=sgr_coord.distance,
-                                         unit=(u.degree, u.degree))
+                              unit=(u.degree, u.degree))
 
 Now that we've registered these transformations between `SgrCoordinates` and
 `~astropy.coordinates.builtin_systems.Galactic`, we can transform
