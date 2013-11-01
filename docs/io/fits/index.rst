@@ -294,7 +294,7 @@ attribute of the table HDU: the :attr:`~HDUList.columns` attribute:
     >>> cols = hdulist[1].columns
 
 This attribute is a :class:`ColDefs` (column definitions) object. If we use the
-:meth:`ColDefs.info` method:
+:meth:`ColDefs.info` method from the interactive prompt:
 
     >>> cols.info()
      name:
@@ -317,6 +317,11 @@ This attribute is a :class:`ColDefs` (column definitions) object. If we use the
           ['', '', '', '']
 
 it will show all its attributes, such as names, formats, bscales, bzeros, etc.
+A similar output that will display the column names and their formats can be printed
+from within a script with
+
+    print hdulist[1].columns
+
 We can also get these properties individually, e.g.:
 
     >>> cols.names
