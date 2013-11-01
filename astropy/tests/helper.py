@@ -453,3 +453,65 @@ class catch_warnings(warnings.catch_warnings):
             for cls in self.classes:
                 warnings.simplefilter('always', cls)
         return warning_list
+
+
+def assert_follows_unicode_guidelines(
+        x, roundtrip=None):
+    """
+    Test that an object follows our Unicode policy.  See
+    "Unicode Policy" in the coding guidelines.
+
+    Parameters
+    ----------
+    x : object
+        The instance to test
+
+    roundtrip : module, optional
+        When provided, this namespace will be used to evaluate
+        ``repr(x)`` and ensure that it roundtrips.  It will also
+        ensure that ``__bytes__(x)`` and ``__unicode__(x)`` roundtrip.
+        If not provided, no roundtrip testing will be performed.
+    """
+    from .. import UNICODE_OUTPUT
+    from ..extern import six
+
+    UNICODE_OUTPUT.set(False)
+
+    bytes_x = bytes(x)
+    unicode_x = six.text_type(x)
+    repr_x = repr(x)
+
+    assert isinstance(bytes_x, bytes)
+    bytes_x.decode('ascii')
+    assert isinstance(unicode_x, six.text_type)
+    unicode_x.encode('ascii')
+    assert isinstance(repr_x, six.string_types)
+    if isinstance(repr_x, bytes):
+        repr_x.decode('ascii')
+    else:
+        repr_x.encode('ascii')
+
+    if roundtrip is not None:
+        assert x.__class__(bytes_x) == x
+        assert x.__class__(unicode_x) == x
+        assert eval(repr_x, roundtrip) == x
+
+    UNICODE_OUTPUT.set(True)
+
+    bytes_x = bytes(x)
+    unicode_x = six.text_type(x)
+    repr_x = repr(x)
+
+    assert isinstance(bytes_x, bytes)
+    bytes_x.decode('ascii')
+    assert isinstance(unicode_x, six.text_type)
+    assert isinstance(repr_x, six.string_types)
+    if isinstance(repr_x, bytes):
+        repr_x.decode('ascii')
+    else:
+        repr_x.encode('ascii')
+
+    if roundtrip is not None:
+        assert x.__class__(bytes_x) == x
+        assert x.__class__(unicode_x) == x
+        assert eval(repr_x, roundtrip) == x

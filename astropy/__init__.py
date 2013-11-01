@@ -74,6 +74,15 @@ if not _ASTROPY_SETUP_:
     _check_numpy()
 
 
+from .config import ConfigurationItem
+
+
+UNICODE_OUTPUT = ConfigurationItem(
+    'unicode_output', True,
+    'Use Unicode characters when outputting values, and writing widgets '
+    'to the console.')
+
+
 # set up the test command
 def _get_test_runner():
     from .tests.helper import TestRunner

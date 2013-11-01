@@ -506,3 +506,9 @@ def test_composite_unit_get_format_name():
     unit2 = u.Unit('Hz(1/2)')
     assert (str(u.CompositeUnit(1, [unit1, unit2], [1, -1])) ==
             'nrad / (Hz(1/2) s)')
+
+def test_unicode_policy():
+    from ...tests.helper import assert_follows_unicode_guidelines
+
+    assert_follows_unicode_guidelines(
+        u.degree, roundtrip=u.__dict__)

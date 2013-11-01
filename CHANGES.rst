@@ -4,6 +4,25 @@
 New Features
 ^^^^^^^^^^^^
 
+- General
+
+  - A top-level configuration item, `unicode_output` has been added to
+    control whether the Unicode string representation of certain
+    objects will contain Unicode characters.  For example, when
+    `use_unicode` is `False` (default)::
+
+        >>> from astropy import units as u
+        >>> print(unicode(u.degree))
+        deg
+
+    When `use_unicode` is `True`::
+
+        >>> from astropy import units as u
+        >>> print(unicode(u.degree))
+        °
+
+    See :ref:`handling-unicode` for more information.
+
 - ``astropy.coordinates``
 
   - Two classes `astropy.coordinates.Longitude` and `astropy.coordinates.Latitude`
@@ -189,6 +208,14 @@ New Features
 
 API Changes
 ^^^^^^^^^^^
+
+- General
+
+  - The configuration option ``utils.console.use_unicode`` has been
+    moved to the top level and renamed to ``unicode_output``.  It now
+    not only affects console widgets, such as progress bars, but also
+    controls whether calling `unicode` on certain classes will return a
+    string containing unicode characters.
 
 - ``astropy.coordinates``
 

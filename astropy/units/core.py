@@ -480,12 +480,20 @@ class UnitBase(object):
         """
         return unit_format.Latex().to_string(self)
 
-    def __str__(self):
+    def __bytes__(self):
+        """Return string representation for unit"""
+        return unit_format.Generic().to_string(self).encode('ascii')
+    if sys.version_info[0] < 3:
+        __str__ = __bytes__
+
+    def __unicode__(self):
         """Return string representation for unit"""
         return unit_format.Generic().to_string(self)
+    if sys.version_info[0] >= 3:
+        __str__ = __unicode__
 
     def __repr__(self):
-        return 'Unit("' + str(self) + '")'
+        return 'Unit("' + unit_format.Generic().to_string(self) + '")'
 
     def _get_physical_type_id(self):
         """
@@ -626,7 +634,7 @@ class UnitBase(object):
         return CompositeUnit(1, [self], [p])
 
     def __div__(self, m):
-        if isinstance(m, six.string_types):
+        if isinstance(m, (bytes, six.text_type)):
             m = Unit(m)
 
         if isinstance(m, UnitBase):
@@ -639,7 +647,7 @@ class UnitBase(object):
         return Quantity(1, self) / m
 
     def __rdiv__(self, m):
-        if isinstance(m, six.string_types):
+        if isinstance(m, (bytes, six.text_type)):
             return Unit(m) / self
 
         # Cannot handle this as Unit, re-try as Quantity
@@ -653,7 +661,7 @@ class UnitBase(object):
         return self.__rdiv__(m)
 
     def __mul__(self, m):
-        if isinstance(m, six.string_types):
+        if isinstance(m, (bytes, six.text_type)):
             m = Unit(m)
 
         if isinstance(m, UnitBase):
@@ -668,7 +676,7 @@ class UnitBase(object):
         return Quantity(1, self) * m
 
     def __rmul__(self, m):
-        if isinstance(m, six.string_types):
+        if isinstance(m, (bytes, six.text_type)):
             return Unit(m) * self
 
         # Cannot handle this as Unit, re-try as Quantity
@@ -1393,7 +1401,7 @@ class NamedUnit(UnitBase):
 
         UnitBase.__init__(self)
 
-        if isinstance(st, six.string_types):
+        if isinstance(st, (bytes, six.text_type)):
             self._names = [st]
             self._short_names = [st]
             self._long_names = []
@@ -1591,8 +1599,15 @@ class UnrecognizedUnit(IrreducibleUnit):
     def __repr__(self):
         return "UnrecognizedUnit({0})".format(str(self))
 
-    def __str__(self):
+    def __bytes__(self):
+        return self.name.encode('ascii', 'replace')
+    if sys.version_info[0] < 3:
+        __str__ = __bytes__
+
+    def __unicode__(self):
         return self.name
+    if sys.version_info[0] >= 3:
+        __str__ = __unicode__
 
     def to_string(self, format='generic'):
         return self.name
@@ -1672,7 +1687,7 @@ class _UnitMetaClass(type):
         elif isinstance(s, UnitBase):
             return s
 
-        elif isinstance(s, six.string_types):
+        elif isinstance(s, (bytes, six.text_type)):
             if len(s.strip()) == 0:
                 # Return the NULL unit
                 return CompositeUnit(1.0, [], [])
@@ -1681,6 +1696,9 @@ class _UnitMetaClass(type):
                 format = 'generic'
 
             f = unit_format.get_format(format)
+            if sys.version_info[0] >= 3 and isinstance(s, bytes):
+                s = s.decode('ascii')
+
             try:
                 return f.parse(s)
             except Exception as e:
