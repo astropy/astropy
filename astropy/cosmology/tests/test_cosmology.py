@@ -13,6 +13,16 @@ else:
     HAS_SCIPY = True
 
 
+def setup_function(function):
+    # Make sure that tests don't affect default cosmology
+    core.set_current('no_default')
+
+
+def teardown_function(function):
+    # Make sure that tests don't affect default cosmology
+    core.set_current('no_default')
+
+
 def test_basic():
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04)
     assert np.allclose(cosmo.Om0, 0.27)
@@ -767,3 +777,9 @@ def test_massivenu_density():
     onu_exp = np.array([0.00584959, 0.01493142, 0.01772291,
                         0.01963451, 0.10227728])
     assert np.allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
+
+
+def test_default_reset():
+    # Check that the default is being reset after tests. This test should be
+    # updated if the default cosmology is updated.
+    assert core.get_current() == core.WMAP9
