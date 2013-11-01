@@ -1255,10 +1255,12 @@ def custom_model_1d(func):
 
     members = {'eval': staticmethod(func)}
 
-    eval(compile(dedent("""
-        def __init__(self, {0}):
-            super(self.__class__, self).__init__({0})
-    """).format(arg_signature), filename, 'single'), members)
+    init_function = "def __init__(self, {0}):\n".format(arg_signature)
+    init_function += "    super(self.__class__, self).__init__("
+    init_function += ", ".join("{0}={0}".format(name) for name in param_names)
+    init_function += ")\n"
+
+    eval(compile(init_function, filename, 'single'), members)
 
     members.update(params)
 
