@@ -425,10 +425,13 @@ def test_quantity_conversion_equivalency_passed_on():
     class MySpectral(u.Quantity):
         _equivalencies = u.spectral()
 
+        def __quantity_view__(self, obj, unit):
+            return obj.view(MySpectral)
+
         def __quantity_instance__(self, *args, **kwargs):
             return MySpectral(*args, **kwargs)
 
-    q1 = MySpectral([1000,2000], unit=u.Hz)
+    q1 = MySpectral([1000, 2000], unit=u.Hz)
     q2 = q1.to(u.nm)
     assert q2.unit == u.nm
     q3 = q2.to(u.Hz)
@@ -811,3 +814,10 @@ def test_unsupported():
 def test_unit_identity():
     q = 1.0 * u.hour
     assert q.unit is u.hour
+
+
+def test_quantity_to_view():
+    q1 = np.array([1000, 2000]) * u.m
+    q2 = q1.to(u.km)
+    assert q1.value[0] == 1000
+    assert q2.value[0] == 1

@@ -408,8 +408,12 @@ class Quantity(np.ndarray):
         """
         if equivalencies == []:
             equivalencies = self._equivalencies
-        new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
-        return self.__quantity_instance__(new_val, unit, copy=False)
+        unit = Unit(unit)
+        new_val = np.asarray(
+            self.unit.to(unit, self.value, equivalencies=equivalencies))
+        result = self.__quantity_view__(new_val, self.unit)
+        result._unit = unit
+        return result
 
     @property
     def value(self):
