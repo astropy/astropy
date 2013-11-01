@@ -38,14 +38,14 @@ Parameter examples
     >>> p1.param_names
     ['c0', 'c1', 'c2', 'c3', 'c4']
     >>> p1.parameters
-    array([0., 0., 0., 0., 0.])
+    array([ 0.,  0.,  0.,  0.,  0.])
 
 - Coefficients can be set using the
   `~astropy.modeling.core.ParametricModel.parameters` attribute::
 
     >>> p1.parameters = [0, 1, 2, 3, 4]
     >>> p1.parameters
-    array([0., 1., 2., 3., 4.])
+    array([ 0.,  1.,  2.,  3.,  4.])
 
 - It is possible to set the coefficients passing the parameters in a
   dictionary::
@@ -54,7 +54,7 @@ Parameter examples
     >>> coeff = dict((name, [idx, idx + 10])
     ...              for idx, name in enumerate(ch2.param_names))
     >>> ch2 = models.Chebyshev2DModel(x_degree=2, y_degree=3, **coeff)
-    INFO: Inferred 2 dimensions when creating a Chebyshev2DModel model. Resetting param_dim to 2 [astropy.modeling.polynomial] 
+    INFO: Inferred 2 dimensions when creating a Chebyshev2DModel model. Resetting param_dim to 2 [astropy.modeling.polynomial]
     >>> ch2.param_sets
     array([[  0.,  10.],
            [  1.,  11.],

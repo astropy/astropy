@@ -48,6 +48,7 @@ Model examples
 The examples here assume this import statement was executed::
 
     >>> from astropy.modeling import *
+    >>> import numpy as np
 
 - Create a 1D Gaussian with 2 parameter sets::
 
@@ -57,9 +58,9 @@ The examples here assume this import statement was executed::
     >>> g1 = models.Gaussian1DModel(amplitude=[10, 9], mean=[2, 3],
     ...                             stddev=[0.15, .1])
     >>> g1.param_sets
-    array([[ 10.      ,   9.      ],
-           [  2.      ,   3.      ],
-           [  0.127398,   0.084932]])
+    array([[ 10.  ,   9.  ],
+           [  2.  ,   3.  ],
+           [  0.15,   0.1 ]])
 
   Evaluate the model on one data set::
 
@@ -103,13 +104,13 @@ The examples here assume this import statement was executed::
 - Evaluating polynomial models with multiple parameter sets with one input data
   set creates multiple output data sets::
 
-    >>> len(p1.parameters)
+    >>> len(p1.parameters)  # doctest: +SKIP
     10
-    >>> p1.c1 = [0, 1, 2, 3, 4]
-    >>> p1.param_sets
+    >>> p1.c1 = [0, 1, 2, 3, 4]  # doctest: +SKIP
+    >>> p1.param_sets  # doctest: +SKIP
     array([[ 0.,  0.,  0.,  0.,  0.],
            [ 0.,  1.,  2.,  3.,  4.]])
-    >>> y = p1(x)
+    >>> y = p1(x)  # doctest: +SKIP
 
 
 .. plot::
@@ -129,8 +130,8 @@ The examples here assume this import statement was executed::
   columns::
 
     >>> x = np.ones((10,5))
-    >>> y = p1(x)
-    >>> print(y)
+    >>> y = p1(x)  # doctest: +SKIP
+    >>> print(y)  # doctest: +SKIP
     array([[ 0.,  1.,  2.,  3.,  4.],
            [ 0.,  1.,  2.,  3.,  4.],
            [ 0.,  1.,  2.,  3.,  4.],
@@ -141,12 +142,12 @@ The examples here assume this import statement was executed::
            [ 0.,  1.,  2.,  3.,  4.],
            [ 0.,  1.,  2.,  3.,  4.],
            [ 0.,  1.,  2.,  3.,  4.]])
-    >>> print(y.shape)
+    >>> print(y.shape)  # doctest: +SKIP
     (10,5)
 
 - Create and evaluate a parallel composite model::
 
-    >>> x = np.arange(1,10,.1)
+    >>> x = np.arange(1, 10, .1)
     >>> p1 = models.Polynomial1DModel(1)
     >>> g1 = models.Gaussian1DModel(amplitude=10., stddev=2.1, mean=4.2)
     >>> parallel_composite_model = ParallelCompositeModel([g1, p1])
@@ -174,7 +175,7 @@ this model use a `~astropy.modeling.core.LabeledInput` object::
 The output is also a `~astropy.modeling.core.LabeledInput` object and the
 result is stored in label 'z'::
 
-    >>> print(result)
+    >>> print(result)  # doctest: +SKIP
     {'x': array([[-3.2, -3.2, -3.2, -3.2, -3.2],
            [-2.2, -2.2, -2.2, -2.2, -2.2],
            [-1.2, -1.2, -1.2, -1.2, -1.2],
