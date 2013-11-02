@@ -15,8 +15,9 @@ from numpy import finfo
 from ..extern import six
 
 _float_finfo = finfo(float)
-_JUST_BELOW_UNITY = 1.-_float_finfo.epsneg
-_JUST_ABOVE_UNITY = 1.+_float_finfo.eps
+# take float here to ensure comparison with another float is fast
+_JUST_BELOW_UNITY = float(1.-_float_finfo.epsneg)
+_JUST_ABOVE_UNITY = float(1.+_float_finfo.eps)
 
 
 def _get_first_sentence(s):

@@ -10,14 +10,12 @@ from __future__ import (absolute_import, division, print_function,
 from ..extern import six
 from ..extern.six.moves import zip
 
-import copy
 import inspect
 import numbers
 import sys
 import textwrap
 import warnings
 import numpy as np
-from numpy import ma
 
 from ..utils.compat.fractions import Fraction
 from ..utils.exceptions import AstropyWarning
@@ -692,7 +690,7 @@ class UnitBase(object):
         except (ValueError, UnitsError):
             return False
         try:
-            return np.allclose(self.to(other, 1), 1.0)
+            return is_effectively_unity(self._to(other))
         except UnitsError:
             return False
 
@@ -864,9 +862,6 @@ class UnitBase(object):
         UnitsError
             If units are inconsistent
         """
-        if self is other:
-            return lambda val: copy.copy(val)
-
         other = Unit(other)
 
         try:
@@ -1156,7 +1151,8 @@ class UnitBase(object):
             results.sort(key=lambda x: np.abs(x.scale))
             results.sort(key=lambda x: np.sum(np.abs(x.powers)))
             results.sort(key=lambda x: np.sum(x.powers) < 0.0)
-            results.sort(key=lambda x: not np.allclose(x.scale, 1.0))
+            results.sort(key=lambda x: not np.all(
+                is_effectively_unity(x.scale)))
 
             last_result = results[0]
             filtered = [last_result]
@@ -1892,8 +1888,8 @@ class CompositeUnit(UnitBase):
     def __init__(self, scale, bases, powers, decompose=False,
                  decompose_bases=set(), _error_check=True):
         if _error_check:
-            if scale == 1. or is_effectively_unity(scale):
-                scale = 1
+            if is_effectively_unity(scale):
+                scale = 1.0
             for base in bases:
                 if not isinstance(base, UnitBase):
                     raise TypeError("bases must be sequence of UnitBase instances")
@@ -1978,7 +1974,7 @@ class CompositeUnit(UnitBase):
         self._powers = [x[1] for x in new_parts]
 
         if is_effectively_unity(scale):
-            scale = 1
+            scale = 1.0
 
         self._scale = scale
 
@@ -2010,7 +2006,7 @@ class CompositeUnit(UnitBase):
 
     def is_unity(self):
         unit = self.decompose()
-        return len(unit.bases) == 0 and unit.scale == 1
+        return len(unit.bases) == 0 and unit.scale == 1.0
 
 
 si_prefixes = [
@@ -2201,16 +2197,11 @@ def _condition_arg(value):
 
     try:
         avalue = np.array(value)
-        if not avalue.dtype.kind in ['i', 'f', 'c']:
-            raise ValueError(
-                "Must be convertable to int, float or complex array")
-        if ma.isMaskedArray(value):
-            return value
+        assert avalue.dtype.kind in ['i', 'f', 'c']
         return avalue
-    except ValueError:
-        raise ValueError(
-            "Value not scalar compatible or convertible into a int, "
-            "float, or complex array")
+    except (ValueError, AssertionError):
+        raise ValueError("Value not scalar compatible or convertible to "
+                         "an int, float, or complex array")
 
 
 dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
