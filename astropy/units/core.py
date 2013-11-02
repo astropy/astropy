@@ -1663,6 +1663,10 @@ class _UnitMetaClass(type):
     def __call__(self, s, represents=None, format=None, namespace=None,
                  doc=None, parse_strict='raise'):
 
+        if isinstance(s, UnitBase):
+            return s
+
+        # turn possible Quantity input for s or represents into a Unit
         from .quantity import Quantity
 
         if isinstance(represents, Quantity):
@@ -1688,13 +1692,15 @@ class _UnitMetaClass(type):
                 s = CompositeUnit(s.value, bases=[s.unit], powers=[1],
                                   _error_check=False)
 
+        # now decide what we really need to do; define derived Unit?
         if isinstance(represents, UnitBase):
             # This has the effect of calling the real __new__ and
             # __init__ on the Unit class.
             return super(_UnitMetaClass, self).__call__(
                 s, represents, format=format, namespace=namespace, doc=doc)
 
-        elif isinstance(s, UnitBase):
+        # or interpret a Quantity (now became unit), string or number?
+        if isinstance(s, UnitBase):
             return s
 
         elif isinstance(s, (bytes, six.text_type)):
