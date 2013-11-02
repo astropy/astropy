@@ -30,7 +30,7 @@ def test_pixel_sum_1D(model_class, mode):
     """
     Test if the sum of all pixels corresponds nearly to the integral.
     """
-    if model_class == Box1DModel and mode == "center":
+    if model_class == Box1D and mode == "center":
         pytest.skip("Non integrating mode. Skip integral test.")
     parameters = models_1D[model_class]['parameters']
     model = create_model(model_class, parameters)
@@ -57,7 +57,7 @@ def test_pixel_sum_2D(model_class, mode):
     """
     Test if the sum of all pixels corresponds nearly to the integral.
     """
-    if model_class == Box2DModel and mode == "center":
+    if model_class == Box2D and mode == "center":
         pytest.skip("Non integrating mode. Skip integral test.")
 
     parameters = models_2D[model_class]['parameters']
