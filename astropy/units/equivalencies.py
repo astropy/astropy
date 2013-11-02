@@ -182,7 +182,7 @@ def doppler_radio(rest):
     >>> measured_freq = 115.2832*u.GHz
     >>> radio_velocity = measured_freq.to(u.km/u.s, equivalencies=radio_CO_equiv)
     >>> radio_velocity
-    <Quantity -31.2090920889... km / s>
+    <Quantity -31.209092... km / s>
     """
 
     ckms = _si.c.to('km/s').value
@@ -247,7 +247,7 @@ def doppler_optical(rest):
     >>> measured_freq = 115.2832*u.GHz
     >>> optical_velocity = measured_freq.to(u.km/u.s, equivalencies=optical_CO_equiv)
     >>> optical_velocity
-    <Quantity -31.205843488... km / s>
+    <Quantity -31.205843... km / s>
     """
 
     ckms = _si.c.to('km/s').value

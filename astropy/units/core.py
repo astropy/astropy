@@ -770,13 +770,13 @@ class UnitBase(object):
                     # after canceling, is what's left convertable
                     # to dimensionless (according to the equivalency)?
                     try:
-                        (unit/other).decompose([a])
+                        (other/unit).decompose([a])
                         return True
                     except:
                         pass
                 else:
-                    if(unit._is_equivalent(a) and other._is_equivalent(b) or
-                       unit._is_equivalent(b) and other._is_equivalent(a)):
+                    if(a._is_equivalent(unit) and b._is_equivalent(other) or
+                       b._is_equivalent(unit) and a._is_equivalent(other)):
                         return True
 
         return False
@@ -788,7 +788,7 @@ class UnitBase(object):
         """
         def make_converter(scale1, func, scale2):
             def convert(v):
-                return func(_condition_arg(v) * scale1) / scale2
+                return func(_condition_arg(v) / scale1) * scale2
             return convert
 
         orig_unit = unit
@@ -800,20 +800,20 @@ class UnitBase(object):
         for funit, tunit, a, b in equivalencies:
             if tunit is None:
                 try:
-                    ratio_in_funit = (unit/other).decompose([funit])
+                    ratio_in_funit = (other/unit).decompose([funit])
                     return make_converter(ratio_in_funit.scale, a, 1.)
                 except UnitsError:
                     pass
             else:
                 try:
-                    scale1 = unit._to(funit)
-                    scale2 = other._to(tunit)
+                    scale1 = funit._to(unit)
+                    scale2 = tunit._to(other)
                     return make_converter(scale1, a, scale2)
                 except UnitsError:
                     pass
                 try:
-                    scale1 = unit._to(tunit)
-                    scale2 = other._to(funit)
+                    scale1 = tunit._to(unit)
+                    scale2 = funit._to(other)
                     return make_converter(scale1, b, scale2)
                 except UnitsError:
                     pass
