@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import division
+import os
 
 """
 Utilities for generating the version string for Astropy (or an affiliated
@@ -45,8 +46,16 @@ def update_git_devstr(version, path=None):
     """
 
     try:
-        # Quick way to determine if we're in git or not - returns '' if not
-        devstr = get_git_devstr(sha=True, show_warning=False, path=path)
+        if ((path is None and not 'astropy' in os.path.split(os.getcwd())[-1]) or
+             (path is not None and not 'astropy' in os.path.split(path)[-1])):
+            # make sure you're running the git commands in an *astropy* git directory
+            # This will break if someone renames their astropy git directory
+            # something that doesn't include astropy, but that is less dangerous than
+            # the previous situation in which *ANY* git directory would be included
+            devstr = ''
+        else:
+            # Quick way to determine if we're in git or not - returns '' if not
+            devstr = get_git_devstr(sha=True, show_warning=False, path=path)
     except OSError:
         return version
 
