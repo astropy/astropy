@@ -840,16 +840,21 @@ class Trapezoid1DModel(Parametric1DModel):
     @staticmethod
     def eval(x, amplitude, x_0, width, slope):
         """One dimensional Trapezoid model function"""
+        # Compute the four points where the trapezoid changes slope
+        # x1 <= x2 <= x3 <= x4
+        x2 = x_0 - width / 2.
+        x3 = x_0 + width / 2.
+        x1 = x2 - amplitude / slope
+        x4 = x3 + amplitude / slope
 
-        range_1 = np.logical_and(x >= x_0 - width / 2. - amplitude / slope,
-                                 x < x_0 - width / 2.)
-        range_2 = np.logical_and(x >= x_0 - width / 2., x < x_0 + width / 2.)
-        range_3 = np.logical_and(x >= x_0 + width / 2.,
-                                 x < x_0 + width / 2. + amplitude / slope)
-        val_1 = amplitude + slope * (x_0 + width / 2. + x)
-        val_2 = amplitude
-        val_3 = amplitude + slope * (x_0 + width / 2. - x)
-        return np.select([range_1, range_2, range_3], [val_1, val_2, val_3])
+        # Compute model values in pieces between the change points
+        range_a = np.logical_and(x >= x1, x < x2)
+        range_b = np.logical_and(x >= x2, x < x3)
+        range_c = np.logical_and(x >= x3, x < x4)
+        val_a = slope * (x - x1)
+        val_b = amplitude
+        val_c = slope * (x4 - x)
+        return np.select([range_a, range_b, range_c], [val_a, val_b, val_c])
 
 
 class TrapezoidDisk2DModel(Parametric2DModel):
