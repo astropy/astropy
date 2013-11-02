@@ -16,8 +16,9 @@ from ..extern import six
 
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
-_JUST_BELOW_UNITY = float(1.-_float_finfo.epsneg)
-_JUST_ABOVE_UNITY = float(1.+_float_finfo.eps)
+# give a little margin since often multiple calculations happened
+_JUST_BELOW_UNITY = float(1.-4.*_float_finfo.epsneg)
+_JUST_ABOVE_UNITY = float(1.+4.*_float_finfo.eps)
 
 
 def _get_first_sentence(s):

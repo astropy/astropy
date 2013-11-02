@@ -697,21 +697,19 @@ class UnitBase(object):
     def __ne__(self, other):
         return not (self == other)
 
-    def __lt__(self, other):
-        other = Unit(other)
-        return self.to(other, 1) < 1.
-
-    def __gt__(self, other):
-        other = Unit(other)
-        return self.to(other, 1) > 1.
-
     def __le__(self, other):
-        other = Unit(other)
-        return self.to(other, 1) <= 1.
+        scale = self._to(Unit(other))
+        return scale <= 1. or is_effectively_unity(scale)
 
     def __ge__(self, other):
-        other = Unit(other)
-        return self.to(other, 1) >= 1.
+        scale = self._to(Unit(other))
+        return scale >= 1. or is_effectively_unity(scale)
+
+    def __lt__(self, other):
+        return not (self >= other)
+
+    def __gt__(self, other):
+        return not (self <= other)
 
     def __neg__(self):
         return self * -1.
@@ -1573,13 +1571,16 @@ class IrreducibleUnit(NamedUnit):
     def decompose(self, bases=set()):
         if len(bases) and not self in bases:
             for base in bases:
-                # to avoid roundrip, ensure no default equivalencies get used
-                if self.is_equivalent(base, equivalencies=[]):
-                    scale = self.to(base)
+                try:
+                    scale = self._to(base)
+                except UnitsError:
+                    pass
+                else:
                     if is_effectively_unity(scale):
                         return base
-                    return CompositeUnit(scale, [base], [1],
-                                         _error_check=False)
+                    else:
+                        return CompositeUnit(scale, [base], [1],
+                                             _error_check=False)
 
             raise UnitsError(
                 "Unit {0} can not be decomposed into the requested "
@@ -1942,8 +1943,11 @@ class CompositeUnit(UnitBase):
         def add_unit(unit, power, scale):
             if unit not in bases:
                 for base in bases:
-                    if unit._is_equivalent(base):
-                        scale *= unit.to(base) ** power
+                    try:
+                        scale *= unit._to(base) ** power
+                    except:
+                        pass
+                    else:
                         unit = base
                         break
 
