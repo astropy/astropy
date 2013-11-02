@@ -2191,19 +2191,22 @@ def _condition_arg(value):
     """
     if isinstance(value, (float, six.integer_types, complex)):
         return value
-    else:
-        try:
-            avalue = np.array(value)
-            if not avalue.dtype.kind in ['i', 'f', 'c']:
-                raise ValueError(
-                    "Must be convertable to int, float or complex array")
-            if ma.isMaskedArray(value):
-                return value
-            return avalue
-        except ValueError:
+
+    if isinstance(value, np.ndarray) and value.dtype.kind in ['i', 'f', 'c']:
+        return value
+
+    try:
+        avalue = np.array(value)
+        if not avalue.dtype.kind in ['i', 'f', 'c']:
             raise ValueError(
-                "Value not scalar compatible or convertable into a int, "
-                "float, or complex array")
+                "Must be convertable to int, float or complex array")
+        if ma.isMaskedArray(value):
+            return value
+        return avalue
+    except ValueError:
+        raise ValueError(
+            "Value not scalar compatible or convertible into a int, "
+            "float, or complex array")
 
 
 dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
