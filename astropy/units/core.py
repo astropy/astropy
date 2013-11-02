@@ -872,16 +872,12 @@ class UnitBase(object):
 
         other = Unit(other)
 
-        if (self._get_physical_type_id() == other._get_physical_type_id()):
-            diff = CompositeUnit(
-                1, [self, other], [1, -1], decompose=True,
-                _error_check=False)
-            if len(diff.bases) == 0:
-                return lambda val: diff.scale * _condition_arg(val)
-
-        equivalencies = self._normalize_equivalencies(equivalencies)
-        return self._apply_equivalences(
-            self, other, equivalencies)
+        try:
+            scale = (self / other)._dimensionless_constant()
+        except UnitsError:
+            return self._apply_equivalences(
+                self, other, self._normalize_equivalencies(equivalencies))
+        return lambda val: scale * _condition_arg(val)
 
     def to(self, other, value=1.0, equivalencies=[]):
         """
@@ -919,7 +915,6 @@ class UnitBase(object):
             # arrays
             return copy.copy(value)
 
-        other = Unit(other)
         return self.get_converter(other, equivalencies=equivalencies)(value)
 
     def in_units(self, other, value=1.0, equivalencies=[]):
