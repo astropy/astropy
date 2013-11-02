@@ -557,12 +557,6 @@ class UnitBase(object):
         """
         return [1.0]
 
-    def _dimensionless_constant(self):
-        if self.is_unity():
-            return 1.0
-        raise UnitsError(
-            "'{0}' is not dimensionless".format(self.to_string()))
-
     def to_string(self, format='generic'):
         """
         Output the unit in the given format as a string.
@@ -2003,24 +1997,6 @@ class CompositeUnit(UnitBase):
             self._decomposed_cache = x
         return x
     decompose.__doc__ = UnitBase.decompose.__doc__
-
-    def _dimensionless_constant(self):
-        """
-        If this unit is dimensionless, return its scalar quantity.
-
-        Direct use of this method is not recommended. It is generally
-        better to use the `to` or `get_converter` methods
-        instead.
-        """
-        if not len(self.bases):
-            return self.scale
-
-        x = self.decompose()
-        if len(x.bases):
-            raise UnitsError(
-                "'{0}' is not dimensionless".format(self.to_string()))
-        c = x.scale
-        return c
 
     def is_unity(self):
         unit = self.decompose()
