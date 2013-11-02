@@ -15,7 +15,6 @@ import numbers
 import sys
 import textwrap
 import warnings
-
 import numpy as np
 from numpy import ma
 
@@ -794,7 +793,7 @@ class UnitBase(object):
         """
         def make_converter(scale1, func, scale2):
             def convert(v):
-                return func(_condition_arg(v) * scale1) * scale2
+                return func(_condition_arg(v) * scale1) / scale2
             return convert
 
         orig_unit = unit
@@ -808,18 +807,21 @@ class UnitBase(object):
                 try:
                     ratio_in_funit = (unit/other).decompose([funit])
                     return make_converter(ratio_in_funit.scale, a, 1.)
-                except:
+                except UnitsError:
                     pass
             else:
-                if unit._is_equivalent(funit) and other._is_equivalent(tunit):
-                    scale1 = (unit / funit)._dimensionless_constant()
-                    scale2 = (tunit / other)._dimensionless_constant()
+                try:
+                    scale1 = unit._to(funit)
+                    scale2 = other._to(tunit)
                     return make_converter(scale1, a, scale2)
-                elif (other._is_equivalent(funit) and
-                      unit._is_equivalent(tunit)):
-                    scale1 = (unit / tunit)._dimensionless_constant()
-                    scale2 = (funit / other)._dimensionless_constant()
+                except UnitsError:
+                    pass
+                try:
+                    scale1 = unit._to(tunit)
+                    scale2 = other._to(funit)
                     return make_converter(scale1, b, scale2)
+                except UnitsError:
+                    pass
 
         def get_err_str(unit):
             unit_str = unit.to_string('unscaled')
@@ -873,11 +875,27 @@ class UnitBase(object):
         other = Unit(other)
 
         try:
-            scale = (self / other)._dimensionless_constant()
+            scale = self._to(other)
         except UnitsError:
             return self._apply_equivalences(
                 self, other, self._normalize_equivalencies(equivalencies))
         return lambda val: scale * _condition_arg(val)
+
+    def _to(self, other):
+        """Returns the scale to the specified unit.
+        See `to`, except that a Unit object should be given (i.e., no string),
+        and that all defaults are used, i.e., no equivalencies and value=1.
+        """
+        self_decomposed = self.decompose()
+        other_decomposed = other.decompose()
+        # check quickly whether equivalent
+        if(self_decomposed.powers == other_decomposed.powers and
+           all(self_base is other_base for (self_base, other_base)
+               in zip(self_decomposed.bases, other_decomposed.bases))):
+            return self_decomposed.scale / other_decomposed.scale
+
+        raise UnitsError(
+            "'{0!r}' is not a scaled version of '{1!r}'".format(self, other))
 
     def to(self, other, value=1.0, equivalencies=[]):
         """
@@ -910,11 +928,6 @@ class UnitBase(object):
         UnitsError
             If units are inconsistent
         """
-        if self is other:
-            # Return a copy of value -- this works with scalars and
-            # arrays
-            return copy.copy(value)
-
         return self.get_converter(other, equivalencies=equivalencies)(value)
 
     def in_units(self, other, value=1.0, equivalencies=[]):

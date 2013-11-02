@@ -32,7 +32,10 @@ def test_dimensionless_angles():
     I = 1.e45 * u.g * u.cm**2
     Omega = u.cycle / (1.*u.s)
     Erot = 0.5 * I * Omega**2
-    assert Erot.to(u.erg, equivalencies=rad1) == (Erot/u.radian**2)
+    # check that equivalency makes this work
+    Erot_in_erg1 = Erot.to(u.erg, equivalencies=rad1)
+    # and check that value is correct
+    assert_allclose(Erot_in_erg1.value, (Erot/u.radian**2).to(u.erg).value)
 
     # test build-in equivalency in subclass
     class MyRad1(u.Quantity):
