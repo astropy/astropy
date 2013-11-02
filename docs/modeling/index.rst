@@ -97,7 +97,6 @@ Fit a Chebyshev polynomial to the data::
     >>> new_model = chfit(ch2, x, ny)
     >>> new_model.parameters
     array([ 1.08612543,  1.79746444,  3.15233293,  4.06529137])
->>>>>>> change documentation examples appropriately
 
 .. plot::
 
