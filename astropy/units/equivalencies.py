@@ -17,6 +17,19 @@ __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'brightness_temperature', 'dimensionless_angles']
 
 
+def _memoize(f):
+    """ Memoization decorator for a function taking no arguments"""
+    class memoize(object):
+        output = None
+
+        def __call__(self):
+            if self.output is None:
+                self.output = f()
+            return self.output
+
+    return memoize()
+
+
 def dimensionless_angles():
     """Allow angles to be equivalent to dimensionless (with 1 rad = 1 m/m = 1).
 
@@ -27,6 +40,7 @@ def dimensionless_angles():
     return [(si.radian, None)]
 
 
+@_memoize
 def parallax():
     """
     Returns a list of equivalence pairs that handle the conversion
@@ -37,6 +51,7 @@ def parallax():
     ]
 
 
+@_memoize
 def spectral():
     """
     Returns a list of equivalence pairs that handle spectral
@@ -360,6 +375,7 @@ def doppler_relativistic(rest):
             ]
 
 
+@_memoize
 def mass_energy():
     """
     Returns a list of equivalence pairs that handle the conversion
