@@ -41,13 +41,13 @@ Fitting examples
     >>> y = p1(x)
     >>> yy = np.array([y, y]).T
     >>> p2 = models.Polynomial1DModel(3, param_dim=2)
-    >>> pfit = fitting.LinearLSQFitter(p2)
-    >>> pfit(x, yy)
-    >>> print(p2.param_sets)
-    [[  1.00000000e+00   1.00000000e+00]
-     [  2.00000000e+00   2.00000000e+00]
-     [  3.88335494e-16   3.88335494e-16]
-     [ -2.99749607e-17  -2.99749607e-17]]
+    >>> pfit = fitting.LinearLSQFitter()
+    >>> new_model = pfit(p2, x, yy)
+    >>> print(new_model.param_sets)
+    [[  1.00000000e+00,   1.00000000e+00],
+     [  2.00000000e+00,   2.00000000e+00],
+     [  1.35314993e-16,   1.35314993e-16],
+     [ -1.65733755e-17,  -1.65733755e-17]])
 
 Fitters support constrained fitting.
 
@@ -70,10 +70,10 @@ Fitters support constrained fitting.
              [ 3.,  3.]])
       >>> y = p1(x)
       >>> p1.c0.fixed = True
-      >>> pfit = fitting.LinearLSQFitter(p1)
-      >>> pfit(x, y)
-      >>> p1.param_sets
-      array([[ 1.        ,  1.        ],
+      >>> pfit = fitting.LinearLSQFitter()
+      >>> new_model = pfit(p1, x, y)
+      >>> new_model.param_sets
+      array([[ 1.,          1.        ],
              [ 2.38641216,  2.38641216],
              [ 2.96827886,  2.96827886]])
 
@@ -91,7 +91,7 @@ Fitters support constrained fitting.
 
       >>> g1 = models.Gaussian1DModel(amplitude=10., mean=3, stddev=.5)
       >>> g1.mean.tied = tiedfunc
-      >>> gfit = fitting.NonLinearLSQFitter(g1)
+      >>> gfit = fitting.NonLinearLSQFitter()
 
 Bounded fitting is supported through the ``bounds`` arguments to models or by
 setting `~astropy.modeling.parameters.Parameter.min` and

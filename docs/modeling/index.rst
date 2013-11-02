@@ -52,9 +52,9 @@ Fit a data set with a Gaussian model::
     >>> np.random.seed(0)
     >>> n = np.random.randn(90)
     >>> ny = y + n
-    >>> gfit = fitting.NonLinearLSQFitter(g1)
-    >>> gfit(x, ny)  # doctest: +REQUIRES_SCIPY
-    >>> print(g1)  # doctest: +REQUIRES_SCIPY
+    >>> gfit = fitting.NonLinearLSQFitter()
+    >>> new_model = gfit(g1, x, ny)
+    >>> print(new_model)
     Model: Gaussian1DModel
     n_inputs:   1
     Degree: N/A
@@ -93,10 +93,10 @@ Add some noise::
 Fit a Chebyshev polynomial to the data::
 
     >>> ch2 = models.Chebyshev1DModel(3)
-    >>> chfit = fitting.LinearLSQFitter(ch2)
-    >>> chfit(x, ny)
-    >>> ch2.parameters
-    array([ 1.17789166,  1.67145195,  3.53825251,  4.05892813])
+    >>> chfit = fitting.LinearLSQFitter()
+    >>> new_model = chfit(ch2, x, ny)
+    >>> new_model.parameters
+    array([ 1.08612543,  1.79746444,  3.15233293,  4.06529137])
 
 .. plot::
 
@@ -111,11 +111,11 @@ Fit a Chebyshev polynomial to the data::
    n = np.random.randn(90)
    ny = y + n
    ch2 = models.Chebyshev1DModel(3)
-   chfit = fitting.LinearLSQFitter(ch2)
-   chfit(x, ny)
+   chfit = fitting.LinearLSQFitter()
+   model = chfit(ch2, x, ny)
    plt.plot(x, y, label='y - Chebyshev polynomial')
    plt.plot(x, ny, label='ny - Chebyshev polynomial with noise')
-   plt.plot(x, ch2(x), label='ch2(x) - Fitted model')
+   plt.plot(x, model(x), label='ch2(x) - Fitted model')
    plt.legend()
    plt.show()
 
@@ -145,14 +145,14 @@ Fit a 2D polynomial to the data::
                c0_1: Parameter('c0_1', value=0.0)
                c0_2: Parameter('c0_2', value=0.0)
                c1_1: Parameter('c1_1', value=0.0)
-    >>> pfit = fitting.LinearLSQFitter(p2)
-    >>> np.random.seed(0)
+
+    >>> pfit = fitting.LinearLSQFitter()
     >>> n = np.random.randn(100)
     >>> n.shape = (10, 10)
-    >>> pfit(x, y, z+n)
-    >>> p2.parameters
-    array([ 1.79964917,  1.44891526,  3.05358047,  4.08895144,  4.98756933,
-            6.00824639])
+    >>> new_model = pfit(p2, x, y, z+n)
+    >>> new_model.parameters
+    array([ 0.97599264,  1.95050208,  3.00524297,  4.01663038,  5.00150801,
+            5.999489  ])
 
 
 Using `modeling`

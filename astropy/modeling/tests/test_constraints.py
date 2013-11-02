@@ -31,9 +31,9 @@ class TestNonLinearConstraints(object):
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_fixed_par(self):
         g1 = models.Gaussian1DModel(10, mean=14.9, stddev=.3, fixed={'amplitude': True})
-        fitter = fitting.NonLinearLSQFitter(g1)
-        fitter(self.x, self.ny1)
-        assert g1.amplitude.value == 10
+        fitter = fitting.NonLinearLSQFitter()
+        model = fitter(g1, self.x, self.ny1)
+        assert model.amplitude.value == 10
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_tied_par(self):
@@ -42,9 +42,9 @@ class TestNonLinearConstraints(object):
             mean = 50 * model.stddev
             return mean
         g1 = models.Gaussian1DModel(10, mean=14.9, stddev=.3, tied={'mean': tied})
-        fitter = fitting.NonLinearLSQFitter(g1)
-        fitter(self.x, self.ny1)
-        utils.assert_allclose(g1.mean.value, 50 * g1.stddev, rtol=10 ** (-5))
+        fitter = fitting.NonLinearLSQFitter()
+        model = fitter(g1,self.x, self.ny1)
+        utils.assert_allclose(model.mean.value, 50 * model.stddev, rtol=10 ** (-5))
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_joint_fitter(self):
@@ -81,9 +81,9 @@ class TestNonLinearConstraints(object):
         n = np.random.randn(100)
         ny = y + n
         fitpar, s = optimize.leastsq(errf, p0, args=(self.x, ny))
-        fitter = fitting.NonLinearLSQFitter(g1)
-        fitter(self.x, ny)
-        utils.assert_allclose(g1.parameters, fitpar, rtol=5 * 10 ** (-3))
+        fitter = fitting.NonLinearLSQFitter()
+        model = fitter(g1, self.x, ny)
+        utils.assert_allclose(model.parameters, fitpar, rtol=5 * 10 ** (-3))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -113,10 +113,10 @@ class TestBounds(object):
         guess_intercept = 0.0
         bounds = {'slope': (-1.5, 5.0), 'intercept': (-1.0, 1.0)}
         line_model = models.Linear1DModel(guess_slope, guess_intercept, bounds=bounds)
-        fitter = fitting.NonLinearLSQFitter(line_model)
-        fitter(self.x, self.y)
-        slope = line_model.slope.value
-        intercept = line_model.intercept.value
+        fitter = fitting.NonLinearLSQFitter()
+        model = fitter(line_model, self.x, self.y)
+        slope = model.slope.value
+        intercept = model.intercept.value
         assert slope + 10 ** -5 >= bounds['slope'][0]
         assert slope - 10 ** -5 <= bounds['slope'][1]
         assert intercept + 10 ** -5 >= bounds['intercept'][0]
@@ -127,10 +127,10 @@ class TestBounds(object):
         guess_intercept = 0.0
         bounds = {'slope': (-1.5, 5.0), 'intercept': (-1.0, 1.0)}
         line_model = models.Linear1DModel(guess_slope, guess_intercept, bounds=bounds)
-        fitter = fitting.SLSQPFitter(line_model)
-        fitter(self.x, self.y)
-        slope = line_model.slope.value
-        intercept = line_model.intercept.value
+        fitter = fitting.SLSQPFitter()
+        model = fitter(line_model, self.x, self.y)
+        slope = model.slope.value
+        intercept = model.intercept.value
         assert slope + 10 ** -5 >= bounds['slope'][0]
         assert slope - 10 ** -5 <= bounds['slope'][1]
         assert intercept + 10 ** -5 >= bounds['intercept'][0]
@@ -145,12 +145,12 @@ class TestBounds(object):
         gauss = models.Gaussian2DModel(amplitude=10., x_mean=5., y_mean=5.,
                                        x_stddev=4., y_stddev=4., theta=0.5,
                                        bounds=bounds)
-        gauss_fit = fitting.NonLinearLSQFitter(gauss)
-        gauss_fit(X, Y, self.data)
-        x_mean = gauss.x_mean.value
-        y_mean = gauss.y_mean.value
-        x_stddev = gauss.x_stddev.value
-        y_stddev = gauss.y_stddev.value
+        gauss_fit = fitting.NonLinearLSQFitter()
+        model = gauss_fit(gauss, X, Y, self.data)
+        x_mean = model.x_mean.value
+        y_mean = model.y_mean.value
+        x_stddev = model.x_stddev.value
+        y_stddev = model.y_stddev.value
         assert x_mean + 10 ** -5 >= bounds['x_mean'][0]
         assert x_mean - 10 ** -5 <= bounds['x_mean'][1]
         assert y_mean + 10 ** -5 >= bounds['y_mean'][0]
@@ -169,12 +169,12 @@ class TestBounds(object):
         gauss = models.Gaussian2DModel(amplitude=10., x_mean=5., y_mean=5.,
                                        x_stddev=4., y_stddev=4., theta=0.5,
                                        bounds=bounds)
-        gauss_fit = fitting.SLSQPFitter(gauss)
-        gauss_fit(X, Y, self.data)
-        x_mean = gauss.x_mean.value
-        y_mean = gauss.y_mean.value
-        x_stddev = gauss.x_stddev.value
-        y_stddev = gauss.y_stddev.value
+        gauss_fit = fitting.SLSQPFitter()
+        model = gauss_fit(gauss, X, Y, self.data)
+        x_mean = model.x_mean.value
+        y_mean = model.y_mean.value
+        x_stddev = model.x_stddev.value
+        y_stddev = model.y_stddev.value
         assert x_mean + 10 ** -5 >= bounds['x_mean'][0]
         assert x_mean - 10 ** -5 <= bounds['x_mean'][1]
         assert y_mean + 10 ** -5 >= bounds['y_mean'][0]
@@ -201,9 +201,9 @@ class TestLinearConstraints(object):
     def test(self):
         self.p1.c0.fixed = True
         self.p1.c1.fixed = True
-        pfit = fitting.LinearLSQFitter(self.p1)
-        pfit(self.x, self.y)
-        utils.assert_allclose(self.y, self.p1(self.x))
+        pfit = fitting.LinearLSQFitter()
+        model = pfit(self.p1, self.x, self.y)
+        utils.assert_allclose(self.y, model(self.x))
 
 # Test constraints as parameter properties
 
@@ -212,14 +212,15 @@ def test_set_fixed_1():
     gauss = models.Gaussian1DModel(amplitude=20, mean=2, stddev=1)
     gauss.mean.fixed = True
     assert gauss.fixed == {'amplitude': False, 'mean': True, 'stddev': False}
-    gfit = fitting.NonLinearLSQFitter(gauss)
-    assert np.all(gfit.fixed == [False, True, False])
+    fitparams, _ = gauss._model_to_fit_params()
+    assert np.all(fitparams == [20, 1])
 
 
 def test_set_fixed_2():
     gauss = models.Gaussian1DModel(amplitude=20, mean=2, stddev=1, fixed={'mean': True})
     assert gauss.mean.fixed is True
-    assert gauss.fixed == {'amplitude': False, 'mean': True, 'stddev': False}
+    fitparams, _ = gauss._model_to_fit_params()
+    assert np.all(fitparams == [20, 1])
 
 
 def test_set_tied_1():
@@ -238,16 +239,15 @@ def test_set_tied_2():
 
     gauss = models.Gaussian1DModel(amplitude=20, mean=2, stddev=1,
                                    tied={'amplitude': tie_amplitude})
-    assert gauss.amplitude.tied is not False
+    assert gauss.amplitude.tied != False
 
 
 def test_unset_fixed():
     gauss = models.Gaussian1DModel(amplitude=20, mean=2, stddev=1, fixed={'mean': True})
-    gfit = fitting.NonLinearLSQFitter(gauss)
     gauss.mean.fixed = False
     assert gauss.fixed == {'amplitude': False, 'mean': False, 'stddev': False}
-    gfit._update_constraints()
-    assert np.all(gfit.fixed == [False, False, False])
+    fitparams, _  = gauss._model_to_fit_params()
+    assert np.all(fitparams == [20, 2, 1])
 
 
 def test_unset_tied():
@@ -256,36 +256,25 @@ def test_unset_tied():
 
     gauss = models.Gaussian1DModel(amplitude=20, mean=2, stddev=1,
                                    tied={'amplitude': tie_amplitude})
-    gfit = fitting.NonLinearLSQFitter(gauss)
     gauss.amplitude.tied = False
     assert gauss.tied == {'amplitude': False, 'mean': False, 'stddev': False}
-    gfit._update_constraints()
-    assert np.all(gfit.fixed == [False, False, False])
+    fitparams, _  = gauss._model_to_fit_params()
+    assert np.all(fitparams == [20, 2, 1])
 
 
 def test_set_bounds_1():
     gauss = models.Gaussian1DModel(amplitude=20, mean=2, stddev=1,
                                    bounds={'stddev': (0, None)})
-    gfit = fitting.NonLinearLSQFitter(gauss)
     assert gauss.bounds == {'amplitude': (None, None),
                             'mean': (None, None),
                             'stddev': (0.0, None)}
-    assert np.all(gfit.bounds ==
-                  [(-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12),
-                   (0.0, 10 ** 12)])
-
 
 def test_set_bounds_2():
     gauss = models.Gaussian1DModel(amplitude=20, mean=2, stddev=1)
-    gfit = fitting.NonLinearLSQFitter(gauss)
     gauss.stddev.min = 0.
     assert gauss.bounds == {'amplitude': (None, None),
                             'mean': (None, None),
                             'stddev': (0.0, None)}
-    gfit._update_constraints()
-    assert np.all(gfit.bounds ==
-                  [(-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12),
-                   (0.0, 10 ** 12)])
 
 
 def test_unset_bounds():
@@ -296,7 +285,3 @@ def test_unset_bounds():
     assert gauss.bounds == {'amplitude': (None, None),
                             'mean': (None, None),
                             'stddev': (None, None)}
-    gfit = fitting.NonLinearLSQFitter(gauss)
-    assert np.all(gfit.bounds ==
-                  [(-10 ** 12, 10 ** 12), (-10 ** 12, 10 ** 12),
-                   (-10 ** 12, 10 ** 12)])

@@ -44,7 +44,7 @@ from __future__ import division
 
 import abc
 import functools
-
+import copy
 from itertools import izip
 from textwrap import dedent
 
@@ -271,6 +271,9 @@ class Model(object):
         else:
             raise InputParameterError("Unrecognized mode {0}".format(mode))
 
+    def copy(self):
+        return copy.deepcopy(self)
+
     @abc.abstractmethod
     def __call__(self):
         raise NotImplementedError("Subclasses should implement this")
@@ -359,6 +362,7 @@ class ParametricModel(Model):
     """
 
     linear = False
+    deriv = None
     # Flag that indicates if the model derivatives are given in columns
     # or rows
     col_deriv = True
@@ -425,6 +429,7 @@ class ParametricModel(Model):
             self._constraints['bounds'] = bounds
 
         self._initialize_parameters(params)
+        
 
     @property
     def fixed(self):
@@ -564,6 +569,46 @@ class ParametricModel(Model):
         """
         self.joint = jparams
 
+    def _model_to_fit_params(self):
+        """
+        Create a set of parameters to be fitted.
+
+        These may be a subset of the model parameters, if some of them are held
+        constant or tied.
+        """
+        fitparam_indices = range(len(self.param_names))
+        if any(self.fixed.values()) or any(self.tied.values()):
+            params = list(self.parameters)
+            for idx, name in list(enumerate(self.param_names))[::-1]:
+                if self.fixed[name] or self.tied[name]:
+                    sl = self._param_metrics[name][0]
+                    del params[sl]
+                    del fitparam_indices[idx]
+            return (np.array(params), fitparam_indices)
+        else:
+            return (self.parameters, fitparam_indices)
+
+    def _fitter_to_model_params(self, fps):
+        _fit_params, _fit_param_indices = self._model_to_fit_params()
+        if any(self.fixed.values()) or any(self.tied.values()):
+            self.parameters[_fit_param_indices] = fps
+            for idx, name in enumerate(self.param_names):
+                if self.tied[name] != False:
+                    value = self.tied[name](self)
+                    slice_ = self._param_metrics[name][0]
+                    self.parameters[slice_] = value
+        elif any([tuple(b) != (None, None) for b in self.bounds.values()]):
+            for name, par in zip(self.param_names, _fit_params):
+                if self.bounds[name] != (None, None):
+                    b = self.bounds[name]
+                    if b[0] is not None:
+                        par = max(par, self.bounds[name][0])
+                    if b[1] is not None:
+                        par = min(par, self.bounds[name][1])
+                    setattr(self, name, par)
+        else:
+            self.parameters = fps
+
     def _initialize_parameters(self, params):
         """
         Initialize the _parameters array that stores raw parameter values for
@@ -625,6 +670,35 @@ class ParametricModel(Model):
         # self._parameters)
         for name, value in params.items():
             setattr(self, name, value)
+
+
+    def _model_to_fit_params(self):
+        """
+        Create a set of parameters to be fitted.
+
+        These may be a subset of the model parameters, if some of them are held
+        constant or tied.
+
+        This is an adapter of the model parameters to fitters, none of which
+        currently support parameters with tied/fixed constraints.
+
+        TODO: It may make more sense to make this adaptation on the Fitter end,
+        since one could conceivably implement a fitter from scratch (for
+        Astropy specifically) that understands how to use tied constraints, for
+        example.
+        """
+
+        fitparam_indices = range(len(self.param_names))
+        if any(self.fixed.values()) or any(self.tied.values()):
+            params = list(self.parameters)
+            for idx, name in list(enumerate(self.param_names))[::-1]:
+                if self.fixed[name] or self.tied[name]:
+                    sl = self._param_metrics[name][0]
+                    del params[sl]
+                    del fitparam_indices[idx]
+            return (np.array(params), fitparam_indices)
+        else:
+            return (self.parameters, fitparam_indices)
 
 
 class LabeledInput(dict):
@@ -988,8 +1062,6 @@ class Parametric1DModel(ParametricModel):
         {'parameter_name': 'parameter_value'}
     """
 
-    deriv = None
-
     @format_input
     def __call__(self, x):
         """
@@ -1018,7 +1090,6 @@ class Parametric2DModel(ParametricModel):
         {'parameter_name': 'parameter_value'}
     """
 
-    deriv = None
     n_inputs = 2
     n_outputs = 1
 

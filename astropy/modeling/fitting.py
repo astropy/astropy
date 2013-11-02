@@ -32,8 +32,11 @@ __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
            'JointFitter', 'Fitter']
 
 
-MAXITER = 100
-EPS = np.sqrt(np.finfo(float).eps)
+
+DEFAULT_MAXITER = 100
+DEFAULT_EPS = np.sqrt(np.finfo(float).eps)
+DEFAULT_MAX_BOUND = 10 ** 12
+DEFAULT_MIN_BOUND = 10 ** -12
 
 
 def _convert_input(x, y, z=None):
@@ -82,205 +85,39 @@ class Fitter(object):
     # May contain any of 'bounds', 'eqcons', 'ineqcons', 'fixed', or 'tied'
     supported_constraints = []
 
-    def __init__(self, model):
-        if not model.fittable:
-            raise ValueError("Model must be a subclass of ParametricModel")
-
-        self._model = model
-        self.bounds = []
-        self.fixed = []
-        self.tied = []
-        self.eqcons = []
-        self.ineqcons = []
-
-        self._set_constraints()
-        self._fitparams, self._fitparam_indices, self._param_indices = \
-                self._model_to_fit_params()
-        self._validate_constraints()
+    def __init__(self):
         self._weights = None
 
-    def _set_constraints(self):
-        pars = [getattr(self.model, name) for name in self.model.param_names]
-        self.fixed = np.array([par.fixed for par in pars])
-        self.tied = np.array([par.tied for par in pars])
-        min_values = [par.min for par in pars]
-        max_values = [par.max for par in pars]
-        b = []
-        for i, j in zip(min_values, max_values):
-            if i is None:
-                i = -10 ** 12
-            if j is None:
-                j = 10 ** 12
-            b.append((i, j))
-        self.bounds = np.array(b)
-
-        self.eqcons = np.array(self.model.eqcons)
-        self.ineqcons = np.array(self.model.ineqcons)
-
-    @property
-    def model(self):
-        """The model being fitted."""
-
-        return self._model
-
-    @model.setter
-    def model(self, val):
-        self._model = val
-
-    @property
-    def fitparams(self):
-        return self._fitparams
-
-    @fitparams.setter
-    def fitparams(self, fps):
-        """
-        Update ``.model.parameters`` from fitparams in the presence of
-        constraints.
-
-        This is the opposite of ``_model_to_fit_params``.
-
-        Parameters
-        ----------
-        fps : list
-            list of parameters, fitted in a succesive iteration of the
-            fitting algorithm
-        """
-
-        self._fitparams[:] = fps
-
-        if any(self.fixed) or any(self.tied):
-            self.model.parameters[self._param_indices] = fps
-            for idx, name in enumerate(self.model.param_names):
-                if self.tied[idx] != False:
-                    value = self.tied[idx](self.model)
-                    slice_ = self.model._param_metrics[name][0]
-                    self.model.parameters[slice_] = value
-        elif any([tuple(b) != (-1E12, 1E12) for b in self.bounds]):
-            self._set_bounds(fps)
-        else:
-            self.model.parameters = fps
-
-    def _model_to_fit_params(self):
-        """
-        Create a set of parameters to be fitted.
-
-        These may be a subset of the model parameters, if some of them are held
-        constant or tied.
-        """
-
-        fitparam_indices = range(len(self.model.param_names))
-        param_indices = range(len(self.model.parameters))
-        if any(self.model.fixed.values()) or any(self.model.tied.values()):
-            params = list(self.model.parameters)
-            for idx, name in list(enumerate(self.model.param_names))[::-1]:
-                if self.model.fixed[name] or self.model.tied[name]:
-                    sl = self.model._param_metrics[name][0]
-                    del params[sl]
-                    del param_indices[sl]
-                    del fitparam_indices[idx]
-            return np.array(params), fitparam_indices, param_indices
-        else:
-            return (self.model.parameters.copy(), fitparam_indices,
-                    param_indices)
-
-    def _set_bounds(self, pars):
-        """
-        Diferent fitting algorithms deal with bounds in a different way.  For
-        example, the SLSQP algorithm accepts bounds as input while the leastsq
-        algorithm does not handle bounds at all and they are dealt with in a
-        separate method.
-
-        This method is to be implemented by subcclasses of Fitter if necessary.
-        """
-
-        raise NotImplementedError("Subclasses should implement this")
-
-    def _wrap_deriv(self, p, x, y, z=None):
-        """
-        Wraps the method calculating the Jacobian of the function to account
-        for model constraints.
-
-        Currently the only fitter that uses a derivative is the
-        `NonLinearLSQFitter`. This wrapper may need to be revised when other
-        fitters using function derivative are added or when the statistic is
-        separated from the fitting routines.
-
-        `~scipy.optimize.leastsq` expects the function derivative to have the
-        above signature (parlist, (argtuple)). In order to accomodate model
-        constraints, instead of using p directly, we set the parameter list in
-        this function.
-        """
-
-        if any(self.fixed) or any(self.tied):
-            params = self.model.parameters
-
-            if z is None:
-                full_deriv = np.array(self.model.deriv(x, *params))
-            else:
-                full_deriv = np.array(self.model.deriv(x, y, *params))
-
-            ind = range(len(self.model.param_names))
-            fix_tie_ind = list(np.nonzero(self.fixed)[0])
-            fix_tie_ind.extend(np.nonzero(self.tied)[0])
-
-            for index in fix_tie_ind:
-                ind.remove(index)
-
-            res = np.empty((full_deriv.shape[0],
-                            full_deriv.shape[1] - len(ind)))
-            res = full_deriv[ind, :]
-            return [np.ravel(_) for _ in res]
-        else:
-            params = p[:]
-            if z is None:
-                return self.model.deriv(x, *params)
-            else:
-                return [np.ravel(_) for _ in self.model.deriv(x, y, *params)]
-
-    def _validate_constraints(self):
+    def _validate_constraints(self, model):
         message = '{0} cannot handle {{0}} constraints.'.format(
                 self.__class__.__name__)
 
-        if any(self.fixed) and 'fixed' not in self.supported_constraints:
+        if (any(model.fixed.values()) and
+                'fixed' not in self.supported_constraints):
             raise UnsupportedConstraintError(
                     message.format('fixed parameter'))
 
-        if any(self.tied) and 'tied' not in self.supported_constraints:
+        if (any(model.tied.values()) and
+                'tied' not in self.supported_constraints):
             raise UnsupportedConstraintError(
                     message.format('tied parameter'))
 
-        if (any([tuple(b) != (-1E12, 1E12) for b in self.bounds]) and
+        if (any([tuple(b) != (None, None) for b in model.bounds.values()]) and
                 'bounds' not in self.supported_constraints):
             raise UnsupportedConstraintError(
                     message.format('bound parameter'))
 
-        if self.model.eqcons and 'eqcons' not in self.supported_constraints:
+        if model.eqcons and 'eqcons' not in self.supported_constraints:
             raise UnsupportedConstraintError(message.format('equality'))
 
-        if (self.model.ineqcons and
+        if (model.ineqcons and
                 'ineqcons' not in self.supported_constraints):
             raise UnsupportedConstraintError(message.format('inequality'))
 
-    @property
-    def covar(self):
-        return None
-
-    @property
-    def weights(self):
-        """Fitting weights."""
-
-        return self._weights
-
-    @weights.setter
-    def weights(self, val):
-        """Set fitting weights."""
-
-        self._weights = val
-
-    def _update_constraints(self):
-        self._set_constraints()
-        self._fitparams, self._fitparam_indices, self._param_indices = \
-                self._model_to_fit_params()
+    # TODO
+    # @property
+    # def covar(self):
+    #     return None
 
     @abc.abstractmethod
     def __call__(self):
@@ -292,6 +129,27 @@ class Fitter(object):
         """
 
         raise NotImplementedError("Subclasses should implement this")
+
+    def _fitter_to_model_params(self, model, fps):
+        _fit_params, _fit_param_indices = model._model_to_fit_params()
+        if any(model.fixed.values()) or any(model.tied.values()):
+            model.parameters[_fit_param_indices] = fps
+            for idx, name in enumerate(model.param_names):
+                if model.tied[name] != False:
+                    value = model.tied[name](model)
+                    slice_ = model._param_metrics[name][0]
+                    model.parameters[slice_] = value
+        elif any([tuple(b) != (None, None) for b in model.bounds.values()]):
+            for name, par in zip(model.param_names, _fit_params):
+                if model.bounds[name] != (None, None):
+                    b = model.bounds[name]
+                    if b[0] is not None:
+                        par = max(par, model.bounds[name][0])
+                    if b[1] is not None:
+                        par = min(par, model.bounds[name][1])
+                    setattr(model, name, par)
+        else:
+            model.parameters = fps
 
 
 class LinearLSQFitter(Fitter):
@@ -314,60 +172,60 @@ class LinearLSQFitter(Fitter):
 
     supported_constraints = ['fixed']
 
-    def __init__(self, model):
-        super(LinearLSQFitter, self).__init__(model)
-        if not self.model.linear:
-            raise ModelLinearityError('Model is not linear in parameters, '
-                                      'linear fit methods should not be used.')
+    def __init__(self):
+        super(LinearLSQFitter, self).__init__()
         self.fit_info = {'residuals': None,
                          'rank': None,
                          'singular_values': None,
                          'params': None
                          }
 
-    def _deriv_with_constraints(self, params=None, x=None, y=None):
+    @staticmethod
+    def _deriv_with_constraints(model, param_indices, x=None, y=None):
         if y is None:
-            d = np.array(self.model.deriv(x=x))
+            d = np.array(model.deriv(x=x))
         else:
-            d = np.array(self.model.deriv(x=x, y=y))
+            d = np.array(model.deriv(x=x, y=y))
 
-        if self.model.col_deriv:
-            return d[self._fitparam_indices]
+        if model.col_deriv:
+            return d[param_indices]
         else:
-            return d[:, self._fitparam_indices]
+            return d[:, param_indices]
 
-    def _map_domain_window(self, x, y=None):
+    def _map_domain_window(self, model, x, y=None):
         """
         Maps domain into window for a polynomial model which has these
         attributes.
         """
 
         if y is None:
-            if hasattr(self.model, 'domain') and self.model.domain is None:
-                self.model.domain = [x.min(), x.max()]
-            if hasattr(self.model, 'window') and self.model.window is None:
-                self.model.window = [-1, 1]
-            return poly_map_domain(x, self.model.domain, self.model.window)
+            if hasattr(model, 'domain') and model.domain is None:
+                model.domain = [x.min(), x.max()]
+            if hasattr(model, 'window') and model.window is None:
+                model.window = [-1, 1]
+            return poly_map_domain(x, model.domain, model.window)
         else:
-            if hasattr(self.model, 'x_domain') and self.model.x_domain is None:
-                self.model.x_domain = [x.min(), x.max()]
-            if hasattr(self.model, 'y_domain') and self.model.y_domain is None:
-                self.model.y_domain = [y.min(), y.max()]
-            if hasattr(self.model, 'x_window') and self.model.x_window is None:
-                self.model.x_window = [-1., 1.]
-            if hasattr(self.model, 'y_window') and self.model.y_window is None:
-                self.model.y_window = [-1., 1.]
+            if hasattr(model, 'x_domain') and model.x_domain is None:
+                model.x_domain = [x.min(), x.max()]
+            if hasattr(model, 'y_domain') and model.y_domain is None:
+                model.y_domain = [y.min(), y.max()]
+            if hasattr(model, 'x_window') and model.x_window is None:
+                model.x_window = [-1., 1.]
+            if hasattr(model, 'y_window') and model.y_window is None:
+                model.y_window = [-1., 1.]
 
-            xnew = poly_map_domain(x, self.model.x_domain, self.model.x_window)
-            ynew = poly_map_domain(y, self.model.y_domain, self.model.y_window)
+            xnew = poly_map_domain(x, model.x_domain, model.x_window)
+            ynew = poly_map_domain(y, model.y_domain, model.y_window)
             return xnew, ynew
 
-    def __call__(self, x, y, z=None, weights=None, rcond=None):
+    def __call__(self, model, x, y, z=None, weights=None, rcond=None):
         """
         Fit data to this model.
 
         Parameters
         ----------
+        model : `ParametricModel`
+            model to fit to x, y, z
         x : array
             input coordinates
         y : array
@@ -380,13 +238,24 @@ class LinearLSQFitter(Fitter):
             Cut-off ratio for small singular values of `a`.
             Singular values are set to zero if they are smaller than `rcond`
             times the largest singular value of `a`.
+
+        Returns
+        ------
+        model_copy : `ParametricModel`
+            a copy of the input model with parameters set by the fitter
         """
+        if not model.fittable:
+            raise ValueError("Model must be a subclass of ParametricModel")
+        if not model.linear:
+            raise ModelLinearityError('Model is not linear in parameters, '
+                                      'linear fit methods should not be used.')
 
-        super(LinearLSQFitter, self)._update_constraints()
-
+        self._validate_constraints(model)
         multiple = False
-
-        if self.model.n_inputs == 2 and z is None:
+        model_copy = model.copy()
+        _, fitparam_indices = model_copy._model_to_fit_params()
+        self._weights = weights
+        if model_copy.n_inputs == 2 and z is None:
             raise ValueError("Expected x, y and z for a 2 dimensional model.")
 
         farg = _convert_input(x, y, z)
@@ -394,16 +263,18 @@ class LinearLSQFitter(Fitter):
         if len(farg) == 2:
             x, y = farg
             if y.ndim == 2:
-                assert y.shape[1] == self.model.param_dim, (
+                assert y.shape[1] == model_copy.param_dim, (
                     "Number of data sets (Y array is expected to equal "
                     "the number of parameter sets")
             # map domain into window
-            if hasattr(self.model, 'domain'):
-                x = self._map_domain_window(x)
-            if any(self.model.fixed.values()):
-                lhs = self._deriv_with_constraints(x=x)
+            if hasattr(model_copy, 'domain'):
+                x = self._map_domain_window(model_copy, x)
+            if any(model_copy.fixed.values()):
+                lhs = self._deriv_with_constraints(model_copy,
+                                                   fitparam_indices,
+                                                   x=x)
             else:
-                lhs = self.model.deriv(x=x)
+                lhs = model_copy.deriv(x=x)
             if len(y.shape) == 2:
                 rhs = y
                 multiple = y.shape[1]
@@ -415,13 +286,14 @@ class LinearLSQFitter(Fitter):
                 raise ValueError("x and z should have equal last dimensions")
 
             # map domain into window
-            if hasattr(self.model, 'x_domain'):
-                x, y = self._map_domain_window(x, y)
+            if hasattr(model_copy, 'x_domain'):
+                x, y = self._map_domain_window(model_copy, x, y)
 
-            if any(self.model.fixed.values()):
-                lhs = self._deriv_with_constraints(x=x, y=y)
+            if any(model_copy.fixed.values()):
+                lhs = self._deriv_with_constraints(model_copy,
+                                                   fitparam_indices, x=x, y=y)
             else:
-                lhs = self.model.deriv(x=x, y=y)
+                lhs = model_copy.deriv(x=x, y=y)
             if len(z.shape) == 3:
                 rhs = np.array([i.flatten() for i in z]).T
                 multiple = z.shape[0]
@@ -439,7 +311,7 @@ class LinearLSQFitter(Fitter):
                 lhs *= weights[:, np.newaxis]
                 rhs *= weights
 
-        if not multiple and self.model.param_dim > 1:
+        if not multiple and model_copy.param_dim > 1:
             raise ValueError("Attempting to fit a 1D data set to a model "
                              "with multiple parameter sets")
         if rcond is None:
@@ -455,18 +327,19 @@ class LinearLSQFitter(Fitter):
         # If y.n_inputs > model.n_inputs we are doing a simultanious 1D fitting
         # of several 1D arrays. Otherwise the model is 2D.
         # if y.n_inputs > self.model.n_inputs:
-        if multiple and self.model.param_dim != multiple:
-            self.model.param_dim = multiple
+        if multiple and model_copy.param_dim != multiple:
+            model_copy.param_dim = multiple
         # TODO: Changing the model's param_dim needs to be handled more
         # carefully; for now it's not actually allowed
         lacoef = (lacoef.T / scl).T
         self.fit_info['params'] = lacoef
         # TODO: Only Polynomial models currently have an _order attribute;
-        # maybe change this to read isinstance(self.model, PolynomialBase)
-        if hasattr(self.model, '_order') and rank != self.model._order:
+        # maybe change this to read isinstance(model, PolynomialBase)
+        if hasattr(model_copy, '_order') and rank != model_copy._order:
             warnings.warn("The fit may be poorly conditioned\n",
                           AstropyUserWarning)
-        self.fitparams = lacoef.flatten()
+        self._fitter_to_model_params(model_copy, lacoef.flatten())
+        return model_copy
 
 
 class NonLinearLSQFitter(Fitter):
@@ -487,7 +360,7 @@ class NonLinearLSQFitter(Fitter):
 
     supported_constraints = ['fixed', 'tied', 'bounds']
 
-    def __init__(self, model):
+    def __init__(self):
 
         self.fit_info = {'nfev': None,
                          'fvec': None,
@@ -498,55 +371,50 @@ class NonLinearLSQFitter(Fitter):
                          'ierr': None,
                          'status': None}
 
-        super(NonLinearLSQFitter, self).__init__(model)
-        if self.model.linear:
-            warnings.warn('Model is linear in parameters, '
-                          'consider using linear fitting methods.', AstropyUserWarning)
+        super(NonLinearLSQFitter, self).__init__()
 
     def errorfunc(self, fps, *args):
-        self.fitparams = fps
+        model = args[0]
+        self._fitter_to_model_params(model, fps)
         meas = args[-1]
-        if self.weights is None:
-            return np.ravel(self.model(*args[: -1]) - meas)
+        if self._weights is None:
+            return np.ravel(model(*args[1 : -1]) - meas)
         else:
-            return np.ravel(self.weights * (self.model(*args[: -1]) - meas))
+            return np.ravel(self._weights * (model(*args[1 : -1]) - meas))
 
-    def _set_bounds(self, fitparams):
-        for c in self.model.bounds.values():
-            if c != (-1E12, 1E12):
-                for name, par, b in zip(self.model.param_names, fitparams,
-                                        self.bounds):
-                    par = max(par, b[0])
-                    par = min(par, b[1])
-                    setattr(self.model, name, par)
+    # @property
+    # def covar(self):
+    #     """
+    #     Calculate the covariance matrix (doesn't take into account
+    #     constraints).
+    #     """
 
-    @property
-    def covar(self):
-        """
-        Calculate the covariance matrix (doesn't take into account
-        constraints).
-        """
+        # NOTE: Not currently used; won't work with Fitter implementation where
+        # models are not tied to fitters
 
-        n = len(self.model.parameters)
-        # construct the permutation matrix
-        P = np.take(np.eye(n), self.fit_info['ipvt'] - 1, 0)
-        # construct the R matrix as in JP = QR
-        r = np.triu(self.fit_info['fjac'].T[:n, :])
-        r_pt = np.dot(r, P.T)
-        p_rt = np.dot(P, r.T)
-        try:
-            return np.dual.inv(np.dot(p_rt, r_pt))
-        except:
-            log.info("Could not construct a covariance matrix")
-            return None
+        # n = len(self.model.parameters)
+        #  construct the permutation matrix
+        # P = np.take(np.eye(n), self.fit_info['ipvt'] - 1, 0)
+        #  construct the R matrix as in JP = QR
+        # r = np.triu(self.fit_info['fjac'].T[:n, :])
+        # r_pt = np.dot(r, P.T)
+        # p_rt = np.dot(P, r.T)
+        # try:
+        #     return np.dual.inv(np.dot(p_rt, r_pt))
+        # except:
+        #     log.info("Could not construct a covariance matrix")
+        #     return None
 
-    def __call__(self, x, y, z=None, weights=None, maxiter=MAXITER,
-                 epsilon=EPS, estimate_jacobian=False):
+    def __call__(self, model, x, y, z=None, weights=None,
+                 maxiter=DEFAULT_MAXITER,
+                 epsilon=DEFAULT_EPS, estimate_jacobian=False):
         """
         Fit data to this model.
 
         Parameters
         ----------
+        model : `ParametricModel`
+            model to fit to x, y, z
         x : array
            input coordinates
         y : array
@@ -567,27 +435,33 @@ class NonLinearLSQFitter(Fitter):
             If False (default) and if the model has a deriv method,
             it will be used. Otherwise the Jacobian will be estimated.
             If True, the Jacobian will be estimated in any case.
+
+        Returns
+        ------
+        model_copy : `ParametricModel`
+            a copy of the input model with parameters set by the fitter
         """
-
+        if not model.fittable:
+            raise ValueError("Model must be a subclass of ParametricModel")
+        self._validate_constraints(model)
         from scipy import optimize
-
-        self._update_constraints()
-        farg = _convert_input(x, y, z)
-        self.weights = weights
-        if self.model.param_dim != 1:
-            # for now only single data sets ca be fitted
+        model_copy = model.copy()
+        farg = (model_copy, ) + _convert_input(x, y, z)
+        self._weights = weights
+        if model_copy.param_dim != 1:
+            # only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit one "
                              "data set at a time")
-        if self._model.deriv is None or estimate_jacobian:
-            self.dfunc = None
+        if model_copy.deriv is None or estimate_jacobian:
+            dfunc = None
         else:
-            self.dfunc = self._wrap_deriv
-
-        self.fitparams, status, dinfo, mess, ierr = optimize.leastsq(
-            self.errorfunc, self.fitparams, args=farg, Dfun=self.dfunc,
-            col_deriv=self.model.col_deriv, maxfev=maxiter, epsfcn=epsilon,
+            dfunc = self._wrap_deriv
+        init_values, _ = model_copy._model_to_fit_params()
+        fitparams, status, dinfo, mess, ierr = optimize.leastsq(
+            self.errorfunc, init_values, args=farg, Dfun=dfunc,
+            col_deriv=model_copy.col_deriv, maxfev=maxiter, epsfcn=epsilon,
             full_output=True)
-
+        self._fitter_to_model_params(model, fitparams)
         self.fit_info.update(dinfo)
         self.fit_info['status'] = status
         self.fit_info['message'] = mess
@@ -596,6 +470,50 @@ class NonLinearLSQFitter(Fitter):
             warnings.warn("The fit may be unsuccessful; check "
                           "fit_info['message'] for more information.",
                           AstropyUserWarning)
+        return model_copy
+
+    @staticmethod
+    def _wrap_deriv(params, model, x, y, z=None):
+        """
+        Wraps the method calculating the Jacobian of the function to account
+        for model constraints.
+
+        Currently the only fitter that uses a derivative is the
+        `NonLinearLSQFitter`. This wrapper may need to be revised when other
+        fitters using function derivative are added or when the statistic is
+        separated from the fitting routines.
+
+        `~scipy.optimize.leastsq` expects the function derivative to have the
+        above signature (parlist, (argtuple)). In order to accomodate model
+        constraints, instead of using p directly, we set the parameter list in
+        this function.
+        """
+        if any(model.fixed.values()) or any(model.tied.values()):
+
+            if z is None:
+                full_deriv = np.array(model.deriv(x, *model.parameters))
+            else:
+                full_deriv = np.array(model.deriv(x, y, *model.parameters))
+
+            pars = [getattr(model, name) for name in model.param_names]
+            fixed = [par.fixed for par in pars]
+            tied = [par.tied for par in pars]
+            tied = list(np.where([par.tied != False for par in pars], True, tied))
+            fix_and_tie = np.logical_or(fixed, tied)
+            ind = np.logical_not(fix_and_tie)
+
+            if not model.col_deriv:
+                full_deriv = np.asarray(full_deriv).T
+                residues = np.asarray(full_deriv[np.nonzero(ind)])
+            else:
+                residues = full_deriv[np.nonzero(ind)]
+
+            return [np.ravel(_) for _ in residues]
+        else:
+            if z is None:
+                return model.deriv(x, *params)
+            else:
+                return [np.ravel(_) for _ in model.deriv(x, y, *params)]
 
 
 class SLSQPFitter(Fitter):
@@ -605,11 +523,6 @@ class SLSQPFitter(Fitter):
     The algorithm is described in [1]_. It supports tied and fixed
     parameters, as well as bounded constraints. Uses
     `scipy.optimize.fmin_slsqp`.
-
-    Parameters
-    ----------
-    model : a fittable `~astropy.modeling.core.ParametricModel`
-        model to fit to data
 
     Raises
     ------
@@ -623,13 +536,8 @@ class SLSQPFitter(Fitter):
 
     supported_constraints = ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']
 
-    def __init__(self, model):
-        super(SLSQPFitter, self).__init__(model)
-        if self.model.linear:
-            warnings.warn('Model is linear in parameters; '
-                          'consider using linear fitting methods.',
-                          AstropyUserWarning)
-
+    def __init__(self):
+        super(SLSQPFitter, self).__init__()
         self.fit_info = {
             'final_func_val': None,
             'numiter': None,
@@ -648,31 +556,25 @@ class SLSQPFitter(Fitter):
         args : list
             input coordinates
         """
-
+        model = args[0]
         meas = args[-1]
-        self.fitparams = fps
-        res = self.model(*args[:-1]) - meas
+        self._fitter_to_model_params(model, fps)
+        res = model(*args[1:-1]) - meas
 
-        if self.weights is None:
+        if self._weights is None:
             return np.sum(res ** 2)
         else:
-            return np.sum(self.weights * res ** 2)
+            return np.sum(self._weights * res ** 2)
 
-    def _set_bounds(self, fitparams):
-        """
-        Set this as a dummy method because the SLSQP fitter
-        handles bounds internally.
-        """
-        self._fitparams[:] = fitparams
-        self.model.parameters = fitparams
-
-    def __call__(self, x, y, z=None, weights=None, verblevel=0,
-                 maxiter=MAXITER, epsilon=EPS):
+    def __call__(self, model, x, y, z=None, weights=None, verblevel=0,
+                 maxiter=DEFAULT_MAXITER, epsilon=DEFAULT_EPS):
         """
         Fit data to this model.
 
         Parameters
         ----------
+        model : `ParametricModel`
+            model to fit to x, y, z
         x : array
             input coordinates
         y : array
@@ -689,42 +591,49 @@ class SLSQPFitter(Fitter):
             maximum number of iterations
         epsilon : float
             the step size for finite-difference derivative estimates
-        """
 
+        Returns
+        ------
+        model_copy : `ParametricModel`
+            a copy of the input model with parameters set by the fitter
+        """
+        if not model.fittable:
+            raise ValueError("Model must be a subclass of ParametricModel")
+        if model.linear:
+            warnings.warn('Model is linear in parameters; '
+                          'consider using linear fitting methods.',
+                          AstropyUserWarning)
+        self._validate_constraints(model)
+        model_copy = model.copy()
         from scipy import optimize
 
-        # update constraints to pick up changes to parameters
-        self._update_constraints()
         farg = _convert_input(x, y, z)
-        self.weights = weights
-        if self.model.param_dim != 1:
+        farg = (model_copy, ) + farg
+        self._weights = weights
+        if model_copy.param_dim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit "
                              "one data set at a time")
 
-        p0 = self.fitparams
-
-        if self.bounds.size:
-            bounds = self.bounds[self._fitparam_indices]
-        else:
-            bounds = []
-
-        if self.eqcons.size:
-            eqcons = self.eqcons[self._fitparam_indices]
-        else:
-            eqcons = []
-
-        if self.ineqcons.size:
-            ineqcons = self.ineqcons[self._fitparam_indices]
-        else:
-            ineqcons = []
-
-        self.fitpars, final_func_val, numiter, exit_mode, mess = \
+        p0, param_indices = model_copy._model_to_fit_params()
+        pars = [getattr(model_copy, name) for name in model_copy.param_names]
+        bounds = [par.bounds for par in pars if par.fixed != True and par.tied == False]
+       
+        bounds = np.asarray(bounds)
+        for i in bounds:
+            if i[0] is None:
+                i[0] = -10 ** 12
+            if i[1] is None:
+                i[1] = 10 ** 12
+        eqcons = np.array(model_copy.eqcons)
+        ineqcons = np.array(model_copy.ineqcons) 
+        fitparams, final_func_val, numiter, exit_mode, mess = \
             optimize.fmin_slsqp(
-                self.errorfunc, p0, args=farg, disp=verblevel, full_output=1,
-                bounds=bounds, eqcons=eqcons, ieqcons=ineqcons, iter=maxiter,
-                acc=1.E-6, epsilon=EPS)
+            self.errorfunc, p0, args=farg, disp=verblevel, full_output=1,
+            bounds=bounds, eqcons=eqcons, ieqcons=ineqcons, iter=maxiter,
+            acc=1.E-6, epsilon=DEFAULT_EPS)
 
+        self._fitter_to_model_params(model_copy, fitparams)
         self.fit_info['final_func_val'] = final_func_val
         self.fit_info['numiter'] = numiter
         self.fit_info['exit_mode'] = exit_mode
@@ -734,6 +643,7 @@ class SLSQPFitter(Fitter):
             warnings.warn("The fit may be unsuccessful; check "
                           "fit_info['message'] for more information.",
                           AstropyUserWarning)
+        return model_copy
 
 
 class JointFitter(object):
