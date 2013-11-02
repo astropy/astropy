@@ -127,14 +127,14 @@ def postreleaser_middle(data):
 
 def _update_setup_py_version(version):
     import re
-    from io import StringIO
+    import io
 
     pattern = re.compile(r'^VERSION\s*=\s*[\'"]{1,3}')
-    output = StringIO()
+    output = io.StringIO()
     with open('setup.py') as setup_py:
         for line in setup_py:
             if not pattern.match(line):
-                output.write(line)
+                output.write(line.decode('utf-8'))
             else:
                 output.write('VERSION = {0!r}\n'.format(version))
 
