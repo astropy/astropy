@@ -106,9 +106,9 @@ fit the data:
     y += np.random.normal(0., 0.2, x.shape)
 
     # Fit the data using a box model
-    b_init = models.Box1D(amplitude=1., x_0=0., width=1.)
+    t_init = models.Trapezoid1DModel(amplitude=1., x_0=0., width=1., slope=0.5)
     f1 = fitting.NonLinearLSQFitter()
-    b = f1(b_init, x, y)
+    t = f1(t_init, x, y)
 
     # Fit the data using a Gaussian
     g_init = models.Gaussian1D(amplitude=1., mean=0, stddev=1.)
@@ -118,7 +118,7 @@ fit the data:
     # Plot the data with the best-fit model
     plt.figure(figsize=(8,5))
     plt.plot(x, y, 'ko')
-    plt.plot(x, b(x), 'b-', lw=2, label='Box')
+    plt.plot(x, t(x), 'b-', lw=2, label='Trapezoid')
     plt.plot(x, g(x), 'r-', lw=2, label='Gaussian')
     plt.xlabel('Position')
     plt.ylabel('Flux')
