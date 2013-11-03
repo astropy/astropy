@@ -1217,14 +1217,12 @@ class TimePlotDate(TimeFromEpoch):
       >>> plt.draw()
     """
     # This corresponds to the zero reference time for matplotlib plot_date().
-    # Note that TAI and UTC are equivalent at the reference time, but
-    # specifying epoch_scale = 'utc' here generates WARNINGS when the
-    # class is first used.  Just use 'tai' instead.
+    # Note that TAI and UTC are equivalent at the reference time.
     name = 'plot_date'
     unit = 1.0
     epoch_val = 1721424.5  # Time('0001-01-01 00:00:00', scale='tai').jd - 1
     epoch_val2 = None
-    epoch_scale = 'tai'
+    epoch_scale = 'utc'
     epoch_format = 'jd'
 
 
