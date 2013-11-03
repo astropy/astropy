@@ -591,7 +591,7 @@ class StaticMatrixTransform(CoordinateTransform):
         The coordinate system *class* to start from.
     tosys : class
         The coordinate system *class* to transform into.
-    matrix: array-like
+    matrix : array-like
         A 3 x 3 matrix for transforming 3-vectors. In most cases will
         be unitary (although this is not strictly required).
     priority : number
@@ -641,7 +641,7 @@ class CompositeStaticMatrixTransform(StaticMatrixTransform):
         The coordinate system *class* to start from.
     tosys : class
         The coordinate system *class* to transform into.
-    matrices: sequence of array-like
+    matrices : sequence of array-like
         A sequence of 3 x 3 cartesian transformation matricies.
     priority : number
         The priority if this transform when finding the shortest
@@ -674,7 +674,7 @@ class DynamicMatrixTransform(CoordinateTransform):
         The coordinate system *class* to start from.
     tosys : class
         The coordinate system *class* to transform into.
-    matrix_func: callable
+    matrix_func : callable
         A callable that accepts a coordinate object and yields the 3 x 3
         matrix that converts it to the new coordinate system.
     priority : number
@@ -724,7 +724,7 @@ class CompositeTransform(CoordinateTransform):
         The coordinate system *class* to start from.
     tosys : class
         The coordinate system *class* to transform into.
-    transforms: sequence of `CoordinateTransform`s
+    transforms : sequence of `CoordinateTransform`s
         A sequence of transformations to apply in sequence.
     priority : number
         The priority if this transform when finding the shortest

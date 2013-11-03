@@ -2175,7 +2175,7 @@ def _condition_arg(value):
 
     Parameters
     ----------
-    value: int or float value, or sequence of such values
+    value : int or float value, or sequence of such values
 
     Returns
     -------

@@ -62,7 +62,7 @@ def read_table_votable(input, table_id=None, use_names_over_ids=False):
         assign IDs to their tables).  If an `int`, it is the index of
         the table in the file, starting at 0.
 
-    use_names_over_ids : boolean, optional
+    use_names_over_ids : bool, optional
         When `True` use the `name` attributes of columns as the names
         of columns in the `astropy.table.Table` instance.  Since names
         are not guaranteed to be unique, this may cause some columns

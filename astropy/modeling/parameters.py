@@ -75,7 +75,7 @@ class Parameter(object):
 
     Parameters
     ----------
-    name : string
+    name : str
         parameter name
     default : float or array
         default value to use for this parameter
@@ -87,7 +87,7 @@ class Parameter(object):
     setter : callable
         a function that wraps any values assigned to this parameter; should
         be the inverse of getter
-    fixed : boolean
+    fixed : bool
         if True the parameter is not varied during fitting
     tied : callable or False
         if callable is supplied it provides a way to link the value of this

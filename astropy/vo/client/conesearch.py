@@ -359,7 +359,7 @@ def predict_search(url, *args, **kwargs):
 
     Parameters
     ----------
-    url : string
+    url : str
         Cone Search access URL to use.
 
     args, kwargs : see :func:`conesearch`

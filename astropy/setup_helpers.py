@@ -1198,7 +1198,7 @@ def get_cython_extensions(srcdir, prevextensions=tuple(), extincludedirs=None):
     ----------
     srcdir : str
         Path to the root of the source directory to search.
-    prevextensions: list of `~distutils.core.Extension` objects
+    prevextensions : list of `~distutils.core.Extension` objects
         The extensions that are already defined.  Any .pyx files already here
         will be ignored.
     extincludedirs : list of str or None

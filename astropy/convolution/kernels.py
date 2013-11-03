@@ -37,7 +37,7 @@ class Gaussian1DKernel(Kernel1D):
         Width of the filter kernel.
     x_size : odd int, optional
         Size of the kernel array. Default = 8 * width.
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -101,7 +101,7 @@ class Gaussian2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = 8 * width.
     y_size : odd int, optional
         Size in y direction of the kernel array. Default = 8 * width.
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -168,7 +168,7 @@ class Box1DKernel(Kernel1D):
     ----------
     width : number
         Width of the filter kernel.
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center'
                 Discretize model by taking the value
@@ -235,7 +235,7 @@ class Box2DKernel(Kernel2D):
     ----------
     width : number
         Width of the filter kernel.
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' 
                 Discretize model by taking the value
@@ -300,7 +300,7 @@ class Tophat2DKernel(Kernel2D):
     ----------
     radius : int
         Radius of the filter kernel.
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -360,7 +360,7 @@ class Ring2DKernel(Kernel2D):
         Inner radius of the ring kernel.
     width : number
         Width of the ring kernel.
-    mode: string, optional
+    mode: str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -416,7 +416,7 @@ class Trapezoid1DKernel(Kernel1D):
         Width of the filter kernel.
     slope : number
         Slope of the filter kernel's tails
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -473,7 +473,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
         Width of the filter kernel.
     slope : number
         Slope of the filter kernel's tails
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -538,7 +538,7 @@ class MexicanHat1DKernel(Kernel1D):
         Width of the filter kernel.
     x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * width.
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -605,7 +605,7 @@ class MexicanHat2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = 8 * width.
     y_size : odd int, optional
         Size in y direction of the kernel array. Default = 8 * width.
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -670,7 +670,7 @@ class AiryDisk2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = 8 * width.
     y_size : odd int, optional
         Size in y direction of the kernel array. Default = 8 * width.
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -730,7 +730,7 @@ class Model1DKernel(Kernel1D):
         Kernel response function model
     x_size : odd int, optional
         Size in x direction of the kernel array. Default = 8 * width.
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -796,7 +796,7 @@ class Model2DKernel(Kernel2D):
         Size in x direction of the kernel array. Default = 8 * width.
     y_size : odd int, optional
         Size in y direction of the kernel array. Default = 8 * width.
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value

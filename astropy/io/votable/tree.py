@@ -2735,7 +2735,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
         Parameters
         ----------
-        use_names_over_ids : boolean, optional
+        use_names_over_ids : bool, optional
            When `True` use the `name` attributes of columns as the
            names of columns in the `astropy.table.Table` instance.
            Since names are not guaranteed to be unique, this may cause

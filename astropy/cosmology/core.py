@@ -66,6 +66,39 @@ class FLRW(Cosmology):
     examples of this class, but must work with one of its
     subclasses such as `LambdaCDM` or `wCDM`.
 
+    Parameters
+    ----------
+
+    H0 : float or scalar astropy.units.Quantity
+        Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
+
+    Om0 : float
+        Omega matter: density of non-relativistic matter in units of the
+        critical density at z=0.
+
+    Ode0 : float
+        Omega dark energy: density of dark energy in units of the critical
+        density at z=0.
+
+    Tcmb0 : float or scalar astropy.units.Quantity
+        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+        Setting this to zero will turn off both photons and neutrinos (even
+        massive ones)
+
+    Neff : float
+        Effective number of Neutrino species. Default 3.04.
+
+    m_nu : astropy.units.Quantity
+        Mass of each neutrino species. If this is a scalar Quantity, then all
+        neutrino species are assumed to have that mass. Otherwise, the mass of
+        each species. The actual number of neutrino species (and hence the
+        number of elements of m_nu if it is not scalar) must be the floor of
+        Neff. Usually this means you must provide three neutrino masses unless
+        you are considering something like a sterile neutrino.
+
+    name : str
+        Optional name for this cosmological object.
+
     Notes
     -----
     Class instances are static -- you can't change the values
@@ -76,41 +109,6 @@ class FLRW(Cosmology):
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
                  m_nu=u.Quantity(0.0, u.eV), name='FLRW'):
-        """ Initializer.
-
-        Parameters
-        ----------
-        H0 : float or scalar astropy.units.Quantity
-          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
-
-        Om0 : float
-          Omega matter: density of non-relativistic matter in units
-          of the critical density at z=0.
-
-        Ode0 : float
-          Omega dark energy: density of dark energy in units
-          of the critical density at z=0.
-
-        Tcmb0 : float or scalar astropy.units.Quantity
-          Temperature of the CMB z=0.  If a float, must be in [K].
-          Default: 2.725.  Setting this to zero will turn off both
-          photons and neutrinos (even massive ones)
-
-        Neff : float
-          Effective number of Neutrino species. Default 3.04.
-
-        m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity,
-          then all neutrino species are assumed to have that mass.
-          Otherwise, the mass of each species.  The actual number of
-          neutrino species (and hence the number of elements of m_nu if
-          it is not scalar) must be the floor of Neff.  Usually this means
-          you must provide three neutrino masses unless you are considering
-          something like a sterile neutrino.
-
-        name : string
-          Optional name for this cosmological object.
-        """
 
         # all densities are in units of the critical density
         self._Om0 = float(Om0)
@@ -246,7 +244,7 @@ class FLRW(Cosmology):
     def __repr__(self):
         retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, "\
                  "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0, 
+        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0,
                    self._Ode0, self._Tcmb0, self._Neff, self.m_nu)
         return retstr
 
@@ -1193,6 +1191,37 @@ class LambdaCDM(FLRW):
 
     This has no additional attributes beyond those of FLRW.
 
+    Parameters
+    ----------
+
+    H0 : float or astropy.units.Quantity
+        Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
+
+    Om0 : float
+        Omega matter: density of non-relativistic matter in units of the
+        critical density at z=0.
+
+    Ode0 : float
+        Omega dark energy: density of the cosmological constant in units of the
+        critical density at z=0.
+
+    Tcmb0 : float or astropy.units.Quantity
+        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+
+    Neff : float
+        Effective number of Neutrino species. Default 3.04.
+
+    m_nu : astropy.units.Quantity
+        Mass of each neutrino species. If this is a scalar Quantity, then all
+        neutrino species are assumed to have that mass. Otherwise, the mass of
+        each species. The actual number of neutrino species (and hence the
+        number of elements of m_nu if it is not scalar) must be the floor of
+        Neff. Usually this means you must provide three neutrino masses unless
+        you are considering something like a sterile neutrino.
+
+    name : str
+        Optional name for this cosmological object.
+
     Examples
     --------
     >>> from astropy.cosmology import LambdaCDM
@@ -1206,40 +1235,6 @@ class LambdaCDM(FLRW):
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
                  m_nu=u.Quantity(0.0, u.eV), name='LambdaCDM'):
-        """ Initializer.
-
-        Parameters
-        ----------
-        H0 : float or astropy.units.Quantity
-          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
-
-        Om0 : float
-          Omega matter: density of non-relativistic matter in units
-          of the critical density at z=0.
-
-        Ode0 : float
-          Omega dark energy: density of the cosmological constant in units
-          of the critical density at z=0.
-
-        Tcmb0 : float or astropy.units.Quantity
-          Temperature of the CMB z=0.  If a float, must be in [K].
-          Default: 2.725.
-
-        Neff : float
-          Effective number of Neutrino species. Default 3.04.
-
-        m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity,
-          then all neutrino species are assumed to have that mass.
-          Otherwise, the mass of each species.  The actual number of
-          neutrino species (and hence the number of elements of m_nu if
-          it is not scalar) must be the floor of Neff.  Usually this means
-          you must provide three neutrino masses unless you are considering
-          something like a sterile neutrino.
-
-        name : string
-          Optional name for this cosmological object.
-        """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
 
     def w(self, z):
@@ -1355,6 +1350,32 @@ class FlatLambdaCDM(LambdaCDM):
 
     This has no additional attributes beyond those of FLRW.
 
+    Parameters
+    ----------
+    H0 : float or astropy.units.Quantity
+        Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
+
+    Om0 : float
+        Omega matter: density of non-relativistic matter in units of the
+        critical density at z=0.
+
+    Tcmb0 : float or astropy.units.Quantity
+        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+
+    Neff : float
+        Effective number of Neutrino species. Default 3.04.
+
+    m_nu : astropy.units.Quantity
+        Mass of each neutrino species. If this is a scalar Quantity, then all
+        neutrino species are assumed to have that mass. Otherwise, the mass of
+        each species. The actual number of neutrino species (and hence the
+        number of elements of m_nu if it is not scalar) must be the floor of
+        Neff. Usually this means you must provide three neutrino masses unless
+        you are considering something like a sterile neutrino.
+
+    name : str
+        Optional name for this cosmological object.
+
     Examples
     --------
     >>> from astropy.cosmology import FlatLambdaCDM
@@ -1368,36 +1389,6 @@ class FlatLambdaCDM(LambdaCDM):
 
     def __init__(self, H0, Om0, Tcmb0=2.725, Neff=3.04,
                  m_nu=u.Quantity(0.0, u.eV), name='FlatLambdaCDM'):
-        """ Initializer.
-
-        Parameters
-        ----------
-        H0 : float or astropy.units.Quantity
-          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
-
-        Om0 : float
-          Omega matter: density of non-relativistic matter in units
-          of the critical density at z=0.
-
-        Tcmb0 : float or astropy.units.Quantity
-          Temperature of the CMB z=0.  If a float, must be in [K].
-          Default: 2.725.
-
-        Neff : float
-          Effective number of Neutrino species. Default 3.04.
-
-        m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity,
-          then all neutrino species are assumed to have that mass.
-          Otherwise, the mass of each species.  The actual number of
-          neutrino species (and hence the number of elements of m_nu if
-          it is not scalar) must be the floor of Neff.  Usually this means
-          you must provide three neutrino masses unless you are considering
-          something like a sterile neutrino.
-
-        name : string
-          Optional name for this cosmological object.
-        """
         FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
@@ -1471,6 +1462,42 @@ class wCDM(FLRW):
 
     This has one additional attribute beyond those of FLRW.
 
+    Parameters
+    ----------
+
+    H0 : float or astropy.units.Quantity
+        Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
+
+    Om0 : float
+        Omega matter: density of non-relativistic matter in units of the
+        critical density at z=0.
+
+    Ode0 : float
+        Omega dark energy: density of dark energy in units of the critical
+        density at z=0.
+
+    w0 : float
+        Dark energy equation of state at all redshifts. This is
+        pressure/density for dark energy in units where c=1. A cosmological
+        constant has w0=-1.0.
+
+    Tcmb0 : float or astropy.units.Quantity
+        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+
+    Neff : float
+        Effective number of Neutrino species. Default 3.04.
+
+    m_nu : astropy.units.Quantity
+        Mass of each neutrino species. If this is a scalar Quantity, then all
+        neutrino species are assumed to have that mass. Otherwise, the mass of
+        each species. The actual number of neutrino species (and hence the
+        number of elements of m_nu if it is not scalar) must be the floor of
+        Neff. Usually this means you must provide three neutrino masses unless
+        you are considering something like a sterile neutrino.
+
+    name : str
+        Optional name for this cosmological object.
+
     Examples
     --------
     >>> from astropy.cosmology import wCDM
@@ -1484,53 +1511,14 @@ class wCDM(FLRW):
 
     def __init__(self, H0, Om0, Ode0, w0=-1., Tcmb0=2.725,
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='wCDM'):
-        """ Initializer.
-
-        Parameters
-        ----------
-        H0 : float or astropy.units.Quantity
-          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
-
-        Om0 : float
-          Omega matter: density of non-relativistic matter in units
-          of the critical density at z=0.
-
-        Ode0 : float
-          Omega dark energy: density of dark energy in units
-          of the critical density at z=0.
-
-        w0 : float
-          Dark energy equation of state at all redshifts.
-          This is pressure/density for dark energy in units where c=1.
-          A cosmological constant has w0=-1.0.
-
-        Tcmb0 : float or astropy.units.Quantity
-          Temperature of the CMB z=0.  If a float, must be in [K].
-          Default: 2.725.
-
-        Neff : float
-          Effective number of Neutrino species. Default 3.04.
-
-        m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity,
-          then all neutrino species are assumed to have that mass.
-          Otherwise, the mass of each species.  The actual number of
-          neutrino species (and hence the number of elements of m_nu if
-          it is not scalar) must be the floor of Neff.  Usually this means
-          you must provide three neutrino masses unless you are considering
-          something like a sterile neutrino.
-
-        name : string
-          Optional name for this cosmological object.
-        """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
         self._w0 = float(w0)
 
     def __repr__(self):
         retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
                  "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0, 
-                   self._Om0, self._Ode0, self._w0, self._Tcmb0, 
+        retstr %= (self.__class__.__name__, self.name, self._H0,
+                   self._Om0, self._Ode0, self._w0, self._Tcmb0,
                    self._Neff, self.m_nu)
         return retstr
 
@@ -1654,6 +1642,38 @@ class FlatwCDM(wCDM):
 
     This has one additional attribute beyond those of FLRW.
 
+    Parameters
+    ----------
+
+    H0 : float or astropy.units.Quantity
+        Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
+
+    Om0 : float
+        Omega matter: density of non-relativistic matter in units of the
+        critical density at z=0.
+
+    w0 : float
+        Dark energy equation of state at all redshifts. This is
+        pressure/density for dark energy in units where c=1. A cosmological
+        constant has w0=-1.0.
+
+    Tcmb0 : float or astropy.units.Quantity
+        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+
+    Neff : float
+        Effective number of Neutrino species. Default 3.04.
+
+    m_nu : astropy.units.Quantity
+        Mass of each neutrino species. If this is a scalar Quantity, then all
+        neutrino species are assumed to have that mass. Otherwise, the mass of
+        each species. The actual number of neutrino species (and hence the
+        number of elements of m_nu if it is not scalar) must be the floor of
+        Neff. Usually this means you must provide three neutrino masses unless
+        you are considering something like a sterile neutrino.
+
+    name : str
+        Optional name for this cosmological object.
+
     Examples
     --------
     >>> from astropy.cosmology import FlatwCDM
@@ -1667,41 +1687,6 @@ class FlatwCDM(wCDM):
 
     def __init__(self, H0, Om0, w0=-1., Tcmb0=2.725,
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='FlatwCDM'):
-        """ Initializer.
-
-        Parameters
-        ----------
-        H0 : float or astropy.units.Quantity
-          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
-
-        Om0 : float
-          Omega matter: density of non-relativistic matter in units
-          of the critical density at z=0.
-
-        w0 : float
-          Dark energy equation of state at all redshifts.
-          This is pressure/density for dark energy in units where c=1.
-          A cosmological constant has w0=-1.0.
-
-        Tcmb0 : float or astropy.units.Quantity
-          Temperature of the CMB z=0.  If a float, must be in [K].
-          Default: 2.725.
-
-        Neff : float
-          Effective number of Neutrino species. Default 3.04.
-
-        m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity,
-          then all neutrino species are assumed to have that mass.
-          Otherwise, the mass of each species.  The actual number of
-          neutrino species (and hence the number of elements of m_nu if
-          it is not scalar) must be the floor of Neff.  Usually this means
-          you must provide three neutrino masses unless you are considering
-          something like a sterile neutrino.
-
-        name: string
-          Optional name for this cosmological object.
-        """
         FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
         self._w0 = float(w0)
         # Do some twiddling after the fact to get flatness
@@ -1711,7 +1696,7 @@ class FlatwCDM(wCDM):
     def __repr__(self):
         retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
                  "Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0, 
+        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0,
                    self._Ode0, self._w0, self._Tcmb0, self._Neff, self.m_nu)
         return retstr
 
@@ -1784,6 +1769,44 @@ class w0waCDM(FLRW):
     D10, 213 (2001) and Linder PRL 90, 91301 (2003):
     :math:`w(z) = w_0 + w_a (1-a) = w_0 + w_a z / (1+z)`.
 
+    Parameters
+    ----------
+    H0 : float or astropy.units.Quantity
+        Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
+
+    Om0 : float
+        Omega matter: density of non-relativistic matter in units of the
+        critical density at z=0.
+
+    Ode0 : float
+        Omega dark energy: density of dark energy in units of the critical
+        density at z=0.
+
+    w0 : float
+        Dark energy equation of state at z=0 (a=1). This is pressure/density
+        for dark energy in units where c=1.
+
+    wa : float
+        Negative derivative of the dark energy equation of state with respect
+        to the scale factor. A cosmological constant has w0=-1.0 and wa=0.0.
+
+    Tcmb0 : float or astropy.units.Quantity
+        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+
+    Neff : float
+        Effective number of Neutrino species. Default 3.04.
+
+    m_nu : astropy.units.Quantity
+        Mass of each neutrino species. If this is a scalar Quantity, then all
+        neutrino species are assumed to have that mass. Otherwise, the mass of
+        each species. The actual number of neutrino species (and hence the
+        number of elements of m_nu if it is not scalar) must be the floor of
+        Neff. Usually this means you must provide three neutrino masses unless
+        you are considering something like a sterile neutrino.
+
+    name : str
+        Optional name for this cosmological object.
+
     Examples
     --------
     >>> from astropy.cosmology import w0waCDM
@@ -1797,49 +1820,6 @@ class w0waCDM(FLRW):
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., Tcmb0=2.725,
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='w0waCDM'):
-        """ Initializer.
-
-        Parameters
-        ----------
-        H0 : float or astropy.units.Quantity
-          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
-
-        Om0 : float
-          Omega matter: density of non-relativistic matter in units
-          of the critical density at z=0.
-
-        Ode0 : float
-          Omega dark energy: density of dark energy in units
-          of the critical density at z=0.
-
-        w0 : float
-          Dark energy equation of state at z=0 (a=1).
-          This is pressure/density for dark energy in units where c=1.
-
-        wa : float
-          Negative derivative of the dark energy equation of state
-          with respect to the scale factor.  A cosmological constant has
-          w0=-1.0 and wa=0.0.
-
-        Tcmb0 : float or astropy.units.Quantity
-          Temperature of the CMB z=0.  If a float, must be in [K].
-          Default: 2.725.
-
-        Neff : float
-          Effective number of Neutrino species. Default 3.04.
-
-        m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity,
-          then all neutrino species are assumed to have that mass.
-          Otherwise, the mass of each species.  The actual number of
-          neutrino species (and hence the number of elements of m_nu if
-          it is not scalar) must be the floor of Neff.  Usually this means
-          you must provide three neutrino masses unless you are considering
-          something like a sterile neutrino.
-
-        name : string
-          Optional name for this cosmological object.
-        """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
         self._w0 = float(w0)
         self._wa = float(wa)
@@ -1847,8 +1827,8 @@ class w0waCDM(FLRW):
     def __repr__(self):
         retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
                  "wa=%.3g, Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0, 
-                   self._Om0, self._Ode0, self._w0, self._wa, self._Tcmb0, 
+        retstr %= (self.__class__.__name__, self.name, self._H0,
+                   self._Om0, self._Ode0, self._w0, self._wa, self._Tcmb0,
                    self._Neff, self.m_nu)
         return retstr
 
@@ -1928,6 +1908,41 @@ class Flatw0waCDM(w0waCDM):
     D10, 213 (2001) and Linder PRL 90, 91301 (2003):
     :math:`w(z) = w_0 + w_a (1-a) = w_0 + w_a z / (1+z)`.
 
+    Parameters
+    ----------
+
+    H0 : float or astropy.units.Quantity
+        Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
+
+    Om0 : float
+        Omega matter: density of non-relativistic matter in units of the
+        critical density at z=0.
+
+    w0 : float
+        Dark energy equation of state at z=0 (a=1). This is pressure/density
+        for dark energy in units where c=1.
+
+    wa : float
+        Negative derivative of the dark energy equation of state with respect
+        to the scale factor. A cosmological constant has w0=-1.0 and wa=0.0.
+
+    Tcmb0 : float or astropy.units.Quantity
+        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+
+    Neff : float
+        Effective number of Neutrino species. Default 3.04.
+
+    m_nu : astropy.units.Quantity
+        Mass of each neutrino species. If this is a scalar Quantity, then all
+        neutrino species are assumed to have that mass. Otherwise, the mass of
+        each species. The actual number of neutrino species (and hence the
+        number of elements of m_nu if it is not scalar) must be the floor of
+        Neff. Usually this means you must provide three neutrino masses unless
+        you are considering something like a sterile neutrino.
+
+    name : str
+        Optional name for this cosmological object.
+
     Examples
     --------
     >>> from astropy.cosmology import Flatw0waCDM
@@ -1941,45 +1956,6 @@ class Flatw0waCDM(w0waCDM):
 
     def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=2.725,
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='Flatw0waCDM'):
-        """ Initializer.
-
-        Parameters
-        ----------
-        H0 : float or astropy.units.Quantity
-          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
-
-        Om0 : float
-          Omega matter: density of non-relativistic matter in units
-          of the critical density at z=0.
-
-        w0 : float
-          Dark energy equation of state at z=0 (a=1).
-          This is pressure/density for dark energy in units where c=1.
-
-        wa : float
-          Negative derivative of the dark energy equation of state
-          with respect to the scale factor.  A cosmological constant has
-          w0=-1.0 and wa=0.0.
-
-        Tcmb0 : float or astropy.units.Quantity
-          Temperature of the CMB z=0.  If a float, must be in [K].
-          Default: 2.725.
-
-        Neff : float
-          Effective number of Neutrino species. Default 3.04.
-
-        m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity,
-          then all neutrino species are assumed to have that mass.
-          Otherwise, the mass of each species.  The actual number of
-          neutrino species (and hence the number of elements of m_nu if
-          it is not scalar) must be the floor of Neff.  Usually this means
-          you must provide three neutrino masses unless you are considering
-          something like a sterile neutrino.
-
-        name : string
-          Optional name for this cosmological object.
-        """
         FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
@@ -1990,8 +1966,8 @@ class Flatw0waCDM(w0waCDM):
     def __repr__(self):
         retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
                  "wa=%.3g, Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0, 
-                   self._Ode0, self._w0, self._wa, self._Tcmb0, self._Neff, 
+        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0,
+                   self._Ode0, self._w0, self._wa, self._Tcmb0, self._Neff,
                    self.m_nu)
         return retstr
 
@@ -2007,6 +1983,48 @@ class wpwaCDM(FLRW):
     Task Force (Albrecht et al. arXiv:0901.0721 (2009)):
     :math:`w(a) = w_p + w_a (a_p - a) = w_p + w_a( 1/(1+zp) - 1/(1+z) )`.
 
+    Parameters
+    ----------
+
+    H0 : float or astropy.units.Quantity
+        Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
+
+    Om0 : float
+        Omega matter: density of non-relativistic matter in units of the
+        critical density at z=0.
+
+    Ode0 : float
+        Omega dark energy: density of dark energy in units of the critical
+        density at z=0.
+
+    wp : float
+        Dark energy equation of state at the pivot redshift zp. This is
+        pressure/density for dark energy in units where c=1.
+
+    wa : float
+        Negative derivative of the dark energy equation of state with respect
+        to the scale factor. A cosmological constant has w0=-1.0 and wa=0.0.
+
+    zp : float
+        Pivot redshift -- the redshift where w(z) = wp
+
+    Tcmb0 : float or astropy.units.Quantity
+        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+
+    Neff : float
+        Effective number of Neutrino species. Default 3.04.
+
+    m_nu : astropy.units.Quantity
+        Mass of each neutrino species. If this is a scalar Quantity, then all
+        neutrino species are assumed to have that mass. Otherwise, the mass of
+        each species. The actual number of neutrino species (and hence the
+        number of elements of m_nu if it is not scalar) must be the floor of
+        Neff. Usually this means you must provide three neutrino masses unless
+        you are considering something like a sterile neutrino.
+
+    name : str
+        Optional name for this cosmological object.
+
     Examples
     --------
     >>> from astropy.cosmology import wpwaCDM
@@ -2021,52 +2039,6 @@ class wpwaCDM(FLRW):
     def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0,
                  Tcmb0=2.725, Neff=3.04, m_nu=u.Quantity(0.0, u.eV),
                  name='wpwaCDM'):
-        """ Initializer.
-
-        Parameters
-        ----------
-        H0 : float or astropy.units.Quantity
-          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
-
-        Om0 : float
-          Omega matter: density of non-relativistic matter in units
-          of the critical density at z=0.
-
-        Ode0 : float
-          Omega dark energy: density of dark energy in units
-          of the critical density at z=0.
-
-        wp : float
-          Dark energy equation of state at the pivot redshift zp.
-          This is pressure/density for dark energy in units where c=1.
-
-        wa : float
-          Negative derivative of the dark energy equation of state
-          with respect to the scale factor.  A cosmological constant
-          has w0=-1.0 and wa=0.0.
-
-        zp : float
-          Pivot redshift -- the redshift where w(z) = wp
-
-        Tcmb0 : float or astropy.units.Quantity
-          Temperature of the CMB z=0.  If a float, must be in [K].
-          Default: 2.725.
-
-        Neff : float
-          Effective number of Neutrino species. Default 3.04.
-
-        m_nu : astropy.units.Quantity
-          Mass of each neutrino species.  If this is a scalar Quantity,
-          then all neutrino species are assumed to have that mass.
-          Otherwise, the mass of each species.  The actual number of
-          neutrino species (and hence the number of elements of m_nu if
-          it is not scalar) must be the floor of Neff.  Usually this means
-          you must provide three neutrino masses unless you are considering
-          something like a sterile neutrino.
-
-        name : string
-          Optional name for this cosmological object.
-        """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
         self._wp = float(wp)
         self._wa = float(wa)
@@ -2075,8 +2047,8 @@ class wpwaCDM(FLRW):
     def __repr__(self):
         retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, wp=%.3g, "\
                  "wa=%.3g, zp=%.3g, Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0, 
-                   self._Ode0, self._wp, self._wa, self._zp, self._Tcmb0, 
+        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0,
+                   self._Ode0, self._wp, self._wa, self._zp, self._Tcmb0,
                    self._Neff, self.m_nu)
         return retstr
 
@@ -2167,6 +2139,49 @@ class w0wzCDM(FLRW):
 
     This form is not recommended for z > 1.
 
+    Parameters
+    ----------
+
+    H0 : float or astropy.units.Quantity
+        Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
+
+    Om0 : float
+        Omega matter: density of non-relativistic matter in units of the
+        critical density at z=0.
+
+    Ode0 : float
+        Omega dark energy: density of dark energy in units of the critical
+        density at z=0.
+
+    Ok0 : float
+        Omega curvature: equivalent curvature density in units of the critical
+        density at z=0.
+
+    w0 : float
+        Dark energy equation of state at z=0. This is pressure/density for dark
+        energy in units where c=1. A cosmological constant has w0=-1.0.
+
+    wz : float
+        Derivative of the dark energy equation of state with respect to z.
+
+    Tcmb0 : float or astropy.units.Quantity
+        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+
+    Neff : float
+        Effective number of Neutrino species. Default 3.04.
+
+    m_nu : float or ndarray or astropy.units.Quantity
+        Mass of each neutrino species, in eV. If this is a float or scalar
+        Quantity, then all neutrino species are assumed to have that mass. If a
+        ndarray or array Quantity, then these are the values of the mass of
+        each species. The actual number of neutrino species (and hence the
+        number of elements of m_nu if it is not scalar) must be the floor of
+        Neff. Usually this means you must provide three neutrino masses unless
+        you are considering something like a sterile neutrino.
+
+    name : str
+        Optional name for this cosmological object.
+
     Examples
     --------
     >>> from astropy.cosmology import w0wzCDM
@@ -2180,53 +2195,6 @@ class w0wzCDM(FLRW):
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wz=0., Tcmb0=2.725,
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name='w0wzCDM'):
-        """ Initializer.
-
-        Parameters
-        ----------
-        H0 : float or astropy.units.Quantity
-          Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
-
-        Om0 : float
-          Omega matter: density of non-relativistic matter in units
-          of the critical density at z=0.
-
-        Ode0 : float
-          Omega dark energy: density of dark energy in units
-          of the critical density at z=0.
-
-        Ok0 : float
-          Omega curvature: equivalent curvature density in units
-          of the critical density at z=0.
-
-        w0 : float
-          Dark energy equation of state at z=0.
-          This is pressure/density for dark energy in units where c=1.
-          A cosmological constant has w0=-1.0.
-
-        wz : float
-          Derivative of the dark energy equation of state with respect to z.
-
-        Tcmb0 : float or astropy.units.Quantity
-          Temperature of the CMB z=0.  If a float, must be in [K].
-          Default: 2.725.
-
-        Neff : float
-          Effective number of Neutrino species. Default 3.04.
-
-        m_nu : float or ndarray or astropy.units.Quantity
-          Mass of each neutrino species, in eV.  If this is a float or
-          scalar Quantity, then all neutrino species are assumed to have
-          that mass.  If a ndarray or array Quantity, then these are the values
-          of the mass of each species.  The actual number of neutrino species
-          (and hence the number of elements of m_nu if it is not scalar)
-          must be the floor of Neff.  Usually this means you must provide three
-          neutrino masses unless you are considering something like a
-          sterile neutrino.
-
-        name : string
-          Optional name for this cosmological object.
-        """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
         self._w0 = float(w0)
         self._wz = float(wz)
@@ -2234,7 +2202,7 @@ class w0wzCDM(FLRW):
     def __repr__(self):
         retstr = "%s(name=\"%s\", H0=%r, Om0=%.3g, Ode0=%.3g, w0=%.3g, "\
                  "wz=%.3g, Tcmb0=%r, Neff=%.3g, m_nu=%r)"
-        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0, 
+        retstr %= (self.__class__.__name__, self.name, self._H0, self._Om0,
                    self._Ode0, self._w0, self._wz, self._Tcmb0, self._Neff,
                    self.m_nu)
         return retstr

@@ -94,7 +94,7 @@ class Kernel(object):
 
         Parameters
         ----------
-        mode : string
+        mode : str
             One of the following modes:
                 * 'integral' (default)
                     Kernel normalized such that its integral = 1.
@@ -183,7 +183,7 @@ class Kernel1D(Kernel):
         Width of the filter kernel.
     x_size : odd int, optional
         Size of the kernel array. Default = 8 * width.
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -239,7 +239,7 @@ class Kernel2D(Kernel):
         Size in x direction of the kernel array. Default = 8 * width.
     y_size : odd int, optional
         Size in y direction of the kernel array. Default = 8 * width.
-    mode: string, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
@@ -304,7 +304,7 @@ def kernel_arithmetics(kernel, value, operation):
         Kernel instance
     values : kernel, float or int
         Value to operate with
-    operation : string
+    operation : str
         One of the following operations:
             * 'add'
                 Add two kernels

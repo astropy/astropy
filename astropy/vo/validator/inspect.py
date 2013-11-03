@@ -85,7 +85,7 @@ class ConeSearchResults(object):
 
         Parameters
         ----------
-        typ : string
+        typ : str
             Any value in ``self.dbtypes``.
 
         fout : output stream
@@ -137,7 +137,7 @@ class ConeSearchResults(object):
 
         Parameters
         -----------
-        key : string
+        key : str
             Catalog key.
 
         fout : output stream

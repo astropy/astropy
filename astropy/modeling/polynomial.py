@@ -1143,7 +1143,7 @@ class _SIPModel(SerialCompositeModel):
         SIP polynomial order for first axis
     a_coeff : dict
         SIP coefficients for first axis
-    coeff_prefix : string: 'a', 'b', 'A' or 'B'
+    coeff_prefix : str: 'a', 'b', 'A' or 'B'
         SIP coefficient preffix
     b_order : int
         SIP order for second axis

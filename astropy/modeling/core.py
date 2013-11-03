@@ -293,7 +293,7 @@ class ParametricModel(Model):
     ----------
     param_dim : int
         number of parameter sets
-    fittable : boolean
+    fittable : bool
         indicator if the model is fittable
     fixed : a dict
         a dictionary ``{parameter_name: boolean}`` of parameters to not be
@@ -772,7 +772,7 @@ class LabeledInput(dict):
 
         Parameters
         --------------
-        label : string
+        label : str
             coordinate label
         value : numerical type
             coordinate value

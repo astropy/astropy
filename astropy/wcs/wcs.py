@@ -162,7 +162,7 @@ class WCS(WCSBase):
         It is needed when header keywords point to a `Paper IV`_
         Lookup table distortion stored in a different extension.
 
-    key : string, optional
+    key : str, optional
         The name of a particular WCS transform to use.  This may be
         either ``' '`` or ``'A'``-``'Z'`` and corresponds to the
         ``\"a\"`` part of the ``CTYPEia`` cards.  *key* may only be
@@ -1523,7 +1523,7 @@ naxis kwarg.
             - `int`: a bit field selecting specific extensions to
               write.  See :ref:`relaxwrite` for details.
 
-        key : string
+        key : str
             The name of a particular WCS transform to use.  This may be
             either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"``
             part of the ``CTYPEia`` cards.
@@ -1570,7 +1570,7 @@ naxis kwarg.
 
             - `int`: a bit field selecting specific extensions to
               write.  See :ref:`relaxwrite` for details.
-        key : string
+        key : str
             The name of a particular WCS transform to use.  This may be
             either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"``
             part of the ``CTYPEia`` cards.
@@ -1648,10 +1648,10 @@ naxis kwarg.
 
         Parameters
         ----------
-        filename : string, optional
+        filename : str, optional
             Output file name - default is ``'footprint.reg'``
 
-        color : string, optional
+        color : str, optional
             Color to use when plotting the line.
 
         width : int, optional
@@ -1854,7 +1854,7 @@ def find_all_wcs(header, relax=True, keysel=None, fix=True,
 
     Parameters
     ----------
-    header : string or astropy.io.fits header object.
+    header : str or astropy.io.fits header object.
 
     relax : bool or int, optional
         Degree of permissiveness:

@@ -274,7 +274,7 @@ def vo_tab_parse(tab, url, kwargs):
     ----------
     tab : `astropy.io.votable.tree.VOTableFile` object
 
-    url : string
+    url : str
         URL used to obtain ``tab``.
 
     kwargs : dict

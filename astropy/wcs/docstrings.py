@@ -1726,7 +1726,7 @@ vice versa.
 
 Parameters
 ----------
-ctype : string
+ctype : str
     Required spectral ``CTYPEia``, maximum of 8 characters.  The first
     four characters are required to be given and are never modified.
     The remaining four, the algorithm code, are completely determined
@@ -2010,17 +2010,17 @@ like ``"log (m ** 2)"`` which is formally disallowed.
 Parameters
 ----------
 
-have : string
+have : str
     FITS unit string to convert from, with or without surrounding
     square brackets (for inline specifications); text following the
     closing bracket is ignored.
 
-want : string
+want : str
     FITS unit string to convert to, with or without surrounding square
     brackets (for inline specifications); text following the closing
     bracket is ignored.
 
-ctrl : string, optional
+ctrl : str, optional
     Do potentially unsafe translations of non-standard unit strings.
 
     Although ``\"S\"`` is commonly used to represent seconds, its
@@ -2090,7 +2090,7 @@ whitespace.
 
 Parameters
 ----------
-translate_units : string, optional
+translate_units : str, optional
     Do potentially unsafe translations of non-standard unit strings.
 
     Although ``\"S\"`` is commonly used to represent seconds, its
@@ -2191,7 +2191,7 @@ Parameters
 header : An `astropy.io.fits.Header`, string, or `None`.
   If ``None``, the object will be initialized to default values.
 
-key : string, optional
+key : str, optional
     The key referring to a particular WCS transform in the header.
     This may be either ``' '`` or ``'A'``-``'Z'`` and corresponds to
     the ``\"a\"`` part of ``\"CTYPEia\"``.  (*key* may only be

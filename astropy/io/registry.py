@@ -125,7 +125,7 @@ def register_reader(data_format, data_class, function, force=False):
 
     Parameters
     ----------
-    data_format : string
+    data_format : str
         The data type identifier. This is the string that will be used to
         specify the data type when reading.
     data_class : classobj
@@ -152,7 +152,7 @@ def register_writer(data_format, data_class, function, force=False):
 
     Parameters
     ----------
-    data_format : string
+    data_format : str
         The data type identifier. This is the string that will be used to
         specify the data type when writing.
     data_class : classobj

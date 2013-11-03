@@ -258,7 +258,7 @@ class BaseColumn(object):
 
         Parameters
         ----------
-        col: Column
+        col : Column
             Comparison column
 
         Returns
@@ -853,7 +853,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         data : array; optional
             Data to use when creating MaskedColumn copy.  If not supplied the
             column data array is used.
-        copy_data : boolean; optional
+        copy_data : bool; optional
             Make a copy of input data instead of using a reference (default=True)
 
         Returns
@@ -1023,7 +1023,7 @@ class Table(object):
     ----------
     data : numpy ndarray, dict, list, or Table, optional
         Data to initialize table.
-    masked : boolean, optional
+    masked : bool, optional
         Specify whether the table is masked.
     names : list, optional
         Specify column names
@@ -1031,7 +1031,7 @@ class Table(object):
         Specify column data types
     meta : dict, optional
         Metadata associated with the table.
-    copy : boolean, optional
+    copy : bool, optional
         Copy the input data (default=True).
 
     """
@@ -1894,7 +1894,7 @@ class Table(object):
 
         Parameters
         ----------
-        index: int
+        index : int
             Index of row to remove
 
         Examples
@@ -1932,7 +1932,7 @@ class Table(object):
 
         Parameters
         ----------
-        row_specifier: slice, int, or array of ints
+        row_specifier : slice, int, or array of ints
             Specification for rows to remove
 
         Examples

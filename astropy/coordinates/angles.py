@@ -426,12 +426,12 @@ class Angle(u.Quantity):
 
         Parameters
         ----------
-        wrap_angle : string, Angle, angular Quantity
+        wrap_angle : str, Angle, angular Quantity
             Specifies a single value for the wrap angle.  This can be any
             object that can initialize an Angle object, e.g. '180d', 180 * u.deg,
             or Angle(180, unit=u.deg).
 
-        inplace : boolean
+        inplace : bool
             If ``True`` then wrap the object in place instead of returning a new Angle
 
         Returns
@@ -467,11 +467,11 @@ class Angle(u.Quantity):
 
         Parameters
         ----------
-        lower : string, Angle, angular Quantity, None
+        lower : str, Angle, angular Quantity, None
             Specifies lower bound for checking.  This can be any object
             that can initialize an Angle object, e.g. '180d', 180 * u.deg,
             or Angle(180, unit=u.deg).
-        upper : string, Angle, angular Quantity, None
+        upper : str, Angle, angular Quantity, None
             Specifies upper bound for checking.  This can be any object
             that can initialize an Angle object, e.g. '180d', 180 * u.deg,
             or Angle(180, unit=u.deg).

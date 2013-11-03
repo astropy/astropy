@@ -250,7 +250,7 @@ def getval(filename, keyword, *args, **kwargs):
 
     Returns
     -------
-    keyword value : string, integer, or float
+    keyword value : str, int, or float
     """
 
     if 'do_not_scale_image_data' not in kwargs:
@@ -431,7 +431,7 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
         When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards to
         the header of the HDU when written to the file.
 
-    verify: bool (optional)
+    verify : bool (optional)
         When `True`, the existing FITS file will be read in to verify
         it for correctness before appending.  When `False`, content is
         simply appended to the end of the file.  Setting *verify* to
