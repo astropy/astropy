@@ -908,8 +908,8 @@ class MexicanHat1DModel(Parametric1DModel):
         Amplitude
     x_0 : float
         Position of the peak
-    width : float
-        Width of the mexican hat
+    sigma : float
+        Width of the Mexican hat
 
     See Also
     --------
@@ -955,8 +955,8 @@ class MexicanHat2DModel(Parametric2DModel):
         x position of the peak
     y_0 : float
         y position of the peak
-    width : float
-        Width of the mexican hat
+    sigma : float
+        Width of the Mexican hat
 
     See Also
     --------
