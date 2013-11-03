@@ -1189,7 +1189,7 @@ class Beta2D(Parametric2DModel):
         return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
 
 
-def custom_model_1d(func):
+def custom_model_1d(func, func_deriv=None):
     """
     Create one dimensional model from a user defined function.
 
@@ -1203,7 +1203,7 @@ def custom_model_1d(func):
     ----------
     func : function
         Function which defines the model
-    func_deriv : function
+    func_deriv : function (optional)
         Function which defines the model derivatives default = None
 
     Examples
@@ -1212,9 +1212,11 @@ def custom_model_1d(func):
 
         >>> from astropy.modeling.models import custom_model_1d
         >>> import numpy as np
-        >>> @custom_model_1d
-        ... def SineModel(x, amplitude=1., frequency=1.):
+        >>> def sine_model(x, amplitude=1., frequency=1.):
         ...     return amplitude * np.sin(2 * np.pi * frequency * x)
+        >>> def sine_deriv(x, amplitude=1., frequency=1.):
+        ...     return 2 * np.pi * amplitude * np.cos(2 * np.pi * frequency * x)
+        >>> SineModel = custom_model_1d(sine_model, func_deriv=sine_deriv)
 
     Create an instance of the custom model and evaluate it:
 
@@ -1228,11 +1230,19 @@ def custom_model_1d(func):
     if not callable(func):
         raise ModelDefinitionError("Not callable. Must be function")
 
+    if func_deriv is not None and not callable(func_deriv):
+        raise ModelDefinitionError("func_deriv not callable. Must be function")
+
     model_name = func.__name__
     param_values = func.func_defaults
 
     # Check if all parameters are keyword arguments
     nparams = len(param_values)
+
+    if func_deriv is not None and len(func_deriv.func_defaults) != nparams:
+        raise ModelDefinitionError("derivative function should accept"
+                                   " same number of parameters as func.")
+
     if func.func_code.co_argcount == nparams + 1:
         param_names = func.func_code.co_varnames[1:nparams + 1]
     else:
@@ -1254,6 +1264,8 @@ def custom_model_1d(func):
         modname = '__main__'
 
     members = {'eval': staticmethod(func)}
+    if func_deriv is not None:
+        members['deriv'] = staticmethod(func_deriv)
 
     eval(compile(dedent("""
         def __init__(self, {0}):
