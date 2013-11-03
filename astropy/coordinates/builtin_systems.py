@@ -61,8 +61,8 @@ class ICRS(SphericalCoordinatesBase):
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
-            self.ra = newcoord.ra
-            self.dec = newcoord.dec
+            self._latangle = newcoord._latangle
+            self._lonangle = newcoord._lonangle
             self._distance = newcoord._distance
         else:
             super(ICRS, self)._initialize_latlon('ra', 'dec', args, kwargs)
@@ -129,8 +129,8 @@ class FK5(SphericalCoordinatesBase):
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
-            self.ra = newcoord.ra
-            self.dec = newcoord.dec
+            self._latangle = newcoord._latangle
+            self._lonangle = newcoord._lonangle
             self._distance = newcoord._distance
         else:
             super(FK5, self)._initialize_latlon('ra', 'dec', args, kwargs)
@@ -225,8 +225,8 @@ class FK4(SphericalCoordinatesBase):
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
-            self.ra = newcoord.ra
-            self.dec = newcoord.dec
+            self._latangle = newcoord._latangle
+            self._lonangle = newcoord._lonangle
             self._distance = newcoord._distance
         else:
             super(FK4, self)._initialize_latlon('ra', 'dec', args, kwargs)
@@ -320,8 +320,8 @@ class FK4NoETerms(SphericalCoordinatesBase):
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
-            self.ra = newcoord.ra
-            self.dec = newcoord.dec
+            self._latangle = newcoord._latangle
+            self._lonangle = newcoord._lonangle
             self._distance = newcoord._distance
         else:
             super(FK4NoETerms, self)._initialize_latlon('ra', 'dec', args, kwargs)
@@ -428,8 +428,8 @@ class Galactic(SphericalCoordinatesBase):
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
-            self.l = newcoord.l
-            self.b = newcoord.b
+            self._latangle = newcoord._latangle
+            self._lonangle = newcoord._lonangle
             self._distance = newcoord._distance
         else:
             super(Galactic, self)._initialize_latlon('l', 'b', args, kwargs)
@@ -485,8 +485,8 @@ class AltAz(SphericalCoordinatesBase):
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
-            self.az = newcoord.az
-            self.el = newcoord.alt
+            self._latangle = newcoord._latangle
+            self._lonangle = newcoord._lonangle
             self._distance = newcoord._distance
         else:
             super(AltAz, self)._initialize_latlon('az', 'alt', args, kwargs)
