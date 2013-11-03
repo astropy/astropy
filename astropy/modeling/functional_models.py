@@ -1189,22 +1189,35 @@ class Beta2D(Parametric2DModel):
         return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
 
 
-def custom_model_1d(func):
+def custom_model_1d(func, func_deriv=None):
     """
-    Create one dimensional model from a user defined function.
+    Create a one dimensional model from a user defined function. The
+    parameters of the model will be inferred from the arguments of
+    the function.
 
-    IMPORTANT: All model parameters have to be defined as KEYWORD ARGUMENTS
-    with default values in the model function.
+    ..note ::
+        All model parameters have to be defined as keyword arguments
+        with default values in the model function.
 
-    If you want to work with parameter sets, the parameters have to be defined
-    as lists or arrays.
+    If you want to use parameter sets in the model, the parameters should be
+    treated as lists or arrays.
 
     Parameters
     ----------
     func : function
-        Function which defines the model
-    func_deriv : function
-        Function which defines the model derivatives default = None
+        Function which defines the model.  It should take one positional
+        argument (the independent variable in the model), and any number of
+        keyword arguments (the parameters).  It must return the value
+        of the model (typically as an array, but can also be a scalar for
+        scalar inputs).  This corresponds to the `ParametricModel.eval` method.
+    func_deriv : function, optional
+        Function which defines the Jacobian derivative of the model. I.e., the
+        derivive with respect to the *parameters* of the model.  It should
+        have the same argument signature as `func`, but should return a
+        sequence where each element of the sequence is the derivative
+        with respect to the correseponding argument. This corresponds to the
+        `ParametricModel.deriv` method.
+
 
     Examples
     --------
@@ -1212,9 +1225,11 @@ def custom_model_1d(func):
 
         >>> from astropy.modeling.models import custom_model_1d
         >>> import numpy as np
-        >>> @custom_model_1d
-        ... def SineModel(x, amplitude=1., frequency=1.):
+        >>> def sine_model(x, amplitude=1., frequency=1.):
         ...     return amplitude * np.sin(2 * np.pi * frequency * x)
+        >>> def sine_deriv(x, amplitude=1., frequency=1.):
+        ...     return 2 * np.pi * amplitude * np.cos(2 * np.pi * frequency * x)
+        >>> SineModel = custom_model_1d(sine_model, func_deriv=sine_deriv)
 
     Create an instance of the custom model and evaluate it:
 
@@ -1228,11 +1243,19 @@ def custom_model_1d(func):
     if not callable(func):
         raise ModelDefinitionError("Not callable. Must be function")
 
+    if func_deriv is not None and not callable(func_deriv):
+        raise ModelDefinitionError("func_deriv not callable. Must be function")
+
     model_name = func.__name__
     param_values = func.func_defaults
 
     # Check if all parameters are keyword arguments
     nparams = len(param_values)
+
+    if func_deriv is not None and len(func_deriv.func_defaults) != nparams:
+        raise ModelDefinitionError("derivative function should accept"
+                                   " same number of parameters as func.")
+
     if func.func_code.co_argcount == nparams + 1:
         param_names = func.func_code.co_varnames[1:nparams + 1]
     else:
@@ -1256,6 +1279,7 @@ def custom_model_1d(func):
         modname = '__main__'
 
     members = {'eval': staticmethod(func)}
+
     eval_globals = {}
 
     init_code_string = dedent("""
@@ -1264,6 +1288,9 @@ def custom_model_1d(func):
     """).format(arg_signature_1, arg_signature_2)
 
     eval(compile(init_code_string, filename, 'single'), eval_globals)
+
+    if func_deriv is not None:
+        members['deriv'] = staticmethod(func_deriv)
 
     members['__init__'] = eval_globals['__init__']
     members.update(params)
