@@ -497,6 +497,13 @@ def test_create_coordinate():
     with raises(TypeError):
         ICRS(12, 13, unit=(u.hour, u.degree), obstime=2000.)
 
+    #should also be able to initialize coordinates from other coord objects
+    ICRS(ICRS(ra, dec))
+    newi = ICRS(c) # including from other types like Galactic
+    # and it will auto-convert
+    assert isinstance(newi, ICRS)
+    assert newi.ra != c.l
+    assert newi.dec != c.b
 
 
 def test_convert_api():
@@ -684,7 +691,7 @@ def test_distances():
     # with no distance, the unit sphere is assumed when converting to cartesian
     c3 = Galactic(l=158.558650, b=-43.350066, unit=(u.degree, u.degree), distance=None)
     unitcart = c3.cartesian
-    npt.assert_allclose(((unitcart.x**2 + unitcart.y**2 + 
+    npt.assert_allclose(((unitcart.x**2 + unitcart.y**2 +
                           unitcart.z**2)**0.5).value, 1.0)
 
     # CartesianPoints objects can be added and subtracted, which are
