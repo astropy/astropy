@@ -1239,11 +1239,13 @@ def custom_model_1d(func):
         raise ModelDefinitionError(
             "All parameters must be keyword arguments")
 
-    params = dict((name, Parameter(name)) for name in param_names)
+    params = dict((name, Parameter(name, default=default))
+                  for name, default in zip(param_names, param_values))
 
-    arg_signature = ', '.join('{0}={1!r}'.format(name, value)
-                              for name, value in zip(param_names,
-                                                     param_values))
+    arg_signature_1 = ', '.join('{0}=None'.format(name)
+                                for name in param_names)
+    arg_signature_2 = ', '.join('{0}={0}'.format(name)
+                                for name in param_names)
 
     mod = find_current_module(2)
     if mod:
@@ -1254,12 +1256,16 @@ def custom_model_1d(func):
         modname = '__main__'
 
     members = {'eval': staticmethod(func)}
+    eval_globals = {}
 
-    eval(compile(dedent("""
-        def __init__(self, {0}):
-            super(self.__class__, self).__init__({0})
-    """).format(arg_signature), filename, 'single'), members)
+    init_code_string = dedent("""
+        def __init__(self, {0}, **constraints):
+            super(self.__class__, self).__init__({1}, **constraints)
+    """).format(arg_signature_1, arg_signature_2)
 
+    eval(compile(init_code_string, filename, 'single'), eval_globals)
+
+    members['__init__'] = eval_globals['__init__']
     members.update(params)
 
     cls = type(model_name, (Parametric1DModel,), members)

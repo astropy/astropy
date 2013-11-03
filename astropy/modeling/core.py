@@ -429,7 +429,7 @@ class ParametricModel(Model):
             self._constraints['bounds'] = bounds
 
         self._initialize_parameters(params)
-        
+
 
     @property
     def fixed(self):
@@ -623,8 +623,14 @@ class ParametricModel(Model):
         self._param_metrics = {}
         total_size = 0
         for name in self.param_names:
-            value = params.setdefault(name,
-                                      getattr(self, name).default)
+
+            if params.get(name) is None:
+                # parameters that were not supplied at all or that have
+                # defaults of None should attempt to use the default provided
+                # by their Parameter descriptor
+                params[name] = getattr(self, name).default
+
+            value = params[name]
 
             param_size = np.size(value)
             param_shape = np.shape(value)
@@ -1036,7 +1042,7 @@ class SummedCompositeModel(_CompositeModel):
                     delta = [transform(*inlist)]
                     for i in range(len(sum_of_deltas)):
                         sum_of_deltas[i] += delta[i]
-                        
+
                 for outcoo, delta in izip(self._outmap, sum_of_deltas):
                     setattr(labeled_input, outcoo, delta)
                 # always return the entire labeled object, not just the result

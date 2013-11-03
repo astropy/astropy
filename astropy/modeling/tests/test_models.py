@@ -164,6 +164,35 @@ def test_custom_model(amplitude=4, frequency=1):
     assert np.all((fitparams - np.array([amplitude, frequency])) < 0.001)
 
 
+def test_custom_model_init():
+    @models.custom_model_1d
+    def SineModel(x, amplitude=4, frequency=1):
+        """
+        Model function
+        """
+        return amplitude * np.sin(2 * np.pi * frequency * x)
+
+    sin_model = SineModel(amplitude=2., frequency=0.5)
+    assert sin_model.amplitude == 2.
+    assert sin_model.frequency == 0.5
+
+
+def test_custom_model_defaults():
+    @models.custom_model_1d
+    def SineModel(x, amplitude=4, frequency=1):
+        """
+        Model function
+        """
+        return amplitude * np.sin(2 * np.pi * frequency * x)
+
+    sin_model = SineModel()
+    assert SineModel.amplitude.default == 4
+    assert SineModel.frequency.default == 1
+
+    assert sin_model.amplitude == 4
+    assert sin_model.frequency == 1
+
+
 class TestParametricModels(object):
     """
     Test class for all parametric models.

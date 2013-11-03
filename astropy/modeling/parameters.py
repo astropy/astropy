@@ -149,7 +149,11 @@ class Parameter(object):
 
 
     def __get__(self, obj, objtype):
-        return self.__class__(self._name, getter=self._getter,
+        if obj is None:
+            return self
+
+        return self.__class__(self._name, default=self._default,
+                              getter=self._getter,
                               setter=self._setter, model=obj)
 
     def __set__(self, obj, value):
@@ -225,6 +229,9 @@ class Parameter(object):
     @property
     def default(self):
         """Parameter default value"""
+
+        if self._model is None:
+            return self._default
 
         if self._model.param_dim == 1:
             return self._default
