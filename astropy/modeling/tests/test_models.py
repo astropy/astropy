@@ -157,12 +157,14 @@ def test_custom_model(amplitude=4, frequency=1):
 
     def sine_deriv(x, amplitude=4, frequency=1):
         """
-        Derivative of model function
+        Jacobian of model function, e.g. derivative of the function with
+        respect to the *parameters*
         """
-        return 2 * np.pi * frequency * amplitude * np.cos(2 * np.pi * frequency * x)
+        da = np.sin(2 * np.pi * frequency * x)
+        df = 2 * np.pi * x * amplitude * np.cos(2 * np.pi * frequency * x)
+        return np.vstack((da, df))
 
-    SineModel = models.custom_model_1d(sine_model,
-                                       func_deriv=sine_deriv)
+    SineModel = models.custom_model_1d(sine_model, func_deriv=sine_deriv)
 
     x = np.linspace(0, 4, 50)
     sin_model = SineModel()
