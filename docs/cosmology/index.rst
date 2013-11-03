@@ -81,9 +81,8 @@ arguments giving the Hubble parameter and omega matter (both at z=0):
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo
-  FlatLambdaCDM(H0=<Quantity 70 km / (Mpc s)>, Om0=0.3, 
-                Tcmb0=<Quantity 2.725 K>, Neff=3.04,
-                m_nu=<Quantity [ 0. 0. 0.] eV>)
+  FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
+                Neff=3.04, m_nu=[ 0.  0.  0.] eV)
 
 This can also be done more explicity using units, which is recommended:
 
@@ -94,7 +93,7 @@ This can also be done more explicity using units, which is recommended:
 However, most of the parameters that accept units (`H0`, `Tcmb0`)
 have default units, so unit quantities do not have to be used.
 The exception are neutrino masses, where you must supply a
-units if you want massive neutrinos.  
+units if you want massive neutrinos.
 
 The pre-defined cosmologies described in the `Getting Started`_
 section are instances of `~astropy.cosmology.core.FlatLambdaCDM`, and have
@@ -137,13 +136,13 @@ Note that these don't quite add up to one even though WMAP7 assumes a
 flat Universe because photons and neutrinos are included, and that
 they are not `~astropy.units.Quantity` objects because they are dimensionless.
 
-Cosmological instances have an optional name varaible which can be
-descriptively:
+Cosmological instances have an optional ``name`` attribute which can be
+descriptive:
 
   >>> from astropy.cosmology import FlatwCDM
   >>> cosmo = FlatwCDM(name='SNLS3+WMAP7', H0=71.58, Om0=0.262, w0=-1.016)
   >>> cosmo
-  FlatwCDM(name="SNLS3+WMAP7", H0=71.6 km / (Mpc s), Om0=0.262, 
+  FlatwCDM(name="SNLS3+WMAP7", H0=71.6 km / (Mpc s), Om0=0.262,
            w0=-1.02, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)
 
 This is also an example of a model with a different model for dark
