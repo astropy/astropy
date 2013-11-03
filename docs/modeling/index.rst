@@ -45,9 +45,9 @@ Working with 1D models
 Fit a data set with a Gaussian model::
 
     >>> x = np.arange(1, 10, .1)
-    >>> g1 = models.Gaussian1DModel(10., stddev=2.1, mean=4.2)
+    >>> g1 = models.Gaussian1(10., stddev=2.1, mean=4.2)
     >>> g1
-    <Gaussian1DModel(amplitude=Parameter('amplitude', value=10.0), mean=Parameter('mean', value=4.2000000000000002), stddev=Parameter('stddev', value=2.1000000000000001), param_dim=1)>
+    <Gaussian1D(amplitude=Parameter('amplitude', value=10.0), mean=Parameter('mean', value=4.2000000000000002), stddev=Parameter('stddev', value=2.1000000000000001), param_dim=1)>
     >>> y = g1(x)
     >>> np.random.seed(0)
     >>> n = np.random.randn(90)
@@ -55,7 +55,7 @@ Fit a data set with a Gaussian model::
     >>> gfit = fitting.NonLinearLSQFitter()
     >>> new_model = gfit(g1, x, ny)
     >>> print(new_model)
-    Model: Gaussian1DModel
+    Model: Gaussian1D
     n_inputs:   1
     Degree: N/A
     Parameter sets: 1
@@ -66,14 +66,14 @@ Fit a data set with a Gaussian model::
 
 Create data using a 1D Chebyshev model::
 
-    >>> ch1 = models.Chebyshev1DModel(3, domain=[x.min(), x.max()])
+    >>> ch1 = models.Chebyshev1D(3, domain=[x.min(), x.max()])
     >>> ch1.parameters
     array([ 0.,  0.,  0.,  0.])
     >>> ch1.parameters = [1, 2, 3, 4]
     >>> ch1.parameters
     array([ 1.,  2.,  3.,  4.])
     >>> print(ch1)
-    Model: Chebyshev1DModel
+    Model: Chebyshev1D
     n_inputs:   1
     Degree: 3
     Parameter sets: 1
@@ -92,7 +92,7 @@ Add some noise::
 
 Fit a Chebyshev polynomial to the data::
 
-    >>> ch2 = models.Chebyshev1DModel(3)
+    >>> ch2 = models.Chebyshev1D(3)
     >>> chfit = fitting.LinearLSQFitter()
     >>> new_model = chfit(ch2, x, ny)
     >>> new_model.parameters
@@ -104,13 +104,13 @@ Fit a Chebyshev polynomial to the data::
    import numpy as np
    from astropy.modeling import models, fitting
    x = np.arange(1, 10, .1)
-   ch1 = models.Chebyshev1DModel(3, domain=[x.min(), x.max()])
+   ch1 = models.Chebyshev1D(3, domain=[x.min(), x.max()])
    ch1.parameters = [1, 2, 3, 4]
    y = ch1(x)
    np.random.seed(0)
    n = np.random.randn(90)
    ny = y + n
-   ch2 = models.Chebyshev1DModel(3)
+   ch2 = models.Chebyshev1D(3)
    chfit = fitting.LinearLSQFitter()
    model = chfit(ch2, x, ny)
    plt.plot(x, y, label='y - Chebyshev polynomial')
@@ -132,9 +132,9 @@ First create some data to be fitted with a 2D polynomial::
 
 Fit a 2D polynomial to the data::
 
-    >>> p2 = models.Polynomial2DModel(2)
+    >>> p2 = models.Polynomial2D(2)
     >>> print(p2)
-    Model: Polynomial2DModel
+    Model: Polynomial2D
     n_inputs:   2
     Degree: 2
     Parameter sets: 1

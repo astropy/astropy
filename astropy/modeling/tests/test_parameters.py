@@ -49,8 +49,8 @@ class TestParameters(object):
         record = irafutil.IdentifyRecord(reclist[1])
         self.icoeff = record.coeff
         order = int(record.fields['order'])
-        self.model = models.Chebyshev1DModel(order - 1)
-        self.gmodel = models.Gaussian1DModel(2, mean=3, stddev=4)
+        self.model = models.Chebyshev1D(order - 1)
+        self.gmodel = models.Gaussian1D(2, mean=3, stddev=4)
         self.linear_fitter = fitting.LinearLSQFitter()
         self.x = record.x
         self.y = record.z
@@ -153,11 +153,11 @@ class TestParameters(object):
 
     def testPolynomial1D(self):
         d = {'c0': 11, 'c1': 12, 'c2': 13, 'c3': 14}
-        p1 = models.Polynomial1DModel(3, **d)
+        p1 = models.Polynomial1D(3, **d)
         utils.assert_equal(p1.parameters, [11, 12, 13, 14])
 
     def test_poly1d_multiple_sets(self):
-        p1 = models.Polynomial1DModel(3, param_dim=3)
+        p1 = models.Polynomial1D(3, param_dim=3)
         utils.assert_equal(p1.parameters, [0.0, 0.0, 0.0, 0, 0, 0,
                                            0, 0, 0, 0, 0, 0])
         utils.assert_equal(p1.c0, [0., 0, 0])
@@ -169,35 +169,35 @@ class TestParameters(object):
         """
         Test assigning to a parameter slice
         """
-        p1 = models.Polynomial1DModel(3, param_dim=3)
+        p1 = models.Polynomial1D(3, param_dim=3)
         p1.c0[:2] = [10, 10]
         utils.assert_equal(p1.parameters, [10.0, 10.0, 0.0, 0, 0,
                                            0, 0, 0, 0, 0, 0, 0])
 
     def test_poly2d(self):
-        p2 = models.Polynomial2DModel(degree=3)
+        p2 = models.Polynomial2D(degree=3)
         p2.c0_0 = 5
         utils.assert_equal(p2.parameters, [5, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     def test_poly2d_multiple_sets(self):
         kw = {'c0_0': [2, 3], 'c1_0': [1, 2], 'c2_0': [4, 5],
               'c0_1': [1, 1], 'c0_2': [2, 2], 'c1_1': [5, 5]}
-        p2 = models.Polynomial2DModel(2, **kw)
+        p2 = models.Polynomial2D(2, **kw)
         utils.assert_equal(p2.parameters, [2, 3, 1, 2, 4, 5,
                                            1, 1, 2, 2, 5, 5])
 
     def test_non_fittable_model_parameters1d(self):
-        sh1 = models.ShiftModel(2)
+        sh1 = models.Shift(2)
         sh1.offsets = 3
         assert(sh1.offsets == 3)
 
     def test_non_fittable_model_parametersnd(self):
-        sc1 = models.ScaleModel([2, 2])
+        sc1 = models.Scale([2, 2])
         sc1.factors = [3, 3]
         assert(sc1.factors == [3, 3])
 
     def test_non_fittable_model_parameters_wrong_shape(self):
-        sh1 = models.ShiftModel(2)
+        sh1 = models.Shift(2)
         with pytest.raises(InputParameterError):
             sh1.offsets = [3, 3]
 
@@ -208,7 +208,7 @@ class TestMultipleParameterSets(object):
         self.x1 = np.arange(1, 10, .1)
         self.x, self.y = np.mgrid[:10, :7]
         self.x11 = np.array([self.x1, self.x1]).T
-        self.gmodel = models.Gaussian1DModel([12, 10], [3.5, 5.2], stddev=[.4, .7])
+        self.gmodel = models.Gaussian1D([12, 10], [3.5, 5.2], stddev=[.4, .7])
 
     def test_change_par(self):
         """

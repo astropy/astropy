@@ -13,7 +13,7 @@ from ..kernels import (
     CustomKernel)
 
 from ..utils import KernelSizeError
-from ...modeling.models import Box2DModel
+from ...modeling.models import Box2D
 
 try:
     from scipy.ndimage import filters
@@ -290,7 +290,7 @@ class TestKernels(object):
         assert box.truncation == 0
 
         # Check model
-        assert isinstance(box.model, Box2DModel)
+        assert isinstance(box.model, Box2D)
 
         # Check center
         assert box.center == [2, 2]

@@ -49,20 +49,20 @@ Explanation of keywords of the dictionaries:
 """
 
 from ..functional_models import (
-    Gaussian1DModel, Sine1DModel, Box1DModel, Linear1DModel, Lorentz1DModel,
-    MexicanHat1DModel, Trapezoid1DModel, Const1DModel, Beta1DModel,
-    Gaussian2DModel, Const2DModel, Box2DModel, MexicanHat2DModel,
-    TrapezoidDisk2DModel, AiryDisk2DModel, Beta2DModel, Disk2DModel,
-    Ring2DModel)
-from ..polynomial import Polynomial1DModel, Polynomial2DModel
+    Gaussian1D, Sine1D, Box1D, Linear1D, Lorentz1D,
+    MexicanHat1D, Trapezoid1D, Const1D, Beta1D,
+    Gaussian2D, Const2D, Box2D, MexicanHat2D,
+    TrapezoidDisk2D, AiryDisk2D, Beta2D, Disk2D,
+    Ring2D)
+from ..polynomial import Polynomial1D, Polynomial2D
 from ..powerlaws import (
-    PowerLaw1DModel, BrokenPowerLaw1DModel, ExponentialCutoffPowerLaw1DModel,
-    LogParabola1DModel)
+    PowerLaw1D, BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
+    LogParabola1D)
 import numpy as np
 
 #1D Models
 models_1D = {
-    Gaussian1DModel: {
+    Gaussian1D: {
         'parameters': [1, 0, 1],
         'x_values': [0, np.sqrt(2), -np.sqrt(2)],
         'y_values': [1.0, 0.367879, 0.367879],
@@ -70,7 +70,7 @@ models_1D = {
         'integral': np.sqrt(2 * np.pi)
     },
 
-    Sine1DModel: {
+    Sine1D: {
         'parameters': [1, 0.1],
         'x_values': [0, 2.5],
         'y_values': [0, 1],
@@ -78,7 +78,7 @@ models_1D = {
         'integral': 0
     },
 
-    Box1DModel: {
+    Box1D: {
         'parameters': [1, 0, 10],
         'x_values': [-5, 5, 0, -10, 10],
         'y_values': [1, 1, 1, 0, 0],
@@ -86,7 +86,7 @@ models_1D = {
         'integral': 10
     },
 
-    Linear1DModel: {
+    Linear1D: {
         'parameters': [1, 0],
         'x_values': [0, np.pi, 42, -1],
         'y_values': [0, np.pi, 42, -1],
@@ -94,7 +94,7 @@ models_1D = {
         'integral': 0
     },
 
-    Lorentz1DModel: {
+    Lorentz1D: {
         'parameters': [1, 0, 1],
         'x_values': [0, -1, 1, 0.5, -0.5],
         'y_values': [1., 0.2, 0.2, 0.5, 0.5],
@@ -102,7 +102,7 @@ models_1D = {
         'integral': 1
     },
 
-    MexicanHat1DModel: {
+    MexicanHat1D: {
         'parameters': [1, 0, 1],
         'x_values': [0, 1, -1, 3, -3],
         'y_values': [1.0, 0.0, 0.0, -0.088872, -0.088872],
@@ -110,7 +110,7 @@ models_1D = {
         'integral': 0
     },
 
-    Trapezoid1DModel: {
+    Trapezoid1D: {
         'parameters': [1, 0, 2, 1],
         'x_values': [0, 1, -1, 1.5, -1.5, 2, 2],
         'y_values': [1, 1, 1, 0.5, 0.5, 0, 0],
@@ -118,7 +118,7 @@ models_1D = {
         'integral': 3
     },
 
-    Const1DModel: {
+    Const1D: {
         'parameters': [1],
         'x_values': [-1, 1, np.pi, -42., 0],
         'y_values': [1, 1, 1, 1, 1],
@@ -126,7 +126,7 @@ models_1D = {
         'integral': 20
     },
 
-    Beta1DModel: {
+    Beta1D: {
         'parameters': [1, 0, 1, 2],
         'x_values': [0, 1, -1, 3, -3],
         'y_values': [1.0, 0.25, 0.25, 0.01, 0.01],
@@ -136,7 +136,7 @@ models_1D = {
         'deriv_initial': [10, 1, 1, 1]
     },
 
-    PowerLaw1DModel: {
+    PowerLaw1D: {
         'parameters': [1, 1, 2],
         'constraints': {'fixed': {'x_0': True}},
         'x_values': [1, 10, 100],
@@ -146,7 +146,7 @@ models_1D = {
         'integral': 0.99
     },
 
-    BrokenPowerLaw1DModel: {
+    BrokenPowerLaw1D: {
         'parameters': [1, 1, 2, 3],
         'constraints': {'fixed': {'x_break': True}},
         'x_values': [0.1, 1, 10, 100],
@@ -155,7 +155,7 @@ models_1D = {
         'log_fit': True
     },
 
-    ExponentialCutoffPowerLaw1DModel: {
+    ExponentialCutoffPowerLaw1D: {
         'parameters': [1, 1, 2, 3],
         'constraints': {'fixed': {'x_0': True}},
         'x_values': [0.1, 1, 10, 100],
@@ -165,7 +165,7 @@ models_1D = {
         'log_fit': True
     },
 
-    LogParabola1DModel: {
+    LogParabola1D: {
         'parameters': [1, 2, 3, 0.1],
         'constraints': {'fixed': {'x_0': True}},
         'x_values': [0.1, 1, 10, 100],
@@ -175,7 +175,7 @@ models_1D = {
         'log_fit': True
     },
 
-    Polynomial1DModel: {
+    Polynomial1D: {
         'parameters': {'degree': 2, 'c0': 1., 'c1': 1., 'c2': 1.},
         'x_values': [1, 10, 100],
         'y_values': [3, 111, 10101],
@@ -186,7 +186,7 @@ models_1D = {
 
 #2D Models
 models_2D = {
-    Gaussian2DModel: {
+    Gaussian2D: {
         'parameters': [1, 0, 0, 1, 1],
         'constraints': {'fixed': {'theta': True}},
         'x_values': [0, np.sqrt(2), -np.sqrt(2)],
@@ -199,7 +199,7 @@ models_2D = {
         'deriv_initial': [10, 5, 5, 4, 4, .5]
     },
 
-    Const2DModel: {
+    Const2D: {
         'parameters': [1],
         'x_values': [-1, 1, np.pi, -42., 0],
         'y_values': [0, 1, 42, np.pi, -1],
@@ -209,7 +209,7 @@ models_2D = {
         'integral': 400
     },
 
-    Box2DModel: {
+    Box2D: {
         'parameters': [1, 0, 0, 10, 10],
         'x_values': [-5, 5, -5, 5, 0, -10, 10],
         'y_values': [-5, 5, 0, 0, 0, -10, 10],
@@ -219,7 +219,7 @@ models_2D = {
         'integral': 100
     },
 
-    MexicanHat2DModel: {
+    MexicanHat2D: {
         'parameters': [1, 0, 0, 1],
         'x_values': [0, 0, 0, 0, 0, 1, -1, 3, -3],
         'y_values': [0, 1, -1, 3, -3, 0, 0, 0, 0],
@@ -230,7 +230,7 @@ models_2D = {
         'integral': 0
     },
 
-    TrapezoidDisk2DModel: {
+    TrapezoidDisk2D: {
         'parameters': [1, 0, 0, 1, 1],
         'x_values': [0, 0.5, 0, 1.5],
         'y_values': [0, 0.5, 1.5, 0],
@@ -239,7 +239,7 @@ models_2D = {
         'y_lim': [-3, 3]
     },
 
-    AiryDisk2DModel: {
+    AiryDisk2D: {
         'parameters': [1, 0, 0, 1],
         'x_values': [0, 1, -1, -0.5, -0.5],
         'y_values': [0, -1, 0.5, 0.5, -0.5],
@@ -249,7 +249,7 @@ models_2D = {
         'requires_scipy': True
     },
 
-    Beta2DModel: {
+    Beta2D: {
         'parameters': [1, 0, 0, 1, 2],
         'x_values': [0, 1, -1, 3, -3],
         'y_values': [0, -1, 3, 1, -3],
@@ -258,7 +258,7 @@ models_2D = {
         'y_lim': [-3, 3]
     },
 
-    Polynomial2DModel: {
+    Polynomial2D: {
         'parameters': {'degree': 1, 'c0_0': 1., 'c1_0': 1., 'c0_1': 1.},
         'x_values': [1, 2, 3],
         'y_values': [1, 3, 2],
@@ -267,7 +267,7 @@ models_2D = {
         'y_lim': [1, 100]
     },
 
-    Disk2DModel: {
+    Disk2D: {
         'parameters': [1, 0, 0, 5],
         'x_values': [-5, 5, -5, 5, 0, -10, 10],
         'y_values': [-5, 5, 0, 0, 0, -10, 10],
@@ -277,7 +277,7 @@ models_2D = {
         'integral': np.pi * 5 ** 2
     },
 
-    Ring2DModel: {
+    Ring2D: {
         'parameters': [1, 0, 0, 5, 5],
         'x_values': [-5, 5, -5, 5, 0, -10, 10],
         'y_values': [-5, 5, 0, 0, 0, -10, 10],

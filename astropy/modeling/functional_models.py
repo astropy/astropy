@@ -17,16 +17,16 @@ from ..utils import find_current_module
 
 
 __all__ = sorted([
-    'AiryDisk2DModel', 'Beta1DModel', 'Beta2DModel', 'Box1DModel',
-    'Box2DModel', 'Const1DModel', 'Const2DModel', 'Disk2DModel',
-    'Gaussian1DModel', 'Gaussian2DModel', 'Linear1DModel', 'Lorentz1DModel',
-    'MexicanHat1DModel', 'MexicanHat2DModel', 'ScaleModel', 'ShiftModel',
-    'Sine1DModel', 'Trapezoid1DModel', 'TrapezoidDisk2DModel', 'Ring2DModel',
+    'AiryDisk2D', 'Beta1D', 'Beta2D', 'Box1D',
+    'Box2D', 'Const1D', 'Const2D', 'Disk2D',
+    'Gaussian1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
+    'MexicanHat1D', 'MexicanHat2D', 'Scale', 'Shift',
+    'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D',
     'custom_model_1d'
 ])
 
 
-class Gaussian1DModel(Parametric1DModel):
+class Gaussian1D(Parametric1DModel):
     """
     One dimensional Gaussian model.
 
@@ -56,12 +56,12 @@ class Gaussian1DModel(Parametric1DModel):
 
     Specify that 'mean' is a tied parameter in one of two ways:
 
-    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3,
+    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3,
     ...                             tied=tied_parameters)
 
     or
 
-    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3)
+    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3)
     >>> g1.mean.tied
     False
     >>> g1.mean.tied = tie_center
@@ -70,14 +70,14 @@ class Gaussian1DModel(Parametric1DModel):
 
     Fixed parameters:
 
-    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3,
-    ...                             fixed={'stddev': True})
+    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3,
+    ...                        fixed={'stddev': True})
     >>> g1.stddev.fixed
     True
 
     or
 
-    >>> g1 = models.Gaussian1DModel(amplitude=10, mean=5, stddev=.3)
+    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3)
     >>> g1.stddev.fixed
     False
     >>> g1.stddev.fixed = True
@@ -86,7 +86,7 @@ class Gaussian1DModel(Parametric1DModel):
 
     See Also
     --------
-    Gaussian2DModel, Box1DModel, Beta1DModel, Lorentz1DModel
+    Gaussian2D, Box1D, Beta1D, Lorentz1D
     """
 
     amplitude = Parameter('amplitude')
@@ -94,9 +94,13 @@ class Gaussian1DModel(Parametric1DModel):
     stddev = Parameter('stddev')
 
     def __init__(self, amplitude, mean, stddev, **constraints):
-        super(Gaussian1DModel, self).__init__(amplitude=amplitude, mean=mean,
-                                              stddev=stddev, **constraints)
-
+        try:
+            param_dim = len(amplitude)
+        except TypeError:
+            param_dim = 1
+        super(Gaussian1D, self).__init__(param_dim=param_dim,
+                                         amplitude=amplitude, mean=mean,
+                                         stddev=stddev, **constraints)
     @staticmethod
     def eval(x, amplitude, mean, stddev):
         """
@@ -116,7 +120,7 @@ class Gaussian1DModel(Parametric1DModel):
         return [d_amplitude, d_mean, d_stddev]
 
 
-class Gaussian2DModel(Parametric2DModel):
+class Gaussian2D(Parametric2DModel):
     """
     Two dimensional Gaussian model.
 
@@ -164,7 +168,7 @@ class Gaussian2DModel(Parametric2DModel):
 
     See Also
     --------
-    Gaussian1DModel, Box2DModel, Beta2DModel
+    Gaussian1D, Box2D, Beta2D
     """
 
     amplitude = Parameter('amplitude')
@@ -198,7 +202,7 @@ class Gaussian2DModel(Parametric2DModel):
             y_vec = eig_vecs[:, 0]
             theta = np.arctan2(y_vec[1], y_vec[0])
 
-        super(Gaussian2DModel, self).__init__(
+        super(Gaussian2D, self).__init__(
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
             x_stddev=x_stddev, y_stddev=y_stddev, theta=theta, **constraints)
 
@@ -257,7 +261,7 @@ class Gaussian2DModel(Parametric2DModel):
         return [d_A, d_x_mean, d_y_mean, d_x_stddev, d_y_stddev, d_theta]
 
 
-class ShiftModel(Model):
+class Shift(Model):
     """
     Shift a coordinate.
 
@@ -279,13 +283,13 @@ class ShiftModel(Model):
 
         self._offsets = offsets
 
-        super(ShiftModel, self).__init__(param_dim=param_dim)
+        super(Shift, self).__init__(param_dim=param_dim)
 
     def inverse(self):
         if self.param_dim == 1:
-            return ShiftModel(offsets=(-1) * self._offsets)
+            return Shift(offsets=(-1) * self._offsets)
         else:
-            return ShiftModel(offsets=[off * (-1) for off in self._offsets])
+            return Shift(offsets=[off * (-1) for off in self._offsets])
 
     @format_input
     def __call__(self, x):
@@ -301,7 +305,7 @@ class ShiftModel(Model):
         return self._offsets + x
 
 
-class ScaleModel(Model):
+class Scale(Model):
     """
     Multiply a model by a factor.
 
@@ -321,13 +325,13 @@ class ScaleModel(Model):
 
         self._factors = factors
 
-        super(ScaleModel, self).__init__(param_dim=param_dim)
+        super(Scale, self).__init__(param_dim=param_dim)
 
     def inverse(self):
         if self.param_dim == 1:
-            return ScaleModel(factors=1. / self._factors)
+            return Scale(factors=1. / self._factors)
         else:
-            return ScaleModel(factors=[1 / factor for factor in self._factors])
+            return Scale(factors=[1 / factor for factor in self._factors])
 
     @format_input
     def __call__(self, x):
@@ -343,7 +347,7 @@ class ScaleModel(Model):
         return self._factors * x
 
 
-class Sine1DModel(Parametric1DModel):
+class Sine1D(Parametric1DModel):
     """
     One dimensional Sine model.
 
@@ -356,7 +360,7 @@ class Sine1DModel(Parametric1DModel):
 
     See Also
     --------
-    Const1DModel, Linear1DModel
+    Const1D, Linear1D
 
 
     Notes
@@ -370,9 +374,9 @@ class Sine1DModel(Parametric1DModel):
     frequency = Parameter('frequency')
 
     def __init__(self, amplitude, frequency, **constraints):
-        super(Sine1DModel, self).__init__(amplitude=amplitude,
-                                          frequency=frequency,
-                                          **constraints)
+        super(Sine1D, self).__init__(amplitude=amplitude,
+                                     frequency=frequency,
+                                     **constraints)
 
     @staticmethod
     def eval(x, amplitude, frequency):
@@ -390,7 +394,7 @@ class Sine1DModel(Parametric1DModel):
         return [d_amplitude, d_frequency]
 
 
-class Linear1DModel(Parametric1DModel):
+class Linear1D(Parametric1DModel):
     """
     One dimensional Line model.
 
@@ -404,7 +408,7 @@ class Linear1DModel(Parametric1DModel):
 
     See Also
     --------
-    Const1DModel
+    Const1D
 
     Notes
     -----
@@ -418,7 +422,7 @@ class Linear1DModel(Parametric1DModel):
     linear = True
 
     def __init__(self, slope, intercept, **constraints):
-        super(Linear1DModel, self).__init__(slope=slope, intercept=intercept,
+        super(Linear1D, self).__init__(slope=slope, intercept=intercept,
                                             **constraints)
 
     @staticmethod
@@ -436,7 +440,7 @@ class Linear1DModel(Parametric1DModel):
         return [d_slope, d_intercept]
 
 
-class Lorentz1DModel(Parametric1DModel):
+class Lorentz1D(Parametric1DModel):
     """
     One dimensional Lorentzian model.
 
@@ -451,7 +455,7 @@ class Lorentz1DModel(Parametric1DModel):
 
     See Also
     --------
-    Gaussian1DModel, Box1DModel, MexicanHat1DModel
+    Gaussian1D, Box1D, MexicanHat1D
 
     Notes
     -----
@@ -467,8 +471,8 @@ class Lorentz1DModel(Parametric1DModel):
     fwhm = Parameter('fwhm')
 
     def __init__(self, amplitude, x_0, fwhm, **constraints):
-        super(Lorentz1DModel, self).__init__(amplitude=amplitude, x_0=x_0,
-                                             fwhm=fwhm, **constraints)
+        super(Lorentz1D, self).__init__(amplitude=amplitude, x_0=x_0,
+                                       fwhm=fwhm, **constraints)
 
     @staticmethod
     def eval(x, amplitude, x_0, fwhm):
@@ -488,7 +492,7 @@ class Lorentz1DModel(Parametric1DModel):
         return [d_amplitude, d_x_0, d_fwhm]
 
 
-class Const1DModel(Parametric1DModel):
+class Const1D(Parametric1DModel):
     """
     One dimensional Constant model.
 
@@ -499,7 +503,7 @@ class Const1DModel(Parametric1DModel):
 
     See Also
     --------
-    Const2DModel
+    Const2D
 
     Notes
     -----
@@ -511,7 +515,7 @@ class Const1DModel(Parametric1DModel):
     amplitude = Parameter('amplitude')
 
     def __init__(self, amplitude, **constraints):
-        super(Const1DModel, self).__init__(amplitude=amplitude, **constraints)
+        super(Const1D, self).__init__(amplitude=amplitude, **constraints)
 
     @staticmethod
     def eval(x, amplitude):
@@ -527,7 +531,7 @@ class Const1DModel(Parametric1DModel):
         return [d_amplitude]
 
 
-class Const2DModel(Parametric2DModel):
+class Const2D(Parametric2DModel):
     """
     Two dimensional Constant model.
 
@@ -538,7 +542,7 @@ class Const2DModel(Parametric2DModel):
 
     See Also
     --------
-    Const1DModel
+    Const1D
 
     Notes
     -----
@@ -550,7 +554,7 @@ class Const2DModel(Parametric2DModel):
     amplitude = Parameter('amplitude')
 
     def __init__(self, amplitude, **constraints):
-        super(Const2DModel, self).__init__(amplitude=amplitude, **constraints)
+        super(Const2D, self).__init__(amplitude=amplitude, **constraints)
 
     @staticmethod
     def eval(x, y, amplitude):
@@ -559,7 +563,7 @@ class Const2DModel(Parametric2DModel):
         return amplitude * np.ones_like(x)
 
 
-class Disk2DModel(Parametric2DModel):
+class Disk2D(Parametric2DModel):
     """
     Two dimensional radial symmetric Disk model.
 
@@ -576,7 +580,7 @@ class Disk2DModel(Parametric2DModel):
 
     See Also
     --------
-    Box2DModel, TrapezoidDisk2DModel
+    Box2D, TrapezoidDisk2D
 
     Notes
     -----
@@ -598,8 +602,8 @@ class Disk2DModel(Parametric2DModel):
     R_0 = Parameter('R_0')
 
     def __init__(self, amplitude, x_0, y_0, R_0, **constraints):
-        super(Disk2DModel, self).__init__(amplitude=amplitude, x_0=x_0,
-                                          y_0=y_0, R_0=R_0, **constraints)
+        super(Disk2D, self).__init__(amplitude=amplitude, x_0=x_0,
+                                     y_0=y_0, R_0=R_0, **constraints)
 
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, R_0):
@@ -609,7 +613,7 @@ class Disk2DModel(Parametric2DModel):
         return np.select([rr <= R_0 ** 2], [amplitude])
 
 
-class Ring2DModel(Parametric2DModel):
+class Ring2D(Parametric2DModel):
 
     """
     Two dimensional radial symmetric Ring model.
@@ -631,7 +635,7 @@ class Ring2DModel(Parametric2DModel):
 
     See Also
     --------
-    Disk2DModel, TrapezoidDisk2DModel
+    Disk2D, TrapezoidDisk2D
 
     Notes
     -----
@@ -662,9 +666,9 @@ class Ring2DModel(Parametric2DModel):
         if r_out is None and width is None:
             raise ModelDefinitionError("Either specify width or r_out.")
 
-        super(Ring2DModel, self).__init__(amplitude=amplitude, x_0=x_0,
-                                          y_0=y_0, r_in=r_in, width=width,
-                                          **constraints)
+        super(Ring2D, self).__init__(amplitude=amplitude, x_0=x_0,
+                                     y_0=y_0, r_in=r_in, width=width,
+                                     **constraints)
 
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, r_in, width):
@@ -675,21 +679,21 @@ class Ring2DModel(Parametric2DModel):
         return np.select([r_range], [amplitude])
 
 
-class Delta1DModel(Parametric1DModel):
+class Delta1D(Parametric1DModel):
     """One dimensional Dirac delta function."""
 
     def __init__(self):
         raise ModelDefinitionError("Not implemented")
 
 
-class Delta2DModel(Parametric2DModel):
+class Delta2D(Parametric2DModel):
     """Two dimensional Dirac delta function."""
 
     def __init__(self):
         raise ModelDefinitionError("Not implemented")
 
 
-class Box1DModel(Parametric1DModel):
+class Box1D(Parametric1DModel):
     """
     One dimensional Box model.
 
@@ -704,7 +708,7 @@ class Box1DModel(Parametric1DModel):
 
     See Also
     --------
-    Box2DModel, TrapezoidDisk2DModel
+    Box2D, TrapezoidDisk2D
 
     Notes
     -----
@@ -725,8 +729,8 @@ class Box1DModel(Parametric1DModel):
     width = Parameter('width')
 
     def __init__(self, amplitude, x_0, width, **constraints):
-        super(Box1DModel, self).__init__(amplitude=amplitude, x_0=x_0,
-                                         width=width, **constraints)
+        super(Box1D, self).__init__(amplitude=amplitude, x_0=x_0,
+                                    width=width, **constraints)
 
     @staticmethod
     def eval(x, amplitude, x_0, width):
@@ -746,7 +750,7 @@ class Box1DModel(Parametric1DModel):
         return [d_amplitude, d_x_0, d_width]
 
 
-class Box2DModel(Parametric2DModel):
+class Box2D(Parametric2DModel):
     """
     Two dimensional Box model.
 
@@ -765,7 +769,7 @@ class Box2DModel(Parametric2DModel):
 
     See Also
     --------
-    Box1DModel, Gaussian2DModel, Beta2DModel
+    Box1D, Gaussian2D, Beta2D
 
     Notes
     -----
@@ -790,9 +794,9 @@ class Box2DModel(Parametric2DModel):
     y_width = Parameter('y_width')
 
     def __init__(self, amplitude, x_0, y_0, x_width, y_width, **constraints):
-        super(Box2DModel, self).__init__(amplitude=amplitude, x_0=x_0,
-                                         y_0=y_0, x_width=x_width,
-                                         y_width=y_width, **constraints)
+        super(Box2D, self).__init__(amplitude=amplitude, x_0=x_0,
+                                    y_0=y_0, x_width=x_width,
+                                    y_width=y_width, **constraints)
 
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, x_width, y_width):
@@ -802,7 +806,7 @@ class Box2DModel(Parametric2DModel):
         return np.select([np.logical_and(x_range, y_range)], [amplitude], 0)
 
 
-class Trapezoid1DModel(Parametric1DModel):
+class Trapezoid1D(Parametric1DModel):
     """
     One dimensional Trapezoid model.
 
@@ -819,7 +823,7 @@ class Trapezoid1DModel(Parametric1DModel):
 
     See Also
     --------
-    Box1DModel, Gaussian1DModel, Beta1DModel
+    Box1D, Gaussian1D, Beta1D
     """
 
     amplitude = Parameter('amplitude')
@@ -828,9 +832,9 @@ class Trapezoid1DModel(Parametric1DModel):
     slope = Parameter('slope')
 
     def __init__(self, amplitude, x_0, width, slope, **constraints):
-        super(Trapezoid1DModel, self).__init__(amplitude=amplitude, x_0=x_0,
-                                               width=width, slope=slope,
-                                               **constraints)
+        super(Trapezoid1D, self).__init__(amplitude=amplitude, x_0=x_0,
+                                          width=width, slope=slope,
+                                          **constraints)
 
     @staticmethod
     def eval(x, amplitude, x_0, width, slope):
@@ -852,7 +856,7 @@ class Trapezoid1DModel(Parametric1DModel):
         return np.select([range_a, range_b, range_c], [val_a, val_b, val_c])
 
 
-class TrapezoidDisk2DModel(Parametric2DModel):
+class TrapezoidDisk2D(Parametric2DModel):
     """
     Two dimensional circular Trapezoid model.
 
@@ -871,7 +875,7 @@ class TrapezoidDisk2DModel(Parametric2DModel):
 
     See Also
     --------
-    Disk2DModel, Box2DModel
+    Disk2D, Box2D
     """
 
     amplitude = Parameter('amplitude')
@@ -881,9 +885,9 @@ class TrapezoidDisk2DModel(Parametric2DModel):
     slope = Parameter('slope')
 
     def __init__(self, amplitude, x_0, y_0, R_0, slope, **constraints):
-        super(TrapezoidDisk2DModel, self).__init__(amplitude=amplitude,
-                                                   x_0=x_0, y_0=y_0, R_0=R_0,
-                                                   slope=slope, **constraints)
+        super(TrapezoidDisk2D, self).__init__(amplitude=amplitude,
+                                              x_0=x_0, y_0=y_0, R_0=R_0,
+                                              slope=slope, **constraints)
 
 
     @staticmethod
@@ -898,7 +902,7 @@ class TrapezoidDisk2DModel(Parametric2DModel):
         return np.select([range_1, range_2], [val_1, val_2])
 
 
-class MexicanHat1DModel(Parametric1DModel):
+class MexicanHat1D(Parametric1DModel):
     """
     One dimensional Mexican Hat model.
 
@@ -913,7 +917,7 @@ class MexicanHat1DModel(Parametric1DModel):
 
     See Also
     --------
-    MexicanHat2DModel, Box1DModel, Gaussian1DModel, Trapezoid1DModel
+    MexicanHat2D, Box1D, Gaussian1D, Trapezoid1D
 
     Notes
     -----
@@ -931,9 +935,9 @@ class MexicanHat1DModel(Parametric1DModel):
     sigma = Parameter('sigma')
 
     def __init__(self, amplitude, x_0, sigma, **constraints):
-        super(MexicanHat1DModel, self).__init__(amplitude=amplitude,
-                                                x_0=x_0, sigma=sigma,
-                                                **constraints)
+        super(MexicanHat1D, self).__init__(amplitude=amplitude,
+                                           x_0=x_0, sigma=sigma,
+                                           **constraints)
 
     @staticmethod
     def eval(x, amplitude, x_0, sigma):
@@ -943,7 +947,7 @@ class MexicanHat1DModel(Parametric1DModel):
         return amplitude * (1 - 2 * xx_ww) * np.exp(-xx_ww)
 
 
-class MexicanHat2DModel(Parametric2DModel):
+class MexicanHat2D(Parametric2DModel):
     """
     Two dimensional symmetric Mexican Hat model.
 
@@ -960,7 +964,7 @@ class MexicanHat2DModel(Parametric2DModel):
 
     See Also
     --------
-    MexicanHat1DModel, Gaussian2DModel
+    MexicanHat1D, Gaussian2D
 
     Notes
     -----
@@ -980,9 +984,9 @@ class MexicanHat2DModel(Parametric2DModel):
     sigma = Parameter('sigma')
 
     def __init__(self, amplitude, x_0, y_0, sigma, **constraints):
-        super(MexicanHat2DModel, self).__init__(amplitude=amplitude, x_0=x_0,
-                                                y_0=y_0, sigma=sigma,
-                                                **constraints)
+        super(MexicanHat2D, self).__init__(amplitude=amplitude, x_0=x_0,
+                                           y_0=y_0, sigma=sigma,
+                                           **constraints)
 
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, sigma):
@@ -992,7 +996,7 @@ class MexicanHat2DModel(Parametric2DModel):
         return amplitude * (1 - rr_ww) * np.exp(- rr_ww)
 
 
-class AiryDisk2DModel(Parametric2DModel):
+class AiryDisk2D(Parametric2DModel):
     """
     Two dimensional Airy disk model.
 
@@ -1009,7 +1013,7 @@ class AiryDisk2DModel(Parametric2DModel):
 
     See Also
     --------
-    Box2DModel, TrapezoidDisk2DModel, Gaussian2DModel
+    Box2D, TrapezoidDisk2D, Gaussian2D
 
 
     Notes
@@ -1034,10 +1038,10 @@ class AiryDisk2DModel(Parametric2DModel):
                 from scipy.special import j1
                 self.__class__._j1 = j1
             except ImportError:
-                raise ImportError("AiryDisk2DModel requires scipy.")
-        super(AiryDisk2DModel, self).__init__(amplitude=amplitude, x_0=x_0,
-                                              y_0=y_0, width=width,
-                                              **constraints)
+                raise ImportError("AiryDisk2D model requires scipy.")
+        super(AiryDisk2D, self).__init__(amplitude=amplitude, x_0=x_0,
+                                         y_0=y_0, width=width,
+                                         **constraints)
 
     def __deepcopy__(self, memo):
         new_model = self.__class__(self.amplitude.value, self.x_0.value,
@@ -1064,7 +1068,7 @@ class AiryDisk2DModel(Parametric2DModel):
         return z
 
 
-class Beta1DModel(Parametric1DModel):
+class Beta1D(Parametric1DModel):
     """
     One dimensional Beta model.
 
@@ -1081,7 +1085,7 @@ class Beta1DModel(Parametric1DModel):
 
     See Also
     --------
-    Gaussian1DModel, Box1DModel
+    Gaussian1D, Box1D
 
     Notes
     -----
@@ -1098,9 +1102,9 @@ class Beta1DModel(Parametric1DModel):
     alpha = Parameter('alpha')
 
     def __init__(self, amplitude, x_0, gamma, alpha, **constraints):
-        super(Beta1DModel, self).__init__(amplitude=amplitude, x_0=x_0,
-                                          gamma=gamma, alpha=alpha,
-                                          **constraints)
+        super(Beta1D, self).__init__(amplitude=amplitude, x_0=x_0,
+                                     gamma=gamma, alpha=alpha,
+                                     **constraints)
 
     @staticmethod
     def eval(x, amplitude, x_0, gamma, alpha):
@@ -1121,7 +1125,7 @@ class Beta1DModel(Parametric1DModel):
         return [d_A, d_x_0, d_gamma, d_alpha]
 
 
-class Beta2DModel(Parametric2DModel):
+class Beta2D(Parametric2DModel):
     """
     Two dimensional Beta model.
 
@@ -1140,7 +1144,7 @@ class Beta2DModel(Parametric2DModel):
 
     See Also
     --------
-    Gaussian2DModel, Box2DModel
+    Gaussian2D, Box2D
 
     Notes
     -----
@@ -1159,9 +1163,9 @@ class Beta2DModel(Parametric2DModel):
     alpha = Parameter('alpha')
 
     def __init__(self, amplitude, x_0, y_0, gamma, alpha, **constraints):
-        super(Beta2DModel, self).__init__(amplitude=amplitude, x_0=x_0,
-                                          y_0=y_0, gamma=gamma, alpha=alpha,
-                                          **constraints)
+        super(Beta2D, self).__init__(amplitude=amplitude, x_0=x_0,
+                                     y_0=y_0, gamma=gamma, alpha=alpha,
+                                     **constraints)
 
     @staticmethod
     def eval(x, y, amplitude, x_0, y_0, gamma, alpha):

@@ -12,11 +12,11 @@ from .core import Parametric1DModel
 from .parameters import Parameter
 
 
-__all__ = sorted(['PowerLaw1DModel', 'BrokenPowerLaw1DModel',
-                  'ExponentialCutoffPowerLaw1DModel', 'LogParabola1DModel'])
+__all__ = sorted(['PowerLaw1D', 'BrokenPowerLaw1D',
+                  'ExponentialCutoffPowerLaw1D', 'LogParabola1D'])
 
 
-class PowerLaw1DModel(Parametric1DModel):
+class PowerLaw1D(Parametric1DModel):
     """
     One dimensional power law model.
 
@@ -31,7 +31,7 @@ class PowerLaw1DModel(Parametric1DModel):
 
     See Also
     --------
-    BrokenPowerLaw1DModel, ExponentialCutoffPowerLaw1DModel, LogParabola1DModel
+    BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D
 
     Notes
     -----
@@ -46,8 +46,8 @@ class PowerLaw1DModel(Parametric1DModel):
     alpha = Parameter('alpha')
 
     def __init__(self, amplitude, x_0, alpha, **constraints):
-        super(PowerLaw1DModel, self).__init__(amplitude=amplitude, x_0=x_0,
-                                              alpha=alpha, **constraints)
+        super(PowerLaw1D, self).__init__(amplitude=amplitude, x_0=x_0,
+                                         alpha=alpha, **constraints)
 
     @staticmethod
     def eval(x, amplitude, x_0, alpha):
@@ -69,7 +69,7 @@ class PowerLaw1DModel(Parametric1DModel):
         return [d_amplitude, d_x_0, d_alpha]
 
 
-class BrokenPowerLaw1DModel(Parametric1DModel):
+class BrokenPowerLaw1D(Parametric1DModel):
     """
     One dimensional power law model with a break.
 
@@ -86,7 +86,7 @@ class BrokenPowerLaw1DModel(Parametric1DModel):
 
     See Also
     --------
-    PowerLaw1DModel, ExponentialCutoffPowerLaw1DModel, LogParabola1DModel
+    PowerLaw1D, ExponentialCutoffPowerLaw1D, LogParabola1D
 
     Notes
     -----
@@ -109,7 +109,7 @@ class BrokenPowerLaw1DModel(Parametric1DModel):
     alpha_2 = Parameter('alpha_2')
 
     def __init__(self, amplitude, x_break, alpha_1, alpha_2, **constraints):
-        super(BrokenPowerLaw1DModel, self).__init__(
+        super(BrokenPowerLaw1D, self).__init__(
             amplitude=amplitude, x_break=x_break, alpha_1=alpha_1,
             alpha_2=alpha_2, **constraints)
 
@@ -137,7 +137,7 @@ class BrokenPowerLaw1DModel(Parametric1DModel):
         return [d_amplitude, d_x_break, d_alpha_1, d_alpha_2]
 
 
-class ExponentialCutoffPowerLaw1DModel(Parametric1DModel):
+class ExponentialCutoffPowerLaw1D(Parametric1DModel):
     """
     One dimensional power law model with an exponential cutoff.
 
@@ -154,7 +154,7 @@ class ExponentialCutoffPowerLaw1DModel(Parametric1DModel):
 
     See Also
     --------
-    PowerLaw1DModel, BrokenPowerLaw1DModel, LogParabola1DModel
+    PowerLaw1D, BrokenPowerLaw1D, LogParabola1D
 
     Notes
     -----
@@ -170,7 +170,7 @@ class ExponentialCutoffPowerLaw1DModel(Parametric1DModel):
     x_cutoff = Parameter('x_cutoff')
 
     def __init__(self, amplitude, x_0, alpha, x_cutoff, **constraints):
-        super(ExponentialCutoffPowerLaw1DModel, self).__init__(
+        super(ExponentialCutoffPowerLaw1D, self).__init__(
             amplitude=amplitude, x_0=x_0, alpha=alpha, x_cutoff=x_cutoff,
             **constraints)
 
@@ -196,7 +196,7 @@ class ExponentialCutoffPowerLaw1DModel(Parametric1DModel):
         return [d_amplitude, d_x_0, d_alpha, d_x_cutoff]
 
 
-class LogParabola1DModel(Parametric1DModel):
+class LogParabola1D(Parametric1DModel):
     """
     One dimensional log parabola model (sometimes called curved power law).
 
@@ -213,7 +213,7 @@ class LogParabola1DModel(Parametric1DModel):
 
     See Also
     --------
-    PowerLaw1DModel, BrokenPowerLaw1DModel, ExponentialCutoffPowerLaw1DModel
+    PowerLaw1D, BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D
 
     Notes
     -----
@@ -229,7 +229,7 @@ class LogParabola1DModel(Parametric1DModel):
     beta = Parameter('beta')
 
     def __init__(self, amplitude, x_0, alpha, beta, **constraints):
-        super(LogParabola1DModel, self).__init__(
+        super(LogParabola1D, self).__init__(
             amplitude=amplitude, x_0=x_0, alpha=alpha, beta=beta,
             **constraints)
 

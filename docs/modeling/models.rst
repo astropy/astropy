@@ -35,7 +35,7 @@ shows the number of output coordinates. The
 `~astropy.modeling.core.Model.n_outputs` attributes are used to chain
 transforms by adding models in :class:`series
 <astropy.modeling.core.SerialCompositeModel>` or in :class:`parallel
-<astropy.modeling.core.ParallelCompositeModel>`. Because composite models can
+<astropy.modeling.core.SummedCompositeModel>`. Because composite models can
 be nested within other composite models, creating theoretically infinitely
 complex models, a mechanism to map input data to models is needed. In this case
 the input may be wrapped in a `~astropy.modeling.core.LabeledInput` object-- a
@@ -53,10 +53,10 @@ The examples here assume this import statement was executed::
 - Create a 1D Gaussian with 2 parameter sets::
 
     >>> x = np.arange(1, 10, .1)
-    >>> models.Gaussian1DModel.param_names
+    >>> models.Gaussian1D.param_names
     ['amplitude', 'mean', 'stddev']
-    >>> g1 = models.Gaussian1DModel(amplitude=[10, 9], mean=[2, 3],
-    ...                             stddev=[0.15, .1])
+    >>> g1 = models.Gaussian1D(amplitude=[10, 9], mean=[2, 3],
+    ...                        stddev=[0.15, .1])
     >>> g1.param_sets
     array([[ 10.  ,   9.  ],
            [  2.  ,   3.  ],
@@ -80,10 +80,10 @@ The examples here assume this import statement was executed::
    import numpy as np
    from astropy.modeling import models, fitting
    x = np.arange(1, 10, .1)
-   g1 = models.Gaussian1DModel(amplitude=[10, 9], mean=[2,3], stddev=[.15,.1])
+   g1 = models.Gaussian1D(amplitude=[10, 9], mean=[2,3], stddev=[.15,.1])
    y = g1(x)
    plt.plot(x, y)
-   plt.title('Evaluate a Gaussian1DModel with 2 parameter sets and 1 set of '
+   plt.title('Evaluate a Gaussian1D model with 2 parameter sets and 1 set of '
              'input data')
    plt.show()
 
@@ -93,10 +93,10 @@ The examples here assume this import statement was executed::
    import numpy as np
    from astropy.modeling import models, fitting
    x = np.arange(1, 10, .1)
-   g1 = models.Gaussian1DModel(amplitude=[10, 9], mean=[2,3], stddev=[.15,.1])
+   g1 = models.Gaussian1D(amplitude=[10, 9], mean=[2,3], stddev=[.15,.1])
    y = g1(np.array([x, x]).T)
    plt.plot(x, y)
-   plt.title('Evaluating a Gaussian1DModel with 2 parameter sets and 2 sets '
+   plt.title('Evaluating a Gaussian1D model with 2 parameter sets and 2 sets '
              'of input data')
    plt.show()
 
@@ -119,11 +119,11 @@ The examples here assume this import statement was executed::
    import numpy as np
    from astropy.modeling import models, fitting
    x = np.arange(1, 10, .1)
-   p1 = models.Polynomial1DModel(1, param_dim=5)
+   p1 = models.Polynomial1D(1, param_dim=5)
    p1.c1 = [0, 1, 2, 3, 4]
    y = p1(x)
    plt.plot(x, y)
-   plt.title("Poly1DModel with 5 parameter sets")
+   plt.title("Polynomial1D model with 5 parameter sets")
    plt.show()
 
 - When passed a 2D array, the same polynomial will map parameter sets to array
@@ -147,11 +147,11 @@ The examples here assume this import statement was executed::
 
 - Create and evaluate a parallel composite model::
 
-    >>> x = np.arange(1, 10, .1)
-    >>> p1 = models.Polynomial1DModel(1)
-    >>> g1 = models.Gaussian1DModel(amplitude=10., stddev=2.1, mean=4.2)
-    >>> parallel_composite_model = ParallelCompositeModel([g1, p1])
-    >>> y = parallel_composite_model(x)
+    >>> x = np.arange(1,10,.1)
+    >>> p1 = models.Polynomial1D(1)
+    >>> g1 = models.Gaussian1D(amplitude=10., stddev=2.1, mean=4.2)
+    >>> sum_of_models = SummedCompositeModel([g1, p1])
+    >>> y = sum_of_models(x)
 
   This is equivalent to applying the two models in parallel::
 
@@ -160,8 +160,8 @@ The examples here assume this import statement was executed::
 In more complex cases the input and output may be mapped to transformations::
 
     >>> x, y = np.mgrid[:5, :5]
-    >>> off = models.ShiftModel(-3.2)
-    >>> poly2 = models.Polynomial2DModel(2)
+    >>> off = models.Shift(-3.2)
+    >>> poly2 = models.Polynomial2D(2)
     >>> serial_composite_model = SerialCompositeModel(
     ...     [off, poly2], inmap=[['x'], ['x', 'y']], outmap=[['x'], ['z']])
 

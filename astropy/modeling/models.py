@@ -45,12 +45,12 @@ CONSTRAINTS_DOC = """
 
 
 MODELS_WITH_CONSTRAINTS = [
-    AiryDisk2DModel, Beta1DModel, Beta2DModel, Box1DModel, Box2DModel,
-    Const1DModel, Const2DModel, Disk2DModel, Gaussian1DModel, Gaussian2DModel,
-    Linear1DModel, Lorentz1DModel, MexicanHat1DModel, MexicanHat2DModel,
-    PowerLaw1DModel, Sine1DModel, Trapezoid1DModel, TrapezoidDisk2DModel,
-    Chebyshev1DModel, Chebyshev2DModel, Legendre2DModel, Legendre1DModel,
-    Polynomial1DModel, Polynomial2DModel
+    AiryDisk2D, Beta1D, Beta2D, Box1D, Box2D,
+    Const1D, Const2D, Disk2D, Gaussian1D, Gaussian2D,
+    Linear1D, Lorentz1D, MexicanHat1D, MexicanHat2D,
+    PowerLaw1D, Sine1D, Trapezoid1D, TrapezoidDisk2D,
+    Chebyshev1D, Chebyshev2D, Legendre2D, Legendre1D,
+    Polynomial1D, Polynomial2D
 ]
 
 

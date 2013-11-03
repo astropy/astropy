@@ -103,16 +103,16 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
     -----
 
     The ``oversample`` mode allows to conserve the integral on a subpixel
-    scale. Here is the example of a normalized Gaussian1DModel:
+    scale. Here is the example of a normalized Gaussian1D:
 
     .. plot::
         :include-source:
 
         import matplotlib.pyplot as plt
         import numpy as np
-        from astropy.modeling.models import Gaussian1DModel
+        from astropy.modeling.models import Gaussian1D
         from astropy.convolution.utils import discretize_model
-        gauss_1D = Gaussian1DModel(1 / (0.5 * np.sqrt(2 * np.pi)), 0, 0.5)
+        gauss_1D = Gaussian1D(1 / (0.5 * np.sqrt(2 * np.pi)), 0, 0.5)
         y_center = discretize_model(gauss_1D, (-2, 3), mode='center')
         y_corner = discretize_model(gauss_1D, (-2, 3), mode='linear_interp')
         y_oversample = discretize_model(gauss_1D, (-2, 3), mode='oversample')

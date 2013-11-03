@@ -80,7 +80,7 @@ class Gaussian1DKernel(Kernel1D):
     _is_bool = False
 
     def __init__(self, width, **kwargs):
-        self._model = models.Gaussian1DModel(1. / (np.sqrt(2 * np.pi) * width), 0, width)
+        self._model = models.Gaussian1D(1. / (np.sqrt(2 * np.pi) * width), 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super(Gaussian1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - 1 / self._normalization)
@@ -145,7 +145,7 @@ class Gaussian2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, width, **kwargs):
-        self._model = models.Gaussian2DModel(1. / (2 * np.pi * width ** 2), 0, 0, width, width)
+        self._model = models.Gaussian2D(1. / (2 * np.pi * width ** 2), 0, 0, width, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super(Gaussian2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(1. - 1 / self._normalization)
@@ -211,7 +211,7 @@ class Box1DKernel(Kernel1D):
     _is_bool = True
 
     def __init__(self, width, **kwargs):
-        self._model = models.Box1DModel(1. / width, 0, width)
+        self._model = models.Box1D(1. / width, 0, width)
         self._default_size = _round_up_to_odd_integer(width)
         kwargs['mode'] = 'linear_interp'
         super(Box1DKernel, self).__init__(**kwargs)
@@ -281,7 +281,7 @@ class Box2DKernel(Kernel2D):
     _is_bool = True
 
     def __init__(self, width, **kwargs):
-        self._model = models.Box2DModel(1. / width ** 2, 0, 0, width, width)
+        self._model = models.Box2D(1. / width ** 2, 0, 0, width, width)
         self._default_size = _round_up_to_odd_integer(width)
         kwargs['mode'] = 'linear_interp'
         super(Box2DKernel, self).__init__(**kwargs)
@@ -341,7 +341,7 @@ class Tophat2DKernel(Kernel2D):
 
     """
     def __init__(self, radius, **kwargs):
-        self._model = models.Disk2DModel(1. / (np.pi * radius ** 2), 0, 0, radius)
+        self._model = models.Disk2D(1. / (np.pi * radius ** 2), 0, 0, radius)
         self._default_size = _round_up_to_odd_integer(2 * radius)
         super(Tophat2DKernel, self).__init__(**kwargs)
         self._truncation = 0
@@ -399,7 +399,7 @@ class Ring2DKernel(Kernel2D):
     """
     def __init__(self, radius_in, width, **kwargs):
         radius_out = radius_in + width
-        self._model = models.Ring2DModel(1. / (np.pi * (radius_out ** 2 - radius_in ** 2)),
+        self._model = models.Ring2D(1. / (np.pi * (radius_out ** 2 - radius_in ** 2)),
                                         0, 0, radius_in, width)
         self._default_size = _round_up_to_odd_integer(2 * radius_out)
         super(Ring2DKernel, self).__init__(**kwargs)
@@ -456,7 +456,7 @@ class Trapezoid1DKernel(Kernel1D):
     _is_bool = False
 
     def __init__(self, width, slope=1., **kwargs):
-        self._model = models.Trapezoid1DModel(1, 0, width, slope)
+        self._model = models.Trapezoid1D(1, 0, width, slope)
         self._default_size = _round_up_to_odd_integer(width + 2. / slope)
         super(Trapezoid1DKernel, self).__init__(**kwargs)
         self._truncation = 0
@@ -515,7 +515,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, radius, slope=1., **kwargs):
-        self._model = models.TrapezoidDisk2DModel(1, 0, 0, radius, slope)
+        self._model = models.TrapezoidDisk2D(1, 0, 0, radius, slope)
         self._default_size = _round_up_to_odd_integer(2 * radius + 2. / slope)
         super(TrapezoidDisk2DKernel, self).__init__(**kwargs)
         self._truncation = 0
@@ -579,7 +579,7 @@ class MexicanHat1DKernel(Kernel1D):
     _is_bool = True
 
     def __init__(self, width, **kwargs):
-        self._model = models.MexicanHat1DModel(1.0 / (np.sqrt(2 * np.pi) * width ** 3), 0, width)
+        self._model = models.MexicanHat1D(1.0 / (np.sqrt(2 * np.pi) * width ** 3), 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super(MexicanHat1DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
@@ -646,7 +646,7 @@ class MexicanHat2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, width, **kwargs):
-        self._model = models.MexicanHat2DModel(1.0 / (np.pi * width ** 4), 0, 0, width)
+        self._model = models.MexicanHat2D(1.0 / (np.pi * width ** 4), 0, 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super(MexicanHat2DKernel, self).__init__(**kwargs)
         self._truncation = np.abs(self._array.sum() / self._array.size)
@@ -709,7 +709,7 @@ class AiryDisk2DKernel(Kernel2D):
     _is_bool = False
 
     def __init__(self, width, **kwargs):
-        self._model = models.AiryDisk2DModel(1, 0, 0, width)
+        self._model = models.AiryDisk2D(1, 0, 0, width)
         self._default_size = _round_up_to_odd_integer(8 * width)
         super(AiryDisk2DKernel, self).__init__(**kwargs)
         self.normalize()
@@ -759,9 +759,9 @@ class Model1DKernel(Kernel1D):
     --------
     Define a Gaussian1D model:
 
-        >>> from astropy.modeling.models import Gaussian1DModel
+        >>> from astropy.modeling.models import Gaussian1D
         >>> from astropy.convolution.kernels import Model1DKernel
-        >>> gauss = Gaussian1DModel(1, 0, 2)
+        >>> gauss = Gaussian1D(1, 0, 2)
 
     And create a custom one dimensional kernel from it:
 
@@ -825,9 +825,9 @@ class Model2DKernel(Kernel2D):
     --------
     Define a Gaussian2D model:
 
-        >>> from astropy.modeling.models import Gaussian2DModel
+        >>> from astropy.modeling.models import Gaussian2D
         >>> from astropy.convolution.kernels import Model2DKernel
-        >>> gauss = Gaussian2DModel(1, 0, 0, 2, 2)
+        >>> gauss = Gaussian2D(1, 0, 0, 2, 2)
 
     And create a custom two dimensional kernel from it:
 
