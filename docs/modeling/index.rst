@@ -124,6 +124,10 @@ fit the data:
     plt.ylabel('Flux')
     plt.legend(loc=2)
 
+As shown above, once instantiated, the fitter class can be used as a function
+that takes the initial model (``t_init`` or ``g_init``) and the data values
+(``x`` and ``y``), and returns a fitted model (``t`` or ``g``).
+
 Simple 2D model fitting
 -----------------------
 
