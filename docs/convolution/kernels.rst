@@ -28,7 +28,7 @@ Lorentz curve:
 >>> import numpy as np
 >>> from astropy.modeling.models import Lorentz1D
 >>> from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
->>> lorentz = Lorentz1DM(1, 0, 1)
+>>> lorentz = Lorentz1D(1, 0, 1)
 >>> x = np.linspace(-5, 5, 100)
 >>> data_1D = lorentz(x) + 0.1 * (np.random.rand(100) - 0.5)
 
