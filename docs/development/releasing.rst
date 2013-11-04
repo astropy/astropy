@@ -6,6 +6,11 @@ The current release procedure for Astropy involves a combination of an
 automated release script and some manual steps.  Future versions will automate
 more of the process, if not all.
 
+.. key-signing-info:
+
+Creating a GPG Signing Key and a Signed Tag
+-------------------------------------------
+
 One of the main steps in performing a release is to create a tag in the git
 repository representing the exact state of the repository that represents the
 version being released.  For Astropy we will always use `signed tags`_: A
@@ -19,8 +24,8 @@ called "0.1" in their repository--and where it's easy to monkey around even
 after the tag has been created.  But only one "0.1" will be signed by one of
 the Astropy project coordinators and will be verifiable with their public key.
 
-Creating a GPG Signing Key and a Signed Tag
--------------------------------------------
+Generating a public/private key pair
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Git uses GPG to created signed tags, so in order to perform an Astropy release
 you will need GPG installed and will have to generated a signing key pair.
@@ -124,6 +129,14 @@ that for you.  You can delete this tag by doing::
 
     $ git tag -d v0.1
 
+.. note::
+    ``~/.pypirc`` files necessary for uploading to the testpypi server seem to
+    require you to include your password to be able to manage to do 
+    ``register`` properly.  This is rather insecure, because it means you have
+    to put your PyPI password in a plain-text file.  Bear this in mind when
+    creating your PyPI password, or temporarily change your password just for
+    the purpose of doing a release.
+
 
 Maintaining Bug Fix Releases
 ----------------------------
@@ -134,7 +147,9 @@ known as a "bug fix" release.  Bug fix releases should not change any user-
 visible interfaces.  They should only fix bugs on the previous major/minor
 release and may also refactor internal APIs or include omissions from previous
 releases--that is, features that were documented to exist but were accidentally
-left out of the previous release.
+left out of the previous release. They may also include changes to docstrings 
+that enhance clarity but do not describe new features (e.g., more examples, 
+typo fixes, etc).
 
 Bug fix releases are typically managed by maintaining one or more bug fix
 branches separate from the master branch (the release procedure below discusses
@@ -246,8 +261,9 @@ Preparing the bug fix branch for release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 There are two primary steps that need to be taken before creating a bug fix
-release (the rest of the procedure is the same as any other release as
-described in the release procedure below).
+release. The rest of the procedure is the same as any other release as
+described in :ref:`release-procedure` (although be sure to provide the
+right version number).
 
 1. Any existing fixes to the issues assigned to the current bug fix release
    milestone, or labeled with the relevant "backport-x.y.z" label must be
@@ -324,6 +340,7 @@ be fixed soon to a new release milestone.  If the upcoming bug fix release is
 'v0.2.2', then go ahead and create a 'v0.2.3' milestone and reassign to it any
 issues that you don't expect to be fixed in time for 'v0.2.2'.
 
+.. _release-procedure:
 
 Release Procedure
 -----------------
@@ -339,6 +356,7 @@ to create a `virtualenv`_ specifically for this purpose.
 This may seem like a lot of steps, but most of them won't be necessary to
 repeat for each release.  The advantage of using an automated or semi-automated
 procedure is that ensures a consistent release process each time.
+
 
  1. Update the list of contributors in the ``creditsandlicense.rst`` file. The
     easiest way to check this is do::
@@ -409,8 +427,8 @@ procedure is that ensures a consistent release process each time.
      this will be appended automatically (ignore the message that says ".dev0
      will be appended"--it will actually be ".dev" without the 0).  For
      example, if the just-released version was "0.1" the default next version
-     will be "0.2".  If we want the next version to be, say "1.0" then that
-     must be entered manually.
+     will be "0.2".  If we want the next version to be, say "0.1.1", or "1.0", 
+     then that must be entered manually.
 
  13. You will be shown a diff of CHANGES.rst showing that a new section has
      been added for the new development version, and showing that the version
@@ -489,6 +507,33 @@ procedure is that ensures a consistent release process each time.
 
  24. Run the ``upload_script.py`` script in `astropy-website` to update the actual
      web site.
+
+Modifications for a beta/release candidate release
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For major releases with a lot of changes, we sometimes do beta and/or
+release candidates to have a chance to catch significant bugs before the true
+release.  If the release you are performing is this kind of pre-release, some
+of the above steps need to be modified.  The primary difference is that these
+releases go on the http://testpypi.python.org server instead of the regular
+PyPI.  The testpypi server provides a place to test the release and host it,
+but never appears anywhere on the regular server.  The price is that testpypi
+is not guaranteed to be up long-term, but for short-term pre-releases, this is
+no problem.
+
+The primary modifications to the release procedure are:
+
+* When prompted for a version number (step #12), you will need to manually 
+  enter something like "1.0b1" or "1.0rc1".  You should follow this numbering
+  scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release is
+  ordered "before" the main release by various automated tools.
+* On steps #17 and #18, where you register and upload to PyPI, it is important
+  that you add the option ``-r https://testpypi.python.org/pypi``.  This 
+  ensures the release information and files are sent to the test server instead
+  of the real PyPI server.  This will probably require you to set up a 
+  ``~/.pypirc`` file appropriate for the testpypi server.  See 
+  https://wiki.python.org/moin/TestPyPI for more on how to do this.
+* Do not do step #19 or later, as those are tasks for an actual release.
 
 
 Creating a MacOS X Installer on a DMG
