@@ -722,8 +722,7 @@ class UnitBase(object):
         ----------
         other : unit object or string or tuple
             The unit to convert to. If a tuple of units is specified, this
-            method returns true if the unit matches any of those in the tuple;
-            for this case, equivalencies are ignored.
+            method returns true if the unit matches any of those in the tuple.
 
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
