@@ -73,6 +73,23 @@ def _validate_value(value, dtype, copy):
                     "type.")
 
 
+def _can_have_arbitrary_unit(value):
+    """Test whether the items in value can have arbitrary units
+
+    Numbers whose value does not change upon a unit change, i.e.,
+    zero, infinity, or not-a-number
+
+    Parameters
+    ----------
+    value : number or array
+
+    Returns
+    -------
+    `True` if each member is either zero or not finite, `False` otherwise
+    """
+    return np.all(np.logical_or(np.equal(value, 0.), ~np.isfinite(value)))
+
+
 class Quantity(np.ndarray):
     """ A `Quantity` represents a number with some associated unit.
 
@@ -187,6 +204,23 @@ class Quantity(np.ndarray):
             raise TypeError("Unknown ufunc {0}.  Please raise issue on "
                             "https://github.com/astropy/astropy"
                             .format(function.__name__))
+
+        if any(scale == 0. for scale in scales):
+            # for two-argument ufuncs with a quantity and a non-quantity,
+            # the quantity normally needs to be dimensionless, *except*
+            # if the non-quantity can have arbitrary unit, i.e., when it
+            # is all zero, infinity or NaN.  In that case, the non-quantity
+            # can just have the unit of the quantity
+            # (this allows, e.g., `q > 0.` independent of unit)
+            maybe_arbitrary_arg = args[scales.index(0.)]
+            if _can_have_arbitrary_unit(maybe_arbitrary_arg):
+                scales = [1., 1.]
+            else:
+                raise UnitsError("Can only apply '{0}' function to "
+                                 "dimensionless quantities when other "
+                                 "argument is not a quantity (unless the "
+                                 "latter is all zero/infinity/nan)"
+                                 .format(function.__name__))
 
         # In the case of np.power, the unit itself needs to be modified by an
         # amount that depends on one of the input values, so we need to treat
@@ -867,7 +901,11 @@ class Quantity(np.ndarray):
         try:
             value = value.to(self.unit).value
         except AttributeError:
-            value = dimensionless_unscaled.to(self.unit, value)
+            try:
+                value = dimensionless_unscaled.to(self.unit, value)
+            except UnitsError as exc:
+                if not _can_have_arbitrary_unit(value):
+                    raise exc
 
         if(check_precision and
            np.any(np.array(value, self.dtype) != np.array(value))):

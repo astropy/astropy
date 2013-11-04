@@ -242,13 +242,8 @@ def find_scales(f, *units):
         try:
             scales[changeable] = units[changeable].to(dimensionless_unscaled)
         except UnitsError:
-            # could have special case here: OK if unitless number is zero
-            # this needs to be signalled up, e.g., with: scales[fixed] = 0.
-            raise UnitsError(
-                "Can only apply '{0}' function to "
-                "dimensionless quantities when other "
-                "argument is not a quantity"
-                .format(f.__name__))
+            # special case: would be OK if unitless number is zero, inf, nan
+            scales[fixed] = 0.
 
         return scales, dimensionless_unscaled
 
