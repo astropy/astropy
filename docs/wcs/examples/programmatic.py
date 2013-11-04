@@ -41,4 +41,5 @@ header = w.to_header()
 # header is an astropy.io.fits.Header object.  We can use it to create a new
 # PrimaryHDU and write it to a file.
 hdu = fits.PrimaryHDU(header=header)
-hdu.writeto('test.fits')
+# Save to FITS file
+# hdu.writeto('test.fits')
