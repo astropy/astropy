@@ -1,3 +1,5 @@
+.. doctest_skip
+
 =================
 Coding Guidelines
 =================

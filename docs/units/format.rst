@@ -20,6 +20,8 @@ the |quantity| value, without affecting the unit. Specifiers like
 ``20s``, which would only apply to a string, will be applied to the
 whole string representation of the |quantity|. This means you can do::
 
+    >>> from astropy import units as u
+    >>> import numpy as np
     >>> q = 10 * u.km
     >>> q
     <Quantity 10 km>
@@ -36,7 +38,7 @@ class attributes within new-style format strings::
     >>> q = 10 * u.km
     >>> q
     <Quantity 10 km>
-    >>> "{0.value:0.003f} in {0.unit:s}".format(q)
+    >>> "{0.value:0.003f} in {0.unit:s}".format(q)  # doctest: +SKIP
     '10.000 in km'
 
 Because Numpy arrays don't accept most format specifiers, using specifiers like
@@ -59,7 +61,7 @@ user-defined units.  The format specifier (and
 optional parameter to select a different format, including
 ``"latex"``, ``"unicode"``, ``"cds"``, and others, defined below.
 
-    >>> "{0.value:0.003f} in {0.unit:latex}".format(q)
+    >>> "{0.value:0.003f} in {0.unit:latex}".format(q)  # doctest: +SKIP
     '10.000 in $\\mathrm{km}$'
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
     >>> "{0}".format(fluxunit)
@@ -156,7 +158,7 @@ following formats:
   - ``"unicode"``: Same as ``"console"``, except uses Unicode
     characters::
 
-      >>> print u.Ry.decompose().to_string('unicode')
+      >>> print u.Ry.decompose().to_string('unicode')  # doctest: +SKIP
                       m² kg
       2.1798721×10-¹⁸ ─────
                        s²

@@ -33,6 +33,12 @@ import astropy
 
 # -- General configuration ----------------------------------------------------
 
+# Enable the doctest extension.  We don't actually use it through
+# Sphinx, but it does two important things: It removes the doctest
+# directives from the output, and it lets use use the doctest-setup to
+# include code that should be run but not displayed.
+extensions += ['sphinx.ext.doctest']
+
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.1'
 

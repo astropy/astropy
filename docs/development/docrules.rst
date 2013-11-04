@@ -1,3 +1,5 @@
+.. doctest_skip
+
 =======================
 Astropy Docstring Rules
 =======================

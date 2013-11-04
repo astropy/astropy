@@ -1,3 +1,5 @@
+.. doctest_skip
+
 .. _whatsnew-0.3:
 
 =========================
@@ -48,7 +50,7 @@ Backwards-Incompatible Changes
   E.g., `ICRSCoordinates` is now `ICRS`, `GalacticCoordinates` are now
   `Galactic`, etc.
 
-* `HorizontalCoordinates` is now called `AltAz`. 
+* `HorizontalCoordinates` is now called `AltAz`.
 
 
 Warnings about backwards incompatible changes can be disabled by doing::
@@ -124,7 +126,7 @@ Coordinate objects can now store arrays of coordinates instead of just
 a single coordinate.  This dramatically speeds-up some operations.
 
 Coordinate objects now support matching one set of coordinates to another
-using the array coordinates functionality described above.  See 
+using the array coordinates functionality described above.  See
 `~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog`
 and `~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog_3d`
 for more details.

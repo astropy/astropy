@@ -11,9 +11,11 @@ from ..extern.six.moves import filter
 import doctest
 import fnmatch
 import imp
+import io
 import locale
 import math
 import os
+import re
 import sys
 
 from .helper import pytest
@@ -40,11 +42,52 @@ def pytest_addoption(parser):
                   "collection", type="args", default=())
 
 
+# A special doctest OutputChecker that ignores u'' string literal
+# prefixes in doctest output
+class OutputCheckerIgnoreUnicode(doctest.OutputChecker):
+    _literal_re = re.compile(r"(\W|^)[uU]([rR]?[\'\"])", re.UNICODE)
+    _original_output_checker = doctest.OutputChecker
+
+    def _fix_string(self, s):
+        return re.sub(self._literal_re, r'\1\2', s)
+
+    def check_output(self, want, got, flags):
+        if flags & IGNORE_UNICODE_PREFIX:
+            want = self._fix_string(want)
+            got = self._fix_string(got)
+        # Can't use super here because doctest.OutputChecker is not a
+        # new-style class.
+        return self._original_output_checker.check_output(
+            self, want, got, flags)
+
+    def output_difference(self, want, got, flags):
+        if flags & IGNORE_UNICODE_PREFIX:
+            want = self._fix_string(want)
+            got = self._fix_string(got)
+        # Can't use super here because doctest.OutputChecker is not a
+        # new-style class.
+        return self._original_output_checker.output_difference(
+            self, want, got, flags)
+
+
+# We monkey-patch in our replacement doctest OutputChecker.  Not
+# great, but there isn't really an API to replace the checker when
+# using doctest.testfile, unfortunately.
+IGNORE_UNICODE_PREFIX = doctest.register_optionflag('IGNORE_UNICODE_PREFIX')
+doctest.OutputChecker = OutputCheckerIgnoreUnicode
+
+# A flag to mark doctest lines that require Scipy in order to run
+REQUIRES_SCIPY = doctest.register_optionflag('REQUIRES_SCIPY')
+
 def pytest_configure(config):
     doctest_plugin = config.pluginmanager.getplugin('doctest')
     if (doctest_plugin is None or config.option.doctestmodules or not
             (config.getini('doctest_plus') or config.option.doctest_plus)):
         return
+
+    opts = (doctest.ELLIPSIS |
+            doctest.NORMALIZE_WHITESPACE |
+            IGNORE_UNICODE_PREFIX)
 
     class DocTestModulePlus(doctest_plugin.DoctestModule):
         # pytest 2.4.0 defines "collect".  Prior to that, it defined
@@ -61,7 +104,6 @@ def pytest_configure(config):
 
             # uses internal doctest module parsing mechanism
             finder = DocTestFinderPlus()
-            opts = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
             runner = doctest.DebugRunner(verbose=False, optionflags=opts)
             for test in finder.find(module):
                 if test.examples:  # skip empty doctests
@@ -72,13 +114,50 @@ def pytest_configure(config):
         def runtest(self):
             return
 
-    config.pluginmanager.register(DoctestPlus(DocTestModulePlus),
-                                  'doctestplus')
+    class DocTestParserPlus(doctest.DocTestParser):
+        try:
+            import scipy
+        except ImportError:
+            has_scipy = False
+        else:
+            has_scipy = True
+
+        def parse(self, s, name=None):
+            result = doctest.DocTestParser.parse(self, s, name=name)
+
+            if not self.has_scipy:
+                for example in result:
+                    if isinstance(example, doctest.Example):
+                        if example.options.get(REQUIRES_SCIPY, False):
+                            example.options[doctest.SKIP] = True
+
+            return result
+
+    class DocTestTextfilePlus(doctest_plugin.DoctestTextfile):
+        def runtest(self):
+            # If file contains "doctest_skip" comment, skip the whole thing.
+            with io.open(str(self.fspath), 'r', encoding='utf-8') as fd:
+                for line in fd.readlines():
+                    if line.strip() == '.. doctest_skip':
+                        return
+
+            # satisfy `FixtureRequest` constructor...
+            self.funcargs = {}
+            self._fixtureinfo = doctest_plugin.FuncFixtureInfo((), [], {})
+            fixture_request = doctest_plugin.FixtureRequest(self)
+            failed, tot = doctest.testfile(
+                str(self.fspath), module_relative=False,
+                optionflags=opts, parser=DocTestParserPlus(),
+                extraglobs=dict(getfixture=fixture_request.getfuncargvalue),
+                raise_on_error=True, verbose=0, encoding='utf-8')
+
+    config.pluginmanager.register(
+        DoctestPlus(DocTestModulePlus, DocTestTextfilePlus),
+        'doctestplus')
 
 
 class DoctestPlus(object):
-
-    def __init__(self, doctest_module_item_cls):
+    def __init__(self, doctest_module_item_cls, doctest_textfile_item_cls):
         """
         doctest_module_item_cls should be a class inheriting
         `pytest.doctest.DoctestItem` and `pytest.File`.  This class handles
@@ -89,6 +168,7 @@ class DoctestPlus(object):
         """
 
         self._doctest_module_item_cls = doctest_module_item_cls
+        self._doctest_textfile_item_cls = doctest_textfile_item_cls
 
     def pytest_ignore_collect(self, path, config):
         """Skip paths that match any of the doctest_norecursedirs patterns."""
@@ -128,11 +208,12 @@ class DoctestPlus(object):
             __doctest_requires__ = {('func1', 'func2'): ['scipy']}
 
         """
-
-        config = parent.config
         if path.ext == '.py':
             # Don't override the built-in doctest plugin
             return self._doctest_module_item_cls(path, parent)
+        elif path.ext == '.rst':
+            # TODO: Get better names on these items
+            return self._doctest_textfile_item_cls(path, parent)
 
 
 class DocTestFinderPlus(doctest.DocTestFinder):
@@ -288,7 +369,7 @@ if SUPPORTS_OPEN_FILE_DETECTION:
 def pytest_report_header(config):
     from .. import __version__
 
-    stdoutencoding = sys.stdout.encoding or 'ascii'
+    stdoutencoding = getattr(sys.stdout, 'encoding') or 'ascii'
 
     s = "\nRunning tests with Astropy version {0}.\n".format(__version__)
     s += "Running tests in {0}.\n\n".format(" ".join(config.args))

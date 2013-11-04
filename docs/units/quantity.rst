@@ -32,10 +32,10 @@ specifying a value and unit:
 or Python sequences:
 
     >>> [1, 2, 3] * u.m
-    <Quantity [1, 2, 3] m>
+    <Quantity [1,2,3] m>
     >>> import numpy as np
     >>> np.array([1, 2, 3]) * u.m
-    <Quantity [1, 2, 3] m>
+    <Quantity [1,2,3] m>
 
 |quantity| objects can also be created from sequences of |quantity|
 objects, as long as all of their units are equivalent, and will
@@ -176,7 +176,7 @@ or dimensionless quantities::
 
     >>> nu = 3 * u.GHz
     >>> T = 30 * u.K
-    >>> np.exp(- h * nu / (k_B * T))
+    >>> np.exp(-h * nu / (k_B * T))  # doctest: +SKIP
     <Quantity 0.995212254619 >
 
 (see `Dimensionless quantities`_ for more details).

@@ -43,7 +43,7 @@ may be multiple equally good results, a list is always returned::
 
 Some other interesting examples::
 
-   >>> (u.s ** -1).compose()
+   >>> (u.s ** -1).compose()  # doctest: +SKIP
    [Unit("Bq"), Unit("Hz"), Unit("3.7e+10 Ci")]
 
 Composition can be combined with :ref:`unit_equivalencies`::

@@ -1,3 +1,5 @@
+.. doctest_skip
+
 .. currentmodule:: astropy.io.fits
 
 FITS Headers
