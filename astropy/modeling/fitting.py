@@ -36,7 +36,7 @@ __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
 DEFAULT_MAXITER = 100
 DEFAULT_EPS = np.sqrt(np.finfo(float).eps)
 DEFAULT_MAX_BOUND = 10 ** 12
-DEFAULT_MIN_BOUND = 10 ** -12
+DEFAULT_MIN_BOUND = -10 ** 12
 
 
 def _convert_input(x, y, z=None):
@@ -618,13 +618,15 @@ class SLSQPFitter(Fitter):
         p0, param_indices = model_copy._model_to_fit_params()
         pars = [getattr(model_copy, name) for name in model_copy.param_names]
         bounds = [par.bounds for par in pars if par.fixed != True and par.tied == False]
-       
+        
         bounds = np.asarray(bounds)
         for i in bounds:
             if i[0] is None:
-                i[0] = -10 ** 12
+                i[0] = DEFAULT_MIN_BOUND
             if i[1] is None:
-                i[1] = 10 ** 12
+                i[1] = DEFAULT_MAX_BOUND
+        # older versions of scipy require this array to be float
+        bounds = np.asarray(bounds, dtype=np.float)
         eqcons = np.array(model_copy.eqcons)
         ineqcons = np.array(model_copy.ineqcons) 
         fitparams, final_func_val, numiter, exit_mode, mess = \
