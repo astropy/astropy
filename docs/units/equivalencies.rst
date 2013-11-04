@@ -84,9 +84,9 @@ But when passing we pass the proper conversion function,
   >>> (0.5e38 * u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J,
   ...                            equivalencies=u.dimensionless_angles())
   <Quantity 1.97392...e+39 J>
-  >>> # FIXME: Syntax error below
-  >>> np.exp((1j*0.5*u.cycle).to('', equivalencies=u.dimensionless_angles())  # doctest: +SKIP
-  <Quantity (-1+...j) >
+  >>> import numpy as np
+  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))
+  <Quantity (0.7071067811865476+0.7071067811865475j) >
 
 The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the
