@@ -8,6 +8,7 @@ Core units classes and functions
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
+from ..extern.six.moves import zip
 
 import copy
 import inspect
@@ -880,6 +881,9 @@ class UnitBase(object):
         See `to`, except that a Unit object should be given (i.e., no string),
         and that all defaults are used, i.e., no equivalencies and value=1.
         """
+        if self is other:
+            return 1.0
+
         self_decomposed = self.decompose()
         other_decomposed = other.decompose()
         # check quickly whether equivalent
