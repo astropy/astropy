@@ -1,3 +1,5 @@
+.. doctest_skip
+
 .. _testing-guidelines:
 
 ==================
