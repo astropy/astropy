@@ -45,9 +45,12 @@ Working with 1D models
 Fit a data set with a Gaussian model::
 
     >>> x = np.arange(1, 10, .1)
-    >>> g1 = models.Gaussian1(10., stddev=2.1, mean=4.2)
+    >>> g1 = models.Gaussian1D(10., stddev=2.1, mean=4.2)
     >>> g1
-    <Gaussian1D(amplitude=Parameter('amplitude', value=10.0), mean=Parameter('mean', value=4.2000000000000002), stddev=Parameter('stddev', value=2.1000000000000001), param_dim=1)>
+    <Gaussian1D(amplitude=Parameter('amplitude', value=10.0),
+                mean=Parameter('mean', value=4.2000000000000002),
+                stddev=Parameter('stddev', value=2.1000000000000001),
+                param_dim=1)>
     >>> y = g1(x)
     >>> np.random.seed(0)
     >>> n = np.random.randn(90)
@@ -96,7 +99,7 @@ Fit a Chebyshev polynomial to the data::
     >>> chfit = fitting.LinearLSQFitter()
     >>> new_model = chfit(ch2, x, ny)
     >>> new_model.parameters
-    array([ 1.08612543,  1.79746444,  3.15233293,  4.06529137])
+    array([ 1.17789166,  1.67145195,  3.53825251,  4.05892813])
 
 .. plot::
 
@@ -147,12 +150,13 @@ Fit a 2D polynomial to the data::
                c1_1: Parameter('c1_1', value=0.0)
 
     >>> pfit = fitting.LinearLSQFitter()
+    >>> np.random.seed(0)
     >>> n = np.random.randn(100)
     >>> n.shape = (10, 10)
     >>> new_model = pfit(p2, x, y, z+n)
     >>> new_model.parameters
-    array([ 0.97599264,  1.95050208,  3.00524297,  4.01663038,  5.00150801,
-            5.999489  ])
+    array([ 1.79964917,  1.44891526,  3.05358047,  4.08895144,  4.98756933,
+            6.00824639])
 
 
 Using `modeling`

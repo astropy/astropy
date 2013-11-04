@@ -30,6 +30,8 @@ Fitting examples
 
 - Fitting a polynomial model to multiple data sets simultaneously::
 
+    >>> from astropy.modeling import models, fitting
+    >>> import numpy as np
     >>> p1 = models.Polynomial1D(3)
     >>> p1.c0 = 1
     >>> p1.c1 = 2
@@ -42,10 +44,10 @@ Fitting examples
     >>> pfit = fitting.LinearLSQFitter()
     >>> new_model = pfit(p2, x, yy)
     >>> print(new_model.param_sets)
-    [[  1.00000000e+00,   1.00000000e+00],
-     [  2.00000000e+00,   2.00000000e+00],
-     [  1.35314993e-16,   1.35314993e-16],
-     [ -1.65733755e-17,  -1.65733755e-17]])
+    [[  1.00000000e+00   1.00000000e+00]
+     [  2.00000000e+00   2.00000000e+00]
+     [  3.88335494e-16   3.88335494e-16]
+     [ -2.99749607e-17  -2.99749607e-17]]
 
 Fitters support constrained fitting.
 
@@ -70,7 +72,8 @@ Fitters support constrained fitting.
       >>> p1.c0.fixed = True
       >>> pfit = fitting.LinearLSQFitter()
       >>> new_model = pfit(p1, x, y)
-      >>> new_model.param_sets
+      ...
+      >>> new_model.param_sets  # doctest: +SKIP
       array([[ 1.,          1.        ],
              [ 2.38641216,  2.38641216],
              [ 2.96827886,  2.96827886]])
