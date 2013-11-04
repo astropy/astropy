@@ -546,6 +546,11 @@ class Latitude(Angle):
         return self
 
     def _validate_angles(self):
+        # Convert the lower and upper bounds to the "native" unit of
+        # this angle.  This limits multiplication to two values,
+        # rather than the N values in `self.value`.  Also, the
+        # comparison is performed on raw arrays, rather than Quantity
+        # objects, for speed.
         lower = u.degree.to(self.unit, -90.0)
         upper = u.degree.to(self.unit, 90.0)
         if np.any(self.value < lower) or np.any(self.value > upper):
@@ -616,6 +621,9 @@ class Longitude(Angle):
         Wrap the internal values in the Longitude object.  Using the `Angle`
         wrap_at() method causes recursion.
         """
+        # Convert the wrap angle and 360 degrees to the native unit of
+        # this Angle, then do all the math on raw Numpy arrays rather
+        # than Quantity objects for speed.
         a360 = u.degree.to(self.unit, 360.0)
         wrap_angle = self.wrap_angle.to(self.unit).value
         self_angle = self.value

@@ -869,16 +869,27 @@ class UnitBase(object):
         return lambda val: scale * _condition_arg(val)
 
     def _to(self, other):
-        """Returns the scale to the specified unit.
-        See `to`, except that a Unit object should be given (i.e., no string),
-        and that all defaults are used, i.e., no equivalencies and value=1.
         """
+        Returns the scale to the specified unit.
+
+        See `to`, except that a Unit object should be given (i.e., no
+        string), and that all defaults are used, i.e., no
+        equivalencies and value=1.
+        """
+        # There are many cases where we just want to ensure a Quantity is
+        # of a particular unit, without checking whether it's already in
+        # a particular unit.  If we're being asked to convert from a unit
+        # to itself, we can short-circuit all of this.
         if self is other:
             return 1.0
 
         self_decomposed = self.decompose()
         other_decomposed = other.decompose()
-        # check quickly whether equivalent
+
+        # Check quickly whether equivalent.  This is faster than
+        # `is_equivalent`, because it doesn't generate the entire
+        # physical type list of both units.  In other words it "fails
+        # fast".
         if(self_decomposed.powers == other_decomposed.powers and
            all(self_base is other_base for (self_base, other_base)
                in zip(self_decomposed.bases, other_decomposed.bases))):
@@ -1663,6 +1674,7 @@ class _UnitMetaClass(type):
     def __call__(self, s, represents=None, format=None, namespace=None,
                  doc=None, parse_strict='raise'):
 
+        # Short-circuit if we're already a unit
         if isinstance(s, UnitBase):
             return s
 
@@ -1887,6 +1899,12 @@ class CompositeUnit(UnitBase):
     """
     def __init__(self, scale, bases, powers, decompose=False,
                  decompose_bases=set(), _error_check=True):
+        # There are many cases internal to astropy.units where we
+        # already know that all the bases are Unit objects, and the
+        # powers have been validated.  In those cases, we can skip the
+        # error checking for performance reasons.  When the private
+        # kwarg `_error_check` is False, the error checking is turned
+        # off.
         if _error_check:
             if is_effectively_unity(scale):
                 scale = 1.0
