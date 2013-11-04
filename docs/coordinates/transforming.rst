@@ -55,8 +55,7 @@ You can also specify the equinox when you create a coordinate using an
 `astropy.time.Time` object::
 
     >>> fk5c = FK5('02h31m49.09s +89d15m50.8s',
-                              equinox=Time('J1970', scale='utc'))
-    <FK5 RA=37.95454 deg, Dec=89.26411 deg>
+    ...            equinox=Time('J1970', scale='utc'))
     >>> fk5c.precess_to(Time(2000, format='jyear', scale='utc'))
     <FK5 RA=48.02317 deg, Dec=89.38672 deg>
 
