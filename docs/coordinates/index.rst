@@ -14,9 +14,9 @@ uniform way.
 .. warning::
     `~astropy.coordinates` is currently a work-in-progress, and thus it is
     possible there will be significant API changes in later versions of
-    Astropy. If you have specific ideas for how it might be improved, 
-    feel free to let us know on the `astropy-dev mailing list`_ or at 
-    http://feedback.astropy.org 
+    Astropy. If you have specific ideas for how it might be improved,
+    feel free to let us know on the `astropy-dev mailing list`_ or at
+    http://feedback.astropy.org
 
 
 Getting Started
@@ -43,7 +43,7 @@ of the general `~astropy.coordinates.angles.Angle` class.  The component values 
 accessed using aptly named attributes::
 
     >>> c = ICRS(ra=10.68458, dec=41.26917,
-                                  unit=(u.degree, u.degree))
+    ...          unit=(u.degree, u.degree))
     >>> c.ra
     <Longitude 10.684579999999983 deg>
     >>> c.ra.hour
@@ -81,8 +81,8 @@ coordinates::
 
     >>> from astropy.coordinates import Distance
     >>> c = ICRS(ra=10.68458, dec=41.26917,
-                                  unit=(u.degree, u.degree),
-                                  distance=Distance(770, u.kpc))
+    ...          unit=(u.degree, u.degree),
+    ...          distance=Distance(770, u.kpc))
     >>> c.x
     <Quantity 568.7128654235232 kpc>
     >>> c.y
@@ -114,7 +114,7 @@ arrays::
 
 
 The `coordinates` subpackage also provides a quick way to get
-coordinates for named objects (if you have an active internet 
+coordinates for named objects (if you have an active internet
 connection). All subclasses of
 `~astropy.coordinates.coordsystems.SphericalCoordinatesBase` have a
 special class method, `from_name()`, that accepts a string and queries
