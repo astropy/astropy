@@ -1,3 +1,5 @@
+.. doctest_skip
+
 Using `astropy.vo.client`
 =========================
 
