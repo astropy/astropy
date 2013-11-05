@@ -3,9 +3,15 @@
 This module contains initial mass function distributions with the standard
 default parameters.
 """
-import scipy.stats
+try:
+    from scipy.stats import rv_continuous
+except ImportError:
+    from warnings import warn
+    warn('scipy must be present to use astropy.stats.imfs')
+    rv_continuous = object
 
-class Salpeter_gen(scipy.stats.rv_continuous):
+
+class Salpeter_gen(stats.rv_continuous):
     """
     Power law distribution:
     p(x) = C * x**(-p-1)
