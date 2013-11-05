@@ -17,6 +17,10 @@ class SalpeterGen(rv_continuous):
     p(x) = C * x**(-p-1)
     where
     C = x_0**(-p)
+
+    The default parameters are the Salpeter minimum mass of a=0.03 Msun and
+    b=inf.  To change the limits of the mass function, do:
+    imf_limited = SalpeterGen(a=0.5,b=120)
     """
     def _pdf(self, x, p=1.35):
         return x**(-p-1) / self.a**p
