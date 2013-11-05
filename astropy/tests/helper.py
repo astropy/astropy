@@ -223,7 +223,7 @@ class TestRunner(object):
                 parallel = multiprocessing.cpu_count()
             all_args += ' -n {0}'.format(parallel)
 
-        if sys.version_info[:2] == (2, 6):
+        if sys.version_info < (2, 7, 3):
             all_args = all_args.encode('utf-8')
 
         try:
