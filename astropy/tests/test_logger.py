@@ -2,6 +2,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import imp
 import sys
 import warnings
 
@@ -26,9 +27,9 @@ except NameError:
 
 def setup_function(function):
 
-    # Reset hooks to original values
-    sys.excepthook = _excepthook
-    warnings.showwarning = _showwarning
+    # Reset modules to default
+    imp.reload(warnings)
+    imp.reload(sys)
 
     # Reset internal original hooks
     log._showwarning_orig = None
@@ -43,13 +44,7 @@ def setup_function(function):
     if log.exception_logging_enabled():
         log.disable_exception_logging()
 
-
-def teardown_module(function):
-
-    # Ensure that hooks are restored to original values
-    sys.excepthook = _excepthook
-    warnings.showwarning = _showwarning
-
+teardown_module = setup_function
 
 def test_warnings_logging_disable_no_enable():
     with pytest.raises(LoggingError) as e:
