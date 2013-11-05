@@ -17,3 +17,5 @@ class Salpeter_gen(scipy.stats.rv_continuous):
 
     def __init__(self, a=0.03, **kwargs):
         super(Salpeter_gen,self).__init__(a=a,**kwargs)
+
+Salpeter = Salpeter_gen()
