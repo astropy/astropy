@@ -11,7 +11,7 @@ except ImportError:
     rv_continuous = object
 
 
-class Salpeter_gen(stats.rv_continuous):
+class Salpeter_gen(rv_continuous):
     """
     Power law distribution:
     p(x) = C * x**(-p-1)
