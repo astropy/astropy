@@ -11,7 +11,7 @@ except ImportError:
     rv_continuous = object
 
 
-class Salpeter_gen(rv_continuous):
+class SalpeterGen(rv_continuous):
     """
     Power law distribution:
     p(x) = C * x**(-p-1)
@@ -22,6 +22,6 @@ class Salpeter_gen(rv_continuous):
         return x**(-p-1) / self.a**p
 
     def __init__(self, a=0.03, **kwargs):
-        super(Salpeter_gen,self).__init__(a=a,**kwargs)
+        super(SalpeterGen,self).__init__(a=a,**kwargs)
 
-Salpeter = Salpeter_gen()
+Salpeter = SalpeterGen()
