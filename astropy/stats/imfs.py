@@ -10,6 +10,7 @@ except ImportError:
     warn('scipy must be present to use astropy.stats.imfs')
     rv_continuous = object
 
+import numpy as np
 
 class SalpeterGen(rv_continuous):
     """
@@ -46,16 +47,18 @@ class KroupaGen(rv_continuous):
     1 = b*((0.08**-0.3) + 0.08*(0.5**-1.3-0.08**-1.3) + 0.08*0.5*(0.5**-2.3)) - b*a**-0.3
     """
     def _pdf(self, m, p1=0.3, p2=1.3, p3=2.3, break1=0.08, break2=0.5):
+        """
+        """
 
         m = np.array(m)
 
-        b = 1/(((break1**(-p1)) + break1*(break2**(-p2)-break1**(-p2)) + break1*break2*(break2**(-p3))) - self.a**(-p1))
+        b = 1/(((break1**(-(p1-1))) + break1*(break2**(-(p2-1))-break1**(-(p2-1))) + break1*break2*(break2**(-(p3-1)))) - self.a**(-(p1-1)))
         c = b * break1
         d = c * break2
 
-        zeta = (m**(-p1-1) / break1**(-p1-1) * break1**(-p2-1))*(m<break1)
-        zeta += (m**(-p2-1)) * (m>=break1) * (m<break2)
-        zeta += (m**(-p3-1) / break2**(-p3-1) * break2**(-p2-1)) * (m>=break2)
+        zeta = (m**(-(p1-1)) / break1**(-(p1-1)) * break1**(-(p2-1)))*(m<break1)
+        zeta += (m**(-(p2-1))) * (m>=break1) * (m<break2)
+        zeta += (m**(-(p3-1)) / break2**(-(p3-1)) * break2**(-(p2-1))) * (m>=break2)
         return zeta
 
     def __init__(self, a=0.03, **kwargs):
