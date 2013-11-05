@@ -113,7 +113,7 @@ arrays::
     True
 
 
-The `coordinates` subpackage also provides a quick way to get
+The `astropy.coordinates` subpackage also provides a quick way to get
 coordinates for named objects (if you have an active internet
 connection). All subclasses of
 `~astropy.coordinates.coordsystems.SphericalCoordinatesBase` have a
