@@ -136,7 +136,7 @@ def _update_setup_py_version(version):
             if not pattern.match(line):
                 output.write(line.decode('utf-8'))
             else:
-                output.write('VERSION = {0!r}\n'.format(version))
+                output.write("VERSION = '{0}'\n".format(version))
 
     with io.open('setup.py', 'w') as setup_py:
         setup_py.write(output.getvalue())
