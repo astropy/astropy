@@ -206,12 +206,13 @@ The primary modifications to the release procedure are:
 * Do not do step #20 or later, as those are tasks for an actual release.
 
 .. note::
-    ``~/.pypirc`` files necessary for uploading to the testpypi server seem to
+    ``~/.pypirc`` files necessary for uploading to the testpypi server 
     require you to include your password to be able to manage to do 
-    ``register`` properly.  This is rather insecure, because it means you have
-    to put your PyPI password in a plain-text file.  Bear this in mind when
-    creating your PyPI password, or temporarily change your password just for
-    the purpose of doing a release.
+    ``register`` properly.  This can be insecure, because it means you have
+    to put your PyPI password in a plain-text file.  So you'll want to set 
+    the ``~/.pypirc`` file permissions to be quite restrictive, use a
+    temporary PyPI password just for doing releases, or some other measure
+    to ensure your password remains secure.
 
 
 Maintaining Bug Fix Releases
