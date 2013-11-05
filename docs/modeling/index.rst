@@ -88,8 +88,8 @@ Simple 1D model fitting
 -----------------------
 
 In this section, we look at a simple example of fitting a Gaussian to a
-simulated dataset. We use the :class:`~astropy.modeling.models.Gaussian1DModel`
-and :class:`~astropy.modeling.models.Box1DModel` models and the
+simulated dataset. We use the :class:`~astropy.modeling.models.Gaussian1D`
+and :class:`~astropy.modeling.models.Trapezoid1D` models and the
 :class:`~astropy.modeling.fitters.NonLinearLSQFitter` fitter to
 fit the data:
 
@@ -106,7 +106,7 @@ fit the data:
     y += np.random.normal(0., 0.2, x.shape)
 
     # Fit the data using a box model
-    t_init = models.Trapezoid1DModel(amplitude=1., x_0=0., width=1., slope=0.5)
+    t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5)
     f1 = fitting.NonLinearLSQFitter()
     t = f1(t_init, x, y)
 
