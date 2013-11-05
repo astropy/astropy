@@ -1209,12 +1209,12 @@ class TimePlotDate(TimeFromEpoch):
 
     This can be used directly in the matplotlib `~matplotlib.pyplot.plot_date` function::
 
-      >>> import matplotlib.pyplot as plt
-      >>> jyear = np.linspace(2000, 2001, 20)
-      >>> t = Time(jyear, format='jyear', scale='utc')
-      >>> plt.plot_date(t.plot_date, jyear)
-      >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant
-      >>> plt.draw()
+      >> import matplotlib.pyplot as plt
+      >> jyear = np.linspace(2000, 2001, 20)
+      >> t = Time(jyear, format='jyear', scale='utc')
+      >> plt.plot_date(t.plot_date, jyear)
+      >> plt.gcf().autofmt_xdate()  # orient date labels at a slant
+      >> plt.draw()
     """
     # This corresponds to the zero reference time for matplotlib plot_date().
     # Note that TAI and UTC are equivalent at the reference time, but
