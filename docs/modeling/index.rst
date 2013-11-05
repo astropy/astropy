@@ -6,6 +6,7 @@ Models And Fitting (`astropy.modeling`)
 
 Introduction
 ============
+
 `~astropy.modeling` provides a framework for representing models and
 performing model evaluation and fitting. It supports 1D and 2D models
 and fitting with parameter constraints.
@@ -39,125 +40,133 @@ have been imported::
     >>> from astropy.modeling import models, fitting
 
 
-Working with 1D models
-======================
+Using Models
+------------
 
-Fit a data set with a Gaussian model::
+The `astropy.modeling` package defines a number of models that live inside `astropy.modeling.models` and behave like parametrized functions::
 
-    >>> x = np.arange(1, 10, .1)
-    >>> g1 = models.Gaussian1D(10., stddev=2.1, mean=4.2)
-    >>> g1
-    <Gaussian1D(amplitude=Parameter('amplitude', value=10.0),
-                mean=Parameter('mean', value=4.2000000000000002),
-                stddev=Parameter('stddev', value=2.1000000000000001),
-                param_dim=1)>
-    >>> y = g1(x)
-    >>> np.random.seed(0)
-    >>> n = np.random.randn(90)
-    >>> ny = y + n
-    >>> gfit = fitting.NonLinearLSQFitter()
-    >>> new_model = gfit(g1, x, ny)
-    >>> print(new_model)
-    Model: Gaussian1D
+
+    >>> from astropy.modeling import models
+    >>> g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
+    >>> print(g)
+    Model: Gaussian1DModel
     n_inputs:   1
     Degree: N/A
     Parameter sets: 1
     Parameters:
-               amplitude: Parameter('amplitude', value=9.8931826765510706)
-               mean: Parameter('mean', value=4.0263781556737737)
-               stddev: Parameter('stddev', value=2.152396119425859)
+               amplitude: Parameter('amplitude', value=1.2)
+               mean: Parameter('mean', value=0.9000...)
+               stddev: Parameter('stddev', value=0.5)
 
-Create data using a 1D Chebyshev model::
+Model parameters can be accessed as attributes:
 
-    >>> ch1 = models.Chebyshev1D(3, domain=[x.min(), x.max()])
-    >>> ch1.parameters
-    array([ 0.,  0.,  0.,  0.])
-    >>> ch1.parameters = [1, 2, 3, 4]
-    >>> ch1.parameters
-    array([ 1.,  2.,  3.,  4.])
-    >>> print(ch1)
-    Model: Chebyshev1D
-    n_inputs:   1
-    Degree: 3
-    Parameter sets: 1
-    Parameters:
-               c0: Parameter('c0', value=1.0)
-               c1: Parameter('c1', value=2.0)
-               c2: Parameter('c2', value=3.0)
-               c3: Parameter('c3', value=4.0)
-    >>> y = ch1(x)
+    >>> g.amplitude
+    Parameter('amplitude', value=1.2)
+    >>> g.mean
+    Parameter('mean', value=0.9000...)
+    >>> g.stddev
+    Parameter('stddev', value=0.5)
 
-Add some noise::
+and can also be set using the attributes::
 
-    >>> np.random.seed(0)
-    >>> n = np.random.randn(90)
-    >>> ny = y + n
+    >>> g.amplitude = 0.8
+    >>> g.amplitude
+    Parameter('amplitude', value=0.8000...)
 
-Fit a Chebyshev polynomial to the data::
+Models can be evaluated by calling them as functions::
 
-    >>> ch2 = models.Chebyshev1D(3)
-    >>> chfit = fitting.LinearLSQFitter()
-    >>> new_model = chfit(ch2, x, ny)
-    >>> new_model.parameters
-    array([ 1.17789166,  1.67145195,  3.53825251,  4.05892813])
+    >>> g(0.1)
+    0.22242984036255528
+    >>> g(np.linspace(0.5, 1.5, 7))
+    array([ 0.58091923,  0.71746405,  0.7929204 ,  0.78415894,  0.69394278,
+            0.54952605,  0.3894018 ])
+
+Models can therefore already be useful to evaluate common functions,
+independent of the fitting part of the package.
+
+Simple 1D model fitting
+-----------------------
+
+In this section, we look at a simple example of fitting a Gaussian to a
+simulated dataset. We use the :class:`~astropy.modeling.models.Gaussian1D`
+and :class:`~astropy.modeling.models.Trapezoid1D` models and the
+:class:`~astropy.modeling.fitters.NonLinearLSQFitter` fitter to
+fit the data:
 
 .. plot::
+   :include-source:
 
-   import matplotlib.pyplot as plt
-   import numpy as np
-   from astropy.modeling import models, fitting
-   x = np.arange(1, 10, .1)
-   ch1 = models.Chebyshev1D(3, domain=[x.min(), x.max()])
-   ch1.parameters = [1, 2, 3, 4]
-   y = ch1(x)
-   np.random.seed(0)
-   n = np.random.randn(90)
-   ny = y + n
-   ch2 = models.Chebyshev1D(3)
-   chfit = fitting.LinearLSQFitter()
-   model = chfit(ch2, x, ny)
-   plt.plot(x, y, label='y - Chebyshev polynomial')
-   plt.plot(x, ny, label='ny - Chebyshev polynomial with noise')
-   plt.plot(x, model(x), label='ch2(x) - Fitted model')
-   plt.legend()
-   plt.show()
+    import numpy as np
+    from astropy.modeling import models, fitting
 
+    # Generate fake data
+    np.random.seed(0)
+    x = np.linspace(-5., 5., 200)
+    y = 3 * np.exp(-0.5 * (x - 1.3)**2 / 0.8**2)
+    y += np.random.normal(0., 0.2, x.shape)
 
-Working with 2D models
-======================
+    # Fit the data using a box model
+    t_init = models.Trapezoid1D(amplitude=1., x_0=0., width=1., slope=0.5)
+    f1 = fitting.NonLinearLSQFitter()
+    t = f1(t_init, x, y)
 
-First create some data to be fitted with a 2D polynomial::
+    # Fit the data using a Gaussian
+    g_init = models.Gaussian1D(amplitude=1., mean=0, stddev=1.)
+    f2 = fitting.NonLinearLSQFitter()
+    g = f2(g_init, x, y)
 
-    >>> x, y = np.mgrid[:10, :10]
-    >>> def poly2(x, y):
-    ...     return 1+2*x+3*x**2+4*y+5*y**2+6*x*y
-    >>> z = poly2(x, y)
+    # Plot the data with the best-fit model
+    plt.figure(figsize=(8,5))
+    plt.plot(x, y, 'ko')
+    plt.plot(x, t(x), 'b-', lw=2, label='Trapezoid')
+    plt.plot(x, g(x), 'r-', lw=2, label='Gaussian')
+    plt.xlabel('Position')
+    plt.ylabel('Flux')
+    plt.legend(loc=2)
 
-Fit a 2D polynomial to the data::
+As shown above, once instantiated, the fitter class can be used as a function
+that takes the initial model (``t_init`` or ``g_init``) and the data values
+(``x`` and ``y``), and returns a fitted model (``t`` or ``g``).
 
-    >>> p2 = models.Polynomial2D(2)
-    >>> print(p2)
-    Model: Polynomial2D
-    n_inputs:   2
-    Degree: 2
-    Parameter sets: 1
-    Parameters:
-               c0_0: Parameter('c0_0', value=0.0)
-               c1_0: Parameter('c1_0', value=0.0)
-               c2_0: Parameter('c2_0', value=0.0)
-               c0_1: Parameter('c0_1', value=0.0)
-               c0_2: Parameter('c0_2', value=0.0)
-               c1_1: Parameter('c1_1', value=0.0)
+Simple 2D model fitting
+-----------------------
 
-    >>> pfit = fitting.LinearLSQFitter()
-    >>> np.random.seed(0)
-    >>> n = np.random.randn(100)
-    >>> n.shape = (10, 10)
-    >>> new_model = pfit(p2, x, y, z+n)
-    >>> new_model.parameters
-    array([ 1.79964917,  1.44891526,  3.05358047,  4.08895144,  4.98756933,
-            6.00824639])
+Similarly to the 1-d example, we can create a simulated 2-d data dataset, and fit a polynomial model to it. This could be used for example to fit the background in an image.
 
+.. plot::
+   :include-source:
+
+    import numpy as np
+    from astropy.modeling import models, fitting
+
+    # Generate fake data
+    np.random.seed(0)
+    x, y = np.mgrid[:128, :128]
+    z = 2. * x ** 2 - 0.5 * x ** 2 + 1.5 * x * y - 1.
+    z += np.random.normal(0., 0.1, z.shape) * 50000.
+
+    # Fit the data using astropy.modeling
+    p_init = models.Polynomial2D(degree=2)
+    f = fitting.NonLinearLSQFitter()
+    p = f(p_init, x, y, z)
+
+    # Plot the data with the best-fit model
+    plt.figure(figsize=(8,2.5))
+    plt.subplot(1,3,1)
+    plt.imshow(z, interpolation='nearest', vmin=-1e4, vmax=5e4)
+    plt.title("Data")
+    plt.subplot(1,3,2)
+    plt.imshow(p(x, y), interpolation='nearest', vmin=-1e4, vmax=5e4)
+    plt.title("Model")
+    plt.subplot(1,3,3)
+    plt.imshow(z - p(x, y), interpolation='nearest', vmin=-1e4, vmax=5e4)
+    plt.title("Residual")
+
+A list of models is provided in the `Reference/API`_ section. The fitting
+framework includes many useful features that are not demonstrated here, such as
+weighting of datapoints, fixing or linking parameters, and placing lower or
+upper limits on parameters. For more information on these, take a look at the
+:doc:`fitting` documentation.
 
 Using `modeling`
 ================
