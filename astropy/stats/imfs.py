@@ -37,7 +37,7 @@ Salpeter = SalpeterGen()
 class KroupaGen(rv_continuous):
     """
     Power law distribution:
-    p(x) = b*x**(-0.3)  | x < 0.08
+    p(x) = b*x**(-0.3) | x < 0.08
            c*x**(-1.3) | 0.08 < x < 0.5
            d*x**(-2.3) | 0.5 < x
     """
