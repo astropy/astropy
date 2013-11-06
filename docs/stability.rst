@@ -13,6 +13,13 @@ undergo some user interface changes as we work to integrate the packages
 better. Thus, we cannot guarantee complete backward-compatibility between
 versions at this stage.
 
+If you are writing code that needs long-term stability, you can ensure that you
+are only using stable APIs by putting::
+
+    from astropy import stability
+
+at the top of your script.
+
 .. |planned| image:: _static/planned.png
 
 .. |dev| image:: _static/dev.png
@@ -259,4 +266,3 @@ The current planned and existing sub-packages are:
             </td>
         </tr>
     </table>
-

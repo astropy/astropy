@@ -11,3 +11,6 @@ from . import fitting
 from . import models
 from .core import *
 from .parameters import *
+
+from .. import _declare_unstable_api
+_declare_unstable_api()
