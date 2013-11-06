@@ -70,7 +70,7 @@ example, to create custom units::
 
     >>> # And do some conversions
     >>> q = 42.0 * cms
-    >>> cms.to(mph)
+    >>> q.to(mph)
     <Quantity 0.9395132426628489 mi / h>
 
 Units that "cancel out" become a special unit called the
@@ -82,7 +82,7 @@ Units that "cancel out" become a special unit called the
 `astropy.units` is able to match compound units against the units it already
 knows about::
 
-    >>> (u.s ** -1).compose()
+    >>> (u.s ** -1).compose()  # doctest: +SKIP
     [Unit("Bq"), Unit("Hz"), Unit("3.7e+10 Ci")]
 
 And it can convert between unit systems, such as SI or CGS::

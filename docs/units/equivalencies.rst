@@ -22,7 +22,7 @@ Equivalencies are used by passing a list of equivalency pairs to the
 <astropy.units.core.UnitBase.get_converter>` methods.
 Alternatively, if a
 larger piece of code needs the same equivalencies, one can set them
-for a :ref:`given context <equivalency-context>`. 
+for a :ref:`given context <equivalency-context>`.
 
 Built-in equivalencies
 ----------------------
@@ -37,7 +37,7 @@ Length and angles are not normally convertible, so
 :meth:`~astropy.units.core.UnitBase.to` raises an exception::
 
   >>> from astropy import units as u
-  >>> (8.0 * u.arcsec).to(u.parsec, 8)
+  >>> (8.0 * u.arcsec).to(u.parsec)
   Traceback (most recent call last):
     ...
   UnitsError: 'arcsec' (angle) and 'pc' (length) are not convertible
@@ -68,8 +68,12 @@ dimensionless).  For instance, normally the following raise exceptions::
 
   >>> from astropy import units as u
   >>> u.degree.to('')
+  Traceback (most recent call last):
+    ...
   UnitsError: 'deg' (angle) and '' (dimensionless) are not convertible
   >>> (u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J)
+  Traceback (most recent call last):
+    ...
   UnitsError: 'cycle2 kg m2 / s2' and 'J' (energy) are not convertible
 
 But when passing we pass the proper conversion function,
@@ -77,17 +81,15 @@ But when passing we pass the proper conversion function,
 
   >>> u.deg.to('', equivalencies=u.dimensionless_angles())
   0.01745329...
-  >>> (0.5e38 * u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J,  
+  >>> (0.5e38 * u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J,
   ...                            equivalencies=u.dimensionless_angles())
-                                 # doctest: +ELLIPSIS
   <Quantity 1.97392...e+39 J>
-
-  >>> np.exp((1j*0.5*u.cycle).to('', equivalencies=u.dimensionless_angles())
-                                 # doctest: +ELLIPSIS
-  <Quantity (-1+...j) >
+  >>> import numpy as np
+  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))
+  <Quantity (0.7071067811865476+0.7071067811865475j) >
 
 The example with complex numbers is also one may well be doing a fair
-number of similar calculations.  For such situations, there is the 
+number of similar calculations.  For such situations, there is the
 option to :ref:`set default equivalencies <equivalency-context>`.
 
 Spectral Units
@@ -123,7 +125,6 @@ These equivalencies even work with non-base units::
   >>> # Inches to calories
   >>> from astropy.units import imperial
   >>> imperial.inch.to(imperial.Cal, equivalencies=u.spectral())
-                                               # doctest: +ELLIPSIS
   1.8691807591...e-27
 
 Spectral (Doppler) equivalencies
@@ -222,22 +223,22 @@ Note that the equivalency can be used with any other compatible units::
 
 And it also works in the other direction::
 
-  >>> u.lb.to(u.pint, 1, equivalencies=liters_water)
+  >>> imperial.lb.to(imperial.pint, 1, equivalencies=liters_water)
   0.9586114172355458
 
 A slightly more complicated example: Spectral Doppler Equivalencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We show how to define an equivalency using the radio convention for CO 1-0.
-This function is already defined in 
+This function is already defined in
 :func:`~astropy.units.equivalencies.doppler_radio`,
 but this example is illustrative::
 
     >>> from astropy.constants import si
     >>> restfreq = 115.27120  # rest frequency of 12 CO 1-0 in GHz
     >>> freq_to_vel = [(u.GHz, u.km/u.s,
-    ... lambda x: (restfreq-x) / restfreq * c.c.to('km/s').value,
-    ... lambda x: (1-x/c.c.to('km/s').value) * restfreq )]
+    ... lambda x: (restfreq-x) / restfreq * si.c.to('km/s').value,
+    ... lambda x: (1-x/si.c.to('km/s').value) * restfreq )]
     >>> u.Hz.to(u.km / u.s, 116e9, equivalencies=freq_to_vel)
     -1895.432192...
     >>> (116e9 * u.Hz).to(u.km / u.s, equivalencies=freq_to_vel)
@@ -268,7 +269,7 @@ However, when passing the spectral equivalency, you can see there are
 all kinds of things that ``Hz`` can be converted to::
 
   >>> u.Hz.find_equivalent_units(equivalencies=u.spectral())
-    Primary name | Unit definition        | Aliases     
+    Primary name | Unit definition        | Aliases
   [
     AU           | 1.49598e+11 m          | au             ,
     Angstrom     | 1e-10 m                | AA, angstrom   ,
@@ -302,22 +303,22 @@ simply do::
 
   >>> import astropy.units as u
   >>> u.set_enabled_equivalencies(u.dimensionless_angles())
-  >>> u.deg.to('')                                   # doctest: +ELLIPSIS
+  <astropy.units.core._UnitContext object at ...>
+  >>> u.deg.to('')
   0.01745329...
 
 Here, any list of equivalencies could be used, or one could add, e.g.,
 :func:`~astropy.units.equivalencies.spectral` and
 :func:`~astropy.units.equivalencies.spectral_density` (since these return
-lists, they should indeed be combined by adding them together).  
+lists, they should indeed be combined by adding them together).
 
 The disadvantage of the above approach is that you may forget to turn
 the default off (done by giving an empty argument). To automate this,
 a context manager is provided::
 
   >>> import astropy.units as u
-  >>> with u.set_enabled_equivalencies_context(u.dimensionless_angles()):
+  >>> with u.set_enabled_equivalencies(u.dimensionless_angles()):
   ...    phase = 0.5 * u.cycle
   ...    c = np.exp(1j*phase)
-  ...
-  >>> c                                              # doctest: +ELLIPSIS
+  >>> c
   <Quantity (-1+...j) >

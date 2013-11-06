@@ -40,6 +40,7 @@ can be enabled by calling `~astropy.units.core.add_enabled_units`::
   >>> (u.m / u.s).find_equivalent_units()
   []
   >>> u.add_enabled_units([kmph])
+  <astropy.units.core._UnitContext object at ...>
   >>> (u.m / u.s).find_equivalent_units()
     Primary name | Unit definition | Aliases
   [
