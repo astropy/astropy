@@ -12,9 +12,11 @@ from ... import units as u
 
 # In Python 3, prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
 # sorting of structured arrays to silently fail under certain circumstances (for
-# example if the Table contains string columns) on MacOS X
-SKIP_STRING_SORT = (platform.system() == 'Darwin' and six.PY3 and
-                    version.LooseVersion(np.__version__) < version.LooseVersion('1.6.2'))
+# example if the Table contains string columns) on MacOS X and Windows
+NUMPY_VERSION = version.LooseVersion(np.__version__)
+SKIP_STRING_SORT = (platform.system() in ('Darwin', 'Windows') and six.PY3 and
+                    NUMPY_VERSION < version.LooseVersion('1.6.2'))
+
 
 class MaskedTable(table.Table):
     def __init__(self, *args, **kwargs):
