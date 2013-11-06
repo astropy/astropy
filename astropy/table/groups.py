@@ -59,9 +59,9 @@ def table_group_by(table, keys):
     except TypeError:
         # Some versions (likely 1.6 and earlier) of numpy don't support
         # 'mergesort' for all data types.  MacOSX (Darwin) doesn't have a stable
-        # sort by default while Linux does (or appears to).
+        # sort by default, nor does Windows, while Linux does (or appears to).
         idx_sort = table_keys.argsort()
-        stable_sort = platform.system() != 'Darwin'
+        stable_sort = platform.system() not in ('Darwin', 'Windows')
     table_keys = table_keys[idx_sort]
 
     # Get all keys
