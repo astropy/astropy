@@ -39,14 +39,14 @@ class KroupaGen(rv_continuous):
            d*x**(-2.3) | 0.5 < x
 
     integrals:
-           b/(-0.3) * x**0.7
-           c/(-1.3) * x**-0.3
-           d/(-2.3) * x**-1.3
+           b/(0.7) * x**0.7
+           c/(-0.3) * x**-0.3
+           d/(-1.3) * x**-1.3
 
     general form of the integrals:
-           b/(p1) * x**-(p1-1)
-           c/(p2) * x**-(p2-1)
-           d/(p3) * x**-(p3-1)
+           b/(1-p1) * x**(1-p1)
+           c/(1-p2) * x**(1-p2)
+           d/(1-p3) * x**(1-p3)
 
     sum the components:
            b/p1 * (break1**(-(p1-1)) - a**(-(p1-1)))
@@ -76,9 +76,9 @@ class KroupaGen(rv_continuous):
 
         m = np.array(m)
 
-        binv = ((break1**(-(p1-1)) - self.a**(-(p1-1)))/p1 + 
-                (break2**(-(p2-1)) - break1**(-(p2-1))) * (break1**(p2-p1))/p2 +
-                (- break2**(-(p3-1))) * (break1**(p2-p1)) * (break2**(p3-p2))/p3)
+        binv = ((break1**(-(p1-1)) - self.a**(-(p1-1)))/(1-p1) +
+                (break2**(-(p2-1)) - break1**(-(p2-1))) * (break1**(p2-p1))/(1-p2) +
+                (- break2**(-(p3-1))) * (break1**(p2-p1)) * (break2**(p3-p2))/(1-p3))
         b = 1./binv
         c = b * break1**(p2-p1)
         d = c * break2**(p3-p2)
