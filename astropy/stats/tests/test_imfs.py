@@ -24,3 +24,8 @@ def test_normalization(pdf):
     abstol = 0.0001
     integral,error = quad(pdf, 0.03, 1000, abstol=abstol)
     assert np.abs(integral-1) < abstol+error
+
+@pytest.mark.parametrize('cdf',((imfs.Kroupa.cdf,imfs.Salpeter.cdf),))
+def test_cdf(cdf):
+    assert cdf(0.03) == 0
+    assert cdf(np.inf) == 1
