@@ -37,38 +37,6 @@ class KroupaGen(rv_continuous):
     p(x) = b*x**(-0.3)  | x < 0.08
            c*x**(-1.3) | 0.08 < x < 0.5
            d*x**(-2.3) | 0.5 < x
-
-    integrals:
-           b/(0.7) * x**0.7
-           c/(-0.3) * x**-0.3
-           d/(-1.3) * x**-1.3
-
-    general form of the integrals:
-           b/(1-p1) * x**(1-p1)
-           c/(1-p2) * x**(1-p2)
-           d/(1-p3) * x**(1-p3)
-
-    sum the components:
-           b/p1 * (break1**(-(p1-1)) - a**(-(p1-1)))
-           c/p2 * (break2**(-(p2-1)) - break1**(-(p2-1)))
-           d/p3 * (0 - break2**(-(p3-1)))
-           = 1
-    
-    other equations:
-    p(break1) = b*break1**(-p1) = c*break1**(-p2)
-    b = c * break1**(p1-p2)
-    p(break2) = c*break2**(-p2) = d*break2**(-p3)
-    c = d * break2**(p2-p3)
-
-    b/p1 * (break1**(-(p1-1)) - a**(-(p1-1))) + 
-    b/p2 * (break2**(-(p2-1)) - break1**(-(p2-1))) * (break1**(p2-p1)) + 
-    b/p3 * (- break2**(-(p3-1))) * (break1**(p2-p1)) * (break2**(p3-p2))
-    = 1
-
-    binv = ((break1**(-(p1-1)) - a**(-(p1-1)))/p1 + 
-            (break2**(-(p2-1)) - break1**(-(p2-1))) * (break1**(p2-p1))/p2 +
-            (- break2**(-(p3-1))) * (break1**(p2-p1)) * (break2**(p3-p2))/p3)
-
     """
     def _pdf(self, m, p1=0.3, p2=1.3, p3=2.3, break1=0.08, break2=0.5):
         """
