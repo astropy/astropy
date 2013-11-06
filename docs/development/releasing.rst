@@ -6,123 +6,213 @@ The current release procedure for Astropy involves a combination of an
 automated release script and some manual steps.  Future versions will automate
 more of the process, if not all.
 
-One of the main steps in performing a release is to create a tag in the git
-repository representing the exact state of the repository that represents the
-version being released.  For Astropy we will always use `signed tags`_: A
-signed tag is annotated with the name and e-mail address of the signer, a date
-and time, and a checksum of the code in the tag.  This information is then
-signed with a GPG private key and stored in the repository.
 
-Using a signed tag ensures the integrity of the contents of that tag for the
-future.  On a distributed VCS like git, anyone can create a tag of Astropy
-called "0.1" in their repository--and where it's easy to monkey around even
-after the tag has been created.  But only one "0.1" will be signed by one of
-the Astropy project coordinators and will be verifiable with their public key.
+.. _release-procedure:
 
-Creating a GPG Signing Key and a Signed Tag
--------------------------------------------
+Release Procedure
+-----------------
 
-Git uses GPG to created signed tags, so in order to perform an Astropy release
-you will need GPG installed and will have to generated a signing key pair.
-Most \*NIX installations come with GPG installed by default (as it is used to
-verify the integrity of system packages).  If you don't have the ``gpg``
-command, consult the documentation for your system on how to install it.
+The automated portion of the Astropy release procedure uses `zest.releaser`_
+to create the tag and update the version.  zest.releaser is extendable through
+hook functions--Astropy already includes a couple hook functions to modify the
+default behavior, but future releases may be further automated through the
+implementation of additional hook functions.  In order to use the hooks,
+Astropy itself must be *installed* alongside zest.releaser.  It is recommended
+to create a `virtualenv`_ specifically for this purpose.
 
-For OSX, GPG can be installed from MacPorts using ``sudo port install gnupg``.
+This may seem like a lot of steps, but most of them won't be necessary to
+repeat for each release.  The advantage of using an automated or semi-automated
+procedure is that ensures a consistent release process each time.
 
-To create a new public/private key pair, simply run::
+ 1. Ensure you have a GPG key pair available for when git needs to sign the
+    tag you create for the release.  See :ref:`key-signing-info` for more on
+    this.
 
-    $ gpg --gen-key
+ 2. Update the list of contributors in the ``creditsandlicense.rst`` file. The
+    easiest way to check this is do::
 
-This will take you through a few interactive steps. For the encryption
-and expiry settings, it should be safe to use the default settings (I use
-a key size of 4096 just because what does a couple extra kilobytes
-hurt?) Enter your full name, preferably including your middle name or
-middle initial, and an e-mail address that you expect to be active for a
-decent amount of time. Note that this name and e-mail address must match
-the info you provide as your git configuration, so you should either
-choose the same name/e-mail address when you create your key, or update
-your git configuration to match the key info. Finally, choose a very good
-pass phrase that won't be easily subject to brute force attacks.
+        $ git shortlog -s
 
+    And just add anyone from that list who isn't already credited.
 
-If you expect to use the same key for some time, it's good to make a backup of
-both your public and private key::
+ 3. Install virtualenv if you don't already have it.  See the linked virtualenv
+    documentation for details.  Also, make sure that you have `cython`_
+    installed, as you will need it to generate the .c files needed for the
+    release.
 
-    $ gpg --export --armor > public.key
-    $ gpg --export-secret-key --armor > private.key
+ 4. Create and activate a virtualenv::
 
-Back up these files to a trusted location--preferably a write-once physical
-medium that can be stored safely somewhere.  One may also back up their keys to
-a trusted online encrypted storage, though some might not find that secure
-enough--it's up to you and what you're comfortable with.
+        $ virtualenv --system-site-packages --distribute astropy-release
+        $ source astropy-release/bin/activate
 
-Add your public key to a keyserver
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Now that you have a public key, you can publish this anywhere you like--in your
-e-mail, in a public code repository, etc.  You can also upload it to a
-dedicated public OpenPGP keyserver.  This will store the public key
-indefinitely (until you manually revoke it), and will be automatically synced
-with other keyservers around the world.  That makes it easy to retrieve your
-public key using the gpg command-line tool.
+ 5. Obtain a *clean* version of the Astropy repository.  That is, one
+    where you don't have any intermediate build files.  Either use a fresh
+    ``git clone`` or do ``git clean -dfx``.
 
-To do this you will need your public key's keyname.  To find this enter::
+ 6. Be sure you're the "master" branch or, for a bug fix release, on the
+    appropriate bug fix branch.  For example, if releasing version 0.2.2 make
+    sure to::
+    
+        $ git checkout v0.2.x
 
-    $ gpg --list-keys
+ 7. Now install Astropy into the virtualenv::
 
-This will output something like::
+        $ python setup.py install
 
-    /path/to/.gnupg/pubring.gpg
-    ---------------------------------------------
-    pub   4096D/1234ABCD 2012-01-01
-    uid                  Your Name <your_email>
-    sub   4096g/567890EF 2012-01-01
+    This is necessary for two reasons.  First, the entry points for the
+    releaser scripts need to be available, and these are in the Astropy
+    package. Second, the build process will generate .c files from the
+    Cython .pyx files, and the .c files are necessary for the source
+    distribution.
 
-The 8 digit hex number on the line starting with "pub"--in this example the
-"1234ABCD" unique keyname for your public key.  To push it to a keyserver
-enter::
+ 8. Install zest.releaser into the virtualenv; use ``--upgrade --force`` to
+    ensure that the latest version is installed in the virtualenv (if you're
+    running a csh variant make sure to run ``rehash`` afterwards too)::
 
-    $ gpg --send-keys 1234ABCD
+        $ pip install zest.releaser --upgrade --force
 
-But replace the 1234ABCD with the keyname for your public key.  Most systems
-come configured with a sensible default keyserver, so you shouldn't have to
-specify any more than that.
+ 9. Ensure that all changes to the code have been committed, then start the
+    release by running::
 
-Create a tag
-^^^^^^^^^^^^
-Now test creating a signed tag in git.  It's safe to experiment with this--you
-can always delete the tag before pushing it to a remote repository::
+        $ fullrelease
 
-    $ git tag -s v0.1 -m "Astropy version 0.1"
+ 10. You will be asked to enter the version to be released.  Press enter to
+     accept the default (which will normally be correct) or enter a specific
+     version string.  A diff will then be shown of CHANGES.rst and setup.py
+     showing that a release date has been added to the changelog, and that the
+     version has been updated in setup.py.  Enter 'Y' when asked to commit
+     these changes.
 
-This will ask for the password to unlock your private key in order to sign
-the tag with it.  Confirm that the default signing key selected by git is the
-correct one (it will be if you only have one key).
+ 11. You will then be shown the command that will be run to tag the release.
+     Enter 'Y' to confirm and run the command.
 
-Once the tag has been created, you can verify it with::
+ 12. When asked "Check out the tag (for tweaks or pypi/distutils server
+     upload)" enter 'N': zest.releaser does not offer enough control yet over
+     how the register and upload are performed so we will do this manually
+     until the release scripts have been improved.
 
-    $ git tag -v v0.1
+ 13. You will be asked to enter a new development version.  Normally the next
+     logical version will be selected--press enter to accept the default, or
+     enter a specific version string.  Do not add ".dev" to the version, as
+     this will be appended automatically (ignore the message that says ".dev0
+     will be appended"--it will actually be ".dev" without the 0).  For
+     example, if the just-released version was "0.1" the default next version
+     will be "0.2".  If we want the next version to be, say "0.1.1", or "1.0", 
+     then that must be entered manually.
 
-This should output something like::
+ 14. You will be shown a diff of CHANGES.rst showing that a new section has
+     been added for the new development version, and showing that the version
+     has been updated in setup.py.  Enter 'Y' to commit these changes.
 
-    object e8e3e3edc82b02f2088f4e974dbd2fe820c0d934
-    type commit
-    tag v0.1
-    tagger Your Name <your_email> 1339779534 -0400
+ 15. When asked to push the changes to a remote repository, enter 'Y'.  This
+     should complete the portion of the process that's automated at this point.
 
-    Astropy version 0.1
-    gpg: Signature made Fri 15 Jun 2012 12:59:04 PM EDT using DSA key ID 0123ABCD
-    gpg: Good signature from "Your Name <your_email>"
+ 16. Check out the tag of the released version.  For example::
 
-You can use this to verify signed tags from any repository as long as you have
-the signer's public key in your keyring.  In this case you signed the tag
-yourself, so you already have your public key.
+         $ git checkout v0.1
 
-Note that if you are planning to do a release following the steps below, you
-will want to delete the tag you just created, because the release script does
-that for you.  You can delete this tag by doing::
+ 17. Create the source distribution by doing::
 
-    $ git tag -d v0.1
+         $ python setup.py sdist
+
+     Copy the produced ``.tar.gz`` somewhere and verify that you can unpack it,
+     build it, and get all the tests to pass.  It would be best to create a new
+     virtualenv in which to do this.
+
+ 18. Register the release on PyPI with::
+
+         $ python setup.py register
+
+ 19. Upload the source distribution to PyPI; this is preceded by re-running
+     the sdist command, which is necessary for the upload command to know
+     which distribution to upload::
+
+         $ python setup.py sdist upload
+
+ 20. Update the "stable" branch to point to the new stable release For example::
+
+         $ git checkout stable
+         $ git reset --hard v0.1
+
+ 21. Update Readthedocs so that it builds docs for the corresponding github tag.
+     Also verify that the ``stable`` Readthedocs version builds correctly for
+     the new version (it should trigger automatically once you've done the 
+     previous step.)
+
+ 22. If this was a major/minor release (not a bug fix release) create a bug fix
+     branch for this line of release.  That is, if the version just released
+     was "v<major>.<minor>.0", create bug fix branch with the name
+     "v<major>.<minor>.x".  Starting from the commit tagged as the release,
+     just checkout a new branch and push it to the remote server.  For example,
+     after releasing version 0.3, do::
+
+         $ git checkout -b v0.3.x
+
+     Then edit ``setup.py`` so that the ``VERSION`` variable is
+     ``'0.3.1.dev'``, and commit that change. Then, do::
+
+         $ git push upstream v0.3.x
+
+    .. note::
+
+        You may need to replace ``upstream`` here with ``astropy`` or
+        whatever remote name you use for the main astropy repository.
+
+     The purpose of this branch is for creating bug fix releases like "0.3.1"
+     and "0.3.2", while allowing development of new features to continue in
+     the master branch.  Only changesets that fix bugs without making
+     significant API changes should be merged to the bug fix branches.
+
+ 23. Create a bug fix label on GitHub; this should have the same name as the
+     just created bug fix branch prepended with "backport-".  For the previous
+     example this would be "backport-0.3.x"  This label should be applied to
+     all issues that should be backported to the bug fix branch.  Also create a
+     milestone for the next bug fix release if it hasn't been made already.
+
+ 24. Update `astropy/astropy-website <https://github.com/astropy/astropy-website>`_
+     for the new version.  Two files need to be updated: ``index.rst`` has two tags
+     near the top specifying the current release, and the ``docs.rst`` file should
+     be updated by putting the previous release in as an older version, and updating
+     the "latest developer version" link to point to the new release.
+
+ 25. Run the ``upload_script.py`` script in `astropy-website` to update the actual
+     web site.
+
+Modifications for a beta/release candidate release
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For major releases with a lot of changes, we sometimes do beta and/or
+release candidates to have a chance to catch significant bugs before the true
+release.  If the release you are performing is this kind of pre-release, some
+of the above steps need to be modified.  The primary difference is that these
+releases go on the http://testpypi.python.org server instead of the regular
+PyPI.  The testpypi server provides a place to test the release and host it,
+but never appears anywhere on the regular server.  The price is that testpypi
+is not guaranteed to be up long-term, but for short-term pre-releases, this is
+no problem.
+
+The primary modifications to the release procedure are:
+
+* When prompted for a version number (step #13), you will need to manually 
+  enter something like "1.0b1" or "1.0rc1".  You should follow this numbering
+  scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release is
+  ordered "before" the main release by various automated tools.
+* On steps #18 and #19, where you register and upload to PyPI, it is important
+  that you add the option ``-r https://testpypi.python.org/pypi``.  This 
+  ensures the release information and files are sent to the test server instead
+  of the real PyPI server.  This will probably require you to set up a 
+  ``~/.pypirc`` file appropriate for the testpypi server.  See 
+  https://wiki.python.org/moin/TestPyPI for more on how to do this.
+* Do not do step #20 or later, as those are tasks for an actual release.
+
+.. note::
+    ``~/.pypirc`` files necessary for uploading to the testpypi server 
+    require you to include your password to be able to manage to do 
+    ``register`` properly.  This can be insecure, because it means you have
+    to put your PyPI password in a plain-text file.  So you'll want to set 
+    the ``~/.pypirc`` file permissions to be quite restrictive, use a
+    temporary PyPI password just for doing releases, or some other measure
+    to ensure your password remains secure.
 
 
 Maintaining Bug Fix Releases
@@ -134,7 +224,9 @@ known as a "bug fix" release.  Bug fix releases should not change any user-
 visible interfaces.  They should only fix bugs on the previous major/minor
 release and may also refactor internal APIs or include omissions from previous
 releases--that is, features that were documented to exist but were accidentally
-left out of the previous release.
+left out of the previous release. They may also include changes to docstrings 
+that enhance clarity but do not describe new features (e.g., more examples, 
+typo fixes, etc).
 
 Bug fix releases are typically managed by maintaining one or more bug fix
 branches separate from the master branch (the release procedure below discusses
@@ -246,8 +338,9 @@ Preparing the bug fix branch for release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 There are two primary steps that need to be taken before creating a bug fix
-release (the rest of the procedure is the same as any other release as
-described in the release procedure below).
+release. The rest of the procedure is the same as any other release as
+described in :ref:`release-procedure` (although be sure to provide the
+right version number).
 
 1. Any existing fixes to the issues assigned to the current bug fix release
    milestone, or labeled with the relevant "backport-x.y.z" label must be
@@ -325,170 +418,128 @@ be fixed soon to a new release milestone.  If the upcoming bug fix release is
 issues that you don't expect to be fixed in time for 'v0.2.2'.
 
 
-Release Procedure
------------------
+.. _key-signing-info:
 
-The automated portion of the Astropy release procedure uses `zest.releaser`_
-to create the tag and update the version.  zest.releaser is extendable through
-hook functions--Astropy already includes a couple hook functions to modify the
-default behavior, but future releases may be further automated through the
-implementation of additional hook functions.  In order to use the hooks,
-Astropy itself must be *installed* alongside zest.releaser.  It is recommended
-to create a `virtualenv`_ specifically for this purpose.
+Creating a GPG Signing Key and a Signed Tag
+-------------------------------------------
 
-This may seem like a lot of steps, but most of them won't be necessary to
-repeat for each release.  The advantage of using an automated or semi-automated
-procedure is that ensures a consistent release process each time.
+One of the main steps in performing a release is to create a tag in the git
+repository representing the exact state of the repository that represents the
+version being released.  For Astropy we will always use `signed tags`_: A
+signed tag is annotated with the name and e-mail address of the signer, a date
+and time, and a checksum of the code in the tag.  This information is then
+signed with a GPG private key and stored in the repository.
 
- 1. Update the list of contributors in the ``creditsandlicense.rst`` file. The
-    easiest way to check this is do::
+Using a signed tag ensures the integrity of the contents of that tag for the
+future.  On a distributed VCS like git, anyone can create a tag of Astropy
+called "0.1" in their repository--and where it's easy to monkey around even
+after the tag has been created.  But only one "0.1" will be signed by one of
+the Astropy project coordinators and will be verifiable with their public key.
 
-        $ git shortlog -s
+Generating a public/private key pair
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    And just add anyone from that list who isn't already credited.
+Git uses GPG to created signed tags, so in order to perform an Astropy release
+you will need GPG installed and will have to generated a signing key pair.
+Most \*NIX installations come with GPG installed by default (as it is used to
+verify the integrity of system packages).  If you don't have the ``gpg``
+command, consult the documentation for your system on how to install it.
 
- 2. Install virtualenv if you don't already have it.  See the linked virtualenv
-    documentation for details.  Also, make sure that you have `cython`_
-    installed, as you will need it to generate the .c files needed for the
-    release.
+For OSX, GPG can be installed from MacPorts using ``sudo port install gnupg``.
 
- 3. Create and activate a virtualenv::
+To create a new public/private key pair, simply run::
 
-        $ virtualenv --system-site-packages --distribute astropy-release
-        $ source astropy-release/bin/activate
+    $ gpg --gen-key
 
- 4. Obtain a *clean* version of the Astropy repository.  That is, one
-    where you don't have any intermediate build files.  Either use a fresh
-    ``git clone`` or do ``git clean -dfx``.
+This will take you through a few interactive steps. For the encryption
+and expiry settings, it should be safe to use the default settings (I use
+a key size of 4096 just because what does a couple extra kilobytes
+hurt?) Enter your full name, preferably including your middle name or
+middle initial, and an e-mail address that you expect to be active for a
+decent amount of time. Note that this name and e-mail address must match
+the info you provide as your git configuration, so you should either
+choose the same name/e-mail address when you create your key, or update
+your git configuration to match the key info. Finally, choose a very good
+pass phrase that won't be easily subject to brute force attacks.
 
- 5. Be sure you're the "master" branch or, for a bug fix release, on the
-    appropriate bug fix branch.  For example, if releasing version 0.2.2 make
-    sure to::
-    
-        $ git checkout v0.2.x
 
- 6. Now install Astropy into the virtualenv::
+If you expect to use the same key for some time, it's good to make a backup of
+both your public and private key::
 
-        $ python setup.py install
+    $ gpg --export --armor > public.key
+    $ gpg --export-secret-key --armor > private.key
 
-    This is necessary for two reasons.  First, the entry points for the
-    releaser scripts need to be available, and these are in the Astropy
-    package. Second, the build process will generate .c files from the
-    Cython .pyx files, and the .c files are necessary for the source
-    distribution.
+Back up these files to a trusted location--preferably a write-once physical
+medium that can be stored safely somewhere.  One may also back up their keys to
+a trusted online encrypted storage, though some might not find that secure
+enough--it's up to you and what you're comfortable with.
 
- 7. Install zest.releaser into the virtualenv; use ``--upgrade --force`` to
-    ensure that the latest version is installed in the virtualenv (if you're
-    running a csh variant make sure to run ``rehash`` afterwards too)::
+Add your public key to a keyserver
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Now that you have a public key, you can publish this anywhere you like--in your
+e-mail, in a public code repository, etc.  You can also upload it to a
+dedicated public OpenPGP keyserver.  This will store the public key
+indefinitely (until you manually revoke it), and will be automatically synced
+with other keyservers around the world.  That makes it easy to retrieve your
+public key using the gpg command-line tool.
 
-        $ pip install zest.releaser --upgrade --force
+To do this you will need your public key's keyname.  To find this enter::
 
- 8. Ensure that all changes to the code have been committed, then start the
-    release by running::
+    $ gpg --list-keys
 
-        $ fullrelease
+This will output something like::
 
- 9. You will be asked to enter the version to be released.  Press enter to
-    accept the default (which will normally be correct) or enter a specific
-    version string.  A diff will then be shown of CHANGES.rst and setup.py
-    showing that a release date has been added to the changelog, and that the
-    version has been updated in setup.py.  Enter 'Y' when asked to commit
-    these changes.
+    /path/to/.gnupg/pubring.gpg
+    ---------------------------------------------
+    pub   4096D/1234ABCD 2012-01-01
+    uid                  Your Name <your_email>
+    sub   4096g/567890EF 2012-01-01
 
- 10. You will then be shown the command that will be run to tag the release.
-     Enter 'Y' to confirm and run the command.
+The 8 digit hex number on the line starting with "pub"--in this example the
+"1234ABCD" unique keyname for your public key.  To push it to a keyserver
+enter::
 
- 11. When asked "Check out the tag (for tweaks or pypi/distutils server
-     upload)" enter 'N': zest.releaser does not offer enough control yet over
-     how the register and upload are performed so we will do this manually
-     until the release scripts have been improved.
+    $ gpg --send-keys 1234ABCD
 
- 12. You will be asked to enter a new development version.  Normally the next
-     logical version will be selected--press enter to accept the default, or
-     enter a specific version string.  Do not add ".dev" to the version, as
-     this will be appended automatically (ignore the message that says ".dev0
-     will be appended"--it will actually be ".dev" without the 0).  For
-     example, if the just-released version was "0.1" the default next version
-     will be "0.2".  If we want the next version to be, say "1.0" then that
-     must be entered manually.
+But replace the 1234ABCD with the keyname for your public key.  Most systems
+come configured with a sensible default keyserver, so you shouldn't have to
+specify any more than that.
 
- 13. You will be shown a diff of CHANGES.rst showing that a new section has
-     been added for the new development version, and showing that the version
-     has been updated in setup.py.  Enter 'Y' to commit these changes.
+Create a tag
+^^^^^^^^^^^^
+Now test creating a signed tag in git.  It's safe to experiment with this--you
+can always delete the tag before pushing it to a remote repository::
 
- 14. When asked to push the changes to a remote repository, enter 'Y'.  This
-     should complete the portion of the process that's automated at this point.
+    $ git tag -s v0.1 -m "Astropy version 0.1"
 
- 15. Check out the tag of the released version.  For example::
+This will ask for the password to unlock your private key in order to sign
+the tag with it.  Confirm that the default signing key selected by git is the
+correct one (it will be if you only have one key).
 
-         $ git checkout v0.1
+Once the tag has been created, you can verify it with::
 
- 16. Create the source distribution by doing::
+    $ git tag -v v0.1
 
-         $ python setup.py sdist
+This should output something like::
 
-     Copy the produced ``.tar.gz`` somewhere and verify that you can unpack it,
-     build it, and get all the tests to pass.  It would be best to create a new
-     virtualenv in which to do this.
+    object e8e3e3edc82b02f2088f4e974dbd2fe820c0d934
+    type commit
+    tag v0.1
+    tagger Your Name <your_email> 1339779534 -0400
 
- 17. Register the release on PyPI with::
+    Astropy version 0.1
+    gpg: Signature made Fri 15 Jun 2012 12:59:04 PM EDT using DSA key ID 0123ABCD
+    gpg: Good signature from "Your Name <your_email>"
 
-         $ python setup.py register
+You can use this to verify signed tags from any repository as long as you have
+the signer's public key in your keyring.  In this case you signed the tag
+yourself, so you already have your public key.
 
- 18. Upload the source distribution to PyPI; this is preceded by re-running
-     the sdist command, which is necessary for the upload command to know
-     which distribution to upload::
+Note that if you are planning to do a release following the steps below, you
+will want to delete the tag you just created, because the release script does
+that for you.  You can delete this tag by doing::
 
-         $ python setup.py sdist upload
-
- 19. Update the "stable" branch to point to the new stable release For example::
-
-         $ git checkout stable
-         $ git reset --hard v0.1
-
- 20. Update Readthedocs so that it builds docs for the corresponding github tag.
-     Also verify that the ``stable`` Readthedocs version builds correctly for
-     the new version (it should trigger automatically once you've done the 
-     previous step.)
-
- 21. If this was a major/minor release (not a bug fix release) create a bug fix
-     branch for this line of release.  That is, if the version just released
-     was "v<major>.<minor>.0", create bug fix branch with the name
-     "v<major>.<minor>.x".  Starting from the commit tagged as the release,
-     just checkout a new branch and push it to the remote server.  For example,
-     after releasing version 0.3, do::
-
-         $ git checkout -b v0.3.x
-
-     Then edit ``setup.py`` so that the ``VERSION`` variable is
-     ``'0.3.1.dev'``, and commit that change. Then, do::
-
-         $ git push upstream v0.3.x
-
-    .. note::
-
-        You may need to replace ``upstream`` here with ``astropy`` or
-        whatever remote name you use for the main astropy repository.
-
-     The purpose of this branch is for creating bug fix releases like "0.3.1"
-     and "0.3.2", while allowing development of new features to continue in
-     the master branch.  Only changesets that fix bugs without making
-     significant API changes should be merged to the bug fix branches.
-
- 22. Create a bug fix label on GitHub; this should have the same name as the
-     just created bug fix branch prepended with "backport-".  For the previous
-     example this would be "backport-0.3.x"  This label should be applied to
-     all issues that should be backported to the bug fix branch.  Also create a
-     milestone for the next bug fix release if it hasn't been made already.
-
- 23. Update `astropy/astropy-website <https://github.com/astropy/astropy-website>`_
-     for the new version.  Two files need to be updated: ``index.rst`` has two tags
-     near the top specifying the current release, and the ``docs.rst`` file should
-     be updated by putting the previous release in as an older version, and updating
-     the "latest developer version" link to point to the new release.
-
- 24. Run the ``upload_script.py`` script in `astropy-website` to update the actual
-     web site.
+    $ git tag -d v0.1
 
 
 Creating a MacOS X Installer on a DMG
