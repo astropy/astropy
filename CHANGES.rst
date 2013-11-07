@@ -453,7 +453,7 @@ Bug Fixes
     first the units were not preserved in the output). [#899]
 
 
-0.2.5 (unreleased)
+0.2.5 (2013-10-25)
 ------------------
 
 Bug Fixes
