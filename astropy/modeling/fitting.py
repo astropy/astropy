@@ -461,7 +461,7 @@ class NonLinearLSQFitter(Fitter):
             self.errorfunc, init_values, args=farg, Dfun=dfunc,
             col_deriv=model_copy.col_deriv, maxfev=maxiter, epsfcn=epsilon,
             full_output=True)
-        self._fitter_to_model_params(model, fitparams)
+        self._fitter_to_model_params(model_copy, fitparams)
         self.fit_info.update(dinfo)
         self.fit_info['status'] = status
         self.fit_info['message'] = mess
