@@ -441,9 +441,9 @@ For example, first create a new :class:`Header` object to encapsulate any
 keywords you want to include in the primary HDU, then as before create a
 :class:`PrimaryHDU`::
 
-    >>> prihdr = pyfits.Header()
+    >>> prihdr = fits.Header()
     >>> prihdr['COMMENT'] = "Here's some commentary about this FITS file."
-    >>> prihdu = pyfits.PrimaryHDU(header=prihdr)
+    >>> prihdu = fits.PrimaryHDU(header=prihdr)
 
 When we create a new primary HDU with a custom header this will automatically
 include any additional header keywords that are *required* by the FITS format
@@ -452,7 +452,7 @@ include any additional header keywords that are *required* by the FITS format
 We then create a HDUList containing both the primary HDU and the newly created
 table extension, and write to a new file::
 
-    >>> thdulist = pyfits.HDUList([prihdu, tbhdu])
+    >>> thdulist = fits.HDUList([prihdu, tbhdu])
     >>> thdulist.writeto('table.fits')
 
 Alternatively, you can append the table to the HDU list we already created in
