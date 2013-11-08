@@ -1037,8 +1037,9 @@ class AiryDisk2D(Parametric2DModel):
             try:
                 from scipy.special import j1
                 self.__class__._j1 = j1
-            except ImportError:
-                raise ImportError("AiryDisk2D model requires scipy.")
+            # add a ValueError here for python3 + scipy < 0.12
+            except (ValueError, ImportError):
+                raise ImportError("AiryDisk2D model requires scipy > 0.11.")
         super(AiryDisk2D, self).__init__(amplitude=amplitude, x_0=x_0,
                                          y_0=y_0, width=width,
                                          **constraints)
