@@ -130,16 +130,18 @@ Second and third rows also have hanging spaces after final "|".  Use header_star
 keywords to indicate no header line.
 ::
 
-  >>> table = ["|  John  | 555-1234 |192.168.1.10|"
-  ...          "|  Mary  | 555-2134 |192.168.1.12|  "
+  >>> table = ["|  John  | 555-1234 |192.168.1.10|",
+  ...          "|  Mary  | 555-2134 |192.168.1.12|  ",
   ...          "|   Bob  | 555-4527 | 192.168.1.9|  "]
-  >>> # FIXME: UNEXPECTED EXCEPTION: InconsistentTableError("\nERROR: Unable to guess table for with the guesses listed below:\nReader:FixedWidth data_start: 0 fill_values: [('', '0')] header_start: None names: ('Name', 'Phone', 'TCP')\nReader:FixedWidth data_start: 0 fill_values: [('', '0')] header_start: None names: ('Name', 'Phone', 'TCP')\nERROR: Unable to guess table for with the guesses listed above.\nCheck the table and try with guess=False and appropriate arguments to read()",)
   >>> ascii.read(table, format='fixed_width',
   ...                 header_start=None, data_start=0,
-  ...                 names=('Name', 'Phone', 'TCP'))  # doctest: +SKIP
-  <Table rows=1 names=('Name','Phone','TCP')>
-  array([('John', '555-1234', '192.168.1.10')],
-        dtype=[('Name', 'S4'), ('Phone', 'S8'), ('TCP', 'S12')])
+  ...                 names=('Name', 'Phone', 'TCP'))
+  <Table rows=3 names=('Name','Phone','TCP')>
+  array([('John', '555-1234', '192.168.1.10'),
+       ('Mary', '555-2134', '192.168.1.12'),
+       ('Bob', '555-4527', '192.168.1.9')], 
+      dtype=[('Name', '|S4'), ('Phone', '|S8'), ('TCP', '|S12')])
+
 
 FixedWidthNoHeader
 """"""""""""""""""
