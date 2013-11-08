@@ -16,7 +16,8 @@ from .base import DELAYED, _ValidHDU, ExtensionHDU
 from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_ATTRIBUTES, TDEF_RE,
                       Delayed, Column, ColDefs, _ASCIIColDefs, _FormatX,
                       _FormatP, _wrapx, _makep, _VLF, _parse_tformat,
-                      _scalar_to_format, _convert_format, _cmp_recformats)
+                      _scalar_to_format, _convert_format, _cmp_recformats,
+                      _get_index)
 from ..fitsrec import FITS_rec
 from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
@@ -123,7 +124,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     FITS table extension base HDU class.
     """
 
-    def __init__(self, data=None, header=None, name=None):
+    def __init__(self, data=None, header=None, name=None, uint=False):
         """
         Parameters
         ----------
@@ -135,6 +136,9 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
         name : str
             name to be populated in ``EXTNAME`` keyword
+
+        uint : bool, optional
+            set to ``True`` if the table contains unsigned integer columns.
         """
 
         super(_TableBaseHDU, self).__init__(data=data, header=header,
@@ -142,7 +146,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
         if header is not None and not isinstance(header, Header):
             raise ValueError('header must be a Header object.')
-
+        self._uint = uint
         if data is DELAYED:
             # this should never happen
             if header is None:
@@ -171,7 +175,62 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 cards.extend(hcopy.cards)
 
             self._header = Header(cards)
-            self.data = data
+
+            if isinstance(data, np.ndarray) and data.dtype.fields is not None:
+                # self._data_type is FITS_rec.
+                if isinstance(data, self._data_type):
+                    self.data = data
+                else:
+                    # Just doing a view on the input data screws up unsigned
+                    # columns, so treat those more carefully.
+                    update_coldefs = dict()
+                    if 'u' in [data.dtype[k].kind for k in data.dtype.names]:
+                        self._uint = True
+                        bzeros = { 2:np.uint16(2**15), 4:np.uint32(2**31), 8:np.uint64(2**63)}
+                        new_dtype = [(k, data.dtype[k].kind.replace('u','i') +
+                            str(data.dtype[k].itemsize))
+                            for k in data.dtype.names]
+                        new_data = np.zeros(data.shape,dtype=new_dtype)
+                        for k in data.dtype.fields:
+                            if data.dtype[k].kind == 'u':
+                                new_data[k] = data[k] - bzeros[data.dtype[k].itemsize]
+                                update_coldefs[k] = bzeros[data.dtype[k].itemsize]
+                            else:
+                                new_data[k] = data[k]
+                        self.data = new_data.view(self._data_type)
+                    else:
+                        self.data = data.view(self._data_type)
+                    for k in update_coldefs:
+                        indx = _get_index(self.data.names,k)
+                        # For some reason change_attrib no longer works
+                        #self.data._coldefs.change_attrib(k,'bzero',update_coldefs[k])
+                        self.data._coldefs[indx].bzero = update_coldefs[k]
+
+                self._header['NAXIS1'] = self.data.itemsize
+                self._header['NAXIS2'] = self.data.shape[0]
+                self._header['TFIELDS'] = len(self.data._coldefs)
+
+                self.columns = self.data._coldefs
+                self.update()
+
+                try:
+                   # Make the ndarrays in the Column objects of the ColDefs
+                   # object of the HDU reference the same ndarray as the HDU's
+                   # FITS_rec object.
+                    for idx in range(len(self.columns)):
+                        self.columns[idx].array = self.data.field(idx)
+
+                    # Delete the _arrays attribute so that it is recreated to
+                    # point to the new data placed in the column objects above
+                    del self.columns._arrays
+                except (TypeError, AttributeError) as e:
+                    # This shouldn't happen as long as self.columns._arrays
+                    # is a lazyproperty
+                    pass
+            elif data is None:
+                pass
+            else:
+                raise TypeError('Table data has incorrect type.')
 
         if not (isinstance(self._header[0], basestring) and
                 self._header[0].rstrip() == self._extension):
