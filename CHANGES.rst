@@ -1,12 +1,6 @@
 0.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
-
-
-0.3b1 (2013-11-04)
-------------------
-
 New Features
 ^^^^^^^^^^^^
 
