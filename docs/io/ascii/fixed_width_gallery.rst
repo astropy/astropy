@@ -130,15 +130,18 @@ Second and third rows also have hanging spaces after final "|".  Use header_star
 keywords to indicate no header line.
 ::
 
-  >>> table = ["|  John  | 555-1234 |192.168.1.10|"
-  ...          "|  Mary  | 555-2134 |192.168.1.12|  "
+  >>> table = ["|  John  | 555-1234 |192.168.1.10|",
+  ...          "|  Mary  | 555-2134 |192.168.1.12|  ",
   ...          "|   Bob  | 555-4527 | 192.168.1.9|  "]
   >>> ascii.read(table, format='fixed_width',
   ...                 header_start=None, data_start=0,
   ...                 names=('Name', 'Phone', 'TCP'))
-  <Table rows=1 names=('Name','Phone','TCP')>
-  array([('John', '555-1234', '192.168.1.10')],
-        dtype=[('Name', 'S4'), ('Phone', 'S8'), ('TCP', 'S12')])
+  <Table rows=3 names=('Name','Phone','TCP')>
+  array([('John', '555-1234', '192.168.1.10'),
+       ('Mary', '555-2134', '192.168.1.12'),
+       ('Bob', '555-4527', '192.168.1.9')], 
+      dtype=[('Name', '|S4'), ('Phone', '|S8'), ('TCP', '|S12')])
+
 
 FixedWidthNoHeader
 """"""""""""""""""
