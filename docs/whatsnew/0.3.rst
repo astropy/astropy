@@ -7,12 +7,13 @@ What's New in Astropy 0.3?
 Astropy 0.3 is a major release that adds significant new functionality since
 the 0.2.x series of releases. This release sees the addition of the `Modeling`_
 sub-package, which provides an initial framework for fitting models to data,
-and the `Virtual Observatory`_ sub-package, which implements cone searches. In addition, there have been many improvements to the existing
+and the `Virtual Observatory`_ sub-package, which implements cone searches. In 
+addition, there have been many improvements to the existing
 sub-packages, such as a much faster implementation of quantities for Numpy
 arrays in the `Units and Quantities`_ package, a better integration of units
 and quantities in other packages, new `Table`_ functionality releated to
 joining and aggregation, support for arrays in the `Coordinates`_ package, and
-a re-structuting of the `Convolution`_ code to provide many build-in
+a re-structuring of the `Convolution`_ code to provide many build-in
 parameterized kernels. We describe the new sub-packages and the main
 improvements below.
 
@@ -26,6 +27,7 @@ previously defined dataset:
 
 .. plot::
    :nofigs:
+   :context:
 
     # Generate fake data
     np.random.seed(0)
@@ -35,6 +37,9 @@ previously defined dataset:
 
 .. plot::
    :include-source:
+   :context:
+
+    from astropy.modeling import models, fitting
 
     g_init = models.Gaussian1D(amplitude=1., mean=0, stddev=1.)
     f2 = fitting.NonLinearLSQFitter()
@@ -42,7 +47,6 @@ previously defined dataset:
 
     plt.figure(figsize=(8,5))
     plt.plot(x, y, 'ko')
-    plt.plot(x, t(x), 'b-', lw=2, label='Trapezoid')
     plt.plot(x, g(x), 'r-', lw=2, label='Gaussian')
     plt.xlabel('Position')
     plt.ylabel('Flux')
@@ -81,8 +85,8 @@ then make use of the :func:`~astropy.vo.client.conesearch.list_catalogs` functio
      u'Two Micron All Sky Survey (2MASS) 2',
      u'USNO-A2 Catalogue 1',
      u'USNO-A2.0 1']
-     
-     
+
+
 The following example shows how to execute a cone search for a radius of 0.1
 degrees around M31 from a the 2MASS catalog. First, we can extract the
 coordinates for M31 from SIMBAD::
@@ -99,7 +103,7 @@ and we can then execute the query::
     >>> result = conesearch.conesearch(c, 0.1 * u.degree, catalog_db=twomass)
     Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
     Downloading ...
-    
+
 .. TODO - fix following
 
 The result is returned as an Astropy :class:`~astropy.table.table.Table`
@@ -171,7 +175,7 @@ coordinates are used. The following example shows how one can combine this with 
     >>> from astropy.table import Table
     >>> t = Table.read('2mass.tbl', format='ascii.ipac')
     >>> print(t)
-        ra        dec         sra           sdec     ...  h_k   j_k 
+        ra        dec         sra           sdec     ...  h_k   j_k
     ---------- ---------- ------------ ------------- ... ----- -----
     274.429506 -13.870547 18h17m43.08s -13d52m13.97s ... 0.791 3.048
     274.423821  -13.86974 18h17m41.72s -13d52m11.06s ... 0.867 3.034
@@ -191,7 +195,7 @@ Then we can instantiate the coordinates either with the decimal floating-point v
     <FK5 RA=274.42951 deg, Dec=-13.87055 deg>
     >>> c[1]
     <FK5 RA=274.42382 deg, Dec=-13.86974 deg>
-    
+
 or the string values::
 
     >>> c = coords.FK5(t['sra'], t['sdec'], unit=(u.deg, u.deg))
@@ -199,7 +203,7 @@ or the string values::
     <FK5 RA=274.42950 deg, Dec=-13.87055 deg>
     >>> c[1]
     <FK5 RA=274.42383 deg, Dec=-13.86974 deg>
-    
+
 Note that in the second case, the initialization will be slower due to the
 parsing of the strings. These coordinates can then easily be converted to other frames::
 
@@ -214,7 +218,7 @@ For coordinate arrays, accessing attributes such as ``ra`` or ``dec`` will now r
 As shown above, all the coordinate classes have now been renamed to drop the ``Coordinates`` suffix (e.g. ``ICRS`` instead of ``ICRSCoordinates``).
 
 Coordinate objects now support matching one set of coordinates to another
-using the array coordinates functionality described above.  See 
+using the array coordinates functionality described above.  See
 `~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog`
 and `~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog_3d`
 for more details.
@@ -289,7 +293,7 @@ Backwards-Incompatible Changes
   E.g., `ICRSCoordinates` is now `ICRS`, `GalacticCoordinates` are now
   `Galactic`, etc.
 
-* `HorizontalCoordinates` is now called `AltAz`. 
+* `HorizontalCoordinates` is now called `AltAz`.
 
 
 Warnings about backwards incompatible changes can be disabled by doing::
