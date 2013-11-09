@@ -106,10 +106,9 @@ and we can then execute the query::
     Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
     Downloading ...
 
-.. TODO - fix following
-
-The result is returned as an Astropy :class:`~astropy.table.table.Table`
-object::
+The result is returned as an Astropy `astropy.io.votable`
+:class:`~astropy.io.votable.tree.Table` (note that this is different from the
+generic `astropy.table` :class:`~astropy.table.table.Table` class)::
 
     >>> result
     <astropy.io.votable.tree.Table at 0x41e8610>
@@ -121,10 +120,21 @@ object::
     masked_array(data = [10.620983 10.672264 10.651166 ..., 10.805599],
                  mask = [False False False ..., False],
            fill_value = 1e+20)
-    >>> result.array['dec']
-    masked_array(data = [41.192303 41.19426 41.19445 ..., 41.262123],
-                 mask = [False False False ..., False],
-           fill_value = 1e+20)
+
+Converting to an `astropy.table` :class:`~astropy.table.table.Table` is
+straightforward::
+
+    >>> table = result.to_table()
+    >>> print(table)
+          cx             cy             cz       ... coadd_key coadd
+    -------------- -------------- -------------- ... --------- -----
+    0.739345466303 0.138832922929 0.658857876152 ...   1590591    33
+     0.73937055914 0.138481636014 0.658903644522 ...    577809    33
+    0.739301283105 0.138762751963 0.658922234764 ...   1590591    33
+               ...            ...            ... ...       ...   ...
+    0.739389950758 0.139376220174 0.658693229028 ...   1590591    33
+    0.739099087292 0.140726588258 0.658732545516 ...   1590631   232
+    0.737999550267 0.140950272324 0.659916422388 ...   1590632   244
 
 Units and Quantities
 --------------------
