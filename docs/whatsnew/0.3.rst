@@ -1,8 +1,249 @@
 .. _whatsnew-0.3:
 
-=========================
-What's New in Astropy 0.3
-=========================
+==========================
+What's New in Astropy 0.3?
+==========================
+
+Astropy 0.3 is a major release that adds significant new functionality since
+the 0.2.x series of releases. This release sees the addition of the `Modeling`_
+sub-package, which provides an initial framework for fitting models to data,
+and the `Virtual Observatory`_ sub-package, which implements cone searches. In addition, there have been many improvements to the existing
+sub-packages, such as a much faster implementation of quantities for Numpy
+arrays in the `Units and Quantities`_ package, a better integration of units
+and quantities in other packages, new `Table`_ functionality releated to
+joining and aggregation, support for arrays in the `Coordinates`_ package, and
+a re-structuting of the `Convolution`_ code to provide many build-in
+parameterized kernels. We describe the new sub-packages and the main
+improvements below.
+
+Modeling
+--------
+
+The `astropy.modeling` sub-package defines many built-in 1- and 2-d models and
+provides an extensible framework for fitting these to data. The following
+example demonstrates how to easily define a Gaussian model and fit it to a
+previously defined dataset:
+
+.. plot::
+   :nofigs:
+
+    # Generate fake data
+    np.random.seed(0)
+    x = np.linspace(-5., 5., 200)
+    y = 3 * np.exp(-0.5 * (x - 1.3)**2 / 0.8**2)
+    y += np.random.normal(0., 0.2, x.shape)
+
+.. plot::
+   :include-source:
+
+    g_init = models.Gaussian1D(amplitude=1., mean=0, stddev=1.)
+    f2 = fitting.NonLinearLSQFitter()
+    g = f2(g_init, x, y)
+
+    plt.figure(figsize=(8,5))
+    plt.plot(x, y, 'ko')
+    plt.plot(x, t(x), 'b-', lw=2, label='Trapezoid')
+    plt.plot(x, g(x), 'r-', lw=2, label='Gaussian')
+    plt.xlabel('Position')
+    plt.ylabel('Flux')
+    plt.legend(loc=2)
+
+Since this is a new sub-package, it should be considered experimental and will
+be significantly improved in future. In particular, the ability to fit
+composite models (such as the sum of two models) will be added in the next
+major version (in the mean time, users can define their own models for such
+cases). More complete examples and a full description of the package is
+provided in `astropy.modeling`.
+
+Virtual Observatory
+-------------------
+
+The new :ref:`astropy_vo` sub-package currently provides the ability to execute cone searches. To see a list of available catalogs, you can first import the cone search module::
+
+    >>> from astropy.vo.client import conesearch
+
+then make use of the :func:`~astropy.vo.client.conesearch.list_catalogs` function::
+
+    >>> conesearch.list_catalogs()
+    [u'Guide Star Catalog 2.3 1',
+     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 1',
+     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 2',
+     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 3',
+     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 4',
+     u'SDSS DR8 - Sloan Digital Sky Survey Data Release 8 1',
+     u'SDSS DR8 - Sloan Digital Sky Survey Data Release 8 2',
+     u'The HST Guide Star Catalog, Version 1.1 (Lasker+ 1992) 1',
+     u'The HST Guide Star Catalog, Version 1.2 (Lasker+ 1996) 1',
+     u'The HST Guide Star Catalog, Version GSC-ACT (Lasker+ 1996-99) 1',
+     u'The PMM USNO-A1.0 Catalogue (Monet 1997) 1',
+     u'The USNO-A2.0 Catalogue (Monet+ 1998) 1',
+     u'Two Micron All Sky Survey (2MASS) 1',
+     u'Two Micron All Sky Survey (2MASS) 2',
+     u'USNO-A2 Catalogue 1',
+     u'USNO-A2.0 1']
+     
+     
+The following example shows how to execute a cone search for a radius of 0.1
+degrees around M31 from a the 2MASS catalog. First, we can extract the
+coordinates for M31 from SIMBAD::
+
+    >>> from astropy import coordinates as coords
+    >>> c = coords.ICRS.from_name('M31')
+    >>> c
+    <ICRS RA=10.68471 deg, Dec=41.26875 deg>
+
+and we can then execute the query::
+
+    >>> from astropy import units as u
+    >>> twomass = 'Two Micron All Sky Survey (2MASS) 1'
+    >>> result = conesearch.conesearch(c, 0.1 * u.degree, catalog_db=twomass)
+    Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
+    Downloading ...
+    
+.. TODO - fix following
+
+The result is returned as an Astropy :class:`~astropy.table.table.Table`
+object::
+
+    >>> result
+    <astropy.io.votable.tree.Table at 0x41e8610>
+    >>> result.url
+    u'http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&DSATAB=twomass_psc&'
+    >>> result.array.size
+    2008
+    >>> result.array['ra']
+    masked_array(data = [10.620983 10.672264 10.651166 ..., 10.805599],
+                 mask = [False False False ..., False],
+           fill_value = 1e+20)
+    >>> result.array['dec']
+    masked_array(data = [41.192303 41.19426 41.19445 ..., 41.262123],
+                 mask = [False False False ..., False],
+           fill_value = 1e+20)
+
+Units and Quantities
+--------------------
+
+Quantity are now fully-fledged Numpy arrays, and common Numpy ufuncs (such as
+``np.mean``, ``np.cos``, ``np.log10``, etc.) will now correctly treat the
+units:
+
+    >>> q = np.array([1., 2., 3., 4.]) * u.m / u.s
+    >>> np.mean(q)
+    <Quantity 2.5 m / s>
+    >>> np.std(q)
+    <Quantity 1.11803398875 m / s>
+
+including functions that only accept specific units such as angles::
+
+    >>> q = 30. * u.deg
+    >>> np.sin(q)
+    <Quantity 0.5 >
+
+or dimensionless quantities::
+
+    >>> nu = 3 * u.GHz
+    >>> T = 30 * u.K
+    >>> np.exp(- h * nu / (k_B * T))
+    <Quantity 0.995212254619 >
+
+.. note:: Not *all* Numpy functions (in particular non-ufuncs) and functions
+          outside Numpy will treat units correctly, so be aware that units may
+          be implicitly dropped without a warning. Always check that the
+          function you are using treats the units correctly.
+
+Another change is that imperial units are not enabled by default. To enable
+them, use::
+
+    >>> from astropy.units import imperial
+    >>> imperial.enable()
+
+Table
+-----
+
+
+Coordinates
+-----------
+
+Coordinate objects can now store arrays of coordinates instead of just a single
+coordinate. This dramatically speeds-up coordinate conversions when many
+coordinates are used. The following example shows how one can combine this with functionality from `astropy.table` to read in arrays of coordinates and convert them to a different coordinate frame. First, we can read in a table which contains coordinates both in decimal and string form::
+
+    >>> from astropy.table import Table
+    >>> t = Table.read('2mass.tbl', format='ascii.ipac')
+    >>> print(t)
+        ra        dec         sra           sdec     ...  h_k   j_k 
+    ---------- ---------- ------------ ------------- ... ----- -----
+    274.429506 -13.870547 18h17m43.08s -13d52m13.97s ... 0.791 3.048
+    274.423821  -13.86974 18h17m41.72s -13d52m11.06s ... 0.867 3.034
+    274.424587 -13.739629 18h17m41.90s -13d44m22.66s ...  0.94    --
+    274.433933 -13.769502 18h17m44.14s -13d46m10.21s ... 1.101 3.325
+           ...        ...          ...           ... ...   ...   ...
+    274.870009 -13.817775 18h19m28.80s -13d49m03.99s ... 1.557    --
+    274.735323 -13.941575 18h18m56.48s -13d56m29.67s ...    --    --
+    274.866294 -13.841778 18h19m27.91s -13d50m30.40s ... 1.146    --
+
+Then we can instantiate the coordinates either with the decimal floating-point values::
+
+    >>> from astropy import units as u
+    >>> from astropy import coordinates as coords
+    >>> c = coords.FK5(t['ra'], t['dec'], unit=(u.deg, u.deg))
+    >>> c[0]
+    <FK5 RA=274.42951 deg, Dec=-13.87055 deg>
+    >>> c[1]
+    <FK5 RA=274.42382 deg, Dec=-13.86974 deg>
+    
+or the string values::
+
+    >>> c = coords.FK5(t['sra'], t['sdec'], unit=(u.deg, u.deg))
+    >>> c[0]
+    <FK5 RA=274.42950 deg, Dec=-13.87055 deg>
+    >>> c[1]
+    <FK5 RA=274.42383 deg, Dec=-13.86974 deg>
+    
+Note that in the second case, the initialization will be slower due to the
+parsing of the strings. These coordinates can then easily be converted to other frames::
+
+    >>> cgal = c.transform_to(coords.Galactic)
+    >>> cgal[0]
+    <Galactic l=16.77345 deg, b=0.99446 deg>
+    >>> cgal[1]
+    <Galactic l=16.77155 deg, b=0.99968 deg>
+
+For coordinate arrays, accessing attributes such as ``ra`` or ``dec`` will now return Numpy arrays.
+
+As shown above, all the coordinate classes have now been renamed to drop the ``Coordinates`` suffix (e.g. ``ICRS`` instead of ``ICRSCoordinates``).
+
+Coordinate objects now support matching one set of coordinates to another
+using the array coordinates functionality described above.  See 
+`~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog`
+and `~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog_3d`
+for more details.
+
+Finally, coordinate objects now have a ``to_string`` method that allows easy conversion to string representations. For example, in the case of the previous coordinates used above::
+
+    >>> c.to_string()
+    [u'18h17m43.08s -13d52m13.97s',
+     u'18h17m41.72s -13d52m11.06s',
+     ...
+     u'18h18m56.48s -13d56m29.67s',
+     u'18h19m27.91s -13d50m30.4s']
+
+Time
+----
+
+.. TODO
+
+ASCII Tables
+------------
+
+.. TODO
+
+Convolution
+-----------
+
+.. TODO
+
+.. TODO - determine which of the following sections to keep
 
 WCS
 ---
@@ -57,48 +298,6 @@ Warnings about backwards incompatible changes can be disabled by doing::
     from astropy.utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
     warnings.simplefilter('ignore', AstropyBackwardsIncompatibleChangeWarning)
 
-Units
------
-
-Quantities can now conveniently get their values in a requested unit,
-simply by using `quantity.SOME_UNIT`, for example::
-
-    >>> q = 180.0 * u.degree
-    >>> q.radian
-    3.141592653589793
-
-Quantity are now fully-fledged Numpy arrays, and common Numpy ufuncs (such as
-``np.mean``, ``np.cos``, ``np.log10``, etc.) will now correctly treat the
-units:
-
-    >>> q = np.array([1., 2., 3., 4.]) * u.m / u.s
-    >>> np.mean(q)
-    <Quantity 2.5 m / s>
-    >>> np.std(q)
-    <Quantity 1.11803398875 m / s>
-
-including functions that only accept specific units such as angles::
-
-    >>> q = 30. * u.deg
-    >>> np.sin(q)
-    <Quantity 0.5 >
-
-or dimensionless quantities::
-
-    >>> nu = 3 * u.GHz
-    >>> T = 30 * u.K
-    >>> np.exp(- h * nu / (k_B * T))
-    <Quantity 0.995212254619 >
-
-.. note:: Not *all* Numpy functions (in particular non-ufuncs) and functions
-          outside Numpy will treat units correctly, so be aware that units may
-          be implicitly dropped without a warning. Always check that the
-          function you are using treats the units correctly.
-
-Imperial units are not enabled by default.  To enable them do:
-
-    >>> from astropy.units import imperial
-    >>> imperial.enable()
 
 Deprecated API
 ``````````````
@@ -108,75 +307,6 @@ Python built-in exceptions.
 
 The :func:`~astropy.units.equivalencies.spectral_density` equivalencies now
 take `~astropy.units.quantity.Quantity` instead of ``(sunit, sfactor)``.
-
-Coordinates
------------
-
-`astropy.coordinates.Angle` is now a subclass of
-`astropy.units.Quantity`.  All angular units are now supported, not
-just `radian`, `degree` and `hour`, but now `arcsecond` and
-`arcminute` as well.  The object will retain its native unit, so when
-printing out a value initially provided in hours, its `to_string()`
-will, by default, also be expressed in hours.  Additionally, `Angle`
-can now store an array of angles.
-
-Coordinate objects can now store arrays of coordinates instead of just
-a single coordinate.  This dramatically speeds-up some operations.
-
-Coordinate objects now support matching one set of coordinates to another
-using the array coordinates functionality described above.  See 
-`~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog`
-and `~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog_3d`
-for more details.
-
-Virtual Observatory Simple Cone Search
---------------------------------------
-
-:ref:`astropy_vo` is added. Example showing Cone Search for a radius of
-0.1 degrees around M31 from a selected 2MASS catalog:
-
-    >>> from astropy.vo.client import conesearch
-    >>> conesearch.list_catalogs()
-    [u'Guide Star Catalog 2.3 1',
-     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 1',
-     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 2',
-     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 3',
-     u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 4',
-     u'SDSS DR8 - Sloan Digital Sky Survey Data Release 8 1',
-     u'SDSS DR8 - Sloan Digital Sky Survey Data Release 8 2',
-     u'The HST Guide Star Catalog, Version 1.1 (Lasker+ 1992) 1',
-     u'The HST Guide Star Catalog, Version 1.2 (Lasker+ 1996) 1',
-     u'The HST Guide Star Catalog, Version GSC-ACT (Lasker+ 1996-99) 1',
-     u'The PMM USNO-A1.0 Catalogue (Monet 1997) 1',
-     u'The USNO-A2.0 Catalogue (Monet+ 1998) 1',
-     u'Two Micron All Sky Survey (2MASS) 1',
-     u'Two Micron All Sky Survey (2MASS) 2',
-     u'USNO-A2 Catalogue 1',
-     u'USNO-A2.0 1']
-    >>> my_catname = 'Two Micron All Sky Survey (2MASS) 1'
-    >>> from astropy import coordinates as coord
-    >>> from astropy import units as u
-    >>> c = coord.ICRSCoordinates.from_name('M31')
-    >>> result = conesearch.conesearch(c, 0.1 * u.degree, catalog_db=my_catname)
-    Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
-    Downloading ...
-    WARNING: W06: ... UCD has invalid character '?' in '??' [...]
-    WARNING: W50: ... Invalid unit string 'yyyy-mm-dd' [...]
-    WARNING: W50: ... Invalid unit string 'Julian days' [...]
-    >>> result
-    <astropy.io.votable.tree.Table at 0x41e8610>
-    >>> result.url
-    u'http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&DSATAB=twomass_psc&'
-    >>> result.array.size
-    2008
-    >>> result.array['ra']
-    masked_array(data = [10.620983 10.672264 10.651166 ..., 10.805599],
-                 mask = [False False False ..., False],
-           fill_value = 1e+20)
-    >>> result.array['dec']
-    masked_array(data = [41.192303 41.19426 41.19445 ..., 41.262123],
-                 mask = [False False False ..., False],
-           fill_value = 1e+20)
 
 Logger
 ------
