@@ -17,8 +17,6 @@ a re-structuring of the `Convolution`_ code to provide many build-in
 parameterized kernels. We describe the new sub-packages and the main
 improvements below.
 
-.. contents:: Table of Contents
-
 Modeling
 --------
 
