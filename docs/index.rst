@@ -31,6 +31,10 @@ tools needed for performing astronomy and astrophysics with Python.
 User Documentation
 ******************
 
+:ref:`whatsnew-0.3`
+===================
+
+
 **Astropy at a glance**
 
 .. toctree::
@@ -39,7 +43,6 @@ User Documentation
    overview
    install
    getting_started
-   whatsnew/0.3
 
 **Core data structures and transformations**
 

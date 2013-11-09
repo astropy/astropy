@@ -7,7 +7,7 @@ What's New in Astropy 0.3?
 Astropy 0.3 is a major release that adds significant new functionality since
 the 0.2.x series of releases. This release sees the addition of the `Modeling`_
 sub-package, which provides an initial framework for fitting models to data,
-and the `Virtual Observatory`_ sub-package, which implements cone searches. In 
+and the `Virtual Observatory`_ sub-package, which implements cone searches. In
 addition, there have been many improvements to the existing
 sub-packages, such as a much faster implementation of quantities for Numpy
 arrays in the `Units and Quantities`_ package, a better integration of units
@@ -16,6 +16,8 @@ joining and aggregation, support for arrays in the `Coordinates`_ package, and
 a re-structuring of the `Convolution`_ code to provide many build-in
 parameterized kernels. We describe the new sub-packages and the main
 improvements below.
+
+.. contents:: Table of Contents
 
 Modeling
 --------
@@ -62,7 +64,9 @@ provided in `astropy.modeling`.
 Virtual Observatory
 -------------------
 
-The new :ref:`astropy_vo` sub-package currently provides the ability to execute cone searches. To see a list of available catalogs, you can first import the cone search module::
+The new :ref:`astropy_vo` sub-package currently provides the ability to execute
+cone searches. To see a list of available catalogs, you can first import the
+cone search module::
 
     >>> from astropy.vo.client import conesearch
 
@@ -170,7 +174,10 @@ Coordinates
 
 Coordinate objects can now store arrays of coordinates instead of just a single
 coordinate. This dramatically speeds-up coordinate conversions when many
-coordinates are used. The following example shows how one can combine this with functionality from `astropy.table` to read in arrays of coordinates and convert them to a different coordinate frame. First, we can read in a table which contains coordinates both in decimal and string form::
+coordinates are used. The following example shows how one can combine this with
+functionality from `astropy.table` to read in arrays of coordinates and convert
+them to a different coordinate frame. First, we can read in a table which
+contains coordinates both in decimal and string form::
 
     >>> from astropy.table import Table
     >>> t = Table.read('2mass.tbl', format='ascii.ipac')
@@ -180,13 +187,13 @@ coordinates are used. The following example shows how one can combine this with 
     274.429506 -13.870547 18h17m43.08s -13d52m13.97s ... 0.791 3.048
     274.423821  -13.86974 18h17m41.72s -13d52m11.06s ... 0.867 3.034
     274.424587 -13.739629 18h17m41.90s -13d44m22.66s ...  0.94    --
-    274.433933 -13.769502 18h17m44.14s -13d46m10.21s ... 1.101 3.325
            ...        ...          ...           ... ...   ...   ...
     274.870009 -13.817775 18h19m28.80s -13d49m03.99s ... 1.557    --
     274.735323 -13.941575 18h18m56.48s -13d56m29.67s ...    --    --
     274.866294 -13.841778 18h19m27.91s -13d50m30.40s ... 1.146    --
 
-Then we can instantiate the coordinates either with the decimal floating-point values::
+Then we can create the coordinate object either with the decimal floating-point
+values::
 
     >>> from astropy import units as u
     >>> from astropy import coordinates as coords
@@ -213,9 +220,12 @@ parsing of the strings. These coordinates can then easily be converted to other 
     >>> cgal[1]
     <Galactic l=16.77155 deg, b=0.99968 deg>
 
-For coordinate arrays, accessing attributes such as ``ra`` or ``dec`` will now return Numpy arrays.
+For coordinate arrays, accessing attributes such as ``ra`` or ``dec`` will now
+return Numpy arrays.
 
-As shown above, all the coordinate classes have now been renamed to drop the ``Coordinates`` suffix (e.g. ``ICRS`` instead of ``ICRSCoordinates``).
+As shown above, all the coordinate classes have now been renamed to drop the
+``Coordinates`` suffix (e.g. ``ICRS`` instead of ``ICRSCoordinates``). In
+addition, `HorizontalCoordinates` has now been renamed to `AltAz`.
 
 Coordinate objects now support matching one set of coordinates to another
 using the array coordinates functionality described above.  See
@@ -223,7 +233,9 @@ using the array coordinates functionality described above.  See
 and `~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog_3d`
 for more details.
 
-Finally, coordinate objects now have a ``to_string`` method that allows easy conversion to string representations. For example, in the case of the previous coordinates used above::
+Finally, coordinate objects now have a ``to_string`` method that allows easy
+conversion to string representations. For example, in the case of the previous
+coordinates used above::
 
     >>> c.to_string()
     [u'18h17m43.08s -13d52m13.97s',
@@ -245,23 +257,53 @@ ASCII Tables
 Convolution
 -----------
 
-.. TODO
+The convolution functionality that was originally included in `astropy.nddata`
+has now been moved to its own sub-package, `astropy.convolution`. It now
+includes a framework that provides common built-in kernels:
 
-.. TODO - determine which of the following sections to keep
+.. plot::
+   :include-source:
+
+    import numpy as np
+    from astropy.convolution import convolve, Gaussian2DKernel
+
+    # Generate data
+    np.random.seed(0)
+    image = np.random.random((128, 128))
+
+    # Create kernel
+    g = Gaussian2DKernel(width=1)
+
+    # Convolve data
+    image_new = convolve(image, g, boundary='extend')
+
+    # Plot the results
+    plt.figure(figsize=(8,3))
+    plt.subplot(1,2,1)
+    plt.imshow(image, interpolation='none', origin='lower', vmin=0., vmax=1.)
+    plt.title('Reference')
+    plt.subplot(1,2,2)
+    plt.imshow(image_new, interpolation='none', origin='lower', vmin=0., vmax=1.)
+    plt.title('Convolved')
+
+The discretization of the kernel functions can be done in various ways (e.g.
+oversampling, interpolation, etc.) which are described in more detail in
+`astropy.convolution`.
 
 WCS
 ---
 
-When reading FITS headers, warnings will be displayed about any
-non-standard WCS keywords that were fixed up to become standard
-compliant.
+When reading FITS headers, warnings will now be displayed about any
+non-standard WCS keywords that were fixed to become standard compliant.
 
-For users who have Scipy installed, the `wcs.WCS` class features a new
-method `all_world2pix` for converting from world coordinates to pixel
-space, including inversion of the astrometric distortion correction.
+For users who have `Scipy <http://www.scipy.org>`_ installed, the
+:class:`~astropy.wcs.wcs.WCS` class features a new method
+:meth:`~astropy.wcs.wcs.WCS.all_world2pix` for converting from world
+coordinates to pixel space including the inversion of astrometric distortion
+corrections.
 
-The included version of `wcslib` has been upgraded to version 4.19.
-The relevant changes for astropy users are:
+The included version of `wcslib` has been upgraded to version 4.19. The
+relevant changes for astropy users are:
 
   * Implemented the butterfly projection (``XPH``), being the polar
     form of the HEALPix projection with ``(H,K) = (4,3)``.
@@ -271,46 +313,14 @@ The relevant changes for astropy users are:
 
   * A number of memory handling and stability fixes.
 
-io.votable
-----------
+VO Tables
+---------
 
-`io.votable` now includes support for the `VOTable 1.3 proposed
-recommendation
+The `astropy.io.votable` sub-package now includes support for the `VOTable 1.3
+proposed recommendation
 <http://www.ivoa.net/documents/VOTable/20130315/PR-VOTable-1.3-20130315.html>`_.
-Notably, this includes a new binary representation that supports
-masking of any data type.
-
-Backwards-Incompatible Changes
-------------------------------
-
-* The `coordinates.angles.AngularSeparation`'s initializer argument order
-  has been changed from ``lat1, lon1, lat2, lon2`` to
-  ``lon1, lat1, lon2, lat2``.  A warning will be shown in this version
-  indicating that the change occurred, but this will be removed in the
-  next version.
-
-* All of the builtin coordinate classes no longer end in ``Coordinates``.
-  E.g., `ICRSCoordinates` is now `ICRS`, `GalacticCoordinates` are now
-  `Galactic`, etc.
-
-* `HorizontalCoordinates` is now called `AltAz`.
-
-
-Warnings about backwards incompatible changes can be disabled by doing::
-
-    import warnings
-    from astropy.utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
-    warnings.simplefilter('ignore', AstropyBackwardsIncompatibleChangeWarning)
-
-
-Deprecated API
-``````````````
-The exception `astropy.units.UnitsException` has been renamed to
-`astropy.units.UnitsError` to be more consistent with the naming of
-Python built-in exceptions.
-
-The :func:`~astropy.units.equivalencies.spectral_density` equivalencies now
-take `~astropy.units.quantity.Quantity` instead of ``(sunit, sfactor)``.
+Notably, this includes a new binary representation that supports masking of
+any data type.
 
 Logger
 ------
@@ -329,3 +339,22 @@ Linux) and change the following two lines as follows::
 
     # Whether to always log messages to a log file
     log_to_file = False
+
+Deprecation and backward-incompatible changes
+---------------------------------------------
+
+For a full-list of deprecated features and backward-incompatible changes,
+please take a look at the full :doc:`../changelog`.
+
+In Python 2.7 and above, deprecation warnings are disabled by default. If you
+want to make sure you see these warnings, you can run your Python scripts with:
+
+    $ python -Wd script.py
+
+In addition to deprecation warnings, Astropy will also raise warnings (by
+default) about changes that are not backward-compatible. These can be disabled
+by doing::
+
+    import warnings
+    from astropy.utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
+    warnings.simplefilter('ignore', AstropyBackwardsIncompatibleChangeWarning)
