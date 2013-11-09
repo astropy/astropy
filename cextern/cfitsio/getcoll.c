@@ -175,7 +175,14 @@ int ffgcll( fitsfile *fptr,   /* I - FITS file pointer                       */
         }
         else  /* some other illegal character; return the char value */
         {
-          array[next] = (char) *buffptr;
+          if (*buffptr == 1) {
+            /* this is an unfortunate case where the illegal value is the same
+               as what we set True values to, so set the value to the character '1'
+               instead, which has ASCII value 49.  */
+            array[next] = 49;
+          } else {
+            array[next] = (char) *buffptr;
+          }
         }
       }
 

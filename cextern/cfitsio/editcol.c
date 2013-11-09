@@ -1109,9 +1109,12 @@ int fficls(fitsfile *fptr,  /* I - FITS file pointer                        */
         {
             ffbnfm(tfm, &datacode, &repeat, &width, status);
 
-            if (datacode < 0)         /* variable length array column */
-                delbyte += 8;
-            else if (datacode == 1)          /* bit column; round up  */
+            if (datacode < 0)  {       /* variable length array column */
+	        if (strchr(tfm, 'Q'))
+		  delbyte += 16;
+		else
+                  delbyte += 8;
+            } else if (datacode == 1)          /* bit column; round up  */
                 delbyte += (repeat + 7) / 8; /* to multiple of 8 bits */
             else if (datacode == 16)  /* ASCII string column */
                 delbyte += repeat;
@@ -1649,7 +1652,7 @@ int ffcpcl(fitsfile *infptr,    /* I - FITS file pointer to input file  */
     nrows = minvalue(nrows, outrows);
 
     if (typecode == TBIT)
-        repeat = (repeat - 1) / 8 + 1;  /* convert from bits to bytes */
+        repeat = (repeat + 7) / 8;  /* convert from bits to bytes */
     else if (typecode == TSTRING && (infptr->Fptr)->hdutype == BINARY_TBL)
         repeat = repeat / width;  /* convert from chars to unit strings */
 

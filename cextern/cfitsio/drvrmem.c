@@ -557,7 +557,8 @@ int mem_compress_open(char *filename, int rwmode, int *hdl)
     FILE *diskfile;
     int status, estimated = 1;
     unsigned char buffer[4];
-    size_t finalsize;
+    size_t finalsize, filesize;
+    unsigned int modulosize;
     char *ptr;
 
     if (rwmode != READONLY)
@@ -585,17 +586,45 @@ int mem_compress_open(char *filename, int rwmode, int *hdl)
 
     if (memcmp(buffer, "\037\213", 2) == 0)  /* GZIP */
     {
-        /* the uncompressed file size is give at the end of the file */
+        /* the uncompressed file size is give at the end */
+        /* of the file in the ISIZE field  (modulo 2^32) */
 
         fseek(diskfile, 0, 2);            /* move to end of file */
+        filesize = ftell(diskfile);       /* position = size of file */
         fseek(diskfile, -4L, 1);          /* move back 4 bytes */
         fread(buffer, 1, 4L, diskfile);   /* read 4 bytes */
 
         /* have to worry about integer byte order */
-	finalsize  = buffer[0];
-	finalsize |= buffer[1] << 8;
-	finalsize |= buffer[2] << 16;
-	finalsize |= buffer[3] << 24;
+	modulosize  = buffer[0];
+	modulosize |= buffer[1] << 8;
+	modulosize |= buffer[2] << 16;
+	modulosize |= buffer[3] << 24;
+
+/*
+  the field ISIZE in the gzipped file header only stores 4 bytes and contains
+  the uncompressed file size modulo 2^32.  If the uncompressed file size
+  is less than the compressed file size (filesize), then one probably needs to
+  add 2^32 = 4294967296 to the uncompressed file size, assuming that the gzip
+  produces a compressed file that is smaller than the original file.
+
+  But one must allow for the case of very small files, where the
+  gzipped file may actually be larger then the original uncompressed file.
+  Therefore, only perform the modulo 2^32 correction test if the compressed 
+  file is greater than 10,000 bytes in size.  (Note: this threhold would
+  fail only if the original file was greater than 2^32 bytes in size AND gzip 
+  was able to compress it by more than a factor of 400,000 (!) which seems
+  highly unlikely.)
+  
+  Also, obviously, this 2^32 modulo correction cannot be performed if the
+  finalsize variable is only 32-bits long.  Typically, the 'size_t' integer
+  type must be 8 bytes or larger in size to support data files that are 
+  greater than 2 GB (2^31 bytes) in size.  
+*/
+        finalsize = modulosize;
+
+        if (sizeof(size_t) > 4 && filesize > 10000) {
+            while (finalsize <  filesize) finalsize += 4294967296;
+        }
 
         estimated = 0;  /* file size is known, not estimated */
     }
@@ -607,10 +636,11 @@ int mem_compress_open(char *filename, int rwmode, int *hdl)
         fread(buffer, 1, 4L, diskfile);   /* read 4 bytes */
 
         /* have to worry about integer byte order */
-	finalsize  = buffer[0];
-	finalsize |= buffer[1] << 8;
-	finalsize |= buffer[2] << 16;
-	finalsize |= buffer[3] << 24;
+	modulosize  = buffer[0];
+	modulosize |= buffer[1] << 8;
+	modulosize |= buffer[2] << 16;
+	modulosize |= buffer[3] << 24;
+        finalsize = modulosize;
 
         estimated = 0;  /* file size is known, not estimated */
     }

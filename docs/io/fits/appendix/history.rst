@@ -20,14 +20,39 @@ Highlights
 
 - Rewrote CFITSIO-based backend for handling tile compression of FITS files.
   It now uses a standard CFITSIO instead of heavily modified pieces of CFITSIO
-  as before.  PyFITS ships with its own copy of CFITSIO v3.30, but system
+  as before.  PyFITS ships with its own copy of CFITSIO v3.35 which supports
+  the latest version of the Tiled Image Convention (v2.3), but system
   packagers may choose instead to strip this out in favor of a
   system-installed version of CFITSIO.  Earlier versions may work, but nothing
   earlier than 3.28 has been tested yet. (#169)
 
+- Added support for reading and writing tables using the Q format for columns.
+  The Q format is identical to the P format (variable-length arrays) except
+  that it uses 64-bit integers for the data descriptors, allowing more than
+  4 GB of variable-length array data in a single table. (#160)
+
+- Some refactoring of the table and ``FITS_rec`` modules in order to better
+  separate the details of the FITS binary and ASCII table data structures from
+  the HDU data structures that encapsulate them.  Most of these changes should
+  not be apparent to users (but see API Changes below).
+
 
 API Changes
 ^^^^^^^^^^^
+
+- The ``pyfits.new_table`` function is marked "pending deprecation".  This
+  does not mean it will be removed outright or that its functionality has
+  changed.  It will likely be replaced in the future for a function with
+  similar, if not subtly different functionality.  A better, if not slightly
+  more verbose approach is to use ``pyfits.FITS_rec.from_columns`` to create
+  a new ``FITS_rec`` table--this has the same interface as
+  ``pyfits.new_table``.  The difference is that it returns a plan ``FITS_rec``
+  array, and not an HDU instance.  This ``FITS_rec`` object can then be used
+  as the data argument in the constructors for ``BinTableHDU`` (for binary
+  tables) or ``TableHDU`` (for ASCII tables).  This is analogous to creating
+  an ``ImageHDU`` by passing in an image array.
+  ``pyfits.FITS_rec.from_columns`` is just a simpler way of creating a
+  FITS-compatible recarray from a FITS column specification.
 
 - The ``updateHeader``, ``updateHeaderData``, and ``updateCompressedData``
   methods of the ``CompDataHDU`` class are pending deprecation and moved to
@@ -63,13 +88,97 @@ API Changes
   include: ``create_card``, ``create_card_from_string``, ``upper_key``,
   ``Header.get_history``, and ``Header.get_comment``.
 
+- The ``.name`` attribute on HDUs is now directly tied to the HDU's header, so
+  that if ``.header['EXTNAME']`` changes so does ``.name`` and vice-versa.
 
-New Features
-^^^^^^^^^^^^
+- The ``pyfits.file.PYTHON_MODES`` constant dict was renamed to
+  ``pyfits.file.PYFITS_MODES`` which better reflects its purpose.  This is
+  rarely used by client code, however.  Support for the old name will be
+  removed by PyFITS 3.4.
 
-- The new compression code also adds support for the ZQUANTIZ keyword added in
-  more recent versions of this FITS Tile Compression spec. This includes
-  support for lossless compression with GZIP. (#198)
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- The new compression code also adds support for the ZQUANTIZ and ZDITHER0
+  keywords added in more recent versions of this FITS Tile Compression spec.
+  This includes support for lossless compression with GZIP. (#198) By default
+  no dithering is used, but the ``SUBTRACTIVE_DITHER_1`` and
+  ``SUBTRACTIVE_DITHER_2`` methods can be enabled by passing the correct
+  constants to the ``quantize_method`` argument to the ``CompImageHDU``
+  constuctor.  A seed can be manually specified, or automatically generated
+  using either the system clock or checksum-based methods via the
+  ``dither_seed`` argument.  See the documentation for ``CompImageHDU`` for
+  more details. (#198) (spacetelescope/PYFITS#32)
+
+- Images compressed with the Tile Compression standard can now be larger than
+  4 GB through support of the Q format. (#159)
+
+- All HDUs now have a ``.ver`` ``.level`` attribute that returns the value of
+  the EXTVAL and EXTLEVEL keywords from that HDU's header, if the exist.  This
+  was added for consistency with the ``.name`` attribute which returns the
+  EXTNAME value from the header.
+
+- Then ``Column`` and ``ColDefs`` classes have new ``.dtype`` attributes
+  which give the Numpy dtype for the column data in the first case, and the
+  full Numpy compound dtype for each table row in the latter case.
+
+- There was an issue where new tables created defaulted the values in all
+  string columns to '0.0'.  Now string columns are filled with empty strings
+  by default--this seems a less surprising default, but it may cause
+  differences with tables created with older versions of PyFITS.
+
+
+Bug Fixes
+^^^^^^^^^
+
+- Binary tables containing compressed images may, optionally, contain other
+  columns unrelated to the tile compression convention. Although this is an
+  uncommon use case, it is permitted by the standard. (#159)
+
+- Reworked some of the file I/O routines to allow simpler, more consistent
+  mapping between OS-level file modes ('rb', 'wb', 'ab', etc.) and the more
+  "PyFITS-specific" modes used by PyFITS like "readonly" and "update".
+  That is, if reading a FITS file from an open file object, it doesn't matter
+  as much what "mode" it was opened in so long as it has the right
+  capabilities (read/write/etc.)  Also works around bugs in the Python io
+  module in 2.6+ with regard to file modes. (spacetelescope/PyFITS#33)
+
+
+3.1.3 (unreleased)
+------------------
+
+- Disallowed assigning NaN and Inf floating point values as header values,
+  since the FITS standard does not define a way to represent them in. Because
+  this is undefined, the previous behavior did not make sense and produced
+  invalid FITS files. (spacetelescope/PyFITS#11)
+
+- Added a workaround for a bug in 64-bit OSX that could cause truncation when
+  writing files greater than 2^32 bytes in size. (spacetelescope/PyFITS#28)
+
+- Fixed a long-standing issue where writing binary tables did not correctly
+  write the TFORMn keywords for variable-length array columns (they ommitted
+  the max array length parameter of the format).  This was thought fixed in
+  v3.1.2, but it was only fixed there for compressed image HDUs and not for
+  binary tables in general.
+
+
+3.0.12 (unreleased)
+-------------------
+
+- Disallowed assigning NaN and Inf floating point values as header values,
+  since the FITS standard does not define a way to represent them in. Because
+  this is undefined, the previous behavior did not make sense and produced
+  invalid FITS files. (Backported from 3.1.3)
+
+- Added a workaround for a bug in 64-bit OSX that could cause truncation when
+  writing files greater than 2^32 bytes in size. (Backported from 3.1.3)
+
+- Fixed a long-standing issue where writing binary tables did not correctly
+  write the TFORMn keywords for variable-length array columns (they ommitted
+  the max array length parameter of the format).  This was thought fixed in
+  v3.1.2, but it was only fixed there for compressed image HDUs and not for
+  binary tables in general. (Backported from 3.1.3)
 
 
 3.1.3 (unreleased)

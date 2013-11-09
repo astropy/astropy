@@ -202,7 +202,7 @@ int ffpclu( fitsfile *fptr,  /* I - FITS file pointer                       */
       {
          i8null = tnull;
 #if BYTESWAPPED
-         ffswap4( (INT32BIT*) (&i8null), 2); /* reverse order of bytes */
+         ffswap8((double *)(&i8null), 1);  /* reverse order of bytes */
 #endif
       }
     }

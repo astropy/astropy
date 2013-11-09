@@ -167,9 +167,9 @@ class StreamingHDU(object):
         `TypeError` exception is raised.
         """
 
-        curDataSize = self._ffo.tell() - self._data_offset
+        size = self._ffo.tell() - self._data_offset
 
-        if self.writecomplete or curDataSize + data.nbytes > self._size:
+        if self.writecomplete or size + data.nbytes > self._size:
             raise IOError('Attempt to write more data to the stream than the '
                           'header specified.')
 

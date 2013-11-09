@@ -356,10 +356,10 @@ int ffpclb( fitsfile *fptr,  /* I - FITS file pointer                       */
   and will be inverse-scaled by the FITS TSCALn and TZEROn values if necessary.
 */
 {
-    int tcode, maxelem, hdutype, writeraw;
+    int tcode, maxelem2, hdutype, writeraw;
     long twidth, incre;
     long  ntodo;
-    LONGLONG repeat, startpos, elemnum, wrtptr, rowlen, rownum, remain, next, tnull;
+    LONGLONG repeat, startpos, elemnum, wrtptr, rowlen, rownum, remain, next, tnull, maxelem;
     double scale, zero;
     char tform[20], cform[20];
     char message[FLEN_ERRMSG];
@@ -378,9 +378,10 @@ int ffpclb( fitsfile *fptr,  /* I - FITS file pointer                       */
     /*  Check input and get parameters about the column: */
     /*---------------------------------------------------*/
     if (ffgcprll( fptr, colnum, firstrow, firstelem, nelem, 1, &scale, &zero,
-        tform, &twidth, &tcode, &maxelem, &startpos,  &elemnum, &incre,
+        tform, &twidth, &tcode, &maxelem2, &startpos,  &elemnum, &incre,
         &repeat, &rowlen, &hdutype, &tnull, snull, status) > 0)
         return(*status);
+    maxelem = maxelem2;
 
     if (tcode == TSTRING)   
          ffcfmt(tform, cform);     /* derive C format for writing strings */
@@ -395,7 +396,7 @@ int ffpclb( fitsfile *fptr,  /* I - FITS file pointer                       */
     if (scale == 1. && zero == 0. && tcode == TBYTE)
     {
         writeraw = 1;
-        maxelem = (int) nelem;  /* we can write the entire array at one time */
+        maxelem = nelem;  /* we can write the entire array at one time */
     }
     else
         writeraw = 0;

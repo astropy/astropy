@@ -5,7 +5,6 @@ import os
 import time
 
 import numpy as np
-from numpy import char as chararray
 
 from . import FitsTestCase
 from .test_table import comparerecords

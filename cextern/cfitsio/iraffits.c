@@ -117,12 +117,12 @@ static int irafgeti4(char *irafheader, int offset);
 static char *irafgetc2(char *irafheader, int offset, int nc);
 static char *irafgetc(char *irafheader,	int offset, int	nc);
 static char *iraf2str(char *irafstring, int nchar);
-static char *irafrdhead(char *filename, int *lihead);
+static char *irafrdhead(const char *filename, int *lihead);
 static int irafrdimage (char **buffptr, size_t *buffsize,
     size_t *filesize, int *status);
 static int iraftofits (char *hdrname, char *irafheader, int nbiraf,
     char **buffptr, size_t *nbfits, size_t *fitssize, int *status);
-static char *same_path(char *pixname, char *hdrname);
+static char *same_path(char *pixname, const char *hdrname);
 
 static int swaphead=0;	/* =1 to swap data bytes of IRAF header values */
 static int swapdata=0;  /* =1 to swap bytes in IRAF data pixels */
@@ -147,15 +147,15 @@ static void hputs(char* hstring,char* keyword,char* cval);
 static void hputcom(char* hstring,char* keyword,char* comment);
 static void hputl(char* hstring,char* keyword,int lval);
 static void hputc(char* hstring,char* keyword,char* cval);
-static int getirafpixname (char *hdrname, char *irafheader, char *pixfilename, int *status);
+static int getirafpixname (const char *hdrname, char *irafheader, char *pixfilename, int *status);
 int iraf2mem(char *filename, char **buffptr, size_t *buffsize, 
       size_t *filesize, int *status);
 
 void ffpmsg(const char *err_message);
 
 /*--------------------------------------------------------------------------*/
-int fits_delete_iraf_file(char *filename,     /* name of input file                 */
-             int *status)        /* IO - error status                       */
+int fits_delete_iraf_file(const char *filename,  /* name of input file      */
+             int *status)                        /* IO - error status       */
 
 /*
    Delete the iraf .imh header file and the associated .pix data file
@@ -242,8 +242,8 @@ int iraf2mem(char *filename,     /* name of input file                 */
  */
 
 static char *irafrdhead (
-    char *filename,   /* Name of IRAF header file */
-    int *lihead)     /* Length of IRAF image header in bytes (returned) */
+    const char *filename,  /* Name of IRAF header file */
+    int *lihead)           /* Length of IRAF image header in bytes (returned) */
 {
     FILE *fd;
     int nbr;
@@ -877,7 +877,7 @@ static int iraftofits (
 /* get the IRAF pixel file name */
 
 static int getirafpixname (
-    char    *hdrname,  /* IRAF header file name (may be path) */
+    const char *hdrname,  /* IRAF header file name (may be path) */
     char    *irafheader,  /* IRAF image header */
     char    *pixfilename,     /* IRAF pixel file name */
     int     *status)
@@ -931,7 +931,7 @@ static int getirafpixname (
 static char *same_path (
 
 char	*pixname,	/* IRAF pixel file pathname */
-char	*hdrname)	/* IRAF image header file pathname */
+const char	*hdrname)	/* IRAF image header file pathname */
 
 {
     int len;

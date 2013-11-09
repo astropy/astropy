@@ -15,11 +15,11 @@
 #define fits_open_memfile   ffomem
 
 /* 
-   use the following special macro to test that the fitsio.h include
-   file that was used to build the CFITSIO library is the same version
+   use the following special macro to test that the fitsio.h include file
+   that was used to build the CFITSIO library is compatible with the version
    as included when compiling the application program
 */
-#define fits_open_file(A, B, C, D)  ffopentest( CFITSIO_VERSION, A, B, C, D)
+#define fits_open_file(A, B, C, D)  ffopentest( CFITSIO_SONAME, A, B, C, D)
 
 #define fits_open_data      ffdopn
 #define fits_open_table     fftopn
@@ -53,6 +53,7 @@
 #define fits_null_check     ffnchk
 #define fits_make_keyn      ffkeyn
 #define fits_make_nkey      ffnkey
+#define fits_make_key       ffmkky
 #define fits_get_keyclass   ffgkcl
 #define fits_get_keytype    ffdtyp
 #define fits_get_inttype    ffinttyp

@@ -14,8 +14,8 @@ from numpy import char as chararray
 
 from .base import DELAYED, _ValidHDU, ExtensionHDU
 from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_ATTRIBUTES, TDEF_RE,
-                      Delayed, Column, ColDefs, _ASCIIColDefs, _FormatX,
-                      _FormatP, _wrapx, _makep, _VLF, _parse_tformat,
+                      Column, ColDefs, _AsciiColDefs, _FormatX, _FormatP,
+                      _FormatQ, _makep, _VLF, _parse_tformat,
                       _scalar_to_format, _convert_format, _cmp_recformats,
                       _get_index)
 from ..fitsrec import FITS_rec
@@ -46,6 +46,11 @@ class _TableLikeHDU(_ValidHDU):
     """
 
     _data_type = FITS_rec
+    _columns_type = ColDefs
+
+    # TODO: Temporary flag representing whether uints are enabled; remove this
+    # after restructuring to support uints by default on a per-column basis
+    _uint = False
 
     @classmethod
     def match_header(cls, header):
@@ -66,28 +71,22 @@ class _TableLikeHDU(_ValidHDU):
     def _get_tbdata(self):
         """Get the table data from an input HDU object."""
 
-        # TODO: Need to find a way to eliminate the check for phantom columns;
-        # this detail really needn't be worried about outside the ColDefs class
         columns = self.columns
-        recformats = [f for idx, f in enumerate(columns._recformats)
-                      if not columns[idx]._phantom]
-        formats = ','.join(recformats)
-        names = [n for idx, n in enumerate(columns.names)
-                 if not columns[idx]._phantom]
-        dtype = np.rec.format_parser(formats, names, None).dtype
 
         # TODO: Details related to variable length arrays need to be dealt with
         # specifically in the BinTableHDU class, since they're a detail
         # specific to FITS binary tables
-        if (_FormatP in [type(r) for r in recformats] and
+        if (any(type(r) in (_FormatP, _FormatQ)
+                for r in columns._recformats) and
                 self._data_size > self._theap):
             # We have a heap; include it in the raw_data
-            raw_data = self._get_raw_data(self._data_size, np.byte,
+            raw_data = self._get_raw_data(self._data_size, np.uint8,
                                           self._data_offset)
-            data = raw_data[:self._theap].view(dtype=dtype,
+            data = raw_data[:self._theap].view(dtype=columns.dtype,
                                                type=np.rec.recarray)
         else:
-            raw_data = self._get_raw_data(columns._shape, dtype, self._data_offset)
+            raw_data = self._get_raw_data(columns._shape, columns.dtype,
+                                          self._data_offset)
             data = raw_data.view(np.rec.recarray)
 
         self._init_tbdata(data)
@@ -98,11 +97,12 @@ class _TableLikeHDU(_ValidHDU):
 
         data.dtype = data.dtype.newbyteorder('>')
 
+        # hack to enable pseudo-uint support
+        data._uint = self._uint
+
         # pass datLoc, for P format
         data._heapoffset = self._theap
         data._heapsize = self._header['PCOUNT']
-        data._file = self._file
-        data._buffer = self._buffer
         tbsize = self._header['NAXIS1'] * self._header['NAXIS2']
         data._gap = self._theap - tbsize
 
@@ -183,28 +183,43 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 else:
                     # Just doing a view on the input data screws up unsigned
                     # columns, so treat those more carefully.
-                    update_coldefs = dict()
+                    # TODO: I need to read this code a little more closely
+                    # again, but I think it can be simplified quite a bit with
+                    # the use of some appropriate utility functions
+                    update_coldefs = {}
                     if 'u' in [data.dtype[k].kind for k in data.dtype.names]:
                         self._uint = True
-                        bzeros = { 2:np.uint16(2**15), 4:np.uint32(2**31), 8:np.uint64(2**63)}
-                        new_dtype = [(k, data.dtype[k].kind.replace('u','i') +
+                        bzeros = {2: np.uint16(2**15), 4: np.uint32(2**31),
+                                  8: np.uint64(2**63)}
+
+                        new_dtype = [
+                            (k, data.dtype[k].kind.replace('u', 'i') +
                             str(data.dtype[k].itemsize))
                             for k in data.dtype.names]
-                        new_data = np.zeros(data.shape,dtype=new_dtype)
+
+                        new_data = np.zeros(data.shape, dtype=new_dtype)
+
                         for k in data.dtype.fields:
-                            if data.dtype[k].kind == 'u':
-                                new_data[k] = data[k] - bzeros[data.dtype[k].itemsize]
-                                update_coldefs[k] = bzeros[data.dtype[k].itemsize]
+                            dtype = data.dtype[k]
+                            if dtype.kind == 'u':
+                                new_data[k] = data[k] - bzeros[dtype.itemsize]
+                                update_coldefs[k] = bzeros[dtype.itemsize]
                             else:
                                 new_data[k] = data[k]
                         self.data = new_data.view(self._data_type)
+                        # Uck...
+                        self.data._uint = True
                     else:
                         self.data = data.view(self._data_type)
                     for k in update_coldefs:
-                        indx = _get_index(self.data.names,k)
-                        # For some reason change_attrib no longer works
-                        #self.data._coldefs.change_attrib(k,'bzero',update_coldefs[k])
+                        indx = _get_index(self.data.names, k)
                         self.data._coldefs[indx].bzero = update_coldefs[k]
+                        # This is so bad that we have to update this in
+                        # duplicate...
+                        self.data._coldefs.bzeros[indx] = update_coldefs[k]
+                        # More uck...
+                        self.data._coldefs[indx]._physical_values = False
+                        self.data._coldefs[indx]._pseudo_unsigned_ints = True
 
                 self._header['NAXIS1'] = self.data.itemsize
                 self._header['NAXIS2'] = self.data.shape[0]
@@ -253,9 +268,9 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
     @lazyproperty
     def columns(self):
-        if self._data_loaded and hasattr(self.data, '_coldefs'):
+        if self._has_data and hasattr(self.data, '_coldefs'):
             return self.data._coldefs
-        return ColDefs(self)
+        return self._columns_type(self)
 
     @lazyproperty
     def data(self):
@@ -286,18 +301,27 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                                 shape=0)
 
         if isinstance(data, np.ndarray) and data.dtype.fields is not None:
-            if not isinstance(data, self._data_type):
-                data = data.view(self._data_type)
+            # Go ahead and always make a view, even if the data is already the
+            # correct class (self._data_type) so we can update things like the
+            # column defs, if necessary
+            data = data.view(self._data_type)
+
+            if not isinstance(data.columns, self._columns_type):
+                # This would be the place, if the input data was for an ASCII
+                # table and this is binary table, or vice versa, to convert the
+                # data to the appropriate format for the table type
+                new_columns = self._columns_type(data.columns)
+                data = FITS_rec.from_columns(new_columns)
 
             self.__dict__['data'] = data
 
-            self.columns = self.data._coldefs
+            self.columns = self.data.columns
             self.update()
 
             try:
-                # Make the ndarrays in the Column objects of the ColDefs
-                # object of the HDU reference the same ndarray as the HDU's
-                # FITS_rec object.
+               # Make the ndarrays in the Column objects of the ColDefs
+               # object of the HDU reference the same ndarray as the HDU's
+               # FITS_rec object.
                 for idx in range(len(self.columns)):
                     self.columns[idx].array = self.data.field(idx)
 
@@ -349,7 +373,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                          tbtype=self.columns._tbtype)
 
     def _prewriteto(self, checksum=False, inplace=False):
-        if self._data_loaded and self.data is not None:
+        if self._has_data:
             self.data._scale_back()
             # check TFIELDS and NAXIS2
             self._header['TFIELDS'] = len(self.data._coldefs)
@@ -368,11 +392,13 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
             # update TFORM for variable length columns
             for idx in range(self.data._nfields):
-                format = self.data._coldefs.formats[idx]
+                format = self.data._coldefs._recformats[idx]
                 if isinstance(format, _FormatP):
                     _max = self.data.field(idx).max
-                    format = _FormatP(format.dtype, repeat=format.repeat,
-                                      max=_max)
+                    # May be either _FormatP or _FormatQ
+                    format_cls = format.__class__
+                    format = format_cls(format.dtype, repeat=format.repeat,
+                                        max=_max)
                     self._header['TFORM' + str(idx + 1)] = format.tform
         return super(_TableBaseHDU, self)._prewriteto(checksum, inplace)
 
@@ -408,7 +434,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             else:
                 nrows = len(self.data)
 
-            ncols = len(self.columns.formats)
+            ncols = len(self.columns)
             format = self.columns.formats
 
         # if data is not touched yet, use header info.
@@ -442,7 +468,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
         cols = self.columns
 
-        for idx, col in enumerate(cols):
+        for idx in range(len(cols)):
             for attr, keyword in zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES):
                 val = getattr(cols, attr + 's')[idx]
                 if val:
@@ -459,15 +485,13 @@ class TableHDU(_TableBaseHDU):
     _ext_comment = 'ASCII table extension'
 
     _padding_byte = ' '
+    _columns_type = _AsciiColDefs
 
     __format_RE = re.compile(
         r'(?P<code>[ADEFIJ])(?P<width>\d+)(?:\.(?P<prec>\d+))?')
 
     def __init__(self, data=None, header=None, name=None):
         super(TableHDU, self).__init__(data, header, name=name)
-        if (self._data_loaded and self.data is not None and
-                not isinstance(self.data._coldefs, _ASCIIColDefs)):
-            self.data._coldefs = _ASCIIColDefs(self.data._coldefs)
 
     @classmethod
     def match_header(cls, header):
@@ -489,6 +513,9 @@ class TableHDU(_TableBaseHDU):
         if dup:
             raise ValueError("Duplicate field names: %s" % dup)
 
+        # TODO: Determine if this extra logic is necessary--I feel like the
+        # _AsciiColDefs class should be responsible for telling the table what
+        # its dtype should be...
         itemsize = columns.spans[-1] + columns.starts[-1] - 1
         dtype = {}
 
@@ -512,7 +539,7 @@ class TableHDU(_TableBaseHDU):
         Calculate the value for the ``DATASUM`` card in the HDU.
         """
 
-        if self._data_loaded and self.data is not None:
+        if self._has_data:
             # We have the data to be used.
             # We need to pad the data to a block length before calculating
             # the datasum.
@@ -604,7 +631,7 @@ class BinTableHDU(_TableBaseHDU):
         Calculate the value for the ``DATASUM`` card in the HDU.
         """
 
-        if self._data_loaded and self.data is not None:
+        if self._has_data:
             # We have the data to be used.
             return self._calculate_datasum_from_data(self.data, blocking)
         else:
@@ -624,6 +651,13 @@ class BinTableHDU(_TableBaseHDU):
         return size
 
     def _binary_table_byte_swap(self, fileobj):
+        """Prepares data in the native FITS format and writes the raw bytes
+        out to the given file object.  This handles byte swapping from native
+        to big endian (if necessary).  In addition, however, this also handles
+        writing the binary table heap when variable length array columns are
+        present.
+        """
+
         to_swap = []
         swapped = []
         nbytes = 0
@@ -644,7 +678,7 @@ class BinTableHDU(_TableBaseHDU):
                     # deal with var length table
                     if isinstance(recformat, _FormatP):
                         coldata = self.data.field(idx)
-                        for jdx, c in enumerate(coldata):
+                        for c in coldata:
                             if (not isinstance(c, chararray.chararray) and
                                 c.itemsize > 1 and
                                     c.dtype.str[0] in swap_types):
@@ -667,12 +701,11 @@ class BinTableHDU(_TableBaseHDU):
             for idx in range(self.data._nfields):
                 if isinstance(self.data.columns._recformats[idx], _FormatP):
                     field = self.data.field(idx)
-                    for jdx in range(len(field)):
-                        coldata = field[jdx]
-                        if len(coldata) > 0:
-                            nbytes = nbytes + coldata.nbytes
+                    for row in field:
+                        if len(row) > 0:
+                            nbytes += row.nbytes
                             if not fileobj.simulateonly:
-                                fileobj.writearray(coldata)
+                                fileobj.writearray(row)
 
             self.data._heapsize = nbytes - self.data._gap
         finally:
@@ -681,21 +714,19 @@ class BinTableHDU(_TableBaseHDU):
 
         return nbytes
 
-    def _populate_table_keywords(self):
+    def __populate_table_keywords(self):
         """Populate the new table definition keywords from the header."""
 
         cols = self.columns
 
-        for idx, col in enumerate(cols):
+        for idx in range(len(cols)):
             for attr, keyword in zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES):
                 val = getattr(cols, attr + 's')[idx]
                 if val:
                     keyword = keyword + str(idx + 1)
                     if attr == 'format':
                         val = cols._recformats[idx]
-                        if isinstance(val, _FormatX):
-                            val = repr(val._nx) + 'X'
-                        elif isinstance(val, _FormatP):
+                        if isinstance(val, (_FormatX, _FormatP)):
                             val = val.tform
                         else:
                             # There are some cases where the original TFORM and
@@ -732,6 +763,13 @@ class BinTableHDU(_TableBaseHDU):
           array data is preceded by the string ``'VLA_Length= '`` and the
           integer length of the array for that row, left-justified in a
           21-character field, followed by a blank.
+
+          .. note::
+
+              This format does *not* support variable length arrays using the
+              ('Q' format) due difficult to overcome ambiguities. What
+              this means is that this file format cannot support VLA columns
+              in tables stored in files that are over 2 GB in size.
 
           For column data representing a bit field ('X' format), each bit
           value in the field is output right-justified in a 21-character field
@@ -918,7 +956,7 @@ class BinTableHDU(_TableBaseHDU):
         """
 
         if not fileobj and self._file:
-            root, ext = os.path.splitext(self._file.name)
+            root = os.path.splitext(self._file.name)[0]
             fileobj = root + '.txt'
 
         close_file = False
@@ -958,7 +996,7 @@ class BinTableHDU(_TableBaseHDU):
                     # for the VLA data
                     line.append('VLA_Length=')
                     line.append('%-21d' % len(row[column.name]))
-                    repeat, dtype, option = _parse_tformat(column.format)
+                    _, dtype, option = _parse_tformat(column.format)
                     vla_format = FITS2NUMPY[option[0]][0]
 
                 if vla_format:
@@ -1082,6 +1120,11 @@ class BinTableHDU(_TableBaseHDU):
             if length is not None:
                 arr = data.columns._arrays[idx]
                 dt = recformats[idx][len(str(length)):]
+
+                # NOTE: FormatQ not supported here; it's hard to determine
+                # whether or not it will be necessary to use a wider descriptor
+                # type. The function documentation will have to serve as a
+                # warning that this is not supported.
                 recformats[idx] = _FormatP(dt, max=length)
                 data.columns._recformats[idx] = recformats[idx]
                 data._convert[idx] = _makep(arr, arr, recformats[idx])
@@ -1154,10 +1197,13 @@ class BinTableHDU(_TableBaseHDU):
         return ColDefs(columns)
 
 
-# TODO: Allow tbtype to be either a string or a class; perhaps eventually
-# replace this with separate functions for creating tables (possibly in the
-# form of a classmethod)  See ticket #60
-def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
+@deprecated('3.2',
+            alternative=':meth:`FITS_rec.from_columns` to create a new '
+                        ':class:`FITS_rec` data object from the input '
+                        'columns to pass into the constructor for '
+                        ':class:`BinTableHDU` or :class:`TableHDU`',
+            pending=True)
+def new_table(input, header=None, nrows=0, fill=False, tbtype=BinTableHDU):
     """
     Create a new table from the input column definitions.
 
@@ -1167,7 +1213,7 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
 
     If the column data is already in a single contiguous array (such as an
     existing record array) it may be better to create a BinTableHDU instance
-    directly.  See the PyFITS documentation for more details.
+    directly.  See the Astropy documentation for more details.
 
     Parameters
     ----------
@@ -1185,168 +1231,43 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
         `False`, copy the data from input, undefined cells will still
         be filled with zeros/blanks.
 
-    tbtype : str
-        Table type to be created ("BinTableHDU" or "TableHDU").
+    tbtype : str or class
+        Table type to be created (BinTableHDU or TableHDU) or the class
+        name as a string.  Currently only BinTableHDU and TableHDU (ASCII
+        tables) are supported.
     """
 
-    # construct a table HDU
-    # TODO: Something needs to be done about this as part of #60....
-    hdu = eval(tbtype)(header=header)
+    # tbtype defaults to classes now, but in all prior version of PyFITS it was
+    # a string, so we still support that use case as well
+    if not isinstance(tbtype, basestring):
+        cls = tbtype
+        tbtype = cls.__name__
+    else:
+        # Right now the string input must be one of 'TableHDU' or 'BinTableHDU'
+        # and nothing else, though we will allow this to be case insensitive
+        # This could be done more generically through the HDU registry, but my
+        # hope is to deprecate this function anyways so there's not much point
+        # in trying to make it more "generic".
+        if tbtype.lower() == 'tablehdu':
+            tbtype = 'TableHDU'
+            cls = TableHDU
+        elif tbtype.lower() == 'bintablehdu':
+            tbtype = 'BinTableHDU'
+            cls = BinTableHDU
+        else:
+            raise ValueError("tbtype must be one of 'TableHDU' or "
+                             "'BinTableHDU'")
 
-    if isinstance(input, ColDefs):
-        # NOTE: This previously raised an error if the tbtype didn't match the
-        # tbtype of the input ColDefs. This should no longer be necessary, but
-        # just beware.
-        columns = hdu.columns = ColDefs(input)
-    elif isinstance(input, FITS_rec):  # input is a FITS_rec
+    if isinstance(input, FITS_rec):  # input is a FITS_rec
         # Create a new ColDefs object from the input FITS_rec's ColDefs
         # object and assign it to the ColDefs attribute of the new hdu.
-        columns = hdu.columns = ColDefs(input._coldefs, tbtype)
+        columns = ColDefs(input._coldefs, tbtype)
     else:  # input is a list of Columns or possibly a recarray
         # Create a new ColDefs object from the input list of Columns and
         # assign it to the ColDefs attribute of the new hdu.
-        columns = hdu.columns = ColDefs(input, tbtype)
+        columns = ColDefs(input, tbtype)
 
-    # read the delayed data
-    for idx in range(len(columns)):
-        arr = columns._arrays[idx]
-        if isinstance(arr, Delayed):
-            if arr.hdu.data is None:
-                columns._arrays[idx] = None
-            else:
-                columns._arrays[idx] = np.rec.recarray.field(arr.hdu.data,
-                                                             arr.field)
+    data = FITS_rec.from_columns(columns, nrows=nrows, fill=fill)
 
-    # use the largest column shape as the shape of the record
-    if nrows == 0:
-        for arr in columns._arrays:
-            if arr is not None:
-                dim = arr.shape[0]
-            else:
-                dim = 0
-            if dim > nrows:
-                nrows = dim
-
-    if tbtype == 'TableHDU':
-        columns = hdu.columns = _ASCIIColDefs(hdu.columns)
-        _itemsize = columns.spans[-1] + columns.starts[-1] - 1
-        dtype = {}
-
-        for j in range(len(columns)):
-            data_type = 'S' + str(columns.spans[j])
-            dtype[columns.names[j]] = (data_type, columns.starts[j] - 1)
-
-        data = np.rec.array((' ' * _itemsize * nrows).encode('ascii'),
-                            dtype=dtype, shape=nrows).view(FITS_rec)
-        data.setflags(write=True)
-    else:
-        formats = ','.join(columns._recformats)
-        data = np.rec.array(None, formats=formats,
-                            names=columns.names,
-                            shape=nrows).view(FITS_rec)
-
-    # Previously this assignment was made from hdu.columns, but that's a bug
-    # since if a _TableBaseHDU has a FITS_rec in its .data attribute the
-    # _TableBaseHDU.columns property is actually returned from .data._coldefs,
-    # so this assignment was circular!  Don't make that mistake again
-    data._coldefs = columns
-    data.formats = columns.formats
-
-    # Populate data to the new table from the ndarrays in the input ColDefs
-    # object.
-    for idx in range(len(columns)):
-        # For each column in the ColDef object, determine the number
-        # of rows in that column.  This will be either the number of
-        # rows in the ndarray associated with the column, or the
-        # number of rows given in the call to this function, which
-        # ever is smaller.  If the input FILL argument is true, the
-        # number of rows is set to zero so that no data is copied from
-        # the original input data.
-        arr = columns._arrays[idx]
-        recformat = columns._recformats[idx]
-
-        if arr is None:
-            size = 0
-        else:
-            size = len(arr)
-
-        n = min(size, nrows)
-        if fill:
-            n = 0
-
-        # Get any scale factors from the FITS_rec
-        scale, zero, bscale, bzero, dim = data._get_scale_factors(idx)[3:]
-
-        field = np.rec.recarray.field(data, idx)
-
-        if n > 0:
-            # Only copy data if there is input data to copy
-            # Copy all of the data from the input ColDefs object for this
-            # column to the new FITS_rec data array for this column.
-            if isinstance(recformat, _FormatX):
-                # Data is a bit array
-                if arr[:n].shape[-1] == recformat._nx:
-                    _wrapx(arr[:n], field[:n], recformat._nx)
-                else:
-                    # from a table parent data, just pass it
-                    field[:n] = arr[:n]
-            elif isinstance(recformat, _FormatP):
-                data._convert[idx] = _makep(arr[:n], field, recformat,
-                                            nrows=nrows)
-            elif recformat[-2:] == FITS2NUMPY['L'] and arr.dtype == bool:
-                # column is boolean
-                field[:n] = np.where(arr == False, ord('F'), ord('T'))
-            else:
-                if tbtype == 'TableHDU':
-                    # string no need to convert,
-                    if isinstance(arr, chararray.chararray):
-                        field[:n] = arr[:n]
-                    else:
-                        data._convert[idx] = np.zeros(nrows, dtype=arr.dtype)
-                        if scale or zero:
-                            arr = arr.copy()
-                        if scale:
-                            arr *= bscale
-                        if zero:
-                            arr += bzero
-                        data._convert[idx][:n] = arr[:n]
-                else:
-                    outarr = field[:n]
-                    inarr = arr[:n]
-                    if inarr.shape != outarr.shape:
-                        if inarr.dtype != outarr.dtype:
-                            inarr = inarr.view(outarr.dtype)
-
-                        # This is a special case to handle input arrays with
-                        # non-trivial TDIMn.
-                        # By design each row of the outarray is 1-D, while each
-                        # row of the input array may be n-D
-                        if outarr.ndim > 1:
-                            # The normal case where the first dimension is the
-                            # rows
-                            inarr_rowsize = inarr[0].size
-                            inarr = inarr.reshape((n, inarr_rowsize))
-                            outarr[:, :inarr_rowsize] = inarr
-                        else:
-                            # Special case for strings where the out array only
-                            # has one dimension (the second dimension is rolled
-                            # up into the strings
-                            outarr[:n] = inarr.ravel()
-                    else:
-                        field[:n] = arr[:n]
-
-        if n < nrows:
-            # If there are additional rows in the new table that were not
-            # copied from the input ColDefs object, initialize the new data
-            if tbtype == 'BinTableHDU':
-                if isinstance(field, np.ndarray):
-                    field[n:] = -bzero / bscale
-                else:
-                    field[n:] = ''
-            else:
-                field[n:] = ' ' * data._coldefs.spans[idx]
-
-    del hdu.columns
-    hdu.data = data
-
-    return hdu
+    # construct a table HDU of the requested type
+    return cls(header=header, data=data)

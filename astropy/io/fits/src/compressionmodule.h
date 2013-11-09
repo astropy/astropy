@@ -30,6 +30,10 @@
 
 
 #if CFITSIO_MAJOR >= 3
+    #if CFITSIO_MINOR >= 35
+        #define CFITSIO_SUPPORTS_Q_FORMAT_COMPRESSION
+        #define CFITSIO_SUPPORTS_SUBTRACTIVE_DITHER_2
+    #endif
     #if CFITSIO_MINOR >= 28
         #define CFITSIO_SUPPORTS_GZIPDATA
     #else

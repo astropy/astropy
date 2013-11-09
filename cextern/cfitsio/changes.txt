@@ -1,5 +1,247 @@
                    Log of Changes Made to CFITSIO
 
+   - modified Makefile.in so that doing 'make distclean' does not delete
+     new config.sub and config.guess files that were recently added.
+
+Version 3.35 - 26 June 2013  (1st beta release on 24 May)
+		   
+   - fixed problem with the default tile size when compressing images with
+     fpack using the Hcompress algorithm.
+
+   - fixed returned value ("status" instead of "*status") 
+
+   - in imcompress.c, declared some arrays that are used to store the dimensions
+     of the image from 'int' to 'long', to support very large images (at least
+     on systems where sizeof(long) = 8),
+
+   - modified the routines that convert a string value to a float or double
+     to prevent them from returning a NaN or Inf value if the
+     string is "NaN" or "Inf" (as can happen with gcc implementation of the
+     strtod function).
+
+   - removed/replaced the use of the assert() functions when locking or
+     unlocking threads because they did not work correctly if NDEBUG is
+     defined.
+
+   - made modifications to the way the command-line file filters are parsed to
+     1) remove the 1024-character limit when specifying a column filter,
+     2) fixed a potential character buffer-overflow risk in fits_get_token, and
+     3) improved the parsing logic to remove any possible of confusing
+     2 slash characters ("//") in the string as the beginning of a 
+     comment string.
+
+   - modified configure and Makefile.in so that when building CFITSIO
+     as a shared library on linux or Mac platforms, it will use the SONAME
+     convention to indicate whether each new release of the CFITSIO
+     library is binary-compatible with the previous version.  Application
+     programs that link with the shared library will not need to be
+     recompiled as long as the versions are compatible.  In practice,
+     this means that the shared library binary file that is created (on
+     Linux systems) will have a name like 'libcfitsio.so.I.J.K', where I is the
+     SONAME version number, J is the major CFITSIO version number (e.g. 3),
+     and K is the minor CFITSIO version number (e.g., 34).  Two link
+     files will also be created such that
+       libcfitsio.so -> libcfitsio.so.I, and
+       libcfitsio.so.I -> libcfitsio.I.J.K
+     Application programs will still run correctly with the new version of
+     CFITSIO as long as the 'I' version number remains the same, but the
+     applications will fail to run if the 'I' number changes, thus alerting
+     the user that the application must be rebuilt.
+
+   - fixed bug in fits_insert_col when computing the new table row width
+     when inserting a '1Q' variable length array column.
+
+  - modified the image compression routines so that the output compressed
+     image (stored in a FITS binary table) uses the '1Q' variable length
+     array format (instead of '1P') when the input file is larger than 4 GB.
+
+   - added support for "compression directive" keywords which indicate how
+     that HDU should be compressed (e.g., which compression algorithm to use,
+     what tiling pattern to use, etc.).  The values of these keywords will
+     override the compression parameters that were specified on the command 
+     line when running the fpack FITS file compression program.
+
+   - globally changed the variable and/or subroutine name "dither_offset" 
+     to "dither_seed" and "quantize_dither" to "quantize_method" so
+     that the names more accurately reflects their purpose.
+
+   - added support for a new SUBTRACTIVE_DITHER_2 method when compressing
+     floating point images.  The only difference with the previous method
+     is that pixels with a value exactly equal to 0.0 will not be dithered,
+     and instead will be exactly preserved when the image is compressed.
+
+   - added support for an alias of "RICE_ONE" for "RICE_1" as the value
+     of the ZCMPTYPE keyword, which gives the name of the image compression
+     algorithm.  This alias is used if the new SUBTRACTIVE_DITHER_2 option
+     is used, to prevent old versions of funpack from creating a corrupted
+     uncompressed image file.  Only newer versions of funpack will recognize
+     this alias and be able to uncompress the image. 
+   
+   - made performance improvement to fits_read_compressed_img so that 
+     when reading a section of an compressed image that includes only 
+     every nth pixel in some dimension, it will only uncompressed a tile 
+     if there are actually any pixels of interest in that tile.
+
+   - fixed several issues with the beta FITS binary table compression code
+     that is used by fpack:  added support for zero-length vector columns,
+     made improvements to the output report when using the -T option in fpack,
+     changed the default table compression method to 'Rice' instead of 
+     'Best', and now writes the 'ZTILELEN' keyword to document the number
+     of table rows in each tile.
+
+   - fixed error in ffbinit in calculating the total length of the binary
+     table extension if the THEAP keyword was used to override the
+     default starting location of the heap.
+
+Version 3.34 - 20 March 2013
+
+   - modified configure and configure.in to support cross-compiled cfitsio 
+     as a static library for Windows on a Linux platform using MXE 
+     (http://mxe.cc) - a build environment for mingw32. (contributed by 
+     Niels Kristian Bech Jensen)
+
+   - added conditional compilation statementsfor the mingw32 environment in 
+     drvrfile.c because mingw32 does not include the ftello and fseeko functions. 
+     (contributed by Niels Kristian Bech Jensen)
+
+   - fixed a potential bug in ffcpcl (routine to copy a column from one table
+     to another table) when dealing with the rare case of a '0X' column (zero
+     length bit column).
+
+   - fixed an issue in the routines that update or modify string-valued
+     keyword values, as a result of the change to ffc2s in the previous 
+     release.  These routines would exit with a 204 error status if the 
+     current value of the keyword to be updated or modified is null.
+
+   - fixed typo in the previous modification that was intended to ignore
+     numerical overflows in Hcompress when decompressing an image.
+
+   - moved the 'startcol' static variable out of the ffgcnn routine and
+     instead added it as a member of the 'FITSfile' structure that is defined
+     in fitsio.h.  This removes a possible race condition in ffgcnn in 
+     multi-threaded environments.
+
+Version 3.33 - 14 Feb 2013
+
+   - modified the imcomp_decompress_tile routine to ignore any numerical 
+     overflows that might occur when using Hcompress to decompress the
+     image.  If Hcompress is used in its 'lossy' mode, the uncompressed
+     image pixel values may slightly exceed the range of an integer*2 
+     variable. This is generally of no consequence, so we can safely ignore
+     any overflows in this case and just clip the values to the legal range.
+
+   - the default tiling pattern when writing a tile-compressed image
+     has been changed.  The old behavior was to compress the whole image
+     as one single large tile.  This is often not optimal when dealing
+     with large images, so the new default behavior is to treat each
+     row of the image as one tile.  This is the same default behavior
+     as in the standalone fpack program.  The default tile size can
+     be overridden by calling fits_set_tile_dim.
+
+   - fixed bug that resulted in a corrupted output FITS image when
+     attempting to write a float or double array of values to a 
+     tile-compressed integer data type image.  CFITSIO does not support
+     implicit data type conversion in this case and now correctly
+     returns an appropriate error status. 
+
+   - modified ricecomp.c to define the nonzero_count lookup table as an 
+     external variable, rather then dynamically allocating it within the
+     3 routines that use it.  This simplifies the code and eliminates the
+     need for special thread locking and unlocking statements. (Thanks to
+     Lars Kr. Lundin for this suggestion). 
+
+   - modifed how the uncompressed size of a gzipped file is computed in the
+     mem_compress_open routine in drvrmem.c.  Since gzip only uses 4 bytes
+     in the compressed file header to store the original file size, one may
+     need to apply a modulo 2^32 byte correction in some cases.  The logic
+     here was modified to allow for corner cases (e.g., very small files, and 
+     when running on 32-bit platforms that do not support files larger than
+     2^31 bytes in size). 
+
+   - added new public routine to construct a 80 keyword record from the 3 input
+     component strings, i.e, the keyword name string, the value string, and
+     the comment string: fits_make_key/ffmkky.  (This was already an undocumented
+     internal routine in previous versions of CFITSIO).
+
+   - modified ffc2s so that if the input keyword value string is a null string,
+     then it will return a VALUE_UNDEFINED (204) status value.  This makes it
+     consistent with the behavior when attempting to read a null keyword 
+     (which has no value) as a logical or as a number (which also returns
+     the 204 error).  This should only affect cases where the header keyword
+     does not have an equal sign followed by a space character in columns 9
+     and 10 of the header record.
+
+   - Changed the "char *" parameter declarations to "const char *" in many 
+     of the routines (mainly the routines that modify or update keywords) to
+     avoid compiler warnings or errors from C++ programs that tend to be more
+     rigorous about using "const char *" when appropriate.
+
+   - added support for caching uncompressed image tiles, so that the tile does
+     not need to be uncompressed again if the application program wants 
+     to read more data from the same tile. This required changes to the
+     main FITS file structure that is defined in fitsio.h, as well as
+     changes to imcompress.c.
+
+   - enhanced the previous modification to drvrfile.c to handle additional user
+     cases when running in the HEASARC's Hera environment.
+
+Version 3.32 - Oct 2012
+
+   - fixed flaw in the way logical columns (TFORM = 'L') in binary tables 
+     were read which caused an illegal value of 1 in the column to be interpreted
+     as a 'T' (TRUE) value.
+
+   - extended the column filtering syntax in the CFITSIO file name parser to
+     enable users and scripts to append new COMMENT or HISTORY keyword into the
+     header of the filtered file (provided by Craig Markwardt).  For example,
+     fcopy "infile.fits[col #HISTORY='Processed on 2012-10-05']" outfile.fits
+     will append this header keyword: "HISTORY Processed on 2012-10-05"
+
+   - small change to the code that opens and reads an ASCII region file to
+     return an error if the file is empty.
+
+   - fixed obscure sign propagation error when attempting to read the
+     uncompressed size of a gzipped FITS file.  This resulted in a memory
+     allocation error if the gzipped file had an uncompressed file
+     size between 2^31 and 2^32 bytes.  Fix supplied by Gudlaugur Johannesson 
+     (Stanford).
+
+Version 3.31 - 18 July 2012
+
+   - enhanced the CFITSIO column filtering syntax to allow the comma, in addition
+     to the semi-colon, to be used to separate clauses, for example:
+     [col X,Y;Z = max(X,Y)].  This was done because users are not allowed to
+     enter the semi-colon character in the on-line Hera data processing
+     system due to computer security concerns.
+
+   - enhanced the CFITSIO extended filename syntax to allow specifying image
+     compression parameters (e.g. '[compress Rice]') when opening an existing
+     FITS file with write access.  The specified compression parameters will
+     be used by default if more images are appended to the existing file.
+
+   - modified drvrfile.c to do additional file security checks when CFITSIO
+     is running within the HEASARC's Hera software system.  In this case
+     CFITSIO will not allow FITS files to be created outside of the user's
+     individual Hera data directory area.
+
+   - fixed an issue in fpack and funpack on Windows machines, caused by
+     the fact that the 'rename' function behaves differently on Windows
+     in that it does not clobber an existing file, as it does on Unix
+     platforms.
+
+   - fixed bug in the way byte-swapping was being performed when writing 
+     integer*8 null values to an image or binary table column.  
+
+   - added the missing macro definition for fffree to fitsio.h.
+
+   - modified the low level table read and write functions in getcol*.c and 
+     putcol*.c to remove the 32-bit limitation on the number of elements. 
+     These routines now support reading and writing more than 2**31 elements
+     at one time. Thanks to Keh-Cheng Chu (Stanford U.) for the patch.
+
+   - modified Makefile.in so that the shared libcfitsio.so is linked against 
+     pthreads and libm.
+
 Version 3.30 - 11 April 2012
 
   Enhancements
@@ -8,15 +250,16 @@ Version 3.30 - 11 April 2012
      whether or not CFITSIO was compiled with the -D_REENTRANT directive.  This can
      be used to determine if it is safe to use CFITSIO in multi-threaded programs.
 
-   - Implimented much faster byte-swapping algorithms in swapproc.c based on code
+   - Implemented much faster byte-swapping algorithms in swapproc.c based on code
      provided by Julian Taylor at ESO, Garching.  These routines significantly 
      improve the FITS image read and write speed (by more than a factor of 2 in 
-     some cases) on little-endian machines (e.g., Linux and Microsoft Windows running
-     on x86 PCs) where byte-swapping is required.  This has no effect on big-endian 
-     machines (e.g., Macs).  Even faster performance can be achieved in some cases
-     by invoking the new "--enable-sse2" or "--enable-ssse3" configure options when
-     building CFITSIO on machines that have CPUs and compilers that support the SSE2
-     and SSSE3 machine instructions.
+     some cases) on little-endian machines (e.g., Linux and Microsoft Windows and
+     Macs running on x86 CPUs) where byte-swapping is required when reading and 
+     writing data in FITS files.  This has no effect on big-endian machines 
+     (e.g. Motorola CPUs and some IBM systems).  Even faster byte-swapping
+     performance can be achieved in some cases by invoking the new "--enable-sse2" 
+     or "--enable-ssse3" configure options when building CFITSIO on machines that
+     have CPUs and compilers that support the SSE2 and SSSE3 machine instructions.
 
    - added additional support for implicit data type conversion in cases where
      the floating point image has been losslessly compressed with gzip.  The
@@ -27,7 +270,7 @@ Version 3.30 - 11 April 2012
      testing if __s390x__ or __s390__ is defined.
 
    - small change to ffgcrd in getkey.c so that it supports reading a blank
-     keyword (e.g., a keyword whose name simply contains 8 space chracters).
+     keyword (e.g., a keyword whose name simply contains 8 space characters).
 
    Bug Fixes
 
@@ -94,7 +337,7 @@ Version 3.29 - 2 December 2011
      binning 2 table columns, if a keyword or column name is given as the
      weighting factor,  then the output histrogram image will have a floating
      point datatype, not the default integer datatype as is the case when no
-     weigth is specified (e.g. with a filename like 
+     weight is specified (e.g. with a filename like 
      "myfile.fits[bin x,y; weight_column]"
 
    - added fix to the code in imcompress.c to work around a problem with
@@ -144,12 +387,12 @@ Version 3.27 - 3 March 2011
 
     - enhanced the ffmkky routine in fitscore.c to not put a space before the
       equals sign when writing long string-valued keywords using the ESO
-      HIERARCH keyword convension, if that extra character is needed to
+      HIERARCH keyword convention, if that extra character is needed to
       fit the length of the keyword name + value string within the 80-character
       FITS keyword record.
 
     - made small change to fits_translate_keyword to support translation of
-      blank keywords (where the name = 8 blank chracters)
+      blank keywords (where the name = 8 blank characters)
 
     - modified fpack so that it uses the minimum of the 2nd, 3rd, and 5th order
       MAD noise values when quantizing and compressing a floating point image.
@@ -190,7 +433,7 @@ Version 3.26 - 30 December 2010
    - enhanced the template keyword parsing code in grparser.c to support
      the 'D' exponent character in the ASCII representation of floating
      point keyword values (as in TVAL = 1.23D03).  Previously, the parser
-     would have writen this keyword with a string value (TVAL = '1.23D03').
+     would have written this keyword with a string value (TVAL = '1.23D03').
 
    - modified the low-level routines that write a keyword record to a FITS 
      header so that they silently replace any illegal characters (ASCII 
@@ -223,7 +466,7 @@ Version 3.26 - 30 December 2010
 
    - enhanced the test for illegal ASCII characters in a header (fftrec) to
      print out the name of the offending character (e.g TAB or Line Feed) as
-     well as the Hex value of the chracter.
+     well as the Hex value of the character.
      
    - modified ffgtbc (in fitscore.c) to support nonstandard vector variable
      length array columns in binary tables (e.g. with TFORMn = 2000PE(500)').
@@ -258,7 +501,7 @@ Version 3.26 - 30 December 2010
    - fixed a bug when updating the value of the CRPIXn world coordinate 
      system keywords when extracting a subimage from larger FITS image, using the
      extended CFITSIO syntax (e.g.  myimage[1:500:2, 1:500:2]).  This bug only 
-     affects casee where the pixel increment value is not equal to 1, and caused
+     affects cases where the pixel increment value is not equal to 1, and caused
      the coordinate grid to be shifted by between 0.25 pixels (in the case of
      a pixel increment of 2) and 0.5 pixels (for large pixel increment values).
 

@@ -862,10 +862,11 @@ int ffgkls( fitsfile *fptr,     /* I - FITS file pointer         */
     return(*status);
 }
 /*--------------------------------------------------------------------------*/
-int fffree( char *value,       /* I - pointer to keyword value  */
+int fffree( void *value,       /* I - pointer to keyword value  */
             int  *status)      /* IO - error status             */
 /*
-  Free the memory that was allocated by ffgkls for the long string keyword value.
+  Free the memory that was previously allocated by CFITSIO, 
+  such as by ffgkls or fits_hdr2str
 */
 {
     if (*status > 0)
@@ -1696,6 +1697,7 @@ int ffdtdm(fitsfile *fptr,  /* I - FITS file pointer                        */
 /*
   decode the TDIMnnn keyword to get the dimensionality of a column.
   Check that the value is legal and consistent with the TFORM value.
+  If colnum = 0, then the validity checking is disabled.
 */
 {
     long dimsize, totalpix = 1;
@@ -1705,34 +1707,37 @@ int ffdtdm(fitsfile *fptr,  /* I - FITS file pointer                        */
     if (*status > 0)
         return(*status);
 
-    if (fptr->HDUposition != (fptr->Fptr)->curhdu)
-        ffmahd(fptr, (fptr->HDUposition) + 1, NULL, status);
+    if (colnum != 0) {
+        if (fptr->HDUposition != (fptr->Fptr)->curhdu)
+            ffmahd(fptr, (fptr->HDUposition) + 1, NULL, status);
 
-    if (colnum < 1 || colnum > (fptr->Fptr)->tfield)
-        return(*status = BAD_COL_NUM);
+        if (colnum < 1 || colnum > (fptr->Fptr)->tfield)
+            return(*status = BAD_COL_NUM);
 
-    colptr = (fptr->Fptr)->tableptr;   /* set pointer to the first column */
-    colptr += (colnum - 1);    /* increment to the correct column */
+        colptr = (fptr->Fptr)->tableptr;   /* set pointer to the first column */
+        colptr += (colnum - 1);    /* increment to the correct column */
 
-    if (!tdimstr[0])   /* TDIMn keyword doesn't exist? */
-    {
-        *naxis = 1;                   /* default = 1 dimensional */
-        if (maxdim > 0)
-            naxes[0] = (long) colptr->trepeat; /* default length = repeat */
-    }
-    else
-    {
-        *naxis = 0;
-
-        loc = strchr(tdimstr, '(' );  /* find the opening quote */
-        if (!loc)
+        if (!tdimstr[0])   /* TDIMn keyword doesn't exist? */
         {
-            sprintf(message, "Illegal TDIM keyword value: %s", tdimstr);
-            return(*status = BAD_TDIM);
+            *naxis = 1;                   /* default = 1 dimensional */
+            if (maxdim > 0)
+                naxes[0] = (long) colptr->trepeat; /* default length = repeat */
+
+            return(*status);
         }
+    }
 
-        while (loc)
-        {
+    *naxis = 0;
+
+    loc = strchr(tdimstr, '(' );  /* find the opening quote */
+    if (!loc)
+    {
+            sprintf(message, "Illegal dimensions format: %s", tdimstr);
+            return(*status = BAD_TDIM);
+    }
+
+    while (loc)
+    {
             loc++;
             dimsize = strtol(loc, &loc, 10);  /* read size of next dimension */
             if (*naxis < maxdim)
@@ -1740,7 +1745,7 @@ int ffdtdm(fitsfile *fptr,  /* I - FITS file pointer                        */
 
             if (dimsize < 0)
             {
-                ffpmsg("one or more TDIM values are less than 0 (ffdtdm)");
+                ffpmsg("one or more dimension are less than 0 (ffdtdm)");
                 ffpmsg(tdimstr);
                 return(*status = BAD_TDIM);
             }
@@ -1749,15 +1754,16 @@ int ffdtdm(fitsfile *fptr,  /* I - FITS file pointer                        */
             (*naxis)++;
             lastloc = loc;
             loc = strchr(loc, ',');  /* look for comma before next dimension */
-        }
+    }
 
-        loc = strchr(lastloc, ')' );  /* check for the closing quote */
-        if (!loc)
-        {
-            sprintf(message, "Illegal TDIM keyword value: %s", tdimstr);
+    loc = strchr(lastloc, ')' );  /* check for the closing quote */
+    if (!loc)
+    {
+            sprintf(message, "Illegal dimensions format: %s", tdimstr);
             return(*status = BAD_TDIM);
-        }
+    }
 
+    if (colnum != 0) {
         if ((colptr->tdatatype > 0) && ((long) colptr->trepeat != totalpix))
         {
           sprintf(message,
