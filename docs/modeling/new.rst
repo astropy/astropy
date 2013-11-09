@@ -20,7 +20,7 @@ example demonstrates how to set up a model consisting of two Gaussians:
    :include-source:
 
     import numpy as np
-    from astropy.modeling.functional_models import custom_model_1d
+    from astropy.modeling.models import custom_model_1d
     from astropy.modeling.fitting import NonLinearLSQFitter
 
     # Define model
