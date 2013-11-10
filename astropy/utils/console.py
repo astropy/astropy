@@ -33,14 +33,19 @@ try:
     get_ipython()
 except NameError:
     OutStream = None
+    IPythonIOStream = None
     stdio = sys
 else:
     try:
         from IPython.zmq.iostream import OutStream
         from IPython.utils import io
+        # On Windows in particular this is necessary, as the io.stdout stream
+        # in IPython gets hooked up to some pyreadline magic to handle colors
         stdio = io
+        IPythonIOStream = io.IOStream
     except ImportError:
         OutStream = None
+        IPythonIOStream = None
         stdio = sys
 
 try:
@@ -164,6 +169,14 @@ def _write_with_fallback(s, write, fileobj):
     of a UnicodeEncodeError.  Failing that attempt to write with 'utf-8' or
     'latin-1'.
     """
+
+    if IPythonIOStream is not None and isinstance(fileobj, IPythonIOStream):
+        # If the output stream is an IPython.utils.io.IOStream object that's
+        # not going to be very helpful to us since it doesn't raise any
+        # exceptions when an error occurs writing to its underlying stream.
+        # There's no advantage to us using IOStream.write directly though;
+        # instead just write directly to its underlying stream:
+        write = fileobj.stream.write
 
     try:
         write(s)
@@ -663,16 +676,20 @@ class Spinner(object):
             write('\r')
             color_print(self._msg, self._color, file=file, end='')
             write(' ')
-            write(chars[index])
+            try:
+                write = _write_with_fallback(chars[index], write, file)
+            except UnicodeError:
+                # If even _write_with_fallback failed for any reason just give
+                # up on trying to use the unicode characters
+                chars = self._default_ascii_chars
+                write(chars[index], write, file)
             flush()
             yield
 
             for i in xrange(self._step):
                 yield
 
-            index += 1
-            if index == len(chars):
-                index = 0
+            index = (index + 1) % len(chars)
 
     def __enter__(self):
         if self._silent:
