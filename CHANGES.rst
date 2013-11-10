@@ -23,6 +23,12 @@ New Features
 
     See :ref:`handling-unicode` for more information.
 
+- ``astropy.convolution``
+
+  - New class-based system for generating kernels, replacing `make_kernel`.
+    [#1255] The `astropy.nddata.convolution` sub-package has now been moved to
+    `astropy.convolution`. [#1451]
+
 - ``astropy.coordinates``
 
   - Two classes `astropy.coordinates.Longitude` and `astropy.coordinates.Latitude`
@@ -59,6 +65,11 @@ New Features
 
 - ``astropy.io.fits``
 
+  - Added initial support for table columns containing pseudo-unsigned
+    integers.  This is currently enabled by using the ``uint=True`` option when
+    opening files; any table columns with the correct BZERO value will be
+    interpreted and returned as arrays of unsigned integers. [#906]
+
   - Upgraded vendered copy of CFITSIO to v3.35, though backwards compatibility
     back to version v3.28 is maintained.
 
@@ -74,10 +85,21 @@ New Features
 
 - ``astropy.io.votable``
 
+  - Updated to support the VOTable 1.3 draft. [#433]
+
+  - Added the ability to look up and group elements by their utype attribute.
+    [#622]
+
   - The format of the units of a VOTable file can be specified using
     the `unit_format` parameter.  Note that units are still always
     written out using the CDS format, to ensure compatibility with the
     standard.
+
+- ``astropy.modeling``
+
+  - Added a new framework for representing and evaluating mathemetical models
+    and for fitting data to models.  See "What's New in Astropy 0.3" in the
+    documentation for futher details. [#493]
 
 - ``astropy.time``
 
@@ -89,11 +111,11 @@ New Features
     automatic calculation of UT1 becomes possible. [#1145]
 
   - Add ``datetime`` format which allows converting to and from standard
-    library ``datetime.datetime`` objects.
+    library ``datetime.datetime`` objects. [#860]
 
   - Add ``plot_date`` format which allows converting to and from the date
     representation used when plotting dates with matplotlib via the
-    ``matplotlib.pyplot.plot_date`` function.
+    ``matplotlib.pyplot.plot_date`` function. [#860]
 
   - Add ``gps`` format (seconds since 1980-01-01 00:00:00 UTC,
     including leap seconds)
@@ -114,9 +136,10 @@ New Features
 
 - ``astropy.stats``
 
-  - Added robust statistics functions `~astropy.stats.funcs.median_absolute_deviation`,
+  - Added robust statistics functions
+    `~astropy.stats.funcs.median_absolute_deviation`,
     `~astropy.stats.funcs.biweight_location`, and
-    `~astropy.stats.funcs.biweight_midvariance`.
+    `~astropy.stats.funcs.biweight_midvariance`. [#621]
 
   - Add `axis=int` option to `astropy.stats.funcs.sigma_clip` to allow clipping
     along a given axis for multidimensional data. [#1083]
@@ -133,8 +156,9 @@ New Features
   - Added support for selecting and manipulating groups within a table with
     a database style ``group_by`` method. [#1424]
 
-  - Table ``read`` and ``write`` functions now support reading and writing of FITS
-    tables via the unified reading/writing interface. [#591]
+  - Table ``read`` and ``write`` functions now include rudimentary support
+    reading and writing of FITS tables via the unified reading/writing
+    interface. [#591]
 
   - The ``units`` and ``dtypes`` attributes and keyword arguments in Column,
     MaskedColumn, Row, and Table are now deprecated in favor of the
@@ -144,12 +168,6 @@ New Features
     object. [#732]
 
   - Add ``remove_row`` and ``remove_rows`` to remove table rows. [#1230]
-
-- ``astropy.convolution``
-
-  - New class-based system for generating kernels, replacing `make_kernel`.
-    [#1255] The `astropy.nddata.convolution` sub-package has now been moved to
-    `astropy.convolution`. [#1451]
 
 - ``astropy.vo``
 
@@ -194,10 +212,21 @@ New Features
   - Added the ability to enable set of units, or equivalencies that are used by
     default.  Also provided context managers for these cases.
 
+- ``astropy.wcs``
+
+  - Included a new command-line script called ``wcslint`` and accompanying API
+    for validating the WCS in a given FITS file or header. [#580]
+
+  - Upgraded included version of WCSLIB to 4.19.
+
 - ``astropy.utils``
 
   - Added ``astropy.utils.iers`` which allows reading in of IERS A or IERS B
     bulletins and interpolation in UT1-UTC.
+
+  - Added a function ``astropy.utils.find_api_page``--given a class or object
+    from the ``astropy`` package, this will open that class's API documentation
+    in a web browser. [#663]
 
 - ``astropy.extern.six``
 
@@ -376,8 +405,14 @@ API Changes
 - ``astropy.io.registry``
 
   - Identifier functions for reading/writing Table and NDData objects should
-    now accept ``(origin, *args, **kwargs)`` instead of
-    ``(origin, args, kwargs)``. [#591]
+    now accept ``(origin, *args, **kwargs)`` instead of ``(origin, args,
+    kwargs)``. [#591]
+
+- ``astropy.io.votable``
+
+  - Added a new option ``use_names_over_ids`` option to use when converting
+    from VOTable objects to Astropy Tables. This can prevent a situation where
+    column names are not preserved when converting from a VOTable. [#609]
 
 - ``astropy.nddata``
 
@@ -394,6 +429,9 @@ API Changes
     output masked array. [#1083]
 
 - ``astropy.table``
+
+  - Added support for instantiating a ``Table`` from a list of dict, each one
+    representing a single row with the keys mapping to column names. [#901]
 
   - The plural 'units' and 'dtypes' have been switched to 'unit' and 'dtype'
     where appropriate. The original attributes are still present in this
@@ -415,6 +453,9 @@ API Changes
   - For consistency with ``Quantity``, the attributes ``val`` and
     ``is_scalar`` have been renamed to ``value`` and ``isscalar``,
     respectively, and the attribute ``vals`` has been dropped.
+
+  - The double-float64 internal representation of time is used more
+    efficiently to enable better accuracy. [#366]
 
 - ``astropy.units``
 
@@ -489,6 +530,11 @@ Bug Fixes
      an earlier version, but it was only fixed for compressed image HDUs and
      not for binary tables in general.
 
+- ``astropy.table``
+
+  - Using a list of strings to index a table now correctly returns a new table
+    with the columns named in the list. [#1454]
+
 - ``astropy.units``
 
   - Fixed a bug that caused the order of multiplication/division of plain
@@ -527,6 +573,14 @@ Other Changes and Additions
     string columns to '0.0'.  Now string columns are filled with empty strings
     by default--this seems a less surprising default, but it may cause
     differences with tables created with older versions of PyFITS or Astropy.
+
+- ``astrropy.wcs``
+
+  - Redundant SCAMP distortion parameters are removed with SIP distortions are
+    also present. [#1278]
+
+  - Added iterative implementation of ``all_world2pix`` that can be reliably
+    inverted. [#1281]
 
 
 0.2.5 (2013-10-25)
