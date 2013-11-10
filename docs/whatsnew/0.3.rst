@@ -260,7 +260,23 @@ Time
 ASCII Tables
 ------------
 
-.. TODO
+Functionality to write `IPAC format tables
+<http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_ is now
+available within the `astropy.io.ascii` package.
+
+The `~astropy.io.ascii.ui.read` and `~astropy.io.ascii.ui.write` functions now
+allow a ``format`` keyword argument for specifying the file format as a string.
+This replaces the deprecated ``Reader`` and ``Writer`` keywords which required
+supplying a fully-qualified class type.  To convert code change the camel-case
+class name to all lower case with underscores between words.  For instance::
+
+    >>> from astropy.io import ascii
+    >>> data = [' name         age ',
+                '-----------   ----',
+                'Jane Doe       31 ',
+                'John Smith     45 ']
+    >>> t = ascii.read(data, Reader=ascii.FixedWidthTwoLine)  # OLD
+    >>> t = ascii.read(data, format='fixed_width_two_line')  # NEW
 
 Convolution
 -----------
