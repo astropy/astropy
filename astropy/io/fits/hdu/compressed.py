@@ -342,7 +342,7 @@ class CompImageHDU(BinTableHDU):
                 warnings.warn('Keyword argument %s to %s is pending '
                               'deprecation; use %s instead' %
                               (oldarg, self.__class__.__name__, newarg),
-                              PendingDeprecationWarning)
+                              AstropyPendingDeprecationWarning)
                 compression_opts[newarg] = kwargs[oldarg]
                 del kwargs[oldarg]
             else:
