@@ -45,10 +45,6 @@ New Features
     `~astropy.coordinates.matching.match_coordinates_3d` and
     `~astropy.coordinates.matching.match_coordinates_sky` functions).
 
-- ``astropy.io.ascii``
-
-  - Added support for writing IPAC format tables [#1152].
-
 - ``astropy.cosmology``
 
   - Added support for including massive Neutrinos in the cosmology classes. The
@@ -56,6 +52,25 @@ New Features
 
   - Calculations now use and return ``Quantity`` objects where appropriate
     [#1237].
+
+- ``astropy.io.ascii``
+
+  - Added support for writing IPAC format tables [#1152].
+
+- ``astropy.io.fits``
+
+  - Upgraded vendered copy of CFITSIO to v3.35, though backwards compatibility
+    back to version v3.28 is maintained.
+
+  - Added support for reading and writing tables using the Q format for columns.
+    The Q format is identical to the P format (variable-length arrays) except
+    that it uses 64-bit integers for the data descriptors, allowing more than
+    4 GB of variable-length array data in a single table.
+
+  - Some refactoring of the table and ``FITS_rec`` modules in order to better
+    separate the details of the FITS binary and ASCII table data structures from
+    the HDU data structures that encapsulate them.  Most of these changes should
+    not be apparent to users (but see API Changes below).
 
 - ``astropy.io.votable``
 
@@ -309,6 +324,20 @@ API Changes
 
 - ``astropy.io.fits``
 
+  - The ``astropy.io.fits.new_table`` function is marked "pending deprecation".
+    This does not mean it will be removed outright or that its functionality
+    has changed.  It will likely be replaced in the future for a function with
+    similar, if not subtly different functionality.  A better, if not slightly
+    more verbose approach is to use ``pyfits.FITS_rec.from_columns`` to create
+    a new ``FITS_rec`` table--this has the same interface as
+    ``pyfits.new_table``.  The difference is that it returns a plan
+    ``FITS_rec`` array, and not an HDU instance.  This ``FITS_rec`` object can
+    then be used as the data argument in the constructors for ``BinTableHDU``
+    (for binary tables) or ``TableHDU`` (for ASCII tables).  This is analogous
+    to creating an ``ImageHDU`` by passing in an image array.
+    ``pyfits.FITS_rec.from_columns`` is just a simpler way of creating a
+    FITS-compatible recarray from a FITS column specification.
+
   - The ``updateHeader``, ``updateHeaderData``, and ``updateCompressedData``
     methods of the ``CompDataHDU`` class are pending deprecation and moved to
     internal methods.  The operation of these methods depended too much on
@@ -338,6 +367,9 @@ API Changes
   - Interfaces that were pending deprecation are now fully deprecated.  These
     include: ``create_card``, ``create_card_from_string``, ``upper_key``,
     ``Header.get_history``, and ``Header.get_comment``.
+
+  - The ``.name`` attribute on HDUs is now directly tied to the HDU's header, so
+    that if ``.header['EXTNAME']`` changes so does ``.name`` and vice-versa.
 
 - ``astropy.io.registry``
 
@@ -440,11 +472,64 @@ Bug Fixes
     format and using the ``names`` argument, then the first row could
     be dropped [#1692].
 
+- ``astropy.io.fits``
+
+   - Binary tables containing compressed images may, optionally, contain other
+     columns unrelated to the tile compression convention. Although this is an
+     uncommon use case, it is permitted by the standard.
+
+   - Reworked some of the file I/O routines to allow simpler, more consistent
+     mapping between OS-level file modes ('rb', 'wb', 'ab', etc.) and the more
+     "PyFITS-specific" modes used by PyFITS like "readonly" and "update".  That
+     is, if reading a FITS file from an open file object, it doesn't matter as
+     much what "mode" it was opened in so long as it has the right capabilities
+     (read/write/etc.)  Also works around bugs in the Python io module in 2.6+
+     with regard to file modes.
+
+   - Fixed a long-standing issue where writing binary tables did not correctly
+     write the TFORMn keywords for variable-length array columns (they ommitted
+     the max array length parameter of the format).  This was thought fixed in
+     an earlier version, but it was only fixed for compressed image HDUs and
+     not for binary tables in general.
+
 - ``astropy.units``
 
   - Fixed a bug that caused the order of multiplication/division of plain
     Numpy arrays with Quantities to matter (i.e. if the plain array comes
     first the units were not preserved in the output). [#899]
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- ``astropy.io.fits``
+
+  - The new compression code also adds support for the ZQUANTIZ and ZDITHER0
+    keywords added in more recent versions of this FITS Tile Compression spec.
+    This includes support for lossless compression with GZIP. (#198) By default
+    no dithering is used, but the ``SUBTRACTIVE_DITHER_1`` and
+    ``SUBTRACTIVE_DITHER_2`` methods can be enabled by passing the correct
+    constants to the ``quantize_method`` argument to the ``CompImageHDU``
+    constuctor.  A seed can be manually specified, or automatically generated
+    using either the system clock or checksum-based methods via the
+    ``dither_seed`` argument.  See the documentation for ``CompImageHDU`` for
+    more details.
+
+  - Images compressed with the Tile Compression standard can now be larger than
+    4 GB through support of the Q format.
+
+  - All HDUs now have a ``.ver`` ``.level`` attribute that returns the value of
+    the EXTVAL and EXTLEVEL keywords from that HDU's header, if the exist.
+    This was added for consistency with the ``.name`` attribute which returns
+    the EXTNAME value from the header.
+
+  - Then ``Column`` and ``ColDefs`` classes have new ``.dtype`` attributes
+    which give the Numpy dtype for the column data in the first case, and the
+    full Numpy compound dtype for each table row in the latter case.
+
+  - There was an issue where new tables created defaulted the values in all
+    string columns to '0.0'.  Now string columns are filled with empty strings
+    by default--this seems a less surprising default, but it may cause
+    differences with tables created with older versions of PyFITS or Astropy.
 
 
 0.2.5 (2013-10-25)
