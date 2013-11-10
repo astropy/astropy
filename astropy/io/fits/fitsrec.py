@@ -355,7 +355,7 @@ class FITS_rec(np.recarray):
                 field[:] = ord('F')
                 # Also save the original boolean array in data._converted so
                 # that it doesn't have to be re-converted
-                data._convert[idx] = np.zeros_like(field, dtype=bool)
+                data._convert[idx] = np.zeros(field.shape, dtype=bool)
                 data._convert[idx][:n] = inarr
                 # TODO: Maybe this step isn't necessary at all if _scale_back
                 # will handle it?
@@ -364,7 +364,7 @@ class FITS_rec(np.recarray):
                     columns[idx]._pseudo_unsigned_ints):
                 # Temporary hack...
                 bzero = columns[idx].bzero
-                data._convert[idx] = np.zeros_like(field, dtype=inarr.dtype)
+                data._convert[idx] = np.zeros(field.shape, dtype=inarr.dtype)
                 data._convert[idx][:n] = inarr
                 if n < nrows:
                     # Pre-scale rows below the input data
