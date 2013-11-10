@@ -278,6 +278,39 @@ class name to all lower case with underscores between words.  For instance::
     >>> t = ascii.read(data, Reader=ascii.FixedWidthTwoLine)  # OLD
     >>> t = ascii.read(data, format='fixed_width_two_line')  # NEW
 
+Unified File Read/Write Interface
+----------------------------------
+
+All of the ASCII table formats are now supported in the unified read/write
+interface, with the corresponding ``format`` keyword preceded
+by the string ``'ascii.'``.  Thus the above example would be written::
+
+    >>> from astropy.table import Table
+    >>> t = Table.read(data, format='ascii.fixed_width_two_line')
+
+Some formats such as ``cds`` or ``latex`` will work without the ``'ascii.'``
+prefix but this is deprecated and will be removed in the next major release.
+
+The full list of available formats is now available via the
+`~astropy.io.registry.get_formats` function::
+
+    >>> from astropy.io import registry
+    >>> print registry.get_formats()
+    Data class    Format    Read Write Auto-identify Deprecated
+    ---------- ------------ ---- ----- ------------- ----------
+         Table        ascii  Yes   Yes            No
+         Table ascii.aastex  Yes   Yes            No
+         Table  ascii.basic  Yes   Yes            No
+         Table    ascii.cds  Yes    No            No
+           ...          ...  ...   ...           ...        ...
+         Table      daophot  Yes    No            No        Yes
+         Table         ipac  Yes   Yes            No        Yes
+         Table        latex  Yes   Yes            No        Yes
+         Table          rdb  Yes   Yes            No        Yes
+
+In addition, if you make a mistake and specify an incorrect ``format``, the
+error message will now list all the available formats.
+
 Convolution
 -----------
 
