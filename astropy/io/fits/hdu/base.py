@@ -996,7 +996,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             data = None
         return self.__class__(data=data, header=self._header.copy())
 
-    @deprecated('3.2', alternative='the `.name` attribute or `Header.set`',
+    @deprecated('3.2', alternative='the ``.name`` attribute or `Header.set`',
                 pending=True)
     def update_ext_name(self, value, comment=None, before=None,
                         after=None, savecomment=False):
