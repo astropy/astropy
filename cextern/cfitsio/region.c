@@ -96,8 +96,13 @@ int fits_read_ascii_region( const char *filename,
    }
    
    /*  Read in file, line by line  */
+   /*  First, set error status in case file is empty */ 
+   *status = FILE_NOT_OPENED;
 
    while( fgets(currLine,allocLen,rgnFile) != NULL ) {
+
+      /* reset status if we got here */
+      *status = 0;
 
       /*  Make sure we have a full line of text  */
 

@@ -15,6 +15,7 @@
 # define NINT(x)  ((x >= 0.) ? (int) (x + 0.5) : (int) (x - 0.5))
 
 #define NULL_VALUE -2147483647 /* value used to represent undefined pixels */
+#define ZERO_VALUE -2147483646 /* value used to represent zero-valued pixels */
 #define N_RESERVED_VALUES 10   /* number of reserved values, starting with */
                                /* and including NULL_VALUE.  These values */
                                /* may not be used to represent the quantized */
@@ -81,11 +82,11 @@ static double quick_select_double(double arr[], int n);
 
 /*---------------------------------------------------------------------------*/
 int fits_quantize_float (long row, float fdata[], long nxpix, long nypix, int nullcheck, 
-	float in_null_value, float qlevel, int idata[], double *bscale,
+	float in_null_value, float qlevel, int dither_method, int idata[], double *bscale,
 	double *bzero, int *iminval, int *imaxval) {
 
 /* arguments:
-long row            i: if positive, tile number = row number in the binary table
+long row            i: if positive, used to calculate random dithering seed value
                        (this is only used when dithering the quantized values)
 float fdata[]       i: array of image pixels to be compressed
 long nxpix          i: number of pixels in each row of fdata
@@ -93,6 +94,7 @@ long nypix          i: number of rows in fdata
 nullcheck           i: check for nullvalues in fdata?
 float in_null_value i: value used to represent undefined pixels in fdata
 float qlevel        i: quantization level
+int dither_method   i; which dithering method to use
 int idata[]         o: values of fdata after applying bzero and bscale
 double bscale       o: scale factor
 double bzero        o: zero offset
@@ -177,7 +179,12 @@ If the function value is zero, the data were not copied to idata.
             /* compression algorithms either only work for positive integers, */
             /* or are more efficient.  */
 
-            if ((maxval - minval) / delta < 2147483647. - N_RESERVED_VALUES )
+            if (dither_method == SUBTRACTIVE_DITHER_2)
+	    {
+                /* shift the range to be close to the value used to represent zeros */
+                zeropt = minval - delta * (NULL_VALUE + N_RESERVED_VALUES);
+            }
+	    else if ((maxval - minval) / delta < 2147483647. - N_RESERVED_VALUES )
             {
                 zeropt = minval;
 		/* fudge the zero point so it is an integer multiple of delta */
@@ -195,7 +202,11 @@ If the function value is zero, the data were not copied to idata.
             if (row > 0) {  /* dither the values when quantizing */
               for (i = 0;  i < nx;  i++) {
 	    
-		idata[i] =  NINT((((double) fdata[i] - zeropt) / delta) + fits_rand_value[nextrand] - 0.5);
+		if (dither_method == SUBTRACTIVE_DITHER_2 && fdata[i] == 0.0) {
+		   idata[i] = ZERO_VALUE;
+		} else {
+		   idata[i] =  NINT((((double) fdata[i] - zeropt) / delta) + fits_rand_value[nextrand] - 0.5);
+		}
 
                 nextrand++;
 		if (nextrand == N_RANDOM) {
@@ -219,7 +230,11 @@ If the function value is zero, the data were not copied to idata.
             if (row > 0) {  /* dither the values */
 	      for (i = 0;  i < nx;  i++) {
                 if (fdata[i] != in_null_value) {
-		    idata[i] =  NINT((((double) fdata[i] - zeropt) / delta) + fits_rand_value[nextrand] - 0.5);
+		    if (dither_method == SUBTRACTIVE_DITHER_2 && fdata[i] == 0.0) {
+		       idata[i] = ZERO_VALUE;
+		    } else {
+		       idata[i] =  NINT((((double) fdata[i] - zeropt) / delta) + fits_rand_value[nextrand] - 0.5);
+		    }
                 } else {
                     idata[i] = NULL_VALUE;
                 }
@@ -234,10 +249,12 @@ If the function value is zero, the data were not copied to idata.
               }
             } else {  /* do not dither the values */
 	       for (i = 0;  i < nx;  i++) {
-                 if (fdata[i] != in_null_value)
+ 
+                 if (fdata[i] != in_null_value) {
 		    idata[i] =  NINT((fdata[i] - zeropt) / delta);
-                 else 
+                 } else { 
                     idata[i] = NULL_VALUE;
+                 }
                }
             }
 	}
@@ -254,7 +271,7 @@ If the function value is zero, the data were not copied to idata.
 }
 /*---------------------------------------------------------------------------*/
 int fits_quantize_double (long row, double fdata[], long nxpix, long nypix, int nullcheck, 
-	double in_null_value, float qlevel, int idata[], double *bscale,
+	double in_null_value, float qlevel, int dither_method, int idata[], double *bscale,
 	double *bzero, int *iminval, int *imaxval) {
 
 /* arguments:
@@ -264,7 +281,8 @@ long nxpix          i: number of pixels in each row of fdata
 long nypix          i: number of rows in fdata
 nullcheck           i: check for nullvalues in fdata?
 double in_null_value i: value used to represent undefined pixels in fdata
-int noise_bits      i: quantization level (number of bits)
+float qlevel        i: quantization level
+int dither_method   i; which dithering method to use
 int idata[]         o: values of fdata after applying bzero and bscale
 double bscale       o: scale factor
 double bzero        o: zero offset
@@ -348,7 +366,13 @@ If the function value is zero, the data were not copied to idata.
             /* return all positive values, if possible since some */
             /* compression algorithms either only work for positive integers, */
             /* or are more efficient.  */
-            if ((maxval - minval) / delta < 2147483647. - N_RESERVED_VALUES )
+
+            if (dither_method == SUBTRACTIVE_DITHER_2)
+	    {
+                /* shift the range to be close to the value used to represent zeros */
+                zeropt = minval - delta * (NULL_VALUE + N_RESERVED_VALUES);
+            }
+	    else if ((maxval - minval) / delta < 2147483647. - N_RESERVED_VALUES )
             {
                 zeropt = minval;
 		/* fudge the zero point so it is an integer multiple of delta */
@@ -366,7 +390,11 @@ If the function value is zero, the data were not copied to idata.
             if (row > 0) {  /* dither the values when quantizing */
        	      for (i = 0;  i < nx;  i++) {
 
-		idata[i] =  NINT((((double) fdata[i] - zeropt) / delta) + fits_rand_value[nextrand] - 0.5);
+		if (dither_method == SUBTRACTIVE_DITHER_2 && fdata[i] == 0.0) {
+		   idata[i] = ZERO_VALUE;
+		} else {
+		   idata[i] =  NINT((((double) fdata[i] - zeropt) / delta) + fits_rand_value[nextrand] - 0.5);
+		}
 
                 nextrand++;
 		if (nextrand == N_RANDOM) {
@@ -389,7 +417,11 @@ If the function value is zero, the data were not copied to idata.
             if (row > 0) {  /* dither the values */
 	      for (i = 0;  i < nx;  i++) {
                 if (fdata[i] != in_null_value) {
-		    idata[i] =  NINT((((double) fdata[i] - zeropt) / delta) + fits_rand_value[nextrand] - 0.5);
+		    if (dither_method == SUBTRACTIVE_DITHER_2 && fdata[i] == 0.0) {
+		       idata[i] = ZERO_VALUE;
+		    } else {
+		       idata[i] =  NINT((((double) fdata[i] - zeropt) / delta) + fits_rand_value[nextrand] - 0.5);
+		    }
                 } else {
                     idata[i] = NULL_VALUE;
                 }

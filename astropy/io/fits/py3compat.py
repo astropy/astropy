@@ -111,14 +111,14 @@ if PY3:  # pragma: py3
 
     class chararray(_chararray):
         def __getitem__(self, obj):
-                val = numpy.ndarray.__getitem__(self, obj)
-                if isinstance(val, numpy.character):
-                    temp = val.rstrip()
-                    if numpy.char._len(temp) == 0:
-                        val = ''
-                    else:
-                        val = temp
-                return val
+            val = numpy.ndarray.__getitem__(self, obj)
+            if isinstance(val, numpy.character):
+                temp = val.rstrip()
+                if numpy.char._len(temp) == 0:
+                    val = ''
+                else:
+                    val = temp
+            return val
     for m in [numpy.char, numpy.core.defchararray, numpy.core.records]:
         m.chararray = chararray
 

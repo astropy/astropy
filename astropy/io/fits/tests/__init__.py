@@ -9,6 +9,7 @@ import time
 import warnings
 
 from ... import fits
+from .... import log
 
 
 class FitsTestCase(object):

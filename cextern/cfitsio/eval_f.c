@@ -559,7 +559,14 @@ int ffcalc_rng( fitsfile *infptr,   /* I - Input FITS file                  */
             FFUNLOCK;
             return( *status = PARSE_BAD_TYPE );
          }
-         parName++;
+         parName++;  /* Advance past '#' */
+	 if ( (strcasecmp(parName,"HISTORY") == 0 || strcasecmp(parName,"COMMENT") == 0) &&
+	      Info.datatype != TSTRING ) {
+            ffcprs();
+            ffpmsg( "HISTORY and COMMENT values must be strings (ffcalc)" );
+	    FFUNLOCK;
+	    return( *status = PARSE_BAD_TYPE );
+	 }
 
       } else if( constant ) {
 
@@ -761,7 +768,13 @@ int ffcalc_rng( fitsfile *infptr,   /* I - Input FITS file                  */
          break;
       case TBIT:
       case TSTRING:
-         ffukys( outfptr, parName, result->value.data.str, parInfo, status );
+	 if (strcasecmp(parName,"HISTORY") == 0) {
+	   ffphis( outfptr, result->value.data.str, status);
+	 } else if (strcasecmp(parName,"COMMENT") == 0) {
+	   ffpcom( outfptr, result->value.data.str, status);
+	 } else {
+	   ffukys( outfptr, parName, result->value.data.str, parInfo, status );
+	 }
          break;
       }
    }
@@ -1048,8 +1061,10 @@ int parse_data( long    totalrows,     /* I - Total rows to be processed     */
              }
           }
           repeat = outcol->repeat;
+/*
           if (DEBUG_PIXFILTER)
             printf("parse_data: using null value %ld\n", jnull);
+*/
        } else {
 
           Data = userInfo->dataPtr;
@@ -1089,9 +1104,10 @@ int parse_data( long    totalrows,     /* I - Total rows to be processed     */
 
     /*  If writing to output column, set first element to appropriate  */
     /*  null value.  If no NULLs encounter, zero out before returning. */
+/*
           if (DEBUG_PIXFILTER)
             printf("parse_data: using null value %ld\n", jnull);
-
+*/
 
     if( userInfo->dataPtr == NULL ) {
        /* First, reset Data pointer to start of output array */

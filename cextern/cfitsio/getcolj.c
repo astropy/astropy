@@ -658,12 +658,12 @@ int ffgclj( fitsfile *fptr,   /* I - FITS file pointer                       */
 */
 {
     double scale, zero, power = 1., dtemp;
-    int tcode, maxelem, hdutype, xcode, decimals;
+    int tcode, maxelem2, hdutype, xcode, decimals;
     long twidth, incre;
     long ii, xwidth, ntodo;
     int convert, nulcheck, readcheck = 0;
     LONGLONG repeat, startpos, elemnum, readptr, tnull;
-    LONGLONG rowlen, rownum, remain, next, rowincre;
+    LONGLONG rowlen, rownum, remain, next, rowincre, maxelem;
     char tform[20];
     char message[81];
     char snull[20];   /*  the FITS null value if reading from ASCII table  */
@@ -689,9 +689,10 @@ int ffgclj( fitsfile *fptr,   /* I - FITS file pointer                       */
         readcheck = -1;  /* don't do range checking in this case */
 
     if (ffgcprll(fptr, colnum, firstrow, firstelem, nelem, readcheck, &scale, &zero,
-         tform, &twidth, &tcode, &maxelem, &startpos, &elemnum, &incre,
+         tform, &twidth, &tcode, &maxelem2, &startpos, &elemnum, &incre,
          &repeat, &rowlen, &hdutype, &tnull, snull, status) > 0 )
          return(*status);
+    maxelem = maxelem2;
 
     incre *= elemincre;   /* multiply incre to just get every nth pixel */
 
@@ -730,7 +731,7 @@ int ffgclj( fitsfile *fptr,   /* I - FITS file pointer                       */
     convert = 1;
     if (tcode == TLONG)  /* Special Case:                        */
     {                             /* no type convertion required, so read */
-        maxelem = (int) nelem;          /* data directly into output buffer.    */
+        maxelem = nelem;          /* data directly into output buffer.    */
 
         if (nulcheck == 0 && scale == 1. && zero == 0. && LONGSIZE == 32)
             convert = 0;  /* no need to scale data or find nulls */
@@ -2533,12 +2534,12 @@ int ffgcljj( fitsfile *fptr,   /* I - FITS file pointer                       */
 */
 {
     double scale, zero, power = 1., dtemp;
-    int tcode, maxelem, hdutype, xcode, decimals;
+    int tcode, maxelem2, hdutype, xcode, decimals;
     long twidth, incre;
     long ii, xwidth, ntodo;
     int convert, nulcheck, readcheck = 0;
     LONGLONG repeat, startpos, elemnum, readptr, tnull;
-    LONGLONG rowlen, rownum, remain, next, rowincre;
+    LONGLONG rowlen, rownum, remain, next, rowincre, maxelem;
     char tform[20];
     char message[81];
     char snull[20];   /*  the FITS null value if reading from ASCII table  */
@@ -2564,9 +2565,10 @@ int ffgcljj( fitsfile *fptr,   /* I - FITS file pointer                       */
         readcheck = -1;  /* don't do range checking in this case */
 
     if (ffgcprll(fptr, colnum, firstrow, firstelem, nelem, readcheck, &scale, &zero,
-         tform, &twidth, &tcode, &maxelem, &startpos, &elemnum, &incre,
+         tform, &twidth, &tcode, &maxelem2, &startpos, &elemnum, &incre,
          &repeat, &rowlen, &hdutype, &tnull, snull, status) > 0 )
          return(*status);
+    maxelem = maxelem2;
 
     incre *= elemincre;   /* multiply incre to just get every nth pixel */
 
@@ -2605,7 +2607,7 @@ int ffgcljj( fitsfile *fptr,   /* I - FITS file pointer                       */
     convert = 1;
     if (tcode == TLONGLONG)  /* Special Case:                        */
     {                             /* no type convertion required, so read */
-        maxelem = (int) nelem;          /* data directly into output buffer.    */
+        maxelem = nelem;          /* data directly into output buffer.    */
 
         if (nulcheck == 0 && scale == 1. && zero == 0.)
             convert = 0;  /* no need to scale data or find nulls */

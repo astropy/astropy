@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+from __future__ import division, with_statement
+
 import math
 import os
 import time
@@ -10,6 +12,8 @@ import numpy as np
 from ....io import fits
 from ....io.fits.verify import VerifyWarning
 from ....tests.helper import pytest, raises, catch_warnings
+from ..hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
+from .test_table import comparerecords
 
 from . import FitsTestCase
 from .util import ignore_warnings
@@ -75,7 +79,7 @@ class TestImageFunctions(FitsTestCase):
     def test_open_2(self):
         r = fits.open(self.data('test0.fits'))
 
-        info = ([(0, 'PRIMARY', 'PrimaryHDU', 138, (), 'int16', '')] +
+        info = ([(0, 'PRIMARY', 'PrimaryHDU', 138, (), '', '')] +
                 [(x, 'SCI', 'ImageHDU', 61, (40, 40), 'int16', '')
                  for x in range(1, 5)])
 
@@ -99,7 +103,7 @@ class TestImageFunctions(FitsTestCase):
         assert hdul[0].name == 'XPRIMARY'
         assert hdul[0].name == hdul[0].header['EXTNAME']
 
-        info = [(0, 'XPRIMARY', 'PrimaryHDU', 5, (), 'uint8', '')]
+        info = [(0, 'XPRIMARY', 'PrimaryHDU', 5, (), '', '')]
         assert hdul.info(output=False) == info
 
         assert hdul['PRIMARY'] is hdul['XPRIMARY']
@@ -591,6 +595,31 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(self.temp('test.fits')) as hdul:
             assert (hdul['SCI'].data == cube).all()
 
+    def test_subtractive_dither_seed(self):
+        """
+        Regression test for https://github.com/spacetelescope/PyFITS/issues/32
+
+        Ensure that when floating point data is compressed with the
+        SUBTRACTIVE_DITHER_1 quantization method that the correct ZDITHER0 seed
+        is added to the header, and that the data can be correctly
+        decompressed.
+        """
+
+        array = np.arange(100.0).reshape(10, 10)
+        csum = (array[0].view('uint8').sum() % 10000) + 1
+        hdu = fits.CompImageHDU(data=array,
+                                quantize_method=SUBTRACTIVE_DITHER_1,
+                                dither_seed=DITHER_SEED_CHECKSUM)
+        hdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert isinstance(hdul[1], fits.CompImageHDU)
+            assert 'ZQUANTIZ' in hdul[1]._header
+            assert hdul[1]._header['ZQUANTIZ'] == 'SUBTRACTIVE_DITHER_1'
+            assert 'ZDITHER0' in hdul[1]._header
+            assert hdul[1]._header['ZDITHER0'] == csum
+            assert np.all(hdul[1].data == array)
+
     def test_disable_image_compression(self):
         with catch_warnings():
             # No warnings should be displayed in this case
@@ -624,6 +653,16 @@ class TestImageFunctions(FitsTestCase):
         # Ensure that no changes were made to the file merely by immediately
         # opening and closing it.
         assert mtime == os.stat(self.temp('comp.fits')).st_mtime
+
+    def test_write_comp_hdu_direct_from_existing(self):
+        with fits.open(self.data('comp.fits')) as hdul:
+            hdul[1].writeto(self.temp('test.fits'))
+
+        with fits.open(self.data('comp.fits')) as hdul1:
+            with fits.open(self.temp('test.fits')) as hdul2:
+                assert np.all(hdul1[1].data == hdul2[1].data)
+                assert comparerecords(hdul1[1].compressed_data,
+                                      hdul2[1].compressed_data)
 
     def test_do_not_scale_image_data(self):
         hdul = fits.open(self.data('scale.fits'), do_not_scale_image_data=True)
@@ -999,8 +1038,8 @@ class TestImageFunctions(FitsTestCase):
             assert h[1].header['TFORM2'] == '1PB(359)'
 
     def test_image_none(self):
-        """Regression test
-        for https://github.com/spacetelescope/PyFITS/issues/27
+        """
+        Regression test for https://github.com/spacetelescope/PyFITS/issues/27
         """
 
         with fits.open(self.data('test0.fits')) as h:

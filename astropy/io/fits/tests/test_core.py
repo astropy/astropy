@@ -341,6 +341,70 @@ class TestCore(FitsTestCase):
             assert (hdul[0].data[:100] == data).all()
             assert (hdul[0].data[100:] == 0).all()
 
+    def test_extname(self):
+        """Test getting/setting the EXTNAME of an HDU."""
+
+        h1 = fits.PrimaryHDU()
+        assert h1.name == 'PRIMARY'
+        # Normally a PRIMARY HDU should not have an EXTNAME, though it should
+        # have a default .name attribute
+        assert 'EXTNAME' not in h1.header
+
+        # The current version of the FITS standard does allow PRIMARY HDUs to
+        # have an EXTNAME, however.
+        h1.name = 'NOTREAL'
+        assert h1.name == 'NOTREAL'
+        assert h1.header.get('EXTNAME') == 'NOTREAL'
+
+        # Updating the EXTNAME in the header should update the .name
+        h1.header['EXTNAME'] = 'TOOREAL'
+        assert h1.name == 'TOOREAL'
+
+        # If we delete an EXTNAME keyword from a PRIMARY HDU it should go back
+        # to the default
+        del h1.header['EXTNAME']
+        assert h1.name == 'PRIMARY'
+
+        # For extension HDUs the situation is a bit simpler:
+        h2 = fits.ImageHDU()
+        assert h2.name == ''
+        assert 'EXTNAME' not in h2.header
+        h2.name = 'HELLO'
+        assert h2.name == 'HELLO'
+        assert h2.header.get('EXTNAME') == 'HELLO'
+        h2.header['EXTNAME'] = 'GOODBYE'
+        assert h2.name == 'GOODBYE'
+
+    def test_extver_extlevel(self):
+        """Test getting/setting the EXTVER and EXTLEVEL of and HDU."""
+
+        # EXTVER and EXTNAME work exactly the same; their semantics are, for
+        # now, to be inferred by the user.  Although they should never be less
+        # than 1, the standard does not explicitly forbid any value so long as
+        # it's an integer
+        h1 = fits.PrimaryHDU()
+        assert h1.ver == 1
+        assert h1.level == 1
+        assert 'EXTVER' not in h1.header
+        assert 'EXTLEVEL' not in h1.header
+
+        h1.ver = 2
+        assert h1.header.get('EXTVER') == 2
+        h1.header['EXTVER'] = 3
+        assert h1.ver == 3
+        del h1.header['EXTVER']
+        h1.ver == 1
+
+        h1.level = 2
+        assert h1.header.get('EXTLEVEL') == 2
+        h1.header['EXTLEVEL'] = 3
+        assert h1.level == 3
+        del h1.header['EXTLEVEL']
+        assert h1.level == 1
+
+        pytest.raises(TypeError, setattr, h1, 'ver', 'FOO')
+        pytest.raises(TypeError, setattr, h1, 'level', 'BAR')
+
 
 class TestConvenienceFunctions(FitsTestCase):
     def test_writeto(self):
@@ -382,6 +446,27 @@ class TestFileFunctions(FitsTestCase):
     astropy.io.fits.file._File class.
     """
 
+    def test_open_nonexistent(self):
+        """Test that trying to open a non-existent file results in an
+        IOError (and not some other arbitrary exception).
+        """
+
+        try:
+            fits.open(self.temp('foobar.fits'))
+        except IOError, e:
+            assert 'File does not exist' in str(e)
+        except:
+            raise
+
+        # But opening in ostream or append mode should be okay, since they
+        # allow writing new files
+        for mode in ('ostream', 'append'):
+            with fits.open(self.temp('foobar.fits'), mode=mode) as h:
+                pass
+
+            assert os.path.exists(self.temp('foobar.fits'))
+            os.remove(self.temp('foobar.fits'))
+
     def test_open_gzipped(self):
         with ignore_warnings():
             assert len(fits.open(self._make_gzip_file())) == 5
@@ -392,9 +477,36 @@ class TestFileFunctions(FitsTestCase):
         with ignore_warnings():
             assert len(fits.open(self._make_gzip_file('test0.fz'))) == 5
 
+    def test_writeto_append_mode_gzip(self):
+        """Regression test for
+        https://github.com/spacetelescope/PyFITS/issues/33
+
+        Check that a new GzipFile opened in append mode can be used to write
+        out a new FITS file.
+        """
+
+        # Note: when opening a GzipFile the 'b+' is superfluous, but this was
+        # still how the original test case looked
+        # Note: with statement not supported on GzipFile in older Python
+        # versions
+        fileobj =  gzip.GzipFile(self.temp('test.fits.gz'), 'ab+')
+        h = fits.PrimaryHDU()
+        try:
+            h.writeto(fileobj)
+        finally:
+            fileobj.close()
+
+        with fits.open(self.temp('test.fits.gz')) as hdul:
+            assert hdul[0].header == h.header
+
     def test_open_zipped(self):
+        zf = self._make_zip_file()
+
         with ignore_warnings():
             assert len(fits.open(self._make_zip_file())) == 5
+
+        with ignore_warnings():
+            assert len(fits.open(zipfile.ZipFile(zf))) == 5
 
     def test_detect_zipped(self):
         """Test detection of a zip file when the extension is not .zip."""
@@ -407,6 +519,10 @@ class TestFileFunctions(FitsTestCase):
         """Opening zipped files in a writeable mode should fail."""
 
         zf = self._make_zip_file()
+        pytest.raises(IOError, fits.open, zf, 'update')
+        pytest.raises(IOError, fits.open, zf, 'append')
+
+        zf = zipfile.ZipFile(zf, 'a')
         pytest.raises(IOError, fits.open, zf, 'update')
         pytest.raises(IOError, fits.open, zf, 'append')
 

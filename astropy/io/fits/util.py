@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
+
 from __future__ import division
 
 import functools
+import gzip
 import itertools
 import mmap
 import os
@@ -234,7 +236,7 @@ def fileobj_closed(f):
         return f.closed
     elif hasattr(f, 'fileobj') and hasattr(f.fileobj, 'closed'):
         return f.fileobj.closed
-    elif hasattr(f, 'fp') and hasattr(f.fp.closed):
+    elif hasattr(f, 'fp') and hasattr(f.fp, 'closed'):
         return f.fp.closed
     else:
         return True
@@ -249,35 +251,186 @@ def fileobj_mode(f):
     # Go from most to least specific--for example gzip objects have a 'mode'
     # attribute, but it's not analogous to the file.mode attribute
     if hasattr(f, 'fileobj') and hasattr(f.fileobj, 'mode'):
-        mode = f.fileobj.mode
+        fileobj = f.fileobj
     elif hasattr(f, 'fp') and hasattr(f.fp, 'mode'):
-        mode = f.fp.mode
+        fileobj = f.fp
     elif hasattr(f, 'mode'):
-        mode = f.mode
+        fileobj = f
     else:
-        mode = None
+        return None
 
-    if isinstance(mode, basestring):
-        # On Python 3 files opened in 'a' mode actually get opened in 'w' or
-        # 'r+' instead of 'a', since the behavior of 'a' mode is not normalized
-        # across systems.  So we should normalize in the same way...
-        if 'a' in mode:
-            if '+' in mode:
-                mode = mode.replace('a', 'r')
-            else:
-                mode = mode.replace('a', 'w')
+    return _fileobj_normalize_mode(fileobj)
 
-        # I've noticed that sometimes Python can produce modes like 'r+b' which
-        # I would consider kind of a bug--mode strings should be normalized.
-        # Let's normalize it for them:
-        if '+' in mode:
-            mode = mode.replace('+', '')
-            mode += '+'
-    else:
-        # If mode still turned out to be something other than a string, it's
-        # not the droid we were looking for, and we should just toss it
-        mode = None
+
+def _fileobj_normalize_mode(f):
+    """Takes care of some corner cases in Python where the mode string
+    is either oddly formatted or does not truly represent the file mode.
+    """
+
+    # I've noticed that sometimes Python can produce modes like 'r+b' which I
+    # would consider kind of a bug--mode strings should be normalized.  Let's
+    # normalize it for them:
+    mode = f.mode
+
+    if isinstance(f, gzip.GzipFile):
+        # GzipFiles can be either readonly or writeonly
+        if mode == gzip.READ:
+            return 'rb'
+        elif mode == gzip.WRITE:
+            return 'wb'
+        else:
+            # This shouldn't happen?
+            return None
+
+    if '+' in mode:
+        mode = mode.replace('+', '')
+        mode += '+'
+
+    if _fileobj_is_append_mode(f) and 'a' not in mode:
+        mode = mode.replace('r', 'a').replace('w', 'a')
+
     return mode
+
+
+def _fileobj_is_append_mode(f):
+    """Normally the way to tell if a file is in append mode is if it has
+    'a' in the mode string.  However on Python 3 (or in particular with
+    the io module) this can't be relied on.  See
+    http://bugs.python.org/issue18876.
+    """
+
+    if 'a' in f.mode:
+        # Take care of the obvious case first
+        return True
+
+    # We might have an io.FileIO in which case the only way to know for sure
+    # if the file is in append mode is to ask the file descriptor
+    if not hasattr(f, 'fileno'):
+        # Who knows what this is?
+        return False
+
+    # Call platform-specific _is_append_mode
+    # If this file is already closed this can result in an error
+    try:
+        return _is_append_mode_platform(f.fileno())
+    except (ValueError, IOError):
+        return False
+
+
+if sys.platform.startswith('win32'):
+    # This global variable is used in _is_append_mode to cache the computed
+    # size of the ioinfo struct from msvcrt which may have a different size
+    # depending on the version of the library and how it was compiled
+    _sizeof_ioinfo = None
+
+    def _make_is_append_mode():
+        # We build the platform-specific _is_append_mode function for Windows
+        # inside a function factory in order to avoid cluttering the local
+        # namespace with ctypes stuff
+        from ctypes import (cdll, c_size_t, c_void_p, c_int, c_char,
+                            Structure, POINTER, cast)
+
+        try:
+            from ctypes.util import find_msvcrt
+        except ImportError:
+            # find_msvcrt is not available on Python 2.5 so we have to provide
+            # it ourselves anyways
+            from distutils.msvccompiler import get_build_version
+
+            def find_msvcrt():
+                version = get_build_version()
+                if version is None:
+                    # better be safe than sorry
+                    return None
+                if version <= 6:
+                    clibname = 'msvcrt'
+                else:
+                    clibname = 'msvcr%d' % (version * 10)
+
+                # If python was built with in debug mode
+                import imp
+                if imp.get_suffixes()[0][0] == '_d.pyd':
+                    clibname += 'd'
+                return clibname+'.dll'
+
+        def _dummy_is_append_mode(fd):
+            warnings.warn(
+                'Could not find appropriate MS Visual C Runtime '
+                'library or library is corrupt/misconfigured; cannot '
+                'determine whether your file object was opened in append '
+                'mode.  Please consider using a file object opened in write '
+                'mode instead.')
+            return False
+
+        msvcrt_dll = find_msvcrt()
+        if msvcrt_dll is None:
+            # If for some reason the C runtime can't be located then we're dead
+            # in the water.  Just return a dummy function
+            return _dummy_is_append_mode
+
+        msvcrt = cdll.LoadLibrary(msvcrt_dll)
+
+
+        # Constants
+        IOINFO_L2E = 5
+        IOINFO_ARRAY_ELTS = 1 << IOINFO_L2E
+        IOINFO_ARRAYS = 64
+        FAPPEND = 0x20
+        _NO_CONSOLE_FILENO = -2
+
+
+        # Types
+        intptr_t = POINTER(c_int)
+
+        class my_ioinfo(Structure):
+            _fields_ = [('osfhnd', intptr_t),
+                        ('osfile', c_char)]
+
+        # Functions
+        _msize = msvcrt._msize
+        _msize.argtypes = (c_void_p,)
+        _msize.restype = c_size_t
+
+        # Variables
+        # Since we don't know how large the ioinfo struct is just treat the
+        # __pioinfo array as an array of byte pointers
+        __pioinfo = cast(msvcrt.__pioinfo, POINTER(POINTER(c_char)))
+
+        # Determine size of the ioinfo struct; see the comment above where
+        # _sizeof_ioinfo = None is set
+        global _sizeof_ioinfo
+        if __pioinfo[0] is not None:
+            _sizeof_ioinfo = _msize(__pioinfo[0]) // IOINFO_ARRAY_ELTS
+
+        if not _sizeof_ioinfo:
+            # This shouldn't happen, but I suppose it could if one is using a
+            # broken msvcrt, or just happened to have a dll of the same name
+            # lying around.
+            return _dummy_is_append_mode
+
+        def _is_append_mode(fd):
+            global _sizeof_ioinfo
+            if fd != _NO_CONSOLE_FILENO:
+                idx1 = fd >> IOINFO_L2E # The index into the __pioinfo array
+                # The n-th ioinfo pointer in __pioinfo[idx1]
+                idx2 = fd & ((1 << IOINFO_L2E) - 1)
+                if 0 <= idx1 < IOINFO_ARRAYS and __pioinfo[idx1] is not None:
+                    # Doing pointer arithmetic in ctypes is irritating
+                    pio = c_void_p(cast(__pioinfo[idx1], c_void_p).value +
+                                   idx2 * _sizeof_ioinfo)
+                    ioinfo = cast(pio, POINTER(my_ioinfo)).contents
+                    return bool(ord(ioinfo.osfile) & FAPPEND)
+            return False
+
+        return _is_append_mode
+
+    _is_append_mode_platform = _make_is_append_mode()
+    del _make_is_append_mode
+else:
+    import fcntl
+
+    def _is_append_mode_platform(fd):
+        return bool(fcntl.fcntl(fd, fcntl.F_GETFL) & os.O_APPEND)
 
 
 def fileobj_is_binary(f):
@@ -286,9 +439,13 @@ def fileobj_is_binary(f):
     mode.  When in doubt, returns True by default.
     """
 
+    # This is kind of a hack for this to work correctly with _File objects,
+    # which, for the time being, are *always* binary
+    if hasattr(f, 'binary'):
+        return f.binary
+
     # TODO: In Python 3 it might be more reliable to check if the fileobj is a
     # text reader or a binary reader
-
     mode = fileobj_mode(f)
     if mode:
         return 'b' in mode
@@ -352,9 +509,10 @@ def _array_to_file(arr, outfile):
         def write(a, f):
             a.tofile(f)
     else:
-        # treat as file-like object with "write" method
+        # treat as file-like object with "write" method and write the array
+        # via its buffer interface
         def write(a, f):
-            _write_string(f, a.tostring())
+            f.write(a.flatten().view(np.ubyte))
 
     # Implements a workaround for a bug deep in OSX's stdlib file writing
     # functions; on 64-bit OSX it is not possible to correctly write a number

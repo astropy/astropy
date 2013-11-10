@@ -6,6 +6,7 @@ from numpy import char as chararray
 from ....io import fits
 from ....tests.helper import pytest
 
+from ..column import Delayed
 from ..util import decode_ascii
 from . import FitsTestCase
 from .util import ignore_warnings
@@ -79,7 +80,7 @@ def comparerecords(a, b):
                 if np.any(fielda[row] != fieldb[row]):
                     print 'fielda[%d]: %s' % (row, fielda[row])
                     print 'fieldb[%d]: %s' % (row, fieldb[row])
-                    print 'field %d differs in row %d' (i, row)
+                    print 'field %d differs in row %d' % (i, row)
         else:
             if np.any(fielda != fieldb):
                 print "fielda: ", fielda
@@ -90,7 +91,6 @@ def comparerecords(a, b):
 
 
 class TestTableFunctions(FitsTestCase):
-
     def test_constructor_copies_header(self):
         """
         Regression test for https://trac.assembla.com/pyfits/ticket/153
@@ -284,34 +284,45 @@ class TestTableFunctions(FitsTestCase):
         a.close()
 
     def test_variable_length_columns(self):
-        col = fits.Column(name='QUAL_SPE', format='PJ()',
-                          array=[[0] * 1571] * 225)
-        tb_hdu = fits.new_table([col])
-        pri_hdu = fits.PrimaryHDU()
-        hdu_list = fits.HDUList([pri_hdu, tb_hdu])
-        hdu_list.writeto(self.temp('toto.fits'), clobber=True)
-        toto = fits.open(self.temp('toto.fits'))
-        q = toto[1].data.field('QUAL_SPE')
-        assert (q[0][4:8] == np.array([0, 0, 0, 0], dtype=np.uint8)).all()
-        toto.close()
+        def test(format_code):
+            col = fits.Column(name='QUAL_SPE', format=format_code,
+                              array=[[0] * 1571] * 225)
+            tb_hdu = fits.new_table([col])
+            pri_hdu = fits.PrimaryHDU()
+            hdu_list = fits.HDUList([pri_hdu, tb_hdu])
+            with ignore_warnings():
+                hdu_list.writeto(self.temp('toto.fits'), clobber=True)
+
+            with fits.open(self.temp('toto.fits')) as toto:
+                q = toto[1].data.field('QUAL_SPE')
+                assert (q[0][4:8] ==
+                        np.array([0, 0, 0, 0], dtype=np.uint8)).all()
+                assert toto[1].columns[0].format.endswith('J(1571)')
+
+        for code in ('PJ()', 'QJ()'):
+            test(code)
 
     def test_extend_variable_length_array(self):
         """Regression test for https://trac.assembla.com/pyfits/ticket/54"""
 
-        arr = [[1] * 10] * 10
-        col1 = fits.Column(name='TESTVLF', format='PJ()', array=arr)
-        col2 = fits.Column(name='TESTSCA', format='J', array=[1] * 10)
-        tb_hdu = fits.new_table([col1, col2], nrows=15)
-        # This asserts that the normal 'scalar' column's length was extended
-        assert len(tb_hdu.data['TESTSCA']) == 15
-        # And this asserts that the VLF column was extended in the same manner
-        assert len(tb_hdu.data['TESTVLF']) == 15
-        # We can't compare the whole array since the _VLF is an array of
-        # objects, but comparing just the edge case rows should suffice
-        assert (tb_hdu.data['TESTVLF'][0] == arr[0]).all()
-        assert (tb_hdu.data['TESTVLF'][9] == arr[9]).all()
-        assert (tb_hdu.data['TESTVLF'][10] == ([0] * 10)).all()
-        assert (tb_hdu.data['TESTVLF'][-1] == ([0] * 10)).all()
+        def test(format_code):
+            arr = [[1] * 10] * 10
+            col1 = fits.Column(name='TESTVLF', format=format_code, array=arr)
+            col2 = fits.Column(name='TESTSCA', format='J', array=[1] * 10)
+            tb_hdu = fits.new_table([col1, col2], nrows=15)
+            # This asserts that the normal 'scalar' column's length was extended
+            assert len(tb_hdu.data['TESTSCA']) == 15
+            # And this asserts that the VLF column was extended in the same manner
+            assert len(tb_hdu.data['TESTVLF']) == 15
+            # We can't compare the whole array since the _VLF is an array of
+            # objects, but comparing just the edge case rows should suffice
+            assert (tb_hdu.data['TESTVLF'][0] == arr[0]).all()
+            assert (tb_hdu.data['TESTVLF'][9] == arr[9]).all()
+            assert (tb_hdu.data['TESTVLF'][10] == ([0] * 10)).all()
+            assert (tb_hdu.data['TESTVLF'][-1] == ([0] * 10)).all()
+
+        for code in ('PJ()', 'QJ()'):
+            test(code)
 
     def test_endianness(self):
         x = np.ndarray((1,), dtype=object)
@@ -536,22 +547,22 @@ class TestTableFunctions(FitsTestCase):
 
         hdu.writeto(self.temp('newtable.fits'))
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (), 'uint8', ''),
-                (1, '', 'BinTableHDU', 19, '8R x 5C', '[10A, J, 10A, 5E, L]',
+        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (), '', ''),
+                (1, '', 'BinTableHDU', 19, '8R x 5C', '[10A, J, A10, 5E, L]',
                  '')]
 
         assert fits.info(self.temp('newtable.fits'), output=False) == info
 
         z = np.array([0.,  0.,  0.,  0.,  0.], dtype=np.float32)
         array = np.rec.array(
-            [('NGC1', 312, '0.0', z, True),
-             ('NGC2', 334, '0.0', z, False),
-             ('NGC3', 308, '0.0', z, True),
-             ('NCG4', 317, '0.0', z, True),
-             ('NGC5', 412, '0.0', z, False),
-             ('NGC6', 434, '0.0', z, True),
-             ('NGC7', 408, '0.0', z, False),
-             ('NCG8', 417, '0.0', z, False)],
+            [('NGC1', 312, '', z, True),
+             ('NGC2', 334, '', z, False),
+             ('NGC3', 308, '', z, True),
+             ('NCG4', 317, '', z, True),
+             ('NGC5', 412, '', z, False),
+             ('NGC6', 434, '', z, True),
+             ('NGC7', 408, '', z, False),
+             ('NCG8', 417, '', z, False)],
              formats='a10,u4,a10,5f4,l')
 
         assert comparerecords(hdu.data, array)
@@ -656,10 +667,10 @@ class TestTableFunctions(FitsTestCase):
 
         z = np.array([0.,  0.,  0.,  0.,  0.], dtype=np.float32)
         array = np.rec.array(
-            [('NGC1', 312, '0.0', z, True),
-             ('NGC2', 334, '0.0', z, False),
-             ('NGC3', 308, '0.0', z, True),
-             ('NCG4', 317, '0.0', z, True)],
+            [('NGC1', 312, '', z, True),
+             ('NGC2', 334, '', z, False),
+             ('NGC3', 308, '', z, True),
+             ('NCG4', 317, '', z, True)],
              formats='a10,u4,a10,5f4,l')
         assert comparerecords(tbhdu1.data, array)
 
@@ -697,10 +708,10 @@ class TestTableFunctions(FitsTestCase):
 
         z = np.array([0.,  0.,  0.,  0.,  0.], dtype=np.float32)
         array = np.rec.array(
-            [('NGC1', 312, '0.0', z, True, 'NGC5', 412, '0.0', z, False),
-             ('NGC2', 334, '0.0', z, False, 'NGC6', 434, '0.0', z, True),
-             ('NGC3', 308, '0.0', z, True, 'NGC7', 408, '0.0', z, False),
-             ('NCG4', 317, '0.0', z, True, 'NCG8', 417, '0.0', z, False)],
+            [('NGC1', 312, '', z, True, 'NGC5', 412, '', z, False),
+             ('NGC2', 334, '', z, False, 'NGC6', 434, '', z, True),
+             ('NGC3', 308, '', z, True, 'NGC7', 408, '', z, False),
+             ('NCG4', 317, '', z, True, 'NCG8', 417, '', z, False)],
              formats='a10,u4,a10,5f4,l,a10,u4,a10,5f4,l')
         assert comparerecords(hdu.data, array)
 
@@ -743,9 +754,9 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.columns.columns[1].array[0] == 80
         assert hdu.data[0][1] == 80
 
-        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (), 'uint8', ''),
+        info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (), '', ''),
                 (1, '', 'BinTableHDU', 30, '4R x 10C',
-                 '[10A, J, 10A, 5E, L, 10A, J, 10A, 5E, L]', '')]
+                 '[10A, J, A10, 5E, L, 10A, J, A10, 5E, L]', '')]
 
         assert fits.info(self.temp('newtable.fits'), output=False) == info
 
@@ -758,10 +769,10 @@ class TestTableFunctions(FitsTestCase):
 
         z = np.array([0.,  0.,  0.,  0.,  0.], dtype=np.float32)
         array = np.rec.array(
-            [('NGC1', 312, '0.0', z, True, 'NGC5', 412, '0.0', z, False),
-             ('NGC2', 334, '0.0', z, False, 'NGC6', 434, '0.0', z, True),
-             ('NGC3', 308, '0.0', z, True, 'NGC7', 408, '0.0', z, False),
-             ('NCG4', 317, '0.0', z, True, 'NCG8', 417, '0.0', z, False)],
+            [('NGC1', 312, '', z, True, 'NGC5', 412, '', z, False),
+             ('NGC2', 334, '', z, False, 'NGC6', 434, '', z, True),
+             ('NGC3', 308, '', z, True, 'NGC7', 408, '', z, False),
+             ('NCG4', 317, '', z, True, 'NCG8', 417, '', z, False)],
              formats='a10,u4,a10,5f4,l,a10,u4,a10,5f4,l')
         assert comparerecords(hdu.data, array)
 
@@ -868,7 +879,7 @@ class TestTableFunctions(FitsTestCase):
         assert row['counts'] == 308
         a, b, c = row[1:4]
         assert a == counts[2]
-        assert b == '0.0'
+        assert b == ''
         assert (c == np.array([0., 0.,  0.,  0., 0.], dtype=np.float32)).all()
         row['counts'] = 310
         assert row['counts'] == 310
@@ -991,7 +1002,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.columns._arrays[1][0] == 312
         assert tbhdu.columns.columns[1].array[0] == 312
         assert tbhdu.columns.columns[0].array[0] == 'NGC1'
-        assert tbhdu.columns.columns[2].array[0] == '0.0'
+        assert tbhdu.columns.columns[2].array[0] == ''
         assert (tbhdu.columns.columns[3].array[0] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
         assert tbhdu.columns.columns[4].array[0] == True
@@ -1053,7 +1064,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns._arrays[1][0] == 312
         assert tbhdu2.columns.columns[1].array[0] == 312
         assert tbhdu2.columns.columns[0].array[0] == 'NGC1'
-        assert tbhdu2.columns.columns[2].array[0] == '0.0'
+        assert tbhdu2.columns.columns[2].array[0] == ''
         assert (tbhdu2.columns.columns[3].array[0] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
         assert tbhdu2.columns.columns[4].array[0] == True
@@ -1064,14 +1075,14 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns._arrays[1][4] == 112
         assert tbhdu2.columns.columns[1].array[4] == 112
         assert tbhdu2.columns.columns[0].array[4] == 'NGC5'
-        assert tbhdu2.columns.columns[2].array[4] == '0.0'
+        assert tbhdu2.columns.columns[2].array[4] == ''
         assert (tbhdu2.columns.columns[3].array[4] ==
                 np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
         assert tbhdu2.columns.columns[4].array[4] == False
 
         assert tbhdu2.columns.columns[1].array[8] == 0
-        assert tbhdu2.columns.columns[0].array[8] == '0.0'
-        assert tbhdu2.columns.columns[2].array[8] == '0.0'
+        assert tbhdu2.columns.columns[0].array[8] == ''
+        assert tbhdu2.columns.columns[2].array[8] == ''
         assert (tbhdu2.columns.columns[3].array[8] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
         assert tbhdu2.columns.columns[4].array[8] == False
@@ -1543,58 +1554,74 @@ class TestTableFunctions(FitsTestCase):
                 np.array([False, True], dtype=np.bool)).all()
 
     def test_variable_length_table_format_pd_from_object_array(self):
-        a = np.array([np.array([7.2e-20, 7.3e-20]), np.array([0.0]),
-                      np.array([0.0])], 'O')
-        acol = fits.Column(name='testa', format='PD()', array=a)
-        tbhdu = fits.new_table([acol])
-        tbhdu.writeto(self.temp('newtable.fits'))
-        tbhdu1 = fits.open(self.temp('newtable.fits'))
+        def test(format_code):
+            a = np.array([np.array([7.2e-20, 7.3e-20]), np.array([0.0]),
+                          np.array([0.0])], 'O')
+            acol = fits.Column(name='testa', format=format_code, array=a)
+            tbhdu = fits.new_table([acol])
+            with ignore_warnings():
+                tbhdu.writeto(self.temp('newtable.fits'), clobber=True)
+            with fits.open(self.temp('newtable.fits')) as tbhdu1:
+                assert tbhdu1[1].columns[0].format.endswith('D(2)')
+                for j in range(3):
+                    for i in range(len(a[j])):
+                        assert tbhdu1[1].data.field(0)[j][i] == a[j][i]
 
-        for j in range(3):
-            for i in range(len(a[j])):
-                assert tbhdu1[1].data.field(0)[j][i] == a[j][i]
-
-        tbhdu1.close()
+        for code in ('PD()', 'QD()'):
+            test(code)
 
     def test_variable_length_table_format_pd_from_list(self):
-        a = [np.array([7.2e-20, 7.3e-20]), np.array([0.0]), np.array([0.0])]
-        acol = fits.Column(name='testa', format='PD()', array=a)
-        tbhdu = fits.new_table([acol])
-        tbhdu.writeto(self.temp('newtable.fits'))
-        tbhdu1 = fits.open(self.temp('newtable.fits'))
+        def test(format_code):
+            a = [np.array([7.2e-20, 7.3e-20]), np.array([0.0]),
+                 np.array([0.0])]
+            acol = fits.Column(name='testa', format=format_code, array=a)
+            tbhdu = fits.new_table([acol])
+            with ignore_warnings():
+                tbhdu.writeto(self.temp('newtable.fits'), clobber=True)
 
-        for j in range(3):
-            for i in range(len(a[j])):
-                assert tbhdu1[1].data.field(0)[j][i] == a[j][i]
+            with fits.open(self.temp('newtable.fits')) as tbhdu1:
+                assert tbhdu1[1].columns[0].format.endswith('D(2)')
+                for j in range(3):
+                    for i in range(len(a[j])):
+                        assert tbhdu1[1].data.field(0)[j][i] == a[j][i]
 
-        tbhdu1.close()
+        for code in ('PD()', 'QD()'):
+            test(code)
 
     def test_variable_length_table_format_pa_from_object_array(self):
-        a = np.array([np.array(['a', 'b', 'c']), np.array(['d', 'e']),
-                      np.array(['f'])], 'O')
-        acol = fits.Column(name='testa', format='PA()', array=a)
-        tbhdu = fits.new_table([acol])
-        tbhdu.writeto(self.temp('newtable.fits'))
-        hdul = fits.open(self.temp('newtable.fits'))
+        def test(format_code):
+            a = np.array([np.array(['a', 'b', 'c']), np.array(['d', 'e']),
+                          np.array(['f'])], 'O')
+            acol = fits.Column(name='testa', format=format_code, array=a)
+            tbhdu = fits.new_table([acol])
+            with ignore_warnings():
+                tbhdu.writeto(self.temp('newtable.fits'), clobber=True)
 
-        for j in range(3):
-            for i in range(len(a[j])):
-                assert hdul[1].data.field(0)[j][i] == a[j][i]
+            with fits.open(self.temp('newtable.fits')) as hdul:
+                assert hdul[1].columns[0].format.endswith('A(3)')
+                for j in range(3):
+                    for i in range(len(a[j])):
+                        assert hdul[1].data.field(0)[j][i] == a[j][i]
 
-        hdul.close()
+        for code in ('PA()', 'QA()'):
+            test(code)
 
     def test_variable_length_table_format_pa_from_list(self):
-        a = ['a', 'ab', 'abc']
-        acol = fits.Column(name='testa', format='PA()', array=a)
-        tbhdu = fits.new_table([acol])
-        tbhdu.writeto(self.temp('newtable.fits'))
-        hdul = fits.open(self.temp('newtable.fits'))
+        def test(format_code):
+            a = ['a', 'ab', 'abc']
+            acol = fits.Column(name='testa', format=format_code, array=a)
+            tbhdu = fits.new_table([acol])
+            with ignore_warnings():
+                tbhdu.writeto(self.temp('newtable.fits'), clobber=True)
 
-        for j in range(3):
-            for i in range(len(a[j])):
-                assert hdul[1].data.field(0)[j][i] == a[j][i]
+            with fits.open(self.temp('newtable.fits')) as hdul:
+                assert hdul[1].columns[0].format.endswith('A(3)')
+                for j in range(3):
+                    for i in range(len(a[j])):
+                        assert hdul[1].data.field(0)[j][i] == a[j][i]
 
-        hdul.close()
+        for code in ('PA()', 'QA()'):
+            test(code)
 
     def test_fits_rec_column_access(self):
         t = fits.open(self.data('table.fits'))
@@ -2028,7 +2055,8 @@ class TestTableFunctions(FitsTestCase):
         """Regression test for https://trac.assembla.com/pyfits/ticket/197"""
 
         c = fits.Column('F1', 'A3', null='---',
-                        array=np.array(['1.0', '2.0', '---', '3.0']))
+                        array=np.array(['1.0', '2.0', '---', '3.0']),
+                        ascii=True)
         table = fits.new_table([c], tbtype='TableHDU')
         table.writeto(self.temp('test.fits'))
 
@@ -2051,19 +2079,25 @@ class TestTableFunctions(FitsTestCase):
 
     def test_getdata_vla(self):
         """Regression test for https://trac.assembla.com/pyfits/ticket/200"""
-        col = fits.Column(name='QUAL_SPE', format='PJ()',
-                          array=[np.arange(1572)] * 225)
-        tb_hdu = fits.new_table([col])
-        pri_hdu = fits.PrimaryHDU()
-        hdu_list = fits.HDUList([pri_hdu, tb_hdu])
-        hdu_list.writeto(self.temp('toto.fits'))
 
-        data = fits.getdata(self.temp('toto.fits'))
+        def test(format_code):
+            col = fits.Column(name='QUAL_SPE', format=format_code,
+                              array=[np.arange(1572)] * 225)
+            tb_hdu = fits.new_table([col])
+            pri_hdu = fits.PrimaryHDU()
+            hdu_list = fits.HDUList([pri_hdu, tb_hdu])
+            with ignore_warnings():
+                hdu_list.writeto(self.temp('toto.fits'), clobber=True)
 
-        # Need to compare to the original data row by row since the FITS_rec
-        # returns an array of _VLA objects
-        for row_a, row_b in zip(data['QUAL_SPE'], col.array):
-            assert (row_a == row_b).all()
+            data = fits.getdata(self.temp('toto.fits'))
+
+            # Need to compare to the original data row by row since the FITS_rec
+            # returns an array of _VLA objects
+            for row_a, row_b in zip(data['QUAL_SPE'], col.array):
+                assert (row_a == row_b).all()
+
+        for code in ('PJ()', 'QJ()'):
+            test(code)
 
     def test_column_array_type_mismatch(self):
         """Regression test for https://trac.assembla.com/pyfits/ticket/218"""
@@ -2072,7 +2106,7 @@ class TestTableFunctions(FitsTestCase):
         col = fits.Column('mag', format='E', array=arr)
         assert (arr == col.array).all()
 
-    def test_image_none(self):
+    def test_table_none(self):
         """Regression test
         for https://github.com/spacetelescope/PyFITS/issues/27
         """
@@ -2090,3 +2124,65 @@ class TestTableFunctions(FitsTestCase):
             assert h[1].header['NAXIS2'] == 0
             assert isinstance(h[1].data, fits.FITS_rec)
             assert len(h[1].data) == 0
+
+    def test_unncessary_table_load(self):
+        """Test unnecessary parsing and processing of FITS tables when writing
+        direclty from one FITS file to a new file without first reading the
+        data for user manipulation.
+
+        In other words, it should be possible to do a direct copy of the raw
+        data without unecessary processing of the data.
+        """
+
+        with fits.open(self.data('table.fits')) as h:
+            h[1].writeto(self.temp('test.fits'))
+
+        # Since this was a direct copy the h[1].data attribute should not have
+        # even been accessed (since this means the data was read and parsed)
+        assert 'data' not in h[1].__dict__
+
+        with fits.open(self.data('table.fits')) as h1:
+            with fits.open(self.temp('test.fits')) as h2:
+                assert str(h1[1].header) == str(h2[1].header)
+                assert comparerecords(h1[1].data, h2[1].data)
+
+    def test_table_from_columns_of_other_table(self):
+        """Tests a rare corner case where the columns of an existing table
+        are used to create a new table with the new_table function.  In this
+        specific case, however, the existing table's data has not been read
+        yet, so new_table has to get at it through the Delayed proxy.
+        """
+
+        hdul = fits.open(self.data('table.fits'))
+
+        # Make sure the column array is in fact delayed...
+        assert isinstance(hdul[1].columns._arrays[0], Delayed)
+
+        # Create a new table...
+        t = fits.new_table(hdul[1].columns)
+
+        # The original columns should no longer be delayed...
+        assert not isinstance(hdul[1].columns._arrays[0], Delayed)
+
+        t.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as hdul2:
+            assert comparerecords(hdul[1].data, hdul2[1].data)
+
+    def test_bintable_to_asciitable(self):
+        """Tests initializing a TableHDU with the data from a BinTableHDU."""
+
+        with fits.open(self.data('tb.fits')) as hdul:
+            tbdata = hdul[1].data
+            tbhdu = fits.TableHDU(data=tbdata)
+            with ignore_warnings():
+                tbhdu.writeto(self.temp('test.fits'), clobber=True)
+            with fits.open(self.temp('test.fits')) as hdul2:
+                tbdata2 = hdul2[1].data
+                assert np.all(tbdata['c1'] == tbdata2['c1'])
+                assert np.all(tbdata['c2'] == tbdata2['c2'])
+                assert np.all(tbdata['c3'] == tbdata2['c3'])
+                # c4 is a boolean column in the original table; we want ASCII
+                # columns to convert these to columns of 'T'/'F' strings
+                assert np.all(np.where(tbdata['c4'] == True, 'T', 'F') ==
+                              tbdata2['c4'])

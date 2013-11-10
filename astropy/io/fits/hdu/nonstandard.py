@@ -6,7 +6,7 @@ import io
 from ..file import _File
 from .base import NonstandardExtHDU
 from .hdulist import HDUList
-from ..header import Header
+from ..header import Header, _pad_length
 from ..util import fileobj_name
 
 from ....utils import lazyproperty
@@ -52,7 +52,7 @@ class FitsHDU(NonstandardExtHDU):
             Gzip compress the FITS file
         """
 
-        return cls.fromhdulist(HDUList(filename), compress=compress)
+        return cls.fromhdulist(HDUList.fromfile(filename), compress=compress)
 
     @classmethod
     def fromhdulist(cls, hdulist, compress=False):
@@ -74,9 +74,17 @@ class FitsHDU(NonstandardExtHDU):
             else:
                 name = None
             fileobj = gzip.GzipFile(name, mode='wb', fileobj=bs)
+
         hdulist.writeto(fileobj)
+
         if compress:
             fileobj.close()
+
+        # A proper HDUList should still be padded out to a multiple of 2880
+        # technically speaking
+        padding = (_pad_length(bs.tell()) * cls._padding_byte).encode('ascii')
+        bs.write(padding)
+
         bs.seek(0)
 
         cards = [

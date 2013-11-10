@@ -216,10 +216,19 @@ def write_table_fits(input, output, overwrite=False):
     if input.masked:
         table_hdu = BinTableHDU(np.array(input.filled()))
         for col in table_hdu.columns:
+            # Binary FITS tables support TNULL *only* for integer data columns
+            # TODO: Determine a schema for handling non-integer masked columns
+            # in FITS (if at all possible)
+            int_formats = ('B', 'I', 'J', 'K')
+            if not (col.format in int_formats or
+                    col.format.p_format in int_formats):
+                continue
+
             # The astype is necessary because if the string column is less
             # than one character, the fill value will be N/A by default which
             # is too long, and so no values will get masked.
             fill_value = input[col.name].get_fill_value()
+
             col.null = fill_value.astype(input[col.name].dtype)
     else:
         table_hdu = BinTableHDU(np.array(input))

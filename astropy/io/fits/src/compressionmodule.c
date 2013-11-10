@@ -655,13 +655,44 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
                 (0 == strcmp(tmp, "NONE"))) {
             Fptr->quantize_level = NO_QUANTIZE;
         } else if (0 == strcmp(tmp, "SUBTRACTIVE_DITHER_1")) {
-            Fptr->quantize_dither = SUBTRACTIVE_DITHER_1;
+#ifdef CFITSIO_SUPPORTS_SUBTRACTIVE_DITHER_2
+            // Added in CFITSIO 3.35, this also changed the name of the
+            // quantize_dither struct member to quantize_method
+            Fptr->quantize_method = SUBTRACTIVE_DITHER_1;
+        } else if (0 == strcmp(tmp, "SUBTRACTIVE_DITHER_2")) {
+            Fptr->quantize_method = SUBTRACTIVE_DITHER_2;
         } else {
-            Fptr->quantize_dither = 0;
+            Fptr->quantize_method = NO_DITHER;
         }
     } else {
-        Fptr->quantize_dither = 0;
+        Fptr->quantize_method = NO_DITHER;
     }
+
+    if (Fptr->quantize_method != NO_DITHER) {
+        if (0 != get_header_int(header, "ZDITHER0", &(Fptr->dither_seed), 0)) {
+            // ZDITHER0 keyword not found
+            Fptr->dither_seed = 0;
+            Fptr->request_dither_seed = 0;
+        }
+    }
+#else
+            Fptr->quantize_dither = SUBTRACTIVE_DITHER_1;
+        } else {
+            Fptr->quantize_dither = NO_DITHER;
+        }
+    } else {
+        Fptr->quantize_dither = NO_DITHER;
+    }
+
+    if (Fptr->quantize_dither != NO_DITHER) {
+        if (0 != get_header_int(header, "ZDITHER0", &(Fptr->dither_offset),
+                                0)) {
+            // ZDITHER0 keyword no found
+            Fptr->dither_offset = 0;
+            Fptr->request_dither_offset = 0;
+        }
+    }
+#endif
 
     Fptr->compressimg = 1;
     Fptr->maxelem = imcomp_calc_max_elem(Fptr->compress_type,
@@ -676,7 +707,7 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
 void init_output_buffer(PyObject* hdu, void** buf, size_t* bufsize) {
     // Determines a good size for the output data buffer and allocates
     // memory for it, returning the address and size of the allocated
-    // membory in to **buf and *bufsize respectively.
+    // memory into **buf and *bufsize respectively.
 
     PyObject* header = NULL;
     char keyword[9];
