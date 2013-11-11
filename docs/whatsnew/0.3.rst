@@ -176,6 +176,42 @@ them, use::
 Table
 -----
 
+In addition to many bug fixes and usability improvements, the key new feature
+in the :ref:`astropy-table` package is the addition of high level
+:ref:`table_operations` that can be used to generate a new table from one or
+more input tables:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 28 52 20
+
+   * - Documentation
+     - Description
+     - Function
+   * - :ref:`grouped-operations`
+     - Group tables and columns by keys
+     - `~astropy.table.table.Table.group_by`
+   * - :ref:`stack-vertically`
+     - Concatenate input tables along rows
+     - `~astropy.table.operations.vstack`
+   * - :ref:`stack-horizontally`
+     - Concatenate input tables along columns
+     - `~astropy.table.operations.hstack`
+   * - :ref:`table-join`
+     - Database-style join of two tables
+     - `~astropy.table.operations.join`
+
+Grouping is a useful concept that allows you to divide a table
+into sub-groups based on certain key values and create new tables based
+on computed properties of those sub-groups.  As an example, if you
+have a table containing photometric observations of multiple sources
+over multiple epochs, it would be possible to compute a mean magnitude
+for each unique object.
+
+Even more powerful is the ability to do database-style joins of tables.  For
+instance, if you have distinct tables with photometry in different wavebands
+for a set of objects, you join these points into a single table with one row
+for each source.
 
 Coordinates
 -----------
