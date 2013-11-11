@@ -402,6 +402,22 @@ The discretization of the kernel functions can be done in various ways (e.g.
 oversampling, interpolation, etc.) which are described in more detail in
 `astropy.convolution`.
 
+Cosmology
+---------
+
+The `astropy.cosmology` sub-package now includes support for including massive
+neutrinos in the cosmology classes (and the Planck 2013 cosmology has been
+updated to use this). In addition, :class:`~astropy.units.quantity.Quantity`
+objects are now used wherever appropriate::
+
+    >>> from astropy.cosmology import WMAP9
+    >>> WMAP9.H0
+    <Quantity 69.32 km / (Mpc s)>
+    >>> WMAP9.lookback_time(3)
+    <Quantity 11.590618401420071 Gyr>
+    >>> WMAP9.luminosity_distance(3)
+    <Quantity 26015.607762091513 Mpc>
+
 WCS
 ---
 
