@@ -201,7 +201,7 @@ def test_array_coordinates_string():
     six.text_type(c)
     repr(c)
 
-    assert repr(c) == '<ICRS RA=[ 1. 2.] deg, Dec=[ 3. 4.] deg>'
+    assert repr(c) == '<ICRS RA=[ 1.  2.] deg, Dec=[ 3.  4.] deg>'
 
     #also check with distance
 
@@ -212,7 +212,7 @@ def test_array_coordinates_string():
 
     print(repr(c))
 
-    assert repr(c) == '<ICRS RA=[1 2] deg, Dec=[3 4] deg, Distance=[ 0.5  1.5] kpc>'
+    assert repr(c) == '<ICRS RA=[ 1.  2.] deg, Dec=[ 3.  4.] deg, Distance=[ 0.5  1.5] kpc>'
 
 
 def test_array_precession():
