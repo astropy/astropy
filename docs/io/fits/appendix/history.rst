@@ -31,6 +31,11 @@ Highlights
   that it uses 64-bit integers for the data descriptors, allowing more than
   4 GB of variable-length array data in a single table. (#160)
 
+- Added initial support for table columns containing pseudo-unsigned integers.
+  This is currently enabled by using the ``uint=True`` option when opening
+  files; any table columns with the correct BZERO value will be interpreted
+  and returned as arrays of unsigned integers.
+
 - Some refactoring of the table and ``FITS_rec`` modules in order to better
   separate the details of the FITS binary and ASCII table data structures from
   the HDU data structures that encapsulate them.  Most of these changes should
