@@ -421,8 +421,8 @@ Cosmology
 ---------
 
 The :ref:`astropy-cosmology` sub-package now includes support for including massive
-neutrinos in the cosmology classes (and the Planck 2013 cosmology has been
-updated to use this). In addition, :class:`~astropy.units.quantity.Quantity`
+neutrinos in the cosmology classes, and the Planck 2013 cosmology has been
+updated to use this. In addition, :class:`~astropy.units.quantity.Quantity`
 objects are now used wherever appropriate::
 
     >>> from astropy.cosmology import WMAP9
@@ -437,7 +437,7 @@ Statistics
 ----------
 
 The :ref:`tools` sub-package includes a number of new common statistical
-functions, for example related to binomial statistics and bootstraping.
+functions, for example related to binomial statistics and bootstrapping.
 
 WCS
 ---
