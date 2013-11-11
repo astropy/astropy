@@ -32,6 +32,8 @@ table from one or more input tables.  This includes:
      - `~astropy.table.operations.join`
 
 
+.. _grouped-operations:
+
 Grouped operations
 ^^^^^^^^^^^^^^^^^^
 
@@ -355,6 +357,8 @@ either `True` or `False`.  For example::
           return False
       return True
 
+.. _stack-vertically:
+
 Stack vertically
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -435,6 +439,8 @@ attributes`_ for details on how these characteristics of the input tables are me
 the single output table.  Note also that you can use a single table row instead of a
 full table as one of the inputs.
 
+.. _stack-horizontally:
+
 Stack horizontally
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -498,6 +504,8 @@ below also illustrates the behavior when there is a conflict in the input column
 The metadata from the input tables is merged by the process described in the `Merging
 metadata`_ section.  Note also that you can use a single table row instead of a
 full table as one of the inputs.
+
+.. _table-join:
 
 Join
 ^^^^^^^^^^^^^^
