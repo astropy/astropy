@@ -255,20 +255,39 @@ coordinates used above::
 Time
 ----
 
-.. TODO
+The :ref:`astropy-time` package has received attention in filling in
+the details from the initial release in astropy 0.2.  This includes adding array
+indexing and supporting various arithmetic operations involving arrays,
+constants, and `~astropy.units.quantity.Quantity` objects with time units.  In addition the initial
+infrastructure was added to allow use of `International Earth Rotation and
+Reference Systems Service
+<http://www.iers.org/>`_ tables so that automatic
+calculation of UT1 becomes possible.
+
+One very significant improvement is an overhaul of the internal
+time manipulations so that arithmetic with `~astropy.time.core.Time` and
+`~astropy.time.core.TimeDelta` objects maintain sub-nanosecond precision over a time span
+longer than the age of the universe.  This is done by carefully managing
+the way the time is represented and manipulated using two 64-bit floats.
+
+Finally, three new time formats were added:
+
+  - ``datetime``: standard library `datetime.datetime` objects.
+  - ``plot_date``: dates compatible with the `matplotlib.pyplot.plot_date` function.
+  - ``gps``: seconds since 1980-01-01 00:00:00 UTC including leap seconds.
 
 ASCII Tables
 ------------
 
-Functionality to write `IPAC format tables
-<http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_ is now
-available within the `astropy.io.ascii` package.
+The :ref:`io-ascii` package now includes functionality to write `IPAC format tables
+<http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_.
 
-The `~astropy.io.ascii.ui.read` and `~astropy.io.ascii.ui.write` functions now
+The `~astropy.io.ascii.ui.read()` and `~astropy.io.ascii.ui.write()` functions now
 allow a ``format`` keyword argument for specifying the file format as a string.
 This replaces the deprecated ``Reader`` and ``Writer`` keywords which required
-supplying a fully-qualified class type.  To convert code change the camel-case
-class name to all lower case with underscores between words.  For instance::
+supplying a fully-qualified class type.  To convert existing code that uses
+``Reader`` or ``Writer``, change the class name to all lower case with
+underscores between words.  For instance::
 
     >>> from astropy.io import ascii
     >>> data = [' name         age ',
@@ -281,9 +300,10 @@ class name to all lower case with underscores between words.  For instance::
 Unified File Read/Write Interface
 ----------------------------------
 
-All of the ASCII table formats are now supported in the unified read/write
-interface, with the corresponding ``format`` keyword preceded
-by the string ``'ascii.'``.  Thus the above example would be written::
+FITS format tables can now be read and written via the :ref:`table_io`. 
+All of the ASCII table formats are now supported as well.  When using
+the unified file interface for ASCII tables the ``format`` defined in the :ref:`io-ascii`
+package is prefixed with ``'ascii.'``.  Thus the previous example would be written::
 
     >>> from astropy.table import Table
     >>> t = Table.read(data, format='ascii.fixed_width_two_line')
@@ -308,7 +328,7 @@ The full list of available formats is now available via the
          Table        latex  Yes   Yes            No        Yes
          Table          rdb  Yes   Yes            No        Yes
 
-In addition, if you make a mistake and specify an incorrect ``format``, the
+If you make a mistake and specify an unavailable or incorrect ``format``, the
 error message will now list all the available formats.
 
 Convolution
