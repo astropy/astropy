@@ -416,7 +416,7 @@ framework that provides common built-in kernels:
     plt.title('Convolved')
 
 A number of different 1- and 2-D kernels are provided, based on models defined
-in `astropy.models`. The discretization of the kernels can be handled in
+in :ref:`astropy-modeling`. The discretization of the kernels can be handled in
 various ways (e.g. oversampling, interpolation, etc.) which are described in
 more detail in :ref:`astropy_convolve`.
 
