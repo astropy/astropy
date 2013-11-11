@@ -157,7 +157,7 @@ correctly treat the units:
     >>> np.std(q)
     <Quantity 1.11803398875 m / s>
 
-including functions that only accept specific units such as angles::
+This includes functions that only accept specific units such as angles::
 
     >>> q = 30. * u.deg
     >>> np.sin(q)
