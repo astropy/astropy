@@ -458,7 +458,7 @@ def radio_lines_simple(freq_obs):
              lambda x: c_si * x * 1e23 / fobs)]
     
 
-def radio_lines(freq_obs, redshift, lumdist=None, cosmology=None):
+def radio_lines(freq_obs, redshift, lumdist=None):
     """
     Returns a list of equivalence pairs between observational
     and non-observational line strength units in astronomy.
@@ -476,20 +476,15 @@ def radio_lines(freq_obs, redshift, lumdist=None, cosmology=None):
     redshift : float
       Redshift of the object
 
-    lumdist : `Quantity` with units of distance
-      Luminosity distance to object.  If this is not provided,
-      then the cosmology is used, as described below.
-
-    cosmology : instance of `FLRW` derived class or None
-      If dl is set, this is ignored.  If dl is None and this is
-      None, the default cosmology is used.  If dl is none and this 
-      is a cosmology instance (such as `astropy.cosmology.Planck13`),
-      that is used instead.
+    lumdist : `Quantity` with units of distance or instance `FLRW` derived class
+      Either the luminosity distance to the object, or a cosmological
+      object that can compute the luminosity distance.  If None, than
+      the default cosmology is used.
 
     Notes
     -----
       This is a more capable version of `radio_lines_simple`, but at
-      the price of requiring that the cosmology be specified.  If you
+      the price of requiring additional cosmological information.  If you
       just want to convert between W/m^2 and Jy km/s, you can use
       `radio_lines_simple`.
     """
@@ -530,18 +525,21 @@ def radio_lines(freq_obs, redshift, lumdist=None, cosmology=None):
     frest = fobs * opz
 
     if lumdist is None:
-        if cosmology is None:
-            dl = astropy.cosmology.luminosity_distance(z)
-        elif not isinstance(cosmology, astropy.cosmology.FLRW):
-            raise TypeError("User provided cosmology is not of recognized type")
-        else:
-            dl = cosmology.luminosity_distance(z)
+        # Use default cosmology
+        dl = astropy.cosmology.luminosity_distance(z)
     else:
-        if not lumdist.isscalar:
-            raise ValueError("User provided luminosity distance must be scalar")
-        dl = lumdist.to(astrophys.Mpc)
-        if dl.value <= 0.0:
-            raise ValueError("Invalid (non-positive) luminosity distance")
+        try:
+            # See if it behaves like a cosmology object
+            dl = lumdist.luminosity_distance(z)
+        except AttributeError:
+            # Oops, quantity, not cosmology
+            dl = lumdist.to(astrophys.Mpc)
+            if not dl.isscalar:
+                raise ValueError("User provided luminosity distance "
+                                 "must be scalar")
+
+    if dl.value <= 0.0:
+        raise ValueError("Invalid (non-positive) luminosity distance")
 
     # Set up quantities we will reuse below
     dl_mpc = dl.value # Mpc
