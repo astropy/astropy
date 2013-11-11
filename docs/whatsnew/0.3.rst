@@ -17,6 +17,9 @@ a re-structuring of the `Convolution`_ code to provide many build-in
 parameterized kernels. We describe the new sub-packages and the main
 improvements below.
 
+For a detailed list of all the changes, including deprecated features and backward-incompatible changes,
+please take a look at the full :doc:`../changelog`.
+
 Modeling
 --------
 
@@ -205,7 +208,9 @@ into sub-groups based on certain key values and create new tables based
 on computed properties of those sub-groups.  As an example, if you
 have a table containing photometric observations of multiple sources
 over multiple epochs, it would be possible to compute a mean magnitude
-for each unique object.
+for each unique object.  In addition to this *aggregation* operation,
+the grouping interface also allows *filtering* operations where certain
+groups are excluded from the resultant table.
 
 Even more powerful is the ability to do database-style joins of tables.  For
 instance, if you have distinct tables with photometry in different wavebands
