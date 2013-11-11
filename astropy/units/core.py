@@ -18,7 +18,7 @@ import numpy as np
 
 from ..utils.exceptions import AstropyWarning
 from ..utils.misc import isiterable, InheritDocstrings
-from .utils import is_effectively_unity, validate_power
+from .utils import is_effectively_unity, sanitize_scale, validate_power
 from . import format as unit_format
 
 # TODO: Support functional units, e.g. log(x), ln(x)
@@ -1884,12 +1884,17 @@ class CompositeUnit(UnitBase):
         # kwarg `_error_check` is False, the error checking is turned
         # off.
         if _error_check:
-            if is_effectively_unity(scale):
-                scale = 1.0
+            scale = sanitize_scale(scale)
             for base in bases:
                 if not isinstance(base, UnitBase):
+<<<<<<< HEAD
                     raise TypeError("bases must be sequence of UnitBase instances")
             powers = [validate_power(p, support_tuples=True) for p in powers]
+=======
+                    raise TypeError(
+                        "bases must be sequence of UnitBase instances")
+            powers = [self._validate_power(p) for p in powers]
+>>>>>>> Allow complex scale -- for (mag**0.5).decompose()
 
         self._scale = scale
         self._bases = bases
@@ -1970,12 +1975,17 @@ class CompositeUnit(UnitBase):
         new_parts.sort(key=lambda x: (-x[1], getattr(x[0], 'name', '')))
 
         self._bases = [x[0] for x in new_parts]
+<<<<<<< HEAD
         self._powers = [validate_power(x[1], support_tuples=True) for x in new_parts]
 
         if is_effectively_unity(scale):
             scale = 1.0
 
         self._scale = scale
+=======
+        self._powers = [x[1] for x in new_parts]
+        self._scale = sanitize_scale(scale)
+>>>>>>> Allow complex scale -- for (mag**0.5).decompose()
 
     def __copy__(self):
         """

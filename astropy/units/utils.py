@@ -124,7 +124,26 @@ def generate_unit_summary(namespace):
 
 
 def is_effectively_unity(value):
-    return _JUST_BELOW_UNITY <= value <= _JUST_ABOVE_UNITY
+    try:
+        return _JUST_BELOW_UNITY <= value <= _JUST_ABOVE_UNITY
+    except TypeError:  # value is complex
+        return (_JUST_BELOW_UNITY <= value.real <= _JUST_ABOVE_UNITY and
+                _JUST_BELOW_UNITY <= value.imag + 1 <= _JUST_ABOVE_UNITY)
+
+
+def sanitize_scale(scale):
+    if is_effectively_unity(scale):
+        return 1.0
+
+    if hasattr(scale, 'imag'):  # scale is complex
+        if abs(scale.real) > abs(scale.imag):
+            if is_effectively_unity(scale.imag/scale.real + 1):
+                scale = scale.real
+        else:
+            if is_effectively_unity(scale.real/scale.imag + 1):
+                scale = complex(0., scale.imag)
+
+    return scale
 
 
 def validate_power(p, support_tuples=False):
