@@ -87,6 +87,8 @@ knows about::
 
 And it can convert between unit systems, such as SI or CGS::
 
+.. doctest-skip-all::
+
     >>> (1.0 * u.Pa).cgs
     <Quantity 10.0 Ba>
 

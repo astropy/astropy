@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 .. _whatsnew-0.3:
 
 ==========================
@@ -347,7 +349,7 @@ underscores between words.  For instance::
 Unified File Read/Write Interface
 ----------------------------------
 
-FITS format tables can now be read and written via the :ref:`table_io`. 
+FITS format tables can now be read and written via the :ref:`table_io`.
 All of the ASCII table formats are now supported as well.  When using
 the unified file interface for ASCII tables the ``format`` defined in the :ref:`io-ascii`
 package is prefixed with ``'ascii.'``.  Thus the previous example would be written::

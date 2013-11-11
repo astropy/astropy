@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 astropy.io.fits History
 =======================
 
@@ -2384,7 +2386,7 @@ The following enhancements were made:
     stpyfits.
 
 - Added a new feature to allow trailing HDUs to be deleted from a fits file
-  without actually reading the data from the file. 
+  without actually reading the data from the file.
 
   - This supports a JWST requirement to delete a trailing HDU from a file
     whose primary Image HDU is too large to be read on a 32 bit machine.
@@ -2591,7 +2593,7 @@ Changes since v0.9.0:
   binary table.  At the user interface, they are converted to Boolean arrays
   for easy manipulation.  For example, if the column's TFORM is "11X",
   internally the data is stored in 2 bytes, but the user will see, at each row
-  of this column, a Boolean array of 11 elements. 
+  of this column, a Boolean array of 11 elements.
 
 - Fix a bug such that when a table extension has no data, it will not try to
   scale the data when updating/writing the HDU list.
@@ -2682,19 +2684,19 @@ Changes since 0.7.5:
 - Change some internal variables to make their appearance more consistent:
 
     old name                new name
-        
+
     __octalRegex            _octalRegex
     __readblock()           _readblock()
     __formatter()           _formatter().
     __value_RE              _value_RE
-    __numr                  _numr 
-    __comment_RE            _comment_RE 
-    __keywd_RE              _keywd_RE 
+    __numr                  _numr
+    __comment_RE            _comment_RE
+    __keywd_RE              _keywd_RE
     __number_RE             _number_RE.
     tmpName()               _tmpName()
     dimShape                _dimShape
     ErrList                 _ErrList
-   
+
 - Move up the module description.  Move the copyright statement to the bottom
   and assign to the variable __credits__.
 
@@ -2702,7 +2704,7 @@ Changes since 0.7.5:
 
     self.__dict__ = input.__dict__
 
-  to 
+  to
 
     self.__setstate__(input.__getstate__())
 
@@ -2774,12 +2776,12 @@ Changes since v0.7.2:
 0.7.2.1 (2002-06-25)
 ----------------------
 
-A couple of bugs were addressed in this version. 
+A couple of bugs were addressed in this version.
 
 - Fix a bug in _add_commentary(). Due to a change in index_of() during version
   0.6.5.5, _add_commentary needs to be modified to avoid exception if the key
   is not present in the header already. This affects (fixes) add_history(),
-  add_comment(), and add_blank(). 
+  add_comment(), and add_blank().
 
 - Fix a bug in __getattr__() in Card class. The change made in 0.7.2 to rstrip
   the comment must be string type to avoid exception.
@@ -2788,67 +2790,67 @@ A couple of bugs were addressed in this version.
 0.7.2 (2002-06-19)
 --------------------
 
-The two major improvements from Version 0.6.2 are: 
+The two major improvements from Version 0.6.2 are:
 
 - support reading tables  with "scaled" columns (e.g.  tscal/tzero, Boolean,
   and ASCII tables)
 
 - a prototype output verification.
 
-This version of PyFITS requires numarray version 0.3.4. 
+This version of PyFITS requires numarray version 0.3.4.
 
-Other changes include: 
+Other changes include:
 
 - Implement the new HDU hierarchy proposed earlier this year.  This in turn
-  reduces some of the redundant methods common to several HDU classes. 
- 
+  reduces some of the redundant methods common to several HDU classes.
+
 - Add 3 new methods to the Header class: add_history, add_comment, and
   add_blank.
 
 - The table attributes _columns are now .columns and the attributes in ColDefs
   are now all without the underscores.  So, a user can get a list of column
-  names by: hdu.columns.names. 
+  names by: hdu.columns.names.
 
 - The "fill" argument in the new_table method now has a new meaning:<br> If
   set to true (=1), it will fill the entire new table with zeros/blanks.
   Otherwise (=0), just the extra rows/cells are filled with zeros/blanks.
-  Fill values other than zero/blank are now not possible. 
+  Fill values other than zero/blank are now not possible.
 
 - Add the argument output_verify to the open method and writeto method.  Not
-  in the flush or close methods yet, due to possible complication. 
+  in the flush or close methods yet, due to possible complication.
 
 - A new copy method for tables, the copy is totally independent from the table
-  it copies from. 
+  it copies from.
 
 - The tostring() call in writeHDUdata takes up extra space to store the string
-  object.  Use tofile() instead, to save space. 
+  object.  Use tofile() instead, to save space.
 
 - Make changes from _byteswap to _byteorder, following corresponding changes
-  in numarray and recarray. 
+  in numarray and recarray.
 
-- Insert(update) EXTEND in PrimaryHDU only when header is None. 
+- Insert(update) EXTEND in PrimaryHDU only when header is None.
 
-- Strip the trailing blanks for the comment value of a card. 
+- Strip the trailing blanks for the comment value of a card.
 
 - Add seek(0) right after the __buildin__.open(0), because for the 'ab+' mode,
   the pointer is at the end after open in Linux, but it is at the beginning in
-  Solaris. 
+  Solaris.
 
 - Add checking of data against header, update header keywords (NAXIS's,
-  BITPIX) when they don't agree with the data. 
+  BITPIX) when they don't agree with the data.
 
-- change version to __version__. 
+- change version to __version__.
 
 There are also many other minor internal bug fixes and
-technical changes. 
+technical changes.
 
 
 0.6.2 (2002-02-12)
 --------------------
 
-This version requires numarray version 0.2. 
+This version requires numarray version 0.2.
 
-Things not yet supported but are part of future development: 
+Things not yet supported but are part of future development:
 
 - Verification and/or correction of FITS objects being written to disk so that
   they are legal FITS. This is being added now and should be available in

@@ -109,7 +109,8 @@ numeric types:
     Traceback (most recent call last):
       ...
     UnitsError: Can only apply 'add' function to dimensionless
-    quantities when other argument is not a quantity
+    quantities when other argument is not a quantity (unless the
+    latter is all zero/infinity/nan)
 
 except for dimensionless quantities (see `Dimensionless quantities`_).
 
@@ -159,6 +160,8 @@ Numpy functions
 object class inherits from and extends the `numpy.ndarray` class), and
 we have tried to ensure that most Numpy functions behave properly with
 units:
+
+.. doctest-skip-all
 
     >>> q = np.array([1., 2., 3., 4.]) * u.m / u.s
     >>> np.mean(q)

@@ -23,12 +23,12 @@ They generally take a redshift as input. For example, the two cases
 below give you the value of the Hubble constant at z=0 (i.e., `H0`), and
 the number of transverse proper kpc corresponding to an arcminute at z=3:
 
+.. doctest-requires:: scipy
+
   >>> from astropy import cosmology
   >>> cosmology.H(0)
-  WARNING: No default cosmology has been specified, using 9-year WMAP.
-  [astropy.cosmology.core]
   <Quantity 69.32 km / (Mpc s)>
-  >>> cosmology.kpc_proper_per_arcmin(3)  # doctest: +REQUIRES_SCIPY
+  >>> cosmology.kpc_proper_per_arcmin(3)
   <Quantity 472.977096... kpc / arcmin>
 
 All the functions available are listed in the `Reference/API`_
@@ -53,8 +53,10 @@ with methods and attributes that calculate cosmological
 values. For example, the comoving distance in Mpc to redshift 4 using
 the 5-year WMAP parameters:
 
+.. doctest-requires:: scipy
+
   >>> from astropy.cosmology import WMAP5
-  >>> WMAP5.comoving_distance(4)  # doctest: +REQUIRES_SCIPY
+  >>> WMAP5.comoving_distance(4)
   <Quantity 7329.328093495547 Mpc>
 
 An important point is that the cosmological parameters of each
@@ -100,17 +102,23 @@ section are instances of `~astropy.cosmology.core.FlatLambdaCDM`, and have
 the same methods. So we can find the luminosity distance to
 redshift 4 by:
 
-  >>> cosmo.luminosity_distance(4)  # doctest: +REQUIRES_SCIPY
+.. doctest-requires:: scipy
+
+  >>> cosmo.luminosity_distance(4)
   <Quantity 35842.353618623194 Mpc>
 
 or the age of the universe at z = 0:
 
-  >>> cosmo.age(0)  # doctest: +REQUIRES_SCIPY
+.. doctest-requires:: scipy
+
+  >>> cosmo.age(0)
   <Quantity 13.461701658024014 Gyr>
 
 They also accept arrays of redshifts:
 
-  >>> cosmo.age([0.5, 1, 1.5]).value  # doctest: +REQUIRES_SCIPY
+.. doctest-requires:: scipy
+
+  >>> cosmo.age([0.5, 1, 1.5]).value
   array([ 8.42128047,  5.74698053,  4.19645402])
 
 See the `~astropy.cosmology.core.FLRW` and
@@ -155,10 +163,12 @@ are convenience functions that calculate some of these quantities
 without needing to explicitly give a cosmology - but there are more
 methods available if you work directly with the cosmology object.
 
+.. doctest-requires:: scipy
+
   >>> from astropy import cosmology
-  >>> cosmology.kpc_proper_per_arcmin(3)  # doctest: +REQUIRES_SCIPY
+  >>> cosmology.kpc_proper_per_arcmin(3)
   <Quantity 472.977096... kpc / arcmin>
-  >>> cosmology.arcsec_per_kpc_proper(3)  # doctest: +REQUIRES_SCIPY
+  >>> cosmology.arcsec_per_kpc_proper(3)
   <Quantity 0.126856... arcsec / kpc>
 
 These functions will perform calculations using the "current"
@@ -190,17 +200,21 @@ example, if you call a convenience function without setting the
 current cosmology or using the `cosmo=` keyword you see the following
 message:
 
+.. doctest-requires:: scipy
+
   >>> from astropy import cosmology
-  >>> cosmology.lookback_time(1)  # lookback time in Gyr at z=1  # doctest: +REQUIRES_SCIPY
+  >>> cosmology.lookback_time(1)  # lookback time in Gyr at z=1
   <Quantity 7.846670... Gyr>
 
 The 9-year WMAP and Planck 2013 cosmologies are also available
 
+.. doctest-requires:: scipy
+
   >>> from astropy.cosmology import WMAP9   # WMAP 9-year
-  >>> WMAP9.lookback_time(2).value          # lookback time in Gyr at z=2  # doctest: +REQUIRES_SCIPY
+  >>> WMAP9.lookback_time(2).value          # lookback time in Gyr at z=2
   10.442114...
   >>> from astropy.cosmology import Planck13  # Planck 2013
-  >>> Planck13.lookback_time(2)             # lookback time in Gyr at z=2  # doctest: +REQUIRES_SCIPY
+  >>> Planck13.lookback_time(2)             # lookback time in Gyr at z=2
   <Quantity 10.511841... Gyr>
 
 .. note::
@@ -222,8 +236,10 @@ Built-in Cosmologies
 A number of pre-loaded cosmologies are available from the
 WMAP and Planck satellites.  For example,
 
+.. doctest-requires:: scipy
+
   >>> from astropy.cosmology import Planck13  # Planck 2013
-  >>> Planck13.luminosity_distance(2)         # luminosity distance to z=2  # doctest: +REQUIRES_SCIPY
+  >>> Planck13.luminosity_distance(2)         # luminosity distance to z=2
   <Quantity 15932.668054... Mpc>
 
 A full list of the pre-defined cosmologies is given by

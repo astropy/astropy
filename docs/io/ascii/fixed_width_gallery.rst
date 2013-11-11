@@ -138,9 +138,9 @@ keywords to indicate no header line.
   ...                 names=('Name', 'Phone', 'TCP'))
   <Table rows=3 names=('Name','Phone','TCP')>
   array([('John', '555-1234', '192.168.1.10'),
-       ('Mary', '555-2134', '192.168.1.12'),
-       ('Bob', '555-4527', '192.168.1.9')], 
-      dtype=[('Name', '|S4'), ('Phone', '|S8'), ('TCP', '|S12')])
+         ('Mary', '555-2134', '192.168.1.12'),
+         ('Bob', '555-4527', '192.168.1.9')],
+        dtype=[('Name', 'S4'), ('Phone', 'S8'), ('TCP', 'S12')])
 
 
 FixedWidthNoHeader

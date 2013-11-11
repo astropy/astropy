@@ -301,6 +301,8 @@ one can :ref:`enable other units <enabling-other-units>`.
 For instance, to enable radian to be treated as a dimensionless unit,
 simply do::
 
+.. doctest-skip::
+
   >>> import astropy.units as u
   >>> u.set_enabled_equivalencies(u.dimensionless_angles())
   <astropy.units.core._UnitContext object at ...>
@@ -315,6 +317,8 @@ lists, they should indeed be combined by adding them together).
 The disadvantage of the above approach is that you may forget to turn
 the default off (done by giving an empty argument). To automate this,
 a context manager is provided::
+
+.. doctest-skip::
 
   >>> import astropy.units as u
   >>> with u.set_enabled_equivalencies(u.dimensionless_angles()):

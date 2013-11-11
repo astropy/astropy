@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 PyFITS FAQ
 ----------
 
@@ -164,7 +166,7 @@ extension section by prepending it with a ``#`` character (stopping at the
     scripts = scripts/fitscheck
 
     #[extension=pyfits.compression]
-    #sources = 
+    #sources =
     #    src/compress.c
     #    src/fits_hcompress.c
     #    src/fits_hdecompress.c
