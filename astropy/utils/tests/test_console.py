@@ -3,6 +3,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from ...extern.six import next
 from ...extern.six.moves import xrange
 
 import io
@@ -12,6 +13,57 @@ import sys
 from ...tests.helper import pytest, raises
 
 from .. import console
+
+
+class FakeTTY(io.StringIO):
+    """IOStream that fakes a TTY; provide an encoding to emulate an output
+    stream with a specific encoding.
+    """
+
+    def __new__(cls, encoding=None):
+        # Return a new subclass of FakeTTY with the requested encoding
+        if encoding is None:
+            return super(FakeTTY, cls).__new__(cls)
+
+        # Since we're using unicode_literals in this module ensure that this is
+        # a 'str' object (since a class name can't be unicode in Python 2.7)
+        encoding = str(encoding)
+        cls = type(encoding.title() + cls.__name__, (cls,),
+                   {'encoding': encoding})
+
+        return cls.__new__(cls)
+
+    def __init__(self, encoding=None):
+        super(FakeTTY, self).__init__()
+
+    def write(self, s):
+        if isinstance(s, bytes):
+            # Just allow this case to work
+            s = s.decode('latin-1')
+        elif self.encoding is not None:
+            s.encode(self.encoding)
+
+        return super(FakeTTY, self).write(s)
+
+    def isatty(self):
+        return True
+
+
+def test_fake_tty():
+    # First test without a specified encoding; we should be able to write
+    # arbitrary unicode strings
+    f1 = FakeTTY()
+    assert f1.isatty()
+    f1.write('\N{SNOWMAN}')
+    assert f1.getvalue() == '\N{SNOWMAN}'
+
+    # Now test an ASCII-only TTY--it should raise a UnicodeEncodeError when
+    # trying to write a string containing non-ASCII characters
+    f2 = FakeTTY('ascii')
+    assert f2.isatty()
+    assert f2.__class__.__name__ == 'AsciiFakeTTY'
+    assert pytest.raises(UnicodeEncodeError, f2.write, '\N{SNOWMAN}')
+    assert f2.getvalue() == ''
 
 
 @pytest.mark.skipif(str("sys.platform.startswith('win')"))
@@ -40,10 +92,7 @@ def test_color_print2():
 
 @pytest.mark.skipif(str("sys.platform.startswith('win')"))
 def test_color_print3():
-    # Test that this things the FakeTTY is a tty and applies colors.
-    class FakeTTY(io.StringIO):
-        def isatty(self):
-            return True
+    # Test that this thinks the FakeTTY is a tty and applies colors.
 
     stream = FakeTTY()
     console.color_print("foo", "green", file=stream)
@@ -86,6 +135,22 @@ def test_color_print_no_default_encoding():
         assert stream.getvalue() == 'Íï\n'
     finally:
         locale.getpreferredencoding = orig_func
+
+
+def test_spinner_non_unicode_console():
+    """Regression test for #1760
+
+    Ensures that the spinner can fall go into fallback mode when using the
+    unicode spinner on a terminal whose default encoding cannot encode the
+    unicode characters.
+    """
+
+    stream = FakeTTY('ascii')
+    chars = console.Spinner._default_unicode_chars
+
+    with console.Spinner("Reticulating splines", file=stream,
+                         chars=chars) as s:
+        next(s)
 
 
 def test_progress_bar():
