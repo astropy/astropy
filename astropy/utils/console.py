@@ -671,18 +671,23 @@ class Spinner(object):
         file = self._file
         write = file.write
         flush = file.flush
+        try_fallback = True
 
         while True:
             write('\r')
             color_print(self._msg, self._color, file=file, end='')
             write(' ')
             try:
-                write = _write_with_fallback(chars[index], write, file)
+                if try_fallback:
+                    write = _write_with_fallback(chars[index], write, file)
+                else:
+                    write(chars[index])
             except UnicodeError:
                 # If even _write_with_fallback failed for any reason just give
                 # up on trying to use the unicode characters
                 chars = self._default_ascii_chars
-                write(chars[index], write, file)
+                write(chars[index])
+                try_fallback = False  # No good will come of using this again
             flush()
             yield
 
