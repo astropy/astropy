@@ -186,7 +186,7 @@ Coordinates
 
 Coordinate objects from the :ref:`astropy-coordinates` sub-package can now
 store arrays of coordinates instead of just a single coordinate. This
-dramatically speeds-up coordinate conversions when many coordinates are used.
+dramatically speeds up coordinate conversions when many coordinates are used.
 The following example shows how one can combine this with functionality from
 the :class:`~astropy.table.table.Table` class to read in arrays of coordinates
 and convert them to a different coordinate frame. First, we can read in a table
