@@ -418,6 +418,12 @@ objects are now used wherever appropriate::
     >>> WMAP9.luminosity_distance(3)
     <Quantity 26015.607762091513 Mpc>
 
+Statistics
+----------
+
+The `astropy.stats` sub-package includes a number of new common statistical
+functions, for example related to binomial statistics and bootstraping.
+
 WCS
 ---
 
