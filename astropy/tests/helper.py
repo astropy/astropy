@@ -106,7 +106,8 @@ class TestRunner(object):
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
-                  pdb=False, coverage=False, open_files=False, parallel=0):
+                  pdb=False, coverage=False, open_files=False, parallel=0,
+                  docs_path=None, skip_docs=False):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
@@ -124,6 +125,16 @@ class TestRunner(object):
                                         os.path.abspath(test_path))
 
         all_args = package_path
+
+        if docs_path is not None and not skip_docs:
+            if package is not None:
+                docs_path = os.path.join(
+                    docs_path, package.replace('.', os.path.sep))
+            if not os.path.exists(docs_path):
+                raise ValueError(
+                    "Can not test .rst docs, since docs path "
+                    "({0}) does not exist.".format(docs_path))
+            all_args += ' ' + docs_path + ' --doctest-rst '
 
         # add any additional args entered by the user
         if args is not None:
@@ -242,44 +253,63 @@ class TestRunner(object):
     run_tests.__doc__ = test.__doc__
 
 
+# This is for Python 2.x and 3.x compatibility.  distutils expects
+# options to all be byte strings on Python 2 and Unicode strings on
+# Python 3.
+def _fix_user_options(options):
+    def to_str_or_none(x):
+        if x is None:
+            return None
+        return str(x)
+
+    return [tuple(to_str_or_none(x) for x in y) for y in options]
+
+
 class astropy_test(Command, object):
     user_options = [
-        (str('package='), str('P'),
-         str("The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
-             "If nothing is specified all default Astropy tests are run.")),
-        (str('test-path='), str('t'),
-         str('Specify a test location by path. Must be '
-             'specified absolutely or relative to the current directory. '
-             'May be a single file or directory.')),
-        (str('verbose-results'), str('V'),
-         str('Turn on verbose output from pytest. Same as specifying `-v` in '
-             '`args`.')),
-        (str('plugins='), str('p'),
-         str('Plugins to enable when running pytest.  Same as specifying `-p` in '
-             '`args`.')),
-        (str('pastebin='), str('b'),
-         str("Enable pytest pastebin output. Either 'all' or 'failed'.")),
-        (str('args='), str('a'),
-         str('Additional arguments to be passed to pytest')),
-        (str('remote-data'), str('R'), 'Run tests that download remote data'),
-        (str('pep8'), str('8'),
-         str('Enable PEP8 checking and disable regular tests. '
-             'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
-             'pytest-pep8 plugin.')),
-        (str('pdb'), str('d'),
-         str('Turn on PDB post-mortem analysis for failing tests. '
-             'Same as specifying `--pdb` in `args`.')),
-        (str('coverage'), str('c'),
-         str('Create a coverage report. Requires the pytest-cov '
-             'plugin is installed')),
-        (str('open-files'), str('o'), 'Fail if any tests leave files open'),
-        (str('parallel='), str('n'),
-         str('Run the tests in parallel on the specified '
-             'number of CPUs.  If parallel is negative, it will use the all '
-             'the cores on the machine.  Requires the `pytest-xdist` plugin '
-             'is installed.'))
-
+        ('package=', 'P',
+         "The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
+         "If nothing is specified all default Astropy tests are run."),
+        ('test-path=', 't',
+         'Specify a test location by path. Must be '
+         'specified absolutely or relative to the current directory. '
+         'May be a single file or directory.'),
+        ('verbose-results', 'V',
+         'Turn on verbose output from pytest. Same as specifying `-v` in '
+         '`args`.'),
+        ('plugins=', 'p',
+         'Plugins to enable when running pytest.  Same as specifying `-p` in '
+         '`args`.'),
+        ('pastebin=', 'b',
+         "Enable pytest pastebin output. Either 'all' or 'failed'."),
+        ('args=', 'a',
+         'Additional arguments to be passed to pytest'),
+        ('remote-data', 'R', 'Run tests that download remote data'),
+        ('pep8', '8',
+         'Enable PEP8 checking and disable regular tests. '
+         'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
+         'pytest-pep8 plugin.'),
+        ('pdb', 'd',
+         'Turn on PDB post-mortem analysis for failing tests. '
+         'Same as specifying `--pdb` in `args`.'),
+        ('coverage', 'c',
+         'Create a coverage report. Requires the pytest-cov '
+         'plugin is installed'),
+        ('open-files', 'o', 'Fail if any tests leave files open'),
+        ('parallel=', 'n',
+         'Run the tests in parallel on the specified '
+         'number of CPUs.  If parallel is negative, it will use the all '
+         'the cores on the machine.  Requires the `pytest-xdist` plugin '
+         'is installed.'),
+        ('docs-path=', None,
+         'The path to the documentation .rst files.  If not provided, and '
+         'the current directory contains a directory called "docs", that '
+         'will be used.'),
+        ('skip-docs', None,
+         "When provided, don't test the documentation .rst files.")
     ]
+
+    user_options = _fix_user_options(user_options)
 
     package_name = None
 
@@ -296,6 +326,8 @@ class astropy_test(Command, object):
         self.coverage = False
         self.open_files = False
         self.parallel = 0
+        self.docs_path = None
+        self.skip_docs = False
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -315,6 +347,10 @@ class astropy_test(Command, object):
         testing_path = os.path.join(tmp_dir, os.path.basename(new_path))
         shutil.copytree(new_path, testing_path)
         shutil.copy('setup.cfg', testing_path)
+
+        if self.docs_path is None:
+            if os.path.exists('docs'):
+                self.docs_path = os.path.abspath('docs')
 
         try:
 
@@ -343,7 +379,9 @@ class astropy_test(Command, object):
                    'pdb={1.pdb!r}, '
                    'coverage={1.coverage!r}, '
                    'open_files={1.open_files!r}, '
-                   'parallel={1.parallel!r}))')
+                   'parallel={1.parallel!r}, '
+                   'docs_path={1.docs_path!r}, '
+                   'skip_docs={1.skip_docs!r}))')
             cmd = cmd.format(set_flag, self)
 
             # override the config locations to not make a new directory nor use
