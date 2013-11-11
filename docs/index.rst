@@ -31,9 +31,8 @@ tools needed for performing astronomy and astrophysics with Python.
 User Documentation
 ******************
 
-:ref:`whatsnew-0.3`
-===================
-
+:doc:`whatsnew/0.3`
+-------------------
 
 **Astropy at a glance**
 
