@@ -78,7 +78,7 @@ from .config import ConfigurationItem
 
 
 UNICODE_OUTPUT = ConfigurationItem(
-    'unicode_output', True,
+    'unicode_output', False,
     'Use Unicode characters when outputting values, and writing widgets '
     'to the console.')
 
