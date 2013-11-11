@@ -175,48 +175,6 @@ them, use::
     >>> from astropy.units import imperial
     >>> imperial.enable()
 
-Table
------
-
-In addition to many bug fixes and usability improvements, the key new feature
-in the :ref:`astropy-table` package is the addition of high level
-:ref:`table_operations` that can be used to generate a new table from one or
-more input tables:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 28 52 20
-
-   * - Documentation
-     - Description
-     - Function
-   * - :ref:`grouped-operations`
-     - Group tables and columns by keys
-     - `~astropy.table.table.Table.group_by`
-   * - :ref:`stack-vertically`
-     - Concatenate input tables along rows
-     - `~astropy.table.operations.vstack`
-   * - :ref:`stack-horizontally`
-     - Concatenate input tables along columns
-     - `~astropy.table.operations.hstack`
-   * - :ref:`table-join`
-     - Database-style join of two tables
-     - `~astropy.table.operations.join`
-
-Grouping is a useful concept that allows you to divide a table
-into sub-groups based on certain key values and create new tables based
-on computed properties of those sub-groups.  As an example, if you
-have a table containing photometric observations of multiple sources
-over multiple epochs, it would be possible to compute a mean magnitude
-for each unique object.  In addition to this *aggregation* operation,
-the grouping interface also allows *filtering* operations where certain
-groups are excluded from the resultant table.
-
-Even more powerful is the ability to do database-style joins of tables.  For
-instance, if you have distinct tables with photometry in different wavebands
-for a set of objects, you join these points into a single table with one row
-for each source.
-
 Coordinates
 -----------
 
@@ -291,6 +249,48 @@ coordinates used above::
      ...
      u'18h18m56.48s -13d56m29.67s',
      u'18h19m27.91s -13d50m30.4s']
+
+Table
+-----
+
+In addition to many bug fixes and usability improvements, the key new feature
+in the :ref:`astropy-table` package is the addition of high level
+:ref:`table_operations` that can be used to generate a new table from one or
+more input tables:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 28 52 20
+
+   * - Documentation
+     - Description
+     - Function
+   * - :ref:`grouped-operations`
+     - Group tables and columns by keys
+     - `~astropy.table.table.Table.group_by`
+   * - :ref:`stack-vertically`
+     - Concatenate input tables along rows
+     - `~astropy.table.operations.vstack`
+   * - :ref:`stack-horizontally`
+     - Concatenate input tables along columns
+     - `~astropy.table.operations.hstack`
+   * - :ref:`table-join`
+     - Database-style join of two tables
+     - `~astropy.table.operations.join`
+
+Grouping is a useful concept that allows you to divide a table
+into sub-groups based on certain key values and create new tables based
+on computed properties of those sub-groups.  As an example, if you
+have a table containing photometric observations of multiple sources
+over multiple epochs, it would be possible to compute a mean magnitude
+for each unique object.  In addition to this *aggregation* operation,
+the grouping interface also allows *filtering* operations where certain
+groups are excluded from the resultant table.
+
+Even more powerful is the ability to do database-style joins of tables.  For
+instance, if you have distinct tables with photometry in different wavebands
+for a set of objects, you join these points into a single table with one row
+for each source.
 
 Time
 ----
@@ -375,8 +375,9 @@ Convolution
 -----------
 
 The convolution functionality that was originally included in `astropy.nddata`
-has now been moved to its own sub-package, `astropy.convolution`. It now
-includes a framework that provides common built-in kernels:
+has now been moved to its own sub-package, `astropy.convolution`. As part of a
+Google Summer of Code `project <http://adonath.github.io/>`_ it has been
+refactored to include a framework that provides common built-in kernels:
 
 .. plot::
    :include-source:
@@ -403,9 +404,10 @@ includes a framework that provides common built-in kernels:
     plt.imshow(image_new, interpolation='none', origin='lower', vmin=0., vmax=1.)
     plt.title('Convolved')
 
-The discretization of the kernel functions can be done in various ways (e.g.
-oversampling, interpolation, etc.) which are described in more detail in
-`astropy.convolution`.
+A number of different 1- and 2-D kernels are provided, based on models defined
+in `astropy.models`. The discretization of the kernels can be handled in
+various ways (e.g. oversampling, interpolation, etc.) which are described in
+more detail in `astropy.convolution`.
 
 Cosmology
 ---------
