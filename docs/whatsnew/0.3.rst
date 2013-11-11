@@ -47,10 +47,9 @@ previously defined dataset:
 
     plt.figure(figsize=(8,5))
     plt.plot(x, y, 'ko')
-    plt.plot(x, g(x), 'r-', lw=2, label='Gaussian')
+    plt.plot(x, g(x), 'r-', lw=2)
     plt.xlabel('Position')
     plt.ylabel('Flux')
-    plt.legend(loc=2)
 
 Since this is a new sub-package, it should be considered experimental and will
 be significantly improved in future. In particular, the ability to fit
@@ -273,7 +272,7 @@ addition, `HorizontalCoordinates` has now been renamed to `AltAz`.
 
 Coordinate objects now support matching one set of coordinates to another
 using the array coordinates functionality described above.  See
-`~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog`
+`~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog_sky`
 and `~astropy.coordinates.coordsystems.SphericalCoordinatesBase.match_to_catalog_3d`
 for more details.
 

@@ -9,7 +9,8 @@ import numpy as np
 from ..utils import OrderedDict
 
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
-           'identify_format', 'get_reader', 'get_writer', 'read', 'write']
+           'identify_format', 'get_reader', 'get_writer', 'read', 'write',
+           'get_formats']
 
 __doctest_skip__ = ['register_identifier']
 
