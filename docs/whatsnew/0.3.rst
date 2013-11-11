@@ -15,7 +15,7 @@ addition, there have been many improvements to the existing
 sub-packages, such as a much faster implementation of quantities for Numpy
 arrays in the `Units and Quantities`_ sub-package, a better integration of
 units and quantities in other sub-packages (such as the `Cosmology`_
-sub-package), new `Table`_ functionality releated to joining and aggregation,
+sub-package), new `Table`_ functionality related to joining and aggregation,
 support for arrays in the `Coordinates`_ sub-package, and a re-structuring of
 the `Convolution`_ code to provide many build-in parameterized kernels. We
 describe the new sub-packages and the main improvements below.
@@ -26,14 +26,16 @@ please take a look at the full :doc:`../changelog`.
 Modeling
 --------
 
-The :ref:`astropy-modeling` sub-package defines many built-in 1- and 2-D models and
+The :ref:`astropy-modeling` sub-package defines many built-in 1-D and 2-D models and
 provides an extensible framework for fitting these to data. The following
 example demonstrates how to easily define a Gaussian model and fit it to a
 previously defined dataset:
 
 .. plot::
-   :nofigs:
-   :context:
+   :include-source:
+
+    import numpy as np
+    from astropy.modeling import models, fitting
 
     # Generate fake data
     np.random.seed(0)
@@ -41,28 +43,25 @@ previously defined dataset:
     y = 3 * np.exp(-0.5 * (x - 1.3)**2 / 0.8**2)
     y += np.random.normal(0., 0.2, x.shape)
 
-.. plot::
-   :include-source:
-   :context:
-
-    from astropy.modeling import models, fitting
-
+    # Fit the data
     g_init = models.Gaussian1D(amplitude=1., mean=0, stddev=1.)
     f2 = fitting.NonLinearLSQFitter()
     g = f2(g_init, x, y)
 
+    # Plot the results
     plt.figure(figsize=(8,5))
     plt.plot(x, y, 'ko')
     plt.plot(x, g(x), 'r-', lw=2)
     plt.xlabel('Position')
     plt.ylabel('Flux')
 
-Since this is a new sub-package, it should be considered experimental and will
-be significantly improved in future. In particular, the ability to fit
-composite models (such as the sum of two models) will be added in the next
-major version (in the mean time, users can define their own models for such
-cases). More complete examples and a full description of the sub-package is
-provided in :ref:`astropy-modeling`.
+.. note:: Since this is a new sub-package, it should be considered experimental
+          and will be significantly improved in future. In particular, the
+          ability to fit composite models (such as the sum of two models) will
+          be added in the next major version (in the mean time, users can
+          define their own models for such cases). More complete examples and a
+          full description of the sub-package is provided in
+          :ref:`astropy-modeling`.
 
 Virtual Observatory
 -------------------
@@ -95,7 +94,7 @@ then make use of the :func:`~astropy.vo.client.conesearch.list_catalogs` functio
 
 
 The following example shows how to execute a cone search for a radius of 0.1
-degrees around M31 from a the 2MASS catalog. First, we can extract the
+degrees around M31 from the 2MASS catalog. First, we can extract the
 coordinates for M31 from SIMBAD::
 
     >>> from astropy import coordinates as coords
@@ -118,8 +117,6 @@ The result is returned as a :class:`astropy.io.votable.tree.Table` instance
 (note that this is different from the generic
 :class:`astropy.table.table.Table` class)::
 
-    >>> result
-    <astropy.io.votable.tree.Table at 0x41e8610>
     >>> result.url
     u'http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&DSATAB=twomass_psc&'
     >>> result.array.size
@@ -151,7 +148,7 @@ Units and Quantities
 
 Quantity instances in the :ref:`astropy-units` sub-package are now
 fully-fledged Numpy arrays, and common Numpy functions (such as
-:func:`numpy.mean`, :func:`numpy.cos`, :func:`numpy.log10`, etc.) will now
+`numpy.mean`, `numpy.cos`, `numpy.log10`, etc.) will now
 correctly treat the units:
 
     >>> q = np.array([1., 2., 3., 4.]) * u.m / u.s
@@ -415,7 +412,7 @@ framework that provides common built-in kernels:
     plt.imshow(image_new, interpolation='none', origin='lower', vmin=0., vmax=1.)
     plt.title('Convolved')
 
-A number of different 1- and 2-D kernels are provided, based on models defined
+A number of different 1-D and 2-D kernels are provided, based on models defined
 in :ref:`astropy-modeling`. The discretization of the kernels can be handled in
 various ways (e.g. oversampling, interpolation, etc.) which are described in
 more detail in :ref:`astropy_convolve`.
