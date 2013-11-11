@@ -17,14 +17,17 @@ Core Package Contributors
 * Kyle Barbary
 * Geert Barentsen
 * Paul Barrett
+* Andreas Baumbach
 * Chris Beaumont
 * Daniel Bell
+* Larry Bradley
 * Gustavo Bragança
 * Erik M. Bray
 * Eli Bressert
 * Alex Conley
 * Jean Connelly
 * Simon Conseil
+* Matt Craig
 * Steven Crawford
 * Neil Crighton
 * Matt Davis
@@ -35,6 +38,7 @@ Core Package Contributors
 * Zach Edwards
 * Thomas Erben
 * Henry Ferguson
+* Ryan Fox
 * Adam Ginsburg
 * Perry Greenfield
 * Frédéric Grollier
@@ -48,6 +52,7 @@ Core Package Contributors
 * Kacper Kowalik
 * Roban Kramer
 * Pey Lian Lim
+* Stuart Mumford
 * Demitri Muna
 * Prasanth Nair
 * Miruna Oprescu
