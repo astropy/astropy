@@ -4,18 +4,21 @@
 What's New in Astropy 0.3?
 ==========================
 
+Overview
+--------
+
 Astropy 0.3 is a major release that adds significant new functionality since
 the 0.2.x series of releases. This release sees the addition of the `Modeling`_
 sub-package, which provides an initial framework for fitting models to data,
 and the `Virtual Observatory`_ sub-package, which implements cone searches. In
 addition, there have been many improvements to the existing
 sub-packages, such as a much faster implementation of quantities for Numpy
-arrays in the `Units and Quantities`_ package, a better integration of units
-and quantities in other packages, new `Table`_ functionality releated to
-joining and aggregation, support for arrays in the `Coordinates`_ package, and
-a re-structuring of the `Convolution`_ code to provide many build-in
-parameterized kernels. We describe the new sub-packages and the main
-improvements below.
+arrays in the `Units and Quantities`_ sub-package, a better integration of
+units and quantities in other sub-packages (such as the `Cosmology`_
+sub-package), new `Table`_ functionality releated to joining and aggregation,
+support for arrays in the `Coordinates`_ sub-package, and a re-structuring of
+the `Convolution`_ code to provide many build-in parameterized kernels. We
+describe the new sub-packages and the main improvements below.
 
 For a detailed list of all the changes, including deprecated features and backward-incompatible changes,
 please take a look at the full :doc:`../changelog`.
@@ -23,7 +26,7 @@ please take a look at the full :doc:`../changelog`.
 Modeling
 --------
 
-The `astropy.modeling` sub-package defines many built-in 1- and 2-d models and
+The :ref:`astropy-modeling` sub-package defines many built-in 1- and 2-D models and
 provides an extensible framework for fitting these to data. The following
 example demonstrates how to easily define a Gaussian model and fit it to a
 previously defined dataset:
@@ -58,8 +61,8 @@ Since this is a new sub-package, it should be considered experimental and will
 be significantly improved in future. In particular, the ability to fit
 composite models (such as the sum of two models) will be added in the next
 major version (in the mean time, users can define their own models for such
-cases). More complete examples and a full description of the package is
-provided in `astropy.modeling`.
+cases). More complete examples and a full description of the sub-package is
+provided in :ref:`astropy-modeling`.
 
 Virtual Observatory
 -------------------
@@ -108,9 +111,12 @@ and we can then execute the query::
     Trying http://wfaudata.roe.ac.uk/twomass-dsa/DirectCone?DSACAT=TWOMASS&...
     Downloading ...
 
-The result is returned as an Astropy `astropy.io.votable`
-:class:`~astropy.io.votable.tree.Table` (note that this is different from the
-generic `astropy.table` :class:`~astropy.table.table.Table` class)::
+.. in the following paragraph, we deliberately omit the ~ because the class
+.. names are the same otherwise.
+
+The result is returned as a :class:`astropy.io.votable.tree.Table` instance
+(note that this is different from the generic
+:class:`astropy.table.table.Table` class)::
 
     >>> result
     <astropy.io.votable.tree.Table at 0x41e8610>
@@ -123,7 +129,9 @@ generic `astropy.table` :class:`~astropy.table.table.Table` class)::
                  mask = [False False False ..., False],
            fill_value = 1e+20)
 
-Converting to an `astropy.table` :class:`~astropy.table.table.Table` is
+.. as above, we are deliberately not using ~ in the API link
+
+Converting to an :class:`astropy.table.table.Table` is
 straightforward::
 
     >>> table = result.to_table()
@@ -141,9 +149,10 @@ straightforward::
 Units and Quantities
 --------------------
 
-Quantity are now fully-fledged Numpy arrays, and common Numpy ufuncs (such as
-``np.mean``, ``np.cos``, ``np.log10``, etc.) will now correctly treat the
-units:
+Quantity instances in the :ref:`astropy-units` sub-package are now
+fully-fledged Numpy arrays, and common Numpy functions (such as
+:func:`numpy.mean`, :func:`numpy.cos`, :func:`numpy.log10`, etc.) will now
+correctly treat the units:
 
     >>> q = np.array([1., 2., 3., 4.]) * u.m / u.s
     >>> np.mean(q)
@@ -178,12 +187,13 @@ them, use::
 Coordinates
 -----------
 
-Coordinate objects can now store arrays of coordinates instead of just a single
-coordinate. This dramatically speeds-up coordinate conversions when many
-coordinates are used. The following example shows how one can combine this with
-functionality from `astropy.table` to read in arrays of coordinates and convert
-them to a different coordinate frame. First, we can read in a table which
-contains coordinates both in decimal and string form::
+Coordinate objects from the :ref:`astropy-coordinates` sub-package can now
+store arrays of coordinates instead of just a single coordinate. This
+dramatically speeds-up coordinate conversions when many coordinates are used.
+The following example shows how one can combine this with functionality from
+the :class:`~astropy.table.table.Table` class to read in arrays of coordinates
+and convert them to a different coordinate frame. First, we can read in a table
+which contains coordinates both in decimal and string form::
 
     >>> from astropy.table import Table
     >>> t = Table.read('2mass.tbl', format='ascii.ipac')
@@ -254,7 +264,7 @@ Table
 -----
 
 In addition to many bug fixes and usability improvements, the key new feature
-in the :ref:`astropy-table` package is the addition of high level
+in the :ref:`astropy-table` sub-package is the addition of high level
 :ref:`table_operations` that can be used to generate a new table from one or
 more input tables:
 
@@ -295,7 +305,7 @@ for each source.
 Time
 ----
 
-The :ref:`astropy-time` package has received attention in filling in
+The :ref:`astropy-time` sub-package has received attention in filling in
 the details from the initial release in astropy 0.2.  This includes adding array
 indexing and supporting various arithmetic operations involving arrays,
 constants, and `~astropy.units.quantity.Quantity` objects with time units.  In addition the initial
@@ -319,7 +329,7 @@ Finally, three new time formats were added:
 ASCII Tables
 ------------
 
-The :ref:`io-ascii` package now includes functionality to write `IPAC format tables
+The :ref:`io-ascii` sub-package now includes functionality to write `IPAC format tables
 <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_.
 
 The `~astropy.io.ascii.ui.read()` and `~astropy.io.ascii.ui.write()` functions now
@@ -374,10 +384,11 @@ error message will now list all the available formats.
 Convolution
 -----------
 
-The convolution functionality that was originally included in `astropy.nddata`
-has now been moved to its own sub-package, `astropy.convolution`. As part of a
-Google Summer of Code `project <http://adonath.github.io/>`_ it has been
-refactored to include a framework that provides common built-in kernels:
+The convolution functionality that was originally included in the
+:ref:`astropy_nddata` sub-package has now been moved to the new
+:ref:`astropy_convolve` sub-package. As part of a Google Summer of Code
+`project <http://adonath.github.io/>`_ it has been refactored to include a
+framework that provides common built-in kernels:
 
 .. plot::
    :include-source:
@@ -407,12 +418,12 @@ refactored to include a framework that provides common built-in kernels:
 A number of different 1- and 2-D kernels are provided, based on models defined
 in `astropy.models`. The discretization of the kernels can be handled in
 various ways (e.g. oversampling, interpolation, etc.) which are described in
-more detail in `astropy.convolution`.
+more detail in :ref:`astropy_convolve`.
 
 Cosmology
 ---------
 
-The `astropy.cosmology` sub-package now includes support for including massive
+The :ref:`astropy-cosmology` sub-package now includes support for including massive
 neutrinos in the cosmology classes (and the Planck 2013 cosmology has been
 updated to use this). In addition, :class:`~astropy.units.quantity.Quantity`
 objects are now used wherever appropriate::
@@ -428,14 +439,15 @@ objects are now used wherever appropriate::
 Statistics
 ----------
 
-The `astropy.stats` sub-package includes a number of new common statistical
+The :ref:`tools` sub-package includes a number of new common statistical
 functions, for example related to binomial statistics and bootstraping.
 
 WCS
 ---
 
-When reading FITS headers, warnings will now be displayed about any
-non-standard WCS keywords that were fixed to become standard compliant.
+When reading FITS headers with the :ref:`astropy-wcs` sub-package, warnings
+will now be displayed about any non-standard WCS keywords that were fixed to
+become standard compliant.
 
 For users who have `Scipy <http://www.scipy.org>`_ installed, the
 :class:`~astropy.wcs.wcs.WCS` class features a new method
@@ -457,7 +469,7 @@ relevant changes for astropy users are:
 VO Tables
 ---------
 
-The `astropy.io.votable` sub-package now includes support for the `VOTable 1.3
+The :ref:`astropy-io-votable` sub-package now includes support for the `VOTable 1.3
 proposed recommendation
 <http://www.ivoa.net/documents/VOTable/20130315/PR-VOTable-1.3-20130315.html>`_.
 Notably, this includes a new binary representation that supports masking of
