@@ -6,16 +6,16 @@ New Features
 
 - General
 
-  - A top-level configuration item, `unicode_output` has been added to
+  - A top-level configuration item, ``unicode_output`` has been added to
     control whether the Unicode string representation of certain
     objects will contain Unicode characters.  For example, when
-    `use_unicode` is `False` (default)::
+    ``use_unicode`` is `False` (default)::
 
         >>> from astropy import units as u
         >>> print(unicode(u.degree))
         deg
 
-    When `use_unicode` is `True`::
+    When ``use_unicode`` is `True`::
 
         >>> from astropy import units as u
         >>> print(unicode(u.degree))
@@ -25,9 +25,9 @@ New Features
 
 - ``astropy.convolution``
 
-  - New class-based system for generating kernels, replacing `make_kernel`.
-    [#1255] The `astropy.nddata.convolution` sub-package has now been moved to
-    `astropy.convolution`. [#1451]
+  - New class-based system for generating kernels, replacing ``make_kernel``.
+    [#1255] The ``astropy.nddata.convolution`` sub-package has now been moved
+    to `astropy.convolution`. [#1451]
 
 - ``astropy.coordinates``
 
@@ -90,10 +90,9 @@ New Features
   - Added the ability to look up and group elements by their utype attribute.
     [#622]
 
-  - The format of the units of a VOTable file can be specified using
-    the `unit_format` parameter.  Note that units are still always
-    written out using the CDS format, to ensure compatibility with the
-    standard.
+  - The format of the units of a VOTable file can be specified using the
+    ``unit_format`` parameter.  Note that units are still always written out
+    using the CDS format, to ensure compatibility with the standard.
 
 - ``astropy.modeling``
 
@@ -112,8 +111,8 @@ New Features
     signal to noise ratio for source being observed in the optical/IR using a
     CCD. [#870]
 
-  - Add `axis=int` option to `astropy.stats.funcs.sigma_clip` to allow clipping
-    along a given axis for multidimensional data. [#1083]
+  - Add ``axis=int`` option to `astropy.stats.funcs.sigma_clip` to allow
+    clipping along a given axis for multidimensional data. [#1083]
 
 - ``astropy.table``
 
