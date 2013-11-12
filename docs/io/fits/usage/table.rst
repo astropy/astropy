@@ -247,9 +247,12 @@ is a number (>1) preceding a (numeric type) letter code, it means each cell in
 that field is a one-dimensional array. In the case of column c4, each cell is
 an array (a numpy array) of 1000 elements.
 
-For character string fields, the number can be either before or after the
-letter 'A' and they will mean the same string size. So, for columns c1 and c3,
-they both have 10 characters in each of their cells. For numeric data type, the
+For character string fields, the number be to the *left* of the letter 'A' when
+creating binary tables, and should be to the *right* when creating ASCII
+tables.  However, as this is a common confusion both formats are understood
+when creating binary tables (note, however, that upon writing to a file the
+correct format will be written in the header).  So, for columns c1 and c3, they
+both have 10 characters in each of their cells. For numeric data type, the
 dimension number must be before the letter code, not after.
 
 After the columns are constructed, the :func:`new_table` function can be used to

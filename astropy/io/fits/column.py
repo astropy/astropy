@@ -86,7 +86,7 @@ TFORMAT_RE = re.compile(r'(?P<repeat>^[0-9]*)(?P<format>[LXBIJKAEDCMPQ])'
 # TFORMn for ASCII tables; two different versions depending on whether
 # the format is floating-point or not; allows empty values for width
 # in which case defaults are used
-TFORMAT_ASCII_RE = re.compile(r'(?:(?P<format>[AIJ])(?P<width>[0-9]*))|'
+TFORMAT_ASCII_RE = re.compile(r'(?:(?P<format>[AIJ])(?P<width>[0-9]+)?)|'
                               r'(?:(?P<formatf>[FED])'
                               r'(?:(?P<widthf>[0-9]+)\.'
                               r'(?P<precision>[0-9]+))?)')
@@ -229,9 +229,10 @@ class _AsciiColumnFormat(_BaseColumnFormat):
     possible and may result in a `ValueError`.
     """
 
-    def __new__(cls, format):
+    def __new__(cls, format, strict=False):
         self = super(_AsciiColumnFormat, cls).__new__(cls, format)
-        self.format, self.width, self.precision = _parse_ascii_tformat(format)
+        self.format, self.width, self.precision = \
+            _parse_ascii_tformat(format, strict)
 
         # This is to support handling logical (boolean) data from binary tables
         # in an ASCII table
@@ -418,31 +419,19 @@ class Column(object):
             else:
                 setattr(self, attr, value)
 
-        # if the column data is not ndarray, make it to be one, i.e.
-        # input arrays can be just list or tuple, not required to be ndarray
+        # If the given format string is unabiguously a Numpy dtype or one of
+        # the Numpy record format type specifiers supported by PyFITS then that
+        # should take priority--otherwise assume it is a FITS format
+        if isinstance(format, np.dtype):
+            format, _, _ = _dtype_to_recformat(format)
 
         # check format
         if ascii is None and not isinstance(format, _BaseColumnFormat):
-            # We basically have to guess what type of table is column is for.
-            if start and dim:
-                # This is impossible; this can't be a valid FITS column
-                raise ValueError(
-                    'Columns cannot have both a start (TCOLn) and dim '
-                    '(TDIMn) option, since the former is only applies to '
-                    'ASCII tables, and the latter is only valid for binary '
-                    'tables.')
-            elif start:
-                # Only ASCII table columns can have a 'start' option
-                guess_format = _AsciiColumnFormat
-            elif dim:
-                # Only binary tables can have a dim option
-                guess_format = _ColumnFormat
-            else:
-                # A safe guess which reflects the existing behavior of previous
-                # PyFITS versions
-                guess_format = _ColumnFormat
-
-            format, recformat = self._convert_format(format, guess_format)
+            # We're just give a string which could be either a Numpy format
+            # code, or a format for a binary column array *or* a format for an
+            # ASCII column array--there may be many ambiguities here.  Try
+            # our best to guess what the user intended.
+            format, recformat = self._guess_format(format)
         elif not ascii and not isinstance(format, _BaseColumnFormat):
             format, recformat = self._convert_format(format, _ColumnFormat)
         elif ascii and not isinstance(format, _AsciiColumnFormat):
@@ -551,6 +540,9 @@ class Column(object):
                     "The repeat count of the column format %r for column %r "
                     "is fewer than the number of elements per the TDIM "
                     "argument %r." % (name, format, dim))
+
+        # if the column data is not ndarray, make it to be one, i.e.
+        # input arrays can be just list or tuple, not required to be ndarray
         # does not include Object array because there is no guarantee
         # the elements in the object array are consistent.
         if not isinstance(array,
@@ -632,17 +624,68 @@ class Column(object):
         TODO: There should be an abc base class for column format classes
         """
 
-        try:
-            # legit FITS format?
-            format = cls(format)
-            recformat = format.recformat
-        except ValueError:
+        # Short circuit in case we're already a _BaseColumnFormat--there is at
+        # least one case in which this can happen
+        if isinstance(format, _BaseColumnFormat):
+            return format, format.recformat
+
+        if format in NUMPY2FITS:
             try:
                 # legit recarray format?
                 recformat = format
                 format = cls.from_recformat(format)
-            except ValueError:
-                raise ValueError('Illegal format `%s`.' % format)
+            except VerifyError:
+                pass
+
+        try:
+            # legit FITS format?
+            format = cls(format)
+            recformat = format.recformat
+        except VerifyError:
+            raise VerifyError('Illegal format `%s`.' % format)
+
+        return format, recformat
+
+    def _guess_format(self, format):
+        if self.start and self.dim:
+            # This is impossible; this can't be a valid FITS column
+            raise ValueError(
+                'Columns cannot have both a start (TCOLn) and dim '
+                '(TDIMn) option, since the former is only applies to '
+                'ASCII tables, and the latter is only valid for binary '
+                'tables.')
+        elif self.start:
+            # Only ASCII table columns can have a 'start' option
+            guess_format = _AsciiColumnFormat
+        elif self.dim:
+            # Only binary tables can have a dim option
+            guess_format = _ColumnFormat
+        else:
+            # If the format is *technically* a valid binary column format
+            # (i.e. it has a valid format code followed by arbitrary
+            # "optional" codes), but it is also strictly a valid ASCII
+            # table format, then assume an ASCII table column was being
+            # requested (the more likely case, after all).
+            try:
+                format = _AsciiColumnFormat(format, strict=True)
+            except VerifyError:
+                pass
+            # A safe guess which reflects the existing behavior of previous
+            # PyFITS versions
+            guess_format = _ColumnFormat
+
+        try:
+            format, recformat = self._convert_format(format, guess_format)
+        except VerifyError:
+            # For whatever reason our guess was wrong (for example if we got
+            # just 'F' that's not a valid binary format, but it an ASCII format
+            # code albeit with the width/precision ommitted
+            guess_format = (_AsciiColumnFormat
+                            if guess_format is _ColumnFormat
+                            else _ColumnFormat)
+            # If this fails too we're out of options--it is truly an invalid
+            # format, or at least not supported
+            format, recformat = self._convert_format(format, guess_format)
 
         return format, recformat
 
@@ -1483,7 +1526,7 @@ def _parse_tformat(tform):
     return (repeat, format.upper(), option)
 
 
-def _parse_ascii_tformat(tform):
+def _parse_ascii_tformat(tform, strict=False):
     """Parse the ``TFORMn`` keywords for ASCII tables into a
     ``(format, width, precision)`` tuple (the latter is zero unless
     width is one of 'E', 'F', or 'D').
@@ -1498,11 +1541,25 @@ def _parse_ascii_tformat(tform):
     if format is None:
         # Floating point format
         format = match.group('formatf').upper()
-        width = match.group('widthf') or 0
-        precision = match.group('precision') or 1
+        width = match.group('widthf')
+        precision = match.group('precision')
+        if width is None or precision is None:
+            if strict:
+                raise VerifyError('Format %r is not unambiguously an ASCII '
+                                  'table format.')
+            else:
+                width = 0 if width is None else width
+                precision = 1 if precision is None else precision
     else:
         format = format.upper()
-        width = match.group('width') or 0
+        width = match.group('width')
+        if width is None:
+            if strict:
+                raise VerifyError('Format %r is not unambiguously an ASCII '
+                                  'table format.')
+            else:
+                # Just use a default width of 0 if unspecified
+                width = 0
         precision = 0
 
     def convert_int(val):
@@ -1606,12 +1663,14 @@ def _convert_fits2record(format):
 
     repeat, dtype, option = _parse_tformat(format)
 
-    if dtype in FITS2NUMPY:                            # FITS format
+    if dtype in FITS2NUMPY:
         if dtype == 'A':
             output_format = FITS2NUMPY[dtype] + str(repeat)
             # to accomodate both the ASCII table and binary table column
             # format spec, i.e. A7 in ASCII table is the same as 7A in
             # binary table, so both will produce 'a7'.
+            # Technically the FITS standard does not allow this but it's a very
+            # common mistake
             if format.lstrip()[0] == 'A' and option != '':
                 # make sure option is integer
                 output_format = FITS2NUMPY[dtype] + str(int(option))
@@ -1640,15 +1699,9 @@ def _convert_record2fits(format):
     Convert record format spec to FITS format spec.
     """
 
-    if not isinstance(format, np.dtype):
-        format = np.dtype(format)
-
-    shape = format.shape
-    kind = format.base.kind
-    option = str(format.base.itemsize)
-    if kind in ('U', 'S'):
-        kind = 'a'
-    dtype = kind
+    recformat, kind, dtype = _dtype_to_recformat(format)
+    shape = dtype.shape
+    option = str(dtype.base.itemsize)
 
     ndims = len(shape)
     repeat = 1
@@ -1657,7 +1710,7 @@ def _convert_record2fits(format):
         if nel > 1:
             repeat = nel
 
-    if dtype == 'a':
+    if kind == 'a':
         # This is a kludge that will place string arrays into a
         # single field, so at least we won't lose data.  Need to
         # use a TDIM keyword to fix this, declaring as (slength,
@@ -1665,17 +1718,41 @@ def _convert_record2fits(format):
 
         ntot = int(repeat) * int(option)
 
-        output_format = str(ntot) + NUMPY2FITS[dtype]
-    elif dtype + option in NUMPY2FITS:  # record format
+        output_format = str(ntot) + 'A'
+    elif recformat in NUMPY2FITS:  # record format
         if repeat != 1:
             repeat = str(repeat)
         else:
             repeat = ''
-        output_format = repeat + NUMPY2FITS[dtype + option]
+        output_format = repeat + NUMPY2FITS[recformat]
     else:
         raise ValueError('Illegal format %s.' % format)
 
     return output_format
+
+
+def _dtype_to_recformat(dtype):
+    """
+    Utility function for converting a dtype object or string that instantiates
+    a dtype (e.g. 'float32') into one of the two character Numpy format codes
+    that have been traditionally used by PyFITS.
+
+    In particular, use of 'a' to refer to character data is long since
+    deprecated in Numpy, but PyFITS remains heavily invested in its use
+    (something to try to get away from sooner rather than later).
+    """
+
+    if not isinstance(dtype, np.dtype):
+        dtype = np.dtype(dtype)
+
+    kind = dtype.base.kind
+    itemsize = dtype.base.itemsize
+    recformat = kind + str(itemsize)
+
+    if kind in ('U', 'S'):
+        recformat = kind = 'a'
+
+    return recformat, kind, dtype
 
 
 def _convert_format(format, reverse=False):
@@ -1694,14 +1771,9 @@ def _convert_ascii_format(format, reverse=False):
     """Convert ASCII table format spec to record format spec."""
 
     if reverse:
-        if not isinstance(format, np.dtype):
-            format = np.dtype(format)
+        recformat, kind, dtype = _dtype_to_recformat(format)
+        itemsize = dtype.itemsize
 
-        kind = format.base.kind
-        itemsize = format.base.itemsize
-        recformat = kind + str(itemsize)
-        if kind in ('U', 'S'):
-            kind = 'a'
         if kind == 'a':
             return 'A' + str(itemsize)
         elif NUMPY2FITS.get(recformat) == 'L':
