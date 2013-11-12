@@ -33,11 +33,11 @@ coordinates using the `x`/`y`/`z` attributes (which are
 `~astropy.units.Quantity` objects)::
 
     >>> c.x
-    <Quantity 568.712888216568 kpc>
+    <Quantity 568.71288821656... kpc>
     >>> c.y
-    <Quantity 107.30093596881035 kpc>
+    <Quantity 107.30093596881... kpc>
     >>> c.z
-    <Quantity 507.8899092486349 kpc>
+    <Quantity 507.88990924863... kpc>
 
 If a `distance` is not present, the Cartesian coordinates are still
 available, but the point is interpreted as lying on the (dimensionless)
@@ -45,11 +45,11 @@ unit sphere::
 
     >>> c2 = ICRS('00h42m44.3s +41d16m9s')
     >>> c2.x
-    <Quantity 0.7385881665150235 >
+    <Quantity 0.73858816651502... >
     >>> c2.y
-    <Quantity 0.13935186489455892 >
+    <Quantity 0.13935186489455... >
     >>> c2.z
-    <Quantity 0.6595972847384869 >
+    <Quantity 0.65959728473848... >
 
 
 .. note::
@@ -66,11 +66,11 @@ additional capabilities like arithmetic operations::
     >>> cp
     <CartesianPoints [ 568.71288822, 107.30093597, 507.88990925] kpc>
     >>> cp.x
-    <Quantity 568.712888216568 kpc>
+    <Quantity 568.71288821656... kpc>
     >>> cp.y
-    <Quantity 107.30093596881035 kpc>
+    <Quantity 107.30093596881... kpc>
     >>> cp.z
-    <Quantity 507.8899092486349 kpc>
+    <Quantity 507.88990924863... kpc>
     >>> cp.unit
     Unit("kpc")
     >>> cp + cp
@@ -95,10 +95,10 @@ distance (i.e., non-projected separation)::
     >>> c2 = ICRS('0h52m44.8s -72d49m43s', distance=Distance(61, u.kpc))
     >>> sep3d = c1.separation_3d(c2)
     >>> sep3d
-    <Distance 23.05684814695706 kpc>
+    <Distance 23.056848146957... kpc>
     >>> sep3d.kpc
-    23.05684814695706
+    23.056848146957...
     >>> sep3d.Mpc
-    0.02305684814695706
+    0.023056848146957...
     >>> sep3d.au
     4755816315.663559

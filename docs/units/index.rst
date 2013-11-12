@@ -45,7 +45,7 @@ From this simple building block, it's easy to start combining
 quantities with different units::
 
     >>> 15.1 * u.meter / (32.0 * u.second)
-    <Quantity 0.471875 m / s>
+    <Quantity 0.47187... m / s>
     >>> 3.0 * u.kilometer / (130.51 * u.meter / u.second)
     <Quantity 0.0229867443... km s / m>
     >>> (3.0 * u.kilometer / (130.51 * u.meter / u.second)).decompose()
@@ -71,7 +71,7 @@ example, to create custom units::
     >>> # And do some conversions
     >>> q = 42.0 * cms
     >>> q.to(mph)
-    <Quantity 0.9395132426628489 mi / h>
+    <Quantity 0.93951324266284... mi / h>
 
 Units that "cancel out" become a special unit called the
 "dimensionless unit":
@@ -115,7 +115,7 @@ strings will used to format the quantity value::
 
     >>> q = 15.1 * u.meter / (32.0 * u.second)
     >>> q
-    <Quantity 0.471875 m / s>
+    <Quantity 0.47187... m / s>
     >>> "{0:0.03f}".format(q)
     '0.472 m / s'
 
@@ -124,7 +124,7 @@ used on units can be used to choose the unit formatter::
 
     >>> q = 15.1 * u.meter / (32.0 * u.second)
     >>> q
-    <Quantity 0.471875 m / s>
+    <Quantity 0.47187... m / s>
     >>> "{0.value:0.03f} {0.unit:FITS}".format(q)
     '0.472 m s-1'
 

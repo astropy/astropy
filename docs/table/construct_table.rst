@@ -625,7 +625,7 @@ following example this is used to make a LaTeX ready output::
 
     >>> t = Table([[1,2],[1.234e9,2.34e-12]], names = ('a','b'))
     >>> def latex_exp(value):
-    ...     val = '{:8.2}'.format(value)
+    ...     val = '{0:8.2}'.format(value)
     ...     mant, exp = val.split('e')
     ...     # remove leading zeros
     ...     exp = exp[0] + exp[1:].lstrip('0')

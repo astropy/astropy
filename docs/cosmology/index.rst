@@ -23,11 +23,13 @@ They generally take a redshift as input. For example, the two cases
 below give you the value of the Hubble constant at z=0 (i.e., `H0`), and
 the number of transverse proper kpc corresponding to an arcminute at z=3:
 
+  >>> from astropy import cosmology
+  >>> cosmology.core.set_current(cosmology.WMAP9)
+  >>> cosmology.H(0)
+  <Quantity 69.3... km / (Mpc s)>
+
 .. doctest-requires:: scipy
 
-  >>> from astropy import cosmology
-  >>> cosmology.H(0)
-  <Quantity 69.32 km / (Mpc s)>
   >>> cosmology.kpc_proper_per_arcmin(3)
   <Quantity 472.977096... kpc / arcmin>
 
@@ -45,7 +47,7 @@ point (or array) values:
   >>> from astropy import cosmology
   >>> H0 = cosmology.H(0)
   >>> H0.value, H0.unit
-  (69.32, Unit("km / (Mpc s)"))
+  (69.3..., Unit("km / (Mpc s)"))
 
 There are also several standard cosmologies already defined, as
 described in `Built-in Cosmologies`_ below. These are objects
@@ -384,7 +386,7 @@ value is provided, all the species are assumed to have the same mass.
   >>> cos.Onu([0, 1.0, 15.0])
   array([ 0.00326988,  0.00896783,  0.0125786 ])
   >>> cos.Onu(1) * cos.critical_density(1)
-  <Quantity 2.444380380370406e-31 g / cm3>
+  <Quantity 2.4443803803704...e-31 g / cm3>
 
 While these examples used `~astropy.cosmology.core.FlatLambdaCDM`,
 the above examples also apply for all of the other cosmology classes.

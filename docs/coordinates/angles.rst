@@ -22,7 +22,7 @@ examples of valid ways to create an |Angle|::
     >>> from astropy.coordinates import Angle
 
     >>> Angle('10.2345d')              # String with 'd' abbreviation for degrees
-    <Angle 10.2345 deg>
+    <Angle 10.2345... deg>
     >>> Angle(['10.2345d', '-20d'])    # Array of strings
     <Angle [ 10.2345,-20.    ] deg>
     >>> Angle('1:2:30.43 degrees')     # Sexagesimal degrees
@@ -40,9 +40,9 @@ examples of valid ways to create an |Angle|::
     >>> Angle((-1, 2, 3), unit=u.deg)  # (degree, arcmin, arcsec)
     <Angle -1.0341666... deg>
     >>> Angle(10.2345 * u.deg)         # From a Quantity object in degrees
-    <Angle 10.2345 deg>
+    <Angle 10.2345... deg>
     >>> Angle(Angle(10.2345 * u.deg))  # From another Angle object
-    <Angle 10.2345 deg>
+    <Angle 10.2345... deg>
 
 
 Representation
@@ -57,9 +57,9 @@ both as a floating point number as a string::
     >>> a.radian
     1
     >>> a.degree
-    57.29577951308232
+    57.295779513082...
     >>> a.hour
-    3.8197186342054885
+    3.819718634205...
     >>> a.hms
     (3.0, 49.0, 10.987083...)
     >>> a.dms

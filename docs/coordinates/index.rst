@@ -47,11 +47,11 @@ accessed using aptly named attributes::
     >>> c.ra
     <Longitude 10.684579999999983 deg>
     >>> c.ra.hour
-    0.7123053333333323
+    0.712305333...
     >>> c.ra.hms
     (0.0, 42.0, 44.299199999996262)
     >>> c.dec
-    <Latitude 41.26917 deg>
+    <Latitude 41.26917... deg>
     >>> c.dec.radian
     0.7202828960652683
 
@@ -84,11 +84,11 @@ coordinates::
     ...          unit=(u.degree, u.degree),
     ...          distance=Distance(770, u.kpc))
     >>> c.x
-    <Quantity 568.7128654235232 kpc>
+    <Quantity 568.712865423523... kpc>
     >>> c.y
-    <Quantity 107.30089740420232 kpc>
+    <Quantity 107.300897404202... kpc>
     >>> c.z
-    <Quantity 507.88994291875713 kpc>
+    <Quantity 507.889942918757... kpc>
 
 Coordinate objects can also store arrays of coordinates instead of a
 single coordinate.  This has a major performance advantage over

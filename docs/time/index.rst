@@ -242,7 +242,7 @@ and ``jd2`` attributes::
   (2455197.5, 0.0)
   >>> t2 = t.tai
   >>> t2.jd1, t2.jd2
-  (2455197.5, 0.0003935185185185185)
+  (2455197.5, 0.00039351851851851...)
 
 Creating a Time object
 ----------------------
@@ -305,8 +305,8 @@ string-valued formats ignore `val2` and all numeric inputs effectively add
 the two values in a way that maintains the highest precision.  Example::
 
   >>> t = Time(100.0, 0.000001, format='mjd', scale='tt')
-  >>> t.jd, t.jd1, t.jd2
-  (2400100.500001, 2400100.5, 1e-06)
+  >>> t.jd, t.jd1, t.jd2  # doctest: +SKIP
+  (2400100.50000..., 2400100.5, 1e-06)
 
 format
 ^^^^^^
@@ -433,7 +433,7 @@ available format names is in the `time format`_ section.
   >>> t.unix      # seconds since 1970.0 (UTC)
   1262304000.0
   >>> t.plot_date # Date value for plotting with matplotlib plot_date()
-  733773.0003935185
+  733773.000393518...
   >>> t.datetime  # Representation as datetime.datetime object
   datetime.datetime(2010, 1, 1, 0, 0)
 
