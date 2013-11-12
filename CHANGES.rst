@@ -21,7 +21,7 @@ New Features
         >>> print(unicode(u.degree))
         °
 
-    See :ref:`handling-unicode` for more information.
+    See :ref:`handling-unicode` for more information. [#1441]
 
 - ``astropy.convolution``
 
@@ -38,18 +38,18 @@ New Features
     auto-wrapping capability and `Latitude` performs bounds checking.
 
   - `astropy.coordinates.Distance` supports conversion to and from distance
-    modulii.
+    modulii. [#1472]
 
   - `astropy.coordinates.SphericalCoordinateBase` and derived classes now
     support arrays of coordinates, enabling large speed-ups for some
     operations on multiple coordinates at the same time. These coordinates
     can also be indexed using standard slicing or any numpy-compatible
-    indexing.
+    indexing. [#1535, #1615]
 
   - Array coordinates can be matched to other array coordinates, finding the
     closest matches between the two sets of coordiantes (see the
     `~astropy.coordinates.matching.match_coordinates_3d` and
-    `~astropy.coordinates.matching.match_coordinates_sky` functions).
+    `~astropy.coordinates.matching.match_coordinates_sky` functions). [#1535]
 
 - ``astropy.cosmology``
 
@@ -101,39 +101,6 @@ New Features
     and for fitting data to models.  See "What's New in Astropy 0.3" in the
     documentation for futher details. [#493]
 
-- ``astropy.time``
-
-  - Update internal time manipulations so that arithmetic with Time and
-    TimeDelta objects maintains sub-nanosecond precision over a time span
-    longer than the age of the universe. [#1189]
-
-  - Use ``astropy.utils.iers`` to provide ``delta_ut1_utc``, so that
-    automatic calculation of UT1 becomes possible. [#1145]
-
-  - Add ``datetime`` format which allows converting to and from standard
-    library ``datetime.datetime`` objects. [#860]
-
-  - Add ``plot_date`` format which allows converting to and from the date
-    representation used when plotting dates with matplotlib via the
-    ``matplotlib.pyplot.plot_date`` function. [#860]
-
-  - Add ``gps`` format (seconds since 1980-01-01 00:00:00 UTC,
-    including leap seconds)
-
-  - Add array indexing to Time objects [#1132]
-
-  - Allow for arithmetic of multi-element and single-element Time and TimeDelta
-    objects. [#1081]
-
-  - Allow multiplication and division of TimeDelta objects by
-    constants and arrays, as well as changing sign (negation) and
-    taking the absolute value of TimeDelta objects. [#1082]
-
-  - Allow comparisons of Time and TimeDelta objects. [#1171]
-
-  - Support interaction of Time and Quantity objects that represent a time
-    interval. [#1431]
-
 - ``astropy.stats``
 
   - Added robust statistics functions
@@ -141,10 +108,17 @@ New Features
     `~astropy.stats.funcs.biweight_location`, and
     `~astropy.stats.funcs.biweight_midvariance`. [#621]
 
+  - Added `~astropy.stats.funcs.signal_to_noise_oir_ccd` for computin the
+    signal to noise ratio for source being observed in the optical/IR using a
+    CCD. [#870]
+
   - Add `axis=int` option to `astropy.stats.funcs.sigma_clip` to allow clipping
     along a given axis for multidimensional data. [#1083]
 
 - ``astropy.table``
+
+  - New columns can be added to a table via assignment to a non-existing
+    column by name. [#726]
 
   - Added ``join`` function to perform a database-like join on two tables. This
     includes suppert for inner, left, right, and outer joins as well as
@@ -152,6 +126,9 @@ New Features
 
   - Added ``hstack`` and ``vstack`` functions to stack two or more tables.
     [#937]
+
+  - Tables now have a ``.copy`` method and include support for ``copy`` and
+    ``deepcopy``. [#1208]
 
   - Added support for selecting and manipulating groups within a table with
     a database style ``group_by`` method. [#1424]
@@ -169,20 +146,66 @@ New Features
 
   - Add ``remove_row`` and ``remove_rows`` to remove table rows. [#1230]
 
-- ``astropy.vo``
+  - Added a new ``Table.show_in_browser`` method that opens a web browser
+    and displays the table rendered as HTML. [#1342]
 
-  - New package added to support Virtual Observatory Simple Cone Search query
-    and service validation. [#552]
+  - New tables can now be instantiated using a single row from an existing
+    table. [#1417]
+
+- ``astropy.time``
+
+  - New ``Time`` objects can be instantiated from existing ``Time`` objects
+    (but with different format, scale, etc.) [#889]
+
+  - Added a ``Time.now`` classmethod that returns the current UTC time,
+    similarly to Python's ``datetime.now``. [#1061]
+
+  - Update internal time manipulations so that arithmetic with Time and
+    TimeDelta objects maintains sub-nanosecond precision over a time span
+    longer than the age of the universe. [#1189]
+
+  - Use ``astropy.utils.iers`` to provide ``delta_ut1_utc``, so that
+    automatic calculation of UT1 becomes possible. [#1145]
+
+  - Add ``datetime`` format which allows converting to and from standard
+    library ``datetime.datetime`` objects. [#860]
+
+  - Add ``plot_date`` format which allows converting to and from the date
+    representation used when plotting dates with matplotlib via the
+    ``matplotlib.pyplot.plot_date`` function. [#860]
+
+  - Add ``gps`` format (seconds since 1980-01-01 00:00:00 UTC,
+    including leap seconds) [#1164]
+
+  - Add array indexing to Time objects [#1132]
+
+  - Allow for arithmetic of multi-element and single-element Time and TimeDelta
+    objects. [#1081]
+
+  - Allow multiplication and division of TimeDelta objects by
+    constants and arrays, as well as changing sign (negation) and
+    taking the absolute value of TimeDelta objects. [#1082]
+
+  - Allow comparisons of Time and TimeDelta objects. [#1171]
+
+  - Support interaction of Time and Quantity objects that represent a time
+    interval. [#1431]
 
 - ``astropy.units``
+
+  - Added parallax equivalency for length-angle. [#985]
+
+  - Added mass-energy equivalency. [#1333]
 
   - Added a new-style format method which will use format specifiers
     (like ``0.03f``) in new-style format strings for the Quantity's value.
     Specifiers which can't be applied to the value will fall back to the
     entire string representation of the quantity. [#1383]
 
+  - Added support for complex number values in quantities. [#1384]
+
   - Added new spectroscopic equivalencies for velocity conversions
-    (relativistic, optical, and radio conventions are supported)
+    (relativistic, optical, and radio conventions are supported) [#1200]
 
   - The ``spectral`` equivalency now also handles wave number.
 
@@ -190,27 +213,43 @@ New Features
     frequency or wavelength. It also handles additional flux units.
 
   - Added Brightness Temperature (antenna gain) equivalency for conversion
-    between :math:`T_B` and flux density.
+    between :math:`T_B` and flux density. [#1327]
 
   - Added percent unit, and allowed any string containing just a number to be
-    interpreted as a scaled dimensionless unit.
+    interpreted as a scaled dimensionless unit. [#1409]
 
   - New-style format strings can be used to set the unit output format.  For
     example, ``"{0:latex}".format(u.km)`` will print with the latex formatter.
+    [#1462]
 
   - The ``Unit.is_equivalent`` method can now take a tuple. In this case, the
     method returns ``True`` if the unit is equivalent to any of the units
-    listed in the tuple.
+    listed in the tuple. [#1521]
 
   - `def_unit` can now take a 2-tuple of names of the form (short, long), where
     each entry is a list.  This allows for handling strange units that might
-    have multiple short names.
+    have multiple short names. [#1543]
 
   - Added ``dimensionless_angles`` equivalency, which allows conversion of any
-    power of radian to dimensionless.
+    power of radian to dimensionless. [#1161]
 
   - Added the ability to enable set of units, or equivalencies that are used by
-    default.  Also provided context managers for these cases.
+    default.  Also provided context managers for these cases. [#1268]
+
+  - Imperial units are disabled by default. [#1593, #1662]
+
+  - Added an ``astropy.units.add_enabled_units`` context manager, which allows
+    creating a temporary context with additional units temporarily enabled in
+    the global units namespace. [#1662]
+
+  - ``Unit`` instances now have ``.si`` and ``.cgs`` properties a la
+    ``Quantity``.  These serve as shortcuts for ``Unit.to_system(cgs)[0]``
+    etc. [#1610]
+
+- ``astropy.vo``
+
+  - New package added to support Virtual Observatory Simple Cone Search query
+    and service validation. [#552]
 
 - ``astropy.wcs``
 
@@ -221,6 +260,13 @@ New Features
 
 - ``astropy.utils``
 
+  - Added a new set of utilities in ``astropy.utils.timer`` for analyzing the
+    runtime of functions and making runtime predections for larger inputs.
+    [#743]
+
+  - ``ProgressBar`` and ``Spinner`` classes can now be used directly to return
+    generator expressions. [#771]
+
   - Added ``astropy.utils.iers`` which allows reading in of IERS A or IERS B
     bulletins and interpolation in UT1-UTC.
 
@@ -228,15 +274,19 @@ New Features
     from the ``astropy`` package, this will open that class's API documentation
     in a web browser. [#663]
 
+  - Data download functions such as ``download_file`` now accept a
+    ``show_progress`` argument to suppress consolue output, and a ``timeout``
+    argument. [#865, #1258]
+
 - ``astropy.extern.six``
 
   - Added `six <https://pypi.python.org/pypi/six/>`_ for python2/python3
     compatibility
 
 - Astropy now uses the ERFA library instead of the IAU SOFA library for
-  fundamental time transformation routines.
-  The ERFA library is derived, with permission, from the IAU SOFA library but
-  is distributed under a BSD license. See ``license/ERFA.rst`` for details.
+  fundamental time transformation routines.  The ERFA library is derived, with
+  permission, from the IAU SOFA library but is distributed under a BSD license.
+  See ``license/ERFA.rst`` for details. [#1293]
 
 - ``astropy.logger``
 
@@ -249,7 +299,7 @@ New Features
     default configuration file installed by 0.2 set the exception logging to be
     on by default. To get the new behavior, set the ``log_exceptions`` and
     ``log_to_file`` configuration items to ``False`` in the ``astropy.cfg``
-    file.
+    file. [#1331]
 
 API Changes
 ^^^^^^^^^^^
@@ -266,12 +316,11 @@ API Changes
 
   - The `astropy.coordinates.Angle` class is now a subclass of
     `astropy.units.Quantity`. This means it has all of the methods of a
-    `numpy.ndarray`.
-
+    `numpy.ndarray`. [#1006]
 
   - The `astropy.coordinates.Distance` class is now a subclass of
     `astropy.units.Quantity`. This means it has all of the methods of a
-    `numpy.ndarray`.
+    `numpy.ndarray`. [#1472]
 
     - All angular units are now supported, not just `radian`, `degree`
       and `hour`, but now `arcsecond` and `arcminute` as well.  The
@@ -312,12 +361,13 @@ API Changes
     `rotation_matrix` will also take the unit from the given `Angle`
     object if no unit is provided.
 
-  - The `astropy.coordinates.AngularSeparation` class has been removed.  The output
-    of the coordinates `separation()` method is now an `astropy.coordinates.Angle`.
+  - The ``AngularSeparation`` class has been removed.  The output of the
+    coordinates `separation()` method is now an `astropy.coordinates.Angle`.
+    [#1007]
 
   - The coordinate classes have been renamed in a way that remove the ``Coordinates``
     at the end of the class names.  E.g., `ICRSCoordinates` from previous versions is
-    now called `ICRS`.
+    now called `ICRS`. [#1614]
 
   - `HorizontalCoordinates` are now named `AltAz`, to reflect more common terminology.
 
@@ -329,21 +379,26 @@ API Changes
   - Cosmology class properties now return ``Quantity`` objects instead of
     simple floating-point values. [#1237]
 
-  - The names of cosmology instances are now truly optional, and are set
-    to None rather than the name of the class if the user does not provide them.
+  - The names of cosmology instances are now truly optional, and are set to
+    ``None`` rather than the name of the class if the user does not provide
+    them.  [#1705]
 
 - ``astropy.io.ascii``
 
-  - In the ``read`` method of ``astropy.io.ascii``, empty column values in an ASCII table
-    are now treated as missing values instead of the previous treatment as a zero-length
-    string "".  This now corresponds to the behavior of other table readers like
-    ``numpy.genfromtxt``.  To restore the previous behavior set ``fill_values=None`` in the
-    call to ``ascii.read()``.
+  - In the ``read`` method of ``astropy.io.ascii``, empty column values in an
+    ASCII table are now treated as missing values instead of the previous
+    treatment as a zero-length string "".  This now corresponds to the behavior
+    of other table readers like ``numpy.genfromtxt``.  To restore the previous
+    behavior set ``fill_values=None`` in the call to ``ascii.read()``. [#919]
 
   - The ``read`` and ``write`` methods of ``astropy.io.ascii`` now have a
     ``format`` argument for specifying the file format.  This is the preferred
     way to choose the format instead of the ``Reader`` and ``Writer``
     arguments. [#961]
+
+  - The ``include_names`` and ``exclude_names`` arguments were removed from
+    the ``BaseHeader`` initializer, and now instead handled by the reader and
+    writer classes directly. [#1350]
 
   - Allow numeric and otherwise unusual column names when reading a table
     where the ``format`` argument is specified, but other format details such
@@ -408,6 +463,9 @@ API Changes
     now accept ``(origin, *args, **kwargs)`` instead of ``(origin, args,
     kwargs)``. [#591]
 
+  - Added a new ``astropy.io.registry.get_formats`` function for listing
+    registered I/O formats and details about the their readers/writers. [#1669]
+
 - ``astropy.io.votable``
 
   - Added a new option ``use_names_over_ids`` option to use when converting
@@ -429,6 +487,10 @@ API Changes
     output masked array. [#1083]
 
 - ``astropy.table``
+
+  - The first argument to the ``Column`` and ``MaskedColumn`` classes is now
+    the data array--the ``name`` argument has been changed to an optional
+    keyword argument. [#840]
 
   - Added support for instantiating a ``Table`` from a list of dict, each one
     representing a single row with the keys mapping to column names. [#901]
@@ -452,10 +514,12 @@ API Changes
 
   - For consistency with ``Quantity``, the attributes ``val`` and
     ``is_scalar`` have been renamed to ``value`` and ``isscalar``,
-    respectively, and the attribute ``vals`` has been dropped.
+    respectively, and the attribute ``vals`` has been dropped. [#767]
 
   - The double-float64 internal representation of time is used more
     efficiently to enable better accuracy. [#366]
+
+  - Format and scale arguments are now allowed to be case-insensitive. [#1128]
 
 - ``astropy.units``
 
@@ -480,12 +544,19 @@ API Changes
       from another Quantity and with no unit specified in the initializer, the
       unit is now taken from the unit of the Quantity being initialized from.
 
+  - Strings are no longer allowed as the values for Quantities. [#1005]
+
+  - Quantities are always comparable with zero regardless of their units.
+    [#1254]
+
   - The exception ``astropy.units.UnitsException`` has been renamed to
     ``astropy.units.UnitsError`` to be more consistent with the naming
-    of built-in Python exceptions.
+    of built-in Python exceptions. [#1406]
 
   - Multiplication with and division by a string now always returns a Unit
-    (rather than a Quantity when the string was first)
+    (rather than a Quantity when the string was first) [#1408]
+
+  - Imperial units are disabled by default.
 
 - ``astropy.wcs``
 
@@ -498,7 +569,9 @@ API Changes
 
        #include "astropy_wcs_api.h"
 
-- The ``--enable-legacy`` option for ``setup.py`` has been removed.
+    [#1631]
+
+- The ``--enable-legacy`` option for ``setup.py`` has been removed. [#1493]
 
 Bug Fixes
 ^^^^^^^^^^
@@ -506,6 +579,11 @@ Bug Fixes
 - ``astropy.io.ascii``
 
   - The ``write()`` function was ignoring the ``fill_values`` argument. [#910]
+
+  - Fixed an issue in ``DefaultSplitter.join`` where the delimiter attribute
+    was ignored when writing the CSV. [#1020]
+
+  - Fixed writing of IPAC tables containing null values. [#1366]
 
   - When a table with no header row was read without specifying the format and
     using the ``names`` argument, then the first row could be dropped. [#1692]
@@ -530,10 +608,26 @@ Bug Fixes
      an earlier version, but it was only fixed for compressed image HDUs and
      not for binary tables in general.
 
+- ``astropy.nddata``
+
+  - Fixed crash when trying to multiple or divide ``NDData`` objects with
+    uncertainties. [#1547]
+
 - ``astropy.table``
 
   - Using a list of strings to index a table now correctly returns a new table
     with the columns named in the list. [#1454]
+
+  - Inequality operators now work properly with ``Column`` objects. [#1685]
+
+- ``astropy.time``
+
+  - ``Time`` scale and format attributes are now shown when calling ``dir()``
+    on a ``Time`` object. [#1130]
+
+- ``astropy.wcs``
+
+  - Fixed assignment to string-like WCS attributes on Python 3. [#956]
 
 - ``astropy.units``
 
@@ -541,8 +635,52 @@ Bug Fixes
     Numpy arrays with Quantities to matter (i.e. if the plain array comes
     first the units were not preserved in the output). [#899]
 
+  - Directly instantiated ``CompositeUnits`` were made printable without
+    crashing. [#1576]
+
+- Misc
+
+  - Fixed various modules that hard-coded ``sys.stdout`` as default arguments
+    to functions at import time, rather than using the runtime value of
+    ``sys.stdout``. [#1648]
+
+  - Minor documentation fixes and enhancements [#922, #1034, #1210, #1217,
+    #1491, #1492, #1498, #1582, #1608, #1621, #1646, #1670, #1756]
+
+  - Fixed a crash that could sometimes occur when running the test suite on
+    systems with platform names containing non-ASCII characters. [#1698]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- General
+
+  - Astropy now follows the PSF Code of Conduct. [#1216]
+
+  - Astropy's test suite now tests all doctests in both inline docstrings
+    and reST documentation.
+
+  - Astropy's test suite can be run on multiple CPUs in parallel, often
+    greatly improving runtime, using the ``--parallel`` option. [#1040]
+
+  - A warning is now issued when using Astropy with Numpy < 1.5--much of
+    Astropy may still work in this case but it shouldn't be expected to
+    either. [#1479]
+
+  - Added automatic download/build/installation of Numpy during Astropy
+    installation if not already found. [#1483]
+
+  - Handling of metadata for the ``NDData`` and ``Table`` classes has been
+    unified by way of a common ``MetaData`` descriptor--it allows instantiating
+    an object with metadata of any mapping type, and subsequently prevents
+    replacing the mapping stored in the ``.meta`` attribute (only direct
+    updates to that object are allowed). [#1686]
+
+- ``astropy.coordinates``
+
+  - Angles containing out of bounds minutes or seconds (eg. 60) can be
+    parsed--the value modulo 60 is used with carry to the hours/minutes, and a
+    warning is issued rather than raising an exception. [#990]
 
 - ``astropy.io.fits``
 
@@ -574,7 +712,25 @@ Other Changes and Additions
     by default--this seems a less surprising default, but it may cause
     differences with tables created with older versions of PyFITS or Astropy.
 
-- ``astrropy.wcs``
+- ``astropy.io.misc``
+
+  - The HDF5 reader can now refer to groups in the path as well as datasets;
+    if given a group, the first dataset in that group is read. [#1159]
+
+- ``astropy.nddata``
+
+  - ``NDData`` objects have more helpful, though still rudimentary ``__str__`
+    and ``__repr__`` displays. [#1313]
+
+- ``astropy.units``
+
+  - Added 'cycle' unit. [#1160]
+
+  - Extended units supported by the CDS formatter/parser. [#1468]
+
+  - Added unicode an LaTeX symbols for liter. [#1618]
+
+- ``astropy.wcs``
 
   - Redundant SCAMP distortion parameters are removed with SIP distortions are
     also present. [#1278]
@@ -607,6 +763,11 @@ Bug Fixes
   - Fixed writing AASTex tables to honor the ``tabletype`` option. [#1372]
 
 - ``astropy.io.fits``
+
+  - Improved round-tripping and preservation of manually assigned column
+    attributes (``TNULLn``, ``TSCALn``, etc.) in table HDU headers. (Note: This
+    issue was previously reported as fixed in Astropy v0.2.2 by mistake; it is
+    not fixed until v0.3.) [#996]
 
   - Fixed a bug that could cause a segfault when trying to decompress an
     compressed HDU whose contents are truncated (due to a corrupt file, for
@@ -896,9 +1057,6 @@ Bug Fixes
 
   - Fixed an obscure issue that can occur on systems that don't have flush to
     memory-mapped files implemented (namely GNU Hurd). [#968]
-
-  - Improved round-tripping and preservation of manually assigned column
-    attributes (``TNULLn``, ``TSCALn``, etc.) in table HDU headers. [#996]
 
 - ``astropy.io.votable``
 
