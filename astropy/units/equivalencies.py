@@ -436,14 +436,15 @@ def brightness_temperature(beam_area, disp):
 
     return [(astrophys.Jy, si.K, convert_Jy_to_K, convert_K_to_Jy)]
 
-def radio_lines_simple(freq_obs):
+def radio_lines_simple(disp_obs):
     """ Returns equivalence pairs between Jy km/s, a line-strength
     unit often reported in radio astronomy, and SI units.
 
     Parameters
     ----------
-    freq_obs : `Quantity` with frequncy units
-      The observed frequency of the line.
+    disp_obs : `Quantity` with spectral units
+        The `spectral` equivalent `Unit` (e.g., frequency or
+        wavelength) in the observer frame.
 
     Notes
     -----
@@ -451,14 +452,16 @@ def radio_lines_simple(freq_obs):
       require a redshift or cosmology.
     """
     
-    fobs = freq_obs.to(si.Hz).value
+    if not disp_obs.isscalar:
+        raise ValueError("disp_obs must be scalar")
+    fobs = disp_obs.to(si.Hz, equivalencies=spectral()).value
     c_si = _si.c.value # m / s
     return [(astrophys.Jy * si.km / si.s, si.W / si.m**2,
              lambda x: x * 1e-23 * fobs / c_si,
              lambda x: c_si * x * 1e23 / fobs)]
     
 
-def radio_lines(freq_obs, redshift, lumdist=None, cosmology=None):
+def radio_lines(disp_obs, redshift, lumdist=None, cosmology=None):
     """
     Returns a list of equivalence pairs between observational
     and non-observational line strength units in astronomy.
@@ -470,8 +473,9 @@ def radio_lines(freq_obs, redshift, lumdist=None, cosmology=None):
 
     Parameters
     ----------
-    freq_obs : `Quantity` with frequncy units
-      The observed frequency of the line.
+    disp_obs : `Quantity` with spectral units
+        The `spectral` equivalent `Unit` (e.g., frequency or
+        wavelength) in the observer frame.
 
     redshift : float
       Redshift of the object
@@ -513,18 +517,19 @@ def radio_lines(freq_obs, redshift, lumdist=None, cosmology=None):
 
     # All the inter-conversoins follow from those.
 
-    # Approximate versions (less precision) are given in 
-    #  Carilli and Walter, AARA, 2013, 51, section 2.4
+    # Approximate versions (less precision on constants in front) 
+    #  are given in Carilli and Walter, AARA, 2013, 51, section 2.4
     # Unfortunately, they don't derive the 'magic numbers' in front,
-    # and I am not aware of anywhere where they are explained,
-    # but they can be worked out by hand in terms of
-    # fundamental constants and unit conversions.
+    # and I (@aconley) am not aware of anywhere where they are explained,
+    # but they can be worked out by hand in terms of fundamental constants 
+    # and unit conversions.
 
     import astropy.cosmology
 
-    if not freq_obs.isscalar:
-        raise ValueError("Frequency must be scalar")
-    fobs = freq_obs.to(si.Hz).value
+    if not disp_obs.isscalar:
+        raise ValueError("disp_obs must be scalar")
+    fobs = disp_obs.to(si.Hz, equivalencies=spectral()).value
+
     z = float(redshift)
     opz = 1.0 + z
     frest = fobs * opz
