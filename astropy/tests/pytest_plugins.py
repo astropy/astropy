@@ -53,28 +53,41 @@ def pytest_addoption(parser):
                   default=False)
 
 
-# A special doctest OutputChecker that ignores u'' string literal
-# prefixes in doctest output
-class OutputCheckerIgnoreUnicode(doctest.OutputChecker):
-    _literal_re = re.compile(r"(\W|^)[uU]([rR]?[\'\"])", re.UNICODE)
+class OutputCheckerFix(doctest.OutputChecker):
+    """
+    A special doctest OutputChecker that normalizes a number of things common
+    to astropy doctests.
+
+    - Removes u'' prefixes on string literals
+    - In Numpy dtype strings, removes the leading pipe, i.e. '|S9' ->
+      'S9'.  Numpy 1.7 no longer includes it in display.
+    """
+
+    _literal_re = re.compile(
+        r"(\W|^)[uU]([rR]?[\'\"])", re.UNICODE)
+    _remove_native_byteorder = re.compile(
+        r"([\'\"])\|(S[0-9]+)([\'\"])", re.UNICODE)
+
     _original_output_checker = doctest.OutputChecker
 
-    def _fix_string(self, s):
-        return re.sub(self._literal_re, r'\1\2', s)
+    def do_fixes(self, want, got):
+        want = re.sub(self._literal_re, r'\1\2', want)
+
+        got = re.sub(self._literal_re, r'\1\2', got)
+        got = re.sub(self._remove_native_byteorder, r'\1\2\3', got)
+        return want, got
 
     def check_output(self, want, got, flags):
-        if flags & IGNORE_UNICODE_PREFIX:
-            want = self._fix_string(want)
-            got = self._fix_string(got)
+        if flags & FIX:
+            want, got = self.do_fixes(want, got)
         # Can't use super here because doctest.OutputChecker is not a
         # new-style class.
         return self._original_output_checker.check_output(
             self, want, got, flags)
 
     def output_difference(self, want, got, flags):
-        if flags & IGNORE_UNICODE_PREFIX:
-            want = self._fix_string(want)
-            got = self._fix_string(got)
+        if flags & FIX:
+            want, got = self.do_fixes(want, got)
         # Can't use super here because doctest.OutputChecker is not a
         # new-style class.
         return self._original_output_checker.output_difference(
@@ -84,8 +97,8 @@ class OutputCheckerIgnoreUnicode(doctest.OutputChecker):
 # We monkey-patch in our replacement doctest OutputChecker.  Not
 # great, but there isn't really an API to replace the checker when
 # using doctest.testfile, unfortunately.
-IGNORE_UNICODE_PREFIX = doctest.register_optionflag('IGNORE_UNICODE_PREFIX')
-doctest.OutputChecker = OutputCheckerIgnoreUnicode
+FIX = doctest.register_optionflag('FIX')
+doctest.OutputChecker = OutputCheckerFix
 
 
 def pytest_configure(config):
@@ -99,7 +112,7 @@ def pytest_configure(config):
     # themselves.
     opts = (doctest.ELLIPSIS |
             doctest.NORMALIZE_WHITESPACE |
-            IGNORE_UNICODE_PREFIX)
+            FIX)
 
     class DocTestModulePlus(doctest_plugin.DoctestModule):
         # pytest 2.4.0 defines "collect".  Prior to that, it defined
