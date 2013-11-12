@@ -263,6 +263,9 @@ class DoctestPlus(object):
 
         """
         if path.ext == '.py':
+            if path.basename == 'conf.py':
+                return None
+
             # Don't override the built-in doctest plugin
             return self._doctest_module_item_cls(path, parent)
         elif self._run_rst_doctests and path.ext == '.rst':
