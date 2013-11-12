@@ -121,7 +121,8 @@ class Quantity(np.ndarray):
 
         # Maybe list/tuple of Quantity? short-circuit array for speed
         if(not isinstance(value, np.ndarray) and isiterable(value) and
-           all(isinstance(v, Quantity) for v in value)):
+           all(isinstance(v, Quantity) for v in value) and
+           len(value) > 0):
             if unit is None:
                 unit = value[0].unit
             value = [q.to(unit).value for q in value]

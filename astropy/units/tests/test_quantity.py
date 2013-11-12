@@ -861,6 +861,14 @@ def test_quantity_from_unit():
     assert q.unit == u.m
     assert q.value == 1.
     assert u.Unit(q) == u.m
+    q = u.Quantity('m')
+    assert q.unit == u.m
+    assert q.value == 1.
+    assert u.Unit(q) == u.m
+    q = u.Quantity('')
+    assert q.unit == u.dimensionless_unscaled
+    assert q.value == 1.
+    assert u.Unit(q) == u.dimensionless_unscaled
     q = u.Quantity(u.m * "5")
     assert q.unit == u.m  # not "is", since unit is CompositeUnit
     assert q.value == 5.
