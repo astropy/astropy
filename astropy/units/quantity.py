@@ -119,14 +119,12 @@ class Quantity(np.ndarray):
             if unit is None:
                 unit = dimensionless_unscaled
 
-        try:
-            value = np.array(value, dtype=dtype, copy=copy)
-            # check that array contains numbers or long int objects
-            assert (value.dtype.kind not in 'OSU' or
-                    value.dtype.kind == 'O' and
-                    isinstance(value.item(() if value.ndim == 0 else 0),
-                               numbers.Number))
-        except:
+        value = np.array(value, dtype=dtype, copy=copy)
+        # check that array contains numbers or long int objects
+        if (value.dtype.kind in 'OSU' and
+            not (value.dtype.kind == 'O' and
+                 isinstance(value.item(() if value.ndim == 0 else 0),
+                            numbers.Number))):
             raise TypeError("The value must be a valid Python or "
                             "Numpy numeric type.")
 
