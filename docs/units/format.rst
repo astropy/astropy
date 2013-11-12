@@ -199,7 +199,7 @@ this behavior:
 
 So, for example, one can do::
 
-   >>> x = u.Unit("m/s/s", parse_strict="warn")
+   >>> x = u.Unit("m/s/s", parse_strict="warn")  # doctest: +SKIP
    WARNING: UnitsWarning: 'm/s/s' did not parse as unit format
    'generic': Syntax error parsing unit string 'm/s/s'
    [astropy.units.core]
@@ -209,14 +209,14 @@ original string it was created with, so it can be written back out,
 but any meaningful operations on it, such as converting to another
 unit or composing with other units, will fail.
 
-   >>> x.to_string()
+   >>> x.to_string()  # doctest: +SKIP
    'm/s/s'
-   >>> x.to(u.km / u.s / u.s)
+   >>> x.to(u.km / u.s / u.s)  # doctest: +SKIP
    Traceback (most recent call last):
      ...
    ValueError: The unit 'm/s/s' is unrecognized.  It can not be
    converted to other units.
-   >>> x / u.m
+   >>> x / u.m  # doctest: +SKIP
    Traceback (most recent call last):
      ...
    ValueError: The unit 'm/s/s' is unrecognized, so all arithmetic
