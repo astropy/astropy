@@ -133,6 +133,11 @@ class Quantity(np.ndarray):
             raise TypeError("The value must be a valid Python or "
                             "Numpy numeric type.")
 
+        # by default, cast any integer, boolean, etc., to float
+        if dtype is None and not np.can_cast(np.float, value.dtype,
+                                             'same_kind'):
+            value = value.astype(np.float)
+
         value = value.view(cls)
         value._unit = unit
 
