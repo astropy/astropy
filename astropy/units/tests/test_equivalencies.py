@@ -503,6 +503,14 @@ def test_radio_lines_simple():
     assert np.allclose(wm2.to(u.Jy * u.km / u.s, equivalencies=eqv).value,
                        jykms.value, rtol=1e-6)
 
+    # Test lambda units
+    lam_obs = u.Quantity(2.14137470e-01, u.m)
+    eqv = u.radio_lines_simple(lam_obs)
+    assert np.allclose(jykms.to(u.W / u.m**2, equivalencies=eqv).value,
+                       wm2.value, rtol=1e-5)
+    assert np.allclose(wm2.to(u.Jy * u.km / u.s, equivalencies=eqv).value,
+                       jykms.value, rtol=1e-5)
+
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_radio_lines_simple():
     # Test less simple conversions
@@ -568,6 +576,16 @@ def test_radio_lines_simple():
                        kkmspc2.value, rtol=1e-5)
     assert np.allclose(kkmspc2.to(u.W / u.m**2, equivalencies=eqv).value,
                        wm2.value, rtol=1e-5)
+
+    # Use wavelength instead of frequency
+    lam_obs = u.Quantity(2.997925e-03, u.m)
+    eqv = u.radio_lines(lam_obs, 2.5, ld)
+    assert np.allclose(jykms.to(u.K * u.km * u.pc**2 / u.s, 
+                                equivalencies=eqv).value,
+                       kkmspc2.value, rtol=1e-5)
+    assert np.allclose(kkmspc2.to(u.Jy * u.km / u.s, equivalencies=eqv).value,
+                       jykms.value, rtol=1e-5)
+    
 
     # Now make sure they have the right redshift dependence
     eqv = u.radio_lines(freq_obs, 0.1, WMAP9)
