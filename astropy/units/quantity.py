@@ -36,44 +36,6 @@ def _can_cast(arg, dtype):
 _UNIT_NOT_INITIALISED = "(Unit not initialised)"
 
 
-def _validate_value(value, dtype, copy):
-    """ Make sure that the input is a Python or Numpy numeric type.
-
-    Parameters
-    ----------
-    value : number
-        An object that will be checked whether it is a numeric type or not.
-
-    dtype : Numpy dtype or None
-        The dtype of the resulting value.  If None, the dtype of the
-        input value is used or automatically computed.
-
-    copy : bool, optional
-        If True (default), then the value is copied.  Otherwise, a copy
-        will only be made if `__array__` returns a copy, if obj is a
-        nested sequence, or if a copy is needed to satisfy `dtype`.
-
-    Returns
-    -------
-    newval
-        The new value either as an array or a scalar
-    """
-
-    from ..utils.misc import isiterable
-
-    if (isinstance(value, (numbers.Number, np.number, np.ndarray)) or
-            isiterable(value)):
-        value_obj = np.array(value, dtype=dtype, copy=copy)
-
-        # It would seem reasonable to exclude object arrays here also,
-        # but then long integers do not work.
-        if value_obj.dtype.kind not in 'SU':
-            return value_obj
-
-    raise TypeError("The value must be a valid Python or Numpy numeric "
-                    "type.")
-
-
 def _can_have_arbitrary_unit(value):
     """Test whether the items in value can have arbitrary units
 
@@ -137,30 +99,39 @@ class Quantity(np.ndarray):
 
         from ..utils.misc import isiterable
 
+        if unit is not None:
+            # convert unit first, to avoid multiple string->unit conversions
+            unit = Unit(unit)
+
         if isinstance(value, Quantity):
             if unit is None or unit is value.unit:
-                _value = _validate_value(value.value, dtype, copy)
+                unit = value.unit
+                value = value.value
             else:
-                _value = _validate_value(value.to(unit).value, dtype, copy)
+                value = value.to(unit).value
+                copy = False  # copy already made
         elif isiterable(value) and all(isinstance(v, Quantity) for v in value):
             if unit is None:
                 unit = value[0].unit
-            _value = _validate_value([q.to(unit).value for q in value], dtype,
-                                     copy)
+            value = [q.to(unit).value for q in value]
+            copy = False  # copy already made
         else:
-            _value = _validate_value(value, dtype, copy)
+            if unit is None:
+                unit = dimensionless_unscaled
 
-        dtype = _value.dtype
+        try:
+            value = np.array(value, dtype=dtype, copy=copy)
+            # check that array contains numbers or long int objects
+            assert (value.dtype.kind not in 'OSU' or
+                    value.dtype.kind == 'O' and
+                    isinstance(value.item(() if value.ndim == 0 else 0),
+                               numbers.Number))
+        except:
+            raise TypeError("The value must be a valid Python or "
+                            "Numpy numeric type.")
 
-        self = super(Quantity, cls).__new__(cls, _value.shape, dtype=dtype,
-                                            buffer=_value.data)
-        if unit is None:
-            if isinstance(value, Quantity):
-                self._unit = value.unit
-            else:
-                self._unit = dimensionless_unscaled
-        else:
-            self._unit = Unit(unit)
+        self = value.view(cls)
+        self._unit = unit
 
         return self
 
@@ -827,7 +798,6 @@ class Quantity(np.ndarray):
                                   self.unit.to_string() if
                                   self.unit is not None
                                   else _UNIT_NOT_INITIALISED), full_format_spec)
-
 
     def decompose(self, bases=[]):
         """
