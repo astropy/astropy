@@ -92,6 +92,15 @@ The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the
 option to :ref:`set default equivalencies <equivalency-context>`.
 
+Mass-Energy
+^^^^^^^^^^^
+:func:`~astropy.units.equivalencies.mass_energy` is a function that
+returns an equivalency list to handle conversions between (rest) mass
+and energy.
+
+  >>>u.Quantity(1e-6, u.pg)to(u.erg, equivalencies=u.mass_energy()) # doctest
+  <Quantity 898.7551787... erg> 
+
 Spectral Units
 ^^^^^^^^^^^^^^
 
@@ -191,6 +200,56 @@ requires the beam area and frequency as arguments.  Example::
     >>> freq = 5 * u.GHz
     >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
     7.052588858...
+
+Radio line-strength units
+^^^^^^^^^^^^^^^^^^^^^^^^^
+The strength of lines are frequently reported in units like Jy km/sec,
+solar luminosities, or K km/sec pc^2.  It is possible to convert the first
+into base units such as W/m^2 given the observed frequency, and to
+convert between the others given a redshift, observed frequency, and
+luminosity distance.
+
+:func:`~astropy.units.equivalencies.radio_lines_simple` provides
+and equivalency list for converting between Jy km/sec and W/m^2.
+
+   >>>jykms = u.Quantity(11.4, u.Jy * u.km / u.s)
+   >>>obs_freq = u.Quantity(1.4, u.GHz)
+   >>>jykms.to(u.W / u.m**2, equivalencies=u.radio_lines_simple(obs_freq)) # doctest
+   <Quantity 5.32368...e-22 W / m2>
+
+:func:`~astropy.units.equivalencies.radio_lines` is similar, but supports
+the more complicated transformations that depend on the luminosity distance.
+There are two options for specifying the luminosity distance: either providing
+it directly, or by providing a cosmological model (which is an
+`~astropy.cosmology.FLRW` subclass instance).  Please see the 
+`astropy.cosmology` documentation for further details of the latter.
+
+Here we use one of the built in cosmologies, corresponding to the WMAP9
+parameters:
+
+   >>>from astropy.cosmology import WMAP9
+   >>>freq_obs = u.Quantity(100.0, u.GHz)
+   >>>z = 2.3
+   >>>eqv = u.radio_lines(freq_obs, z, WMAP9)
+   >>>jykms = u.Quantity(0.02, u.Jy * u.km / u.s)
+   >>>jykms.to(u.W / u.m**2, equivalencies=eqv)
+   <Quantity 6.671281903963041e-23 W / m2>
+   >>>jykms.to(u.solLum, equivalencies=eqv)
+   <Quantity 736719.60... solLum>
+   >>>jykms.to(u.K * u.km / u.s * u.pc**2, equivalencies=eqv)
+   <Quantity 642995045.0841682 K km pc2 / s>
+
+Alternatively, we can just provide the luminosity distance directly.
+Note that you still have to provide the redshift and observed
+frequency!
+
+   >>>dl = u.Quantity(77, u.Mpc) # Arp 220
+   >>>z = 0.0181
+   >>>I0 = u.Quantity(4550.0, u.Jy * u.km / u.s) # 12CO J(4-3)
+   >>>freq_obs = u.Quantity(461.040777, u.GHz) / (1 + z)
+   >>>eqv = u.radio_lines(freq_obs, z, dl)
+   >>>I0.to(u.solLum, equivalencies=eqv)
+   <Quantity 12677181.835370954 solLum>
 
 Writing new equivalencies
 -------------------------

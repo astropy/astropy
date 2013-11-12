@@ -509,7 +509,7 @@ def test_radio_lines_simple():
 
     from astropy.cosmology import WMAP9 #rather than use default
     freq_obs = u.Quantity(100.0, u.GHz)
-    eqv = u.radio_lines(freq_obs, 2.5, None, WMAP9)
+    eqv = u.radio_lines(freq_obs, 2.5, WMAP9)
     
     # Repeat _simple test first
     jykms = u.Quantity([0.1, 0.3, 2.5], u.Jy * u.km / u.s)
@@ -555,8 +555,22 @@ def test_radio_lines_simple():
                                equivalencies=eqv).value,
                        kkmspc2.value, rtol=1e-5)
 
+    # Make sure it accepts lumdist as a quantity
+    ld = u.Quantity(20857.33294453443, u.Mpc)
+    eqv = u.radio_lines(freq_obs, 2.5, ld)
+    assert np.allclose(jykms.to(u.K * u.km * u.pc**2 / u.s, 
+                                equivalencies=eqv).value,
+                       kkmspc2.value, rtol=1e-5)
+    assert np.allclose(kkmspc2.to(u.Jy * u.km / u.s, equivalencies=eqv).value,
+                       jykms.value, rtol=1e-5)
+    assert np.allclose(wm2.to(u.K * u.km * u.pc**2 / u.s, 
+                              equivalencies=eqv).value,
+                       kkmspc2.value, rtol=1e-5)
+    assert np.allclose(kkmspc2.to(u.W / u.m**2, equivalencies=eqv).value,
+                       wm2.value, rtol=1e-5)
+
     # Now make sure they have the right redshift dependence
-    eqv = u.radio_lines(freq_obs, 0.1, None, WMAP9)
+    eqv = u.radio_lines(freq_obs, 0.1, WMAP9)
     assert np.allclose(WMAP9.luminosity_distance(0.1).value,
                        465.28059, rtol=1e-6)
     dl2factor = (465.28059 / 20857.33294453443)**2
@@ -579,7 +593,7 @@ def test_radio_lines_simple():
 
     # And frequency dependence
     freq_obs *= 1e-2 # Drop by a factor of 100
-    eqv = u.radio_lines(freq_obs, 0.1, None, WMAP9)
+    eqv = u.radio_lines(freq_obs, 0.1, WMAP9)
     wm2 *= 1e-2
     assert np.allclose(jykms.to(u.W / u.m**2, equivalencies=eqv).value,
                        wm2.value, rtol=1e-6)
@@ -590,7 +604,7 @@ def test_radio_lines_simple():
                        lsun.value, rtol=1e-5)
     assert np.allclose(lsun.to(u.Jy * u.km / u.s, equivalencies=eqv).value,
                        jykms.value, rtol=1e-5)
-    kkmspc2 *= 1e-4
+    kkmspc2 *= 1e4
     assert np.allclose(jykms.to(u.K * u.km * u.pc**2 / u.s, 
                                 equivalencies=eqv).value,
                        kkmspc2.value, rtol=1e-5)
