@@ -10,6 +10,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 # Standard library
+import re
 import numbers
 from fractions import Fraction
 import warnings
@@ -20,7 +21,8 @@ import numpy as np
 from ..extern import six
 from ..extern.six.moves import zip
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
-                   UnitBase, UnitsError, UnitConversionError, UnitTypeError)
+                   UnitBase, CompositeUnit,
+                   UnitsError, UnitConversionError, UnitTypeError)
 from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
@@ -162,11 +164,12 @@ class Quantity(np.ndarray):
 
     Parameters
     ----------
-    value : number, `~numpy.ndarray`, `Quantity` object, or sequence of `Quantity` objects.
+    value : number, `~numpy.ndarray`, `Quantity` object (sequence), str
         The numerical value of this quantity in the units given by unit.  If a
         `Quantity` or sequence of them (or any other valid object with a
         ``unit`` attribute), creates a new `Quantity` object, converting to
-        `unit` units as needed.
+        `unit` units as needed.  If a string, it is converted to a number or
+        `Quantity`, depending on whether a unit is present.
 
     unit : `~astropy.units.UnitBase` instance, str
         An object that represents the unit associated with the input value.
@@ -256,17 +259,33 @@ class Quantity(np.ndarray):
             return np.array(value, dtype=dtype, copy=copy, order=order,
                             subok=True, ndmin=ndmin)
 
-        # Maybe list/tuple of Quantity? short-circuit array for speed
-        if (not isinstance(value, np.ndarray) and isiterable(value) and
-            all(isinstance(v, Quantity) for v in value)):
-            # Convert all quantities to the same unit.
-            if unit is None:
-                unit = value[0].unit
-            value = [q.to(unit).value for q in value]
-            value_unit = unit  # signal below that conversion has been done
-            copy = False  # copy already made
+        # Maybe str, or list/tuple of Quantity? If so, this may set value_unit.
+        # To ensure array remains fast, we short-circuit it.
+        value_unit = None
+        if not isinstance(value, np.ndarray):
+            if isinstance(value, six.string_types):
+                v = re.match(r'\s*[+-]?((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+)?',
+                             value)
+                if v is None:
+                    raise TypeError('Cannot parse "{0}" as a {1}. It does not '
+                                    'start with a number.'
+                                    .format(value, cls.__name__))
+                value = float(v.group())
+                unit_string = v.string[v.end():].strip()
+                if unit_string:
+                    value_unit = Unit(unit_string)
+                    if unit is None:
+                        unit = value_unit  # signal no conversion needed below.
 
-        else:
+            elif (isiterable(value) and len(value) > 0 and
+                  all(isinstance(v, Quantity) for v in value)):
+                # Convert all quantities to the same unit.
+                if unit is None:
+                    unit = value[0].unit
+                value = [q.to(unit).value for q in value]
+                value_unit = unit  # signal below that conversion has been done
+
+        if value_unit is None:
             # If the value has a `unit` attribute and if not None
             # (for Columns with uninitialized unit), treat it like a quantity.
             value_unit = getattr(value, 'unit', None)

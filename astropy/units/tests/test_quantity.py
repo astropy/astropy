@@ -1055,19 +1055,44 @@ def test_quantity_pickelability():
     assert q1.unit == q2.unit
 
 
-def test_quantity_from_string():
-    with pytest.raises(TypeError):
-        q = u.Quantity(u.m * "5")
-        # the reverse should also fail once #1408 is in
+def test_quantity_initialisation_from_string():
+    q = u.Quantity('1')
+    assert q.unit == u.dimensionless_unscaled
+    assert q.value == 1.
+    q = u.Quantity('1.5 m/s')
+    assert q.unit == u.m/u.s
+    assert q.value == 1.5
+    assert u.Unit(q) == u.Unit('1.5 m/s')
+    q = u.Quantity('.5 m')
+    assert q == u.Quantity(0.5, u.m)
+    q = u.Quantity('-1e1km')
+    assert q == u.Quantity(-10, u.km)
+    q = u.Quantity('-1e+1km')
+    assert q == u.Quantity(-10, u.km)
+    q = u.Quantity('+.5km')
+    assert q == u.Quantity(.5, u.km)
+    q = u.Quantity('+5e-1km')
+    assert q == u.Quantity(.5, u.km)
+    q = u.Quantity('5', u.m)
+    assert q == u.Quantity(5., u.m)
+    q = u.Quantity('5 km', u.m)
+    assert q.value == 5000.
+    assert q.unit == u.m
+    q = u.Quantity('5Em')
+    assert q == u.Quantity(5., u.Em)
 
     with pytest.raises(TypeError):
-        q = u.Quantity('5', u.m)
-
+        u.Quantity('')
     with pytest.raises(TypeError):
-        q = u.Quantity(['5'], u.m)
-
+        u.Quantity('m')
     with pytest.raises(TypeError):
-        q = u.Quantity(np.array(['5']), u.m)
+        u.Quantity(['5'])
+    with pytest.raises(TypeError):
+        u.Quantity(np.array(['5']))
+    with pytest.raises(ValueError):
+        u.Quantity('5E')
+    with pytest.raises(ValueError):
+        u.Quantity('5 foo')
 
 
 def test_unsupported():
