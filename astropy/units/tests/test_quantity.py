@@ -856,11 +856,22 @@ def test_quantity_pickelability():
     assert q1.unit == q2.unit
 
 
-def test_quantity_from_string():
-    with pytest.raises(TypeError):
-        q = u.Quantity(u.m * "5")
-        # the reverse should also fail once #1408 is in
+def test_quantity_from_unit():
+    q = u.Quantity(u.m)
+    assert q.unit == u.m
+    assert q.value == 1.
+    assert u.Unit(q) == u.m
+    q = u.Quantity(u.m * "5")
+    assert q.unit == u.m  # not "is", since unit is CompositeUnit
+    assert q.value == 5.
+    assert u.Unit(q) == u.Unit(u.m * "5")
+    q = u.Quantity('1.5 m/s')
+    assert q.unit == u.m/u.s
+    assert q.value == 1.5
+    assert u.Unit(q) == u.Unit('1.5 m/s')
 
+
+def test_quantity_from_string():
     with pytest.raises(TypeError):
         q = u.Quantity('5', u.m)
 
@@ -869,6 +880,9 @@ def test_quantity_from_string():
 
     with pytest.raises(TypeError):
         q = u.Quantity(np.array(['5']), u.m)
+
+    with pytest.raises(ValueError):
+        q = u.Quantity('5 foo')
 
 
 def test_unsupported():

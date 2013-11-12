@@ -129,7 +129,14 @@ class Quantity(np.ndarray):
 
         else:
             if unit is None:
-                unit = dimensionless_unscaled
+                if isinstance(value, (UnitBase, six.string_types)):
+                    unit = Unit(value)
+                    value = unit.scale
+                    if value != 1.:
+                        unit._scale = 1.
+                    copy = False  # copy already made
+                else:
+                    unit = dimensionless_unscaled
 
         value = np.array(value, dtype=dtype, copy=copy)
 
