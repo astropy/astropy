@@ -43,11 +43,11 @@ New Features
   - `astropy.coordinates.SphericalCoordinateBase` and derived classes now
     support arrays of coordinates, enabling large speed-ups for some
     operations on multiple coordinates at the same time. These coordinates
-    can also be indexed using standard slicing or any numpy-compatible
+    can also be indexed using standard slicing or any Numpy-compatible
     indexing. [#1535, #1615]
 
   - Array coordinates can be matched to other array coordinates, finding the
-    closest matches between the two sets of coordiantes (see the
+    closest matches between the two sets of coordinates (see the
     `~astropy.coordinates.matching.match_coordinates_3d` and
     `~astropy.coordinates.matching.match_coordinates_sky` functions). [#1535]
 
@@ -70,7 +70,7 @@ New Features
     opening files; any table columns with the correct BZERO value will be
     interpreted and returned as arrays of unsigned integers. [#906]
 
-  - Upgraded vendered copy of CFITSIO to v3.35, though backwards compatibility
+  - Upgraded vendored copy of CFITSIO to v3.35, though backwards compatibility
     back to version v3.28 is maintained.
 
   - Added support for reading and writing tables using the Q format for columns.
@@ -97,9 +97,9 @@ New Features
 
 - ``astropy.modeling``
 
-  - Added a new framework for representing and evaluating mathemetical models
+  - Added a new framework for representing and evaluating mathematical models
     and for fitting data to models.  See "What's New in Astropy 0.3" in the
-    documentation for futher details. [#493]
+    documentation for further details. [#493]
 
 - ``astropy.stats``
 
@@ -108,7 +108,7 @@ New Features
     `~astropy.stats.funcs.biweight_location`, and
     `~astropy.stats.funcs.biweight_midvariance`. [#621]
 
-  - Added `~astropy.stats.funcs.signal_to_noise_oir_ccd` for computin the
+  - Added `~astropy.stats.funcs.signal_to_noise_oir_ccd` for computing the
     signal to noise ratio for source being observed in the optical/IR using a
     CCD. [#870]
 
@@ -121,7 +121,7 @@ New Features
     column by name. [#726]
 
   - Added ``join`` function to perform a database-like join on two tables. This
-    includes suppert for inner, left, right, and outer joins as well as
+    includes support for inner, left, right, and outer joins as well as
     metadata merging.  [#903]
 
   - Added ``hstack`` and ``vstack`` functions to stack two or more tables.
@@ -275,7 +275,7 @@ New Features
     in a web browser. [#663]
 
   - Data download functions such as ``download_file`` now accept a
-    ``show_progress`` argument to suppress consolue output, and a ``timeout``
+    ``show_progress`` argument to suppress console output, and a ``timeout``
     argument. [#865, #1258]
 
 - ``astropy.extern.six``
@@ -603,7 +603,7 @@ Bug Fixes
      with regard to file modes.
 
    - Fixed a long-standing issue where writing binary tables did not correctly
-     write the TFORMn keywords for variable-length array columns (they ommitted
+     write the TFORMn keywords for variable-length array columns (they omitted
      the max array length parameter of the format).  This was thought fixed in
      an earlier version, but it was only fixed for compressed image HDUs and
      not for binary tables in general.
@@ -690,7 +690,7 @@ Other Changes and Additions
     no dithering is used, but the ``SUBTRACTIVE_DITHER_1`` and
     ``SUBTRACTIVE_DITHER_2`` methods can be enabled by passing the correct
     constants to the ``quantize_method`` argument to the ``CompImageHDU``
-    constuctor.  A seed can be manually specified, or automatically generated
+    constructor.  A seed can be manually specified, or automatically generated
     using either the system clock or checksum-based methods via the
     ``dither_seed`` argument.  See the documentation for ``CompImageHDU`` for
     more details.
@@ -918,7 +918,7 @@ Bug Fixes
 - ``astropy.table``
 
   - Fixed a bug where ``Table.remove_column`` and ``Table.rename_column``
-    could cause a maksed table to lose its masking. [#1120]
+    could cause a masked table to lose its masking. [#1120]
 
   - Fixed bugs where subclasses of ``Table`` did not preserver their class in
     certain operations. [#1142]
@@ -1006,7 +1006,7 @@ Bug Fixes
 
   - Fixed issues in both the ``fits`` and ``votable`` sub-packages where array
     byte order was not being handled consistently, leading to possible crashes
-    espcially on big-endian systems. [#1003]
+    especially on big-endian systems. [#1003]
 
 - ``astropy.io.fits``
 
@@ -1079,7 +1079,7 @@ Bug Fixes
     table with masked columns. [#973]
 
   - Made it possible to assign to one table row from the value of another row,
-    effictively making it easier to copy rows, for example. [#1019]
+    effectively making it easier to copy rows, for example. [#1019]
 
 - ``astropy.time``
 
@@ -1178,13 +1178,13 @@ Bug Fixes
     32-bit systems. [#786]
 
   - Fixed malformatting of the ``TFORMn`` keywords when writing compressed
-    image tables (they ommitted the max array length parameter from the
+    image tables (they omitted the max array length parameter from the
     variable-length array format).
 
   - Fixed a crash that could occur when writing a table containing multi-
     dimensional array columns from an existing file into a new file.
 
-  - Fixed a bug in fitsdiff that reported two header keywords contaning NaN
+  - Fixed a bug in fitsdiff that reported two header keywords containing NaN
     as having different values.
 
 - ``astropy.io.votable``
@@ -1258,7 +1258,7 @@ Bug Fixes
   - Fixed an installation issue where running ``./setup.py install`` or when
     installing with pip the ``.astropy`` directory gets created in the home
     directory of the user running the command.  The user's ``.astropy``
-    directory should only be created when they use astropy, not when they
+    directory should only be created when they use Astropy, not when they
     install it. [#867]
 
   - Fixed an exception when creating a ``ProgressBar`` with a "total" of 0.
