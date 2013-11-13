@@ -607,14 +607,15 @@ class NumpyRNGContext(object):
         random.set_state(self.startstate)
 
 
-def find_api_page(obj, version='dev', openinbrowser=True, timeout=None):
+def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     """
     Determines the URL of the API page for the specified object, and
     optionally open that page in a web browser.
 
     .. note::
         You must be connected to the internet for this to function even
-        if `openinbrowser` is False.
+        if `openinbrowser` is False, unless you provide a local version of
+        the documentation to `version` (e.g., ``file:///path/to/docs``).
 
     Parameters
     ----------
@@ -622,8 +623,11 @@ def find_api_page(obj, version='dev', openinbrowser=True, timeout=None):
         The object to open the docs for or its fully-qualified name
         (as a str).
     version : str
-        The doc version - either a version number like '0.1' or 'dev'
-        for the development/latest docs.
+        The doc version - either a version number like '0.1', 'dev' for
+        the development/latest docs, or a URL to point to a specific
+        location that should be the *base* of the documentation. Defaults to
+        latest if you are on aren't on a release, otherwise, the version you
+        are on.
     openinbrowser : bool
         If True, the `webbrowser` package will be used to open the doc
         page in a new web browser window.
@@ -654,7 +658,22 @@ def find_api_page(obj, version='dev', openinbrowser=True, timeout=None):
     elif ismodule(obj):
         obj = obj.__name__
 
-    if version == 'dev':
+    if version is None:
+        from .. import version
+
+        if version.release:
+            version = u'v' + version.version
+        else:
+            version = u'dev'
+
+    if '://' in version:
+        if version.endswith('index.html'):
+            baseurl = version[:-10]
+        elif version.endswith('/'):
+            baseurl = version
+        else:
+            baseurl = version + '/'
+    elif version == 'dev' or version == 'latest':
         baseurl = 'http://devdocs.astropy.org/'
     else:
         baseurl = 'http://docs.astropy.org/en/{vers}/'.format(vers=version)
