@@ -656,8 +656,9 @@ Other Changes and Additions
 
   - Astropy now follows the PSF Code of Conduct. [#1216]
 
-  - Astropy's test suite now tests all doctests in both inline docstrings
-    and reST documentation.
+  - Astropy's test suite now tests all doctests in inline docstrings.  Support
+    for running doctests in the reST documentation is planned to follow in
+    v0.3.1.
 
   - Astropy's test suite can be run on multiple CPUs in parallel, often
     greatly improving runtime, using the ``--parallel`` option. [#1040]
