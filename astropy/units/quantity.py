@@ -134,8 +134,7 @@ class Quantity(np.ndarray):
                             "Numpy numeric type.")
 
         # by default, cast any integer, boolean, etc., to float
-        if dtype is None and not np.can_cast(np.float, value.dtype,
-                                             'same_kind'):
+        if dtype is None and not np.can_cast(np.float32, value.dtype):
             value = value.astype(np.float)
 
         value = value.view(cls)
