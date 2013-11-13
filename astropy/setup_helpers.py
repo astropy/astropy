@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 import collections
 import errno
 import imp
+import inspect
 import os
 import re
 import shlex
@@ -18,7 +19,8 @@ import sys
 import textwrap
 import warnings
 
-from distutils import log
+from distutils import log, ccompiler, sysconfig
+from distutils.cmd import DistutilsOptionError
 from distutils.dist import Distribution
 from distutils.errors import DistutilsError, DistutilsFileError
 from distutils.core import Extension
@@ -80,9 +82,6 @@ def adjust_compiler(package):
     of the broken compiler, and the second is the compiler to change
     to.
     """
-
-    from distutils import ccompiler, sysconfig
-    import re
 
     compiler_mapping = [
         (b'i686-apple-darwin[0-9]*-llvm-gcc-4.2', 'clang')
@@ -317,8 +316,7 @@ def get_compiler_option():
 
     compiler = get_distutils_build_option('compiler')
     if compiler is None:
-        import distutils.ccompiler
-        return distutils.ccompiler.get_default_compiler()
+        return ccompiler.get_default_compiler()
 
     return compiler
 
@@ -823,10 +821,6 @@ if HAVE_SPHINX:
         def run(self):
             import webbrowser
 
-            from os.path import split, join, abspath
-            from distutils.cmd import DistutilsOptionError
-            from subprocess import Popen, PIPE, STDOUT
-            from inspect import getsourcelines
             if PY3:
                 from urllib.request import pathname2url
             else:
@@ -840,10 +834,10 @@ if HAVE_SPHINX:
             if self.build_dir is not None:
                 # the _static dir should be in the same place as the _build dir
                 # for Astropy
-                basedir, subdir = split(self.build_dir)
+                basedir, subdir = os.path.split(self.build_dir)
                 if subdir == '':  # the path has a trailing /...
-                    basedir, subdir = split(basedir)
-                staticdir = join(basedir, '_static')
+                    basedir, subdir = os.path.split(basedir)
+                staticdir = os.path.join(basedir, '_static')
                 if os.path.isfile(staticdir):
                     raise DistutilsOptionError(
                         'Attempted to build_sphinx in a location where' +
@@ -861,7 +855,7 @@ if HAVE_SPHINX:
             #command.  This is needed to get the correct imports for the built
             #version
 
-            runlines, runlineno = getsourcelines(SphinxBuildDoc.run)
+            runlines, runlineno = inspect.getsourcelines(SphinxBuildDoc.run)
             subproccode = textwrap.dedent("""
             from sphinx.setup_command import *
 
@@ -901,7 +895,10 @@ if HAVE_SPHINX:
             # prevents a continuous updating at the terminal, but there's no
             # apparent way around this.
             if self.warnings_returncode:
-                proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+                proc = subprocess.Popen([sys.executable],
+                                        stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT)
                 stdo, stde = proc.communicate(subproccode)
 
                 print(stdo)
@@ -933,8 +930,9 @@ if HAVE_SPHINX:
             if proc.returncode == 0:
                 if self.open_docs_in_browser:
                     if self.builder == 'html':
-                        absdir = abspath(self.builder_target_dir)
-                        fileurl = 'file://' + pathname2url(join(absdir, 'index.html'))
+                        absdir = os.path.abspath(self.builder_target_dir)
+                        index_path = os.path.join(absdir, 'index.html')
+                        fileurl = 'file://' + pathname2url(index_path)
                         webbrowser.open(fileurl)
                     else:
                         log.warn('open-docs-in-browser option was given, but '

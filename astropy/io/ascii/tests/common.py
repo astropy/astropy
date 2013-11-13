@@ -1,9 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import
-import os
-from distutils import version
-import numpy as np
 
+from __future__ import absolute_import
+
+import os
+
+from distutils import version
+
+import numpy as np
 
 from ... import ascii
 
@@ -16,10 +19,10 @@ TEST_DIR = os.path.dirname(__file__)
 
 has_isnan = True
 try:
-    from math import isnan
+    from math import isnan  # pylint: disable=W0611
 except ImportError:
     try:
-        from numpy import isnan
+        from numpy import isnan  # pylint: disable=W0611
     except ImportError:
         has_isnan = False
         print('Tests requiring isnan will fail')

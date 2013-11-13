@@ -31,13 +31,11 @@ core.py:
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import sys
 import re
 import csv
 import itertools
 import functools
 import numpy
-from contextlib import contextmanager
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
@@ -53,9 +51,9 @@ class InconsistentTableError(ValueError):
 
 # Python 3 compatibility tweaks.  Should work back through 2.4.
 try:
-    import cStringIO as io
+    from cStringIO import StringIO
 except ImportError:
-    import io
+    from io import StringIO
 
 try:
     next = next
@@ -251,7 +249,7 @@ class DefaultSplitter(BaseSplitter):
 
     def __init__(self):
         self.csv_writer = None
-        self.csv_writer_out = io.StringIO()
+        self.csv_writer_out = StringIO()
 
     def __call__(self, lines):
         """Return an iterator over the table ``lines``, where each iterator output

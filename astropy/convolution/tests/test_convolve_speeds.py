@@ -4,6 +4,8 @@ from __future__ import print_function
 
 import timeit
 
+import numpy as np  # pylint: disable=W0611
+
 # largest image size to use for "linear" and fft convolutions
 max_exponents_linear = {1: 15, 2: 7, 3: 5}
 max_exponents_fft = {1: 15, 2: 10, 3: 7}

@@ -1,10 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import unittest
 
-try:
-    import UserDict
-except ImportError:
-    from collections import UserDict
+import unittest
 
 from . import odict_support as test_support
 

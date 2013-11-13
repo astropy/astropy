@@ -1,11 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from datetime import datetime
+
+import copy
 import functools
+import sys
+
+from datetime import datetime
 
 import numpy as np
 
 from ...tests.helper import pytest
 from .. import Time, ScaleValueError, erfa_time
+
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
@@ -499,8 +504,6 @@ class TestCopyReplicate():
 
 
 def test_python_builtin_copy():
-    import copy
-
     t = Time('2000:001', format='yday', scale='tai')
     t2 = copy.copy(t)
     t3 = copy.deepcopy(t)
@@ -513,7 +516,6 @@ def test_now():
     """
     Tests creating a Time object with the `now` class method.
     """
-    from sys import version_info
 
     now = datetime.utcnow()
     t = Time.now()
@@ -528,6 +530,7 @@ def test_now():
     # times are more like microseconds.  But it seems safer in case some
     # platforms have slow clock calls or something.
 
+    version_info = sys.version_info
     # py < 2.7 and py3 < 3.2 doesn't have `total_seconds`
     if ((version_info[0] == 2 and version_info[1] < 7) or
         (version_info[0] == 3 and version_info[1] < 2) or

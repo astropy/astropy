@@ -12,7 +12,7 @@ from .image import _ImageBaseHDU, ImageHDU
 from .table import BinTableHDU
 from ..column import Column, ColDefs, _FormatP
 from ..fitsrec import FITS_rec
-from ..header import Header, BLOCK_SIZE
+from ..header import Header
 from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 
 from ....utils import lazyproperty, deprecated

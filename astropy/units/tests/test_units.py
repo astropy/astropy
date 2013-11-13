@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Regression tests for the units package
 """
@@ -6,11 +7,11 @@ Regression tests for the units package
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import warnings
 
 import numpy as np
 from numpy.testing.utils import assert_allclose
 
+from ...extern.six.moves import cPickle as pickle
 from ...tests.helper import pytest, raises, catch_warnings
 from ...utils.compat.fractions import Fraction
 
@@ -418,8 +419,6 @@ def test_no_as():
 
 
 def test_pickling():
-    from ...extern.six.moves import cPickle as pickle
-
     p = pickle.dumps(u.m)
     other = pickle.loads(p)
 

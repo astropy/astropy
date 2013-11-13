@@ -14,7 +14,7 @@ from ..errors import ConvertError, IllegalSecondError, IllegalMinuteError, Illeg
 
 
 try:
-    import scipy
+    import scipy  # pylint: disable=W0611
 except ImportError:
     HAS_SCIPY = False
 else:
@@ -136,15 +136,14 @@ def test_angle_ops():
     """
     Tests operations on Angle objects
     """
-    from .. import Angle
-    import numpy.testing as npt
 
-    '''
-    Angles can be added and subtracted. Multiplication and division by
-    a scalar is also permitted. A negative operator is also valid.
-    All of these operate in a single dimension. Attempting to
-    multiply or divide two Angle objects will raise an exception.
-    '''
+    from .. import Angle
+
+    # Angles can be added and subtracted. Multiplication and division by a
+    # scalar is also permitted. A negative operator is also valid.  All of
+    # these operate in a single dimension. Attempting to multiply or divide two
+    # Angle objects will raise an exception.
+
     a1 = Angle(3.60827466667, unit=u.hour)
     a2 = Angle("54:07:26.832", unit=u.degree)
     a1 + a2  # creates new Angle object
@@ -184,7 +183,6 @@ def test_angle_convert():
     """
 
     from .. import Angle
-    import numpy.testing as npt
 
     angle = Angle("54.12412", unit=u.degree)
 
@@ -418,7 +416,6 @@ def test_create_coordinate():
 
     from .. import Angle, Longitude, Latitude, ICRS, Galactic
     from .. import AltAz
-    import numpy.testing as npt
 
     ra = Longitude("4:08:15.162342", unit=u.hour)
     dec = Latitude("-41:08:15.162342", unit=u.degree)

@@ -3,7 +3,6 @@
 import glob
 import io
 import os
-import warnings
 import sys
 
 import numpy as np

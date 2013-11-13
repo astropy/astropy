@@ -1,16 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 This file contains a contains the high-level functions to read a
 VOTable file.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 from ...extern import six
 
 # STDLIB
 import io
 import os
 import sys
+import textwrap
 import warnings
 
 # LOCAL
@@ -200,7 +204,7 @@ def validate(source, output=None, xmllint=False, filename=None):
         Returns `True` if no warnings were found.  If `output` is
         `None`, the return value will be a string.
     """
-    import textwrap
+
     from ...utils.console import print_code_line, color_print
 
     if output is None:

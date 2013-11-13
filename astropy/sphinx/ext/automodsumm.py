@@ -55,6 +55,9 @@ package. It accepts no options.
     `graphviz <http://www.graphviz.org/>`_ to generate the inheritance diagram.
 
 """
+
+import inspect
+import os
 import re
 
 from sphinx.ext.autosummary import Autosummary
@@ -87,8 +90,6 @@ class Automodsumm(AstropyAutosummary):
     option_spec['skip'] = _str_list_converter
 
     def run(self):
-        from inspect import isclass, isfunction
-
         self.warnings = []
         nodelist = []
 
@@ -120,12 +121,12 @@ class Automodsumm(AstropyAutosummary):
             if funconly and not clsonly:
                 cont = []
                 for nm, obj in zip(fqns, objs):
-                    if nm not in skipmap and isfunction(obj):
+                    if nm not in skipmap and inspect.isfunction(obj):
                         cont.append('~' + nm)
             elif clsonly:
                 cont = []
                 for nm, obj in zip(fqns, objs):
-                    if nm not in skipmap and isclass(obj):
+                    if nm not in skipmap and inspect.isclass(obj):
                         cont.append('~' + nm)
             else:
                 if clsonly and funconly:
@@ -146,8 +147,6 @@ class Automodsumm(AstropyAutosummary):
 #<-------------------automod-diagram stuff------------------------------------>
 class Automoddiagram(InheritanceDiagram):
     def run(self):
-        from inspect import isclass
-
         try:
             nms, objs = find_mod_objs(self.arguments[0], onlylocals=True)[1:]
         except ImportError:
@@ -158,7 +157,7 @@ class Automoddiagram(InheritanceDiagram):
         clsnms = []
         for n, o in zip(nms, objs):
 
-            if isclass(o):
+            if inspect.isclass(o):
                 clsnms.append(n)
 
         oldargs = self.arguments
@@ -172,8 +171,6 @@ class Automoddiagram(InheritanceDiagram):
 
 #<---------------------automodsumm generation stuff--------------------------->
 def process_automodsumm_generation(app):
-    import os
-
     env = app.builder.env
     ext = app.config.source_suffix
 
@@ -227,9 +224,6 @@ def automodsumm_to_autosummary_lines(fn, app):
 
 
     """
-    import os
-    from inspect import isfunction, isclass
-
     fullfn = os.path.join(app.builder.env.srcdir, fn)
 
     with open(fullfn) as fr:
@@ -285,9 +279,9 @@ def automodsumm_to_autosummary_lines(fn, app):
         for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
             if nm in toskip:
                 continue
-            if funcsonly and not isfunction(obj):
+            if funcsonly and not inspect.isfunction(obj):
                 continue
-            if clssonly and not isclass(obj):
+            if clssonly and not inspect.isclass(obj):
                 continue
             newlines.append(allindent + '~' + fqn)
 
@@ -304,7 +298,6 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
     autosummarized. Unlike generate_autosummary_docs, this function is
     called one file at a time.
     """
-    import os
 
     from sphinx.jinja2glue import BuiltinTemplateLoader
     from sphinx.ext.autosummary import import_by_name, get_documenter

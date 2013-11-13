@@ -8,6 +8,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ...extern.six.moves import zip
 
+import keyword
 import warnings
 
 from ...utils.exceptions import AstropyDeprecationWarning
@@ -35,7 +36,6 @@ class Fits(generic.Generic):
 
     @staticmethod
     def _generate_unit_names():
-        import keyword
         from ... import units as u
         names = {}
         deprecated_names = set()

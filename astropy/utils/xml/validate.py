@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Functions to do XML schema and DTD validation.  At the moment, this
 makes a subprocess call to xmllint.  This could use a Python-based
@@ -8,7 +9,9 @@ found.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+
 import os
+import subprocess
 
 
 def validate_schema(filename, schema_file):
@@ -29,7 +32,6 @@ def validate_schema(filename, schema_file):
         Returns the returncode from xmllint and the stdout and stderr
         as strings
     """
-    import subprocess
 
     base, ext = os.path.splitext(schema_file)
     if ext == '.xsd':

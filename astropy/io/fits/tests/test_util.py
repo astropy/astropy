@@ -4,8 +4,6 @@ from __future__ import with_statement
 
 import os
 import signal
-import sys
-import warnings
 
 from ....tests.helper import pytest, catch_warnings
 from ..util import ignore_sigint

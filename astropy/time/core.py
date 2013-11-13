@@ -6,11 +6,15 @@ UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+import fnmatch
+import itertools
+import time
 
 from datetime import datetime
-import time
-import itertools
+
 import numpy as np
 
 from ..utils import deprecated, deprecated_attribute
@@ -1444,7 +1448,8 @@ class TimeString(TimeUnique):
         Return a list of subformats where name matches ``pattern`` using
         fnmatch.
         """
-        from fnmatch import fnmatchcase
+
+        fnmatchcase = fnmatch.fnmatchcase
         subfmts = [x for x in self.subfmts if fnmatchcase(x[0], pattern)]
         if len(subfmts) == 0:
             raise ValueError('No subformats match {0}'.format(pattern))

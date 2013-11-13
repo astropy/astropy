@@ -18,7 +18,7 @@ from ...utils.misc import NumpyRNGContext
 
 
 try:
-    import scipy
+    import scipy  # pylint: disable=W0611
 except ImportError:
     HAS_SCIPY = False
 else:

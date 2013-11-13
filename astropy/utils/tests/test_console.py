@@ -8,10 +8,8 @@ from ...extern.six.moves import xrange
 
 import io
 import locale
-import sys
 
-from ...tests.helper import pytest, raises
-
+from ...tests.helper import pytest
 from .. import console
 
 

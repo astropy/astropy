@@ -1,11 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-# Test initalization of angles not already covered by the API tests
+"""Test initalization of angles not already covered by the API tests"""
 
 import numpy as np
 from numpy.testing.utils import assert_allclose
+
 from ..angles import Longitude, Latitude, Angle
 from ...tests.helper import pytest
 from ... import units as u

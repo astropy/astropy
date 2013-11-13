@@ -1,11 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Utilities shared by the different formats.
 """
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import functools
 
 from ...extern import six
 from ...utils.compat.fractions import Fraction

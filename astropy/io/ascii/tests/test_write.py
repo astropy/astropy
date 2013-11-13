@@ -1,16 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import sys
 
 try:
-    import StringIO as io
+    from cStringIO import StringIO
 except ImportError:
-    import io
+    from io import StringIO
 
 from ... import ascii as asciitable
 
-from .common import (raises,
-                     assert_equal, assert_almost_equal, assert_true,
-                     setup_function, teardown_function)
+from .common import setup_function, teardown_function
 
 test_defs = [
     dict(kwargs=dict(),
@@ -251,7 +248,7 @@ a b c
 
 
 def check_write_table(test_def, table):
-    out = io.StringIO()
+    out = StringIO()
     asciitable.write(table, out, **test_def['kwargs'])
     print('Expected:\n%s' % test_def['out'])
     print('Actual:\n%s' % out.getvalue())
@@ -259,7 +256,7 @@ def check_write_table(test_def, table):
 
 
 def check_write_table_via_table(test_def, table):
-    out = io.StringIO()
+    out = StringIO()
 
     test_def = test_def.copy()
     if 'Writer' in test_def['kwargs']:

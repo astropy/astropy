@@ -3,7 +3,9 @@
 from __future__ import print_function, division
 
 # STDLIB
+import fnmatch
 import json
+import re
 import urllib
 
 # LOCAL
@@ -168,8 +170,6 @@ class VOSDatabase(VOSCatalog):
         if pattern is None or len(all_catalogs) == 0:
             out_arr = all_catalogs
         else:
-            import fnmatch
-            import re
             pattern = re.compile(fnmatch.translate('*' + pattern + '*'),
                                  re.IGNORECASE)
             out_arr = [s for s in all_catalogs if pattern.match(s)]

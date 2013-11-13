@@ -683,40 +683,38 @@ def rotation_matrix(angle, axis='z', unit=None):
     """
     # TODO: This doesn't handle arrays of angles
 
-    from numpy import sin, cos, sqrt
-
     if unit is None:
         unit = u.degree
 
     angle = Angle(angle, unit=unit)
 
     if axis == 'z':
-        s = sin(angle)
-        c = cos(angle)
+        s = np.sin(angle)
+        c = np.cos(angle)
         return np.matrix(((c, s, 0),
                           (-s, c, 0),
                           (0, 0, 1)))
     elif axis == 'y':
-        s = sin(angle)
-        c = cos(angle)
+        s = np.sin(angle)
+        c = np.cos(angle)
         return np.matrix(((c, 0, -s),
                           (0, 1, 0),
                           (s, 0, c)))
     elif axis == 'x':
-        s = sin(angle)
-        c = cos(angle)
+        s = np.sin(angle)
+        c = np.cos(angle)
         return np.matrix(((1, 0, 0),
                           (0, c, s),
                           (0, -s, c)))
     else:
         x, y, z = axis
-        w = cos(angle / 2)
+        w = np.cos(angle / 2)
 
         # normalize
         if w == 1:
             x = y = z = 0
         else:
-            l = sqrt((x * x + y * y + z * z) / (1 - w * w))
+            l = np.sqrt((x * x + y * y + z * z) / (1 - w * w))
             x /= l
             y /= l
             z /= l
@@ -753,16 +751,14 @@ def angle_axis(matrix, unit=None):
     """
     # TODO: This doesn't handle arrays of angles
 
-    from numpy import sin, cos, acos, degrees, sqrt
-
     m = np.asmatrix(matrix)
     if m.shape != (3, 3):
         raise ValueError('matrix is not 3x3')
 
-    angle = acos((m[0, 0] + m[1, 1] + m[2, 2] - 1) / 2)
-    denom = sqrt(2 * ((m[2, 1] - m[1, 2]) + (m[0, 2] - m[2, 0]) + (m[1, 0] - m[0, 1])))
+    angle = np.acos((m[0, 0] + m[1, 1] + m[2, 2] - 1) / 2)
+    denom = np.sqrt(2 * ((m[2, 1] - m[1, 2]) + (m[0, 2] - m[2, 0]) + (m[1, 0] - m[0, 1])))
     axis = np.array((m[2, 1] - m[1, 2], m[0, 2] - m[2, 0], m[1, 0] - m[0, 1])) / denom
-    axis /= sqrt(np.sum(axis ** 2))
+    axis /= np.sqrt(np.sum(axis ** 2))
 
     angle = Angle(angle, u.radian)
     if unit is None:

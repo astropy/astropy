@@ -3,6 +3,9 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import io
+import os
+import shutil
+import sys
 
 try:
     # used by test_get_config_items
@@ -24,7 +27,6 @@ def test_paths():
 
 def test_config_file():
     from ..configuration import get_config, reload_config, save_config
-    from os.path import exists
 
     apycfg = get_config('astropy')
     assert apycfg.filename.endswith('astropy.cfg')
@@ -38,7 +40,7 @@ def test_config_file():
 
     # saving shouldn't change the file, because reload should have made sure it
     # is based on the current file.  But don't do it if there's no file
-    if exists(apycfg.filename):
+    if os.path.exists(apycfg.filename):
         save_config('astropy')
 
 
@@ -71,7 +73,6 @@ def test_configitem():
 
 def test_configitem_save(tmpdir):
     from ..configuration import ConfigurationItem, get_config
-    from shutil import copy
 
     ci = ConfigurationItem('tstnm2', 42, 'this is another Description')
     apycfg = get_config(ci.module)
@@ -94,7 +95,7 @@ def test_configitem_save(tmpdir):
         # We had used LocalPath's `copy` method here, but it copies
         # the file in TEXT mode, destroying newlines on Windows.  We
         # need to do a binary copy.
-        copy(tmpdir.join('astropy.cfg').strpath,
+        shutil.copy(tmpdir.join('astropy.cfg').strpath,
              tmpdir.join('astropy.cfg2').strpath)
         # tmpdir.join('astropy.cfg').copy(tmpdir.join('astropy.cfg2'))
         apycfg.filename = tmpdir.join('astropy.cfg2').realpath().strpath
@@ -221,7 +222,6 @@ def test_get_config_items():
     """ Checks if the get_config_items function is working correctly, using
     `ConfigurationItem` objects from this module.
     """
-    import sys
 
     from ..configuration import get_config_items
 

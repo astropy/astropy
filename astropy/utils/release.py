@@ -7,6 +7,11 @@ of Astropy.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import io
+import os
+import re
+import sys
+
 
 def prereleaser_middle(data):
     """
@@ -32,9 +37,6 @@ def releaser_middle(data):
 
     if data['name'] != 'astropy':
         return
-
-    import os
-    import sys
 
     from zest.releaser.git import Git
     from zest.releaser.release import Releaser
@@ -70,7 +72,6 @@ def releaser_middle(data):
     # of the version number
     def _my_make_tag(self):
         from zest.releaser import utils
-        from os import system
 
         if self.data['tag_already_exists']:
             return
@@ -82,7 +83,7 @@ def releaser_middle(data):
         for cmd in cmds:
             print(cmd)
             if utils.ask("Run this command"):
-                print(system(cmd))
+                print(os.system(cmd))
             else:
                 # all commands are needed in order to proceed normally
                 print("Please create a tag for %s yourself and rerun." % \
@@ -126,9 +127,6 @@ def postreleaser_middle(data):
 
 
 def _update_setup_py_version(version):
-    import re
-    import io
-
     pattern = re.compile(r'^VERSION\s*=\s*[\'"]{1,3}')
     output = io.StringIO()
     with open('setup.py') as setup_py:

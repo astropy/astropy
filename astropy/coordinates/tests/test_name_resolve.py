@@ -6,21 +6,20 @@ This module contains tests for the name resolve convenience module.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ...extern.six.moves import urllib
 
 import time
 
 import numpy as np
-from ...tests.helper import pytest
 
-from ..name_resolve import get_icrs_coordinates, NameResolveError, \
-                           SESAME_DATABASE, _parse_response
+from ..name_resolve import (get_icrs_coordinates, NameResolveError,
+                            SESAME_DATABASE, _parse_response)
 from ..builtin_systems import ICRS
-from ...tests.helper import remote_data
+from ...extern.six.moves import urllib
+from ...tests.helper import remote_data, pytest
 from ... import units as u
 
 _cached_ngc3642 = dict()
-_cached_ngc3642["simbad"] = """# ngc 3642	#Q22523669
+_cached_ngc3642["simbad"] = """# ngc 3642    #Q22523669
 #=S=Simbad (via url):    1
 %@ 503952
 %I.0 NGC 3642
@@ -35,7 +34,7 @@ _cached_ngc3642["simbad"] = """# ngc 3642	#Q22523669
 
 #====Done (2013-Feb-12,16:37:11z)===="""
 
-_cached_ngc3642["vizier"] = """# ngc 3642	#Q22523677
+_cached_ngc3642["vizier"] = """# ngc 3642    #Q22523677
 #=V=VizieR (local):    1
 %J 170.56 +59.08 = 11:22.2     +59:05
 %I.0 {NGC} 3642
@@ -44,7 +43,7 @@ _cached_ngc3642["vizier"] = """# ngc 3642	#Q22523677
 
 #====Done (2013-Feb-12,16:37:42z)===="""
 
-_cached_ngc3642["all"] = """# ngc3642	#Q22523722
+_cached_ngc3642["all"] = """# ngc3642    #Q22523722
 #=S=Simbad (via url):    1
 %@ 503952
 %I.0 NGC 3642
@@ -67,7 +66,7 @@ _cached_ngc3642["all"] = """# ngc3642	#Q22523722
 #====Done (2013-Feb-12,16:39:48z)===="""
 
 _cached_castor = dict()
-_cached_castor["all"] = """# castor	#Q22524249
+_cached_castor["all"] = """# castor    #Q22524249
 #=S=Simbad (via url):    1
 %@ 983633
 %I.0 NAME CASTOR
@@ -89,7 +88,7 @@ _cached_castor["all"] = """# castor	#Q22524249
 
 #====Done (2013-Feb-12,16:52:02z)===="""
 
-_cached_castor["simbad"] = """# castor	#Q22524495
+_cached_castor["simbad"] = """# castor    #Q22524495
 #=S=Simbad (via url):    1
 %@ 983633
 %I.0 NAME CASTOR

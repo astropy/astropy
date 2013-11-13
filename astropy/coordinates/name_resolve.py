@@ -13,13 +13,13 @@ from __future__ import (absolute_import, division, print_function,
 # Standard library
 import os
 import re
-from ..extern.six.moves import urllib
 import socket
 
 # Astropy
 from ..config import ConfigurationItem
-from .builtin_systems import ICRS
+from ..extern.six.moves import urllib
 from .. import units as u
+from .builtin_systems import ICRS
 
 __all__ = ["get_icrs_coordinates"]
 

@@ -6,9 +6,6 @@ Utilities for console input and output.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..extern import six
-from ..extern.six.moves import xrange
-
 import codecs
 import locale
 import re
@@ -26,8 +23,6 @@ try:
     _CAN_RESIZE_TERMINAL = True
 except ImportError:
     _CAN_RESIZE_TERMINAL = False
-
-import numpy as np
 
 try:
     get_ipython()
@@ -49,13 +44,16 @@ else:
         stdio = sys
 
 try:
-    import IPython
+    import IPython  # pylint: disable=W0611
     # This is just to set a flag that IPython is installed at all
     _HAVE_IPYTHON = True
 except ImportError:
     _HAVE_IPYTHON = False
 
 from ..config import ConfigurationItem
+from ..extern import six
+from ..extern.six.moves import range
+
 from .misc import deprecated, isiterable
 
 
@@ -244,7 +242,7 @@ def color_print(*args, **kwargs):
 
     write = file.write
     if isatty(file) and USE_COLOR():
-        for i in xrange(0, len(args), 2):
+        for i in range(0, len(args), 2):
             msg = args[i]
             if i + 1 == len(args):
                 color = ''
@@ -264,7 +262,7 @@ def color_print(*args, **kwargs):
 
         write(end)
     else:
-        for i in xrange(0, len(args), 2):
+        for i in range(0, len(args), 2):
             msg = args[i]
             if not IS_PY3 and isinstance(msg, bytes):
                 # Support decoding bytes to unicode on Python 2; use the
@@ -419,7 +417,7 @@ class ProgressBar(six.Iterator):
             except TypeError:
                 raise TypeError("First argument must be int or sequence")
             else:
-                self._items = iter(xrange(self._total))
+                self._items = iter(range(self._total))
 
         self._file = file
         self._start_time = time.time()
@@ -438,6 +436,9 @@ class ProgressBar(six.Iterator):
 
     def _handle_resize(self, signum=None, frame=None):
         if self._should_handle_resize:
+            # Don't import numpy at module level since it may not be
+            # available in all contexts that this module is imported
+            import numpy as np
             data = fcntl.ioctl(self._file, termios.TIOCGWINSZ, '\0' * 8)
             arr = np.fromstring(data, dtype=np.int16)
             terminal_width = arr[1]
@@ -566,7 +567,6 @@ class ProgressBar(six.Iterator):
                     if (i % steps) == 0:
                         bar.update(i)
             else:
-                import multiprocessing
                 p = multiprocessing.Pool()
                 for i, result in enumerate(
                     p.imap_unordered(function, items, steps)):
@@ -691,7 +691,7 @@ class Spinner(object):
             flush()
             yield
 
-            for i in xrange(self._step):
+            for i in range(self._step):
                 yield
 
             index = (index + 1) % len(chars)

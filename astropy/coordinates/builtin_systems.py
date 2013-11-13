@@ -7,6 +7,9 @@ and the conversions between them.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import inspect
+import textwrap
+
 import numpy as np
 
 from ..extern import six
@@ -744,11 +747,10 @@ def _make_transform_graph_docs():
     Generates a string for use with the coordinate package's docstring
     to show the available transforms and coordinate systems
     """
-    from inspect import isclass
-    from textwrap import dedent
 
     from .transformations import master_transform_graph
 
+    isclass = inspect.isclass
     coosys = [item for item in list(six.itervalues(globals()))
               if isclass(item) and issubclass(item, SphericalCoordinatesBase)]
     coosys.remove(SphericalCoordinatesBase)
@@ -774,5 +776,5 @@ def _make_transform_graph_docs():
 
     """
 
-    return dedent(docstr) + '    ' + graphstr.replace('\n', '\n    ')
+    return textwrap.dedent(docstr) + '    ' + graphstr.replace('\n', '\n    ')
 _transform_graph_docs = _make_transform_graph_docs()

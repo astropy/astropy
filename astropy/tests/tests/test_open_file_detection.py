@@ -3,7 +3,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import sys
 
-from ...tests.helper import pytest
 from ...utils.data import get_pkg_data_filename
 
 fd = None

@@ -3,12 +3,14 @@
 from __future__ import print_function, division
 
 # STDLIB
-from collections import defaultdict
-from copy import deepcopy
 import json
+import multiprocessing
 import os
 import time
 import warnings
+
+from collections import defaultdict
+from copy import deepcopy
 
 # THIRD PARTY
 import numpy as np
@@ -221,9 +223,8 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
     all_urls = key_lookup_by_url.keys()
 
     if parallel:
-        from multiprocessing import Pool
         mp_list = []
-        pool = Pool()
+        pool = multiprocessing.Pool()
         mp_proc = pool.map_async(_do_validation, all_urls,
                                  callback=mp_list.append)
         mp_proc.wait()

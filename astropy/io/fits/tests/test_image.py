@@ -10,7 +10,6 @@ import warnings
 import numpy as np
 
 from ....io import fits
-from ....io.fits.verify import VerifyWarning
 from ....tests.helper import pytest, raises, catch_warnings
 from ..hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
 from .test_table import comparerecords
