@@ -662,9 +662,9 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         from .. import version
 
         if version.release:
-            version = u'v' + version.version
+            version = 'v' + version.version
         else:
-            version = u'dev'
+            version = 'dev'
 
     if '://' in version:
         if version.endswith('index.html'):
@@ -702,7 +702,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
         ls = l.split()
         name = ls[0]
         loc = ls[3]
-        if loc.endswith(b'$'):
+        if loc.endswith('$'):
             loc = loc[:-1] + name
 
         if name == obj:
