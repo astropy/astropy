@@ -222,3 +222,5 @@ if not _ASTROPY_SETUP_:
     log = _init_log()
 
     _initialize_astropy()
+
+    from .utils.misc import find_api_page
