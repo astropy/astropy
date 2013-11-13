@@ -23,6 +23,10 @@ New Features
 
     See :ref:`handling-unicode` for more information. [#1441]
 
+    - `astropy.utils.misc.find_api_page` is now imported into the top-level.
+      This allows usage like ``astropy.find_api_page(astropy.units.Quantity)``.
+      [#1779]
+
 - ``astropy.convolution``
 
   - New class-based system for generating kernels, replacing ``make_kernel``.
