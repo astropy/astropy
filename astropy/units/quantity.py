@@ -71,8 +71,9 @@ class Quantity(np.ndarray):
 
     dtype : ~numpy.dtype, optional
         The dtype of the resulting Numpy array or scalar that will
-        hold the value.  If not provided, is is determined
-        automatically from the input value.
+        hold the value.  If not provided, it is determined from the input,
+        except that any input that cannot represent float (integer and bool)
+        is converted to float.
 
     copy : bool, optional
         If `True` (default), then the value is copied.  Otherwise, a copy

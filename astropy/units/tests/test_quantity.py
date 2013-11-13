@@ -78,14 +78,14 @@ class TestQuantityCreation(object):
 
     def test_preserve_dtype(self):
 
-        # If unit is not sepcified, preserve dtype but not for int, bool
+        # If dtype is specified, use it, but if not, convert int, bool to float
         q1 = u.Quantity(12, unit=u.m / u.s, dtype=int)
         assert q1.dtype == int
-        q2 = u.Quantity(q1)
 
+        q2 = u.Quantity(q1)
         assert q2.dtype == float
-        assert float(q1.value) == q2.value
-        assert q1.unit == q2.unit
+        assert q2.value == float(q1.value)
+        assert q2.unit == q1.unit
 
         # but we should preserve float32
         a3 = np.array([1.,2.], dtype=np.float32)
