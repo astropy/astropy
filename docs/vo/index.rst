@@ -4,6 +4,8 @@
 Virtual Observatory Access (``astropy.vo``)
 *******************************************
 
+.. module:: astropy.vo
+
 Introduction
 ============
 

@@ -32,6 +32,7 @@ documentation does not have detailed sections like the other packages.
 
 Reference/API
 =============
+.. module:: astropy.utils
 
 .. automodapi:: astropy.utils.misc
     :no-inheritance-diagram:
