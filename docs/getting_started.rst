@@ -62,7 +62,7 @@ Or, if you want to dive right in, you can either look at docstrings for
 particular a package or object, or access their documentation using the
 `~astropy.utils.misc.find_api_page` function. For example, doing this::
 
-    >>> from astropy.utils import find_api_page
+    >>> from astropy import find_api_page
     >>> from astropy.units import Quantity
     >>> find_api_page(Quantity)  # doctest: +SKIP
 
