@@ -511,13 +511,13 @@ def test_radio_lines_simple():
     assert np.allclose(wm2.to(u.Jy * u.km / u.s, equivalencies=eqv).value,
                        jykms.value, rtol=1e-5)
 
-@pytest.mark.skipif('not HAS_SCIPY')
 def test_radio_lines_simple():
     # Test less simple conversions
 
-    from astropy.cosmology import WMAP9 #rather than use default
     freq_obs = u.Quantity(100.0, u.GHz)
-    eqv = u.radio_lines(freq_obs, 2.5, WMAP9)
+    freq_rest = (1.0 + 2.5) * freq_obs
+    lumdist = u.Quantity(20857.33294, u.Mpc) # WMAP9 to z=2.5
+    eqv = u.radio_lines(freq_obs, freq_rest, lumdist)
     
     # Repeat _simple test first
     jykms = u.Quantity([0.1, 0.3, 2.5], u.Jy * u.km / u.s)
@@ -528,10 +528,6 @@ def test_radio_lines_simple():
     assert np.allclose(wm2.to(u.Jy * u.km / u.s, equivalencies=eqv).value,
                        jykms.value, rtol=1e-6)
 
-    # Now do the complicated ones
-    # Make sure the cosmology is behaving as expected
-    assert np.allclose(WMAP9.luminosity_distance(2.5).value,
-                       20857.33294453443, rtol=1e-6)
 
     # First Kelvin km/s pc2
     kkmspc2 = u.Quantity([3.30249e+09, 9.90747e+09, 8.25623e+10],
@@ -563,23 +559,10 @@ def test_radio_lines_simple():
                                equivalencies=eqv).value,
                        kkmspc2.value, rtol=1e-5)
 
-    # Make sure it accepts lumdist as a quantity
-    ld = u.Quantity(20857.33294453443, u.Mpc)
-    eqv = u.radio_lines(freq_obs, 2.5, ld)
-    assert np.allclose(jykms.to(u.K * u.km * u.pc**2 / u.s, 
-                                equivalencies=eqv).value,
-                       kkmspc2.value, rtol=1e-5)
-    assert np.allclose(kkmspc2.to(u.Jy * u.km / u.s, equivalencies=eqv).value,
-                       jykms.value, rtol=1e-5)
-    assert np.allclose(wm2.to(u.K * u.km * u.pc**2 / u.s, 
-                              equivalencies=eqv).value,
-                       kkmspc2.value, rtol=1e-5)
-    assert np.allclose(kkmspc2.to(u.W / u.m**2, equivalencies=eqv).value,
-                       wm2.value, rtol=1e-5)
-
     # Use wavelength instead of frequency
     lam_obs = u.Quantity(2.997925e-03, u.m)
-    eqv = u.radio_lines(lam_obs, 2.5, ld)
+    lam_rest = lam_obs / (1.0 + 2.5)
+    eqv = u.radio_lines(lam_obs, lam_rest, lumdist)
     assert np.allclose(jykms.to(u.K * u.km * u.pc**2 / u.s, 
                                 equivalencies=eqv).value,
                        kkmspc2.value, rtol=1e-5)
@@ -587,11 +570,12 @@ def test_radio_lines_simple():
                        jykms.value, rtol=1e-5)
     
 
-    # Now make sure they have the right redshift dependence
-    eqv = u.radio_lines(freq_obs, 0.1, WMAP9)
-    assert np.allclose(WMAP9.luminosity_distance(0.1).value,
-                       465.28059, rtol=1e-6)
-    dl2factor = (465.28059 / 20857.33294453443)**2
+    # Now make sure they have the right d_l dependence, going to z=0.1
+    # in a WMAP9 universe
+    freq_rest = freq_obs * (1 + 0.1)
+    lumdist_new = u.Quantity(465.28059, u.Mpc)
+    eqv = u.radio_lines(freq_obs, freq_rest, lumdist_new)
+    dl2factor = (lumdist_new.value / lumdist.value)**2
     kkmspc2 *= dl2factor * ((1 + 2.5) / (1 + 0.1))**3
     lsun *= dl2factor
     assert np.allclose(jykms.to(u.K * u.km * u.pc**2 / u.s, 
@@ -611,7 +595,8 @@ def test_radio_lines_simple():
 
     # And frequency dependence
     freq_obs *= 1e-2 # Drop by a factor of 100
-    eqv = u.radio_lines(freq_obs, 0.1, WMAP9)
+    freq_rest *= 1e-2
+    eqv = u.radio_lines(freq_obs, freq_rest, lumdist_new)
     wm2 *= 1e-2
     assert np.allclose(jykms.to(u.W / u.m**2, equivalencies=eqv).value,
                        wm2.value, rtol=1e-6)

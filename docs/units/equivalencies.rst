@@ -203,11 +203,11 @@ requires the beam area and frequency as arguments.  Example::
 
 Radio line-strength units
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-The strength of lines are frequently reported in units like Jy km/sec,
-solar luminosities, or K km/sec pc^2.  It is possible to convert the first
-into base units such as W/m^2 given the observed frequency, and to
-convert between the others given a redshift, observed frequency, and
-luminosity distance.
+The strength of lines in far-IR through radio astronomy are frequently
+reported in units like Jy km/sec, and K km/sec pc^2, and solar
+luminosities.  It is possible to convert the first into base units
+such as W/m^2 given the observed frequency, and to convert between the
+others given the luminosity distance and rest frame frequency.
 
 :func:`~astropy.units.equivalencies.radio_lines_simple` provides
 and equivalency list for converting between Jy km/sec and W/m^2.
@@ -219,37 +219,17 @@ and equivalency list for converting between Jy km/sec and W/m^2.
 
 :func:`~astropy.units.equivalencies.radio_lines` is similar, but supports
 the more complicated transformations that depend on the luminosity distance.
-There are two options for specifying the luminosity distance: either providing
-it directly, or by providing a cosmological model (which is an
-`~astropy.cosmology.FLRW` subclass instance).  Please see the 
-`astropy.cosmology` documentation for further details of the latter.
+Here we consider the 12CO J=4-3 line for Arp 220:
 
-Here we use one of the built in cosmologies, corresponding to the WMAP9
-parameters:
-
-   >>>from astropy.cosmology import WMAP9
-   >>>freq_obs = u.Quantity(100.0, u.GHz)
-   >>>z = 2.3
-   >>>eqv = u.radio_lines(freq_obs, z, WMAP9)
-   >>>jykms = u.Quantity(0.02, u.Jy * u.km / u.s)
-   >>>jykms.to(u.W / u.m**2, equivalencies=eqv)
-   <Quantity 6.671281903963041e-23 W / m2>
-   >>>jykms.to(u.solLum, equivalencies=eqv)
-   <Quantity 736719.60... solLum>
-   >>>jykms.to(u.K * u.km / u.s * u.pc**2, equivalencies=eqv)
-   <Quantity 642995045.0841682 K km pc2 / s>
-
-Alternatively, we can just provide the luminosity distance directly.
-Note that you still have to provide the redshift and observed
-frequency!
-
-   >>>dl = u.Quantity(77, u.Mpc) # Arp 220
-   >>>z = 0.0181
-   >>>I0 = u.Quantity(4550.0, u.Jy * u.km / u.s) # 12CO J(4-3)
-   >>>freq_obs = u.Quantity(461.040777, u.GHz) / (1 + z)
-   >>>eqv = u.radio_lines(freq_obs, z, dl)
-   >>>I0.to(u.solLum, equivalencies=eqv)
-   <Quantity 12677181.835370954 solLum>
+   >>>freq_rest = 461.041 * u.GHz
+   >>>freq_obs = 452.844 * u.GHz
+   >>>dl = 77 * u.Mpc
+   >>>eqv = u.radio_lines(freq_obs, freq_rest, dl)
+   >>>I0 = 4550.0 * u.Jy * u.km / u.s
+   >>>I0.to(u.W / u.m**2, equivalencies=eqv) # doctest
+   <Quantity 12677181.835... solLum>
+   >>>I0.to(u.K * u.km / u.s * u.pc**2, equivalencies=eqv)
+   <Quantity 4057429753.83 K km pc2 / s>
 
 Writing new equivalencies
 -------------------------

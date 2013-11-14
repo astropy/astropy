@@ -445,11 +445,6 @@ def radio_lines_simple(disp_obs):
     disp_obs : `Quantity` with spectral units
         The `spectral` equivalent `Unit` (e.g., frequency or
         wavelength) in the observer frame.
-
-    Notes
-    -----
-      This is a less-capable version of `radio_lines`, but does not
-      require a redshift or cosmology.
     """
     
     if not disp_obs.isscalar:
@@ -461,15 +456,14 @@ def radio_lines_simple(disp_obs):
              lambda x: c_si * x * 1e23 / fobs)]
     
 
-def radio_lines(disp_obs, redshift, lumdist=None):
+def radio_lines(disp_obs, disp_rest, lumdist):
     """
     Returns a list of equivalence pairs between observational
     and non-observational line strength units in astronomy.
 
     Observationally, line units are typically reported in Jy km/s.
     These are often converted to either solar luminosities or
-    K km/s pc^2 by assuming a cosmological model.  These equivalencies
-    allow the user to go between these pairs.
+    K km/s pc^2.  These equivalencies allow the user to go between these pairs.
 
     Parameters
     ----------
@@ -477,20 +471,12 @@ def radio_lines(disp_obs, redshift, lumdist=None):
         The `spectral` equivalent `Unit` (e.g., frequency or
         wavelength) in the observer frame.
 
-    redshift : float
-      Redshift of the object
+    disp_rest : `Quantity` with spectral units
+        The `spectral` equivalent `Unit` (e.g., frequency or
+        wavelength) in the rest frame.
 
-    lumdist : `Quantity` with units of distance or instance `FLRW` derived class
-      Either the luminosity distance to the object, or a cosmological
-      object that can compute the luminosity distance.  If None, than
-      the default cosmology is used.
-
-    Notes
-    -----
-      This is a more capable version of `radio_lines_simple`, but at
-      the price of requiring additional cosmological information.  If you
-      just want to convert between W/m^2 and Jy km/s, you can use
-      `radio_lines_simple`.
+    lumdist : `Quantity` with units of distance
+        The luminosity distance to the source
     """
 
     # The conversion from Jy km/s to W/m^2 is
@@ -519,30 +505,18 @@ def radio_lines(disp_obs, redshift, lumdist=None):
     # but they can be worked out by hand in terms of fundamental constants 
     # and unit conversions.
 
-    import astropy.cosmology
-
+    speceqv = spectral() # Spectral equivalency
     if not disp_obs.isscalar:
         raise ValueError("disp_obs must be scalar")
-    fobs = disp_obs.to(si.Hz, equivalencies=spectral()).value
+    fobs = disp_obs.to(si.Hz, equivalencies=speceqv).value
+    if not disp_rest.isscalar:
+        raise ValueError("disp_rest must be scalar")
+    frest = disp_rest.to(si.Hz, equivalencies=speceqv).value
+    opz = frest / fobs
 
-    z = float(redshift)
-    opz = 1.0 + z
-    frest = fobs * opz
-
-    if lumdist is None:
-        # Use default cosmology
-        dl = astropy.cosmology.luminosity_distance(z)
-    else:
-        try:
-            # See if it behaves like a cosmology object
-            dl = lumdist.luminosity_distance(z)
-        except AttributeError:
-            # Oops, quantity, not cosmology
-            dl = lumdist.to(astrophys.Mpc)
-            if not dl.isscalar:
-                raise ValueError("User provided luminosity distance "
-                                 "must be scalar")
-
+    dl = lumdist.to(astrophys.Mpc)
+    if not dl.isscalar:
+        raise ValueError("User provided luminosity distance must be scalar")
     if dl.value <= 0.0:
         raise ValueError("Invalid (non-positive) luminosity distance")
 
