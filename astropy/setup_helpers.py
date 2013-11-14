@@ -924,7 +924,7 @@ if HAVE_SPHINX:
                     log.warn(msg)
 
             else:
-                proc = Popen([sys.executable], stdin=PIPE)
+                proc = subprocess.Popen([sys.executable], stdin=PIPE)
                 proc.communicate(subproccode.encode('utf-8'))
 
             if proc.returncode == 0:
