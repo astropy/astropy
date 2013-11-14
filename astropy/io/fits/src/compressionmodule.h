@@ -33,6 +33,10 @@
     #if CFITSIO_MINOR >= 35
         #define CFITSIO_SUPPORTS_Q_FORMAT_COMPRESSION
         #define CFITSIO_SUPPORTS_SUBTRACTIVE_DITHER_2
+    #else
+        /* This constant isn't defined in older versions and has a different */
+        /* value anyways. */
+        #define NO_DITHER 0
     #endif
     #if CFITSIO_MINOR >= 28
         #define CFITSIO_SUPPORTS_GZIPDATA
