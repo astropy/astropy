@@ -131,8 +131,23 @@ class _ModelMeta(abc.ABCMeta):
 
     def __new__(mcls, name, bases, members):
         param_names = members.get('param_names', [])
-        parameters = dict((value.name, value) for value in members.values()
-                          if isinstance(value, Parameter))
+        parameters = {}
+        for key, value in members.items():
+            if not isinstance(value, Parameter):
+                continue
+            if not value.name:
+                # Name not explicitly given in the constructor; add the name
+                # automatically via the attribute name
+                value._name = key
+                value._attr = '_' + key
+            if value.name != key:
+                raise ModelDefinitionError(
+                    "Parameters must be defined with the same name as the "
+                    "class attribute they are assigned to.  Parameters may "
+                    "take their name from the class attribute automatically "
+                    "if the name argument is not given when initializing "
+                    "them.")
+            parameters[value.name] = value
 
         # If no parameters were defined get out early--this is especially
         # important for PolynomialModels which take a different approach to

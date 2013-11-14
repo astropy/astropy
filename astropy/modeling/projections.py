@@ -89,8 +89,8 @@ class Pix2Sky_AZP(Zenithal):
             raise ValueError("AZP projection is not defined for mu=-1")
         return mu
 
-    mu = Parameter('mu', setter=_validate_mu)
-    gamma = Parameter('gamma', getter=np.rad2deg, setter=np.deg2rad)
+    mu = Parameter(setter=_validate_mu)
+    gamma = Parameter(getter=np.rad2deg, setter=np.deg2rad)
 
     def __init__(self, mu=0.0, gamma=0.0):
         self.check_mu(mu)
@@ -154,8 +154,8 @@ class Sky2Pix_AZP(Zenithal):
             raise ValueError("AZP projection is not defined for mu=-1")
         return mu
 
-    mu = Parameter('mu', setter=_validate_mu)
-    gamma = Parameter('gamma', getter=np.rad2deg, setter=np.deg2rad)
+    mu = Parameter(setter=_validate_mu)
+    gamma = Parameter(getter=np.rad2deg, setter=np.deg2rad)
 
     def __init__(self, mu=0.0, gamma=0.0):
         super(Sky2Pix_AZP, self).__init__()
@@ -342,8 +342,8 @@ class Pix2Sky_CYP(Cylindrical):
             pass
         return lam
 
-    mu = Parameter('mu', setter=_validate_mu)
-    lam = Parameter('lam', setter=_validate_lam)
+    mu = Parameter(setter=_validate_mu)
+    lam = Parameter(setter=_validate_lam)
 
     def __init__(self, mu, lam):
         super(Pix2Sky_CYP, self).__init__()
@@ -387,8 +387,8 @@ class Sky2Pix_CYP(Cylindrical):
             pass
         return lam
 
-    mu = Parameter('mu', setter=_validate_mu)
-    lam = Parameter('lam', setter=_validate_lam)
+    mu = Parameter(setter=_validate_mu)
+    lam = Parameter(setter=_validate_lam)
 
     def __init__(self, mu, lam):
         super(Sky2Pix_CYP, self).__init__()
@@ -411,7 +411,7 @@ class Pix2Sky_CEA(Cylindrical):
     CEA : Cylindrical equal area projection - pixel to sky.
     """
 
-    lam = Parameter('lam')
+    lam = Parameter()
 
     def __init__(self, lam=1):
         super(Pix2Sky_CEA, self).__init__()
@@ -431,7 +431,7 @@ class Sky2Pix_CEA(Cylindrical):
     CEA: Cylindrical equal area projection - sky to pixel.
     """
 
-    lam = Parameter('lam')
+    lam = Parameter()
 
     def __init__(self, lam=1):
         super(Sky2Pix_CEA, self).__init__()

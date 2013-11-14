@@ -42,9 +42,9 @@ class EulerAngleRotation(Model):
 
     n_inputs = 2
     n_outputs = 2
-    phi = Parameter('phi', getter=np.rad2deg, setter=np.deg2rad)
-    theta = Parameter('theta', getter=np.rad2deg, setter=np.deg2rad)
-    psi = Parameter('psi', getter=np.rad2deg, setter=np.deg2rad)
+    phi = Parameter(getter=np.rad2deg, setter=np.deg2rad)
+    theta = Parameter(getter=np.rad2deg, setter=np.deg2rad)
+    psi = Parameter(getter=np.rad2deg, setter=np.deg2rad)
 
     def __init__(self, phi, theta, psi):
         super(EulerAngleRotation, self).__init__()
@@ -172,8 +172,8 @@ class MatrixRotation2D(Model):
     n_inputs = 2
     n_outputs = 2
 
-    angle = Parameter('angle', getter=np.rad2deg, setter=_validate_angle)
-    matrix = Parameter('matrix', setter=_validate_matrix)
+    angle = Parameter(getter=np.rad2deg, setter=_validate_angle)
+    matrix = Parameter(setter=_validate_matrix)
 
     def __init__(self, matrix=None, angle=None):
         if matrix is None and angle is None:
