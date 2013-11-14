@@ -158,6 +158,44 @@ class Quantity(np.ndarray):
 
         return value
 
+    @classmethod
+    def from_unit(cls, unit):
+        """Convert a Unit (string) to a Quantity
+
+        Parameters
+        ----------
+        unit : `~astropy.units.Unit` instance or anything that instantiates it
+        """
+        unit = Unit(unit)
+        value = unit.scale
+        if value != 1.:
+            unit._scale = 1.
+        return cls(value, unit)
+
+    # As is, u.Quantity.from_string(q.__str__()) works for single numbers.
+    # __str__ does not write complete arrays, but if we define a to_string
+    # method that does, this should be able to read it
+    @classmethod
+    def from_string(cls, string, format=None):
+        """Convert a string to a Quantity
+
+        This works by parsing string as a Unit, and then taking the scale as
+        the value, and the remainder as a unit.  Hence, only a single value
+        can be given (e.g., '10 km/s').
+
+        Parameters
+        ----------
+        string : str
+            input string
+        format : str or None
+            possible format as understood by `~astropy.units.Unit`.  E.g.,
+            'generic', 'fits'.  Default is None, corresponding to 'generic'
+        """
+        if not isinstance(string, six.string_types):
+            raise ValueError('Expect string input')
+
+        return cls.from_unit(Unit(string, format=format))
+
     def __array_finalize__(self, obj):
         if isinstance(obj, Quantity):
             self._unit = obj._unit

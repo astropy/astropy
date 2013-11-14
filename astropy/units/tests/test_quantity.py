@@ -856,7 +856,7 @@ def test_quantity_pickelability():
     assert q1.unit == q2.unit
 
 
-def test_quantity_from_unit():
+def test_quantity_initialisation_from_unit():
     q = u.Quantity(u.m)
     assert q.unit == u.m
     assert q.value == 1.
@@ -879,7 +879,27 @@ def test_quantity_from_unit():
     assert u.Unit(q) == u.Unit('1.5 m/s')
 
 
+def test_quantity_from_unit():
+    q = u.Quantity.from_unit(u.m)
+    assert q.unit is u.m  # unscaled units should be passed on directly
+    assert q.value == 1.
+    q = u.Quantity.from_unit(u.Unit('15. m/s'))
+    assert q.unit == u.m/u.s
+    assert q.value == 15.
+    q = u.Quantity.from_unit('1.5 m/s')
+    assert q.unit == u.m/u.s
+    assert q.value == 1.5
+
+
 def test_quantity_from_string():
+    q = u.Quantity.from_string('15 m/s')
+    assert q.unit == u.m/u.s
+    assert q.value == 15.
+    with pytest.raises(ValueError):
+        u.Quantity.from_string(u.m)
+
+
+def test_quantity_string_value_invalid():
     with pytest.raises(TypeError):
         q = u.Quantity('5', u.m)
 
