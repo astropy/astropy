@@ -92,6 +92,15 @@ The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the
 option to :ref:`set default equivalencies <equivalency-context>`.
 
+Mass-Energy
+^^^^^^^^^^^
+:func:`~astropy.units.equivalencies.mass_energy` is a function that
+returns an equivalency list to handle conversions between (rest) mass
+and energy.
+
+  >>>u.Quantity(1e-6, u.pg)to(u.erg, equivalencies=u.mass_energy()) # doctest
+  <Quantity 898.7551787... erg> 
+
 Spectral Units
 ^^^^^^^^^^^^^^
 
@@ -191,6 +200,36 @@ requires the beam area and frequency as arguments.  Example::
     >>> freq = 5 * u.GHz
     >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
     7.052588858...
+
+Radio line-strength units
+^^^^^^^^^^^^^^^^^^^^^^^^^
+The strength of lines in far-IR through radio astronomy are frequently
+reported in units like Jy km/sec, and K km/sec pc^2, and solar
+luminosities.  It is possible to convert the first into base units
+such as W/m^2 given the observed frequency, and to convert between the
+others given the luminosity distance and rest frame frequency.
+
+:func:`~astropy.units.equivalencies.radio_lines_simple` provides
+and equivalency list for converting between Jy km/sec and W/m^2.
+
+   >>>jykms = u.Quantity(11.4, u.Jy * u.km / u.s)
+   >>>obs_freq = u.Quantity(1.4, u.GHz)
+   >>>jykms.to(u.W / u.m**2, equivalencies=u.radio_lines_simple(obs_freq)) # doctest
+   <Quantity 5.32368...e-22 W / m2>
+
+:func:`~astropy.units.equivalencies.radio_lines` is similar, but supports
+the more complicated transformations that depend on the luminosity distance.
+Here we consider the 12CO J=4-3 line for Arp 220:
+
+   >>>freq_rest = 461.041 * u.GHz
+   >>>freq_obs = 452.844 * u.GHz
+   >>>dl = 77 * u.Mpc
+   >>>eqv = u.radio_lines(freq_obs, freq_rest, dl)
+   >>>I0 = 4550.0 * u.Jy * u.km / u.s
+   >>>I0.to(u.W / u.m**2, equivalencies=eqv) # doctest
+   <Quantity 12677181.835... solLum>
+   >>>I0.to(u.K * u.km / u.s * u.pc**2, equivalencies=eqv)
+   <Quantity 4057429753.83 K km pc2 / s>
 
 Writing new equivalencies
 -------------------------
