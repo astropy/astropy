@@ -900,7 +900,7 @@ def test_quantity_from_string():
 
 
 def test_quantity_string_value_invalid():
-    with pytest.raises(TypeError):
+    with pytest.raises(u.UnitsError):
         q = u.Quantity('5', u.m)
 
     with pytest.raises(TypeError):
