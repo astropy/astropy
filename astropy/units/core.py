@@ -1685,13 +1685,15 @@ class _UnitMetaClass(type):
                 represents = represents.unit
             else:
                 represents = CompositeUnit(represents.value,
-                                           bases=[represents.unit], powers=[1])
+                                           bases=[represents.unit], powers=[1],
+                                           _error_check=False)
 
         if isinstance(s, Quantity):
             if is_effectively_unity(s.value):
                 s = s.unit
             else:
-                s = CompositeUnit(s.value, bases=[s.unit], powers=[1])
+                s = CompositeUnit(s.value, bases=[s.unit], powers=[1],
+                                  _error_check=False)
 
         # now decide what we really need to do; define derived Unit?
         if isinstance(represents, UnitBase):
