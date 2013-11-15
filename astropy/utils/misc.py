@@ -162,9 +162,10 @@ def find_mod_objs(modname, onlylocals=False):
     ----------
     modname : str
         The name of the module to search.
-    onlylocals : bool
+    onlylocals : bool or list of str
         If True, only attributes that are either members of `modname` OR one of
-        its modules or subpackages will be included.
+        its modules or subpackages will be included. If it is a list of strings,
+        those specify the possible packages that will be considered "local".
 
     Returns
     -------
@@ -205,7 +206,9 @@ def find_mod_objs(modname, onlylocals=False):
             fqnames.append(modname + '.' + lnm)
 
     if onlylocals:
-        valids = [fqn.startswith(modname) for fqn in fqnames]
+        if onlylocals is True:
+            onlylocals = [modname]
+        valids = [any([fqn.startswith(nm) for nm in onlylocals]) for fqn in fqnames]
         localnames = [e for i, e in enumerate(localnames) if valids[i]]
         fqnames = [e for i, e in enumerate(fqnames) if valids[i]]
         objs = [e for i, e in enumerate(objs) if valids[i]]

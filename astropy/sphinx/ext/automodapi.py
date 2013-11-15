@@ -41,6 +41,13 @@ It accepts the following options:
     * ``:no-heading:``
         If specified do not create a top level heading for the section.
 
+    * ``:valid-package-names: str``
+        If present, specifies a comma-seperated last of package names that
+        should be considered valid for the *real* names of the objects (as
+        opposed to their name within the package).  If not given, only objects
+        that are actually in a subpackage of the package currently being
+        documented are included.
+
 This extension also adds two sphinx configuration options:
 
 * `automodapi_toctreedirnm`
@@ -85,6 +92,7 @@ Classes
 .. automodsumm:: {modname}
     :classes-only:
     {toctree}
+    {vpkgnms}
     {skips}
 """
 
@@ -95,6 +103,7 @@ Functions
 .. automodsumm:: {modname}
     :functions-only:
     {toctree}
+    {vpkgnms}
     {skips}
 """
 
@@ -105,6 +114,7 @@ Class Inheritance Diagram
 .. automod-diagram:: {modname}
     :private-bases:
     :parts: 1
+    {vpkgnms}
 """
 
 _automodapirex = re.compile(r'^(?:\s*\.\.\s+automodapi::\s*)([A-Za-z0-9_.]+)'
@@ -181,6 +191,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
             toskip = []
             inhdiag = maindocstr = top_head = True
             hds = '-^'
+            vpkgnms = ''
 
             # look for actual options
             unknownops = []
@@ -195,6 +206,8 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                     hds = args
                 elif opname == 'no-heading':
                     top_head = False
+                elif opname == 'valid-package-names':
+                    vpkgnms = ':valid-package-names:' + args
                 else:
                     unknownops.append(opname)
 
@@ -227,22 +240,35 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                     pkgormodhds=h1 * (8 if ispkg else 7),
                     automoduleline=automodline))
 
+            newstrs.append(automod_templ_modheader.format(
+                modname=modnm,
+                modhds=h1 * len(modnm),
+                pkgormod='Package' if ispkg else 'Module',
+                pkgormodhds=h1 * (8 if ispkg else 7),
+                automoduleline=automodline))
+
             if hasfuncs:
-                newstrs.append(automod_templ_funcs.format(modname=modnm,
+                newstrs.append(automod_templ_funcs.format(
+                    modname=modnm,
                     funchds=h2 * 9,
                     toctree=toctreestr,
-                    skips=':skip: ' + ','.join(toskip) if toskip else ''))
+                    skips=':skip: ' + ','.join(toskip) if toskip else '',
+                    vpkgnms=vpkgnms))
 
             if hascls:
-                newstrs.append(automod_templ_classes.format(modname=modnm,
+                newstrs.append(automod_templ_classes.format(
+                    modname=modnm,
                     clshds=h2 * 7,
                     toctree=toctreestr,
-                    skips=':skip: ' + ','.join(toskip) if toskip else ''))
+                    skips=':skip: ' + ','.join(toskip) if toskip else '',
+                    vpkgnms=vpkgnms))
 
             if inhdiag and hascls:
                 # add inheritance diagram if any classes are in the module
                 newstrs.append(automod_templ_inh.format(
-                    modname=modnm, clsinhsechds=h2 * 25))
+                    modname=modnm,
+                    clsinhsechds=h2 * 25,
+                    vpkgnms=vpkgnms))
 
             newstrs.append(spl[grp * 3 + 3])
 
