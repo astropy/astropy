@@ -16,7 +16,7 @@ import numbers
 import numpy as np
 
 from ..utils import isiterable
-
+from .. import units as u
 
 __all__ = ['Parameter', 'InputParameterError']
 
@@ -27,7 +27,6 @@ class InputParameterError(ValueError):
 
 def _tofloat(value):
     """Convert a parameter to float or float array"""
-
     if isiterable(value):
         try:
             value = np.array(value, dtype=np.float)
@@ -104,13 +103,15 @@ class Parameter(object):
     # See the _nextid classmethod
     _nextid = 1
 
-    def __init__(self, name, description='', default=None, getter=None,
-                 setter=None, fixed=False, tied=False, min=None, max=None,
-                 model=None):
+    def __init__(self, name, description='', default=None, default_unit=None, 
+                 unit_equivalencies=[], getter=None, setter=None, fixed=False,
+                 tied=False, min=None, max=None, model=None):
         super(Parameter, self).__init__()
         self._name = name
         self.__doc__ = description.strip()
         self._default = default
+        self._default_unit = default_unit
+        self._unit_equivalencies = unit_equivalencies[:]
         self._attr = '_' + name
 
         self._default_fixed = fixed
@@ -147,16 +148,18 @@ class Parameter(object):
             # and ordering ID
             self._order = self._get_nextid()
 
-
     def __get__(self, obj, objtype):
         if obj is None:
             return self
 
         return self.__class__(self._name, default=self._default,
+                              default_unit= self._default_unit,
+                              unit_equivalencies=self._unit_equivalencies,
                               getter=self._getter,
                               setter=self._setter, model=obj)
 
     def __set__(self, obj, value):
+        
         value, shape = self._validate_value(obj, value)
         # Compare the shape against the previous value's shape, if it exists
         if hasattr(obj, self._attr):
@@ -186,6 +189,18 @@ class Parameter(object):
         return value[key]
 
     def __setitem__(self, key, value):
+        
+        if isinstance(value, u.Quantity):
+            if self._default_unit is None and value.unit is not None:
+                raise u.UnitsError("Parameter {0} does not have units defined".format(self._name))
+            elif value.unit != self._default_unit:
+                try:
+                    with u.set_enabled_equivalencies(self._unit_equivalencies):
+                        value = value.to(self._default_unit)
+                except u.UnitsError:
+                    raise u.UnitsError("Unable to convert units of parameter {0}".format(self._name))
+            value = value.value
+        
         # Get the existing value and check whether it even makes sense to
         # apply this index
         oldvalue = self.value
@@ -413,6 +428,17 @@ class Parameter(object):
     def _validate_value(self, model, value):
         if model is None:
             return
+        
+        if isinstance(value, u.Quantity):
+            if self._default_unit is None and value.unit is not None:
+                raise u.UnitsError("Parameter {0} does not have units defined".format(self._name))
+            elif value.unit != self._default_unit:
+                try:
+                    with u.set_enabled_equivalencies(self._unit_equivalencies):
+                        value = value.to(self._default_unit)
+                except u.UnitsError:
+                    raise u.UnitsError("Unable to convert units of parameter {0}".format(self._name))
+            value = value.value
 
         param_dim = model.param_dim
         if param_dim == 1:
@@ -458,7 +484,7 @@ class Parameter(object):
             else:
                 raise TypeError("Parameter getter/setter must be a function "
                                 "of either one or two arguments")
-
+        print 'wrapper', wrapper
         return wrapper
 
     def __add__(self, val):

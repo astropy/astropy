@@ -19,6 +19,7 @@ from __future__ import division
 
 import numpy as np
 
+from .. import units as u
 from .core import Model
 from .parameters import Parameter
 
@@ -89,13 +90,13 @@ class Pix2Sky_AZP(Zenithal):
         return mu
 
     mu = Parameter('mu', setter=_validate_mu)
-    gamma = Parameter('gamma', getter=np.rad2deg, setter=np.deg2rad)
+    gamma = Parameter('gamma', getter=np.rad2deg, setter=np.deg2rad, default_unit=u.deg)
 
-    def __init__(self, mu=0.0, gamma=0.0):
+    def __init__(self, mu, gamma):
         self.check_mu(mu)
         # units : mu - in spherical radii, gamma - in deg
         # TODO: Support quantity objects here and in similar contexts
-        super(Pix2Sky_AZP, self).__init__()
+        super(Pix2Sky_AZP, self).__init__(param_dim=1)
         self.mu = mu
         self.gamma = gamma
 
@@ -154,9 +155,9 @@ class Sky2Pix_AZP(Zenithal):
         return mu
 
     mu = Parameter('mu', setter=_validate_mu)
-    gamma = Parameter('gamma', getter=np.rad2deg, setter=np.deg2rad)
+    gamma = Parameter('gamma', getter=np.rad2deg, setter=np.deg2rad, default_unit=u.deg)
 
-    def __init__(self, mu=0.0, gamma=0.0):
+    def __init__(self, mu=0., gamma=0.):
         super(Sky2Pix_AZP, self).__init__()
         self.mu = mu
         self.gamma = gamma

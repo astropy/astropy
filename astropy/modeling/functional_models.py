@@ -88,10 +88,11 @@ class Gaussian1D(Parametric1DModel):
     --------
     Gaussian2D, Box1D, Beta1D, Lorentz1D
     """
-
-    amplitude = Parameter('amplitude')
+    from .. import units as u
+    amplitude = Parameter('amplitude', default_unit='m/s')
     mean = Parameter('mean')
     stddev = Parameter('stddev')
+    output_units = ('erg/s',)
 
     def __init__(self, amplitude, mean, stddev, **constraints):
         try:
@@ -101,8 +102,8 @@ class Gaussian1D(Parametric1DModel):
         super(Gaussian1D, self).__init__(param_dim=param_dim,
                                          amplitude=amplitude, mean=mean,
                                          stddev=stddev, **constraints)
-    @staticmethod
-    def eval(x, amplitude, mean, stddev):
+    @classmethod
+    def eval(cls, x, amplitude, mean, stddev):
         """
         Model function Gauss1D
         """
@@ -206,8 +207,8 @@ class Gaussian2D(Parametric2DModel):
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
             x_stddev=x_stddev, y_stddev=y_stddev, theta=theta, **constraints)
 
-    @staticmethod
-    def eval(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
+    @classmethod
+    def eval(cls, x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
         """Two dimensional Gaussian function"""
 
         a = 0.5 * ((np.cos(theta) / x_stddev) ** 2 +
@@ -378,8 +379,8 @@ class Sine1D(Parametric1DModel):
                                      frequency=frequency,
                                      **constraints)
 
-    @staticmethod
-    def eval(x, amplitude, frequency):
+    @classmethod
+    def eval(cls, x, amplitude, frequency):
         """One dimensional Sine model function"""
 
         return amplitude * np.sin(2 * np.pi * frequency * x)
@@ -425,8 +426,8 @@ class Linear1D(Parametric1DModel):
         super(Linear1D, self).__init__(slope=slope, intercept=intercept,
                                             **constraints)
 
-    @staticmethod
-    def eval(x, slope, intercept):
+    @classmethod
+    def eval(cls, x, slope, intercept):
         """One dimensional Line model function"""
 
         return slope * x + intercept
@@ -474,8 +475,8 @@ class Lorentz1D(Parametric1DModel):
         super(Lorentz1D, self).__init__(amplitude=amplitude, x_0=x_0,
                                        fwhm=fwhm, **constraints)
 
-    @staticmethod
-    def eval(x, amplitude, x_0, fwhm):
+    @classmethod
+    def eval(cls, x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model function"""
 
         return (amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 +
@@ -517,8 +518,8 @@ class Const1D(Parametric1DModel):
     def __init__(self, amplitude, **constraints):
         super(Const1D, self).__init__(amplitude=amplitude, **constraints)
 
-    @staticmethod
-    def eval(x, amplitude):
+    @classmethod
+    def eval(cls, x, amplitude):
         """One dimensional Constant model function"""
 
         return amplitude * np.ones_like(x)
@@ -556,8 +557,8 @@ class Const2D(Parametric2DModel):
     def __init__(self, amplitude, **constraints):
         super(Const2D, self).__init__(amplitude=amplitude, **constraints)
 
-    @staticmethod
-    def eval(x, y, amplitude):
+    @classmethod
+    def eval(cls, x, y, amplitude):
         """Two dimensional Constant model function"""
 
         return amplitude * np.ones_like(x)
@@ -605,8 +606,8 @@ class Disk2D(Parametric2DModel):
         super(Disk2D, self).__init__(amplitude=amplitude, x_0=x_0,
                                      y_0=y_0, R_0=R_0, **constraints)
 
-    @staticmethod
-    def eval(x, y, amplitude, x_0, y_0, R_0):
+    @classmethod
+    def eval(cls, x, y, amplitude, x_0, y_0, R_0):
         """Two dimensional Disk model function"""
 
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
@@ -670,8 +671,8 @@ class Ring2D(Parametric2DModel):
                                      y_0=y_0, r_in=r_in, width=width,
                                      **constraints)
 
-    @staticmethod
-    def eval(x, y, amplitude, x_0, y_0, r_in, width):
+    @classmethod
+    def eval(cls, x, y, amplitude, x_0, y_0, r_in, width):
         """Two dimensional Ring model function."""
 
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
@@ -732,8 +733,8 @@ class Box1D(Parametric1DModel):
         super(Box1D, self).__init__(amplitude=amplitude, x_0=x_0,
                                     width=width, **constraints)
 
-    @staticmethod
-    def eval(x, amplitude, x_0, width):
+    @classmethod
+    def eval(cls, x, amplitude, x_0, width):
         """One dimensional Box model function"""
 
         return np.select([np.logical_and(x >= x_0 - width / 2.,
@@ -798,8 +799,8 @@ class Box2D(Parametric2DModel):
                                     y_0=y_0, x_width=x_width,
                                     y_width=y_width, **constraints)
 
-    @staticmethod
-    def eval(x, y, amplitude, x_0, y_0, x_width, y_width):
+    @classmethod
+    def eval(cls, x, y, amplitude, x_0, y_0, x_width, y_width):
         """Two dimensional Box model function"""
         x_range = np.logical_and(x >= x_0 - x_width / 2., x <= x_0 + x_width / 2.)
         y_range = np.logical_and(y >= y_0 - y_width / 2., y <= y_0 + y_width / 2.)
@@ -836,8 +837,8 @@ class Trapezoid1D(Parametric1DModel):
                                           width=width, slope=slope,
                                           **constraints)
 
-    @staticmethod
-    def eval(x, amplitude, x_0, width, slope):
+    @classmethod
+    def eval(cls, x, amplitude, x_0, width, slope):
         """One dimensional Trapezoid model function"""
         # Compute the four points where the trapezoid changes slope
         # x1 <= x2 <= x3 <= x4
@@ -890,8 +891,8 @@ class TrapezoidDisk2D(Parametric2DModel):
                                               slope=slope, **constraints)
 
 
-    @staticmethod
-    def eval(x, y, amplitude, x_0, y_0, R_0, slope):
+    @classmethod
+    def eval(cls, x, y, amplitude, x_0, y_0, R_0, slope):
         """Two dimensional Trapezoid Disk model function"""
 
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
@@ -939,8 +940,8 @@ class MexicanHat1D(Parametric1DModel):
                                            x_0=x_0, sigma=sigma,
                                            **constraints)
 
-    @staticmethod
-    def eval(x, amplitude, x_0, sigma):
+    @classmethod
+    def eval(cls, x, amplitude, x_0, sigma):
         """One dimensional Mexican Hat model function"""
 
         xx_ww = (x - x_0) ** 2 / (2 * sigma ** 2)
@@ -988,8 +989,8 @@ class MexicanHat2D(Parametric2DModel):
                                            y_0=y_0, sigma=sigma,
                                            **constraints)
 
-    @staticmethod
-    def eval(x, y, amplitude, x_0, y_0, sigma):
+    @classmethod
+    def eval(cls, x, y, amplitude, x_0, y_0, sigma):
         """Two dimensional Mexican Hat model function"""
 
         rr_ww = ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * sigma ** 2)
@@ -1107,8 +1108,8 @@ class Beta1D(Parametric1DModel):
                                      gamma=gamma, alpha=alpha,
                                      **constraints)
 
-    @staticmethod
-    def eval(x, amplitude, x_0, gamma, alpha):
+    @classmethod
+    def eval(cls, x, amplitude, x_0, gamma, alpha):
         """One dimensional Beta model function"""
 
         return amplitude * (1 + ((x - x_0) / gamma) ** 2) ** (-alpha)

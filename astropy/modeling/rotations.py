@@ -21,6 +21,7 @@ import numbers
 
 import numpy as np
 
+from .. import units as u
 from .core import Model
 from .parameters import Parameter, InputParameterError
 
@@ -41,9 +42,9 @@ class EulerAngleRotation(Model):
 
     n_inputs = 2
     n_outputs = 2
-    phi = Parameter('phi', getter=np.rad2deg, setter=np.deg2rad)
-    theta = Parameter('theta', getter=np.rad2deg, setter=np.deg2rad)
-    psi = Parameter('psi', getter=np.rad2deg, setter=np.deg2rad)
+    phi = Parameter('phi', getter=np.rad2deg, setter=np.deg2rad, default_unit=u.deg)
+    theta = Parameter('theta', getter=np.rad2deg, setter=np.deg2rad, default_unit=u.deg)
+    psi = Parameter('psi', getter=np.rad2deg, setter=np.deg2rad, default_unit=u.deg)
 
     def __init__(self, phi, theta, psi):
         super(EulerAngleRotation, self).__init__()
@@ -60,7 +61,7 @@ class RotateNative2Celestial(EulerAngleRotation):
 
     Parameters
     ----------
-    phi, theta, psi : float
+    phi, theta, psi : float or `~astropy.coordinates.angles.Angle`
         Euler angles in deg
     """
 
@@ -171,7 +172,7 @@ class MatrixRotation2D(Model):
     n_inputs = 2
     n_outputs = 2
 
-    angle = Parameter('angle', getter=np.rad2deg, setter=_validate_angle)
+    angle = Parameter('angle', getter=np.rad2deg, setter=_validate_angle, default_unit=u.deg)
     matrix = Parameter('matrix', setter=_validate_matrix)
 
     def __init__(self, matrix=None, angle=None):
