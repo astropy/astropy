@@ -77,9 +77,7 @@ Classes
 
 .. automodsumm:: {modname}
     :classes-only:
-    {toctree}
-    {vpkgnms}
-    {skips}
+    {clsfuncoptions}
 """
 
 automod_templ_funcs = """
@@ -88,9 +86,7 @@ Functions
 
 .. automodsumm:: {modname}
     :functions-only:
-    {toctree}
-    {vpkgnms}
-    {skips}
+    {clsfuncoptions}
 """
 
 automod_templ_inh = """
@@ -224,21 +220,28 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 pkgormodhds=h1 * (8 if ispkg else 7),
                 automoduleline=automodline))
 
+            #construct the options for the class/function sections
+            #start out indented at 4 spaces, but need to keep the indentation.
+            clsfuncoptions = []
+            if toctreestr:
+                clsfuncoptions.append(toctreestr)
+            if toskip:
+                clsfuncoptions.append(':skip: ' + ','.join(toskip))
+            if vpkgnms:
+                clsfuncoptions.append(vpkgnms)
+            clsfuncoptionstr = '\n    '.join(clsfuncoptions)
+
             if hasfuncs:
                 newstrs.append(automod_templ_funcs.format(
                     modname=modnm,
                     funchds=h2 * 9,
-                    toctree=toctreestr,
-                    skips=':skip: ' + ','.join(toskip) if toskip else '',
-                    vpkgnms=vpkgnms))
+                    clsfuncoptions=clsfuncoptionstr))
 
             if hascls:
                 newstrs.append(automod_templ_classes.format(
                     modname=modnm,
                     clshds=h2 * 7,
-                    toctree=toctreestr,
-                    skips=':skip: ' + ','.join(toskip) if toskip else '',
-                    vpkgnms=vpkgnms))
+                    clsfuncoptions=clsfuncoptionstr))
 
             if inhdiag and hascls:
                 # add inheritance diagram if any classes are in the module
