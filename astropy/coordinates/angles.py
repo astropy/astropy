@@ -371,7 +371,7 @@ class Angle(u.Quantity):
 
                 if precision is not None:
                     def plain_unit_format(val):
-                        return ("{0:0." + precision) + "f}{1}".format(
+                        return ("{0:0." + str(precision) + "f}{1}").format(
                             val, unit_string)
                     func = plain_unit_format
                 else:
