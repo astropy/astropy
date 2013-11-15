@@ -89,10 +89,10 @@ class Gaussian1D(Parametric1DModel):
     Gaussian2D, Box1D, Beta1D, Lorentz1D
     """
     from .. import units as u
-    amplitude = Parameter('amplitude', default_unit='m/s')
+    amplitude = Parameter('amplitude', default_unit='m')
     mean = Parameter('mean')
     stddev = Parameter('stddev')
-    output_units = ('erg/s',)
+    output_units = ('km',)
 
     def __init__(self, amplitude, mean, stddev, **constraints):
         try:

@@ -73,7 +73,6 @@ def format_input(func):
 
     @functools.wraps(func)
     def wrapped_call(self, *args, **kwargs):
-        print(kwargs)
         converted = []
         for arg in args:
             # Reset these flags; their value only matters for the last
@@ -106,12 +105,11 @@ def format_input(func):
         result = func(self, *converted)
 
         if transposed:
-            result = result.T
+            return result.T
         elif scalar:
             try:
-                result = result[0]
+                return result[0]
             except IndexError:
-                #result = result
                 pass
         
         return result
@@ -480,7 +478,6 @@ class ParametricModel(Model):
         Assigning to this attribute updates the parameters array rather than
         replacing it.
         """
-        print('in set pramaters, v', value)
         try:
             value = np.array(value).reshape(self._parameters.shape)
         except ValueError as e:
@@ -528,7 +525,6 @@ class ParametricModel(Model):
         if (len(attr) > 1 and attr[0] == '_' and
                 hasattr(self, '_param_metrics')):
             param_name = attr[1:]
-            print('attr, val', attr, value)
             
             if param_name in self._param_metrics:
                
@@ -709,7 +705,6 @@ class ParametricModel(Model):
         # Now set the parameter values (this will also fill
         # self._parameters)
         for name, value in params.items():
-            print('name, value', name, value)
             setattr(self, name, value)
 
 

@@ -484,7 +484,6 @@ class Parameter(object):
             else:
                 raise TypeError("Parameter getter/setter must be a function "
                                 "of either one or two arguments")
-        print 'wrapper', wrapper
         return wrapper
 
     def __add__(self, val):
