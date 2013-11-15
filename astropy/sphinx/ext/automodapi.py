@@ -172,7 +172,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
             toskip = []
             inhdiag = maindocstr = True
             hds = '-^'
-            vpkgnms = ''
+            vpkgnms = []
 
             #look for actual options
             unknownops = []
@@ -186,9 +186,17 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 elif opname == 'headings':
                     hds = args
                 elif opname == 'valid-package-names':
-                    vpkgnms = ':valid-package-names:' + args
+                    vpkgnms.append(args.strip())
                 else:
                     unknownops.append(opname)
+
+            #join all the vpkgnms
+            if len(vpkgnms) == 0:
+                vpkgnms = ''
+                onlylocals = True
+            else:
+                vpkgnms = ':valid-package-names: ' + ','.join(vpkgnms)
+                onlylocals = vpkgnms
 
             # get the two heading chars
             if len(hds) < 2:
@@ -205,7 +213,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 if warnings:
                     app.warn(msg, location)
 
-            ispkg, hascls, hasfuncs = _mod_info(modnm, toskip)
+            ispkg, hascls, hasfuncs = _mod_info(modnm, toskip, onlylocals=onlylocals)
 
             #add automodule directive only if no-main-docstr isn't present
             if maindocstr:
@@ -256,7 +264,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
         return sourcestr
 
 
-def _mod_info(modname, toskip=[]):
+def _mod_info(modname, toskip=[], onlylocals=True):
     """
     Determines if a module is a module or a package and whether or not
     it has classes or functions.
@@ -266,7 +274,7 @@ def _mod_info(modname, toskip=[]):
 
     hascls = hasfunc = False
 
-    for localnm, fqnm, obj in zip(*find_mod_objs(modname, onlylocals=True)):
+    for localnm, fqnm, obj in zip(*find_mod_objs(modname, onlylocals=onlylocals)):
         if localnm not in toskip:
             hascls = hascls or inspect.isclass(obj)
             hasfunc = hasfunc or inspect.isfunction(obj)
