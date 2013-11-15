@@ -103,13 +103,13 @@ class Quantity(np.ndarray):
             unit = Unit(unit)
 
         if isinstance(value, Quantity):
-            if unit is None or unit is value.unit:
-                unit = value.unit
-            elif unit is not value.unit:
+            if unit is not None and unit is not value.unit:
                 value = value.to(unit)
                 copy = False  # copy already made
 
-            if not copy and dtype is None:
+            if copy or dtype is not None:
+                return np.array(value, dtype=dtype, copy=copy, subok=True)
+            else:
                 return value
 
         elif (not isinstance(value, np.ndarray) and isiterable(value) and
@@ -123,19 +123,17 @@ class Quantity(np.ndarray):
             if unit is None:
                 unit = dimensionless_unscaled
 
-        value = np.array(value, dtype=dtype, copy=copy, subok=True)
+        value = np.array(value, dtype=dtype, copy=copy)
 
         # check that array contains numbers or long int objects
-        if not isinstance(value, Quantity):
-            if (value.dtype.kind in 'OSU' and
-                not (value.dtype.kind == 'O' and
-                     isinstance(value.item(() if value.ndim == 0 else 0),
-                                numbers.Number))):
-                raise TypeError("The value must be a valid Python or "
-                                "Numpy numeric type.")
+        if (value.dtype.kind in 'OSU' and
+            not (value.dtype.kind == 'O' and
+                 isinstance(value.item(() if value.ndim == 0 else 0),
+                            numbers.Number))):
+            raise TypeError("The value must be a valid Python or "
+                            "Numpy numeric type.")
 
-            value = value.view(cls)
-
+        value = value.view(cls)
         value._unit = unit
 
         return value
