@@ -10,6 +10,7 @@ import warnings
 from ..units.core import Unit, UnitsError
 from ..units.quantity import Quantity
 from ..utils import lazyproperty
+from ..utils.exceptions import AstropyUserWarning
 
 __all__ = ['Constant', 'EMConstant']
 

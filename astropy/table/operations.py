@@ -14,6 +14,7 @@ import collections
 import numpy as np
 
 from ..utils import OrderedDict, metadata
+
 from . import np_utils
 
 __all__ = ['join', 'hstack', 'vstack']
@@ -64,7 +65,7 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
                                           .format(out_col.name, attr, left_attr, right_attr),
                                           metadata.MergeConflictWarning)
                         elif metadata_conflicts == 'error':
-                            raise MergeConflictError('In merged column {0!r} the {1!r} attribute does not match '
+                            raise metadata.MergeConflictError('In merged column {0!r} the {1!r} attribute does not match '
                                           '({2} != {3})'.format(out_col.name, attr, left_attr, right_attr))
                         elif metadata_conflicts != 'silent':
                             raise ValueError('metadata_conflict argument must be one of "silent", "warn", or "error"')
