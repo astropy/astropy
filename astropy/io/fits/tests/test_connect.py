@@ -1,7 +1,9 @@
+import os
 import sys
 import warnings
 
 import numpy as np
+from numpy.testing import assert_allclose
 
 from .. import HDUList, PrimaryHDU, BinTableHDU
 from ....table import Table
@@ -10,6 +12,7 @@ from .... import log
 from ....tests.helper import pytest
 
 PY3 = sys.version_info[0] >= 3
+DATA = os.path.join(os.path.dirname(__file__), 'data')
 
 
 def equal_data(a, b):
@@ -200,3 +203,18 @@ class TestMultipleHDU(object):
             t = Table.read(self.hdus[1])
         assert len(l) == 0
         assert equal_data(t, self.data1)
+
+def test_masking_regression_1795():
+    """
+    Regression test for #1795 - this bug originally caused columns where TNULL
+    was not defined to have their first element masked.
+    """
+    t = Table.read(os.path.join(DATA, 'tb.fits'))
+    assert np.all(t['c1'].mask == np.array([False, False]))
+    assert np.all(t['c2'].mask == np.array([False, False]))
+    assert np.all(t['c3'].mask == np.array([False, False]))
+    assert np.all(t['c4'].mask == np.array([False, False]))
+    assert np.all(t['c1'].data == np.array([1,2]))
+    assert np.all(t['c2'].data == np.array(['abc', 'xy ']))
+    assert_allclose(t['c3'].data, np.array([3.70000007153, 6.6999997139]))
+    assert np.all(t['c4'].data == np.array([False, True]))
