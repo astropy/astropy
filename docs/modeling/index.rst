@@ -190,3 +190,4 @@ Reference/API
 .. automodapi:: astropy.modeling.fitting
 
 .. automodapi:: astropy.modeling.models
+     :valid-package-names: astropy.modeling
