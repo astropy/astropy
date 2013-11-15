@@ -72,7 +72,7 @@ def format_input(func):
     """
 
     @functools.wraps(func)
-    def wrapped_call(self, *args, **kwargs):
+    def wrapped_call(self, *args):
         converted = []
         for arg in args:
             # Reset these flags; their value only matters for the last
@@ -103,7 +103,6 @@ def format_input(func):
                 converted.append(arg.T)
 
         result = func(self, *converted)
-
         if transposed:
             return result.T
         elif scalar:
@@ -504,24 +503,6 @@ class ParametricModel(Model):
         raise AttributeError(attr)
 
     def __setattr__(self, attr, value):
-        '''
-        if isinstance(value, u.Quantity):
-            if (len(attr) > 1 and attr[0] == '_'):
-                par = getattr(self, attr[1:])
-            else:
-                par = getattr(self, attr)
-            if hasattr(par, '_default_unit'):
-                _default_unit = getattr(par, '_default_unit')
-            if _default_unit is None and value.unit is not None:
-                raise u.UnitsError("Parameter {0} does not have units defined".format(self._name))
-            elif value.unit != _default_unit:
-                try:
-                    with u.set_enabled_equivalencies(par._unit_equivalencies):
-                        value = value.to(_default_unit)
-                except u.UnitsError:
-                    raise u.UnitsError("Unable to convert units of parameter {0}".format(self._name))
-            value = value.value
-        '''
         if (len(attr) > 1 and attr[0] == '_' and
                 hasattr(self, '_param_metrics')):
             param_name = attr[1:]
@@ -650,18 +631,6 @@ class ParametricModel(Model):
                 params[name] = getattr(self, name).default
 
             value = params[name]
-            '''
-            if isinstance(value, u.Quantity):
-                if self._default_unit is None and value.unit is not None:
-                    raise u.UnitsError("Parameter {0} does not have units defined".format(self._name))
-                elif value.unit != self._default_unit:
-                    try:
-                        with u.set_enabled_equivalencies(self._unit_equivalencies):
-                            value = value.to(self._default_unit)
-                    except u.UnitsError:
-                        raise u.UnitsError("Unable to convert units of parameter {0}".format(self._name))
-            value = value.value
-            '''
             param_size = np.size(value)
             param_shape = np.shape(value)
 
