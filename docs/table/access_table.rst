@@ -65,7 +65,7 @@ the data contained in that object relate to the original table data
   t['a'].more()  # Interactively scroll through column
 
   lines = t.pformat()  # Formatted table as a list of lines (same options as pprint)
-  lines = t['a'].pformat()  # Formatted column valuues as a list
+  lines = t['a'].pformat()  # Formatted column values as a list
 
 
 Details
