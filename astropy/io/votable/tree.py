@@ -1024,8 +1024,6 @@ class Values(Element, _IDProperty):
 
     def to_table_column(self, column):
         # Have the ref filled in here
-        ref = self.ref
-
         meta = {}
         for key in ['ID', 'null']:
             val = getattr(self, key, None)
@@ -2290,14 +2288,14 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                         warn_unknown_attrs(
                             'BINARY', six.iterkeys(data), config, pos)
                         self.array = self._parse_binary(
-                            1, iterator, colnumbers, fields, config)
+                            1, iterator, colnumbers, fields, config, pos)
                         break
                     elif tag == 'BINARY2':
                         if not config['version_1_3_or_later']:
                             warn_or_raise(
                                 W52, W52, config['version'], config, pos)
                         self.array = self._parse_binary(
-                            2, iterator, colnumbers, fields, config)
+                            2, iterator, colnumbers, fields, config, pos)
                         break
                     elif tag == 'FITS':
                         warn_unknown_attrs(
@@ -2505,7 +2503,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
         return careful_read
 
-    def _parse_binary(self, mode, iterator, colnumbers, fields, config):
+    def _parse_binary(self, mode, iterator, colnumbers, fields, config, pos):
         fields = self.fields
 
         careful_read = self._get_binary_data_stream(iterator, config)
