@@ -137,4 +137,4 @@ def test_to_string_radian_with_precision():
 
     # Check that specifying the precision works
     a = Angle(3., unit=u.rad)
-    assert a.to_string(precision=3, sep='fromunit') == u'3.000rad'
+    assert a.to_string(precision=3, sep='fromunit') == '3.000rad'
