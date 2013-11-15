@@ -151,8 +151,9 @@ def read_table_fits(input, hdu=None):
     # Copy over null values if needed
     if masked:
         for col in table.columns:
-            t[col.name].set_fill_value(col.null)
-            t[col.name].mask[t[col.name] == col.null] = True
+            if col.null is not None:
+                t[col.name].set_fill_value(col.null)
+                t[col.name].mask[t[col.name] == col.null] = True
 
     # Copy over units
     for col in table.columns:
