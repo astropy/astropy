@@ -127,3 +127,14 @@ def test_coordinate_to_string_scalar_dms(frame):
     C = frame(12.05*u.deg, 13.5*u.deg)
     assert C.to_string(precision=0) == '12d03m00s 13d30m00s'
     assert C.to_string(precision=1) == '12d03m00.0s 13d30m00.0s'
+
+
+def test_to_string_radian_with_precision():
+    """
+    Regression test for a bug that caused ``to_string`` to crash for angles in
+    radians when specifying the precision.
+    """
+
+    # Check that specifying the precision works
+    a = Angle(3., unit=u.rad)
+    assert a.to_string(precision=3, sep='fromunit') == '3.000rad'

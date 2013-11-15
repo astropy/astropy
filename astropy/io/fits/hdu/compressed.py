@@ -16,7 +16,7 @@ from ..header import Header
 from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 
 from ....utils import lazyproperty, deprecated
-from ....utils.exceptions import AstropyPendingDeprecationWarning
+from ....utils.exceptions import AstropyPendingDeprecationWarning, AstropyUserWarning
 
 try:
     from .. import compression
@@ -415,7 +415,7 @@ class CompImageHDU(BinTableHDU):
             warnings.warn('Failure matching header to a compressed image '
                           'HDU: The compression module is not available.\n'
                           'The HDU will be treated as a Binary Table HDU.',
-                          AstropyWarning)
+                          AstropyUserWarning)
             return False
         else:
             # Compression is supported but disabled; just pass silently (#92)

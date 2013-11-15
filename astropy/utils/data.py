@@ -1098,7 +1098,7 @@ def clear_download_cache(hashorurl=None):
                     raise OSError(msg.format(hashorurl))
     finally:
         # the lock will be gone if rmtree was used above, but release otherwise
-        if os.path.exists(join(_get_download_cache_locs()[0], 'lock')):
+        if os.path.exists(os.path.join(_get_download_cache_locs()[0], 'lock')):
             _release_download_cache_lock()
 
 
