@@ -199,7 +199,8 @@ and you should be rewarded with::
 
 Right now you have the development version of `Astropy`_, but python will not
 see it. Though there are more sophisticated ways of managing multiple versions
-of `Astropy`_, for now this straightforward way will work.
+of `Astropy`_, for now this straightforward way will work (if you want to jump
+ahead to the more sophisticated method look at :ref:`virtual_envs`.
 
 .. note::
     There are a couple of circumstances in which this quick method of
