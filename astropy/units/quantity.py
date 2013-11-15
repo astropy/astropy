@@ -20,6 +20,7 @@ from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
                    get_current_unit_registry)
 from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
+from ..utils.misc import isiterable
 
 
 __all__ = ["Quantity"]
@@ -97,8 +98,6 @@ class Quantity(np.ndarray):
 
     def __new__(cls, value, unit=None, dtype=None, copy=True):
 
-        from ..utils.misc import isiterable
-
         if unit is not None:
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
@@ -106,32 +105,40 @@ class Quantity(np.ndarray):
         if isinstance(value, Quantity):
             if unit is None or unit is value.unit:
                 unit = value.unit
-                value = value.value
-            else:
-                value = value.to(unit).value
+            elif unit is not value.unit:
+                value = value.to(unit)
                 copy = False  # copy already made
-        elif isiterable(value) and all(isinstance(v, Quantity) for v in value):
+
+            if not copy and dtype is None:
+                return value
+
+        elif (not isinstance(value, np.ndarray) and isiterable(value) and
+              all(isinstance(v, Quantity) for v in value)):
             if unit is None:
                 unit = value[0].unit
             value = [q.to(unit).value for q in value]
             copy = False  # copy already made
+
         else:
             if unit is None:
                 unit = dimensionless_unscaled
 
-        value = np.array(value, dtype=dtype, copy=copy)
+        value = np.array(value, dtype=dtype, copy=copy, subok=True)
+
         # check that array contains numbers or long int objects
-        if (value.dtype.kind in 'OSU' and
-            not (value.dtype.kind == 'O' and
-                 isinstance(value.item(() if value.ndim == 0 else 0),
-                            numbers.Number))):
-            raise TypeError("The value must be a valid Python or "
-                            "Numpy numeric type.")
+        if not isinstance(value, Quantity):
+            if (value.dtype.kind in 'OSU' and
+                not (value.dtype.kind == 'O' and
+                     isinstance(value.item(() if value.ndim == 0 else 0),
+                                numbers.Number))):
+                raise TypeError("The value must be a valid Python or "
+                                "Numpy numeric type.")
 
-        self = value.view(cls)
-        self._unit = unit
+            value = value.view(cls)
 
-        return self
+        value._unit = unit
+
+        return value
 
     def __array_finalize__(self, obj):
         if isinstance(obj, Quantity):
