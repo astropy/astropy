@@ -36,6 +36,10 @@ To install Astropy with `pip`, simply run::
 
     pip install --no-deps astropy
 
+.. warning::
+    Users of the Anaconda python distribution should follow the instructions
+    for :ref:`anaconda_install`.
+
 .. note::
 
     You will need a C compiler (e.g. ``gcc`` or ``clang``) to be installed (see
@@ -62,6 +66,25 @@ To install Astropy with `pip`, simply run::
     Do **not** install Astropy or other third-party packages using ``sudo``
     unless you are fully aware of the risks.
 
+
+.. _anaconda_install:
+
+Anaconda python distribution
+----------------------------
+
+Astropy is installed by default with Anaconda. To update to the latest version
+run::
+
+    conda update astropy
+
+.. note::
+    There may be a delay of a day or to between when a new version of Astropy
+    is released and when a package is available for Anaconda. You can check
+    for the list of available versions with ``conda search astropy``.
+    
+.. note::
+    Attempting to use ``pip`` to upgrade your installation of Astropy may result
+    in a corrupted installation.
 
 Binary installers
 -----------------
