@@ -7,8 +7,8 @@ String representations of units
 
 .. |unit| replace:: :class:`~astropy.units.core.UnitBase`
 
-Printing units as strings
--------------------------
+Converting units to string representations
+------------------------------------------
 
 You can control the way that |quantity| and |unit| objects are rendered as
 strings using the new `Format String Syntax
