@@ -99,3 +99,13 @@ other platforms other than Linux.  Since ``Table.sort`` relies on Numpy to
 internally sort the data, it is also affected by this bug.  If you are using
 Python 3, and need the sorting functionality for tables, we recommend updating
 to a more recent version of Numpy.
+
+Anaconda users should upgrade with ``conda``, not ``pip``
+---------------------------------------------------------
+
+Upgrading Astropy in the anaconda python distribution using ``pip`` can result
+in a corrupted install with a mix of files from the old version and the new
+version. Anaconda users should update with ``conda update astropy``. There
+may be a brief delay between the release of Astropy on PyPI and its release
+via the `conda` package manager; users can check the availability of new
+versions with ``conda search astropy``.
