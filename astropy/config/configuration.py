@@ -180,6 +180,15 @@ class ConfigurationItem(object):
                 warn(InvalidConfigurationItemWarning(*e.args))
             else:
                 raise
+        
+        # update the docstring of the module
+        print("{}:{}".format(self.module, name.upper()))
+        if sys.modules[self.module].__doc__ is None:
+            sys.modules[self.module].__doc__ = self.module+'\n'
+        doc = '\n'+name.upper()
+        doc += '\n    '.join(self._generate_comments())
+        doc += '\n    '
+        sys.modules[self.module].__doc__ += doc
 
     def set(self, value):
         """ Sets the current value of this `ConfigurationItem`.
