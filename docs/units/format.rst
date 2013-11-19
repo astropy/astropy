@@ -1,14 +1,17 @@
 .. _astropy-units-format:
 
-Unit formats
-============
+String representations of units
+===============================
 
 .. |quantity| replace:: :class:`~astropy.units.quantity.Quantity`
 
 .. |unit| replace:: :class:`~astropy.units.core.UnitBase`
 
-You can control the way that |quantity| and |unit| objects print using
-the new `Format String Syntax
+Converting units to string representations
+------------------------------------------
+
+You can control the way that |quantity| and |unit| objects are rendered as
+strings using the new `Format String Syntax
 <http://docs.python.org/library/string.html#format-string-syntax>`__.
 New-style format strings use the ``"{}".format()`` syntax.  Most of
 the format speficiers are simliar to the old ``%``-style formatting,
@@ -51,7 +54,7 @@ Use :func:`numpy.array_str` instead. For example::
 
 Examine the numpy documentation for more examples with :func:`numpy.array_str`.
 
-Units, or the unit part of a quantity, can also be formatter in a
+Units, or the unit part of a quantity, can also be formatted in a
 number of different styles.  By default, the string format used is
 referred to as the "generic" format, which is based on syntax of the
 FITS standard's format for representing units, but supports all of the
@@ -75,13 +78,16 @@ optional parameter to select a different format, including
     >>> "{0:>20s}".format(fluxunit)
     u'       erg / (cm2 s)'
 
-The `~astropy.units.core.UnitBase.to_string` method can be used to format
-units as strings, and is the underlying implementation of the new-style
-formatting::
+The `~astropy.units.core.UnitBase.to_string` method is an alternative way to
+format units as strings, and is the underlying implementation of the
+`format`-style usage::
 
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
     >>> fluxunit.to_string('latex')
     u'$\\mathrm{\\frac{erg}{s\\,cm^{2}}}$'
+
+Creating units from strings
+---------------------------
 
 Units can also be created from strings in a number of different
 formats using the `~astropy.units.core.Unit` class::

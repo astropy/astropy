@@ -1,8 +1,8 @@
 .. _astropy-units:
 
-***********************
-Units (`astropy.units`)
-***********************
+**************************************
+Units and Quantities (`astropy.units`)
+**************************************
 
 .. |quantity| replace:: :class:`~astropy.units.quantity.Quantity`
 
@@ -105,8 +105,9 @@ but by passing an equivalency list, in this case ``spectral()``, it does:
     >>> (1000 * u.nm).to(u.Hz, equivalencies=u.spectral())
     <Quantity 299792457999999.94 Hz>
 
-Quantities and units can be printed nicely using the new-style
-`Format String Syntax <http://docs.python.org/library/string.html#format-string-syntax>`_.
+Quantities and units can be printed nicely to strings using the
+`Format String Syntax <http://docs.python.org/library/string.html#format-string-syntax>`_,
+the preferred string formatting syntax in recent versions of python.
 Format specifiers (like ``0.03f``) in new-style format
 strings will used to format the quantity value::
 
