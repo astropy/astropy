@@ -242,9 +242,18 @@ class TestKernels(object):
         box_1 = Box1DKernel(5)
         box_2 = Box1DKernel(3)
         box_3 = Box1DKernel(1)
-        box_sum = box_1 + box_2 + box_3
+        box_sum_1 = box_1 + box_2 + box_3
+        box_sum_2 = box_2 + box_3 + box_1
+        box_sum_3 = box_3 + box_1 + box_2
         ref = [1/5., 1/5. + 1/3., 1 + 1/3. + 1/5., 1/5. + 1/3., 1/5.]
-        assert_almost_equal(box_sum.array, ref, decimal=12)
+        assert_almost_equal(box_sum_1.array, ref, decimal=12)
+        assert_almost_equal(box_sum_2.array, ref, decimal=12)
+        assert_almost_equal(box_sum_3.array, ref, decimal=12)
+
+        # Assert that the kernels haven't changed
+        assert_almost_equal(box_1.array, [0.2, 0.2, 0.2, 0.2, 0.2], decimal=12)
+        assert_almost_equal(box_2.array, [1/3., 1/3., 1/3.], decimal=12)
+        assert_almost_equal(box_3.array, [1], decimal=12)
 
     def test_add_2D_kernels(self):
         """
@@ -252,11 +261,18 @@ class TestKernels(object):
         """
         box_1 = Box2DKernel(3)
         box_2 = Box2DKernel(1)
-        box_sum = box_1 + box_2
+        box_sum_1 = box_1 + box_2
+        box_sum_2 = box_2 + box_1
         ref = [[1 / 9., 1 / 9., 1 / 9.],
                [1 / 9., 1 + 1 / 9., 1 / 9.],
                [1 / 9., 1 / 9., 1 / 9.]]
-        assert_almost_equal(box_sum.array, ref, decimal=12)
+        ref_1 = [[1 / 9., 1 / 9., 1 / 9.],
+               [1 / 9., 1 / 9., 1 / 9.],
+               [1 / 9., 1 / 9., 1 / 9.]]
+        assert_almost_equal(box_2.array, [[1]], decimal=12)
+        assert_almost_equal(box_1.array, ref_1, decimal=12)
+        assert_almost_equal(box_sum_1.array, ref, decimal=12)
+        assert_almost_equal(box_sum_2.array, ref, decimal=12)
 
     def test_Gaussian1DKernel_even_size(self):
         """
