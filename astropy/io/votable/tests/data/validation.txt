@@ -1,4 +1,4 @@
-Validation report for regression.xml
+Validation report for /tmp/astropy-test-1GWB7N/lib.linux-x86_64-2.7/astropy/io/votable/tests/data/regression.xml
 
 11: W01: Array uses commas rather than whitespace
 <PARAM datatype="float" name="wrong_arraysize" value="0.000000,0.0000…
@@ -50,19 +50,23 @@ Validation report for regression.xml
 <FIELD ID="string_array_test" name="string array test" datatype="stri…
 ^
 
-48: W48: Unknown attribute 'value' on OPTION
+44: W51: Value '-32769' is out of range for a 16-bit integer field
+  <VALUES null="-32769"/>
+  ^
+
+50: W48: Unknown attribute 'value' on OPTION
     <OPTION name="bogus" value="whatever"/>
     ^
 
-50: W10: Unknown tag 'IGNORE_ME'.  Ignoring
+52: W10: Unknown tag 'IGNORE_ME'.  Ignoring
   <IGNORE_ME/>
   ^
 
-90: W17: GROUP element contains more than one DESCRIPTION element
+92: W17: GROUP element contains more than one DESCRIPTION element
     This should warn of a second description.
 ^
 
-97: W01: Array uses commas rather than whitespace
+99: W01: Array uses commas rather than whitespace
   <PARAM datatype="float" name="INPUT3" value="0.000000,0.000000" arr…
   ^
 
@@ -71,163 +75,164 @@ Validation report for regression.xml
 <FIELD ID="string_test" name="fixed string test" datatype="char" arra…
 ^
 
-105: W46: char value is too long for specified length of 10
+107: W46: char value is too long for specified length of 10
   <TD>Fixed string long test</TD> <!-- Should truncate -->
       ^
 
-107: W46: unicodeChar value is too long for specified length of 10
+109: W46: unicodeChar value is too long for specified length of 10
   <TD>Ceçi n'est pas un pipe</TD>
       ^
 
-108: W46: char value is too long for specified length of 4
+110: W46: char value is too long for specified length of 4
   <TD>ab cd</TD>
       ^
 
-127: E02: Incorrect number of elements in array. Expected multiple of
+129: E02: Incorrect number of elements in array. Expected multiple of
   4, got 1
   <TD/>
   ^
 
-127: W49: Empty cell illegal for integer fields.
+129: W49: Empty cell illegal for integer fields.
   <TD/>
   ^
 
-135: W46: char value is too long for specified length of 10
+137: W46: char value is too long for specified length of 10
   <TD>0123456789A</TD>
       ^
 
-138: W46: char value is too long for specified length of 4
+140: W46: char value is too long for specified length of 4
   <TD>0123456789A</TD>
       ^
 
-139: W51: Value '256' is out of range for a 8-bit unsigned integer
+141: W51: Value '256' is out of range for a 8-bit unsigned integer
   field
   <TD>256</TD> <!-- should overflow to 0 -->
       ^
 
-140: W51: Value '65536' is out of range for a 16-bit integer field
+142: W51: Value '65536' is out of range for a 16-bit integer field
   <TD>65536</TD> <!-- should overflow to 0-->
       ^
 
-142: W49: Empty cell illegal for integer fields.
+144: W49: Empty cell illegal for integer fields.
   <TD></TD>
   ^
 
-145: W01: Array uses commas rather than whitespace
+147: W01: Array uses commas rather than whitespace
   <TD>42 32, 12 32</TD>
       ^
 
-161: E02: Incorrect number of elements in array. Expected multiple of
+163: E02: Incorrect number of elements in array. Expected multiple of
   16, got 0
   <TD/>
   ^
 
-161: W49: Empty cell illegal for integer fields.
+163: W49: Empty cell illegal for integer fields.
   <TD/>
   ^
 
-161: W49: Empty cell illegal for integer fields.
+163: W49: Empty cell illegal for integer fields.
   <TD/>
   ^
 
-161: W49: Empty cell illegal for integer fields.
+163: W49: Empty cell illegal for integer fields.
   <TD/>
   ^
 
-161: W49: Empty cell illegal for integer fields.
+163: W49: Empty cell illegal for integer fields.
   <TD/>
   ^
 
-161: W49: Empty cell illegal for integer fields.
+163: W49: Empty cell illegal for integer fields.
   <TD/>
   ^
 
-161: W49: Empty cell illegal for integer fields.
+163: W49: Empty cell illegal for integer fields.
   <TD/>
   ^
 
-161: W49: Empty cell illegal for integer fields.
+163: W49: Empty cell illegal for integer fields.
   <TD/>
   ^
 
-161: W49: Empty cell illegal for integer fields. (suppressing further
+163: W49: Empty cell illegal for integer fields. (suppressing further
   warnings of this type...)
   <TD/>
   ^
 
-167: W46: unicodeChar value is too long for specified length of 10
+169: W46: unicodeChar value is too long for specified length of 10
   <TD>0123456789A</TD>
       ^
 
-169: W51: Value '-23' is out of range for a 8-bit unsigned integer
+171: W51: Value '-23' is out of range for a 8-bit unsigned integer
   field
   <TD>-23</TD> <!-- negative, should wrap around to positive -->
       ^
 
-191: E02: Incorrect number of elements in array. Expected multiple of
+193: E02: Incorrect number of elements in array. Expected multiple of
   16, got 0
   <TD/>
   ^
 
-200: W51: Value '65535' is out of range for a 16-bit integer field
+202: W51: Value '65535' is out of range for a 16-bit integer field
   <TD>0xffff</TD> <!-- hex - negative value -->
       ^
 
-205: W01: Array uses commas rather than whitespace
+207: W01: Array uses commas rather than whitespace
   <TD>NaN, 23</TD>
       ^
 
-207: E02: Incorrect number of elements in array. Expected multiple of
+209: E02: Incorrect number of elements in array. Expected multiple of
   6, got 0
   <TD/>
   ^
 
-215: E02: Incorrect number of elements in array. Expected multiple of
+217: E02: Incorrect number of elements in array. Expected multiple of
   4, got 1
   <TD/>
   ^
 
-221: E02: Incorrect number of elements in array. Expected multiple of
+223: E02: Incorrect number of elements in array. Expected multiple of
   16, got 0
   <TD/>
   ^
 
-229: W51: Value '256' is out of range for a 8-bit unsigned integer
+231: W51: Value '256' is out of range for a 8-bit unsigned integer
   field
   <TD>0x100</TD> <!-- hex, overflow -->
       ^
 
-230: W51: Value '65536' is out of range for a 16-bit integer field
+232: W51: Value '65536' is out of range for a 16-bit integer field
   <TD>0x10000</TD> <!-- hex, overflow -->
       ^
 
-235: W01: Array uses commas rather than whitespace
+237: W01: Array uses commas rather than whitespace
   <TD>31, -1</TD>
       ^
 
-237: E02: Incorrect number of elements in array. Expected multiple of
+239: E02: Incorrect number of elements in array. Expected multiple of
   6, got 0
   <TD/>
   ^
 
-245: E02: Incorrect number of elements in array. Expected multiple of
+247: E02: Incorrect number of elements in array. Expected multiple of
   4, got 1
   <TD/>
   ^
 
-247: E02: Incorrect number of elements in array. Expected multiple of
+249: E02: Incorrect number of elements in array. Expected multiple of
   4, got 1 (suppressing further warnings of this type...)
   <TD/>
   ^
 
-265: W46: char value is too long for specified length of 10
+267: W46: char value is too long for specified length of 10
   <TD>Fixed string long test</TD> <!-- Should truncate -->
       ^
 
-267: W46: unicodeChar value is too long for specified length of 10
+269: W46: unicodeChar value is too long for specified length of 10
   <TD>Ceçi n'est pas un pipe</TD>
       ^
 
-268: W46: char value is too long for specified length of 4
+270: W46: char value is too long for specified length of 4
   <TD>ab cd</TD>
       ^
+
