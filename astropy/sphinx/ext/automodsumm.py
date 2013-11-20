@@ -88,6 +88,7 @@ class Automodsumm(AstropyAutosummary):
     option_spec['functions-only'] = flag
     option_spec['classes-only'] = flag
     option_spec['skip'] = _str_list_converter
+    option_spec['valid-package-names'] = _str_list_converter
 
     def run(self):
         self.warnings = []
@@ -146,9 +147,16 @@ class Automodsumm(AstropyAutosummary):
 
 #<-------------------automod-diagram stuff------------------------------------>
 class Automoddiagram(InheritanceDiagram):
+
+    option_spec = dict(InheritanceDiagram.option_spec)
+    option_spec['valid-package-names'] = _str_list_converter
+
     def run(self):
         try:
-            nms, objs = find_mod_objs(self.arguments[0], onlylocals=True)[1:]
+            ols = self.options.get('valid-package-names', [])
+            ols = True if len(ols) == 0 else ols  # if none are given, assume only local
+
+            nms, objs = find_mod_objs(self.arguments[0], onlylocals=ols)[1:]
         except ImportError:
             self.warnings = []
             self.warn("Couldn't import module " + self.arguments[0])
@@ -255,6 +263,7 @@ def automodsumm_to_autosummary_lines(fn, app):
         #filter out functions-only and classes-only options if present
         oplines = ops.split('\n')
         toskip = []
+        vpkgnms = []
         funcsonly = clssonly = False
         for i, ln in reversed(list(enumerate(oplines))):
             if ':functions-only:' in ln:
@@ -266,6 +275,9 @@ def automodsumm_to_autosummary_lines(fn, app):
             if ':skip:' in ln:
                 toskip.extend(_str_list_converter(ln.replace(':skip:', '')))
                 del oplines[i]
+            if ':valid-package-names:' in ln:
+                vpkgnms.extend(_str_list_converter(ln.replace(':valid-package-names:', '')))
+                del oplines[i]
         if funcsonly and clssonly:
             msg = ('Defined both functions-only and classes-only options. '
                    'Skipping this directive.')
@@ -276,7 +288,8 @@ def automodsumm_to_autosummary_lines(fn, app):
         newlines.append(i1 + '.. autosummary::')
         newlines.extend(oplines)
 
-        for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
+        ols = True if len(vpkgnms) == 0 else vpkgnms
+        for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=ols)):
             if nm in toskip:
                 continue
             if funcsonly and not inspect.isfunction(obj):
@@ -469,7 +482,7 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
             ns['objtype'] = doc.objtype
             ns['underline'] = len(name) * '='
 
-            # We now check whether a file for reference footnotes exists for 
+            # We now check whether a file for reference footnotes exists for
             # the module being documented. We first check if the
             # current module is a file or a directory, as this will give a
             # different path for the reference file. For example, if
@@ -487,11 +500,11 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
                 mod_name_dir = mod_name_dir.rsplit('/', 1)[0]
 
             # We then have to check whether it exists, and if so, we pass it
-            # to the template.  
+            # to the template.
             if os.path.exists(os.path.join(base_path, mod_name_dir, 'references.txt')):
-                # An important subtlety here is that the path we pass in has 
+                # An important subtlety here is that the path we pass in has
                 # to be relative to the file being generated, so we have to
-                # figure out the right number of '..'s 
+                # figure out the right number of '..'s
                 ndirsback = path.replace(base_path, '').count('/')
                 ref_file_rel_segments = ['..'] * ndirsback
                 ref_file_rel_segments.append(mod_name_dir)

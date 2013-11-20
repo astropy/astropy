@@ -36,6 +36,13 @@ It accepts the following options:
         Python's documentation, assuming the automodapi call is inside a
         top-level section (which usually uses '=').
 
+    * ``:valid-package-names: str``
+        If present, specifies a comma-seperated last of package names that
+        should be considered valid for the *real* names of the objects (as
+        opposed to their name within the package).  If not given, only objects
+        that are actually in a subpackage of the package currently being
+        documented are included.
+
 This extension also adds a sphinx configuration option
 `automodapi_toctreedirnm`. It must be a string that specifies the name of
 the directory the automodsumm generated documentation ends up in. This
@@ -70,8 +77,7 @@ Classes
 
 .. automodsumm:: {modname}
     :classes-only:
-    {toctree}
-    {skips}
+    {clsfuncoptions}
 """
 
 automod_templ_funcs = """
@@ -80,8 +86,7 @@ Functions
 
 .. automodsumm:: {modname}
     :functions-only:
-    {toctree}
-    {skips}
+    {clsfuncoptions}
 """
 
 automod_templ_inh = """
@@ -90,6 +95,7 @@ Class Inheritance Diagram
 
 .. automod-diagram:: {modname}
     :private-bases:
+    {vpkgnms}
 """
 
 _automodapirex = re.compile(r'^(?:\s*\.\.\s+automodapi::\s*)([A-Za-z0-9_.]+)'
@@ -166,6 +172,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
             toskip = []
             inhdiag = maindocstr = True
             hds = '-^'
+            vpkgnms = []
 
             #look for actual options
             unknownops = []
@@ -178,8 +185,18 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                     maindocstr = False
                 elif opname == 'headings':
                     hds = args
+                elif opname == 'valid-package-names':
+                    vpkgnms.append(args.strip())
                 else:
                     unknownops.append(opname)
+
+            #join all the vpkgnms
+            if len(vpkgnms) == 0:
+                vpkgnms = ''
+                onlylocals = True
+            else:
+                vpkgnms = ':valid-package-names: ' + ','.join(vpkgnms)
+                onlylocals = vpkgnms
 
             # get the two heading chars
             if len(hds) < 2:
@@ -196,7 +213,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 if warnings:
                     app.warn(msg, location)
 
-            ispkg, hascls, hasfuncs = _mod_info(modnm, toskip)
+            ispkg, hascls, hasfuncs = _mod_info(modnm, toskip, onlylocals=onlylocals)
 
             #add automodule directive only if no-main-docstr isn't present
             if maindocstr:
@@ -204,28 +221,42 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
             else:
                 automodline = ''
 
-            newstrs.append(automod_templ_modheader.format(modname=modnm,
+            newstrs.append(automod_templ_modheader.format(
+                modname=modnm,
                 modhds=h1 * len(modnm),
                 pkgormod='Package' if ispkg else 'Module',
                 pkgormodhds=h1 * (8 if ispkg else 7),
                 automoduleline=automodline))
 
+            #construct the options for the class/function sections
+            #start out indented at 4 spaces, but need to keep the indentation.
+            clsfuncoptions = []
+            if toctreestr:
+                clsfuncoptions.append(toctreestr)
+            if toskip:
+                clsfuncoptions.append(':skip: ' + ','.join(toskip))
+            if vpkgnms:
+                clsfuncoptions.append(vpkgnms)
+            clsfuncoptionstr = '\n    '.join(clsfuncoptions)
+
             if hasfuncs:
-                newstrs.append(automod_templ_funcs.format(modname=modnm,
+                newstrs.append(automod_templ_funcs.format(
+                    modname=modnm,
                     funchds=h2 * 9,
-                    toctree=toctreestr,
-                    skips=':skip: ' + ','.join(toskip) if toskip else ''))
+                    clsfuncoptions=clsfuncoptionstr))
 
             if hascls:
-                newstrs.append(automod_templ_classes.format(modname=modnm,
+                newstrs.append(automod_templ_classes.format(
+                    modname=modnm,
                     clshds=h2 * 7,
-                    toctree=toctreestr,
-                    skips=':skip: ' + ','.join(toskip) if toskip else ''))
+                    clsfuncoptions=clsfuncoptionstr))
 
             if inhdiag and hascls:
                 # add inheritance diagram if any classes are in the module
                 newstrs.append(automod_templ_inh.format(
-                    modname=modnm, clsinhsechds=h2 * 25))
+                    modname=modnm,
+                    clsinhsechds=h2 * 25,
+                    vpkgnms=vpkgnms))
 
             newstrs.append(spl[grp * 3 + 3])
         return ''.join(newstrs)
@@ -233,7 +264,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
         return sourcestr
 
 
-def _mod_info(modname, toskip=[]):
+def _mod_info(modname, toskip=[], onlylocals=True):
     """
     Determines if a module is a module or a package and whether or not
     it has classes or functions.
@@ -243,7 +274,7 @@ def _mod_info(modname, toskip=[]):
 
     hascls = hasfunc = False
 
-    for localnm, fqnm, obj in zip(*find_mod_objs(modname, onlylocals=True)):
+    for localnm, fqnm, obj in zip(*find_mod_objs(modname, onlylocals=onlylocals)):
         if localnm not in toskip:
             hascls = hascls or inspect.isclass(obj)
             hasfunc = hasfunc or inspect.isfunction(obj)
