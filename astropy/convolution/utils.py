@@ -28,17 +28,19 @@ def add_kernel_arrays_1D(array_1, array_2):
     The arrays are added with the centers lying upon each other.
     """
     if array_1.size > array_2.size:
+        new_array = array_1.copy()
         center = array_1.size // 2
         slice_ = slice(center - array_2.size // 2,
                        center + array_2.size // 2 + 1)
-        array_1[slice_] += array_2
-        return array_1
+        new_array[slice_] += array_2
+        return new_array
     elif array_2.size > array_1.size:
+        new_array = array_2.copy()
         center = array_2.size // 2
         slice_ = slice(center - array_1.size // 2,
                        center + array_1.size // 2 + 1)
-        array_2[slice_] += array_1
-        return array_2
+        new_array[slice_] += array_1
+        return new_array
     return array_2 + array_1
 
 
@@ -49,21 +51,23 @@ def add_kernel_arrays_2D(array_1, array_2):
     The arrays are added with the centers lying upon each other.
     """
     if array_1.size > array_2.size:
+        new_array = array_1.copy()
         center = [axes_size // 2 for axes_size in array_1.shape]
         slice_x = slice(center[1] - array_2.shape[1] // 2,
                         center[1] + array_2.shape[1] // 2 + 1)
         slice_y = slice(center[0] - array_2.shape[0] // 2,
                         center[0] + array_2.shape[0] // 2 + 1)
-        array_1[slice_y, slice_x] += array_2
-        return array_1
+        new_array[slice_y, slice_x] += array_2
+        return new_array
     elif array_2.size > array_1.size:
+        new_array = array_2.copy()
         center = [axes_size // 2 for axes_size in array_2.shape]
         slice_x = slice(center[1] - array_1.shape[1] // 2,
                         center[1] + array_1.shape[1] // 2 + 1)
         slice_y = slice(center[0] - array_1.shape[0] // 2,
                         center[0] + array_1.shape[0] // 2 + 1)
-        array_2[slice_y, slice_x] += array_1
-        return array_2
+        new_array[slice_y, slice_x] += array_1
+        return new_array
     return array_2 + array_1
 
 
