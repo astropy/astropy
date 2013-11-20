@@ -110,6 +110,11 @@ class TestRunner(object):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
+        # This prevents cyclical import problems that make it
+        # impossible to test packages that define Table types on their
+        # own.
+        from ..table import Table
+
         if package is None:
             package_path = self.base_path
         else:
