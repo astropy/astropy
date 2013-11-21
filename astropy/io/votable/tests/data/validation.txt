@@ -1,4 +1,4 @@
-Validation report for /tmp/astropy-test-1GWB7N/lib.linux-x86_64-2.7/astropy/io/votable/tests/data/regression.xml
+Validation report for /tmp/astropy-test-IZMyJe/lib.linux-x86_64-2.7/astropy/io/votable/tests/data/regression.xml
 
 11: W01: Array uses commas rather than whitespace
 <PARAM datatype="float" name="wrong_arraysize" value="0.000000,0.0000…
@@ -235,4 +235,3 @@ Validation report for /tmp/astropy-test-1GWB7N/lib.linux-x86_64-2.7/astropy/io/v
 270: W46: char value is too long for specified length of 4
   <TD>ab cd</TD>
       ^
-
