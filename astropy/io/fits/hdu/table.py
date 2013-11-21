@@ -714,32 +714,6 @@ class BinTableHDU(_TableBaseHDU):
 
         return nbytes
 
-    def __populate_table_keywords(self):
-        """Populate the new table definition keywords from the header."""
-
-        cols = self.columns
-
-        for idx in range(len(cols)):
-            for attr, keyword in zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES):
-                val = getattr(cols, attr + 's')[idx]
-                if val:
-                    keyword = keyword + str(idx + 1)
-                    if attr == 'format':
-                        val = cols._recformats[idx]
-                        if isinstance(val, (_FormatX, _FormatP)):
-                            val = val.tform
-                        else:
-                            # There are some cases where the original TFORM and
-                            # the one generated from the recformat can have the
-                            # same meaning but different string representation;
-                            # make sure to use the original representation in
-                            # this case
-                            orig_val = cols.formats[idx]
-                            val = _convert_format(val, reverse=True)
-                            if _parse_tformat(orig_val) == _parse_tformat(val):
-                                val = orig_val
-                    self._header[keyword] = val
-
     _tdump_file_format = textwrap.dedent("""
 
         - **datafile:** Each line of the data file represents one row of table
