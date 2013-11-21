@@ -34,8 +34,10 @@ NUMPY_VERSION = version.LooseVersion(np.__version__)
 SKIP_STRING_SORT = (platform.system() in ('Darwin', 'Windows') and six.PY3 and
                     NUMPY_VERSION < version.LooseVersion('1.6.2'))
 
+__doctest_skip__ = ['Table.read', 'Table.write']
+
 if SKIP_STRING_SORT:
-    __doctest_skip__ = ['Table.sort']
+    __doctest_skip__.append('Table.sort')
 
 
 # Python 2 and 3 source compatibility
@@ -2445,8 +2447,8 @@ class Table(object):
         using syntax such as::
 
           >>> from astropy.table import Table
-          >>> dat = Table.read('table.dat', format='ascii')  # doctest: +SKIP
-          >>> events = Table.read('events.fits', format='fits')  # doctest: +SKIP
+          >>> dat = Table.read('table.dat', format='ascii')
+          >>> events = Table.read('events.fits', format='fits')
 
         The arguments and keywords (other than ``format``) provided to this function are
         passed through to the underlying data reader (e.g. `~astropy.io.ascii.ui.read`).
