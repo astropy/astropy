@@ -20,7 +20,7 @@ to represent 15 m/s:
 or 1.14/s:
 
     >>> 1.14 / u.s
-    <Quantity 1.14 1 / s>
+    <Quantity 1.1... 1 / s>
 
 You can also create instances using the |quantity| constructor directly, by
 specifying a value and unit:
@@ -53,7 +53,7 @@ Finally, the current unit and value can be accessed via the
     >>> q.unit
     Unit("m / s")
     >>> q.value
-    2.3
+    2...
 
 Converting to different units
 -----------------------------
@@ -63,7 +63,7 @@ Converting to different units
 
     >>> q = 2.3 * u.m / u.s
     >>> q.to(u.km / u.h)
-    <Quantity 8.28 km / h>
+    <Quantity 8.2... km / h>
 
 For convenience, the `~astropy.units.quantity.Quantity.si` and
 `~astropy.units.quantity.Quantity.cgs` attributes can be used to
@@ -71,7 +71,7 @@ convert the |quantity| to base S.I. or c.g.s units:
 
     >>> q = 2.4 * u.m / u.s
     >>> q.si
-    <Quantity 2.4 m / s>
+    <Quantity 2... m / s>
     >>> q.cgs
     <Quantity 240.0 cm / s>
 
@@ -96,11 +96,11 @@ resulting object **has units of the object on the left**:
     >>> 1100.1 * u.m + 13.5 * u.km
     <Quantity 14600.1 m>
     >>> 13.5 * u.km + 1100.1 * u.m
-    <Quantity 14.6001 km>
+    <Quantity 14.600... km>
     >>> 1100.1 * u.m - 13.5 * u.km
     <Quantity -12399.9 m>
     >>> 13.5 * u.km - 1100.1 * u.m
-    <Quantity 12.3999 km>
+    <Quantity 12.399... km>
 
 Addition and subtraction is not supported between |quantity| objects and basic
 numeric types:
@@ -109,7 +109,8 @@ numeric types:
     Traceback (most recent call last):
       ...
     UnitsError: Can only apply 'add' function to dimensionless
-    quantities when other argument is not a quantity
+    quantities when other argument is not a quantity (unless the
+    latter is all zero/infinity/nan)
 
 except for dimensionless quantities (see `Dimensionless quantities`_).
 
@@ -121,11 +122,11 @@ units, and with numeric types. For these operations between objects with
 equivalent units, the **resulting object has composite units**:
 
     >>> 1.1 * u.m * 140.3 * u.cm
-    <Quantity 154.33 cm m>
+    <Quantity 154.33... cm m>
     >>> 140.3 * u.cm * 1.1 * u.m
-    <Quantity 154.33 cm m>
+    <Quantity 154.33... cm m>
     >>> 1. * u.m / (20. * u.cm)
-    <Quantity 0.05 m / cm>
+    <Quantity 0.05... m / cm>
     >>> 20. * u.cm / (1. * u.m)
     <Quantity 20.0 cm / m>
 
@@ -142,7 +143,7 @@ object dimensionless by reducing the units. To do this, use the
 :meth:`~astropy.units.quantity.Quantity.decompose()` method:
 
     >>> (20. * u.cm / (1. * u.m)).decompose()
-    <Quantity 0.2 >
+    <Quantity 0.2... >
 
 This method is also useful for more complicated arithmetic:
 
@@ -191,7 +192,7 @@ quantities, the units are simplified so that the quantity is
 dimensionless and scale-free. For example::
 
     >>> 1. + 1. * u.m / u.km
-    <Quantity 1.001 >
+    <Quantity 1.00... >
 
 which is different from::
 
@@ -257,9 +258,9 @@ dimensionless value, then you can make use of the
     >>> q
     <Quantity 0.75 m / km>
     >>> q.decompose()
-    <Quantity 0.00075 >
+    <Quantity 0.00075... >
     >>> float(q.decompose())
-    0.00075
+    0.00075...
 
 Similarly, `int` and `long` work, but only for dimensionless unscaled
 quantities::

@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 .. currentmodule:: astropy.io.fits
 
 **************************************
@@ -134,7 +136,7 @@ Like a dict, one may also use the above syntax to add a new keyword/value pair
 the end of the header (unless it's a commentary keyword such as COMMENT or
 HISTORY, in which case it is appended after the last card with that keyword).
 
-Another way to either update an existing card or append a new one is to use the 
+Another way to either update an existing card or append a new one is to use the
 :meth:`Header.set` method::
 
     >>> prihdr.set('observer', 'Edwin Hubble')
@@ -167,9 +169,10 @@ repr(header)::
     SIMPLE  =                    T / file does conform to FITS standard
     BITPIX  =                   16 / number of bits per data pixel
     NAXIS   =                    0 / number of data axes
-    ...all cards are shown...
+    all cards are shown...
     >>> print repr(header)
-    ...identical...
+    identical...
+
 
 It's also possible to view a slice of the header::
 
@@ -618,4 +621,3 @@ Reference/API
 .. rubric:: Footnotes
 
 .. [#f1]  For legacy code only that already depends on PyFITS, it's acceptable to continue using "from astropy.io import fits as pyfits".
-

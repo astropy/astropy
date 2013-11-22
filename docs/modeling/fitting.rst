@@ -47,7 +47,7 @@ Fitting examples
     [[  1.00000000e+00   1.00000000e+00]
      [  2.00000000e+00   2.00000000e+00]
      [  3.88335494e-16   3.88335494e-16]
-     [ -2.99749607e-17  -2.99749607e-17]]
+     [ -2.997...e-17  -2.997...e-17]]
 
 Fitters support constrained fitting.
 
@@ -71,8 +71,7 @@ Fitters support constrained fitting.
       >>> y = p1(x)
       >>> p1.c0.fixed = True
       >>> pfit = fitting.LinearLSQFitter()
-      >>> new_model = pfit(p1, x, y)
-      ...
+      >>> new_model = pfit(p1, x, y)  # doctest: +SKIP
       >>> new_model.param_sets  # doctest: +SKIP
       array([[ 1.,          1.        ],
              [ 2.38641216,  2.38641216],

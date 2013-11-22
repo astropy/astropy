@@ -738,10 +738,10 @@ order and taking the first value which is defined (i.e. is not None).  For examp
   >>> t1 = Table([col1])
   >>> t2 = Table([col2])
   >>> t3 = Table([col3])
-  >>> out = vstack([t1, t2, t3])
+  >>> out = vstack([t1, t2, t3])  # doctest: +SKIP
   WARNING: MergeConflictWarning: In merged column 'a' the 'unit' attribute does
   not match (cm != m).  Using m for merged output [astropy.table.operations]
-  >>> out['a'].unit
+  >>> out['a'].unit  # doctest: +SKIP
   Unit("m")
 
 The rules for merging are as for `Merging metadata`_, and the

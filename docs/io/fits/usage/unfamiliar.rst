@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 .. currentmodule:: astropy.io.fits
 
 Less Familiar Objects
@@ -152,7 +154,7 @@ is regular and the other variable length array.
     >>> tbhdu = fits.new_table([c1, c2])
     >>> print tbhdu.data
     FITS_rec([(array([45, 56]), array([11,  3], dtype=int16)),
-              (array([11, 12, 13]), array([12,  4], dtype=int16))], 
+              (array([11, 12, 13]), array([12,  4], dtype=int16))],
              dtype=[('var', '<i4', 2), ('xyz', '<i2', 2)])
     # write to a FITS file
     >>> tbhdu.writeto('var_table.fits')

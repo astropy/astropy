@@ -52,7 +52,7 @@ about the table values and column definitions as follows::
 
   >>> t
   <Table rows=3 names=('a','b','c')>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8.2, 'z')],
+  array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8..., 'z')],
         dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
 
 From within the IPython notebook, the table is displayed as a formatted HTML table:
@@ -159,7 +159,7 @@ Lastly, one can create a table with support for missing values, for example by s
   >>> t['a'].mask = [True, True, False]
   >>> t
   <Table rows=3 names=('a','b','c')>
-  masked_array(data = [(--, 2.0, 'x') (--, 5.0, 'y') (5, 8.2, 'z')],
+  masked_array(data = [(--, 2.0, 'x') (--, 5.0, 'y') (5, 8..., 'z')],
                mask = [(True, False, False) (True, False, False) (False, False, False)],
          fill_value = (999999, 1e+20, 'N'),
               dtype = [('a', '<i8'), ('b', '<f8'), ('c', 'S1')])

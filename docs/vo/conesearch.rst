@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 .. _astropy_conesearch:
 
 VO Simple Cone Search
