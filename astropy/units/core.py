@@ -1159,8 +1159,7 @@ class UnitBase(object):
             results.sort(key=lambda x: np.abs(x.scale))
             results.sort(key=lambda x: np.sum(np.abs(x.powers)))
             results.sort(key=lambda x: np.sum(x.powers) < 0.0)
-            results.sort(key=lambda x: not np.all(
-                is_effectively_unity(x.scale)))
+            results.sort(key=lambda x: not is_effectively_unity(x.scale))
 
             last_result = results[0]
             filtered = [last_result]
@@ -1682,27 +1681,22 @@ class _UnitMetaClass(type):
         from .quantity import Quantity
 
         if isinstance(represents, Quantity):
-            if represents.value == 1:
+            if is_effectively_unity(represents.value):
                 represents = represents.unit
-            elif isinstance(represents.unit, CompositeUnit):
-                represents = CompositeUnit(represents.value,
+            else:
+                # cannot use _error_check=False: scale may be effectively unity
+                represents = CompositeUnit(represents.value *
+                                           represents.unit.scale,
                                            bases=represents.unit.bases,
                                            powers=represents.unit.powers)
-            else:
-                represents = CompositeUnit(represents.value,
-                                           bases=[represents.unit], powers=[1],
-                                           _error_check=False)
 
         if isinstance(s, Quantity):
-            if s.value == 1:
+            if is_effectively_unity(s.value):
                 s = s.unit
-            elif isinstance(s.unit, CompositeUnit):
+            else:
                 s = CompositeUnit(s.value * s.unit.scale,
                                   bases=s.unit.bases,
                                   powers=s.unit.powers)
-            else:
-                s = CompositeUnit(s.value, bases=[s.unit], powers=[1],
-                                  _error_check=False)
 
         # now decide what we really need to do; define derived Unit?
         if isinstance(represents, UnitBase):

@@ -411,7 +411,7 @@ class Quantity(np.ndarray):
         unit = Unit(unit)
         new_val = np.asarray(
             self.unit.to(unit, self.value, equivalencies=equivalencies))
-        result = self.__quantity_view__(new_val, self.unit)
+        result = self.__quantity_view__(new_val, unit)
         result._unit = unit
         return result
 

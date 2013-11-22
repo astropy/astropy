@@ -31,6 +31,24 @@ def test_getting_started():
         assert_allclose(x, [2.23693629e-02, 2.23693629e+01, 1.11846815e+02])
 
 
+def test_initialisation():
+    assert u.Unit(u.m) is u.m
+
+    ten_meter = u.Unit(10.*u.m)
+    assert ten_meter == u.CompositeUnit(10., [u.m], [1])
+    assert u.Unit(ten_meter) is ten_meter
+
+    assert u.Unit(10.*ten_meter) == u.CompositeUnit(100., [u.m], [1])
+
+    foo = u.Unit('foo', (10. * ten_meter)**2, namespace=locals())
+    assert foo == u.CompositeUnit(10000., [u.m], [2])
+
+    assert u.Unit('m') == u.m
+    assert u.Unit('') == u.dimensionless_unscaled
+    assert u.Unit('10 m') == ten_meter
+    assert u.Unit(10.) == u.CompositeUnit(10., [], [])
+
+
 def test_invalid_power():
     x = u.m ** (1, 3)
     assert isinstance(x.powers[0], Fraction)
